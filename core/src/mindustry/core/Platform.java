@@ -87,6 +87,7 @@ public interface Platform{
 
     /** Must be a base64 string 8 bytes in length. */
     default String getUUID(){
+//        Core.settings.setDataDirectory(new Fi("/home/max/snap/mindustry/426/.local/share/Mindustry/"));
         String uuid = Core.settings.getString("uuid", "");
         if(uuid.isEmpty()){
             byte[] result = new byte[8];

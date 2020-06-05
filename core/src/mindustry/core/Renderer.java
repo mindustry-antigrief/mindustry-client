@@ -40,7 +40,7 @@ public class Renderer implements ApplicationListener{
     private float targetscale = Scl.scl(4);
     private float camerascale = targetscale;
     private float landscale = 0f, landTime;
-    private float minZoomScl = Scl.scl(0.01f);
+    private float minZoomScl = Scl.scl(0.001f);
     private Rect rect = new Rect(), rect2 = new Rect();
     private float shakeIntensity, shaketime;
 
@@ -104,7 +104,7 @@ public class Renderer implements ApplicationListener{
     public void update(){
         Color.white.set(1f, 1f, 1f, 1f);
 
-        camerascale = Mathf.lerpDelta(camerascale, targetscale, 0.1f);
+        camerascale = Mathf.lerpDelta(camerascale, targetscale, 0.05f);
 
         if(landTime > 0){
             landTime -= Time.delta();
@@ -389,7 +389,7 @@ public class Renderer implements ApplicationListener{
 
     public void clampScale(){
         float s = Scl.scl(1f);
-        targetscale = Mathf.clamp(targetscale, s * 1.5f, Math.round(s * 6));
+        targetscale = Mathf.clamp(targetscale, s * 0.1f, Math.round(s * 6));
     }
 
     public float getScale(){
