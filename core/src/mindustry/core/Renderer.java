@@ -383,7 +383,7 @@ public class Renderer implements ApplicationListener{
     }
 
     public void scaleCamera(float amount){
-        targetscale += amount;
+        targetscale *= (amount / 5) + 1;
         clampScale();
     }
 
