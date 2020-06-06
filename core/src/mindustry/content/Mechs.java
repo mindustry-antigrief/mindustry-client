@@ -29,7 +29,7 @@ public class Mechs implements ContentList{
                 mineSpeed = 1.5f;
                 mass = 1.2f;
                 speed = 0.5f;
-                itemCapacity = 40;
+                itemCapacity = 4000;
                 boostSpeed = 0.95f;
                 buildPower = 1.2f;
                 engineColor = Color.valueOf("ffd37f");
@@ -58,7 +58,7 @@ public class Mechs implements ContentList{
                 drillPower = -1;
                 speed = 0.75f;
                 boostSpeed = 0.95f;
-                itemCapacity = 15;
+                itemCapacity = 1500;
                 mass = 0.9f;
                 health = 150f;
                 buildPower = 0.9f;
@@ -101,7 +101,7 @@ public class Mechs implements ContentList{
             {
                 drillPower = 4;
                 mineSpeed = 3f;
-                itemCapacity = 70;
+                itemCapacity = 7000;
                 weaponOffsetY = -1;
                 weaponOffsetX = 1;
                 mass = 1.75f;
@@ -151,7 +151,7 @@ public class Mechs implements ContentList{
             {
                 drillPower = 2;
                 mineSpeed = 1.5f;
-                itemCapacity = 80;
+                itemCapacity = 8000;
                 speed = 0.36f;
                 boostSpeed = 0.6f;
                 mass = 4f;
@@ -316,7 +316,7 @@ public class Mechs implements ContentList{
                 mass = 2.5f;
                 turnCursor = false;
                 health = 250f;
-                itemCapacity = 30;
+                itemCapacity = 3000;
                 engineColor = Color.valueOf("84f491");
                 cellTrnsY = 1f;
                 buildPower = 2.5f;
@@ -357,7 +357,7 @@ public class Mechs implements ContentList{
                 drag = 0.06f;
                 mass = 3f;
                 health = 240f;
-                itemCapacity = 60;
+                itemCapacity = 6000;
                 engineColor = Color.valueOf("feb380");
                 cellTrnsY = 1f;
                 buildPower = 1.2f;

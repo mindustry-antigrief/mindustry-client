@@ -196,7 +196,9 @@ public class LightRenderer{
         Draw.color();
         Shaders.light.ambient.set(state.rules.ambientLight);
         Draw.shader(Shaders.light);
-        Draw.rect(Draw.wrap(buffer.getTexture()), Core.camera.position.x, Core.camera.position.y, Core.camera.width, -Core.camera.height);
+        if(Core.settings.getBool("lighting")){
+            Draw.rect(Draw.wrap(buffer.getTexture()), Core.camera.position.x, Core.camera.position.y, Core.camera.width, -Core.camera.height);
+        }
         Draw.shader();
 
         lights.clear();

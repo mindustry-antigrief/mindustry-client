@@ -284,6 +284,7 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         if(!mobile){
             graphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
+            graphics.checkPref("lighting", true, b -> Core.settings.put("lighting", b));
             graphics.checkPref("fullscreen", false, b -> {
                 if(b){
                     Core.graphics.setFullscreenMode(Core.graphics.getDisplayMode());
