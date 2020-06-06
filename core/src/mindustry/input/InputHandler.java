@@ -34,6 +34,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.BuildBlock.*;
 import mindustry.world.blocks.power.*;
+import org.w3c.dom.ls.*;
 
 import java.util.*;
 
@@ -565,7 +566,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         boolean consumed = false, showedInventory = false;
 
         //check if tapped block is configurable
-        if(tile.block().configurable && tile.interactable(player.getTeam())){
+        if(tile.block().configurable){
             consumed = true;
             if(((!frag.config.isShown() && tile.block().shouldShowConfigure(tile, player)) //if the config fragment is hidden, show
             //alternatively, the current selected block can 'agree' to switch config tiles
