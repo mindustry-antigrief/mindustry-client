@@ -38,6 +38,7 @@ import org.w3c.dom.ls.*;
 
 import java.util.*;
 
+import static arc.graphics.GL20.*;
 import static mindustry.Vars.*;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
@@ -425,12 +426,37 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        Lines.stroke(2f);
+        Draw.color(Color.valueOf("e5545466"));
+        float x = result.x;
+        float y = result.y;
+        float width = result.x2 - result.x;
+        float height = result.y2 - result.y;
 
-        Draw.color(Pal.removeBack);
-        Lines.rect(result.x, result.y - 1, result.x2 - result.x, result.y2 - result.y);
-        Draw.color(Pal.remove);
-        Lines.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+        float stroke;
+
+        x -= 0;
+        y -= 0;
+        width += 0 * 2.0F;
+        height += 0 * 2.0F;
+        Core.gl.glHint(Core.gl.GL_SAMPLE_BUFFERS, 1);
+        Core.gl.glHint(Core.gl.GL_SAMPLES, 4);
+        Lines.precise(true);
+
+        stroke = height / 2;
+        Fill.crect(x, y, width, stroke);
+        Fill.crect(x, y + height, width, -stroke);
+
+        stroke = width / 2;
+        Fill.crect(x + width, y, -stroke, height);
+        Fill.crect(x, y, stroke, height);
+
+
+//        Lines.stroke(2f);
+
+//        Draw.color(Pal.removeBack);
+//        Lines.rect(result.x, result.y - 1, result.x2 - result.x, result.y2 - result.y);
+//        Draw.color(Pal.remove);
+//        Lines.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
     }
 
     protected void drawSelection(int x1, int y1, int x2, int y2, int maxLength){
@@ -439,9 +465,58 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Lines.stroke(2f);
 
         Draw.color(Pal.accentBack);
-        Lines.rect(result.x, result.y - 1, result.x2 - result.x, result.y2 - result.y);
-        Draw.color(Pal.accent);
-        Lines.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+//        Lines.rect(result.x, result.y - 1, result.x2 - result.x, result.y2 - result.y);
+//        Core.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT | (Core.graphics.getBufferFormat().coverageSampling?GL20.GL_COVERAGE_BUFFER_BIT_NV:0));
+//        Core.gl20.glSampleCoverage(0.1F, false);
+//        System.out.println(Core.gl20.GL_SAMPLES);
+        Core.gl.glEnable(2848);
+
+//        Core.gl20.glEnable(GL_LINE_SMOOTH);
+//        Core.gl.glEnable(GL_BLEND);
+
+//        Core.gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//        Core.gl.glHint(3154, GL_NICEST);
+//        Core.gl20.glEnable(5377);
+        Draw.color(Color.valueOf("ffd37f66"));
+//        Draw.color(Pal.accent);
+        float x = result.x;
+        float y = result.y;
+        float width = result.x2 - result.x;
+        float height = result.y2 - result.y;
+//        float stroke = 1 / renderer.getScale();
+//        stroke *= 4;
+        float stroke = 1F;
+//        if(renderer.getScale() < 1) {
+//            stroke = 3F;
+//        }
+//        if(renderer.getScale() < 0.5) {
+//            stroke = 4F;
+//        }
+//        if(renderer.getScale() < 0.25) {
+//            stroke = 5F;
+//        }
+        x -= 0;
+        y -= 0;
+        width += 0 * 2.0F;
+        height += 0 * 2.0F;
+        Core.gl.glHint(Core.gl.GL_SAMPLE_BUFFERS, 1);
+        Core.gl.glHint(Core.gl.GL_SAMPLES, 4);
+        Lines.precise(true);
+        stroke = 30F;
+//        Lines.rect(x, y, width, height, );
+//
+//        Core.gl.
+        stroke = height / 2;
+        Fill.crect(x, y, width, stroke);
+        Fill.crect(x, y + height, width, -stroke);
+
+        stroke = width / 2;
+        Fill.crect(x + width, y, -stroke, height);
+        Fill.crect(x, y, stroke, height);
+//        Lines.rect();
+//        Lines.stroke(stroke);
+//        Lines.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+//        ShapeRenderer shape = new
     }
 
     protected void flushSelectRequests(Array<BuildRequest> requests){

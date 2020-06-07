@@ -13,7 +13,9 @@ import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.core.GameState.*;
+import mindustry.entities.*;
 import mindustry.entities.traits.BuilderTrait.*;
+import mindustry.entities.type.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -128,6 +130,26 @@ public class DesktopInput extends InputHandler{
         }
 
         Draw.reset();
+    }
+
+    void checkTargets(float x, float y){
+        Unit unit = Units.closestEnemy(player.getTeam(), x, y, 20f, u -> !u.isDead());
+
+        if(unit != null){
+            player.setMineTile(null);
+            player.target = unit;
+        }else{
+            Tile tile = world.ltileWorld(x, y);
+
+            if(tile != null && tile.synthetic() && player.getTeam().isEnemy(tile.getTeam())){
+                TileEntity entity = tile.entity;
+                player.setMineTile(null);
+                player.target = entity;
+            }else if(tile != null && player.mech.canHeal && tile.entity != null && tile.getTeam() == player.getTeam() && tile.entity.damaged()){
+                player.setMineTile(null);
+                player.target = tile.entity;
+            }
+        }
     }
 
     @Override
