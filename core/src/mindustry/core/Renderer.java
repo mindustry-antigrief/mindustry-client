@@ -32,8 +32,7 @@ public class Renderer implements ApplicationListener{
     public final MinimapRenderer minimap = new MinimapRenderer();
     public final OverlayRenderer overlays = new OverlayRenderer();
     public final LightRenderer lights = new LightRenderer();
-    public final Antialiaser pixelator = new Antialiaser();
-//    public final Pixelator pixelator = new Pixelator();
+    public final Pixelator pixelator = new Pixelator();
 
     public FrameBuffer shieldBuffer = new FrameBuffer(2, 2);
     private Bloom bloom;

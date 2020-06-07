@@ -430,7 +430,6 @@ public class PlacementFragment extends Fragment{
             if(locked != 0) return locked;
             return Boolean.compare(state.rules.bannedBlocks.contains(b1), state.rules.bannedBlocks.contains(b2));
         });
-//        returnArray.add();
         return returnArray;
     }
 
