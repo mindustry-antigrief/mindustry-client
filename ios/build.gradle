@@ -41,11 +41,11 @@ task deploy{
     dependsOn createIPA
 }
 
-launchIPhoneSimulator.dependsOn build
-launchIPadSimulator.dependsOn build
-launchIOSDevice.dependsOn build
-createIPA.dependsOn build
-
+//launchIPhoneSimulator.dependsOn build
+//launchIPadSimulator.dependsOn build
+//launchIOSDevice.dependsOn build
+//createIPA.dependsOn build
+//
 robovm{
     archs = "thumbv7:arm64"
 }
