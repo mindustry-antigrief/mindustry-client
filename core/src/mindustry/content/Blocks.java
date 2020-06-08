@@ -57,7 +57,7 @@ public class Blocks implements ContentList{
     scrapWall, scrapWallLarge, scrapWallHuge, scrapWallGigantic, thruster, //ok, these names are getting ridiculous, but at least I don't have humongous walls yet
 
     //transport
-    conveyor, titaniumConveyor, armoredConveyor, distributor, junction, itemBridge, phaseConveyor, sorter, invertedSorter, router, overflowGate, underflowGate, massDriver, chain,
+    conveyor, titaniumConveyor, armoredConveyor, distributor, junction, itemBridge, phaseConveyor, sorter, invertedSorter, router, overflowGate, underflowGate, massDriver,
 
     //liquid
     mechanicalPump, rotaryPump, thermalPump, conduit, pulseConduit, platedConduit, liquidRouter, liquidTank, liquidJunction, bridgeConduit, phaseConduit,
@@ -80,7 +80,7 @@ public class Blocks implements ContentList{
     fortressFactory, repairPoint,
 
     //upgrades
-    dartPad, deltaPad, tauPad, omegaPad, javelinPad, tridentPad, glaivePad;
+    dartPad, deltaPad, tauPad, omegaPad, javelinPad, tridentPad, glaivePad, chain;
 
     @Override
     public void load(){
@@ -965,11 +965,6 @@ public class Blocks implements ContentList{
         }};
 
         overflowGate = new OverflowGate("overflow-gate"){{
-            requirements(Category.distribution, ItemStack.with(Items.lead, 2, Items.copper, 4));
-            buildCostMultiplier = 3f;
-        }};
-
-        chain = new Chain("chain"){{
             requirements(Category.distribution, ItemStack.with(Items.lead, 2, Items.copper, 4));
             buildCostMultiplier = 3f;
         }};
@@ -1865,6 +1860,12 @@ public class Blocks implements ContentList{
             radius = 120f;
             consumes.power(0.05f);
         }};
+
+        chain = new Chain("chain"){{
+            requirements(Category.distribution, ItemStack.with(Items.lead, 2, Items.copper, 4));
+            buildCostMultiplier = 3f;
+        }};
+
 
         //endregion
     }
