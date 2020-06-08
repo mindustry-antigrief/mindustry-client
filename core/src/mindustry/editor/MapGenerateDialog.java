@@ -160,7 +160,7 @@ public class MapGenerateDialog extends FloatingDialog{
         }
 
         pixmap = new Pixmap(editor.width() / scaling, editor.height() / scaling, Format.RGBA8888);
-        texture = new Texture(pixmap);
+        texture = new Texture(pixmap, true);
 
         cont.clear();
         cont.table(t -> {

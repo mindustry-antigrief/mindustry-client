@@ -345,15 +345,33 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         graphics.checkPref("linear", !mobile, b -> {
             for(Texture tex : Core.atlas.getTextures()){
-                TextureFilter filter = b ? TextureFilter.Linear : TextureFilter.Nearest;
+//                tex.glTarget;
+                int texture_id = tex.glTarget;
+//                System.out.println(new Core.gl.bind);
+//                Core.gl.tex
+//                Core.gl.glGenTexture(1, texture_id);
+//                Core.gl.glGenTexture()
+                Core.gl.glBindTexture(Core.gl.GL_TEXTURE_2D, texture_id);
+//                Core.gl.glBindTexture();
+                Core.gl.glGenerateMipmap(Core.gl.GL_TEXTURE_2D);
+                TextureFilter filter = b ? TextureFilter.Linear : TextureFilter.Linear;
                 tex.setFilter(filter, filter);
             }
         });
 
         if(Core.settings.getBool("linear")){
             for(Texture tex : Core.atlas.getTextures()){
+                int texture_id = tex.glTarget;
+//                System.out.println(new Core.gl.bind);
+//                Core.gl.tex
+//                Core.gl.glGenTexture(1, texture_id);
+//                Core.gl.glGenTexture()
+                Core.gl.glBindTexture(Core.gl.GL_TEXTURE_2D, texture_id);
+//                Core.gl.glBindTexture();
+                Core.gl.glGenerateMipmap(Core.gl.GL_TEXTURE_2D);
                 TextureFilter filter = TextureFilter.Linear;
                 tex.setFilter(filter, filter);
+//                System.out.println(tex);
             }
         }
 

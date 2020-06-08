@@ -6,7 +6,7 @@ buildscript{
 
         arcHash = getArcHash()
     }
-    
+
     repositories{
         mavenLocal()
         mavenCentral()
@@ -47,7 +47,7 @@ allprojects{
         }
 
         localArc = {
-            return !project.hasProperty("release") && new File(projectDir.parent, '../Arc').exists()
+            return new File(projectDir.parent, '../Arc').exists()
         }
 
         arcModule = { String name ->

@@ -114,7 +114,9 @@ public class Renderer implements ApplicationListener{
 
         camera.width = graphics.getWidth() / camerascale;
         camera.height = graphics.getHeight() / camerascale;
-
+        System.out.println(graphics.getBufferFormat());
+        graphics.getGL20().glSampleCoverage(2F, true);
+        System.out.println(graphics.getBufferFormat());
         if(state.is(State.menu)){
             landTime = 0f;
             graphics.clear(Color.black);

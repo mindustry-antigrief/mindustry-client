@@ -88,7 +88,7 @@ public class Maps{
             reload();
             for(Map map : maps){
                 try{
-                    map.texture = map.previewFile().exists() ? new Texture(map.previewFile()) : new Texture(MapIO.generatePreview(map));
+                    map.texture = map.previewFile().exists() ? new Texture(map.previewFile(), true) : new Texture(MapIO.generatePreview(map), true);
                     readCache(map);
                 }catch(Exception e){
                     e.printStackTrace();
@@ -408,7 +408,7 @@ public class Maps{
             //if it's here, then the preview failed to load or doesn't exist, make it
             //this has to be done synchronously!
             Pixmap pix = MapIO.generatePreview(map);
-            map.texture = new Texture(pix);
+            map.texture = new Texture(pix, true);
             executor.submit(() -> {
                 try{
                     map.previewFile().writePNG(pix);
