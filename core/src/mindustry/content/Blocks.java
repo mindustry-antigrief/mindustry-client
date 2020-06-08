@@ -969,7 +969,7 @@ public class Blocks implements ContentList{
             buildCostMultiplier = 3f;
         }};
 
-        chain = new OverflowGate("chain"){{
+        chain = new Chain("chain"){{
             requirements(Category.distribution, ItemStack.with(Items.lead, 2, Items.copper, 4));
             buildCostMultiplier = 3f;
         }};

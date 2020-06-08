@@ -33,6 +33,7 @@ import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.BuildBlock.*;
+import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.power.*;
 import org.w3c.dom.ls.*;
 
@@ -40,6 +41,7 @@ import java.util.*;
 
 import static arc.graphics.GL20.*;
 import static mindustry.Vars.*;
+import static mindustry.content.Blocks.*;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
     /** Used for dropping items. */
@@ -615,7 +617,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         lineRequests.clear();
         iterateLine(x1, y1, x2, y2, l -> {
             rotation = l.rotation;
-            BuildRequest req = new BuildRequest(l.x, l.y, l.rotation, block);
+            BuildRequest req;
+            if(block instanceof Chain){
+                if((l.x + l.y) % 2 == 1){
+                    req = new BuildRequest(l.x, l.y, l.rotation, overflowGate);
+                }else{
+                    req = new BuildRequest(l.x, l.y, l.rotation, invertedSorter);
+                }
+            }else{
+                req = new BuildRequest(l.x, l.y, l.rotation, block);
+            }
             req.animScale = 1f;
             lineRequests.add(req);
         });
