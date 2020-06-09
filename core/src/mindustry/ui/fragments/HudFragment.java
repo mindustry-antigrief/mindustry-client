@@ -1,6 +1,7 @@
 package mindustry.ui.fragments;
 
 import arc.*;
+import arc.func.*;
 import mindustry.annotations.Annotations.*;
 import arc.struct.*;
 import arc.graphics.*;
@@ -47,6 +48,8 @@ public class HudFragment extends Fragment{
     private boolean showHudText;
 
     private long lastToast;
+
+    public Bar healthBar;
 
     public void build(Group parent){
 
@@ -157,6 +160,7 @@ public class HudFragment extends Fragment{
                 addWaveTable(waves);
                 addPlayButton(btable);
                 wavesMain.add(stack).width(dsize * 5 + 4f);
+
                 wavesMain.row();
                 wavesMain.table(Tex.button, t -> t.margin(10f).add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white))
                 .grow()).fillX().visible(() -> state.rules.waves && state.boss() != null).height(60f).get();
@@ -258,6 +262,16 @@ public class HudFragment extends Fragment{
             //minimap
             t.add(new Minimap());
             t.row();
+
+            t.row();
+            healthBar = new Bar(Core.bundle.get("player.health"), Pal.health, () -> player.healthf()).blink(Color.white);
+//            t.add(healthBar).grow().fillX().height(40f);Color.red
+            t.table(Tex.button, y -> y.margin(10f).add(healthBar)
+            .grow()).fillX().visible(() -> true).height(40f).get();
+//            System.out.println(Core.bundle.format("player.health", String.valueOf(3.14), String.valueOf(5)));
+            t.row();
+
+
             //position
             t.label(() -> world.toTile(player.x) + "," + world.toTile(player.y))
                 .visible(() -> Core.settings.getBool("position") && !state.rules.tutorial);

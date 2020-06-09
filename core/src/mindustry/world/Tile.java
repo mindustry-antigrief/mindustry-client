@@ -384,7 +384,7 @@ public class Tile implements Position, TargetTrait{
     }
 
     public boolean interactable(Team team){
-        return state.teams.canInteract(team, getTeam());
+        return true;
     }
 
     public @Nullable Item drop(){

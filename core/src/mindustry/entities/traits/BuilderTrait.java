@@ -27,7 +27,7 @@ import static mindustry.entities.traits.BuilderTrait.BuildDataStatic.tmptr;
 /** Interface for units that build things.*/
 public interface BuilderTrait extends Entity, TeamTrait{
     //these are not instance variables!
-    float placeDistance = 220f;
+    float placeDistance = 2200f;
     float mineDistance = 70f;
 
     /** Updates building mechanism for this unit.*/

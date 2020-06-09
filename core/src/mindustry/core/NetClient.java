@@ -10,6 +10,7 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.content.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
@@ -20,12 +21,14 @@ import mindustry.entities.type.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.input.*;
 import mindustry.net.Administration.*;
 import mindustry.net.Net.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.blocks.liquid.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
@@ -56,6 +59,22 @@ public class NetClient implements ApplicationListener{
     /** Byte stream for reading in snapshots. */
     private ReusableByteInStream byteStream = new ReusableByteInStream();
     private DataInputStream dataStream = new DataInputStream(byteStream);
+
+//    {
+//        System.out.println("fioewjfiowejoifweoifowejfie");
+//        netServer.clientCommands.register("conduits", "", (player1, params) -> {
+//            for(Tile[] row : world.getTiles()){
+//                for(Tile tile : row){
+//                    if(tile.block() instanceof Conduit){
+//                        BuildRequest req = new BuildRequest(tile.x, tile.y, tile.rotation(), Blocks.pulseConduit);
+//                        player.buildQueue().addLast(req);
+//                    }
+//                }
+//            }
+//        });
+////        System.out.println(netServer.clientCommands.);
+//    }
+
 
     public NetClient(){
 
@@ -137,6 +156,19 @@ public class NetClient implements ApplicationListener{
     //called on all clients
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, String sender, Player playersender){
+//        System.out.println(message);
+        if(message.startsWith("!conduits") && playersender == player){
+            for(Tile[] row : world.getTiles()){
+                for(Tile tile : row){
+                    if(tile.block() == Blocks.conduit && tile.getTeam() == player.getTeam()){
+                        System.out.println(tile);
+                        BuildRequest req = new BuildRequest(tile.x, tile.y, tile.rotation(), Blocks.pulseConduit);
+                        player.buildQueue().addLast(req);
+                    }
+                }
+            }
+            return;
+        }
         if(Vars.ui != null){
             Vars.ui.chatfrag.addMessage(message, sender);
         }
@@ -184,6 +216,7 @@ public class NetClient implements ApplicationListener{
             //invoke event for all clients but also locally
             //this is required so other clients get the correct name even if they don't know who's sending it yet
             Call.sendMessage(message, colorizeName(player.id, player.name), player);
+//            System.out.println("thifjiewfjiweofjwe");
         }else{
             //log command to console but with brackets
             Log.info("<&y{0}: &lm{1}&lg>", player.name, message);
@@ -198,6 +231,8 @@ public class NetClient implements ApplicationListener{
                 }else if(response.type == ResponseType.fewArguments){
                     text = "[scarlet]Too few arguments. Usage:[lightgray] " + response.command.text + "[gray] " + response.command.paramText;
                 }else{ //unknown command
+//                    System.out.println("fiejiwfiwfie");
+//                    System.out.println(response.command);
                     text = "[scarlet]Unknown command. Check [lightgray]/help[scarlet].";
                 }
 

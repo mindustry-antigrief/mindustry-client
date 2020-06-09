@@ -759,6 +759,8 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     //region utility methods
 
     public void sendMessage(String text){
+//        System.out.println("wjiefjiewifieieifiiefiei");
+//        System.out.println(text);
         if(isLocal){
             if(Vars.ui != null){
                 Vars.ui.chatfrag.addMessage(text, null);

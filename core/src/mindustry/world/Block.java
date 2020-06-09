@@ -1,6 +1,7 @@
 package mindustry.world;
 
 import arc.*;
+import arc.scene.ui.*;
 import mindustry.annotations.Annotations.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
@@ -688,6 +689,10 @@ public class Block extends BlockStorage{
             table.table(ctable -> {
                 displayConsumption(tile, ctable);
             }).growX();
+//            table.row();
+//            table.table(ctable -> {
+//                displayConsumption(tile, ctable);
+//            }).growX();
 
             table.marginBottom(-5);
         }
@@ -700,6 +705,12 @@ public class Block extends BlockStorage{
             cons.build(tile, table);
         }
     }
+
+//    public void displayUser(Tile tile, Table table){
+//        table.left();
+//
+//        table.add(new Label(tile.));
+//    }
 
     public void displayBars(Tile tile, Table table){
         for(Func<TileEntity, Bar> bar : bars.list()){

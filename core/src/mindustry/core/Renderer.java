@@ -22,6 +22,7 @@ import mindustry.game.EventType.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.ui.*;
+import mindustry.ui.fragments.*;
 import mindustry.world.blocks.defense.ForceProjector.*;
 
 import static arc.Core.*;
@@ -114,9 +115,12 @@ public class Renderer implements ApplicationListener{
 
         camera.width = graphics.getWidth() / camerascale;
         camera.height = graphics.getHeight() / camerascale;
-        System.out.println(graphics.getBufferFormat());
-        graphics.getGL20().glSampleCoverage(2F, true);
-        System.out.println(graphics.getBufferFormat());
+//        System.out.println(graphics.getBufferFormat());
+//        graphics.getGL20().glSampleCoverage(2F, true);
+//        System.out.println(graphics.getBufferFormat());
+//        ui.hudfrag.healthBar.setName(Core.bundle.format("player.health", (int)player.health(), (int)player.maxHealth()));
+//        ui.hudfrag.healthBar.
+//        System.out.println(Core.bundle.format("player.health", (int)player.health(), (int)player.maxHealth()));
         if(state.is(State.menu)){
             landTime = 0f;
             graphics.clear(Color.black);

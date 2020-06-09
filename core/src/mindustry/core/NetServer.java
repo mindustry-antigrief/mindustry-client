@@ -24,6 +24,7 @@ import mindustry.net.*;
 import mindustry.net.Administration.*;
 import mindustry.net.Packets.*;
 import mindustry.world.*;
+import mindustry.world.blocks.liquid.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import java.io.*;
