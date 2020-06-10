@@ -12,6 +12,7 @@ import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.core.GameState.*;
+import mindustry.core.NetServer.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.entities.Effects.*;
@@ -156,12 +157,10 @@ public class NetClient implements ApplicationListener{
     //called on all clients
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, String sender, Player playersender){
-//        System.out.println(message);
         if(message.startsWith("!conduits") && playersender == player){
             for(Tile[] row : world.getTiles()){
                 for(Tile tile : row){
                     if(tile.block() == Blocks.conduit && tile.getTeam() == player.getTeam()){
-                        System.out.println(tile);
                         BuildRequest req = new BuildRequest(tile.x, tile.y, tile.rotation(), Blocks.pulseConduit);
                         player.buildQueue().addLast(req);
                     }

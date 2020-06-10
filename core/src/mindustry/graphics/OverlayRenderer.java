@@ -9,6 +9,7 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.content.*;
 import mindustry.entities.*;
+import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
 import mindustry.input.*;
 import mindustry.type.*;
@@ -49,6 +50,14 @@ public class OverlayRenderer{
                     }
                 }
             }
+            for(BuildRequest req : player.buildQueue()){
+                float angle = Mathf.angle(req.drawx() - player.x, req.drawy() - player.y);
+                Tmp.v1.setLength(indicatorLength);
+                Tmp.v1.setAngle(angle);
+                Lines.stroke(2f, Color.valueOf("84f491"));
+                Lines.lineAngle(player.x + Tmp.v1.x, player.y + Tmp.v1.y, Tmp.v1.angle(), 4f);
+            }
+
 
             Units.all(unit -> {
                 if(unit != player && unit.getTeam() != player.getTeam() && !rect.setSize(Core.camera.width * 0.9f, Core.camera.height * 0.9f).setCenter(Core.camera.position.x, Core.camera.position.y).contains(unit.x, unit.y)){
