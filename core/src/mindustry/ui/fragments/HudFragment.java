@@ -268,7 +268,7 @@ public class HudFragment extends Fragment{
 //                System.out.println("Hello world!");
                 waypointStartTime = Clock.systemUTC().millis();
                 waypoints.clear();
-                waypoints.add(new Waypoint(player.getClosestCore().x, player.getClosestCore().y, 0));
+                waypoints.add(new Waypoint(player.x, player.y, 0));
                 recordingWaypoints = true;
             });
 
@@ -276,14 +276,18 @@ public class HudFragment extends Fragment{
                 waypoints.add(new Waypoint(player.x, player.y, Clock.systemUTC().millis() - waypointStartTime));
             });
 
-            cont.addImageButton(Icon.cancel, () -> {
-                System.out.println(waypoints);
+            cont.addImageButton(Icon.move, () -> {
                 recordingWaypoints = false;
                 followingWaypoints = true;
                 waypointFollowStartTime = Clock.systemUTC().millis();
                 for(Waypoint w : waypoints){
                     notDone.addFirst(w);
                 }
+            });
+
+            cont.addImageButton(Icon.exit, () -> {
+                recordingWaypoints = false;
+                followingWaypoints = false;
             });
         });
         

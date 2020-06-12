@@ -1,10 +1,15 @@
 package mindustry.game;
 
+import arc.*;
 import arc.math.*;
+import arc.math.geom.*;
+import arc.scene.ui.*;
+import arc.util.*;
 import arc.util.ArcAnnotate.*;
 import mindustry.*;
 import mindustry.entities.type.*;
 import mindustry.gen.*;
+import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.world.*;
 
@@ -46,11 +51,22 @@ public class Waypoint{
             speed *= Mathf.lerp(1f, penalty, Angles.angleDist(player.rotation, player.velocity().angle()) / 180f);
         }
 
-        player.velocity().set(x - player.x, y - player.y);
+//        player.velocity().set((x - player.x) * 5, (y - player.y) * 5);
+//        player.velocity().limit(speed);
+//        player.rotation = player.velocity().angle();
+//        player.updateVelocityStatus();
+//        player.updateVelocity();
+        Vec2 movement = new Vec2();
+        movement.setZero();
 
-        player.velocity().limit(speed / 4);
+        float xa = Mathf.clamp(x - player.x, -1F, 1F);
+        float ya = Mathf.clamp(y - player.y, -1F, 1F);
+        movement.y += ya * speed;
+        movement.x += xa * speed;
+        movement.limit(speed).scl(Time.delta());
+        player.velocity().add(movement);
         player.updateVelocityStatus();
-        player.updateVelocity();
+        player.rotation = player.velocity().angle();
         return player.within(x, y, 4);
     }
 }
