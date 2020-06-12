@@ -196,6 +196,9 @@ public class Vars implements Loadable{
 
     public static Player following = player;
 
+//    public static Array<String> undid = new Array<>();
+    public static HashSet<Integer> undid_hashes = new HashSet<>();
+
     @Override
     public void loadAsync(){
         loadSettings();

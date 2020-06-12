@@ -1,6 +1,7 @@
 package mindustry.ui.fragments;
 
 import arc.*;
+import arc.func.*;
 import arc.graphics.g2d.*;
 import arc.scene.*;
 import arc.scene.event.*;
@@ -8,12 +9,16 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.core.GameState.*;
+import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
+
+import java.util.*;
 
 import static mindustry.Vars.*;
 
@@ -150,6 +155,28 @@ public class PlayerListFragment extends Fragment{
 
             button.addImageButton(Icon.copy, Styles.clearPartiali,
             () -> following = user);
+
+            button.addImageButton(Icon.undo, Styles.clearPartiali,
+            () -> ui.showTextInput("Undo", "Number of actions to undo", 3, "5", true, str ->
+                {
+                    try{
+                        int num = Integer.parseInt(str);
+                        int inc = 0;
+                        for(int i = 0; i <= num; i += 1){
+                            if(user.log.size == 0){
+                                break;
+                            }
+                            player.buildQueue().addLast(user.log.pop().undoRequest());
+                        }
+//                        for(BuildLogItem req : user.log){
+//                            inc += 1;
+//                            player.buildQueue().addLast(req.undoRequest());
+//                            if(inc >= num){
+//                                break;
+//                            }
+//                        }
+                    }catch(NumberFormatException ignored){ }
+                }));
 
             content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);
             content.row();

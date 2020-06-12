@@ -1,6 +1,7 @@
 package mindustry.entities.type;
 
 import arc.*;
+import arc.struct.Queue;
 import mindustry.annotations.Annotations.*;
 import arc.struct.*;
 import arc.graphics.*;
@@ -19,6 +20,7 @@ import mindustry.ctype.ContentType;
 import mindustry.entities.*;
 import mindustry.entities.traits.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.io.*;
@@ -28,8 +30,10 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
+import mindustry.world.blocks.BuildBlock.*;
 
 import java.io.*;
+import java.util.*;
 
 import static mindustry.Vars.*;
 
@@ -71,6 +75,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     private Tile mining;
     private Vec2 movement = new Vec2();
     private boolean moved;
+    public Array<BuildLogItem> log = new Array<>();
 
     //endregion
 
@@ -455,8 +460,102 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
 
     //region update methods
 
+//    @Override
+//    public void updateBuilding(){
+//        float finalPlaceDst = state.rules.infiniteResources ? Float.MAX_VALUE : placeDistance;
+//        Unit unit = (Unit)this;
+//        Iterator<BuildRequest> it = buildQueue().iterator();
+//        while(it.hasNext()){
+//            BuildRequest req = it.next();
+//            log.addFirst(req);
+//            Tile tile = world.tile(req.x, req.y);
+//            if(tile == null || (req.breaking && tile.block() == Blocks.air) || (!req.breaking && (tile.rotation() == req.rotation || !req.block.rotate) && tile.block() == req.block)){
+//                it.remove();
+//            }
+//        }
+//
+//        TileEntity core = unit.getClosestCore();
+//
+//        //nothing to build.
+//        if(buildRequest() == null) return;
+//
+//        //find the next build request
+//        if(buildQueue().size > 1){
+//            int total = 0;
+//            BuildRequest req;
+//            while((dst((req = buildRequest()).tile()) > finalPlaceDst || shouldSkip(req, core)) && total < buildQueue().size){
+//                buildQueue().removeFirst();
+//                buildQueue().addLast(req);
+//                total++;
+//            }
+//        }
+//
+//        BuildRequest current = buildRequest();
+//
+//        if(dst(current.tile()) > finalPlaceDst) return;
+//
+//        Tile tile = world.tile(current.x, current.y);
+//
+//        if(!(tile.block() instanceof BuildBlock)){
+//            if(!current.initialized && canCreateBlocks() && !current.breaking && Build.validPlace(getTeam(), current.x, current.y, current.block, current.rotation)){
+//                Call.beginPlace(getTeam(), current.x, current.y, current.block, current.rotation);
+//            }else if(!current.initialized && canCreateBlocks() && current.breaking && Build.validBreak(getTeam(), current.x, current.y)){
+//                Call.beginBreak(getTeam(), current.x, current.y);
+//            }else{
+//                buildQueue().removeFirst();
+//                return;
+//            }
+//        }else if(tile.getTeam() != getTeam()){
+//            buildQueue().removeFirst();
+//            return;
+//        }
+//
+//        if(tile.entity instanceof BuildEntity && !current.initialized){
+//            Core.app.post(() -> Events.fire(new BuildSelectEvent(tile, unit.getTeam(), this, current.breaking)));
+//            current.initialized = true;
+//        }
+//
+//        //if there is no core to build with or no build entity, stop building!
+//        if((core == null && !state.rules.infiniteResources) || !(tile.entity instanceof BuildEntity)){
+//            return;
+//        }
+//
+//        //otherwise, update it.
+//        BuildEntity entity = tile.ent();
+//
+//        if(entity == null){
+//            return;
+//        }
+//
+//        if(unit.dst(tile) <= finalPlaceDst){
+//            unit.rotation = Mathf.slerpDelta(unit.rotation, unit.angleTo(entity), 0.4f);
+//        }
+//
+//        if(current.breaking){
+//            entity.deconstruct(unit, core, 1f / entity.buildCost * Time.delta() * getBuildPower(tile) * state.rules.buildSpeedMultiplier);
+//        }else{
+//            if(entity.construct(unit, core, 1f / entity.buildCost * Time.delta() * getBuildPower(tile) * state.rules.buildSpeedMultiplier, current.hasConfig)){
+//                if(current.hasConfig){
+//                    Call.onTileConfig(null, tile, current.config);
+//                }
+//            }
+//        }
+//
+//        current.stuck = Mathf.equal(current.progress, entity.progress);
+//        current.progress = entity.progress;
+//    }
+
     @Override
     public void updateMechanics(){
+        for(BuildRequest req : buildQueue()){
+            if(undid_hashes.contains(req.hashCode())){
+                continue;
+            }
+            BuildLogItem item = new BuildLogItem(req);
+            if(!log.contains(item)){
+                log.add(item);
+            }
+        }
         if(isBuilding){
             updateBuilding();
         }

@@ -4,6 +4,7 @@ import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
 import arc.graphics.g2d.*;
+import arc.input.*;
 import arc.math.*;
 import arc.scene.*;
 import arc.scene.event.*;
@@ -206,6 +207,12 @@ public class DesktopInput extends InputHandler{
         }
 
         pollInput();
+        if(Core.input.keyDown(KeyCode.CONTROL_LEFT) &&
+           Core.input.keyRelease(KeyCode.Z)){
+            if(player.log.size > 0){
+                player.buildQueue().addLast(player.log.pop().undoRequest());
+            }
+        }
 
         //deselect if not placing
         if(!isPlacing() && mode == placing){
