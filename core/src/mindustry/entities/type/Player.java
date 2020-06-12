@@ -34,6 +34,7 @@ import mindustry.world.blocks.BuildBlock.*;
 
 import java.io.*;
 import java.util.*;
+import java.time.*;
 
 import static mindustry.Vars.*;
 
@@ -568,6 +569,32 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
 
     @Override
     public void update(){
+        if(followingWaypoints){
+//            long time = Clock.systemUTC().millis() - waypointFollowStartTime;
+//            Waypoint currentWaypoint = null;
+//            for(Waypoint waypoint : waypoints){
+//                if(time > waypoint.time){
+//                    break;
+//                }
+//                currentWaypoint = waypoint;
+//            }
+//            if(currentWaypoint == null){
+//                followingWaypoints = false;
+//                return;
+//            }
+//            currentWaypoint.goTo();
+            if(notDone.size == 0){
+                followingWaypoints = false;
+            }else{
+                if(notDone.last().goTo()){
+                    notDone.removeLast();
+                }
+            }
+        }
+//        if(notDone.size > 0){
+//            Waypoint waypoint = notDone.last();
+//            player.moveBy(waypoint.x, waypoint.y);
+//        }
         hitTime -= Time.delta();
         textFadeTime -= Time.delta() / (60 * 5);
         itemtime = Mathf.lerpDelta(itemtime, Mathf.num(item.amount > 0), 0.1f);

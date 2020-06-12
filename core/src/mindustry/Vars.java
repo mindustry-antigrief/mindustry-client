@@ -7,6 +7,7 @@ import arc.files.*;
 import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.struct.Queue;
 import arc.util.*;
 import arc.util.ArcAnnotate.*;
 import arc.util.Log.*;
@@ -198,6 +199,12 @@ public class Vars implements Loadable{
 
 //    public static Array<String> undid = new Array<>();
     public static HashSet<Integer> undid_hashes = new HashSet<>();
+    public static Array<Waypoint> waypoints = new Array<>();
+    public static long waypointStartTime = 0;
+    public static boolean followingWaypoints = false;
+    public static long waypointFollowStartTime = 0;
+    public static Queue<Waypoint> notDone = new Queue<>();
+    public static boolean recordingWaypoints = false;
 
     @Override
     public void loadAsync(){

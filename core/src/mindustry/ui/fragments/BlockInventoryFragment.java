@@ -17,6 +17,7 @@ import mindustry.annotations.Annotations.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
 import mindustry.entities.type.*;
+import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.net.Administration.*;
@@ -159,6 +160,13 @@ public class BlockInventoryFragment extends Fragment{
                         if(!canPick.get() || tile == null || tile.entity == null || tile.entity.items == null || !tile.entity.items.has(item)) return false;
                         int amount = Math.min(1, player.maxAccepted(item));
                         if(amount > 0){
+                            if(recordingWaypoints){
+                                Waypoint w = new Waypoint(player.x, player.y, 111);
+                                w.pickup = tile;
+                                w.item = item;
+                                w.amount = amount;
+                                waypoints.add(w);
+                            }
                             Call.requestItem(player, tile, item, amount);
                             lastItem = item;
                             holding = true;

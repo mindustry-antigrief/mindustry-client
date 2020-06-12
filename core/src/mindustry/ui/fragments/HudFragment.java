@@ -2,6 +2,8 @@ package mindustry.ui.fragments;
 
 import arc.*;
 import arc.func.*;
+import arc.scene.ui.Button.*;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import arc.struct.*;
 import arc.graphics.*;
@@ -32,6 +34,8 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.ui.Cicon;
 import mindustry.ui.dialogs.*;
+
+import java.time.*;
 
 import static mindustry.Vars.*;
 
@@ -255,6 +259,32 @@ public class HudFragment extends Fragment{
                 info.row();
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left().style(Styles.outlineLabel);
             }).top().left();
+
+//            ImageButton button = new ImageButton(Icon.file, Styles.clearPartiali, () -> {
+//                System.out.println("Hello!");
+//            });
+//            cont.stack(button).top().left();
+            cont.addImageButton(Icon.file, () -> {
+//                System.out.println("Hello world!");
+                waypointStartTime = Clock.systemUTC().millis();
+                waypoints.clear();
+                waypoints.add(new Waypoint(player.getClosestCore().x, player.getClosestCore().y, 0));
+                recordingWaypoints = true;
+            });
+
+            cont.addImageButton(Icon.box, () -> {
+                waypoints.add(new Waypoint(player.x, player.y, Clock.systemUTC().millis() - waypointStartTime));
+            });
+
+            cont.addImageButton(Icon.cancel, () -> {
+                System.out.println(waypoints);
+                recordingWaypoints = false;
+                followingWaypoints = true;
+                waypointFollowStartTime = Clock.systemUTC().millis();
+                for(Waypoint w : waypoints){
+                    notDone.addFirst(w);
+                }
+            });
         });
         
         parent.fill(t -> {
