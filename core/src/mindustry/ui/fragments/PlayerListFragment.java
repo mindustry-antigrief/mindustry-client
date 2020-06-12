@@ -143,7 +143,13 @@ public class PlayerListFragment extends Fragment{
 
                 button.addImageButton(Icon.hammer, Styles.clearPartiali,
                         () -> ui.showConfirm("$confirm", "$confirmvotekick", () -> Call.sendChatMessage("/votekick " + user.name))).size(h);
+
             }
+            button.addImageButton(Icon.zoom, Styles.clearPartiali,
+            () -> stalking = user);
+
+            button.addImageButton(Icon.copy, Styles.clearPartiali,
+            () -> following = user);
 
             content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);
             content.row();

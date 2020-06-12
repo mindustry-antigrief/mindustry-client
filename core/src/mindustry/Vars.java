@@ -8,6 +8,7 @@ import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.ArcAnnotate.*;
 import arc.util.Log.*;
 import arc.util.io.*;
 import mindustry.ai.*;
@@ -190,6 +191,10 @@ public class Vars implements Loadable{
     public static EntityGroup<BaseUnit> unitGroup;
 
     public static Player player;
+
+    public static Player stalking = player;
+
+    public static Player following = player;
 
     @Override
     public void loadAsync(){

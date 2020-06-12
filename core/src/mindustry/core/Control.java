@@ -10,6 +10,7 @@ import arc.math.geom.*;
 import arc.scene.ui.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
 import mindustry.content.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
@@ -205,6 +206,7 @@ public class Control implements ApplicationListener, Loadable{
 
     void createPlayer(){
         player = new Player();
+        Vars.stalking = player;
         player.name = Core.settings.getString("name");
         player.color.set(Core.settings.getInt("color-0"));
         player.isLocal = true;

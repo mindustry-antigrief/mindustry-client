@@ -125,7 +125,7 @@ public class Renderer implements ApplicationListener{
             landTime = 0f;
             graphics.clear(Color.black);
         }else{
-            Vec2 position = Tmp.v3.set(player);
+            Vec2 position = Tmp.v3.set(stalking);
 
             if(player.isDead()){
                 TileEntity core = player.getClosestCore();
@@ -227,6 +227,8 @@ public class Renderer implements ApplicationListener{
             camera.position.x = player.x;
             camera.position.y = player.y;
         }
+//        camera.position.x = stalking.x;
+//        camera.position.y = stalking.y;
 
         graphics.clear(clearColor);
 

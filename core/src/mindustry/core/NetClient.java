@@ -168,6 +168,23 @@ public class NetClient implements ApplicationListener{
             }
             return;
         }
+
+        if(message.startsWith("!stalk") && playersender == player){
+//            if(message.substring(7).equals("")){
+//                stalking = player;
+//            }
+            for(Player p : playerGroup.all()){
+                if(p.name.contains(message.substring(7))){
+//                    System.out.println(p);
+                    stalking = p;
+//                    System.out.println("stalking = " + stalking);
+                    break;
+                }
+            }
+            return;
+        }
+
+
         if(Vars.ui != null){
             Vars.ui.chatfrag.addMessage(message, sender);
         }

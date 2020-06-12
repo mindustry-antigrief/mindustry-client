@@ -157,6 +157,22 @@ public class DesktopInput extends InputHandler{
         if(net.active() && Core.input.keyTap(Binding.player_list)){
             ui.listfrag.toggle();
         }
+        if(following != null && following != player){
+            float dx = player.x - following.x;
+            float dy = player.y - following.y;
+            player.moveBy(Mathf.clamp(-dx, -player.mech.maxSpeed, player.mech.maxSpeed),
+                                      Mathf.clamp(-dy, -player.mech.maxSpeed, player.mech.maxSpeed));
+            player.isShooting = following.isShooting;
+            player.rotation = following.rotation;
+            if(player.buildQueue() != following.buildQueue()){
+                player.buildQueue().clear();
+                for(BuildRequest b : following.buildQueue()){
+                    player.buildQueue().addLast(b);
+                }
+            }
+        }
+//        Core.camera.position.x = stalking.x;
+//        Core.camera.position.y = stalking.y;
 
         if(((player.getClosestCore() == null && player.isDead()) || state.isPaused()) && !ui.chatfrag.shown()){
             //move camera around
@@ -399,9 +415,15 @@ public class DesktopInput extends InputHandler{
                 if(!tileTapped(selected) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && (player.buildQueue().size == 0 || !player.isBuilding) && !droppingItem &&
                 !tryBeginMine(selected) && player.getMineTile() == null && !Core.scene.hasKeyboard()){
                     player.isShooting = true;
+                    if(following != null && following != player){
+                        player.isShooting = following.isShooting;
+                    }
                 }
             }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine
                 player.isShooting = true;
+                if(following != null && following != player){
+                    player.isShooting = following.isShooting;
+                }
             }
         }else if(Core.input.keyTap(Binding.deselect) && isPlacing()){
             block = null;
@@ -424,6 +446,9 @@ public class DesktopInput extends InputHandler{
             }
         }else{
             deleting = false;
+        }
+        if(following != null && following != player){
+            player.isShooting = following.isShooting;
         }
 
         if(mode == placing && block != null){
