@@ -280,6 +280,7 @@ public class HudFragment extends Fragment{
                 recordingWaypoints = false;
                 followingWaypoints = true;
                 waypointFollowStartTime = Clock.systemUTC().millis();
+                notDone.clear();
                 for(Waypoint w : waypoints){
                     notDone.addFirst(w);
                 }
@@ -288,6 +289,12 @@ public class HudFragment extends Fragment{
             cont.addImageButton(Icon.exit, () -> {
                 recordingWaypoints = false;
                 followingWaypoints = false;
+                notDone.clear();
+            });
+
+            cont.addImageButton(Icon.eraser, () -> {
+                notDone.clear();
+                waypoints.clear();
             });
         });
         
