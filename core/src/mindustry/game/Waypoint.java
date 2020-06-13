@@ -13,6 +13,8 @@ import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.world.*;
 
+import javax.swing.*;
+
 import static mindustry.Vars.player;
 
 
@@ -42,31 +44,40 @@ public class Waypoint{
         if(pickup != null && item != null){
             Call.requestItem(player, pickup, item, amount);
         }
-
-        float speed = player.isBoosting && !player.mech.flying ? player.mech.boostSpeed : player.mech.speed;
-
-        if(player.mech.flying){
-            //prevent strafing backwards, have a penalty for doing so
-            float penalty = 0.2f; //when going 180 degrees backwards, reduce speed to 0.2x
-            speed *= Mathf.lerp(1f, penalty, Angles.angleDist(player.rotation, player.velocity().angle()) / 180f);
-        }
+//
+//        float speed = player.isBoosting && !player.mech.flying ? player.mech.boostSpeed : player.mech.speed;
+//
+//        if(player.mech.flying){
+//            //prevent strafing backwards, have a penalty for doing so
+//            float penalty = 0.2f; //when going 180 degrees backwards, reduce speed to 0.2x
+//            speed *= Mathf.lerp(1f, penalty, Angles.angleDist(player.rotation, player.velocity().angle()) / 180f);
+//        }
 
 //        player.velocity().set((x - player.x) * 5, (y - player.y) * 5);
 //        player.velocity().limit(speed);
 //        player.rotation = player.velocity().angle();
 //        player.updateVelocityStatus();
 //        player.updateVelocity();
-        Vec2 movement = new Vec2();
-        movement.setZero();
+//        Vec2 movement = new Vec2();
+//        movement.setZero();
 
-        float xa = Mathf.clamp(x - player.x, -1F, 1F);
-        float ya = Mathf.clamp(y - player.y, -1F, 1F);
-        movement.y += ya * speed;
-        movement.x += xa * speed;
-        movement.limit(speed).scl(Time.delta());
-        player.velocity().add(movement);
-        player.updateVelocityStatus();
-        player.rotation = player.velocity().angle();
-        return player.within(x, y, 4);
+//        float xa = (x - player.x) / Time.delta();
+//        float ya = (y - player.y) / Time.delta();
+////        System.out.println(xa);
+//        movement = movement.set(xa, ya).limit(speed);
+////        System.out.println(Time.delta());
+////        movement.limit(speed);
+//        player.velocity().add(movement.scl(Time.delta()));
+////        player.updateVelocityStatus();
+//        player.rotation = player.velocity().angle();
+////        System.out.println("movement.x = " + movement.x);
+
+//        movement.set((x - player.x) / Time.delta(), (y - player.y) / Time.delta()).limit(speed);
+//        player.velocity().set(movement.scl(Time.delta()));
+//        player.rotation = player.velocity().angle();
+//        player.updateVelocityStatus();
+//        System.out.println(player.velocity());
+
+        return player.within(x, y, 16);
     }
 }

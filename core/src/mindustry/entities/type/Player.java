@@ -584,17 +584,21 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
 //            }
 //            currentWaypoint.goTo();
             if(notDone.size == 0 || player.dead){
+                waypointEndTime = Clock.systemUTC().millis();
                 waypointFollowStartTime = Clock.systemUTC().millis();
                 notDone.clear();
                 for(Waypoint w : waypoints){
                     notDone.addFirst(w);
                 }
             }else{
-                if(notDone.last().goTo()){
-                    notDone.removeLast();
+                if(Clock.systemUTC().millis() - waypointEndTime > 1000){
+                    if(notDone.last().goTo()){
+                        notDone.removeLast();
+                    }
                 }
             }
         }
+
 //        if(notDone.size > 0){
 //            Waypoint waypoint = notDone.last();
 //            player.moveBy(waypoint.x, waypoint.y);
@@ -687,7 +691,14 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         if(control.input instanceof MobileInput){
             updateTouch();
         }else{
-            updateKeyboard();
+            if(followingWaypoints){
+                updateKeyboardNoMovement();
+                if(notDone.size > 0){
+                    updateTarget(notDone.last().x, notDone.last().y);
+                }
+            }else{
+                updateKeyboard();
+            }
         }
 
         isTyping = ui.chatfrag.shown();
@@ -697,6 +708,22 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         if(!mech.flying){
             clampPosition();
         }
+    }
+
+    protected void updateKeyboardNoMovement(){
+        Tile tile = world.tileWorld(x, y);
+
+        isBoosting = Core.input.keyDown(Binding.dash) && !mech.flying;
+
+        //if player is in solid block
+        if(tile != null && tile.solid()){
+            isBoosting = true;
+        }
+
+        Vec2 vec = Core.input.mouseWorld(control.input.getMouseX(), control.input.getMouseY());
+        pointerX = vec.x;
+        pointerY = vec.y;
+        updateShooting();
     }
 
     protected void updateKeyboard(){
@@ -882,6 +909,57 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             }
 
         }
+    }
+
+    private void updateTarget(float targetX, Float targetY){
+        float attractDst = 8f;
+        float speed = isBoosting && !mech.flying ? mech.boostSpeed : mech.speed;
+
+        if(moveTarget != null && !moveTarget.isDead()){
+            targetX = moveTarget.getX();
+            targetY = moveTarget.getY();
+            boolean tapping = moveTarget instanceof TileEntity && moveTarget.getTeam() == team;
+            attractDst = 0f;
+
+            velocity.setAngle(angleTo(moveTarget));
+//            if(tapping){
+//            }
+
+            if(dst(moveTarget) <= 2f * Time.delta()){
+                if(tapping && !isDead()){
+                    Tile tile = ((TileEntity)moveTarget).tile;
+                    tile.block().tapped(tile, this);
+                }
+
+                moveTarget = null;
+            }
+        }else{
+            moveTarget = null;
+        }
+
+        movement.set((targetX - x) / Time.delta(), (targetY - y) / Time.delta()).limit(speed);
+        movement.setAngle(Mathf.slerp(movement.angle(), velocity.angle(), 0.05f));
+//        movement.setAngle(velocity.angle());
+
+        if(dst(targetX, targetY) < attractDst){
+            movement.setZero();
+        }
+
+        isBoosting = collisions.overlapsTile(rect) || dst(targetX, targetY) > 85f;
+
+        velocity.add(movement.scl(Time.delta()));
+
+        if(velocity.len() <= 0.2f && mech.flying){
+            rotation += Mathf.sin(Time.time() + id * 99, 10f, 1f);
+        }else if(target == null){
+            rotation = Mathf.slerpDelta(rotation, velocity.angle(), velocity.len() / 10f);
+        }
+
+        float lx = x, ly = y;
+        updateVelocityStatus();
+        moved = dst(lx, ly) > 0.001f;
+
+        //update shooting if not building, not mining and there's ammo left
     }
 
     //endregion

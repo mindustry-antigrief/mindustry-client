@@ -205,6 +205,7 @@ public class Vars implements Loadable{
     public static long waypointFollowStartTime = 0;
     public static Queue<Waypoint> notDone = new Queue<>();
     public static boolean recordingWaypoints = false;
+    public static long waypointEndTime = 0;
 
     @Override
     public void loadAsync(){

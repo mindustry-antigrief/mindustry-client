@@ -11,6 +11,7 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
+import mindustry.game.*;
 import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.ui.*;
@@ -82,6 +83,23 @@ public class OverlayRenderer{
                         Draw.reset();
                     }
                 }
+            }
+        }
+
+        for(Waypoint w : waypoints){
+            if(notDone.indexOf(w, false) == -1){
+                Lines.stroke(3, new Color(0F, 0.8F, 0F, 0.5F));
+            }else{
+                Lines.stroke(3, new Color(0.2F, 0.2F, 0.8F, 0.5F));
+            }
+            Fill.circle(w.x, w.y, 16);
+        }
+        if(waypoints.size > 0){
+            Lines.stroke(3, new Color(0.1F, 0.1F, 0.5F, 0.5F));
+            Waypoint prev = waypoints.first();
+            for(Waypoint w : waypoints){
+                Lines.line(w.x, w.y, prev.x, prev.y);
+                prev = w;
             }
         }
 
