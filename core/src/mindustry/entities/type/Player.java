@@ -602,6 +602,11 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                     }
                 }
             }
+//        }
+        }else if(notDone.size > 0){
+            if(notDone.last().goTo()){
+                notDone.removeLast();
+            }
         }
 
 //        if(notDone.size > 0){
@@ -696,7 +701,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         if(control.input instanceof MobileInput){
             updateTouch();
         }else{
-            if(followingWaypoints){
+            if(notDone.size > 0){
                 updateKeyboardNoMovement();
                 if(notDone.size > 0){
                     updateTarget(notDone.last().x, notDone.last().y);

@@ -234,7 +234,6 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Core.input.keyTap(KeyCode.B)){
-            System.out.println("Build time!!");
             followingWaypoints = true;
             repeatWaypoints = false;
             for(BuildRequest b : player.buildQueue()){
@@ -243,7 +242,7 @@ public class DesktopInput extends InputHandler{
 //            notDone.addFirst(new Waypoint(cameraPositionOverride.x, cameraPositionOverride.y, 1L));
         }
 
-        float speed = 5F / renderer.getScale();
+        float speed = 8F / renderer.getScale();
 
         if(Core.input.keyDown(KeyCode.LEFT) || Core.input.keyDown(KeyCode.RIGHT) ||
         Core.input.keyDown(KeyCode.UP) || Core.input.keyDown(KeyCode.DOWN)){

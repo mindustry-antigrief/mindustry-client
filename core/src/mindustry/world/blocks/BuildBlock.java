@@ -149,7 +149,8 @@ public class BuildBlock extends Block{
                 player.isBuilding = true;
             }
             //player.clearBuilding();
-            player.addBuildRequest(new BuildRequest(tile.x, tile.y, tile.rotation(), entity.cblock), false);
+            BuildRequest b = new BuildRequest(tile.x, tile.y, tile.rotation(), entity.cblock);
+            player.addBuildRequest(b, false);
         }
     }
 

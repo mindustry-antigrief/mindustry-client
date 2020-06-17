@@ -11,6 +11,7 @@ import mindustry.*;
 import mindustry.content.*;
 import mindustry.entities.type.TileEntity;
 import mindustry.entities.type.*;
+import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -204,6 +205,9 @@ public interface BuilderTrait extends Entity, TeamTrait{
 
     /** Add another build requests to the tail of the queue, if it doesn't exist there yet. */
     default void addBuildRequest(BuildRequest place){
+        if(autoBuild){
+            notDone.addFirst(new Waypoint(place));
+        }
         addBuildRequest(place, true);
     }
 

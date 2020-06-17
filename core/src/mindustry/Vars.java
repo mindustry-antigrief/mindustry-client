@@ -213,6 +213,7 @@ public class Vars implements Loadable{
     public static Vec2 cameraPositionOverride = null;
     public static float flyingOpacity = 0.2F;
     public static boolean repeatWaypoints = true;
+    public static boolean autoBuild = true;
 
     @Override
     public void loadAsync(){
