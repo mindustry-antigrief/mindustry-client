@@ -211,6 +211,7 @@ public class Vars implements Loadable{
     public static long waypointEndTime = 0;
     @Nullable
     public static Vec2 cameraPositionOverride = null;
+    public static float flyingOpacity = 0.2F;
 
     @Override
     public void loadAsync(){

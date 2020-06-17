@@ -249,7 +249,7 @@ public class TileEntity extends BaseEntity implements TargetTrait, HealthTrait{
 
     /** Tile configuration. Defaults to 0. Used for block rebuilding. */
     public int config(){
-        System.out.println(this.block);
+//        System.out.println(this.block);
         return 0;
     }
 

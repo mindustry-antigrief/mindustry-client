@@ -282,9 +282,13 @@ public class SettingsMenuDialog extends SettingsDialog{
         });
         graphics.sliderPref("bridgeopacity", 75, 0, 100, 5, s -> s + "%");
 
+        graphics.checkPref("lighting", true, b -> Core.settings.put("lighting", b));
+        graphics.sliderPref("flyingopacity", 100, 0, 100, b -> {
+            flyingOpacity = b / 100F;
+            return b + "%";
+        });
         if(!mobile){
             graphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
-            graphics.checkPref("lighting", true, b -> Core.settings.put("lighting", b));
             graphics.checkPref("fullscreen", false, b -> {
                 if(b){
                     Core.graphics.setFullscreenMode(Core.graphics.getDisplayMode());

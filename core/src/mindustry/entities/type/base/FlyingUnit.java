@@ -143,6 +143,7 @@ public class FlyingUnit extends BaseUnit{
     @Override
     public void draw(){
         Draw.mixcol(Color.white, hitTime / hitDuration);
+        Draw.alpha(flyingOpacity);
         Draw.rect(type.region, x, y, rotation - 90);
 
         drawWeapons();
@@ -154,6 +155,8 @@ public class FlyingUnit extends BaseUnit{
         for(int i : Mathf.signs){
             float tra = rotation - 90, trY = -type.weapon.getRecoil(this, i > 0) + type.weaponOffsetY;
             float w = -i * type.weapon.region.getWidth() * Draw.scl;
+//            type.weapon.region.getTexture().
+            Draw.alpha(flyingOpacity);
             Draw.rect(type.weapon.region,
             x + Angles.trnsx(tra, getWeapon().width * i, trY),
             y + Angles.trnsy(tra, getWeapon().width * i, trY), w, type.weapon.region.getHeight() * Draw.scl, rotation - 90);
@@ -161,11 +164,15 @@ public class FlyingUnit extends BaseUnit{
     }
 
     public void drawEngine(){
-        Draw.color(Pal.engine);
+        Color engine2 = Pal.engine.cpy();
+        engine2.a = flyingOpacity;
+        Draw.color(engine2);
         Fill.circle(x + Angles.trnsx(rotation + 180, type.engineOffset), y + Angles.trnsy(rotation + 180, type.engineOffset),
         type.engineSize + Mathf.absin(Time.time(), 2f, type.engineSize / 4f));
 
-        Draw.color(Color.white);
+        Color white2 = Color.white.cpy();
+        white2.a = flyingOpacity;
+        Draw.color(white2);
         Fill.circle(x + Angles.trnsx(rotation + 180, type.engineOffset - 1f), y + Angles.trnsy(rotation + 180, type.engineOffset - 1f),
         (type.engineSize + Mathf.absin(Time.time(), 2f, type.engineSize / 4f)) / 2f);
         Draw.color();

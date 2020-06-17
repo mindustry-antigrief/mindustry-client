@@ -1,9 +1,12 @@
 package mindustry.entities.type.base;
 
+import arc.graphics.*;
 import arc.graphics.g2d.Draw;
 import arc.math.Angles;
 import arc.math.Mathf;
 import mindustry.entities.Units;
+
+import static mindustry.Vars.flyingOpacity;
 
 public class HoverUnit extends FlyingUnit{
 
@@ -14,6 +17,7 @@ public class HoverUnit extends FlyingUnit{
             float w = i > 0 ? -12 : 12;
             float wx = x + Angles.trnsx(tra, getWeapon().width * i, trY), wy = y + Angles.trnsy(tra, getWeapon().width * i, trY);
             int wi = (i + 1) / 2;
+            Draw.alpha(flyingOpacity);
             Draw.rect(getWeapon().region, wx, wy, w, 12, weaponAngles[wi] - 90);
         }
     }

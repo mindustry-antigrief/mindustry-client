@@ -376,7 +376,7 @@ public class Renderer implements ApplicationListener{
 
     private void drawFlyerShadows(){
         float trnsX = -12, trnsY = -13;
-        Draw.color(0, 0, 0, 0.22f);
+        Draw.color(0, 0, 0, 0.22f * flyingOpacity);
 
         unitGroup.draw(unit -> unit.isFlying() && !unit.isDead(), baseUnit -> baseUnit.drawShadow(trnsX, trnsY));
         playerGroup.draw(unit -> unit.isFlying() && !unit.isDead(), player -> player.drawShadow(trnsX, trnsY));
