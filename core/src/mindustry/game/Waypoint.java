@@ -26,6 +26,7 @@ public class Waypoint{
     @Nullable
     public Item item = null;
     public int amount = 0;
+//    public boolean requested = false;
 
     public Waypoint(float x, float y, long millis){
         this.x = x;
@@ -43,6 +44,7 @@ public class Waypoint{
 
         if(pickup != null && item != null){
             Call.requestItem(player, pickup, item, amount);
+//            requested = true;
         }
 //
 //        float speed = player.isBoosting && !player.mech.flying ? player.mech.boostSpeed : player.mech.speed;

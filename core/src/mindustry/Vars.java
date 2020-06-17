@@ -5,6 +5,7 @@ import arc.*;
 import arc.assets.*;
 import arc.files.*;
 import arc.graphics.*;
+import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.struct.Queue;
@@ -197,6 +198,8 @@ public class Vars implements Loadable{
 
     public static Player following = player;
 
+    public static boolean breakingFollowing = false;
+
 //    public static Array<String> undid = new Array<>();
     public static HashSet<Integer> undid_hashes = new HashSet<>();
     public static Array<Waypoint> waypoints = new Array<>();
@@ -206,6 +209,8 @@ public class Vars implements Loadable{
     public static Queue<Waypoint> notDone = new Queue<>();
     public static boolean recordingWaypoints = false;
     public static long waypointEndTime = 0;
+    @Nullable
+    public static Vec2 cameraPositionOverride = null;
 
     @Override
     public void loadAsync(){

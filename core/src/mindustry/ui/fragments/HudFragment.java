@@ -37,6 +37,7 @@ import mindustry.ui.dialogs.*;
 
 import java.time.*;
 
+import static arc.Core.camera;
 import static mindustry.Vars.*;
 
 public class HudFragment extends Fragment{
@@ -268,12 +269,12 @@ public class HudFragment extends Fragment{
 //                System.out.println("Hello world!");
                 waypointStartTime = Clock.systemUTC().millis();
                 waypoints.clear();
-                waypoints.add(new Waypoint(player.x, player.y, 0));
+                waypoints.add(new Waypoint(camera.position.x, camera.position.y, 0));
                 recordingWaypoints = true;
             });
 
             cont.addImageButton(Icon.box, () -> {
-                waypoints.add(new Waypoint(player.x, player.y, Clock.systemUTC().millis() - waypointStartTime));
+                waypoints.add(new Waypoint(camera.position.x, camera.position.y, Clock.systemUTC().millis() - waypointStartTime));
             });
 
             cont.addImageButton(Icon.move, () -> {

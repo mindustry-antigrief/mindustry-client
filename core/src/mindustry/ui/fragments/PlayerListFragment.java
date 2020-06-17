@@ -156,6 +156,9 @@ public class PlayerListFragment extends Fragment{
             button.addImageButton(Icon.copy, Styles.clearPartiali,
             () -> following = user);
 
+            button.addImageButton(Icon.defense, Styles.clearPartiali,
+            () -> breakingFollowing = !breakingFollowing);
+
             button.addImageButton(Icon.undo, Styles.clearPartiali,
             () -> ui.showTextInput("Undo", "Number of actions to undo", 3, "5", true, str ->
                 {

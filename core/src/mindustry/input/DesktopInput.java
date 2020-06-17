@@ -3,9 +3,11 @@ package mindustry.input;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
+//import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.math.*;
+import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
@@ -24,7 +26,9 @@ import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 
-import static arc.Core.scene;
+import java.security.*;
+
+import static arc.Core.*;
 import static mindustry.Vars.*;
 import static mindustry.input.PlaceMode.*;
 
@@ -155,7 +159,7 @@ public class DesktopInput extends InputHandler{
 
     @Override
     public void update(){
-        if(net.active() && Core.input.keyTap(Binding.player_list)){
+        if(Vars.net.active() && Core.input.keyTap(Binding.player_list)){
             ui.listfrag.toggle();
         }
         if(following != null && following != player){
@@ -168,6 +172,9 @@ public class DesktopInput extends InputHandler{
             if(player.buildQueue() != following.buildQueue()){
                 player.buildQueue().clear();
                 for(BuildRequest b : following.buildQueue()){
+                    if(breakingFollowing){
+                        b.breaking = !b.breaking;
+                    }
                     player.buildQueue().addLast(b);
                 }
             }
@@ -212,6 +219,34 @@ public class DesktopInput extends InputHandler{
             if(player.log.size > 0){
                 player.buildQueue().addLast(player.log.pop().undoRequest());
             }
+        }
+
+        if(Core.input.keyTap(KeyCode.R)){
+            cameraPositionOverride = null;
+        }
+        float speed = 5F / renderer.getScale();
+
+        if(Core.input.keyDown(KeyCode.LEFT) || Core.input.keyDown(KeyCode.RIGHT) ||
+        Core.input.keyDown(KeyCode.UP) || Core.input.keyDown(KeyCode.DOWN)){
+            if(cameraPositionOverride == null){
+                cameraPositionOverride = new Vec2(player.x, player.y);
+            }
+        }
+
+        if(Core.input.keyDown(KeyCode.RIGHT)){
+            cameraPositionOverride.x += speed;
+        }
+
+        if(Core.input.keyDown(KeyCode.LEFT)){
+            cameraPositionOverride.x -= speed;
+        }
+
+        if(Core.input.keyDown(KeyCode.UP)){
+            cameraPositionOverride.y += speed;
+        }
+
+        if(Core.input.keyDown(KeyCode.DOWN)){
+            cameraPositionOverride.y -= speed;
         }
 
         //deselect if not placing

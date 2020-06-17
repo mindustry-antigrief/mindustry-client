@@ -66,6 +66,7 @@ public class TileEntity extends BaseEntity implements TargetTrait, HealthTrait{
 
     /** Sets this tile entity data to this tile, and adds it if necessary. */
     public TileEntity init(Tile tile, boolean shouldAdd){
+        //TODO Called on build
         this.tile = tile;
         x = tile.drawx();
         y = tile.drawy();
@@ -248,6 +249,7 @@ public class TileEntity extends BaseEntity implements TargetTrait, HealthTrait{
 
     /** Tile configuration. Defaults to 0. Used for block rebuilding. */
     public int config(){
+        System.out.println(this.block);
         return 0;
     }
 
@@ -288,6 +290,7 @@ public class TileEntity extends BaseEntity implements TargetTrait, HealthTrait{
             block.onDestroyed(tile);
             tile.remove();
             remove();
+            System.out.println("Removed 2");
         }
     }
 

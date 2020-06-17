@@ -125,9 +125,14 @@ public class Renderer implements ApplicationListener{
             landTime = 0f;
             graphics.clear(Color.black);
         }else{
-            Vec2 position = Tmp.v3.set(stalking);
+            Vec2 position;
+            if(cameraPositionOverride != null){
+                position = Tmp.v3.set(cameraPositionOverride);
+            }else{
+                position = Tmp.v3.set(stalking);
+            }
 
-            if(player.isDead()){
+            if(player.isDead() && cameraPositionOverride == null){
                 TileEntity core = player.getClosestCore();
                 if(core != null){
                     if(player.spawner == null){

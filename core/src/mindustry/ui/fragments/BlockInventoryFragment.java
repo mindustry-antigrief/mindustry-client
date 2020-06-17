@@ -26,6 +26,7 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 
+import static arc.Core.camera;
 import static mindustry.Vars.*;
 
 public class BlockInventoryFragment extends Fragment{
@@ -161,7 +162,7 @@ public class BlockInventoryFragment extends Fragment{
                         int amount = Math.min(1, player.maxAccepted(item));
                         if(amount > 0){
                             if(recordingWaypoints){
-                                Waypoint w = new Waypoint(player.x, player.y, 111);
+                                Waypoint w = new Waypoint(camera.position.x, camera.position.y, 111);
                                 w.pickup = tile;
                                 w.item = item;
                                 w.amount = amount;

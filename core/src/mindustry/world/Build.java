@@ -23,6 +23,7 @@ public class Build{
         }
 
         Tile tile = world.ltile(x, y);
+//        System.out.println(tile.block.removed(););
         float prevPercent = 1f;
 
         //just in case
