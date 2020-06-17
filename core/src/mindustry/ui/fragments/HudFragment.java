@@ -269,17 +269,18 @@ public class HudFragment extends Fragment{
 //                System.out.println("Hello world!");
                 waypointStartTime = Clock.systemUTC().millis();
                 waypoints.clear();
-                waypoints.add(new Waypoint(camera.position.x, camera.position.y, 0));
+                waypoints.add(new Waypoint(camera.position.x, camera.position.y));
                 recordingWaypoints = true;
             });
 
             cont.addImageButton(Icon.box, () -> {
-                waypoints.add(new Waypoint(camera.position.x, camera.position.y, Clock.systemUTC().millis() - waypointStartTime));
+                waypoints.add(new Waypoint(camera.position.x, camera.position.y));
             });
 
             cont.addImageButton(Icon.move, () -> {
                 recordingWaypoints = false;
                 followingWaypoints = true;
+                repeatWaypoints = true;
                 waypointFollowStartTime = Clock.systemUTC().millis();
                 notDone.clear();
                 for(Waypoint w : waypoints){

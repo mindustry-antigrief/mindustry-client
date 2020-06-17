@@ -162,7 +162,7 @@ public class BlockInventoryFragment extends Fragment{
                         int amount = Math.min(1, player.maxAccepted(item));
                         if(amount > 0){
                             if(recordingWaypoints){
-                                Waypoint w = new Waypoint(camera.position.x, camera.position.y, 111);
+                                Waypoint w = new Waypoint(camera.position.x, camera.position.y);
                                 w.pickup = tile;
                                 w.item = item;
                                 w.amount = amount;

@@ -224,6 +224,25 @@ public class DesktopInput extends InputHandler{
         if(Core.input.keyTap(KeyCode.R)){
             cameraPositionOverride = null;
         }
+
+        if(Core.input.keyTap(KeyCode.N)){
+            if(cameraPositionOverride != null){
+                followingWaypoints = true;
+                repeatWaypoints = false;
+                notDone.addFirst(new Waypoint(cameraPositionOverride.x, cameraPositionOverride.y));
+            }
+        }
+
+        if(Core.input.keyTap(KeyCode.B)){
+            System.out.println("Build time!!");
+            followingWaypoints = true;
+            repeatWaypoints = false;
+            for(BuildRequest b : player.buildQueue()){
+                notDone.addFirst(new Waypoint(b.drawx(), b.drawy()));
+            }
+//            notDone.addFirst(new Waypoint(cameraPositionOverride.x, cameraPositionOverride.y, 1L));
+        }
+
         float speed = 5F / renderer.getScale();
 
         if(Core.input.keyDown(KeyCode.LEFT) || Core.input.keyDown(KeyCode.RIGHT) ||

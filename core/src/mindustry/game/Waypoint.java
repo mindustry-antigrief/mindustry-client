@@ -28,10 +28,9 @@ public class Waypoint{
     public int amount = 0;
 //    public boolean requested = false;
 
-    public Waypoint(float x, float y, long millis){
+    public Waypoint(float x, float y){
         this.x = x;
         this.y = y;
-        this.time = millis;
     }
 
     @Override

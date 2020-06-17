@@ -585,10 +585,15 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
 //            currentWaypoint.goTo();
             if(notDone.size == 0 || player.dead){
                 waypointEndTime = Clock.systemUTC().millis();
-                waypointFollowStartTime = Clock.systemUTC().millis();
-                notDone.clear();
-                for(Waypoint w : waypoints){
-                    notDone.addFirst(w);
+                if(repeatWaypoints){
+                    waypointFollowStartTime = Clock.systemUTC().millis();
+                    notDone.clear();
+                    for(Waypoint w : waypoints){
+                        notDone.addFirst(w);
+                    }
+                }else{
+                    notDone.clear();
+                    followingWaypoints = false;
                 }
             }else{
                 if(Clock.systemUTC().millis() - waypointEndTime > 1000){
