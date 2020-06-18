@@ -19,6 +19,8 @@ import mindustry.core.*;
 import mindustry.ctype.ContentType;
 import mindustry.entities.*;
 import mindustry.entities.traits.*;
+import mindustry.entities.type.base.*;
+import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -31,6 +33,7 @@ import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.BuildBlock.*;
+import mindustry.world.blocks.storage.*;
 
 import java.io.*;
 import java.util.*;
@@ -77,6 +80,38 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     private Vec2 movement = new Vec2();
     private boolean moved;
     public Array<BuildLogItem> log = new Array<>();
+    public ObjectSet<Item> toMine = ObjectSet.with(Items.lead, Items.copper);
+    protected StateMachine state2 = new StateMachine();
+    public final UnitState
+    normal = new UnitState(){},
+    mine = new UnitState(){
+
+        @Override
+        public void update(){
+            TileEntity core = player.getClosestCore();
+//            TileEntity tile = (TileEntity)core;
+            Item targetItem = Structs.findMin(toMine, indexer::hasOre, (a, b) -> -Integer.compare(core.items.get(a), core.items.get(b)));
+            target = indexer.findClosestOre(x, y, targetItem);
+            if(notDone.size == 0){
+                updateTarget(target.getX(), target.getY());
+                setMineTile((Tile)target);
+            }
+            Call.transferItemTo(item.item, item.amount, core.x, core.y, core.tile);
+//            if(core != null){
+//                if(core.tile.block().acceptStack(item.item, item.amount, core.tile, Player.this) > 0){
+//                }
+//            }
+
+            clearItem();
+//            setState(mine);
+//            state2.update();
+
+        }
+    };
+
+    public void setState(UnitState newState){
+        state2.set(newState);
+    }
 
     //endregion
 
@@ -569,6 +604,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
 
     @Override
     public void update(){
+        state2.update();
         if(followingWaypoints){
 //            long time = Clock.systemUTC().millis() - waypointFollowStartTime;
 //            Waypoint currentWaypoint = null;
@@ -603,7 +639,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                 }
             }
 //        }
-        }else if(notDone.size > 0){
+        }else if(notDone.size > 0 && autoBuild){
             if(notDone.last().goTo()){
                 notDone.removeLast();
             }
@@ -701,7 +737,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         if(control.input instanceof MobileInput){
             updateTouch();
         }else{
-            if(notDone.size > 0){
+            if(notDone.size > 0 && autoBuild){
                 updateKeyboardNoMovement();
                 if(notDone.size > 0){
                     updateTarget(notDone.last().x, notDone.last().y);

@@ -214,6 +214,7 @@ public class Vars implements Loadable{
     public static float flyingOpacity = 0.2F;
     public static boolean repeatWaypoints = true;
     public static boolean autoBuild = true;
+    public static boolean autoMine = true;
 
     @Override
     public void loadAsync(){

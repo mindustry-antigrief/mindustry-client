@@ -24,6 +24,7 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+import mindustry.ui.fragments.*;
 import mindustry.world.*;
 
 import java.security.*;
@@ -214,32 +215,44 @@ public class DesktopInput extends InputHandler{
         }
 
         pollInput();
-        if(Core.input.keyDown(KeyCode.CONTROL_LEFT) &&
-           Core.input.keyRelease(KeyCode.Z)){
-            if(player.log.size > 0){
-                player.buildQueue().addLast(player.log.pop().undoRequest());
+        if(scene.getKeyboardFocus() == null){
+            if(Core.input.keyDown(KeyCode.CONTROL_LEFT) &&
+            Core.input.keyRelease(KeyCode.Z)){
+                if(player.log.size > 0){
+                    player.buildQueue().addLast(player.log.pop().undoRequest());
+                }
             }
-        }
 
-        if(Core.input.keyTap(KeyCode.R)){
-            cameraPositionOverride = null;
-        }
-
-        if(Core.input.keyTap(KeyCode.N)){
-            if(cameraPositionOverride != null){
-                followingWaypoints = true;
-                repeatWaypoints = false;
-                notDone.addFirst(new Waypoint(cameraPositionOverride.x, cameraPositionOverride.y));
+            if(Core.input.keyTap(KeyCode.R)){
+                cameraPositionOverride = null;
             }
-        }
 
-        if(Core.input.keyTap(KeyCode.B)){
-            followingWaypoints = true;
-            repeatWaypoints = false;
-            for(BuildRequest b : player.buildQueue()){
-                notDone.addFirst(new Waypoint(b.drawx(), b.drawy()));
+            if(Core.input.keyTap(KeyCode.N)){
+                if(cameraPositionOverride != null){
+                    followingWaypoints = true;
+                    repeatWaypoints = false;
+                    notDone.addFirst(new Waypoint(cameraPositionOverride.x, cameraPositionOverride.y));
+                }
             }
+
+            if(Core.input.keyTap(KeyCode.B)){
+//                followingWaypoints = true;
+//                repeatWaypoints = false;
+//                for(BuildRequest b : player.buildQueue()){
+//                    notDone.addFirst(new Waypoint(b.drawx(), b.drawy()));
+//                }
+                autoBuild = !autoBuild;
 //            notDone.addFirst(new Waypoint(cameraPositionOverride.x, cameraPositionOverride.y, 1L));
+            }
+
+            if(input.keyTap(KeyCode.SEMICOLON)){
+                autoMine = !autoMine;
+            }
+            if(autoMine){
+                player.setState(player.mine);
+            }else{
+                player.setState(player.normal);
+            }
         }
 
         float speed = 8F / renderer.getScale();
