@@ -18,6 +18,6 @@ public class ConfigRequest{
     }
 
     public void runRequest(){
-        Call.onTileConfig(player, tile, value);
+        tile.configure(value);
     }
 }
