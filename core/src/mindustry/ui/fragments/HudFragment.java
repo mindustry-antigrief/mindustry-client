@@ -34,6 +34,8 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.ui.Cicon;
 import mindustry.ui.dialogs.*;
+import mindustry.world.*;
+import mindustry.world.blocks.power.*;
 
 import java.time.*;
 
@@ -297,6 +299,68 @@ public class HudFragment extends Fragment{
             cont.addImageButton(Icon.eraser, () -> {
                 notDone.clear();
                 waypoints.clear();
+            });
+
+            cont.addImageButton(Icon.power, () -> {
+                Array<Tile> nodeTiles = new Array<>();
+                Array<PowerNode> nodes = new Array<>();
+                for(Tile[] tile : world.getTiles()){
+                    for(Tile tile2 : tile){
+                        if(tile2.block() instanceof PowerNode){
+                            nodeTiles.add(tile2);
+                            nodes.add((PowerNode)tile2.block());
+                        }
+                    }
+                }
+                for(int i = 0; i < nodes.size; i += 1){
+                    PowerNode node = nodes.get(i);
+                    Tile nodeTile = nodeTiles.get(i);
+
+                    if(nodeTile.entity.power.links.size == node.maxNodes){
+                        continue;
+                    }
+
+                    int maxX = nodeTile.x + (int)node.laserRange;
+                    int minX = nodeTile.x - (int)node.laserRange;
+                    int maxY = nodeTile.y + (int)node.laserRange;
+                    int minY = nodeTile.y - (int)node.laserRange;
+
+                    for(Tile[] tile : world.getTiles()){
+                        if(tile[0].x > maxX || tile[0].x < minX){
+                            continue;
+                        }
+                        for(Tile tile2 : tile){
+                            if(tile2.y > maxY || tile2.y < minY){
+                                continue;
+                            }
+                            if(!nodeTile.entity.power.links.contains(tile2.pos()) && node.linkValid(nodeTile, tile2)){
+                                configRequests.addLast(new ConfigRequest(nodeTile, player, tile2.pos()));
+                            }
+//                            DesktopInput.onTileConfig(player, nodeTile, tile2.pos());
+//                            node.configured(nodeTile, player, tile2.pos());
+//                            Core.app.post(() -> Events.fire(new TapConfigEvent(nodeTile, player, tile2.pos())));
+//                            if(node.linkValid(nodeTile, tile2)){
+//                                if(!nodeTile.entity.power.links.contains(tile2.pos())){
+////                                    nodeTile.entity.power.links.add(tile2.pos());
+////                                    nodeTile.entity.power.graph.add(tile2.entity.power.graph);
+//                                    if(!nodeTile.entity.power.links.contains(tile2.pos())){
+//                                        nodeTile.entity.power.links.add(tile2.pos());
+//                                    }
+//
+//                                    if(tile2.getTeamID() == nodeTile.getTeamID()){
+//
+//                                        if(!tile2.entity.power.links.contains(nodeTile.pos())){
+//                                            tile2.entity.power.links.add(nodeTile.pos());
+//                                        }
+//                                    }
+//
+//                                    nodeTile.entity.power.graph.add(tile2.entity.power.graph);
+//                                    Core.app.post(() -> Events.fire(new TapConfigEvent(nodeTile, player, value)));
+//                                }
+//                            }
+                        }
+                    }
+                }
             });
         });
         

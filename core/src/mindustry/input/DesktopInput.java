@@ -22,11 +22,13 @@ import mindustry.entities.type.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.gen.Icon;
 import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.ui.fragments.*;
 import mindustry.world.*;
 
+import javax.swing.*;
 import java.security.*;
 
 import static arc.Core.*;
@@ -162,6 +164,17 @@ public class DesktopInput extends InputHandler{
     public void update(){
         if(Vars.net.active() && Core.input.keyTap(Binding.player_list)){
             ui.listfrag.toggle();
+        }
+        for(int i = 0; i < 50; i += 1){
+            if(configRequests.size > 0){
+                configRequests.removeFirst().runRequest();
+                if(configRequests.size % 10 == 0){
+                    System.out.println(String.format("%s left...", configRequests.size));
+                }
+                if(configRequests.size == 0){
+                    System.out.println("Done!!");
+                }
+            }
         }
         if(following != null && following != player){
             float dx = player.x - following.x;
