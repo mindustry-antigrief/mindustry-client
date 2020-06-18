@@ -110,6 +110,14 @@ public abstract class Turret extends Block{
     @Override
     public void draw(Tile tile){
         Draw.rect(baseRegion, tile.drawx(), tile.drawy());
+        TurretEntity ent = tile.ent();
+        if(ent.target != null){
+            Draw.color(tile.getTeam().color);
+//            TextureRegion circle = Core.atlas.find("circle");
+            int size = 20;
+            Draw.alpha(0.5F);
+            Draw.rect("circle", ent.target.getX(), ent.target.getY(), size, size);
+        }
         Draw.color();
     }
 
