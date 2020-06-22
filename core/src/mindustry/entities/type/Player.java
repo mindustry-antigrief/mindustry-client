@@ -109,21 +109,11 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                 updateTarget(target.getX(), target.getY());
                 setMineTile((Tile)target);
             }
-            if(item.amount >= 5){
+            if(item.amount >= 1){
                 if(core.tile.block().acceptStack(item.item, item.amount, core.tile, Player.this) > 0){
-//                    Call.transferItemTo(item.item, item.amount, core.x, core.y, core.tile);
                     Call.transferInventory(Player.this, core.tile);
                 }
             }
-//            if(core != null){
-//                if(core.tile.block().acceptStack(item.item, item.amount, core.tile, Player.this) > 0){
-//                }
-//            }
-
-//            clearItem();
-//            setState(mine);
-//            state2.update();
-
         }
     };
 
