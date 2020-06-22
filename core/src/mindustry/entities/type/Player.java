@@ -75,12 +75,12 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     public float textFadeTime;
 
     private float walktime, itemtime;
-    private Queue<BuildRequest> placeQueue = new Queue<>();
+    private final Queue<BuildRequest> placeQueue = new Queue<>();
     private Tile mining;
-    private Vec2 movement = new Vec2();
+    private final Vec2 movement = new Vec2();
     private boolean moved;
     public Array<BuildLogItem> log = new Array<>();
-    public ObjectSet<Item> toMine = ObjectSet.with(Items.lead, Items.copper);
+    public ObjectSet<Item> toMine = ObjectSet.with(Items.lead, Items.copper, Items.titanium, Items.thorium);
     protected StateMachine state2 = new StateMachine();
     public final UnitState
     normal = new UnitState(){},
@@ -89,20 +89,38 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         @Override
         public void update(){
             TileEntity core = player.getClosestCore();
+            if(core == null){
+                return;
+            }
 //            TileEntity tile = (TileEntity)core;
-            Item targetItem = Structs.findMin(toMine, indexer::hasOre, (a, b) -> -Integer.compare(core.items.get(a), core.items.get(b)));
+//            for(Item i : new Item[](Items.copper, Items.lead, Items.titanium, Items.thorium))
+            Array<Item> items = new Array<>();
+            for(Item i : toMine){
+                if(i.hardness <= player.mech.drillPower){
+                    items.add(i);
+                }
+            }
+            Item targetItem = Structs.findMin(items, indexer::hasOre, (a, b) -> -Integer.compare(core.items.get(a), core.items.get(b)));
             target = indexer.findClosestOre(x, y, targetItem);
+            if(target == null){
+                return;
+            }
             if(notDone.size == 0){
                 updateTarget(target.getX(), target.getY());
                 setMineTile((Tile)target);
             }
-            Call.transferItemTo(item.item, item.amount, core.x, core.y, core.tile);
+            if(item.amount >= 5){
+                if(core.tile.block().acceptStack(item.item, item.amount, core.tile, Player.this) > 0){
+//                    Call.transferItemTo(item.item, item.amount, core.x, core.y, core.tile);
+                    Call.transferInventory(Player.this, core.tile);
+                }
+            }
 //            if(core != null){
 //                if(core.tile.block().acceptStack(item.item, item.amount, core.tile, Player.this) > 0){
 //                }
 //            }
 
-            clearItem();
+//            clearItem();
 //            setState(mine);
 //            state2.update();
 

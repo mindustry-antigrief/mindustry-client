@@ -357,14 +357,16 @@ public class SettingsMenuDialog extends SettingsDialog{
 //                Core.gl.glGenTexture()
                 Core.gl.glBindTexture(Core.gl.GL_TEXTURE_2D, texture_id);
 //                Core.gl.glBindTexture();
-                Core.gl.glGenerateMipmap(Core.gl.GL_TEXTURE_2D);
+                Core.gl.glGenerateMipmap(texture_id);
                 TextureFilter filter = b ? TextureFilter.Linear : TextureFilter.Linear;
+//                System.out.println(tex.getMagFilter());
                 tex.setFilter(filter, filter);
             }
         });
 
         if(Core.settings.getBool("linear")){
             for(Texture tex : Core.atlas.getTextures()){
+//                System.out.println(tex.getMagFilter());
                 int texture_id = tex.glTarget;
 //                System.out.println(new Core.gl.bind);
 //                Core.gl.tex

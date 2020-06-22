@@ -44,7 +44,7 @@ public class BlockRenderer implements Disposable{
         Events.on(WorldLoadEvent.class, event -> {
             shadowEvents.clear();
             lastCamY = lastCamX = -99; //invalidate camera position so blocks get updated
-
+//            shadows.getTexture().
             shadows.getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
             shadows.resize(world.width(), world.height());
             shadows.begin();

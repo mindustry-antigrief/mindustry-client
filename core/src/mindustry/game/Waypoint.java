@@ -41,6 +41,7 @@ public class Waypoint{
 
         if(pickup != null && item != null){
             Call.requestItem(player, pickup, item, amount);
+            return player.item().amount >= amount;
         }
 
         if(buildRequest != null){
