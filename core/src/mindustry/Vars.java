@@ -6,6 +6,7 @@ import arc.assets.*;
 import arc.files.*;
 import arc.graphics.*;
 import arc.math.geom.*;
+import arc.scene.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.struct.Queue;
@@ -27,6 +28,7 @@ import mindustry.maps.*;
 import mindustry.mod.*;
 import mindustry.net.Net;
 import mindustry.net.*;
+import mindustry.world.*;
 import mindustry.world.blocks.defense.ForceProjector.*;
 
 import java.io.*;
@@ -216,6 +218,9 @@ public class Vars implements Loadable{
     public static boolean autoBuild = false;
     public static boolean autoMine = false;
     public static Queue<ConfigRequest> configRequests = new Queue<>();
+    public static Element findField;
+    public static Block found;
+    public static Tile targetBlock;
 
     @Override
     public void loadAsync(){

@@ -322,14 +322,14 @@ public class PlacementFragment extends Fragment{
                                 }
                             }).growX().left().margin(3);
 
-//                            if(state.rules.bannedBlocks.contains(lastDisplay)){
-//                                topTable.row();
-//                                topTable.table(b -> {
-//                                    b.addImage(Icon.cancel).padRight(2).color(Color.scarlet);
-//                                    b.add("$banned");
-//                                    b.left();
-//                                }).padTop(2).left();
-//                            }
+                            if(state.rules.bannedBlocks.contains(lastDisplay)){
+                                topTable.row();
+                                topTable.table(b -> {
+                                    b.addImage(Icon.cancel).padRight(2).color(Color.scarlet);
+                                    b.add("$banned");
+                                    b.left();
+                                }).padTop(2).left();
+                            }
 
                         }else if(tileDisplayBlock() != null){ //show selected tile
                             lastDisplay = tileDisplayBlock();

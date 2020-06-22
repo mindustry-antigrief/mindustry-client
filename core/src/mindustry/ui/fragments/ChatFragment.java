@@ -12,6 +12,7 @@ import arc.scene.ui.Label.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.ui.*;
@@ -174,7 +175,13 @@ public class ChatFragment extends Table{
         if(message.replaceAll(" ", "").isEmpty()) return;
 
         history.insert(1, message);
-
+        if(message.startsWith("!go")){
+            followingWaypoints = true;
+            repeatWaypoints = false;
+            notDone.clear();
+            notDone.addFirst(new Waypoint(targetBlock.getX(), targetBlock.getY()));
+            return;
+        }
         Call.sendChatMessage(message);
     }
 

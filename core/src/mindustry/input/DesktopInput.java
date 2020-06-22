@@ -12,9 +12,12 @@ import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
+import arc.scene.utils.*;
+import arc.struct.*;
 import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.core.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
 import mindustry.entities.traits.BuilderTrait.*;
@@ -25,11 +28,14 @@ import mindustry.gen.*;
 import mindustry.gen.Icon;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 import mindustry.ui.fragments.*;
 import mindustry.world.*;
+import mindustry.world.meta.*;
 
 import javax.swing.*;
 import java.security.*;
+import java.util.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -229,6 +235,44 @@ public class DesktopInput extends InputHandler{
 
         pollInput();
         if(scene.getKeyboardFocus() == null){
+            if(input.keyDown(KeyCode.CONTROL_LEFT) && input.keyRelease(KeyCode.F)){
+                FloatingDialog dialog = new FloatingDialog("find");
+                dialog.addCloseButton();
+                Image img = new Image();
+                TextField field = Elements.newField("", (string) -> {
+                    found = content.blocks().min((block) -> {
+                        if(block.name == null){
+                            return 1000f;
+                        }
+                        return Levenshtein.distance(string, block.name);
+                    });
+                    img.setDrawable(found.editorIcon());
+
+                });
+                dialog.cont.add(field);
+                dialog.cont.add(img);
+                dialog.keyDown(KeyCode.ENTER, () -> {
+                    Array<Tile> tiles = new Array<>();
+                    for(Tile[] t : world.getTiles()){
+                        for(Tile tile2 : t){
+                            if(tile2.block() != null){
+                                if(tile2.block().name.equals(found.name) && tile2.getTeam() == player.getTeam()){
+                                    tiles.add(tile2);
+                                }
+                            }
+                        }
+                    }
+                    if(tiles.size > 0){
+                        targetBlock = Geometry.findClosest(player.x, player.y, tiles);
+                        ui.chatfrag.addMessage(String.format("%d, %d (!go to travel there)", (int)targetBlock.x, (int)targetBlock.y), "client");
+                        dialog.hide();
+                    }
+                });
+                dialog.show();
+                findField = dialog;
+                scene.setKeyboardFocus(field);
+            }
+
             if(Core.input.keyDown(KeyCode.CONTROL_LEFT) &&
             Core.input.keyRelease(KeyCode.Z)){
                 if(player.log.size > 0){

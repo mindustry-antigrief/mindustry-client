@@ -641,8 +641,10 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                 }
             }else{
                 if(Clock.systemUTC().millis() - waypointEndTime > 1000){
+                    System.out.println("ifeiwf");
                     if(notDone.last().goTo()){
                         notDone.removeLast();
+                        followingWaypoints = false;
                     }
                 }
             }
@@ -745,7 +747,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         if(control.input instanceof MobileInput){
             updateTouch();
         }else{
-            if(notDone.size > 0 && autoBuild){
+            if(notDone.size > 0){
                 updateKeyboardNoMovement();
                 if(notDone.size > 0){
                     updateTarget(notDone.last().x, notDone.last().y);
