@@ -614,19 +614,6 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     public void update(){
         state2.update();
         if(followingWaypoints){
-//            long time = Clock.systemUTC().millis() - waypointFollowStartTime;
-//            Waypoint currentWaypoint = null;
-//            for(Waypoint waypoint : waypoints){
-//                if(time > waypoint.time){
-//                    break;
-//                }
-//                currentWaypoint = waypoint;
-//            }
-//            if(currentWaypoint == null){
-//                followingWaypoints = false;
-//                return;
-//            }
-//            currentWaypoint.goTo();
             if(notDone.size == 0 || player.dead){
                 waypointEndTime = Clock.systemUTC().millis();
                 if(repeatWaypoints){
@@ -641,10 +628,9 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                 }
             }else{
                 if(Clock.systemUTC().millis() - waypointEndTime > 1000){
-                    System.out.println("ifeiwf");
                     if(notDone.last().goTo()){
                         notDone.removeLast();
-                        followingWaypoints = false;
+                        followingWaypoints = !autoBuild;
                     }
                 }
             }
@@ -655,10 +641,6 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             }
         }
 
-//        if(notDone.size > 0){
-//            Waypoint waypoint = notDone.last();
-//            player.moveBy(waypoint.x, waypoint.y);
-//        }
         hitTime -= Time.delta();
         textFadeTime -= Time.delta() / (60 * 5);
         itemtime = Mathf.lerpDelta(itemtime, Mathf.num(item.amount > 0), 0.1f);
