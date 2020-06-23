@@ -238,19 +238,35 @@ public class DesktopInput extends InputHandler{
             if(input.keyDown(KeyCode.CONTROL_LEFT) && input.keyRelease(KeyCode.F)){
                 FloatingDialog dialog = new FloatingDialog("find");
                 dialog.addCloseButton();
-                Image img = new Image();
+                Array<Image> imgs = new Array<>();
+                for(int i = 0; i < 10; i += 1){
+                    imgs.add(new Image());
+                }
                 TextField field = Elements.newField("", (string) -> {
-                    found = content.blocks().min((block) -> {
-                        if(block.name == null){
-                            return 1000f;
-                        }
-                        return Levenshtein.distance(string, block.name);
-                    });
-                    img.setDrawable(found.editorIcon());
+//                    found = content.blocks().min((block) -> {
+//                        if(block.name == null){
+//                            return 1000f;
+//                        }
+//                        return distance(string, block.name);
+//                    });
+                    Array<Block> sorted = content.blocks().sort((b) -> distance(string, b.name));
+                    found = sorted.first();
+                    System.out.println(found);
+                    for(int i = 0; i < imgs.size - 1; i += 1){
+                        Image region = new Image(sorted.get(i).editorIcon());
+                        region.setSize(32);
+                        imgs.get(i).setDrawable(region.getDrawable());
+                    }
+//                    img.setDrawable(found.editorIcon());
 
                 });
                 dialog.cont.add(field);
-                dialog.cont.add(img);
+                for(Image img : imgs){
+                    dialog.cont.row().add(img);
+                }
+//                dialog.cont.add(imgs);                Image img = new Image();
+
+//                dialog.cont.add(img);
                 dialog.keyDown(KeyCode.ENTER, () -> {
                     Array<Tile> tiles = new Array<>();
                     for(Tile[] t : world.getTiles()){
@@ -313,28 +329,29 @@ public class DesktopInput extends InputHandler{
         }
 
         float speed = 8F / renderer.getScale();
-
-        if(Core.input.keyDown(KeyCode.LEFT) || Core.input.keyDown(KeyCode.RIGHT) ||
-        Core.input.keyDown(KeyCode.UP) || Core.input.keyDown(KeyCode.DOWN)){
-            if(cameraPositionOverride == null){
-                cameraPositionOverride = new Vec2(player.x, player.y);
+        if(scene.getKeyboardFocus() == null){
+            if(Core.input.keyDown(KeyCode.LEFT) || Core.input.keyDown(KeyCode.RIGHT) ||
+            Core.input.keyDown(KeyCode.UP) || Core.input.keyDown(KeyCode.DOWN)){
+                if(cameraPositionOverride == null){
+                    cameraPositionOverride = new Vec2(player.x, player.y);
+                }
             }
-        }
 
-        if(Core.input.keyDown(KeyCode.RIGHT)){
-            cameraPositionOverride.x += speed;
-        }
+            if(Core.input.keyDown(KeyCode.RIGHT)){
+                cameraPositionOverride.x += speed;
+            }
 
-        if(Core.input.keyDown(KeyCode.LEFT)){
-            cameraPositionOverride.x -= speed;
-        }
+            if(Core.input.keyDown(KeyCode.LEFT)){
+                cameraPositionOverride.x -= speed;
+            }
 
-        if(Core.input.keyDown(KeyCode.UP)){
-            cameraPositionOverride.y += speed;
-        }
+            if(Core.input.keyDown(KeyCode.UP)){
+                cameraPositionOverride.y += speed;
+            }
 
-        if(Core.input.keyDown(KeyCode.DOWN)){
-            cameraPositionOverride.y -= speed;
+            if(Core.input.keyDown(KeyCode.DOWN)){
+                cameraPositionOverride.y -= speed;
+            }
         }
 
         //deselect if not placing
@@ -400,6 +417,13 @@ public class DesktopInput extends InputHandler{
         }
 
         cursorType = SystemCursor.arrow;
+    }
+
+    public float distance(String word, String word2){
+        if(word2.toLowerCase().contains(word)){
+            return 10 * Levenshtein.distance(word.replace(" ", "").toLowerCase(), word2.replace(" ", "").toLowerCase());
+        }
+        return Levenshtein.distance(word, word2);
     }
 
     @Override
