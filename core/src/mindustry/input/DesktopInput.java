@@ -243,30 +243,21 @@ public class DesktopInput extends InputHandler{
                     imgs.add(new Image());
                 }
                 TextField field = Elements.newField("", (string) -> {
-//                    found = content.blocks().min((block) -> {
-//                        if(block.name == null){
-//                            return 1000f;
-//                        }
-//                        return distance(string, block.name);
-//                    });
-                    Array<Block> sorted = content.blocks().sort((b) -> distance(string, b.name));
+                    Array<Block> sorted = content.blocks().copy();
+                    sorted = sorted.sort((b) -> distance(string, b.name));
                     found = sorted.first();
-                    System.out.println(found);
                     for(int i = 0; i < imgs.size - 1; i += 1){
                         Image region = new Image(sorted.get(i).editorIcon());
                         region.setSize(32);
                         imgs.get(i).setDrawable(region.getDrawable());
                     }
-//                    img.setDrawable(found.editorIcon());
 
                 });
                 dialog.cont.add(field);
                 for(Image img : imgs){
                     dialog.cont.row().add(img);
                 }
-//                dialog.cont.add(imgs);                Image img = new Image();
 
-//                dialog.cont.add(img);
                 dialog.keyDown(KeyCode.ENTER, () -> {
                     Array<Tile> tiles = new Array<>();
                     for(Tile[] t : world.getTiles()){

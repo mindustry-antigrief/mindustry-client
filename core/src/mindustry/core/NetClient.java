@@ -464,6 +464,7 @@ public class NetClient implements ApplicationListener{
                 Tile tile = world.tile(pos);
                 if(tile == null || tile.entity == null){
                     Log.warn("Missing entity at {0}. Skipping block snapshot.", tile);
+//                    continue;
                     break;
                 }
                 tile.entity.read(input, tile.entity.version());
