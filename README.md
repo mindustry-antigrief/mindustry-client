@@ -3,6 +3,30 @@
 [![Build Status](https://travis-ci.org/Anuken/Mindustry.svg?branch=master)](https://travis-ci.org/Anuken/Mindustry) 
 [![Discord](https://img.shields.io/discord/391020510269669376.svg)](https://discord.gg/mindustry)  
 
+Hi!  I'm blahblahbloopster (aka foo), and this is my fork of Anuke's mindustry.  I've added some handy features such as automated bombing, auto-mine, and auto-build.
+
+The buttons on the top of the screen are:<br>
+file icon - start new path<br>
+2nd icon - place waypoint<br>
+arrow icon - follow waypoints<br>
+exit icon - stop following/recording waypoints<br>
+eraser icon - clear waypoints<br>
+big power icon - same as fixpower redundant<br>
+small power icon - broken, do not use<br>
+hammer - tool-assisted power greif, use common sense (I couldn't resist; it was a simple modification of the fixpower one)<br>
+In the player list there are more options:<br>
+magnifying glass - watch from their point of view (click on your own player's magnifying glass to switch back)<br>
+copy - follow player and build for them (again, click on you own player's copy icon to go back)<br>
+shield - toggle protect mode, you can then press copy and this and it will try to do the opposite of whatever the player is trying to do<br>
+arrow - prototype undo feature, doesn't work (however, ctrl+z will undo your last action)<br>
+Arrow keys move your view, press r to return to player<br>
+Press n to make your player come to your viewpoint<br>
+Pressing b toggles auto-build, your player will fly towards any unbuilt blocks<br>
+Semicolon toggles auto-mine, makes you behave like a draug but with unlimited range and when you're in a mech with better drill power it can mine titanium/thorium<br>
+chain and chain2 in transportation blocks place chains when used<br>
+There is a health bar under the minimap<br>
+In settings you can change if ambient lighting is used and flying unit transparency (good for seeing under rev swarms)<br>
+
 A sandbox tower defense game written in Java.
 
 _[Trello Board](https://trello.com/b/aE2tcUwF/mindustry-40-plans)_  

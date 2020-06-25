@@ -7,9 +7,9 @@ import mindustry.world.*;
 import static mindustry.Vars.player;
 
 public class ConfigRequest{
-    Tile tile;
-    Player player;
-    int value;
+    public Tile tile;
+    public Player player;
+    public int value;
 
     public ConfigRequest(Tile tile, Player player, int value){
         this.tile = tile;

@@ -33,6 +33,8 @@ import mindustry.world.blocks.liquid.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
+import java.util.*;
+import java.util.regex.*;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
@@ -178,8 +180,16 @@ public class NetClient implements ApplicationListener{
             }
             return;
         }
-
-
+        Pattern regex = Pattern.compile("\\d+,\\s?\\d+");
+        Matcher matcher = regex.matcher(message);
+        if(matcher.find()){
+            System.out.println(matcher.group(0));
+            ui.chatfrag.addMessage("!go to travel there", "client");
+            String match = matcher.group(0);
+            String[] digits = match.split(",\\s?");
+            targetPosition.set(Integer.parseInt(digits[0]), Integer.parseInt(digits[1]));
+            targetBlock = null;
+        }
         if(Vars.ui != null){
             Vars.ui.chatfrag.addMessage(message, sender);
         }
@@ -464,7 +474,6 @@ public class NetClient implements ApplicationListener{
                 Tile tile = world.tile(pos);
                 if(tile == null || tile.entity == null){
                     Log.warn("Missing entity at {0}. Skipping block snapshot.", tile);
-//                    continue;
                     break;
                 }
                 tile.entity.read(input, tile.entity.version());

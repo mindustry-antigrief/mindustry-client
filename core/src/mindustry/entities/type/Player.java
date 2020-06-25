@@ -751,7 +751,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     protected void updateKeyboardNoMovement(){
         Tile tile = world.tileWorld(x, y);
 
-        isBoosting = Core.input.keyDown(Binding.dash) && !mech.flying;
+        isBoosting = !mech.flying;
 
         //if player is in solid block
         if(tile != null && tile.solid()){

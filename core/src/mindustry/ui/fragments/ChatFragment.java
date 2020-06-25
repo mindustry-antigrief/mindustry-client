@@ -179,9 +179,19 @@ public class ChatFragment extends Table{
             followingWaypoints = true;
             repeatWaypoints = false;
             notDone.clear();
-            notDone.addFirst(new Waypoint(targetBlock.getX(), targetBlock.getY()));
+            if(targetBlock != null){
+                notDone.addFirst(new Waypoint(targetBlock.getX(), targetBlock.getY()));
+            }else if(targetPosition != null){
+                notDone.addFirst(new Waypoint(targetPosition.x * 8, targetPosition.y * 8));
+            }
             return;
         }
+
+        if(message.startsWith("!here")){
+            Call.sendChatMessage(String.format("%d,%d", player.tileX(), player.tileY()));
+            return;
+        }
+
         Call.sendChatMessage(message);
     }
 

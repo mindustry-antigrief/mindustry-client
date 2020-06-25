@@ -272,6 +272,7 @@ public class DesktopInput extends InputHandler{
                     if(tiles.size > 0){
                         targetBlock = Geometry.findClosest(player.x, player.y, tiles);
                         ui.chatfrag.addMessage(String.format("%d, %d (!go to travel there)", (int)targetBlock.x, (int)targetBlock.y), "client");
+                        targetPosition = null;
                         dialog.hide();
                     }
                 });

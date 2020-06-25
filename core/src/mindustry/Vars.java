@@ -221,6 +221,7 @@ public class Vars implements Loadable{
     public static Element findField;
     public static Block found;
     public static Tile targetBlock;
+    public static Vec2 targetPosition = new Vec2();
 
     @Override
     public void loadAsync(){
