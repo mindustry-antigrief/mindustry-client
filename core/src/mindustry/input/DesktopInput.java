@@ -413,7 +413,13 @@ public class DesktopInput extends InputHandler{
 
     public float distance(String word, String word2){
         if(word2.toLowerCase().contains(word)){
-            return 10 * Levenshtein.distance(word.replace(" ", "").toLowerCase(), word2.replace(" ", "").toLowerCase());
+            if(word2.toLowerCase().startsWith(word)){
+                // Discount for if the word starts with the input
+                return 0.25F * Levenshtein.distance(word.toLowerCase(), word2.toLowerCase());
+            }else{
+                // Discount for if the word contains the input
+                return 0.5F * Levenshtein.distance(word.toLowerCase(), word2.toLowerCase());
+            }
         }
         return Levenshtein.distance(word, word2);
     }
