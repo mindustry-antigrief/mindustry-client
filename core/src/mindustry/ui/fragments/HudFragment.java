@@ -1,9 +1,9 @@
 package mindustry.ui.fragments;
 
 import arc.*;
-import arc.func.*;
-import arc.scene.ui.Button.*;
+import arc.scene.ui.layout.Stack;
 import mindustry.*;
+import mindustry.ai.pathfinding.*;
 import mindustry.annotations.Annotations.*;
 import arc.struct.*;
 import arc.graphics.*;
@@ -29,17 +29,21 @@ import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
+import mindustry.net.Net;
 import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.ui.Cicon;
 import mindustry.ui.dialogs.*;
 import mindustry.world.*;
+import mindustry.world.blocks.defense.turrets.*;
+import mindustry.world.blocks.defense.turrets.Turret.*;
 import mindustry.world.blocks.power.*;
 
 import java.time.*;
+import java.util.*;
 
-import static arc.Core.camera;
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class HudFragment extends Fragment{
@@ -57,6 +61,7 @@ public class HudFragment extends Fragment{
     private long lastToast;
 
     public Bar healthBar;
+    private final Net net = Vars.net;
 
     public void build(Group parent){
 
@@ -430,6 +435,37 @@ public class HudFragment extends Fragment{
                     }
                 }
             });
+            cont.addImageButton(Icon.file, () -> {
+                waypointStartTime = Clock.systemUTC().millis();
+                waypoints.clear();
+                waypoints.add(new Waypoint(camera.position.x, camera.position.y));
+                recordingWaypoints = true;
+                wayFinding = true;
+            });
+            cont.addImageButton(Icon.exit, () -> {
+                recordingWaypoints = false;
+                Waypoint startingWaypoint = waypoints.first();
+                Waypoint endingWaypoint = new Waypoint(camera.position.x, camera.position.y);
+                Array<Waypoint> newWaypoints = new Array<>();
+                Array<TurretEntity> turrets = new Array<>();
+                for(Tile[] tiles : world.getTiles()){
+                    for(Tile tile : tiles){
+                        if(tile.block() instanceof Turret){
+                            turrets.add((TurretEntity)tile.entity);
+                        }
+                    }
+                }
+                waypoints.clear();
+//                System.out.println(turrets);
+//                System.out.println(startingWaypoint);
+//                System.out.println(endingWaypoint);
+                Array<int[]> points = AStar.findPathTurrets(turrets, startingWaypoint.x, startingWaypoint.y, endingWaypoint.x, endingWaypoint.y, world.width(), world.height(), player.getTeam());
+                points.reverse();
+                for(int[] position : points){
+                    waypoints.add(new Waypoint(position[0] * 8, position[1] * 8));
+                }
+            });
+
         });
         
         parent.fill(t -> {

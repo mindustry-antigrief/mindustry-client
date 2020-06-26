@@ -40,6 +40,7 @@ public class AStar{
     static PriorityQueue<Cell> open = new PriorityQueue<>();
 
     static boolean closed[][];
+    static boolean costly[][];
     static int startI, startJ;
     static int endI, endJ;
 
@@ -60,6 +61,9 @@ public class AStar{
     static void checkAndUpdateCost(Cell current, Cell t, int cost){
         if(t == null || closed[t.i][t.j]) return;
         int t_final_cost = t.heuristicCost + cost;
+//        if(closed[t.i][t.j]){
+//            t_final_cost *= 100;
+//        }
 
         boolean inOpen = open.contains(t);
         if(!inOpen || t_final_cost < t.finalCost){
@@ -70,7 +74,12 @@ public class AStar{
     }
 
     public static void AStar(){
-
+//        System.out.println(grid.length);
+//        System.out.println(grid[0].length);
+//        System.out.println(startI);
+//        System.out.println(startJ);
+//        System.out.println(Arrays.deepToString(grid));
+//        System.out.println(Arrays.toString(grid[startI]));
         //add the start location to open list.
         open.add(grid[startI][startJ]);
 
@@ -86,43 +95,49 @@ public class AStar{
             }
 
             Cell t;
+            int multiplier;
+            if(costly[current.i][current.j]){
+                multiplier = 500;
+            }else{
+                multiplier = 1;
+            }
             if(current.i - 1 >= 0){
                 t = grid[current.i - 1][current.j];
-                checkAndUpdateCost(current, t, current.finalCost + V_H_COST);
+                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier);
 
                 if(current.j - 1 >= 0){
                     t = grid[current.i - 1][current.j - 1];
-                    checkAndUpdateCost(current, t, current.finalCost + DIAGONAL_COST);
+                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier);
                 }
 
                 if(current.j + 1 < grid[0].length){
                     t = grid[current.i - 1][current.j + 1];
-                    checkAndUpdateCost(current, t, current.finalCost + DIAGONAL_COST);
+                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier);
                 }
             }
 
             if(current.j - 1 >= 0){
                 t = grid[current.i][current.j - 1];
-                checkAndUpdateCost(current, t, current.finalCost + V_H_COST);
+                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier);
             }
 
             if(current.j + 1 < grid[0].length){
                 t = grid[current.i][current.j + 1];
-                checkAndUpdateCost(current, t, current.finalCost + V_H_COST);
+                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier);
             }
 
             if(current.i + 1 < grid.length){
                 t = grid[current.i + 1][current.j];
-                checkAndUpdateCost(current, t, current.finalCost + V_H_COST);
+                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier);
 
                 if(current.j - 1 >= 0){
                     t = grid[current.i + 1][current.j - 1];
-                    checkAndUpdateCost(current, t, current.finalCost + DIAGONAL_COST);
+                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier);
                 }
 
                 if(current.j + 1 < grid[0].length){
                     t = grid[current.i + 1][current.j + 1];
-                    checkAndUpdateCost(current, t, current.finalCost + DIAGONAL_COST);
+                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier);
                 }
             }
         }
@@ -215,7 +230,7 @@ public class AStar{
             if(turretEntity.getTeam() == team){
                 continue;
             }
-            pathfindingEntities.add(new TurretPathfindingEntity(turretEntity.tileX(), turretEntity.tileY(), ((Turret)turretEntity.block).range));
+            pathfindingEntities.add(new TurretPathfindingEntity(turretEntity.tileX(), turretEntity.tileY(), ((Turret)turretEntity.block).range / 8));
         }
         return findPath(pathfindingEntities, playerX, playerY, targetX, targetY, width, height);
     }
@@ -229,7 +244,6 @@ public class AStar{
             float range = turret.range;
             float x = turret.x;
             float y = turret.y;
-            int count = 0;
             for(int colNum = 0; colNum <= width - 1; colNum += 1){
                 if(colNum > x + range){
                     continue;
@@ -248,7 +262,6 @@ public class AStar{
 
                     if(Mathf.sqrt(Mathf.pow(x - colNum, 2) + Mathf.pow(y - blockNum, 2)) < range){
                         blocked2.add(new int[]{colNum, blockNum});
-                        count += 1;
                     }
                 }
             }
@@ -265,6 +278,7 @@ public class AStar{
         int ey = (int)targetY / 8;
         grid = new Cell[width][height];
         closed = new boolean[width][height];
+        costly = new boolean[width][height];
         open = new PriorityQueue<>((Object o1, Object o2) -> {
             Cell c1 = (Cell)o1;
             Cell c2 = (Cell)o2;
@@ -292,7 +306,8 @@ public class AStar{
              for blocked cells.
            */
         for(int i = 0; i < blocked.length; ++i){
-            setBlocked(blocked[i][0], blocked[i][1]);
+//            setBlocked(blocked[i][0], blocked[i][1]);
+            costly[blocked[i][0]][blocked[i][1]] = true;
         }
 
         //Display initial map
@@ -307,7 +322,9 @@ public class AStar{
 //            System.out.println();
 //        }
 //        System.out.println();
-
+//        System.out.println("eifwief");
+//        System.out.println(grid.length);
+//        System.out.println(grid[0].length);
         AStar();
 //        System.out.println("\nScores for cells: ");
 //        for(int i = 0; i < width; ++i){
