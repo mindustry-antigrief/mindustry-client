@@ -14,6 +14,8 @@ eraser icon - clear waypoints<br>
 big power icon - same as fixpower redundant<br>
 small power icon - broken, do not use<br>
 hammer - tool-assisted power greif, use common sense (I couldn't resist; it was a simple modification of the fixpower one)<br>
+2nd file icon - Begin path-finding path (path-following paths use the A* search algorithm to find the optimal path between two points while avoiding enemy turrets)
+2nd exit icon - End path-finding path (will lag for a moment)
 In the player list there are more options:<br>
 magnifying glass - watch from their point of view (click on your own player's magnifying glass to switch back)<br>
 copy - follow player and build for them (again, click on you own player's copy icon to go back)<br>
@@ -21,6 +23,7 @@ shield - toggle protect mode, you can then press copy and this and it will try t
 arrow - prototype undo feature, doesn't work (however, ctrl+z will undo your last action)<br>
 Arrow keys move your view, press r to return to player<br>
 Press n to make your player come to your viewpoint<br>
+Z is same as n but uses the A* algorithm
 Pressing b toggles auto-build, your player will fly towards any unbuilt blocks<br>
 Semicolon toggles auto-mine, makes you behave like a draug but with unlimited range and when you're in a mech with better drill power it can mine titanium/thorium<br>
 chain and chain2 in transportation blocks place chains when used<br>

@@ -441,6 +441,7 @@ public class HudFragment extends Fragment{
                 waypoints.add(new Waypoint(camera.position.x, camera.position.y));
                 recordingWaypoints = true;
                 wayFinding = true;
+                repeatWaypoints = false;
             });
             cont.addImageButton(Icon.exit, () -> {
                 recordingWaypoints = false;

@@ -2,6 +2,7 @@ package mindustry.ai.pathfinding;
 
 import arc.math.*;
 import arc.struct.*;
+import mindustry.*;
 import mindustry.game.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
@@ -228,6 +229,9 @@ public class AStar{
         Array<TurretPathfindingEntity> pathfindingEntities = new Array<>();
         for(TurretEntity turretEntity : turrets){
             if(turretEntity.getTeam() == team){
+                continue;
+            }
+            if((((Turret)turretEntity.block).targetGround && Vars.player.isFlying()) && (((Turret)turretEntity.block).targetAir && !Vars.player.isFlying())){
                 continue;
             }
             pathfindingEntities.add(new TurretPathfindingEntity(turretEntity.tileX(), turretEntity.tileY(), ((Turret)turretEntity.block).range / 8));

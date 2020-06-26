@@ -17,6 +17,7 @@ import arc.struct.*;
 import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.ai.pathfinding.*;
 import mindustry.core.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
@@ -31,10 +32,13 @@ import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 import mindustry.ui.fragments.*;
 import mindustry.world.*;
+import mindustry.world.blocks.defense.turrets.*;
+import mindustry.world.blocks.defense.turrets.Turret.*;
 import mindustry.world.meta.*;
 
 import javax.swing.*;
 import java.security.*;
+import java.time.*;
 import java.util.*;
 
 import static arc.Core.*;
@@ -297,6 +301,30 @@ public class DesktopInput extends InputHandler{
                     followingWaypoints = true;
                     repeatWaypoints = false;
                     notDone.addFirst(new Waypoint(cameraPositionOverride.x, cameraPositionOverride.y));
+                }
+            }
+
+            if(Core.input.keyTap(KeyCode.Z)){
+                if(cameraPositionOverride != null){
+                    followingWaypoints = true;
+                    repeatWaypoints = false;
+
+                    Waypoint startingWaypoint = new Waypoint(player.x, player.y);
+                    Waypoint endingWaypoint = new Waypoint(camera.position.x, camera.position.y);
+                    Array<TurretEntity> turrets = new Array<>();
+                    for(Tile[] tiles : world.getTiles()){
+                        for(Tile tile : tiles){
+                            if(tile.block() instanceof Turret){
+                                turrets.add((TurretEntity)tile.entity);
+                            }
+                        }
+                    }
+                    notDone.clear();
+                    Array<int[]> points = AStar.findPathTurrets(turrets, startingWaypoint.x, startingWaypoint.y, endingWaypoint.x, endingWaypoint.y, world.width(), world.height(), player.getTeam());
+                    for(int[] position : points){
+                        notDone.addLast(new Waypoint(position[0] * 8, position[1] * 8));
+                    }
+
                 }
             }
 
