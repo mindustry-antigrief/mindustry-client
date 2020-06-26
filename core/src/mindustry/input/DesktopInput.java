@@ -329,13 +329,7 @@ public class DesktopInput extends InputHandler{
             }
 
             if(Core.input.keyTap(KeyCode.B)){
-//                followingWaypoints = true;
-//                repeatWaypoints = false;
-//                for(BuildRequest b : player.buildQueue()){
-//                    notDone.addFirst(new Waypoint(b.drawx(), b.drawy()));
-//                }
                 autoBuild = !autoBuild;
-//            notDone.addFirst(new Waypoint(cameraPositionOverride.x, cameraPositionOverride.y, 1L));
             }
 
             if(input.keyTap(KeyCode.SEMICOLON)){

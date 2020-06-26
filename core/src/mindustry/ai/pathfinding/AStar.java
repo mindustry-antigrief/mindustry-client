@@ -2,12 +2,15 @@ package mindustry.ai.pathfinding;
 
 import arc.math.*;
 import arc.struct.*;
+import arc.util.*;
 import mindustry.*;
 import mindustry.game.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
+import java.time.*;
 import java.util.*;
+import java.util.Timer;
 
 
 // Taken from http://www.codebytes.in/2015/02/a-shortest-path-finding-algorithm.html
@@ -231,7 +234,13 @@ public class AStar{
             if(turretEntity.getTeam() == team){
                 continue;
             }
-            if((((Turret)turretEntity.block).targetGround && Vars.player.isFlying()) && (((Turret)turretEntity.block).targetAir && !Vars.player.isFlying())){
+            boolean flying = Vars.player.isFlying();
+            boolean targetsAir = ((Turret)turretEntity.block).targetAir;
+            boolean targetsGround = ((Turret)turretEntity.block).targetGround;
+            if(flying && !targetsAir){
+                continue;
+            }
+            if(!flying && !targetsGround){
                 continue;
             }
             pathfindingEntities.add(new TurretPathfindingEntity(turretEntity.tileX(), turretEntity.tileY(), ((Turret)turretEntity.block).range / 8));
@@ -240,6 +249,7 @@ public class AStar{
     }
 
     public static Array<int[]> findPath(Array<TurretPathfindingEntity> turrets, float playerX, float playerY, float targetX, float targetY, int width, int height){
+        int startTime = Instant.now().getNano();
         ArrayList<int[]> blocked2 = new ArrayList<>();
         for(TurretPathfindingEntity turret : turrets){
 //            if(turret.getTeam() == player.getTeam()){
@@ -345,12 +355,12 @@ public class AStar{
             //Trace back the path
 //            System.out.println("Path: ");
             Cell current = grid[endI][endJ];
-            System.out.print(current);
             while(current.parent != null){
 //                System.out.print(" -> " + current.parent);
                 points.add(new int[]{current.parent.i, current.parent.j});
                 current = current.parent;
             }
+            System.out.println("Time taken = " + (Instant.now().getNano() - startTime) + " ns");
             return points;
 //            System.out.println();
         }else{
