@@ -2,6 +2,7 @@ package mindustry.entities.type;
 
 import arc.*;
 import arc.struct.Queue;
+import mindustry.ai.pathfinding.*;
 import mindustry.annotations.Annotations.*;
 import arc.struct.*;
 import arc.graphics.*;
@@ -33,6 +34,8 @@ import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.BuildBlock.*;
+import mindustry.world.blocks.defense.turrets.*;
+import mindustry.world.blocks.defense.turrets.Turret.*;
 import mindustry.world.blocks.storage.*;
 
 import java.io.*;
@@ -122,6 +125,26 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     }
 
     //endregion
+
+    public void navigateTo(float drawX, float drawY){
+        Array<TurretEntity> turrets = new Array<>();
+        for(Tile[] tiles : world.getTiles()){
+            for(Tile tile : tiles){
+                if(tile.block() instanceof Turret){
+                    turrets.add((TurretEntity)tile.entity);
+                }
+            }
+        }
+        followingWaypoints = true;
+        repeatWaypoints = false;
+        notDone.clear();
+        Array<int[]> points = AStar.findPathTurrets(turrets, this.x, this.y, drawX, drawY, world.width(), world.height(), team);
+        if(points != null){
+            for(int[] point : points){
+                notDone.addLast(new Waypoint(point[0] * 8, point[1] * 8));
+            }
+        }
+    }
 
     //region unit and event overrides, utility methods
 

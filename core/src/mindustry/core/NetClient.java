@@ -180,13 +180,12 @@ public class NetClient implements ApplicationListener{
             }
             return;
         }
-        Pattern regex = Pattern.compile("\\d+,\\s?\\d+");
+        Pattern regex = Pattern.compile("\\d+(,|\\s)\\s?\\d+");
         Matcher matcher = regex.matcher(message);
         if(matcher.find()){
-            System.out.println(matcher.group(0));
             ui.chatfrag.addMessage("!go to travel there", "client");
             String match = matcher.group(0);
-            String[] digits = match.split(",\\s?");
+            String[] digits = match.split("(,|\\s)\\s?");
             targetPosition.set(Integer.parseInt(digits[0]), Integer.parseInt(digits[1]));
             targetBlock = null;
         }

@@ -306,25 +306,7 @@ public class DesktopInput extends InputHandler{
 
             if(Core.input.keyTap(KeyCode.Z)){
                 if(cameraPositionOverride != null){
-                    followingWaypoints = true;
-                    repeatWaypoints = false;
-
-                    Waypoint startingWaypoint = new Waypoint(player.x, player.y);
-                    Waypoint endingWaypoint = new Waypoint(camera.position.x, camera.position.y);
-                    Array<TurretEntity> turrets = new Array<>();
-                    for(Tile[] tiles : world.getTiles()){
-                        for(Tile tile : tiles){
-                            if(tile.block() instanceof Turret){
-                                turrets.add((TurretEntity)tile.entity);
-                            }
-                        }
-                    }
-                    notDone.clear();
-                    Array<int[]> points = AStar.findPathTurrets(turrets, startingWaypoint.x, startingWaypoint.y, endingWaypoint.x, endingWaypoint.y, world.width(), world.height(), player.getTeam());
-                    for(int[] position : points){
-                        notDone.addLast(new Waypoint(position[0] * 8, position[1] * 8));
-                    }
-
+                    player.navigateTo(camera.position.x, camera.position.y);
                 }
             }
 

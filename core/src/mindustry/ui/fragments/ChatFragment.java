@@ -176,13 +176,14 @@ public class ChatFragment extends Table{
 
         history.insert(1, message);
         if(message.startsWith("!go")){
-            followingWaypoints = true;
-            repeatWaypoints = false;
-            notDone.clear();
             if(targetBlock != null){
+                followingWaypoints = true;
+                repeatWaypoints = false;
+                notDone.clear();
                 notDone.addFirst(new Waypoint(targetBlock.getX(), targetBlock.getY()));
             }else if(targetPosition != null){
-                notDone.addFirst(new Waypoint(targetPosition.x * 8, targetPosition.y * 8));
+                player.navigateTo(targetPosition.x * 8, targetPosition.y * 8);
+//                notDone.addFirst(new Waypoint(targetPosition.x * 8, targetPosition.y * 8));
             }
             return;
         }

@@ -338,15 +338,17 @@ public class HudFragment extends Fragment{
                             if(tile2.y > maxY || tile2.y < minY){
                                 continue;
                             }
-                            boolean stop = false;
-                            for(ConfigRequest req : configRequests){
-                                if(req.tile == tile2 && req.value == nodeTile.pos()){
-                                    stop = true;
-                                    break;
+                            if(tile2.block() instanceof PowerNode){
+                                boolean stop = false;
+                                for(ConfigRequest req : configRequests){
+                                    if(req.tile == tile2 && req.value == nodeTile.pos()){
+                                        stop = true;
+                                        break;
+                                    }
                                 }
-                            }
-                            if(stop){
-                                continue;
+                                if(stop){
+                                    continue;
+                                }
                             }
                             if(!nodeTile.entity.power.links.contains(tile2.pos())){
                                 if(!PowerNode.insulated(nodeTile, tile2)){
@@ -389,15 +391,17 @@ public class HudFragment extends Fragment{
                             if(tile2.y > maxY || tile2.y < minY){
                                 continue;
                             }
-                            boolean stop = false;
-                            for(ConfigRequest req : configRequests){
-                                if(req.tile == tile2 && req.value == nodeTile.pos()){
-                                    stop = true;
-                                    break;
+                            if(tile2.block() instanceof PowerNode){
+                                boolean stop = false;
+                                for(ConfigRequest req : configRequests){
+                                    if(req.tile == tile2 && req.value == nodeTile.pos()){
+                                        stop = true;
+                                        break;
+                                    }
                                 }
-                            }
-                            if(stop){
-                                continue;
+                                if(stop){
+                                    continue;
+                                }
                             }
                             if(tile2.block() instanceof PowerNode){
                                 if(!nodeTile.entity.power.links.contains(tile2.pos())){
@@ -422,10 +426,12 @@ public class HudFragment extends Fragment{
                 for(Tile node : nodeTiles){
                     for(int connection : node.entity.power.links.items){
                         boolean stop = false;
-                        for(ConfigRequest req : configRequests){
-                            if(req.tile.pos() == connection && req.value == node.pos()){
-                                stop = true;
-                                break;
+                        if(world.tile(connection).block() instanceof PowerNode){
+                            for(ConfigRequest req : configRequests){
+                                if(req.tile.pos() == connection && req.value == node.pos()){
+                                    stop = true;
+                                    break;
+                                }
                             }
                         }
                         if(stop){
@@ -461,9 +467,11 @@ public class HudFragment extends Fragment{
 //                System.out.println(startingWaypoint);
 //                System.out.println(endingWaypoint);
                 Array<int[]> points = AStar.findPathTurrets(turrets, startingWaypoint.x, startingWaypoint.y, endingWaypoint.x, endingWaypoint.y, world.width(), world.height(), player.getTeam());
-                points.reverse();
-                for(int[] position : points){
-                    waypoints.add(new Waypoint(position[0] * 8, position[1] * 8));
+                if(points != null){
+                    points.reverse();
+                    for(int[] position : points){
+                        waypoints.add(new Waypoint(position[0] * 8, position[1] * 8));
+                    }
                 }
             });
 

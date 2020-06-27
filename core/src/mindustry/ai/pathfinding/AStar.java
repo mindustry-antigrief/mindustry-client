@@ -267,6 +267,11 @@ public class AStar{
     }
 
     public static Array<int[]> findPath(Array<TurretPathfindingEntity> turrets, float playerX, float playerY, float targetX, float targetY, int width, int height){
+        if(turrets.size == 0){
+            Array<int[]> out = new Array<>();
+            out.add(new int[]{(int)targetX, (int)targetY});
+            return out;
+        }
 //        long startTime = System.currentTimeMillis();
         ArrayList<int[]> blocked2 = new ArrayList<>();
         for(TurretPathfindingEntity turret : turrets){
@@ -308,9 +313,13 @@ public class AStar{
 
         int ex = (int)targetX / 8;
         int ey = (int)targetY / 8;
+        grid = null;
         grid = new Cell[width][height];
+        closed = null;
         closed = new boolean[width][height];
+        costly = null;
         costly = new boolean[width][height];
+        open.clear();
         open = new PriorityQueue<>((Object o1, Object o2) -> {
             Cell c1 = (Cell)o1;
             Cell c2 = (Cell)o2;
