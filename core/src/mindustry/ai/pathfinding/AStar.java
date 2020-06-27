@@ -2,7 +2,6 @@ package mindustry.ai.pathfinding;
 
 import arc.math.*;
 import arc.struct.*;
-import arc.util.*;
 import mindustry.*;
 import mindustry.game.*;
 import mindustry.world.blocks.defense.turrets.*;
@@ -10,7 +9,6 @@ import mindustry.world.blocks.defense.turrets.Turret.*;
 
 import java.time.*;
 import java.util.*;
-import java.util.Timer;
 
 
 // Taken from http://www.codebytes.in/2015/02/a-shortest-path-finding-algorithm.html
@@ -44,9 +42,10 @@ public class AStar{
     static PriorityQueue<Cell> open = new PriorityQueue<>();
 
     static boolean closed[][];
-    static boolean costly[][];
+    static boolean[][] costly;
     static int startI, startJ;
     static int endI, endJ;
+    static boolean block = false;
 
     public static void setBlocked(int i, int j){
         grid[i][j] = null;
@@ -77,7 +76,7 @@ public class AStar{
         }
     }
 
-    public static void AStar(){
+    public static void AStarSearch(){
 //        System.out.println(grid.length);
 //        System.out.println(grid[0].length);
 //        System.out.println(startI);
@@ -88,10 +87,14 @@ public class AStar{
         open.add(grid[startI][startJ]);
 
         Cell current;
+//        System.out.println(Arrays.deepToString(costly));
 
         while(true){
             current = open.poll();
             if(current == null) break;
+//            if(costly[current.i][current.j] && block){
+//                break;
+//            }
             closed[current.i][current.j] = true;
 
             if(current.equals(grid[endI][endJ])){
@@ -204,7 +207,7 @@ public class AStar{
         }
         System.out.println();
 
-        AStar();
+        AStarSearch();
         System.out.println("\nScores for cells: ");
         for(int i = 0; i < x; ++i){
             for(int j = 0; j < x; ++j){
@@ -229,6 +232,7 @@ public class AStar{
     }
 
     public static Array<int[]> findPathTurrets(Array<TurretEntity> turrets, float playerX, float playerY, float targetX, float targetY, int width, int height, Team team){
+        int resolution = 2;  // The resolution of the map is divided by this value
         Array<TurretPathfindingEntity> pathfindingEntities = new Array<>();
         for(TurretEntity turretEntity : turrets){
             if(turretEntity.getTeam() == team){
@@ -243,13 +247,27 @@ public class AStar{
             if(!flying && !targetsGround){
                 continue;
             }
-            pathfindingEntities.add(new TurretPathfindingEntity(turretEntity.tileX(), turretEntity.tileY(), ((Turret)turretEntity.block).range / 8));
+            pathfindingEntities.add(new TurretPathfindingEntity(turretEntity.tileX() / resolution, turretEntity.tileY() / resolution, ((Turret)turretEntity.block).range / (8 * resolution)));
         }
-        return findPath(pathfindingEntities, playerX, playerY, targetX, targetY, width, height);
+        block = true;
+        Array<int[]> path = findPath(pathfindingEntities, playerX / resolution, playerY / resolution, targetX / resolution, targetY / resolution, width / resolution, height / resolution);
+        Array<int[]> output = new Array<>();
+        if(path == null){
+            block = false;
+            // Path blocked, retrying with cost
+            path = findPath(pathfindingEntities, playerX / resolution, playerY / resolution, targetX / resolution, targetY / resolution, width / resolution, height / resolution);
+        }
+        if(path == null){
+            return null;
+        }
+        for(int[] item : path){
+            output.add(new int[]{item[0] * resolution, item[1] * resolution});
+        }
+        return output;
     }
 
     public static Array<int[]> findPath(Array<TurretPathfindingEntity> turrets, float playerX, float playerY, float targetX, float targetY, int width, int height){
-        int startTime = Instant.now().getNano();
+//        long startTime = System.currentTimeMillis();
         ArrayList<int[]> blocked2 = new ArrayList<>();
         for(TurretPathfindingEntity turret : turrets){
 //            if(turret.getTeam() == player.getTeam()){
@@ -320,8 +338,11 @@ public class AStar{
              for blocked cells.
            */
         for(int i = 0; i < blocked.length; ++i){
-//            setBlocked(blocked[i][0], blocked[i][1]);
-            costly[blocked[i][0]][blocked[i][1]] = true;
+            if(block){
+            setBlocked(blocked[i][0], blocked[i][1]);
+            }else{
+                costly[blocked[i][0]][blocked[i][1]] = true;
+            }
         }
 
         //Display initial map
@@ -339,7 +360,7 @@ public class AStar{
 //        System.out.println("eifwief");
 //        System.out.println(grid.length);
 //        System.out.println(grid[0].length);
-        AStar();
+        AStarSearch();
 //        System.out.println("\nScores for cells: ");
 //        for(int i = 0; i < width; ++i){
 //            for(int j = 0; j < height; ++j){
@@ -360,10 +381,11 @@ public class AStar{
                 points.add(new int[]{current.parent.i, current.parent.j});
                 current = current.parent;
             }
-            System.out.println("Time taken = " + (Instant.now().getNano() - startTime) + " ns");
+//            System.out.println("Time taken = " + (System.currentTimeMillis() - startTime) + " ms");
             return points;
 //            System.out.println();
         }else{
+//            System.out.println("Time taken = " + (System.currentTimeMillis() - startTime) + " ms, no path found");
             return null;
         }
 
