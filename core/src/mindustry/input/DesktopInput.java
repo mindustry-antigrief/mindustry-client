@@ -50,14 +50,15 @@ public class DesktopInput extends InputHandler{
     private Cursor cursorType = SystemCursor.arrow;
     /** Position where the player started dragging a line. */
     private int selectX, selectY, schemX, schemY;
-    /** Last known line positions.*/
+    /** Last known line positions. */
     private int lastLineX, lastLineY, schematicX, schematicY;
     /** Whether selecting mode is active. */
     private PlaceMode mode;
     /** Animation scale for line. */
     private float selectScale;
     /** Selected build request for movement. */
-    private @Nullable BuildRequest sreq;
+    private @Nullable
+    BuildRequest sreq;
     /** Whether player is currently deleting removal requests. */
     private boolean deleting = false;
 
@@ -69,7 +70,7 @@ public class DesktopInput extends InputHandler{
             t.touchable(() -> t.getColor().a < 0.1f ? Touchable.disabled : Touchable.childrenOnly);
             t.table(Styles.black6, b -> {
                 b.defaults().left();
-                b.label(() -> Core.bundle.format(!player.isBuilding ?  "resumebuilding" : "pausebuilding", Core.keybinds.get(Binding.pause_building).key.toString())).style(Styles.outlineLabel);
+                b.label(() -> Core.bundle.format(!player.isBuilding ? "resumebuilding" : "pausebuilding", Core.keybinds.get(Binding.pause_building).key.toString())).style(Styles.outlineLabel);
                 b.row();
                 b.label(() -> Core.bundle.format("cancelbuilding", Core.keybinds.get(Binding.clear_building).key.toString())).style(Styles.outlineLabel);
                 b.row();
@@ -82,7 +83,7 @@ public class DesktopInput extends InputHandler{
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
-                b.label( () -> Core.bundle.format("schematic.flip",
+                b.label(() -> Core.bundle.format("schematic.flip",
                 Core.keybinds.get(Binding.schematic_flip_x).key.toString(),
                 Core.keybinds.get(Binding.schematic_flip_y).key.toString())).style(Styles.outlineLabel);
                 b.row();
@@ -190,7 +191,7 @@ public class DesktopInput extends InputHandler{
             float dx = player.x - following.x;
             float dy = player.y - following.y;
             player.moveBy(Mathf.clamp(-dx, -player.mech.maxSpeed, player.mech.maxSpeed),
-                                      Mathf.clamp(-dy, -player.mech.maxSpeed, player.mech.maxSpeed));
+            Mathf.clamp(-dy, -player.mech.maxSpeed, player.mech.maxSpeed));
             player.isShooting = following.isShooting;
             player.rotation = following.rotation;
             if(player.buildQueue() != following.buildQueue()){

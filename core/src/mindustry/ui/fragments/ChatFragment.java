@@ -12,10 +12,13 @@ import arc.scene.ui.Label.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.entities.type.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.ui.*;
+
+import java.util.regex.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.net;
@@ -168,6 +171,17 @@ public class ChatFragment extends Table{
             fadetime -= Time.delta() / 180f;
     }
 
+    private boolean equals(String a, String b){
+        Pattern regex = Pattern.compile("\\[[^\\[\\]]+\\]");
+        Matcher m = regex.matcher(a.toLowerCase().replace("]", " ]"));
+        String a2 = m.replaceAll("").replace(" ", "");
+
+        m = regex.matcher(b.toLowerCase().replace("]", " ]"));
+        String b2 = m.replaceAll("").replace(" ", "");
+
+        return a2.equals(b2);
+    }
+
     private void sendMessage(){
         String message = chatfield.getText();
         clearChatInput();
@@ -176,11 +190,25 @@ public class ChatFragment extends Table{
 
         history.insert(1, message);
         if(message.startsWith("!go")){
+            if(message.length() > 3){
+                String arg = message.substring(4);
+                Player found;
+                if(arg.length() > 1 && arg.startsWith("#") && Strings.canParseInt(arg.substring(1))){
+                    int id = Strings.parseInt(arg.substring(1));
+                    found = playerGroup.find(p -> p.id == id);
+                }else{
+                    found = playerGroup.find(p -> equals(p.name, arg));
+                }
+                if(found != null){
+                    player.navigateTo(found.getX(), found.getY());
+                }
+                return;
+            }
             if(targetBlock != null){
                 followingWaypoints = true;
                 repeatWaypoints = false;
                 notDone.clear();
-                notDone.addFirst(new Waypoint(targetBlock.getX(), targetBlock.getY()));
+                player.navigateTo(targetBlock.x * 8, targetBlock.y * 8);
             }else if(targetPosition != null){
                 player.navigateTo(targetPosition.x * 8, targetPosition.y * 8);
 //                notDone.addFirst(new Waypoint(targetPosition.x * 8, targetPosition.y * 8));
