@@ -12,7 +12,7 @@ arrow icon - follow waypoints<br>
 exit icon - stop following/recording waypoints<br>
 eraser icon - clear waypoints<br>
 big power icon - same as fixpower redundant<br>
-small power icon - broken, do not use<br>
+small power icon - fixpower redundant but only connects nodes<br>
 hammer - tool-assisted power greif, use common sense (I couldn't resist; it was a simple modification of the fixpower one)<br>
 2nd file icon - Begin path-finding path (path-following paths use the A* search algorithm to find the optimal path between two points while avoiding enemy turrets)
 2nd exit icon - End path-finding path (will lag for a moment)
