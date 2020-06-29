@@ -327,7 +327,10 @@ public class AStar{
             return Integer.compare(c1.finalCost, c2.finalCost);
         });
         //Set start position
-        setStartCell(px, py);  //Setting to 0,0 by default. Will be useful for the UI part
+        setStartCell(px, py);
+        if(costly[px][py]){
+            costly[px][py] = false;
+        }
 
         //Set End Location
         setEndCell(ex, ey);

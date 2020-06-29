@@ -187,7 +187,6 @@ public class NetClient implements ApplicationListener{
             String match = matcher.group(0);
             String[] digits = match.split("(,|\\s)\\s?");
             targetPosition.set(Integer.parseInt(digits[0]), Integer.parseInt(digits[1]));
-            targetBlock = null;
         }
         if(Vars.ui != null){
             Vars.ui.chatfrag.addMessage(message, sender);

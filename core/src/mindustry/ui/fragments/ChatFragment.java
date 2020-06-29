@@ -29,7 +29,7 @@ public class ChatFragment extends Table{
     private Array<ChatMessage> messages = new Array<>();
     private float fadetime;
     private boolean shown = false;
-    private TextField chatfield;
+    public TextField chatfield;
     private Label fieldlabel = new Label(">");
     private BitmapFont font;
     private GlyphLayout layout = new GlyphLayout();
@@ -204,14 +204,8 @@ public class ChatFragment extends Table{
                 }
                 return;
             }
-            if(targetBlock != null){
-                followingWaypoints = true;
-                repeatWaypoints = false;
-                notDone.clear();
-                player.navigateTo(targetBlock.x * 8, targetBlock.y * 8);
-            }else if(targetPosition != null){
+            if(targetPosition != null){
                 player.navigateTo(targetPosition.x * 8, targetPosition.y * 8);
-//                notDone.addFirst(new Waypoint(targetPosition.x * 8, targetPosition.y * 8));
             }
             return;
         }

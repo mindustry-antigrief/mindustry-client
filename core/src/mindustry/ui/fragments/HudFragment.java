@@ -496,6 +496,10 @@ public class HudFragment extends Fragment{
             t.label(() -> world.toTile(player.x) + "," + world.toTile(player.y))
                 .visible(() -> Core.settings.getBool("position") && !state.rules.tutorial);
             t.top().right();
+            t.row();
+            t.label(() -> world.toTile(camera.position.x) + "," + world.toTile(camera.position.y))
+                .visible(() -> Core.settings.getBool("position") && !state.rules.tutorial && cameraPositionOverride != null).color(Pal.accent);
+            t.top().right();
         });
 
         //spawner warning
@@ -503,7 +507,7 @@ public class HudFragment extends Fragment{
             t.touchable(Touchable.disabled);
             t.table(Styles.black, c -> c.add("$nearpoint")
             .update(l -> l.setColor(Tmp.c1.set(Color.white).lerp(Color.scarlet, Mathf.absin(Time.time(), 10f, 1f))))
-            .get().setAlignment(Align.center, Align.center))
+            .get().setAlignment(Align.bottom, Align.center))
             .margin(6).update(u -> u.color.a = Mathf.lerpDelta(u.color.a, Mathf.num(spawner.playerNear()), 0.1f)).get().color.a = 0f;
         });
 

@@ -275,10 +275,22 @@ public class DesktopInput extends InputHandler{
                         }
                     }
                     if(tiles.size > 0){
-                        targetBlock = Geometry.findClosest(player.x, player.y, tiles);
-                        ui.chatfrag.addMessage(String.format("%d, %d (!go to travel there)", (int)targetBlock.x, (int)targetBlock.y), "client");
-                        targetPosition = null;
-                        dialog.hide();
+                        float dist = Float.POSITIVE_INFINITY;
+                        Tile closest = null;
+
+                        for(Tile t : tiles){
+                            float d = Mathf.dst(player.x, player.y, t.x, t.y);
+                            if(d < dist){
+                                closest = t;
+                                dist = d;
+
+                            }
+                        }
+                        if(closest != null){
+                            targetPosition.set(closest.x, closest.y);
+                            ui.chatfrag.addMessage(String.format("%d, %d (!go to travel there)", (int)closest.x, (int)closest.y), "client");
+                            dialog.hide();
+                        }
                     }
                 });
                 dialog.show();
