@@ -264,6 +264,9 @@ public class DesktopInput extends InputHandler{
                 }
 
                 dialog.keyDown(KeyCode.ENTER, () -> {
+                    if(found == null){
+                        dialog.hide();
+                    }
                     Array<Tile> tiles = new Array<>();
                     for(Tile[] t : world.getTiles()){
                         for(Tile tile2 : t){

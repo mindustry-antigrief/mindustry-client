@@ -16,8 +16,6 @@ import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
-import mindustry.world.blocks.defense.turrets.*;
-import mindustry.world.blocks.defense.turrets.Turret.*;
 import mindustry.world.blocks.units.*;
 import mindustry.world.meta.*;
 
@@ -105,7 +103,6 @@ public class OverlayRenderer{
             }
         }
         for(Vec3 target : crosshairs){
-//            System.out.println(target);
             Draw.color(Team.get((int)target.z).color);
             Draw.alpha(0.75F);
             float crosshairScale = 1F;
@@ -114,23 +111,6 @@ public class OverlayRenderer{
             Lines.poly(target.x, target.y, 4, 7f * radius, Time.time() * 1.5f);
             Lines.spikes(target.x, target.y, 3f * radius, 6f * radius, 4, Time.time() * 1.5f);
         }
-//
-//            for(Tile tile : tiles){
-//                if(tile.block() instanceof Turret){
-//                    TurretEntity ent = (TurretEntity)tile.entity;
-//                    if(ent.target != null){
-//                        Draw.color(tile.getTeam().color);
-//                        Draw.alpha(0.75F);
-//                        float crosshairScale = 1F;
-//                        float radius = Interpolation.swingIn.apply(crosshairScale);
-//
-//                        Lines.poly(ent.target.getX(), ent.target.getY(), 4, 7f * radius, Time.time() * 1.5f);
-//                        Lines.spikes(ent.target.getX(), ent.target.getY(), 3f * radius, 6f * radius, 4, Time.time() * 1.5f);
-//                    }
-//                }
-//            }
-//        }
-
 
         if(player.isDead()) return; //dead players don't draw
 
@@ -178,7 +158,7 @@ public class OverlayRenderer{
             Vec2 vec = Core.input.mouseWorld(input.getMouseX(), input.getMouseY());
             Tile tile = world.ltileWorld(vec.x, vec.y);
 
-            if(tile != null && tile.block() != Blocks.air && tile.getTeam() == player.getTeam()){
+            if(tile != null && tile.block() != Blocks.air){
                 tile.block().drawSelect(tile);
 
                 if(Core.input.keyDown(Binding.rotateplaced) && tile.block().rotate && tile.interactable(player.getTeam())){
