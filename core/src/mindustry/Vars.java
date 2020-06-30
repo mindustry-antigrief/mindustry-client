@@ -222,6 +222,7 @@ public class Vars implements Loadable{
     public static Block found;
     public static Vec2 targetPosition = new Vec2();
     public static boolean wayFinding = false;
+    public static Array<Vec3> crosshairs = new Array<>();
 
     @Override
     public void loadAsync(){

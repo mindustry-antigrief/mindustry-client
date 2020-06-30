@@ -2,15 +2,14 @@ package mindustry.world.blocks.defense.turrets;
 
 import arc.Core;
 import arc.audio.*;
+import arc.math.*;
+import arc.math.geom.*;
 import arc.struct.Array;
 import arc.struct.EnumSet;
 import arc.func.Cons2;
 import arc.graphics.Blending;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
-import arc.math.Angles;
-import arc.math.Mathf;
-import arc.math.geom.Vec2;
 import arc.util.Time;
 import mindustry.content.Fx;
 import mindustry.entities.*;
@@ -25,7 +24,7 @@ import mindustry.world.Block;
 import mindustry.world.Tile;
 import mindustry.world.meta.*;
 
-import static mindustry.Vars.tilesize;
+import static mindustry.Vars.*;
 
 public abstract class Turret extends Block{
     public final int timerTarget = timers++;
@@ -110,13 +109,9 @@ public abstract class Turret extends Block{
     @Override
     public void draw(Tile tile){
         Draw.rect(baseRegion, tile.drawx(), tile.drawy());
-        TurretEntity ent = tile.ent();
-        if(ent.target != null){
-            Draw.color(tile.getTeam().color);
-//            TextureRegion circle = Core.atlas.find("circle");
-            int size = 20;
-            Draw.alpha(0.5F);
-            Draw.rect("circle", ent.target.getX(), ent.target.getY(), size, size);
+        TurretEntity entity = tile.ent();
+        if(entity.target != null){
+            crosshairs.add(new Vec3(entity.target.getX(), entity.target.getY(), tile.getTeam().id));
         }
         Draw.color();
     }

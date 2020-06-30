@@ -234,6 +234,7 @@ public class Renderer implements ApplicationListener{
         }
 //        camera.position.x = stalking.x;
 //        camera.position.y = stalking.y;
+        crosshairs.clear();
 
         graphics.clear(clearColor);
 
