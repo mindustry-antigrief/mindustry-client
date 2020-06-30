@@ -39,6 +39,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 import mindustry.world.blocks.power.*;
+import mindustry.world.modules.*;
 
 import java.time.*;
 import java.util.*;
@@ -418,6 +419,38 @@ public class HudFragment extends Fragment{
             t.label(() -> world.toTile(camera.position.x) + "," + world.toTile(camera.position.y))
                 .visible(() -> Core.settings.getBool("position") && !state.rules.tutorial && cameraPositionOverride != null).color(Pal.accent);
             t.top().right();
+
+            //core items
+            t.row();
+            VerticalGroup stack = new VerticalGroup();
+
+            stack.update(() -> {
+                stack.clearChildren();
+                TileEntity core = player.getClosestCore();
+                if(core == null){
+                    return;
+                }
+                for(Item item : content.items()){
+                    if(item.type != ItemType.material){
+                        continue;
+                    }
+                    int items = core.items.get(item);
+                    if(items < 50){
+                        Table table = new Table();
+                        Label label = new Label(Integer.toString(items));
+                        label.setColor(Pal.accent);
+                        if(items < 25){
+                            label.setColor(Color.red);
+                        }
+                        table.add(label);
+                        Image element = new Image();
+                        element.setDrawable(item.icon(Cicon.small));
+                        table.add(element);
+                        stack.addChild(table);
+                    }
+                }
+            });
+            t.add(stack);
         });
 
         //spawner warning
