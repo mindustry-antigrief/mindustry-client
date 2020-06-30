@@ -350,94 +350,12 @@ public class HudFragment extends Fragment{
                                     continue;
                                 }
                             }
-                            if(!nodeTile.entity.power.links.contains(tile2.pos())){
-                                if(!PowerNode.insulated(nodeTile, tile2)){
-                                    configRequests.addLast(new ConfigRequest(nodeTile, player, tile2.pos()));
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-            cont.addImageButton(Icon.powerSmall, () -> {
-                Array<Tile> nodeTiles = new Array<>();
-                Array<PowerNode> nodes = new Array<>();
-                for(Tile[] tile : world.getTiles()){
-                    for(Tile tile2 : tile){
-                        if(tile2.block() instanceof PowerNode){
-                            nodeTiles.add(tile2);
-                            nodes.add((PowerNode)tile2.block());
-                        }
-                    }
-                }
-                for(int i = 0; i < nodes.size; i += 1){
-                    PowerNode node = nodes.get(i);
-                    Tile nodeTile = nodeTiles.get(i);
-
-                    if(nodeTile.entity.power.links.size == node.maxNodes){
-                        continue;
-                    }
-
-                    int maxX = nodeTile.x + (int)node.laserRange;
-                    int minX = nodeTile.x - (int)node.laserRange;
-                    int maxY = nodeTile.y + (int)node.laserRange;
-                    int minY = nodeTile.y - (int)node.laserRange;
-
-                    for(Tile[] tile : world.getTiles()){
-                        if(tile[0].x > maxX || tile[0].x < minX){
-                            continue;
-                        }
-                        for(Tile tile2 : tile){
-                            if(tile2.y > maxY || tile2.y < minY){
-                                continue;
-                            }
-                            if(tile2.block() instanceof PowerNode){
-                                boolean stop = false;
-                                for(ConfigRequest req : configRequests){
-                                    if(req.tile == tile2 && req.value == nodeTile.pos()){
-                                        stop = true;
-                                        break;
-                                    }
-                                }
-                                if(stop){
-                                    continue;
-                                }
-                            }
                             if(tile2.block() instanceof PowerNode){
                                 if(!nodeTile.entity.power.links.contains(tile2.pos())){
                                     configRequests.addLast(new ConfigRequest(nodeTile, player, tile2.pos()));
                                 }
                             }
                         }
-                    }
-                }
-            });
-            cont.addImageButton(Icon.hammer, () -> {
-                Array<Tile> nodeTiles = new Array<>();
-                Array<PowerNode> nodes = new Array<>();
-                for(Tile[] tile : world.getTiles()){
-                    for(Tile tile2 : tile){
-                        if(tile2.block() instanceof PowerNode){
-                            nodeTiles.add(tile2);
-                            nodes.add((PowerNode)tile2.block());
-                        }
-                    }
-                }
-                for(Tile node : nodeTiles){
-                    for(int connection : node.entity.power.links.items){
-                        boolean stop = false;
-                        if(world.tile(connection).block() instanceof PowerNode){
-                            for(ConfigRequest req : configRequests){
-                                if(req.tile.pos() == connection && req.value == node.pos()){
-                                    stop = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if(stop){
-                            continue;
-                        }
-                        configRequests.addLast(new ConfigRequest(node, player, connection));
                     }
                 }
             });

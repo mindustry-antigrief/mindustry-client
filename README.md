@@ -11,16 +11,13 @@ file icon - start new path<br>
 arrow icon - follow waypoints<br>
 exit icon - stop following/recording waypoints<br>
 eraser icon - clear waypoints<br>
-big power icon - same as fixpower redundant<br>
-small power icon - fixpower redundant but only connects nodes<br>
-hammer - tool-assisted power greif, use common sense (I couldn't resist; it was a simple modification of the fixpower one)<br>
+power icon - fixpower redundant but only connects nodes<br>
 2nd file icon - Begin path-finding path (path-following paths use the A* search algorithm to find the optimal path between two points while avoiding enemy turrets)
 2nd exit icon - End path-finding path (will lag for a moment)
 In the player list there are more options:<br>
 magnifying glass - watch from their point of view (click on your own player's magnifying glass to switch back)<br>
 copy - follow player and build for them (again, click on you own player's copy icon to go back)<br>
-shield - toggle protect mode, you can then press copy and this and it will try to do the opposite of whatever the player is trying to do<br>
-arrow - prototype undo feature, doesn't work (however, ctrl+z will undo your last action)<br>
+shield - blocks player from performing build/breaks  (note: unreliable, doesn't work for quick-building blocks)<br>
 Arrow keys move your view, press r to return to player<br>
 Press n to make your player come to your viewpoint<br>
 Z is same as n but uses the A* algorithm

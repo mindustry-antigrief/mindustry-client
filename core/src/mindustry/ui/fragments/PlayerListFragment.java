@@ -154,32 +154,36 @@ public class PlayerListFragment extends Fragment{
             () -> stalking = user);
 
             button.addImageButton(Icon.copy, Styles.clearPartiali,
-            () -> following = user);
+            () -> {following = user;
+                   breakingFollowing = false;
+            });
 
             button.addImageButton(Icon.defense, Styles.clearPartiali,
-            () -> breakingFollowing = !breakingFollowing);
+            () -> {breakingFollowing = true;
+                   following = user;
+            });
 
-            button.addImageButton(Icon.undo, Styles.clearPartiali,
-            () -> ui.showTextInput("Undo", "Number of actions to undo", 3, "5", true, str ->
-                {
-                    try{
-                        int num = Integer.parseInt(str);
-                        int inc = 0;
-                        for(int i = 0; i <= num; i += 1){
-                            if(user.log.size == 0){
-                                break;
-                            }
-                            player.buildQueue().addLast(user.log.pop().undoRequest());
-                        }
-//                        for(BuildLogItem req : user.log){
-//                            inc += 1;
-//                            player.buildQueue().addLast(req.undoRequest());
-//                            if(inc >= num){
+//            button.addImageButton(Icon.undo, Styles.clearPartiali,
+//            () -> ui.showTextInput("Undo", "Number of actions to undo", 3, "5", true, str ->
+//                {
+//                    try{
+//                        int num = Integer.parseInt(str);
+//                        int inc = 0;
+//                        for(int i = 0; i <= num; i += 1){
+//                            if(user.log.size == 0){
 //                                break;
 //                            }
+//                            player.buildQueue().addLast(user.log.pop().undoRequest());
 //                        }
-                    }catch(NumberFormatException ignored){ }
-                }));
+////                        for(BuildLogItem req : user.log){
+////                            inc += 1;
+////                            player.buildQueue().addLast(req.undoRequest());
+////                            if(inc >= num){
+////                                break;
+////                            }
+////                        }
+//                    }catch(NumberFormatException ignored){ }
+//                }));
 
             content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);
             content.row();
