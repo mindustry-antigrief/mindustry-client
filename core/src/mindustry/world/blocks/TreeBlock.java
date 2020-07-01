@@ -20,6 +20,7 @@ public class TreeBlock extends Block{
 
     @Override
     public void drawLayer(Tile tile){
+        Draw.alpha(0.25F);
         Draw.rect(region, tile.drawx(), tile.drawy(), Mathf.randomSeed(tile.pos(), 0, 4) * 90);
     }
 }

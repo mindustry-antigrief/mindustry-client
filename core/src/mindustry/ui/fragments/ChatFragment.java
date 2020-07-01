@@ -2,6 +2,7 @@ package mindustry.ui.fragments;
 
 import arc.*;
 import arc.Input.*;
+import arc.input.*;
 import arc.struct.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
@@ -11,7 +12,9 @@ import arc.scene.ui.*;
 import arc.scene.ui.Label.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import arc.util.CommandHandler.*;
 import mindustry.*;
+import mindustry.core.*;
 import mindustry.entities.type.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -30,6 +33,7 @@ public class ChatFragment extends Table{
     private float fadetime;
     private boolean shown = false;
     public TextField chatfield;
+    public Label autocomplete;
     private Label fieldlabel = new Label(">");
     private BitmapFont font;
     private GlyphLayout layout = new GlyphLayout();
@@ -71,6 +75,43 @@ public class ChatFragment extends Table{
             }
 
             if(shown){
+                float max = chatfield.glyphPositions.get(chatfield.getText().length());
+                chatfield.setWidth(max);
+                autocomplete.setX(max + 3F);
+                boolean shown = false;
+                String completion = null;
+
+                if(chatfield.getText().startsWith("/") || chatfield.getText().startsWith("!")){
+                    Array<String> commands = new Array<>();
+                    for(Command command : netServer.clientCommands.getCommandList()){
+                        commands.add("/" + command.text);
+                    }
+                    commands.add("!go"); // Temporary hotfix
+                    String match = commands.min((str) -> distance(chatfield.getText(), str));
+                    autocomplete.setText(match.substring(Math.min(chatfield.getText().length(), match.length())));
+                    completion = match;
+                    shown = true;
+                }
+                String[] words2 = chatfield.getText().split("\\s");
+                String text = words2[words2.length - 1];
+
+                Player closestMatch = playerGroup.all().min((p) -> distance(text, p.name));
+                boolean containsName = distance(text, closestMatch.name) < 2 && text.length() > 3;
+                if(containsName){
+                    shown = true;
+                    autocomplete.setText(closestMatch.name.substring(Math.min(text.length(), closestMatch.name.length())));
+                    completion = closestMatch.name;
+                }
+                if(!shown){
+                    autocomplete.setText("");
+                }
+                if(input.keyTap(KeyCode.TAB)){
+                    if(completion != null){
+                        String[] words = chatfield.getText().split("\\s");
+                        chatfield.setText(chatfield.getText().replace(words[words.length - 1], completion));
+                        chatfield.setCursorPosition(chatfield.getText().length());
+                    }
+                }
                 if(input.keyTap(Binding.chat_history_prev) && historyPos < history.size - 1){
                     if(historyPos == 0) history.set(0, chatfield.getText());
                     historyPos++;
@@ -87,6 +128,27 @@ public class ChatFragment extends Table{
         history.insert(0, "");
         setup();
     }
+
+    public float distance(String word, String word2){
+        Pattern regex = Pattern.compile("\\[[^\\[\\]]+\\]");
+        Matcher m = regex.matcher(word.toLowerCase().replace("]", " ]"));
+        String a2 = m.replaceAll("").replace(" ", "");
+
+        m = regex.matcher(word2.toLowerCase().replace("]", " ]"));
+        String b2 = m.replaceAll("").replace(" ", "");
+
+        if(b2.toLowerCase().contains(word)){
+            if(b2.toLowerCase().startsWith(a2)){
+                // Discount for if the word starts with the input
+                return 0.25F * Levenshtein.distance(a2.toLowerCase(), b2.toLowerCase());
+            }else{
+                // Discount for if the word contains the input
+                return 0.5F * Levenshtein.distance(a2.toLowerCase(), b2.toLowerCase());
+            }
+        }
+        return Levenshtein.distance(a2, b2);
+    }
+
 
     public Fragment container(){
         return container;
@@ -109,10 +171,20 @@ public class ChatFragment extends Table{
         chatfield.getStyle().font = Fonts.chat;
         chatfield.getStyle().fontColor = Color.white;
         chatfield.setStyle(chatfield.getStyle());
+        autocomplete = new Label("", new Label.LabelStyle(scene.getStyle(Label.LabelStyle.class)));
+        autocomplete.getStyle().background = null;
+        autocomplete.getStyle().font = Fonts.chat;
+        autocomplete.getStyle().fontColor = Color.lightGray;
+        autocomplete.setStyle(autocomplete.getStyle());
+//        autocomplete.visible(() -> chatfield.isVisible() && (chatfield.getText().startsWith("!") || chatfield.getText().startsWith("/")));
+        autocomplete.visible(() -> chatfield.isVisible());
 
         bottom().left().marginBottom(offsety).marginLeft(offsetx * 2).add(fieldlabel).padBottom(6f);
-
-        add(chatfield).padBottom(offsety).padLeft(offsetx).growX().padRight(offsetx).height(28);
+        HorizontalGroup group = new HorizontalGroup();
+        group.addChild(chatfield);
+        group.addChild(autocomplete);
+        add(group).padBottom(offsety).padLeft(offsetx).growX().padRight(offsetx).height(28);
+//        add(autocomplete).padBottom(offsety).padLeft(offsetx).growX().padRight(offsetx).height(28);
 
         if(Vars.mobile){
             marginBottom(105f);
@@ -216,6 +288,17 @@ public class ChatFragment extends Table{
         }
 
         Call.sendChatMessage(message);
+    }
+
+    public Player findPlayerByName(String name){
+        Player found = null;
+        if(name.length() > 1 && name.startsWith("#") && Strings.canParseInt(name.substring(1))){
+            int id = Strings.parseInt(name.substring(1));
+            found = playerGroup.find(p -> p.id == id);
+        }else{
+            found = playerGroup.find(p -> equals(p.name, name));
+        }
+        return found;
     }
 
     public void toggle(){

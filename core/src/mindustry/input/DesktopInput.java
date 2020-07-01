@@ -173,7 +173,7 @@ public class DesktopInput extends InputHandler{
 
     @Override
     public void update(){
-        if(Vars.net.active() && Core.input.keyTap(Binding.player_list)){
+        if(Vars.net.active() && Core.input.keyTap(Binding.player_list) && !ui.chatfrag.autocomplete.isVisible()){
             ui.listfrag.toggle();
         }
         for(int i = 0; i < 50; i += 1){
@@ -340,7 +340,7 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        float speed = 8F / renderer.getScale();
+        float speed = (8F / renderer.getScale()) * Time.delta();
         if(scene.getKeyboardFocus() == null){
             if(Core.input.keyDown(KeyCode.LEFT) || Core.input.keyDown(KeyCode.RIGHT) ||
             Core.input.keyDown(KeyCode.UP) || Core.input.keyDown(KeyCode.DOWN)){
@@ -433,6 +433,9 @@ public class DesktopInput extends InputHandler{
 
     public float distance(String word, String word2){
         if(word2.toLowerCase().contains(word)){
+            if(word2.toLowerCase().equals(word.toLowerCase())){
+                return 0F;
+            }
             if(word2.toLowerCase().startsWith(word)){
                 // Discount for if the word starts with the input
                 return 0.25F * Levenshtein.distance(word.toLowerCase(), word2.toLowerCase());
