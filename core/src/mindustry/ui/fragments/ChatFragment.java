@@ -33,7 +33,7 @@ public class ChatFragment extends Table{
     private Array<ChatMessage> messages = new Array<>();
     private float fadetime;
     private boolean shown = false;
-    public TextField chatfield;
+    public ResizingTextField chatfield;
     public Label autocomplete;
     private Label fieldlabel = new Label(">");
     private BitmapFont font;
@@ -81,12 +81,12 @@ public class ChatFragment extends Table{
 //                    System.out.println("aaa");
 //                });
 //                System.out.println(chatfield.getStyle().font);
-                float max = 0f;
-                BitmapFontData data = Fonts.chat.getData();
-                for(char c : chatfield.getText().toCharArray()){
-                    max += data.getGlyph(c).width + 2f;
-                }
-//                float max = chatfield.glyphPositions.get(chatfield.getText().length());
+//                float max = 0f;
+//                BitmapFontData data = Fonts.chat.getData();
+//                for(char c : chatfield.getText().toCharArray()){
+//                    max += data.getGlyph(c).width + 2f;
+//                }
+                float max = chatfield.glyphPositions.get(chatfield.getText().length());
                 chatfield.setWidth(max);
                 autocomplete.setX(max + 3F);
                 boolean shown = false;
@@ -176,7 +176,7 @@ public class ChatFragment extends Table{
         fieldlabel.getStyle().font = font;
         fieldlabel.setStyle(fieldlabel.getStyle());
 
-        chatfield = new TextField("", new TextField.TextFieldStyle(scene.getStyle(TextField.TextFieldStyle.class)));
+        chatfield = new ResizingTextField("", new TextField.TextFieldStyle(scene.getStyle(TextField.TextFieldStyle.class)));
         chatfield.setMaxLength(Vars.maxTextLength);
         chatfield.getStyle().background = null;
         chatfield.getStyle().font = Fonts.chat;
@@ -187,7 +187,6 @@ public class ChatFragment extends Table{
         autocomplete.getStyle().font = Fonts.chat;
         autocomplete.getStyle().fontColor = Color.lightGray;
         autocomplete.setStyle(autocomplete.getStyle());
-//        autocomplete.visible(() -> chatfield.isVisible() && (chatfield.getText().startsWith("!") || chatfield.getText().startsWith("/")));
         autocomplete.visible(() -> chatfield.isVisible());
 
         bottom().left().marginBottom(offsety).marginLeft(offsetx * 2).add(fieldlabel).padBottom(6f);
