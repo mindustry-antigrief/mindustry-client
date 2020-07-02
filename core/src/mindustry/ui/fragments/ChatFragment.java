@@ -77,8 +77,8 @@ public class ChatFragment extends Table{
 
             if(shown){
                 float max = chatfield.getGlyphPositions().get(chatfield.getText().length());
-                chatfield.setWidth(max);
-                autocomplete.setX(max + 3F);
+                chatfield.setWidth(max + 5F);
+                autocomplete.setX(max + 8F);
                 boolean shown = false;
                 String completion = null;
 
