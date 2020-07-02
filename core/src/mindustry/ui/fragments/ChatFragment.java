@@ -94,17 +94,19 @@ public class ChatFragment extends Table{
                     shown = true;
                 }
                 String[] words2 = chatfield.getText().split("\\s");
-                String text = words2[words2.length - 1];
+                if(words2.length > 0){
+                    String text = words2[words2.length - 1];
 
-                Player closestMatch = playerGroup.all().min((p) -> distance(text, p.name));
-                boolean containsName = distance(text, closestMatch.name) < 2 && text.length() > 3;
-                if(containsName){
-                    shown = true;
-                    autocomplete.setText(closestMatch.name.substring(Math.min(text.length(), closestMatch.name.length())));
-                    completion = closestMatch.name;
-                }
-                if(!shown){
-                    autocomplete.setText("");
+                    Player closestMatch = playerGroup.all().min((p) -> distance(text, p.name));
+                    boolean containsName = distance(text, closestMatch.name) < 2 && text.length() > 3;
+                    if(containsName){
+                        shown = true;
+                        autocomplete.setText(closestMatch.name.substring(Math.min(text.length(), closestMatch.name.length())));
+                        completion = closestMatch.name;
+                    }
+                    if(!shown){
+                        autocomplete.setText("");
+                    }
                 }
                 if(input.keyTap(KeyCode.TAB)){
                     if(completion != null){
