@@ -76,17 +76,7 @@ public class ChatFragment extends Table{
             }
 
             if(shown){
-//                System.out.println(Fonts.chat.getData().getGlyph('a').width);
-//                float max = chatfield.changed((a) -{
-//                    System.out.println("aaa");
-//                });
-//                System.out.println(chatfield.getStyle().font);
-//                float max = 0f;
-//                BitmapFontData data = Fonts.chat.getData();
-//                for(char c : chatfield.getText().toCharArray()){
-//                    max += data.getGlyph(c).width + 2f;
-//                }
-                float max = chatfield.glyphPositions.get(chatfield.getText().length());
+                float max = chatfield.getGlyphPositions().get(chatfield.getText().length());
                 chatfield.setWidth(max);
                 autocomplete.setX(max + 3F);
                 boolean shown = false;

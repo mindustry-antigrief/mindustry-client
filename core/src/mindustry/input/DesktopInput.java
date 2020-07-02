@@ -222,7 +222,7 @@ public class DesktopInput extends InputHandler{
             player.isShooting = false;
         }
 
-        if(!state.is(State.menu) && Core.input.keyTap(Binding.minimap) && !scene.hasDialog() && !(scene.getKeyboardFocus() instanceof TextField) && !(scene.getKeyboardFocus() instanceof ResizingTextField)){
+        if(!state.is(State.menu) && Core.input.keyTap(Binding.minimap) && !scene.hasDialog() && !(scene.getKeyboardFocus() instanceof TextField)){
             ui.minimapfrag.toggle();
         }
 
