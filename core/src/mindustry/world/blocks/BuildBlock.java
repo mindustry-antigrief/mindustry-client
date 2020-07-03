@@ -1,6 +1,8 @@
 package mindustry.world.blocks;
 
 import arc.*;
+import arc.graphics.*;
+import arc.scene.ui.layout.*;
 import mindustry.annotations.Annotations.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
@@ -20,6 +22,7 @@ import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
+import mindustry.world.blocks.defense.ForceProjector.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
@@ -177,6 +180,14 @@ public class BuildBlock extends Block{
         if(Core.atlas.isFound(entity.previous.icon(Cicon.full))){
             Draw.rect(entity.previous.icon(Cicon.full), tile.drawx(), tile.drawy(), entity.previous.rotate ? tile.rotation() * 90 : 0);
         }
+    }
+
+    @Override
+    public void displayBars(Tile tile, Table bar){
+        super.displayBars(tile, bar);
+        BuildEntity entity = tile.ent();
+        bar.add(new Bar("block.constructing.progress", Pal.ammo, () -> entity.progress)).growX();
+        bar.row();
     }
 
     @Override

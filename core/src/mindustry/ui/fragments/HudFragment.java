@@ -403,7 +403,7 @@ public class HudFragment extends Fragment{
             t.row();
 
             t.row();
-            healthBar = new Bar(Core.bundle.get("player.health"), Pal.health, () -> player.healthf()).blink(Color.white);
+            healthBar = new Bar("player.health", Pal.health, () -> player.healthf()).blink(Color.white);
 //            t.add(healthBar).grow().fillX().height(40f);Color.red
             t.table(Tex.button, y -> y.margin(10f).add(healthBar)
             .grow()).fillX().visible(() -> true).height(40f).get();

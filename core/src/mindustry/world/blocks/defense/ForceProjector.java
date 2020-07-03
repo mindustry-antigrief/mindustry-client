@@ -6,6 +6,7 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
+import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.content.*;
 import mindustry.entities.*;
@@ -13,7 +14,9 @@ import mindustry.entities.traits.*;
 import mindustry.entities.type.*;
 import mindustry.entities.type.BaseEntity;
 import mindustry.graphics.*;
+import mindustry.ui.*;
 import mindustry.world.*;
+import mindustry.world.blocks.defense.turrets.Turret.*;
 import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 
@@ -88,6 +91,15 @@ public class ForceProjector extends Block{
     }
 
     @Override
+    public void displayBars(Tile tile, Table bars){
+        super.displayBars(tile, bars);
+        ForceEntity entity = tile.ent();
+
+        bars.add(new Bar("block.force-projector.breakage", Pal.ammo, () -> entity.buildup / breakage)).growX();
+        bars.row();
+    }
+
+    @Override
     public void update(Tile tile){
         ForceEntity entity = tile.ent();
 
@@ -145,6 +157,18 @@ public class ForceProjector extends Block{
         bulletGroup.intersect(tile.drawx() - realRadius, tile.drawy() - realRadius, realRadius*2f, realRadius * 2f, shieldConsumer);
     }
 
+//    @Override
+//    public void drawSelect(Tile tile){
+//        ForceEntity entity = tile.ent();
+//        int width = this.size * 8;
+//        width *= 0.8;
+//        Draw.color(Color.red);
+//        Fill.crect(tile.drawx() - (width / 2f), tile.drawy() - 4f, width * (entity.buildup / breakage) * 0.75f, 8f);
+//        Draw.color(new Color(0.5f, 0f, 0f));
+//        Lines.rect(tile.drawx() - (width / 2f), tile.drawy() - 4f, width, 8f);
+//        Draw.color();
+//    }
+//
     float realRadius(ForceEntity entity){
         return (radius + entity.phaseHeat * phaseRadiusBoost) * entity.radscl;
     }
