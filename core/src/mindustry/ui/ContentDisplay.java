@@ -5,10 +5,15 @@ import arc.struct.*;
 import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import com.sun.tools.javac.jvm.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.blocks.production.*;
 import mindustry.world.meta.*;
+import mindustry.world.meta.values.*;
+
+import java.util.*;
 
 public class ContentDisplay{
 
@@ -36,6 +41,9 @@ public class ContentDisplay{
         }
 
         BlockStats stats = block.stats;
+        if(block instanceof GenericCrafter){
+            System.out.println(((GenericCrafter)block).craftTime / 60f);
+        }
 
         for(StatCategory cat : stats.toMap().keys()){
             OrderedMap<BlockStat, Array<StatValue>> map = stats.toMap().get(cat);
@@ -44,14 +52,26 @@ public class ContentDisplay{
 
             table.add("$category." + cat.name()).color(Pal.accent).fillX();
             table.row();
-
             for(BlockStat stat : map.keys()){
+//                if(stat.ordinal() == BlockStat.input.ordinal()){
+//                    System.out.println(stat);
+//                    System.out.println(stat instanceof NumberValue);
+//                }
+//                System.out.println(stat.ordinal() == );
                 table.table(inset -> {
                     inset.left();
                     inset.add("[LIGHT_GRAY]" + stat.localized() + ":[] ").left();
                     Array<StatValue> arr = map.get(stat);
                     for(StatValue value : arr){
-                        value.display(inset);
+//                        if(stat.ordinal() == BlockStat.input.ordinal()){
+//                            System.out.println(value);
+//                        }
+                        if(block instanceof GenericCrafter && value instanceof ItemListValue && stat.category == StatCategory.crafting){
+                            System.out.println(Arrays.toString(((ItemListValue)value).stacks));
+                            ((ItemListValue)value).display(inset, ((GenericCrafter)block).craftTime);
+                        }else{
+                            value.display(inset);
+                        }
                         inset.add().size(10f);
                     }
 

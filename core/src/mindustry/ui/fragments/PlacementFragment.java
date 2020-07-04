@@ -225,9 +225,9 @@ public class PlacementFragment extends Fragment{
                             button.forEach(elem -> elem.setColor(color));
                             button.setChecked(control.input.block == block);
 
-//                            if(state.rules.bannedBlocks.contains(block)){
-//                                button.forEach(elem -> elem.setColor(Color.darkGray));
-//                            }
+                            if(state.rules.bannedBlocks.contains(block)){
+                                button.forEach(elem -> elem.setColor(Color.darkGray));
+                            }
                         });
 
                         button.hovered(() -> hovered = block);
