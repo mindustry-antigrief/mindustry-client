@@ -53,29 +53,21 @@ public class ContentDisplay{
             table.add("$category." + cat.name()).color(Pal.accent).fillX();
             table.row();
             for(BlockStat stat : map.keys()){
-//                if(stat.ordinal() == BlockStat.input.ordinal()){
-//                    System.out.println(stat);
-//                    System.out.println(stat instanceof NumberValue);
-//                }
-//                System.out.println(stat.ordinal() == );
                 table.table(inset -> {
                     inset.left();
                     inset.add("[LIGHT_GRAY]" + stat.localized() + ":[] ").left();
                     Array<StatValue> arr = map.get(stat);
                     for(StatValue value : arr){
-//                        if(stat.ordinal() == BlockStat.input.ordinal()){
-//                            System.out.println(value);
-//                        }
                         if(block instanceof GenericCrafter && value instanceof ItemListValue && stat.category == StatCategory.crafting){
-                            System.out.println(Arrays.toString(((ItemListValue)value).stacks));
                             ((ItemListValue)value).display(inset, ((GenericCrafter)block).craftTime);
+                        }else if(block instanceof GenericCrafter && value instanceof LiquidValue && stat.category == StatCategory.crafting){
+                            ((LiquidValue)value).display(inset, ((GenericCrafter)block).craftTime);
                         }else{
                             value.display(inset);
                         }
                         inset.add().size(10f);
                     }
 
-                    //map.get(stat).display(inset);
                 }).fillX().padLeft(10);
                 table.row();
             }
