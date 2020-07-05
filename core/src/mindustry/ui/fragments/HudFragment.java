@@ -269,12 +269,7 @@ public class HudFragment extends Fragment{
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left().style(Styles.outlineLabel);
             }).top().left();
 
-//            ImageButton button = new ImageButton(Icon.file, Styles.clearPartiali, () -> {
-//                System.out.println("Hello!");
-//            });
-//            cont.stack(button).top().left();
             cont.addImageButton(Icon.file, () -> {
-//                System.out.println("Hello world!");
                 waypointStartTime = Clock.systemUTC().millis();
                 waypoints.clear();
                 waypoints.add(new Waypoint(camera.position.x, camera.position.y));
@@ -318,6 +313,7 @@ public class HudFragment extends Fragment{
                         }
                     }
                 }
+                connected.clear();
                 for(int i = 0; i < nodes.size; i += 1){
                     PowerNode node = nodes.get(i);
                     Tile nodeTile = nodeTiles.get(i);
@@ -339,21 +335,16 @@ public class HudFragment extends Fragment{
                             if(tile2.y > maxY || tile2.y < minY){
                                 continue;
                             }
-                            if(tile2.block() instanceof PowerNode){
-                                boolean stop = false;
-                                for(ConfigRequest req : configRequests){
-                                    if(req.tile == tile2 && req.value == nodeTile.pos()){
-                                        stop = true;
-                                        break;
+                            if(tile2.entity != null){
+                                if(!connected.contains(tile2.pos())){
+                                    if(tile2.entity.power != null){
+                                        if(tile2.entity.power.status < 1f){
+                                            if(!nodeTile.entity.power.links.contains(tile2.pos())){
+                                                connected.add(tile2.pos());
+                                                configRequests.addLast(new ConfigRequest(nodeTile, player, tile2.pos()));
+                                            }
+                                        }
                                     }
-                                }
-                                if(stop){
-                                    continue;
-                                }
-                            }
-                            if(tile2.block() instanceof PowerNode){
-                                if(!nodeTile.entity.power.links.contains(tile2.pos())){
-                                    configRequests.addLast(new ConfigRequest(nodeTile, player, tile2.pos()));
                                 }
                             }
                         }
@@ -382,9 +373,6 @@ public class HudFragment extends Fragment{
                     }
                 }
                 waypoints.clear();
-//                System.out.println(turrets);
-//                System.out.println(startingWaypoint);
-//                System.out.println(endingWaypoint);
                 Array<int[]> points = AStar.findPathTurrets(turrets, startingWaypoint.x, startingWaypoint.y, endingWaypoint.x, endingWaypoint.y, world.width(), world.height(), player.getTeam());
                 if(points != null){
                     points.reverse();
@@ -404,10 +392,8 @@ public class HudFragment extends Fragment{
 
             t.row();
             healthBar = new Bar("player.health", Pal.health, () -> player.healthf()).blink(Color.white);
-//            t.add(healthBar).grow().fillX().height(40f);Color.red
             t.table(Tex.button, y -> y.margin(10f).add(healthBar)
             .grow()).fillX().visible(() -> true).height(40f).get();
-//            System.out.println(Core.bundle.format("player.health", String.valueOf(3.14), String.valueOf(5)));
             t.row();
 
 

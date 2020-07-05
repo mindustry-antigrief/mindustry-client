@@ -48,6 +48,6 @@ public class Waypoint{
             return player.buildQueue().indexOf(buildRequest, false) == -1;
         }
 
-        return player.within(x, y, 16);
+        return player.within(x, y, 32);
     }
 }

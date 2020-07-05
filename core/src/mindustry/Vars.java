@@ -223,6 +223,7 @@ public class Vars implements Loadable{
     public static Vec2 targetPosition = new Vec2();
     public static boolean wayFinding = false;
     public static Array<Vec3> crosshairs = new Array<>();
+    public static HashSet<Integer> connected = new HashSet<>();
 
     @Override
     public void loadAsync(){
