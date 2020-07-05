@@ -80,7 +80,7 @@ public class Blocks implements ContentList{
     fortressFactory, repairPoint,
 
     //upgrades
-    dartPad, deltaPad, tauPad, omegaPad, javelinPad, tridentPad, glaivePad, chain, chain2;
+    dartPad, deltaPad, tauPad, omegaPad, javelinPad, tridentPad, glaivePad, chain, chain2, chain3;
 
     @Override
     public void load(){
@@ -1861,12 +1861,17 @@ public class Blocks implements ContentList{
             consumes.power(0.05f);
         }};
 
-        chain = new Chain("chain"){{
+        chain = new Chain("chain", new Block[]{underflowGate, invertedSorter}){{
             requirements(Category.distribution, ItemStack.with(Items.lead, 2, Items.copper, 4));
             buildCostMultiplier = 3f;
         }};
 
-        chain2 = new ChainTwo("chain2"){{
+        chain2 = new Chain("chain2", new Block[]{router, overflowGate}){{
+            requirements(Category.distribution, ItemStack.with(Items.lead, 2, Items.copper, 4));
+            buildCostMultiplier = 3f;
+        }};
+
+        chain3 = new Chain("chain3", new Block[]{underflowGate, invertedSorter, invertedSorter}){{
             requirements(Category.distribution, ItemStack.with(Items.lead, 2, Items.copper, 4));
             buildCostMultiplier = 3f;
         }};

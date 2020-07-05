@@ -1,6 +1,7 @@
 package mindustry.world.blocks.distribution;
 
 import arc.math.*;
+import arc.struct.*;
 import arc.util.*;
 import mindustry.entities.type.*;
 import mindustry.type.*;
@@ -14,9 +15,11 @@ import static mindustry.Vars.world;
 public class Chain extends Block{
     public float speed = 1f;
     public boolean invert = false;
+    public Block[] blocks;
 
-    public Chain(String name){
+    public Chain(String name, Block[] blocks){
         super(name);
+        this.blocks = blocks;
         hasItems = true;
         solid = true;
         update = true;

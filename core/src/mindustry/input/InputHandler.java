@@ -619,21 +619,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             rotation = l.rotation;
             BuildRequest req;
             if(block instanceof Chain){
-                if((l.x + l.y) % 2 == 1){
-                    req = new BuildRequest(l.x, l.y, l.rotation, overflowGate);
-                }else{
-                    req = new BuildRequest(l.x, l.y, l.rotation, invertedSorter);
-                }
+                req = new BuildRequest(l.x, l.y, l.rotation, ((Chain)block).blocks[(l.x + l.y) % ((Chain)block).blocks.length]);
             }else{
-                if(block instanceof ChainTwo){
-                    if((l.x + l.y) % 2 == 1){
-                        req = new BuildRequest(l.x, l.y, l.rotation, overflowGate);
-                    }else{
-                        req = new BuildRequest(l.x, l.y, l.rotation, router);
-                    }
-                }else{
-                    req = new BuildRequest(l.x, l.y, l.rotation, block);
-                }
+                req = new BuildRequest(l.x, l.y, l.rotation, block);
             }
             req.animScale = 1f;
             lineRequests.add(req);
