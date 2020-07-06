@@ -252,7 +252,7 @@ public class DesktopInput extends InputHandler{
                     sorted = sorted.sort((b) -> distance(string, b.name));
                     found = sorted.first();
                     for(int i = 0; i < imgs.size - 1; i += 1){
-                        Image region = new Image(sorted.get(i).editorIcon());
+                        Image region = new Image(sorted.get(i).icon(Cicon.large));
                         region.setSize(32);
                         imgs.get(i).setDrawable(region.getDrawable());
                     }

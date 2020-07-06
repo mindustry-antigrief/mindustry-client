@@ -232,7 +232,10 @@ public class ContentLoader{
     //utility methods, just makes things a bit shorter
 
     public Array<Block> blocks(){
-        return getBy(ContentType.block);
+        Array<Block> blocks = getBy(ContentType.block);
+        Array<Block> blocks2 = blocks.copy();
+        blocks2.addAll(Blocks.customChains);
+        return blocks2;
     }
 
     public Block block(int id){

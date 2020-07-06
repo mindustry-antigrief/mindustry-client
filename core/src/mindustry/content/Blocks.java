@@ -80,7 +80,14 @@ public class Blocks implements ContentList{
     fortressFactory, repairPoint,
 
     //upgrades
-    dartPad, deltaPad, tauPad, omegaPad, javelinPad, tridentPad, glaivePad, chain, chain2, chain3;
+    dartPad, deltaPad, tauPad, omegaPad, javelinPad, tridentPad, glaivePad,
+
+    //chains
+    chain, chain2, chain3;
+
+    //an array of chain objects, modifiable at runtime
+    //chains MUST be added after the blocks they use are created in this file
+    public static Array<Block> customChains = new Array<>();
 
     @Override
     public void load(){

@@ -3,6 +3,7 @@ package mindustry.ui.fragments;
 import arc.*;
 import arc.graphics.*;
 import arc.input.*;
+import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.event.*;
@@ -11,6 +12,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.serialization.*;
 import mindustry.content.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
@@ -20,7 +22,12 @@ import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 import mindustry.world.*;
+import mindustry.world.blocks.*;
+import mindustry.world.blocks.distribution.*;
+
+import java.util.*;
 
 import static mindustry.Vars.*;
 
@@ -42,6 +49,7 @@ public class PlacementFragment extends Fragment{
     boolean blockSelectEnd;
     int blockSelectSeq;
     long blockSelectSeqMillis;
+    Runnable rebuild1;
     Binding[] blockSelect = {
         Binding.block_select_01,
         Binding.block_select_02,
@@ -237,6 +245,60 @@ public class PlacementFragment extends Fragment{
                             }
                         });
                     }
+                    if(currentCategory == Category.distribution){
+                        ImageButton button = new ImageButton(Icon.add);
+                        button.resizeImage(Cicon.small.size);
+                        button.clicked(() -> {
+                            FloatingDialog dialog = new FloatingDialog("add chain");
+                            Array<Block> blocks = new Array<>();
+                            Table selected = new Table();
+                            Table table = new Table();
+                            ItemSelection.buildTable(table, removeChains(getOneBlock(getPlaceable())), () -> Blocks.invertedSorter, (block) -> {
+                                selected.add(new Image(block.icon(Cicon.large)));
+                                blocks.add(block);
+                            });
+                            TextField field = new TextField("Name");
+                            field.setValidator((string) -> {
+                                for(Block b : content.blocks()){
+                                    if(b.name.equals(string)){
+                                        return false;
+                                    }
+                                }
+                                return string.length() > 0;
+                            });
+                            dialog.cont.add(field);
+                            dialog.cont.row();
+                            dialog.addCloseButton();
+                            dialog.buttons.defaults().size(210f, 64f);
+                            dialog.buttons.addImageTextButton("$save", Icon.file, () -> {
+                                if(field.isValid()){
+                                    Block[] blocks2 = new Block[blocks.size];
+                                    for(int i = 0; i < blocks.size; i += 1){
+                                        blocks2[i] = blocks.get(i);
+                                    }
+                                    Chain chain = new Chain(field.getText(), blocks2){{
+                                        requirements(Category.distribution, ItemStack.with(Items.lead, 2, Items.copper, 4));
+                                        buildCostMultiplier = 3f;
+                                    }};
+                                    if(!content.blocks().contains(chain, false)){
+                                        Blocks.customChains.add(chain);
+                                    }
+//                                    Category category = currentCategory;
+                                    rebuild1.run();
+                                    dialog.hide();
+                                }
+                            }).size(210f, 64f);
+
+                            dialog.cont.add(selected.center());
+                            dialog.cont.row();
+                            dialog.cont.add(table.center().bottom());
+                            dialog.show();
+                        });
+                        if(index++ % rowWidth == 0){
+                            blockTable.row();
+                        }
+                        blockTable.add(button);
+                    }
                     //add missing elements to even out table size
                     if(index < 4){
                         for(int i = 0; i < 4-index; i++){
@@ -251,6 +313,8 @@ public class PlacementFragment extends Fragment{
                         blockPane.layout();
                     });
                 };
+
+                rebuild1 = rebuildCategory;
 
                 //top table with hover info
                 frame.table(Tex.buttonEdge2,top -> {
@@ -422,6 +486,41 @@ public class PlacementFragment extends Fragment{
         returnArray.clear();
         for(Block block : content.blocks()){
             if(block.category == cat && block.isVisible() && unlocked(block)){
+                returnArray.add(block);
+            }
+        }
+        returnArray.sort((b1, b2) -> {
+            int locked = -Boolean.compare(unlocked(b1), unlocked(b2));
+            if(locked != 0) return locked;
+            return Boolean.compare(false, false);
+        });
+        return returnArray;
+    }
+
+    Array<Block> removeChains(Array<Block> blocks){
+        Array<Block> output = new Array<>();
+        for(Block block : blocks){
+            if(!(block instanceof Chain)){
+                output.add(block);
+            }
+        }
+        return output;
+    }
+
+    Array<Block> getOneBlock(Array<Block> blocks){
+        Array<Block> output = new Array<>();
+        for(Block block : blocks){
+            if(block.size == 1){
+                output.add(block);
+            }
+        }
+        return output;
+    }
+
+    Array<Block> getPlaceable(){
+        returnArray.clear();
+        for(Block block : content.blocks()){
+            if(block.isVisible() && unlocked(block)){
                 returnArray.add(block);
             }
         }
