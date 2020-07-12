@@ -202,7 +202,6 @@ public class Vars implements Loadable{
 
     public static boolean breakingFollowing = false;
 
-//    public static Array<String> undid = new Array<>();
     public static HashSet<Integer> undid_hashes = new HashSet<>();
     public static Array<Waypoint> waypoints = new Array<>();
     public static long waypointStartTime = 0;

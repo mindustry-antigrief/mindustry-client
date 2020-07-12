@@ -31,6 +31,15 @@ public class Unloader extends Block{
     }
 
     @Override
+    public int getConfig(Tile tile){
+        UnloaderEntity ent = tile.ent();
+        if(ent.sortItem == null){
+            return 0;
+        }
+        return ent.sortItem.id;
+    }
+
+    @Override
     public void drawRequestConfig(BuildRequest req, Eachable<BuildRequest> list){
         drawRequestConfigCenter(req, content.item(req.config), "unloader-center");
     }

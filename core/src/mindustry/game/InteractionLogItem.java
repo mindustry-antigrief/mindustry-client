@@ -6,19 +6,32 @@ import mindustry.world.*;
 
 import java.util.*;
 
-public class BuildLogItem{
+public class InteractionLogItem{
     public int x;
     public int y;
     public int rotation;
     public Block block;
     public boolean remove;
+    public ConfigRequest config;
 
-    public BuildLogItem(BuildRequest req){
+    public InteractionLogItem(int x, int y, int rotation, Block block, boolean remove){
+        this.x = x;
+        this.y = y;
+        this.rotation = rotation;
+        this.block = block;
+        this.remove = remove;
+    }
+
+    public InteractionLogItem(BuildRequest req){
         x = req.x;
         y = req.y;
         rotation = req.rotation;
         block = req.block;
         remove = req.breaking;
+    }
+
+    public InteractionLogItem(ConfigRequest req){
+        config = req;
     }
 
     public BuildRequest toRequest(){
@@ -28,28 +41,31 @@ public class BuildLogItem{
     }
 
     public BuildRequest undoRequest(){
-        BuildRequest req = new BuildRequest(x, y, rotation, block);
-        req.breaking = !remove;
-//        Vars.undid.add();
-//        req.undo = true;
-        Vars.undid_hashes.add(req.hashCode());
-        return req;
+        if(block != null){
+            BuildRequest req = new BuildRequest(x, y, rotation, block);
+            req.breaking = !remove;
+            Vars.undid_hashes.add(req.hashCode());
+            return req;
+        }
+        Vars.configRequests.addLast(config.getUndoRequest());
+        return null;
     }
 
     @Override
     public boolean equals(Object o){
         if(this == o) return true;
         if(o == null || getClass() != o.getClass()) return false;
-        BuildLogItem that = (BuildLogItem)o;
+        InteractionLogItem that = (InteractionLogItem)o;
         return x == that.x &&
         y == that.y &&
         rotation == that.rotation &&
         remove == that.remove &&
-        Objects.equals(block, that.block);
+        Objects.equals(block, that.block) &&
+        config == that.config;
     }
 
     @Override
     public int hashCode(){
-        return Objects.hash(x, y, rotation, block, remove);
+        return Objects.hash(x, y, rotation, block, remove, config);
     }
 }

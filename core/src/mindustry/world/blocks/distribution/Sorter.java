@@ -32,6 +32,15 @@ public class Sorter extends Block{
     }
 
     @Override
+    public int getConfig(Tile tile){
+        SorterEntity ent = tile.ent();
+        if(ent.sortItem == null){
+            return 0;
+        }
+        return ent.sortItem.id;
+    }
+
+    @Override
     public boolean outputsItems(){
         return true;
     }

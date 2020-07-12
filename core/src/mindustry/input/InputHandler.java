@@ -35,13 +35,10 @@ import mindustry.world.blocks.*;
 import mindustry.world.blocks.BuildBlock.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.power.*;
-import org.w3c.dom.ls.*;
 
 import java.util.*;
 
-import static arc.graphics.GL20.*;
 import static mindustry.Vars.*;
-import static mindustry.content.Blocks.*;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
     /** Used for dropping items. */
@@ -167,6 +164,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Remote(targets = Loc.both, called = Loc.both, forward = true)
     public static void onTileConfig(Player player, Tile tile, int value){
         if(tile == null) return;
+        if(player != null){
+            player.log.add(new InteractionLogItem(new ConfigRequest(tile, value)));
+        }
 
         if(net.server() && (!Units.canInteract(player, tile) ||
             !netServer.admins.allowAction(player, ActionType.configure, tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");

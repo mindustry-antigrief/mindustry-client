@@ -165,6 +165,10 @@ public class Block extends BlockStorage{
         this.solid = false;
     }
 
+    public int getConfig(Tile tile){
+        return -1;
+    }
+
     public boolean canBreak(Tile tile){
         return true;
     }

@@ -1,7 +1,6 @@
 package mindustry.world.blocks;
 
 import arc.*;
-import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import mindustry.annotations.Annotations.*;
 import arc.Graphics.*;
@@ -22,7 +21,6 @@ import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
-import mindustry.world.blocks.defense.ForceProjector.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
@@ -59,8 +57,14 @@ public class BuildBlock extends Block{
     @Remote(called = Loc.server)
     public static void onDeconstructFinish(Tile tile, Block block, int builderID){
         Team team = tile.getTeam();
+        Player builder = playerGroup.getByID(builderID);
         Effects.effect(Fx.breakBlock, tile.drawx(), tile.drawy(), block.size);
-        Events.fire(new BlockBuildEndEvent(tile, playerGroup.getByID(builderID), team, true));
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, true));
+        if(builder != null){
+            builder.log.add(new InteractionLogItem(
+            tile.x, tile.y, tile.rotation(), block, true)
+            );
+        }
         tile.remove();
         if(shouldPlay()) Sounds.breaks.at(tile, calcPitch(false));
     }
@@ -68,6 +72,7 @@ public class BuildBlock extends Block{
     @Remote(called = Loc.server)
     public static void onConstructFinish(Tile tile, Block block, int builderID, byte rotation, Team team, boolean skipConfig){
         if(tile == null) return;
+        Player builder = playerGroup.getByID(builderID);
         float healthf = tile.entity == null ? 1f : tile.entity.healthf();
         tile.set(block, team, rotation);
         if(tile.entity != null){
@@ -80,6 +85,11 @@ public class BuildBlock extends Block{
             }
         }
         Effects.effect(Fx.placeBlock, tile.drawx(), tile.drawy(), block.size);
+        if(builder != null){
+            builder.log.add(new InteractionLogItem(
+            tile.x, tile.y, tile.rotation(), tile.block(), false)
+            );
+        }
     }
 
     static boolean shouldPlay(){

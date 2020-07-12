@@ -163,27 +163,30 @@ public class PlayerListFragment extends Fragment{
                    following = user;
             });
 
-//            button.addImageButton(Icon.undo, Styles.clearPartiali,
-//            () -> ui.showTextInput("Undo", "Number of actions to undo", 3, "5", true, str ->
-//                {
-//                    try{
-//                        int num = Integer.parseInt(str);
-//                        int inc = 0;
-//                        for(int i = 0; i <= num; i += 1){
-//                            if(user.log.size == 0){
+            button.addImageButton(Icon.undo, Styles.clearPartiali,
+            () -> ui.showTextInput("Undo", "Number of actions to undo", 3, "5", true, str ->
+                {
+                    try{
+                        int num = Integer.parseInt(str);
+                        int inc = 0;
+                        for(int i = 0; i <= num; i += 1){
+                            if(user.log.size == 0){
+                                break;
+                            }
+                            BuildRequest req = user.log.pop().undoRequest();
+                            if(req != null){
+                                player.buildQueue().addLast(req);
+                            }
+                        }
+//                        for(BuildLogItem req : user.log){
+//                            inc += 1;
+//                            player.buildQueue().addLast(req.undoRequest());
+//                            if(inc >= num){
 //                                break;
 //                            }
-//                            player.buildQueue().addLast(user.log.pop().undoRequest());
 //                        }
-////                        for(BuildLogItem req : user.log){
-////                            inc += 1;
-////                            player.buildQueue().addLast(req.undoRequest());
-////                            if(inc >= num){
-////                                break;
-////                            }
-////                        }
-//                    }catch(NumberFormatException ignored){ }
-//                }));
+                    }catch(NumberFormatException ignored){ }
+                }));
 
             content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);
             content.row();

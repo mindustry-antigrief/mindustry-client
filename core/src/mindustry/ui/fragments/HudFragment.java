@@ -341,7 +341,7 @@ public class HudFragment extends Fragment{
                                         if(tile2.entity.power.status < 1f){
                                             if(!nodeTile.entity.power.links.contains(tile2.pos())){
                                                 connected.add(tile2.pos());
-                                                configRequests.addLast(new ConfigRequest(nodeTile, player, tile2.pos()));
+                                                configRequests.addLast(new ConfigRequest(nodeTile, tile2.pos()));
                                             }
                                         }
                                     }

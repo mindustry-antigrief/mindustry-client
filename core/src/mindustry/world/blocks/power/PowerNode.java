@@ -36,7 +36,7 @@ public class PowerNode extends PowerBlock{
         consumesPower = false;
         outputsPower = false;
     }
-
+    // Can't do undo config feature because the links would be too big to fit in an int
     @Override
     public void configured(Tile tile, Player player, int value){
         TileEntity entity = tile.entity;

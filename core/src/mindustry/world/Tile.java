@@ -48,6 +48,10 @@ public class Tile implements Position, TargetTrait{
         changed();
     }
 
+    public int getConfig(){
+        return block.getConfig(this);
+    }
+
     /** Returns this tile's position as a {@link Pos}. */
     public int pos(){
         return Pos.get(x, y);

@@ -20,10 +20,8 @@ import mindustry.core.*;
 import mindustry.ctype.ContentType;
 import mindustry.entities.*;
 import mindustry.entities.traits.*;
-import mindustry.entities.type.base.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
-import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.io.*;
@@ -33,13 +31,10 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
-import mindustry.world.blocks.BuildBlock.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
-import mindustry.world.blocks.storage.*;
 
 import java.io.*;
-import java.util.*;
 import java.time.*;
 
 import static mindustry.Vars.*;
@@ -82,7 +77,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     private Tile mining;
     private final Vec2 movement = new Vec2();
     private boolean moved;
-    public Array<BuildLogItem> log = new Array<>();
+    public Array<InteractionLogItem> log = new Array<>();
     public ObjectSet<Item> toMine = ObjectSet.with(Items.lead, Items.copper, Items.titanium, Items.thorium);
     protected StateMachine state2 = new StateMachine();
     public final UnitState
@@ -618,10 +613,10 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             if(undid_hashes.contains(req.hashCode())){
                 continue;
             }
-            BuildLogItem item = new BuildLogItem(req);
-            if(!log.contains(item)){
-                log.add(item);
-            }
+            InteractionLogItem item = new InteractionLogItem(req);
+//            if(!log.contains(item)){
+//                log.add(item);
+//            }
         }
         if(isBuilding){
             updateBuilding();

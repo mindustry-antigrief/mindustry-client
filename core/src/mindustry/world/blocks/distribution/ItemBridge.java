@@ -45,6 +45,11 @@ public class ItemBridge extends Block{
     }
 
     @Override
+    public int getConfig(Tile tile){
+        return tile.<ItemBridgeEntity>ent().link;
+    }
+
+    @Override
     public void configured(Tile tile, Player player, int value){
         tile.<ItemBridgeEntity>ent().link = value;
     }

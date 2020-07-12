@@ -304,7 +304,10 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(KeyCode.CONTROL_LEFT) &&
             Core.input.keyRelease(KeyCode.Z)){
                 if(player.log.size > 0){
-                    player.buildQueue().addLast(player.log.pop().undoRequest());
+                    BuildRequest req = player.log.pop().undoRequest();
+                    if(req != null){
+                        player.buildQueue().addLast(req);
+                    }
                 }
             }
 

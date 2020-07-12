@@ -46,6 +46,11 @@ public class MassDriver extends Block{
     }
 
     @Override
+    public int getConfig(Tile tile){
+        return tile.<MassDriverEntity>ent().link;
+    }
+
+    @Override
     public void configured(Tile tile, Player player, int value){
         tile.<MassDriverEntity>ent().link = value;
     }
