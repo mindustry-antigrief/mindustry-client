@@ -3,9 +3,6 @@
 [![Build Status](https://travis-ci.org/Anuken/Mindustry.svg?branch=master)](https://travis-ci.org/Anuken/Mindustry) 
 [![Discord](https://img.shields.io/discord/391020510269669376.svg)](https://discord.gg/mindustry)  
 
-**This is the unstable development branch**<br>
-If you find a bug here, do not tell me about it, I probably already know.  This branch will not be usable most of the time.
-
 Hi!  I'm blahblahbloopster (aka foo), and this is my fork of Anuke's mindustry.  I've added some handy features such as automated bombing, auto-mine, and auto-build.
 
 The buttons on the top of the screen are:<br>
