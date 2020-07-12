@@ -29,6 +29,7 @@ Semicolon toggles auto-mine, makes you behave like a draug but with unlimited ra
 chain and chain2 in transportation blocks place chains when used<br>
 There is a health bar under the minimap<br>
 In settings you can change if ambient lighting is used and flying unit transparency (good for seeing under rev swarms)<br>
+Ctrl+click on a tile for a log of places and breaks
 
 A sandbox tower defense game written in Java.
 

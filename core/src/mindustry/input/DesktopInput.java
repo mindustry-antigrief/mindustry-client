@@ -589,12 +589,20 @@ public class DesktopInput extends InputHandler{
             }else if(req != null && req.breaking){
                 deleting = true;
             }else if(selected != null){
-                //only begin shooting if there's no cursor event
-                if(!tileTapped(selected) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && (player.buildQueue().size == 0 || !player.isBuilding) && !droppingItem &&
-                !tryBeginMine(selected) && player.getMineTile() == null && !Core.scene.hasKeyboard()){
-                    player.isShooting = true;
-                    if(following != null && following != player){
-                        player.isShooting = following.isShooting;
+                if(Core.input.keyDown(KeyCode.CONTROL_LEFT) || Core.input.keyDown(KeyCode.CONTROL_RIGHT)){
+                    StringBuilder builder = new StringBuilder();
+                    for(TileLogItem item : selected.log){
+                        builder.append(item.toString()).append("\n");
+                    }
+                    ui.chatfrag.addMessage(builder.toString(), "client");
+                }else{
+                    //only begin shooting if there's no cursor event
+                    if(!tileTapped(selected) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && (player.buildQueue().size == 0 || !player.isBuilding) && !droppingItem &&
+                    !tryBeginMine(selected) && player.getMineTile() == null && !Core.scene.hasKeyboard()){
+                        player.isShooting = true;
+                        if(following != null && following != player){
+                            player.isShooting = following.isShooting;
+                        }
                     }
                 }
             }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine

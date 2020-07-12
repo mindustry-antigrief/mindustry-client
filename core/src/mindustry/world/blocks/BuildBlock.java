@@ -64,6 +64,7 @@ public class BuildBlock extends Block{
             builder.log.add(new InteractionLogItem(
             tile.x, tile.y, tile.rotation(), block, true)
             );
+            tile.log.add(new TileLogItem(TileLogType.Broken, builder.name));
         }
         tile.remove();
         if(shouldPlay()) Sounds.breaks.at(tile, calcPitch(false));
@@ -87,8 +88,9 @@ public class BuildBlock extends Block{
         Effects.effect(Fx.placeBlock, tile.drawx(), tile.drawy(), block.size);
         if(builder != null){
             builder.log.add(new InteractionLogItem(
-            tile.x, tile.y, tile.rotation(), tile.block(), false)
+                tile.x, tile.y, tile.rotation(), tile.block(), false)
             );
+            tile.log.add(new TileLogItem(TileLogType.Placed, builder.name));
         }
     }
 

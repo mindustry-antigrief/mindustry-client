@@ -30,6 +30,7 @@ public class Tile implements Position, TargetTrait{
     protected byte rotation;
     /** Team ordinal. */
     protected byte team;
+    public Array<TileLogItem> log = new Array<>();
 
     public Tile(int x, int y){
         this.x = (short)x;
