@@ -150,21 +150,29 @@ public class PlayerListFragment extends Fragment{
                         () -> ui.showConfirm("$confirm", "$confirmvotekick", () -> Call.sendChatMessage("/votekick " + user.name))).size(h);
 
             }
-            button.addImageButton(Icon.zoom, Styles.clearPartiali,
-            () -> stalking = user);
+            ImageButton button2 = new ImageButton(Icon.zoom, Styles.clearPartiali);
+            button2.clicked(() -> stalking = user);
+            TextTooltip.addTooltip(button2, "Watch player");
+            button.add(button2);
 
-            button.addImageButton(Icon.copy, Styles.clearPartiali,
-            () -> {following = user;
-                   breakingFollowing = false;
+            button2 = new ImageButton(Icon.copy, Styles.clearPartiali);
+            button2.clicked(() -> {
+                following = user;
+                breakingFollowing = false;
             });
+            TextTooltip.addTooltip(button2, "Assist player");
+            button.add(button2);
 
-            button.addImageButton(Icon.defense, Styles.clearPartiali,
-            () -> {breakingFollowing = true;
-                   following = user;
+            button2 = new ImageButton(Icon.defense, Styles.clearPartiali);
+            button2.clicked(() -> {
+                breakingFollowing = true;
+                following = user;
             });
+            TextTooltip.addTooltip(button2, "Block player from building/breaking blocks");
+            button.add(button2);
 
-            button.addImageButton(Icon.undo, Styles.clearPartiali,
-            () -> ui.showTextInput("Undo", "Number of actions to undo", 3, "5", true, str ->
+            button2 = new ImageButton(Icon.undo, Styles.clearPartiali);
+            button2.clicked(() -> ui.showTextInput("Undo", "Number of actions to undo", 3, "5", true, str ->
                 {
                     try{
                         int num = Integer.parseInt(str);
@@ -187,15 +195,17 @@ public class PlayerListFragment extends Fragment{
 //                        }
                     }catch(NumberFormatException ignored){ }
                 }));
+            TextTooltip.addTooltip(button2, "Undo player's actions");
+            button.add(button2);
 
-            content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);
+            content.add(button).padBottom(-6).width(450f).maxHeight(h + 14);
             content.row();
             content.addImage().height(4f).color(state.rules.pvp ? user.getTeam().color : Pal.gray).growX();
             content.row();
         });
 
         if(sField.getText().length() > 0 && !playerGroup.all().contains(user -> user.name.toLowerCase().contains(sField.getText().toLowerCase()))) {
-            content.add(Core.bundle.format("players.notfound")).padBottom(6).width(350f).maxHeight(h + 14);
+            content.add(Core.bundle.format("players.notfound")).padBottom(6).width(450f).maxHeight(h + 14);
         }
 
         content.marginBottom(5);

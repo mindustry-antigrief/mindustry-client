@@ -278,17 +278,17 @@ public class HudFragment extends Fragment{
                 recordingWaypoints = true;
             });
             TextTooltip.addTooltip(button, "Create new path");
-            cont.add(button);
+            cont.add(button).top().left().padTop(5f);
 
-            ImageButton button1 = new ImageButton(Icon.box);
-            button1.clicked(() -> {
+            button = new ImageButton(Icon.box);
+            button.clicked(() -> {
                 waypoints.add(new Waypoint(camera.position.x, camera.position.y));
             });
-            TextTooltip.addTooltip(button1, "Place waypoint");
-            cont.add(button1);
+            TextTooltip.addTooltip(button, "Place waypoint");
+            cont.add(button).top().left().padTop(5f);
 
-            ImageButton button2 = new ImageButton(Icon.move);
-            button2.clicked(() -> {
+            button = new ImageButton(Icon.move);
+            button.clicked(() -> {
                 recordingWaypoints = false;
                 followingWaypoints = true;
                 repeatWaypoints = true;
@@ -298,28 +298,28 @@ public class HudFragment extends Fragment{
                     notDone.addFirst(w);
                 }
             });
-            TextTooltip.addTooltip(button2, "Follow path");
-            cont.add(button2);
+            TextTooltip.addTooltip(button, "Follow path");
+            cont.add(button).top().left().padTop(5f);
 
-            ImageButton button3 = new ImageButton(Icon.exit);
-            button3.clicked(() -> {
+            button = new ImageButton(Icon.exit);
+            button.clicked(() -> {
                 recordingWaypoints = false;
                 followingWaypoints = false;
                 notDone.clear();
             });
-            TextTooltip.addTooltip(button3, "Stops placing or following paths");
-            cont.add(button3);
+            TextTooltip.addTooltip(button, "Stops placing or following paths");
+            cont.add(button).top().left().padTop(5f);
 
-            ImageButton button4 = new ImageButton(Icon.eraser);
-            button4.clicked(() -> {
+            button = new ImageButton(Icon.eraser);
+            button.clicked(() -> {
                 notDone.clear();
                 waypoints.clear();
             });
-            TextTooltip.addTooltip(button4, "Clear path");
-            cont.add(button4);
+            TextTooltip.addTooltip(button, "Clear path");
+            cont.add(button).top().left().padTop(5f);
 
-            ImageButton button5 = new ImageButton(Icon.power);
-            button5.clicked(() -> {
+            button = new ImageButton(Icon.power);
+            button.clicked(() -> {
                 Array<Tile> nodeTiles = new Array<>();
                 Array<PowerNode> nodes = new Array<>();
                 for(Tile[] tile : world.getTiles()){
@@ -368,11 +368,11 @@ public class HudFragment extends Fragment{
                     }
                 }
             });
-            TextTooltip.addTooltip(button5, "Connects all power nodes and connects unpowered things.\n  Does not connect across plastanium walls.");
-            cont.add(button5);
+            TextTooltip.addTooltip(button, "Connects all power nodes and connects unpowered things.\n  Does not connect across plastanium walls.");
+            cont.add(button).top().left().padTop(5f);
 
-            ImageButton button6 = new ImageButton(Icon.file);
-            button6.clicked(() -> {
+            button = new ImageButton(Icon.file);
+            button.clicked(() -> {
                 waypointStartTime = Clock.systemUTC().millis();
                 waypoints.clear();
                 waypoints.add(new Waypoint(camera.position.x, camera.position.y));
@@ -380,11 +380,11 @@ public class HudFragment extends Fragment{
                 wayFinding = true;
                 repeatWaypoints = false;
             });
-            TextTooltip.addTooltip(button6, "Start new pathfinding path\n Press exit to finish");
-            cont.add(button6);
+            TextTooltip.addTooltip(button, "Start new pathfinding path\n Press exit to finish");
+            cont.add(button).top().left().padTop(5f);
 
-            ImageButton button7 = new ImageButton(Icon.exit);
-            button7.clicked(() -> {
+            button = new ImageButton(Icon.exit);
+            button.clicked(() -> {
                 recordingWaypoints = false;
                 Waypoint startingWaypoint = waypoints.first();
                 Waypoint endingWaypoint = new Waypoint(camera.position.x, camera.position.y);
@@ -406,8 +406,8 @@ public class HudFragment extends Fragment{
                     }
                 }
             });
-            TextTooltip.addTooltip(button7, "End pathfinding path");
-            cont.add(button7);
+            TextTooltip.addTooltip(button, "End pathfinding path");
+            cont.add(button).top().left().padTop(5f);
 
         });
         
