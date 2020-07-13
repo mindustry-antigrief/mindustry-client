@@ -253,9 +253,11 @@ public class PlacementFragment extends Fragment{
                             Array<Block> blocks = new Array<>();
                             Table selected = new Table();
                             Table table = new Table();
-                            ItemSelection.buildTable(table, removeChains(getOneBlock(getPlaceable())), () -> Blocks.invertedSorter, (block) -> {
-                                selected.add(new Image(block.icon(Cicon.large)));
-                                blocks.add(block);
+                            ItemSelection.buildTable(table, removeChains(getOneBlock(getPlaceable())), () -> null, (block) -> {
+                                if(block != null){
+                                    selected.add(new Image(block.icon(Cicon.large)));
+                                    blocks.add(block);
+                                }
                             });
                             TextField field = new TextField("Name");
                             field.setValidator((string) -> {
