@@ -475,6 +475,9 @@ public class DesktopInput extends InputHandler{
         table.addImageButton(Icon.paste, Styles.clearPartiali, () -> {
             ui.schematics.show();
         });
+        table.addImageButton(Icon.redo, () -> {
+            ui.transfer.show();
+        });
     }
 
     void pollInput(){
