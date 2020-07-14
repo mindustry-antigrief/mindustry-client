@@ -1,5 +1,7 @@
 package mindustry.game;
 
+import arc.scene.*;
+import arc.scene.ui.*;
 import arc.struct.*;
 import mindustry.*;
 import mindustry.entities.type.*;
@@ -107,6 +109,14 @@ public class TransferEndpoint{
 
             default:  //must be block_type
                 return block.name;
+        }
+    }
+
+    public Element toElement(){
+        switch(type){
+            case "player":
+                return new Label("Mech items");
+
         }
     }
 }
