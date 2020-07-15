@@ -7,6 +7,7 @@ import mindustry.*;
 import mindustry.entities.type.*;
 import mindustry.gen.*;
 import mindustry.type.*;
+import mindustry.ui.*;
 import mindustry.world.*;
 
 public class TransferEndpoint{
@@ -63,15 +64,15 @@ public class TransferEndpoint{
 
             case "tile":
                 Tile tile = Vars.world.tile(x, y);
-                if(tile != null && tile.block() != null && tile.entity.items.get(item) > 0){
-                    Call.transferItemTo(item, 1, x, y, tile);
+                if(tile != null && tile.block() != null && tile.entity.items.get(item) > 0 && Vars.player.item().amount < Vars.player.getItemCapacity()){
+                    Call.requestItem(Vars.player, tile, item, Vars.player.getItemCapacity() - Vars.player.item().amount);
                 }
 
             case "block_type":
                 for(int pos : blockPositions){
                     Tile tile2 = Vars.world.tile(pos);
                     if(tile2 != null && tile2.block() != null && tile2.entity.items.get(item) > 0){
-                        Call.transferItemTo(item, 1, x, y, tile2);
+                        Call.requestItem(Vars.player, tile2, item, 1);
                     }
                 }
         }
@@ -117,6 +118,11 @@ public class TransferEndpoint{
             case "player":
                 return new Label("Mech items");
 
+            case "tile":
+                return new Label(String.format("Tile at %d, %d", x, y));
+
+            default:  //must be block_type
+                return new Image(block.icon(Cicon.small));
         }
     }
 }

@@ -1,6 +1,5 @@
 package mindustry.game;
 
-import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import mindustry.type.*;
 
@@ -20,10 +19,15 @@ public class TransferItem{
         end.transferFromPlayer(item);
     }
 
+    public void update(){
+        start.rebuild();
+        end.rebuild();
+    }
+
     public Table show(){
         Table table = new Table();
-        table.add(new Label(start.toString()));
-        table.add(new Label(end.toString()));
+        table.add(start.toElement());
+        table.add(end.toElement());
         return table;
     }
 }

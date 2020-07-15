@@ -1,6 +1,5 @@
 package mindustry.ui.dialogs;
 
-import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import mindustry.*;
@@ -37,9 +36,10 @@ public class TransferDialog extends FloatingDialog{
             full.add(requests);
         });
         cont.addImageButton(Icon.add, () -> {
-            transferRequests.add(new TransferItem(new TransferEndpoint(Vars.player.getClosestCore().tile),
-                new TransferEndpoint(Blocks.overdriveProjector), Items.phasefabric));
-            rebuild();
+//            transferRequests.add(new TransferItem(new TransferEndpoint(Vars.player.getClosestCore().tile),
+//                new TransferEndpoint(Blocks.thoriumReactor), Items.thorium));
+//            rebuild();
+            new TransferCreateDialog().show();
         });
         previous = transferRequests.copy();
     }

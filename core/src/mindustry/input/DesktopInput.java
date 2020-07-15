@@ -176,6 +176,14 @@ public class DesktopInput extends InputHandler{
         if(Vars.net.active() && Core.input.keyTap(Binding.player_list) && !ui.chatfrag.autocomplete.isVisible()){
             ui.listfrag.toggle();
         }
+        boolean updateTransfer = new Rand().chance(1 / 60f);
+        for(TransferItem transfer : ui.transfer.transferRequests){
+            transfer.run();
+            if(updateTransfer){
+                transfer.update();
+            }
+        }
+
         for(int i = 0; i < 50; i += 1){
             if(configRequests.size > 0){
                 configRequests.removeFirst().runRequest();
