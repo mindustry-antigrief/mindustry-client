@@ -7,6 +7,7 @@ import mindustry.*;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
@@ -82,7 +83,36 @@ public class TransferCreateDialog extends FloatingDialog{
         return table;
     }
 
+    private Table buildSelector(boolean isStart){
+        Table table = new Table();
+        table.addButton("Specific tile", () -> {
+            table.add(buildSingleTilePickup(isStart));
+        });
+        table.row();
+        table.addButton("Player items", () -> {
+            table.add(buildPlayerPickup(isStart));
+        });
+        table.row();
+        table.addButton("Block type", () -> {
+            table.add(buildBlockTypePickup(isStart));
+        });
+        return table;
+    }
+
     public void build(){
+        cont.add(buildSelector(true));
+        cont.add(buildSelector(false));
+        cont.row();
+        Table table = new Table();
+        AtomicReference<Item> selected = new AtomicReference<>();
+        selected.set(null);
+        ItemSelection.buildTable(table, Vars.content.items(), selected::get, selected::set);
+        cont.add(table);
+        cont.addImageButton(Icon.ok, () -> {
+            if(start != null && end != null && selected.get() != null){
+                Vars.ui.transfer.transferRequests.add(new TransferItem(start, end, selected.get()));
+            }
+        });
         addCloseButton();
     }
 }
