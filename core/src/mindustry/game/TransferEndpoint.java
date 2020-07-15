@@ -71,7 +71,7 @@ public class TransferEndpoint{
             case "block_type":
                 for(int pos : blockPositions){
                     Tile tile2 = Vars.world.tile(pos);
-                    if(tile2 != null && tile2.block() != null && tile2.entity.items.get(item) > 0){
+                    if(tile2 != null && tile2.block() != null && tile2.entity.items.get(item) > 0 && Vars.player.item().amount < Vars.player.getItemCapacity()){
                         Call.requestItem(Vars.player, tile2, item, 1);
                     }
                 }

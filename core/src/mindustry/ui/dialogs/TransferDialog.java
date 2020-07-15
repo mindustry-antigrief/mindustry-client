@@ -31,6 +31,10 @@ public class TransferDialog extends FloatingDialog{
             Table requests = new Table();
             for(TransferItem transferItem : transferRequests){
                 requests.add(transferItem.show());
+                requests.addButton("X", () -> {
+                    transferRequests.remove(transferItem);
+                    rebuild();
+                });
                 requests.row();
             }
             full.add(requests);

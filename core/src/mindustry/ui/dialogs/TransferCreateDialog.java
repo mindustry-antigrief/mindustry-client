@@ -27,6 +27,8 @@ public class TransferCreateDialog extends FloatingDialog{
         Table table = new Table();
         TextField x = new TextField("0");
         TextField y = new TextField("0");
+        x.setWidth(20);
+        y.setWidth(20);
         x.setValidator((string) -> Strings.canParsePostiveInt(string) && Integer.parseInt(string) <= Vars.world.width());
         y.setValidator((string) -> Strings.canParsePostiveInt(string) && Integer.parseInt(string) <= Vars.world.height());
         table.add(x, new Label(","), y);
@@ -37,6 +39,8 @@ public class TransferCreateDialog extends FloatingDialog{
                 blockImage.setDrawable(tile.block() == Blocks.air? tile.floor().icon(Cicon.small) : tile.block().icon(Cicon.small));
             }
         });
+        table.row();
+        table.add(blockImage);
          table.addImageButton(Icon.ok, () -> {
              if(x.isValid() && y.isValid()){
                  TransferEndpoint endpoint =  new TransferEndpoint(Vars.world.tile(Integer.parseInt(x.getText()), Integer.parseInt(x.getText())));
@@ -85,32 +89,46 @@ public class TransferCreateDialog extends FloatingDialog{
 
     private Table buildSelector(boolean isStart){
         Table table = new Table();
-        table.addButton("Specific tile", () -> {
-            table.add(buildSingleTilePickup(isStart));
+        Table item = new Table();
+        TextButton button = new TextButton("Specific tile");
+        button.clicked(() -> {
+            item.clear();
+            item.add(buildSingleTilePickup(isStart));
         });
+        table.add(button).growX();
         table.row();
-        table.addButton("Player items", () -> {
-            table.add(buildPlayerPickup(isStart));
+
+        button = new TextButton("Player items");
+        button.clicked(() -> {
+            item.clear();
+            item.add(buildPlayerPickup(isStart));
         });
+        table.add(button).growX();
         table.row();
-        table.addButton("Block type", () -> {
-            table.add(buildBlockTypePickup(isStart));
+
+        button = new TextButton("Block type");
+        button.clicked(() -> {
+            item.clear();
+            item.add(buildBlockTypePickup(isStart));
         });
+        table.add(button).growX();
+        table.add(item);
         return table;
     }
 
     public void build(){
-        cont.add(buildSelector(true));
-        cont.add(buildSelector(false));
+        cont.add(buildSelector(true)).growX();
+        cont.add(buildSelector(false)).growX();
         cont.row();
         Table table = new Table();
         AtomicReference<Item> selected = new AtomicReference<>();
         selected.set(null);
         ItemSelection.buildTable(table, Vars.content.items(), selected::get, selected::set);
-        cont.add(table);
-        cont.addImageButton(Icon.ok, () -> {
+        cont.add(table.center());
+        buttons.addImageButton(Icon.ok, () -> {
             if(start != null && end != null && selected.get() != null){
                 Vars.ui.transfer.transferRequests.add(new TransferItem(start, end, selected.get()));
+                hide();
             }
         });
         addCloseButton();
