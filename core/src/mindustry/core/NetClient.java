@@ -180,6 +180,9 @@ public class NetClient implements ApplicationListener{
             }
             return;
         }
+        if(message.startsWith("!here")){
+            Call.sendChatMessage(String.format("[coral][autoresponse][light_gray ]%s [light_gray], you are at %d,%d", playersender.name, playersender.tileX(), playersender.tileY()));
+        }
         Pattern regex = Pattern.compile("\\d+(,|\\s)\\s?\\d+");
         Matcher matcher = regex.matcher(message);
         if(matcher.find()){
