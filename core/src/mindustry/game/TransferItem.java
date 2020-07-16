@@ -3,6 +3,8 @@ package mindustry.game;
 import arc.scene.ui.layout.*;
 import mindustry.type.*;
 
+import javax.print.attribute.standard.*;
+
 public class TransferItem{
     public Item item;
     public TransferEndpoint start;
@@ -15,9 +17,11 @@ public class TransferItem{
     }
 
     public void run(){
-        start.transferToPlayer(item);
-        end.transferFromPlayer(item);
-        start.transferFromPlayer(item);
+        try{
+            start.transferToPlayer(item);
+            end.transferFromPlayer(item);
+            start.transferFromPlayer(item);
+        }catch(NullPointerException ignored){} //SHH EVERYTHING'S FINE
     }
 
     public void update(){

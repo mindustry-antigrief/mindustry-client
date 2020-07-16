@@ -78,6 +78,7 @@ public class TransferEndpoint{
                 return;
 
             case "block_type":
+                blockPositions.shuffle();
                 for(int pos : blockPositions){
                     Tile tile2 = Vars.world.tile(pos);
                     if(tile2 != null && tile2.block() != null && tile2.entity.items.get(item) > 0 && Vars.player.item().amount < Vars.player.getItemCapacity()){
