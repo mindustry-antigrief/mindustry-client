@@ -43,7 +43,7 @@ public class TransferCreateDialog extends FloatingDialog{
         table.add(blockImage);
          table.addImageButton(Icon.ok, () -> {
              if(x.isValid() && y.isValid()){
-                 TransferEndpoint endpoint =  new TransferEndpoint(Vars.world.tile(Integer.parseInt(x.getText()), Integer.parseInt(x.getText())));
+                 TransferEndpoint endpoint =  new TransferEndpoint(Vars.world.tile(Integer.parseInt(x.getText()), Integer.parseInt(y.getText())));
                  if(isStart){
                      start = endpoint;
                  }else{
@@ -58,6 +58,19 @@ public class TransferCreateDialog extends FloatingDialog{
         Table table = new Table();
         table.addImageButton(Icon.ok, () -> {
             TransferEndpoint endpoint = new TransferEndpoint(Vars.player);
+            if(isStart){
+                start = endpoint;
+            }else{
+                end = endpoint;
+            }
+        });
+        return table;
+    }
+
+    private Table buildCorePickup(boolean isStart){
+        Table table = new Table();
+        table.addImageButton(Icon.ok, () -> {
+            TransferEndpoint endpoint = new TransferEndpoint();
             if(isStart){
                 start = endpoint;
             }else{
@@ -102,6 +115,14 @@ public class TransferCreateDialog extends FloatingDialog{
         button.clicked(() -> {
             item.clear();
             item.add(buildPlayerPickup(isStart));
+        });
+        table.add(button).growX();
+        table.row();
+
+        button = new TextButton("Core items");
+        button.clicked(() -> {
+            item.clear();
+            item.add(buildCorePickup(isStart));
         });
         table.add(button).growX();
         table.row();

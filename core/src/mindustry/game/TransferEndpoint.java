@@ -9,9 +9,10 @@ import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
+import mindustry.world.blocks.*;
 
 public class TransferEndpoint{
-    //Possible values: "player" "tile" "block_type"
+    //Possible values: "player" "tile" "block_type" "core"
     // What?  I'm too lazy to make an enum class okay?
     private String type = "";
 
@@ -30,10 +31,17 @@ public class TransferEndpoint{
         this.player = player;
     }
 
+    public TransferEndpoint(){
+        type = "core";
+    }
+
     public TransferEndpoint(Tile tile){
         type = "tile";
         x = (int)tile.x;
         y = (int)tile.y;
+//        System.out.println(tile.x);
+//        System.out.println(tile.y);
+//        System.out.println("blaifewi");
     }
 
     public TransferEndpoint(Block block){
@@ -60,13 +68,14 @@ public class TransferEndpoint{
     public void transferToPlayer(Item item){
         switch(type){
             case "player":
-                break;
+                return;
 
             case "tile":
                 Tile tile = Vars.world.tile(x, y);
                 if(tile != null && tile.block() != null && tile.entity.items.get(item) > 0 && Vars.player.item().amount < Vars.player.getItemCapacity()){
-                    Call.requestItem(Vars.player, tile, item, Vars.player.getItemCapacity() - Vars.player.item().amount);
+                    Call.requestItem(Vars.player, tile, item, 1);
                 }
+                return;
 
             case "block_type":
                 for(int pos : blockPositions){
@@ -75,6 +84,11 @@ public class TransferEndpoint{
                         Call.requestItem(Vars.player, tile2, item, 1);
                     }
                 }
+                return;
+
+            case "core":
+                Tile tile3 = Vars.player.getClosestCore().tile;
+                Call.requestItem(Vars.player, tile3, item, 1);
         }
     }
 
@@ -82,21 +96,31 @@ public class TransferEndpoint{
     public void transferFromPlayer(Item item){
         switch(type){
             case "player":
-                break;
+                return;
 
             case "tile":
                 Tile tile = Vars.world.tile(x, y);
-                if(tile != null && tile.block() != null && tile.block().acceptStack(item, 1, tile, Vars.player) > 0){
+//                System.out.println(tile.block().acceptStack(item, Math.min(Vars.player.item().amount, 1), tile, Vars.player));
+//                System.out.println(x);
+//                System.out.println(y);
+                if(tile != null && tile.block() != null && tile.block().acceptStack(item, Math.min(Vars.player.item().amount, 1), tile, Vars.player) > 0){
                     Call.transferInventory(Vars.player, tile);
                 }
+                return;
 
             case "block_type":
                 for(int pos : blockPositions){
                     Tile tile2 = Vars.world.tile(pos);
-                    if(tile2 != null && tile2.block() != null && tile2.block().acceptStack(item, 1, tile2, Vars.player) > 0){
+                    if(tile2 != null && tile2.block() != null && tile2.block().acceptStack(item, Math.min(Vars.player.item().amount, 1), tile2, Vars.player) > 0){
                         Call.transferInventory(Vars.player, tile2);
                     }
                 }
+                return;
+
+            case "core":
+//                System.out.println("eiwjfiwejifw");
+                Tile tile3 = Vars.player.getClosestCore().tile;
+                Call.transferInventory(Vars.player, tile3);
         }
     }
 
@@ -107,6 +131,9 @@ public class TransferEndpoint{
 
             case "tile":
                 return String.format("%d, %d", x, y);
+
+            case "core":
+                return "core";
 
             default:  //must be block_type
                 return block.name;
@@ -120,6 +147,9 @@ public class TransferEndpoint{
 
             case "tile":
                 return new Label(String.format("Tile at %d, %d", x, y));
+
+            case "core":
+                return new Label("Core");
 
             default:  //must be block_type
                 return new Image(block.icon(Cicon.small));

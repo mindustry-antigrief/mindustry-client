@@ -17,6 +17,7 @@ public class TransferItem{
     public void run(){
         start.transferToPlayer(item);
         end.transferFromPlayer(item);
+        start.transferFromPlayer(item);
     }
 
     public void update(){

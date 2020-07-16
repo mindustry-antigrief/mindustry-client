@@ -4,8 +4,11 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import mindustry.*;
 import mindustry.content.*;
+import mindustry.ctype.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+
+import static mindustry.Vars.*;
 
 public class TransferDialog extends FloatingDialog{
     public Array<TransferItem> transferRequests = new Array<>();
@@ -31,7 +34,7 @@ public class TransferDialog extends FloatingDialog{
             Table requests = new Table();
             for(TransferItem transferItem : transferRequests){
                 requests.add(transferItem.show());
-                requests.addButton("X", () -> {
+                requests.addImageButton(Icon.cancel, () -> {
                     transferRequests.remove(transferItem);
                     rebuild();
                 });
