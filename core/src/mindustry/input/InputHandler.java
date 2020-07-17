@@ -505,7 +505,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Core.gl.glHint(Core.gl.GL_SAMPLE_BUFFERS, 1);
         Core.gl.glHint(Core.gl.GL_SAMPLES, 4);
         Lines.precise(true);
-        stroke = 30F;
+//        stroke = 30F;
 //        Lines.rect(x, y, width, height, );
 //
 //        Core.gl.
@@ -625,6 +625,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 req = new BuildRequest(l.x, l.y, l.rotation, block);
             }
             req.animScale = 1f;
+            req.priority = Core.input.shift();
             lineRequests.add(req);
         });
 
@@ -878,12 +879,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(req != null){
             player.buildQueue().remove(req);
         }
-        player.addBuildRequest(new BuildRequest(x, y, rotation, block));
+        BuildRequest req2 = new BuildRequest(x, y, rotation, block);
+        req2.priority = Core.input.shift();
+        player.addBuildRequest(req2);
     }
 
     public void breakBlock(int x, int y){
         Tile tile = world.ltile(x, y);
-        player.addBuildRequest(new BuildRequest(tile.x, tile.y));
+        BuildRequest req = new BuildRequest(tile.x, tile.y);
+        req.priority = Core.input.shift();
+        player.addBuildRequest(req);
     }
 
     public void drawArrow(Block block, int x, int y, int rotation){

@@ -321,6 +321,11 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
 
     @Override
     public Queue<BuildRequest> buildQueue(){
+        Array<BuildRequest> requests = new Array<>();
+        placeQueue.forEach(requests::add);
+        requests.sort((req) -> req.priority? 0f : 1f);
+        placeQueue.clear();
+        requests.forEach(placeQueue::addLast);
         return placeQueue;
     }
 

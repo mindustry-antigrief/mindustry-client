@@ -1,7 +1,9 @@
 package mindustry.world.blocks;
 
 import arc.*;
+import arc.input.*;
 import arc.scene.ui.layout.*;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
@@ -164,7 +166,7 @@ public class BuildBlock extends Block{
                 player.isBuilding = true;
             }
             //player.clearBuilding();
-            BuildRequest b = new BuildRequest(tile.x, tile.y, tile.rotation(), entity.cblock);
+            BuildRequest b = new BuildRequest(tile.x, tile.y, tile.rotation(), entity.cblock, Core.input.keyDown(KeyCode.SHIFT_LEFT) || Core.input.keyDown(KeyCode.SHIFT_RIGHT));
             player.addBuildRequest(b, false);
         }
     }
