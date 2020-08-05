@@ -267,6 +267,10 @@ public class AStar{
     }
 
     public static Array<int[]> findPath(Array<TurretPathfindingEntity> turrets, float playerX, float playerY, float targetX, float targetY, int width, int height){
+        playerX = Mathf.clamp(playerX, 0, width * 8);
+        playerY = Mathf.clamp(playerY, 0, height * 8);
+        targetX = Mathf.clamp(targetX, 0, width * 8);
+        targetY = Mathf.clamp(targetY, 0, height * 8);
         if(turrets.size == 0){
             Array<int[]> out = new Array<>();
             out.add(new int[]{(int)targetX / 8, (int)targetY / 8});
