@@ -385,6 +385,9 @@ public class HudFragment extends Fragment{
 
             button = new ImageButton(Icon.exit);
             button.clicked(() -> {
+                if(waypoints.size == 0){
+                    return;
+                }
                 recordingWaypoints = false;
                 Waypoint startingWaypoint = waypoints.first();
                 Waypoint endingWaypoint = new Waypoint(camera.position.x, camera.position.y);
