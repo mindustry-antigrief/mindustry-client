@@ -104,7 +104,7 @@ public class TransferEndpoint{
 //                System.out.println(tile.block().acceptStack(item, Math.min(Vars.player.item().amount, 1), tile, Vars.player));
 //                System.out.println(x);
 //                System.out.println(y);
-                if(tile != null && tile.block() != null && tile.block().acceptStack(item, Math.min(Vars.player.item().amount, 1), tile, Vars.player) > 0){
+                if(tile != null && tile.block() != null && tile.block().acceptStack(item, Math.min(Vars.player.item().amount, 1), tile, Vars.player) > 0 && Vars.player.item().amount > 0){
                     Call.transferInventory(Vars.player, tile);
                 }
                 return;
@@ -112,7 +112,7 @@ public class TransferEndpoint{
             case "block_type":
                 for(int pos : blockPositions){
                     Tile tile2 = Vars.world.tile(pos);
-                    if(tile2 != null && tile2.block() != null && tile2.block().acceptStack(item, Math.min(Vars.player.item().amount, 1), tile2, Vars.player) > 0){
+                    if(tile2 != null && tile2.block() != null && tile2.block().acceptStack(item, Math.min(Vars.player.item().amount, 1), tile2, Vars.player) > 0 && Vars.player.item().amount > 0){
                         Call.transferInventory(Vars.player, tile2);
                     }
                 }
