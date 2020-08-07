@@ -21,6 +21,8 @@ public class Version{
     /** Whether version loading is enabled. */
     public static boolean enabled = true;
 
+    public static int clientVersion = 0;
+
     public static void init(){
         if(!enabled) return;
 
