@@ -63,13 +63,15 @@ public class TransferEndpoint{
     }
 
     public void transferToPlayer(Item item){
+        Item playerItem = Vars.player.item().item;
+        boolean canPickUpItem = Vars.player.item().amount == 0 || item == playerItem && Vars.player.item().amount < Vars.player.getItemCapacity();
         switch(type){
             case "player":
                 return;
 
             case "tile":
                 Tile tile = Vars.world.tile(x, y);
-                if(tile != null && tile.block() != null && tile.entity.items.get(item) > 0 && Vars.player.item().amount < Vars.player.getItemCapacity()){
+                if(tile != null && tile.block() != null && tile.entity.items.get(item) > 0 && canPickUpItem){
                     Call.requestItem(Vars.player, tile, item, 1);
                 }
                 return;
@@ -78,15 +80,17 @@ public class TransferEndpoint{
                 blockPositions.shuffle();
                 for(int pos : blockPositions){
                     Tile tile2 = Vars.world.tile(pos);
-                    if(tile2 != null && tile2.block() != null && tile2.entity.items.get(item) > 0 && Vars.player.item().amount < Vars.player.getItemCapacity()){
+                    if(tile2 != null && tile2.block() != null && tile2.entity.items.get(item) > 0 && canPickUpItem){
                         Call.requestItem(Vars.player, tile2, item, 1);
                     }
                 }
                 return;
 
             case "core":
-                Tile tile3 = Vars.player.getClosestCore().tile;
-                Call.requestItem(Vars.player, tile3, item, 1);
+                if(canPickUpItem){
+                    Tile tile3 = Vars.player.getClosestCore().tile;
+                    Call.requestItem(Vars.player, tile3, item, 1);
+                }
         }
     }
 
