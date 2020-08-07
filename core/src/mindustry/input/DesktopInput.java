@@ -62,6 +62,8 @@ public class DesktopInput extends InputHandler{
     /** Whether player is currently deleting removal requests. */
     private boolean deleting = false;
 
+    private boolean transferPaused = false;
+
     @Override
     public void buildUI(Group group){
         group.fill(t -> {
@@ -176,11 +178,13 @@ public class DesktopInput extends InputHandler{
         if(Vars.net.active() && Core.input.keyTap(Binding.player_list) && !ui.chatfrag.autocomplete.isVisible()){
             ui.listfrag.toggle();
         }
-        boolean updateTransfer = new Rand().chance(1 / 60f);
-        for(TransferItem transfer : ui.transfer.transferRequests){
-            transfer.run();
-            if(updateTransfer){
-                transfer.update();
+        if(!transferPaused){
+            boolean updateTransfer = new Rand().chance(1 / 60f);
+            for(TransferItem transfer : ui.transfer.transferRequests){
+                transfer.run();
+                if(updateTransfer){
+                    transfer.update();
+                }
             }
         }
 
@@ -480,12 +484,27 @@ public class DesktopInput extends InputHandler{
         table.row();
         table.left().margin(0f).defaults().size(48f).left();
 
-        table.addImageButton(Icon.paste, Styles.clearPartiali, () -> {
-            ui.schematics.show();
+        table.addImageButton(Icon.paste, Styles.clearPartiali, ui.schematics::show);
+
+        ImageButton button = new ImageButton(Icon.redo, Styles.clearPartiali);
+//        button.setStyle(Styles.clearPartiali);
+        button.clicked(ui.transfer::show);
+        TextTooltip.addTooltip(button, "Open item transfer dialog");
+        table.add(button);
+
+        ImageButton button1 = new ImageButton(Icon.pause);
+        button1.replaceImage(new Image(Icon.pause));
+        button1.setStyle(Styles.clearPartiali);
+        button1.clicked(() -> {
+            transferPaused = !transferPaused;
+            if(transferPaused){
+                button1.replaceImage(new Image(Icon.play));
+            }else{
+                button1.replaceImage(new Image(Icon.pause));
+            }
         });
-        table.addImageButton(Icon.redo, () -> {
-            ui.transfer.show();
-        });
+        TextTooltip.addTooltip(button1, "Pause item transfer");
+        table.add(button1);
     }
 
     void pollInput(){

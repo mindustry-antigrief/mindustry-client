@@ -39,9 +39,6 @@ public class TransferEndpoint{
         type = "tile";
         x = (int)tile.x;
         y = (int)tile.y;
-//        System.out.println(tile.x);
-//        System.out.println(tile.y);
-//        System.out.println("blaifewi");
     }
 
     public TransferEndpoint(Block block){
@@ -101,9 +98,6 @@ public class TransferEndpoint{
 
             case "tile":
                 Tile tile = Vars.world.tile(x, y);
-//                System.out.println(tile.block().acceptStack(item, Math.min(Vars.player.item().amount, 1), tile, Vars.player));
-//                System.out.println(x);
-//                System.out.println(y);
                 if(tile != null && tile.block() != null && tile.block().acceptStack(item, Math.min(Vars.player.item().amount, 1), tile, Vars.player) > 0 && Vars.player.item().amount > 0){
                     Call.transferInventory(Vars.player, tile);
                 }
@@ -119,7 +113,6 @@ public class TransferEndpoint{
                 return;
 
             case "core":
-//                System.out.println("eiwjfiwejifw");
                 Tile tile3 = Vars.player.getClosestCore().tile;
                 Call.transferInventory(Vars.player, tile3);
         }

@@ -1,14 +1,12 @@
 package mindustry.ui.dialogs;
 
+import arc.*;
+import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import mindustry.*;
-import mindustry.content.*;
-import mindustry.ctype.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
-
-import static mindustry.Vars.*;
 
 public class TransferDialog extends FloatingDialog{
     public Array<TransferItem> transferRequests = new Array<>();
@@ -18,22 +16,23 @@ public class TransferDialog extends FloatingDialog{
         super("transfer");
         this.addCloseButton();
         shown(this::rebuild);
+        Events.on(WorldLoadEvent.class, transferRequests::clear);
     }
 
     public void build(){
         /*
-        Plan:
-        Have table of requests
+        There's a table of requests
         Each request has 3 sub items:
-            - source (coords or unit items)
+            - source (coords or player items)
             - item type
-            - dst (type of block, core, coords, or unit)
+            - dst (type of block, core, coords, or player)
             - remove
          */
         cont.pane(full -> {
             Table requests = new Table();
             for(TransferItem transferItem : transferRequests){
                 requests.add(transferItem.show());
+                requests.add(new Label(" "));
                 requests.addImageButton(Icon.cancel, () -> {
                     transferRequests.remove(transferItem);
                     rebuild();
@@ -43,9 +42,6 @@ public class TransferDialog extends FloatingDialog{
             full.add(requests);
         });
         cont.addImageButton(Icon.add, () -> {
-//            transferRequests.add(new TransferItem(new TransferEndpoint(Vars.player.getClosestCore().tile),
-//                new TransferEndpoint(Blocks.thoriumReactor), Items.thorium));
-//            rebuild();
             new TransferCreateDialog().show();
         });
         previous = transferRequests.copy();

@@ -1,5 +1,6 @@
 package mindustry.game;
 
+import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import mindustry.type.*;
 
@@ -32,6 +33,7 @@ public class TransferItem{
     public Table show(){
         Table table = new Table();
         table.add(start.toElement());
+        table.add(new Label(" "));
         table.add(end.toElement());
         return table;
     }
