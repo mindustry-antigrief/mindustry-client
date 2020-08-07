@@ -69,6 +69,9 @@ public class PausedDialog extends FloatingDialog{
                     }
                 }).disabled(b -> !((steam && net.server()) || !net.active())).colspan(2).width(dw * 2 + 20f).update(e -> e.setText(net.server() && steam ? "$invitefriends" : "$hostserver"));
             }
+            cont.row();
+
+            cont.addImageTextButton("Features", Icon.book, ui.features::show);
 
             cont.row();
 
