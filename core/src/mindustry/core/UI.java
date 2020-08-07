@@ -70,6 +70,7 @@ public class UI implements ApplicationListener, Loadable{
     public ModsDialog mods;
     public ColorPicker picker;
     public TransferDialog transfer;
+    public FeaturesDialog features;
 
     public Cursor drillCursor, unloadCursor;
 
@@ -182,6 +183,7 @@ public class UI implements ApplicationListener, Loadable{
         mods = new ModsDialog();
         schematics = new SchematicsDialog();
         transfer = new TransferDialog();
+        features = new FeaturesDialog();
 
         Group group = Core.scene.root;
 
