@@ -2,11 +2,14 @@ package mindustry.ui;
 
 import arc.scene.*;
 import arc.scene.ui.*;
+import arc.scene.ui.Label.*;
+import mindustry.gen.*;
 
 public class TextTooltip{
     public static void addTooltip(Element element, String text){
         Tooltip tooltip = new Tooltip((table) -> {
-            table.add(new Label(text));
+            Label label = new Label(text);
+            table.table(Tex.button, c -> c.add(label));
         });
         element.addListener(tooltip);
     }
