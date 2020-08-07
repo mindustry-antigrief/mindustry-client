@@ -180,16 +180,18 @@ public class NetClient implements ApplicationListener{
             }
             return;
         }
-        if(message.startsWith("!here")){
-            Call.sendChatMessage(String.format("[coral][autoresponse][light_gray ]%s [light_gray], you are at %d,%d", playersender.name, playersender.tileX(), playersender.tileY()));
+        if(message.startsWith("!here") && Core.settings.getBool("autorespond")){
+            Call.sendChatMessage(String.format("[coral][autoresponse][lightgray]%s [lightgray], you are at %d,%d", playersender.name, playersender.tileX(), playersender.tileY()));
         }
         Pattern regex = Pattern.compile("\\d+(,|\\s)\\s?\\d+");
         Matcher matcher = regex.matcher(message);
         if(matcher.find()){
-            ui.chatfrag.addMessage("!go to travel there", "client");
-            String match = matcher.group(0);
-            String[] digits = match.split("(,|\\s)\\s?");
-            targetPosition.set(Integer.parseInt(digits[0]), Integer.parseInt(digits[1]));
+            Time.run(0.1f, () -> {
+                ui.chatfrag.addMessage("!go to travel there", "client");
+                String match = matcher.group(0);
+                String[] digits = match.split("(,|\\s)\\s?");
+                targetPosition.set(Integer.parseInt(digits[0]), Integer.parseInt(digits[1]));
+            });
         }
         if(Vars.ui != null){
             Vars.ui.chatfrag.addMessage(message, sender);

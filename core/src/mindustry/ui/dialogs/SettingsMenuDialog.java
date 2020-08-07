@@ -207,8 +207,9 @@ public class SettingsMenuDialog extends SettingsDialog{
         sound.sliderPref("ambientvol", bundle.get("setting.ambientvol.name", "Ambient Volume"), 100, 0, 100, 1, i -> i + "%");
 
         game.screenshakePref();
-        game.checkPref("autotarget", true);
+        game.checkPref("autorespond", false);
         if(mobile){
+            game.checkPref("autotarget", true);
             game.checkPref("keyboard", false, val -> control.setInput(val ? new DesktopInput() : new MobileInput()));
             if(Core.settings.getBool("keyboard")){
                 control.setInput(new DesktopInput());
