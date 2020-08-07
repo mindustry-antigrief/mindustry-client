@@ -37,6 +37,18 @@ public class TransferDialog extends FloatingDialog{
                     transferRequests.remove(transferItem);
                     rebuild();
                 });
+                ImageButton button = new ImageButton();
+                button.replaceImage(new Image(Icon.pause));
+                button.clicked(() -> {
+                    transferItem.paused = !transferItem.paused;
+
+                    if(transferItem.paused){
+                        button.replaceImage(new Image(Icon.play));
+                    }else{
+                        button.replaceImage(new Image(Icon.pause));
+                    }
+                });
+                requests.add(button);
                 requests.row();
             }
             full.add(requests);

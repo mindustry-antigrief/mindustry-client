@@ -10,6 +10,7 @@ public class TransferItem{
     public Item item;
     public TransferEndpoint start;
     public TransferEndpoint end;
+    public boolean paused = false;
 
     public TransferItem(TransferEndpoint startPoint, TransferEndpoint endpoint, Item item){
         start = startPoint;
@@ -18,6 +19,9 @@ public class TransferItem{
     }
 
     public void run(){
+        if(paused){
+            return;
+        }
         try{
             start.transferToPlayer(item);
             end.transferFromPlayer(item);
