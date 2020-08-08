@@ -482,6 +482,7 @@ public class HudFragment extends Fragment{
             });
             TextButton button = new TextButton(" ");
             button.setColor(0.5f, 0.5f, 0.5f, 0.8f);
+            button.touchable(Touchable.disabled);
             t.stack(button, stack).width(224f).center();
 
         });
