@@ -274,6 +274,7 @@ public class CoreBlock extends StorageBlock{
                     avg += pair.snd;
                 }
                 avg /= 20;
+                avg *= 60;
                 itemRates.put(item, avg);
             });
             if(itemRateCalculation.size() == 0){

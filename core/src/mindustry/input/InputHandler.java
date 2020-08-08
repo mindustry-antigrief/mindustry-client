@@ -166,7 +166,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(tile == null) return;
         if(player != null){
             player.log.add(new InteractionLogItem(new ConfigRequest(tile, value)));
-            tile.log.add(new TileLogItem(TileLogType.Configured, player.name));
+            tile.log.add(new TileLogItem(TileLogType.Configured, player.name, String.format("%s at %d, %d", tile.block().name, tile.x, tile.y)));
         }
 
         if(net.server() && (!Units.canInteract(player, tile) ||

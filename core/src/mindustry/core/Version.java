@@ -21,7 +21,7 @@ public class Version{
     /** Whether version loading is enabled. */
     public static boolean enabled = true;
 
-    public static int clientVersion = 3;
+    public static int clientVersion = 4;
 
     public static void init(){
         if(!enabled) return;
