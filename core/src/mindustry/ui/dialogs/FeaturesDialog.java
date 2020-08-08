@@ -1,5 +1,6 @@
 package mindustry.ui.dialogs;
 
+import arc.graphics.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 
@@ -17,52 +18,53 @@ public class FeaturesDialog extends FloatingDialog{
 
         Table t = new Table();
 
-        String color1 = "[lightgray]";
-        String color2 = "[gray]";
-        String titleCol = "[gold]";
-        label(t, titleCol+"Misc");
-        label(t, color1+"Zoom effectively uncapped");
-        label(t, color2+"Health bar");
-        label(t, color1+"Basic name/command autocompletion");
-        label(t, color2+"View enemy turret range when hovered");
-        label(t, color1+"Low item alert, any item with less than 50 in core is displayed on right");
-        label(t, color2+"Turret target indicator (sometimes it can be a little slow to update)");
-        label(t, color1+"Autopickup/dump (buttons on bottom right next to schematic menu)");
+        Color titleColor = Color.gold;
+        Color color1 = Color.lightGray;
+        Color color2 = Color.gray;
 
-        label(t, titleCol+"\nAdditional Game Settings");
-        label(t, color2+"Toggle Ambient Lighting (Graphics)");
-        label(t, color1+"Flying unit transparency/invisibility (Graphics)");
-        label(t, color2+"Toggle !here for other users, allows others to post their coordinates easily (Game)");
+        label(t, "Misc", titleColor);
+        label(t, "Zoom effectively uncapped", color1);
+        label(t, "Health bar", color2);
+        label(t, "Basic name/command autocompletion", color1);
+        label(t, "View enemy turret range when hovered", color2);
+        label(t, "Low item alert, any item with less than 50 in core is displayed on right", color1);
+        label(t, "Turret target indicator (sometimes it can be a little slow to update)", color2);
+        label(t, "Autopickup/dump (buttons on bottom right next to schematic menu)", color1);
+
+        label(t, "\nAdditional Game Settings", titleColor);
+        label(t, "Toggle Ambient Lighting (Graphics)", color1);
+        label(t, "Flying unit transparency/invisibility (Graphics)", color2);
+        label(t, "Toggle !here for other users, allows others to post their coordinates easily (Game)", color1);
         
-        label(t, titleCol+"\nTab Menu Additions (use on self to stop)");
-        label(t, color1+"Build assist (copy button)");
-        label(t, color2+"Build blocking (shield button)");
-        label(t, color1+"Watch player (magnifier button)");
-        label(t, color2+"Mass undo (undo/share button)");
+        label(t, "\nTab Menu Additions (use on self to stop)", titleColor);
+        label(t, "Build assist (copy button)", color1);
+        label(t, "Build blocking (shield button)", color2);
+        label(t, "Watch player (magnifier button)", color1);
+        label(t, "Mass undo (undo/share button)", color2);
 
-        label(t, titleCol+"\nTop GUI (left to right)");
-        label(t, color1+"Create new path (records item pickups)");
-        label(t, color2+"Add waypoint to path");
-        label(t, color1+"Follow path (follows set waypoints)");
-        label(t, color2+"Stop placing/following path");
-        label(t, color1+"Delete path");
-        label(t, color2+"Fixpower (doesnt connect through plast walls, [#dd5656]EMERGENCY ONLY"+color2+")");
-        label(t, color1+"Start pathfinding path (no waypoints)");
-        label(t, color2+"End pathfinding path (AI will avoid enemy turrets if possible)");
+        label(t, "\nTop GUI (left to right)", titleColor);
+        label(t, "Create new path (records item pickups)", color1);
+        label(t, "Add waypoint to path", color2);
+        label(t, "Follow path (follows set waypoints)", color1);
+        label(t, "Stop placing/following path", color2);
+        label(t, "Delete path", color1);
+        label(t, "Fixpower (doesnt connect through plast walls, [#dd5656]EMERGENCY ONLY[#"+color2.toString()+"])", color2);
+        label(t, "Start pathfinding path (no waypoints)", color1);
+        label(t, "End pathfinding path (AI will avoid enemy turrets if possible)", color2);
 
-        label(t, titleCol+"\nHotkeys and Commands");
-        label(t, color1+"ARROW KEYS - Freecam ");
-        label(t, color2+"R - Stop freecam (locks camera to player)");
-        label(t, color1+"N - Move to camera (only works with freecam)");
-        label(t, color2+"Z - Path to camera (^ but uses AI to avoid turrets)");
-        label(t, color1+"B - Automatically go to unbuilt buildings");
-        label(t, color2+"; (SEMICOLON) - Automine/draug, mines and stores needed resources");
-        label(t, color1+"CTRL + F - Find block by ID, ENTER to select, !go to go");
-        label(t, color2+"CTRL + Z - Undo / Redo last block place/break.");
-        label(t, color1+"SHIFT + CLICK/RIGHTCLICK - Prioritize building/breaking specified block");
-        label(t, color2+"CTRL + CLICK - Block history (records places, breaks and configures)");
-        label(t, color1+"!go command - input coordinates or player name");
-        label(t, color2+"!here command - posts your coordinates in chat");
+        label(t, "\nHotkeys and Commands", titleColor);
+        label(t, "ARROW KEYS - Freecam ", color1);
+        label(t, "R - Stop freecam (locks camera to player)", color2);
+        label(t, "N - Move to camera (only works with freecam)", color1);
+        label(t, "Z - Path to camera (^ but uses AI to avoid turrets)", color2);
+        label(t, "B - Automatically go to unbuilt buildings", color1);
+        label(t, "; (SEMICOLON) - Automine/draug, mines and stores needed resources", color2);
+        label(t, "CTRL + F - Find block by ID, ENTER to select, !go to go", color1);
+        label(t, "CTRL + Z - Undo / Redo last block place/break.", color2);
+        label(t, "SHIFT + CLICK/RIGHTCLICK - Prioritize building/breaking specified block", color1);
+        label(t, "CTRL + CLICK - Block history (records places, breaks and configures)", color2);
+        label(t, "!go command - input coordinates or player name", color1);
+        label(t, "!here command - posts your coordinates in chat", color2);
         
         cont.add(new ScrollPane(t)).growX();
 
@@ -70,32 +72,13 @@ public class FeaturesDialog extends FloatingDialog{
     }
 
     private void label(Table t, String text){
-        t.add(new Label(text));
+        label(t, text, Color.white);
+    }
+
+    private void label(Table t, String text, Color color){
+        Label label = new Label(text);
+        label.setColor(color);
+        t.add(label);
         t.row();
     }
-    /**
-     * # Feature list:
-     *  * Zoom cap changed
-     *  * Lighting toggleable in settings
-     *  * Automatic block sequence placement
-     *  * Health bar
-     *  * Free camera movement with arrow keys
-     *  * Build assist
-     *  * Build denial
-     *  * Undo (ctrl+z and in tab menu)
-     *  * Path following
-     *  * Flying unit transparency (settings)
-     *  * Auto move to build plans
-     *  * Auto mine
-     *  * Smart fixpower equivalent (knows about plast walls)
-     *  * Turret target indicator
-     *  * Ctrl+f to find block type
-     *  * !here and !go
-     *  * Intelligent navigation
-     *  * Core item display
-     *  * Enemy turret ranges visible
-     *  * Limited command autocomplete
-     *  * Ctrl+shift+click to view tile logs
-     *  * Auto pickup/dump items
-     */
 }
