@@ -25,7 +25,7 @@ public class FeaturesDialog extends FloatingDialog{
         label(t, color2+"Health bar");
         label(t, color1+"Basic name/command autocompletion");
         label(t, color2+"View enemy turret range when hovered");
-        label(t, color1+"Low item alert, any item with less than 50 in core is displayed on right");
+        label(t, color1+"Core item display, displays core item counts and net gain/loss");
         label(t, color2+"Turret target indicator (sometimes it can be a little slow to update)");
         label(t, color1+"Autopickup/dump (buttons on bottom right next to schematic menu)");
 
@@ -58,7 +58,7 @@ public class FeaturesDialog extends FloatingDialog{
         label(t, color1+"B - Automatically go to unbuilt buildings");
         label(t, color2+"; (SEMICOLON) - Automine/draug, mines and stores needed resources");
         label(t, color1+"CTRL + F - Find block by ID, ENTER to select, !go to go");
-        label(t, color2+"CTRL + Z - Undo / Redo last block place/break.");
+        label(t, color2+"CTRL + Z - Undo / Redo last block place/break");
         label(t, color1+"SHIFT + CLICK/RIGHTCLICK - Prioritize building/breaking specified block");
         label(t, color2+"CTRL + CLICK - Block history (records places, breaks and configures)");
         label(t, color1+"!go command - input coordinates or player name");
