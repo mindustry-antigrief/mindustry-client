@@ -30,6 +30,7 @@ import mindustry.world.blocks.storage.CoreBlock.*;
 import java.io.*;
 import java.net.*;
 import java.nio.*;
+import java.util.regex.*;
 import java.util.zip.*;
 
 import static arc.util.Log.*;
@@ -304,6 +305,37 @@ public class NetServer implements ApplicationListener{
         clientCommands.<Player>register("shrug", "<message...>", "Send a message with ¯\\_(ツ)_/¯ at the end.", (args, player) -> {
             Call.sendChatMessage(String.join("", args) + " ¯\\_(ツ)_/¯");
         }).local = true;
+
+        clientCommands.<Player>register("here", "", "Sends your location in chat.", (args, player) -> {
+            Call.sendChatMessage(String.format("%d,%d", player.tileX(), player.tileY()));
+        }).local = true;
+
+        clientCommands.<Player>register("go", "<destination...>", "Navigates to a destination.", (args, player) -> {
+            String arg = String.join("", args);
+            System.out.println(arg);
+            Player found;
+            if(arg.length() > 1 && arg.startsWith("#") && Strings.canParseInt(arg.substring(1))){
+                int id = Strings.parseInt(arg.substring(1));
+                found = playerGroup.find(p -> p.id == id);
+            }else{
+                found = playerGroup.find(p -> p.name.equals(arg));
+            }
+            if(found != null){
+                player.navigateTo(found.getX(), found.getY());
+                return;
+            }
+            if(targetPosition != null){
+                player.navigateTo(targetPosition.x * 8, targetPosition.y * 8);
+                targetPosition = null;
+            }
+            Pattern regex = Pattern.compile("\\d+(,|\\s)\\s?\\d+");
+            Matcher matcher = regex.matcher(arg);
+            if(matcher.find()){
+                String match = matcher.group(0);
+                String[] digits = match.split("(,|\\s)\\s?");
+                player.navigateTo(Integer.parseInt(digits[0]) * 8, Integer.parseInt(digits[1]) * 8);
+            }
+            }).local = true;
 
         //duration of a a kick in seconds
         int kickDuration = 60 * 60;

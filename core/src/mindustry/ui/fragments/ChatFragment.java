@@ -88,7 +88,6 @@ public class ChatFragment extends Table{
                     for(Command command : netServer.clientCommands.getCommandList()){
                         commands.add("/" + command.text);
                     }
-                    commands.add("!go"); // Temporary hotfix
                     String match = commands.min((str) -> distance(chatfield.getText(), str));
                     autocomplete.setText(match.substring(Math.min(chatfield.getText().length(), match.length())));
                     completion = match;
@@ -264,31 +263,7 @@ public class ChatFragment extends Table{
         if(message.replaceAll(" ", "").isEmpty()) return;
 
         history.insert(1, message);
-        if(message.startsWith("!go")){
-            if(message.length() > 3){
-                String arg = message.substring(4);
-                Player found;
-                if(arg.length() > 1 && arg.startsWith("#") && Strings.canParseInt(arg.substring(1))){
-                    int id = Strings.parseInt(arg.substring(1));
-                    found = playerGroup.find(p -> p.id == id);
-                }else{
-                    found = playerGroup.find(p -> equals(p.name, arg));
-                }
-                if(found != null){
-                    player.navigateTo(found.getX(), found.getY());
-                }
-                return;
-            }
-            if(targetPosition != null){
-                player.navigateTo(targetPosition.x * 8, targetPosition.y * 8);
-            }
-            return;
-        }
 
-        if(message.startsWith("!here")){
-            Call.sendChatMessage(String.format("%d,%d", player.tileX(), player.tileY()));
-            return;
-        }
         if(message.startsWith("/")){
             message = message.substring(netServer.clientCommands.prefix.length());
 
