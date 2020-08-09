@@ -608,6 +608,9 @@ public class HudFragment extends Fragment{
             if(world.tile(powerTilePos).entity == null){
                 return "";
             }
+            if(world.tile(powerTilePos).entity.power == null){
+                return "";
+            }
             Tile tile = world.tile(powerTilePos);
             return Core.bundle.format("bar.powerbalance", ((tile.entity.power.graph.getPowerBalance() >= 0 ? "+" : "") + Strings.fixed(tile.entity.power.graph.getPowerBalance() * 60, 1)));
             },
@@ -624,6 +627,9 @@ public class HudFragment extends Fragment{
                 return 0f;
             }
             if(tile.entity == null){
+                return 0f;
+            }
+            if(tile.entity.power == null){
                 return 0f;
             }
             if(tile.entity.power.graph.getLastPowerNeeded() == 0){
@@ -648,6 +654,9 @@ public class HudFragment extends Fragment{
             if(tile.entity == null){
                 return "";
             }
+            if(tile.entity.power == null){
+                return "";
+            }
             TileEntity entity = tile.entity;
 
             return Core.bundle.format("bar.powerstored", (ui.formatAmount((int)entity.power.graph.getBatteryStored())), ui.formatAmount((int)entity.power.graph.getTotalBatteryCapacity()));
@@ -665,6 +674,9 @@ public class HudFragment extends Fragment{
                 return 0f;
             }
             if(tile.entity == null){
+                return 0f;
+            }
+            if(tile.entity.power == null){
                 return 0f;
             }
             TileEntity entity = tile.entity;
