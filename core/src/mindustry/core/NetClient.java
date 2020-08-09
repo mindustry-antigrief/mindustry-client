@@ -187,7 +187,7 @@ public class NetClient implements ApplicationListener{
         Matcher matcher = regex.matcher(message);
         if(matcher.find()){
             Time.run(0.1f, () -> {
-                ui.chatfrag.addMessage("!go to travel there", "client");
+                ui.chatfrag.addMessage("/go to travel there", "client");
                 String match = matcher.group(0);
                 String[] digits = match.split("(,|\\s)\\s?");
                 targetPosition.set(Integer.parseInt(digits[0]), Integer.parseInt(digits[1]));
