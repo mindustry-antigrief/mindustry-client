@@ -18,6 +18,7 @@ public class FeaturesDialog extends FloatingDialog{
 
         Table t = new Table();
 
+
         Color titleColor = Color.gold;
         Color color1 = Color.lightGray;
         Color color2 = Color.gray;
@@ -51,7 +52,7 @@ public class FeaturesDialog extends FloatingDialog{
         label(t, "Fixpower (doesnt connect through plast walls, [#dd5656]EMERGENCY ONLY[#"+color2.toString()+"])", color2);
         label(t, "Start pathfinding path (no waypoints)", color1);
         label(t, "End pathfinding path (AI will avoid enemy turrets if possible)", color2);
-
+        
         label(t, "\nHotkeys and Commands", titleColor);
         label(t, "ARROW KEYS - Freecam ", color1);
         label(t, "R - Stop freecam (locks camera to player)", color2);
