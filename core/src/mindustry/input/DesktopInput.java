@@ -34,6 +34,7 @@ import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
+import mindustry.world.blocks.power.*;
 import mindustry.world.meta.*;
 
 import javax.swing.*;
@@ -173,11 +174,51 @@ public class DesktopInput extends InputHandler{
         }
     }
 
+    private void updatePower(){
+        if(world == null){
+            return;
+        }
+        if(world.getTiles() == null){
+            return;
+        }
+        if(new Rand().chance(1 / 60f) || world.tile(powerTilePos) == null || world.tile(powerTilePos).block() == null){
+            Array<Tile> nodes = new Array<>();
+            for(Tile[] tiles : world.getTiles()){
+                for(Tile tile2 : tiles){
+                    if(tile2.block() instanceof PowerNode){
+                        nodes.add(tile2);
+                    }
+                }
+            }
+
+            Array<int[]> links = new Array<>();
+            Array<Integer> found = new Array<>();
+
+            for(Tile tile2 : nodes){
+                if(found.contains(tile2.entity.power.graph.getID())){
+                    continue;
+                }
+                links.add(new int[]{tile2.entity.power.graph.getSize(), tile2.pos()});
+                found.add(tile2.entity.power.graph.getID());
+            }
+            if(links.size == 0){
+                powerTilePos = 0;
+            }else{
+                links = links.sort((a) -> a[0]);
+                links.reverse();
+                powerTilePos = links.get(0)[1];
+//                    System.out.println(powerTilePos);
+//                    System.out.println(world.tile(powerTilePos).block());
+            }
+        }
+    }
+
     @Override
     public void update(){
         if(Vars.net.active() && Core.input.keyTap(Binding.player_list) && !ui.chatfrag.autocomplete.isVisible()){
             ui.listfrag.toggle();
         }
+        updatePower();
         if(!transferPaused){
             boolean updateTransfer = new Rand().chance(1 / 60f);
             for(TransferItem transfer : ui.transfer.transferRequests){

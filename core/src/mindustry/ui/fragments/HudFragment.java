@@ -177,9 +177,18 @@ public class HudFragment extends Fragment{
                 wavesMain.add(stack).width(dsize * 5 + 4f);
 
                 wavesMain.row();
+                wavesMain.table(Tex.button, t -> t.margin(10f).add(getPower())
+                .grow()).fillX().height(60f).get();
+
+                wavesMain.row();
+
+                wavesMain.table(Tex.button, t -> t.margin(10f).add(getBattery())
+                .grow()).fillX().height(60f).get();
+
+                wavesMain.row();
+
                 wavesMain.table(Tex.button, t -> t.margin(10f).add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white))
                 .grow()).fillX().visible(() -> state.rules.waves && state.boss() != null).height(60f).get();
-                wavesMain.row();
             }
 
             {
@@ -582,6 +591,90 @@ public class HudFragment extends Fragment{
 
         blockfrag.build(parent);
     }
+
+
+    private Bar getPower(){
+
+        return new Bar(() -> {
+            if(world == null){
+                return "";
+            }
+            if(world.tile(powerTilePos) == null){
+                return "";
+            }
+            if(world.tile(powerTilePos).block() == null){
+                return "";
+            }
+            if(world.tile(powerTilePos).entity == null){
+                return "";
+            }
+            Tile tile = world.tile(powerTilePos);
+            return Core.bundle.format("bar.powerbalance", ((tile.entity.power.graph.getPowerBalance() >= 0 ? "+" : "") + Strings.fixed(tile.entity.power.graph.getPowerBalance() * 60, 1)));
+            },
+        () -> Pal.powerBar,
+        () -> {
+            if(world == null){
+                return 0f;
+            }
+            Tile tile = world.tile(powerTilePos);
+            if(tile == null){
+                return 0f;
+            }
+            if(tile.block() == null){
+                return 0f;
+            }
+            if(tile.entity == null){
+                return 0f;
+            }
+            if(tile.entity.power.graph.getLastPowerNeeded() == 0){
+                return tile.entity.power.graph.getLastPowerProduced() > 0? 1f : 0f;
+            }
+            return Mathf.clamp(tile.entity.power.graph.getLastPowerProduced() / tile.entity.power.graph.getLastPowerNeeded());
+        });
+    }
+
+    private Bar getBattery(){
+        return new Bar(() -> {
+            if(world == null){
+                return "";
+            }
+            Tile tile = world.tile(powerTilePos);
+            if(tile == null){
+                return "";
+            }
+            if(tile.block() == null){
+                return "";
+            }
+            if(tile.entity == null){
+                return "";
+            }
+            TileEntity entity = tile.entity;
+
+            return Core.bundle.format("bar.powerstored", (ui.formatAmount((int)entity.power.graph.getBatteryStored())), ui.formatAmount((int)entity.power.graph.getTotalBatteryCapacity()));
+        },
+        () -> Pal.powerBar,
+        () -> {
+            if(world == null){
+                return 0f;
+            }
+            Tile tile = world.tile(powerTilePos);
+            if(tile == null){
+                return 0f;
+            }
+            if(tile.block() == null){
+                return 0f;
+            }
+            if(tile.entity == null){
+                return 0f;
+            }
+            TileEntity entity = tile.entity;
+            if(entity.power.graph.getTotalBatteryCapacity() == 0){
+                return 0f;
+            }
+            return Mathf.clamp(entity.power.graph.getBatteryStored() / entity.power.graph.getTotalBatteryCapacity());
+        });
+    }
+
 
     @Remote(targets = Loc.both, forward = true, called = Loc.both)
     public static void setPlayerTeamEditor(Player player, Team team){

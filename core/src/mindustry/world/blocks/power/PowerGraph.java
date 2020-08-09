@@ -29,6 +29,8 @@ public class PowerGraph{
         graphID = lastGraphID++;
     }
 
+    public int getSize(){ return all.size; }
+
     public int getID(){
         return graphID;
     }
