@@ -422,7 +422,7 @@ public class HudFragment extends Fragment{
             t.row();
 
             t.row();
-            healthBar = new Bar("player.health", Pal.health, () -> player.healthf()).blink(Color.white);
+            healthBar = new Bar(() -> String.format("Health: %.1f / %.1f", player.health, player.maxHealth()), () -> Pal.health, () -> player.health / player.maxHealth()).blink(Color.white);
             t.table(Tex.button, y -> y.margin(10f).add(healthBar)
             .grow()).fillX().visible(() -> true).height(40f).get();
             t.row();
