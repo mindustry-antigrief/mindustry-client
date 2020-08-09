@@ -456,7 +456,7 @@ public class HudFragment extends Fragment{
                     int items = core.items.get(item);
                     Label label = new Label(Integer.toString(items));
                     if(items < 25){
-                        label.setColor(Pal.remove);
+                        label.setColor(Color.scarlet);
                     }else if(items < 500){
                         label.setColor(Pal.accent);
                     }
