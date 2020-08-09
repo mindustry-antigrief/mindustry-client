@@ -301,6 +301,10 @@ public class NetServer implements ApplicationListener{
             playerGroup.all().each(p -> p.getTeam() == player.getTeam(), o -> o.sendMessage(args[0], player, "[#" + player.getTeam().color.toString() + "]<T>" + NetClient.colorizeName(player.id, player.name)));
         });
 
+        clientCommands.<Player>register("shrug", "<message...>", "Send a message with ¯\\_(ツ)_/¯ at the end.", (args, player) -> {
+            Call.sendChatMessage(String.join("", args) + " ¯\\_(ツ)_/¯");
+        }).local = true;
+
         //duration of a a kick in seconds
         int kickDuration = 60 * 60;
         //voting round duration in seconds
