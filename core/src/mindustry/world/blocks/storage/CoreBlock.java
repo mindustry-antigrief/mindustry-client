@@ -2,7 +2,6 @@ package mindustry.world.blocks.storage;
 
 import arc.*;
 import arc.struct.EnumSet;
-import com.sun.tools.javac.util.*;
 import mindustry.annotations.Annotations.*;
 import arc.struct.*;
 import arc.func.*;
@@ -240,7 +239,7 @@ public class CoreBlock extends StorageBlock{
         protected float heat;
         protected int storageCapacity;
         public HashMap<Item, Float> itemRates = new HashMap<>();
-        private final HashMap<Item, Array<Pair<Integer, Integer>>> itemRateCalculation = new HashMap<>();
+        private final HashMap<Item, Array<int[]>> itemRateCalculation = new HashMap<>();
 //        private int counter = 0;
 
         @Override
@@ -263,15 +262,15 @@ public class CoreBlock extends StorageBlock{
             super.update();
             itemRateCalculation.forEach((item, array) -> {
                 if(array.size == 0){
-                    array.add(new Pair<>(items.get(item), 0));
+                    array.add(new int[]{items.get(item), 0});
                 }
-                array.insert(0, new Pair<>(items.get(item), items.get(item) - array.first().fst));
+                array.insert(0, new int[]{items.get(item), items.get(item) - array.first()[0]});
                 if(array.size > 20){
                     array.remove(array.size - 1);
                 }
                 float avg = 0f;
-                for(Pair<Integer, Integer> pair : array){
-                    avg += pair.snd;
+                for(int[] pair : array){
+                    avg += pair[1];
                 }
                 avg /= 20;
                 avg *= 60;
@@ -282,12 +281,6 @@ public class CoreBlock extends StorageBlock{
                     itemRateCalculation.put(item, new Array<>());
                 }
             }
-//            counter += 1;
-//            if(counter >= 300){
-//                counter = 0;
-//                itemRateCalculation.forEach((item, num) -> itemRates.put(item, (items.get(item) - num) / 5f));
-//                items.forEach((item, amount) -> itemRateCalculation.put(item, (int)amount));
-//            }
         }
     }
 }
