@@ -12,6 +12,7 @@ import arc.scene.*;
 import arc.scene.ui.*;
 import arc.scene.ui.Label.*;
 import arc.scene.ui.layout.*;
+import arc.struct.Array;
 import arc.util.*;
 import arc.util.CommandHandler.*;
 import mindustry.*;
@@ -22,6 +23,8 @@ import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.ui.*;
 
+import javax.lang.model.type.*;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.*;
 
@@ -265,24 +268,26 @@ public class ChatFragment extends Table{
         history.insert(1, message);
 
         if(message.startsWith("/")){
-            message = message.substring(netServer.clientCommands.prefix.length());
+            try{
+                message = message.substring(((String)PrivateAccessRemover.getPrivateField(netServer.clientCommands, "prefix")).length());
+            }catch(NullPointerException ignored){} //if we get this it's already too late
 
             String commandstr = message.contains(" ") ? message.substring(0, message.indexOf(" ")) : message;
             String argstr = message.contains(" ") ? message.substring(commandstr.length() + 1) : "";
 
             Array<String> result = new Array<>();
             CommandResponse output = null;
-
-            Command command = netServer.clientCommands.commands.get(commandstr);
+            ObjectMap<String, CommandHandler.Command> commands = (ObjectMap<String, CommandHandler.Command>)PrivateAccessRemover.getPrivateField(netServer.clientCommands, "commands");
+            Command command = commands.get(commandstr);
             if(command != null){
-                if(command.local){
+                if(localCommands.contains(command)){
 
                     int index = 0;
                     boolean satisfied = false;
 
                     while(true){
                         if(index >= command.params.length && !argstr.isEmpty()){
-                            output = new CommandResponse(ResponseType.manyArguments, command, commandstr);
+                            return;
                         }else if(argstr.isEmpty()) break;
 
                         if(command.params[index].optional || index >= command.params.length - 1 || command.params[index + 1].optional){
@@ -297,7 +302,7 @@ public class ChatFragment extends Table{
                         int next = argstr.indexOf(" ");
                         if(next == -1){
                             if(!satisfied){
-                                output = new CommandResponse(ResponseType.fewArguments, command, commandstr);
+                                return;
                             }
                             result.add(argstr);
                             break;
@@ -311,73 +316,73 @@ public class ChatFragment extends Table{
                     }
 
                     if(!satisfied && command.params.length > 0 && !command.params[0].optional){
-                        output = new CommandResponse(ResponseType.fewArguments, command, commandstr);
+                        return;
                     }
 
-                    command.runner.accept(result.toArray(String.class), player);
+                    ((CommandRunner)PrivateAccessRemover.getPrivateField(command, "runner")).accept(result.toArray(String.class), player);
+//                    command.runner.accept(result.toArray(String.class), player);
 
-                    output = new CommandResponse(ResponseType.valid, command, commandstr);
                     return;
                 }
             }
         }
-        if(message.startsWith("/")){
-            message = message.substring(netServer.clientCommands.prefix.length());
-
-            String commandstr = message.contains(" ") ? message.substring(0, message.indexOf(" ")) : message;
-            String argstr = message.contains(" ") ? message.substring(commandstr.length() + 1) : "";
-
-            Array<String> result = new Array<>();
-            CommandResponse output = null;
-
-            Command command = netServer.clientCommands.commands.get(commandstr);
-            if(command != null){
-                if(command.local){
-
-                    int index = 0;
-                    boolean satisfied = false;
-
-                    while(true){
-                        if(index >= command.params.length && !argstr.isEmpty()){
-                            output = new CommandResponse(ResponseType.manyArguments, command, commandstr);
-                        }else if(argstr.isEmpty()) break;
-
-                        if(command.params[index].optional || index >= command.params.length - 1 || command.params[index + 1].optional){
-                            satisfied = true;
-                        }
-
-                        if(command.params[index].variadic){
-                            result.add(argstr);
-                            break;
-                        }
-
-                        int next = argstr.indexOf(" ");
-                        if(next == -1){
-                            if(!satisfied){
-                                output = new CommandResponse(ResponseType.fewArguments, command, commandstr);
-                            }
-                            result.add(argstr);
-                            break;
-                        }else{
-                            String arg = argstr.substring(0, next);
-                            argstr = argstr.substring(arg.length() + 1);
-                            result.add(arg);
-                        }
-
-                        index++;
-                    }
-
-                    if(!satisfied && command.params.length > 0 && !command.params[0].optional){
-                        output = new CommandResponse(ResponseType.fewArguments, command, commandstr);
-                    }
-
-                    command.runner.accept(result.toArray(String.class), player);
-
-                    output = new CommandResponse(ResponseType.valid, command, commandstr);
-                    return;
-                }
-            }
-        }
+//        if(message.startsWith("/")){
+//            message = message.substring(((String)PrivateAccessRemover.getPrivateField(netServer.clientCommands, "prefix")).length());
+//
+//            String commandstr = message.contains(" ") ? message.substring(0, message.indexOf(" ")) : message;
+//            String argstr = message.contains(" ") ? message.substring(commandstr.length() + 1) : "";
+//
+//            Array<String> result = new Array<>();
+//            CommandResponse output = null;
+//            ObjectMap<String, CommandHandler.Command> commands = (ObjectMap<String, CommandHandler.Command>)PrivateAccessRemover.getPrivateField(netServer.clientCommands, "commands");
+//            Command command = commands.get(commandstr);
+//            if(command != null){
+//                if(command.local){
+//
+//                    int index = 0;
+//                    boolean satisfied = false;
+//
+//                    while(true){
+//                        if(index >= command.params.length && !argstr.isEmpty()){
+//                            output = new CommandResponse(ResponseType.manyArguments, command, commandstr);
+//                        }else if(argstr.isEmpty()) break;
+//
+//                        if(command.params[index].optional || index >= command.params.length - 1 || command.params[index + 1].optional){
+//                            satisfied = true;
+//                        }
+//
+//                        if(command.params[index].variadic){
+//                            result.add(argstr);
+//                            break;
+//                        }
+//
+//                        int next = argstr.indexOf(" ");
+//                        if(next == -1){
+//                            if(!satisfied){
+//                                output = new CommandResponse(ResponseType.fewArguments, command, commandstr);
+//                            }
+//                            result.add(argstr);
+//                            break;
+//                        }else{
+//                            String arg = argstr.substring(0, next);
+//                            argstr = argstr.substring(arg.length() + 1);
+//                            result.add(arg);
+//                        }
+//
+//                        index++;
+//                    }
+//
+//                    if(!satisfied && command.params.length > 0 && !command.params[0].optional){
+//                        output = new CommandResponse(ResponseType.fewArguments, command, commandstr);
+//                    }
+//
+//                    ((CommandRunner)PrivateAccessRemover.getPrivateField(command, "runner")).accept(result.toArray(String.class), player);
+//
+//                    output = new CommandResponse(ResponseType.valid, command, commandstr);
+//                    return;
+//                }
+//            }
+//        }
 
         Call.sendChatMessage(message);
     }

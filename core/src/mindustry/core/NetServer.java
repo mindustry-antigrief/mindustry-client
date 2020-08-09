@@ -304,11 +304,13 @@ public class NetServer implements ApplicationListener{
 
         clientCommands.<Player>register("shrug", "<message...>", "Send a message with ¯\\_(ツ)_/¯ at the end.", (args, player) -> {
             Call.sendChatMessage(String.join("", args) + " ¯\\_(ツ)_/¯");
-        }).local = true;
+        });
+        localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
         clientCommands.<Player>register("here", "", "Sends your location in chat.", (args, player) -> {
             Call.sendChatMessage(String.format("%d,%d", player.tileX(), player.tileY()));
-        }).local = true;
+        });
+        localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
         clientCommands.<Player>register("go", "<destination...>", "Navigates to a destination.", (args, player) -> {
             String arg = String.join("", args);
@@ -335,7 +337,9 @@ public class NetServer implements ApplicationListener{
                 String[] digits = match.split("(,|\\s)\\s?");
                 player.navigateTo(Integer.parseInt(digits[0]) * 8, Integer.parseInt(digits[1]) * 8);
             }
-            }).local = true;
+        });
+        localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+
 
         //duration of a a kick in seconds
         int kickDuration = 60 * 60;

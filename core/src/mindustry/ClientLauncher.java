@@ -9,6 +9,7 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import arc.util.CommandHandler.*;
 import arc.util.async.*;
 import mindustry.core.*;
 import mindustry.ctype.*;

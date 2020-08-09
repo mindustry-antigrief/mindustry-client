@@ -12,6 +12,7 @@ import arc.struct.*;
 import arc.struct.Queue;
 import arc.util.*;
 import arc.util.ArcAnnotate.*;
+import arc.util.CommandHandler.*;
 import arc.util.Log.*;
 import arc.util.io.*;
 import mindustry.ai.*;
@@ -224,6 +225,7 @@ public class Vars implements Loadable{
     public static Array<Vec3> crosshairs = new Array<>();
     public static HashSet<Integer> connected = new HashSet<>();
     public static int powerTilePos = 0;
+    public static Array<Command> localCommands = new Array<>();
 
     @Override
     public void loadAsync(){
