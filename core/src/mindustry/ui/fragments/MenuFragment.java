@@ -73,7 +73,7 @@ public class MenuFragment extends Fragment{
             }));
         }
 
-        String versionText = "[#ffffffba]" + ((Version.build == -1) ? "[#fc8140aa]custom build" : (Version.type.equals("official") ? "foo's client" : Version.type) + " build " + Version.build + (Version.revision == 0 ? "" : "." + Version.revision + "." + Version.clientVersion));
+        String versionText = "[#ffffffba]" + ((Version.build == -1) ? "[#fc8140aa]custom build" : (Version.type.equals("official") ? "foo's client" : Version.type) + " v"  + Version.clientVersion + " (based on v" + Version.build + (Version.revision == 0 ? "" : "." + Version.revision) + ")");
 
         parent.fill((x, y, w, h) -> {
             TextureRegion logo = Core.atlas.find("logo");
