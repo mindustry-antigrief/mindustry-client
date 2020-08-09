@@ -40,6 +40,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 import mindustry.world.blocks.power.*;
+import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.modules.*;
 
 import java.time.*;
@@ -438,11 +439,13 @@ public class HudFragment extends Fragment{
 
             //core items
             t.row();
-            VerticalGroup stack = new VerticalGroup();
+            Table stack = new Table();
+//            stack.columnAlign(Align.right);
+//            stack.background(Styles.black6);
 
             stack.update(() -> {
                 stack.clearChildren();
-                TileEntity core = player.getClosestCore();
+                CoreEntity core = (CoreEntity)player.getClosestCore();
                 if(core == null){
                     return;
                 }
@@ -451,22 +454,37 @@ public class HudFragment extends Fragment{
                         continue;
                     }
                     int items = core.items.get(item);
-                    if(items < 50){
-                        Table table = new Table();
-                        Label label = new Label(Integer.toString(items));
+                    Label label = new Label(Integer.toString(items));
+                    if(items < 25){
+                        label.setColor(Color.scarlet);
+                    }else if(items < 500){
                         label.setColor(Pal.accent);
-                        if(items < 25){
-                            label.setColor(Color.red);
-                        }
-                        table.add(label);
-                        Image element = new Image();
-                        element.setDrawable(item.icon(Cicon.small));
-                        table.add(element);
-                        stack.addChild(table);
                     }
+                    label.setAlignment(Align.left);
+                    stack.add(label).left().width(100f).marginLeft(5f);
+
+                    if(core.itemRates.containsKey(item)){
+                        float rate = core.itemRates.get(item);
+                        Label label2 = new Label(String.format("(%.2f/s)", rate));
+
+                        if(rate < -10){
+                            label2.setColor(Pal.remove);
+                        }else if(rate < -1){
+                            label2.setColor(Pal.accent);
+                        }
+                        stack.add(label2).right().width(100f).marginRight(1f);
+                    }
+                    Image element = new Image();
+                    element.setDrawable(item.icon(Cicon.small));
+                    stack.add(element).right().width(24f).marginRight(5f);
+                    stack.row();
                 }
             });
-            t.add(stack);
+            TextButton button = new TextButton(" ");
+            button.setColor(0.5f, 0.5f, 0.5f, 0.8f);
+            button.touchable(Touchable.disabled);
+            t.stack(button, stack).width(224f).center();
+
         });
 
         //spawner warning
