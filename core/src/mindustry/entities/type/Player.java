@@ -122,6 +122,8 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     //endregion
 
     public void navigateTo(float drawX, float drawY){
+        drawX = Mathf.clamp(drawX, 0, world.width() * 8);
+        drawY = Mathf.clamp(drawY, 0, world.height() * 8);
         Array<TurretEntity> turrets = new Array<>();
         for(Tile[] tiles : world.getTiles()){
             for(Tile tile : tiles){

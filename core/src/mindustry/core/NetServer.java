@@ -312,10 +312,14 @@ public class NetServer implements ApplicationListener{
         });
         localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
-        clientCommands.<Player>register("go", "<destination...>", "Navigates to a destination.", (args, player) -> {
+        clientCommands.<Player>register("go", "[destination...]", "Navigates to a destination.", (args, player) -> {
             String arg = String.join("", args);
-            System.out.println(arg);
             Player found;
+            if(targetPosition != null){
+                player.navigateTo(targetPosition.x * 8, targetPosition.y * 8);
+                targetPosition = null;
+            }
+
             if(arg.length() > 1 && arg.startsWith("#") && Strings.canParseInt(arg.substring(1))){
                 int id = Strings.parseInt(arg.substring(1));
                 found = playerGroup.find(p -> p.id == id);
@@ -325,10 +329,6 @@ public class NetServer implements ApplicationListener{
             if(found != null){
                 player.navigateTo(found.getX(), found.getY());
                 return;
-            }
-            if(targetPosition != null){
-                player.navigateTo(targetPosition.x * 8, targetPosition.y * 8);
-                targetPosition = null;
             }
             Pattern regex = Pattern.compile("\\d+(,|\\s)\\s?\\d+");
             Matcher matcher = regex.matcher(arg);

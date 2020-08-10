@@ -323,12 +323,10 @@ public class ChatFragment extends Table{
 
                     return;
                 }else{
-                    System.out.println("/" + message);
                     Call.sendChatMessage("/" + message);
                     return;
                 }
             }else{
-                System.out.println("/" + message);
                 Call.sendChatMessage("/" + message);
                 return;
             }

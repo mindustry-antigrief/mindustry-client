@@ -3,6 +3,7 @@ package mindustry.core;
 import arc.*;
 import arc.graphics.*;
 import arc.math.*;
+import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.CommandHandler.*;
@@ -159,30 +160,11 @@ public class NetClient implements ApplicationListener{
     //called on all clients
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, String sender, Player playersender){
-        if(message.startsWith("!conduits") && playersender == player){
-            for(Tile[] row : world.getTiles()){
-                for(Tile tile : row){
-                    if(tile.block() == Blocks.conduit && tile.getTeam() == player.getTeam()){
-                        BuildRequest req = new BuildRequest(tile.x, tile.y, tile.rotation(), Blocks.pulseConduit);
-                        player.buildQueue().addLast(req);
-                    }
-                }
-            }
-            return;
-        }
 
-        if(message.startsWith("!stalk") && playersender == player){
-            for(Player p : playerGroup.all()){
-                if(p.name.contains(message.substring(7))){
-                    stalking = p;
-                    break;
-                }
-            }
-            return;
-        }
         if(message.startsWith("!here") && Core.settings.getBool("autorespond")){
             Call.sendChatMessage(String.format("[coral][autoresponse][lightgray]%s [lightgray], you are at %d,%d", playersender.name, playersender.tileX(), playersender.tileY()));
         }
+
         Pattern regex = Pattern.compile("\\d+(,|\\s)\\s?\\d+");
         Matcher matcher = regex.matcher(message);
         if(matcher.find()){
@@ -190,7 +172,7 @@ public class NetClient implements ApplicationListener{
                 ui.chatfrag.addMessage("/go to travel there", "client");
                 String match = matcher.group(0);
                 String[] digits = match.split("(,|\\s)\\s?");
-                targetPosition.set(Integer.parseInt(digits[0]), Integer.parseInt(digits[1]));
+                targetPosition = new Vec2().set(Integer.parseInt(digits[0]), Integer.parseInt(digits[1]));
             });
         }
         if(Vars.ui != null){
