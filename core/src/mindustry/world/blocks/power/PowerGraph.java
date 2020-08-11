@@ -4,6 +4,7 @@ import arc.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.game.*;
 import mindustry.world.*;
 import mindustry.world.consumers.*;
 
@@ -18,7 +19,7 @@ public class PowerGraph{
     private final ObjectSet<Tile> batteries = new ObjectSet<>();
     private final ObjectSet<Tile> all = new ObjectSet<>();
 
-    private final WindowedMean powerBalance = new WindowedMean(60);
+    private final BetterWindowedMean powerBalance = new BetterWindowedMean(60);
     private float lastPowerProduced, lastPowerNeeded, lastUsageFraction;
 
     private long lastFrameUpdated = -1;
