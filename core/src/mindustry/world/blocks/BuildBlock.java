@@ -255,6 +255,7 @@ public class BuildBlock extends Block{
 
         public float progress = 0;
         public float buildCost;
+        public boolean isBreaking = false;
         /**
          * The block that used to be here.
          * If a non-recipe block is being deconstructed, this is the block that is being deconstructed.
@@ -302,6 +303,7 @@ public class BuildBlock extends Block{
             float deconstructMultiplier = state.rules.deconstructRefundMultiplier;
 
             if(cblock != null){
+                isBreaking = true;
                 ItemStack[] requirements = cblock.requirements;
                 if(requirements.length != accumulator.length || totalAccumulator.length != requirements.length){
                     setDeconstruct(cblock);
@@ -395,6 +397,7 @@ public class BuildBlock extends Block{
             }
             this.accumulator = new float[previous.requirements.length];
             this.totalAccumulator = new float[previous.requirements.length];
+            isBreaking = true;
         }
 
         @Override

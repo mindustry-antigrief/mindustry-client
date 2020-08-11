@@ -21,6 +21,7 @@ import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.effect.*;
 import mindustry.entities.traits.*;
+import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
@@ -228,6 +229,7 @@ public class Vars implements Loadable{
     public static int powerTilePos = 0;
     public static Array<Command> localCommands = new Array<>();
     public static boolean showTurretRanges = false;
+    public static BuildRequest building;
 
     @Override
     public void loadAsync(){

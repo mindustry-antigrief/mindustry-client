@@ -1,6 +1,7 @@
 package mindustry.entities.type;
 
 import arc.*;
+import arc.input.*;
 import arc.struct.Queue;
 import mindustry.ai.pathfinding.*;
 import mindustry.annotations.Annotations.*;
@@ -31,6 +32,7 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
+import mindustry.world.blocks.BuildBlock.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
@@ -79,6 +81,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     private boolean moved;
     public Array<InteractionLogItem> log = new Array<>();
     public ObjectSet<Item> toMine = ObjectSet.with(Items.lead, Items.copper, Items.titanium, Items.thorium);
+    private Integer buildTarget;
     protected StateMachine state2 = new StateMachine();
     public final UnitState
     normal = new UnitState(){},
@@ -113,34 +116,119 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                 }
             }
         }
+    },
+    build = new UnitState(){
+
+//        @Override
+//        public void entered(){
+//            System.out.println("Entering");
+//        }
+//
+//        @Override
+//        public void exited(){
+//            System.out.println("Leaving");
+//        }
+
+        @Override
+        public void update(){
+//            System.out.println(world.tile(buildTarget));
+//            System.out.println("A");
+            if((buildTarget == null || !(world.tile(buildTarget).block() instanceof BuildBlock) || new Rand().chance(1 / 20f)) && new Rand().chance(0.5)){
+                updateBuildTarget();
+            }else{
+                if(buildTarget != null){
+                    int x = Pos.x(buildTarget);
+                    int y = Pos.y(buildTarget);
+                    if(Mathf.dst(x * 8, y * 8, player.x, player.y) > placeDistance){
+                        if(!followingWaypoints){
+                            player.navigateTo(x * 8, y * 8);
+                        }
+                    }else{
+                        BuildEntity buildTargetEntity = world.tile(buildTarget).entity instanceof BuildEntity ? world.tile(buildTarget).ent() : null;
+//                        if(player.buildQueue().isEmpty()){
+                            if(buildTargetEntity != null){
+//                                building = new BuildRequest(
+//                                    Pos.x(buildTarget),
+//                                    Pos.y(buildTarget),
+//                                    buildTargetEntity.tile.rotation(),
+//                                    buildTargetEntity.block
+//                                );
+//                                world.tile(buildTarget)
+                                Tile tile = world.tile(buildTarget);
+                                BuildRequest b = new BuildRequest(tile.x, tile.y, tile.rotation(), buildTargetEntity.cblock, Core.input.keyDown(KeyCode.SHIFT_LEFT) || Core.input.keyDown(KeyCode.SHIFT_RIGHT));
+                                b.breaking = buildTargetEntity.isBreaking;
+                                if(player.buildQueue().size < 10){
+                                    player.addBuildRequest(b, false);
+                                }
+                                followingWaypoints = false;
+                                notDone.clear();
+//                                System.out.println("AAA");
+//                                player.buildQueue().first().breaking = buildTargetEntity.isBreaking;
+//                                player.placeQueue.clear();
+//                                player.placeQueue.addFirst(building);
+                            }
+//                        }//else if(!player.isBuilding){
+//                            player.buildQueue().clear();
+//                        }
+                    }
+                }
+            }
+        }
     };
+
+    private void updateBuildTarget(){
+        Array<Tile> blocks = new Array<>();
+        for(Tile[] tiles : world.getTiles()){
+            for(Tile tile : tiles){
+                if(tile.block() instanceof BuildBlock){
+                    blocks.add(tile);
+                }
+            }
+        }
+        if(blocks.size > 0){
+            buildTarget = Geometry.findClosest(player.getX(), player.getY(), blocks).pos();
+        }
+    }
+
+    public void setBuilding(){
+        setState(build);
+    }
 
     public void setState(UnitState newState){
         state2.set(newState);
     }
 
+    public UnitState getState(){
+        return state2.current();
+    }
+
     //endregion
 
     public void navigateTo(float drawX, float drawY){
-        drawX = Mathf.clamp(drawX, 0, world.width() * 8);
-        drawY = Mathf.clamp(drawY, 0, world.height() * 8);
-        Array<TurretEntity> turrets = new Array<>();
-        for(Tile[] tiles : world.getTiles()){
-            for(Tile tile : tiles){
-                if(tile.block() instanceof Turret){
-                    turrets.add((TurretEntity)tile.entity);
+        try{
+            drawX = Mathf.clamp(drawX, 0, world.width() * 8);
+            drawY = Mathf.clamp(drawY, 0, world.height() * 8);
+            Array<TurretEntity> turrets = new Array<>();
+            Array<Tile> dropZones = new Array<>();
+            for(Tile[] tiles : world.getTiles()){
+                for(Tile tile : tiles){
+                    if(tile.block() instanceof Turret){
+                        turrets.add((TurretEntity)tile.entity);
+                    }else if(tile.block() == Blocks.spawn){
+                        dropZones.add(tile);
+                    }
                 }
             }
-        }
-        followingWaypoints = true;
-        repeatWaypoints = false;
-        notDone.clear();
-        Array<int[]> points = AStar.findPathTurrets(turrets, this.x, this.y, drawX, drawY, world.width(), world.height(), team);
-        if(points != null){
-            for(int[] point : points){
-                notDone.addLast(new Waypoint(point[0] * 8, point[1] * 8));
+            followingWaypoints = true;
+            repeatWaypoints = false;
+            notDone.clear();
+            Array<int[]> points = AStar.findPathTurretsDropZone(turrets, this.x, this.y, drawX, drawY, world.width(), world.height(), team, dropZones);
+            if(points != null){
+                for(int[] point : points){
+                    notDone.addLast(new Waypoint(point[0] * 8, point[1] * 8));
+                }
             }
-        }
+        }catch(NullPointerException ignored){} //I PROMISE IT'S FINE
     }
 
     //region unit and event overrides, utility methods
@@ -637,6 +725,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
 
     @Override
     public void update(){
+//        name = Double.toString(new Rand().nextDouble());
         state2.update();
         if(followingWaypoints){
             if(notDone.size == 0 || player.dead){

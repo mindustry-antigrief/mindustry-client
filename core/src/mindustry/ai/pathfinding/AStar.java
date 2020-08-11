@@ -1,9 +1,12 @@
 package mindustry.ai.pathfinding;
 
 import arc.math.*;
+import arc.math.geom.*;
 import arc.struct.*;
 import mindustry.*;
+import mindustry.core.*;
 import mindustry.game.*;
+import mindustry.world.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
@@ -229,6 +232,44 @@ public class AStar{
             }
             System.out.println();
         }else System.out.println("No possible path");
+    }
+
+    public static Array<int[]> findPathTurretsDropZone(Array<TurretEntity> turrets, float playerX, float playerY, float targetX, float targetY, int width, int height, Team team, Array<Tile> dropZones){
+        int resolution = 2;  // The resolution of the map is divided by this value
+        Array<TurretPathfindingEntity> pathfindingEntities = new Array<>();
+        for(TurretEntity turretEntity : turrets){
+            if(turretEntity.getTeam() == team){
+                continue;
+            }
+            boolean flying = Vars.player.isFlying();
+            boolean targetsAir = ((Turret)turretEntity.block).targetAir;
+            boolean targetsGround = ((Turret)turretEntity.block).targetGround;
+            if(flying && !targetsAir){
+                continue;
+            }
+            if(!flying && !targetsGround){
+                continue;
+            }
+            pathfindingEntities.add(new TurretPathfindingEntity(turretEntity.tileX() / resolution, turretEntity.tileY() / resolution, ((Turret)turretEntity.block).range / (8 * resolution)));
+        }
+        for(Tile dropZone : dropZones){
+            pathfindingEntities.add(new TurretPathfindingEntity(dropZone.x / resolution, dropZone.y / resolution, Vars.state.rules.dropZoneRadius / (8 * resolution)));
+        }
+        block = true;
+        Array<int[]> path = findPath(pathfindingEntities, playerX / resolution, playerY / resolution, targetX / resolution, targetY / resolution, width / resolution, height / resolution);
+        Array<int[]> output = new Array<>();
+        if(path == null){
+            block = false;
+            // Path blocked, retrying with cost
+            path = findPath(pathfindingEntities, playerX / resolution, playerY / resolution, targetX / resolution, targetY / resolution, width / resolution, height / resolution);
+        }
+        if(path == null){
+            return null;
+        }
+        for(int[] item : path){
+            output.add(new int[]{item[0] * resolution, item[1] * resolution});
+        }
+        return output;
     }
 
     public static Array<int[]> findPathTurrets(Array<TurretEntity> turrets, float playerX, float playerY, float targetX, float targetY, int width, int height, Team team){
