@@ -32,6 +32,7 @@ public class Fonts{
     public static BitmapFont outline;
     public static BitmapFont chat;
     public static BitmapFont icon;
+    public static BitmapFont mono;
 
     public static int getUnicode(String content){
         return unicodeIcons.get(content, 0);
@@ -53,6 +54,12 @@ public class Fonts{
 
         Core.assets.load("default", BitmapFont.class, new FreeTypeFontLoaderParameter(fontName, param)).loaded = f -> Fonts.def = (BitmapFont)f;
         Core.assets.load("chat", BitmapFont.class, new FreeTypeFontLoaderParameter(fontName, param)).loaded = f -> Fonts.chat = (BitmapFont)f;
+//        Core.assets.load("mono", BitmapFont.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", new FreeTypeFontParameter(){{
+//            size = 18;
+//            incremental = true;
+//            borderColor = Color.darkGray;
+//        }})).loaded = f -> Fonts.mono = (BitmapFont)f;
+
         Core.assets.load("icon", BitmapFont.class, new FreeTypeFontLoaderParameter("fonts/icon.ttf", new FreeTypeFontParameter(){{
             size = 30;
             incremental = true;
@@ -113,6 +120,15 @@ public class Fonts{
                     parameter.fontParameters.borderWidth = Scl.scl(2f);
                     parameter.fontParameters.spaceX -= parameter.fontParameters.borderWidth;
                 }
+//                System.out.println("AAAAAA");
+                if(fileName.equals("mono")){
+                    System.out.println("AAAAAAAAAAAAAAAAAA");
+                    parameter.fontParameters.borderWidth = Scl.scl(2f);
+                    parameter.fontParameters.spaceX -= parameter.fontParameters.borderWidth;
+                }
+//                }else{
+//                    System.out.println(fileName);
+//                }
                 if(!scaled.contains(parameter.fontParameters)){
                     parameter.fontParameters.size = (int)(Scl.scl(parameter.fontParameters.size));
                     scaled.add(parameter.fontParameters);
@@ -132,6 +148,7 @@ public class Fonts{
         }};
 
         Core.assets.load("outline", BitmapFont.class, new FreeTypeFontLoaderParameter("fonts/font.ttf", param)).loaded = t -> Fonts.outline = (BitmapFont)t;
+        Core.assets.load("mono", BitmapFont.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = t -> Fonts.mono = (BitmapFont)t;
     }
 
     /** Merges the UI and font atlas together for better performance. */

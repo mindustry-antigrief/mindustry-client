@@ -595,7 +595,7 @@ public class HudFragment extends Fragment{
 
     private Bar getPower(){
 
-        return new Bar(() -> {
+        return new MonospacedBar(() -> {
             if(world == null){
                 return "";
             }
