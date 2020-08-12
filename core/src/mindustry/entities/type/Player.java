@@ -210,13 +210,13 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             drawX = Mathf.clamp(drawX, 0, world.width() * 8);
             drawY = Mathf.clamp(drawY, 0, world.height() * 8);
             Array<TurretEntity> turrets = new Array<>();
-            Array<Tile> dropZones = new Array<>();
+            Array<TurretPathfindingEntity> dropZones = new Array<>();
             for(Tile[] tiles : world.getTiles()){
                 for(Tile tile : tiles){
                     if(tile.block() instanceof Turret){
                         turrets.add((TurretEntity)tile.entity);
                     }else if(tile.block() == Blocks.spawn){
-                        dropZones.add(tile);
+                        dropZones.add(new TurretPathfindingEntity(tile.x, tile.y, ((Turret)tile.block()).range));
                     }
                 }
             }

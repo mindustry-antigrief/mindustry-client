@@ -234,7 +234,7 @@ public class AStar{
         }else System.out.println("No possible path");
     }
 
-    public static Array<int[]> findPathTurretsDropZone(Array<TurretEntity> turrets, float playerX, float playerY, float targetX, float targetY, int width, int height, Team team, Array<Tile> dropZones){
+    public static Array<int[]> findPathTurretsDropZone(Array<TurretEntity> turrets, float playerX, float playerY, float targetX, float targetY, int width, int height, Team team, Array<TurretPathfindingEntity> dropZones){
         int resolution = 2;  // The resolution of the map is divided by this value
         Array<TurretPathfindingEntity> pathfindingEntities = new Array<>();
         for(TurretEntity turretEntity : turrets){
@@ -252,8 +252,8 @@ public class AStar{
             }
             pathfindingEntities.add(new TurretPathfindingEntity(turretEntity.tileX() / resolution, turretEntity.tileY() / resolution, ((Turret)turretEntity.block).range / (8 * resolution)));
         }
-        for(Tile dropZone : dropZones){
-            pathfindingEntities.add(new TurretPathfindingEntity(dropZone.x / resolution, dropZone.y / resolution, Vars.state.rules.dropZoneRadius / (8 * resolution)));
+        for(TurretPathfindingEntity zone : dropZones){
+            pathfindingEntities.add(new TurretPathfindingEntity(zone.x / resolution, zone.y / resolution, zone.range / resolution));
         }
         block = true;
         Array<int[]> path = findPath(pathfindingEntities, playerX / resolution, playerY / resolution, targetX / resolution, targetY / resolution, width / resolution, height / resolution);
