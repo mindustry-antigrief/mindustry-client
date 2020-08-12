@@ -255,6 +255,7 @@ public class JoinDialog extends FloatingDialog{
         ScrollPane pane = new ScrollPane(hosts);
         pane.setFadeScrollBars(false);
         pane.setScrollingDisabled(true, false);
+        player.readableName = Core.settings.getString("readable_name");
 
         setupRemote();
 
@@ -267,6 +268,13 @@ public class JoinDialog extends FloatingDialog{
                     Core.settings.put("name", text);
                     Core.settings.save();
                 }).grow().pad(8).get().setMaxLength(maxNameLength);
+                t.row();
+                t.addField(Core.settings.getString("readable_name"), text -> {
+                    player.readableName = text;
+//                    System.out.println(player.readableName);
+                    Core.settings.put("readable_name", text);
+                    Core.settings.save();
+                }).grow().pad(8).get().setMaxLength(25);
             }else{
                 t.add(player.name).update(l -> l.setColor(player.color)).grow().pad(8);
             }

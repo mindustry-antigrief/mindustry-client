@@ -97,6 +97,9 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             content.init();
             content.load();
         });
+        if(settings.get("readable_name", "") == ""){
+            settings.put("readable_name", "An easily typeable name");
+        }
 
 
     }

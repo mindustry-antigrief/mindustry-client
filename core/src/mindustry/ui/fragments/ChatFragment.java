@@ -259,7 +259,7 @@ public class ChatFragment extends Table{
         return a2.equals(b2);
     }
 
-    private void sendMessage(){
+    public void sendMessage(){
         String message = chatfield.getText();
         clearChatInput();
 

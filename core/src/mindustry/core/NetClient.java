@@ -175,6 +175,24 @@ public class NetClient implements ApplicationListener{
                 targetPosition = new Vec2().set(Integer.parseInt(digits[0]), Integer.parseInt(digits[1]));
             });
         }
+
+        boolean matches = false;
+        for(String word : message.split("\\s")){
+            if(Math.min(player.name.length(), player.readableName.length()) < 3){
+                if(word.equalsIgnoreCase(player.readableName) || word.equalsIgnoreCase(player.name)){
+                    matches = true;
+                }
+            }else{
+                if(ui.chatfrag.distance(word, player.readableName) < Math.min(3, player.readableName.length() - 1)){
+                    matches = true;
+                }
+            }
+        }
+        if(matches && !message.contains("[autoresponse]")){
+            Call.sendChatMessage(String.format("[coral][autoresponse][lightgray]Hi, I'm %s[lightgray].  I'm in phantom builder drone mode currently.", player.name));
+            Call.sendChatMessage(String.format("[lightgray]If I'm doing something bad, [white] say '%s stop' to make me leave phantom mode[lightgray].", player.readableName));
+        }
+
         if(Vars.ui != null){
             Vars.ui.chatfrag.addMessage(message, sender);
         }

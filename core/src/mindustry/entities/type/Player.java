@@ -82,6 +82,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     public Array<InteractionLogItem> log = new Array<>();
     public ObjectSet<Item> toMine = ObjectSet.with(Items.lead, Items.copper, Items.titanium, Items.thorium);
     private Integer buildTarget;
+    public String readableName = "";
     protected StateMachine state2 = new StateMachine();
     public final UnitState
     normal = new UnitState(){},
