@@ -178,7 +178,7 @@ public class NetClient implements ApplicationListener{
 
         boolean matches = false;
         for(String word : message.split("\\s")){
-            if(Math.min(player.name.length(), player.readableName.length()) < 3){
+            if(Math.min(player.name.length(), player.readableName.length()) < 5){
                 if(word.equalsIgnoreCase(player.readableName) || word.equalsIgnoreCase(player.name)){
                     matches = true;
                 }
@@ -188,9 +188,30 @@ public class NetClient implements ApplicationListener{
                 }
             }
         }
+        matches = matches && !playersender.name.equals(player.name);
         if(matches && !message.contains("[autoresponse]")){
-            Call.sendChatMessage(String.format("[coral][autoresponse][lightgray]Hi, I'm %s[lightgray].  I'm in phantom builder drone mode currently.", player.name));
-            Call.sendChatMessage(String.format("[lightgray]If I'm doing something bad, [white] say '%s stop' to make me leave phantom mode[lightgray].", player.readableName));
+//            Call.sendChatMessage(String.format("", player.name));
+            if(Time.millis() - lastAutoresponseSent > 60_000 && player.getState() == player.build){
+                Call.sendChatMessage(String.format("[coral][autoresponse][lightgray] I'm in phantom drone mode. [white] say '%s stop' to make me leave phantom mode.", player.readableName));
+                lastAutoresponseSent = Time.millis();
+            }
+        }
+
+        if(message.equalsIgnoreCase(player.readableName + " stop")){
+            if(player.getState() == player.build && Time.millis() - lastCommandSent > 10_000){
+                Call.sendChatMessage(String.format("[coral][autoresponse][red] Leaving phantom mode.[lightgray]  Say '%s start' to turn it back on.", player.readableName));
+                player.setState(player.normal);
+                player.clearBuilding();
+                lastCommandSent = Time.millis();
+            }
+        }
+
+        if(message.equalsIgnoreCase(player.readableName + " start")){
+            if(player.getState() != player.build && Time.millis() - lastCommandSent > 30_000){
+                Call.sendChatMessage("[coral][autoresponse][red] Entering phantom mode.[lightgray]  Say '%s stop' to turn it back off.");
+                player.setState(player.build);
+                lastCommandSent = Time.millis();
+            }
         }
 
         if(Vars.ui != null){

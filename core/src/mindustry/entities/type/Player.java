@@ -35,9 +35,11 @@ import mindustry.world.blocks.*;
 import mindustry.world.blocks.BuildBlock.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
+import mindustry.world.blocks.units.*;
 
 import java.io.*;
 import java.time.*;
+import java.util.*;
 
 import static mindustry.Vars.*;
 
@@ -83,9 +85,26 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     public ObjectSet<Item> toMine = ObjectSet.with(Items.lead, Items.copper, Items.titanium, Items.thorium);
     private Integer buildTarget;
     public String readableName = "";
+    public UnitState previousState;
+    private final ObjectSet<Block> bannedBlocks = new ObjectSet<>();
+    {
+        bannedBlocks.addAll(Blocks.thoriumReactor, Blocks.impactReactor, Blocks.differentialGenerator);
+    }
     protected StateMachine state2 = new StateMachine();
     public final UnitState
-    normal = new UnitState(){},
+    normal = new UnitState(){
+        @Override
+        public void entered(){
+            clearBuilding();
+            buildTarget = null;
+            setMineTile(null);
+        }
+
+        @Override
+        public void exited(){
+            previousState = normal;
+        }
+    },
     mine = new UnitState(){
 
         @Override
@@ -117,21 +136,24 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                 }
             }
         }
+
+        @Override
+        public void exited(){
+            previousState = mine;
+        }
     },
     build = new UnitState(){
 
-//        @Override
-//        public void entered(){
-//            System.out.println("Entering");
-//        }
-//
-//        @Override
-//        public void exited(){
-//            System.out.println("Leaving");
-//        }
+        @Override
+        public void exited(){
+            previousState = build;
+        }
 
         @Override
         public void update(){
+            if(player.healthf() < 0.5f){
+                setState(heal);
+            }
 //            System.out.println(world.tile(buildTarget));
 //            System.out.println("A");
             if((buildTarget == null || !(world.tile(buildTarget).block() instanceof BuildBlock) || new Rand().chance(1 / 20f)) && new Rand().chance(0.5)){
@@ -175,14 +197,75 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                 }
             }
         }
+    },
+    heal = new UnitState(){
+        @Override
+        public void exited(){
+            previousState = heal;
+        }
+
+        @Override
+        public void entered(){
+            repairPoint = 0;
+            navigateToRepairPoint();
+        }
+
+        private int repairPoint = 0;
+
+        private void navigateToRepairPoint(){
+            Array<Tile> repairPoints = new Array<>();
+            for(Tile[] tiles : world.getTiles()){
+                for(Tile tile : tiles){
+                    if(tile.block() == Blocks.repairPoint && tile.getTeam() == player.team){
+                        if(tile.entity.power.status > 0.9f){
+                            repairPoints.add(tile);
+                        }
+                    }
+                }
+            }
+            if(repairPoints.size > 0){
+                Tile closest = Geometry.findClosest(player.getX(), player.getY(), repairPoints);
+                player.navigateTo(closest.getX(), closest.getY());
+                repairPoint = closest.pos();
+            }
+        }
+
+        @Override
+        public void update(){
+            if(player.healthf() < 1f){
+                Tile tile = world.tile(repairPoint);
+                boolean refresh = false;
+                if(tile == null){
+                    refresh = true;
+                }else if(tile.block() == null){
+                    refresh = true;
+                }else if(tile.block() != Blocks.repairPoint){
+                    refresh = true;
+                }else if(tile.entity.power.status < 0.5f){
+                    refresh = true;
+                }else if(!followingWaypoints && player.dst(tile) < ((RepairPoint)Blocks.repairPoint).repairRadius){
+                    refresh = true;
+                }
+                if(refresh){
+                    navigateToRepairPoint();
+                }
+            }else{
+                setState(previousState);
+            }
+        }
     };
+    {
+        previousState = normal;
+    }
 
     private void updateBuildTarget(){
         Array<Tile> blocks = new Array<>();
         for(Tile[] tiles : world.getTiles()){
             for(Tile tile : tiles){
                 if(tile.block() instanceof BuildBlock){
-                    blocks.add(tile);
+                    if(!bannedBlocks.contains(((BuildEntity)tile.entity).cblock)){
+                        blocks.add(tile);
+                    }
                 }
             }
         }

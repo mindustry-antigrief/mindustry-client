@@ -230,6 +230,8 @@ public class Vars implements Loadable{
     public static Array<Command> localCommands = new Array<>();
     public static boolean showTurretRanges = false;
     public static BuildRequest building;
+    public static long lastAutoresponseSent = 0;
+    public static long lastCommandSent = 0;
 
     @Override
     public void loadAsync(){
