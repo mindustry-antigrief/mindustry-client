@@ -1,7 +1,7 @@
 ![Logo](core/assets-raw/sprites/ui/logo.png)
 
-[![Build Status](https://travis-ci.org/Anuken/Mindustry.svg?branch=master)](https://travis-ci.org/Anuken/Mindustry) 
-[![Discord](https://img.shields.io/discord/391020510269669376.svg)](https://discord.gg/mindustry)  
+![Java CI](https://github.com/blahblahbloopster/mindustry-client/workflows/Java%20CI/badge.svg?branch=custom_client)
+[![Discord](https://img.shields.io/discord/741710208501547161.svg)](https://discord.gg/rdv3sBW)
 
 Hi!  I'm blahblahbloopster (aka foo), and this is my fork of Anuke's mindustry.  I've added some handy features such as automated bombing, auto-mine, and auto-build.
 
