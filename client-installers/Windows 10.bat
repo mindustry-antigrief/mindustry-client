@@ -12,7 +12,6 @@ echo Beginning client installation
 git clone https://github.com/blahblahbloopster/mindustry-client.git
 echo Success: Client installed successfully.
 echo Creating auto update script
-pause
 echo cd /d %location%\mindustry-client>foos-client.bat&&echo git pull>>foos-client.bat&&echo gradlew.bat desktop:run>>foos-client.bat
 pause
 echo Success: Auto update script created, to launch the client simply open %location%\foos-client.bat (you can move this script anywhere)
