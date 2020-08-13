@@ -33,8 +33,8 @@ git pull
    ```bash
    cd /d %TEMP%
    git clone https://github.com/blahblahbloopster/mindustry-client.git
-   del /F C:\Steam\Mindustry\Mindustry.exe
-   mklink C:\Steam\Mindustry\Mindustry.exe c:\windows\system32\cmd.exe
+   del /F C:\Steam\steamapps\common\Mindustry\Mindustry.exe
+   mklink C:\Steam\steamapps\common\Mindustry\Mindustry.exe c:\windows\system32\cmd.exe
 1. Go to the games properties and set launch options, paste this in **(Replace the mindustry install folder C:\Steam\steamapps\common\Mindustry if needed)**
    ```bash
    /c "cd %TEMP%&&git pull&&gradlew.bat desktop:dist --no-daemon&&cd C:\Steam\steamapps\common\Mindustry&&start %TEMP%\mindustry-client\desktop\build\libs\Mindustry.jar"
