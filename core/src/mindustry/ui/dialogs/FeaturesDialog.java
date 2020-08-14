@@ -30,6 +30,7 @@ public class FeaturesDialog extends FloatingDialog{
         label(t, "Core item display, displays core item counts and net gain/loss", color1);
         label(t, "Turret target indicator (sometimes it can be a little slow to update)", color2);
         label(t, "Autopickup/dump (buttons on bottom right next to schematic menu)", color1);
+        label(t, "Backtick (`) to toggle showing enemy turret ranges", color2);
 
         label(t, "\nAdditional Game Settings", titleColor);
         label(t, "Toggle Ambient Lighting (Graphics)", color1);
