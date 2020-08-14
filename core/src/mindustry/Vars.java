@@ -5,6 +5,7 @@ import arc.*;
 import arc.assets.*;
 import arc.files.*;
 import arc.graphics.*;
+import arc.input.*;
 import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.ui.layout.*;
@@ -226,6 +227,7 @@ public class Vars implements Loadable{
     public static HashSet<Integer> connected = new HashSet<>();
     public static int powerTilePos = 0;
     public static Array<Command> localCommands = new Array<>();
+    public static boolean showTurretRanges = false;
 
     @Override
     public void loadAsync(){

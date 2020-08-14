@@ -368,6 +368,10 @@ public class DesktopInput extends InputHandler{
                 cameraPositionOverride = null;
             }
 
+            if(Core.input.keyTap(KeyCode.BACKTICK)){
+                showTurretRanges = !showTurretRanges;
+            }
+
             if(Core.input.keyTap(KeyCode.N)){
                 if(cameraPositionOverride != null){
                     followingWaypoints = true;

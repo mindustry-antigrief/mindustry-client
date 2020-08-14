@@ -16,6 +16,7 @@ import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
+import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.units.*;
 import mindustry.world.meta.*;
 
@@ -110,6 +111,19 @@ public class OverlayRenderer{
 
             Lines.poly(target.x, target.y, 4, 7f * radius, Time.time() * 1.5f);
             Lines.spikes(target.x, target.y, 3f * radius, 6f * radius, 4, Time.time() * 1.5f);
+        }
+
+        for(Tile[] tiles : world.getTiles()){
+            for(Tile tile : tiles){
+                if(tile != null){
+                    if(tile.block() instanceof Turret){
+                        if(showTurretRanges && tile.getTeam() != player.getTeam()){
+                            Drawf.dashCircle(tile.drawx(), tile.drawy(), ((Turret)tile.block()).range, tile.getTeam().color);
+                        }
+                        Draw.color();
+                    }
+                }
+            }
         }
 
         if(player.isDead()) return; //dead players don't draw
