@@ -2,6 +2,7 @@ package mindustry.world.blocks;
 
 import arc.*;
 import arc.input.*;
+import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
@@ -23,6 +24,7 @@ import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
+import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
@@ -202,6 +204,20 @@ public class BuildBlock extends Block{
         BuildEntity entity = tile.ent();
         bar.add(new Bar("block.constructing.progress", Pal.ammo, () -> entity.progress)).growX();
         bar.row();
+        HorizontalGroup group = new HorizontalGroup();
+        for(ItemStack item : entity.cblock.requirements){
+            Image image = new Image(item.item.icon(Cicon.small));
+            image.visible(() -> {
+                CoreEntity core = (CoreEntity)player.getClosestCore();
+                if(core == null){
+                    return false;
+                }
+                return core.items.get(item.item) == 0;
+            });
+            group.addChild(image);
+        }
+        bar.add(group);
+        bar.row();
     }
 
     @Override
@@ -242,7 +258,7 @@ public class BuildBlock extends Block{
         public int builderID = -1;
 
         private float[] accumulator;
-        private float[] totalAccumulator;
+        public float[] totalAccumulator;
 
         public boolean construct(Unit builder, @Nullable TileEntity core, float amount, boolean configured){
             if(cblock == null){
