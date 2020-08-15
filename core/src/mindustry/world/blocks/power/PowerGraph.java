@@ -19,7 +19,7 @@ public class PowerGraph{
     private final ObjectSet<Tile> batteries = new ObjectSet<>();
     private final ObjectSet<Tile> all = new ObjectSet<>();
 
-    private final BetterWindowedMean powerBalance = new BetterWindowedMean(60);
+    private final CustomWindowedMean powerBalance = new CustomWindowedMean(60);
     private float lastPowerProduced, lastPowerNeeded, lastUsageFraction;
 
     private long lastFrameUpdated = -1;
@@ -37,7 +37,7 @@ public class PowerGraph{
     }
 
     public float getPowerBalance(){
-        return powerBalance.getMean();
+        return powerBalance.getAverage();
     }
 
     public float getLastPowerNeeded(){
