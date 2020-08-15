@@ -166,7 +166,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(tile == null) return;
         if(player != null){
             player.log.add(new InteractionLogItem(new ConfigRequest(tile, value)));
-            tile.log.add(new TileLogItem(TileLogType.Configured, player.name, String.format("%s at %d, %d", tile.block().name, tile.x, tile.y)));
+            String powerNodeText = "";
+            if(tile.numConnectionsRemoved != null && Time.millis() - tile.timeConnectionsRemoved < 1000){
+                powerNodeText = String.format(", splitting the power grid (%d tiles affected)", tile.numConnectionsRemoved);
+                ui.chatfrag.addMessage(String.format("%s [lightgray]split power (%d tiles affected)", player.name, tile.numConnectionsRemoved), "client");
+            }
+            tile.log.add(new TileLogItem(TileLogType.Configured, player.name, String.format("%s at %d, %d", tile.block().name, tile.x, tile.y) + powerNodeText));
         }
 
         if(net.server() && (!Units.canInteract(player, tile) ||

@@ -68,7 +68,12 @@ public class BuildBlock extends Block{
             builder.log.add(new InteractionLogItem(
             tile.x, tile.y, tile.rotation(), block, true)
             );
-            tile.log.add(new TileLogItem(TileLogType.Broken, builder.name, String.format("%s at %d, %d", block.name, tile.x, tile.y)));
+            String powerNodeText = "";
+            if(tile.numConnectionsRemoved != null && Time.millis() - tile.timeConnectionsRemoved < 1000){
+                powerNodeText = String.format(", splitting the power grid (%d tiles affected)", tile.numConnectionsRemoved);
+                ui.chatfrag.addMessage(String.format("%s [lightgray]split power (%d tiles affected)", player.name, tile.numConnectionsRemoved), "client");
+            }
+            tile.log.add(new TileLogItem(TileLogType.Broken, builder.name, String.format("%s at %d, %d", block.name, tile.x, tile.y) + powerNodeText));
         }
         tile.remove();
         if(shouldPlay()) Sounds.breaks.at(tile, calcPitch(false));

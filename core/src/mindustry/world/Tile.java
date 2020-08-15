@@ -31,6 +31,8 @@ public class Tile implements Position, TargetTrait{
     /** Team ordinal. */
     protected byte team;
     public Array<TileLogItem> log = new Array<>();
+    public Integer numConnectionsRemoved = null;
+    public long timeConnectionsRemoved = 0;
 
     public Tile(int x, int y){
         this.x = (short)x;

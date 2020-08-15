@@ -3,10 +3,13 @@ package mindustry.world.blocks.power;
 import arc.*;
 import arc.math.*;
 import arc.struct.*;
+import arc.struct.Queue;
 import arc.util.*;
 import mindustry.game.*;
 import mindustry.world.*;
 import mindustry.world.consumers.*;
+
+import java.util.*;
 
 public class PowerGraph{
     private final static Queue<Tile> queue = new Queue<>();
@@ -273,6 +276,9 @@ public class PowerGraph{
     }
 
     public void remove(Tile tile){
+        int initialConnections = tile.block().getPowerConnections(tile, new Array<>()).size;
+        int affectedTiles = 0;
+        HashSet<Integer> disconnected = new HashSet<>();
         removeSingle(tile);
         //begin by clearing the closed set
         closedSet.clear();
@@ -307,6 +313,12 @@ public class PowerGraph{
             }
             //update the graph once so direct consumers without any connected producer lose their power
             graph.update();
+            affectedTiles += graph.getSize();
+            disconnected.add(graph.graphID);
+        }
+        if(initialConnections > 1 && disconnected.size() > 1){
+            tile.numConnectionsRemoved = affectedTiles;
+            tile.timeConnectionsRemoved = Time.millis();
         }
     }
 
