@@ -185,7 +185,7 @@ public class DesktopInput extends InputHandler{
             Array<Tile> nodes = new Array<>();
             for(Tile[] tiles : world.getTiles()){
                 for(Tile tile2 : tiles){
-                    if(tile2.block() instanceof PowerNode){
+                    if(tile2.block() instanceof PowerNode && tile2.getTeam() == player.getTeam()){
                         nodes.add(tile2);
                     }
                 }
