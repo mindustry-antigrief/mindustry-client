@@ -263,8 +263,10 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         for(Tile[] tiles : world.getTiles()){
             for(Tile tile : tiles){
                 if(tile.block() instanceof BuildBlock){
-                    if(!bannedBlocks.contains(((BuildEntity)tile.entity).cblock)){
-                        blocks.add(tile);
+                    if(((BuildEntity)tile.entity).cblock != null){
+                        if(!bannedBlocks.contains(((BuildEntity)tile.entity).cblock)){
+                            blocks.add(tile);
+                        }
                     }
                 }
             }
