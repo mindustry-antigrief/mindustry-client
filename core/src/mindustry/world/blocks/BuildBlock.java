@@ -210,6 +210,12 @@ public class BuildBlock extends Block{
         bar.add(new Bar("block.constructing.progress", Pal.ammo, () -> entity.progress)).growX();
         bar.row();
         HorizontalGroup group = new HorizontalGroup();
+        if(entity == null){
+            return;
+        }
+        if(entity.cblock == null){
+            return;
+        }
         for(ItemStack item : entity.cblock.requirements){
             Image image = new Image(item.item.icon(Cicon.small));
             image.visible(() -> {
