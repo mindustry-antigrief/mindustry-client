@@ -6,7 +6,7 @@ buildscript{
 
         arcHash = getArcHash()
     }
-    ext.kotlin_version = '1.4.0-rc'
+    ext.kotlin_version = '1.3.72'
     repositories{
         maven{ url 'https://dl.bintray.com/kotlin/kotlin-eap' }
         mavenCentral()
@@ -227,12 +227,10 @@ project(":core"){
 
 
     task preGen{
-        println "aaa"
         outputs.upToDateWhen{ false }
         generateLocales()
         writeVersion()
         writeProcessors()
-        println "aaaaaaaa"
     }
 
     repositories{

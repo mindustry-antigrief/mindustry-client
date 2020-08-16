@@ -207,7 +207,7 @@ public class NetClient implements ApplicationListener{
         }
 
         if(message.equalsIgnoreCase(player.readableName + " start")){
-            if(player.getState() != player.build && Time.millis() - lastCommandSent > 30_000){
+            if(player.getState() != player.build && Time.millis() - lastCommandSent > 30_000 && player.previousState == player.build){
                 Call.sendChatMessage("[coral][autoresponse][red] Entering phantom mode.[lightgray]  Say '%s stop' to turn it back off.");
                 player.setState(player.build);
                 lastCommandSent = Time.millis();

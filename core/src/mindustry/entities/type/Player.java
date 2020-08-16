@@ -24,6 +24,7 @@ import mindustry.entities.traits.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.io.*;
 import mindustry.net.Administration.*;
@@ -93,6 +94,12 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     protected StateMachine state2 = new StateMachine();
     public final UnitState
     normal = new UnitState(){
+
+        @Override
+        public String getName(){
+            return "Normal";
+        }
+
         @Override
         public void entered(){
             clearBuilding();
@@ -106,6 +113,16 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         }
     },
     mine = new UnitState(){
+
+        @Override
+        public String getName(){
+            return "Draug";
+        }
+
+        @Override
+        public Color getColor(){
+            return Color.valueOf("d3ddff");
+        }
 
         @Override
         public void update(){
@@ -143,6 +160,16 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         }
     },
     build = new UnitState(){
+
+        @Override
+        public String getName(){
+            return "Phantom";
+        }
+
+        @Override
+        public Color getColor(){
+            return Pal.accent;
+        }
 
         @Override
         public void exited(){
@@ -199,6 +226,17 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         }
     },
     heal = new UnitState(){
+
+        @Override
+        public String getName(){
+            return "Heal";
+        }
+
+        @Override
+        public Color getColor(){
+            return Pal.health;
+        }
+
         @Override
         public void exited(){
             previousState = heal;

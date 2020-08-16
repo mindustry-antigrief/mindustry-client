@@ -189,6 +189,19 @@ public class HudFragment extends Fragment{
 
                 wavesMain.table(Tex.button, t -> t.margin(10f).add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white))
                 .grow()).fillX().visible(() -> state.rules.waves && state.boss() != null).height(60f).get();
+
+                wavesMain.row();
+
+                Label label = new Label("Normal");
+                label.update(() -> {
+                    if(player != null){
+                        if(player.getState() != null){
+                            label.setText(player.getState().getName());
+                            label.setColor(player.getState().getColor());
+                        }
+                    }
+                });
+                wavesMain.table(Tex.button, t -> t.margin(10f).add(label)).height(40f).growX().get();
             }
 
             {
