@@ -6,6 +6,14 @@ buildscript{
 
         arcHash = getArcHash()
     }
+    ext.kotlin_version = '1.4.0-rc'
+    repositories{
+        maven{ url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+        mavenCentral()
+    }
+    dependencies{
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
 
     repositories{
         mavenLocal()
@@ -23,6 +31,7 @@ buildscript{
         classpath "com.github.Anuken.Arc:arc-core:$arcHash"
     }
 }
+
 
 allprojects{
     version = 'release'
@@ -214,13 +223,35 @@ project(":ios"){
 
 project(":core"){
     apply plugin: "java"
+    apply plugin: "kotlin"
+
 
     task preGen{
+        println "aaa"
         outputs.upToDateWhen{ false }
         generateLocales()
         writeVersion()
         writeProcessors()
+        println "aaaaaaaa"
     }
+
+    repositories{
+        maven{ url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+        mavenCentral()
+    }
+
+//    task compileKotlin{
+//        kotlinOptions{
+//            jvmTarget = "1.8"
+//        }
+//    }
+//    task compileTestKotlin{
+//        kotlinOptions{
+//            jvmTarget = "1.8"
+//        }
+//    }
+
+
 
     task copyChangelog{
         doLast{
@@ -245,6 +276,7 @@ project(":core"){
 
     dependencies{
         compileJava.dependsOn(preGen)
+        compileKotlin.dependsOn(preGen)
 
         compile "org.lz4:lz4-java:1.4.1"
         compile arcModule("arc-core")
@@ -255,6 +287,7 @@ project(":core"){
 
         compileOnly project(":annotations")
         annotationProcessor project(":annotations")
+        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     }
 }
 
