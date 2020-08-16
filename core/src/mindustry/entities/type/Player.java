@@ -162,7 +162,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                 if(buildTarget != null){
                     int x = Pos.x(buildTarget);
                     int y = Pos.y(buildTarget);
-                    if(Mathf.dst(x * 8, y * 8, player.x, player.y) > placeDistance){
+                    if(Mathf.dst(x * 8, y * 8, player.x, player.y) > placeDistance * 0.8){
                         if(!followingWaypoints){
                             player.navigateTo(x * 8, y * 8);
                         }
