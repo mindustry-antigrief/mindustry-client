@@ -261,6 +261,13 @@ public class JoinDialog extends FloatingDialog{
 
         cont.clear();
         cont.table(t -> {
+            t.add("Readable name:");
+            t.addField(Core.settings.getString("readable_name"), text -> {
+                player.readableName = text;
+                Core.settings.put("readable_name", text);
+                Core.settings.save();
+            }).grow().pad(8).get().setMaxLength(25);
+            t.row();
             t.add("$name").padRight(10);
             if(!steam){
                 t.addField(Core.settings.getString("name"), text -> {
@@ -268,13 +275,6 @@ public class JoinDialog extends FloatingDialog{
                     Core.settings.put("name", text);
                     Core.settings.save();
                 }).grow().pad(8).get().setMaxLength(maxNameLength);
-                t.row();
-                t.addField(Core.settings.getString("readable_name"), text -> {
-                    player.readableName = text;
-//                    System.out.println(player.readableName);
-                    Core.settings.put("readable_name", text);
-                    Core.settings.save();
-                }).grow().pad(8).get().setMaxLength(25);
             }else{
                 t.add(player.name).update(l -> l.setColor(player.color)).grow().pad(8);
             }

@@ -243,7 +243,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                     refresh = true;
                 }else if(tile.entity.power.status < 0.5f){
                     refresh = true;
-                }else if(!followingWaypoints && player.dst(tile) < ((RepairPoint)Blocks.repairPoint).repairRadius){
+                }else if(!followingWaypoints && player.dst(tile) > ((RepairPoint)Blocks.repairPoint).repairRadius){
                     refresh = true;
                 }
                 if(refresh){

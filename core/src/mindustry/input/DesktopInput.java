@@ -372,16 +372,17 @@ public class DesktopInput extends InputHandler{
 
             if(Core.input.keyTap(KeyCode.BACKTICK)){
                 showTurretRanges = !showTurretRanges;
-                if(Core.input.keyTap(KeyCode.L)){
-                    if(player.getState() == player.build){
+            }
+            if(Core.input.keyTap(KeyCode.L)){
+                if(player.getState() == player.build){
 //                    System.out.println("Stopping");
-                        player.setState(player.normal);
-                    }else{
+                    player.setState(player.normal);
+                }else{
 //                    System.out.println("Starting");
-                        player.setState(player.build);
-                    }
-//                player.setBuilding();
+                    player.setState(player.build);
                 }
+//                player.setBuilding();
+            }
 
                 if(Core.input.keyTap(KeyCode.N)){
                     if(cameraPositionOverride != null){
@@ -504,8 +505,7 @@ public class DesktopInput extends InputHandler{
                 Core.graphics.cursor(cursorType);
             }
 
-            cursorType = SystemCursor.arrow;
-        }
+        cursorType = SystemCursor.arrow;
     }
 
     public float distance(String word, String word2){
