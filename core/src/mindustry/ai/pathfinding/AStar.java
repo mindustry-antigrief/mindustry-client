@@ -87,6 +87,13 @@ public class AStar{
 //        System.out.println(Arrays.deepToString(grid));
 //        System.out.println(Arrays.toString(grid[startI]));
         //add the start location to open list.
+
+        endI = Mathf.clamp(endI, 0, grid.length - 1);
+        endJ = Mathf.clamp(endJ, 0, grid[0].length - 1);
+
+        startI = Mathf.clamp(startI, 0, grid.length - 1);
+        startJ = Mathf.clamp(startJ, 0, grid[0].length - 1);
+
         open.add(grid[startI][startJ]);
 
         Cell current;
