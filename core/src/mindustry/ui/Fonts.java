@@ -120,9 +120,7 @@ public class Fonts{
                     parameter.fontParameters.borderWidth = Scl.scl(2f);
                     parameter.fontParameters.spaceX -= parameter.fontParameters.borderWidth;
                 }
-//                System.out.println("AAAAAA");
                 if(fileName.equals("mono")){
-                    System.out.println("AAAAAAAAAAAAAAAAAA");
                     parameter.fontParameters.borderWidth = Scl.scl(2f);
                     parameter.fontParameters.spaceX -= parameter.fontParameters.borderWidth;
                 }
