@@ -208,6 +208,7 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         game.screenshakePref();
         game.checkPref("autorespond", false);
+        game.checkPref("powersplitnotifications", false);
         if(mobile){
             game.checkPref("autotarget", true);
             game.checkPref("keyboard", false, val -> control.setInput(val ? new DesktopInput() : new MobileInput()));

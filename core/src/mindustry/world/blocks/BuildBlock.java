@@ -71,7 +71,9 @@ public class BuildBlock extends Block{
             String powerNodeText = "";
             if(tile.numConnectionsRemoved != null && Time.millis() - tile.timeConnectionsRemoved < 1000){
                 powerNodeText = String.format(", splitting the power grid (%d tiles affected)", tile.numConnectionsRemoved);
-                ui.chatfrag.addMessage(String.format("%s [lightgray]split power (%d tiles affected)", builder.name, tile.numConnectionsRemoved), "client");
+                if(Core.settings.getBool("powersplitnotifications")){
+                    ui.chatfrag.addMessage(String.format("%s [lightgray]split power (%d tiles affected)", builder.name, tile.numConnectionsRemoved), "client");
+                }
             }
             tile.log.add(new TileLogItem(TileLogType.Broken, builder.name, String.format("%s at %d, %d", block.name, tile.x, tile.y) + powerNodeText));
         }
