@@ -26,6 +26,7 @@ git pull
 - ~~Todo~~ Too much effort
    - Just use the automatic one lol
 ### Manually (Steam):
+- **This installation method is untested**
 1. Install dependencies.
    1. [Install Git](https://git-scm.com/download/win) if needed.
    1. [Install OpenJDK](https://adoptopenjdk.net/?variant=openjdk8&jvmVariant=hotspot) if needed.
