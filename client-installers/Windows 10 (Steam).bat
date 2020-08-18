@@ -62,6 +62,8 @@ set lineNr=0
     echo(!line!
     endlocal
 ))>"%newfile%"
+del build.gradle
+ren build2.gradle build.gradle
 echo If you have completed all these steps correctly, launching mindustry on steam should now open a cmd window which will automatically install any updates and then start the game.
 echo Press any button to close this window.
 pause
