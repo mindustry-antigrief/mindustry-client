@@ -48,6 +48,20 @@ echo.
 echo /c "cd /D %steam:~0,2%\mindustry-client&&git pull&&gradlew.bat desktop:dist --no-daemon&&cd /D %steam%&&start %steam:~0,2%\mindustry-client\desktop\build\libs\Mindustry.jar"
 echo.
 pause
-echo If you have completed all these steps correctly, launching mindustry on steam shoul now open a cmd window which will automatically install any updates and then start the game.
+cd /D %steam:~0,2%\mindustry-client
+set search=release
+set replace=steam
+set textfile=build.gradle
+set newfile=build2.gradle
+set lineNr=0
+(for /f "delims=" %%i in (%textfile%) do (
+    set /a lineNr+=1
+    set "line=%%i"
+    setlocal enabledelayedexpansion
+    if !lineNr!==37 set "line=!line:%search%=%replace%!"
+    echo(!line!
+    endlocal
+))>"%newfile%"
+echo If you have completed all these steps correctly, launching mindustry on steam should now open a cmd window which will automatically install any updates and then start the game.
 echo Press any button to close this window.
 pause
