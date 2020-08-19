@@ -238,6 +238,15 @@ public class Logic implements ApplicationListener{
                     puddleGroup.update();
                     shieldGroup.update();
                     bulletGroup.update();
+                    if((Core.graphics.getFrameId() % 30) == 0){
+                        for(TileEntity e : tileGroup.all()){
+                            if(e.power != null){
+                                if(e.power.graph != null){
+                                    e.power.graph.diodedNetworks.clear();
+                                }
+                            }
+                        }
+                    }
                     tileGroup.update();
                     fireGroup.update();
                 }else{

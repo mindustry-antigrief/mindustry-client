@@ -28,6 +28,7 @@ public class PowerGraph{
     private long lastFrameUpdated = -1;
     private final int graphID;
     private static int lastGraphID;
+    public ObjectSet<PowerGraph> diodedNetworks = new ObjectSet<>();
 
     {
         graphID = lastGraphID++;

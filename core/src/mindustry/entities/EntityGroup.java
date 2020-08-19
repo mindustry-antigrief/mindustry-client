@@ -6,10 +6,12 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.math.geom.*;
 import mindustry.entities.traits.*;
+import mindustry.entities.type.*;
+import mindustry.world.blocks.power.*;
 
 import java.util.*;
 
-import static mindustry.Vars.collisions;
+import static mindustry.Vars.*;
 
 /** Represents a group of a certain type of entity.*/
 @SuppressWarnings("unchecked")

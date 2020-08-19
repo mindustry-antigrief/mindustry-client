@@ -1,7 +1,6 @@
 package mindustry.ui.fragments;
 
 import arc.*;
-import arc.func.*;
 import arc.scene.ui.layout.Stack;
 import mindustry.*;
 import mindustry.ai.pathfinding.*;
@@ -41,10 +40,8 @@ import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
-import mindustry.world.modules.*;
 
 import java.time.*;
-import java.util.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -625,7 +622,14 @@ public class HudFragment extends Fragment{
                 return "";
             }
             Tile tile = world.tile(powerTilePos);
-            return Core.bundle.format("bar.powerbalance", ((tile.entity.power.graph.getPowerBalance() >= 0 ? "+" : "") + Strings.fixed(tile.entity.power.graph.getPowerBalance() * 60, 1)));
+            float power = tile.entity.power.graph.getPowerBalance();
+            for(PowerGraph graph : tile.entity.power.graph.diodedNetworks){
+                if(graph != null){
+                    power += graph.getPowerBalance();
+                }
+            }
+            power *= 60;
+            return Core.bundle.format("bar.powerbalance", (power >= 0 ? "+" : "") + Strings.fixed(power, 1));
             },
         () -> Pal.powerBar,
         () -> {

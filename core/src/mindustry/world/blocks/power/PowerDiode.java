@@ -47,6 +47,10 @@ public class PowerDiode extends Block{
             backGraph.useBatteries(amount);
             frontGraph.chargeBatteries(amount);
         }
+        frontGraph.diodedNetworks.addAll(backGraph.diodedNetworks);
+        frontGraph.diodedNetworks.add(backGraph);
+        backGraph.diodedNetworks.addAll(frontGraph.diodedNetworks);
+        backGraph.diodedNetworks.add(frontGraph);
     }
 
     // battery % of the graph on either side, defaults to zero
