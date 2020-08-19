@@ -441,6 +441,12 @@ public class DesktopInput extends InputHandler{
                 if(Core.input.keyDown(KeyCode.DOWN)){
                     cameraPositionOverride.y -= speed;
                 }
+                if(Core.input.keyDown(Binding.zoom_in)){
+                    renderer.scaleCamera(1f);
+                }
+                if(Core.input.keyDown(Binding.zoom_out)){
+                    renderer.scaleCamera(-1f);
+                }
             }
 
             //deselect if not placing

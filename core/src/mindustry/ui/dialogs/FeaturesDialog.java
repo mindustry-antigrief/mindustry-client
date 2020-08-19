@@ -59,6 +59,8 @@ public class FeaturesDialog extends FloatingDialog{
         label(t, "N - Move to camera (only works with freecam)", color1);
         label(t, "Z - Path to camera (^ but uses AI to avoid turrets)", color2);
         label(t, "B - Automatically go to unbuilt buildings", color1);
+        label(t, "L - Phantom mode", color1);
+        label(t, "Right control/right shift - Zoom in/out", color1);
         label(t, "; (SEMICOLON) - Automine/draug, mines and stores needed resources", color2);
         label(t, "CTRL + F - Find block by ID, ENTER to select, !go to go", color1);
         label(t, "CTRL + Z - Undo / Redo last block place/break", color2);
