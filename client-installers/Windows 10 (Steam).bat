@@ -45,9 +45,36 @@ echo Success: Mindustry installation patched with foo's client (to revert to van
 pause
 echo Right click Mindustry in steam game list, select properties, select set launch options, copy paste the entire next line into that section and confirm.
 echo.
-echo /c "cd /D %steam:~0,2%\mindustry-client&&git pull&&gradlew.bat desktop:dist --no-daemon&&cd /D %steam%&&start %steam:~0,2%\mindustry-client\desktop\build\libs\Mindustry.jar"
+echo /c "%steam:~0,2%\mindustry-client\launcher.bat"
 echo.
 pause
-echo If you have completed all these steps correctly, launching mindustry on steam shoul now open a cmd window which will automatically install any updates and then start the game.
+cd /D %steam:~0,2%\mindustry-client
+
+echo @ECHO off>launcher.bat
+echo "cd /d %steam:~0,2%\mindustry-client&&git stash -- build.gradle&&git status -s -uno>gitStatus&&git stash apply&&set /p git=<gitStatus&del gitStatus&&if defined git (cd /D %steam:~0,2%\mindustry-client&&git pull&&call gradlew.bat desktop:dist --no-daemon)">>launcher.bat
+echo "cd /D %steam%&&start %steam:~0,2%\mindustry-client\desktop\build\libs\Mindustry.jar">>launcher.bat
+
+for /f "delims=" %%i in ('type "launcher.bat" ^& break ^> "launcher.bat" ') do (
+    set "line=%%i"
+    setlocal enabledelayedexpansion
+    >>"launcher.bat" echo(!line:"=!
+    endlocal
+)
+set search=release
+set replace=steam
+set textfile=build.gradle
+set newfile=build2.gradle
+set lineNr=0
+(for /f "delims=" %%i in (%textfile%) do (
+    set /a lineNr+=1
+    set "line=%%i"
+    setlocal enabledelayedexpansion
+    if !lineNr!==37 set "line=!line:%search%=%replace%!"
+    echo(!line!
+    endlocal
+))>"%newfile%"
+del build.gradle
+ren build2.gradle build.gradle
+echo If you have completed all these steps correctly, launching mindustry on steam should now open a cmd window which will automatically install any updates and then start the game.
 echo Press any button to close this window.
 pause

@@ -26,6 +26,7 @@ git pull
 - ~~Todo~~ Too much effort
    - Just use the automatic one lol
 ### Manually (Steam):
+- **This installation method is untested**
 1. Install dependencies.
    1. [Install Git](https://git-scm.com/download/win) if needed.
    1. [Install OpenJDK](https://adoptopenjdk.net/?variant=openjdk8&jvmVariant=hotspot) if needed.
@@ -35,9 +36,10 @@ git pull
    git clone https://github.com/blahblahbloopster/mindustry-client.git
    del /F C:\Steam\steamapps\common\Mindustry\Mindustry.exe
    mklink C:\Steam\steamapps\common\Mindustry\Mindustry.exe c:\windows\system32\cmd.exe
+1. Run `start %TEMP%\mindustry-client\build.gradle` and in the newly opened file replace line 43 (`(        if(!project.hasProperty("versionModifier")) versionModifier = 'release') `) with `        if(!project.hasProperty("versionModifier")) versionModifier = 'steam'`, save the file and exit the editor.
 1. Go to the games properties and set launch options, paste this in **(Replace the mindustry install folder C:\Steam\steamapps\common\Mindustry if needed)**
    ```bash
-   /c "cd %TEMP%&&git pull&&gradlew.bat desktop:dist --no-daemon&&cd C:\Steam\steamapps\common\Mindustry&&start %TEMP%\mindustry-client\desktop\build\libs\Mindustry.jar"
+   /c "cd %TEMP%\mindustry-client&&git pull&&gradlew.bat desktop:dist --no-daemon&&cd C:\Steam\steamapps\common\Mindustry&&start %TEMP%\mindustry-client\desktop\build\libs\Mindustry.jar"
 1. Try running the game, it should now work as intended
 
 ### **Automatic (Steam):**
