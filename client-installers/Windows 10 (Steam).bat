@@ -51,7 +51,7 @@ pause
 cd /D %steam:~0,2%\mindustry-client
 
 echo @ECHO off>launcher.bat
-echo "cd /d %steam:~0,2%\mindustry-client&&git stash -- build.gradle&&git status -s -uno>gitStatus&&git stash apply&&set /p git=<gitStatus&del gitStatus&&if defined git (cd /D %steam:~0,2%\mindustry-client&&git pull&&call gradlew.bat desktop:dist --no-daemon)">>launcher.bat
+echo "cd /d %steam:~0,2%\mindustry-client&&git fetch>gitStatus 2>&1&&set /p git=<gitStatus&del gitStatus&&if defined git (cd /D %steam:~0,2%\mindustry-client&&git pull&&call gradlew.bat desktop:dist --no-daemon)">>launcher.bat
 echo "cd /D %steam%&&start %steam:~0,2%\mindustry-client\desktop\build\libs\Mindustry.jar">>launcher.bat
 
 for /f "delims=" %%i in ('type "launcher.bat" ^& break ^> "launcher.bat" ') do (
