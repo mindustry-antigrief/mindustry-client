@@ -687,13 +687,13 @@ public class DesktopInput extends InputHandler{
             }else if(req != null && req.breaking){
                 deleting = true;
             }else if(selected != null){
-                if(Core.input.keyDown(KeyCode.CONTROL_LEFT) || Core.input.keyDown(KeyCode.CONTROL_RIGHT)){
+                if(input.shift() && !input.ctrl()){
                     StringBuilder builder = new StringBuilder();
                     for(TileLogItem item : selected.log){
                         builder.append(item.toString()).append("\n");
                     }
                     ui.chatfrag.addMessage(builder.toString(), "client");
-                }else if(input.shift()){
+                }else if(input.shift() && input.ctrl()){
                     defaultTilePos = selected.pos();
                 }else{
                     //only begin shooting if there's no cursor event
