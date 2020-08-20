@@ -689,7 +689,7 @@ public class DesktopInput extends InputHandler{
             }else if(req != null && req.breaking){
                 deleting = true;
             }else if(selected != null){
-                if(input.shift() && !input.ctrl()){
+                if(input.ctrl() && !input.shift()){
                     StringBuilder builder = new StringBuilder();
                     for(TileLogItem item : selected.log){
                         builder.append(item.toString()).append("\n");
