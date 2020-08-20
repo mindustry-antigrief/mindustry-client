@@ -232,6 +232,7 @@ public class Vars implements Loadable{
     public static BuildRequest building;
     public static long lastAutoresponseSent = 0;
     public static long lastCommandSent = 0;
+    public static int defaultTilePos = 0;
 
     @Override
     public void loadAsync(){

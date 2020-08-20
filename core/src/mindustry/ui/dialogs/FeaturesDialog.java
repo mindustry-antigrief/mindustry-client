@@ -66,8 +66,9 @@ public class FeaturesDialog extends FloatingDialog{
         label(t, "CTRL + Z - Undo / Redo last block place/break", color2);
         label(t, "SHIFT + CLICK/RIGHTCLICK - Prioritize building/breaking specified block", color1);
         label(t, "CTRL + CLICK - Block history (records places, breaks and configures)", color2);
-        label(t, "!go command - input coordinates or player name", color1);
-        label(t, "!here command - posts your coordinates in chat", color2);
+        label(t, "SHIFT + CLICK on tile - Set as default for transfer creation", color1);
+        label(t, "!go command - input coordinates or player name", color2);
+        label(t, "!here command - posts your coordinates in chat", color1);
         
         cont.add(new ScrollPane(t)).growX();
 

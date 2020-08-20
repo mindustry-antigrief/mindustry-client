@@ -14,6 +14,8 @@ import mindustry.world.blocks.*;
 
 import java.util.concurrent.atomic.*;
 
+import static mindustry.Vars.defaultTilePos;
+
 public class TransferCreateDialog extends FloatingDialog{
     private TransferEndpoint start;
     private TransferEndpoint end;
@@ -25,8 +27,8 @@ public class TransferCreateDialog extends FloatingDialog{
 
     private Table buildSingleTilePickup(boolean isStart){
         Table table = new Table();
-        TextField x = new TextField("0");
-        TextField y = new TextField("0");
+        TextField x = new TextField(Integer.toString(Pos.x(defaultTilePos)));
+        TextField y = new TextField(Integer.toString(Pos.y(defaultTilePos)));
         x.setWidth(20);
         y.setWidth(20);
         x.setValidator((string) -> Strings.canParsePostiveInt(string) && Integer.parseInt(string) <= Vars.world.width());

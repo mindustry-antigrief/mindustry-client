@@ -384,132 +384,132 @@ public class DesktopInput extends InputHandler{
 //                player.setBuilding();
             }
 
-                if(Core.input.keyTap(KeyCode.N)){
-                    if(cameraPositionOverride != null){
-                        followingWaypoints = true;
-                        repeatWaypoints = false;
-                        notDone.addFirst(new Waypoint(cameraPositionOverride.x, cameraPositionOverride.y));
-                    }
+            if(Core.input.keyTap(KeyCode.N)){
+                if(cameraPositionOverride != null){
+                    followingWaypoints = true;
+                    repeatWaypoints = false;
+                    notDone.addFirst(new Waypoint(cameraPositionOverride.x, cameraPositionOverride.y));
                 }
+            }
 
-                if(Core.input.keyTap(KeyCode.Z)){
-                    if(cameraPositionOverride != null){
-                        player.navigateTo(camera.position.x, camera.position.y);
-                    }
+            if(Core.input.keyTap(KeyCode.Z)){
+                if(cameraPositionOverride != null){
+                    player.navigateTo(camera.position.x, camera.position.y);
                 }
+            }
 
-                if(Core.input.keyTap(KeyCode.B)){
-                    autoBuild = !autoBuild;
-                }
+            if(Core.input.keyTap(KeyCode.B)){
+                autoBuild = !autoBuild;
+            }
 
-                if(input.keyTap(KeyCode.SEMICOLON)){
-                    autoMine = !autoMine;
-                    if(player.getState() == player.mine){
-                        player.setState(player.normal);
-                    }else{
-                        player.setState(player.mine);
-                    }
+            if(input.keyTap(KeyCode.SEMICOLON)){
+                autoMine = !autoMine;
+                if(player.getState() == player.mine){
+                    player.setState(player.normal);
+                }else{
+                    player.setState(player.mine);
                 }
+            }
 //            if(autoMine){
 //                player.setState(player.mine);
 //            }else{
 //                player.setState(player.normal);
 //            }
-            }
+        }
 
-            float speed = (8F / renderer.getScale()) * Time.delta();
-            if(scene.getKeyboardFocus() == null){
-                if(Core.input.keyDown(KeyCode.LEFT) || Core.input.keyDown(KeyCode.RIGHT) ||
-                Core.input.keyDown(KeyCode.UP) || Core.input.keyDown(KeyCode.DOWN)){
-                    if(cameraPositionOverride == null){
-                        cameraPositionOverride = new Vec2(player.x, player.y);
-                    }
-                }
-
-                if(Core.input.keyDown(KeyCode.RIGHT)){
-                    cameraPositionOverride.x += speed;
-                }
-
-                if(Core.input.keyDown(KeyCode.LEFT)){
-                    cameraPositionOverride.x -= speed;
-                }
-
-                if(Core.input.keyDown(KeyCode.UP)){
-                    cameraPositionOverride.y += speed;
-                }
-
-                if(Core.input.keyDown(KeyCode.DOWN)){
-                    cameraPositionOverride.y -= speed;
-                }
-                if(Core.input.keyDown(Binding.zoom_in)){
-                    renderer.scaleCamera(1f);
-                }
-                if(Core.input.keyDown(Binding.zoom_out)){
-                    renderer.scaleCamera(-1f);
+        float speed = (8F / renderer.getScale()) * Time.delta();
+        if(scene.getKeyboardFocus() == null){
+            if(Core.input.keyDown(KeyCode.LEFT) || Core.input.keyDown(KeyCode.RIGHT) ||
+            Core.input.keyDown(KeyCode.UP) || Core.input.keyDown(KeyCode.DOWN)){
+                if(cameraPositionOverride == null){
+                    cameraPositionOverride = new Vec2(player.x, player.y);
                 }
             }
 
-            //deselect if not placing
-            if(!isPlacing() && mode == placing){
-                mode = none;
+            if(Core.input.keyDown(KeyCode.RIGHT)){
+                cameraPositionOverride.x += speed;
             }
 
-            if(player.isShooting && !canShoot()){
-                player.isShooting = false;
+            if(Core.input.keyDown(KeyCode.LEFT)){
+                cameraPositionOverride.x -= speed;
             }
 
-            if(isPlacing()){
+            if(Core.input.keyDown(KeyCode.UP)){
+                cameraPositionOverride.y += speed;
+            }
+
+            if(Core.input.keyDown(KeyCode.DOWN)){
+                cameraPositionOverride.y -= speed;
+            }
+            if(Core.input.keyDown(Binding.zoom_in)){
+                renderer.scaleCamera(1f);
+            }
+            if(Core.input.keyDown(Binding.zoom_out)){
+                renderer.scaleCamera(-1f);
+            }
+        }
+
+        //deselect if not placing
+        if(!isPlacing() && mode == placing){
+            mode = none;
+        }
+
+        if(player.isShooting && !canShoot()){
+            player.isShooting = false;
+        }
+
+        if(isPlacing()){
+            cursorType = SystemCursor.hand;
+            selectScale = Mathf.lerpDelta(selectScale, 1f, 0.2f);
+        }else{
+            selectScale = 0f;
+        }
+
+        if(!Core.input.keyDown(Binding.diagonal_placement) && Math.abs((int)Core.input.axisTap(Binding.rotate)) > 0){
+            rotation = Mathf.mod(rotation + (int)Core.input.axisTap(Binding.rotate), 4);
+
+            if(sreq != null){
+                sreq.rotation = Mathf.mod(sreq.rotation + (int)Core.input.axisTap(Binding.rotate), 4);
+            }
+
+            if(isPlacing() && mode == placing){
+                updateLine(selectX, selectY);
+            }else if(!selectRequests.isEmpty()){
+                rotateRequests(selectRequests, (int)Core.input.axisTap(Binding.rotate));
+            }
+        }
+
+        Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
+
+        if(cursor != null){
+            cursor = cursor.link();
+
+            cursorType = cursor.block().getCursor(cursor);
+
+            if(isPlacing() || !selectRequests.isEmpty()){
                 cursorType = SystemCursor.hand;
-                selectScale = Mathf.lerpDelta(selectScale, 1f, 0.2f);
-            }else{
-                selectScale = 0f;
             }
 
-            if(!Core.input.keyDown(Binding.diagonal_placement) && Math.abs((int)Core.input.axisTap(Binding.rotate)) > 0){
-                rotation = Mathf.mod(rotation + (int)Core.input.axisTap(Binding.rotate), 4);
-
-                if(sreq != null){
-                    sreq.rotation = Mathf.mod(sreq.rotation + (int)Core.input.axisTap(Binding.rotate), 4);
-                }
-
-                if(isPlacing() && mode == placing){
-                    updateLine(selectX, selectY);
-                }else if(!selectRequests.isEmpty()){
-                    rotateRequests(selectRequests, (int)Core.input.axisTap(Binding.rotate));
-                }
+            if(!isPlacing() && canMine(cursor)){
+                cursorType = ui.drillCursor;
             }
 
-            Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
-
-            if(cursor != null){
-                cursor = cursor.link();
-
-                cursorType = cursor.block().getCursor(cursor);
-
-                if(isPlacing() || !selectRequests.isEmpty()){
-                    cursorType = SystemCursor.hand;
-                }
-
-                if(!isPlacing() && canMine(cursor)){
-                    cursorType = ui.drillCursor;
-                }
-
-                if(getRequest(cursor.x, cursor.y) != null && mode == none){
-                    cursorType = SystemCursor.hand;
-                }
-
-                if(canTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y)){
-                    cursorType = ui.unloadCursor;
-                }
-
-                if(cursor.interactable(player.getTeam()) && !isPlacing() && Math.abs(Core.input.axisTap(Binding.rotate)) > 0 && Core.input.keyDown(Binding.rotateplaced) && cursor.block().rotate){
-                    Call.rotateBlock(player, cursor, Core.input.axisTap(Binding.rotate) > 0);
-                }
+            if(getRequest(cursor.x, cursor.y) != null && mode == none){
+                cursorType = SystemCursor.hand;
             }
 
-            if(!Core.scene.hasMouse()){
-                Core.graphics.cursor(cursorType);
+            if(canTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y)){
+                cursorType = ui.unloadCursor;
             }
+
+            if(cursor.interactable(player.getTeam()) && !isPlacing() && Math.abs(Core.input.axisTap(Binding.rotate)) > 0 && Core.input.keyDown(Binding.rotateplaced) && cursor.block().rotate){
+                Call.rotateBlock(player, cursor, Core.input.axisTap(Binding.rotate) > 0);
+            }
+        }
+
+        if(!Core.scene.hasMouse()){
+            Core.graphics.cursor(cursorType);
+        }
 
         cursorType = SystemCursor.arrow;
     }
@@ -693,6 +693,8 @@ public class DesktopInput extends InputHandler{
                         builder.append(item.toString()).append("\n");
                     }
                     ui.chatfrag.addMessage(builder.toString(), "client");
+                }else if(input.shift()){
+                    defaultTilePos = selected.pos();
                 }else{
                     //only begin shooting if there's no cursor event
                     if(!tileTapped(selected) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && (player.buildQueue().size == 0 || !player.isBuilding) && !droppingItem &&
