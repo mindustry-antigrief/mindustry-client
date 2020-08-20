@@ -265,15 +265,15 @@ public class CoreBlock extends StorageBlock{
                     array.add(new int[]{items.get(item), 0});
                 }
                 array.insert(0, new int[]{items.get(item), items.get(item) - array.first()[0]});
-                if(array.size > 20){
+                if(array.size > 300){
                     array.remove(array.size - 1);
                 }
                 float avg = 0f;
                 for(int[] pair : array){
                     avg += pair[1];
                 }
-                avg /= 20;
-                avg *= 60;
+                avg /= 300;
+                avg *= Core.graphics.getFramesPerSecond();
                 itemRates.put(item, avg);
             });
             if(itemRateCalculation.size() == 0){
