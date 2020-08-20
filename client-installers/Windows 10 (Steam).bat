@@ -45,10 +45,21 @@ echo Success: Mindustry installation patched with foo's client (to revert to van
 pause
 echo Right click Mindustry in steam game list, select properties, select set launch options, copy paste the entire next line into that section and confirm.
 echo.
-echo /c "cd /D %steam:~0,2%\mindustry-client&&git pull&&gradlew.bat desktop:dist --no-daemon&&cd /D %steam%&&start %steam:~0,2%\mindustry-client\desktop\build\libs\Mindustry.jar"
+echo /c "%steam:~0,2%\mindustry-client\launcher.bat"
 echo.
 pause
 cd /D %steam:~0,2%\mindustry-client
+
+echo @ECHO off>launcher.bat
+echo "cd /d %steam:~0,2%\mindustry-client&&git stash -- build.gradle&&git status -s -uno>gitStatus&&git stash apply&&set /p git=<gitStatus&del gitStatus&&if defined git (cd /D %steam:~0,2%\mindustry-client&&git pull&&call gradlew.bat desktop:dist --no-daemon)">>launcher.bat
+echo "cd /D %steam%&&start %steam:~0,2%\mindustry-client\desktop\build\libs\Mindustry.jar">>launcher.bat
+
+for /f "delims=" %%i in ('type "launcher.bat" ^& break ^> "launcher.bat" ') do (
+    set "line=%%i"
+    setlocal enabledelayedexpansion
+    >>"launcher.bat" echo(!line:"=!
+    endlocal
+)
 set search=release
 set replace=steam
 set textfile=build.gradle
