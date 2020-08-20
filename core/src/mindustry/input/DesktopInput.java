@@ -345,11 +345,9 @@ public class DesktopInput extends InputHandler{
                             }
                         }
                         if(closest != null){
-                            if(targetPosition != null){
-                                targetPosition.set(closest.x, closest.y);
-                                ui.chatfrag.addMessage(String.format("%d, %d (/go to travel there)", (int)closest.x, (int)closest.y), "client");
-                                dialog.hide();
-                            }
+                            targetPosition = new Vec2(closest.x, closest.y);
+                            ui.chatfrag.addMessage(String.format("%d, %d (/go to travel there)", (int)closest.x, (int)closest.y), "client");
+                            dialog.hide();
                         }
                     }
                 });
