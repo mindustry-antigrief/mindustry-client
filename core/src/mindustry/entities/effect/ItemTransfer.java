@@ -10,9 +10,8 @@ import arc.math.geom.Vec2;
 import arc.util.Time;
 import arc.util.pooling.Pools;
 import mindustry.entities.*;
-import mindustry.entities.type.TimedEntity;
+import mindustry.entities.type.*;
 import mindustry.entities.traits.DrawTrait;
-import mindustry.entities.type.Unit;
 import mindustry.graphics.Pal;
 import mindustry.type.Item;
 import mindustry.world.Tile;
@@ -101,11 +100,17 @@ public class ItemTransfer extends TimedEntity implements DrawTrait{
 
     @Override
     public void draw(){
+        float alpha = 0.1f;
+//        if(from.dst(player) > 1){
+//            alpha = 0.1f;
+//        }
+        Draw.alpha(alpha);
         Lines.stroke(fslope() * 2f, Pal.accent);
 
         Lines.circle(x, y, fslope() * 2f);
 
         Draw.color(item.color);
+        Draw.alpha(alpha);
         Fill.circle(x, y, fslope() * 1.5f);
 
         Draw.reset();

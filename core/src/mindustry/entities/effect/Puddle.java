@@ -15,6 +15,7 @@ import mindustry.entities.traits.*;
 import mindustry.entities.type.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
 
@@ -227,6 +228,7 @@ public class Puddle extends SolidEntity implements SaveTrait, Poolable, DrawTrai
         float sscl = 20f;
 
         Draw.color(tmp.set(liquid.color).shiftValue(-0.05f));
+        Draw.alpha(Transparency.convertTransparency(1f));
         Fill.circle(x + Mathf.sin(Time.time() + seeds * 532, sscl, smag), y + Mathf.sin(Time.time() + seeds * 53, sscl, smag), f * 8f);
         Angles.randLenVectors(id, 3, f * 6f, (ex, ey) -> {
             Fill.circle(x + ex + Mathf.sin(Time.time() + seeds * 532, sscl, smag),

@@ -104,19 +104,21 @@ public class Drill extends Block{
 
         if(drawRim){
             Draw.color(heatColor);
-            Draw.alpha(entity.warmup * ts * (1f - s + Mathf.absin(Time.time(), 3f, s)));
+            Draw.alpha(Transparency.convertTransparency(entity.warmup * ts * (1f - s + Mathf.absin(Time.time(), 3f, s))));
             Draw.blend(Blending.additive);
             Draw.rect(rimRegion, tile.drawx(), tile.drawy());
             Draw.blend();
             Draw.color();
         }
 
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(rotatorRegion, tile.drawx(), tile.drawy(), entity.drillTime * rotateSpeed);
 
         Draw.rect(topRegion, tile.drawx(), tile.drawy());
 
         if(entity.dominantItem != null && drawMineItem){
             Draw.color(entity.dominantItem.color);
+            Draw.alpha(Transparency.convertTransparency(1f));
             Draw.rect("drill-top", tile.drawx(), tile.drawy(), 1f);
             Draw.color();
         }

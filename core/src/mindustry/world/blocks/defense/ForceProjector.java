@@ -180,7 +180,7 @@ public class ForceProjector extends Block{
         ForceEntity entity = tile.ent();
 
         if(entity.buildup <= 0f) return;
-        Draw.alpha(entity.buildup / breakage * 0.75f);
+        Draw.alpha(Transparency.convertTransparency(entity.buildup / breakage * 0.75f));
         Draw.blend(Blending.additive);
         Draw.rect(topRegion, tile.drawx(), tile.drawy());
         Draw.blend();

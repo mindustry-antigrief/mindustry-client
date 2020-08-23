@@ -2,8 +2,12 @@ package mindustry.world.blocks.production;
 
 import arc.*;
 import arc.graphics.g2d.*;
+import arc.math.*;
+import mindustry.graphics.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
+
+import static mindustry.Vars.xray;
 
 public class Fracker extends SolidPump{
     public float itemUseTime = 100f;
@@ -55,11 +59,13 @@ public class Fracker extends SolidPump{
         super.drawCracks(tile);
 
         Draw.color(result.color);
-        Draw.alpha(tile.entity.liquids.get(result) / liquidCapacity);
+        Draw.alpha(Transparency.convertTransparency(tile.entity.liquids.get(result) / liquidCapacity));
         Draw.rect(liquidRegion, tile.drawx(), tile.drawy());
         Draw.color();
 
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(rotatorRegion, tile.drawx(), tile.drawy(), entity.pumpTime);
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(topRegion, tile.drawx(), tile.drawy());
     }
 

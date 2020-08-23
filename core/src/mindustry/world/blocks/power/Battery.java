@@ -2,9 +2,10 @@ package mindustry.world.blocks.power;
 
 import arc.graphics.*;
 import arc.graphics.g2d.*;
+import mindustry.graphics.*;
 import mindustry.world.*;
 
-import static mindustry.Vars.tilesize;
+import static mindustry.Vars.*;
 
 public class Battery extends PowerDistributor{
     public int topRegion = reg("-top");
@@ -21,9 +22,13 @@ public class Battery extends PowerDistributor{
     @Override
     public void draw(Tile tile){
         Draw.color(emptyLightColor, fullLightColor, tile.entity.power.status);
+        if(xray){
+            Draw.alpha(Transparency.convertTransparency(1f));
+        }
         Fill.square(tile.drawx(), tile.drawy(), tilesize * size / 2f - 1);
         Draw.color();
 
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(reg(topRegion), tile.drawx(), tile.drawy());
     }
 }

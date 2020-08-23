@@ -302,6 +302,7 @@ public class Block extends BlockStorage{
     }
 
     public void draw(Tile tile){
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(region, tile.drawx(), tile.drawy(), rotate ? tile.rotation() * 90 : 0);
     }
 

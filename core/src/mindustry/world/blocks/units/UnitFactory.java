@@ -12,8 +12,7 @@ import mindustry.entities.Effects;
 import mindustry.entities.type.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.Call;
-import mindustry.graphics.Pal;
-import mindustry.graphics.Shaders;
+import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.ui.Bar;
 import mindustry.ui.Cicon;
@@ -138,7 +137,7 @@ public class UnitFactory extends Block{
         Draw.shader();
 
         Draw.color(Pal.accent);
-        Draw.alpha(entity.speedScl);
+        Draw.alpha(Transparency.convertTransparency(entity.speedScl));
 
         Lines.lineAngleCenter(
         tile.drawx() + Mathf.sin(entity.time, 20f, Vars.tilesize / 2f * size - 2f),
@@ -148,6 +147,7 @@ public class UnitFactory extends Block{
 
         Draw.reset();
 
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(topRegion, tile.drawx(), tile.drawy());
     }
 

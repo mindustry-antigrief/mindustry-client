@@ -81,8 +81,10 @@ public class CommandCenter extends Block{
         float size = 6f;
 
         Draw.color(bottomColor);
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(commandRegions[entity.command.ordinal()].getRegion(), tile.drawx(), tile.drawy() - 1, size, size);
         Draw.color(topColor);
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(commandRegions[entity.command.ordinal()].getRegion(), tile.drawx(), tile.drawy(), size, size);
         Draw.color();
     }

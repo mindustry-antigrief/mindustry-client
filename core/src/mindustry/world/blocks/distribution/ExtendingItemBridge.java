@@ -35,6 +35,9 @@ public class ExtendingItemBridge extends ItemBridge{
         float opacity = Core.settings.getInt("bridgeopacity") / 100f;
         if(Mathf.zero(opacity)) return;
         Draw.alpha(opacity);
+        if(xray){
+            Draw.alpha(0.1f);
+        }
 
         Lines.stroke(8f);
         Lines.line(bridgeRegion,

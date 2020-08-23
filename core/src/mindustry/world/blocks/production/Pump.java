@@ -5,7 +5,7 @@ import arc.struct.Array;
 import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.TextureRegion;
-import mindustry.graphics.Layer;
+import mindustry.graphics.*;
 import mindustry.type.Liquid;
 import mindustry.ui.Cicon;
 import mindustry.world.Tile;
@@ -49,7 +49,7 @@ public class Pump extends LiquidBlock{
         Draw.rect(name, tile.drawx(), tile.drawy());
 
         Draw.color(tile.entity.liquids.current().color);
-        Draw.alpha(tile.entity.liquids.total() / liquidCapacity);
+        Draw.alpha(Transparency.convertTransparency(tile.entity.liquids.total() / liquidCapacity));
         Draw.rect(liquidRegion, tile.drawx(), tile.drawy());
         Draw.color();
     }

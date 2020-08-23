@@ -11,7 +11,7 @@ import mindustry.content.Liquids;
 import mindustry.entities.Effects;
 import mindustry.entities.Effects.Effect;
 import mindustry.entities.type.TileEntity;
-import mindustry.graphics.Pal;
+import mindustry.graphics.*;
 import mindustry.type.Liquid;
 import mindustry.ui.Bar;
 import mindustry.world.Tile;
@@ -76,9 +76,10 @@ public class SolidPump extends Pump{
 
         Draw.rect(region, tile.drawx(), tile.drawy());
         Draw.color(tile.entity.liquids.current().color);
-        Draw.alpha(tile.entity.liquids.total() / liquidCapacity);
+        Draw.alpha(Transparency.convertTransparency(tile.entity.liquids.total() / liquidCapacity));
         Draw.rect(liquidRegion, tile.drawx(), tile.drawy());
         Draw.color();
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(name + "-rotator", tile.drawx(), tile.drawy(), entity.pumpTime * rotateSpeed);
         Draw.rect(name + "-top", tile.drawx(), tile.drawy());
     }

@@ -3,6 +3,7 @@ package mindustry.world.blocks;
 import arc.Core;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.TextureRegion;
+import mindustry.graphics.*;
 import mindustry.world.Block;
 import mindustry.world.Tile;
 import mindustry.world.meta.BlockGroup;
@@ -40,15 +41,17 @@ public class LiquidBlock extends Block{
 
         int rotation = rotate ? tile.rotation() * 90 : 0;
 
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(bottomRegion, tile.drawx(), tile.drawy(), rotation);
 
         if(mod.total() > 0.001f){
             Draw.color(mod.current().color);
-            Draw.alpha(mod.total() / liquidCapacity);
+            Draw.alpha(Transparency.convertTransparency(mod.total() / liquidCapacity));
             Draw.rect(liquidRegion, tile.drawx(), tile.drawy(), rotation);
             Draw.color();
         }
 
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(topRegion, tile.drawx(), tile.drawy(), rotation);
     }
 }

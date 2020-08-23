@@ -167,7 +167,7 @@ public class NuclearReactor extends PowerGenerator{
         Fill.rect(tile.drawx(), tile.drawy(), size * tilesize, size * tilesize);
 
         Draw.color(entity.liquids.current().color);
-        Draw.alpha(entity.liquids.currentAmount() / liquidCapacity);
+        Draw.alpha(Transparency.convertTransparency(entity.liquids.currentAmount() / liquidCapacity));
         Draw.rect(topRegion, tile.drawx(), tile.drawy());
 
         if(entity.heat > flashThreshold){

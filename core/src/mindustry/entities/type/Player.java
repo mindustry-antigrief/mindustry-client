@@ -105,6 +105,8 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             clearBuilding();
             buildTarget = null;
             setMineTile(null);
+            followingWaypoints = false;
+            notDone.clear();
         }
 
         @Override
@@ -143,14 +145,17 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             if(target == null){
                 return;
             }
-            if(notDone.size == 0){
-                updateTarget(target.getX(), target.getY());
+            if(notDone.size == 0 && target != getMineTile()){
+                navigateTo(target.getX(), target.getY());
                 setMineTile((Tile)target);
             }
             if(item.amount >= 1){
                 if(core.tile.block().acceptStack(item.item, item.amount, core.tile, Player.this) > 0){
                     Call.transferInventory(Player.this, core.tile);
                 }
+            }
+            if(healthf() < 0.5f){
+                setState(heal);
             }
         }
 

@@ -10,9 +10,12 @@ import arc.util.*;
 import mindustry.content.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
+import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
+
+import static mindustry.Vars.xray;
 
 public class Conduit extends LiquidBlock implements Autotiler{
     public final int timerFlow = timers++;
@@ -94,13 +97,15 @@ public class Conduit extends LiquidBlock implements Autotiler{
         int rotation = tile.rotation() * 90;
 
         Draw.colorl(0.34f);
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(botRegions[entity.blendbits], tile.drawx(), tile.drawy(), rotation);
 
         Draw.color(tile.entity.liquids.current().color);
-        Draw.alpha(entity.smoothLiquid);
+        Draw.alpha(Transparency.convertTransparency(entity.smoothLiquid));
         Draw.rect(botRegions[entity.blendbits], tile.drawx(), tile.drawy(), rotation);
         Draw.color();
 
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(topRegions[entity.blendbits], tile.drawx(), tile.drawy(), rotation);
     }
 

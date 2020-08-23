@@ -6,6 +6,7 @@ import arc.assets.*;
 import arc.files.*;
 import arc.graphics.*;
 import arc.input.*;
+import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.ui.layout.*;
@@ -233,6 +234,7 @@ public class Vars implements Loadable{
     public static long lastAutoresponseSent = 0;
     public static long lastCommandSent = 0;
     public static int defaultTilePos = 0;
+    public static boolean xray = false;
 
     @Override
     public void loadAsync(){

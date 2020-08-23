@@ -9,6 +9,7 @@ import mindustry.content.*;
 import mindustry.entities.Effects;
 import mindustry.entities.effect.*;
 import mindustry.entities.type.*;
+import mindustry.entities.type.base.*;
 import mindustry.gen.Call;
 import mindustry.graphics.*;
 import mindustry.type.Item;
@@ -106,7 +107,9 @@ public interface MinerTrait extends Entity{
         float ey = tile.worldy() + Mathf.sin(Time.time() + 48, swingScl + 2f, swingMag);
 
         Draw.color(Color.lightGray, Color.white, 1f - flashScl + Mathf.absin(Time.time(), 0.5f, flashScl));
-
+        if(unit instanceof MinerDrone){
+            Draw.alpha(0.05f);
+        }
         Drawf.laser(Core.atlas.find("minelaser"), Core.atlas.find("minelaser-end"), px, py, ex, ey, 0.75f);
 
         if(unit instanceof Player && ((Player)unit).isLocal){

@@ -6,6 +6,7 @@ import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
+import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;

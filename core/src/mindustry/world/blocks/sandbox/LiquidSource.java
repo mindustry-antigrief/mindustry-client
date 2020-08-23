@@ -7,6 +7,7 @@ import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
+import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
@@ -68,6 +69,7 @@ public class LiquidSource extends Block{
 
         if(entity.source != null){
             Draw.color(entity.source.color);
+            Draw.alpha(Transparency.convertTransparency(1f));
             Draw.rect("center", tile.worldx(), tile.worldy());
             Draw.color();
         }

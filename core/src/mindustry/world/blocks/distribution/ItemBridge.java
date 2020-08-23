@@ -226,6 +226,9 @@ public class ItemBridge extends Block{
 
         float opacity = Core.settings.getInt("bridgeopacity") / 100f;
         if(Mathf.zero(opacity)) return;
+        if(xray){
+            Draw.alpha(0.1f);
+        }
 
         int i = tile.absoluteRelativeTo(other.x, other.y);
 

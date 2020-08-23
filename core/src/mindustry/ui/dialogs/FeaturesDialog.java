@@ -69,7 +69,8 @@ public class FeaturesDialog extends FloatingDialog{
         label(t, "CTRL + SHIFT + CLICK on tile - Set as default for transfer creation", color1);
         label(t, "!go command - input coordinates or player name", color2);
         label(t, "!here command - posts your coordinates in chat", color1);
-        
+        label(t, "G - toggle X-ray mode", color2);
+
         cont.add(new ScrollPane(t)).growX();
 
         addCloseButton();

@@ -103,14 +103,15 @@ public class ImpactReactor extends PowerGenerator{
             float r = size * tilesize - 3f + Mathf.absin(Time.time(), 2f + i * 1f, 5f - i * 0.5f);
 
             Draw.color(plasma1, plasma2, (float)i / plasmas);
-            Draw.alpha((0.3f + Mathf.absin(Time.time(), 2f + i * 2f, 0.3f + i * 0.05f)) * entity.warmup);
             Draw.blend(Blending.additive);
+            Draw.alpha(Transparency.convertTransparency((0.3f + Mathf.absin(Time.time(), 2f + i * 2f, 0.3f + i * 0.05f)) * entity.warmup));
             Draw.rect(reg(plasmaRegions[i]), tile.drawx(), tile.drawy(), r, r, Time.time() * (12 + i * 6f) * entity.warmup);
             Draw.blend();
         }
 
         Draw.color();
 
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(region, tile.drawx(), tile.drawy());
 
         Draw.color();

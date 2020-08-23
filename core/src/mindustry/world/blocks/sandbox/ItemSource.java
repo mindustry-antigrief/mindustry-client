@@ -6,6 +6,7 @@ import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
+import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
@@ -64,6 +65,7 @@ public class ItemSource extends Block{
         if(entity.outputItem == null) return;
 
         Draw.color(entity.outputItem.color);
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect("center", tile.worldx(), tile.worldy());
         Draw.color();
     }

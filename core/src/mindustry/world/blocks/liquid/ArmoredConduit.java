@@ -3,6 +3,7 @@ package mindustry.world.blocks.liquid;
 import arc.Core;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.TextureRegion;
+import mindustry.graphics.*;
 import mindustry.type.Liquid;
 import mindustry.world.Block;
 import mindustry.world.Edges;
@@ -29,7 +30,7 @@ public class ArmoredConduit extends Conduit{
         // draw the cap when a conduit would normally leak
         Tile next = tile.front();
         if(next != null && next.getTeam() == tile.getTeam() && next.block().hasLiquids) return;
-
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(capRegion, tile.drawx(), tile.drawy(), tile.rotation() * 90);
     }
 

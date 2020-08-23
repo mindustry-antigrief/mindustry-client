@@ -252,7 +252,9 @@ public class Renderer implements ApplicationListener{
 
         blocks.processBlocks();
 
-        blocks.drawShadows();
+        if(!xray){
+            blocks.drawShadows();
+        }
         Draw.color();
 
         blocks.floor.beginDraw();

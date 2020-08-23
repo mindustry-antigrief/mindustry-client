@@ -7,6 +7,7 @@ import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
+import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
@@ -73,6 +74,7 @@ public class Sorter extends Block{
         if(entity.sortItem == null) return;
 
         Draw.color(entity.sortItem.color);
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect("center", tile.worldx(), tile.worldy());
         Draw.color();
     }

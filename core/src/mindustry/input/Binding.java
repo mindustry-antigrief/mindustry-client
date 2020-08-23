@@ -56,6 +56,7 @@ public enum Binding implements KeyBind{
     console(KeyCode.F8),
     zoom_in(KeyCode.SHIFT_RIGHT),
     zoom_out(KeyCode.CONTROL_RIGHT),
+    xray_toggle(KeyCode.G),
     ;
 
     private final KeybindValue defaultValue;

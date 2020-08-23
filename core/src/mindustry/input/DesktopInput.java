@@ -442,10 +442,14 @@ public class DesktopInput extends InputHandler{
                 cameraPositionOverride.y -= speed;
             }
             if(Core.input.keyDown(Binding.zoom_in)){
-                renderer.scaleCamera(1f);
+                renderer.scaleCamera(0.5f);
             }
             if(Core.input.keyDown(Binding.zoom_out)){
-                renderer.scaleCamera(-1f);
+                renderer.scaleCamera(-0.5f);
+            }
+            if(input.keyTap(Binding.xray_toggle)){
+                xray = !xray;
+//                renderer.blocks.refreshShadows();
             }
         }
 

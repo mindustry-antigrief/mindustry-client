@@ -2,12 +2,14 @@ package mindustry.world.blocks.defense.turrets;
 
 import arc.*;
 import arc.graphics.g2d.*;
+import arc.math.*;
 import arc.struct.*;
 import mindustry.entities.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.*;
 import mindustry.entities.type.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.consumers.*;
@@ -39,7 +41,7 @@ public class LiquidTurret extends Turret{
 
         if(Core.atlas.isFound(reg(liquidRegion))){
             Draw.color(entity.liquids.current().color);
-            Draw.alpha(entity.liquids.total() / liquidCapacity);
+            Draw.alpha(Transparency.convertTransparency(entity.liquids.total() / liquidCapacity));
             Draw.rect(reg(liquidRegion), tile.drawx() + tr2.x, tile.drawy() + tr2.y, entity.rotation - 90);
             Draw.color();
         }

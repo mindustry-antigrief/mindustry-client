@@ -22,6 +22,7 @@ public class BlockRenderer implements Disposable{
     private final static int initialRequests = 32 * 32;
     private final static int expandr = 9;
     private final static Color shadowColor = new Color(0, 0, 0, 0.71f);
+    private final static Color shadowColorTransparent = new Color(0, 0, 0, 0.1f);
 
     public final FloorRenderer floor = new FloorRenderer();
 
@@ -33,7 +34,7 @@ public class BlockRenderer implements Disposable{
     private FrameBuffer shadows = new FrameBuffer(2, 2);
     private FrameBuffer fog = new FrameBuffer(2, 2);
     private Array<Tile> outArray = new Array<>();
-    private Array<Tile> shadowEvents = new Array<>();
+    public Array<Tile> shadowEvents = new Array<>();
 
     public BlockRenderer(){
 
@@ -44,7 +45,6 @@ public class BlockRenderer implements Disposable{
         Events.on(WorldLoadEvent.class, event -> {
             shadowEvents.clear();
             lastCamY = lastCamX = -99; //invalidate camera position so blocks get updated
-//            shadows.getTexture().
             shadows.getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
             shadows.resize(world.width(), world.height());
             shadows.begin();
@@ -107,6 +107,31 @@ public class BlockRenderer implements Disposable{
             }
         });
     }
+//
+//    public void refreshShadows(){
+//        shadowEvents.clear();
+//        lastCamY = lastCamX = -99; //invalidate camera position so blocks get updated
+//        shadows.getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+//        shadows.resize(world.width(), world.height());
+//        shadows.begin();
+//        Core.graphics.clear(Color.white);
+//        Draw.proj().setOrtho(0, 0, shadows.getWidth(), shadows.getHeight());
+//
+//        Draw.color(xray? shadowColorTransparent : shadowColor);
+//
+//        for(int x = 0; x < world.width(); x++){
+//            for(int y = 0; y < world.height(); y++){
+//                Tile tile = world.rawTile(x, y);
+//                if(tile.block().hasShadow){
+//                    Fill.rect(tile.x + 0.5f, tile.y + 0.5f, 1, 1);
+//                }
+//            }
+//        }
+//
+//        Draw.flush();
+//        Draw.color();
+//        shadows.end();
+//    }
 
     public void drawFog(){
         float ww = world.width() * tilesize, wh = world.height() * tilesize;
@@ -270,19 +295,24 @@ public class BlockRenderer implements Disposable{
             Block block = request.tile.block();
 
             if(request.layer == Layer.block){
+                Draw.alpha(Transparency.convertTransparency(1f));
                 block.draw(request.tile);
                 if(request.tile.entity != null && request.tile.entity.damaged()){
+                    Draw.alpha(Transparency.convertTransparency(1f));
                     block.drawCracks(request.tile);
                 }
                 if(block.synthetic() && request.tile.getTeam() != player.getTeam()){
+                    Draw.alpha(Transparency.convertTransparency(1f));
                     block.drawTeam(request.tile);
                 }
 
             }else if(request.layer == Layer.lights){
                 block.drawLight(request.tile);
             }else if(request.layer == block.layer){
+                Draw.alpha(Transparency.convertTransparency(1f));
                 block.drawLayer(request.tile);
             }else if(request.layer == block.layer2){
+                Draw.alpha(Transparency.convertTransparency(1f));
                 block.drawLayer2(request.tile);
             }
         }

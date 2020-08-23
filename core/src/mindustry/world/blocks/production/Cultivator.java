@@ -14,6 +14,8 @@ import mindustry.world.meta.*;
 
 import java.io.*;
 
+import static mindustry.Vars.xray;
+
 public class Cultivator extends GenericCrafter{
     public Color plantColor = Color.valueOf("5541b1");
     public Color plantColorLight = Color.valueOf("7457ce");
@@ -75,10 +77,10 @@ public class Cultivator extends GenericCrafter{
         Draw.rect(region, tile.drawx(), tile.drawy());
 
         Draw.color(plantColor);
-        Draw.alpha(entity.warmup);
+        Draw.alpha(Transparency.convertTransparency(entity.warmup));
         Draw.rect(middleRegion, tile.drawx(), tile.drawy());
 
-        Draw.color(bottomColor, plantColorLight, entity.warmup);
+        Draw.color(bottomColor, plantColorLight, Transparency.convertTransparency(entity.warmup));
 
         random.setSeed(tile.pos());
         for(int i = 0; i < 12; i++){
@@ -93,6 +95,7 @@ public class Cultivator extends GenericCrafter{
         }
 
         Draw.color();
+        Draw.alpha(Transparency.convertTransparency(1f));
         Draw.rect(topRegion, tile.drawx(), tile.drawy());
     }
 

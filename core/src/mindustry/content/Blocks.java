@@ -518,7 +518,7 @@ public class Blocks implements ContentList{
 
                 GenericCrafterEntity entity = tile.ent();
 
-                Draw.alpha(Mathf.absin(entity.totalProgress, 3f, 0.9f) * entity.warmup);
+                Draw.alpha(Transparency.convertTransparency(Mathf.absin(entity.totalProgress, 3f, 0.9f) * entity.warmup));
                 Draw.rect(reg(topRegion), tile.drawx(), tile.drawy());
                 Draw.reset();
             };
@@ -542,12 +542,12 @@ public class Blocks implements ContentList{
 
             drawer = tile -> {
                 GenericCrafterEntity entity = tile.ent();
-
+                Draw.alpha(Transparency.convertTransparency(1f));
                 Draw.rect(reg(bottomRegion), tile.drawx(), tile.drawy());
                 Draw.rect(reg(weaveRegion), tile.drawx(), tile.drawy(), entity.totalProgress);
 
                 Draw.color(Pal.accent);
-                Draw.alpha(entity.warmup);
+                Draw.alpha(Transparency.convertTransparency(entity.warmup));
 
                 Lines.lineAngleCenter(
                 tile.drawx() + Mathf.sin(entity.totalProgress, 6f, Vars.tilesize / 3f * size),
@@ -556,7 +556,7 @@ public class Blocks implements ContentList{
                 size * Vars.tilesize / 2f);
 
                 Draw.reset();
-
+                Draw.alpha(Transparency.convertTransparency(1f));
                 Draw.rect(region, tile.drawx(), tile.drawy());
             };
         }};
@@ -602,11 +602,12 @@ public class Blocks implements ContentList{
 
                 if(mod.total() > 0.001f){
                     Draw.color(outputLiquid.liquid.color);
-                    Draw.alpha(mod.get(outputLiquid.liquid) / liquidCapacity);
+                    Draw.alpha(Transparency.convertTransparency(mod.get(outputLiquid.liquid) / liquidCapacity));
                     Draw.rect(reg(liquidRegion), tile.drawx(), tile.drawy(), rotation);
                     Draw.color();
                 }
 
+                Draw.alpha(Transparency.convertTransparency(1f));
                 Draw.rect(reg(topRegion), tile.drawx(), tile.drawy(), rotation);
             };
         }};
@@ -691,8 +692,10 @@ public class Blocks implements ContentList{
                 Draw.rect(region, tile.drawx(), tile.drawy());
                 Draw.rect(reg(frameRegions[(int)Mathf.absin(entity.totalProgress, 5f, 2.999f)]), tile.drawx(), tile.drawy());
                 Draw.color(Color.clear, tile.entity.liquids.current().color, tile.entity.liquids.total() / liquidCapacity);
+                Draw.alpha(Transparency.convertTransparency(1f));
                 Draw.rect(reg(liquidRegion), tile.drawx(), tile.drawy());
                 Draw.color();
+                Draw.alpha(Transparency.convertTransparency(1f));
                 Draw.rect(reg(topRegion), tile.drawx(), tile.drawy());
             };
         }};

@@ -1,6 +1,7 @@
 package mindustry.world.blocks;
 
 import arc.*;
+import arc.graphics.*;
 import arc.input.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
@@ -201,6 +202,8 @@ public class BuildBlock extends Block{
         if(entity.previous == null || entity.cblock == null) return;
 
         if(Core.atlas.isFound(entity.previous.icon(Cicon.full))){
+            Draw.color();
+            Draw.alpha(Transparency.convertTransparency(1f));
             Draw.rect(entity.previous.icon(Cicon.full), tile.drawx(), tile.drawy(), entity.previous.rotate ? tile.rotation() * 90 : 0);
         }
     }
@@ -238,7 +241,7 @@ public class BuildBlock extends Block{
 
         BuildEntity entity = tile.ent();
 
-        Shaders.blockbuild.color = Pal.accent;
+        Shaders.blockbuild.color = new Color(Pal.accent.r, Pal.accent.g, Pal.accent.b, Transparency.convertTransparency(1f));
 
         Block target = entity.cblock == null ? entity.previous : entity.cblock;
 
@@ -247,7 +250,7 @@ public class BuildBlock extends Block{
         for(TextureRegion region : target.getGeneratedIcons()){
             Shaders.blockbuild.region = region;
             Shaders.blockbuild.progress = entity.progress;
-
+            Draw.alpha(Transparency.convertTransparency(1f));
             Draw.rect(region, tile.drawx(), tile.drawy(), target.rotate ? tile.rotation() * 90 : 0);
             Draw.flush();
         }
