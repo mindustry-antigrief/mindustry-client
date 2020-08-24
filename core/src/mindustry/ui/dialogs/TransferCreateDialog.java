@@ -147,10 +147,12 @@ public class TransferCreateDialog extends FloatingDialog{
         AtomicReference<Item> selected = new AtomicReference<>();
         selected.set(null);
         ItemSelection.buildTable(table, Vars.content.items(), selected::get, selected::set);
+        CheckBox checkbox = new CheckBox("Any item");
+        table.add(checkbox);
         cont.add(table.center());
         buttons.addImageButton(Icon.ok, () -> {
             if(start != null && end != null && selected.get() != null){
-                Vars.ui.transfer.transferRequests.add(new TransferItem(start, end, selected.get()));
+                Vars.ui.transfer.transferRequests.add(new TransferItem(start, end, selected.get(), checkbox.isChecked()));
                 hide();
             }
         });

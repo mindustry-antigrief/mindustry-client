@@ -62,7 +62,7 @@ public class TransferEndpoint{
         }
     }
 
-    public void transferToPlayer(Item item){
+    public void transferToPlayer(Item item, boolean anyItem){
         Item playerItem = Vars.player.item().item;
         boolean canPickUpItem = Vars.player.item().amount == 0 || item == playerItem && Vars.player.item().amount < Vars.player.getItemCapacity();
         switch(type){
@@ -72,6 +72,9 @@ public class TransferEndpoint{
             case "tile":
                 Tile tile = Vars.world.tile(x, y);
                 if(tile != null && tile.block() != null && tile.entity.items.get(item) > 0 && canPickUpItem){
+                    if(anyItem){
+                        item = tile.entity.items.first();
+                    }
                     Call.requestItem(Vars.player, tile, item, 1);
                 }
                 return;
@@ -80,6 +83,9 @@ public class TransferEndpoint{
                 blockPositions.shuffle();
                 for(int pos : blockPositions){
                     Tile tile2 = Vars.world.tile(pos);
+                    if(anyItem){
+                        item = tile2.entity.items.first();
+                    }
                     if(tile2 != null && tile2.block() != null && tile2.entity.items.get(item) > 0 && canPickUpItem){
                         Call.requestItem(Vars.player, tile2, item, 1);
                     }
@@ -89,6 +95,9 @@ public class TransferEndpoint{
             case "core":
                 if(canPickUpItem){
                     Tile tile3 = Vars.player.getClosestCore().tile;
+                    if(anyItem){
+                        item = tile3.entity.items.first();
+                    }
                     Call.requestItem(Vars.player, tile3, item, 1);
                 }
         }

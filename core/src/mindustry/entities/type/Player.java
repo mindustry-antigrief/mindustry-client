@@ -833,15 +833,15 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
 
     @Override
     public void updateMechanics(){
-        for(BuildRequest req : buildQueue()){
-            if(undid_hashes.contains(req.hashCode())){
-                continue;
-            }
-            InteractionLogItem item = new InteractionLogItem(req);
-//            if(!log.contains(item)){
-//                log.add(item);
+//        for(BuildRequest req : buildQueue()){
+//            if(undid_hashes.contains(req.hashCode())){
+//                continue;
 //            }
-        }
+//            InteractionLogItem item = new InteractionLogItem(req);
+////            if(!log.contains(item)){
+////                log.add(item);
+////            }
+//        }
         if(isBuilding){
             updateBuilding();
         }

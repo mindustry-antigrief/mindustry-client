@@ -11,11 +11,13 @@ public class TransferItem{
     public TransferEndpoint start;
     public TransferEndpoint end;
     public boolean paused = false;
+    public boolean anyItem;
 
-    public TransferItem(TransferEndpoint startPoint, TransferEndpoint endpoint, Item item){
+    public TransferItem(TransferEndpoint startPoint, TransferEndpoint endpoint, Item item, boolean anyItem){
         start = startPoint;
         end = endpoint;
         this.item = item;
+        this.anyItem = anyItem;
     }
 
     public void run(){
@@ -23,7 +25,7 @@ public class TransferItem{
             return;
         }
         try{
-            start.transferToPlayer(item);
+            start.transferToPlayer(item, anyItem);
             end.transferFromPlayer(item);
             start.transferFromPlayer(item);
         }catch(NullPointerException ignored){} //SHH EVERYTHING'S FINE

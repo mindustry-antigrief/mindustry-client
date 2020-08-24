@@ -172,7 +172,7 @@ public class PlayerListFragment extends Fragment{
             button.add(button2);
 
             button2 = new ImageButton(Icon.undo, Styles.clearPartiali);
-            button2.clicked(() -> ui.showTextInput("Undo", "Number of actions to undo", 3, "5", true, str ->
+            button2.clicked(() -> ui.showTextInput("Undo", "Number of actions to undo", 4, "5", true, str ->
                 {
                     try{
                         int num = Integer.parseInt(str);
@@ -193,7 +193,7 @@ public class PlayerListFragment extends Fragment{
 //                                break;
 //                            }
 //                        }
-                    }catch(NumberFormatException ignored){ }
+                    }catch(NumberFormatException ignored){}
                 }));
             TextTooltip.addTooltip(button2, "Undo player's actions");
             button.add(button2);

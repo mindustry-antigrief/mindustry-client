@@ -170,7 +170,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if(tile.numConnectionsRemoved != null && Time.millis() - tile.timeConnectionsRemoved < 1000){
                 powerNodeText = String.format(", splitting the power grid (%d tiles affected)", tile.numConnectionsRemoved);
                 if(Core.settings.getBool("powersplitnotifications")){
-                    ui.chatfrag.addMessage(String.format("%s [lightgray]split power (%d tiles affected)", player.name, tile.numConnectionsRemoved), "client");
+                    ui.chatfrag.addMessage(String.format("%s [lightgray]split power by configuring at %d, %d (%d tiles affected)", player.name, tile.x, tile.y, tile.numConnectionsRemoved), "client");
                 }
             }
             tile.log.add(new TileLogItem(TileLogType.Configured, player.name, String.format("%s at %d, %d", tile.block().name, tile.x, tile.y) + powerNodeText));
