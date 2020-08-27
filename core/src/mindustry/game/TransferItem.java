@@ -27,7 +27,9 @@ public class TransferItem{
         try{
             start.transferToPlayer(item, anyItem);
             end.transferFromPlayer(item);
-            start.transferFromPlayer(item);
+            if(!end.type.equals("player")){
+                start.transferFromPlayer(item);
+            }
         }catch(NullPointerException ignored){} //SHH EVERYTHING'S FINE
     }
 

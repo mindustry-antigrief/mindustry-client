@@ -14,7 +14,7 @@ import mindustry.world.blocks.*;
 public class TransferEndpoint{
     //Possible values: "player" "tile" "block_type" "core"
     // What?  I'm too lazy to make an enum class okay?
-    private String type = "";
+    public String type = "";
 
     // if type == "player" then this is not null
     private Player player = null;

@@ -188,18 +188,19 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             }
 //            System.out.println(world.tile(buildTarget));
 //            System.out.println("A");
-            if((buildTarget == null || !(world.tile(buildTarget).block() instanceof BuildBlock) || new Rand().chance(1 / 20f)) && new Rand().chance(0.5)){
-                updateBuildTarget();
-            }else{
-                if(buildTarget != null){
-                    int x = Pos.x(buildTarget);
-                    int y = Pos.y(buildTarget);
-                    if(Mathf.dst(x * 8, y * 8, player.x, player.y) > placeDistance * 0.8){
-                        if(!followingWaypoints){
-                            player.navigateTo(x * 8, y * 8);
-                        }
-                    }else{
-                        BuildEntity buildTargetEntity = world.tile(buildTarget).entity instanceof BuildEntity ? world.tile(buildTarget).ent() : null;
+            try{
+                if((buildTarget == null || !(world.tile(buildTarget).block() instanceof BuildBlock) || new Rand().chance(1 / 20f)) && new Rand().chance(0.5)){
+                    updateBuildTarget();
+                }else{
+                    if(buildTarget != null){
+                        int x = Pos.x(buildTarget);
+                        int y = Pos.y(buildTarget);
+                        if(Mathf.dst(x * 8, y * 8, player.x, player.y) > placeDistance * 0.8){
+                            if(!followingWaypoints){
+                                player.navigateTo(x * 8, y * 8);
+                            }
+                        }else{
+                            BuildEntity buildTargetEntity = world.tile(buildTarget).entity instanceof BuildEntity ? world.tile(buildTarget).ent() : null;
 //                        if(player.buildQueue().isEmpty()){
                             if(buildTargetEntity != null){
 //                                building = new BuildRequest(
@@ -225,9 +226,10 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
 //                        }//else if(!player.isBuilding){
 //                            player.buildQueue().clear();
 //                        }
+                        }
                     }
                 }
-            }
+            }catch(NullPointerException ignored){} // I don't care anymore
         }
     },
     heal = new UnitState(){
