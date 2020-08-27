@@ -67,9 +67,11 @@ public class FeaturesDialog extends FloatingDialog{
         label(t, "SHIFT + CLICK/RIGHTCLICK - Prioritize building/breaking specified block", color1);
         label(t, "CTRL + CLICK - Block history (records places, breaks and configures)", color2);
         label(t, "CTRL + SHIFT + CLICK on tile - Set as default for transfer creation", color1);
-        label(t, "!go command - input coordinates or player name", color2);
-        label(t, "!here command - posts your coordinates in chat", color1);
+        label(t, "/go command - input coordinates or player name", color2);
+        label(t, "/here command - posts your coordinates in chat", color1);
         label(t, "G - toggle X-ray mode", color2);
+
+        label(t, "Discord: discord.gg/yp9ZW7j", titleColor);
 
         cont.add(new ScrollPane(t)).growX();
 
