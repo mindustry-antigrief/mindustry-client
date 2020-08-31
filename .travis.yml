@@ -14,7 +14,5 @@ deploy:
     secure: l6WRJ0g9RhaRaeHu6FKnRyptz518wEDlyUbbULm41pL754ya63daK2H8EytXFRaliCtXRYh7qarCOxCnjw7WTZGFnv+N1rRef2MXchk8hSihQsF1LYk4ZHSlVmPfsWXzq5UGG8fKMtTGm+q0JUHzh3NHlyuCc7nouaazg2xj4mcyN0DtvHLRjkqP+5SoPXAS0RETl7Fm6HlBd8TbklPFXare3AGbYl+4OYh0RRNgR525jCpGEXq0T2gfv2ClLjOqjIlQy0+l3tfbywL4tkME0ITszguWqBqg9ENljFqOKSLMjVxCDEDluCJm4+ZYKBLN+6xsjreKFJhLVLUrvYiM+vStKfzV2v8qF4zC9igNI1WKf/bFGPoXbsER1a0J8EofSI9UrE0G8C8ZiWdHvEoIszGUgnqEHbHesb4lEyA0wy4ZWWiCAQXwfFDJY1MPdRTkehcuW0FJd+41HNSQXwPoPZPFH7VBhgRHhAwR/A3uAt0wNGEH6xZXZHan4CUAOc7HK3SCmTJmEZYb0ZGmwzOVU2t7cenYEPRk0+8WOz079pT4p/zZLDfgbpDsb/txlslQjU5IpXoyacK1TQCFDlWvqIOrjxYY9YaC8MymJZiIc95TobKlqta4qUKAr8DfxE1icWNwsNM0HsDw73tNQf/d0YJcxZrqrxASa4kRLRvHG9s=
   file: "desktop/build/libs/Mindustry.jar"
   skip_cleanup: true
-  branches:
-    only:
-      custom_client
-      dev
+  on:
+    branch: custom_client
