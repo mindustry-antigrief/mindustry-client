@@ -6,13 +6,14 @@ dist: trusty
 jdk: openjdk8
 
 script:
-  - ./gradlew desktop:dist
+- "./gradlew desktop:dist"
 
 deploy:
   provider: releases
   api_key:
-    secure: a5hVj3oMmVaEMJ/5lxrAMFDNuzc4kVANBcsutDuh12Irh7MiVkX/8mgKiGn5BrOCoZa4l3OqLOplRj88/kS6XBLIDnS3ou9gpQcnDRWz/qlyWfs/7Dli5dRkExfAs3SbXyuSK7RNpBtFon+ohF8pQSpFwDF4Q52MCiVHC9NKmH9sv2Cki6zo+V5Bwqu11TM6C6W3clbDvSiDpVd2A2zsPJnT5K0xlHRJ60U+Jz8LECN1JiVfDYPLV7ItDrvacuhsnFyeUb+ocNLlBitlbB0iWUxCzUkD+CQUYuUiYzQy1JyLIdovxkEumtxide6k4pjWnoVjafjFWz03yMSZAfc9+2UgEAOZ0K5m41g4bnDMcITAfyLN7l1ta2c3RkycKPko5sbPJZa5ehKPftYgZbNT/t/ltnRtqzFdLDzJJbfLGowGgKm3C3IetCX4oidEG2Z1KujfUxBFbpP7wkw7DOIzpix+LlfcueX5l/KViBQpj+bXfiXreu95T0tksEZWG7VpQnNx1ZXfz9X/9/koyEuDbovktaJSvtn0RU3iG0XE43cAMvYXPaUW1ACK+MbZFBvP8Cm0hs2FYEf/BV0sC8nmg8fbhS2hBRKulgBrutQhRpxlj82p9yBWcImMVUSV0jxGBkpbM82lN3ICw8pEdqK7SxCX51oaD77v4jPeQ/youy8=
-  file: "desktop/build/libs/Mindustry.jar"
-  skip_cleanup: true
+    secure: N31NVs7LyygEtTWXfe0/opjzzQJ2AuQzNlE7MccNwgwpPT0d4orowwVEhif+BRvvL9+NEOk18ZMMiZf2ueWXR8PKySIyZBMUqwXstNEiYyIktjLIO5xKwDiqWKwFEhz6o+jh7pIGeosJzcIhpUPYkj90bMcHEy31WjWqp+vb43S+66xIWovI3oOQPWUKeoYyd/59Dd1GUtV8XUfWTRU8MeaUalvZxi4OW+mgjAKp7U+6ILkxPDK0FHFeQKEW70gowj4xVOMGHzNvCOz2V3j2pc/2ZcheqOuUSo2ILNyY6jC2Kkv8WuFraMWt+CCtX8UD/VloAMt33aCcekZQ+yd1Pl4U2fyOCcFiJ1TiVP4zToBAZFX0AJ/gE0nvsZWeVAOwk7PrGklXhcJEIRJY4iCMcSnju1Q2tz0aBGKK97mJZi02PC021aUXbAgqDxfew0OfHLrnCPy8Q5bR+vn64fvXMGRuB8WtlpMiJvzEXncVg37yJdkQlO5ht0dw9iPe00qSQZJHdfPW6kyLxT/+Z1TCG0xiHPufGooY0wrP+VdIwslaQS4INd728viuQU8oV/RJPDfgEMvVrz7XZLTTZMwYelGWGts8ld+Qgm+dmN7nrv+QBHzFmlc3PUCyEG3S+PEMdpYRGWWXETpAG/bb5YD+1XzBonCYGDHad5JNLOPoR6k=
+  file: desktop/build/libs/Mindustry.jar
   on:
+    repo: blahblahbloopster/mindustry-client
     branch: custom_client
+  skip_cleanup: 'true'
