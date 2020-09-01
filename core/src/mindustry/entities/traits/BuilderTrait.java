@@ -228,14 +228,10 @@ public interface BuilderTrait extends Entity, TeamTrait{
         if(tile != null && tile.entity instanceof BuildEntity){
             place.progress = tile.<BuildEntity>ent().progress;
         }
-        if(place.priority){
-            buildQueue().addFirst(place);
+        if(tail){
+            buildQueue().addLast(place);
         }else{
-            if(tail){
-                buildQueue().addLast(place);
-            }else{
-                buildQueue().addFirst(place);
-            }
+            buildQueue().addFirst(place);
         }
     }
 
@@ -317,9 +313,6 @@ public interface BuilderTrait extends Entity, TeamTrait{
         /** Visual scale. Used only for rendering.*/
         public float animScale = 0f;
 
-        /** Whether this request should take priority over other requests.*/
-        public boolean priority = false;
-
         /** This creates a build request. */
         public BuildRequest(int x, int y, int rotation, Block block){
             this.x = x;
@@ -327,15 +320,6 @@ public interface BuilderTrait extends Entity, TeamTrait{
             this.rotation = rotation;
             this.block = block;
             this.breaking = false;
-        }
-
-        public BuildRequest(int x, int y, int rotation, Block block, boolean priority){
-            this.x = x;
-            this.y = y;
-            this.rotation = rotation;
-            this.block = block;
-            this.breaking = false;
-            this.priority = priority;
         }
 
         /** This creates a remove request. */
@@ -365,7 +349,6 @@ public interface BuilderTrait extends Entity, TeamTrait{
             copy.progress = progress;
             copy.initialized = initialized;
             copy.animScale = animScale;
-            copy.priority = priority;
             return copy;
         }
 

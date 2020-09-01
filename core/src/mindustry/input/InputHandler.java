@@ -550,7 +550,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 if(copy.hasConfig && copy.block.posConfig){
                     copy.config = Pos.get(Pos.x(copy.config) + copy.x - copy.originalX, Pos.y(copy.config) + copy.y - copy.originalY);
                 }
-                player.addBuildRequest(copy);
+                player.addBuildRequest(copy, !Core.input.shift());
             }
         }
     }
@@ -632,7 +632,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 req = new BuildRequest(l.x, l.y, l.rotation, block);
             }
             req.animScale = 1f;
-            req.priority = Core.input.shift();
             lineRequests.add(req);
         });
 
@@ -887,15 +886,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             player.buildQueue().remove(req);
         }
         BuildRequest req2 = new BuildRequest(x, y, rotation, block);
-        req2.priority = Core.input.shift();
         player.addBuildRequest(req2);
     }
 
     public void breakBlock(int x, int y){
         Tile tile = world.ltile(x, y);
         BuildRequest req = new BuildRequest(tile.x, tile.y);
-        req.priority = Core.input.shift();
-        player.addBuildRequest(req);
+        player.addBuildRequest(req, !Core.input.shift());
     }
 
     public void drawArrow(Block block, int x, int y, int rotation){
