@@ -118,7 +118,7 @@ public class PlacementFragment extends Fragment{
 
         if(ui.chatfrag.shown() || Core.scene.hasKeyboard()) return false;
 
-        if(Core.input.keyDown(Binding.menu)){
+        if(Core.input.keyTap(Binding.menu) && !ui.chatfrag.shown()){
             input.block = null;
         }
 
