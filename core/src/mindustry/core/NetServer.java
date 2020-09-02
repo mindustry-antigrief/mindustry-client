@@ -10,6 +10,7 @@ import arc.util.CommandHandler.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
@@ -24,7 +25,6 @@ import mindustry.net.*;
 import mindustry.net.Administration.*;
 import mindustry.net.Packets.*;
 import mindustry.world.*;
-import mindustry.world.blocks.liquid.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import java.io.*;

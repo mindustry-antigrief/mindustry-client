@@ -1,24 +1,21 @@
 package mindustry.ui.fragments;
 
 import arc.*;
-import arc.func.*;
 import arc.graphics.g2d.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import mindustry.client.ui.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
-import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
-
-import java.util.*;
 
 import static mindustry.Vars.*;
 

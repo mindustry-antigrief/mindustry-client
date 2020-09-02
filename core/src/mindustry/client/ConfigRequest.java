@@ -1,7 +1,5 @@
-package mindustry.game;
+package mindustry.client;
 
-import mindustry.entities.type.*;
-import mindustry.gen.*;
 import mindustry.world.*;
 
 import static mindustry.Vars.*;

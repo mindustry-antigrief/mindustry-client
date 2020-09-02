@@ -1,10 +1,8 @@
-package mindustry.game;
+package mindustry.client;
 
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import mindustry.type.*;
-
-import javax.print.attribute.standard.*;
 
 public class TransferItem{
     public Item item;

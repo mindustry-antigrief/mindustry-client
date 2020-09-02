@@ -1,7 +1,6 @@
 package mindustry.entities.type;
 
 import arc.*;
-import arc.input.*;
 import arc.struct.Queue;
 import mindustry.ai.pathfinding.*;
 import mindustry.annotations.Annotations.*;
@@ -16,6 +15,8 @@ import arc.util.*;
 import arc.util.ArcAnnotate.*;
 import arc.util.pooling.*;
 import mindustry.*;
+import mindustry.client.*;
+import mindustry.client.antigreif.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.ContentType;
@@ -40,7 +41,6 @@ import mindustry.world.blocks.units.*;
 
 import java.io.*;
 import java.time.*;
-import java.util.*;
 
 import static mindustry.Vars.*;
 

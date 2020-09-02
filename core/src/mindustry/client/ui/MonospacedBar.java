@@ -1,4 +1,4 @@
-package mindustry.ui;
+package mindustry.client.ui;
 
 import arc.*;
 import arc.func.*;
@@ -8,6 +8,7 @@ import arc.math.*;
 import arc.scene.style.*;
 import arc.util.pooling.*;
 import mindustry.gen.*;
+import mindustry.ui.*;
 
 public class MonospacedBar extends Bar{
 

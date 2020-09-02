@@ -20,6 +20,8 @@ import arc.scene.ui.Tooltip.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.client.*;
+import mindustry.client.ui.*;
 import mindustry.core.GameState.*;
 import mindustry.editor.*;
 import mindustry.game.EventType.*;

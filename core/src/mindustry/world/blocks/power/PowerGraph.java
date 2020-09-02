@@ -5,7 +5,7 @@ import arc.math.*;
 import arc.struct.*;
 import arc.struct.Queue;
 import arc.util.*;
-import mindustry.game.*;
+import mindustry.client.utils.*;
 import mindustry.world.*;
 import mindustry.world.consumers.*;
 

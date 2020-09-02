@@ -1,4 +1,4 @@
-package mindustry.game;
+package mindustry.client.antigreif;
 
 public class TileLogItem{
     public TileLogType type;

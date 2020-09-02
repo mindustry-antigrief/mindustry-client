@@ -1,12 +1,13 @@
-package mindustry.ui.dialogs;
+package mindustry.client;
 
 import arc.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import mindustry.game.*;
+import mindustry.client.ui.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
+import mindustry.ui.dialogs.*;
 
 public class TransferDialog extends FloatingDialog{
     public Array<TransferItem> transferRequests = new Array<>();

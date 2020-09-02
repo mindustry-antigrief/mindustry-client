@@ -1,8 +1,9 @@
-package mindustry.ui.dialogs;
+package mindustry.client.ui;
 
 import arc.graphics.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
+import mindustry.ui.dialogs.*;
 
 public class FeaturesDialog extends FloatingDialog{
 

@@ -1,4 +1,4 @@
-package mindustry.core;
+package mindustry.client.utils;
 
 // Taken from https://rosettacode.org/wiki/Levenshtein_distance
 
