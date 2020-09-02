@@ -118,59 +118,63 @@ public class PlacementFragment extends Fragment{
 
         if(ui.chatfrag.shown() || Core.scene.hasKeyboard()) return false;
 
-//        for(int i = 0; i < blockSelect.length; i++){
-//            if(Core.input.keyTap(blockSelect[i])){
-//                if(i > 9) { //select block directionally
-//                    Array<Block> blocks = getByCategory(currentCategory);
-//                    Block currentBlock = getSelectedBlock(currentCategory);
-//                    for(int j = 0; j < blocks.size; j++){
-//                        if(blocks.get(j) == currentBlock){
-//                            switch(i){
-//                                case 10: //left
-//                                    j = (j - 1 + blocks.size) % blocks.size;
-//                                    break;
-//                                case 11: //right
-//                                    j = (j + 1) % blocks.size;
-//                                    break;
-//                                case 12: //up
-//                                    j = (j > 3 ? j - 4 : blocks.size - blocks.size % 4 + j);
-//                                    j -= (j < blocks.size ? 0 : 4);
-//                                    break;
-//                                case 13: //down
-//                                    j = (j < blocks.size - 4 ? j + 4 : j % 4);
-//                            }
-//                            input.block = blocks.get(j);
-//                            selectedBlocks.put(currentCategory, input.block);
-//                            break;
-//                        }
-//                    }
-//                }else if(blockSelectEnd || Time.timeSinceMillis(blockSelectSeqMillis) > Core.settings.getInt("blockselecttimeout")){ //1st number of combo, select category
-//                    //select only visible categories
-//                    if(!getByCategory(Category.all[i]).isEmpty()){
-//                        currentCategory = Category.all[i];
-//                        if(input.block != null){
-//                            input.block = getSelectedBlock(currentCategory);
-//                        }
-//                        blockSelectEnd = false;
-//                        blockSelectSeq = 0;
-//                        blockSelectSeqMillis = Time.millis();
-//                    }
-//                }else{ //select block
-//                    if(blockSelectSeq == 0){ //2nd number of combo
-//                        blockSelectSeq = i + 1;
-//                    }else{ //3rd number of combo
-//                        //entering "X,1,0" selects the same block as "X,0"
-//                        i += (blockSelectSeq - (i != 9 ? 0 : 1)) * 10;
-//                        blockSelectEnd = true;
-//                    }
-//                    Array<Block> blocks = getByCategory(currentCategory);
-//                    input.block = (i < blocks.size) ? blocks.get(i) : null;
-//                    selectedBlocks.put(currentCategory, input.block);
-//                    blockSelectSeqMillis = Time.millis();
-//                }
-//                return true;
-//            }
-//        }
+        if(Core.input.keyDown(Binding.menu)){
+            input.block = null;
+        }
+
+        for(int i = 0; i < blockSelect.length; i++){
+            if(Core.input.keyTap(blockSelect[i])){
+                if(i > 9) { //select block directionally
+                    Array<Block> blocks = getByCategory(currentCategory);
+                    Block currentBlock = getSelectedBlock(currentCategory);
+                    for(int j = 0; j < blocks.size; j++){
+                        if(blocks.get(j) == currentBlock && input.block != null){
+                            switch(i){
+                                case 10: //left
+                                    j = (j - 1 + blocks.size) % blocks.size;
+                                    break;
+                                case 11: //right
+                                    j = (j + 1) % blocks.size;
+                                    break;
+                                case 12: //up
+                                    j = (j > 3 ? j - 4 : blocks.size - blocks.size % 4 + j);
+                                    j -= (j < blocks.size ? 0 : 4);
+                                    break;
+                                case 13: //down
+                                    j = (j < blocks.size - 4 ? j + 4 : j % 4);
+                            }
+                            input.block = blocks.get(j);
+                            selectedBlocks.put(currentCategory, input.block);
+                            break;
+                        }
+                    }
+                }else if(blockSelectEnd || Time.timeSinceMillis(blockSelectSeqMillis) > Core.settings.getInt("blockselecttimeout")){ //1st number of combo, select category
+                    //select only visible categories
+                    if(!getByCategory(Category.all[i]).isEmpty()){
+                        currentCategory = Category.all[i];
+                        if(input.block != null){
+                            input.block = getSelectedBlock(currentCategory);
+                        }
+                        blockSelectEnd = false;
+                        blockSelectSeq = 0;
+                        blockSelectSeqMillis = Time.millis();
+                    }
+                }else{ //select block
+                    if(blockSelectSeq == 0){ //2nd number of combo
+                        blockSelectSeq = i + 1;
+                    }else{ //3rd number of combo
+                        //entering "X,1,0" selects the same block as "X,0"
+                        i += (blockSelectSeq - (i != 9 ? 0 : 1)) * 10;
+                        blockSelectEnd = true;
+                    }
+                    Array<Block> blocks = getByCategory(currentCategory);
+                    input.block = (i < blocks.size) ? blocks.get(i) : null;
+                    selectedBlocks.put(currentCategory, input.block);
+                    blockSelectSeqMillis = Time.millis();
+                }
+                return true;
+            }
+        }
 
         if(Core.input.keyTap(Binding.category_prev)){
             do{

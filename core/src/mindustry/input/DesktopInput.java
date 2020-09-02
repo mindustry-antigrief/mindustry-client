@@ -418,7 +418,7 @@ public class DesktopInput extends InputHandler{
         }
 
         float speed = (8F / renderer.getScale()) * Time.delta();
-        if(scene.getKeyboardFocus() == null){
+        if(scene.getKeyboardFocus() == null && block == null){
             if(Core.input.keyDown(KeyCode.LEFT) || Core.input.keyDown(KeyCode.RIGHT) ||
             Core.input.keyDown(KeyCode.UP) || Core.input.keyDown(KeyCode.DOWN)){
                 if(cameraPositionOverride == null){
