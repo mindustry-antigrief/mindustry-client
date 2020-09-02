@@ -1,6 +1,7 @@
-package mindustry.game;
+package mindustry.client.antigreif;
 
 import mindustry.*;
+import mindustry.client.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.world.*;
 

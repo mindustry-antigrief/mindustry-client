@@ -1,4 +1,4 @@
-package mindustry.game;
+package mindustry.client;
 
 import arc.scene.*;
 import arc.scene.ui.*;

@@ -19,6 +19,8 @@ import arc.scene.ui.*;
 import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import mindustry.client.*;
+import mindustry.client.ui.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.ContentType;
 import mindustry.ctype.UnlockableContent;

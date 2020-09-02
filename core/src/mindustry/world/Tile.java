@@ -6,6 +6,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.ArcAnnotate.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigreif.*;
 import mindustry.content.*;
 import mindustry.entities.traits.*;
 import mindustry.entities.type.*;

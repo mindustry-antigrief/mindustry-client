@@ -1,4 +1,4 @@
-package mindustry.game
+package mindustry.client.utils
 
 class CustomWindowedMean(private val capacity: Int){
     private val data = mutableListOf(0f)

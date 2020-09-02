@@ -2,7 +2,6 @@ package mindustry.ui.fragments;
 
 import arc.*;
 import arc.Input.*;
-import arc.graphics.g2d.BitmapFont.*;
 import arc.input.*;
 import arc.struct.*;
 import arc.graphics.*;
@@ -16,16 +15,13 @@ import arc.struct.Array;
 import arc.util.*;
 import arc.util.CommandHandler.*;
 import mindustry.*;
-import mindustry.core.*;
+import mindustry.client.ui.*;
+import mindustry.client.utils.*;
 import mindustry.entities.type.*;
-import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.ui.*;
 
-import javax.lang.model.type.*;
-import java.lang.reflect.*;
-import java.util.*;
 import java.util.regex.*;
 
 import static arc.Core.*;

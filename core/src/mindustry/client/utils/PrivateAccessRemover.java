@@ -1,4 +1,4 @@
-package mindustry.core;
+package mindustry.client.utils;
 
 import java.lang.reflect.*;
 

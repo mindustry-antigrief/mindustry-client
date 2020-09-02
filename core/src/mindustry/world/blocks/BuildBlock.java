@@ -2,10 +2,8 @@ package mindustry.world.blocks;
 
 import arc.*;
 import arc.graphics.*;
-import arc.input.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
-import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
@@ -13,6 +11,7 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.util.ArcAnnotate.*;
 import arc.util.*;
+import mindustry.client.antigreif.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.effect.*;
