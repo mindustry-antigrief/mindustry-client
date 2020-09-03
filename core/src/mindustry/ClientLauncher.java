@@ -11,6 +11,7 @@ import arc.scene.ui.layout.*;
 import arc.util.*;
 import arc.util.CommandHandler.*;
 import arc.util.async.*;
+import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -142,6 +143,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             }
         }else{
             super.update();
+            Client.update();
         }
 
         int targetfps = Core.settings.getInt("fpscap", 120);

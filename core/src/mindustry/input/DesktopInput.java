@@ -3,24 +3,19 @@ package mindustry.input;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
-//import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.math.*;
-import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
-import arc.scene.utils.*;
-import arc.struct.*;
 import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.client.*;
 import mindustry.client.antigreif.*;
+import mindustry.client.pathfinding.*;
 import mindustry.client.ui.*;
-import mindustry.client.utils.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
 import mindustry.entities.traits.BuilderTrait.*;
@@ -31,12 +26,10 @@ import mindustry.gen.*;
 import mindustry.gen.Icon;
 import mindustry.graphics.*;
 import mindustry.ui.*;
-import mindustry.ui.dialogs.*;
 import mindustry.world.*;
-import mindustry.world.blocks.power.*;
-
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.Client.transferPaused;
 import static mindustry.input.PlaceMode.*;
 
 public class DesktopInput extends InputHandler{
@@ -55,8 +48,6 @@ public class DesktopInput extends InputHandler{
     BuildRequest sreq;
     /** Whether player is currently deleting removal requests. */
     private boolean deleting = false;
-
-    private boolean transferPaused = false;
 
     @Override
     public void buildUI(Group group){
@@ -83,9 +74,7 @@ public class DesktopInput extends InputHandler{
                 Core.keybinds.get(Binding.schematic_flip_x).key.toString(),
                 Core.keybinds.get(Binding.schematic_flip_y).key.toString())).style(Styles.outlineLabel);
                 b.row();
-                b.table(a -> {
-                    a.addImageTextButton("$schematic.add", Icon.save, this::showSchematicSave).colspan(2).size(250f, 50f).disabled(f -> lastSchematic == null || lastSchematic.file != null);
-                });
+                b.table(a -> a.addImageTextButton("$schematic.add", Icon.save, this::showSchematicSave).colspan(2).size(250f, 50f).disabled(f -> lastSchematic == null || lastSchematic.file != null));
             }).margin(6f);
         });
     }
@@ -147,111 +136,11 @@ public class DesktopInput extends InputHandler{
         Draw.reset();
     }
 
-    void checkTargets(float x, float y){
-        Unit unit = Units.closestEnemy(player.getTeam(), x, y, 20f, u -> !u.isDead());
-
-        if(unit != null){
-            player.setMineTile(null);
-            player.target = unit;
-        }else{
-            Tile tile = world.ltileWorld(x, y);
-
-            if(tile != null && tile.synthetic() && player.getTeam().isEnemy(tile.getTeam())){
-                TileEntity entity = tile.entity;
-                player.setMineTile(null);
-                player.target = entity;
-            }else if(tile != null && player.mech.canHeal && tile.entity != null && tile.getTeam() == player.getTeam() && tile.entity.damaged()){
-                player.setMineTile(null);
-                player.target = tile.entity;
-            }
-        }
-    }
-
-    private void updatePower(){
-        if(world == null){
-            return;
-        }
-        if(world.getTiles() == null){
-            return;
-        }
-        if(new Rand().chance(1 / 60f) || world.tile(powerTilePos) == null || world.tile(powerTilePos).block() == null){
-            Array<Tile> nodes = new Array<>();
-            for(Tile[] tiles : world.getTiles()){
-                for(Tile tile2 : tiles){
-                    if(tile2.block() instanceof PowerNode && tile2.getTeam() == player.getTeam()){
-                        nodes.add(tile2);
-                    }
-                }
-            }
-
-            Array<int[]> links = new Array<>();
-            Array<Integer> found = new Array<>();
-
-            for(Tile tile2 : nodes){
-                if(found.contains(tile2.entity.power.graph.getID())){
-                    continue;
-                }
-                links.add(new int[]{tile2.entity.power.graph.getSize(), tile2.pos()});
-                found.add(tile2.entity.power.graph.getID());
-            }
-            if(links.size == 0){
-                powerTilePos = 0;
-            }else{
-                links = links.sort((a) -> a[0]);
-                links.reverse();
-                powerTilePos = links.get(0)[1];
-//                    System.out.println(powerTilePos);
-//                    System.out.println(world.tile(powerTilePos).block());
-            }
-        }
-    }
-
     @Override
     public void update(){
         if(Vars.net.active() && Core.input.keyTap(Binding.player_list) && !ui.chatfrag.autocomplete.isVisible()){
             ui.listfrag.toggle();
         }
-        updatePower();
-        if(!transferPaused){
-            boolean updateTransfer = new Rand().chance(1 / 60f);
-            for(TransferItem transfer : ui.transfer.transferRequests){
-                transfer.run();
-                if(updateTransfer){
-                    transfer.update();
-                }
-            }
-        }
-
-        for(int i = 0; i < 50; i += 1){
-            if(configRequests.size > 0){
-                configRequests.removeFirst().runRequest();
-                if(configRequests.size % 10 == 0){
-                    System.out.println(String.format("%s left...", configRequests.size));
-                }
-                if(configRequests.size == 0){
-                    System.out.println("Done!!");
-                }
-            }
-        }
-        if(following != null && following != player){
-            float dx = player.x - following.x;
-            float dy = player.y - following.y;
-            player.moveBy(Mathf.clamp(-dx, -player.mech.maxSpeed, player.mech.maxSpeed),
-            Mathf.clamp(-dy, -player.mech.maxSpeed, player.mech.maxSpeed));
-            player.isShooting = following.isShooting;
-            player.rotation = following.rotation;
-            if(player.buildQueue() != following.buildQueue()){
-                player.buildQueue().clear();
-                for(BuildRequest b : following.buildQueue()){
-                    if(breakingFollowing){
-                        b.breaking = !b.breaking;
-                    }
-                    player.buildQueue().addLast(b);
-                }
-            }
-        }
-//        Core.camera.position.x = stalking.x;
-//        Core.camera.position.y = stalking.y;
 
         if(((player.getClosestCore() == null && player.isDead()) || state.isPaused()) && !ui.chatfrag.shown()){
             //move camera around
@@ -286,67 +175,6 @@ public class DesktopInput extends InputHandler{
 
         pollInput();
         if(scene.getKeyboardFocus() == null){
-            if(input.keyDown(KeyCode.CONTROL_LEFT) && input.keyRelease(KeyCode.F)){
-                FloatingDialog dialog = new FloatingDialog("find");
-                dialog.addCloseButton();
-                Array<Image> imgs = new Array<>();
-                for(int i = 0; i < 10; i += 1){
-                    imgs.add(new Image());
-                }
-                TextField field = Elements.newField("", (string) -> {
-                    Array<Block> sorted = content.blocks().copy();
-                    sorted = sorted.sort((b) -> distance(string, b.name));
-                    found = sorted.first();
-                    for(int i = 0; i < imgs.size - 1; i += 1){
-                        Image region = new Image(sorted.get(i).icon(Cicon.large));
-                        region.setSize(32);
-                        imgs.get(i).setDrawable(region.getDrawable());
-                    }
-
-                });
-                dialog.cont.add(field);
-                for(Image img : imgs){
-                    dialog.cont.row().add(img);
-                }
-
-                dialog.keyDown(KeyCode.ENTER, () -> {
-                    if(found == null){
-                        dialog.hide();
-                    }
-                    Array<Tile> tiles = new Array<>();
-                    for(Tile[] t : world.getTiles()){
-                        for(Tile tile2 : t){
-                            if(tile2.block() != null){
-                                if(tile2.block().name.equals(found.name) && tile2.getTeam() == player.getTeam()){
-                                    tiles.add(tile2);
-                                }
-                            }
-                        }
-                    }
-                    if(tiles.size > 0){
-                        float dist = Float.POSITIVE_INFINITY;
-                        Tile closest = null;
-
-                        for(Tile t : tiles){
-                            float d = Mathf.dst(player.x, player.y, t.x, t.y);
-                            if(d < dist){
-                                closest = t;
-                                dist = d;
-
-                            }
-                        }
-                        if(closest != null){
-                            targetPosition = new Vec2(closest.x, closest.y);
-                            ui.chatfrag.addMessage(String.format("%d, %d (/go to travel there)", (int)closest.x, (int)closest.y), "client");
-                            dialog.hide();
-                        }
-                    }
-                });
-                dialog.show();
-                findField = dialog;
-                scene.setKeyboardFocus(field);
-            }
-
             if(Core.input.keyDown(KeyCode.CONTROL_LEFT) &&
             Core.input.keyRelease(KeyCode.Z)){
                 if(player.log.size > 0){
@@ -400,42 +228,6 @@ public class DesktopInput extends InputHandler{
                 }else{
                     player.setState(player.mine);
                 }
-            }
-        }
-
-        float speed = (8F / renderer.getScale()) * Time.delta();
-        if(scene.getKeyboardFocus() == null && block == null){
-            if(Core.input.keyDown(KeyCode.LEFT) || Core.input.keyDown(KeyCode.RIGHT) ||
-            Core.input.keyDown(KeyCode.UP) || Core.input.keyDown(KeyCode.DOWN)){
-                if(cameraPositionOverride == null){
-                    cameraPositionOverride = new Vec2(player.x, player.y);
-                }
-            }
-
-            if(Core.input.keyDown(KeyCode.RIGHT)){
-                cameraPositionOverride.x += speed;
-            }
-
-            if(Core.input.keyDown(KeyCode.LEFT)){
-                cameraPositionOverride.x -= speed;
-            }
-
-            if(Core.input.keyDown(KeyCode.UP)){
-                cameraPositionOverride.y += speed;
-            }
-
-            if(Core.input.keyDown(KeyCode.DOWN)){
-                cameraPositionOverride.y -= speed;
-            }
-            if(Core.input.keyDown(Binding.zoom_in)){
-                renderer.scaleCamera(0.5f);
-            }
-            if(Core.input.keyDown(Binding.zoom_out)){
-                renderer.scaleCamera(-0.5f);
-            }
-            if(input.keyTap(Binding.xray_toggle)){
-                xray = !xray;
-//                renderer.blocks.refreshShadows();
             }
         }
 
@@ -504,22 +296,6 @@ public class DesktopInput extends InputHandler{
         cursorType = SystemCursor.arrow;
     }
 
-    public float distance(String word, String word2){
-        if(word2.toLowerCase().contains(word)){
-            if(word2.toLowerCase().equals(word.toLowerCase())){
-                return 0F;
-            }
-            if(word2.toLowerCase().startsWith(word)){
-                // Discount for if the word starts with the input
-                return 0.25F * Levenshtein.distance(word.toLowerCase(), word2.toLowerCase());
-            }else{
-                // Discount for if the word contains the input
-                return 0.5F * Levenshtein.distance(word.toLowerCase(), word2.toLowerCase());
-            }
-        }
-        return Levenshtein.distance(word, word2);
-    }
-
     @Override
     public void useSchematic(Schematic schem){
         block = null;
@@ -551,7 +327,7 @@ public class DesktopInput extends InputHandler{
         table.add(button);
 
         ImageButton button1 = new ImageButton(Icon.pause);
-        button1.replaceImage(new Image(Icon.pause));
+        button1.replaceImage(new Image(transferPaused? Icon.play : Icon.pause));
         button1.setStyle(Styles.clearPartiali);
         button1.clicked(() -> {
             transferPaused = !transferPaused;

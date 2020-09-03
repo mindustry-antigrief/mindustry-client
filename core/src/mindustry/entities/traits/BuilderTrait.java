@@ -8,7 +8,7 @@ import arc.struct.Queue;
 import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.client.*;
+import mindustry.client.pathfinding.*;
 import mindustry.content.*;
 import mindustry.entities.type.TileEntity;
 import mindustry.entities.type.*;

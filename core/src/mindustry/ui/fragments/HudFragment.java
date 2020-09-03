@@ -3,7 +3,7 @@ package mindustry.ui.fragments;
 import arc.*;
 import arc.scene.ui.layout.Stack;
 import mindustry.*;
-import mindustry.ai.pathfinding.*;
+import mindustry.client.pathfinding.*;
 import mindustry.annotations.Annotations.*;
 import arc.struct.*;
 import arc.graphics.*;

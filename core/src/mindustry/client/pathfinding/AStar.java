@@ -1,16 +1,12 @@
-package mindustry.ai.pathfinding;
+package mindustry.client.pathfinding;
 
 import arc.math.*;
-import arc.math.geom.*;
 import arc.struct.*;
 import mindustry.*;
-import mindustry.core.*;
 import mindustry.game.*;
-import mindustry.world.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
-import java.time.*;
 import java.util.*;
 
 

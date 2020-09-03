@@ -23,4 +23,20 @@ public class Levenshtein{
         }
         return costs[b.length()];
     }
+
+    public static float distanceCompletion(String word, String word2){
+        if(word2.toLowerCase().contains(word)){
+            if(word2.toLowerCase().equals(word.toLowerCase())){
+                return 0F;
+            }
+            if(word2.toLowerCase().startsWith(word)){
+                // Discount for if the word starts with the input
+                return 0.25F * Levenshtein.distance(word.toLowerCase(), word2.toLowerCase());
+            }else{
+                // Discount for if the word contains the input
+                return 0.5F * Levenshtein.distance(word.toLowerCase(), word2.toLowerCase());
+            }
+        }
+        return Levenshtein.distance(word, word2);
+    }
 }

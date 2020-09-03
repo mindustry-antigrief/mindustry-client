@@ -2,7 +2,7 @@ package mindustry.entities.type;
 
 import arc.*;
 import arc.struct.Queue;
-import mindustry.ai.pathfinding.*;
+import mindustry.client.pathfinding.*;
 import mindustry.annotations.Annotations.*;
 import arc.struct.*;
 import arc.graphics.*;
@@ -15,7 +15,6 @@ import arc.util.*;
 import arc.util.ArcAnnotate.*;
 import arc.util.pooling.*;
 import mindustry.*;
-import mindustry.client.*;
 import mindustry.client.antigreif.*;
 import mindustry.content.*;
 import mindustry.core.*;

@@ -1,7 +1,6 @@
-package mindustry.ai.pathfinding;
+package mindustry.client.pathfinding;
 
 import arc.struct.*;
-import mindustry.game.*;
 import mindustry.world.blocks.defense.turrets.*;
 
 public class PlayerPathfinder{

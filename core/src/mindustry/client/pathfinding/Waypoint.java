@@ -1,4 +1,4 @@
-package mindustry.client;
+package mindustry.client.pathfinding;
 
 import arc.util.ArcAnnotate.*;
 import mindustry.*;
@@ -33,7 +33,7 @@ public class Waypoint{
 
     @Override
     public String toString(){
-        return String.format("mindustry.client.Waypoint(x=%f, \n y=%f, \n time=%d)\n", x, y, time);
+        return String.format("mindustry.client.pathfinding.Waypoint(x=%f, \n y=%f, \n time=%d)\n", x, y, time);
     }
 
     public boolean goTo(){
