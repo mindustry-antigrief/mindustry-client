@@ -935,7 +935,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             updateTarget(notDone.last().x, notDone.last().y);
         }
         if(control.input instanceof MobileInput){
-            updateTouch(notDone.size == 0);
+            updateTouch(notDone.size == 0 && (following == player || following == null));
         }else{
             updateKeyboard(notDone.size == 0);
         }

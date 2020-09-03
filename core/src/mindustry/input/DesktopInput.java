@@ -466,16 +466,10 @@ public class DesktopInput extends InputHandler{
                     if(!tileTapped(selected) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && (player.buildQueue().size == 0 || !player.isBuilding) && !droppingItem &&
                     !tryBeginMine(selected) && player.getMineTile() == null && !Core.scene.hasKeyboard()){
                         player.isShooting = true;
-                        if(following != null && following != player){
-                            player.isShooting = following.isShooting;
-                        }
                     }
                 }
             }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine
                 player.isShooting = true;
-                if(following != null && following != player){
-                    player.isShooting = following.isShooting;
-                }
             }
         }else if(Core.input.keyTap(Binding.deselect) && isPlacing()){
             block = null;
