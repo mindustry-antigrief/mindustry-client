@@ -131,8 +131,6 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             if(core == null){
                 return;
             }
-//            TileEntity tile = (TileEntity)core;
-//            for(Item i : new Item[](Items.copper, Items.lead, Items.titanium, Items.thorium))
             Array<Item> items = new Array<>();
             for(Item i : toMine){
                 if(i.hardness <= player.mech.drillPower){
@@ -185,8 +183,6 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             if(player.healthf() < 0.5f){
                 setState(heal);
             }
-//            System.out.println(world.tile(buildTarget));
-//            System.out.println("A");
             try{
                 if((buildTarget == null || !(world.tile(buildTarget).block() instanceof BuildBlock) || new Rand().chance(1 / 20f)) && new Rand().chance(0.5)){
                     updateBuildTarget();
@@ -200,15 +196,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                             }
                         }else{
                             BuildEntity buildTargetEntity = world.tile(buildTarget).entity instanceof BuildEntity ? world.tile(buildTarget).ent() : null;
-//                        if(player.buildQueue().isEmpty()){
                             if(buildTargetEntity != null){
-//                                building = new BuildRequest(
-//                                    Pos.x(buildTarget),
-//                                    Pos.y(buildTarget),
-//                                    buildTargetEntity.tile.rotation(),
-//                                    buildTargetEntity.block
-//                                );
-//                                world.tile(buildTarget)
                                 Tile tile = world.tile(buildTarget);
                                 BuildRequest b = new BuildRequest(tile.x, tile.y, tile.rotation(), buildTargetEntity.cblock);
                                 b.breaking = buildTargetEntity.isBreaking;
@@ -217,14 +205,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                                 }
                                 followingWaypoints = false;
                                 notDone.clear();
-//                                System.out.println("AAA");
-//                                player.buildQueue().first().breaking = buildTargetEntity.isBreaking;
-//                                player.placeQueue.clear();
-//                                player.placeQueue.addFirst(building);
                             }
-//                        }//else if(!player.isBuilding){
-//                            player.buildQueue().clear();
-//                        }
                         }
                     }
                 }
@@ -318,10 +299,6 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         if(blocks.size > 0){
             buildTarget = Geometry.findClosest(player.getX(), player.getY(), blocks).pos();
         }
-    }
-
-    public void setBuilding(){
-        setState(build);
     }
 
     public void setState(UnitState newState){
@@ -829,15 +806,6 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
 
     @Override
     public void updateMechanics(){
-//        for(BuildRequest req : buildQueue()){
-//            if(undid_hashes.contains(req.hashCode())){
-//                continue;
-//            }
-//            InteractionLogItem item = new InteractionLogItem(req);
-////            if(!log.contains(item)){
-////                log.add(item);
-////            }
-//        }
         if(isBuilding){
             updateBuilding();
         }
@@ -850,7 +818,6 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
 
     @Override
     public void update(){
-//        name = Double.toString(new Rand().nextDouble());
         state2.update();
         if(followingWaypoints){
             if(notDone.size == 0 || player.dead){
@@ -873,7 +840,6 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                     }
                 }
             }
-//        }
         }else if(notDone.size > 0 && autoBuild){
             if(notDone.last().goTo()){
                 notDone.removeLast();
@@ -965,17 +931,13 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             data.unlockContent(mech);
         }
 
+        if(notDone.size > 0){
+            updateTarget(notDone.last().x, notDone.last().y);
+        }
         if(control.input instanceof MobileInput){
-            updateTouch();
+            updateTouch(notDone.size == 0);
         }else{
-            if(notDone.size > 0){
-                updateKeyboardNoMovement();
-                if(notDone.size > 0){
-                    updateTarget(notDone.last().x, notDone.last().y);
-                }
-            }else{
-                updateKeyboard();
-            }
+            updateKeyboard(notDone.size == 0);
         }
 
         isTyping = ui.chatfrag.shown();
@@ -987,23 +949,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         }
     }
 
-    protected void updateKeyboardNoMovement(){
-        Tile tile = world.tileWorld(x, y);
-
-        isBoosting = !mech.flying;
-
-        //if player is in solid block
-        if(tile != null && tile.solid()){
-            isBoosting = true;
-        }
-
-        Vec2 vec = Core.input.mouseWorld(control.input.getMouseX(), control.input.getMouseY());
-        pointerX = vec.x;
-        pointerY = vec.y;
-        updateShooting();
-    }
-
-    protected void updateKeyboard(){
+    protected void updateKeyboard(boolean doMovement){
         Tile tile = world.tileWorld(x, y);
         boolean canMove = !Core.scene.hasKeyboard() || ui.minimapfrag.shown();
 
@@ -1014,53 +960,58 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             isBoosting = true;
         }
 
-        float speed = isBoosting && !mech.flying ? mech.boostSpeed : mech.speed;
+        if(doMovement){
+            float speed = isBoosting && !mech.flying ? mech.boostSpeed : mech.speed;
 
-        if(mech.flying){
-            //prevent strafing backwards, have a penalty for doing so
-            float penalty = 0.2f; //when going 180 degrees backwards, reduce speed to 0.2x
-            speed *= Mathf.lerp(1f, penalty, Angles.angleDist(rotation, velocity.angle()) / 180f);
+            if(mech.flying){
+                //prevent strafing backwards, have a penalty for doing so
+                float penalty = 0.2f; //when going 180 degrees backwards, reduce speed to 0.2x
+                speed *= Mathf.lerp(1f, penalty, Angles.angleDist(rotation, velocity.angle()) / 180f);
+            }
+
+            movement.setZero();
+
+            float xa = Core.input.axis(Binding.move_x);
+            float ya = Core.input.axis(Binding.move_y);
+            if(!(Core.scene.getKeyboardFocus() instanceof TextField)){
+                movement.y += ya * speed;
+                movement.x += xa * speed;
+            }
+
+            if(Core.input.keyDown(Binding.mouse_move)){
+                movement.x += Mathf.clamp((Core.input.mouseX() - Core.graphics.getWidth() / 2f) * 0.005f, -1, 1) * speed;
+                movement.y += Mathf.clamp((Core.input.mouseY() - Core.graphics.getHeight() / 2f) * 0.005f, -1, 1) * speed;
+            }
+
+            Vec2 vec = Core.input.mouseWorld(control.input.getMouseX(), control.input.getMouseY());
+            pointerX = vec.x;
+            pointerY = vec.y;
         }
-
-        movement.setZero();
-
-        float xa = Core.input.axis(Binding.move_x);
-        float ya = Core.input.axis(Binding.move_y);
-        if(!(Core.scene.getKeyboardFocus() instanceof TextField)){
-            movement.y += ya * speed;
-            movement.x += xa * speed;
-        }
-
-        if(Core.input.keyDown(Binding.mouse_move)){
-            movement.x += Mathf.clamp((Core.input.mouseX() - Core.graphics.getWidth() / 2f) * 0.005f, -1, 1) * speed;
-            movement.y += Mathf.clamp((Core.input.mouseY() - Core.graphics.getHeight() / 2f) * 0.005f, -1, 1) * speed;
-        }
-
-        Vec2 vec = Core.input.mouseWorld(control.input.getMouseX(), control.input.getMouseY());
-        pointerX = vec.x;
-        pointerY = vec.y;
         updateShooting();
 
-        movement.limit(speed).scl(Time.delta());
+        if(doMovement){
+            float speed = isBoosting && !mech.flying ? mech.boostSpeed : mech.speed;
+            movement.limit(speed).scl(Time.delta());
 
-        if(canMove){
-            velocity.add(movement.x, movement.y);
-        }else{
-            isShooting = false;
-        }
-        float prex = x, prey = y;
-        updateVelocityStatus();
-        moved = dst(prex, prey) > 0.001f;
-
-        if(canMove){
-            float baseLerp = mech.getRotationAlpha(this);
-            if(!isShooting() || !mech.turnCursor){
-                if(!movement.isZero()){
-                    rotation = Mathf.slerpDelta(rotation, mech.flying ? velocity.angle() : movement.angle(), 0.13f * baseLerp);
-                }
+            if(canMove){
+                velocity.add(movement.x, movement.y);
             }else{
-                float angle = control.input.mouseAngle(x, y);
-                this.rotation = Mathf.slerpDelta(this.rotation, angle, 0.1f * baseLerp);
+                isShooting = false;
+            }
+            float prex = x, prey = y;
+            updateVelocityStatus();
+            moved = dst(prex, prey) > 0.001f;
+
+            if(canMove){
+                float baseLerp = mech.getRotationAlpha(this);
+                if(!isShooting() || !mech.turnCursor){
+                    if(!movement.isZero()){
+                        rotation = Mathf.slerpDelta(rotation, mech.flying ? velocity.angle() : movement.angle(), 0.13f * baseLerp);
+                    }
+                }else{
+                    float angle = control.input.mouseAngle(x, y);
+                    this.rotation = Mathf.slerpDelta(this.rotation, angle, 0.1f * baseLerp);
+                }
             }
         }
     }
@@ -1076,7 +1027,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         }
     }
 
-    protected void updateTouch(){
+    protected void updateTouch(boolean doMovement){
         if(Units.invalidateTarget(target, this) &&
             !(target instanceof TileEntity && ((TileEntity)target).damaged() && target.isValid() && target.getTeam() == team && mech.canHeal && dst(target) < getWeapon().bullet.range() && !(((TileEntity)target).block instanceof BuildBlock))){
             target = null;
@@ -1086,37 +1037,52 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             target = null;
         }
 
-        float targetX = Core.camera.position.x, targetY = Core.camera.position.y;
-        float attractDst = 15f;
-        float speed = isBoosting && !mech.flying ? mech.boostSpeed : mech.speed;
+        if(doMovement){
+            float targetX = Core.camera.position.x, targetY = Core.camera.position.y;
+            float attractDst = 15f;
+            float speed = isBoosting && !mech.flying ? mech.boostSpeed : mech.speed;
 
-        if(moveTarget != null && !moveTarget.isDead()){
-            targetX = moveTarget.getX();
-            targetY = moveTarget.getY();
-            boolean tapping = moveTarget instanceof TileEntity && moveTarget.getTeam() == team;
-            attractDst = 0f;
+            if(moveTarget != null && !moveTarget.isDead()){
+                targetX = moveTarget.getX();
+                targetY = moveTarget.getY();
+                boolean tapping = moveTarget instanceof TileEntity && moveTarget.getTeam() == team;
+                attractDst = 0f;
 
-            if(tapping){
-                velocity.setAngle(angleTo(moveTarget));
-            }
-
-            if(dst(moveTarget) <= 2f * Time.delta()){
-                if(tapping && !isDead()){
-                    Tile tile = ((TileEntity)moveTarget).tile;
-                    tile.block().tapped(tile, this);
+                if(tapping){
+                    velocity.setAngle(angleTo(moveTarget));
                 }
 
+                if(dst(moveTarget) <= 2f * Time.delta()){
+                    if(tapping && !isDead()){
+                        Tile tile = ((TileEntity)moveTarget).tile;
+                        tile.block().tapped(tile, this);
+                    }
+
+                    moveTarget = null;
+                }
+            }else{
                 moveTarget = null;
             }
-        }else{
-            moveTarget = null;
-        }
 
-        movement.set((targetX - x) / Time.delta(), (targetY - y) / Time.delta()).limit(speed);
-        movement.setAngle(Mathf.slerp(movement.angle(), velocity.angle(), 0.05f));
+            movement.set((targetX - x) / Time.delta(), (targetY - y) / Time.delta()).limit(speed);
+            movement.setAngle(Mathf.slerp(movement.angle(), velocity.angle(), 0.05f));
 
-        if(dst(targetX, targetY) < attractDst){
-            movement.setZero();
+            if(dst(targetX, targetY) < attractDst){
+                movement.setZero();
+            }
+            isBoosting = collisions.overlapsTile(rect) || dst(targetX, targetY) > 85f;
+
+            velocity.add(movement.scl(Time.delta()));
+
+            if(velocity.len() <= 0.2f && mech.flying){
+                rotation += Mathf.sin(Time.time() + id * 99, 10f, 1f);
+            }else if(target == null){
+                rotation = Mathf.slerpDelta(rotation, velocity.angle(), velocity.len() / 10f);
+            }
+
+            float lx = x, ly = y;
+            updateVelocityStatus();
+            moved = dst(lx, ly) > 0.001f;
         }
 
         float expansion = 3f;
@@ -1126,20 +1092,6 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         rect.y -= expansion;
         rect.width += expansion * 2f;
         rect.height += expansion * 2f;
-
-        isBoosting = collisions.overlapsTile(rect) || dst(targetX, targetY) > 85f;
-
-        velocity.add(movement.scl(Time.delta()));
-
-        if(velocity.len() <= 0.2f && mech.flying){
-            rotation += Mathf.sin(Time.time() + id * 99, 10f, 1f);
-        }else if(target == null){
-            rotation = Mathf.slerpDelta(rotation, velocity.angle(), velocity.len() / 10f);
-        }
-
-        float lx = x, ly = y;
-        updateVelocityStatus();
-        moved = dst(lx, ly) > 0.001f;
 
         if(mech.flying){
             //hovering effect
