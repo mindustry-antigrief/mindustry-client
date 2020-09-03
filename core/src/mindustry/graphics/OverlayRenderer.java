@@ -7,7 +7,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.client.*;
+import mindustry.client.pathfinding.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.traits.BuilderTrait.*;

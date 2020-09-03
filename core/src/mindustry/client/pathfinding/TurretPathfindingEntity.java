@@ -1,4 +1,4 @@
-package mindustry.ai.pathfinding;
+package mindustry.client.pathfinding;
 
 public class TurretPathfindingEntity{
     int x, y;

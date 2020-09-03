@@ -17,6 +17,7 @@ import arc.util.Log.*;
 import arc.util.io.*;
 import mindustry.ai.*;
 import mindustry.client.*;
+import mindustry.client.pathfinding.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.effect.*;
