@@ -47,6 +47,7 @@ import java.time.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.Client.transferPaused;
 
 public class HudFragment extends Fragment{
     public final PlacementFragment blockfrag = new PlacementFragment();
@@ -86,6 +87,19 @@ public class HudFragment extends Fragment{
                     flip = select.addImageButton(Icon.upOpen, style, this::toggleMenus).get();
 
                     select.addImageButton(Icon.paste, style, ui.schematics::show);
+                    select.addImageButton(Icon.redo, style, ui.transfer::show);
+                    ImageButton button1 = new ImageButton(Icon.pause);
+                    button1.replaceImage(new Image(transferPaused? Icon.play : Icon.pause));
+                    button1.setStyle(style);
+                    button1.clicked(() -> {
+                        transferPaused = !transferPaused;
+                        if(transferPaused){
+                            button1.replaceImage(new Image(Icon.play));
+                        }else{
+                            button1.replaceImage(new Image(Icon.pause));
+                        }
+                    });
+                    select.add(button1);
 
                     select.addImageButton(Icon.pause, style, () -> {
                         if(net.active()){
