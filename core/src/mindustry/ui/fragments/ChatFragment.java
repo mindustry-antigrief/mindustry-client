@@ -15,6 +15,7 @@ import arc.struct.Array;
 import arc.util.*;
 import arc.util.CommandHandler.*;
 import mindustry.*;
+import mindustry.client.*;
 import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.entities.type.*;
@@ -275,7 +276,7 @@ public class ChatFragment extends Table{
             ObjectMap<String, CommandHandler.Command> commands = (ObjectMap<String, CommandHandler.Command>)PrivateAccessRemover.getPrivateField(netServer.clientCommands, "commands");
             Command command = commands.get(commandstr);
             if(command != null){
-                if(localCommands.contains(command)){
+                if(Client.localCommands.contains(command)){
 
                     int index = 0;
                     boolean satisfied = false;

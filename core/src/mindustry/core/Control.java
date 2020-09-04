@@ -3,14 +3,13 @@ package mindustry.core;
 import arc.*;
 import arc.assets.*;
 import arc.audio.*;
-import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.math.geom.*;
 import arc.scene.ui.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
@@ -206,7 +205,7 @@ public class Control implements ApplicationListener, Loadable{
 
     void createPlayer(){
         player = new Player();
-        Vars.stalking = player;
+        Client.stalking = player;
         player.name = Core.settings.getString("name");
         player.color.set(Core.settings.getInt("color-0"));
         player.isLocal = true;

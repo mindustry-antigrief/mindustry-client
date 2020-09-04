@@ -14,7 +14,7 @@ object PowerGridFinder {
         if (Vars.world.tiles == null) {
             return
         }
-        if (Rand().chance(1 / 60f.toDouble()) || Vars.world.tile(Vars.powerTilePos) == null || Vars.world.tile(Vars.powerTilePos).block() == null) {
+        if (Rand().chance(1 / 60f.toDouble()) || Vars.world.tile(Client.powerTilePos) == null || Vars.world.tile(Client.powerTilePos).block() == null) {
             val nodes = Array<Tile>()
             for (tiles in Vars.world.tiles) {
                 for (tile2 in tiles) {
@@ -33,11 +33,11 @@ object PowerGridFinder {
                 found.add(tile2.entity.power.graph.id)
             }
             if (links.size == 0) {
-                Vars.powerTilePos = 0
+                Client.powerTilePos = 0
             } else {
                 links = links.sort { a: IntArray -> a[0].toFloat() }
                 links.reverse()
-                Vars.powerTilePos = links[0][1]
+                Client.powerTilePos = links[0][1]
                 //                    System.out.println(powerTilePos);
 //                    System.out.println(world.tile(powerTilePos).block());
             }

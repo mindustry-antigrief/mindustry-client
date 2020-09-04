@@ -11,6 +11,7 @@ import arc.graphics.Blending;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.util.Time;
+import mindustry.client.*;
 import mindustry.content.Fx;
 import mindustry.entities.*;
 import mindustry.entities.Effects.Effect;
@@ -111,7 +112,7 @@ public abstract class Turret extends Block{
         Draw.rect(baseRegion, tile.drawx(), tile.drawy());
         TurretEntity entity = tile.ent();
         if(entity.target != null){
-            crosshairs.add(new Vec3(entity.target.getX(), entity.target.getY(), tile.getTeam().id));
+            Client.crosshairs.add(new Vec3(entity.target.getX(), entity.target.getY(), tile.getTeam().id));
         }
         Draw.color();
     }

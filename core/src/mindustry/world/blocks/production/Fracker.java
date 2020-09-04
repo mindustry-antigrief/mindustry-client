@@ -2,12 +2,9 @@ package mindustry.world.blocks.production;
 
 import arc.*;
 import arc.graphics.g2d.*;
-import arc.math.*;
 import mindustry.graphics.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
-
-import static mindustry.Vars.xray;
 
 public class Fracker extends SolidPump{
     public float itemUseTime = 100f;

@@ -14,8 +14,6 @@ import mindustry.world.meta.*;
 
 import java.io.*;
 
-import static mindustry.Vars.xray;
-
 public class Cultivator extends GenericCrafter{
     public Color plantColor = Color.valueOf("5541b1");
     public Color plantColorLight = Color.valueOf("7457ce");

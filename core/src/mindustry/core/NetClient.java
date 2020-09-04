@@ -11,9 +11,8 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.content.*;
+import mindustry.client.*;
 import mindustry.core.GameState.*;
-import mindustry.core.NetServer.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.entities.Effects.*;
@@ -23,18 +22,15 @@ import mindustry.entities.type.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
-import mindustry.input.*;
 import mindustry.net.Administration.*;
 import mindustry.net.Net.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.world.*;
-import mindustry.world.blocks.liquid.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
-import java.util.*;
 import java.util.regex.*;
 import java.util.zip.*;
 
@@ -172,7 +168,7 @@ public class NetClient implements ApplicationListener{
                 ui.chatfrag.addMessage("/go to travel there", "client");
                 String match = matcher.group(0);
                 String[] digits = match.split("(,|\\s)\\s?");
-                targetPosition = new Vec2().set(Integer.parseInt(digits[0]), Integer.parseInt(digits[1]));
+                Client.targetPosition = new Vec2().set(Integer.parseInt(digits[0]), Integer.parseInt(digits[1]));
             });
         }
 
@@ -191,26 +187,26 @@ public class NetClient implements ApplicationListener{
         matches = matches && !playersender.name.equals(player.name);
         if(matches && !message.contains("[autoresponse]")){
 //            Call.sendChatMessage(String.format("", player.name));
-            if(Time.millis() - lastAutoresponseSent > 60_000 && player.getState() == player.build){
+            if(Time.millis() - Client.lastAutoresponseSent > 60_000 && player.getState() == player.build){
                 Call.sendChatMessage(String.format("[coral][autoresponse][lightgray] I'm in phantom drone mode. [white] say '%s stop' to make me leave phantom mode.", player.readableName));
-                lastAutoresponseSent = Time.millis();
+                Client.lastAutoresponseSent = Time.millis();
             }
         }
 
         if(message.equalsIgnoreCase(player.readableName + " stop")){
-            if(player.getState() == player.build && Time.millis() - lastCommandSent > 10_000){
+            if(player.getState() == player.build && Time.millis() - Client.lastCommandSent > 10_000){
                 Call.sendChatMessage(String.format("[coral][autoresponse][red] Leaving phantom mode.[lightgray]  Say '%s start' to turn it back on.", player.readableName));
                 player.setState(player.normal);
                 player.clearBuilding();
-                lastCommandSent = Time.millis();
+                Client.lastCommandSent = Time.millis();
             }
         }
 
         if(message.equalsIgnoreCase(player.readableName + " start")){
-            if(player.getState() != player.build && Time.millis() - lastCommandSent > 30_000 && player.previousState == player.build){
+            if(player.getState() != player.build && Time.millis() - Client.lastCommandSent > 30_000 && player.previousState == player.build){
                 Call.sendChatMessage("[coral][autoresponse][red] Entering phantom mode.[lightgray]  Say '%s stop' to turn it back off.");
                 player.setState(player.build);
-                lastCommandSent = Time.millis();
+                Client.lastCommandSent = Time.millis();
             }
         }
 

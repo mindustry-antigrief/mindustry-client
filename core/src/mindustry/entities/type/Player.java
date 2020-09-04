@@ -2,6 +2,7 @@ package mindustry.entities.type;
 
 import arc.*;
 import arc.struct.Queue;
+import mindustry.client.*;
 import mindustry.client.pathfinding.*;
 import mindustry.annotations.Annotations.*;
 import arc.struct.*;
@@ -104,8 +105,8 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             clearBuilding();
             buildTarget = null;
             setMineTile(null);
-            followingWaypoints = false;
-            notDone.clear();
+            Client.followingWaypoints = false;
+            Client.notDone.clear();
         }
 
         @Override
@@ -142,7 +143,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             if(target == null){
                 return;
             }
-            if(notDone.size == 0 && target != getMineTile()){
+            if(Client.notDone.size == 0 && target != getMineTile()){
                 navigateTo(target.getX(), target.getY());
                 setMineTile((Tile)target);
             }
@@ -191,7 +192,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                         int x = Pos.x(buildTarget);
                         int y = Pos.y(buildTarget);
                         if(Mathf.dst(x * 8, y * 8, player.x, player.y) > placeDistance * 0.8){
-                            if(!followingWaypoints){
+                            if(!Client.followingWaypoints){
                                 player.navigateTo(x * 8, y * 8);
                             }
                         }else{
@@ -203,8 +204,8 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                                 if(player.buildQueue().size < 10){
                                     player.addBuildRequest(b, false);
                                 }
-                                followingWaypoints = false;
-                                notDone.clear();
+                                Client.followingWaypoints = false;
+                                Client.notDone.clear();
                             }
                         }
                     }
@@ -268,7 +269,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                     refresh = true;
                 }else if(tile.entity.power.status < 0.5f){
                     refresh = true;
-                }else if(!followingWaypoints && player.dst(tile) > ((RepairPoint)Blocks.repairPoint).repairRadius){
+                }else if(!Client.followingWaypoints && player.dst(tile) > ((RepairPoint)Blocks.repairPoint).repairRadius){
                     refresh = true;
                 }
                 if(refresh){
@@ -326,13 +327,13 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                     }
                 }
             }
-            followingWaypoints = true;
-            repeatWaypoints = false;
-            notDone.clear();
+            Client.followingWaypoints = true;
+            Client.repeatWaypoints = false;
+            Client.notDone.clear();
             Array<int[]> points = AStar.findPathTurretsDropZone(turrets, this.x, this.y, drawX, drawY, world.width(), world.height(), team, dropZones);
             if(points != null){
                 for(int[] point : points){
-                    notDone.addLast(new Waypoint(point[0] * 8, point[1] * 8));
+                    Client.notDone.addLast(new Waypoint(point[0] * 8, point[1] * 8));
                 }
             }
         }catch(NullPointerException ignored){} //I PROMISE IT'S FINE
@@ -819,30 +820,30 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     @Override
     public void update(){
         state2.update();
-        if(followingWaypoints){
-            if(notDone.size == 0 || player.dead){
-                waypointEndTime = Clock.systemUTC().millis();
-                if(repeatWaypoints){
-                    waypointFollowStartTime = Clock.systemUTC().millis();
-                    notDone.clear();
-                    for(Waypoint w : waypoints){
-                        notDone.addFirst(w);
+        if(Client.followingWaypoints){
+            if(Client.notDone.size == 0 || player.dead){
+                Client.waypointEndTime = Clock.systemUTC().millis();
+                if(Client.repeatWaypoints){
+                    Client.waypointFollowStartTime = Clock.systemUTC().millis();
+                    Client.notDone.clear();
+                    for(Waypoint w : Client.waypoints){
+                        Client.notDone.addFirst(w);
                     }
                 }else{
-                    notDone.clear();
-                    followingWaypoints = false;
+                    Client.notDone.clear();
+                    Client.followingWaypoints = false;
                 }
             }else{
-                if(Clock.systemUTC().millis() - waypointEndTime > 1000){
-                    if(notDone.last().goTo()){
-                        notDone.removeLast();
-                        followingWaypoints = !autoBuild;
+                if(Clock.systemUTC().millis() - Client.waypointEndTime > 1000){
+                    if(Client.notDone.last().goTo()){
+                        Client.notDone.removeLast();
+                        Client.followingWaypoints = !Client.autoBuild;
                     }
                 }
             }
-        }else if(notDone.size > 0 && autoBuild){
-            if(notDone.last().goTo()){
-                notDone.removeLast();
+        }else if(Client.notDone.size > 0 && Client.autoBuild){
+            if(Client.notDone.last().goTo()){
+                Client.notDone.removeLast();
             }
         }
 
@@ -931,13 +932,13 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             data.unlockContent(mech);
         }
 
-        if(notDone.size > 0){
-            updateTarget(notDone.last().x, notDone.last().y);
+        if(Client.notDone.size > 0){
+            updateTarget(Client.notDone.last().x, Client.notDone.last().y);
         }
         if(control.input instanceof MobileInput){
-            updateTouch(notDone.size == 0 && (following == player || following == null));
+            updateTouch(Client.notDone.size == 0 && (Client.following == player || Client.following == null));
         }else{
-            updateKeyboard(notDone.size == 0);
+            updateKeyboard(Client.notDone.size == 0);
         }
 
         isTyping = ui.chatfrag.shown();

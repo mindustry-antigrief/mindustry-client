@@ -8,6 +8,7 @@ import arc.struct.Queue;
 import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.client.*;
 import mindustry.client.pathfinding.*;
 import mindustry.content.*;
 import mindustry.entities.type.TileEntity;
@@ -205,8 +206,8 @@ public interface BuilderTrait extends Entity, TeamTrait{
 
     /** Add another build requests to the tail of the queue, if it doesn't exist there yet. */
     default void addBuildRequest(BuildRequest place){
-        if(autoBuild){
-            notDone.addFirst(new Waypoint(place));
+        if(Client.autoBuild){
+            Client.notDone.addFirst(new Waypoint(place));
         }
         addBuildRequest(place, true);
     }

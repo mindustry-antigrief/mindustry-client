@@ -1,12 +1,10 @@
 package mindustry.client.pathfinding;
 
-import arc.util.ArcAnnotate.*;
 import mindustry.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
 import mindustry.gen.*;
 import mindustry.type.*;
-import mindustry.world.*;
 
 import static mindustry.Vars.world;
 

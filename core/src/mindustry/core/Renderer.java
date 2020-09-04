@@ -11,6 +11,7 @@ import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import arc.util.pooling.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
@@ -22,7 +23,6 @@ import mindustry.game.EventType.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.ui.*;
-import mindustry.ui.fragments.*;
 import mindustry.world.blocks.defense.ForceProjector.*;
 
 import static arc.Core.*;
@@ -126,13 +126,13 @@ public class Renderer implements ApplicationListener{
             graphics.clear(Color.black);
         }else{
             Vec2 position;
-            if(cameraPositionOverride != null){
-                position = Tmp.v3.set(cameraPositionOverride);
+            if(Client.cameraPositionOverride != null){
+                position = Tmp.v3.set(Client.cameraPositionOverride);
             }else{
-                position = Tmp.v3.set(stalking);
+                position = Tmp.v3.set(Client.stalking);
             }
 
-            if(player.isDead() && cameraPositionOverride == null){
+            if(player.isDead() && Client.cameraPositionOverride == null){
                 TileEntity core = player.getClosestCore();
                 if(core != null){
                     if(player.spawner == null){
@@ -234,7 +234,7 @@ public class Renderer implements ApplicationListener{
         }
 //        camera.position.x = stalking.x;
 //        camera.position.y = stalking.y;
-        crosshairs.clear();
+        Client.crosshairs.clear();
 
         graphics.clear(clearColor);
 
@@ -252,7 +252,7 @@ public class Renderer implements ApplicationListener{
 
         blocks.processBlocks();
 
-        if(!xray){
+        if(!Client.xray){
             blocks.drawShadows();
         }
         Draw.color();
@@ -379,7 +379,7 @@ public class Renderer implements ApplicationListener{
 
     private void drawFlyerShadows(){
         float trnsX = -12, trnsY = -13;
-        Draw.color(0, 0, 0, 0.22f * flyingOpacity);
+        Draw.color(0, 0, 0, 0.22f * Client.flyingOpacity);
 
         unitGroup.draw(unit -> unit.isFlying() && !unit.isDead(), baseUnit -> baseUnit.drawShadow(trnsX, trnsY));
         playerGroup.draw(unit -> unit.isFlying() && !unit.isDead(), player -> player.drawShadow(trnsX, trnsY));

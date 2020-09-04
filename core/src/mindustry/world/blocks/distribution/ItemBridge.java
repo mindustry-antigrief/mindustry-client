@@ -8,6 +8,7 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.util.*;
+import mindustry.client.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
 import mindustry.graphics.*;
@@ -226,7 +227,7 @@ public class ItemBridge extends Block{
 
         float opacity = Core.settings.getInt("bridgeopacity") / 100f;
         if(Mathf.zero(opacity)) return;
-        if(xray){
+        if(Client.xray){
             Draw.alpha(0.1f);
         }
 

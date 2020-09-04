@@ -15,7 +15,7 @@ import mindustry.world.blocks.*;
 
 import java.util.concurrent.atomic.*;
 
-import static mindustry.Vars.defaultTilePos;
+import static mindustry.client.AutoItemTransfer.defaultTilePos;
 
 public class TransferCreateDialog extends FloatingDialog{
     private TransferEndpoint start;
