@@ -73,6 +73,7 @@ public class UI implements ApplicationListener, Loadable{
     public ColorPicker picker;
     public TransferDialog transfer;
     public FeaturesDialog features;
+    public FindDialog find;
 
     public Cursor drillCursor, unloadCursor;
 
@@ -186,6 +187,7 @@ public class UI implements ApplicationListener, Loadable{
         schematics = new SchematicsDialog();
         transfer = new TransferDialog();
         features = new FeaturesDialog();
+        find = new FindDialog();
 
         Group group = Core.scene.root;
 
@@ -206,6 +208,7 @@ public class UI implements ApplicationListener, Loadable{
         listfrag.build(hudGroup);
         scriptfrag.container().build(hudGroup);
         loadfrag.build(group);
+        find.build();
         new FadeInFragment().build(group);
     }
 

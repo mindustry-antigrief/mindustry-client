@@ -2,6 +2,7 @@ package mindustry.world.blocks.power;
 
 import arc.graphics.*;
 import arc.graphics.g2d.*;
+import mindustry.client.*;
 import mindustry.graphics.*;
 import mindustry.world.*;
 
@@ -22,7 +23,7 @@ public class Battery extends PowerDistributor{
     @Override
     public void draw(Tile tile){
         Draw.color(emptyLightColor, fullLightColor, tile.entity.power.status);
-        if(xray){
+        if(Client.xray){
             Draw.alpha(Transparency.convertTransparency(1f));
         }
         Fill.square(tile.drawx(), tile.drawy(), tilesize * size / 2f - 1);

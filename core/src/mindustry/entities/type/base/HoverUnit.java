@@ -1,12 +1,11 @@
 package mindustry.entities.type.base;
 
-import arc.graphics.*;
 import arc.graphics.g2d.Draw;
 import arc.math.Angles;
 import arc.math.Mathf;
 import mindustry.entities.Units;
 
-import static mindustry.Vars.flyingOpacity;
+import static mindustry.client.Client.flyingOpacity;
 
 public class HoverUnit extends FlyingUnit{
 

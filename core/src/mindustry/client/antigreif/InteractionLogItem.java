@@ -1,6 +1,5 @@
 package mindustry.client.antigreif;
 
-import mindustry.*;
 import mindustry.client.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.world.*;
@@ -45,10 +44,10 @@ public class InteractionLogItem{
         if(block != null){
             BuildRequest req = new BuildRequest(x, y, rotation, block);
             req.breaking = !remove;
-            Vars.undid_hashes.add(req.hashCode());
+            Client.undid_hashes.add(req.hashCode());
             return req;
         }
-        Vars.configRequests.addLast(config.getUndoRequest());
+        Client.configRequests.addLast(config.getUndoRequest());
         return null;
     }
 

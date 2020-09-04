@@ -4,6 +4,7 @@ import arc.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
+import mindustry.client.*;
 import mindustry.world.*;
 
 import static mindustry.Vars.*;
@@ -35,7 +36,7 @@ public class ExtendingItemBridge extends ItemBridge{
         float opacity = Core.settings.getInt("bridgeopacity") / 100f;
         if(Mathf.zero(opacity)) return;
         Draw.alpha(opacity);
-        if(xray){
+        if(Client.xray){
             Draw.alpha(0.1f);
         }
 

@@ -7,6 +7,7 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import mindustry.client.*;
 import mindustry.client.ui.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.traits.BuilderTrait.*;
@@ -148,22 +149,22 @@ public class PlayerListFragment extends Fragment{
 
             }
             ImageButton button2 = new ImageButton(Icon.zoom, Styles.clearPartiali);
-            button2.clicked(() -> stalking = user);
+            button2.clicked(() -> Client.stalking = user);
             TextTooltip.addTooltip(button2, "Watch player");
             button.add(button2);
 
             button2 = new ImageButton(Icon.copy, Styles.clearPartiali);
             button2.clicked(() -> {
-                following = user;
-                breakingFollowing = false;
+                Client.following = user;
+                Client.breakingFollowing = false;
             });
             TextTooltip.addTooltip(button2, "Assist player");
             button.add(button2);
 
             button2 = new ImageButton(Icon.defense, Styles.clearPartiali);
             button2.clicked(() -> {
-                breakingFollowing = true;
-                following = user;
+                Client.breakingFollowing = true;
+                Client.following = user;
             });
             TextTooltip.addTooltip(button2, "Block player from building/breaking blocks");
             button.add(button2);

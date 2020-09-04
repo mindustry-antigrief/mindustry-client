@@ -47,7 +47,7 @@ import java.time.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
-import static mindustry.client.Client.transferPaused;
+import static mindustry.client.AutoItemTransfer.transferPaused;
 
 public class HudFragment extends Fragment{
     public final PlacementFragment blockfrag = new PlacementFragment();
@@ -308,30 +308,30 @@ public class HudFragment extends Fragment{
 
             ImageButton button = new ImageButton(Icon.file);
             button.clicked(() -> {
-                waypointStartTime = Clock.systemUTC().millis();
-                waypoints.clear();
-                waypoints.add(new Waypoint(camera.position.x, camera.position.y));
-                recordingWaypoints = true;
+                Client.waypointStartTime = Clock.systemUTC().millis();
+                Client.waypoints.clear();
+                Client.waypoints.add(new Waypoint(camera.position.x, camera.position.y));
+                Client.recordingWaypoints = true;
             });
             TextTooltip.addTooltip(button, "Create new path");
             cont.add(button).top().left().padTop(5f);
 
             button = new ImageButton(Icon.box);
             button.clicked(() -> {
-                waypoints.add(new Waypoint(camera.position.x, camera.position.y));
+                Client.waypoints.add(new Waypoint(camera.position.x, camera.position.y));
             });
             TextTooltip.addTooltip(button, "Place waypoint");
             cont.add(button).top().left().padTop(5f);
 
             button = new ImageButton(Icon.move);
             button.clicked(() -> {
-                recordingWaypoints = false;
-                followingWaypoints = true;
-                repeatWaypoints = true;
-                waypointFollowStartTime = Clock.systemUTC().millis();
-                notDone.clear();
-                for(Waypoint w : waypoints){
-                    notDone.addFirst(w);
+                Client.recordingWaypoints = false;
+                Client.followingWaypoints = true;
+                Client.repeatWaypoints = true;
+                Client.waypointFollowStartTime = Clock.systemUTC().millis();
+                Client.notDone.clear();
+                for(Waypoint w : Client.waypoints){
+                    Client.notDone.addFirst(w);
                 }
             });
             TextTooltip.addTooltip(button, "Follow path");
@@ -339,17 +339,17 @@ public class HudFragment extends Fragment{
 
             button = new ImageButton(Icon.exit);
             button.clicked(() -> {
-                recordingWaypoints = false;
-                followingWaypoints = false;
-                notDone.clear();
+                Client.recordingWaypoints = false;
+                Client.followingWaypoints = false;
+                Client.notDone.clear();
             });
             TextTooltip.addTooltip(button, "Stops placing or following paths");
             cont.add(button).top().left().padTop(5f);
 
             button = new ImageButton(Icon.eraser);
             button.clicked(() -> {
-                notDone.clear();
-                waypoints.clear();
+                Client.notDone.clear();
+                Client.waypoints.clear();
             });
             TextTooltip.addTooltip(button, "Clear path");
             cont.add(button).top().left().padTop(5f);
@@ -366,7 +366,7 @@ public class HudFragment extends Fragment{
                         }
                     }
                 }
-                connected.clear();
+                Client.connected.clear();
                 for(int i = 0; i < nodes.size; i += 1){
                     PowerNode node = nodes.get(i);
                     Tile nodeTile = nodeTiles.get(i);
@@ -389,12 +389,12 @@ public class HudFragment extends Fragment{
                                 continue;
                             }
                             if(tile2.entity != null){
-                                if(!connected.contains(tile2.pos())){
+                                if(!Client.connected.contains(tile2.pos())){
                                     if(tile2.entity.power != null){
                                         if(tile2.entity.power.status < 1f){
                                             if(!nodeTile.entity.power.links.contains(tile2.pos())){
-                                                connected.add(tile2.pos());
-                                                configRequests.addLast(new ConfigRequest(nodeTile, tile2.pos()));
+                                                Client.connected.add(tile2.pos());
+                                                Client.configRequests.addLast(new ConfigRequest(nodeTile, tile2.pos()));
                                             }
                                         }
                                     }
@@ -409,23 +409,23 @@ public class HudFragment extends Fragment{
 
             button = new ImageButton(Icon.file);
             button.clicked(() -> {
-                waypointStartTime = Clock.systemUTC().millis();
-                waypoints.clear();
-                waypoints.add(new Waypoint(camera.position.x, camera.position.y));
-                recordingWaypoints = true;
-                wayFinding = true;
-                repeatWaypoints = false;
+                Client.waypointStartTime = Clock.systemUTC().millis();
+                Client.waypoints.clear();
+                Client.waypoints.add(new Waypoint(camera.position.x, camera.position.y));
+                Client.recordingWaypoints = true;
+                Client.wayFinding = true;
+                Client.repeatWaypoints = false;
             });
             TextTooltip.addTooltip(button, "Start new pathfinding path\n Press exit to finish");
             cont.add(button).top().left().padTop(5f);
 
             button = new ImageButton(Icon.exit);
             button.clicked(() -> {
-                if(waypoints.size == 0){
+                if(Client.waypoints.size == 0){
                     return;
                 }
-                recordingWaypoints = false;
-                Waypoint startingWaypoint = waypoints.first();
+                Client.recordingWaypoints = false;
+                Waypoint startingWaypoint = Client.waypoints.first();
                 Waypoint endingWaypoint = new Waypoint(camera.position.x, camera.position.y);
                 Array<Waypoint> newWaypoints = new Array<>();
                 Array<TurretEntity> turrets = new Array<>();
@@ -436,12 +436,12 @@ public class HudFragment extends Fragment{
                         }
                     }
                 }
-                waypoints.clear();
+                Client.waypoints.clear();
                 Array<int[]> points = AStar.findPathTurrets(turrets, startingWaypoint.x, startingWaypoint.y, endingWaypoint.x, endingWaypoint.y, world.width(), world.height(), player.getTeam());
                 if(points != null){
                     points.reverse();
                     for(int[] position : points){
-                        waypoints.add(new Waypoint(position[0] * 8, position[1] * 8));
+                        Client.waypoints.add(new Waypoint(position[0] * 8, position[1] * 8));
                     }
                 }
             });
@@ -469,7 +469,7 @@ public class HudFragment extends Fragment{
             t.top().right();
             t.row();
             t.label(() -> world.toTile(camera.position.x) + "," + world.toTile(camera.position.y))
-                .visible(() -> Core.settings.getBool("position") && !state.rules.tutorial && cameraPositionOverride != null).color(Pal.accent);
+                .visible(() -> Core.settings.getBool("position") && !state.rules.tutorial && Client.cameraPositionOverride != null).color(Pal.accent);
             t.top().right();
 
             //core items
@@ -625,19 +625,19 @@ public class HudFragment extends Fragment{
             if(world == null){
                 return "";
             }
-            if(world.tile(powerTilePos) == null){
+            if(world.tile(Client.powerTilePos) == null){
                 return "";
             }
-            if(world.tile(powerTilePos).block() == null){
+            if(world.tile(Client.powerTilePos).block() == null){
                 return "";
             }
-            if(world.tile(powerTilePos).entity == null){
+            if(world.tile(Client.powerTilePos).entity == null){
                 return "";
             }
-            if(world.tile(powerTilePos).entity.power == null){
+            if(world.tile(Client.powerTilePos).entity.power == null){
                 return "";
             }
-            Tile tile = world.tile(powerTilePos);
+            Tile tile = world.tile(Client.powerTilePos);
             float power = tile.entity.power.graph.getPowerBalance();
             for(PowerGraph graph : tile.entity.power.graph.diodedNetworks){
                 if(graph != null){
@@ -652,7 +652,7 @@ public class HudFragment extends Fragment{
             if(world == null){
                 return 0f;
             }
-            Tile tile = world.tile(powerTilePos);
+            Tile tile = world.tile(Client.powerTilePos);
             if(tile == null){
                 return 0f;
             }
@@ -677,7 +677,7 @@ public class HudFragment extends Fragment{
             if(world == null){
                 return "";
             }
-            Tile tile = world.tile(powerTilePos);
+            Tile tile = world.tile(Client.powerTilePos);
             if(tile == null){
                 return "";
             }
@@ -699,7 +699,7 @@ public class HudFragment extends Fragment{
             if(world == null){
                 return 0f;
             }
-            Tile tile = world.tile(powerTilePos);
+            Tile tile = world.tile(Client.powerTilePos);
             if(tile == null){
                 return 0f;
             }

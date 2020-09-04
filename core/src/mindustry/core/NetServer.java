@@ -10,6 +10,7 @@ import arc.util.CommandHandler.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.GameState.*;
@@ -305,19 +306,19 @@ public class NetServer implements ApplicationListener{
         clientCommands.<Player>register("shrug", "<message...>", "Send a message with ¯\\_(ツ)_/¯ at the end.", (args, player) -> {
             Call.sendChatMessage(String.join("", args) + " ¯\\_(ツ)_/¯");
         });
-        localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
         clientCommands.<Player>register("here", "", "Sends your location in chat.", (args, player) -> {
             Call.sendChatMessage(String.format("%d,%d", player.tileX(), player.tileY()));
         });
-        localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
         clientCommands.<Player>register("go", "[destination...]", "Navigates to a destination.", (args, player) -> {
             String arg = String.join("", args);
             Player found;
-            if(targetPosition != null){
-                player.navigateTo(targetPosition.x * 8, targetPosition.y * 8);
-                targetPosition = null;
+            if(Client.targetPosition != null){
+                player.navigateTo(Client.targetPosition.x * 8, Client.targetPosition.y * 8);
+                Client.targetPosition = null;
             }
 
             if(arg.length() > 1 && arg.startsWith("#") && Strings.canParseInt(arg.substring(1))){
@@ -338,7 +339,7 @@ public class NetServer implements ApplicationListener{
                 player.navigateTo(Integer.parseInt(digits[0]) * 8, Integer.parseInt(digits[1]) * 8);
             }
         });
-        localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
 
         //duration of a a kick in seconds

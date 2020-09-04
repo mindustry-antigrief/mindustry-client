@@ -7,6 +7,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.client.*;
 import mindustry.client.pathfinding.*;
 import mindustry.content.*;
 import mindustry.entities.*;
@@ -88,23 +89,23 @@ public class OverlayRenderer{
             }
         }
 
-        for(Waypoint w : waypoints){
-            if(notDone.indexOf(w, false) == -1){
+        for(Waypoint w : Client.waypoints){
+            if(Client.notDone.indexOf(w, false) == -1){
                 Lines.stroke(3, new Color(0F, 0.8F, 0F, 0.5F));
             }else{
                 Lines.stroke(3, new Color(0.2F, 0.2F, 0.8F, 0.5F));
             }
             Fill.circle(w.x, w.y, 16);
         }
-        if(waypoints.size > 0){
+        if(Client.waypoints.size > 0){
             Lines.stroke(3, new Color(0.1F, 0.1F, 0.5F, 0.5F));
-            Waypoint prev = waypoints.first();
-            for(Waypoint w : waypoints){
+            Waypoint prev = Client.waypoints.first();
+            for(Waypoint w : Client.waypoints){
                 Lines.line(w.x, w.y, prev.x, prev.y);
                 prev = w;
             }
         }
-        for(Vec3 target : crosshairs){
+        for(Vec3 target : Client.crosshairs){
             Draw.color(Team.get((int)target.z).color);
             Draw.alpha(0.75F);
             float crosshairScale = 1F;
@@ -118,7 +119,7 @@ public class OverlayRenderer{
             for(Tile tile : tiles){
                 if(tile != null){
                     if(tile.block() instanceof Turret){
-                        if(showTurretRanges && tile.getTeam() != player.getTeam()){
+                        if(Client.showTurretRanges && tile.getTeam() != player.getTeam()){
                             Drawf.dashCircle(tile.drawx(), tile.drawy(), ((Turret)tile.block()).range, tile.getTeam().color);
                         }
                         Draw.color();

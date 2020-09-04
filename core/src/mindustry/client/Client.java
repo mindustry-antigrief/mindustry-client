@@ -4,35 +4,54 @@ import arc.*;
 import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
-import arc.scene.ui.*;
-import arc.scene.utils.*;
 import arc.struct.*;
+import arc.struct.Queue;
 import arc.util.*;
+import arc.util.CommandHandler.*;
+import mindustry.client.pathfinding.*;
 import mindustry.entities.traits.BuilderTrait.*;
+import mindustry.entities.type.*;
 import mindustry.input.*;
-import mindustry.ui.*;
-import mindustry.ui.dialogs.*;
 import mindustry.world.*;
-
+import java.util.*;
 import static arc.Core.*;
 import static mindustry.Vars.*;
-import static mindustry.client.utils.Levenshtein.distanceCompletion;
 
 public class Client{
-    public static boolean transferPaused = false;
+    public static Player stalking = player;
+    public static Player following = player;
+    public static boolean breakingFollowing = false;
+    public static HashSet<Integer> undid_hashes = new HashSet<>();
+    public static Array<Waypoint> waypoints = new Array<>();
+    public static long waypointStartTime = 0;
+    public static boolean followingWaypoints = false;
+    public static long waypointFollowStartTime = 0;
+    public static Queue<Waypoint> notDone = new Queue<>();
+    public static boolean recordingWaypoints = false;
+    public static long waypointEndTime = 0;
+    public static Vec2 cameraPositionOverride = null;
+    public static float flyingOpacity = 0.2F;
+    public static boolean repeatWaypoints = true;
+    public static boolean autoBuild = false;
+    public static boolean autoMine = false;
+    public static Queue<ConfigRequest> configRequests = new Queue<>();
+    public static Block found;
+    public static Vec2 targetPosition = new Vec2();
+    public static boolean wayFinding = false;
+    public static Array<Vec3> crosshairs = new Array<>();
+    public static HashSet<Integer> connected = new HashSet<>();
+    public static int powerTilePos = 0;
+    public static Array<Command> localCommands = new Array<>();
+    public static boolean showTurretRanges = false;
+    public static BuildRequest building;
+    public static long lastAutoresponseSent = 0;
+    public static long lastCommandSent = 0;
+    public static boolean xray = false;
 
     public static void update(){
         PowerGridFinder.INSTANCE.updatePower();
 
-        if(!transferPaused){
-            boolean updateTransfer = new Rand().chance(1 / 60f);
-            for(TransferItem transfer : ui.transfer.transferRequests){
-                transfer.run();
-                if(updateTransfer){
-                    transfer.update();
-                }
-            }
-        }
+        AutoItemTransfer.runTransfers();
 
         for(int i = 0; i < 50; i += 1){
             if(configRequests.size > 0){
@@ -64,65 +83,8 @@ public class Client{
             }
         }
 
-        if(input.keyDown(KeyCode.CONTROL_LEFT) && input.keyRelease(KeyCode.F)){
-            FloatingDialog dialog = new FloatingDialog("find");
-            dialog.addCloseButton();
-            Array<Image> imgs = new Array<>();
-            for(int i = 0; i < 10; i += 1){
-                imgs.add(new Image());
-            }
-            TextField field = Elements.newField("", (string) -> {
-                Array<Block> sorted = content.blocks().copy();
-                sorted = sorted.sort((b) -> distanceCompletion(string, b.name));
-                found = sorted.first();
-                for(int i = 0; i < imgs.size - 1; i += 1){
-                    Image region = new Image(sorted.get(i).icon(Cicon.large));
-                    region.setSize(32);
-                    imgs.get(i).setDrawable(region.getDrawable());
-                }
-
-            });
-            dialog.cont.add(field);
-            for(Image img : imgs){
-                dialog.cont.row().add(img);
-            }
-
-            dialog.keyDown(KeyCode.ENTER, () -> {
-                if(found == null){
-                    dialog.hide();
-                }
-                Array<Tile> tiles = new Array<>();
-                for(Tile[] t : world.getTiles()){
-                    for(Tile tile2 : t){
-                        if(tile2.block() != null){
-                            if(tile2.block().name.equals(found.name) && tile2.getTeam() == player.getTeam()){
-                                tiles.add(tile2);
-                            }
-                        }
-                    }
-                }
-                if(tiles.size > 0){
-                    float dist = Float.POSITIVE_INFINITY;
-                    Tile closest = null;
-
-                    for(Tile t : tiles){
-                        float d = Mathf.dst(player.x, player.y, t.x, t.y);
-                        if(d < dist){
-                            closest = t;
-                            dist = d;
-
-                        }
-                    }
-                    if(closest != null){
-                        targetPosition = new Vec2(closest.x, closest.y);
-                        ui.chatfrag.addMessage(String.format("%d, %d (/go to travel there)", (int)closest.x, (int)closest.y), "client");
-                        dialog.hide();
-                    }
-                }
-            });
-            dialog.show();
-            findField = dialog;
-            scene.setKeyboardFocus(field);
+        if(input.ctrl() && input.keyTap(KeyCode.F)){
+            scene.setKeyboardFocus(ui.find.show().findField);
         }
 
         if(scene.getKeyboardFocus() == null && control.input.block == null){
@@ -157,10 +119,7 @@ public class Client{
             }
             if(input.keyTap(Binding.xray_toggle)){
                 xray = !xray;
-//                renderer.blocks.refreshShadows();
             }
         }
-
-
     }
 }

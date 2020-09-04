@@ -14,7 +14,6 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.ArcAnnotate.*;
 import arc.util.*;
-import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigreif.*;
@@ -848,10 +847,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(tile.block().acceptStack(stack.item, stack.amount, tile, player) > 0 && tile.interactable(player.getTeam()) && tile.block().hasItems && player.item().amount > 0 && !player.isTransferring && tile.interactable(player.getTeam())){
             Call.transferInventory(player, tile);
-            if(recordingWaypoints){
+            if(Client.recordingWaypoints){
                 Waypoint w = new Waypoint(camera.position.x, camera.position.y);
                 w.dump = tile.pos();
-                waypoints.add(w);
+                Client.waypoints.add(w);
             }
         }else{
             Call.dropItem(player.angleTo(x, y));

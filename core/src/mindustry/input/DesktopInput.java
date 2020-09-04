@@ -13,13 +13,12 @@ import arc.scene.ui.layout.*;
 import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.client.*;
 import mindustry.client.antigreif.*;
 import mindustry.client.pathfinding.*;
 import mindustry.client.ui.*;
 import mindustry.core.GameState.*;
-import mindustry.entities.*;
 import mindustry.entities.traits.BuilderTrait.*;
-import mindustry.entities.type.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -29,7 +28,7 @@ import mindustry.ui.*;
 import mindustry.world.*;
 import static arc.Core.*;
 import static mindustry.Vars.*;
-import static mindustry.client.Client.transferPaused;
+import static mindustry.client.AutoItemTransfer.transferPaused;
 import static mindustry.input.PlaceMode.*;
 
 public class DesktopInput extends InputHandler{
@@ -178,7 +177,7 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(KeyCode.CONTROL_LEFT) &&
             Core.input.keyRelease(KeyCode.Z)){
                 if(player.log.size > 0){
-                    if(undid_hashes.contains(player.log.peek().hashCode())){
+                    if(Client.undid_hashes.contains(player.log.peek().hashCode())){
                         player.log.pop();
                     }
                     BuildRequest req = player.log.pop().undoRequest();
@@ -189,11 +188,11 @@ public class DesktopInput extends InputHandler{
             }
 
             if(Core.input.keyTap(KeyCode.R)){
-                cameraPositionOverride = null;
+                Client.cameraPositionOverride = null;
             }
 
             if(Core.input.keyTap(KeyCode.BACKTICK)){
-                showTurretRanges = !showTurretRanges;
+                Client.showTurretRanges = !Client.showTurretRanges;
             }
             if(Core.input.keyTap(KeyCode.L)){
                 if(player.getState() == player.build){
@@ -207,25 +206,25 @@ public class DesktopInput extends InputHandler{
             }
 
             if(Core.input.keyTap(KeyCode.N)){
-                if(cameraPositionOverride != null){
-                    followingWaypoints = true;
-                    repeatWaypoints = false;
-                    notDone.addFirst(new Waypoint(cameraPositionOverride.x, cameraPositionOverride.y));
+                if(Client.cameraPositionOverride != null){
+                    Client.followingWaypoints = true;
+                    Client.repeatWaypoints = false;
+                    Client.notDone.addFirst(new Waypoint(Client.cameraPositionOverride.x, Client.cameraPositionOverride.y));
                 }
             }
 
             if(Core.input.keyTap(KeyCode.Z)){
-                if(cameraPositionOverride != null){
+                if(Client.cameraPositionOverride != null){
                     player.navigateTo(camera.position.x, camera.position.y);
                 }
             }
 
             if(Core.input.keyTap(KeyCode.B)){
-                autoBuild = !autoBuild;
+                Client.autoBuild = !Client.autoBuild;
             }
 
             if(input.keyTap(KeyCode.SEMICOLON)){
-                autoMine = !autoMine;
+                Client.autoMine = !Client.autoMine;
                 if(player.getState() == player.mine){
                     player.setState(player.normal);
                 }else{
@@ -468,7 +467,7 @@ public class DesktopInput extends InputHandler{
                     }
                     ui.chatfrag.addMessage(builder.toString(), "client");
                 }else if(input.shift() && input.ctrl()){
-                    defaultTilePos = selected.pos();
+                    AutoItemTransfer.defaultTilePos = selected.pos();
                 }else{
                     //only begin shooting if there's no cursor event
                     if(!tileTapped(selected) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && (player.buildQueue().size == 0 || !player.isBuilding) && !droppingItem &&
@@ -501,8 +500,8 @@ public class DesktopInput extends InputHandler{
         }else{
             deleting = false;
         }
-        if(following != null && following != player){
-            player.isShooting = following.isShooting;
+        if(Client.following != null && Client.following != player){
+            player.isShooting = Client.following.isShooting;
         }
 
         if(mode == placing && block != null){

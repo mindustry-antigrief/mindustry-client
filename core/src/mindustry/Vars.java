@@ -200,42 +200,6 @@ public class Vars implements Loadable{
 
     public static Player player;
 
-    public static Player stalking = player;
-
-    public static Player following = player;
-
-    public static boolean breakingFollowing = false;
-
-    public static HashSet<Integer> undid_hashes = new HashSet<>();
-    public static Array<Waypoint> waypoints = new Array<>();
-    public static long waypointStartTime = 0;
-    public static boolean followingWaypoints = false;
-    public static long waypointFollowStartTime = 0;
-    public static Queue<Waypoint> notDone = new Queue<>();
-    public static boolean recordingWaypoints = false;
-    public static long waypointEndTime = 0;
-    @Nullable
-    public static Vec2 cameraPositionOverride = null;
-    public static float flyingOpacity = 0.2F;
-    public static boolean repeatWaypoints = true;
-    public static boolean autoBuild = false;
-    public static boolean autoMine = false;
-    public static Queue<ConfigRequest> configRequests = new Queue<>();
-    public static Element findField;
-    public static Block found;
-    public static Vec2 targetPosition = new Vec2();
-    public static boolean wayFinding = false;
-    public static Array<Vec3> crosshairs = new Array<>();
-    public static HashSet<Integer> connected = new HashSet<>();
-    public static int powerTilePos = 0;
-    public static Array<Command> localCommands = new Array<>();
-    public static boolean showTurretRanges = false;
-    public static BuildRequest building;
-    public static long lastAutoresponseSent = 0;
-    public static long lastCommandSent = 0;
-    public static int defaultTilePos = 0;
-    public static boolean xray = false;
-
     @Override
     public void loadAsync(){
         loadSettings();
