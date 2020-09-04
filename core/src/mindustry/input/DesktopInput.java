@@ -178,6 +178,9 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(KeyCode.CONTROL_LEFT) &&
             Core.input.keyRelease(KeyCode.Z)){
                 if(player.log.size > 0){
+                    if(undid_hashes.contains(player.log.peek().hashCode())){
+                        player.log.pop();
+                    }
                     BuildRequest req = player.log.pop().undoRequest();
                     if(req != null){
                         player.buildQueue().addLast(req);

@@ -8,16 +8,16 @@ import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.*;
 
+import static mindustry.Vars.world;
+
 
 public class Waypoint{
     public float x, y;
     public long time;
-    @Nullable
-    public Tile pickup = null;
-    @Nullable
+    public Integer pickup = null;
+    public Integer dump = null;
     public Item item = null;
     public int amount = 0;
-    @Nullable
     public BuildRequest buildRequest = null;
 
     public Waypoint(float x, float y){
@@ -40,8 +40,12 @@ public class Waypoint{
         Player player = Vars.player;
 
         if(pickup != null && item != null){
-            Call.requestItem(player, pickup, item, amount);
+            Call.requestItem(player, world.tile(pickup), item, amount);
             return player.item().amount >= amount;
+        }
+        if(dump != null){
+            Call.transferInventory(player, world.tile(dump));
+//            return player.item().amount >= amount;
         }
 
         if(buildRequest != null){

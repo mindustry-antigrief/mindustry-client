@@ -163,7 +163,7 @@ public class BlockInventoryFragment extends Fragment{
                         if(amount > 0){
                             if(recordingWaypoints){
                                 Waypoint w = new Waypoint(camera.position.x, camera.position.y);
-                                w.pickup = tile;
+                                w.pickup = tile.pos();
                                 w.item = item;
                                 w.amount = amount;
                                 waypoints.add(w);
