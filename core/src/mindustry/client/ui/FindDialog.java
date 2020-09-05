@@ -23,6 +23,8 @@ public class FindDialog extends FloatingDialog{
     }
 
     public void build(){
+        cont.clear();
+        buttons.clear();
         addCloseButton();
         Array<Image> imgs = new Array<>();
         for(int i = 0; i < 10; i += 1){
@@ -80,10 +82,9 @@ public class FindDialog extends FloatingDialog{
     }
 
     public FindDialog show(){
-        findField.clearText();
-        if(findField != null){
-            Core.scene.setKeyboardFocus(findField);
-        }
-        return (FindDialog)super.show();
+        build();
+        super.show();
+        Core.scene.setKeyboardFocus(findField);
+        return this;
     }
 }
