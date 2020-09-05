@@ -84,7 +84,7 @@ public class Client{
         }
 
         if(input.ctrl() && input.keyTap(KeyCode.F)){
-            scene.setKeyboardFocus(ui.find.show().findField);
+            ui.find.show();
         }
 
         if(scene.getKeyboardFocus() == null && control.input.block == null){

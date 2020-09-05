@@ -38,6 +38,7 @@ import mindustry.world.blocks.BuildBlock.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 import mindustry.world.blocks.units.*;
+import mindustry.world.blocks.units.MechPad.*;
 
 import java.io.*;
 import java.time.*;
@@ -86,6 +87,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     public ObjectSet<Item> toMine = ObjectSet.with(Items.lead, Items.copper, Items.titanium, Items.thorium);
     private Integer buildTarget;
     public String readableName = "";
+    private Integer movingToMechPad = null;
     public UnitState previousState;
     private final ObjectSet<Block> bannedBlocks = new ObjectSet<>();
     {
@@ -337,6 +339,25 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
                 }
             }
         }catch(NullPointerException ignored){} //I PROMISE IT'S FINE
+    }
+
+    public void changeToMech(MechPad mech){
+        Array<Tile> mechPads = new Array<>();
+        for(Tile[] tiles : world.getTiles()){
+            for(Tile tile : tiles){
+                if(tile.block() == mech && tile.getTeam() == player.team){
+                    if(tile.entity.power.status > 0f){
+                        mechPads.add(tile);
+                    }
+                }
+            }
+        }
+        if(mechPads.size > 0){
+            Tile closest = Geometry.findClosest(player.getX(), player.getY(), mechPads);
+            player.navigateTo(closest.getX(), closest.getY());
+            movingToMechPad = closest.pos();
+            Client.notDone.last().distance = 0f;
+        }
     }
 
     //region unit and event overrides, utility methods
@@ -847,6 +868,21 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
             }
         }
 
+        if(movingToMechPad != null){
+            Tile tile = world.tile(movingToMechPad);
+            if(tile != null){
+                if(tile.block() instanceof MechPad){
+                    if(Core.graphics.getFrameId() % 5 == 0){
+                        Call.onTileTapped(this, tile);
+                    }
+                    if(player.mech == ((MechPad)tile.block()).mech || ((MechFactoryEntity)tile.entity).player == this){
+                        movingToMechPad = null;
+                        Client.notDone.clear();
+                    }
+                }
+            }
+        }
+
         hitTime -= Time.delta();
         textFadeTime -= Time.delta() / (60 * 5);
         itemtime = Mathf.lerpDelta(itemtime, Mathf.num(item.amount > 0), 0.1f);
@@ -954,7 +990,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
         Tile tile = world.tileWorld(x, y);
         boolean canMove = !Core.scene.hasKeyboard() || ui.minimapfrag.shown();
 
-        isBoosting = Core.input.keyDown(Binding.dash) && !mech.flying;
+        isBoosting = (Core.input.keyDown(Binding.dash) || !Client.notDone.isEmpty()) && !mech.flying;
 
         //if player is in solid block
         if(tile != null && tile.solid()){

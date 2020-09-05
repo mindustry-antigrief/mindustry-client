@@ -5,7 +5,6 @@ import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
 import mindustry.gen.*;
 import mindustry.type.*;
-
 import static mindustry.Vars.world;
 
 
@@ -17,6 +16,7 @@ public class Waypoint{
     public Item item = null;
     public int amount = 0;
     public BuildRequest buildRequest = null;
+    public float distance = 32f;
 
     public Waypoint(float x, float y){
         this.x = x;
@@ -50,6 +50,6 @@ public class Waypoint{
             return player.buildQueue().indexOf(buildRequest, false) == -1;
         }
 
-        return player.within(x, y, 32);
+        return player.within(x, y, distance);
     }
 }

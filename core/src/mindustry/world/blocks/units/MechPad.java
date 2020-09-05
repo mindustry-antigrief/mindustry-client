@@ -79,7 +79,7 @@ public class MechPad extends Block{
         Events.fire(new MechChangeEvent(player, player.mech));
     }
 
-    protected static boolean checkValidTap(Tile tile, Player player){
+    public static boolean checkValidTap(Tile tile, Player player){
         MechFactoryEntity entity = tile.ent();
         return !player.isDead() && tile.interactable(player.getTeam()) && Math.abs(player.x - tile.drawx()) <= tile.block().size * tilesize &&
         Math.abs(player.y - tile.drawy()) <= tile.block().size * tilesize && entity.cons.valid() && entity.player == null;
@@ -136,7 +136,7 @@ public class MechPad extends Block{
     }
 
     public class MechFactoryEntity extends TileEntity implements SpawnerTrait{
-        Player player;
+        public Player player;
         boolean sameMech;
         float progress;
         float time;

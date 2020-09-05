@@ -27,6 +27,7 @@ import mindustry.net.Administration.*;
 import mindustry.net.Packets.*;
 import mindustry.world.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
+import mindustry.world.blocks.units.*;
 
 import java.io.*;
 import java.net.*;
@@ -341,6 +342,40 @@ public class NetServer implements ApplicationListener{
         });
         Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
+        clientCommands.<Player>register("alpha", "", "Changes you to an alpha mech.", (args, player) -> {
+            player.changeToMech((MechPad)Blocks.dartPad);
+        });
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+
+        clientCommands.<Player>register("delta", "", "Changes you to a delta mech.", (args, player) -> {
+            player.changeToMech((MechPad)Blocks.deltaPad);
+        });
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+
+        clientCommands.<Player>register("tau", "", "Changes you to a tau mech.", (args, player) -> {
+            player.changeToMech((MechPad)Blocks.tauPad);
+        });
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+
+        clientCommands.<Player>register("omega", "", "Changes you to an omega mech.", (args, player) -> {
+            player.changeToMech((MechPad)Blocks.omegaPad);
+        });
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+
+        clientCommands.<Player>register("javelin", "", "Changes you to a javelin ship.", (args, player) -> {
+            player.changeToMech((MechPad)Blocks.javelinPad);
+        });
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+
+        clientCommands.<Player>register("trident", "", "Changes you to a trident ship.", (args, player) -> {
+            player.changeToMech((MechPad)Blocks.tridentPad);
+        });
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+
+        clientCommands.<Player>register("glaive", "", "Changes you to a glaive ship.", (args, player) -> {
+            player.changeToMech((MechPad)Blocks.glaivePad);
+        });
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
         //duration of a a kick in seconds
         int kickDuration = 60 * 60;

@@ -1,5 +1,6 @@
 package mindustry.client.ui;
 
+import arc.*;
 import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
@@ -15,7 +16,7 @@ import static mindustry.client.Client.*;
 import static mindustry.client.utils.Levenshtein.distanceCompletion;
 
 public class FindDialog extends FloatingDialog{
-    public TextField findField = null;
+    private TextField findField = null;
 
     public FindDialog(){
         super("find");
@@ -79,6 +80,10 @@ public class FindDialog extends FloatingDialog{
     }
 
     public FindDialog show(){
+        findField.clearText();
+        if(findField != null){
+            Core.scene.setKeyboardFocus(findField);
+        }
         return (FindDialog)super.show();
     }
 }
