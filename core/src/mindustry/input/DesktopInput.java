@@ -384,7 +384,7 @@ public class DesktopInput extends InputHandler{
 //                player.setBuilding();
             }
 
-            if(Core.input.keyTap(KeyCode.N)){
+            if(Core.input.keyTap(Binding.go_to_camera)){
                 if(cameraPositionOverride != null){
                     followingWaypoints = true;
                     repeatWaypoints = false;
@@ -392,7 +392,7 @@ public class DesktopInput extends InputHandler{
                 }
             }
 
-            if(Core.input.keyTap(KeyCode.Z)){
+            if(Core.input.keyTap(Binding.navigate_to_camera)){
                 if(cameraPositionOverride != null){
                     player.navigateTo(camera.position.x, camera.position.y);
                 }
@@ -402,7 +402,7 @@ public class DesktopInput extends InputHandler{
                 autoBuild = !autoBuild;
             }
 
-            if(input.keyTap(KeyCode.SEMICOLON)){
+            if(input.keyTap(Binding.toggle_draug)){
                 autoMine = !autoMine;
                 if(player.getState() == player.mine){
                     player.setState(player.normal);
@@ -410,11 +410,6 @@ public class DesktopInput extends InputHandler{
                     player.setState(player.mine);
                 }
             }
-//            if(autoMine){
-//                player.setState(player.mine);
-//            }else{
-//                player.setState(player.normal);
-//            }
         }
 
         float speed = (8F / renderer.getScale()) * Time.delta();
