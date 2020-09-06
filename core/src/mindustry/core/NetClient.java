@@ -29,12 +29,11 @@ import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.modules.*;
-
 import java.io.*;
 import java.util.regex.*;
 import java.util.zip.*;
-
 import static mindustry.Vars.*;
+import static mindustry.client.Client.*;
 
 public class NetClient implements ApplicationListener{
     private final static float dataTimeout = 60 * 18;
