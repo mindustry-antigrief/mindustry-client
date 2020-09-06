@@ -9,7 +9,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class RSA {
     public static KeyPair generateKeyPair() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-        generator.initialize(2048, new SecureRandom());
+        generator.initialize(512, new SecureRandom());
         KeyPair pair = generator.generateKeyPair();
 
         return pair;

@@ -13,7 +13,10 @@ public class PrivateAccessRemover{
             Field f = object.getClass().getDeclaredField(name);
             f.setAccessible(true);
             return f.get(object);
-        }catch(NoSuchFieldException | IllegalAccessException error){
+        }catch(NoSuchFieldException error){
+            System.out.println("Reflective access failed!  The program will now crash.");
+            return null;
+        }catch(IllegalAccessException error){
             System.out.println("Reflective access failed!  The program will now crash.");
             return null;
         }
