@@ -377,6 +377,16 @@ public class NetServer implements ApplicationListener{
         });
         Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
+        clientCommands.<Player>register("crypto", "<dest> <message...>", "yeet", (args, player) -> {
+            if(!Client.cachedKeys.containsKey(args[0])){
+                Client.cachedKeys.put(args[0], new AESSecurityCap());
+                Call.sendChatMessage("PUBLIC KEY:" + Client.cachedKeys.get(args[0]).getPublicKeyEncoded());
+            }else{
+                Call.sendChatMessage(Client.cachedKeys.get(args[0]).encrypt(args[1]));
+            }
+        });
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+
         //duration of a a kick in seconds
         int kickDuration = 60 * 60;
         //voting round duration in seconds

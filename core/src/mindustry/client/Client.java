@@ -9,10 +9,13 @@ import arc.struct.Queue;
 import arc.util.*;
 import arc.util.CommandHandler.*;
 import mindustry.client.pathfinding.*;
+import mindustry.client.utils.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
 import mindustry.input.*;
 import mindustry.world.*;
+
+import java.security.*;
 import java.util.*;
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -47,6 +50,7 @@ public class Client{
     public static long lastAutoresponseSent = 0;
     public static long lastCommandSent = 0;
     public static boolean xray = false;
+    public static ObjectMap<String, AESSecurityCap> cachedKeys = new ObjectMap<>();
 
     public static void update(){
         PowerGridFinder.INSTANCE.updatePower();

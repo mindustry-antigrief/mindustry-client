@@ -12,6 +12,7 @@ import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
+import mindustry.client.utils.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
@@ -158,6 +159,9 @@ public class NetClient implements ApplicationListener{
 
         if(message.startsWith("!here") && Core.settings.getBool("autorespond")){
             Call.sendChatMessage(String.format("[coral][autoresponse][lightgray]%s [lightgray], you are at %d,%d", playersender.name, playersender.tileX(), playersender.tileY()));
+        }
+        if(message.startsWith("PUBLIC KEY:")){
+            Call.sendChatMessage("PUBLIC KEY:" + cachedKeys.get(sender).getPublicKeyEncoded());
         }
 
         Pattern regex = Pattern.compile("\\d+(,|\\s)\\s?\\d+");
