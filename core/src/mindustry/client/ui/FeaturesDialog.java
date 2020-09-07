@@ -72,6 +72,7 @@ public class FeaturesDialog extends FloatingDialog{
         label(t, "/here command - posts your coordinates in chat", color1);
         label(t, "G - toggle X-ray mode", color2);
         label(t, "/alpha, /delta, /tau, etc commands - goes to the nearest mech/ship pad", color1);
+        label(t, "/crypto <name> [message...] - sends the specified player an encrypted message (if they have the client)", color2);
 
         label(t, "Discord: discord.gg/yp9ZW7j", titleColor);
 
