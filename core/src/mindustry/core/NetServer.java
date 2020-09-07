@@ -33,7 +33,6 @@ import mindustry.world.blocks.units.*;
 import java.io.*;
 import java.net.*;
 import java.nio.*;
-import java.util.*;
 import java.util.regex.*;
 import java.util.zip.*;
 
@@ -383,11 +382,11 @@ public class NetServer implements ApplicationListener{
             try{
                 if(!Client.cachedKeys.containsKey(args[0])){
                     Client.cachedKeys.put(args[0], new AESSecurityCap());
-                    Call.sendChatMessage(Base64Coder.encodeString(args[0], true) + "%KEY%" + Client.cachedKeys.get(args[0]).getPublicKeyEncoded());
+                    Call.sendChatMessage(Base256Coder.encode(args[0]) + "%KEY%" + Client.cachedKeys.get(args[0]).getPublicKeyEncoded());
                 }else if(Client.cachedKeys.get(args[0]).hasOtherKey){
-                    Call.sendChatMessage(Base64Coder.encodeString(args[0], true) + "%ENC%" + Client.cachedKeys.get(args[0]).encrypt(args[1]));
+                    Call.sendChatMessage(Base256Coder.encode(args[0]) + "%ENC%" + Client.cachedKeys.get(args[0]).encrypt(args[1]));
                 }else if(!Client.cachedKeys.get(args[0]).hasOtherKey){
-                    Call.sendChatMessage(Base64Coder.encodeString(args[0], true) + "%KEY%" + Client.cachedKeys.get(args[0]).getPublicKeyEncoded());
+                    Call.sendChatMessage(Base256Coder.encode(args[0]) + "%KEY%" + Client.cachedKeys.get(args[0]).getPublicKeyEncoded());
                 }
             }catch(Exception e){
                 e.printStackTrace();

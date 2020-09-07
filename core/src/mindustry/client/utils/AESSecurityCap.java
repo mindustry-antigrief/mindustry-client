@@ -1,6 +1,5 @@
 package mindustry.client.utils;
 
-import arc.util.serialization.*;
 import sun.security.ec.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
@@ -47,7 +46,7 @@ public class AESSecurityCap {
 
     public void setReceiverPublicKey(String publickey) {
         try{
-            setReceiverPublicKey(new ECPublicKeyImpl(Base64Coder.decode(publickey)));
+            setReceiverPublicKey(new ECPublicKeyImpl(Base256Coder.decode(publickey)));
         }catch(InvalidKeyException e){
             e.printStackTrace();
         }
@@ -59,7 +58,7 @@ public class AESSecurityCap {
             Cipher c = Cipher.getInstance(ALGO);
             c.init(Cipher.ENCRYPT_MODE, key, generateIv());
             byte[] encVal = c.doFinal(msg.getBytes());
-            return String.valueOf(Base64Coder.encode(encVal));
+            return Base256Coder.encode(encVal);
         } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
@@ -71,7 +70,7 @@ public class AESSecurityCap {
             Key key = generateKey();
             Cipher c = Cipher.getInstance(ALGO);
             c.init(Cipher.DECRYPT_MODE, key, generateIv());
-            byte[] decordedValue = Base64Coder.decode(encryptedData);
+            byte[] decordedValue = Base256Coder.decode(encryptedData);
             byte[] decValue = c.doFinal(decordedValue);
             return new String(decValue);
         } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
@@ -117,6 +116,6 @@ public class AESSecurityCap {
     }
 
     public String getPublicKeyEncoded(){
-        return String.valueOf(Base64Coder.encode(publickey.getEncoded()));
+        return Base256Coder.encode(publickey.getEncoded());
     }
 }

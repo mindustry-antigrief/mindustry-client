@@ -160,13 +160,13 @@ public class NetClient implements ApplicationListener{
         if(message.startsWith("!here") && Core.settings.getBool("autorespond")){
             Call.sendChatMessage(String.format("[coral][autoresponse][lightgray]%s [lightgray], you are at %d,%d", playersender.name, playersender.tileX(), playersender.tileY()));
         }
-        if(message.contains("%KEY%") && playersender != player && Base64Coder.decodeString(message.split("%KEY%")[0], true).equals(player.name)){
+        if(message.contains("%KEY%") && playersender != player && Base256Coder.decodeString(message.split("%KEY%")[0]).equals(player.name)){
             sender = sender.substring(11);
             if(cachedKeys.get(sender) == null){
                 //Not a response to your key
                 cachedKeys.put(sender, new AESSecurityCap());
                 cachedKeys.get(sender).setReceiverPublicKey(message.split("%KEY%")[1]);
-                Call.sendChatMessage(Base64Coder.encodeString(sender, true) + "%KEY%" + cachedKeys.get(sender).getPublicKeyEncoded());
+                Call.sendChatMessage(Base256Coder.encode(sender) + "%KEY%" + cachedKeys.get(sender).getPublicKeyEncoded());
             }else if(!cachedKeys.get(sender).hasOtherKey){
                 //Responding to your key
                 cachedKeys.get(sender).setReceiverPublicKey(message.split("%KEY%")[1]);
@@ -174,7 +174,7 @@ public class NetClient implements ApplicationListener{
         }
         if(message.contains("%ENC%") && playersender != player){
             sender = sender.substring(11);
-            String destination = Base64Coder.decodeString(message.split("%ENC%")[0], true);
+            String destination = Base256Coder.decodeString(message.split("%ENC%")[0]);
             String ciphertext = message.split("%ENC%")[1];
             if(destination.equals(player.name)){
                 if(cachedKeys.containsKey(sender)){
@@ -185,7 +185,7 @@ public class NetClient implements ApplicationListener{
                 }
             }
         }else if(message.contains("%ENC%") && playersender == player){
-            String destination = Base64Coder.decodeString(message.split("%ENC%")[0], true);
+            String destination = Base256Coder.decodeString(message.split("%ENC%")[0]);
             String ciphertext = message.split("%ENC%")[1];
             if(cachedKeys.containsKey(destination)){
                 if(cachedKeys.get(destination).hasOtherKey){
