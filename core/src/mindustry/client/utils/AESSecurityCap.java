@@ -47,9 +47,13 @@ public class AESSecurityCap {
     public void setReceiverPublicKey(String publickey) {
         try{
             setReceiverPublicKey(new ECPublicKeyImpl(Base256Coder.decode(publickey)));
-        }catch(InvalidKeyException e){
-            e.printStackTrace();
-        }
+        }catch(InvalidKeyException ignored){}
+    }
+
+    public void setReceiverPublicKey(byte[] publickey) {
+        try{
+            setReceiverPublicKey(new ECPublicKeyImpl(publickey));
+        }catch(InvalidKeyException ignored){}
     }
 
     public String encrypt(String msg) {
@@ -103,7 +107,9 @@ public class AESSecurityCap {
 
         client1.setReceiverPublicKey(client2.getPublicKeyEncoded());
         System.out.println(client2.getPublicKeyEncoded());
+        System.out.println("A");
         System.out.println(client2.getPublicKeyEncoded().length());
+        System.out.println("B");
         client2.setReceiverPublicKey(client1.getPublicKeyEncoded());
 
         StringBuilder b = new StringBuilder();

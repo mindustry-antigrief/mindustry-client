@@ -239,6 +239,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         game.checkPref("conveyorpathfinding", true);
         game.checkPref("coreselect", false);
         game.checkPref("hints", true);
+        game.checkPref("schematicEnoughItems", true);
         if(!mobile){
             game.checkPref("buildautopause", false);
         }

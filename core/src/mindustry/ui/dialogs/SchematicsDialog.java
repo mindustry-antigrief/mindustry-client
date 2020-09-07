@@ -137,7 +137,7 @@ public class SchematicsDialog extends FloatingDialog{
                                             break;
                                         }
                                     }
-                                    if(notEnoughItems){
+                                    if(notEnoughItems && Core.settings.getBool("schematicEnoughItems")){
                                         label.setColor(Color.red);
                                     }else{
                                         label.setColor(Color.white);

@@ -378,12 +378,12 @@ public class NetServer implements ApplicationListener{
         });
         Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
-        clientCommands.<Player>register("crypto", "<dest> <message...>", "yeet", (args, player) -> {
+        clientCommands.<Player>register("crypto", "<dest> [message...]", "yeet", (args, player) -> {
             try{
-                if(!Client.cachedKeys.containsKey(args[0])){
+                if(!Client.cachedKeys.containsKey(args[0]) || args.length == 1){
                     Client.cachedKeys.put(args[0], new AESSecurityCap());
                     Call.sendChatMessage(Base256Coder.encode(args[0]) + "%KEY%" + Client.cachedKeys.get(args[0]).getPublicKeyEncoded());
-                }else if(Client.cachedKeys.get(args[0]).hasOtherKey){
+                }else if(Client.cachedKeys.get(args[0]).hasOtherKey && args.length == 2){
                     Call.sendChatMessage(Base256Coder.encode(args[0]) + "%ENC%" + Client.cachedKeys.get(args[0]).encrypt(args[1]));
                 }else if(!Client.cachedKeys.get(args[0]).hasOtherKey){
                     Call.sendChatMessage(Base256Coder.encode(args[0]) + "%KEY%" + Client.cachedKeys.get(args[0]).getPublicKeyEncoded());

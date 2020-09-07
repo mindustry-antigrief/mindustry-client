@@ -160,19 +160,22 @@ public class NetClient implements ApplicationListener{
         if(message.startsWith("!here") && Core.settings.getBool("autorespond")){
             Call.sendChatMessage(String.format("[coral][autoresponse][lightgray]%s [lightgray], you are at %d,%d", playersender.name, playersender.tileX(), playersender.tileY()));
         }
-        if(message.contains("%KEY%") && playersender != player && Base256Coder.decodeString(message.split("%KEY%")[0]).equals(player.name)){
+        if(message.contains("%KEY%") && message.split("%KEY%").length == 2 && playersender != player && Base256Coder.decodeString(message.split("%KEY%")[0]).equals(player.name)){
             sender = sender.substring(11);
-            if(cachedKeys.get(sender) == null){
-                //Not a response to your key
-                cachedKeys.put(sender, new AESSecurityCap());
-                cachedKeys.get(sender).setReceiverPublicKey(message.split("%KEY%")[1]);
-                Call.sendChatMessage(Base256Coder.encode(sender) + "%KEY%" + cachedKeys.get(sender).getPublicKeyEncoded());
-            }else if(!cachedKeys.get(sender).hasOtherKey){
-                //Responding to your key
-                cachedKeys.get(sender).setReceiverPublicKey(message.split("%KEY%")[1]);
+            String key = message.split("%KEY%")[1];
+            if(Base256Coder.decode(key) != null && key.length() == 91){
+                if(cachedKeys.get(sender) == null){
+                    //Not a response to your key
+                    cachedKeys.put(sender, new AESSecurityCap());
+                    cachedKeys.get(sender).setReceiverPublicKey(key);
+                    Call.sendChatMessage(Base256Coder.encode(sender) + "%KEY%" + cachedKeys.get(sender).getPublicKeyEncoded());
+                }else if(!cachedKeys.get(sender).hasOtherKey){
+                    //Responding to your key
+                    cachedKeys.get(sender).setReceiverPublicKey(key);
+                }
             }
         }
-        if(message.contains("%ENC%") && playersender != player){
+        if(message.contains("%ENC%") && playersender != player && message.split("%ENC%").length == 2){
             sender = sender.substring(11);
             String destination = Base256Coder.decodeString(message.split("%ENC%")[0]);
             String ciphertext = message.split("%ENC%")[1];
@@ -184,7 +187,7 @@ public class NetClient implements ApplicationListener{
                     }
                 }
             }
-        }else if(message.contains("%ENC%") && playersender == player){
+        }else if(message.contains("%ENC%") && playersender == player && message.split("%ENC%").length == 2){
             String destination = Base256Coder.decodeString(message.split("%ENC%")[0]);
             String ciphertext = message.split("%ENC%")[1];
             if(cachedKeys.containsKey(destination)){
