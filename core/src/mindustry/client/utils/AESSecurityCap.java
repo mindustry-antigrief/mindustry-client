@@ -3,8 +3,9 @@ package mindustry.client.utils;
 import arc.util.serialization.*;
 import sun.security.ec.*;
 import javax.crypto.*;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.*;
 import java.security.*;
+import java.util.*;
 
 /** Shamelessly stolen (and modified) from @Jegan Babu on stackoverflow (https://stackoverflow.com/questions/21081713/diffie-hellman-key-exchange-in-java) */
 public class AESSecurityCap {
@@ -12,8 +13,9 @@ public class AESSecurityCap {
     private PublicKey publickey;
     KeyAgreement keyAgreement;
     byte[] sharedsecret;
+    public boolean hasOtherKey = false;
 
-    String ALGO = "AES";
+    String ALGO = "AES/CBC/PKCS5Padding";
 
     public AESSecurityCap() {
         makeKeyExchangeParams();
@@ -28,7 +30,6 @@ public class AESSecurityCap {
             publickey = kp.getPublic();
             keyAgreement = KeyAgreement.getInstance("ECDH");
             keyAgreement.init(kp.getPrivate());
-
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             e.printStackTrace();
         }
@@ -38,6 +39,7 @@ public class AESSecurityCap {
         try {
             keyAgreement.doPhase(publickey, true);
             sharedsecret = keyAgreement.generateSecret();
+            hasOtherKey = true;
         } catch (InvalidKeyException e) {
             e.printStackTrace();
         }
@@ -55,10 +57,10 @@ public class AESSecurityCap {
         try {
             Key key = generateKey();
             Cipher c = Cipher.getInstance(ALGO);
-            c.init(Cipher.ENCRYPT_MODE, key);
+            c.init(Cipher.ENCRYPT_MODE, key, generateIv());
             byte[] encVal = c.doFinal(msg.getBytes());
             return String.valueOf(Base64Coder.encode(encVal));
-        } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException e) {
+        } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
         return msg;
@@ -68,11 +70,11 @@ public class AESSecurityCap {
         try {
             Key key = generateKey();
             Cipher c = Cipher.getInstance(ALGO);
-            c.init(Cipher.DECRYPT_MODE, key);
+            c.init(Cipher.DECRYPT_MODE, key, generateIv());
             byte[] decordedValue = Base64Coder.decode(encryptedData);
             byte[] decValue = c.doFinal(decordedValue);
             return new String(decValue);
-        } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException e) {
+        } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
         return encryptedData;
@@ -83,7 +85,17 @@ public class AESSecurityCap {
     }
 
     protected Key generateKey() {
-        return new SecretKeySpec(sharedsecret, ALGO);
+        return new SecretKeySpec(sharedsecret, "AES");
+    }
+
+    protected IvParameterSpec generateIv() {
+        try{
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return new IvParameterSpec(Arrays.copyOfRange(digest.digest(), 0, 16));
+        }catch(NoSuchAlgorithmException error){
+            error.printStackTrace();
+            return new IvParameterSpec(new byte[]{0});
+        }
     }
 
     public static void main(String[] args){

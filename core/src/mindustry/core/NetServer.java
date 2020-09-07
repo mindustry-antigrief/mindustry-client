@@ -7,6 +7,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.CommandHandler.*;
+import arc.util.Timer;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.annotations.Annotations.*;
@@ -32,6 +33,7 @@ import mindustry.world.blocks.units.*;
 import java.io.*;
 import java.net.*;
 import java.nio.*;
+import java.util.*;
 import java.util.regex.*;
 import java.util.zip.*;
 
@@ -378,11 +380,17 @@ public class NetServer implements ApplicationListener{
         Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
         clientCommands.<Player>register("crypto", "<dest> <message...>", "yeet", (args, player) -> {
-            if(!Client.cachedKeys.containsKey(args[0])){
-                Client.cachedKeys.put(args[0], new AESSecurityCap());
-                Call.sendChatMessage("PUBLIC KEY:" + Client.cachedKeys.get(args[0]).getPublicKeyEncoded());
-            }else{
-                Call.sendChatMessage(Client.cachedKeys.get(args[0]).encrypt(args[1]));
+            try{
+                if(!Client.cachedKeys.containsKey(args[0])){
+                    Client.cachedKeys.put(args[0], new AESSecurityCap());
+                    Call.sendChatMessage(Base64Coder.encodeString(args[0], true) + "%KEY%" + Client.cachedKeys.get(args[0]).getPublicKeyEncoded());
+                }else if(Client.cachedKeys.get(args[0]).hasOtherKey){
+                    Call.sendChatMessage(Base64Coder.encodeString(args[0], true) + "%ENC%" + Client.cachedKeys.get(args[0]).encrypt(args[1]));
+                }else if(!Client.cachedKeys.get(args[0]).hasOtherKey){
+                    Call.sendChatMessage(Base64Coder.encodeString(args[0], true) + "%KEY%" + Client.cachedKeys.get(args[0]).getPublicKeyEncoded());
+                }
+            }catch(Exception e){
+                e.printStackTrace();
             }
         });
         Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());

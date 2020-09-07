@@ -140,6 +140,7 @@ nb-configuration.xml
 ## Gradle
 
 /local.properties
+/aaalocal.properties
 .gradle/
 gradle-app.setting
 /build/

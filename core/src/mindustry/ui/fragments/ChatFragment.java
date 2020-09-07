@@ -227,9 +227,16 @@ public class ChatFragment extends Table{
 
             if(!shown && fadetime - i < 1f && fadetime - i >= 0f){
                 font.getCache().setAlphas((fadetime - i) * opacity);
-                Draw.color(0, 0, 0, shadowColor.a * (fadetime - i) * opacity);
+                if(messages.get(i).encrypted){
+                    Draw.color(0, 0.5f, 0.1f, shadowColor.a * (fadetime - i) * opacity);
+                }else{
+                    Draw.color(0, 0, 0, shadowColor.a * (fadetime - i) * opacity);
+                }
             }else{
                 font.getCache().setAlphas(opacity);
+                if(messages.get(i).encrypted){
+                    Draw.color(0, 0.5f, 0.1f, opacity * shadowColor.a);
+                }
             }
 
             Fill.crect(offsetx, theight - layout.height - 2, textWidth + Scl.scl(4f), layout.height + textspacing);
@@ -390,8 +397,8 @@ public class ChatFragment extends Table{
         return shown;
     }
 
-    public void addMessage(String message, String sender){
-        messages.insert(0, new ChatMessage(message, sender));
+    public void addMessage(String message, String sender, boolean encrypted){
+        messages.insert(0, new ChatMessage(message, sender, encrypted));
 
         fadetime += 1f;
         fadetime = Math.min(fadetime, messagesShown) + 1f;
@@ -399,19 +406,29 @@ public class ChatFragment extends Table{
         if(scrollPos > 0) scrollPos++;
     }
 
+    public void addMessage(String message, String sender){
+        addMessage(message, sender, false);
+    }
+
     private static class ChatMessage{
         public final String sender;
         public final String message;
         public final String formattedMessage;
+        public final boolean encrypted;
 
-        public ChatMessage(String message, String sender){
+        public ChatMessage(String message, String sender, boolean encrypted){
             this.message = message;
             this.sender = sender;
+            this.encrypted = encrypted;
             if(sender == null){ //no sender, this is a server message?
                 formattedMessage = message;
             }else{
                 formattedMessage = "[CORAL][[" + sender + "[CORAL]]:[WHITE] " + message;
             }
+        }
+
+        public ChatMessage(String message, String sender){
+            this(message, sender, false);
         }
     }
 
