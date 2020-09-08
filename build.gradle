@@ -286,6 +286,8 @@ project(":core"){
         compileOnly project(":annotations")
         annotationProcessor project(":annotations")
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+        // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk16
+        compile group: 'org.bouncycastle', name: 'bcprov-jdk16', version: '1.45'
     }
 }
 

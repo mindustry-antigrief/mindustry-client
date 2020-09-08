@@ -1,5 +1,6 @@
 package mindustry.client.utils;
 
+import org.bouncycastle.jce.provider.*;
 import sun.security.ec.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
@@ -15,6 +16,9 @@ public class AESSecurityCap {
     public boolean hasOtherKey = false;
 
     String ALGO = "AES/CBC/PKCS5Padding";
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     public AESSecurityCap() {
         makeKeyExchangeParams();
@@ -47,12 +51,6 @@ public class AESSecurityCap {
     public void setReceiverPublicKey(String publickey) {
         try{
             setReceiverPublicKey(new ECPublicKeyImpl(Base256Coder.decode(publickey)));
-        }catch(InvalidKeyException ignored){}
-    }
-
-    public void setReceiverPublicKey(byte[] publickey) {
-        try{
-            setReceiverPublicKey(new ECPublicKeyImpl(publickey));
         }catch(InvalidKeyException ignored){}
     }
 
