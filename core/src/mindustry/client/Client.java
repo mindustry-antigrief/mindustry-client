@@ -50,7 +50,7 @@ public class Client{
     public static long lastAutoresponseSent = 0;
     public static long lastCommandSent = 0;
     public static boolean xray = false;
-    public static ObjectMap<String, AESSecurityCap> cachedKeys = new ObjectMap<>();
+    public static ObjectMap<Player, Crypto> cachedKeys = new ObjectMap<>();
 
     public static void update(){
         PowerGridFinder.INSTANCE.updatePower();

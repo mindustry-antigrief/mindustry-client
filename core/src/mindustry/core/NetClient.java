@@ -31,6 +31,8 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.modules.*;
 import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
 import java.util.regex.*;
 import java.util.zip.*;
 import static mindustry.Vars.*;
@@ -160,42 +162,85 @@ public class NetClient implements ApplicationListener{
         if(message.startsWith("!here") && Core.settings.getBool("autorespond")){
             Call.sendChatMessage(String.format("[coral][autoresponse][lightgray]%s [lightgray], you are at %d,%d", playersender.name, playersender.tileX(), playersender.tileY()));
         }
-        if(message.contains("%KEY%") && message.split("%KEY%").length == 2 && playersender != player && Base256Coder.decodeString(message.split("%KEY%")[0]).equals(player.name)){
-            sender = sender.substring(11);
-            String key = message.split("%KEY%")[1];
-            if(Base256Coder.decode(key) != null && key.length() == 91){
-                if(cachedKeys.get(sender) == null){
-                    //Not a response to your key
-                    cachedKeys.put(sender, new AESSecurityCap());
-                    cachedKeys.get(sender).setReceiverPublicKey(key);
-                    Call.sendChatMessage(Base256Coder.encode(sender) + "%KEY%" + cachedKeys.get(sender).getPublicKeyEncoded());
-                }else if(!cachedKeys.get(sender).hasOtherKey){
-                    //Responding to your key
-                    cachedKeys.get(sender).setReceiverPublicKey(key);
+
+        if(message.contains("%K%")){
+            boolean valid = message.split("%K%").length == 2;
+            valid = valid && playersender != player;
+            if(valid){
+                String destination = Base256Coder.decodeString(message.split("%K%")[0]);
+                String content = message.split("%K%")[1];
+                if(destination.equals(player.name)){
+                    if(cachedKeys.get(playersender) == null){
+                        System.out.println(playersender.name);
+                        cachedKeys.put(playersender, new Crypto(false));
+                        cachedKeys.get(playersender).keyAccumulator = new Array<>();
+                        cachedKeys.get(playersender).keyAccumulator.add(content);
+                        System.out.println(content);
+                    }else if(cachedKeys.get(playersender).keyAccumulator == null){
+                        cachedKeys.get(playersender).keyAccumulator = new Array<>();
+                        cachedKeys.get(playersender).keyAccumulator.add(content);
+                    }
                 }
             }
         }
+        if(message.contains("%1%")){
+            boolean valid = message.split("%1%").length == 2;
+            valid = valid && playersender != player;
+            if(valid){
+                String destination = Base256Coder.decodeString(message.split("%1%")[0]);
+                String content = message.split("%1%")[1];
+                if(destination.equals(player.name)){
+                    if(cachedKeys.get(playersender) == null || !cachedKeys.get(playersender).isReady()){
+                        if(cachedKeys.get(playersender).keyAccumulator != null){
+                            cachedKeys.get(playersender).keyAccumulator.add(content);
+                        }
+                    }
+                }
+            }
+        }
+
+        if(message.contains("%2%")){
+            boolean valid = message.split("%2%").length == 2;
+            valid = valid && playersender != player;
+            if(valid){
+                String destination = Base256Coder.decodeString(message.split("%2%")[0]);
+                String content = message.split("%2%")[1];
+                if(destination.equals(player.name)){
+                    if(!cachedKeys.get(playersender).isReady()){
+                        if(cachedKeys.get(playersender).keyAccumulator != null){
+                            cachedKeys.get(playersender).keyAccumulator.add(content);
+                            Crypto crypto = cachedKeys.get(playersender);
+                            if(crypto.isInitializing){
+                                crypto.fromMessages(crypto.keyAccumulator);
+                                crypto.generateAesKey();
+                            }else{
+                                Array<String> key = crypto.fromMessages(crypto.keyAccumulator);
+                                crypto.generateAesKey();
+                                String start = Base256Coder.encode(playersender.name);
+                                for(String item : key){
+                                    Time.run(key.indexOf(item) * 100, () -> Call.sendChatMessage(start + "%" + (key.indexOf(item) == 0 ? "K" : key.indexOf(item)) + "%" + item));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         if(message.contains("%ENC%") && playersender != player && message.split("%ENC%").length == 2){
             sender = sender.substring(11);
             String destination = Base256Coder.decodeString(message.split("%ENC%")[0]);
             String ciphertext = message.split("%ENC%")[1];
             if(destination.equals(player.name)){
-                if(cachedKeys.containsKey(sender)){
-                    if(cachedKeys.get(sender).hasOtherKey){
-                        ui.chatfrag.addMessage(cachedKeys.get(sender).decrypt(ciphertext), sender, true);
+                if(cachedKeys.containsKey(playersender)){
+                    if(cachedKeys.get(playersender).isReady()){
+                        ui.chatfrag.addMessage(new String(cachedKeys.get(playersender).decrypt(ciphertext), StandardCharsets.UTF_8), sender, true);
                         return;
                     }
                 }
             }
-        }else if(message.contains("%ENC%") && playersender == player && message.split("%ENC%").length == 2){
-            String destination = Base256Coder.decodeString(message.split("%ENC%")[0]);
-            String ciphertext = message.split("%ENC%")[1];
-            if(cachedKeys.containsKey(destination)){
-                if(cachedKeys.get(destination).hasOtherKey){
-                    ui.chatfrag.addMessage(cachedKeys.get(destination).decrypt(ciphertext), player.name, true);
-                    return;
-                }
-            }
+        }else if(message.contains("%ENC%") && playersender == player){
+            return;
         }
 
         Pattern regex = Pattern.compile("\\d+(,|\\s)\\s?\\d+");

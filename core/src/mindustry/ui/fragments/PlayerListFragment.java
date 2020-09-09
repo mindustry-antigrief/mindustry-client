@@ -6,9 +6,11 @@ import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
+import arc.struct.*;
 import arc.util.*;
 import mindustry.client.*;
 import mindustry.client.ui.*;
+import mindustry.client.utils.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
@@ -17,6 +19,8 @@ import mindustry.graphics.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
+
+import java.util.*;
 
 import static mindustry.Vars.*;
 
@@ -194,6 +198,28 @@ public class PlayerListFragment extends Fragment{
                     }catch(NumberFormatException ignored){}
                 }));
             TextTooltip.addTooltip(button2, "Undo player's actions");
+            button.add(button2);
+
+            button2 = new ImageButton(Icon.chat, Styles.clearPartiali);
+            button2.clicked(() -> ui.showTextInput("Message:", "Message:", 100, "", false, (str) -> {
+                if(Client.cachedKeys.containsKey(user)){
+                    if(Client.cachedKeys.get(user).isReady()){
+                        Crypto crypto = Client.cachedKeys.get(user);
+                        Call.sendChatMessage(Base256Coder.encode(user.name) + "%ENC%" + crypto.encryptString(str));
+                        ui.chatfrag.addMessage(str, player.name, true);
+                    }
+                }else{
+                    Client.cachedKeys.put(user, new Crypto(true));
+                    Crypto crypto = Client.cachedKeys.get(user);
+
+                    Array<String> key = crypto.getKey();
+                    String start = Base256Coder.encode(user.name);
+                    for(String item : key){
+                        Time.run(key.indexOf(item) * 100, () -> Call.sendChatMessage(start + "%" + (key.indexOf(item) == 0? "K" : key.indexOf(item)) + "%" + item));
+                    }
+                }
+            }));
+            TextTooltip.addTooltip(button2, "Block player from building/breaking blocks");
             button.add(button2);
 
             content.add(button).padBottom(-6).width(450f).maxHeight(h + 14);
