@@ -287,7 +287,7 @@ project(":core"){
         annotationProcessor project(":annotations")
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
         // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk16
-        compile group: 'org.bouncycastle', name: 'bcprov-jdk16', version: '1.46'
+//        compile group: 'org.bouncycastle', name: 'bcprov-jdk16', version: '1.46'
 //        compile "https://repo1.maven.org/maven2/org/bouncycastle:1.66"
         compile 'org.whispersystems:curve25519-android:0.5.0'
     }
