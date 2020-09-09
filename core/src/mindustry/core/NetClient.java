@@ -171,58 +171,12 @@ public class NetClient implements ApplicationListener{
                 String destination = Base256Coder.decodeString(message.split("%K%")[0]);
                 String content = message.split("%K%")[1];
                 if(destination.equals(player.name)){
-                    if(cachedKeys.get(playersender) == null){
-                        System.out.println(playersender.name);
-                        cachedKeys.put(playersender, new Crypto(false));
-                        cachedKeys.get(playersender).keyAccumulator = new Array<>();
-                        cachedKeys.get(playersender).keyAccumulator.add(content);
-                        System.out.println(content);
-                    }else if(cachedKeys.get(playersender).keyAccumulator == null){
-                        cachedKeys.get(playersender).keyAccumulator = new Array<>();
-                        cachedKeys.get(playersender).keyAccumulator.add(content);
-                    }
-                }
-            }
-        }
-        if(message.contains("%1%")){
-            boolean valid = message.split("%1%").length == 2;
-            valid = valid && playersender != player;
-            if(valid){
-                String destination = Base256Coder.decodeString(message.split("%1%")[0]);
-                String content = message.split("%1%")[1];
-                if(destination.equals(player.name)){
-                    if(cachedKeys.get(playersender) == null || !cachedKeys.get(playersender).isReady()){
-                        if(cachedKeys.get(playersender).keyAccumulator != null){
-                            cachedKeys.get(playersender).keyAccumulator.add(content);
-                        }
-                    }
-                }
-            }
-        }
-
-        if(message.contains("%2%")){
-            boolean valid = message.split("%2%").length == 2;
-            valid = valid && playersender != player;
-            if(valid){
-                String destination = Base256Coder.decodeString(message.split("%2%")[0]);
-                String content = message.split("%2%")[1];
-                if(destination.equals(player.name)){
-                    if(!cachedKeys.get(playersender).isReady()){
-                        if(cachedKeys.get(playersender).keyAccumulator != null){
-                            cachedKeys.get(playersender).keyAccumulator.add(content);
-                            Crypto crypto = cachedKeys.get(playersender);
-                            if(crypto.isInitializing){
-                                crypto.fromMessages(crypto.keyAccumulator);
-                                crypto.generateAesKey();
-                            }else{
-                                Array<String> key = crypto.fromMessages(crypto.keyAccumulator);
-                                crypto.generateAesKey();
-                                String start = Base256Coder.encode(playersender.name);
-                                for(String item : key){
-                                    Timer.schedule(() -> Call.sendChatMessage(start + "%" + (key.indexOf(item) == 0 ? "K" : key.indexOf(item)) + "%" + item), key.indexOf(item) * 2.5f);
-                                }
-                            }
-                        }
+                    if(!cachedKeys.containsKey(playersender)){
+                        cachedKeys.put(playersender, new ECDH());
+                        Call.sendChatMessage(Base256Coder.encode(playersender.name) + "%K%" + Base256Coder.encode(cachedKeys.get(playersender).getkey()));
+                        cachedKeys.get(playersender).initializeAes(Base256Coder.decode(content));
+                    }else if(!cachedKeys.get(playersender).isReady){
+                        cachedKeys.get(playersender).initializeAes(Base256Coder.decode(content));
                     }
                 }
             }
@@ -234,7 +188,7 @@ public class NetClient implements ApplicationListener{
             String ciphertext = message.split("%ENC%")[1];
             if(destination.equals(player.name)){
                 if(cachedKeys.containsKey(playersender)){
-                    if(cachedKeys.get(playersender).isReady()){
+                    if(cachedKeys.get(playersender).isReady){
                         ui.chatfrag.addMessage(new String(cachedKeys.get(playersender).decrypt(ciphertext), StandardCharsets.UTF_8), sender, true);
                         return;
                     }

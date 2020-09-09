@@ -204,20 +204,17 @@ public class PlayerListFragment extends Fragment{
             button2 = new ImageButton(Icon.chat, Styles.clearPartiali);
             button2.clicked(() -> ui.showTextInput("Message:", "Message:", 100, "", false, (str) -> {
                 if(Client.cachedKeys.containsKey(user)){
-                    if(Client.cachedKeys.get(user).isReady()){
-                        Crypto crypto = Client.cachedKeys.get(user);
+                    if(Client.cachedKeys.get(user).isReady){
+                        ECDH crypto = Client.cachedKeys.get(user);
                         Call.sendChatMessage(Base256Coder.encode(user.name) + "%ENC%" + crypto.encryptString(str));
                         ui.chatfrag.addMessage(str, player.name, true);
                     }
                 }else{
-                    Client.cachedKeys.put(user, new Crypto(true));
-                    Crypto crypto = Client.cachedKeys.get(user);
+                    Client.cachedKeys.put(user, new ECDH());
+                    ECDH crypto = Client.cachedKeys.get(user);
 
-                    Array<String> key = crypto.getKey();
-                    String start = Base256Coder.encode(user.name);
-                    for(String item : key){
-                        Timer.schedule(() -> Call.sendChatMessage(start + "%" + (key.indexOf(item) == 0? "K" : key.indexOf(item)) + "%" + item), key.indexOf(item) * 2.5f);
-                    }
+                    byte[] key = crypto.getkey();
+                    Call.sendChatMessage(Base256Coder.encode(user.name) + "%K%" + Base256Coder.encode(key));
                 }
             }));
             TextTooltip.addTooltip(button2, "Block player from building/breaking blocks");
