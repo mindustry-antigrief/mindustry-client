@@ -7,6 +7,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.CommandHandler.*;
+import arc.util.Timer;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
@@ -218,7 +219,7 @@ public class NetClient implements ApplicationListener{
                                 crypto.generateAesKey();
                                 String start = Base256Coder.encode(playersender.name);
                                 for(String item : key){
-                                    Time.run(key.indexOf(item) * 100, () -> Call.sendChatMessage(start + "%" + (key.indexOf(item) == 0 ? "K" : key.indexOf(item)) + "%" + item));
+                                    Timer.schedule(() -> Call.sendChatMessage(start + "%" + (key.indexOf(item) == 0 ? "K" : key.indexOf(item)) + "%" + item), key.indexOf(item) * 2);
                                 }
                             }
                         }

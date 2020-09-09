@@ -8,6 +8,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.Timer;
 import mindustry.client.*;
 import mindustry.client.ui.*;
 import mindustry.client.utils.*;
@@ -215,7 +216,7 @@ public class PlayerListFragment extends Fragment{
                     Array<String> key = crypto.getKey();
                     String start = Base256Coder.encode(user.name);
                     for(String item : key){
-                        Time.run(key.indexOf(item) * 100, () -> Call.sendChatMessage(start + "%" + (key.indexOf(item) == 0? "K" : key.indexOf(item)) + "%" + item));
+                        Timer.schedule(() -> Call.sendChatMessage(start + "%" + (key.indexOf(item) == 0? "K" : key.indexOf(item)) + "%" + item), key.indexOf(item) * 2);
                     }
                 }
             }));
