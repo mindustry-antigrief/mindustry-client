@@ -219,7 +219,7 @@ public class NetClient implements ApplicationListener{
                                 crypto.generateAesKey();
                                 String start = Base256Coder.encode(playersender.name);
                                 for(String item : key){
-                                    Timer.schedule(() -> Call.sendChatMessage(start + "%" + (key.indexOf(item) == 0 ? "K" : key.indexOf(item)) + "%" + item), key.indexOf(item) * 2);
+                                    Timer.schedule(() -> Call.sendChatMessage(start + "%" + (key.indexOf(item) == 0 ? "K" : key.indexOf(item)) + "%" + item), key.indexOf(item) * 2.5f);
                                 }
                             }
                         }
