@@ -62,6 +62,7 @@ public class NetClient implements ApplicationListener{
     /** Byte stream for reading in snapshots. */
     private ReusableByteInStream byteStream = new ReusableByteInStream();
     private DataInputStream dataStream = new DataInputStream(byteStream);
+    private static Pattern regex = Pattern.compile("\\d+(,|\\s)\\s?\\d+");
 
 //    {
 //        System.out.println("fioewjfiowejoifweoifowejfie");
@@ -198,7 +199,6 @@ public class NetClient implements ApplicationListener{
             return;
         }
 
-        Pattern regex = Pattern.compile("\\d+(,|\\s)\\s?\\d+");
         Matcher matcher = regex.matcher(message);
         if(matcher.find()){
             Time.run(0.1f, () -> {

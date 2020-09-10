@@ -1,10 +1,13 @@
 package mindustry.entities.type.base;
 
+import arc.*;
 import arc.math.Mathf;
-import arc.util.Structs;
-import mindustry.content.Blocks;
+import arc.util.*;
+import mindustry.content.*;
+import mindustry.entities.*;
+import mindustry.entities.effect.*;
 import mindustry.entities.traits.MinerTrait;
-import mindustry.entities.type.TileEntity;
+import mindustry.entities.type.*;
 import mindustry.entities.units.UnitState;
 import mindustry.gen.Call;
 import mindustry.type.Item;
@@ -175,5 +178,55 @@ public class MinerDrone extends BaseDrone implements MinerTrait{
             return;
         }
         targetItem = Structs.findMin(type.toMine, indexer::hasOre, (a, b) -> -Integer.compare(entity.items.get(a), entity.items.get(b)));
+    }
+
+    @Override
+    public void updateMining(){
+        Unit unit = this;
+        Tile tile = getMineTile();
+        TileEntity core = unit.getClosestCore();
+
+        if(core != null && tile != null && tile.drop() != null && !unit.acceptsItem(tile.drop()) && unit.dst(core) < mineTransferRange){
+            int accepted = core.tile.block().acceptStack(unit.item().item, unit.item().amount, core.tile, unit);
+            if(accepted > 0){
+                Call.transferItemTo(unit.item().item, accepted,
+                tile.worldx() + Mathf.range(tilesize / 2f),
+                tile.worldy() + Mathf.range(tilesize / 2f), core.tile);
+                unit.clearItem();
+            }
+        }
+
+        if(tile == null || core == null || tile.block() != Blocks.air || dst(tile.worldx(), tile.worldy()) > getMiningRange()
+        || tile.drop() == null || !unit.acceptsItem(tile.drop()) || !canMine(tile.drop())){
+            setMineTile(null);
+        }else{
+            Item item = tile.drop();
+            unit.rotation = Mathf.slerpDelta(unit.rotation, unit.angleTo(tile.worldx(), tile.worldy()), 0.4f);
+
+            if(Mathf.chance(Time.delta() * (0.06 - item.hardness * 0.01) * getMinePower())){
+
+                if(unit.dst(core) < mineTransferRange && core.tile.block().acceptStack(item, 1, core.tile, unit) == 1 && offloadImmediately()){
+                    Call.transferItemTo(item, 1,
+                    tile.worldx() + Mathf.range(tilesize / 2f),
+                    tile.worldy() + Mathf.range(tilesize / 2f), core.tile);
+                }else if(unit.acceptsItem(item)){
+                    if(Core.settings.getBool("draugs")){
+                        //this is clientside, since items are synced anyway
+                        ItemTransfer.transferItemToUnit(item,
+                        tile.worldx() + Mathf.range(tilesize / 2f),
+                        tile.worldy() + Mathf.range(tilesize / 2f),
+                        unit);
+                    }
+                }
+            }
+
+            if(Mathf.chance(0.06 * Time.delta())){
+                if(Core.settings.getBool("draugs")){
+                    Effects.effect(Fx.pulverizeSmall,
+                    tile.worldx() + Mathf.range(tilesize / 2f),
+                    tile.worldy() + Mathf.range(tilesize / 2f), 0f, item.color);
+                }
+            }
+        }
     }
 }

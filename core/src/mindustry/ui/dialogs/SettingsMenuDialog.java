@@ -291,6 +291,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             Client.flyingOpacity = b / 100F;
             return b + "%";
         });
+        graphics.checkPref("draugs", true, b -> Core.settings.put("showDraugs", b));
         if(!mobile){
             graphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
             graphics.checkPref("fullscreen", false, b -> {

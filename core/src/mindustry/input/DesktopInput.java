@@ -191,18 +191,15 @@ public class DesktopInput extends InputHandler{
                 Client.cameraPositionOverride = null;
             }
 
-            if(Core.input.keyTap(KeyCode.BACKTICK)){
+            if(Core.input.keyTap(Binding.show_turret_ranges)){
                 Client.showTurretRanges = !Client.showTurretRanges;
             }
             if(Core.input.keyTap(KeyCode.L)){
-                if(player.getState() == player.build){
-//                    System.out.println("Stopping");
+                if(player.getState() == player.build || player.getState() == player.heal){
                     player.setState(player.normal);
                 }else{
-//                    System.out.println("Starting");
                     player.setState(player.build);
                 }
-//                player.setBuilding();
             }
 
 
