@@ -32,7 +32,7 @@ if not exist %steam%\Mindustry.exe (
     echo Error: It appears as if %steam%\Mindustry.exe doesnt exist!
     goto :badSteam
 )
-%steam:~0,2%
+cd /d %steam:~0,2%
 echo Success: Steam install found successfully.
 echo Beginning installation of custom client (This will take a while).
 git clone https://github.com/blahblahbloopster/mindustry-client.git
@@ -51,7 +51,7 @@ pause
 cd /D %steam:~0,2%\mindustry-client
 
 echo @ECHO off>launcher.bat
-echo "cd /d %steam:~0,2%\mindustry-client&&git fetch>gitStatus 2>&1&&set /p git=<gitStatus&del gitStatus&&if defined git (cd /D %steam:~0,2%\mindustry-client&&git pull&&call gradlew.bat desktop:dist --no-daemon)">>launcher.bat
+echo "cd /d %steam:~0,2%\mindustry-client&&git fetch>gitStatus 2>&1&&set /p git=<gitStatus&del gitStatus&&if defined git (cd /D %steam:~0,2%\mindustry-client&&git stash&&git pull&&git stash apply&&call gradlew.bat desktop:dist --no-daemon)">>launcher.bat
 echo "cd /D %steam%&&start %steam:~0,2%\mindustry-client\desktop\build\libs\Mindustry.jar">>launcher.bat
 
 for /f "delims=" %%i in ('type "launcher.bat" ^& break ^> "launcher.bat" ') do (
@@ -75,6 +75,7 @@ set lineNr=0
 ))>"%newfile%"
 del build.gradle
 ren build2.gradle build.gradle
+call gradlew.bat desktop:dist
 echo If you have completed all these steps correctly, launching mindustry on steam should now open a cmd window which will automatically install any updates and then start the game.
 echo Press any button to close this window.
 pause
