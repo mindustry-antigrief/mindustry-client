@@ -28,6 +28,7 @@ import mindustry.world.blocks.defense.ForceProjector.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.Client.showUnits;
 
 public class Renderer implements ApplicationListener{
     public final BlockRenderer blocks = new BlockRenderer();
@@ -371,7 +372,7 @@ public class Renderer implements ApplicationListener{
 
         boolean showDraugs = settings.getBool("draugs");
 
-        unitGroup.draw(unit -> !unit.isDead() && (!(unit instanceof MinerDrone) || showDraugs), draw::get);
+        unitGroup.draw(unit -> !unit.isDead() && (!(unit instanceof MinerDrone) || showDraugs) && (!(unit.getTeam() == player.getTeam()) || showUnits), draw::get);
 
         if(!playerGroup.isEmpty()){
             playerGroup.draw(unit -> !unit.isDead(), draw::get);
@@ -385,7 +386,7 @@ public class Renderer implements ApplicationListener{
         Draw.color(0, 0, 0, 0.22f * Client.flyingOpacity);
         boolean showDraugs = settings.getBool("draugs");
 
-        unitGroup.draw(unit -> (unit.isFlying() && !unit.isDead())  && (!(unit instanceof MinerDrone) || showDraugs), baseUnit -> baseUnit.drawShadow(trnsX, trnsY));
+        unitGroup.draw(unit -> (unit.isFlying() && !unit.isDead())  && (!(unit instanceof MinerDrone) || showDraugs) && (!(unit.getTeam() == player.getTeam()) || showUnits), baseUnit -> baseUnit.drawShadow(trnsX, trnsY));
         playerGroup.draw(unit -> unit.isFlying() && !unit.isDead(), player -> player.drawShadow(trnsX, trnsY));
 
         Draw.color();
@@ -393,13 +394,13 @@ public class Renderer implements ApplicationListener{
 
     private void drawAllTeams(boolean flying){
         boolean showDraugs = settings.getBool("draugs");
-        unitGroup.draw(u -> u.isFlying() == flying && !u.isDead() && (!(u instanceof MinerDrone) || showDraugs), Unit::drawUnder);
+        unitGroup.draw(u -> u.isFlying() == flying && !u.isDead() && (!(u instanceof MinerDrone) || showDraugs) && (!(u.getTeam() == player.getTeam()) || showUnits), Unit::drawUnder);
         playerGroup.draw(p -> p.isFlying() == flying && !p.isDead(), Unit::drawUnder);
 
-        unitGroup.draw(u -> u.isFlying() == flying && !u.isDead()  && (!(u instanceof MinerDrone) || showDraugs), Unit::drawAll);
+        unitGroup.draw(u -> u.isFlying() == flying && !u.isDead()  && (!(u instanceof MinerDrone) || showDraugs) && (!(u.getTeam() == player.getTeam()) || showUnits), Unit::drawAll);
         playerGroup.draw(p -> p.isFlying() == flying, Unit::drawAll);
 
-        unitGroup.draw(u -> u.isFlying() == flying && !u.isDead()  && (!(u instanceof MinerDrone) || showDraugs), Unit::drawOver);
+        unitGroup.draw(u -> u.isFlying() == flying && !u.isDead()  && (!(u instanceof MinerDrone) || showDraugs) && (!(u.getTeam() == player.getTeam()) || showUnits), Unit::drawOver);
         playerGroup.draw(p -> p.isFlying() == flying, Unit::drawOver);
     }
 

@@ -61,6 +61,7 @@ public enum Binding implements KeyBind{
     navigate_to_camera(KeyCode.Z),
     go_to_camera(KeyCode.N),
     show_turret_ranges(KeyCode.BACKTICK),
+    show_units(KeyCode.O),
     ;
 
     private final KeybindValue defaultValue;

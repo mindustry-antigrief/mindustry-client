@@ -25,6 +25,7 @@ public class FindDialog extends FloatingDialog{
     public void build(){
         cont.clear();
         buttons.clear();
+        clearListeners();
         addCloseButton();
         Array<Image> imgs = new Array<>();
         for(int i = 0; i < 10; i += 1){

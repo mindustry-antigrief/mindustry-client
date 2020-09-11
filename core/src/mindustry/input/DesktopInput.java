@@ -194,6 +194,7 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyTap(Binding.show_turret_ranges)){
                 Client.showTurretRanges = !Client.showTurretRanges;
             }
+            Client.showUnits = !input.keyDown(Binding.show_units);
             if(Core.input.keyTap(KeyCode.L)){
                 if(player.getState() == player.build || player.getState() == player.heal){
                     player.setState(player.normal);
@@ -458,6 +459,10 @@ public class DesktopInput extends InputHandler{
                     for(TileLogItem item : selected.log){
                         builder.append(item.toString()).append("\n");
                     }
+                    if(builder.length() == 0){
+                        builder.append(String.format("No logs for %d,%d\n", selected.x, selected.y));
+                    }
+                    builder.deleteCharAt(builder.length() - 1);
                     ui.chatfrag.addMessage(builder.toString(), "client");
                 }else if(input.shift() && input.ctrl()){
                     AutoItemTransfer.defaultTilePos = selected.pos();

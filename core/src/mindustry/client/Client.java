@@ -51,6 +51,7 @@ public class Client{
     public static long lastCommandSent = 0;
     public static boolean xray = false;
     public static ObjectMap<Player, ECDH> cachedKeys = new ObjectMap<>();
+    public static boolean showUnits = true;
 
     public static void update(){
         PowerGridFinder.INSTANCE.updatePower();
