@@ -55,5 +55,4 @@ public class Base256Coder{
             }
         }
     }
-
 }

@@ -1,5 +1,10 @@
 package mindustry.client.utils;
 
+import arc.util.Timer;
+import mindustry.*;
+import mindustry.client.*;
+import mindustry.entities.type.*;
+import mindustry.gen.*;
 import org.whispersystems.curve25519.*;
 
 import javax.crypto.*;
@@ -7,6 +12,9 @@ import javax.crypto.spec.*;
 import java.nio.charset.*;
 import java.security.*;
 import java.util.*;
+
+import static mindustry.Vars.*;
+import static mindustry.client.Client.cachedKeys;
 
 public class ECDH{
     Curve25519 cipher = Curve25519.getInstance(Curve25519.JAVA, new SecureRandomProvider());
@@ -39,6 +47,7 @@ public class ECDH{
 
             aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             isReady = true;
+            System.out.println("READY!!!!");
         }catch(NoSuchAlgorithmException | NoSuchPaddingException error){
             error.printStackTrace();
         }
@@ -76,15 +85,47 @@ public class ECDH{
         return decrypt(Base256Coder.decode(input));
     }
 
+    public static void handleMessage(Player playerSender, String message) {
+        if (playerSender.name.equals(player.name)) {
+            return;
+        }
+
+        if(message.contains("%K%")){
+            boolean valid = message.split("%K%").length == 2;
+            if(valid){
+                String destination = Base256Coder.decodeString(message.split("%K%")[0]);
+                String content = message.split("%K%")[1];
+                if(destination.equals(player.name)){
+                    if(!cachedKeys.containsKey(playerSender)){
+                        cachedKeys.put(playerSender, new ECDH());
+                        Timer.schedule(() -> {
+                            MessageSystem.writeMessage(Base256Coder.encode(playerSender.name) + "%K%" + Base256Coder.encode(cachedKeys.get(playerSender).getkey()));
+                        }, 2f);
+//                        Call.sendChatMessage(Base256Coder.encode(playerSender.name) + "%K%" + Base256Coder.encode(cachedKeys.get(playerSender).getkey()));
+                        cachedKeys.get(playerSender).initializeAes(Base256Coder.decode(content));
+                    }else if(!cachedKeys.get(playerSender).isReady){
+                        cachedKeys.get(playerSender).initializeAes(Base256Coder.decode(content));
+                    }
+                }
+            }
+        }
+
+        if(message.contains("%ENC%") && message.split("%ENC%").length == 2){
+            String destination = Base256Coder.decodeString(message.split("%ENC%")[0]);
+            String ciphertext = message.split("%ENC%")[1];
+            if(destination.equals(player.name)){
+                if(cachedKeys.containsKey(playerSender)){
+                    if(cachedKeys.get(playerSender).isReady){
+                        ui.chatfrag.addMessage(new String(cachedKeys.get(playerSender).decrypt(ciphertext), StandardCharsets.UTF_8), playerSender.name, true);
+                    }
+                }
+            }
+        }
+    }
+
     public static void main(String[] args){
         ECDH client0 = new ECDH();
         ECDH client1 = new ECDH();
-
-        client1.initializeAes(client0.getkey());
-        System.out.println(client0.getkey().length);
-        client0.initializeAes(client1.getkey());
-
-        System.out.println(Arrays.toString(client1.decrypt(client0.encrypt(new byte[]{1, 2, 3}))));
     }
 }
 

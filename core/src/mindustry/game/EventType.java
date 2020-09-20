@@ -394,6 +394,14 @@ public class EventType{
             this.ip = ip;
         }
     }
-    
-}
 
+    public static class MessageBlockChangeEvent{
+        public final Integer pos;
+        public final Player sender;
+
+        public MessageBlockChangeEvent(int pos, Player sender){
+            this.pos = pos;
+            this.sender = sender;
+        }
+    }
+}

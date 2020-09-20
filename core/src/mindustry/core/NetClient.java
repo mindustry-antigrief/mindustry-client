@@ -165,39 +165,6 @@ public class NetClient implements ApplicationListener{
             Call.sendChatMessage(String.format("[coral][autoresponse][lightgray]%s [lightgray], you are at %d,%d", playersender.name, playersender.tileX(), playersender.tileY()));
         }
 
-        if(message.contains("%K%")){
-            boolean valid = message.split("%K%").length == 2;
-            valid = valid && playersender != player;
-            if(valid){
-                String destination = Base256Coder.decodeString(message.split("%K%")[0]);
-                String content = message.split("%K%")[1];
-                if(destination.equals(player.name)){
-                    if(!cachedKeys.containsKey(playersender)){
-                        cachedKeys.put(playersender, new ECDH());
-                        Call.sendChatMessage(Base256Coder.encode(playersender.name) + "%K%" + Base256Coder.encode(cachedKeys.get(playersender).getkey()));
-                        cachedKeys.get(playersender).initializeAes(Base256Coder.decode(content));
-                    }else if(!cachedKeys.get(playersender).isReady){
-                        cachedKeys.get(playersender).initializeAes(Base256Coder.decode(content));
-                    }
-                }
-            }
-        }
-
-        if(message.contains("%ENC%") && playersender != player && message.split("%ENC%").length == 2){
-            sender = sender.substring(11);
-            String destination = Base256Coder.decodeString(message.split("%ENC%")[0]);
-            String ciphertext = message.split("%ENC%")[1];
-            if(destination.equals(player.name)){
-                if(cachedKeys.containsKey(playersender)){
-                    if(cachedKeys.get(playersender).isReady){
-                        ui.chatfrag.addMessage(new String(cachedKeys.get(playersender).decrypt(ciphertext), StandardCharsets.UTF_8), sender, true);
-                        return;
-                    }
-                }
-            }
-        }else if(message.contains("%ENC%") && playersender == player){
-            return;
-        }
 
         Matcher matcher = regex.matcher(message);
         if(matcher.find()){

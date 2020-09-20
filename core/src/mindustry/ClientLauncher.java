@@ -102,7 +102,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             settings.put("readable_name", "An easily typeable name");
         }
 
-
+        Client.initialize();
     }
 
     @Override

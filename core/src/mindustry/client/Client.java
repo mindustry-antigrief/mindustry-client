@@ -12,6 +12,7 @@ import mindustry.client.pathfinding.*;
 import mindustry.client.utils.*;
 import mindustry.entities.traits.BuilderTrait.*;
 import mindustry.entities.type.*;
+import mindustry.game.EventType.*;
 import mindustry.input.*;
 import mindustry.world.*;
 
@@ -126,5 +127,15 @@ public class Client{
                 xray = !xray;
             }
         }
+    }
+
+    public static void initialize() {
+        Events.on(MessageBlockChangeEvent.class, (event) -> {
+            String message = MessageSystem.readMessage(event.pos);
+            if (message != null) {
+                ECDH.handleMessage(event.sender, message);
+            }
+        });
+        Events.on(WorldLoadEvent.class, MessageSystem::scanForMessages);
     }
 }

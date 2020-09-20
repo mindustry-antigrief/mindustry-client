@@ -1,6 +1,7 @@
 package mindustry.world.blocks.logic;
 
 import arc.*;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import arc.Input.*;
 import arc.graphics.*;
@@ -12,6 +13,7 @@ import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.entities.*;
 import mindustry.entities.type.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.ui.*;
@@ -65,6 +67,9 @@ public class MessageBlock extends Block{
         if(entity != null){
             entity.message = result.toString();
             entity.lines = entity.message.split("\n");
+        }
+        if(player != Vars.player){
+            Events.fire(new MessageBlockChangeEvent(tile.pos(), player));
         }
     }
 
