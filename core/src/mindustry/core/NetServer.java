@@ -378,6 +378,28 @@ public class NetServer implements ApplicationListener{
         });
         Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
 
+        clientCommands.<Player>register("c", "<dest> [message...]", "Sends this person an encrypted message (requires initialization in tab menu)", (args, player) -> {
+            Player user = null;
+            for(Player usr : playerGroup.all()){
+                if(usr.cryptoAlias != null){
+                    if(usr.cryptoAlias.equals(args[0])){
+                        user = usr;
+                        break;
+                    }
+                }
+            }
+            if(user != null){
+                if(Client.cachedKeys.containsKey(user)){
+                    if(Client.cachedKeys.get(user).isReady){
+                        ECDH crypto = Client.cachedKeys.get(user);
+                        MessageSystem.writeMessage(Base256Coder.encode(user.name) + "%ENC%" + crypto.encryptString(args[1]));
+                        ui.chatfrag.addMessage(args[1], player.name, true);
+                    }
+                }
+            }
+        });
+        Client.localCommands.add(((Array<Command>)PrivateAccessRemover.getPrivateField(clientCommands, "orderedCommands")).peek());
+
 //        clientCommands.<Player>register("crypto", "<dest> [message...]", "yeet", (args, player) -> {
 //            try{
 //                if(!Client.cachedKeys.containsKey(args[0]) || args.length == 1){

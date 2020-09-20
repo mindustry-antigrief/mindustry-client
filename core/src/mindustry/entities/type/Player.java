@@ -88,6 +88,7 @@ public class Player extends Unit implements BuilderMinerTrait, ShooterTrait{
     private Integer buildTarget;
     public String readableName = "";
     private Integer movingToMechPad = null;
+    public String cryptoAlias = null;
     public UnitState previousState;
     private final ObjectSet<Block> bannedBlocks = new ObjectSet<>();
     {

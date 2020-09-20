@@ -20,6 +20,7 @@ import mindustry.graphics.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 
 import java.util.*;
 
@@ -202,23 +203,17 @@ public class PlayerListFragment extends Fragment{
             button.add(button2);
 
             button2 = new ImageButton(Icon.chat, Styles.clearPartiali);
-            button2.clicked(() -> ui.showTextInput("Message:", "Message:", 100, "", false, (str) -> {
-                if(Client.cachedKeys.containsKey(user)){
-                    if(Client.cachedKeys.get(user).isReady){
-                        ECDH crypto = Client.cachedKeys.get(user);
-                        MessageSystem.writeMessage(Base256Coder.encode(user.name) + "%ENC%" + crypto.encryptString(str));
-                        ui.chatfrag.addMessage(str, player.name, true);
-                    }
-                }else{
+            button2.clicked(() -> ui.showTextInput("Alias:", "Alias (no spaces):", 100, "", false, (str) -> {
+                if(!Client.cachedKeys.containsKey(user) && !str.contains(" ")){
+                    user.cryptoAlias = str;
                     Client.cachedKeys.put(user, new ECDH());
                     ECDH crypto = Client.cachedKeys.get(user);
 
                     byte[] key = crypto.getkey();
-//                    System.out.println(user.name);
                     MessageSystem.writeMessage(Base256Coder.encode(user.name) + "%K%" + Base256Coder.encode(key));
                 }
             }));
-            TextTooltip.addTooltip(button2, "Block player from building/breaking blocks");
+            TextTooltip.addTooltip(button2, "Start secure chat with this person\n(Note: requires client)");
             button.add(button2);
 
             content.add(button).padBottom(-6).width(450f).maxHeight(h + 14);

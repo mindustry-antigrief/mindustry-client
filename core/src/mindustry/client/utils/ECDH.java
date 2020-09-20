@@ -11,7 +11,6 @@ import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.nio.charset.*;
 import java.security.*;
-import java.util.*;
 
 import static mindustry.Vars.*;
 import static mindustry.client.Client.cachedKeys;
@@ -47,7 +46,6 @@ public class ECDH{
 
             aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             isReady = true;
-            System.out.println("READY!!!!");
         }catch(NoSuchAlgorithmException | NoSuchPaddingException error){
             error.printStackTrace();
         }
@@ -98,11 +96,9 @@ public class ECDH{
                 if(destination.equals(player.name)){
                     if(!cachedKeys.containsKey(playerSender)){
                         cachedKeys.put(playerSender, new ECDH());
-                        Timer.schedule(() -> {
-                            MessageSystem.writeMessage(Base256Coder.encode(playerSender.name) + "%K%" + Base256Coder.encode(cachedKeys.get(playerSender).getkey()));
-                        }, 2f);
-//                        Call.sendChatMessage(Base256Coder.encode(playerSender.name) + "%K%" + Base256Coder.encode(cachedKeys.get(playerSender).getkey()));
+                        Timer.schedule(() -> MessageSystem.writeMessage(Base256Coder.encode(playerSender.name) + "%K%" + Base256Coder.encode(cachedKeys.get(playerSender).getkey())), 0.5f);
                         cachedKeys.get(playerSender).initializeAes(Base256Coder.decode(content));
+                        ui.showTextInput("Alias for " + playerSender.name, "Alias for " + playerSender.name, 100, "", false, (str) -> playerSender.cryptoAlias = str);
                     }else if(!cachedKeys.get(playerSender).isReady){
                         cachedKeys.get(playerSender).initializeAes(Base256Coder.decode(content));
                     }

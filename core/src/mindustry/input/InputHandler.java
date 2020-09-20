@@ -631,14 +631,18 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         lineRequests.clear();
         iterateLine(x1, y1, x2, y2, l -> {
             rotation = l.rotation;
-            BuildRequest req;
+            BuildRequest req = null;
             if(block instanceof Chain){
-                req = new BuildRequest(l.x, l.y, l.rotation, ((Chain)block).blocks[(l.x + l.y) % ((Chain)block).blocks.length]);
+                if(((Chain)block).blocks.length > 0){
+                    req = new BuildRequest(l.x, l.y, l.rotation, ((Chain)block).blocks[(l.x + l.y) % ((Chain)block).blocks.length]);
+                }
             }else{
                 req = new BuildRequest(l.x, l.y, l.rotation, block);
             }
-            req.animScale = 1f;
-            lineRequests.add(req);
+            if(req != null){
+                req.animScale = 1f;
+                lineRequests.add(req);
+            }
         });
 
         if(Core.settings.getBool("blockreplace")){

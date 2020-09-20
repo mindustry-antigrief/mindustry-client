@@ -11,6 +11,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import arc.util.pooling.*;
+import mindustry.client.*;
 import mindustry.entities.*;
 import mindustry.entities.type.*;
 import mindustry.game.EventType.*;
@@ -133,7 +134,11 @@ public class MessageBlock extends Block{
                 dialog.buttons.addButton("$ok", () -> {
                     Call.setMessageBlockText(player, tile, a.getText());
                     dialog.hide();
-                }).size(130f, 60f);
+                }).size(130f, 80f);
+                dialog.buttons.addButton("Set as encrypted chat medium", () -> {
+                    Call.setMessageBlockText(player, tile, MessageSystem.prelude);
+                    dialog.hide();
+                }).size(180f, 80f);
                 dialog.update(() -> {
                     if(!entity.isValid()){
                         dialog.hide();
