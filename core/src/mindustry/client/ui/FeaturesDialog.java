@@ -43,7 +43,8 @@ public class FeaturesDialog extends FloatingDialog{
         label(t, "Build blocking (shield button)", color2);
         label(t, "Watch player (magnifier button)", color1);
         label(t, "Mass undo (undo/share button)", color2);
-
+        label(t, "Encrypted chat (chat icon),", color1);
+        label(t, "only works if there is a message block with the correct text (button in message block dialog)", color1);
         label(t, "\nTop GUI (left to right)", titleColor);
         label(t, "Create new path (records item pickups)", color1);
         label(t, "Add waypoint to path", color2);
@@ -73,6 +74,8 @@ public class FeaturesDialog extends FloatingDialog{
         label(t, "G - toggle X-ray mode", color2);
         label(t, "/alpha, /delta, /tau, etc commands - goes to the nearest mech/ship pad", color1);
         label(t, "O - hold to hide units", color2);
+        label(t, "/c <nickname set in tab menu> [message...] - send an encrypted message to that player", color1);
+        label(t, "(must have been initialized in tab menu)", color1);
 
         label(t, "Discord: discord.gg/yp9ZW7j", titleColor);
 
