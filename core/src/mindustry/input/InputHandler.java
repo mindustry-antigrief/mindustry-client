@@ -14,7 +14,6 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.ArcAnnotate.*;
 import arc.util.*;
-import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigreif.*;
@@ -38,7 +37,6 @@ import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.BuildBlock.*;
 import mindustry.world.blocks.distribution.*;
-import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.power.*;
 
 import java.util.*;
@@ -179,7 +177,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     ui.chatfrag.addMessage(String.format("%s [lightgray]split power by configuring at %d, %d (%d tiles affected)", player.name, tile.x, tile.y, tile.numConnectionsRemoved), "client");
                 }
             }
-            tile.log.add(new TileLogItem(TileLogType.Configured, player.name, String.format("%s at %d, %d", tile.block().name, tile.x, tile.y) + powerNodeText));
+            tile.addLogItem(new TileLogItem(TileLogType.Configured, player.name, String.format("%s at %d, %d", tile.block().name, tile.x, tile.y) + powerNodeText));
         }
 
         if(net.server() && (!Units.canInteract(player, tile) ||

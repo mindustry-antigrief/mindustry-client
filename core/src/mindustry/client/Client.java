@@ -8,6 +8,7 @@ import arc.struct.*;
 import arc.struct.Queue;
 import arc.util.*;
 import arc.util.CommandHandler.*;
+import mindustry.client.antigreif.*;
 import mindustry.client.pathfinding.*;
 import mindustry.client.utils.*;
 import mindustry.entities.traits.BuilderTrait.*;
@@ -17,6 +18,7 @@ import mindustry.input.*;
 import mindustry.world.*;
 
 import java.security.*;
+import java.time.*;
 import java.util.*;
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -53,6 +55,8 @@ public class Client{
     public static boolean xray = false;
     public static ObjectMap<Player, ECDH> cachedKeys = new ObjectMap<>();
     public static boolean showUnits = true;
+    public static Array<TileLogItem>[][] tileLogs = null;
+    public static long lastSyncTime = 0;
 
     public static void update(){
         PowerGridFinder.INSTANCE.updatePower();
@@ -136,6 +140,10 @@ public class Client{
                 ECDH.handleMessage(event.sender, message);
             }
         });
-        Events.on(WorldLoadEvent.class, MessageSystem::scanForMessages);
+        Events.on(WorldLoadEvent.class, () -> {
+            if (Math.abs(lastSyncTime - Instant.now().getEpochSecond()) > 1)
+            tileLogs = new Array[world.height()][world.width()];
+            MessageSystem.scanForMessages();
+        });
     }
 }

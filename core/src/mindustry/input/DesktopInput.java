@@ -456,7 +456,7 @@ public class DesktopInput extends InputHandler{
             }else if(selected != null){
                 if(input.ctrl() && !input.shift()){
                     StringBuilder builder = new StringBuilder();
-                    for(TileLogItem item : selected.log){
+                    for(TileLogItem item : selected.getLog()){
                         builder.append(item.toString()).append("\n");
                     }
                     if(builder.length() == 0){

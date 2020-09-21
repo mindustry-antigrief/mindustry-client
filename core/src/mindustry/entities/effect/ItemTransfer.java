@@ -101,9 +101,9 @@ public class ItemTransfer extends TimedEntity implements DrawTrait{
     @Override
     public void draw(){
         float alpha = 0.1f;
-        if(from.dst(player) > 1){
-            return;
-        }
+//        if(from.dst(player) > 1){
+//            return;
+//        }
         Draw.alpha(alpha);
         Lines.stroke(fslope() * 2f, Pal.accent);
 

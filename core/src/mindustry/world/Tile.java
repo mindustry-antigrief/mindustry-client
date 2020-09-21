@@ -6,6 +6,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.ArcAnnotate.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.client.antigreif.*;
 import mindustry.content.*;
 import mindustry.entities.traits.*;
@@ -31,7 +32,6 @@ public class Tile implements Position, TargetTrait{
     protected byte rotation;
     /** Team ordinal. */
     protected byte team;
-    public Array<TileLogItem> log = new Array<>();
     public Integer numConnectionsRemoved = null;
     public long timeConnectionsRemoved = 0;
 
@@ -50,6 +50,20 @@ public class Tile implements Position, TargetTrait{
 
         //update entity and create it if needed
         changed();
+    }
+
+    public void addLogItem(TileLogItem item){
+        if(Client.tileLogs[y][x] == null){
+            Client.tileLogs[y][x] = new Array<>();
+        }
+        Client.tileLogs[y][x].add(item);
+    }
+
+    public Array<TileLogItem> getLog(){
+        if(Client.tileLogs[y][x] == null){
+            Client.tileLogs[y][x] = new Array<>();
+        }
+        return Client.tileLogs[y][x];
     }
 
     public int getConfig(){

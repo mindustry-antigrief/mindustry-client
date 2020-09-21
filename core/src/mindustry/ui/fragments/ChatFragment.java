@@ -23,6 +23,7 @@ import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.ui.*;
 
+import java.time.*;
 import java.util.regex.*;
 
 import static arc.Core.*;
@@ -272,6 +273,9 @@ public class ChatFragment extends Table{
         history.insert(1, message);
 
         if(message.startsWith("/")){
+            if(message.equals("/sync")){
+                Client.lastSyncTime = Instant.now().getEpochSecond();
+            }
             try{
                 message = message.substring(((String)PrivateAccessRemover.getPrivateField(netServer.clientCommands, "prefix")).length());
             }catch(NullPointerException ignored){} //if we get this it's already too late
