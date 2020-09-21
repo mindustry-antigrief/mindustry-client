@@ -448,6 +448,11 @@ public class HudFragment extends Fragment{
             TextTooltip.addTooltip(button, "End pathfinding path");
             cont.add(button).top().left().padTop(5f);
 
+            button = new ImageButton(Icon.refresh);
+            button.clicked(Client.cachedKeys::clear);
+            TextTooltip.addTooltip(button, "Clear crypto cache");
+            cont.add(button).top().left().padTop(5f);
+
         });
         
         parent.fill(t -> {

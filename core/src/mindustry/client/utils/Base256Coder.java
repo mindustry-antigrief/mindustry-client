@@ -3,6 +3,8 @@ package mindustry.client.utils;
 import arc.struct.*;
 import arc.util.serialization.*;
 
+import java.nio.charset.*;
+
 public class Base256Coder{
     public static String encode(byte[] input){
         Array<Byte> bytes = new Array<>();
@@ -31,7 +33,7 @@ public class Base256Coder{
     }
 
     public static String encode(String string){
-        return encode(string.getBytes());
+        return encode(string.getBytes(StandardCharsets.UTF_8));
     }
 
     public static String decodeString(String input){
