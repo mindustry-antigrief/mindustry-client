@@ -41,7 +41,7 @@ public class Base256Coder{
         if(decoded == null){
             return "";
         }
-        return new String(decoded);
+        return new String(decoded, StandardCharsets.UTF_8);
     }
 
     static class CharMapping{
