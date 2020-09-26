@@ -9,6 +9,8 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.ArcAnnotate.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
+import mindustry.client.antigreif.*;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
