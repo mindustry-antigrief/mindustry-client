@@ -68,6 +68,7 @@ public enum Binding implements KeyBind{
     chat_history_next(KeyCode.down),
     chat_scroll(new Axis(KeyCode.scroll)),
     console(KeyCode.f8),
+    tile_actions(KeyCode.altLeft, "client")
     ;
 
     private final KeybindValue defaultValue;

@@ -44,6 +44,11 @@ public class Version{
         }else{
             build = Strings.canParseInt(map.get("build")) ? Integer.parseInt(map.get("build")) : -1;
         }
+
+        build = 106;
+        type = "official";
+        modifier = "alpha";
+        number = 6;
     }
 
     /** get menu version without colors */
