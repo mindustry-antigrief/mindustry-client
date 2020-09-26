@@ -306,7 +306,7 @@ public class Renderer implements ApplicationListener{
     }
 
     public float minScale(){
-        return Scl.scl(1.5f);
+        return Scl.scl(0.01f);
     }
 
     public float getScale(){
