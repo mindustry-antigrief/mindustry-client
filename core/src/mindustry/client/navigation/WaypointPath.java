@@ -1,5 +1,8 @@
 package mindustry.client.navigation;
 
+import arc.graphics.*;
+import arc.graphics.g2d.*;
+import arc.math.geom.*;
 import arc.struct.*;
 
 public class WaypointPath implements Path {
@@ -33,6 +36,20 @@ public class WaypointPath implements Path {
 
     @Override
     public void draw() {
-        waypoints.forEach(Waypoint::draw);
+        if (show){
+            Waypoint lastWaypoint = null;
+            for(Waypoint waypoint : waypoints){
+                if(waypoint instanceof Position){
+                    if(lastWaypoint != null){
+                        Draw.color(Color.blue);
+                        Draw.alpha(0.4f);
+                        Lines.stroke(3f);
+                        Lines.line(((Position)lastWaypoint).getX(), ((Position)lastWaypoint).getY(), ((Position)waypoint).getX(), ((Position)waypoint).getY());
+                    }
+                    lastWaypoint = waypoint;
+                }
+                waypoint.draw();
+            }
+        }
     }
 }

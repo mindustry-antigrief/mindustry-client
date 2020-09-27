@@ -39,7 +39,7 @@ public class Vars implements Loadable{
     /** Maximum extra padding around deployment schematics. */
     public static final int maxLoadoutSchematicPad = 5;
     /** Maximum schematic size.*/
-    public static final int maxSchematicSize = 32;
+    public static final int maxSchematicSize = 1024;
     /** All schematic base64 starts with this string.*/
     public static final String schematicBaseStart ="bXNjaA";
     /** IO buffer size. */

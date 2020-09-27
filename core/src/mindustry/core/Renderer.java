@@ -245,6 +245,7 @@ public class Renderer implements ApplicationListener{
         }
 
         Draw.draw(Layer.plans, overlays::drawBottom);
+        Navigation.draw();
 
         if(settings.getBool("animatedshields") && Shaders.shield != null){
             Draw.drawRange(Layer.shields, 1f, () -> effectBuffer.begin(Color.clear), () -> {
@@ -259,8 +260,6 @@ public class Renderer implements ApplicationListener{
         blocks.drawBlocks();
 
         Groups.draw.draw(Drawc::draw);
-
-        Navigation.draw();
 
         Draw.reset();
         Draw.flush();
