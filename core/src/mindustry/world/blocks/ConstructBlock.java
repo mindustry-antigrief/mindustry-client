@@ -54,7 +54,7 @@ public class ConstructBlock extends Block{
     @Remote(called = Loc.server)
     public static void deconstructFinish(Tile tile, Block block, Unit builder){
         if(tile != null && builder != null && block != null){
-            tile.addToLog(new BreakTileLog(builder, tile, Instant.now().getEpochSecond(), "", block));
+            tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", block)));
         }
         Team team = tile.team();
         Fx.breakBlock.at(tile.drawx(), tile.drawy(), block.size);
@@ -67,7 +67,7 @@ public class ConstructBlock extends Block{
     public static void constructFinish(Tile tile, Block block, Unit builder, byte rotation, Team team, Object config){
         if(tile == null) return;
         if(builder != null && block != null){
-            tile.addToLog(new PlaceTileLog(builder, tile, Instant.now().getEpochSecond(), "", block));
+            tile.getLinkedTiles(t -> t.addToLog(new PlaceTileLog(builder, t, Instant.now().getEpochSecond(), "", block)));
         }
 
         float healthf = tile.build == null ? 1f : tile.build.healthf();
