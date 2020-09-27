@@ -8,6 +8,7 @@ import static mindustry.Vars.*;
 
 public class PositionWaypoint implements Waypoint, Position {
     private final float drawX, drawY;
+    public float tolerance = 16f;
 
     public PositionWaypoint(float drawX, float drawY) {
         this.drawX = drawX;
@@ -16,7 +17,7 @@ public class PositionWaypoint implements Waypoint, Position {
 
     @Override
     public boolean isDone() {
-        return player.within(this, 16f);
+        return player.within(this, tolerance);
     }
 
     @Override
@@ -42,8 +43,8 @@ public class PositionWaypoint implements Waypoint, Position {
     @Override
     public void draw() {
         Draw.color(Color.green);
-        Draw.alpha(0.2f);
-        Fill.circle(getX(), getY(), 10f);
+        Draw.alpha(0.3f);
+        Fill.circle(getX(), getY(), tolerance);
         Draw.color();
     }
 }
