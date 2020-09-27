@@ -5,4 +5,6 @@ public interface Waypoint {
     boolean isDone();
 
     void run();
+
+    void draw();
 }

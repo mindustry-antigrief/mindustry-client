@@ -27,7 +27,12 @@ public class WaypointPath implements Path {
     }
 
     @Override
-    public boolean done() {
+    public boolean isDone() {
         return waypoints.isEmpty();
+    }
+
+    @Override
+    public void draw() {
+        waypoints.forEach(Waypoint::draw);
     }
 }
