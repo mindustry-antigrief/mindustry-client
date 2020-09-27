@@ -9,6 +9,7 @@ import arc.graphics.gl.*;
 import arc.math.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -258,6 +259,8 @@ public class Renderer implements ApplicationListener{
         blocks.drawBlocks();
 
         Groups.draw.draw(Drawc::draw);
+
+        Navigation.draw();
 
         Draw.reset();
         Draw.flush();

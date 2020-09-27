@@ -11,9 +11,11 @@ import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
+import arc.struct.*;
 import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.client.navigation.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -235,6 +237,10 @@ public class DesktopInput extends InputHandler{
                     });
                     dialog.show();
                 });
+
+                table.add(new TextButton("Begin path")).growX().get().clicked(() -> {
+                    Navigation.follow(new WaypointPath(new Seq<>(new PositionWaypoint[]{new PositionWaypoint(500, 500), new PositionWaypoint(1000, 500), new PositionWaypoint(500, 1000)})));
+                });
                 AtomicBoolean released = new AtomicBoolean(false);
                 table.update(() -> {
                     if(input.keyRelease(Binding.select) && !released.get()){
@@ -257,7 +263,9 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!player.dead() && !state.isPaused() && !(Core.scene.getKeyboardFocus() instanceof TextField)){
-            updateMovement(player.unit());
+            if(!Navigation.isFollowing()){
+                updateMovement(player.unit());
+            }
 
             if(Core.input.keyDown(Binding.respawn) && !player.unit().spawnedByCore() && !scene.hasField()){
                 Call.unitClear(player);

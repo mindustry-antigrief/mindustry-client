@@ -39,6 +39,7 @@ import mindustry.world.meta.*;
 
 import java.util.*;
 
+import static arc.Core.input;
 import static mindustry.Vars.*;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
@@ -1156,6 +1157,74 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
             Tmp.r3.setSize(block.size * tilesize).setCenter(point.x * tilesize + block.offset, point.y * tilesize + block.offset);
         }
+    }
+
+    public void updateMovementCustom(Unit unit, float x, float y, float direction){
+        Vec2 movement = new Vec2();
+        boolean omni = unit.type().omniMovement;
+        boolean ground = unit.isGrounded();
+
+        float strafePenalty = ground ? 1f : Mathf.lerp(1f, unit.type().strafePenalty, Angles.angleDist(unit.vel().angle(), unit.rotation()) / 180f);
+        float baseSpeed = unit.type().speed;
+
+        //limit speed to minimum formation speed to preserve formation
+        if(unit instanceof Commanderc && ((Commanderc)unit).isCommanding()){
+            //add a tiny multiplier to let units catch up just in case
+            baseSpeed = ((Commanderc)unit).minFormationSpeed() * 0.95f;
+        }
+
+        float speed = baseSpeed * Mathf.lerp(1f, unit.type().canBoost ? unit.type().boostMultiplier : 1f, unit.elevation) * strafePenalty;
+        boolean boosted = (unit instanceof Mechc && unit.isFlying());
+
+        movement.set(x, y).nor().scl(speed);
+        if(Core.input.keyDown(Binding.mouse_move)){
+            movement.add(input.mouseWorld().sub(player).scl(1f / 25f * speed)).limit(speed);
+        }
+
+        boolean aimCursor = omni && player.shooting && unit.type().hasWeapons() && unit.type().faceTarget && !boosted && unit.type().rotateShooting;
+
+        if(aimCursor){
+            unit.lookAt(direction);
+        }else{
+            if(!movement.isZero()){
+                unit.lookAt(unit.vel.isZero() ? movement.angle() : unit.vel.angle());
+            }
+        }
+
+        if(omni){
+            unit.moveAt(movement);
+        }else{
+            unit.moveAt(Tmp.v2.trns(unit.rotation, movement.len()));
+            if(!movement.isZero() && ground){
+                unit.vel.rotateTo(movement.angle(), unit.type().rotateSpeed);
+            }
+        }
+
+        unit.aim(unit.type().faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
+        unit.controlWeapons(true, player.shooting && !boosted);
+
+        player.boosting = !movement.isZero();
+        player.mouseX = unit.aimX();
+        player.mouseY = unit.aimY();
+
+        //update payload input
+//        if(unit instanceof Payloadc){
+//
+//            if(Core.input.keyTap(Binding.pickupCargo)){
+//                tryPickupPayload();
+//            }
+//
+//            if(Core.input.keyTap(Binding.dropCargo)){
+//                tryDropPayload();
+//            }
+//        }
+
+        //update commander inut
+//        if(unit instanceof Commanderc){
+//            if(Core.input.keyTap(Binding.command)){
+//                Call.unitCommand(player);
+//            }
+//        }
     }
 
     static class PlaceLine{

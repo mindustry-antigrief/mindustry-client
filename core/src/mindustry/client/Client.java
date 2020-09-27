@@ -2,6 +2,7 @@ package mindustry.client;
 
 import arc.*;
 import mindustry.client.antigreif.*;
+import mindustry.client.navigation.*;
 import mindustry.game.EventType.*;
 
 import static mindustry.Vars.world;
@@ -16,6 +17,7 @@ public class Client {
     }
 
     public static void update() {
+        Navigation.update();
     }
 
     public static TileLog getLog(int x, int y) {

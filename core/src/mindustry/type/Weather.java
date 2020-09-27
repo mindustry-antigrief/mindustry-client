@@ -179,6 +179,7 @@ public abstract class Weather extends UnlockableContent{
 //                Draw.draw(Layer.weather, () -> {
 //                    weather.rand.setSeed(0);
 //                    Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier);
+//                    opacity /= 2f;
 //                    Draw.alpha(renderer.weatherAlpha() * opacity);
 //                    weather.drawOver(self());
 //                    Draw.reset();
