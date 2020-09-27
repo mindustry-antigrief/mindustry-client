@@ -9,6 +9,7 @@ import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigreif.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -20,6 +21,8 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.modules.*;
+
+import java.time.*;
 
 import static mindustry.Vars.*;
 
@@ -50,6 +53,9 @@ public class ConstructBlock extends Block{
 
     @Remote(called = Loc.server)
     public static void deconstructFinish(Tile tile, Block block, Unit builder){
+        if(tile != null && builder != null && block != null){
+            tile.addToLog(new BreakTileLog(builder, tile, Instant.now().getEpochSecond(), "", block));
+        }
         Team team = tile.team();
         Fx.breakBlock.at(tile.drawx(), tile.drawy(), block.size);
         Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null));
@@ -60,6 +66,9 @@ public class ConstructBlock extends Block{
     @Remote(called = Loc.server)
     public static void constructFinish(Tile tile, Block block, Unit builder, byte rotation, Team team, Object config){
         if(tile == null) return;
+        if(builder != null && block != null){
+            tile.addToLog(new PlaceTileLog(builder, tile, Instant.now().getEpochSecond(), "", block));
+        }
 
         float healthf = tile.build == null ? 1f : tile.build.healthf();
 

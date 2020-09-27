@@ -1,19 +1,27 @@
 package mindustry.client;
 
 import arc.*;
-import mindustry.*;
 import mindustry.client.antigreif.*;
 import mindustry.game.EventType.*;
 
+import static mindustry.Vars.world;
+
 public class Client {
-    public static TileLog[][] tileLogs;
+    private static TileLog[][] tileLogs;
 
     public static void initialize() {
-        Events.on(WorldLoadEvent.class, (event) -> {
-            tileLogs = new TileLog[Vars.world.height()][Vars.world.width()];
+        Events.on(WorldLoadEvent.class, event -> {
+            tileLogs = new TileLog[world.height()][world.width()];
         });
     }
 
     public static void update() {
+    }
+
+    public static TileLog getLog(int x, int y) {
+        if (tileLogs[y][x] == null) {
+            tileLogs[y][x] = new TileLog(world.tile(x, y));
+        }
+        return tileLogs[y][x];
     }
 }

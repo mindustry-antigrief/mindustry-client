@@ -230,7 +230,7 @@ public class Weathers implements ContentList{
                     float sscl = rand.random(0.5f, 1f);
                     float x = (rand.random(0f, world.unitWidth()) + Time.time() * windx * scl2);
                     float y = (rand.random(0f, world.unitHeight()) + Time.time() * windy * scl);
-                    float alpha = rand.random(0.2f);
+                    float alpha = rand.random(0.2f) / 2;
 
                     x += Mathf.sin(y, rand.random(30f, 80f), rand.random(1f, 7f));
 
@@ -288,7 +288,7 @@ public class Weathers implements ContentList{
 
             @Override
             public void drawOver(WeatherState state){
-                Draw.alpha(state.opacity * 0.8f);
+                Draw.alpha(state.opacity * 0.8f * 0.5f);
                 Draw.tint(color);
 
                 float speed = baseSpeed * state.intensity;
@@ -309,7 +309,7 @@ public class Weathers implements ContentList{
                 int total = (int)(Tmp.r1.area() / invDensity * state.intensity());
                 Draw.tint(color);
                 float baseAlpha = state.opacity;
-                Draw.alpha(baseAlpha);
+                Draw.alpha(baseAlpha / 2);
 
                 for(int i = 0; i < total; i++){
                     float scl = rand.random(0.5f, 1f);

@@ -104,6 +104,8 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         assets.load(schematics);
 
         assets.loadRun("contentinit", ContentLoader.class, () -> content.init(), () -> content.load());
+
+        Client.initialize();
     }
 
     @Override
@@ -163,6 +165,8 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 Threads.sleep((target - elapsed) / 1000000, (int)((target - elapsed) % 1000000));
             }
         }
+
+        Client.update();
 
         lastTime = Time.nanos();
     }

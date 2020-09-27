@@ -4,6 +4,7 @@ import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
 import arc.graphics.g2d.*;
+import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.*;
@@ -19,7 +20,10 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 import mindustry.world.*;
+
+import java.util.concurrent.atomic.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.net;
@@ -211,8 +215,38 @@ public class DesktopInput extends InputHandler{
         }
 
         shouldShoot = !scene.hasMouse();
+        Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
         if(!scene.hasMouse()){
+            if(Core.input.alt() && Core.input.keyTap(Binding.select) && cursor != null){
+                Table table = new Table();
+                table.setWidth(200f);
+                table.add(new TextButton("View log")).growX().get().clicked(() -> {
+                    Dialog dialog = new Dialog("Logs");
+                    dialog.cont.add(cursor.getLog().toTable());
+
+                    dialog.cont.row();
+                    dialog.cont.button("@back", Icon.left, dialog::hide).size(210f, 64f);
+
+                    dialog.keyDown(key -> {
+                        if(key == KeyCode.escape || key == KeyCode.back){
+                            Core.app.post(dialog::hide);
+                        }
+                    });
+                    dialog.show();
+                });
+                AtomicBoolean released = new AtomicBoolean(false);
+                table.update(() -> {
+                    if(input.keyRelease(Binding.select) && !released.get()){
+                        released.set(true);
+                    }else if(input.keyRelease(Binding.select)){
+                        scene.root.removeChild(table);
+                    }
+                });
+                scene.add(table);
+                table.setPosition(input.mouseX(), input.mouseY());
+                table.align(Align.topRight);
+            }
             if(Core.input.keyDown(Binding.control) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit();
                 if(on != null){
@@ -283,8 +317,6 @@ public class DesktopInput extends InputHandler{
                 rotateRequests(selectRequests, Mathf.sign(Core.input.axisTap(Binding.rotate)));
             }
         }
-
-        Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
         if(cursor != null){
             if(cursor.build != null){
