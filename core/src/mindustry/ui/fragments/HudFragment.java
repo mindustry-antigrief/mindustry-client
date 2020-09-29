@@ -218,7 +218,7 @@ public class HudFragment extends Fragment{
                 info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel);
                 info.row();
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left().style(Styles.outlineLabel);
-            }).top().left();
+            }).top().left().width(70f);
         });
 
         //core items

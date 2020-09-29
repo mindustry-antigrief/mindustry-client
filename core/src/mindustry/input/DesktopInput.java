@@ -189,13 +189,18 @@ public class DesktopInput extends InputHandler{
 
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
+//        camSpeed
 
         if(input.keyDown(Binding.pan)){
             panCam = true;
             panning = true;
         }
 
-        if((Math.abs(Core.input.axis(Binding.move_x)) > 0 || Math.abs(Core.input.axis(Binding.move_y)) > 0 || input.keyDown(Binding.mouse_move)) && (!scene.hasField())){
+//        if((Math.abs(Core.input.axis(Binding.move_x)) > 0 || Math.abs(Core.input.axis(Binding.move_y)) > 0 || input.keyDown(Binding.mouse_move)) && (!scene.hasField())){
+//            panning = false;
+//        }
+
+        if(input.keyTap(Binding.reset_camera)){
             panning = false;
         }
 
