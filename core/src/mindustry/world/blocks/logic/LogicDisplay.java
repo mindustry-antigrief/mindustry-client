@@ -49,7 +49,7 @@ public class LogicDisplay extends Block{
 
         @Override
         public void draw(){
-            super.draw();
+//            super.draw();
 
             Draw.draw(Draw.z(), () -> {
                 if(buffer == null){
@@ -95,7 +95,7 @@ public class LogicDisplay extends Block{
 
             Draw.draw(Draw.z(), () -> {
                 if(buffer != null){
-                    Draw.rect(Draw.wrap(buffer.getTexture()), x, y, buffer.getWidth() * Draw.scl, -buffer.getHeight() * Draw.scl);
+                    Draw.rect(Draw.wrap(buffer.getTexture()), x, y, (buffer.getWidth() + 16) * Draw.scl, -(buffer.getHeight() + 16) * Draw.scl);
                 }
             });
         }

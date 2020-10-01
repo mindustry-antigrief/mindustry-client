@@ -16,6 +16,8 @@ import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.ai.formations.patterns.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
+import mindustry.client.antigreif.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -37,6 +39,7 @@ import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.meta.*;
 
+import java.time.*;
 import java.util.*;
 
 import static arc.Core.input;
@@ -271,6 +274,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(tile == null) return;
         if(net.server() && (!Units.canInteract(player, tile) ||
             !netServer.admins.allowAction(player, ActionType.configure, tile.tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");
+        if(player != null){
+            Client.getLog(tile.tileX(), tile.tileY()).addItem(new ConfigTileLog(player.unit(), tile.tile, Instant.now().getEpochSecond(), ""));
+        }
         tile.configured(player == null || player.dead() ? null : player.unit(), value);
         Core.app.post(() -> Events.fire(new ConfigEvent(tile, player, value)));
     }
