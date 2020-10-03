@@ -411,6 +411,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
             if(tile != null && tile.team == unit.team){
                 Call.requestBlockPayload(player, tile);
+                if(Navigation.state == NavigationState.RECORDING){
+                    Navigation.addWaypointRecording(new PayloadPickupWaypoint(tile.tileX(), tile.tileY()));
+                }
             }
         }
     }
@@ -420,6 +423,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(!(unit instanceof Payloadc)) return;
 
         Call.requestDropPayload(player, player.x, player.y);
+        if(Navigation.state == NavigationState.RECORDING){
+            Navigation.addWaypointRecording(new PayloadDropoffWaypoint(player.tileX(), player.tileY()));
+        }
     }
 
     public float getMouseX(){

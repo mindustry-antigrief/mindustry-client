@@ -1,17 +1,31 @@
 package mindustry.client.navigation;
 
+import arc.math.*;
+import arc.math.geom.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.*;
 
-public class ItemDropoffWaypoint extends Waypoint {
+import static mindustry.Vars.*;
+
+public class ItemDropoffWaypoint extends Waypoint implements Position {
     public int destinationX, destinationY;
     private boolean done = false;
 
     public ItemDropoffWaypoint(int destinationX, int destinationY) {
         this.destinationX = destinationX;
         this.destinationY = destinationY;
+    }
+
+    @Override
+    public float getX() {
+        return destinationX * tilesize;
+    }
+
+    @Override
+    public float getY(){
+        return destinationY * tilesize;
     }
 
     @Override
@@ -28,6 +42,13 @@ public class ItemDropoffWaypoint extends Waypoint {
             }
             Call.transferInventory(Vars.player, tile.build);
             done = true;
+        } else {
+            float direction = player.angleTo(this);
+            float x = Mathf.cosDeg(direction) * 2f;
+            float y = Mathf.sinDeg(direction) * 2f;
+            x = Mathf.clamp(x / 10, -1f, 1f);
+            y = Mathf.clamp(y / 10, -1f, 1f);
+            control.input.updateMovementCustom(player.unit(), x, y, direction);
         }
     }
 

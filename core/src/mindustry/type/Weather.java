@@ -180,12 +180,12 @@ public abstract class Weather extends UnlockableContent{
 //                    weather.rand.setSeed(0);
 //                    Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier);
 
-            Draw.draw(Layer.debris, () -> {
-                weather.rand.setSeed(0);
-                Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier);
-                weather.drawUnder(self());
-                Draw.reset();
-            });
+//            Draw.draw(Layer.debris, () -> {
+//                weather.rand.setSeed(0);
+//                Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier);
+//                weather.drawUnder(self());
+//                Draw.reset();
+//            });
         }
     }
 }
