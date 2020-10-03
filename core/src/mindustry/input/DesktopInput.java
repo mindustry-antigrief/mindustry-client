@@ -64,6 +64,15 @@ public class DesktopInput extends InputHandler{
         });
 
         group.fill(t -> {
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown() && Navigation.state == NavigationState.RECORDING);
+            t.bottom();
+            t.table(Styles.black6, b -> {
+                b.defaults().left();
+                b.label(() -> Core.bundle.format("waypoint", Core.keybinds.get(Binding.place_waypoint).key.toString())).style(Styles.outlineLabel);
+            }).margin(6f);
+        });
+
+        group.fill(t -> {
             t.bottom();
             t.visible(() -> {
                 t.color.a = Mathf.lerpDelta(t.color.a, player.builder().isBuilding() ? 1f : 0f, 0.15f);
@@ -187,9 +196,14 @@ public class DesktopInput extends InputHandler{
             ui.listfrag.toggle();
         }
 
+        if(Navigation.state == NavigationState.RECORDING){
+            if(input.keyTap(Binding.place_waypoint)){
+                Navigation.addWaypointRecording(new PositionWaypoint(player.x, player.y));
+            }
+        }
+
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
-//        camSpeed
 
         if(input.keyDown(Binding.pan)){
             panCam = true;

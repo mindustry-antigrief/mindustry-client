@@ -15,6 +15,7 @@ import arc.scene.ui.layout.Stack;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.navigation.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -122,6 +123,9 @@ public class BlockInventoryFragment extends Fragment{
 
                     if(holdTime >= holdWithdraw){
                         int amount = Math.min(tile.items.get(lastItem), player.unit().maxAccepted(lastItem));
+                        if(Navigation.state == NavigationState.RECORDING){
+                            Navigation.addWaypointRecording(new ItemPickupWaypoint(tile.tileX(), tile.tileY(), new ItemStack(lastItem, amount)));
+                        }
                         Call.requestItem(player, tile, lastItem, amount);
                         holding = false;
                         holdTime = 0f;
@@ -185,6 +189,9 @@ public class BlockInventoryFragment extends Fragment{
                         int amount = Math.min(1, player.unit().maxAccepted(item));
                         if(amount > 0){
                             Call.requestItem(player, tile, item, amount);
+                            if(Navigation.state == NavigationState.RECORDING){
+                                Navigation.addWaypointRecording(new ItemPickupWaypoint(tile.tileX(), tile.tileY(), new ItemStack(item, amount)));
+                            }
                             lastItem = item;
                             holding = true;
                             holdTime = 0f;

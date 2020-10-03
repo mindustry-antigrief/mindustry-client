@@ -15,6 +15,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.navigation.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -25,6 +26,7 @@ import mindustry.input.*;
 import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
 
@@ -219,6 +221,16 @@ public class HudFragment extends Fragment{
                 info.row();
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left().style(Styles.outlineLabel);
             }).top().left().width(70f);
+            cont.add(new ImageButton(Icon.move)).get().clicked(() -> {
+                BaseDialog dialog = new BaseDialog("Waypoints");
+                dialog.addCloseButton();
+                dialog.cont.add(new TextButton("Record path")).get().clicked(() -> {Navigation.startRecording(); dialog.hide();});
+                dialog.cont.row();
+                dialog.cont.add(new TextButton("Stop recording path")).get().clicked(() -> {Navigation.stopRecording(); dialog.hide();});
+                dialog.cont.row();
+                dialog.cont.add(new TextButton("Follow recorded path")).get().clicked(() -> {Navigation.follow(Navigation.recordedPath); dialog.hide();});
+                dialog.show();
+            });
         });
 
         //core items

@@ -18,6 +18,7 @@ import mindustry.ai.formations.patterns.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigreif.*;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -1017,6 +1018,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         ItemStack stack = player.unit().stack;
 
         if(tile != null && tile.acceptStack(stack.item, stack.amount, player.unit()) > 0 && tile.interactable(player.team()) && tile.block.hasItems && player.unit().stack().amount > 0 && tile.interactable(player.team())){
+            if(Navigation.state == NavigationState.RECORDING){
+                Navigation.addWaypointRecording(new ItemDropoffWaypoint(tile.tileX(), tile.tileY()));
+            }
             Call.transferInventory(player, tile);
         }else{
             Call.dropItem(player.angleTo(x, y));

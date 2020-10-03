@@ -6,7 +6,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import static mindustry.Vars.*;
 
-public class PositionWaypoint implements Waypoint, Position {
+public class PositionWaypoint extends Waypoint implements Position {
     private final float drawX, drawY;
     public float tolerance = 16f;
 

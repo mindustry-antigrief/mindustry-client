@@ -1,10 +1,12 @@
 package mindustry.client.navigation;
 
-public interface Waypoint {
+abstract class Waypoint {
 
-    boolean isDone();
+    abstract boolean isDone();
 
-    void run();
+    abstract void run();
 
-    void draw();
+    abstract void draw();
+
+    public void onFinish() {}
 }

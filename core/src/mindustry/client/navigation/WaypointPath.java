@@ -5,9 +5,10 @@ import arc.graphics.g2d.*;
 import arc.math.geom.*;
 import arc.struct.*;
 
-public class WaypointPath implements Path {
-    private Seq<Waypoint> waypoints;
-    private Seq<Waypoint> finished;
+public class WaypointPath extends Path {
+    private final Seq<Waypoint> waypoints;
+    private final Seq<Waypoint> finished;
+    private boolean show;
 
     public WaypointPath(Seq<Waypoint> waypoints) {
         this.waypoints = waypoints;
@@ -15,11 +16,22 @@ public class WaypointPath implements Path {
     }
 
     @Override
+    public void setShow(boolean show) {
+        this.show = show;
+    }
+
+    @Override
+    public boolean isShown() {
+        return show;
+    }
+
+    @Override
     public void follow() {
-        Waypoint waypoint = waypoints.peek();
+        Waypoint waypoint = waypoints.first();
         waypoint.run();
         if (waypoint.isDone()) {
-            finished.add(waypoints.pop());
+            waypoint.onFinish();
+            finished.add(waypoints.remove(0));
         }
     }
 
@@ -36,7 +48,7 @@ public class WaypointPath implements Path {
 
     @Override
     public void draw() {
-        if (show){
+        if (show) {
             Waypoint lastWaypoint = null;
             for(Waypoint waypoint : waypoints){
                 if(waypoint instanceof Position){

@@ -1,6 +1,7 @@
 package mindustry.client.navigation;
 
 import arc.struct.*;
+import mindustry.*;
 import mindustry.content.*;
 import mindustry.world.*;
 import mindustry.world.blocks.defense.turrets.*;
@@ -11,9 +12,17 @@ import static mindustry.Vars.*;
 public class Navigation {
     public static Path currentlyFollowing = null;
     public static boolean isPaused = false;
+    public static NavigationState state = NavigationState.NONE;
+    public static Path recordedPath = null;
+    public static Seq<Waypoint> recording = null;
 
     public static void follow(Path path) {
         currentlyFollowing = path;
+        if (path == null){
+            state = NavigationState.NONE;
+        } else {
+            state = NavigationState.FOLLOWING;
+        }
     }
 
     public static void update() {
@@ -22,6 +31,7 @@ public class Navigation {
             if (currentlyFollowing.isDone()) {
                 currentlyFollowing.onFinish();
                 currentlyFollowing = null;
+                state = NavigationState.NONE;
             }
         }
     }
@@ -33,6 +43,10 @@ public class Navigation {
     public static void draw() {
         if (currentlyFollowing != null) {
             currentlyFollowing.draw();
+        }
+
+        if (state == NavigationState.RECORDING && recordedPath != null) {
+            recordedPath.draw();
         }
     }
 
@@ -46,7 +60,7 @@ public class Navigation {
                         turrets.add((TurretBuild)tile.build);
                     }
                 } else if (tile.block() == Blocks.spawn) {
-                    dropZones.add(new TurretPathfindingEntity(tile.x, tile.y, state.rules.dropZoneRadius));
+                    dropZones.add(new TurretPathfindingEntity(tile.x, tile.y, Vars.state.rules.dropZoneRadius));
                 }
             }
         }
@@ -59,5 +73,28 @@ public class Navigation {
             }
             follow(new WaypointPath(waypoints));
         }
+    }
+
+    public static void startRecording() {
+        state = NavigationState.RECORDING;
+        recording = new Seq<>();
+    }
+
+    public static void stopRecording() {
+        state = NavigationState.NONE;
+        recordedPath = new WaypointPath(recording);
+        recording = null;
+    }
+
+    public static void addWaypointRecording(Waypoint waypoint) {
+        if (state != NavigationState.RECORDING) {
+            return;
+        }
+        if (recording == null) {
+            recording = new Seq<>();
+        }
+        recording.add(waypoint);
+        recordedPath = new WaypointPath(recording);
+        recordedPath.setShow(true);
     }
 }

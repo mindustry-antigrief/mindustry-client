@@ -2,26 +2,28 @@ package mindustry.client.navigation;
 
 import arc.struct.*;
 
+abstract class Path {
+    private final Seq<Runnable> listeners = new Seq<>();
 
-public interface Path {
-    Seq<Runnable> listeners = new Seq<>();
-    boolean show = false;
+    abstract void setShow(boolean show);
 
-    default void addListener(Runnable listener) {
+    abstract boolean isShown();
+
+    public void addListener(Runnable listener) {
         listeners.add(listener);
     }
 
-    void follow();
+    abstract void follow();
 
-    float progress();
+    abstract float progress();
 
-    default boolean isDone() {
+    public boolean isDone() {
         return progress() >= 0.99;
     }
 
-    default void onFinish() {
+    public void onFinish() {
         listeners.forEach(Runnable::run);
     }
 
-    default void draw() {}
+    public void draw() {}
 }
