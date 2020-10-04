@@ -1,6 +1,9 @@
 package mindustry.client.navigation;
 
-abstract class Waypoint {
+/**
+ * A way of representing a waypoint.  You're probably looking for {@link PositionWaypoint}
+ */
+public abstract class Waypoint {
 
     abstract boolean isDone();
 

@@ -71,6 +71,8 @@ public enum Binding implements KeyBind{
     tile_actions(KeyCode.altLeft, "client"),
     reset_camera(KeyCode.r),
     place_waypoint(KeyCode.y),
+    drop_payload(KeyCode.backslash),
+    navigate_to_camera(KeyCode.z),
     ;
 
     private final KeybindValue defaultValue;

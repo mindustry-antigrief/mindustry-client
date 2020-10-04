@@ -24,6 +24,7 @@ import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 import mindustry.world.*;
+import mindustry.world.blocks.payloads.*;
 
 import java.util.concurrent.atomic.*;
 
@@ -126,8 +127,8 @@ public class DesktopInput extends InputHandler{
 
     @Override
     public void drawBottom(){
-        int cursorX = tileX(Core.input.mouseX());
-        int cursorY = tileY(Core.input.mouseY());
+        int cursorX = tileX(input.mouseX());
+        int cursorY = tileY(input.mouseY());
 
         //draw request being moved
         if(sreq != null){
@@ -182,6 +183,24 @@ public class DesktopInput extends InputHandler{
                     brequest.config = null;
                 }
 
+            }else if(mode == payloadPlace){
+                if(player.unit() instanceof Payloadc){
+                    Payload payload = ((Payloadc)player.unit()).hasPayload()? ((Payloadc)player.unit()).payloads().peek() : null;
+                    if(payload != null){
+                        if(payload instanceof BlockPayload){
+                            drawRequest(cursorX, cursorY, ((BlockPayload)payload).entity.block, 0);
+                            if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, ((BlockPayload)payload).entity.block, 0)){
+                                Navigation.follow(new WaypointPath(new Seq<>(new Waypoint[]{new PositionWaypoint(player.x, player.y), new PayloadDropoffWaypoint(cursorX, cursorY)})));
+                                NavigationState previousState = Navigation.state;
+                                Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
+                                if(Navigation.state == NavigationState.RECORDING){
+                                    Navigation.addWaypointRecording(new PayloadDropoffWaypoint(cursorX, cursorY));
+                                }
+                                mode = none;
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -205,16 +224,32 @@ public class DesktopInput extends InputHandler{
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
+        if(input.keyTap(Binding.navigate_to_camera)){
+            Navigation.navigateTo(camera.position.x, camera.position.y);
+        }
+
         if(input.keyDown(Binding.pan)){
             panCam = true;
             panning = true;
+        }
+
+        if(input.shift() && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
+            panning = true;
+            camera.position.add(input.axis(Binding.move_x), input.axis(Binding.move_y));
+        }
+
+        if(input.keyDown(Binding.drop_payload)){
+            mode = payloadPlace;
+        }
+        if(input.keyRelease(Binding.drop_payload)){
+            mode = none;
         }
 
 //        if((Math.abs(Core.input.axis(Binding.move_x)) > 0 || Math.abs(Core.input.axis(Binding.move_y)) > 0 || input.keyDown(Binding.mouse_move)) && (!scene.hasField())){
 //            panning = false;
 //        }
 
-        if(input.keyTap(Binding.reset_camera)){
+        if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null){
             panning = false;
         }
 
@@ -257,9 +292,6 @@ public class DesktopInput extends InputHandler{
                     dialog.show();
                 });
 
-                table.add(new TextButton("Begin path")).growX().get().clicked(() -> {
-                    Navigation.follow(new WaypointPath(new Seq<>(new PositionWaypoint[]{new PositionWaypoint(500, 500), new PositionWaypoint(1000, 500), new PositionWaypoint(500, 1000)})));
-                });
                 AtomicBoolean released = new AtomicBoolean(false);
                 table.update(() -> {
                     if(input.keyRelease(Binding.select) && !released.get()){
@@ -670,6 +702,9 @@ public class DesktopInput extends InputHandler{
         float speed = baseSpeed * Mathf.lerp(1f, unit.type().canBoost ? unit.type().boostMultiplier : 1f, unit.elevation) * strafePenalty;
         float xa = Core.input.axis(Binding.move_x);
         float ya = Core.input.axis(Binding.move_y);
+        if(input.shift()){
+            xa = ya = 0f;
+        }
         boolean boosted = (unit instanceof Mechc && unit.isFlying());
 
         movement.set(xa, ya).nor().scl(speed);

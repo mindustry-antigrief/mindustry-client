@@ -5,6 +5,9 @@ import arc.graphics.g2d.*;
 import arc.math.geom.*;
 import arc.struct.*;
 
+/**
+ * A {@link Path} composed of {@link Waypoint} instances.
+ */
 public class WaypointPath extends Path {
     private final Seq<Waypoint> waypoints;
     private final Seq<Waypoint> finished;
@@ -61,7 +64,9 @@ public class WaypointPath extends Path {
                     lastWaypoint = waypoint;
                 }
                 waypoint.draw();
+                Draw.color();
             }
+            Draw.color();
         }
     }
 }

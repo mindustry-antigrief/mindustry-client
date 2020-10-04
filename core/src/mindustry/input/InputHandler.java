@@ -169,6 +169,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Unit unit = player.unit();
         Payloadc pay = (Payloadc)unit;
 
+        tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadPickupTileLog(player.unit(), tile2, tile2.block(), Instant.now().getEpochSecond(), "")));
+
         if(onGround){
             if(tile.block.buildVisibility != BuildVisibility.hidden && tile.canPickup() && pay.canPickup(tile)){
                 pay.pickup(tile);
@@ -206,6 +208,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(player == null) return;
 
         Payloadc pay = (Payloadc)player.unit();
+        if(pay.hasPayload()){
+            if(pay.payloads().peek() instanceof BlockPayload){
+                Tile tile = world.tile((int)x / tilesize, (int)y / tilesize);
+                tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadDropOffTileLog(player.unit(), tile2, ((BlockPayload)(pay.payloads().peek())).block(), Instant.now().getEpochSecond(), "")));
+            }
+        }
 
         float prevx = pay.x(), prevy = pay.y();
         pay.set(x, y);
@@ -276,7 +284,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(net.server() && (!Units.canInteract(player, tile) ||
             !netServer.admins.allowAction(player, ActionType.configure, tile.tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");
         if(player != null){
-            Client.getLog(tile.tileX(), tile.tileY()).addItem(new ConfigTileLog(player.unit(), tile.tile, Instant.now().getEpochSecond(), ""));
+            tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new ConfigTileLog(player.unit(), tile2, Instant.now().getEpochSecond(), "")));
         }
         tile.configured(player == null || player.dead() ? null : player.unit(), value);
         Core.app.post(() -> Events.fire(new ConfigEvent(tile, player, value)));

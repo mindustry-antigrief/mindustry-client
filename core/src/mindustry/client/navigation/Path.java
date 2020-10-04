@@ -2,7 +2,10 @@ package mindustry.client.navigation;
 
 import arc.struct.*;
 
-abstract class Path {
+/**
+ * A way of representing a path, currently only implemented by {@link WaypointPath}
+ */
+public abstract class Path {
     private final Seq<Runnable> listeners = new Seq<>();
 
     abstract void setShow(boolean show);
