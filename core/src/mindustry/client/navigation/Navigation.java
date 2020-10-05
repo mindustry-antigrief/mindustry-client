@@ -68,8 +68,9 @@ public class Navigation {
         Seq<int[]> points = AStar.findPathTurretsDropZone(turrets, player.x, player.y, drawX, drawY, world.width(), world.height(), player.team(), dropZones);
         if (points != null) {
             Seq<Waypoint> waypoints = new Seq<>();
+            points.reverse();
             for (int[] point : points) {
-                waypoints.add(new PositionWaypoint(point[0], point[1]));
+                waypoints.add(new PositionWaypoint(point[0] * tilesize, point[1] * tilesize));
             }
             follow(new WaypointPath(waypoints));
         }
