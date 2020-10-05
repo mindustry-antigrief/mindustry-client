@@ -235,7 +235,10 @@ public class DesktopInput extends InputHandler{
 
         if(input.shift() && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
             panning = true;
-            camera.position.add(input.axis(Binding.move_x), input.axis(Binding.move_y));
+            float speed = Time.delta;
+            speed *= camera.width;
+            speed /= 50f;
+            camera.position.add(input.axis(Binding.move_x) * speed, input.axis(Binding.move_y) * speed);
         }
 
         if(input.keyDown(Binding.drop_payload)){
