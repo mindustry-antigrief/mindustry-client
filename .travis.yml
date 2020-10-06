@@ -1,20 +1,16 @@
 language: java
 install: skip
-
 os: linux
 dist: trusty
 jdk: openjdk8
-
 script:
-  - "echo 'Hello world!'"
-#- "./gradlew desktop:dist"
-
-#deploy:
-#  provider: releases
-#  api_key:
-#    secure: N31NVs7LyygEtTWXfe0/opjzzQJ2AuQzNlE7MccNwgwpPT0d4orowwVEhif+BRvvL9+NEOk18ZMMiZf2ueWXR8PKySIyZBMUqwXstNEiYyIktjLIO5xKwDiqWKwFEhz6o+jh7pIGeosJzcIhpUPYkj90bMcHEy31WjWqp+vb43S+66xIWovI3oOQPWUKeoYyd/59Dd1GUtV8XUfWTRU8MeaUalvZxi4OW+mgjAKp7U+6ILkxPDK0FHFeQKEW70gowj4xVOMGHzNvCOz2V3j2pc/2ZcheqOuUSo2ILNyY6jC2Kkv8WuFraMWt+CCtX8UD/VloAMt33aCcekZQ+yd1Pl4U2fyOCcFiJ1TiVP4zToBAZFX0AJ/gE0nvsZWeVAOwk7PrGklXhcJEIRJY4iCMcSnju1Q2tz0aBGKK97mJZi02PC021aUXbAgqDxfew0OfHLrnCPy8Q5bR+vn64fvXMGRuB8WtlpMiJvzEXncVg37yJdkQlO5ht0dw9iPe00qSQZJHdfPW6kyLxT/+Z1TCG0xiHPufGooY0wrP+VdIwslaQS4INd728viuQU8oV/RJPDfgEMvVrz7XZLTTZMwYelGWGts8ld+Qgm+dmN7nrv+QBHzFmlc3PUCyEG3S+PEMdpYRGWWXETpAG/bb5YD+1XzBonCYGDHad5JNLOPoR6k=
-#  file: desktop/build/libs/Mindustry.jar
-#  on:
-#    repo: blahblahbloopster/mindustry-client
-#    branch: custom_client
-#  skip_cleanup: 'true'
+- "./gradlew desktop:dist"
+deploy:
+  provider: releases
+  api_key:
+    secure: kSx0hfx9AiRtlFMku93Neb2u9WMozIjoodM5xjQRTWn2bAIxrg6rMh10bXIG3NwLTYOs6dfcIAaqI7IPGjlQ29bmuICsbUb1gAwIq7WG5eI95d9JmtilZ/KXuqhUSsx7iiWl6AmEJ+63RxvJ4N26XltAawVTNldcKwi3PbrVkIlRPq1hHidoaAISuKr7hTpcFAj8zksV3Qe7g+6EvHDyuzQSLrBENaEvPOQCv3JO0/8xSGGY8Ds1x+uUXBVP5aFeWLRyzS1U6N3y0TqamTgZxxIRZkhSKn7yCYpOLbeYb/lT7p5gcuX5cYDjDDQSE/HFSKiiaa2xvkIs3dnhwMGJFo+ns1DdGVbV3dS/cgEPRnlRUL0CClDXGXupLIGgpr/o6yFEFtFwo3LgXht8+wqzf32YLMqnGd7ytkybDjVgLhji9ijH0VOAPnrDFqNGSXrMfUAnyQB9FcSgufyYT9FMX52L0/zos/Bk0W6fMOPnEUSlB55+2gSAJxvH6cBkV9M9fWqFefN0eN11nDfTL7E2KPUkiJWHUwLpjLarium6Yyra/EGOuLdlV7Gna4aq7cBwfqgRXQn6yGneRH2GtiZ8GBhsZTlic2noHpwrLfJmAC/xJqQW4ENn7aYIH3ZdP+KB7UwUFwDHtTVj+3w8Sat7pmAKqHm7G2OIbmB4hT4vWaw=
+  file: desktop/build/libs/Mindustry.jar
+  on:
+    repo: blahblahbloopster/mindustry-client-v6
+    branch: custom-client
+  skip_cleanup: 'true'
