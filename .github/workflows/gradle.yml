@@ -23,9 +23,7 @@ jobs:
         tag_name: ${{ github.run_id }}
         release_name: Release ${{ github.run_id }}
         body: |
-          Changes in this Release
-          - aaa
-          - aaaaaa
+          This is an automated release
         draft: false
         prerelease: false
     - name: Upload Release Asset
