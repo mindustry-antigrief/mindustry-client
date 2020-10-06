@@ -1,0 +1,20 @@
+language: java
+install: skip
+
+os: linux
+dist: trusty
+jdk: openjdk8
+
+script:
+  - "echo 'Hello world!'"
+#- "./gradlew desktop:dist"
+
+#deploy:
+#  provider: releases
+#  api_key:
+#    secure: N31NVs7LyygEtTWXfe0/opjzzQJ2AuQzNlE7MccNwgwpPT0d4orowwVEhif+BRvvL9+NEOk18ZMMiZf2ueWXR8PKySIyZBMUqwXstNEiYyIktjLIO5xKwDiqWKwFEhz6o+jh7pIGeosJzcIhpUPYkj90bMcHEy31WjWqp+vb43S+66xIWovI3oOQPWUKeoYyd/59Dd1GUtV8XUfWTRU8MeaUalvZxi4OW+mgjAKp7U+6ILkxPDK0FHFeQKEW70gowj4xVOMGHzNvCOz2V3j2pc/2ZcheqOuUSo2ILNyY6jC2Kkv8WuFraMWt+CCtX8UD/VloAMt33aCcekZQ+yd1Pl4U2fyOCcFiJ1TiVP4zToBAZFX0AJ/gE0nvsZWeVAOwk7PrGklXhcJEIRJY4iCMcSnju1Q2tz0aBGKK97mJZi02PC021aUXbAgqDxfew0OfHLrnCPy8Q5bR+vn64fvXMGRuB8WtlpMiJvzEXncVg37yJdkQlO5ht0dw9iPe00qSQZJHdfPW6kyLxT/+Z1TCG0xiHPufGooY0wrP+VdIwslaQS4INd728viuQU8oV/RJPDfgEMvVrz7XZLTTZMwYelGWGts8ld+Qgm+dmN7nrv+QBHzFmlc3PUCyEG3S+PEMdpYRGWWXETpAG/bb5YD+1XzBonCYGDHad5JNLOPoR6k=
+#  file: desktop/build/libs/Mindustry.jar
+#  on:
+#    repo: blahblahbloopster/mindustry-client
+#    branch: custom_client
+#  skip_cleanup: 'true'
