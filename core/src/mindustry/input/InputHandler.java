@@ -284,7 +284,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(net.server() && (!Units.canInteract(player, tile) ||
             !netServer.admins.allowAction(player, ActionType.configure, tile.tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");
         if(player != null){
-            tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new ConfigTileLog(player.unit(), tile2, Instant.now().getEpochSecond(), "")));
+            tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new ConfigTileLog(player.unit(), tile2, value, Instant.now().getEpochSecond(), "")));
         }
         tile.configured(player == null || player.dead() ? null : player.unit(), value);
         Core.app.post(() -> Events.fire(new ConfigEvent(tile, player, value)));

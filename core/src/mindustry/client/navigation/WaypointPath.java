@@ -2,6 +2,7 @@ package mindustry.client.navigation;
 
 import arc.graphics.*;
 import arc.graphics.g2d.*;
+import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 
@@ -30,6 +31,12 @@ public class WaypointPath extends Path {
 
     @Override
     public void follow() {
+        if (waypoints == null) {
+            return;
+        }
+        if (waypoints.isEmpty()){
+            return;
+        }
         Waypoint waypoint = waypoints.first();
         waypoint.run();
         if (waypoint.isDone()) {
@@ -41,11 +48,20 @@ public class WaypointPath extends Path {
     @Override
     public float progress() {
         //TODO make this work better
+        if (waypoints == null) {
+            return 1f;
+        }
+        if (waypoints.size + finished.size == 0) {
+            return 1f;
+        }
         return waypoints.size / (float)(waypoints.size + finished.size);
     }
 
     @Override
     public boolean isDone() {
+        if (waypoints == null) {
+            return true;
+        }
         return waypoints.isEmpty();
     }
 
