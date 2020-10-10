@@ -13,11 +13,13 @@ public class Client {
     public static void initialize() {
         Events.on(WorldLoadEvent.class, event -> {
             tileLogs = new TileLog[world.height()][world.width()];
+            PowerInfo.initialize();
         });
     }
 
     public static void update() {
         Navigation.update();
+        PowerInfo.update();
     }
 
     public static TileLog getLog(int x, int y) {

@@ -16,7 +16,7 @@ public class PowerGraph{
     private final ObjectSet<Building> producers = new ObjectSet<>();
     private final ObjectSet<Building> consumers = new ObjectSet<>();
     private final ObjectSet<Building> batteries = new ObjectSet<>();
-    private final ObjectSet<Building> all = new ObjectSet<>();
+    public final ObjectSet<Building> all = new ObjectSet<>();
 
     private final WindowedMean powerBalance = new WindowedMean(60);
     private float lastPowerProduced, lastPowerNeeded, lastUsageFraction, lastPowerStored;
