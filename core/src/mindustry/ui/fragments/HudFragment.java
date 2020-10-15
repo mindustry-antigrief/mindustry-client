@@ -15,6 +15,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
@@ -185,6 +186,8 @@ public class HudFragment extends Fragment{
             .grow()).fillX().visible(() -> state.rules.waves && state.boss() != null).height(60f).get();
 
             wavesMain.row();
+
+            wavesMain.add(PowerInfo.getBars());
 
             editorMain.table(Tex.buttonEdge4, t -> {
                 //t.margin(0f);

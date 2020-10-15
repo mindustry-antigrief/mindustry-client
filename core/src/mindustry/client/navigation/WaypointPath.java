@@ -85,4 +85,9 @@ public class WaypointPath extends Path {
             Draw.color();
         }
     }
+
+    @Override
+    public Position next() {
+        return waypoints.peek() instanceof Position? (Position)waypoints.peek() : null;
+    }
 }

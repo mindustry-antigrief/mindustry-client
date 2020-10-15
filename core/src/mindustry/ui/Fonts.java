@@ -36,6 +36,7 @@ public class Fonts{
     public static Font chat;
     public static Font icon;
     public static Font tech;
+    public static Font mono;
 
     public static int getUnicode(String content){
         return unicodeIcons.get(content, 0);
@@ -129,6 +130,10 @@ public class Fonts{
                     parameter.fontParameters.borderWidth = Scl.scl(2f);
                     parameter.fontParameters.spaceX -= parameter.fontParameters.borderWidth;
                 }
+                if(fileName.equals("mono")){
+                    parameter.fontParameters.borderWidth = Scl.scl(2f);
+                    parameter.fontParameters.spaceX -= parameter.fontParameters.borderWidth;
+                }
                 if(!scaled.contains(parameter.fontParameters)){
                     parameter.fontParameters.size = (int)(Scl.scl(parameter.fontParameters.size));
                     scaled.add(parameter.fontParameters);
@@ -148,6 +153,8 @@ public class Fonts{
         }};
 
         Core.assets.load("outline", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = t -> Fonts.outline = (Font)t;
+
+        Core.assets.load("mono", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = t -> Fonts.mono = (Font)t;
 
         Core.assets.load("tech", Font.class, new FreeTypeFontLoaderParameter("fonts/tech.ttf", new FreeTypeFontParameter(){{
             size = 18;

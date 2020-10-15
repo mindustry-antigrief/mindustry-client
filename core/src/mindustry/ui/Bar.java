@@ -12,12 +12,14 @@ import arc.util.pooling.*;
 import mindustry.gen.*;
 
 public class Bar extends Element{
-    private static Rect scissor = new Rect();
+    protected static Rect scissor = new Rect();
 
-    private Floatp fraction;
-    private String name = "";
-    private float value, lastValue, blink;
-    private Color blinkColor = new Color();
+    protected Floatp fraction;
+    protected String name = "";
+    protected float value;
+    protected float lastValue;
+    protected float blink;
+    protected Color blinkColor = new Color();
 
     public Bar(String name, Color color, Floatp fraction){
         this.fraction = fraction;

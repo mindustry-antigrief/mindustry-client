@@ -10,6 +10,8 @@ import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.ai.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.navigation.Navigation;
+import mindustry.client.navigation.TurretPathfindingEntity;
 import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
@@ -242,6 +244,15 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     @Override
     public void update(){
+        if (hasWeapons()) {
+            if (team != player.team()) {
+                type.weapons.forEach(weapon -> {
+                    if (player.unit().isFlying()? weapon.bullet.collidesAir : weapon.bullet.collidesGround) {
+                        Navigation.obstacles.add(new TurretPathfindingEntity(tileX(), tileY(), weapon.bullet.range() * 1.2f));
+                    }
+                });
+            }
+        }
 
         type.update(self());
 

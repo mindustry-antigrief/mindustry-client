@@ -12,6 +12,8 @@ import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.navigation.Navigation;
+import mindustry.client.navigation.TurretPathfindingEntity;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.bullet.*;
@@ -220,6 +222,9 @@ public abstract class Turret extends Block{
             unit.health(health);
             unit.rotation(rotation);
             unit.team(team);
+            if(team != player.team() && (player.unit().isFlying()? targetAir : targetGround)) {
+                Navigation.obstacles.add(new TurretPathfindingEntity(tileX(), tileY(), range * 1.2f));
+            }
 
             if(logicControlTime > 0){
                 logicControlTime -= Time.delta;

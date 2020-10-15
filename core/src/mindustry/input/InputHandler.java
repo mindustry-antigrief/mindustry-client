@@ -1182,6 +1182,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public void updateMovementCustom(Unit unit, float x, float y, float direction){
+        if (unit == null || player.dead()) {
+            return;
+        }
         Vec2 movement = new Vec2();
         boolean omni = unit.type().omniMovement;
         boolean ground = unit.isGrounded();

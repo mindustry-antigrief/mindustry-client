@@ -1,5 +1,6 @@
 package mindustry.client.navigation;
 
+import arc.math.geom.Position;
 import arc.struct.*;
 
 /**
@@ -29,4 +30,6 @@ public abstract class Path {
     }
 
     public void draw() {}
+
+    abstract Position next();
 }
