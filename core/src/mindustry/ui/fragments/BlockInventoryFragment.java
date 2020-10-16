@@ -10,17 +10,12 @@ import arc.scene.*;
 import arc.scene.actions.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
-import arc.scene.ui.layout.*;
 import arc.scene.ui.layout.Stack;
+import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.annotations.Annotations.*;
-import mindustry.client.navigation.*;
-import mindustry.entities.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
-import mindustry.net.Administration.*;
-import mindustry.net.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 
@@ -41,29 +36,6 @@ public class BlockInventoryFragment extends Fragment{
 
     {
         Events.on(WorldLoadEvent.class, e -> hide());
-    }
-
-    @Remote(called = Loc.server, targets = Loc.both, forward = true)
-    public static void requestItem(Player player, Building tile, Item item, int amount){
-        if(player == null || tile == null || !tile.interactable(player.team()) || !player.within(tile, buildingRange)) return;
-        amount = Math.min(player.unit().maxAccepted(item), amount);
-        int fa = amount;
-
-        if(amount == 0) return;
-
-        if(net.server() && (!Units.canInteract(player, tile) ||
-            !netServer.admins.allowAction(player, ActionType.withdrawItem, tile.tile(), action -> {
-                action.item = item;
-                action.itemAmount = fa;
-            }))) throw new ValidateException(player, "Player cannot request items.");
-
-        int removed = tile.removeStack(item, amount);
-
-        player.unit().addItem(item, removed);
-        Events.fire(new WithdrawEvent(tile, player, item, amount));
-        for(int j = 0; j < Mathf.clamp(removed / 3, 1, 8); j++){
-            Time.run(j * 3f, () -> Call.transferItemEffect(item, tile.x, tile.y, player.unit()));
-        }
     }
 
     @Override
@@ -123,9 +95,6 @@ public class BlockInventoryFragment extends Fragment{
 
                     if(holdTime >= holdWithdraw){
                         int amount = Math.min(tile.items.get(lastItem), player.unit().maxAccepted(lastItem));
-                        if(Navigation.state == NavigationState.RECORDING){
-                            Navigation.addWaypointRecording(new ItemPickupWaypoint(tile.tileX(), tile.tileY(), new ItemStack(lastItem, amount)));
-                        }
                         Call.requestItem(player, tile, lastItem, amount);
                         holding = false;
                         holdTime = 0f;
@@ -189,9 +158,6 @@ public class BlockInventoryFragment extends Fragment{
                         int amount = Math.min(1, player.unit().maxAccepted(item));
                         if(amount > 0){
                             Call.requestItem(player, tile, item, amount);
-                            if(Navigation.state == NavigationState.RECORDING){
-                                Navigation.addWaypointRecording(new ItemPickupWaypoint(tile.tileX(), tile.tileY(), new ItemStack(item, amount)));
-                            }
                             lastItem = item;
                             holding = true;
                             holdTime = 0f;

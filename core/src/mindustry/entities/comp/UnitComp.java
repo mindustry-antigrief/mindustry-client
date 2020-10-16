@@ -6,7 +6,6 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.ai.*;
 import mindustry.annotations.Annotations.*;
@@ -26,11 +25,12 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.environment.*;
+import mindustry.world.blocks.payloads.*;
 
 import static mindustry.Vars.*;
 
 @Component(base = true)
-abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, Itemsc, Rotc, Unitc, Weaponsc, Drawc, Boundedc, Syncc, Shieldc, Displayable, Senseable{
+abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, Itemsc, Rotc, Unitc, Weaponsc, Drawc, Boundedc, Syncc, Shieldc, Commanderc, Displayable, Senseable, Ranged{
 
     @Import boolean hovering, dead;
     @Import float x, y, rotation, elevation, maxHealth, drag, armor, hitSize, health, ammo;
@@ -40,6 +40,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     private UnitController controller;
     private UnitType type;
     boolean spawnedByCore;
+    double flag;
 
     transient Seq<Ability> abilities = new Seq<>(0);
     private transient float resupplyTime = Mathf.random(10f);
@@ -66,6 +67,12 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         return type.hasWeapons();
     }
 
+    /** @return speed with boost multipliers factored in. */
+    public float realSpeed(){
+        return Mathf.lerp(1f, type.canBoost ? type.boostMultiplier : 1f, elevation) * type.speed;
+    }
+
+    @Override
     public float range(){
         return type.range;
     }
@@ -77,24 +84,37 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     @Override
     public double sense(LAccess sensor){
-        if(sensor == LAccess.totalItems) return stack().amount;
-        if(sensor == LAccess.rotation) return rotation;
-        if(sensor == LAccess.health) return health;
-        if(sensor == LAccess.maxHealth) return maxHealth;
-        if(sensor == LAccess.x) return x;
-        if(sensor == LAccess.y) return y;
-        if(sensor == LAccess.team) return team.id;
-        if(sensor == LAccess.shooting) return isShooting() ? 1 : 0;
-        if(sensor == LAccess.shootX) return aimX();
-        if(sensor == LAccess.shootY) return aimY();
-        return 0;
+        return switch(sensor){
+            case totalItems -> stack().amount;
+            case itemCapacity -> type.itemCapacity;
+            case rotation -> rotation;
+            case health -> health;
+            case maxHealth -> maxHealth;
+            case x -> x;
+            case y -> y;
+            case team -> team.id;
+            case shooting -> isShooting() ? 1 : 0;
+            case shootX -> aimX();
+            case shootY -> aimY();
+            case flag -> flag;
+            case payloadCount -> self() instanceof Payloadc pay ? pay.payloads().size : 0;
+            default -> 0;
+        };
     }
 
     @Override
     public Object senseObject(LAccess sensor){
-        if(sensor == LAccess.type) return type;
+        return switch(sensor){
+            case type -> type;
+            case name -> controller instanceof Player p ? p.name : null;
+            case firstItem -> stack().amount == 0 ? null : item();
+            case payloadType -> self() instanceof Payloadc pay ?
+                (pay.payloads().isEmpty() ? null :
+                pay.payloads().peek() instanceof UnitPayload p1 ? p1.unit.type() :
+                pay.payloads().peek() instanceof BuildPayload p2 ? p2.block() : null) : null;
+            default -> noSensed;
+        };
 
-        return noSensed;
     }
 
     @Override
@@ -181,7 +201,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     }
 
     public int count(){
-        return teamIndex.countType(team, type);
+        return team.data().countType(type);
     }
 
     public int cap(){
@@ -223,13 +243,13 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         //check if over unit cap
         if(count() > cap() && !spawnedByCore && !dead){
             Call.unitCapDeath(self());
-            teamIndex.updateCount(team, type, -1);
+            team.data().updateCount(type, -1);
         }
     }
 
     @Override
     public void remove(){
-        teamIndex.updateCount(team, type, -1);
+        team.data().updateCount(type, -1);
         controller.removed(self());
     }
 

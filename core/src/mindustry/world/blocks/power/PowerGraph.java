@@ -203,7 +203,7 @@ public class PowerGraph{
                 tile.power.status = 1f;
             }
 
-            lastPowerNeeded = lastPowerProduced = lastUsageFraction = 1f;
+            lastPowerNeeded = lastPowerProduced = 1f;
             return;
         }
 
@@ -239,12 +239,6 @@ public class PowerGraph{
 
             distributePower(powerNeeded, powerProduced);
         }
-
-        //overproducing: 10 / 20 = 0.5
-        //underproducing: 20 / 10 = 2 -> clamp -> 1.0
-        //nothing being produced: 20 / 0 -> 1.0
-        //nothing being consumed: 0 / 20 -> 0.0
-        lastUsageFraction = Mathf.zero(rawProduced) ? 1f : Mathf.clamp(powerNeeded / rawProduced);
     }
 
     public void addGraph(PowerGraph graph){

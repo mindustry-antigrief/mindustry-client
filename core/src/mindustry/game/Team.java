@@ -4,7 +4,7 @@ import arc.*;
 import arc.graphics.*;
 import arc.math.*;
 import arc.struct.*;
-import arc.util.ArcAnnotate.*;
+import arc.util.*;
 import mindustry.game.Rules.*;
 import mindustry.game.Teams.*;
 import mindustry.graphics.*;
@@ -74,7 +74,7 @@ public class Team implements Comparable<Team>{
 
     /** @return the core items for this team, or an empty item module.
      * Never add to the resulting item module, as it is mutable. */
-    public @NonNull ItemModule items(){
+    public ItemModule items(){
         return core() == null ? ItemModule.empty : core().items;
     }
 
@@ -83,15 +83,12 @@ public class Team implements Comparable<Team>{
         return state.rules.teams.get(this);
     }
 
-    public Team[] enemies(){
-        return state.teams.enemiesOf(this);
-    }
-
     public TeamData data(){
         return state.teams.get(this);
     }
 
-    public @Nullable CoreBuild core(){
+    @Nullable
+    public CoreBuild core(){
         return data().core();
     }
 

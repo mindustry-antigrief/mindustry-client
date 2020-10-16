@@ -1,6 +1,5 @@
 package mindustry.type;
 
-import arc.util.ArcAnnotate.*;
 import mindustry.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
@@ -42,10 +41,10 @@ public class AmmoTypes implements ContentList{
         @Override
         public void resupply(Unit unit){
             float range = unit.hitSize + 60f;
-            Tile closest = Vars.indexer.findClosestFlag(unit.x, unit.y, unit.team, BlockFlag.powerResupply);
+            Tile closest = Vars.indexer.findClosestFlag(unit.x, unit.y, unit.team, BlockFlag.powerRes);
 
             if(closest != null && closest.build != null && unit.within(closest.build, range) && closest.build.power != null){
-                Building build = closest.build;
+                var build = closest.build;
 
                 if(build.block.consumes.hasPower() && build.block.consumes.getPower().buffered){
                     float amount = closest.build.power.status * build.block.consumes.getPower().capacity;
@@ -66,7 +65,7 @@ public class AmmoTypes implements ContentList{
     }
 
     public static class ItemAmmoType extends AmmoType{
-        public @NonNull Item item;
+        public Item item;
 
         public ItemAmmoType(Item item){
             this.item = item;
