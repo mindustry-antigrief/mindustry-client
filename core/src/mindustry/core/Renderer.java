@@ -64,7 +64,8 @@ public class Renderer implements ApplicationListener{
         Color.white.set(1f, 1f, 1f, 1f);
         Gl.clear(Gl.stencilBufferBit);
 
-        float dest = Mathf.round(targetscale, 0.5f);
+//        float dest = Mathf.round(targetscale, 0.5f);
+        float dest = targetscale;  // note: because the above line is commented out, there may be "jagged pixel scaling"
         camerascale = Mathf.lerpDelta(camerascale, dest, 0.1f);
         if(Mathf.within(camerascale, dest, 0.001f)) camerascale = dest;
         laserOpacity = Core.settings.getInt("lasersopacity") / 100f;

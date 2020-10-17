@@ -33,7 +33,7 @@ public class PayloadPickupWaypoint extends Waypoint implements Position {
     @Override
     void run() {
         if (Vars.player.within(getX(), getY(), 1f)) {
-            Call.requestBlockPayload(Vars.player, world.tile(tileX, tileY).build);
+            Call.requestBuildPayload(Vars.player, world.tile(tileX, tileY).build);
             done = true;
         } else {
             float direction = player.angleTo(this);

@@ -12,7 +12,6 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.util.ArcAnnotate.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.navigation.*;
@@ -22,12 +21,9 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
-import mindustry.ui.dialogs.*;
 import mindustry.world.*;
 import mindustry.world.blocks.payloads.*;
-
 import java.util.concurrent.atomic.*;
-
 import static arc.Core.*;
 import static mindustry.Vars.net;
 import static mindustry.Vars.*;
@@ -65,7 +61,7 @@ public class DesktopInput extends InputHandler{
         });
 
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown() && Navigation.state == NavigationState.RECORDING);
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.RECORDING);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -187,9 +183,9 @@ public class DesktopInput extends InputHandler{
                 if(player.unit() instanceof Payloadc){
                     Payload payload = ((Payloadc)player.unit()).hasPayload()? ((Payloadc)player.unit()).payloads().peek() : null;
                     if(payload != null){
-                        if(payload instanceof BlockPayload){
-                            drawRequest(cursorX, cursorY, ((BlockPayload)payload).entity.block, 0);
-                            if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, ((BlockPayload)payload).entity.block, 0)){
+                        if(payload instanceof BuildPayload){
+                            drawRequest(cursorX, cursorY, ((BuildPayload)payload).block(), 0);
+                            if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, ((BuildPayload)payload).block(), 0)){
                                 Navigation.follow(new WaypointPath(new Seq<>(new Waypoint[]{new PositionWaypoint(player.x, player.y), new PayloadDropoffWaypoint(cursorX, cursorY)})));
                                 NavigationState previousState = Navigation.state;
                                 Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
@@ -233,11 +229,11 @@ public class DesktopInput extends InputHandler{
             panning = true;
         }
 
-        if(input.shift() && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
+        if(input.alt() && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
             panning = true;
             float speed = Time.delta;
             speed *= camera.width;
-            speed /= 50f;
+            speed /= 75f;
             camera.position.add(input.axis(Binding.move_x) * speed, input.axis(Binding.move_y) * speed);
         }
 
@@ -709,7 +705,7 @@ public class DesktopInput extends InputHandler{
         float speed = baseSpeed * Mathf.lerp(1f, unit.isCommanding() ? 1f : unit.type().canBoost ? unit.type().boostMultiplier : 1f, unit.elevation) * strafePenalty;
         float xa = Core.input.axis(Binding.move_x);
         float ya = Core.input.axis(Binding.move_y);
-        if(input.shift()){
+        if(input.alt()){
             xa = ya = 0f;
         }
         boolean boosted = (unit instanceof Mechc && unit.isFlying());

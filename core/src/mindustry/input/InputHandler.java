@@ -243,9 +243,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void payloadDropped(Unit unit, float x, float y){
         if(unit instanceof Payloadc pay){
             if(pay.hasPayload()){
-                if(pay.payloads().peek() instanceof BlockPayload){
+                if(pay.payloads().peek() instanceof BuildPayload){
                     Tile tile = world.tile((int)x / tilesize, (int)y / tilesize);
-                    tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadDropOffTileLog(player.unit(), tile2, ((BlockPayload)(pay.payloads().peek())).block(), Instant.now().getEpochSecond(), "")));
+                    tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadDropOffTileLog(player.unit(), tile2, ((BuildPayload)(pay.payloads().peek())).block(), Instant.now().getEpochSecond(), "")));
                 }
             }
             float prevx = pay.x(), prevy = pay.y();

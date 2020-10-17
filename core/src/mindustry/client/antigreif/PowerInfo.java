@@ -17,10 +17,7 @@ import java.util.*;
 public class PowerInfo {
 
     public static ObjectSet<PowerGraph> graphs = new ObjectSet<>();
-    public static float powerBalance = 0f;
-    public static float powerFraction = 0f;
-    public static float batteryAmount = 0f;
-    public static float batteryCapacity = 0f;
+    private static PowerGraph found = null;
     private static int framesWithoutUpdate = 0;
 
     public static void initialize() {}
@@ -29,19 +26,21 @@ public class PowerInfo {
         graphs = graphs.select(Objects::nonNull);
         PowerGraph graph = graphs.asArray().max(g -> g.all.size);
         if (graph != null) {
-            powerBalance = graph.displayPowerBalance.getAverage() * 60;
-            powerFraction = Mathf.clamp(graph.getLastPowerProduced() / graph.getLastPowerNeeded());
-            batteryAmount = graph.getBatteryStored();
-            batteryCapacity = graph.getTotalBatteryCapacity();
+            found = graph;
+//            powerBalance = graph.displayPowerBalance.getAverage() * 60;
+//            powerFraction = Mathf.clamp(graph.getLastPowerProduced() / graph.getLastPowerNeeded());
+//            batteryAmount = graph.getBatteryStored();
+//            batteryCapacity = graph.getTotalBatteryCapacity();
             framesWithoutUpdate = 0;
             if (Core.graphics.getFrameId() % 120 == 0) {
                 // Every 2 seconds or so rescan
                 scan();
             }
         } else {
-            powerBalance = 0f;
-            batteryAmount = 0f;
-            batteryCapacity = 0f;
+            found = null;
+//            powerBalance = 0f;
+//            batteryAmount = 0f;
+//            batteryCapacity = 0f;
             framesWithoutUpdate += 1;
             if (framesWithoutUpdate > 30) {
                 // Scan twice a second
@@ -82,11 +81,11 @@ public class PowerInfo {
 
     public static Element getBars() {
         Table table = new Table();
-        Bar powerBar = new MonospacedBar(() -> Float.toString(powerBalance), () -> Pal.powerBar, () -> powerFraction);
+        Bar powerBar = new MonospacedBar(() -> Float.toString(Mathf.round(found != null? found.displayPowerBalance.getAverage() * 60f : 0f, 0.1f)), () -> Pal.powerBar, () -> found != null? found.getSatisfaction() : 0f);
         table.add(powerBar).width(200f).height(30f);
         table.row();
 
-        Bar batteryBar = new MonospacedBar(() -> UI.formatAmount((int)batteryAmount) + " / " + UI.formatAmount((int)batteryCapacity), () -> Pal.powerBar, () -> Mathf.clamp(batteryAmount / batteryCapacity));
+        Bar batteryBar = new Bar(() -> (found != null? UI.formatAmount((int)found.getLastPowerStored()) : 0) + " / " + (found != null? UI.formatAmount((int)found.getLastCapacity()) : 0), () -> Pal.powerBar, () -> found != null? Mathf.clamp(found.getLastPowerStored() / found.getLastCapacity()) : 0f);
         table.add(batteryBar).width(200f).height(30f);
 
         return table;
