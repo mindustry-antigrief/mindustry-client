@@ -142,6 +142,14 @@ public class BuildPlan{
         return world.build(x, y);
     }
 
+    public boolean isDone(){
+        if(breaking){
+            return world.tile(x, y).block() == null;
+        }else{
+            return world.tile(x, y).block() == block;
+        }
+    }
+
     @Override
     public String toString(){
         return "BuildRequest{" +

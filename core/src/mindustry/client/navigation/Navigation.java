@@ -84,7 +84,9 @@ public class Navigation {
     }
 
     public static void stopFollowing() {
-        currentlyFollowing.onFinish();
+        if (currentlyFollowing != null) {
+            currentlyFollowing.onFinish();
+        }
         currentlyFollowing = null;
         state = NavigationState.NONE;
         dstar = null;

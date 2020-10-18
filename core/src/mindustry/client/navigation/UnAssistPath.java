@@ -1,6 +1,7 @@
 package mindustry.client.navigation;
 
 import arc.math.geom.Position;
+import arc.struct.Queue;
 import mindustry.Vars;
 import mindustry.entities.units.BuildPlan;
 import mindustry.gen.Builderc;
@@ -8,6 +9,7 @@ import mindustry.gen.Player;
 
 public class UnAssistPath extends Path {
     public final Player assisting;
+    public Queue<BuildPlan> toUndo = new Queue<>();
 
     public UnAssistPath(Player toAssist) {
         assisting = toAssist;
@@ -31,12 +33,13 @@ public class UnAssistPath extends Path {
         }
 
         new PositionWaypoint(assisting.x, assisting.y, assisting.unit().hitSize + Vars.player.unit().hitSize).run();
-        if (assisting.unit() instanceof Builderc && Vars.player.unit() instanceof Builderc) {
+        if (Vars.player.unit() instanceof Builderc) {
             ((Builderc) Vars.player.unit()).clearBuilding();
-            if (((Builderc) assisting.unit()).activelyBuilding()) {
-                BuildPlan plan = ((Builderc) assisting.unit()).buildPlan().copy();
-                plan.breaking = !plan.breaking;
-                ((Builderc) Vars.player.unit()).addBuild(plan);
+            if (!toUndo.isEmpty()) {
+                ((Builderc) Vars.player.unit()).addBuild(toUndo.first());
+                if (toUndo.first().isDone()) {
+                    toUndo.removeFirst();
+                }
             }
         }
     }

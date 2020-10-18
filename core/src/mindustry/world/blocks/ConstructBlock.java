@@ -9,7 +9,10 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.Client;
 import mindustry.client.antigreif.*;
+import mindustry.client.navigation.Navigation;
+import mindustry.client.navigation.UnAssistPath;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -55,6 +58,11 @@ public class ConstructBlock extends Block{
     public static void deconstructFinish(Tile tile, Block block, Unit builder){
         if(tile != null && builder != null && block != null){
             tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", block)));
+            if(Navigation.currentlyFollowing instanceof UnAssistPath){
+                if(((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()){
+                    ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, block));
+                }
+            }
         }
         Team team = tile.team();
         Fx.breakBlock.at(tile.drawx(), tile.drawy(), block.size);
@@ -68,6 +76,11 @@ public class ConstructBlock extends Block{
         if(tile == null) return;
         if(builder != null && block != null){
             tile.getLinkedTiles(t -> t.addToLog(new PlaceTileLog(builder, t, Instant.now().getEpochSecond(), "", block)));
+            if(Navigation.currentlyFollowing instanceof UnAssistPath){
+                if(((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()){
+                    ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y));
+                }
+            }
         }
 
         float healthf = tile.build == null ? 1f : tile.build.healthf();
