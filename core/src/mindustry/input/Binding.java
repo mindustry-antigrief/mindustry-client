@@ -73,6 +73,7 @@ public enum Binding implements KeyBind{
     place_waypoint(KeyCode.y),
     drop_payload(KeyCode.backslash),
     navigate_to_camera(KeyCode.z),
+    stop_following_path(KeyCode.minus),
     ;
 
     private final KeybindValue defaultValue;

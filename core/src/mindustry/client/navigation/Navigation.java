@@ -9,6 +9,7 @@ import arc.math.geom.Geometry;
 import arc.math.geom.Vec2;
 import arc.struct.*;
 import mindustry.*;
+import mindustry.client.Client;
 import mindustry.client.navigation.dstar.DStarLite;
 import mindustry.client.navigation.dstar.DStarState;
 import mindustry.content.*;
@@ -77,13 +78,17 @@ public class Navigation {
                 }
             }
             if (currentlyFollowing.isDone()) {
-                currentlyFollowing.onFinish();
-                currentlyFollowing = null;
-                state = NavigationState.NONE;
-                dstar = null;
-                targetPos = null;
+                stopFollowing();
             }
         }
+    }
+
+    public static void stopFollowing() {
+        currentlyFollowing.onFinish();
+        currentlyFollowing = null;
+        state = NavigationState.NONE;
+        dstar = null;
+        targetPos = null;
     }
 
     public static boolean isFollowing() {

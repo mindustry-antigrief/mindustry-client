@@ -15,6 +15,11 @@ public class PositionWaypoint extends Waypoint implements Position {
         this.drawY = drawY;
     }
 
+    public PositionWaypoint(float drawX, float drawY, float tolerance) {
+        this(drawX, drawY);
+        this.tolerance = tolerance;
+    }
+
     @Override
     public boolean isDone() {
         return player.within(this, tolerance);
@@ -27,7 +32,9 @@ public class PositionWaypoint extends Waypoint implements Position {
         float y = Mathf.sinDeg(direction) * 2f;
         x = Mathf.clamp(x / 10, -1f, 1f);
         y = Mathf.clamp(y / 10, -1f, 1f);
-        control.input.updateMovementCustom(player.unit(), x, y, direction);
+        if (player.dst(this) > tolerance) {
+            control.input.updateMovementCustom(player.unit(), x, y, direction);
+        }
     }
 
     @Override

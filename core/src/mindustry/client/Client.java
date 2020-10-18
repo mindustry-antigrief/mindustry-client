@@ -9,6 +9,8 @@ import static mindustry.Vars.world;
 
 public class Client {
     private static TileLog[][] tileLogs;
+    //todo: use this instead of Navigation.isFollowing and such
+    public static ClientMode mode = ClientMode.normal;
 
     public static void initialize() {
         Events.on(WorldLoadEvent.class, event -> {

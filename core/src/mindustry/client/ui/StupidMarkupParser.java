@@ -15,7 +15,7 @@ public class StupidMarkupParser {
 
     public static Element format(String input) {
         // remove block comments
-        input = input.replaceAll("/\\*\\*.*\\*/", "");
+        input = input.replaceAll("\\/\\*\\*(.|\\s)*?\\*\\/", "");
         // remove normal comments
         input = input.replaceAll("//.*^$", "");
 
@@ -31,7 +31,7 @@ public class StupidMarkupParser {
 
             if (line.startsWith(" * ")) {
                 LabelStyle s = listStyles.first();
-                if (listStyles.contains(elements.peek().getStyle())) {
+                if (elements.any() && listStyles.contains(elements.peek().getStyle())) {
                     int index = (listStyles.indexOf(elements.peek().getStyle()) + 1) % listStyles.size;
                     s = listStyles.get(index);
                 }

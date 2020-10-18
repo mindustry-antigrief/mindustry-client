@@ -1,5 +1,6 @@
 package mindustry.client.ui;
 
+import arc.Core;
 import mindustry.ui.dialogs.BaseDialog;
 
 import java.io.IOException;
@@ -11,11 +12,7 @@ public class FeaturesDialog extends BaseDialog {
 
     public FeaturesDialog() {
         super("Features and Documentation");
-        try {
-            cont.add(StupidMarkupParser.format());
-        } catch (IOException error) {
-            error.printStackTrace();
-        }
+        cont.add(StupidMarkupParser.format(Core.files.internal("features").readString("UTF-8")));
         addCloseButton();
     }
 }

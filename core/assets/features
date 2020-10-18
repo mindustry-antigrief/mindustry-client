@@ -1,0 +1,22 @@
+/**
+ * This is a stupid markup 'language' I made, don't use this please
+ * This area is a block comment
+ * Line comments start with //
+ * Headings start with #
+ * List items have a * for each line
+ * \n does linebreak
+*/
+
+# Default Keybinds
+ * r - reset camera
+ * y - place waypoint (only works while recording waypoints)
+ * \ - hold to place block payload precisely
+ * z - navigate to camera (experimental)
+ * alt WASD - free camera movement, r to reset
+ * alt click - open tile actions menu (contains logs)
+
+# Top Navigation Menu
+ * Start recording waypoints - begin a new path, press y to add a waypoint\nAlso records item transfers and payload actions
+ * Finish recording waypoints - finalizes the path
+ * Follow recorded path - replay the recorded path
+ * Stop following path - stop following path (note: assist and auto navigation are also considered paths)

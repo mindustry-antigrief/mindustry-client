@@ -68,6 +68,14 @@ public class DesktopInput extends InputHandler{
                 b.label(() -> Core.bundle.format("waypoint", Core.keybinds.get(Binding.place_waypoint).key.toString())).style(Styles.outlineLabel);
             }).margin(6f);
         });
+        group.fill(t -> {
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.FOLLOWING);
+            t.bottom();
+            t.table(Styles.black6, b -> {
+                b.defaults().left();
+                b.label(() -> Core.bundle.format("stoppath", Core.keybinds.get(Binding.stop_following_path).key.toString())).style(Styles.outlineLabel);
+            }).margin(6f);
+        });
 
         group.fill(t -> {
             t.bottom();
@@ -215,6 +223,10 @@ public class DesktopInput extends InputHandler{
             if(input.keyTap(Binding.place_waypoint)){
                 Navigation.addWaypointRecording(new PositionWaypoint(player.x, player.y));
             }
+        }
+
+        if(input.keyTap(Binding.stop_following_path)){
+            Navigation.stopFollowing();
         }
 
         boolean panCam = false;

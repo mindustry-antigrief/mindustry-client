@@ -7,6 +7,9 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import mindustry.client.navigation.AssistPath;
+import mindustry.client.navigation.Navigation;
+import mindustry.client.navigation.UnAssistPath;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
@@ -154,6 +157,10 @@ public class PlayerListFragment extends Fragment{
                     });
                 }).size(h);
             }
+            button.button(Icon.copy, Styles.clearPartiali,
+                    () -> Navigation.follow(new AssistPath(user))).size(h);
+            button.button(Icon.block, Styles.clearPartiali,
+                    () -> Navigation.follow(new UnAssistPath(user))).size(h);
 
             content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);
             content.row();
