@@ -19,6 +19,7 @@ import mindustry.client.*;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.content.*;
+import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -163,7 +164,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Payloadc pay = (Payloadc)unit;
 
         if(target.isAI() && target.isGrounded() && pay.canPickup(target)
-        && target.within(unit, unit.type().hitSize * 2f + target.type().hitSize * 2f)){
+        && target.within(unit, unit.type.hitSize * 2f + target.type.hitSize * 2f)){
             Call.pickedUnitPayload(unit, target);
         }
     }
@@ -380,7 +381,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(commander.isCommanding()){
             commander.clearCommand();
-        }else if(player.unit().type().commandLimit > 0){
+        }else if(player.unit().type.commandLimit > 0){
 
             //TODO try out some other formations
             commander.commandNearby(new CircleFormation());
@@ -413,17 +414,17 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         if(player.shooting && !wasShooting && player.unit().hasWeapons() && state.rules.unitAmmo && player.unit().ammo <= 0){
-            player.unit().type().weapons.first().noAmmoSound.at(player.unit());
+            player.unit().type.weapons.first().noAmmoSound.at(player.unit());
         }
 
         wasShooting = player.shooting;
 
         if(!player.dead()){
-            controlledType = player.unit().type();
+            controlledType = player.unit().type;
         }
 
         if(controlledType != null && player.dead()){
-            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type() == controlledType && !u.dead);
+            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead);
 
             if(unit != null){
                 Call.unitControl(player, unit);
@@ -433,7 +434,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     public void checkUnit(){
         if(controlledType != null){
-            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type() == controlledType && !u.dead);
+            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead);
             if(unit == null && controlledType == UnitTypes.block){
                 unit = world.buildWorld(player.x, player.y) instanceof ControlBlock ? ((ControlBlock)world.buildWorld(player.x, player.y)).unit() : null;
             }
@@ -452,7 +453,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Unit unit = player.unit();
         if(!(unit instanceof Payloadc pay)) return;
 
-        Unit target = Units.closest(player.team(), pay.x(), pay.y(), unit.type().hitSize * 2.5f, u -> u.isAI() && u.isGrounded() && pay.canPickup(u) && u.within(unit, u.hitSize + unit.hitSize * 1.2f));
+        Unit target = Units.closest(player.team(), pay.x(), pay.y(), unit.type.hitSize * 2.5f, u -> u.isAI() && u.isGrounded() && pay.canPickup(u) && u.within(unit, u.hitSize + unit.hitSize * 1.2f));
         if(target != null){
             Call.requestUnitPayload(player, target);
         }else{
@@ -589,8 +590,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 wx = wy;
                 wy = -x;
             }
-            req.x = world.toTile(wx - req.block.offset) + ox;
-            req.y = world.toTile(wy - req.block.offset) + oy;
+            req.x = World.toTile(wx - req.block.offset) + ox;
+            req.y = World.toTile(wy - req.block.offset) + oy;
             req.rotation = Mathf.mod(req.rotation + direction, 4);
         });
     }
@@ -953,11 +954,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     int rawTileX(){
-        return world.toTile(Core.input.mouseWorld().x);
+        return World.toTile(Core.input.mouseWorld().x);
     }
 
     int rawTileY(){
-        return world.toTile(Core.input.mouseWorld().y);
+        return World.toTile(Core.input.mouseWorld().y);
     }
 
     int tileX(float cursorX){
@@ -965,7 +966,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(selectedBlock()){
             vec.sub(block.offset, block.offset);
         }
-        return world.toTile(vec.x);
+        return World.toTile(vec.x);
     }
 
     int tileY(float cursorY){
@@ -973,7 +974,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(selectedBlock()){
             vec.sub(block.offset, block.offset);
         }
-        return world.toTile(vec.y);
+        return World.toTile(vec.y);
     }
 
     public boolean selectedBlock(){

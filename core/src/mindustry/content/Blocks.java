@@ -919,8 +919,8 @@ public class Blocks implements ContentList{
         shockMine = new ShockMine("shock-mine"){{
             requirements(Category.effect, with(Items.lead, 25, Items.silicon, 12));
             hasShadow = false;
-            health = 40;
-            damage = 23;
+            health = 50;
+            damage = 25;
             tileDamage = 7f;
             length = 10;
             tendrils = 4;
@@ -1713,7 +1713,7 @@ public class Blocks implements ContentList{
                 despawnEffect = Fx.instBomb;
                 trailSpacing = 20f;
                 damage = 1350;
-                tileDamageMultiplier = 0.5f;
+                tileDamageMultiplier = 0.3f;
                 speed = brange;
                 hitShake = 6f;
                 ammoMultiplier = 1f;
