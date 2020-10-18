@@ -1,0 +1,18 @@
+/**
+ * This is a stupid markup 'language' I made, don't use this please
+ * This area is a block comment
+ * Line comments start with //
+ * Headings start with #
+ * List items have a * for each line
+ * \n does linebreak
+*/
+
+# Heading
+ * stuff
+ * more stuff //comment
+ * blah blah
+
+# Another Heading
+ * stuff again
+ * aaa
+ * abc

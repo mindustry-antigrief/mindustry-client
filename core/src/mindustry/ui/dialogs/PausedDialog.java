@@ -2,6 +2,7 @@ package mindustry.ui.dialogs;
 
 import arc.*;
 import arc.input.*;
+import mindustry.client.ui.FeaturesDialog;
 import mindustry.gen.*;
 
 import static mindustry.Vars.*;
@@ -73,6 +74,10 @@ public class PausedDialog extends BaseDialog{
             cont.row();
 
             cont.button("@quit", Icon.exit, this::showQuitConfirm).colspan(2).width(dw + 20f).update(s -> s.setText(control.saves.getCurrent() != null && control.saves.getCurrent().isAutosave() ? "@save.quit" : "@quit"));
+
+            cont.row();
+
+            cont.button("@features", Icon.book, () -> new FeaturesDialog().show()).colspan(2).width(dw + 20f);
 
         }else{
             cont.defaults().size(130f).pad(5);

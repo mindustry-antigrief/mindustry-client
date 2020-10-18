@@ -28,10 +28,6 @@ public class PowerInfo {
         PowerGraph graph = graphs.asArray().max(g -> g.all.size);
         if (graph != null) {
             found = graph;
-//            powerBalance = graph.displayPowerBalance.getAverage() * 60;
-//            powerFraction = Mathf.clamp(graph.getLastPowerProduced() / graph.getLastPowerNeeded());
-//            batteryAmount = graph.getBatteryStored();
-//            batteryCapacity = graph.getTotalBatteryCapacity();
             framesWithoutUpdate = 0;
             if (Core.graphics.getFrameId() % 120 == 0) {
                 // Every 2 seconds or so rescan
@@ -39,9 +35,6 @@ public class PowerInfo {
             }
         } else {
             found = null;
-//            powerBalance = 0f;
-//            batteryAmount = 0f;
-//            batteryCapacity = 0f;
             framesWithoutUpdate += 1;
             if (framesWithoutUpdate > 30) {
                 // Scan twice a second
