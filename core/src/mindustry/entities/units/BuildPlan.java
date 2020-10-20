@@ -9,7 +9,7 @@ import mindustry.world.*;
 import static mindustry.Vars.*;
 
 /** Class for storing build requests. Can be either a place or remove request. */
-public class BuildPlan{
+public class BuildPlan implements Position{
     /** Position and rotation of this request. */
     public int x, y, rotation;
     /** Block being placed. If null, this is a breaking request.*/
@@ -59,6 +59,16 @@ public class BuildPlan{
 
     public BuildPlan(){
 
+    }
+
+    @Override
+    public float getX() {
+        return x * tilesize;
+    }
+
+    @Override
+    public float getY() {
+        return y * tilesize;
     }
 
     /** Transforms the internal position of this config using the specified function, and return the result. */

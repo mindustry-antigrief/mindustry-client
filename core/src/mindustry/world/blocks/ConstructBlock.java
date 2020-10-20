@@ -77,9 +77,14 @@ public class ConstructBlock extends Block{
         if(builder != null && block != null){
             tile.getLinkedTiles(t -> t.addToLog(new PlaceTileLog(builder, t, Instant.now().getEpochSecond(), "", block)));
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
-                if(((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()){
-                    ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y));
-                }
+                    if (((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()) {
+                        Timer.schedule(() -> {
+                            if(Navigation.currentlyFollowing != null) {
+                                ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y));
+                                Client.configs.add(new ConfigRequest(tile.x, tile.y, null));
+                            }
+                        }, 1/30f);
+                    }
             }
         }
 
