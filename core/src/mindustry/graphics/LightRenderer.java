@@ -174,7 +174,7 @@ public class LightRenderer{
     }
 
     public void draw(){
-        if(!Vars.enableLight){
+        if(!(Vars.enableLight && Core.settings.getBool("lighting"))){
             lights.clear();
             return;
         }

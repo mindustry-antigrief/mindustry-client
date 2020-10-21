@@ -327,6 +327,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             }
         }
 
+        graphics.checkPref("lighting", true);
         graphics.checkPref("effects", true);
         graphics.checkPref("atmosphere", !mobile);
         graphics.checkPref("destroyedblocks", true);

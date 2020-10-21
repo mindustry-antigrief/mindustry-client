@@ -38,10 +38,13 @@ public class UnAssistPath extends Path {
             ((Builderc) Vars.player.unit()).clearBuilding();
             if (!toUndo.isEmpty()) {
                 //slow?
-                BuildPlan plan = toUndo.min(item -> Vars.player.dst2(item));
-                ((Builderc) Vars.player.unit()).addBuild(plan);
-                if (plan.isDone()) {
-                    toUndo.remove(plan);
+//                BuildPlan plan = toUndo.min(item -> Vars.player.dst2(item));
+//                ((Builderc) Vars.player.unit()).addBuild(plan);
+                for (BuildPlan it : toUndo) {
+                    if (it.isDone()) {
+                        toUndo.remove(it);
+                    }
+                    ((Builderc) Vars.player.unit()).addBuild(it);
                 }
             }
         }
