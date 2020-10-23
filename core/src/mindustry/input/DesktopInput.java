@@ -456,9 +456,7 @@ public class DesktopInput extends InputHandler{
             ui.planet.show();
         }).visible(() -> state.isCampaign()).tooltip("@planetmap");
 
-        table.button(Icon.up, Styles.clearPartiali, () -> {
-            ui.planet.showLaunch(state.getSector(), player.team().core());
-        }).visible(() -> state.isCampaign()).tooltip("@launchcore").disabled(b -> player.team().core() == null);
+        table.add();
     }
 
     void pollInput(){
@@ -715,7 +713,7 @@ public class DesktopInput extends InputHandler{
             baseSpeed = unit.minFormationSpeed * 0.95f;
         }
 
-        float speed = baseSpeed * Mathf.lerp(1f, unit.isCommanding() ? 1f : unit.type.canBoost ? unit.type.boostMultiplier : 1f, unit.elevation) * strafePenalty;
+        float speed = baseSpeed * Mathf.lerp(1f, unit.type.canBoost ? unit.type.boostMultiplier : 1f, unit.elevation) * strafePenalty;
         float xa = Core.input.axis(Binding.move_x);
         float ya = Core.input.axis(Binding.move_y);
         if(input.alt()){
@@ -767,7 +765,7 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        //update commander inut
+        //update commander unit
         if(Core.input.keyTap(Binding.command)){
             Call.unitCommand(player);
         }
