@@ -221,23 +221,23 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Navigation.state == NavigationState.RECORDING){
-            if(input.keyTap(Binding.place_waypoint)){
+            if(input.keyTap(Binding.place_waypoint) && scene.getKeyboardFocus() == null){
                 Navigation.addWaypointRecording(new PositionWaypoint(player.x, player.y));
             }
         }
 
-        if(input.keyTap(Binding.stop_following_path)){
+        if(input.keyTap(Binding.stop_following_path) && scene.getKeyboardFocus() == null){
             Navigation.stopFollowing();
         }
 
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
-        if(input.keyTap(Binding.navigate_to_camera)){
+        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null){
             Navigation.navigateTo(camera.position.x, camera.position.y);
         }
 
-        if(input.keyDown(Binding.pan)){
+        if(input.keyDown(Binding.pan) && scene.getKeyboardFocus() == null){
             panCam = true;
             panning = true;
         }
@@ -250,10 +250,10 @@ public class DesktopInput extends InputHandler{
             camera.position.add(input.axis(Binding.move_x) * speed, input.axis(Binding.move_y) * speed);
         }
 
-        if(input.keyDown(Binding.drop_payload)){
+        if(input.keyDown(Binding.drop_payload) && scene.getKeyboardFocus() == null){
             mode = payloadPlace;
         }
-        if(input.keyRelease(Binding.drop_payload)){
+        if(input.keyRelease(Binding.drop_payload) && scene.getKeyboardFocus() == null){
             mode = none;
         }
 
