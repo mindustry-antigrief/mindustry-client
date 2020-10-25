@@ -1,12 +1,16 @@
 package mindustry.client.navigation;
 
+import arc.math.geom.Point2;
 import arc.math.geom.Position;
+import arc.struct.IntSet;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import mindustry.Vars;
 import mindustry.entities.units.BuildPlan;
 import mindustry.gen.Builderc;
 import mindustry.gen.Player;
+import mindustry.world.Tile;
+import mindustry.world.blocks.ConstructBlock;
 
 public class UnAssistPath extends Path {
     public final Player assisting;
@@ -33,9 +37,38 @@ public class UnAssistPath extends Path {
             return;
         }
 
-        new PositionWaypoint(assisting.x, assisting.y, assisting.unit().hitSize + Vars.player.unit().hitSize).run();
+        if (assisting.unit() instanceof Builderc) {
+            BuildPlan plan = ((Builderc) assisting.unit()).buildPlan();
+            if (plan != null) {
+                if (plan.initialized) {
+                    Tile tile = Vars.world.tile(plan.x, plan.y);
+                    if (tile.build instanceof ConstructBlock.ConstructBuild) {
+                        ConstructBlock.ConstructBuild build = (ConstructBlock.ConstructBuild) tile.build;
+                        if (build.cblock.buildCost > 10) {
+                            if (plan.breaking) {
+                                toUndo.add(new BuildPlan(plan.x, plan.y, build.rotation, build.cblock, build.lastConfig));
+                            } else {
+                                toUndo.add(new BuildPlan(plan.x, plan.y));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        new PositionWaypoint(assisting.x, assisting.y).run();
         if (Vars.player.unit() instanceof Builderc) {
             ((Builderc) Vars.player.unit()).clearBuilding();
+            IntSet contains = new IntSet();
+            toUndo = toUndo.filter(plan -> {
+                int pos = Point2.pack(plan.x, plan.y);
+                if (contains.contains(pos)){
+                    return false;
+                } else {
+                    contains.add(pos);
+                    return true;
+                }
+            });
             if (!toUndo.isEmpty()) {
                 //slow?
 //                BuildPlan plan = toUndo.min(item -> Vars.player.dst2(item));

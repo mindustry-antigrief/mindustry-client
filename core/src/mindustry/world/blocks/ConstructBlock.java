@@ -13,6 +13,7 @@ import mindustry.client.Client;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
+import mindustry.client.utils.MovingAverage;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -60,7 +61,9 @@ public class ConstructBlock extends Block{
             tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", block)));
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if(((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()){
-                    ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, block, tile.build.config()));
+                    if(block.isVisible()) {
+                        ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, block, tile.build.config()));
+                    }
                 }
             }
         }
