@@ -387,7 +387,7 @@ public class DesktopInput extends InputHandler{
 
             if(isPlacing() && mode == placing){
                 updateLine(selectX, selectY);
-            }else if(!selectRequests.isEmpty()){
+            }else if(!selectRequests.isEmpty() && !ui.chatfrag.shown()){
                 rotateRequests(selectRequests, Mathf.sign(Core.input.axisTap(Binding.rotate)));
             }
         }
@@ -769,7 +769,7 @@ public class DesktopInput extends InputHandler{
         }
 
         //update commander unit
-        if(Core.input.keyTap(Binding.command)){
+        if(Core.input.keyTap(Binding.command) && unit.type.commandLimit > 0){
             Call.unitCommand(player);
         }
     }

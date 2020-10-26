@@ -49,6 +49,8 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
 
         shouldPause = true;
 
+        addCloseListener();
+
         buttons.defaults().size(200f, 56f).pad(2);
         buttons.button("@back", Icon.left, this::hide);
         buttons.button("@techtree", Icon.tree, () -> ui.research.show());
@@ -242,7 +244,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
                 addListener(new ElementGestureListener(){
                     @Override
                     public void tap(InputEvent event, float x, float y, int count, KeyCode button){
-                        if(hovered != null && ((mode == look ? canSelect(hovered) && hovered != launchSector : hovered.unlocked()) || debugSelect)){
+                        if(hovered != null && (canSelect(hovered) || debugSelect)){
                             selected = hovered;
                         }
 

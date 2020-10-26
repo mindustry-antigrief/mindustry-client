@@ -359,6 +359,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void unitControl(Player player, @Nullable Unit unit){
         if(player == null) return;
 
+        //make sure player is allowed to control the unit
+        if(net.server() && !netServer.admins.allowAction(player, ActionType.control, action -> action.unit = unit)){
+            throw new ValidateException(player, "Player cannot control a unit.");
+        }
+
         //clear player unit when they possess a core
         if((unit instanceof BlockUnitc && ((BlockUnitc)unit).tile() instanceof CoreBuild)){
             Fx.spawn.at(player);
@@ -398,6 +403,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Remote(targets = Loc.both, called = Loc.server, forward = true)
     public static void unitCommand(Player player){
         if(player == null || player.dead() || !(player.unit() instanceof Commanderc commander)) return;
+
+        //make sure player is allowed to make the command
+        if(net.server() && !netServer.admins.allowAction(player, ActionType.command, action -> {})){
+            throw new ValidateException(player, "Player cannot command a unit.");
+        }
 
         if(commander.isCommanding()){
             commander.clearCommand();
@@ -962,10 +972,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     boolean canMine(Tile tile){
         return !Core.scene.hasMouse()
-        && tile.drop() != null && player.miner().canMine(tile.drop())
+        && tile.drop() != null
+        && player.miner().validMine(tile)
         && !(tile.floor().playerUnmineable && tile.overlay().itemDrop == null)
         && player.unit().acceptsItem(tile.drop())
-        && tile.block() == Blocks.air && player.dst(tile.worldx(), tile.worldy()) <= miningRange;
+        && tile.block() == Blocks.air;
     }
 
     /** Returns the tile at the specified MOUSE coordinates. */
@@ -1233,7 +1244,14 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             line.x = point.x;
             line.y = point.y;
             if(!overrideLineRotation || diagonal){
-                line.rotation = next != null ? Tile.relativeTo(point.x, point.y, next.x, next.y) : baseRotation;
+                if(next != null){
+                    line.rotation = Tile.relativeTo(point.x, point.y, next.x, next.y);
+                }else if(block.conveyorPlacement && i > 0){
+                    Point2 prev = points.get(i - 1);
+                    line.rotation = Tile.relativeTo(prev.x, prev.y, point.x, point.y);
+                }else{
+                    line.rotation = baseRotation;
+                }
             }else{
                 line.rotation = rotation;
             }
