@@ -47,7 +47,7 @@ public class Version{
             build = Strings.canParseInt(map.get("build")) ? Integer.parseInt(map.get("build")) : -1;
         }
 
-        build = 110;
+        build = 111;
         type = "official";
         modifier = "alpha";
         number = 6;

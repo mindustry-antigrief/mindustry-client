@@ -34,7 +34,7 @@ public class AssistPath extends Path {
         if (assisting.unit() instanceof Builderc && Vars.player.unit() instanceof Builderc) {
             ((Builderc) Vars.player.unit()).clearBuilding();
             if (((Builderc) assisting.unit()).activelyBuilding()) {
-                ((Builderc) Vars.player.unit()).addBuild(((Builderc) assisting.unit()).buildPlan());
+                assisting.builder().plans().forEach(plan -> Vars.player.builder().addBuild(plan, false));
             }
         }
     }
