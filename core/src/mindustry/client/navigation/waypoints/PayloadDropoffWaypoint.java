@@ -1,4 +1,4 @@
-package mindustry.client.navigation;
+package mindustry.client.navigation.waypoints;
 
 import arc.math.*;
 import arc.math.geom.*;
@@ -27,12 +27,12 @@ public class PayloadDropoffWaypoint extends Waypoint implements Position {
     }
 
     @Override
-    boolean isDone() {
+    public boolean isDone() {
         return done;
     }
 
     @Override
-    void run() {
+    public void run() {
         if (Vars.player.within(getX(), getY(), 8f)) {
             Call.requestDropPayload(Vars.player, tileX * tilesize, tileY * tilesize);
             done = true;
@@ -47,5 +47,5 @@ public class PayloadDropoffWaypoint extends Waypoint implements Position {
     }
 
     @Override
-    void draw() {}
+    public void draw() {}
 }

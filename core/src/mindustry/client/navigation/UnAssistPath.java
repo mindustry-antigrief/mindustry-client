@@ -3,9 +3,9 @@ package mindustry.client.navigation;
 import arc.math.geom.Point2;
 import arc.math.geom.Position;
 import arc.struct.IntSet;
-import arc.struct.Queue;
 import arc.struct.Seq;
 import mindustry.Vars;
+import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.entities.units.BuildPlan;
 import mindustry.gen.Builderc;
 import mindustry.gen.Player;
@@ -56,7 +56,7 @@ public class UnAssistPath extends Path {
             }
         }
 
-        new PositionWaypoint(assisting.x, assisting.y).run();
+        new PositionWaypoint(assisting.x, assisting.y, 0f).run();
         if (Vars.player.unit() instanceof Builderc) {
             ((Builderc) Vars.player.unit()).clearBuilding();
             IntSet contains = new IntSet();

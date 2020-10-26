@@ -2,6 +2,7 @@ package mindustry.client.navigation;
 
 import arc.math.geom.Position;
 import mindustry.Vars;
+import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.gen.Builderc;
 import mindustry.gen.Player;
 

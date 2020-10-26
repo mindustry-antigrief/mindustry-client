@@ -1,4 +1,4 @@
-package mindustry.client.navigation;
+package mindustry.client.navigation.waypoints;
 
 import arc.math.*;
 import arc.math.geom.*;
@@ -9,23 +9,25 @@ import mindustry.world.*;
 
 import static mindustry.Vars.*;
 
-public class ItemDropoffWaypoint extends Waypoint implements Position {
-    public int destinationX, destinationY;
+public class ItemPickupWaypoint extends Waypoint implements Position {
+    public int sourceX, sourceY;
+    public ItemStack items;
     private boolean done = false;
 
-    public ItemDropoffWaypoint(int destinationX, int destinationY) {
-        this.destinationX = destinationX;
-        this.destinationY = destinationY;
+    public ItemPickupWaypoint(int sourceX, int sourceY, ItemStack items) {
+        this.sourceX = sourceX;
+        this.sourceY = sourceY;
+        this.items = items;
     }
 
     @Override
     public float getX() {
-        return destinationX * tilesize;
+        return sourceX * tilesize;
     }
 
     @Override
-    public float getY(){
-        return destinationY * tilesize;
+    public float getY() {
+        return sourceY * tilesize;
     }
 
     @Override
@@ -35,12 +37,12 @@ public class ItemDropoffWaypoint extends Waypoint implements Position {
 
     @Override
     public void run() {
-        if (Vars.player.within(destinationX * Vars.tilesize, destinationY * Vars.tilesize, Vars.itemTransferRange)) {
-            Tile tile = Vars.world.tile(destinationX, destinationY);
+        if (Vars.player.within(sourceX * Vars.tilesize, sourceY * Vars.tilesize, Vars.itemTransferRange)) {
+            Tile tile = Vars.world.tile(sourceX, sourceY);
             if (tile.build == null) {
                 return;
             }
-            Call.transferInventory(Vars.player, tile.build);
+            Call.requestItem(Vars.player, tile.build, items.item, items.amount);
             done = true;
         } else {
             float direction = player.angleTo(this);

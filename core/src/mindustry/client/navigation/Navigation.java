@@ -1,24 +1,10 @@
 package mindustry.client.navigation;
 
 import arc.Core;
-import arc.graphics.Color;
-import arc.graphics.g2d.Draw;
-import arc.graphics.g2d.Fill;
-import arc.math.Mathf;
-import arc.math.geom.Geometry;
 import arc.math.geom.Vec2;
 import arc.struct.*;
-import mindustry.*;
-import mindustry.client.Client;
-import mindustry.client.navigation.dstar.DStarLite;
-import mindustry.client.navigation.dstar.DStarState;
-import mindustry.content.*;
-import mindustry.world.*;
-import mindustry.world.blocks.defense.turrets.*;
-import mindustry.world.blocks.defense.turrets.Turret.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import mindustry.client.navigation.waypoints.PositionWaypoint;
+import mindustry.client.navigation.waypoints.Waypoint;
 
 import static mindustry.Vars.*;
 
@@ -28,12 +14,12 @@ public class Navigation {
     public static NavigationState state = NavigationState.NONE;
     public static Path recordedPath = null;
     public static Seq<Waypoint> recording = null;
-    private static DStarLite dstar = null;
-    private static final int resolutionModifier = 4;  // Everything is divided by this number to convert from world space to navigation space
     public static Seq<TurretPathfindingEntity> obstacles = new Seq<>();
     private static Vec2 targetPos = null;
+    private static Seq<TurretPathfindingEntity> obstaclesNotEmpty = new Seq<>();
 
     public static void follow(Path path) {
+        stopFollowing();
         currentlyFollowing = path;
         if (path == null){
             state = NavigationState.NONE;
@@ -43,44 +29,19 @@ public class Navigation {
     }
 
     public static void update() {
-//        System.out.println(obstacles);
-//        Draw.color(Color.green);
-//        Draw.alpha(0.25f);
-//        for (TurretPathfindingEntity obstacle : obstacles) {
-//            Fill.circle(obstacle.x * tilesize, obstacle.y * tilesize, obstacle.range);
-//        }
-//        Draw.color();
+        if (targetPos != null) { // must be navigating, TODO: dejank
+            if (Core.graphics.getFrameId() % 30 == 0) {
+                navigateTo(targetPos.x, targetPos.y);
+            }
+        }
 
         if (currentlyFollowing != null && !isPaused) {
             currentlyFollowing.follow();
-            if (dstar != null) {
-                if (Core.graphics.getFrameId() % 30 == 0) {
-                    dstar = new DStarLite();
-                    dstar.init(player.tileX() / Navigation.resolutionModifier, player.tileY() / Navigation.resolutionModifier,
-                            Mathf.floor(targetPos.x / resolutionModifier) / tilesize, Mathf.floor(targetPos.y / resolutionModifier) / tilesize);
-
-//                    dstar.updateStart(player.tileX() / resolutionModifier, player.tileY() / resolutionModifier);
-                    for (TurretPathfindingEntity turret : obstacles) {
-                        Geometry.circle(turret.x / resolutionModifier, turret.y / resolutionModifier,
-                                Mathf.floor(turret.range / tilesize) / resolutionModifier,
-                                (a, b) -> dstar.updateCell(a, b, 500));
-                    }
-
-                    if (dstar.replan()) {
-                        Seq<Waypoint> points = new Seq<>();
-                        List<DStarState> path = dstar.getPath();
-                        path.forEach(point -> points.add(new PositionWaypoint(point.x * tilesize * resolutionModifier,
-                                point.y * tilesize * resolutionModifier)));
-                        points.remove(0);
-                        follow(new WaypointPath(points));
-                        currentlyFollowing.setShow(true);
-                    }
-                }
-            }
             if (currentlyFollowing.isDone()) {
                 stopFollowing();
             }
         }
+        obstaclesNotEmpty = obstacles;
     }
 
     public static void stopFollowing() {
@@ -89,7 +50,6 @@ public class Navigation {
         }
         currentlyFollowing = null;
         state = NavigationState.NONE;
-        dstar = null;
         targetPos = null;
     }
 
@@ -108,48 +68,27 @@ public class Navigation {
     }
 
     public static void navigateTo(float drawX, float drawY) {
-//        Seq<TurretPathfindingEntity> circularObstacles = new Seq<>();
-//        for (Tile tile : world.tiles) {
-//            if (tile != null) {
-//                if (tile.block() instanceof Turret) {
-//                    if (tile.team() != player.team()) {
-//                        circularObstacles.add(new TurretPathfindingEntity(tile.x, tile.y, ((Turret) tile.block()).range));
-//                    }
-//                } else if (tile.block() == Blocks.spawn) {
-//                    circularObstacles.add(new TurretPathfindingEntity(tile.x, tile.y, Vars.state.rules.dropZoneRadius));
-//                }
-//            }
-//        }
-//        System.out.println(Navigation.obstacles);
-
-        dstar = new DStarLite();
-        dstar.init(player.tileX() / Navigation.resolutionModifier, player.tileY() / Navigation.resolutionModifier,
-                Mathf.floor(drawX / tilesize) / Navigation.resolutionModifier, Mathf.floor(drawY / tilesize) / Navigation.resolutionModifier);
-        for (TurretPathfindingEntity turret : obstacles) {
-            Geometry.circle(turret.x / resolutionModifier, turret.y / resolutionModifier,
-                    Mathf.floor(turret.range / tilesize) / resolutionModifier,
-                    (a, b) -> dstar.updateCell(a, b, 500));
-        }
-
-        if (dstar.replan()) {
+        if (obstaclesNotEmpty.isEmpty()) {
             targetPos = new Vec2(drawX, drawY);
-            Seq<Waypoint> points = new Seq<>();
-            List<DStarState> path = dstar.getPath();
-            path.forEach(point -> points.add(new PositionWaypoint(point.x * tilesize * resolutionModifier,
-                    point.y * tilesize * resolutionModifier)));
-            follow(new WaypointPath(points));
-            currentlyFollowing.setShow(true);
+            follow(new WaypointPath(Seq.with(new PositionWaypoint(drawX, drawY))));
+            return;
         }
-
-//        Seq<int[]> points = AStar.findPathTurretsDropZone(turrets, player.x, player.y, drawX, drawY, world.width(), world.height(), player.team(), dropZones);
-//        if (points != null) {
-//            Seq<Waypoint> waypoints = new Seq<>();
-//            points.reverse();
-//            for (int[] point : points) {
-//                waypoints.add(new PositionWaypoint(point[0] * tilesize, point[1] * tilesize));
-//            }
-//            follow(new WaypointPath(waypoints));
-//        }
+        playerNavigator.taskQueue.post(() -> {
+            Seq<int[]> points = AStar.findPathWithObstacles(player.x, player.y, drawX, drawY, world.width(), world.height(), player.team(), obstaclesNotEmpty);
+            if (points != null) {
+                Seq<Waypoint> waypoints = new Seq<>();
+                points.reverse();
+                for (int[] point : points) {
+                    waypoints.add(new PositionWaypoint(point[0] * tilesize, point[1] * tilesize));
+                }
+                if (waypoints.any()) {
+                    waypoints.remove(0);
+                    follow(new WaypointPath(waypoints));
+                    currentlyFollowing.setShow(true);
+                    targetPos = new Vec2(drawX, drawY);
+                }
+            }
+        });
     }
 
     public static void startRecording() {

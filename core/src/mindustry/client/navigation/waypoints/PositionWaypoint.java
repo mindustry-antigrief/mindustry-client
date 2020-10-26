@@ -1,9 +1,11 @@
-package mindustry.client.navigation;
+package mindustry.client.navigation.waypoints;
 
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
+import mindustry.client.navigation.waypoints.Waypoint;
+
 import static mindustry.Vars.*;
 
 public class PositionWaypoint extends Waypoint implements Position {

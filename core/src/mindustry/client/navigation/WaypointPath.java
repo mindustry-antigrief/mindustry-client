@@ -2,9 +2,9 @@ package mindustry.client.navigation;
 
 import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
+import mindustry.client.navigation.waypoints.Waypoint;
 
 /**
  * A {@link Path} composed of {@link Waypoint} instances.

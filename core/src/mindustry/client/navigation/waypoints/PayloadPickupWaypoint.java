@@ -1,33 +1,28 @@
-package mindustry.client.navigation;
+package mindustry.client.navigation.waypoints;
 
 import arc.math.*;
 import arc.math.geom.*;
 import mindustry.*;
 import mindustry.gen.*;
-import mindustry.type.*;
-import mindustry.world.*;
-
 import static mindustry.Vars.*;
 
-public class ItemPickupWaypoint extends Waypoint implements Position {
-    public int sourceX, sourceY;
-    public ItemStack items;
+public class PayloadPickupWaypoint extends Waypoint implements Position {
+    public final int tileX, tileY;
     private boolean done = false;
 
-    public ItemPickupWaypoint(int sourceX, int sourceY, ItemStack items) {
-        this.sourceX = sourceX;
-        this.sourceY = sourceY;
-        this.items = items;
+    public PayloadPickupWaypoint(int tileX, int tileY) {
+        this.tileX = tileX;
+        this.tileY = tileY;
     }
 
     @Override
     public float getX() {
-        return sourceX * tilesize;
+        return tileX * tilesize;
     }
 
     @Override
     public float getY() {
-        return sourceY * tilesize;
+        return tileY * tilesize;
     }
 
     @Override
@@ -37,12 +32,8 @@ public class ItemPickupWaypoint extends Waypoint implements Position {
 
     @Override
     public void run() {
-        if (Vars.player.within(sourceX * Vars.tilesize, sourceY * Vars.tilesize, Vars.itemTransferRange)) {
-            Tile tile = Vars.world.tile(sourceX, sourceY);
-            if (tile.build == null) {
-                return;
-            }
-            Call.requestItem(Vars.player, tile.build, items.item, items.amount);
+        if (Vars.player.within(getX(), getY(), 1f)) {
+            Call.requestBuildPayload(Vars.player, world.tile(tileX, tileY).build);
             done = true;
         } else {
             float direction = player.angleTo(this);

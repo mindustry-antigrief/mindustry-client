@@ -8,6 +8,8 @@ import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 import java.util.*;
 
+import static mindustry.Vars.tilesize;
+
 
 // Taken from http://www.codebytes.in/2015/02/a-shortest-path-finding-algorithm.html
 // and modified
@@ -79,8 +81,8 @@ public class AStar{
 //        System.out.println(grid[0].length);
 //        System.out.println(startI);
 //        System.out.println(startJ);
-//        System.out.println(Seqs.deepToString(grid));
-//        System.out.println(Seqs.toString(grid[startI]));
+//        System.out.println(Arrays.deepToString(grid));
+//        System.out.println(Arrays.toString(grid[startI]));
         //add the start location to open list.
 
         endI = Mathf.clamp(endI, 0, grid.length - 1);
@@ -109,7 +111,7 @@ public class AStar{
             Cell t;
             int multiplier;
             if(costly[current.i][current.j]){
-                multiplier = 500;
+                multiplier = 5;
             }else{
                 multiplier = 1;
             }
@@ -235,26 +237,11 @@ public class AStar{
         }else System.out.println("No possible path");
     }
 
-    public static Seq<int[]> findPathTurretsDropZone(Seq<TurretBuild> turrets, float playerX, float playerY, float targetX, float targetY, int width, int height, Team team, Seq<TurretPathfindingEntity> dropZones){
+    public static Seq<int[]> findPathWithObstacles(float playerX, float playerY, float targetX, float targetY, int width, int height, Team team, Seq<TurretPathfindingEntity> obstacles){
         int resolution = 2;  // The resolution of the map is divided by this value
         Seq<TurretPathfindingEntity> pathfindingEntities = new Seq<>();
-        for(TurretBuild turretEntity : turrets){
-            if(turretEntity.team == team){
-                continue;
-            }
-            boolean flying = Vars.player.unit().isFlying();
-            boolean targetsAir = ((Turret)turretEntity.block).targetAir;
-            boolean targetsGround = ((Turret)turretEntity.block).targetGround;
-            if(flying && !targetsAir){
-                continue;
-            }
-            if(!flying && !targetsGround){
-                continue;
-            }
-            pathfindingEntities.add(new TurretPathfindingEntity(turretEntity.tileX() / resolution, turretEntity.tileY() / resolution, ((Turret)turretEntity.block).range / (8 * resolution)));
-        }
-        for(TurretPathfindingEntity zone : dropZones){
-            pathfindingEntities.add(new TurretPathfindingEntity(zone.x / resolution, zone.y / resolution, zone.range / resolution));
+        for(TurretPathfindingEntity zone : obstacles){
+            pathfindingEntities.add(new TurretPathfindingEntity(zone.x / resolution, zone.y / resolution, (zone.range / tilesize) / resolution));
         }
         block = true;
         Seq<int[]> path = findPath(pathfindingEntities, playerX / resolution, playerY / resolution, targetX / resolution, targetY / resolution, width / resolution, height / resolution);
@@ -402,6 +389,7 @@ public class AStar{
                 costly[ints[0]][ints[1]] = true;
             }
         }
+        grid[px][py] = new Cell(px, py);
 
         //Display initial map
 //        System.out.println("Grid: ");
