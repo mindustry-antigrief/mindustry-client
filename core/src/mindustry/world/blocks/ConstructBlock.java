@@ -3,6 +3,7 @@ package mindustry.world.blocks;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
+import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.struct.*;
@@ -23,7 +24,9 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.ui.*;
+import mindustry.ui.fragments.ChatFragment;
 import mindustry.world.*;
+import mindustry.world.blocks.power.NuclearReactor;
 import mindustry.world.modules.*;
 
 import java.time.*;
@@ -186,6 +189,9 @@ public class ConstructBlock extends Block{
 
         private float[] accumulator;
         private float[] totalAccumulator;
+
+        private ChatFragment.ChatMessage message = null;
+        private float lastProgress = 0f;
 
         @Override
         public String getDisplayName(){
@@ -427,6 +433,25 @@ public class ConstructBlock extends Block{
             }else{
                 buildCost = 20f;
             }
+        }
+
+        @Override
+        public void update() {
+            super.update();
+            if (cblock instanceof NuclearReactor) {
+                if (Core.settings.getBool("reactorwarnings")) {
+                    if (progress > lastProgress) {
+                        String format = String.format("%s is building a %s at %d,%d (%d blocks from core).  %d%% completed.", lastAccessed, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8), Mathf.floor(progress * 100));
+                        if (message == null || Core.graphics.getFrameId() % 240 == 0) {
+                            message = ui.chatfrag.addMessage(format, "client", Color.scarlet);
+                        } else if (message != null) {
+                            message.message = format;
+                            message.format();
+                        }
+                    }
+                }
+            }
+            lastProgress = progress;
         }
     }
 }

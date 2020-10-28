@@ -277,6 +277,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             game.checkPref("crashreport", true);
         }
 
+        game.checkPref("reactorwarnings", true);
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);
         game.checkPref("conveyorpathfinding", true);

@@ -20,3 +20,7 @@
  * Finish recording waypoints - finalizes the path
  * Follow recorded path - replay the recorded path
  * Stop following path - stop following path (note: assist and auto navigation are also considered paths)
+
+# Settings
+ * Display lighting
+ * Send reactor warnings

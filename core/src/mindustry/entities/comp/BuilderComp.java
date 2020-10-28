@@ -98,6 +98,12 @@ abstract class BuilderComp implements Unitc{
             current.initialized = true;
         }
 
+        if(tile.build instanceof ConstructBuild){
+            if(isPlayer()){
+                tile.build.lastAccessed(getPlayer().name);
+            }
+        }
+
         //if there is no core to build with or no build entity, stop building!
         if((core == null && !infinite) || !(tile.build instanceof ConstructBuild)){
             return;

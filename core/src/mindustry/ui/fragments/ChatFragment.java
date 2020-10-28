@@ -22,7 +22,7 @@ import static mindustry.Vars.*;
 
 public class ChatFragment extends Table{
     private static final int messagesShown = 10;
-    private Seq<ChatMessage> messages = new Seq<>();
+    public Seq<ChatMessage> messages = new Seq<>();
     private float fadetime;
     private boolean shown = false;
     private TextField chatfield;
@@ -147,11 +147,18 @@ public class ChatFragment extends Table{
             font.getCache().clear();
             font.getCache().addText(messages.get(i).formattedMessage, fontoffsetx + offsetx, offsety + theight, textWidth, Align.bottomLeft, true);
 
+            Color color = messages.get(i).backgroundColor;
+            if (color == null) {
+                color = shadowColor;
+            }
+            color.a = shadowColor.a;
+
             if(!shown && fadetime - i < 1f && fadetime - i >= 0f){
                 font.getCache().setAlphas((fadetime - i) * opacity);
-                Draw.color(0, 0, 0, shadowColor.a * (fadetime - i) * opacity);
+                Draw.color(color.r, color.g, color.b, shadowColor.a * (fadetime - i) * opacity);
             }else{
                 font.getCache().setAlphas(opacity);
+                Draw.color(color);
             }
 
             Fill.crect(offsetx, theight - layout.height - 2, textWidth + Scl.scl(4f), layout.height + textspacing);
@@ -226,27 +233,45 @@ public class ChatFragment extends Table{
         return shown;
     }
 
-    public void addMessage(String message, String sender){
-        if(sender == null && message == null) return;
-        messages.insert(0, new ChatMessage(message, sender));
+    public ChatMessage addMessage(String message, String sender, Color background){
+        if(sender == null && message == null) return null;
+        ChatMessage msg = new ChatMessage(message, sender, background);
+        messages.insert(0, msg);
 
         fadetime += 1f;
         fadetime = Math.min(fadetime, messagesShown) + 1f;
         
         if(scrollPos > 0) scrollPos++;
+        return msg;
     }
 
-    private static class ChatMessage{
+    public ChatMessage addMessage(String message, String sender) {
+        return addMessage(message, sender, null);
+    }
+
+    public static class ChatMessage{
         public final String sender;
-        public final String message;
-        public final String formattedMessage;
+        public String message;
+        public String formattedMessage;
+        public Color backgroundColor = null;
 
         public ChatMessage(String message, String sender){
             this.message = message;
             this.sender = sender;
+            format();
+        }
+
+        public ChatMessage(String message, String sender, Color color){
+            this.message = message;
+            this.sender = sender;
+            backgroundColor = color;
+            format();
+        }
+
+        public void format() {
             if(sender == null){ //no sender, this is a server message?
                 formattedMessage = message == null ? "" : message;
-            }else{
+            }else {
                 formattedMessage = "[coral][[" + sender + "[coral]]:[white] " + message;
             }
         }
