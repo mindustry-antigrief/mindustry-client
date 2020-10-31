@@ -3,6 +3,7 @@ package mindustry.client.navigation;
 import arc.Core;
 import arc.math.geom.Vec2;
 import arc.struct.*;
+import arc.util.Time;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
 
@@ -82,7 +83,9 @@ public class Navigation {
                     waypoints.add(new PositionWaypoint(point[0] * tilesize, point[1] * tilesize));
                 }
                 if (waypoints.any()) {
-                    waypoints.remove(0);
+                    if (waypoints.size > 1) {
+                        waypoints.remove(0);
+                    }
                     follow(new WaypointPath(waypoints));
                     currentlyFollowing.setShow(true);
                     targetPos = new Vec2(drawX, drawY);
