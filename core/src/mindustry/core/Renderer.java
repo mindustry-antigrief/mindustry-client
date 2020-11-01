@@ -100,7 +100,7 @@ public class Renderer implements ApplicationListener{
     }
 
     public float weatherAlpha(){
-        return weatherAlpha / 2;
+        return weatherAlpha;
     }
 
     public float landScale(){

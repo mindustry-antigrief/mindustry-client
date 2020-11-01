@@ -180,7 +180,7 @@ public class Logic implements ApplicationListener{
 
             //if there's a "win" wave and no enemies are present, win automatically
             if(state.rules.waves && (state.enemies == 0 && state.rules.winWave > 0 && state.wave >= state.rules.winWave && !spawner.isSpawning()) ||
-                (state.rules.attackMode && state.rules.waveTeam.cores().isEmpty())){
+                    (state.rules.attackMode && state.rules.waveTeam.cores().isEmpty())){
                 //the sector has been conquered - waves get disabled
                 state.rules.waves = false;
                 //disable attack mode
@@ -308,7 +308,6 @@ public class Logic implements ApplicationListener{
 
                 Navigation.obstacles.clear();
                 Groups.update();
-//                System.out.println(Navigation.obstacles);
             }
 
             if(!net.client() && !world.isInvalidMap() && !state.isEditor() && state.rules.canGameOver){

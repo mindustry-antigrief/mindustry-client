@@ -9,11 +9,11 @@ import mindustry.world.meta.*;
 
 public class Weathers implements ContentList{
     public static Weather
-    rain,
-    snow,
-    sandstorm,
-    sporestorm,
-    fog;
+            rain,
+            snow,
+            sandstorm,
+            sporestorm,
+            fog;
 
     @Override
     public void load(){
