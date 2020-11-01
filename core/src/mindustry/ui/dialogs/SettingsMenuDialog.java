@@ -36,6 +36,7 @@ public class SettingsMenuDialog extends SettingsDialog{
     private SettingsTable graphics;
     private SettingsTable game;
     private SettingsTable sound;
+    private SettingsTable client;
 
     private Table prefs;
     private Table menu;
@@ -75,6 +76,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         game = new SettingsTable();
         graphics = new SettingsTable();
         sound = new SettingsTable();
+        client = new SettingsTable();
 
         prefs = new Table();
         prefs.top();
@@ -237,6 +239,8 @@ public class SettingsMenuDialog extends SettingsDialog{
         menu.row();
         menu.button("@settings.sound", style, () -> visible(2));
         menu.row();
+        menu.button("@settings.client", style, () -> visible(3));
+        menu.row();
         menu.button("@settings.language", style, ui.language::show);
         if(!mobile || Core.settings.getBool("keyboard")){
             menu.row();
@@ -277,11 +281,12 @@ public class SettingsMenuDialog extends SettingsDialog{
             game.checkPref("crashreport", true);
         }
 
-        game.checkPref("reactorwarnings", true);
+        client.checkPref("reactorwarnings", true);
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);
         game.checkPref("conveyorpathfinding", true);
         game.checkPref("hints", true);
+        game.sliderPref("weatheropacity", "setting.weatheropacity.name", 50, 0, 100, s -> s + "%");
 
         if(!mobile){
             game.checkPref("backgroundpause", true);
@@ -364,7 +369,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             }
         }
 
-        graphics.checkPref("lighting", true);
+        client.checkPref("lighting", true);
         graphics.checkPref("effects", true);
         graphics.checkPref("atmosphere", !mobile);
         graphics.checkPref("destroyedblocks", true);
@@ -466,7 +471,7 @@ public class SettingsMenuDialog extends SettingsDialog{
 
     private void visible(int index){
         prefs.clearChildren();
-        prefs.add(new Table[]{game, graphics, sound}[index]);
+        prefs.add(new Table[]{game, graphics, sound, client}[index]);
     }
 
     @Override
