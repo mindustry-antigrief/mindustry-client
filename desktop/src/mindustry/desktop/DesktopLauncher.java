@@ -46,6 +46,26 @@ public class DesktopLauncher extends ClientLauncher{
         }
     }
 
+    @Override
+    public void stopDiscord() {
+        DiscordRPC.INSTANCE.Discord_Shutdown();
+    }
+
+    @Override
+    public void startDiscord() {
+        if(useDiscord){
+            try{
+                DiscordRPC.INSTANCE.Discord_Initialize(discordID, null, true, "1127400");
+                Log.info("Initialized Discord rich presence.");
+                Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC.INSTANCE::Discord_Shutdown));
+            }catch(Throwable t){
+                useDiscord = false;
+                Log.err("Failed to initialize discord. Enable debug logging for details.");
+                Log.debug("Discord init error: \n@\n", Strings.getStackTrace(t));
+            }
+        }
+    }
+
     public DesktopLauncher(String[] args){
         Version.init();
         boolean useSteam = Version.modifier.contains("steam");

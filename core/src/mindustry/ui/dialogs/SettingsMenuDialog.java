@@ -14,6 +14,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
+import mindustry.ClientLauncher;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
 import mindustry.core.GameState.*;
@@ -282,6 +283,16 @@ public class SettingsMenuDialog extends SettingsDialog{
         }
 
         client.checkPref("reactorwarnings", true);
+        client.checkPref("discordrpc", true, val -> {
+            ClientLauncher launcher = (ClientLauncher) app.getListeners().find(item -> item instanceof ClientLauncher);
+            if (launcher != null && app.isDesktop()) {
+                if (!val) {
+                    launcher.stopDiscord();
+                } else {
+                    launcher.startDiscord();
+                }
+            }
+        });
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);
         game.checkPref("conveyorpathfinding", true);
