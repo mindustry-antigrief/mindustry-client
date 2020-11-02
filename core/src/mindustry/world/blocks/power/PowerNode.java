@@ -15,6 +15,7 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+import mindustry.ui.fragments.ChatFragment;
 import mindustry.world.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
@@ -275,6 +276,10 @@ public class PowerNode extends PowerBlock{
     }
 
     public class PowerNodeBuild extends Building{
+
+        /** This is used for power split notifications. */
+        public ChatFragment.ChatMessage message = null;
+        public int disconnections = 0;
 
         @Override
         public void placed(){
