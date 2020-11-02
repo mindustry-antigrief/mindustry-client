@@ -28,10 +28,11 @@ public class Renderer implements ApplicationListener{
     public final Pixelator pixelator = new Pixelator();
     public PlanetRenderer planets;
 
+    public @Nullable Bloom bloom;
     public FrameBuffer effectBuffer = new FrameBuffer();
     public float laserOpacity = 1f;
 
-    private Bloom bloom;
+    //TODO unused
     private FxProcessor fx = new FxProcessor();
     private Color clearColor = new Color(0f, 0f, 0f, 1f);
     private float targetscale = Scl.scl(4);
@@ -54,7 +55,7 @@ public class Renderer implements ApplicationListener{
     public void init(){
         planets = new PlanetRenderer();
 
-        if(settings.getBool("bloom")){
+        if(settings.getBool("bloom", !ios)){
             setupBloom();
         }
     }
@@ -122,10 +123,6 @@ public class Renderer implements ApplicationListener{
 
     @Override
     public void resize(int width, int height){
-        if(settings.getBool("bloom")){
-            setupBloom();
-        }
-
         fx.resize(width, height);
     }
 
@@ -241,6 +238,7 @@ public class Renderer implements ApplicationListener{
         }
 
         if(bloom != null){
+            bloom.resize(graphics.getWidth() / 4, graphics.getHeight() / 4);
             Draw.draw(Layer.bullet - 0.01f, bloom::capture);
             Draw.draw(Layer.effect + 0.01f, bloom::render);
         }

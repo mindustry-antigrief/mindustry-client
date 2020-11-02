@@ -451,6 +451,10 @@ public class DesktopInput extends InputHandler{
             ui.schematics.show();
         }).tooltip("@schematics");
 
+        table.button(Icon.book, Styles.clearPartiali, () -> {
+            ui.database.show();
+        }).tooltip("@database");
+
         table.button(Icon.tree, Styles.clearPartiali, () -> {
             ui.research.show();
         }).visible(() -> state.isCampaign()).tooltip("@research");
@@ -458,8 +462,6 @@ public class DesktopInput extends InputHandler{
         table.button(Icon.map, Styles.clearPartiali, () -> {
             ui.planet.show();
         }).visible(() -> state.isCampaign()).tooltip("@planetmap");
-
-        table.add();
     }
 
     void pollInput(){

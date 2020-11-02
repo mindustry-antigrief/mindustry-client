@@ -98,7 +98,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         to.addItem(item, removed);
         for(int j = 0; j < Mathf.clamp(removed / 3, 1, 8); j++){
-            Time.run(j * 3f, () -> Call.transferItemEffect(item, build.x, build.y, to));
+            Time.run(j * 3f, () -> transferItemEffect(item, build.x, build.y, to));
         }
     }
 
@@ -111,7 +111,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Remote(called = Loc.server, unreliable = true)
     public static void transferItemTo(Item item, int amount, float x, float y, Building build){
         if(build == null || build.items == null) return;
-        for(int i = 0; i < Mathf.clamp(amount / 3, 1, 8); i++){
+        for(int i = 0; i < Mathf.clamp(amount / 5, 1, 8); i++){
             Time.run(i * 3, () -> createItemTransfer(item, amount, x, y, build, () -> {}));
         }
         build.items.add(item, amount);
@@ -146,13 +146,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         //remove item for every controlling unit
         player.unit().eachGroup(unit -> {
-            int removed = Math.min(unit.maxAccepted(item), tile.removeStack(item, amount));
-
-            unit.addItem(item, removed);
-
-            for(int j = 0; j < Mathf.clamp(removed / 3, 1, 8); j++){
-                Time.run(j * 3f, () -> Call.transferItemEffect(item, tile.x, tile.y, unit));
-            }
+            Call.takeItems(tile, item, unit.maxAccepted(item), unit);
 
             if(unit == player.unit()){
                 Events.fire(new WithdrawEvent(tile, player, item, amount));
@@ -176,18 +170,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         player.unit().eachGroup(unit -> {
             Item item = unit.item();
             int accepted = tile.acceptStack(item, unit.stack.amount, unit);
-            unit.stack.amount -= accepted;
 
-            tile.getStackOffset(item, stackTrns);
-            tile.handleStack(item, accepted, unit);
-
-            createItemTransfer(
-                item,
-                accepted,
-                unit.x + Angles.trnsx(unit.rotation + 180f, backTrns), unit.y + Angles.trnsy(unit.rotation + 180f, backTrns),
-                new Vec2(tile.x + stackTrns.x, tile.y + stackTrns.y),
-                () -> {}
-            );
+            Call.transferItemTo(unit, item, accepted, unit.x, unit.y, tile);
 
             if(unit == player.unit()){
                 Events.fire(new DepositEvent(tile, player, item, accepted));

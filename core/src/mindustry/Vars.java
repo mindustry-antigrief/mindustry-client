@@ -188,7 +188,7 @@ public class Vars implements Loadable{
     public static ContentLoader content;
     public static GameState state;
     public static EntityCollisions collisions;
-    public static DefaultWaves defaultWaves;
+    public static Waves waves;
     public static LoopControl loops;
     public static Platform platform = new Platform(){};
     public static Mods mods;
@@ -258,7 +258,7 @@ public class Vars implements Loadable{
 
         content = new ContentLoader();
         loops = new LoopControl();
-        defaultWaves = new DefaultWaves();
+        waves = new Waves();
         collisions = new EntityCollisions();
         world = new World();
         universe = new Universe();
@@ -321,20 +321,25 @@ public class Vars implements Loadable{
 
         settings.setAppName(appName);
 
-        Writer writer = settings.getDataDirectory().child("last_log.txt").writer(false);
-        LogHandler log = Log.logger;
-        //ignore it
-        Log.logger = (level, text) -> {
-            log.log(level, text);
+        try{
+            Writer writer = settings.getDataDirectory().child("last_log.txt").writer(false);
+            LogHandler log = Log.logger;
+            //ignore it
+            Log.logger = (level, text) -> {
+                log.log(level, text);
 
-            try{
-                writer.write("[" + Character.toUpperCase(level.name().charAt(0)) +"] " + Log.removeColors(text) + "\n");
-                writer.flush();
-            }catch(IOException e){
-                e.printStackTrace();
-                //ignore it
-            }
-        };
+                try{
+                    writer.write("[" + Character.toUpperCase(level.name().charAt(0)) +"] " + Log.removeColors(text) + "\n");
+                    writer.flush();
+                }catch(IOException e){
+                    e.printStackTrace();
+                    //ignore it
+                }
+            };
+        }catch(Exception e){
+            //handle log file not being found
+            Log.err(e);
+        }
 
         loadedFileLogger = true;
     }
