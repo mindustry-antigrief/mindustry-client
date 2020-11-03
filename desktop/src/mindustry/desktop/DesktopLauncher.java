@@ -71,7 +71,7 @@ public class DesktopLauncher extends ClientLauncher{
         boolean useSteam = Version.modifier.contains("steam");
         testMobile = Seq.with(args).contains("-testMobile");
 
-        if(useDiscord){
+        if(useDiscord && Core.settings.getBool("discordrpc")){
             try{
                 DiscordRPC.INSTANCE.Discord_Initialize(discordID, null, true, "1127400");
                 Log.info("Initialized Discord rich presence.");
