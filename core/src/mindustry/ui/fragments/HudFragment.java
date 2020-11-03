@@ -211,6 +211,10 @@ public class HudFragment extends Fragment{
 
             wavesMain.row();
 
+            wavesMain.add(PowerInfo.getBars()).grow(); // Power display
+
+            wavesMain.row();
+
             wavesMain.table(Tex.button, t -> t.margin(10f).add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white))
             .grow()).fillX().visible(() -> state.rules.waves && state.boss() != null).height(60f).get()
             .name = "boss";
@@ -218,7 +222,6 @@ public class HudFragment extends Fragment{
             wavesMain.row();
 
             editorMain.name = "editor";
-            wavesMain.add(PowerInfo.getBars());
 
             editorMain.table(Tex.buttonEdge4, t -> {
                 //t.margin(0f);
@@ -243,22 +246,8 @@ public class HudFragment extends Fragment{
             }).width(dsize * 5 + 4f);
             editorMain.visible(() -> shown && state.isEditor());
 
-            //fps display
-            cont.table(info -> {
-                info.name = "fps/ping";
-                info.touchable = Touchable.disabled;
-                info.top().left().margin(4).visible(() -> Core.settings.getBool("fps") && shown);
-                info.update(() -> info.setTranslation(state.rules.waves || state.isEditor() ? 0f : -Scl.scl(dsize * 4 + 3), 0));
-                IntFormat fps = new IntFormat("fps");
-                IntFormat ping = new IntFormat("ping");
-
-                info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left()
-                .style(Styles.outlineLabel).name("fps");
-                info.row();
-                info.label(() -> ping.get(netClient.getPing())).visible(net::client).left()
-                .style(Styles.outlineLabel).name("ping");
-            }).top().left().width(70f);
-            cont.add(new ImageButton(Icon.move)).get().clicked(() -> {
+            //waypoint dialog
+            cont.add(new ImageButton(Icon.move)).top().pad(4).get().clicked(() -> {
                 BaseDialog dialog = new BaseDialog("Waypoints");
                 dialog.addCloseButton();
                 dialog.cont.setWidth(200f);
@@ -271,6 +260,26 @@ public class HudFragment extends Fragment{
                 dialog.cont.add(new TextButton("Stop following path")).growX().get().clicked(() -> {Navigation.stopFollowing(); dialog.hide();});
                 dialog.show();
             });
+
+            //fps display
+            cont.table(info -> {
+                info.name = "fps/ping";
+                info.touchable = Touchable.disabled;
+                info.top().left().margin(4).visible(() -> Core.settings.getBool("fps") && shown);
+                info.update(() -> info.setTranslation(state.rules.waves || state.isEditor() ? 0f : -Scl.scl(dsize * 4 + 3), 0));
+                IntFormat fps = new IntFormat("fps");
+                IntFormat ping = new IntFormat("ping");
+                IntFormat players = new IntFormat("players");
+
+                info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left()
+                .style(Styles.outlineLabel).name("fps");
+                info.row();
+                info.label(() -> "Players: " + String.valueOf(Groups.player.size())).visible(net::active).left() // Player count
+                .style(Styles.outlineLabel).name("players");
+                info.row();
+                info.label(() -> ping.get(netClient.getPing())).visible(net::client).left()
+                .style(Styles.outlineLabel).name("ping");
+            }).top().left().width(70f);
         });
 
         //core items
@@ -764,7 +773,6 @@ public class HudFragment extends Fragment{
         }).growX().pad(8f);
 
         table.setDisabled(true);
-        table.visible(() -> state.rules.waves);
 
         return table;
     }

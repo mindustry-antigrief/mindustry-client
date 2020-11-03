@@ -14,6 +14,7 @@ import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.power.*;
 import java.util.*;
+import mindustry.gen.*;
 
 public class PowerInfo {
 
@@ -76,11 +77,12 @@ public class PowerInfo {
     public static Element getBars() {
         Table table = new Table();
         Bar powerBar = new MonospacedBar(() -> Strings.fixed(found != null ? found.displayPowerBalance.getAverage() * 60f : 0f, 1), () -> Pal.powerBar, () -> found != null? found.getSatisfaction() : 0f);
-        table.add(powerBar).width(200f).height(30f);
-        table.row();
 
         Bar batteryBar = new Bar(() -> (found != null? UI.formatAmount((int)found.getLastPowerStored()) : 0) + " / " + (found != null? UI.formatAmount((int)found.getLastCapacity()) : 0), () -> Pal.powerBar, () -> found != null? Mathf.clamp(found.getLastPowerStored() / Math.max(found.getLastCapacity(), 0.0001f)) : 0f);
-        table.add(batteryBar).width(200f).height(30f);
+
+        table.table(Tex.button, t -> t.add(batteryBar).height(30f).grow()).grow();
+        table.row();
+        table.table(Tex.button, t -> t.add(powerBar).height(30f).grow()).grow();
 
         return table;
     }
