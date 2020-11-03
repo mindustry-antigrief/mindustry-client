@@ -227,6 +227,7 @@ public class Tile implements Position, QuadTreeObject, Displayable{
                                     //assign entity and type to blocks, so they act as proxies for this one
                                     other.build = entity;
                                     other.block = block;
+
                                 }
                             }
                         }

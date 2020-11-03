@@ -45,6 +45,8 @@ import mindustry.world.meta.*;
 
 import java.time.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static arc.Core.input;
 import static mindustry.Vars.*;
@@ -77,6 +79,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public BuildPlan brequest = new BuildPlan();
     public Seq<BuildPlan> lineRequests = new Seq<>();
     public Seq<BuildPlan> selectRequests = new Seq<>();
+    private static Pattern pattern = Pattern.compile("\\d+ p");
 
     //methods to override
 
@@ -95,7 +98,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         to.addItem(item, removed);
         for(int j = 0; j < Mathf.clamp(removed / 3, 1, 8); j++){
-            Time.run(j * 3f, () -> Call.transferItemEffect(item, build.x, build.y, to));
+            Time.run(j * 3f, () -> transferItemEffect(item, build.x, build.y, to));
         }
     }
 
@@ -108,7 +111,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Remote(called = Loc.server, unreliable = true)
     public static void transferItemTo(Item item, int amount, float x, float y, Building build){
         if(build == null || build.items == null) return;
-        for(int i = 0; i < Mathf.clamp(amount / 3, 1, 8); i++){
+        for(int i = 0; i < Mathf.clamp(amount / 5, 1, 8); i++){
             Time.run(i * 3, () -> createItemTransfer(item, amount, x, y, build, () -> {}));
         }
         build.items.add(item, amount);
@@ -143,13 +146,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         //remove item for every controlling unit
         player.unit().eachGroup(unit -> {
-            int removed = Math.min(unit.maxAccepted(item), tile.removeStack(item, amount));
-
-            unit.addItem(item, removed);
-
-            for(int j = 0; j < Mathf.clamp(removed / 3, 1, 8); j++){
-                Time.run(j * 3f, () -> Call.transferItemEffect(item, tile.x, tile.y, unit));
-            }
+            Call.takeItems(tile, item, unit.maxAccepted(item), unit);
 
             if(unit == player.unit()){
                 Events.fire(new WithdrawEvent(tile, player, item, amount));
@@ -173,18 +170,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         player.unit().eachGroup(unit -> {
             Item item = unit.item();
             int accepted = tile.acceptStack(item, unit.stack.amount, unit);
-            unit.stack.amount -= accepted;
 
-            tile.getStackOffset(item, stackTrns);
-            tile.handleStack(item, accepted, unit);
-
-            createItemTransfer(
-                item,
-                accepted,
-                unit.x + Angles.trnsx(unit.rotation + 180f, backTrns), unit.y + Angles.trnsy(unit.rotation + 180f, backTrns),
-                new Vec2(tile.x + stackTrns.x, tile.y + stackTrns.y),
-                () -> {}
-            );
+            Call.transferItemTo(unit, item, accepted, unit.x, unit.y, tile);
 
             if(unit == player.unit()){
                 Events.fire(new DepositEvent(tile, player, item, accepted));
@@ -339,6 +326,19 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if(((UnAssistPath) Navigation.currentlyFollowing).assisting == player){
                     Client.configs.add(new ConfigRequest(tile.tileX(), tile.tileY(), tile.config()));
+                }
+            }
+            if (tile.block instanceof PowerNode) {
+                if (tile.power.links.contains((Integer) value)) {
+                    ((PowerNode.PowerNodeBuild) tile).disconnections++;
+                    String message = String.format("%s disconnected %d power link%s at %d,%d", player.name, ((PowerNode.PowerNodeBuild) tile).disconnections, ((PowerNode.PowerNodeBuild) tile).disconnections == 1 ? "" : "s", tile.tileX(), tile.tileY());
+                    if (((PowerNode.PowerNodeBuild) tile).message == null || ui.chatfrag.messages.indexOf(((PowerNode.PowerNodeBuild) tile).message) > 8) {
+                        ((PowerNode.PowerNodeBuild) tile).disconnections = 1;
+                        ((PowerNode.PowerNodeBuild) tile).message = ui.chatfrag.addMessage(message, "client", Color.scarlet);
+                    } else {
+                        ((PowerNode.PowerNodeBuild) tile).message.message = message;
+                        ((PowerNode.PowerNodeBuild) tile).message.format();
+                    }
                 }
             }
         }

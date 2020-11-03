@@ -15,6 +15,7 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+import mindustry.ui.fragments.ChatFragment;
 import mindustry.world.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
@@ -276,12 +277,16 @@ public class PowerNode extends PowerBlock{
 
     public class PowerNodeBuild extends Building{
 
+        /** This is used for power split notifications. */
+        public ChatFragment.ChatMessage message = null;
+        public int disconnections = 0;
+
         @Override
         public void placed(){
             if(net.client()) return;
 
-            Boolf<Building> valid = other -> other != null && other != this && ((!other.block.outputsPower && other.block.consumesPower) ||
-                (other.block.outputsPower && !other.block.consumesPower) || other.block instanceof PowerNode) && linkValid(this, other)
+            Boolf<Building> valid = other -> other != null && other != this &&
+                (other.block.outputsPower || other.block.consumesPower || other.block instanceof PowerNode) && linkValid(this, other)
                 && !other.proximity().contains(this) && other.power.graph != power.graph;
 
             tempTileEnts.clear();

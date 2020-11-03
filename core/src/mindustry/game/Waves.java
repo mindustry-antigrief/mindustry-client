@@ -9,7 +9,9 @@ import mindustry.type.*;
 
 import static mindustry.content.UnitTypes.*;
 
-public class DefaultWaves{
+public class Waves{
+    public static final int waveVersion = 2;
+
     private Seq<SpawnGroup> spawns;
 
     public Seq<SpawnGroup> get(){
@@ -262,7 +264,7 @@ public class DefaultWaves{
         {dagger, mace, fortress, scepter, reign},
         {nova, pulsar, quasar, vela, corvus},
         {crawler, atrax, spiroct, arkyid, toxopid},
-        {flare, horizon, rand.chance(0.2) && difficulty > 0.5 ? poly : zenith, rand.chance(0.5) ? quad : antumbra, rand.chance(0.1) ? quad : eclipse}
+        {flare, horizon, zenith, rand.chance(0.5) ? quad : antumbra, rand.chance(0.1) ? quad : eclipse}
         };
 
         //required progression:
@@ -337,11 +339,13 @@ public class DefaultWaves{
             step += (int)(rand.random(15, 30) * Mathf.lerp(1f, 0.5f, difficulty));
         }
 
-        int bossWave = (int)(rand.random(30, 60) * Mathf.lerp(1f, 0.7f, difficulty));
+        int bossWave = (int)(rand.random(50, 70) * Mathf.lerp(1f, 0.6f, difficulty));
         int bossSpacing = (int)(rand.random(25, 40) * Mathf.lerp(1f, 0.6f, difficulty));
 
+        int bossTier = difficulty < 0.5 ? 3 : 4;
+
         //main boss progression
-        out.add(new SpawnGroup(Structs.random(species)[4]){{
+        out.add(new SpawnGroup(Structs.random(species)[bossTier]){{
             unitAmount = 1;
             begin = bossWave;
             spacing = bossSpacing;
@@ -353,7 +357,7 @@ public class DefaultWaves{
         }});
 
         //alt boss progression
-        out.add(new SpawnGroup(Structs.random(species)[4]){{
+        out.add(new SpawnGroup(Structs.random(species)[bossTier]){{
             unitAmount = 1;
             begin = bossWave + rand.random(3, 5) * bossSpacing;
             spacing = bossSpacing;
@@ -367,7 +371,7 @@ public class DefaultWaves{
         int finalBossStart = 120 + rand.random(30);
 
         //final boss waves
-        out.add(new SpawnGroup(Structs.random(species)[4]){{
+        out.add(new SpawnGroup(Structs.random(species)[bossTier]){{
             unitAmount = 1;
             begin = finalBossStart;
             spacing = bossSpacing/2;
@@ -379,7 +383,7 @@ public class DefaultWaves{
         }});
 
         //final boss waves (alt)
-        out.add(new SpawnGroup(Structs.random(species)[4]){{
+        out.add(new SpawnGroup(Structs.random(species)[bossTier]){{
             unitAmount = 1;
             begin = finalBossStart + 15;
             spacing = bossSpacing/2;
