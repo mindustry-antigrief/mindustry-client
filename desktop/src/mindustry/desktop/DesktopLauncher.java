@@ -71,18 +71,6 @@ public class DesktopLauncher extends ClientLauncher{
         boolean useSteam = Version.modifier.contains("steam");
         testMobile = Seq.with(args).contains("-testMobile");
 
-        if(useDiscord && Core.settings.getBool("discordrpc")){
-            try{
-                DiscordRPC.INSTANCE.Discord_Initialize(discordID, null, true, "1127400");
-                Log.info("Initialized Discord rich presence.");
-                Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC.INSTANCE::Discord_Shutdown));
-            }catch(Throwable t){
-                useDiscord = false;
-                Log.err("Failed to initialize discord. Enable debug logging for details.");
-                Log.debug("Discord init error: \n@\n", Strings.getStackTrace(t));
-            }
-        }
-
         if(useSteam){
             //delete leftover dlls
             Fi file = new Fi(".");
@@ -97,6 +85,17 @@ public class DesktopLauncher extends ClientLauncher{
                     Core.app.post(() -> Core.app.post(() -> Core.app.post(() -> {
                         ui.showErrorMessage(Core.bundle.format("steam.error", (steamError.getMessage() == null) ? steamError.getClass().getSimpleName() : steamError.getClass().getSimpleName() + ": " + steamError.getMessage()));
                     })));
+                }
+                if(useDiscord && Core.settings.getBool("discordrpc")){
+                    try{
+                        DiscordRPC.INSTANCE.Discord_Initialize(discordID, null, true, "1127400");
+                        Log.info("Initialized Discord rich presence.");
+                        Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC.INSTANCE::Discord_Shutdown));
+                    }catch(Throwable t){
+                        useDiscord = false;
+                        Log.err("Failed to initialize discord. Enable debug logging for details.");
+                        Log.debug("Discord init error: \n@\n", Strings.getStackTrace(t));
+                    }
                 }
             });
 
