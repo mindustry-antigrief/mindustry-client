@@ -486,7 +486,7 @@ public class ConstructBlock extends Block{
                 if (Core.settings.getBool("reactorwarnings")) {
                     long since = Time.timeSinceMillis(lastWarn);
                     if ((progress > lastProgress) && (since > (int)(0.0 * 1000)) && (progress < .99f)) {
-                        if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) { Sounds.corexplode.play(); ui.chatfrag.addMessage("a sound would have just played", "client", Color.scarlet); } // Play sound for reactor construction (can only be played when no reactor has been built for 10s)
+                        if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) { Sounds.corexplode.play(); } // Play sound for reactor construction (can only be played when no reactor has been built for 10s)
 
                         String format = String.format("%s is building a %s at %d,%d (%d blocks from core).  %d%% completed.", lastAccessed, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8), Mathf.floor(progress * 100));
                         lastWarn = Time.millis();

@@ -19,7 +19,7 @@ public class StupidMarkupParser {
         // remove normal comments
         input = input.replaceAll("//.*^$", "");
 
-        String[] lines = input.split("\n");
+        String[] lines = input.split("\\\n");
         Seq<Label> elements = new Seq<>();
         for (String line : lines) {
             if (line.startsWith("# ")) {

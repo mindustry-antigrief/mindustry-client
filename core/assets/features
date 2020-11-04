@@ -24,4 +24,5 @@
 # Settings
  * Display lighting
  * Send reactor warnings
+ * Play a sound on reactor warning (sound can only play after a 10s break in reactor building)
  * Discord rich presence toggle

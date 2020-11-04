@@ -23,7 +23,7 @@ public class ConfigTileLog extends TileLogItem {
     public Element toElement() {
         Table t = new Table();
         t.add(super.toElement());
-        TextButton button = new TextButton("Rollback config to here");
+        ImageButton button = new ImageButton(Icon.undo);
         button.clicked(() -> {
             try {
                 world.tile(x, y).build.configure(configuration);
@@ -31,7 +31,7 @@ public class ConfigTileLog extends TileLogItem {
                 ui.showErrorMessage("Failed to rollback configuration");
             }
         });
-        t.add(button).width(400f);
+        t.add(button);
         return t;
     }
 }

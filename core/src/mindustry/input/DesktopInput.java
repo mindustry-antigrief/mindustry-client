@@ -18,6 +18,7 @@ import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
+import mindustry.client.ui.StupidMarkupParser;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -25,6 +26,7 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.BaseDialog;
 import mindustry.world.*;
 import mindustry.world.blocks.payloads.*;
 import java.util.concurrent.atomic.*;
@@ -290,14 +292,13 @@ public class DesktopInput extends InputHandler{
 
         if(!scene.hasMouse()){
             if(Core.input.alt() && Core.input.keyTap(Binding.select) && cursor != null){
-                Table table = new Table();
+                Button table = new Button(Styles.waveb);
+                //table.touchable = Touchable.disabled;
                 table.setWidth(200f);
-                table.add(new TextButton("View log")).growX().get().clicked(() -> {
-                    Dialog dialog = new Dialog("Logs");
-                    dialog.cont.add(cursor.getLog().toTable());
-
-                    dialog.cont.row();
-                    dialog.cont.button("@back", Icon.left, dialog::hide).size(210f, 64f);
+                table.button("View log", () -> {
+                    BaseDialog dialog = new BaseDialog("Logs");
+                    dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).growX().center();
+                    dialog.addCloseButton();
 
                     dialog.keyDown(key -> {
                         if(key == KeyCode.escape || key == KeyCode.back){
@@ -305,7 +306,21 @@ public class DesktopInput extends InputHandler{
                         }
                     });
                     dialog.show();
-                });
+                }).grow();
+//                table.add(new TextButton("View log")).grow().get().clicked(() -> {
+//                    Dialog dialog = new Dialog("Logs");
+//                    dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).grow().center();
+//
+//                    dialog.cont.row();
+//                    dialog.cont.button("@back", Icon.left, dialog::hide).size(210f, 64f);
+//
+//                    dialog.keyDown(key -> {
+//                        if(key == KeyCode.escape || key == KeyCode.back){
+//                            Core.app.post(dialog::hide);
+//                        }
+//                    });
+//                    dialog.show();
+//                });
 
                 AtomicBoolean released = new AtomicBoolean(false);
                 table.update(() -> {
