@@ -199,26 +199,43 @@ public class HudFragment extends Fragment{
                 //wave info button with text
                 s.add(makeStatusTable()).grow().name("status");
 
+                // Waypoint button
+                s.button(Icon.move, Styles.wavei, 30f, () -> {
+                    BaseDialog dialog = new BaseDialog("Waypoints");
+                    dialog.addCloseButton();
+                    dialog.cont.setWidth(200f);
+                    dialog.cont.add(new TextButton("Record path")).growX().get().clicked(() -> {Navigation.startRecording(); dialog.hide();});
+                    dialog.cont.row();
+                    dialog.cont.add(new TextButton("Stop recording path")).growX().get().clicked(() -> {Navigation.stopRecording(); dialog.hide();});
+                    dialog.cont.row();
+                    dialog.cont.add(new TextButton("Follow recorded path")).growX().get().clicked(() -> {if (Navigation.recording != null) {Navigation.follow(new WaypointPath(Navigation.recording));} dialog.hide();});
+                    dialog.cont.row();
+                    dialog.cont.add(new TextButton("Stop following path")).growX().get().clicked(() -> {Navigation.stopFollowing(); dialog.hide();});
+                    dialog.show();
+                }).growY().fillX().right().width(40f);
+
                 //table with button to skip wave
-                s.button(Icon.play, Styles.righti, 30f, () -> {
+                s.button(Icon.play, Styles.wavei, 30f, () -> {
                     if(net.client() && player.admin){
                         Call.adminRequest(player, AdminAction.wave);
-                    }else{
+                    }else if(!net.active() || net.server()){
                         logic.skipWave();
                     }
-                }).growY().fillX().right().width(40f).disabled(b -> !canSkipWave())
-                .visible(() -> state.rules.waves).name("skip");
-            }).width(dsize * 5 + 4f);
+                    else{
+                        showToast(Icon.lock,"You tried and that's all that matters.");
+                    }
+                }).growY().fillX().right().width(40f).name("skip");
 
-            wavesMain.row();
+                // Power bar display
+                s.row();
+                s.add(PowerInfo.getBars()).growX().colspan(3).height(65);
 
-            wavesMain.add(PowerInfo.getBars()).grow(); // Power display
-
-            wavesMain.row();
-
-            wavesMain.table(Tex.button, t -> t.margin(10f).add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white))
-            .grow()).fillX().visible(() -> state.rules.waves && state.boss() != null).height(60f).get()
-            .name = "boss";
+                // Boss bar display
+                s.row();
+                Button boss = new Button(Styles.waveb);
+                boss.table(Tex.windowEmpty, t -> t.add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white)).margin(0).grow()).grow().visible(() -> state.boss() != null).height(60f).get().name = "boss";
+                s.add(boss).grow().colspan(3).height(65).visible(() -> state.boss() != null);
+            }).width(dsize * 6 + 4f);
 
             wavesMain.row();
 
@@ -247,35 +264,19 @@ public class HudFragment extends Fragment{
             }).width(dsize * 5 + 4f);
             editorMain.visible(() -> shown && state.isEditor());
 
-            //waypoint dialog
-            cont.add(new ImageButton(Icon.move)).top().pad(4).get().clicked(() -> {
-                BaseDialog dialog = new BaseDialog("Waypoints");
-                dialog.addCloseButton();
-                dialog.cont.setWidth(200f);
-                dialog.cont.add(new TextButton("Record path")).growX().get().clicked(() -> {Navigation.startRecording(); dialog.hide();});
-                dialog.cont.row();
-                dialog.cont.add(new TextButton("Stop recording path")).growX().get().clicked(() -> {Navigation.stopRecording(); dialog.hide();});
-                dialog.cont.row();
-                dialog.cont.add(new TextButton("Follow recorded path")).growX().get().clicked(() -> {if (Navigation.recording != null) {Navigation.follow(new WaypointPath(Navigation.recording));} dialog.hide();});
-                dialog.cont.row();
-                dialog.cont.add(new TextButton("Stop following path")).growX().get().clicked(() -> {Navigation.stopFollowing(); dialog.hide();});
-                dialog.show();
-            });
-
             //fps display
             cont.table(info -> {
                 info.name = "fps/ping";
                 info.touchable = Touchable.disabled;
                 info.top().left().margin(4).visible(() -> Core.settings.getBool("fps") && shown);
-                info.update(() -> info.setTranslation(state.rules.waves || state.isEditor() ? 0f : -Scl.scl(dsize * 4 + 3), 0));
+                info.update(() -> info.setTranslation(state.isGame() || state.isEditor() ? 0f : -Scl.scl(dsize * 4 + 3), 0));
                 IntFormat fps = new IntFormat("fps");
                 IntFormat ping = new IntFormat("ping");
-                IntFormat players = new IntFormat("players");
 
                 info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left()
                 .style(Styles.outlineLabel).name("fps");
                 info.row();
-                info.label(() -> "Players: " + String.valueOf(Groups.player.size())).visible(net::active).left() // Player count
+                info.label(() -> "Players: " + Groups.player.size()).visible(net::active).left() // Player count
                 .style(Styles.outlineLabel).name("players");
                 info.row();
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left()
@@ -793,7 +794,7 @@ public class HudFragment extends Fragment{
     }
 
     private boolean canSkipWave(){
-        return state.rules.waves && ((net.server() || player.admin) || !net.active()) && state.enemies == 0 && !spawner.isSpawning() && !state.rules.tutorial;
+        return state.rules.waves && ((net.server() || player.admin) || !net.active()) /* && state.enemies == 0 && !spawner.isSpawning() */ && !state.rules.tutorial;
     }
 
 }

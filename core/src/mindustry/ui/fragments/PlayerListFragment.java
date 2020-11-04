@@ -155,12 +155,12 @@ public class PlayerListFragment extends Fragment{
                     ui.showConfirm("@confirm", Core.bundle.format("confirmvotekick",  user.name()), () -> {
                         Call.sendChatMessage("/votekick " + user.name());
                     });
-                }).size(h);
+                }).size(h/2);
             }
-            button.button(Icon.copy, Styles.clearPartiali,
-                    () -> Navigation.follow(new AssistPath(user))).size(h);
-            button.button(Icon.block, Styles.clearPartiali,
-                    () -> Navigation.follow(new UnAssistPath(user))).size(h);
+            button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
+                    () -> Navigation.follow(new AssistPath(user))).size(h/2);
+            button.button(Icon.block, Styles.clearPartiali, // Unassist/block
+                    () -> Navigation.follow(new UnAssistPath(user))).size(h/2);
 
             content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);
             content.row();

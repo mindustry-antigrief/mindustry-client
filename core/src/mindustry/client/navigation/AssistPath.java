@@ -1,10 +1,16 @@
 package mindustry.client.navigation;
 
+import arc.graphics.Color;
 import arc.math.geom.Position;
 import mindustry.Vars;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.gen.Builderc;
+import mindustry.gen.Call;
+import mindustry.gen.Minerc;
 import mindustry.gen.Player;
+import mindustry.world.blocks.storage.CoreBlock;
+
+import static mindustry.Vars.ui;
 
 public class AssistPath extends Path {
     public final Player assisting;
@@ -18,7 +24,7 @@ public class AssistPath extends Path {
 
     @Override
     boolean isShown() {
-        return false;
+        return true;
     }
 
     @Override
@@ -30,7 +36,39 @@ public class AssistPath extends Path {
             return;
         }
 
-        new PositionWaypoint(assisting.x, assisting.y, assisting.unit().hitSize + Vars.player.unit().hitSize).run();
+        new PositionWaypoint(assisting.x, assisting.y, assisting.unit().hitSize * 1.1f + Vars.player.unit().hitSize * 1.1f + 2).run();
+
+        try {
+            Vars.player.shooting(assisting.unit().isShooting); // Match shoot state
+            if (assisting.unit().isShooting) {
+                Vars.player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()); // Match aim coordinates
+                if (Vars.player.unit().type.rotateShooting){ // Rotate player if static weapons
+                    Vars.player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY());}
+        }} catch (Exception e) {}
+        // Only shoot when not moving/free aim turrets (i dont really think its needed)
+//        else if(Vars.player.unit().moving()){
+//            Vars.player.unit().lookAt(Vars.player.unit().vel.angle());
+//        }
+
+
+        if(Vars.player.unit() instanceof Minerc mine && assisting.unit() instanceof Minerc com){ // Code stolen from formationAi.java, matches player mine state to assisting
+            if(com.mineTile() != null && mine.validMine(com.mineTile())){
+                mine.mineTile(com.mineTile());
+
+                CoreBlock.CoreBuild core = Vars.player.unit().team.core();
+
+                if(core != null && com.mineTile().drop() != null && Vars.player.unit().within(core, Vars.player.unit().type.range) && !Vars.player.unit().acceptsItem(com.mineTile().drop())){
+                    if(core.acceptStack(Vars.player.unit().stack.item, Vars.player.unit().stack.amount, Vars.player.unit()) > 0){
+                        Call.transferItemTo(Vars.player.unit().stack.item, Vars.player.unit().stack.amount, Vars.player.unit().x, Vars.player.unit().y, core);
+
+                        Vars.player.unit().clearItem();
+                    }
+                }
+            }else{
+                mine.mineTile(null);
+            }
+        }
+
         if (assisting.unit() instanceof Builderc && Vars.player.unit() instanceof Builderc) {
             ((Builderc) Vars.player.unit()).clearBuilding();
             if (((Builderc) assisting.unit()).activelyBuilding()) {
