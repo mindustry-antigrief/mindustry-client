@@ -58,7 +58,7 @@ public class DesktopInput extends InputHandler{
     public void buildUI(Group group){
 
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && !player.dead() && !player.unit().spawnedByCore() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()));
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()));
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -88,7 +88,7 @@ public class DesktopInput extends InputHandler{
             t.visible(() -> {
                 t.color.a = Mathf.lerpDelta(t.color.a, player.builder().isBuilding() ? 1f : 0f, 0.15f);
 
-                return Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f;
+                return Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE;
             });
             t.touchable(() -> t.color.a < 0.1f ? Touchable.disabled : Touchable.childrenOnly);
             t.table(Styles.black6, b -> {
@@ -102,7 +102,7 @@ public class DesktopInput extends InputHandler{
         });
 
         group.fill(t -> {
-            t.visible(() -> lastSchematic != null && !selectRequests.isEmpty());
+            t.visible(() -> lastSchematic != null && !selectRequests.isEmpty() && Navigation.state == NavigationState.NONE);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
