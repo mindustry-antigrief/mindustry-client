@@ -21,7 +21,7 @@ public class Version{
     /** Whether version loading is enabled. */
     public static boolean enabled = true;
     /** Client revision. */
-    public static final String clientVersion = "1";
+    public static final String clientVersion = "2";
 
     public static void init(){
         if(!enabled) return;

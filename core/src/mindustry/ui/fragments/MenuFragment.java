@@ -165,6 +165,12 @@ public class MenuFragment extends Fragment{
             t.name = "buttons";
 
             buttons(t,
+                new Buttoni("Client Discord", Icon.discord, () -> {
+                    if(!Core.app.openURI("https://discord.gg/yp9ZW7j")){
+                        ui.showErrorMessage("@linkfail");
+                        Core.app.setClipboardText("https://discord.gg/yp9ZW7j");
+                    }
+                }), // Link to client discord
                 new Buttoni("@play", Icon.play,
                     new Buttoni("@campaign", Icon.play, () -> checkPlay(ui.planet::show)),
                     new Buttoni("@joingame", Icon.add, () -> checkPlay(ui.join::show)),

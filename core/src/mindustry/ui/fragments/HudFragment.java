@@ -233,6 +233,7 @@ public class HudFragment extends Fragment{
                 // Boss bar display
                 s.row();
                 Button boss = new Button(Styles.waveb);
+                boss.touchable = Touchable.disabled;
                 boss.table(Tex.windowEmpty, t -> t.add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white)).margin(0).grow()).grow().visible(() -> state.boss() != null).height(60f).get().name = "boss";
                 s.add(boss).grow().colspan(3).height(65).visible(() -> state.boss() != null);
             }).width(dsize * 6 + 4f);
