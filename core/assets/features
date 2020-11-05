@@ -16,7 +16,8 @@
  * alt click - open tile actions menu (contains logs)
 
 # Top Navigation Menu
- * Start recording waypoints - begin a new path, press y to add a waypoint\nAlso records item transfers and payload actions
+ * Start recording waypoints - begin a new path, press y to add a waypoint
+ * Also records item transfers and payload actions
  * Finish recording waypoints - finalizes the path
  * Follow recorded path - replay the recorded path
  * Stop following path - stop following path (note: assist and auto navigation are also considered paths)

@@ -3,6 +3,7 @@ package mindustry.input;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
+import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.math.*;
@@ -292,12 +293,18 @@ public class DesktopInput extends InputHandler{
 
         if(!scene.hasMouse()){
             if(Core.input.alt() && Core.input.keyTap(Binding.select) && cursor != null){
-                Button table = new Button(Styles.waveb);
-                //table.touchable = Touchable.disabled;
-                table.setWidth(200f);
+                int itemHeight = 25;
+                Table table = new Table(Tex.wavepane);
+                table.touchable = Touchable.childrenOnly;
+                table.setHeight((itemHeight*3)*(table.getRows()+1));
+                table.setWidth(400);
+                try {
+                    table.add(Core.bundle.get("block." + cursor.block() + ".name") + ": (" + cursor.x + ", " + cursor.y + ")").margin(0).pad(5).height(itemHeight).left();
+                } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.red);}
+                table.row();
                 table.button("View log", () -> {
                     BaseDialog dialog = new BaseDialog("Logs");
-                    dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).growX().center();
+                    dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).center();
                     dialog.addCloseButton();
 
                     dialog.keyDown(key -> {
@@ -306,7 +313,9 @@ public class DesktopInput extends InputHandler{
                         }
                     });
                     dialog.show();
-                }).grow();
+                }).grow().margin(0).pad(5).height(itemHeight).center().colspan(2);
+
+                //TODO: Old code
 //                table.add(new TextButton("View log")).grow().get().clicked(() -> {
 //                    Dialog dialog = new Dialog("Logs");
 //                    dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).grow().center();
