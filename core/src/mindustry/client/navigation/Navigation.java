@@ -4,6 +4,7 @@ import arc.Core;
 import arc.math.geom.Vec2;
 import arc.struct.*;
 import arc.util.Time;
+import mindustry.Vars;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
 
@@ -40,6 +41,7 @@ public class Navigation {
             currentlyFollowing.follow();
             if (currentlyFollowing.isDone()) {
                 stopFollowing();
+                Vars.player.shooting(false);
             }
         }
         obstaclesNotEmpty = obstacles;
