@@ -8,6 +8,7 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.scene.actions.Actions;
 import arc.scene.style.Drawable;
+import arc.scene.style.Style;
 import arc.scene.ui.layout.Table;
 import arc.struct.*;
 import arc.util.*;
@@ -36,6 +37,7 @@ import mindustry.world.modules.*;
 import java.time.*;
 
 import static mindustry.Vars.*;
+import static mindustry.ui.Styles.monoLabel;
 
 /** A block in the process of construction. */
 public class ConstructBlock extends Block{
@@ -466,7 +468,7 @@ public class ConstructBlock extends Block{
                 });
                 table.margin(12);
                 table.image(icon).pad(3);
-                table.add(text).wrap().width(280f).get().setAlignment(Align.center, Align.center);
+                table.add(text).style(monoLabel).wrap().width(280f).get().setAlignment(Align.center, Align.center);
                 table.pack();
 
                 //create container table which will align and move
@@ -487,8 +489,7 @@ public class ConstructBlock extends Block{
                     long since = Time.timeSinceMillis(lastWarn);
                     if ((progress > lastProgress) && (since > (int)(0.0 * 1000)) && (progress < .99f)) {
                         if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) { Sounds.corexplode.play(); } // Play sound for reactor construction (can only be played when no reactor has been built for 10s)
-
-                        String format = String.format("%s is building a %s at %d,%d (%d blocks from core).  %d%% completed.", lastAccessed, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8), Mathf.floor(progress * 100));
+                        String format = String.format("%s is building a %s at %d,%d (%d blocks from core). %02d%% completed.", lastAccessed, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8), Mathf.floor(progress * 100));
                         lastWarn = Time.millis();
                         showToast(Icon.temperatire, format);
 

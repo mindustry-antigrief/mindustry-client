@@ -151,10 +151,6 @@ public class Fonts{
                     parameter.fontParameters.borderWidth = Scl.scl(2f);
                     parameter.fontParameters.spaceX -= parameter.fontParameters.borderWidth;
                 }
-                if(fileName.equals("mono")){
-                    parameter.fontParameters.borderWidth = Scl.scl(2f);
-                    parameter.fontParameters.spaceX -= parameter.fontParameters.borderWidth;
-                }
                 if(!scaled.contains(parameter.fontParameters)){
                     parameter.fontParameters.size = (int)(Scl.scl(parameter.fontParameters.size));
                     scaled.add(parameter.fontParameters);
