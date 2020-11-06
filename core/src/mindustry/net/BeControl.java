@@ -94,7 +94,7 @@ public class BeControl{
 
         if(!headless){
             checkUpdates = false;
-            ui.showCustomConfirm(Core.bundle.format("be.update", "") + " " + updateBuild, "@be.update.confirm", "@ok", "@be.ignore", () -> {
+            ui.showCustomConfirm(Core.bundle.format("be.update", "") + " Current:" + Version.clientBuild + " New: " + updateBuild, "@be.update.confirm", "@ok", "@be.ignore", () -> {
                 try{
                     boolean[] cancel = {false};
                     float[] progress = {0};
