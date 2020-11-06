@@ -33,7 +33,7 @@ public class BeControl{
 
     /** @return whether this is a bleeding edge build. */
     public boolean active(){
-        return Version.type.equals("bleeding-edge");
+        return Version.type.equals("official");
     }
 
     public BeControl(){
@@ -59,12 +59,13 @@ public class BeControl{
 
     /** asynchronously checks for updates. */
     public void checkUpdate(Boolc done){
-        Core.net.httpGet("https://api.github.com/repos/Anuken/MindustryBuilds/releases/latest", res -> {
+        Core.net.httpGet("https://api.github.com/repos/buthed010203/mindustry-client-v6/releases/latest", res -> {
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
                 int newBuild = Strings.parseInt(val.getString("tag_name", "0"));
-                if(newBuild > Version.build){
-                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith(headless ? "Mindustry-BE-Server" : "Mindustry-BE-Desktop"));
+                System.out.println("Old: " + newBuild + " | New: " + Integer.parseInt(Core.files.internal("build").readString()));
+                if(newBuild != Integer.parseInt(Core.files.internal("build").readString())){
+                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith(headless ? "Mindustry-BE-Server" : "desktop-release"));
                     String url = asset.getString("browser_download_url", "");
                     updateAvailable = true;
                     updateBuild = newBuild;
