@@ -20,6 +20,8 @@ public class Version{
     public static int revision = 0;
     /** Whether version loading is enabled. */
     public static boolean enabled = true;
+    /** Custom client build number used for auto updates */
+    public static int clientBuild = 0;
 
     public static void init(){
         if(!enabled) return;
@@ -29,6 +31,7 @@ public class Version{
         ObjectMap<String, String> map = new ObjectMap<>();
         PropertiesUtils.load(map, file.reader());
 
+        clientBuild =  Integer.parseInt(map.get("clientBuild"));
         type = map.get("type");
         number = Integer.parseInt(map.get("number", "4"));
         modifier = map.get("modifier");

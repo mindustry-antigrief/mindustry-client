@@ -7,6 +7,7 @@ import arc.func.*;
 import arc.util.*;
 import arc.util.async.*;
 import arc.util.serialization.*;
+import mindustry.Vars;
 import mindustry.core.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -63,8 +64,7 @@ public class BeControl{
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
                 int newBuild = Strings.parseInt(val.getString("tag_name", "0"));
-                System.out.println("Old: " + newBuild + " | New: " + Integer.parseInt(Core.files.internal("build").readString()));
-                if(newBuild != Integer.parseInt(Core.files.internal("build").readString())){
+                if(newBuild != Version.clientBuild){
                     Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith(headless ? "Mindustry-BE-Server" : "desktop-release"));
                     String url = asset.getString("browser_download_url", "");
                     updateAvailable = true;
