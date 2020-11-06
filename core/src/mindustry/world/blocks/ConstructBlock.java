@@ -6,6 +6,10 @@ import arc.Graphics.Cursor.*;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.scene.actions.Actions;
+import arc.scene.style.Drawable;
+import arc.scene.style.Style;
+import arc.scene.ui.layout.Table;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
@@ -25,6 +29,7 @@ import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.ui.fragments.ChatFragment;
+import mindustry.ui.fragments.HudFragment;
 import mindustry.world.*;
 import mindustry.world.blocks.power.NuclearReactor;
 import mindustry.world.modules.*;
@@ -32,15 +37,18 @@ import mindustry.world.modules.*;
 import java.time.*;
 
 import static mindustry.Vars.*;
+import static mindustry.ui.Styles.monoLabel;
 
 /** A block in the process of construction. */
 public class ConstructBlock extends Block{
     public static final int maxSize = 16;
     private static final ConstructBlock[] consBlocks = new ConstructBlock[maxSize];
 
+    private static long lastWarn;
     private static long lastTime = 0;
     private static int pitchSeq = 0;
     private static long lastPlayed;
+    private static long lastToast;
 
     public ConstructBlock(int size){
         super("build" + size);
@@ -435,19 +443,62 @@ public class ConstructBlock extends Block{
             }
         }
 
+        private void scheduleToast(Runnable run){
+            long duration = (int)(0.0 * 1000);
+            long since = Time.timeSinceMillis(lastToast);
+            if(since > duration){
+                lastToast = Time.millis();
+                run.run();
+            }else{
+                Time.runTask((duration - since) / 1000f * 60f, run);
+                lastToast += duration;
+            }
+        }
+
+        public void showToast(Drawable icon, String text){
+            if(state.isMenu()) return;
+
+            scheduleToast(() -> {
+
+                Table table = new Table(Tex.button);
+                table.update(() -> {
+                    if(state.isMenu()){
+                        table.remove();
+                    }
+                });
+                table.margin(12);
+                table.image(icon).pad(3);
+                table.add(text).style(monoLabel).wrap().width(280f).get().setAlignment(Align.center, Align.center);
+                table.pack();
+
+                //create container table which will align and move
+                Table container = Core.scene.table();
+                container.top().add(table);
+                container.setTranslation(0, table.getPrefHeight());
+                container.actions(Actions.translateBy(0, -table.getPrefHeight(), 0.0f, Interp.fade), Actions.delay(0.0f),
+                        //nesting actions() calls is necessary so the right prefHeight() is used
+                        Actions.run(() -> container.actions(Actions.translateBy(0, table.getPrefHeight(), 1f, Interp.fade), Actions.remove())));
+            });
+        }
+
         @Override
         public void update() {
             super.update();
             if (cblock instanceof NuclearReactor) {
                 if (Core.settings.getBool("reactorwarnings")) {
-                    if (progress > lastProgress) {
-                        String format = String.format("%s is building a %s at %d,%d (%d blocks from core).  %d%% completed.", lastAccessed, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8), Mathf.floor(progress * 100));
-                        if (message == null || Core.graphics.getFrameId() % 240 == 0) {
-                            message = ui.chatfrag.addMessage(format, "client", Color.scarlet);
-                        } else if (message != null) {
-                            message.message = format;
-                            message.format();
-                        }
+                    long since = Time.timeSinceMillis(lastWarn);
+                    if ((progress > lastProgress) && (since > (int)(0.0 * 1000)) && (progress < .99f)) {
+                        if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) { Sounds.corexplode.play(); } // Play sound for reactor construction (can only be played when no reactor has been built for 10s)
+                        String format = String.format("%s is building a %s at %d,%d (%d blocks from core). %02d%% completed.", lastAccessed, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8), Mathf.floor(progress * 100));
+                        lastWarn = Time.millis();
+                        showToast(Icon.temperatire, format);
+
+                        //Old code
+//                        if (message == null || Core.graphics.getFrameId() % 240 == 0) {
+//                            message = ui.chatfrag.addMessage(format, "client", Color.scarlet);
+//                        } else if (message != null) {
+//                            message.message = format;
+//                            message.format();
                     }
                 }
             }

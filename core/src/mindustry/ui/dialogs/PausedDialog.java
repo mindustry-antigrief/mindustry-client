@@ -61,11 +61,8 @@ public class PausedDialog extends BaseDialog{
 
             cont.row();
 
-            cont.button("@quit", Icon.exit, this::showQuitConfirm).colspan(2).width(dw + 20f).update(s -> s.setText(control.saves.getCurrent() != null && control.saves.getCurrent().isAutosave() ? "@save.quit" : "@quit"));
-
-            cont.row();
-
-            cont.button("@features", Icon.book, () -> new FeaturesDialog().show()).colspan(2).width(dw + 20f);
+            cont.button("@quit", Icon.exit, this::showQuitConfirm).update(s -> s.setText(control.saves.getCurrent() != null && control.saves.getCurrent().isAutosave() ? "@save.quit" : "@quit"));
+            cont.button("@features", Icon.book, () -> new FeaturesDialog().show());
 
         }else{
             cont.defaults().size(130f).pad(5);

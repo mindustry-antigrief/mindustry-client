@@ -11,11 +11,11 @@ import mindustry.ui.Fonts;
 
 public class StupidMarkupParser {
     private static final LabelStyle headingStyle = new LabelStyle(Fonts.def, Pal.accent);
-    private static final Seq<LabelStyle> listStyles = new Seq<>(new LabelStyle[]{ new LabelStyle(Fonts.def, Color.white), new LabelStyle(Fonts.def, Color.lightGray) });
+    private static final Seq<LabelStyle> listStyles = new Seq<>(new LabelStyle[]{ new LabelStyle(Fonts.def, Color.gray), new LabelStyle(Fonts.def, Color.lightGray) });
 
     public static Element format(String input) {
         // remove block comments
-        input = input.replaceAll("\\/\\*\\*(.|\\s)*?\\*\\/", "");
+        input = input.replaceAll("\\/\\*\\*(.|\\s)*?\\*\\/", "!!");
         // remove normal comments
         input = input.replaceAll("//.*^$", "");
 

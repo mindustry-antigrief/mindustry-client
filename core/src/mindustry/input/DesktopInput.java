@@ -3,6 +3,7 @@ package mindustry.input;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
+import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.math.*;
@@ -18,6 +19,7 @@ import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
+import mindustry.client.ui.StupidMarkupParser;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -25,6 +27,7 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.BaseDialog;
 import mindustry.world.*;
 import mindustry.world.blocks.payloads.*;
 import java.util.concurrent.atomic.*;
@@ -56,7 +59,7 @@ public class DesktopInput extends InputHandler{
     public void buildUI(Group group){
 
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && !player.dead() && !player.unit().spawnedByCore() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()));
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()));
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -86,7 +89,7 @@ public class DesktopInput extends InputHandler{
             t.visible(() -> {
                 t.color.a = Mathf.lerpDelta(t.color.a, player.builder().isBuilding() ? 1f : 0f, 0.15f);
 
-                return Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f;
+                return Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE;
             });
             t.touchable(() -> t.color.a < 0.1f ? Touchable.disabled : Touchable.childrenOnly);
             t.table(Styles.black6, b -> {
@@ -100,7 +103,7 @@ public class DesktopInput extends InputHandler{
         });
 
         group.fill(t -> {
-            t.visible(() -> lastSchematic != null && !selectRequests.isEmpty());
+            t.visible(() -> lastSchematic != null && !selectRequests.isEmpty() && Navigation.state == NavigationState.NONE);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -290,14 +293,19 @@ public class DesktopInput extends InputHandler{
 
         if(!scene.hasMouse()){
             if(Core.input.alt() && Core.input.keyTap(Binding.select) && cursor != null){
-                Table table = new Table();
-                table.setWidth(200f);
-                table.add(new TextButton("View log")).growX().get().clicked(() -> {
-                    Dialog dialog = new Dialog("Logs");
-                    dialog.cont.add(cursor.getLog().toTable());
-
-                    dialog.cont.row();
-                    dialog.cont.button("@back", Icon.left, dialog::hide).size(210f, 64f);
+                int itemHeight = 25;
+                Table table = new Table(Tex.wavepane);
+                table.touchable = Touchable.childrenOnly;
+                table.setHeight((itemHeight*3)*(table.getRows()+1));
+                table.setWidth(400);
+                try {
+                    table.add(Core.bundle.get("block." + cursor.block() + ".name") + ": (" + cursor.x + ", " + cursor.y + ")").margin(0).pad(5).height(itemHeight).left();
+                } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.red);}
+                table.row();
+                table.button("View log", () -> {
+                    BaseDialog dialog = new BaseDialog("Logs");
+                    dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).center();
+                    dialog.addCloseButton();
 
                     dialog.keyDown(key -> {
                         if(key == KeyCode.escape || key == KeyCode.back){
@@ -305,7 +313,23 @@ public class DesktopInput extends InputHandler{
                         }
                     });
                     dialog.show();
-                });
+                }).grow().margin(0).pad(5).height(itemHeight).center().colspan(2);
+
+                //TODO: Old code
+//                table.add(new TextButton("View log")).grow().get().clicked(() -> {
+//                    Dialog dialog = new Dialog("Logs");
+//                    dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).grow().center();
+//
+//                    dialog.cont.row();
+//                    dialog.cont.button("@back", Icon.left, dialog::hide).size(210f, 64f);
+//
+//                    dialog.keyDown(key -> {
+//                        if(key == KeyCode.escape || key == KeyCode.back){
+//                            Core.app.post(dialog::hide);
+//                        }
+//                    });
+//                    dialog.show();
+//                });
 
                 AtomicBoolean released = new AtomicBoolean(false);
                 table.update(() -> {

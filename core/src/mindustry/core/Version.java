@@ -20,8 +20,6 @@ public class Version{
     public static int revision = 0;
     /** Whether version loading is enabled. */
     public static boolean enabled = true;
-    /** Client revision. */
-    public static final String clientVersion = "1";
 
     public static void init(){
         if(!enabled) return;
@@ -58,6 +56,6 @@ public class Version{
         if(build == -1){
             return "custom build";
         }
-        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + " (client version " + clientVersion + ")";
+        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + " (client version " + (Core.files.internal("version").readString()) + ")";
     }
 }
