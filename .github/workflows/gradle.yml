@@ -11,12 +11,11 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 14
-        
-    - name: Update build file
-      run: echo "${{ github.run_id }}" > ./core/assets/build
       
     - name: Build desktop with gradle
-      run: ./gradlew desktop:dist
+      run: |
+        echo "${{ github.run_id }}" > ./core/assets/build
+        ./gradlew desktop:dist
 
     - name: Create Release
       id: create_release
