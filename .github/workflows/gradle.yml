@@ -13,7 +13,7 @@ jobs:
         java-version: 14
       
     - name: Build desktop with gradle
-      run: ./gradlew desktop:dist -PclientBuild ${{ github.run_number }}
+      run: ./gradlew desktop:dist -PclientBuild=${{ github.run_number }}
 
     - name: Create Release
       id: create_release
