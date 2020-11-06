@@ -52,7 +52,7 @@ public class ParticleWeather extends Weather{
     }
 
     @Override
-    public void drawOver(WeatherState state){
+    public void drawOver(WeatherState state, float alpha){
 
         float windx, windy;
         if(useWindVector){
@@ -74,7 +74,7 @@ public class ParticleWeather extends Weather{
             float sspeed = 1f, sscl = 1f, salpha = 1f, offset = 0f;
             Color col = Tmp.c1.set(noiseColor);
             for(int i = 0; i < noiseLayers; i++){
-                drawNoise(noise, noiseColor, noiseScale * sscl, state.opacity * salpha * opacityMultiplier, sspeed * (useWindVector ? 1f : baseSpeed), state.intensity, windx, windy, offset);
+                drawNoise(noise, noiseColor, noiseScale * sscl, state.opacity * salpha * opacityMultiplier * alpha, sspeed * (useWindVector ? 1f : baseSpeed), state.intensity, windx, windy, offset);
                 sspeed *= noiseLayerSpeedM;
                 salpha *= noiseLayerAlphaM;
                 sscl *= noiseLayerSclM;
@@ -84,7 +84,7 @@ public class ParticleWeather extends Weather{
         }
 
         if(drawParticles){
-            drawParticles(region, color, sizeMin, sizeMax, density, state.intensity, state.opacity, windx, windy, minAlpha, maxAlpha, sinSclMin, sinSclMax, sinMagMin, sinMagMax);
+            drawParticles(region, color, sizeMin, sizeMax, density, state.intensity, state.opacity * alpha, windx, windy, minAlpha, maxAlpha, sinSclMin, sinSclMax, sinMagMin, sinMagMax);
         }
     }
 }

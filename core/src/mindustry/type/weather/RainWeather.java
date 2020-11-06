@@ -27,12 +27,12 @@ public class RainWeather extends Weather{
     }
 
     @Override
-    public void drawOver(WeatherState state){
-        drawRain(sizeMin, sizeMax, xspeed, yspeed, density, state.intensity, stroke, color);
+    public void drawOver(WeatherState state, float alpha){
+        drawRain(sizeMin, sizeMax, xspeed, yspeed, density, state.intensity, stroke, color, alpha);
     }
 
     @Override
-    public void drawUnder(WeatherState state){
-        drawSplashes(splashes, sizeMax, density, state.intensity, state.opacity, splashTimeScale, stroke, color, liquid);
+    public void drawUnder(WeatherState state, float alpha){
+        drawSplashes(splashes, sizeMax, density, state.intensity, state.opacity * alpha, splashTimeScale, stroke, color, liquid);
     }
 }

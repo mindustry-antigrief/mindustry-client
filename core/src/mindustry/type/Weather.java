@@ -6,6 +6,7 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
+import arc.scene.ui.layout.Scl;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
@@ -85,11 +86,11 @@ public abstract class Weather extends UnlockableContent{
         }
     }
 
-    public void drawOver(WeatherState state){
+    public void drawOver(WeatherState state, float alpha){
 
     }
 
-    public void drawUnder(WeatherState state){
+    public void drawUnder(WeatherState state, float alpha){
 
     }
 
@@ -100,7 +101,7 @@ public abstract class Weather extends UnlockableContent{
                               float minAlpha, float maxAlpha,
                               float sinSclMin, float sinSclMax, float sinMagMin, float sinMagMax){
         rand.setSeed(0);
-        Tmp.r1.setCentered(Core.camera.position.x, Core.camera.position.y, Core.graphics.getWidth() / renderer.minScale(), Core.graphics.getHeight() / renderer.minScale());
+        Tmp.r1.setCentered(Core.camera.position.x, Core.camera.position.y, Mathf.clamp(Core.graphics.getWidth() / renderer.minScale(), 0f, world.unitWidth()), Mathf.clamp(Core.graphics.getHeight() / renderer.minScale(), 0f, world.unitHeight()));
         Tmp.r1.grow(sizeMax * 1.5f);
         Core.camera.bounds(Tmp.r2);
         int total = (int)(Tmp.r1.area() / density * intensity);
@@ -130,15 +131,15 @@ public abstract class Weather extends UnlockableContent{
         }
     }
 
-    public void drawRain(float sizeMin, float sizeMax, float xspeed, float yspeed, float density, float intensity, float stroke, Color color){
-        float padding = sizeMax*0.9f;
+    public void drawRain(float sizeMin, float sizeMax, float xspeed, float yspeed, float density, float intensity, float stroke, Color color, float alpha){
+        float padding = sizeMax * 0.9f;
 
-        Tmp.r1.setCentered(Core.camera.position.x, Core.camera.position.y, Core.graphics.getWidth() / renderer.minScale(), Core.graphics.getHeight() / renderer.minScale());
+        Tmp.r1.setCentered(Core.camera.position.x, Core.camera.position.y, Mathf.clamp(Core.graphics.getWidth() / renderer.minScale(), 0f, world.unitWidth()), Mathf.clamp(Core.graphics.getHeight() / renderer.minScale(), 0f, world.unitHeight()));
         Tmp.r1.grow(padding);
         Core.camera.bounds(Tmp.r2);
         int total = (int)(Tmp.r1.area() / density * intensity);
         Lines.stroke(stroke);
-        float alpha = Draw.getColor().a;
+        alpha = Draw.getColor().a * alpha;
         Draw.color(color);
 
         for(int i = 0; i < total; i++){
@@ -164,7 +165,7 @@ public abstract class Weather extends UnlockableContent{
     }
 
     public void drawSplashes(TextureRegion[] splashes, float padding, float density, float intensity, float opacity, float timeScale, float stroke, Color color, Liquid splasher){
-        Tmp.r1.setCentered(Core.camera.position.x, Core.camera.position.y, Core.graphics.getWidth() / renderer.minScale(), Core.graphics.getHeight() / renderer.minScale());
+        Tmp.r1.setCentered(Core.camera.position.x, Core.camera.position.y, Mathf.clamp(Core.graphics.getWidth() / renderer.minScale(), 0f, world.unitWidth()), Mathf.clamp(Core.graphics.getHeight() / renderer.minScale(), 0f, world.unitHeight()));
         Tmp.r1.grow(padding);
         Core.camera.bounds(Tmp.r2);
         int total = (int)(Tmp.r1.area() / density * intensity) / 2;
@@ -304,21 +305,22 @@ public abstract class Weather extends UnlockableContent{
 
         @Override
         public void draw(){
-//            if(renderer.weatherAlpha() > 0.0001f){
-//                Draw.draw(Layer.weather, () -> {
-//                    weather.rand.setSeed(0);
-//                    Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier);
-//                    weather.drawOver(self());
-//                    Draw.reset();
-//                });
-//
-//                Draw.draw(Layer.debris, () -> {
-//                    weather.rand.setSeed(0);
-//                    Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier);
-//                    weather.drawUnder(self());
-//                    Draw.reset();
-//                });
-//            }
+            float alpha = Core.settings.getInt("weatheropacity") / 100f;
+            if(renderer.weatherAlpha() > 0.0001f){
+                Draw.draw(Layer.weather, () -> {
+                    weather.rand.setSeed(0);
+                    Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier * alpha);
+                    weather.drawOver(self(), alpha);
+                    Draw.reset();
+                });
+
+                Draw.draw(Layer.debris, () -> {
+                    weather.rand.setSeed(0);
+                    Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier * alpha);
+                    weather.drawUnder(self(), alpha);
+                    Draw.reset();
+                });
+            }
         }
     }
 }

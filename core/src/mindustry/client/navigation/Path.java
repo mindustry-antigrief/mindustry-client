@@ -4,7 +4,7 @@ import arc.math.geom.Position;
 import arc.struct.*;
 
 /**
- * A way of representing a path, currently only implemented by {@link WaypointPath}
+ * A way of representing a path
  */
 public abstract class Path {
     private final Seq<Runnable> listeners = new Seq<>();

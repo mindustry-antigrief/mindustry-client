@@ -294,11 +294,11 @@ public class SettingsMenuDialog extends SettingsDialog{
                 }
             }
         });
+        client.sliderPref("weatheropacity", "setting.weatheropacity.name", 50, 0, 100, s -> s + "%");
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);
         game.checkPref("conveyorpathfinding", true);
         game.checkPref("hints", true);
-        game.sliderPref("weatheropacity", "setting.weatheropacity.name", 50, 0, 100, s -> s + "%");
 
         if(!mobile){
             game.checkPref("backgroundpause", true);
