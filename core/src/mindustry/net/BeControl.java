@@ -132,7 +132,7 @@ public class BeControl{
                 }
             }, () -> checkUpdates = false);
         }else{
-            Log.info("&lcA new update is available: &lyBleeding Edge build @", updateBuild);
+            Log.info("&lcCurrent: " + Version.clientBuild + " A new update is available: &lyBleeding Edge build @", updateBuild);
             if(Config.autoUpdate.bool()){
                 Log.info("&lcAuto-downloading next version...");
 
