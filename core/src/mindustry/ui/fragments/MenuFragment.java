@@ -167,17 +167,6 @@ public class MenuFragment extends Fragment{
             t.name = "buttons";
 
             buttons(t,
-                new Buttoni("Client", Icon.wrench,
-                    new Buttoni("Discord", Icon.discord, () -> { // Link to client discord
-                        if (!Core.app.openURI("https://discord.gg/yp9ZW7j")) {
-                            ui.showErrorMessage("@linkfail");
-                            Core.app.setClipboardText("https://discord.gg/yp9ZW7j");
-                        }
-                    }),
-                    new Buttoni("Changelog", Icon.upgrade, () -> new ChangelogDialog().show()),
-                    new Buttoni("Features", Icon.list, () -> new FeaturesDialog().show())
-                ), // End of client section
-
                 new Buttoni("@play", Icon.play,
                     new Buttoni("@campaign", Icon.play, () -> checkPlay(ui.planet::show)),
                     new Buttoni("@joingame", Icon.add, () -> checkPlay(ui.join::show)),
@@ -191,6 +180,16 @@ public class MenuFragment extends Fragment{
                 //new Buttoni("@schematics", Icon.paste, ui.schematics::show),
                 new Buttoni("@settings", Icon.settings, ui.settings::show),
                 new Buttoni("@about.button", Icon.info, ui.about::show),
+                new Buttoni("Client", Icon.wrench,
+                    new Buttoni("Discord", Icon.discord, () -> { // Link to client discord
+                        if (!Core.app.openURI("https://discord.gg/yp9ZW7j")) {
+                            ui.showErrorMessage("@linkfail");
+                            Core.app.setClipboardText("https://discord.gg/yp9ZW7j");
+                        }
+                    }),
+                    new Buttoni("Changelog", Icon.upgrade, () -> new ChangelogDialog().show()),
+                    new Buttoni("Features", Icon.list, () -> new FeaturesDialog().show())
+                ), // End of client section
                 new Buttoni("@quit", Icon.exit, Core.app::exit)
             );
 

@@ -293,13 +293,13 @@ public class DesktopInput extends InputHandler{
 
         if(!scene.hasMouse()){
             if(Core.input.alt() && Core.input.keyTap(Binding.select) && cursor != null){
-                int itemHeight = 25;
-                Table table = new Table(Tex.wavepane);
+                int itemHeight = 30;
+                Table table = new Table(Tex.buttonTrans);
                 table.touchable = Touchable.childrenOnly;
-                table.setHeight((itemHeight*3)*(table.getRows()+1));
+                table.setHeight((itemHeight * 3) * (table.getRows() + 1));
                 table.setWidth(400);
                 try {
-                    table.add(Core.bundle.get("block." + cursor.block() + ".name") + ": (" + cursor.x + ", " + cursor.y + ")").margin(0).pad(5).height(itemHeight).left();
+                    table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").margin(0).pad(5).height(itemHeight).left();
                 } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.red);}
                 table.row();
                 table.button("View log", () -> {
