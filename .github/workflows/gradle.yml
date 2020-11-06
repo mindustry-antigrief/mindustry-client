@@ -11,16 +11,9 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 14
-    
-    - name: Write File
-      uses: DamianReeves/write-file-action@v1.0
-      with:
-        path: ./core/assets/build
-        contents: echo "${{ github.run_id }}"
-        write-mode: overwrite
       
     - name: Build desktop with gradle
-      run: ./gradlew desktop:dist
+      run: ./gradlew desktop:dist -PclientBuild ${{ github.run_number }}
 
     - name: Create Release
       id: create_release
@@ -28,8 +21,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
       with:
-        tag_name: ${{ github.run_id }}
-        release_name: Release ${{ github.run_id }}
+        tag_name: ${{ github.run_number }}
+        release_name: Release ${{ github.run_number }}
         body: |
           This is an automated release
         draft: false
