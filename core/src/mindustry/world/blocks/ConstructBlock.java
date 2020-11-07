@@ -9,6 +9,7 @@ import arc.math.*;
 import arc.scene.actions.Actions;
 import arc.scene.style.Drawable;
 import arc.scene.style.Style;
+import arc.scene.ui.Label;
 import arc.scene.ui.layout.Table;
 import arc.struct.*;
 import arc.util.*;
@@ -18,6 +19,7 @@ import mindustry.client.Client;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
+import mindustry.client.ui.Toast;
 import mindustry.client.utils.MovingAverage;
 import mindustry.content.*;
 import mindustry.entities.*;
@@ -200,6 +202,7 @@ public class ConstructBlock extends Block{
 
         private ChatFragment.ChatMessage message = null;
         private float lastProgress = 0f;
+        private Toast toast = null;
 
         @Override
         public String getDisplayName(){
@@ -458,27 +461,31 @@ public class ConstructBlock extends Block{
         public void showToast(Drawable icon, String text){
             if(state.isMenu()) return;
 
-            scheduleToast(() -> {
-
-                Table table = new Table(Tex.button);
-                table.update(() -> {
-                    if(state.isMenu()){
-                        table.remove();
-                    }
-                });
-                table.margin(12);
-                table.image(icon).pad(3);
-                table.add(text).style(monoLabel).wrap().width(280f).get().setAlignment(Align.center, Align.center);
-                table.pack();
-
-                //create container table which will align and move
-                Table container = Core.scene.table();
-                container.top().add(table);
-                container.setTranslation(0, table.getPrefHeight());
-                container.actions(Actions.translateBy(0, -table.getPrefHeight(), 0.0f, Interp.fade), Actions.delay(0.0f),
-                        //nesting actions() calls is necessary so the right prefHeight() is used
-                        Actions.run(() -> container.actions(Actions.translateBy(0, table.getPrefHeight(), 1f, Interp.fade), Actions.remove())));
-            });
+//            scheduleToast(() -> {
+//
+//                Table table = new Table(Tex.button);
+//                table.update(() -> {
+//                    if(state.isMenu()){
+//                        table.remove();
+//                    }
+//                });
+//                table.margin(12);
+//                table.image(icon).pad(3);
+//                table.add(text).style(monoLabel).wrap().width(280f).get().setAlignment(Align.center, Align.center);
+//                table.pack();
+//
+//                //create container table which will align and move
+//                Table container = Core.scene.table();
+//                container.top().add(table);
+//                container.setTranslation(0, table.getPrefHeight());
+//                container.actions(Actions.translateBy(0, -table.getPrefHeight(), 0.0f, Interp.fade), Actions.delay(0.0f),
+//                        //nesting actions() calls is necessary so the right prefHeight() is used
+//                        Actions.run(() -> container.actions(Actions.translateBy(0, table.getPrefHeight(), 1f, Interp.fade), Actions.remove())));
+//            });
+//            Table table = new Table(Tex.button);
+//            table.add(new Label("Hello world!"));
+//            Table container = Core.scene.table();
+//            container.top().add(table);
         }
 
         @Override
@@ -487,18 +494,23 @@ public class ConstructBlock extends Block{
             if (cblock instanceof NuclearReactor) {
                 if (Core.settings.getBool("reactorwarnings")) {
                     long since = Time.timeSinceMillis(lastWarn);
-                    if ((progress > lastProgress) && (since > (int)(0.0 * 1000)) && (progress < .99f)) {
-                        if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) { Sounds.corexplode.play(); } // Play sound for reactor construction (can only be played when no reactor has been built for 10s)
-                        String format = String.format("%s is building a %s at %d,%d (%d blocks from core). %02d%% completed.", lastAccessed, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8), Mathf.floor(progress * 100));
+                    if (progress > lastProgress && since > 0 && progress < .99f) {
+                        // Play sound for reactor construction (can only be played when no reactor has been built for 10s)
+                        if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) {
+                            Sounds.corexplode.play();
+                        }
+                        String format = String.format("%s is building a %s at %d,%d (%d blocks from core).", lastAccessed, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8));
+                        String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
                         lastWarn = Time.millis();
-                        showToast(Icon.temperatire, format);
-
-                        //Old code
-//                        if (message == null || Core.graphics.getFrameId() % 240 == 0) {
-//                            message = ui.chatfrag.addMessage(format, "client", Color.scarlet);
-//                        } else if (message != null) {
-//                            message.message = format;
-//                            message.format();
+                        if (toast == null || toast.parent == null) {
+                            toast = new Toast();
+                        } else {
+                            toast.clearChildren();
+                            toast.setFadeTime(1f);
+                        }
+                        toast.add(new Label(format));
+                        toast.row();
+                        toast.add(new Label(format2, monoLabel));
                     }
                 }
             }

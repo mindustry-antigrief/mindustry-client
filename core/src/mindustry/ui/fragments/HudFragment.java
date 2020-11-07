@@ -15,6 +15,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.ui.Toast;
 import mindustry.content.*;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
@@ -222,7 +223,7 @@ public class HudFragment extends Fragment{
                         logic.skipWave();
                     }
                     else{
-                        showToast(Icon.lock,"You tried and that's all that matters.");
+                        new Toast(1f).label(() -> "You tried and that's all that matters.");
                     }
                 }).growY().fillX().right().width(40f).name("skip");
 
