@@ -230,7 +230,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Remote(targets = Loc.server, called = Loc.server)
     public static void pickedBuildPayload(Unit unit, Building tile, boolean onGround){
         if(tile != null && unit instanceof Payloadc pay){
-            tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadPickupTileLog(player.unit(), tile2, tile2.block(), Instant.now().getEpochSecond(), "")));
+            tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadPickupTileLog(unit, tile2, tile2.block(), Instant.now().getEpochSecond(), "")));
 
         if(onGround){
             if(tile.block.buildVisibility != BuildVisibility.hidden && tile.canPickup() && pay.canPickup(tile)){
@@ -274,7 +274,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if(pay.hasPayload()){
                 if(pay.payloads().peek() instanceof BuildPayload){
                     Tile tile = world.tile((int)x / tilesize, (int)y / tilesize);
-                    tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadDropOffTileLog(player.unit(), tile2, ((BuildPayload)(pay.payloads().peek())).block(), Instant.now().getEpochSecond(), "")));
+                    tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadDropOffTileLog(unit, tile2, ((BuildPayload)(pay.payloads().peek())).block(), Instant.now().getEpochSecond(), "")));
                 }
             }
             float prevx = pay.x(), prevy = pay.y();
@@ -321,29 +321,37 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(tile == null) return;
         if(net.server() && (!Units.canInteract(player, tile) ||
             !netServer.admins.allowAction(player, ActionType.configure, tile.tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");
+
+        Object previous = tile.config();
+
+        tile.configured(player == null || player.dead() ? null : player.unit(), value);
+        Core.app.post(() -> Events.fire(new ConfigEvent(tile, player, value)));
+
         if(player != null){
-            tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new ConfigTileLog(player.unit(), tile2, value, Instant.now().getEpochSecond(), "")));
+            tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new ConfigTileLog(player.unit(), tile2, tile.config(), previous, Instant.now().getEpochSecond(), "")));
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if(((UnAssistPath) Navigation.currentlyFollowing).assisting == player){
-                    Client.configs.add(new ConfigRequest(tile.tileX(), tile.tileY(), tile.config()));
+                    Client.configs.add(new ConfigRequest(tile.tileX(), tile.tileY(), previous));
                 }
             }
             if (tile.block instanceof PowerNode) {
-                if (tile.power.links.contains((Integer) value)) {
-                    ((PowerNode.PowerNodeBuild) tile).disconnections++;
-                    String message = String.format("%s disconnected %d power link%s at %d,%d", player.name, ((PowerNode.PowerNodeBuild) tile).disconnections, ((PowerNode.PowerNodeBuild) tile).disconnections == 1 ? "" : "s", tile.tileX(), tile.tileY());
-                    if (((PowerNode.PowerNodeBuild) tile).message == null || ui.chatfrag.messages.indexOf(((PowerNode.PowerNodeBuild) tile).message) > 8) {
-                        ((PowerNode.PowerNodeBuild) tile).disconnections = 1;
-                        ((PowerNode.PowerNodeBuild) tile).message = ui.chatfrag.addMessage(message, "client", Color.scarlet);
-                    } else {
-                        ((PowerNode.PowerNodeBuild) tile).message.message = message;
-                        ((PowerNode.PowerNodeBuild) tile).message.format();
+                if (value instanceof Integer) {
+                    if (new Seq<>((Point2[])previous).contains(Point2.unpack((Integer) value))) {
+                        ((PowerNode.PowerNodeBuild) tile).disconnections++;
+                        String message = String.format("%s disconnected %d power link%s at %d,%d", player.name, ((PowerNode.PowerNodeBuild) tile).disconnections, ((PowerNode.PowerNodeBuild) tile).disconnections == 1 ? "" : "s", tile.tileX(), tile.tileY());
+                        if (((PowerNode.PowerNodeBuild) tile).message == null || ui.chatfrag.messages.indexOf(((PowerNode.PowerNodeBuild) tile).message) > 8) {
+                            ((PowerNode.PowerNodeBuild) tile).disconnections = 1;
+                            ((PowerNode.PowerNodeBuild) tile).message = ui.chatfrag.addMessage(message, "client", Color.scarlet);
+                        } else {
+                            ((PowerNode.PowerNodeBuild) tile).message.message = message;
+                            ((PowerNode.PowerNodeBuild) tile).message.format();
+                        }
                     }
+                } else if (value instanceof Point2[]) {
+                    //todo
                 }
             }
         }
-        tile.configured(player == null || player.dead() ? null : player.unit(), value);
-        Core.app.post(() -> Events.fire(new ConfigEvent(tile, player, value)));
     }
 
     //only useful for servers or local mods, and is not replicated across clients

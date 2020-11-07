@@ -23,6 +23,9 @@ public class MovingAverage {
     }
 
     public float getAverage() {
+        if (values.size == 0) {
+            return 0f;
+        }
         return values.sum() / values.size;
     }
 }

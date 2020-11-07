@@ -27,7 +27,9 @@ public class Client {
         Navigation.update();
         PowerInfo.update();
         if (!configs.isEmpty()) {
-            configs.removeFirst().run();
+            try {
+                configs.removeFirst().run();
+            } catch (Exception ignored) {}
         }
     }
 

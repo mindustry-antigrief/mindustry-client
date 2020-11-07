@@ -42,7 +42,10 @@ public class StupidMarkupParser {
             }
         }
         Table table = new Table();
-        elements.forEach(e -> {table.add(e); table.row();});
+        elements.forEach(e -> {
+            table.add(e);
+            table.row();
+        });
         return table;
     }
 }

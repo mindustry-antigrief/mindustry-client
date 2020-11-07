@@ -50,7 +50,6 @@ public class ConstructBlock extends Block{
     private static long lastTime = 0;
     private static int pitchSeq = 0;
     private static long lastPlayed;
-    private static long lastToast;
 
     public ConstructBlock(int size){
         super("build" + size);
@@ -90,24 +89,6 @@ public class ConstructBlock extends Block{
     @Remote(called = Loc.server)
     public static void constructFinish(Tile tile, Block block, @Nullable Unit builder, byte rotation, Team team, Object config){
         if(tile == null) return;
-        if(builder != null && block != null){
-            tile.getLinkedTiles(t -> t.addToLog(new PlaceTileLog(builder, t, Instant.now().getEpochSecond(), "", block)));
-            if(Navigation.currentlyFollowing instanceof UnAssistPath){
-                if (((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()) {
-                    if(Navigation.currentlyFollowing != null) {
-                        for (BuildPlan p : ((UnAssistPath) Navigation.currentlyFollowing).toUndo) {
-                            if (p.x == tile.x && p.y == tile.y) {
-                                ((UnAssistPath) Navigation.currentlyFollowing).toUndo.remove(p);
-                            }
-                        }
-                        ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y));
-                        if (config != null) {
-                            Client.configs.add(new ConfigRequest(tile.x, tile.y, null));
-                        }
-                    }
-                }
-            }
-        }
 
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild ? ((ConstructBuild)tile.build).prevBuild : null;
@@ -136,6 +117,25 @@ public class ConstructBlock extends Block{
         }
 
         Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
+
+        if(builder != null && tile.build != null){
+            tile.getLinkedTiles(t -> t.addToLog(new PlaceTileLog(builder, t, Instant.now().getEpochSecond(), "", block, tile.build.config())));
+            if(Navigation.currentlyFollowing instanceof UnAssistPath){
+                if (((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()) {
+                    if(Navigation.currentlyFollowing != null) {
+                        for (BuildPlan p : ((UnAssistPath) Navigation.currentlyFollowing).toUndo) {
+                            if (p.x == tile.x && p.y == tile.y) {
+                                ((UnAssistPath) Navigation.currentlyFollowing).toUndo.remove(p);
+                            }
+                        }
+                        ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y));
+                        if (config != null) {
+                            Client.configs.add(new ConfigRequest(tile.x, tile.y, null));
+                        }
+                    }
+                }
+            }
+        }
     }
 
     static boolean shouldPlay(){
@@ -446,48 +446,6 @@ public class ConstructBlock extends Block{
             }
         }
 
-        private void scheduleToast(Runnable run){
-            long duration = (int)(0.0 * 1000);
-            long since = Time.timeSinceMillis(lastToast);
-            if(since > duration){
-                lastToast = Time.millis();
-                run.run();
-            }else{
-                Time.runTask((duration - since) / 1000f * 60f, run);
-                lastToast += duration;
-            }
-        }
-
-        public void showToast(Drawable icon, String text){
-            if(state.isMenu()) return;
-
-//            scheduleToast(() -> {
-//
-//                Table table = new Table(Tex.button);
-//                table.update(() -> {
-//                    if(state.isMenu()){
-//                        table.remove();
-//                    }
-//                });
-//                table.margin(12);
-//                table.image(icon).pad(3);
-//                table.add(text).style(monoLabel).wrap().width(280f).get().setAlignment(Align.center, Align.center);
-//                table.pack();
-//
-//                //create container table which will align and move
-//                Table container = Core.scene.table();
-//                container.top().add(table);
-//                container.setTranslation(0, table.getPrefHeight());
-//                container.actions(Actions.translateBy(0, -table.getPrefHeight(), 0.0f, Interp.fade), Actions.delay(0.0f),
-//                        //nesting actions() calls is necessary so the right prefHeight() is used
-//                        Actions.run(() -> container.actions(Actions.translateBy(0, table.getPrefHeight(), 1f, Interp.fade), Actions.remove())));
-//            });
-//            Table table = new Table(Tex.button);
-//            table.add(new Label("Hello world!"));
-//            Table container = Core.scene.table();
-//            container.top().add(table);
-        }
-
         @Override
         public void update() {
             super.update();
@@ -495,7 +453,7 @@ public class ConstructBlock extends Block{
                 if (Core.settings.getBool("reactorwarnings")) {
                     long since = Time.timeSinceMillis(lastWarn);
                     if (progress > lastProgress && since > 0 && progress < .99f) {
-                        // Play sound for reactor construction (can only be played when no reactor has been built for 10s)
+                        // Play sound for reactor construction (only played when no reactor has been built for 10s)
                         if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) {
                             Sounds.corexplode.play();
                         }
@@ -506,8 +464,8 @@ public class ConstructBlock extends Block{
                             toast = new Toast();
                         } else {
                             toast.clearChildren();
-                            toast.setFadeTime(1f);
                         }
+                        toast.setFadeTime(1f);
                         toast.add(new Label(format));
                         toast.row();
                         toast.add(new Label(format2, monoLabel));

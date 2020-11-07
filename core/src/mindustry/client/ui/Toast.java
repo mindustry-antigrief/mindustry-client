@@ -40,7 +40,7 @@ public class Toast extends Table {
     }
 
     public Toast() {
-        this(2000);
+        this(1f);
     }
 
     /** Number of milliseconds until it fades. */
