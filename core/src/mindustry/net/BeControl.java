@@ -34,17 +34,15 @@ public class BeControl{
 
     /** @return whether this is a bleeding edge build. */
     public boolean active(){
-        return Version.type.equals("official");
+        return Version.type.equals("bleeding-edge");
     }
 
     public BeControl(){
-        if(active()){
-            Timer.schedule(() -> {
-                if(checkUpdates && !mobile){
-                    checkUpdate(t -> {});
-                }
-            }, updateInterval, updateInterval);
-        }
+        Timer.schedule(() -> {
+            if(checkUpdates && !mobile){
+                checkUpdate(t -> {});
+            }
+        }, updateInterval, updateInterval);
 
         if(System.getProperties().contains("becopy")){
             try{
