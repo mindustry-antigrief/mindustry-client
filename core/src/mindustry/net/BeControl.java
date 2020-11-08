@@ -7,7 +7,6 @@ import arc.func.*;
 import arc.util.*;
 import arc.util.async.*;
 import arc.util.serialization.*;
-import mindustry.Vars;
 import mindustry.core.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
