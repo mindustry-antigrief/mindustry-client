@@ -20,7 +20,9 @@ import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
 import mindustry.client.ui.StupidMarkupParser;
+import mindustry.content.UnitTypes;
 import mindustry.core.*;
+import mindustry.entities.Units;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -342,6 +344,12 @@ public class DesktopInput extends InputHandler{
                 scene.add(table);
                 table.setPosition(input.mouseX(), input.mouseY());
                 table.align(Align.topRight);
+            }
+            if(Core.input.keyTap(KeyCode.semicolon)){
+                Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == UnitTypes.mega && !u.dead);
+                if(find != null) {
+                    Call.unitControl(player, find);
+                } else {
             }
             if(Core.input.keyDown(Binding.control) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit();
