@@ -13,7 +13,7 @@ import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
-import static mindustry.client.utils.Levenshtein.distanceCompletion;
+import static mindustry.client.utils.Levenshtein.*;
 
 
 public class UnitPicker extends BaseDialog{
