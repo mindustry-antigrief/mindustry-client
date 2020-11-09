@@ -338,7 +338,6 @@ public class DesktopInput extends InputHandler{
                 table.setPosition(input.mouseX(), input.mouseY());
                 table.align(Align.topRight);
             }
-
             if(Core.input.keyDown(Binding.control) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit();
                 if(on != null){

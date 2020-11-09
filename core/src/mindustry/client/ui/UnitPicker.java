@@ -2,25 +2,17 @@ package mindustry.client.ui;
 
 import arc.*;
 import arc.input.*;
-import arc.math.*;
-import arc.math.geom.*;
 import arc.scene.ui.*;
 import arc.scene.utils.*;
 import arc.struct.*;
-import mindustry.client.*;
-import mindustry.client.navigation.Navigation;
 import mindustry.entities.Units;
-import mindustry.game.EventType;
 import mindustry.gen.Call;
 import mindustry.gen.Unit;
 import mindustry.type.UnitType;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
-import mindustry.world.*;
 
-import static arc.scene.actions.Actions.hide;
 import static mindustry.Vars.*;
-import static mindustry.client.Client.*;
 import static mindustry.client.utils.Levenshtein.distanceCompletion;
 
 
