@@ -5,6 +5,7 @@ import arc.input.*;
 import arc.scene.ui.*;
 import arc.scene.utils.*;
 import arc.struct.*;
+import arc.util.Strings;
 import mindustry.entities.Units;
 import mindustry.gen.Call;
 import mindustry.gen.Unit;
@@ -13,7 +14,6 @@ import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
-import static mindustry.client.utils.Levenshtein.*;
 
 
 public class UnitPicker extends BaseDialog{
@@ -36,7 +36,7 @@ public class UnitPicker extends BaseDialog{
         }
         findField = Elem.newField("", (string) -> {
             Seq<UnitType> sorted = content.units().copy();
-            sorted = sorted.sort((b) -> distanceCompletion(string, b.name));
+            sorted = sorted.sort((b) -> Strings.levenshtein(string, b.name));
             found = sorted.first();
             for(int i = 0; i < imgs.size - 1; i += 1){
                 Image region = new Image(sorted.get(i).icon(Cicon.large));
