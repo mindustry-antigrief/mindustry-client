@@ -246,7 +246,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             Call.unitCapDeath(self());
             team.data().updateCount(type, -1);
         }
-
+        if (net.client()) Events.fire(new EventType.UnitCreateEvent(self())); // Used for unit picker/sniper
     }
 
     @Override
