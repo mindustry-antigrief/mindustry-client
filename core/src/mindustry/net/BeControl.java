@@ -102,7 +102,7 @@ public class BeControl{
                         Fi.get(System.getProperty("becopy")) :
                         Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
-                    BaseDialog dialog = new BaseDialog("@be.updating");
+                    BaseDialog dialog = new BaseDialog("@be.updating "+fileDest.absolutePath());
                     download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                         try{
                             Runtime.getRuntime().exec(OS.isMac ?
