@@ -48,8 +48,8 @@ public class BeControl{
                 Fi dest = Fi.get(System.getProperty("becopy"));
                 Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
+                dest.delete();
                 self.copyTo(dest);
-                ui.showErrorMessage(self + " self | dest " + dest);
             }catch(Throwable e){
                 e.printStackTrace();
             }
@@ -62,7 +62,7 @@ public class BeControl{
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
                 int newBuild = Strings.parseInt(val.getString("tag_name", "0"));
-                if(newBuild != Version.clientBuild | true){
+                if(newBuild != Version.clientBuild){
                     Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith(headless ? "Mindustry-BE-Server" : "desktop-release"));
                     String url = asset.getString("browser_download_url", "");
                     updateAvailable = true;
@@ -103,7 +103,7 @@ public class BeControl{
                         Fi.get(System.getProperty("becopy")) :
                         Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
-                    BaseDialog dialog = new BaseDialog("@be.updating "+fileDest.absolutePath());
+                    BaseDialog dialog = new BaseDialog("@be.updating");
                     download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                         try{
                             Runtime.getRuntime().exec(OS.isMac ?
