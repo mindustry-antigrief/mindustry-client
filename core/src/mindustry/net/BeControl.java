@@ -49,6 +49,7 @@ public class BeControl{
                 Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
                 self.copyTo(dest);
+                ui.showErrorMessage(self + " self | dest " + dest);
             }catch(Throwable e){
                 e.printStackTrace();
             }
