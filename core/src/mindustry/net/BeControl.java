@@ -62,7 +62,7 @@ public class BeControl{
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
                 int newBuild = Strings.parseInt(val.getString("tag_name", "0"));
-                if(newBuild != Version.clientBuild){
+                if(newBuild != Version.clientBuild | true){
                     Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith(headless ? "Mindustry-BE-Server" : "desktop-release"));
                     String url = asset.getString("browser_download_url", "");
                     updateAvailable = true;
@@ -106,12 +106,12 @@ public class BeControl{
                     BaseDialog dialog = new BaseDialog("@be.updating "+fileDest.absolutePath());
                     download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                         try{
-                            Process proc = Runtime.getRuntime().exec(OS.isMac ?
+                            Runtime.getRuntime().exec(OS.isMac ?
                                 new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
                                 new String[]{"java", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                             );
-                            proc.waitFor();
-                        }catch(IOException | InterruptedException e){
+                            System.exit(0);
+                        }catch(IOException e){
                             ui.showException(e);
                         }
                     }, e -> {
