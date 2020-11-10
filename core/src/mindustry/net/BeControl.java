@@ -26,7 +26,7 @@ public class BeControl{
     private static final int updateInterval = 60 * 1;
 
     private AsyncExecutor executor = new AsyncExecutor(1);
-    private boolean checkUpdates = true;
+    private boolean checkUpdates = Core.settings.getBool("autoupdate");
     private boolean updateAvailable;
     private String updateUrl;
     private int updateBuild;
