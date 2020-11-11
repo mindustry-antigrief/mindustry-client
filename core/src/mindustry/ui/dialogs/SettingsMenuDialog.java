@@ -295,7 +295,7 @@ public class SettingsMenuDialog extends SettingsDialog{
                 }
             }
         });
-        client.sliderPref("weatheropacity", "setting.weatheropacity.name", 50, 0, 100, s -> s + "%");
+        client.sliderPref("weatheropacity", bundle.get("setting.weatheropacity.name"), 50, 0, 100, s -> s + "%");
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);
         game.checkPref("conveyorpathfinding", true);

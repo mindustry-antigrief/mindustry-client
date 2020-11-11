@@ -292,7 +292,7 @@ public class DesktopInput extends InputHandler{
         Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
         if(!scene.hasMouse()){
-            if(Core.input.alt() && Core.input.keyTap(Binding.select) && cursor != null){
+            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null){
                 int itemHeight = 30;
                 Table table = new Table(Tex.buttonTrans);
                 table.touchable = Touchable.childrenOnly;
