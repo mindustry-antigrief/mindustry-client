@@ -159,7 +159,7 @@ public class PlayerListFragment extends Fragment{
             }
             button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
                     () -> Navigation.follow(new AssistPath(user))).size(h/2);
-            button.button(Icon.block, Styles.clearPartiali, // Unassist/block
+            button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
                     () -> Navigation.follow(new UnAssistPath(user))).size(h/2);
 
             content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);

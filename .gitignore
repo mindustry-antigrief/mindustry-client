@@ -151,3 +151,5 @@ gradle-app.setting
 Thumbs.db
 android/libs/
 annotations/src/main/resources/revisions
+
+arc-core/

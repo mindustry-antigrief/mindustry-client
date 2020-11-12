@@ -186,7 +186,7 @@ public class MenuFragment extends Fragment{
                             Core.app.setClipboardText("https://discord.gg/yp9ZW7j");
                         }
                     }),
-                    new Buttoni("Changelog", Icon.upgrade, () -> new ChangelogDialog().show()),
+                    new Buttoni("Changelog", Icon.edit, () -> new ChangelogDialog().show()),
                     new Buttoni("Features", Icon.list, () -> new FeaturesDialog().show())
                 ), // End of client section
                 new Buttoni("@quit", Icon.exit, Core.app::exit)

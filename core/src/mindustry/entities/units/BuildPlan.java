@@ -61,16 +61,6 @@ public class BuildPlan implements Position{
 
     }
 
-    @Override
-    public float getX() {
-        return x * tilesize;
-    }
-
-    @Override
-    public float getY() {
-        return y * tilesize;
-    }
-
     /** Transforms the internal position of this config using the specified function, and return the result. */
     public static Object pointConfig(Block block, Object config, Cons<Point2> cons){
         if(config instanceof Point2){
