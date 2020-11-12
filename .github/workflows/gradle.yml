@@ -1,6 +1,13 @@
 name: Java CI
 
-on: [push, workflow_dispatch]
+on: 
+  push:
+    branches: custom-client
+
+  workflow_dispatch:
+    branches: custom-client
+  
+
 
 jobs:
   build:
