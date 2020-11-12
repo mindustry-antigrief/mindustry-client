@@ -10,6 +10,12 @@ import mindustry.*;
 public class LoopControl{
     private ObjectMap<Sound, SoundData> sounds = new ObjectMap<>();
 
+    public void play(Sound sound, float volume){
+        if(Vars.headless) return;
+
+        play(sound, Core.camera.position, volume);
+    }
+
     public void play(Sound sound, Position pos, float volume){
         if(Vars.headless) return;
 
@@ -31,17 +37,17 @@ public class LoopControl{
 
             boolean play = data.curVolume > 0.01f;
             float pan = Mathf.zero(data.total, 0.0001f) ? 0f : sound.calcPan(data.sum.x / data.total, data.sum.y / data.total);
-            if(data.soundID <= 0){
+            if(data.soundID <= 0 || !sound.isPlaying(data.soundID)){
                 if(play){
                     data.soundID = sound.loop(data.curVolume, 1f, pan);
                 }
             }else{
-                if(data.curVolume <= 0.01f){
+                if(data.curVolume <= 0.001f){
                     sound.stop();
                     data.soundID = -1;
                     return;
                 }
-                sound.setPan(data.soundID, pan, data.curVolume);
+                sound.set(data.soundID, pan, data.curVolume);
             }
 
             data.volume = 0f;

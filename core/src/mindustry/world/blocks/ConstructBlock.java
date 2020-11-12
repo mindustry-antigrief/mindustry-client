@@ -136,6 +136,7 @@ public class ConstructBlock extends Block{
                 }
             }
         }
+        if(shouldPlay()) Sounds.place.at(tile, calcPitch(true));
     }
 
     static boolean shouldPlay(){
@@ -169,7 +170,6 @@ public class ConstructBlock extends Block{
         }
 
         Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config));
-        if(shouldPlay()) Sounds.place.at(tile, calcPitch(true));
     }
 
     @Override

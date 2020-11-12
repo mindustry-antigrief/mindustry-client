@@ -141,9 +141,9 @@ public class Renderer implements ApplicationListener{
             }
             bloom = new Bloom(true);
         }catch(Throwable e){
-            e.printStackTrace();
             settings.put("bloom", false);
             ui.showErrorMessage("@error.bloom");
+            Log.err(e);
         }
     }
 
@@ -367,5 +367,4 @@ public class Renderer implements ApplicationListener{
 
         buffer.dispose();
     }
-
 }

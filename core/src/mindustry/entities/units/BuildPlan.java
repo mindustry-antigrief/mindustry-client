@@ -137,11 +137,11 @@ public class BuildPlan implements Position{
     }
 
     public float drawx(){
-        return x*tilesize + block.offset;
+        return x*tilesize + (block == null ? 0 : block.offset);
     }
 
     public float drawy(){
-        return y*tilesize + block.offset;
+        return y*tilesize + (block == null ? 0 : block.offset);
     }
 
     public @Nullable Tile tile(){
@@ -158,6 +158,16 @@ public class BuildPlan implements Position{
         }else{
             return world.tile(x, y).block() == block;
         }
+    }
+
+    @Override
+    public float getX(){
+        return drawx();
+    }
+
+    @Override
+    public float getY(){
+        return drawy();
     }
 
     @Override

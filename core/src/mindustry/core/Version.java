@@ -51,6 +51,10 @@ public class Version{
         number = 6;
     }
 
+    public static String buildString(){
+        return build < 0 ? "custom" : build + (revision == 0 ? "" : "." + revision);
+    }
+
     /** get menu version without colors */
     public static String combined(){
         if(build == -1){

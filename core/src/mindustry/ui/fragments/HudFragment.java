@@ -274,15 +274,23 @@ public class HudFragment extends Fragment{
                 info.update(() -> info.setTranslation(state.isGame() || state.isEditor() ? 0f : -Scl.scl(dsize * 4 + 3), 0));
                 IntFormat fps = new IntFormat("fps");
                 IntFormat ping = new IntFormat("ping");
+                IntFormat mem = new IntFormat("memory");
+                IntFormat memnative = new IntFormat("memory2");
 
-                info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left()
-                .style(Styles.outlineLabel).name("fps");
+                info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel).name("fps");
                 info.row();
                 info.label(() -> "Players: " + Groups.player.size()).visible(net::active).left() // Player count
                 .style(Styles.outlineLabel).name("players");
                 info.row();
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left()
                 .style(Styles.outlineLabel).name("ping");
+                if(android){
+                    info.label(() -> memnative.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)(Core.app.getNativeHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory2");
+                    info.row();
+                }else{
+                    info.label(() -> mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory");
+                    info.row();
+                }
             }).top().left().width(70f);
         });
 

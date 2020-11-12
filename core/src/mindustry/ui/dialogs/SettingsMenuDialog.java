@@ -149,6 +149,12 @@ public class SettingsMenuDialog extends SettingsDialog{
                             }
                         }
                     }
+                    
+                    for(var slot : control.saves.getSaveSlots().copy()){
+                        if(slot.isSector()){
+                            slot.delete();
+                        }
+                    }
                 });
             }).marginLeft(4);
 
@@ -198,6 +204,25 @@ public class SettingsMenuDialog extends SettingsDialog{
                 t.row();
                 t.button("@data.openfolder", Icon.folder, style, () -> Core.app.openFolder(Core.settings.getDataDirectory().absolutePath())).marginLeft(4);
             }
+
+            t.row();
+
+            t.button("@crash.export", Icon.upload, style, () -> {
+                if(settings.getDataDirectory().child("crashes").list().length == 0 && !settings.getDataDirectory().child("last_log.txt").exists()){
+                    ui.showInfo("@crash.none");
+                }else{
+                    if(ios){
+                        Fi logs = tmpDirectory.child("logs.txt");
+                        logs.writeString(getLogs());
+                        platform.shareFile(logs);
+                    }else{
+                        platform.showFileChooser(false, "txt", file -> {
+                            file.writeString(getLogs());
+                            app.post(() -> ui.showInfo("@crash.exported"));
+                        });
+                    }
+                }
+            }).marginLeft(4);
         });
 
         ScrollPane pane = new ScrollPane(prefs);
@@ -227,6 +252,21 @@ public class SettingsMenuDialog extends SettingsDialog{
         add(buttons).fillX();
 
         addSettings();
+    }
+
+    String getLogs(){
+        Fi log = settings.getDataDirectory().child("last_log.txt");
+
+        StringBuilder out = new StringBuilder();
+        for(Fi fi : settings.getDataDirectory().child("crashes").list()){
+            out.append(fi.name()).append("\n\n").append(fi.readString()).append("\n");
+        }
+
+        if(log.exists()){
+            out.append("\nlast log:\n").append(log.readString());
+        }
+
+        return out.toString();
     }
 
     void rebuildMenu(){

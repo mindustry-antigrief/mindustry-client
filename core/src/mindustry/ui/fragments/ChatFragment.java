@@ -190,7 +190,7 @@ public class ChatFragment extends Table{
 
         if(!shown){
             scene.setKeyboardFocus(chatfield);
-            shown = !shown;
+            shown = true;
             if(mobile){
                 TextInput input = new TextInput();
                 input.maxLength = maxTextLength;
@@ -206,10 +206,13 @@ public class ChatFragment extends Table{
                 chatfield.fireClick();
             }
         }else{
-            scene.setKeyboardFocus(null);
-            shown = !shown;
-            scrollPos = 0;
-            sendMessage();
+            //sending chat has a delay; workaround for issue #1943
+            Time.run(2f, () ->{
+                scene.setKeyboardFocus(null);
+                shown = false;
+                scrollPos = 0;
+                sendMessage();
+            });
         }
     }
 
