@@ -20,6 +20,8 @@ import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
 import mindustry.client.ui.StupidMarkupParser;
+import mindustry.client.ui.Toast;
+import mindustry.client.ui.UnitPicker;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -295,13 +297,15 @@ public class DesktopInput extends InputHandler{
                 int itemHeight = 30;
                 Table table = new Table(Tex.buttonTrans);
                 table.touchable = Touchable.childrenOnly;
-                table.setHeight((itemHeight * 3) * (table.getRows() + 1));
                 table.setWidth(400);
+                table.margin(0);
+                table.fill();
+                table.defaults().height(itemHeight).pad(0f, 5f, 5f, 5f).fillX();
                 try {
-                    table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").margin(0).pad(5).height(itemHeight).left();
+                    table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().pad(5).growX().fillY();
                 } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.red);}
-                table.row();
-                table.button("View log", () -> {
+                table.row().fill();
+                table.button("View log", () -> { // Tile Logs
                     BaseDialog dialog = new BaseDialog("Logs");
                     dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).center();
                     dialog.addCloseButton();
@@ -312,23 +316,14 @@ public class DesktopInput extends InputHandler{
                         }
                     });
                     dialog.show();
-                }).grow().margin(0).pad(5).height(itemHeight).center().colspan(2);
+                });
 
-                //TODO: Old code
-//                table.add(new TextButton("View log")).grow().get().clicked(() -> {
-//                    Dialog dialog = new Dialog("Logs");
-//                    dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).grow().center();
-//
-//                    dialog.cont.row();
-//                    dialog.cont.button("@back", Icon.left, dialog::hide).size(210f, 64f);
-//
-//                    dialog.keyDown(key -> {
-//                        if(key == KeyCode.escape || key == KeyCode.back){
-//                            Core.app.post(dialog::hide);
-//                        }
-//                    });
-//                    dialog.show();
-//                });
+                table.row().fill();
+                table.button("Unit Picker", () -> { // Unit Selector
+                    new UnitPicker().show();
+                });
+                table.setHeight((itemHeight * 1) * (table.getRows() + 1) + 10 * (table.getRows() + 1));
+
 
                 AtomicBoolean released = new AtomicBoolean(false);
                 table.update(() -> {

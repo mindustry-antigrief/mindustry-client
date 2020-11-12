@@ -26,7 +26,7 @@ public class BeControl{
     private static final int updateInterval = 60 * 1;
 
     private AsyncExecutor executor = new AsyncExecutor(1);
-    private boolean checkUpdates = true;
+    private boolean checkUpdates = Core.settings.getBool("autoupdate");
     private boolean updateAvailable;
     private String updateUrl;
     private int updateBuild;
@@ -37,13 +37,11 @@ public class BeControl{
     }
 
     public BeControl(){
-        if(active()){
-            Timer.schedule(() -> {
-                if(checkUpdates && !mobile){
-                    checkUpdate(t -> {});
-                }
-            }, updateInterval, updateInterval);
-        }
+        Timer.schedule(() -> {
+            if(checkUpdates && !mobile){
+                checkUpdate(t -> {});
+            }
+        }, updateInterval, updateInterval);
 
         if(System.getProperties().containsKey("becopy")){
             try{
@@ -59,12 +57,12 @@ public class BeControl{
 
     /** asynchronously checks for updates. */
     public void checkUpdate(Boolc done){
-        Core.net.httpGet("https://api.github.com/repos/Anuken/MindustryBuilds/releases/latest", res -> {
+        Core.net.httpGet("https://api.github.com/repos/buthed010203/mindustry-client-v6/releases/latest", res -> {
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
                 int newBuild = Strings.parseInt(val.getString("tag_name", "0"));
-                if(newBuild > Version.build){
-                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith(headless ? "Mindustry-BE-Server" : "Mindustry-BE-Desktop"));
+                if(newBuild != Version.clientBuild){
+                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith(headless ? "Mindustry-BE-Server" : "desktop-release"));
                     String url = asset.getString("browser_download_url", "");
                     updateAvailable = true;
                     updateBuild = newBuild;
@@ -93,7 +91,8 @@ public class BeControl{
 
         if(!headless){
             checkUpdates = false;
-            ui.showCustomConfirm(Core.bundle.format("be.update", "") + " " + updateBuild, "@be.update.confirm", "@ok", "@be.ignore", () -> {
+
+            ui.showCustomConfirm(Core.bundle.format("be.update", "") + " Current: " + Version.clientBuild + " New: " + updateBuild, "@be.update.confirm", "@ok", "@be.ignore", () -> {
                 try{
                     boolean[] cancel = {false};
                     float[] progress = {0};
@@ -131,7 +130,7 @@ public class BeControl{
                 }
             }, () -> checkUpdates = false);
         }else{
-            Log.info("&lcA new update is available: &lyBleeding Edge build @", updateBuild);
+            Log.info("&lcCurrent: " + Version.clientBuild + " A new update is available: &lyBleeding Edge build @", updateBuild);
             if(Config.autoUpdate.bool()){
                 Log.info("&lcAuto-downloading next version...");
 

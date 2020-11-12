@@ -49,6 +49,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         Log.info("[GL] Max vert/frag shader FP precision: @ / @", Gl.getShaderPrecision(Gl.vertexShader, Gl.highFloat), Gl.getShaderPrecision(Gl.fragmentShader, Gl.highFloat));
         Log.info("[GL] Using @ context.", gl30 != null ? "OpenGL 3" : "OpenGL 2");
         Log.info("[JAVA] Version: @", System.getProperty("java.version"));
+        Log.info("[CLIENT] Build:", Version.clientBuild);
 
         Time.setDeltaProvider(() -> {
             float result = Core.graphics.getDeltaTime() * 60f;

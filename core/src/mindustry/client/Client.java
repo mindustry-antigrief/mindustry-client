@@ -4,9 +4,13 @@ import arc.*;
 import arc.struct.Queue;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
+import mindustry.client.ui.UnitPicker;
+import mindustry.game.EventType;
 import mindustry.game.EventType.*;
+import mindustry.gen.Call;
+import mindustry.type.UnitType;
 
-import static mindustry.Vars.world;
+import static mindustry.Vars.*;
 
 public class Client {
     private static TileLog[][] tileLogs;
@@ -20,6 +24,20 @@ public class Client {
             PowerInfo.initialize();
             Navigation.stopFollowing();
             configs.clear();
+        });
+        Events.on(EventType.UnitChangeEvent.class, event -> {
+            UnitType unit = UnitPicker.found;
+            if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
+                Call.unitControl(player, event.unit);
+                UnitPicker.found = null; // After we switch units, don't attempt to switch again
+            }
+        });
+        Events.on(EventType.UnitCreateEvent.class, event -> { // TODO: Make it check team and remove debug stuff, make sure its not player controlled
+            UnitType unit = UnitPicker.found;
+            if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
+                Call.unitControl(player, event.unit);
+                UnitPicker.found = null; // After we switch units, don't attempt to switch again
+            }
         });
     }
 

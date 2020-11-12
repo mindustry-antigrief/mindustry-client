@@ -325,6 +325,7 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         client.checkPref("reactorwarnings", true);
         client.checkPref("reactorwarningsounds", true);
+        client.checkPref("autoupdate", true);
         client.checkPref("discordrpc", true, val -> {
             ClientLauncher launcher = (ClientLauncher) app.getListeners().find(item -> item instanceof ClientLauncher);
             if (launcher != null && app.isDesktop()) {
