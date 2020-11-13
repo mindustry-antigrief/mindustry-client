@@ -1,6 +1,7 @@
 package mindustry.type;
 
 import arc.*;
+import arc.audio.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
@@ -8,6 +9,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.Scl;
 import arc.util.*;
+import arc.util.noise.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
@@ -23,6 +25,9 @@ public abstract class Weather extends UnlockableContent{
     public float duration = 9f * Time.toMinutes;
     public float opacityMultiplier = 1f;
     public Attributes attrs = new Attributes();
+    public Sound sound = Sounds.none;
+    public float soundVol = 0.1f, soundVolMin = 0f;
+    public float soundVolOscMag = 0f, soundVolOscScl = 20f;
 
     //internals
     public Rand rand = new Rand();
@@ -83,6 +88,11 @@ public abstract class Weather extends UnlockableContent{
             }else{
                 state.effectTimer -= Time.delta;
             }
+        }
+
+        if(!headless && sound != Sounds.none){
+            float noise = soundVolOscMag > 0 ? (float)Math.abs(Noise.rawNoise(Time.time() / soundVolOscScl)) * soundVolOscMag : 0;
+            loops.play(sound, Math.max((soundVol + noise) * state.opacity, soundVolMin));
         }
     }
 

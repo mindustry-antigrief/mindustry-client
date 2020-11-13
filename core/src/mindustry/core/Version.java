@@ -48,10 +48,15 @@ public class Version{
             build = Strings.canParseInt(map.get("build")) ? Integer.parseInt(map.get("build")) : -1;
         }
 
-        build = 112;
+        build = 113;
+        revision = 2;
         type = "official";
         modifier = "beta";
         number = 6;
+    }
+
+    public static String buildString(){
+        return build < 0 ? "custom" : build + (revision == 0 ? "" : "." + revision);
     }
 
     /** get menu version without colors */

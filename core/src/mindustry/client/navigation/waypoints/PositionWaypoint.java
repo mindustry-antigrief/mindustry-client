@@ -4,6 +4,8 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
+import arc.util.Log;
+import arc.util.Time;
 import mindustry.client.navigation.waypoints.Waypoint;
 
 import static mindustry.Vars.*;
@@ -11,6 +13,8 @@ import static mindustry.Vars.*;
 public class PositionWaypoint extends Waypoint implements Position {
     private final float drawX, drawY;
     public float tolerance = 16f;
+    public float distance= 0f;
+    Vec2 vec = new Vec2();
 
     public PositionWaypoint(float drawX, float drawY) {
         this.drawX = drawX;
@@ -22,11 +26,33 @@ public class PositionWaypoint extends Waypoint implements Position {
         this.tolerance = tolerance;
     }
 
+    public PositionWaypoint(float drawX, float drawY, float tolerance, float distance) {
+        this(drawX, drawY);
+        this.tolerance = tolerance;
+        this.distance = distance;
+    }
+
     @Override
     public boolean isDone() {
         return player.within(this, tolerance);
     }
 
+    protected void moveTo(Position target, float circleLength, float smooth){
+        if(target == null) return;
+
+        vec.set(target).sub(player.unit());
+
+        float length = circleLength <= 0.001f ? 1f : Mathf.clamp((player.unit().dst(target) - circleLength) / smooth, -1f, 1f);
+
+        vec.setLength(player.unit().realSpeed() * length);
+        if(length < -0.5f){
+            vec.rotate(180f);
+        }else if(length < 0){
+            vec.setZero();
+        }
+
+        player.unit().moveAt(vec);
+    }
     @Override
     public void run() {
         float direction = player.angleTo(this);
@@ -34,9 +60,14 @@ public class PositionWaypoint extends Waypoint implements Position {
         float y = Mathf.sinDeg(direction) * 2f;
         x = Mathf.clamp(x / 10, -1f, 1f);
         y = Mathf.clamp(y / 10, -1f, 1f);
-        if (player.dst(this) > tolerance) {
-            control.input.updateMovementCustom(player.unit(), x, y, direction);
-        }
+        moveTo(this, distance, 8f);
+//        if (player.dst(this) > tolerance /* + player.unit().realSpeed() / player.unit().drag * Time.delta */) {
+//            //control.input.updateMovementCustom(player.unit(), x, y, direction);
+//            moveTo(this, 30, 100);
+//        }
+//        else if (player.dst(this) < tolerance) {
+//            player.unit().vel.scl(1.0f - player.unit().drag * Time.delta);
+//        }
     }
 
     @Override

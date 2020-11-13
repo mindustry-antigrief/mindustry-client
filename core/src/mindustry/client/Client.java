@@ -1,6 +1,7 @@
 package mindustry.client;
 
 import arc.*;
+import arc.graphics.Color;
 import arc.struct.Queue;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
@@ -25,19 +26,23 @@ public class Client {
             Navigation.stopFollowing();
             configs.clear();
         });
-        Events.on(EventType.UnitChangeEvent.class, event -> {
+        Events.on(EventType.UnitChangeEvent.class, event -> { // TODO: Instead of this code, call a class in UnitPicker.java to find and switch to new unit if possible.
             UnitType unit = UnitPicker.found;
             if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 Call.unitControl(player, event.unit);
-                UnitPicker.found = null; // After we switch units, don't attempt to switch again
-            }
+                if (event.unit.isPlayer()) {
+                if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);} // After we switch units successfully, stop listening for this unit
+                else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer() + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
+            }}
         });
-        Events.on(EventType.UnitCreateEvent.class, event -> { // TODO: Make it check team and remove debug stuff, make sure its not player controlled
+        Events.on(EventType.UnitCreateEvent.class, event -> { // TODO: Instead of this code, call a class in UnitPicker.java to find and switch to new unit if possible.
             UnitType unit = UnitPicker.found;
             if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 Call.unitControl(player, event.unit);
-                UnitPicker.found = null; // After we switch units, don't attempt to switch again
-            }
+                if (event.unit.isPlayer()) {
+                if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);}  // After we switch units successfully, stop listening for this unit
+                else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer() + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
+            }}
         });
     }
 

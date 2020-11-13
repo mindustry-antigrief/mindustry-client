@@ -7,15 +7,18 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import mindustry.client.FooUser;
 import mindustry.client.navigation.AssistPath;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.DesktopInput;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
 
+import static arc.Core.camera;
 import static mindustry.Vars.*;
 
 public class PlayerListFragment extends Fragment{
@@ -37,7 +40,7 @@ public class PlayerListFragment extends Fragment{
                     return;
                 }
 
-                if(visible && timer.get(20)){
+                if(visible && timer.get(60)){
                     rebuild();
                     content.pack();
                     content.act(Core.graphics.getDeltaTime());
@@ -113,6 +116,7 @@ public class PlayerListFragment extends Fragment{
             button.add().grow();
 
             button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
+            button.image(Icon.wrench).visible(() -> FooUser.IsUser(user.name) && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();
@@ -159,8 +163,13 @@ public class PlayerListFragment extends Fragment{
             }
             button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
                     () -> Navigation.follow(new AssistPath(user))).size(h/2);
-            button.button(Icon.block, Styles.clearPartiali, // Unassist/block
+            button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
                     () -> Navigation.follow(new UnAssistPath(user))).size(h/2);
+            button.button(Icon.distribution, Styles.clearPartiali, // Goto
+                    () -> Navigation.navigateTo(user.x, user.y)).size(h/2);
+            button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
+                    () -> { DesktopInput.panning = true; camera.position.set(user);
+            });
 
             content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);
             content.row();

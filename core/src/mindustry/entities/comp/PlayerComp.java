@@ -8,6 +8,7 @@ import arc.scene.ui.layout.*;
 import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.FooUser;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.units.*;
@@ -225,6 +226,8 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     @Override
     public void draw(){
+        boolean fooUser = FooUser.IsUser(name);
+
         Draw.z(Layer.playerName);
         float z = Drawf.text();
 
@@ -251,6 +254,13 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
                 Draw.rect(Icon.adminSmall.getRegion(), unit.x + layout.width / 2f + 2 + 1, unit.y + nameHeight - 1.5f, s, s);
                 Draw.color(color);
                 Draw.rect(Icon.adminSmall.getRegion(), unit.x + layout.width / 2f + 2 + 1, unit.y + nameHeight - 1f, s, s);
+            }
+            else if(fooUser){
+                float s = 3f;
+                Draw.color(color.r * 0.5f, color.g * 0.5f, color.b * 0.5f, 1f);
+                Draw.rect(Icon.wrenchSmall.getRegion(), unit.x + layout.width / 2f + 2 + 1, unit.y + nameHeight - 1.5f, s, s);
+                Draw.color(color);
+                Draw.rect(Icon.wrenchSmall.getRegion(), unit.x + layout.width / 2f + 2 + 1, unit.y + nameHeight - 1f, s, s);
             }
         }
 

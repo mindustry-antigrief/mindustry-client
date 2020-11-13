@@ -61,16 +61,6 @@ public class BuildPlan implements Position{
 
     }
 
-    @Override
-    public float getX() {
-        return x * tilesize;
-    }
-
-    @Override
-    public float getY() {
-        return y * tilesize;
-    }
-
     /** Transforms the internal position of this config using the specified function, and return the result. */
     public static Object pointConfig(Block block, Object config, Cons<Point2> cons){
         if(config instanceof Point2){
@@ -137,11 +127,11 @@ public class BuildPlan implements Position{
     }
 
     public float drawx(){
-        return x*tilesize + block.offset;
+        return x*tilesize + (block == null ? 0 : block.offset);
     }
 
     public float drawy(){
-        return y*tilesize + block.offset;
+        return y*tilesize + (block == null ? 0 : block.offset);
     }
 
     public @Nullable Tile tile(){
@@ -158,6 +148,16 @@ public class BuildPlan implements Position{
         }else{
             return world.tile(x, y).block() == block;
         }
+    }
+
+    @Override
+    public float getX(){
+        return drawx();
+    }
+
+    @Override
+    public float getY(){
+        return drawy();
     }
 
     @Override

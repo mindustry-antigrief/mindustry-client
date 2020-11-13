@@ -68,7 +68,7 @@ public enum Binding implements KeyBind{
     chat_history_next(KeyCode.down),
     chat_scroll(new Axis(KeyCode.scroll)),
     console(KeyCode.f8),
-    tile_actions(KeyCode.altLeft, "client"),
+    tile_actions_menu_modifier(KeyCode.altLeft, "client"),
     reset_camera(KeyCode.r),
     place_waypoint(KeyCode.y),
     drop_payload(KeyCode.backslash),

@@ -14,6 +14,7 @@ import static mindustry.Vars.ui;
 
 public class AssistPath extends Path {
     public final Player assisting;
+    int i = 1;
 
     public AssistPath(Player toAssist) {
         assisting = toAssist;
@@ -36,7 +37,8 @@ public class AssistPath extends Path {
             return;
         }
 
-        new PositionWaypoint(assisting.x, assisting.y, assisting.unit().hitSize * 1.1f + Vars.player.unit().hitSize * 1.1f + 2).run();
+        float tolerance = assisting.unit().hitSize * 1.1f + Vars.player.unit().hitSize * 1.1f + 2;
+        new PositionWaypoint(assisting.x, assisting.y, tolerance, tolerance).run();
 
         try {
             Vars.player.shooting(assisting.unit().isShooting); // Match shoot state

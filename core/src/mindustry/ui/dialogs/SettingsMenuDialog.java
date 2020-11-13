@@ -149,6 +149,12 @@ public class SettingsMenuDialog extends SettingsDialog{
                             }
                         }
                     }
+
+                    for(var slot : control.saves.getSaveSlots().copy()){
+                        if(slot.isSector()){
+                            slot.delete();
+                        }
+                    }
                 });
             }).marginLeft(4);
 
@@ -198,6 +204,25 @@ public class SettingsMenuDialog extends SettingsDialog{
                 t.row();
                 t.button("@data.openfolder", Icon.folder, style, () -> Core.app.openFolder(Core.settings.getDataDirectory().absolutePath())).marginLeft(4);
             }
+
+            t.row();
+
+            t.button("@crash.export", Icon.upload, style, () -> {
+                if(settings.getDataDirectory().child("crashes").list().length == 0 && !settings.getDataDirectory().child("last_log.txt").exists()){
+                    ui.showInfo("@crash.none");
+                }else{
+                    if(ios){
+                        Fi logs = tmpDirectory.child("logs.txt");
+                        logs.writeString(getLogs());
+                        platform.shareFile(logs);
+                    }else{
+                        platform.showFileChooser(false, "txt", file -> {
+                            file.writeString(getLogs());
+                            app.post(() -> ui.showInfo("@crash.exported"));
+                        });
+                    }
+                }
+            }).marginLeft(4);
         });
 
         ScrollPane pane = new ScrollPane(prefs);
@@ -227,6 +252,21 @@ public class SettingsMenuDialog extends SettingsDialog{
         add(buttons).fillX();
 
         addSettings();
+    }
+
+    String getLogs(){
+        Fi log = settings.getDataDirectory().child("last_log.txt");
+
+        StringBuilder out = new StringBuilder();
+        for(Fi fi : settings.getDataDirectory().child("crashes").list()){
+            out.append(fi.name()).append("\n\n").append(fi.readString()).append("\n");
+        }
+
+        if(log.exists()){
+            out.append("\nlast log:\n").append(log.readString());
+        }
+
+        return out.toString();
     }
 
     void rebuildMenu(){
@@ -285,6 +325,9 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         client.checkPref("reactorwarnings", true);
         client.checkPref("reactorwarningsounds", true);
+        client.checkPref("lighting", true);
+        client.checkPref("displayasuser", false);
+        client.checkPref("highlightclientmsg", false);
         client.checkPref("autoupdate", true);
         client.checkPref("discordrpc", true, val -> {
             ClientLauncher launcher = (ClientLauncher) app.getListeners().find(item -> item instanceof ClientLauncher);
@@ -296,7 +339,7 @@ public class SettingsMenuDialog extends SettingsDialog{
                 }
             }
         });
-        client.sliderPref("weatheropacity", "setting.weatheropacity.name", 50, 0, 100, s -> s + "%");
+        client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);
         game.checkPref("conveyorpathfinding", true);
@@ -383,7 +426,6 @@ public class SettingsMenuDialog extends SettingsDialog{
             }
         }
 
-        client.checkPref("lighting", true);
         graphics.checkPref("effects", true);
         graphics.checkPref("atmosphere", !mobile);
         graphics.checkPref("destroyedblocks", true);

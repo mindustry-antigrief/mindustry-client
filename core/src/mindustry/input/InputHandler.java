@@ -56,14 +56,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     final static float playerSelectRange = mobile ? 17f : 11f;
     /** Maximum line length. */
     final static int maxLength = 100;
-    final static Vec2 stackTrns = new Vec2();
     final static Rect r1 = new Rect(), r2 = new Rect();
-    final static Seq<Unit> units = new Seq<>();
-    /** Distance on the back from where items originate. */
-    final static float backTrns = 3f;
 
     public final OverlayFragment frag = new OverlayFragment();
 
+    public Interval controlInterval = new Interval();
     public @Nullable Block block;
     public boolean overrideLineRotation;
     public int rotation;
@@ -142,7 +139,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         !netServer.admins.allowAction(player, ActionType.withdrawItem, tile.tile(), action -> {
             action.item = item;
             action.itemAmount = amount;
-        }))) throw new ValidateException(player, "Player cannot request items.");
+        }))){
+            throw new ValidateException(player, "Player cannot request items.");
+        }
 
         //remove item for every controlling unit
         player.unit().eachGroup(unit -> {
@@ -373,7 +372,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         //clear player unit when they possess a core
-        if((unit instanceof BlockUnitc && ((BlockUnitc)unit).tile() instanceof CoreBuild)){
+        if(unit instanceof BlockUnitc block && block.tile() instanceof CoreBuild build){
             Fx.spawn.at(player);
             if(net.client()){
                 control.input.controlledType = null;
@@ -381,8 +380,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
             player.clearUnit();
             player.deathTimer = 61f;
-            ((CoreBuild)((BlockUnitc)unit).tile()).requestSpawn(player);
-
+            build.requestSpawn(player);
         }else if(unit == null){ //just clear the unit (is this used?)
             player.clearUnit();
             //make sure it's AI controlled, so players can't overwrite each other
@@ -396,6 +394,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 Fx.unitSpirit.at(player.x, player.y, 0f, unit);
             }
         }
+
+        Events.fire(new UnitControlEvent(player, unit));
     }
 
     @Remote(targets = Loc.both, called = Loc.both, forward = true)
@@ -465,7 +465,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead);
 
             if(unit != null){
-                Call.unitControl(player, unit);
+                //only trying controlling once a second to prevent packet spam
+                if(!net.client() || controlInterval.get(0, 70f)){
+                    Call.unitControl(player, unit);
+                }
             }
         }
     }
@@ -596,6 +599,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 schematics.add(lastSchematic);
                 ui.showInfoFade("@schematic.saved");
                 ui.schematics.showInfo(lastSchematic);
+                Events.fire(new SchematicCreateEvent(lastSchematic));
             }
         });
     }
@@ -980,11 +984,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     boolean canMine(Tile tile){
         return !Core.scene.hasMouse()
-        && tile.drop() != null
-        && player.miner().validMine(tile)
-        && !(tile.floor().playerUnmineable && tile.overlay().itemDrop == null)
-        && player.unit().acceptsItem(tile.drop())
-        && tile.block() == Blocks.air;
+            && tile.drop() != null
+            && player.miner().validMine(tile)
+            && !(tile.floor().playerUnmineable && tile.overlay().itemDrop == null)
+            && player.unit().acceptsItem(tile.drop())
+            && tile.block() == Blocks.air;
     }
 
     /** Returns the tile at the specified MOUSE coordinates. */
@@ -1033,7 +1037,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public @Nullable Unit selectedUnit(){
-        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, 40f, u -> u.isAI());
+        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, 40f, Unitc::isAI);
         if(unit != null){
             unit.hitbox(Tmp.r1);
             Tmp.r1.grow(6f);
@@ -1091,7 +1095,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public boolean canShoot(){
-        return block == null && !onConfigurable() && !isDroppingItem() && !(player.builder().updateBuilding() && player.builder().isBuilding()) &&
+        return block == null && !onConfigurable() && !isDroppingItem() && !player.builder().activelyBuilding() &&
             !(player.unit() instanceof Mechc && player.unit().isFlying());
     }
 
@@ -1212,7 +1216,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(block instanceof PowerNode){
             Seq<Point2> skip = new Seq<>();
-            
+
             for(int i = 1; i < points.size; i++){
                 int overlaps = 0;
                 Point2 point = points.get(i);
@@ -1281,7 +1285,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         float strafePenalty = ground ? 1f : Mathf.lerp(1f, unit.type().strafePenalty, Angles.angleDist(unit.vel().angle(), unit.rotation()) / 180f);
         float baseSpeed = unit.type().speed;
 
-        //limit speed to minimum formation speed to preserve formation
+        //limit speed to minimum formation speed to preserve formation TODO: All units are commanders now, reflect that change
         if(unit instanceof Commanderc && ((Commanderc)unit).isCommanding()){
             //add a tiny multiplier to let units catch up just in case
             baseSpeed = ((Commanderc)unit).minFormationSpeed() * 0.95f;

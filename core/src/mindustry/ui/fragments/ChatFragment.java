@@ -12,6 +12,8 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.client.FooUser;
+import mindustry.core.NetClient;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.ui.*;
@@ -190,7 +192,7 @@ public class ChatFragment extends Table{
 
         if(!shown){
             scene.setKeyboardFocus(chatfield);
-            shown = !shown;
+            shown = true;
             if(mobile){
                 TextInput input = new TextInput();
                 input.maxLength = maxTextLength;
@@ -206,10 +208,13 @@ public class ChatFragment extends Table{
                 chatfield.fireClick();
             }
         }else{
-            scene.setKeyboardFocus(null);
-            shown = !shown;
-            scrollPos = 0;
-            sendMessage();
+            //sending chat has a delay; workaround for issue #1943
+            Time.run(2f, () ->{
+                scene.setKeyboardFocus(null);
+                shown = false;
+                scrollPos = 0;
+                sendMessage();
+            });
         }
     }
 
@@ -236,6 +241,7 @@ public class ChatFragment extends Table{
 
     public ChatMessage addMessage(String message, String sender, Color background){
         if(sender == null && message == null) return null;
+        if (FooUser.IsUser(sender) && !sender.equals(NetClient.colorizeName(player.id, player.name)) && Core.settings.getBool("highlightclientmsg")) {background = Color.coral;}
         ChatMessage msg = new ChatMessage(message, sender, background);
         messages.insert(0, msg);
 

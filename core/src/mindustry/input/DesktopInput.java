@@ -53,13 +53,13 @@ public class DesktopInput extends InputHandler{
     /** Selected build request for movement. */
     public @Nullable BuildPlan sreq;
     /** Whether player is currently deleting removal requests. */
-    public boolean deleting = false, shouldShoot = false, panning = false;
+    public boolean deleting = false, shouldShoot = false;
+    public static boolean panning = false;
     /** Mouse pan speed. */
     public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 9f;
 
     @Override
     public void buildUI(Group group){
-
         group.fill(t -> {
             t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()));
             t.bottom();
@@ -245,7 +245,7 @@ public class DesktopInput extends InputHandler{
             Navigation.navigateTo(camera.position.x, camera.position.y);
         }
 
-        if(input.keyDown(Binding.pan) && scene.getKeyboardFocus() == null){
+        if(input.keyDown(Binding.pan) && !scene.hasField() && !scene.hasDialog()){
             panCam = true;
             panning = true;
         }
@@ -274,7 +274,7 @@ public class DesktopInput extends InputHandler{
         }
 
         //TODO awful UI state checking code
-        if(((player.dead() || state.isPaused()) && !ui.chatfrag.shown()) && (!scene.hasField() && !scene.hasDialog())){
+        if(((player.dead() || state.isPaused()) && !ui.chatfrag.shown()) && !scene.hasField() && !scene.hasDialog()){
             if(input.keyDown(Binding.mouse_move)){
                 panCam = true;
             }
@@ -294,12 +294,12 @@ public class DesktopInput extends InputHandler{
         Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
         if(!scene.hasMouse()){
-            if(Core.input.alt() && Core.input.keyTap(Binding.select) && cursor != null){
+            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null){
                 int itemHeight = 30;
                 Table table = new Table(Tex.buttonTrans);
                 table.touchable = Touchable.childrenOnly;
                 table.setWidth(400);
-                table.margin(0);
+                table.margin(0).marginRight(5);
                 table.fill();
                 table.defaults().height(itemHeight).pad(0f, 5f, 5f, 5f).fillX();
                 try {
@@ -607,8 +607,8 @@ public class DesktopInput extends InputHandler{
                 deleting = true;
             }else if(selected != null){
                 //only begin shooting if there's no cursor event
-                if(!tileTapped(selected.build) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && (player.builder().plans().size == 0 || !player.builder().updateBuilding()) && !droppingItem &&
-                !tryBeginMine(selected) && player.miner().mineTile() == null && !Core.scene.hasKeyboard()){
+                if(!tileTapped(selected.build) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !player.builder().activelyBuilding() && !droppingItem &&
+                    !tryBeginMine(selected) && player.miner().mineTile() == null && !Core.scene.hasKeyboard()){
                     player.shooting = shouldShoot;
                 }
             }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine
@@ -728,16 +728,7 @@ public class DesktopInput extends InputHandler{
         boolean omni = unit.type.omniMovement;
         boolean ground = unit.isGrounded();
 
-        float strafePenalty = ground ? 1f : Mathf.lerp(1f, unit.type.strafePenalty, Angles.angleDist(unit.vel().angle(), unit.rotation()) / 180f);
-        float baseSpeed = unit.type.speed;
-
-        //limit speed to minimum formation speed to preserve formation
-        if(unit.isCommanding()){
-            //add a tiny multiplier to let units catch up just in case
-            baseSpeed = unit.minFormationSpeed * 0.95f;
-        }
-
-        float speed = baseSpeed * Mathf.lerp(1f, unit.type.canBoost ? unit.type.boostMultiplier : 1f, unit.elevation) * strafePenalty;
+        float speed = unit.realSpeed();
         float xa = Core.input.axis(Binding.move_x);
         float ya = Core.input.axis(Binding.move_y);
         if(input.alt()){
@@ -756,9 +747,7 @@ public class DesktopInput extends InputHandler{
         if(aimCursor){
             unit.lookAt(mouseAngle);
         }else{
-            if(!movement.isZero()){
-                unit.lookAt(unit.vel.isZero() ? movement.angle() : unit.vel.angle());
-            }
+            unit.lookAt(unit.prefRotation());
         }
 
         if(omni){
@@ -779,7 +768,6 @@ public class DesktopInput extends InputHandler{
 
         //update payload input
         if(unit instanceof Payloadc){
-
             if(Core.input.keyTap(Binding.pickupCargo)){
                 tryPickupPayload();
             }

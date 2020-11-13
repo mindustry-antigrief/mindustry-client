@@ -1,10 +1,12 @@
 package mindustry.client.ui;
 
 import arc.*;
+import arc.graphics.Color;
 import arc.input.*;
 import arc.scene.ui.*;
 import arc.scene.utils.*;
 import arc.struct.*;
+import arc.util.Log;
 import arc.util.Strings;
 import mindustry.entities.Units;
 import mindustry.gen.Call;
@@ -18,7 +20,7 @@ import static mindustry.Vars.*;
 
 public class UnitPicker extends BaseDialog{
     public static UnitType found;
-    private TextField findField = null;
+    private TextField findField;
 
     public UnitPicker(){
         super("Unit Picker");
@@ -51,17 +53,18 @@ public class UnitPicker extends BaseDialog{
         }
 
         keyDown(KeyCode.enter, () -> {
-            if(found == null){
-                hide();
-            }
-
-            Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead);
-                if(find != null) {
+            Log.info(found);
+            if (found != null) {
+                Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead && u.formation == null);
+                if ( find == null) { Log.info("all controlled or none exists"); find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead); }
+                if (find != null) {
                     Call.unitControl(player, find);
-                    ui.chatfrag.addMessage("worked", "client");
-                    this.hide();
-                } else { ui.chatfrag.addMessage("no " + found + " was found, you will switch to it when it spawns", "client"); this.hide(); }
-
+                    found = null; // No need to check if the player has managed to take control as it is very unlikely that 2 players attempt this on the same unit at once.
+                } else {
+                    ui.chatfrag.addMessage("No " + found + " was found, automatically switching to that unit when it spawns (set picked unit to alpha).", "Unit Picker", Color.gold);
+                }
+            }
+            hide();
         });
     }
 

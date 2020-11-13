@@ -1,9 +1,8 @@
 package mindustry.client.navigation;
 
-import arc.Core;
 import arc.math.geom.Vec2;
 import arc.struct.*;
-import arc.util.Time;
+import arc.util.Interval;
 import mindustry.Vars;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
@@ -19,6 +18,7 @@ public class Navigation {
     public static Seq<TurretPathfindingEntity> obstacles = new Seq<>();
     private static Vec2 targetPos = null;
     private static Seq<TurretPathfindingEntity> obstaclesNotEmpty = new Seq<>();
+    private static final Interval timer = new Interval();
 
     public static void follow(Path path) {
         stopFollowing();
@@ -32,7 +32,7 @@ public class Navigation {
 
     public static void update() {
         if (targetPos != null) { // must be navigating, TODO: dejank
-            if (Core.graphics.getFrameId() % 30 == 0) {
+            if (timer.get(10)) {
                 navigateTo(targetPos.x, targetPos.y);
             }
         }
@@ -41,7 +41,6 @@ public class Navigation {
             currentlyFollowing.follow();
             if (currentlyFollowing.isDone()) {
                 stopFollowing();
-                Vars.player.shooting(false);
             }
         }
         obstaclesNotEmpty = obstacles;
