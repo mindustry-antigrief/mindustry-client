@@ -42,11 +42,14 @@ public class AssistPath extends Path {
 
         try {
             Vars.player.shooting(assisting.unit().isShooting); // Match shoot state
-            if (assisting.unit().isShooting) {
-                Vars.player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()); // Match aim coordinates
-                if (Vars.player.unit().type.rotateShooting && assisting.unit().isShooting){ // Rotate player if static weapons when assisted player is shooting
-                    Vars.player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY());}
-        }} catch (Exception e) {}
+            Vars.player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()); // Match aim coordinates
+
+            if ((assisting.unit().isShooting && Vars.player.unit().type.rotateShooting)) { // Rotate to aim coords if needed, otherwise face assisted player
+                Vars.player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY());
+            } else {
+                Vars.player.unit().lookAt(assisting.unit());
+            }
+        } catch (Exception e) {}
         // TODO: Review -> Only shoot when not moving/free aim turrets (i dont really think its needed)
 //        else if(Vars.player.unit().moving()){
 //            Vars.player.unit().lookAt(Vars.player.unit().vel.angle());
