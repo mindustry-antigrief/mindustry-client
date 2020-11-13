@@ -247,7 +247,7 @@ public class DesktopInput extends InputHandler{
             panning = true;
         }
 
-        if(input.alt() && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
+        if(input.keyDown(Binding.freecam_modifier) && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
             panning = true;
             float speed = Time.delta;
             speed *= camera.width;
@@ -735,7 +735,7 @@ public class DesktopInput extends InputHandler{
         float speed = unit.realSpeed();
         float xa = Core.input.axis(Binding.move_x);
         float ya = Core.input.axis(Binding.move_y);
-        if(input.alt()){
+        if(input.keyDown(Binding.freecam_modifier)){
             xa = ya = 0f;
         }
         boolean boosted = (unit instanceof Mechc && unit.isFlying());
