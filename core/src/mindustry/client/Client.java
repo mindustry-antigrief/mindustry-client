@@ -13,6 +13,7 @@ public class Client {
     //todo: use this instead of Navigation.isFollowing and such
     public static ClientMode mode = ClientMode.normal;
     public static Queue<ConfigRequest> configs = new Queue<>();
+    public static boolean showingTurrets = false;
 
     public static void initialize() {
         Events.on(WorldLoadEvent.class, event -> {

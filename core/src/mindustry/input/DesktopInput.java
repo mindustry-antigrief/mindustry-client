@@ -15,6 +15,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.client.Client;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
@@ -229,6 +230,10 @@ public class DesktopInput extends InputHandler{
             if(input.keyTap(Binding.place_waypoint) && scene.getKeyboardFocus() == null){
                 Navigation.addWaypointRecording(new PositionWaypoint(player.x, player.y));
             }
+        }
+
+        if(input.keyTap(Binding.show_turret_ranges)){
+            Client.showingTurrets = !Client.showingTurrets;
         }
 
         if(input.keyTap(Binding.stop_following_path) && scene.getKeyboardFocus() == null){

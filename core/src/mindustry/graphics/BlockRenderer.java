@@ -299,7 +299,7 @@ public class BlockRenderer implements Disposable{
             }
         }
 
-
+        world.tiles.forEach(tile -> tile.block().drawAlways(tile));
     }
 
     @Override
