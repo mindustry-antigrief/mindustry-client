@@ -4,6 +4,7 @@ import arc.*;
 import arc.math.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.Client;
 import mindustry.core.GameState.*;
 import mindustry.client.navigation.Navigation;
 import mindustry.ctype.*;
@@ -315,6 +316,7 @@ public class Logic implements ApplicationListener{
                 Groups.weather.each(w -> state.envAttrs.add(w.weather.attrs, w.opacity));
 
                 Navigation.obstacles.clear();
+                Client.turrets.clear();
                 Groups.update();
             }
 

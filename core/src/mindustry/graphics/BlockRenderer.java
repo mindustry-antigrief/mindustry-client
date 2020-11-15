@@ -6,8 +6,10 @@ import arc.graphics.Texture.*;
 import arc.graphics.g2d.*;
 import arc.graphics.gl.*;
 import arc.math.*;
+import arc.math.geom.Rect;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.client.Client;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.game.Teams.*;
@@ -15,6 +17,8 @@ import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.power.*;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -299,7 +303,16 @@ public class BlockRenderer implements Disposable{
             }
         }
 
-        world.tiles.forEach(tile -> tile.block().drawAlways(tile));
+        if (Client.showingTurrets) {
+            Rect bounds = new Rect();
+            Core.camera.bounds(bounds);
+            Client.turrets.forEach(turret -> {
+                Rect turretBounds = new Rect().setSize(turret.range() * 2).setCenter(turret.x, turret.y);
+                if (bounds.overlaps(turretBounds)) {
+                    Drawf.dashCircle(turret.x, turret.y, turret.range(), turret.team.color);
+                }
+            });
+        }
     }
 
     @Override

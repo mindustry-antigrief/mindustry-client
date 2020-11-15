@@ -234,12 +234,6 @@ public class Block extends UnlockableContent{
         }
     }
 
-    public void drawAlways(Tile tile) {
-        if (tile == null) return;
-        if (tile.build == null) return;
-        tile.build.drawAlways();
-    }
-
     public float percentSolid(int x, int y){
         Tile tile = world.tile(x, y);
         if(tile == null) return 0;

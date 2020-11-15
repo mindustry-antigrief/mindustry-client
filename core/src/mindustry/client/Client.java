@@ -2,9 +2,11 @@ package mindustry.client;
 
 import arc.*;
 import arc.struct.Queue;
+import arc.struct.Seq;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.game.EventType.*;
+import mindustry.world.blocks.defense.turrets.BaseTurret;
 
 import static mindustry.Vars.world;
 
@@ -14,6 +16,7 @@ public class Client {
     public static ClientMode mode = ClientMode.normal;
     public static Queue<ConfigRequest> configs = new Queue<>();
     public static boolean showingTurrets = false;
+    public static Seq<BaseTurret.BaseTurretBuild> turrets = new Seq<>();
 
     public static void initialize() {
         Events.on(WorldLoadEvent.class, event -> {
@@ -21,6 +24,7 @@ public class Client {
             PowerInfo.initialize();
             Navigation.stopFollowing();
             configs.clear();
+            turrets.clear();
         });
     }
 
