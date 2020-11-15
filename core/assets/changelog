@@ -1,3 +1,12 @@
+# Version 2.4
+ * Tile logs persist over /sync (does not work for server-forced sync)
+
+# Version 2.3
+ * Improved turret range showing performance
+
+# Version 2.2
+ * Added turret range display bound by default to backtick (`)
+
 # Version 2.0
  * UI tweaks:
  * Improved top left UI (the one with player hp and wave info)
