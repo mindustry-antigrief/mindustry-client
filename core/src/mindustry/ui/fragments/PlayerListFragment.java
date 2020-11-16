@@ -7,7 +7,9 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import mindustry.client.Client;
 import mindustry.client.FooUser;
+import mindustry.client.Spectate;
 import mindustry.client.navigation.AssistPath;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
@@ -168,7 +170,9 @@ public class PlayerListFragment extends Fragment{
             button.button(Icon.distribution, Styles.clearPartiali, // Goto
                     () -> Navigation.navigateTo(user.x, user.y)).size(h/2);
             button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
-                    () -> { DesktopInput.panning = true; camera.position.set(user);
+                    () -> {
+                DesktopInput.panning = true;
+                Spectate.user = user;
             });
 
             content.add(button).padBottom(-6).width(600f).maxHeight(h + 14);

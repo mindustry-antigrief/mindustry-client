@@ -16,6 +16,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.Client;
+import mindustry.client.Spectate;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
@@ -276,6 +277,7 @@ public class DesktopInput extends InputHandler{
 
         if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null){
             panning = false;
+            Spectate.user = null;
         }
 
         //TODO awful UI state checking code

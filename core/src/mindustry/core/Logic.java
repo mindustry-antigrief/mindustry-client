@@ -38,7 +38,7 @@ public class Logic implements ApplicationListener{
             Tile tile = event.tile;
             Block block = tile.block();
             //skip null entities or un-rebuildables, for obvious reasons; also skip client since they can't modify these requests
-            if(tile.build == null || !tile.block().rebuildable || net.client()) return;
+            if(tile.build == null || !tile.block().rebuildable) return;
 
             tile.build.addPlan(true);
         });

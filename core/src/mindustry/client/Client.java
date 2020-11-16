@@ -10,10 +10,12 @@ import mindustry.client.navigation.*;
 import mindustry.client.ui.UnitPicker;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
+import mindustry.gen.Player;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.gen.Call;
 import mindustry.type.UnitType;
 
+import static arc.Core.camera;
 import static mindustry.Vars.*;
 
 public class Client {
@@ -58,6 +60,8 @@ public class Client {
     public static void update() {
         Navigation.update();
         PowerInfo.update();
+        Spectate.update();
+
         if (!configs.isEmpty()) {
             try {
                 configs.removeFirst().run();

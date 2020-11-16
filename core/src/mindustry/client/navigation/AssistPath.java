@@ -10,6 +10,7 @@ import mindustry.gen.Minerc;
 import mindustry.gen.Player;
 import mindustry.world.blocks.storage.CoreBlock;
 
+import static mindustry.Vars.player;
 import static mindustry.Vars.ui;
 
 public class AssistPath extends Path {
@@ -38,7 +39,6 @@ public class AssistPath extends Path {
         }
 
         float tolerance = assisting.unit().hitSize * 1.1f + Vars.player.unit().hitSize * 1.1f + 2;
-        new PositionWaypoint(assisting.x, assisting.y, tolerance, tolerance).run();
 
         try {
             Vars.player.shooting(assisting.unit().isShooting); // Match shoot state
@@ -46,10 +46,9 @@ public class AssistPath extends Path {
 
             if ((assisting.unit().isShooting && Vars.player.unit().type.rotateShooting)) { // Rotate to aim coords if needed, otherwise face assisted player
                 Vars.player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY());
-            } else {
-                Vars.player.unit().lookAt(assisting.unit());
             }
         } catch (Exception e) {}
+        new PositionWaypoint(assisting.x, assisting.y, tolerance, tolerance).run();
         // TODO: Review -> Only shoot when not moving/free aim turrets (i dont really think its needed)
 //        else if(Vars.player.unit().moving()){
 //            Vars.player.unit().lookAt(Vars.player.unit().vel.angle());
