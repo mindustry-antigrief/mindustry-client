@@ -226,7 +226,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     @Override
     public void draw(){
-        boolean fooUser = FooUser.IsUser(name);
+        boolean fooUser = FooUser.IsUser(self());
 
         Draw.z(Layer.playerName);
         float z = Drawf.text();

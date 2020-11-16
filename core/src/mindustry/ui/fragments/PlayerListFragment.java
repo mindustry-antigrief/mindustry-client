@@ -7,7 +7,6 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
-import mindustry.client.Client;
 import mindustry.client.FooUser;
 import mindustry.client.Spectate;
 import mindustry.client.navigation.AssistPath;
@@ -20,7 +19,6 @@ import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
 
-import static arc.Core.camera;
 import static mindustry.Vars.*;
 
 public class PlayerListFragment extends Fragment{
@@ -118,7 +116,7 @@ public class PlayerListFragment extends Fragment{
             button.add().grow();
 
             button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
-            button.image(Icon.wrench).visible(() -> FooUser.IsUser(user.name) && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
+            button.image(Icon.wrench).visible(() -> FooUser.IsUser(user) && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();
@@ -167,7 +165,7 @@ public class PlayerListFragment extends Fragment{
                     () -> Navigation.follow(new AssistPath(user))).size(h/2);
             button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
                     () -> Navigation.follow(new UnAssistPath(user))).size(h/2);
-            button.button(Icon.distribution, Styles.clearPartiali, // Goto
+            button.button(Icon.move, Styles.clearPartiali, // Goto
                     () -> Navigation.navigateTo(user.x, user.y)).size(h/2);
             button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
                     () -> {

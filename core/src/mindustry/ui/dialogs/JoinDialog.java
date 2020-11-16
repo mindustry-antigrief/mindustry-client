@@ -269,7 +269,7 @@ public class JoinDialog extends BaseDialog{
             t.field(Core.settings.getString("name"), text -> {
                 player.name(text);
                 Core.settings.put("name", text);
-            }).grow().pad(8).addInputDialog(Core.settings.getBool("displayasuser") ? maxNameLength - 2 : maxNameLength);
+            }).grow().pad(8).addInputDialog(maxNameLength);
 
             ImageButton button = t.button(Tex.whiteui, Styles.clearFulli, 40, () -> {
                 new PaletteDialog().show(color -> {

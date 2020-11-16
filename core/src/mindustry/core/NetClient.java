@@ -11,12 +11,15 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.FooUser;
+import mindustry.client.utils.FloatEmbed;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.graphics.Pal;
 import mindustry.net.Administration.*;
 import mindustry.net.Net.*;
 import mindustry.net.*;
@@ -73,7 +76,7 @@ public class NetClient implements ApplicationListener{
             });
 
             ConnectPacket c = new ConnectPacket();
-            c.name = player.name.concat(Core.settings.getBool("displayasuser") ? "[]" : ""); // Used for client detection
+            c.name = player.name;
             c.mods = mods.getModStrings();
             c.mobile = mobile;
             c.versionType = Version.type;
@@ -152,8 +155,13 @@ public class NetClient implements ApplicationListener{
     //called on all clients
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, String sender, Player playersender){
+        Color background = null;
         if(Vars.ui != null){
-            Vars.ui.chatfrag.addMessage(message, sender);
+            if (FooUser.IsUser(playersender) && !playersender.equals(player)) { // Add wrench to client user messages, highlight if enabled
+                sender = "\uE80F " + sender;
+                if (Core.settings.getBool("highlightclientmsg")) { background = Pal.accent; }
+            }
+            Vars.ui.chatfrag.addMessage(message, sender, background);
         }
 
         if(playersender != null){
@@ -602,7 +610,8 @@ public class NetClient implements ApplicationListener{
             uid,
             player.dead(),
             unit.x, unit.y,
-            player.unit().aimX(), player.unit().aimY(),
+            Core.settings.getBool("displayasuser") ? FloatEmbed.embedInFloat(player.unit().aimX()) : player.unit().aimX(),
+            Core.settings.getBool("displayasuser") ? FloatEmbed.embedInFloat(player.unit().aimY()) : player.unit().aimY(),
             unit.rotation,
             unit instanceof Mechc m ? m.baseRotation() : 0,
             unit.vel.x, unit.vel.y,
