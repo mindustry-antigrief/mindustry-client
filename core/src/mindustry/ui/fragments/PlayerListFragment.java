@@ -158,13 +158,15 @@ public class PlayerListFragment extends Fragment{
                     });
                 }).size(h/2);
             }
-            button.image(() -> (FloatEmbed.isEmbedded(user.mouseX) && FloatEmbed.isEmbedded(user.mouseY)) ? Icon.wrench.getRegion() : Icon.cancel.getRegion());
+            Image img = new Image(Icon.cancel);
+            img.update(() -> img.setDrawable((FloatEmbed.isEmbedded(user.mouseX) && FloatEmbed.isEmbedded(user.mouseY)) ? Icon.wrench : Icon.cancel));
+            button.add(img);
             button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
                     () -> Navigation.follow(new AssistPath(user))).size(h/2);
             button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
                     () -> Navigation.follow(new UnAssistPath(user))).size(h/2);
 
-            content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);
+            content.add(button).padBottom(-6).width(400f).maxHeight(h + 14);
             content.row();
             content.image().height(4f).color(state.rules.pvp ? user.team().color : Pal.gray).growX();
             content.row();
