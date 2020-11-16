@@ -7,6 +7,7 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import mindustry.client.Client;
 import mindustry.client.navigation.AssistPath;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
@@ -114,6 +115,7 @@ public class PlayerListFragment extends Fragment{
             button.add().grow();
 
             button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
+            button.image(Icon.wrench).visible(() -> FloatEmbed.isEmbedded(user.mouseX) && FloatEmbed.isEmbedded(user.mouseY)).padRight(5).get().updateVisibility();
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();
@@ -159,7 +161,6 @@ public class PlayerListFragment extends Fragment{
                 }).size(h/2);
             }
             Image img = new Image(Icon.cancel);
-            img.update(() -> img.setDrawable((FloatEmbed.isEmbedded(user.mouseX) && FloatEmbed.isEmbedded(user.mouseY)) ? Icon.wrench : Icon.cancel));
             button.add(img);
             button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
                     () -> Navigation.follow(new AssistPath(user))).size(h/2);

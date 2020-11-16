@@ -11,6 +11,7 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.utils.FloatEmbed;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -602,7 +603,7 @@ public class NetClient implements ApplicationListener{
             uid,
             player.dead(),
             unit.x, unit.y,
-            player.unit().aimX(), player.unit().aimY(),
+            FloatEmbed.embedInFloat(player.unit().aimX()), FloatEmbed.embedInFloat(player.unit().aimY()),
             unit.rotation,
             unit instanceof Mechc m ? m.baseRotation() : 0,
             unit.vel.x, unit.vel.y,
