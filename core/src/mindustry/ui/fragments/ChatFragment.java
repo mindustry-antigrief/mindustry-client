@@ -16,6 +16,7 @@ import mindustry.client.FooUser;
 import mindustry.core.NetClient;
 import mindustry.client.Client;
 import mindustry.gen.*;
+import mindustry.graphics.Pal;
 import mindustry.input.*;
 import mindustry.ui.*;
 
@@ -245,7 +246,10 @@ public class ChatFragment extends Table{
 
     public ChatMessage addMessage(String message, String sender, Color background){
         if(sender == null && message == null) return null;
-        if (FooUser.IsUser(sender) && !sender.equals(NetClient.colorizeName(player.id, player.name)) && Core.settings.getBool("highlightclientmsg")) {background = Color.coral;}
+        if (FooUser.IsUser(sender) && !sender.equals(NetClient.colorizeName(player.id, player.name))) { // Add wrench to client user messages, highlight if enabled
+            sender = "\uE80F " + sender;
+            if (Core.settings.getBool("highlightclientmsg")) { background = Pal.accent; }
+        }
         ChatMessage msg = new ChatMessage(message, sender, background);
         messages.insert(0, msg);
 

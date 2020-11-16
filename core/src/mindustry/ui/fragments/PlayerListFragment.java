@@ -112,7 +112,7 @@ public class PlayerListFragment extends Fragment{
             table.name = user.name();
 
             button.add(table).size(h);
-            button.labelWrap("[#" + user.color().toString().toUpperCase() + "]" + user.name()).width(170f).pad(10);
+            button.labelWrap("[#" + user.color().toString().toUpperCase() + "]" + user.name()).width(300f).pad(10);
             button.add().grow();
 
             button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();

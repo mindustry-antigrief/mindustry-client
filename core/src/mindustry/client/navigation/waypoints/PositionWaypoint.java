@@ -13,7 +13,7 @@ import static mindustry.Vars.*;
 public class PositionWaypoint extends Waypoint implements Position {
     private final float drawX, drawY;
     public float tolerance = 16f;
-    public float distance= 0f;
+    public float distance = 0f;
     Vec2 vec = new Vec2();
 
     public PositionWaypoint(float drawX, float drawY) {
