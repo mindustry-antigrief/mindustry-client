@@ -12,7 +12,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.client.*;
+import mindustry.client.FooUser;
 import mindustry.core.NetClient;
 import mindustry.client.Client;
 import mindustry.gen.*;

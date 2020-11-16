@@ -8,7 +8,7 @@ import arc.scene.ui.layout.*;
 import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.*;
+import mindustry.client.FooUser;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.units.*;
