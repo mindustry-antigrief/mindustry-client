@@ -10,6 +10,7 @@ import arc.util.*;
 import mindustry.client.navigation.AssistPath;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
+import mindustry.client.utils.FloatEmbed;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
@@ -157,6 +158,7 @@ public class PlayerListFragment extends Fragment{
                     });
                 }).size(h/2);
             }
+            button.image(() -> (FloatEmbed.isEmbedded(user.mouseX) && FloatEmbed.isEmbedded(user.mouseY)) ? Icon.wrench.getRegion() : Icon.cancel.getRegion());
             button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
                     () -> Navigation.follow(new AssistPath(user))).size(h/2);
             button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block

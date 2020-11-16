@@ -21,6 +21,7 @@ import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
 import mindustry.client.ui.StupidMarkupParser;
+import mindustry.client.utils.FloatEmbed;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -772,8 +773,8 @@ public class DesktopInput extends InputHandler{
         unit.controlWeapons(true, player.shooting && !boosted);
 
         player.boosting = Core.input.keyDown(Binding.boost) && !movement.isZero();
-        player.mouseX = unit.aimX();
-        player.mouseY = unit.aimY();
+        player.mouseX = FloatEmbed.embedInFloat(unit.aimX());
+        player.mouseY = FloatEmbed.embedInFloat(unit.aimY());
 
         //update payload input
         if(unit instanceof Payloadc){
