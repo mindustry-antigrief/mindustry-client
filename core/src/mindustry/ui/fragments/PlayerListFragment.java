@@ -7,7 +7,7 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
-import mindustry.client.FooUser;
+import mindustry.client.*;
 import mindustry.client.navigation.AssistPath;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
@@ -171,14 +171,14 @@ public class PlayerListFragment extends Fragment{
                     () -> { DesktopInput.panning = true; camera.position.set(user);
             });
 
-            content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);
+            content.add(button).padBottom(-6).width(600f).maxHeight(h + 14);
             content.row();
             content.image().height(4f).color(state.rules.pvp ? user.team().color : Pal.gray).growX();
             content.row();
         });
 
         if(!found){
-            content.add(Core.bundle.format("players.notfound")).padBottom(6).width(350f).maxHeight(h + 14);
+            content.add(Core.bundle.format("players.notfound")).padBottom(6).width(600f).maxHeight(h + 14);
         }
 
         content.marginBottom(5);
