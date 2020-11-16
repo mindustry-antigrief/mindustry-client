@@ -14,6 +14,7 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.client.FooUser;
 import mindustry.core.NetClient;
+import mindustry.client.Client;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.ui.*;
@@ -186,6 +187,9 @@ public class ChatFragment extends Table{
         history.insert(1, message);
 
         Call.sendChatMessage(message);
+        if (message.equals("/sync")) {
+            Client.lastSyncTime = Time.millis();
+        }
     }
 
     public void toggle(){

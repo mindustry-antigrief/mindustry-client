@@ -3,11 +3,14 @@ package mindustry.client;
 import arc.*;
 import arc.graphics.Color;
 import arc.struct.Queue;
+import arc.struct.Seq;
+import arc.util.Time;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.UnitPicker;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
+import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.gen.Call;
 import mindustry.type.UnitType;
 
@@ -18,13 +21,19 @@ public class Client {
     //todo: use this instead of Navigation.isFollowing and such
     public static ClientMode mode = ClientMode.normal;
     public static Queue<ConfigRequest> configs = new Queue<>();
+    public static boolean showingTurrets = false;
+    public static Seq<BaseTurret.BaseTurretBuild> turrets = new Seq<>();
+    public static long lastSyncTime = 0L;
 
     public static void initialize() {
         Events.on(WorldLoadEvent.class, event -> {
-            tileLogs = new TileLog[world.height()][world.width()];
+            if (Time.timeSinceMillis(lastSyncTime) > 5000) {
+                tileLogs = new TileLog[world.height()][world.width()];
+            }
             PowerInfo.initialize();
             Navigation.stopFollowing();
             configs.clear();
+            turrets.clear();
         });
         Events.on(EventType.UnitChangeEvent.class, event -> { // TODO: Instead of this code, call a class in UnitPicker.java to find and switch to new unit if possible.
             UnitType unit = UnitPicker.found;

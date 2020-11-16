@@ -27,6 +27,10 @@ public class Tiles implements Iterable<Tile>{
         }
     }
 
+    public int size() {
+        return height * width;
+    }
+
     /** fills this tile set with empty air tiles. */
     public void fill(){
         for(int i = 0; i < array.length; i++){

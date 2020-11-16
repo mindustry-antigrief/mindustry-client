@@ -290,7 +290,6 @@ public class HudFragment extends Fragment{
                 info.row();
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left()
                 .style(Styles.outlineLabel).name("ping");
-
             }).top().left();
         });
 

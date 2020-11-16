@@ -11,6 +11,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.Client;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.TurretPathfindingEntity;
 import mindustry.content.*;

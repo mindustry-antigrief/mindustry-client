@@ -15,6 +15,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.client.Client;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
@@ -234,6 +235,10 @@ public class DesktopInput extends InputHandler{
             }
         }
 
+        if(input.keyTap(Binding.show_turret_ranges)){
+            Client.showingTurrets = !Client.showingTurrets;
+        }
+
         if(input.keyTap(Binding.stop_following_path) && scene.getKeyboardFocus() == null){
             Navigation.stopFollowing();
         }
@@ -250,7 +255,7 @@ public class DesktopInput extends InputHandler{
             panning = true;
         }
 
-        if(input.alt() && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
+        if(input.keyDown(Binding.freecam_modifier) && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
             panning = true;
             float speed = Time.delta;
             speed *= camera.width;
@@ -731,7 +736,7 @@ public class DesktopInput extends InputHandler{
         float speed = unit.realSpeed();
         float xa = Core.input.axis(Binding.move_x);
         float ya = Core.input.axis(Binding.move_y);
-        if(input.alt()){
+        if(input.keyDown(Binding.freecam_modifier)){
             xa = ya = 0f;
         }
         boolean boosted = (unit instanceof Mechc && unit.isFlying());
