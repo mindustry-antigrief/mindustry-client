@@ -10,6 +10,7 @@ import arc.math.*;
 import arc.util.*;
 import arc.util.async.*;
 import mindustry.client.*;
+import mindustry.ai.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -46,7 +47,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         //debug GL information
         Log.info("[GL] Version: @", graphics.getGLVersion());
         Log.info("[GL] Max texture size: @", Gl.getInt(Gl.maxTextureSize));
-        Log.info("[GL] Max vert/frag shader FP precision: @ / @", Gl.getShaderPrecision(Gl.vertexShader, Gl.highFloat), Gl.getShaderPrecision(Gl.fragmentShader, Gl.highFloat));
         Log.info("[GL] Using @ context.", gl30 != null ? "OpenGL 3" : "OpenGL 2");
         Log.info("[JAVA] Version: @", System.getProperty("java.version"));
         Log.info("[CLIENT] Build: @", Version.clientBuild);
@@ -106,6 +106,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         assets.load(schematics);
 
         assets.loadRun("contentinit", ContentLoader.class, () -> content.init(), () -> content.load());
+        assets.loadRun("baseparts", BaseRegistry.class, () -> {}, () -> bases.load());
 
         Client.initialize();
     }

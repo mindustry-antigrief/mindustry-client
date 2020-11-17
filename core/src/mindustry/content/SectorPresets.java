@@ -8,8 +8,8 @@ import static mindustry.content.Planets.*;
 public class SectorPresets implements ContentList{
     public static SectorPreset
     groundZero,
-    craters, frozenForest, ruinousShores, stainedMountains, tarFields, fungalPass,
-    saltFlats, overgrowth,
+    craters, biomassFacility, frozenForest, ruinousShores, windsweptIslands, stainedMountains, tarFields,
+    fungalPass, extractionOutpost, saltFlats, overgrowth,
     impact0078, desolateRift, nuclearComplex;
 
     @Override
@@ -31,6 +31,11 @@ public class SectorPresets implements ContentList{
             difficulty = 2;
         }};
 
+        biomassFacility = new SectorPreset("biomassFacility", serpulo, 81){{
+            captureWave = 20;
+            difficulty = 3;
+        }};
+
         craters = new SectorPreset("craters", serpulo, 18){{
             captureWave = 20;
             difficulty = 2;
@@ -41,16 +46,27 @@ public class SectorPresets implements ContentList{
             difficulty = 3;
         }};
 
+        windsweptIslands = new SectorPreset("windsweptIslands", serpulo, 246){{
+            captureWave = 30;
+            difficulty = 4;
+        }};
+
         stainedMountains = new SectorPreset("stainedMountains", serpulo, 20){{
             captureWave = 30;
             difficulty = 3;
         }};
 
-        fungalPass = new SectorPreset("fungalPass", serpulo, 21){{
-            difficulty = 4;
+        extractionOutpost = new SectorPreset("extractionOutpost", serpulo, 165){{
+            difficulty = 5;
+            useAI = false;
         }};
 
-        overgrowth = new SectorPreset("overgrowth", serpulo, 22){{
+        fungalPass = new SectorPreset("fungalPass", serpulo, 21){{
+            difficulty = 4;
+            useAI = false;
+        }};
+
+        overgrowth = new SectorPreset("overgrowth", serpulo, 134){{
             difficulty = 5;
         }};
 

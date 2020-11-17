@@ -18,7 +18,7 @@ import static mindustry.Vars.*;
 
 public class Planet extends UnlockableContent{
     /** Default spacing between planet orbits in world units. */
-    private static final float orbitSpacing = 9f;
+    private static final float orbitSpacing = 10f;
     /** intersect() temp var. */
     private static final Vec3 intersectResult = new Vec3();
     /** Mesh used for rendering. Created on load() - will be null on the server! */
@@ -183,10 +183,10 @@ public class Planet extends UnlockableContent{
             }
 
             if(sector.hasEnemyBase()){
-                sum += 2f;
+                sum += 2.5f;
             }
 
-            sector.baseCoverage = sector.preset == null ? Mathf.clamp(sum / 5f) : Mathf.clamp(sector.preset.difficulty / 10f);
+            sector.threat = sector.preset == null ? Math.min(sum / 5f, 1.5f) : Mathf.clamp(sector.preset.difficulty / 10f);
         }
     }
 

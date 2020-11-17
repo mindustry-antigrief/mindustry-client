@@ -330,15 +330,15 @@ public class NetClient implements ApplicationListener{
     }
 
     @Remote(variants = Variant.both, unreliable = true)
-    public static void onEffect(Effect effect, float x, float y, float rotation, Color color){
+    public static void effect(Effect effect, float x, float y, float rotation, Color color){
         if(effect == null) return;
 
         effect.at(x, y, rotation, color);
     }
 
     @Remote(variants = Variant.both)
-    public static void onEffectReliable(Effect effect, float x, float y, float rotation, Color color){
-        onEffect(effect, x, y, rotation, color);
+    public static void effectReliable(Effect effect, float x, float y, float rotation, Color color){
+        effect(effect, x, y, rotation, color);
     }
 
     @Remote(variants = Variant.both)
@@ -373,6 +373,7 @@ public class NetClient implements ApplicationListener{
 
     @Remote(variants = Variant.one)
     public static void setPosition(float x, float y){
+        player.unit().set(x, y);
         player.set(x, y);
     }
 
