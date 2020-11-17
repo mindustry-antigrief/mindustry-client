@@ -781,6 +781,14 @@ public class HudFragment extends Fragment{
                 return builder;
             }
 
+            if(!state.rules.waves && state.isCampaign()){
+                builder.append("[lightgray]").append(Core.bundle.get("sector.curcapture"));
+            }
+
+            if(!state.rules.waves){
+                return builder;
+            }
+
             if(state.rules.winWave > 1 && state.rules.winWave >= state.wave && state.isCampaign()){
                 builder.append(wavefc.get(state.wave, state.rules.winWave));
             }else{
@@ -806,9 +814,6 @@ public class HudFragment extends Fragment{
             return builder;
         }).growX().pad(8f);
 
-        table.update(() -> {
-            //table.background(state.rules.waves ? Tex.wavepane : null);
-        });
         table.touchable(() -> state.rules.waves ? Touchable.enabled : Touchable.disabled);
 
         return table;
