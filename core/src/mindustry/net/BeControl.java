@@ -57,7 +57,7 @@ public class BeControl{
 
     /** asynchronously checks for updates. */
     public void checkUpdate(Boolc done){
-        Core.net.httpGet("https://api.github.com/repos/buthed010203/mindustry-client-v6/releases/latest", res -> {
+        Core.net.httpGet("https://api.github.com/repos/blahblahbloopster/mindustry-client-v6/releases/latest", res -> {
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
                 int newBuild = Strings.parseInt(val.getString("tag_name", "0"));

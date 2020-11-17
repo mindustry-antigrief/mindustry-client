@@ -5,8 +5,10 @@ import arc.graphics.Color;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.Time;
+import arc.util.Timer;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
+import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
@@ -37,23 +39,27 @@ public class Client {
             configs.clear();
             turrets.clear();
         });
-        Events.on(EventType.UnitChangeEvent.class, event -> { // TODO: Instead of this code, call a class in UnitPicker.java to find and switch to new unit if possible.
+        Events.on(EventType.UnitChangeEvent.class, event -> { // TODO: Instead of this code, call a thing in UnitPicker.java to find and switch to new unit if possible.
             UnitType unit = UnitPicker.found;
             if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 Call.unitControl(player, event.unit);
-                if (event.unit.isPlayer()) {
-                if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);} // After we switch units successfully, stop listening for this unit
-                else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer() + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
-            }}
+                Timer.schedule(() -> {
+                    if (event.unit.isPlayer()) {
+                    if (player.unit() == event.unit) { UnitPicker.found = null; new Toast(3f).label(() -> "Successfully swapped to " + player.unit().type() + ".");}  // After we switch units successfully, stop listening for this unit
+                    else { new Toast(3f).label(() -> "Failed to swap units, " + event.unit.getPlayer().name + " is already controlling this unit (likely using unit sniper).");}}
+                }, .5f);
+            }
         });
-        Events.on(EventType.UnitCreateEvent.class, event -> { // TODO: Instead of this code, call a class in UnitPicker.java to find and switch to new unit if possible.
+        Events.on(EventType.UnitCreateEvent.class, event -> { // TODO: Instead of this code, call a thing in UnitPicker.java to find and switch to new unit if possible.
             UnitType unit = UnitPicker.found;
             if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 Call.unitControl(player, event.unit);
-                if (event.unit.isPlayer()) {
-                if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);}  // After we switch units successfully, stop listening for this unit
-                else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer() + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
-            }}
+                Timer.schedule(() -> {
+                    if (event.unit.isPlayer()) {
+                    if (player.unit() == event.unit) { UnitPicker.found = null; new Toast(3f).label(() -> "Successfully swapped to " + player.unit().type() + ".");}  // After we switch units successfully, stop listening for this unit
+                    else { new Toast(3f).label(() -> "Failed to swap units, " + event.unit.getPlayer().name + " is already controlling this unit (likely using unit sniper).");}}
+                }, .5f);
+            }
         });
     }
 

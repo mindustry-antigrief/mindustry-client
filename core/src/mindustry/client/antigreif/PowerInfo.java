@@ -1,11 +1,11 @@
 package mindustry.client.antigreif;
 
-import arc.*;
 import arc.math.*;
 import arc.scene.*;
 import arc.scene.event.Touchable;
 import arc.scene.ui.Button;
 import arc.struct.*;
+import arc.util.Interval;
 import arc.util.Strings;
 import mindustry.*;
 import mindustry.client.ui.*;
@@ -21,7 +21,7 @@ public class PowerInfo {
 
     public static ObjectSet<PowerGraph> graphs = new ObjectSet<>();
     private static PowerGraph found = null;
-    private static int framesWithoutUpdate = 0;
+    private static final Interval timer = new Interval();
 
     public static void initialize() {}
 
@@ -30,20 +30,17 @@ public class PowerInfo {
         PowerGraph graph = graphs.asArray().max(g -> g.all.size);
         if (graph != null) {
             found = graph;
-            framesWithoutUpdate = 0;
-            if (Core.graphics.getFrameId() % 120 == 0) {
+            if (timer.get(120)) {
                 // Every 2 seconds or so rescan
                 scan();
             }
         } else {
             found = null;
-            framesWithoutUpdate += 1;
-            if (framesWithoutUpdate > 30) {
+            if (timer.get(30)) {
                 // Scan twice a second
-                framesWithoutUpdate = 2;
                 scan();
             }
-            if (framesWithoutUpdate == 1) {
+            if (timer.get(1)) {
                 // Scan once immediately
                 scan();
             }

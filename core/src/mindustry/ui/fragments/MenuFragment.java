@@ -186,6 +186,12 @@ public class MenuFragment extends Fragment{
                             Core.app.setClipboardText("https://discord.gg/yp9ZW7j");
                         }
                     }),
+                    new Buttoni("Github", Icon.github, () -> { // Link to client discord
+                        if (!Core.app.openURI("https://github.com/blahblahbloopster/mindustry-client-v6")) {
+                            ui.showErrorMessage("@linkfail");
+                            Core.app.setClipboardText("https://github.com/blahblahbloopster/mindustry-client-v6");
+                        }
+                    }),
                     new Buttoni("Changelog", Icon.edit, () -> new ChangelogDialog().show()),
                     new Buttoni("Features", Icon.list, () -> new FeaturesDialog().show())
                 ), // End of client section

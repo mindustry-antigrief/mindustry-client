@@ -53,15 +53,14 @@ public class UnitPicker extends BaseDialog{
         }
 
         keyDown(KeyCode.enter, () -> {
-            Log.info(found);
             if (found != null) {
                 Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead && u.formation == null);
-                if ( find == null) { Log.info("all controlled or none exists"); find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead); }
+                if ( find == null) find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead); // Either no unit or unit is commanded, search for commanded units
                 if (find != null) {
-                    Call.unitControl(player, find);
+                    Call.unitControl(player, find); // Switch to unit
                     found = null; // No need to check if the player has managed to take control as it is very unlikely that 2 players attempt this on the same unit at once.
                 } else {
-                    ui.chatfrag.addMessage("No " + found + " was found, automatically switching to that unit when it spawns (set picked unit to alpha).", "Unit Picker", Color.gold);
+                    new Toast(5f).label(() ->"No " + found + " was found, automatically switching to that unit when it spawns (set picked unit to alpha).");
                 }
             }
             hide();

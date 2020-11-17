@@ -308,10 +308,10 @@ public class DesktopInput extends InputHandler{
                 table.setWidth(400);
                 table.margin(0).marginRight(5);
                 table.fill();
-                table.defaults().height(itemHeight).pad(0f, 5f, 5f, 5f).fillX();
+                table.defaults().height(itemHeight).pad(0f, 5f, 5f, 10f).fillX();
                 try {
                     table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().pad(5).growX().fillY();
-                } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.red);}
+                } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.scarlet);}
                 table.row().fill();
                 table.button("View log", () -> { // Tile Logs
                     BaseDialog dialog = new BaseDialog("Logs");
