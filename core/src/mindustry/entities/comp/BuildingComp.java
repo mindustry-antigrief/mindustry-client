@@ -519,6 +519,8 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public void dumpLiquid(Liquid liquid){
         int dump = this.cdump;
 
+        if(!net.client()) liquid.unlock();
+
         for(int i = 0; i < proximity.size; i++){
             incrementDump(proximity.size);
             Building other = proximity.get((i + dump) % proximity.size);
@@ -618,6 +620,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
      */
     public void offload(Item item){
         int dump = this.cdump;
+        if(!net.client()) item.unlock();
 
         for(int i = 0; i < proximity.size; i++){
             incrementDump(proximity.size);
@@ -1366,12 +1369,18 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             }
         }
 
-        if(sound != null){
-            sound.update(x, y, shouldActiveSound());
+        if(team == Team.derelict){
+            enabled = false;
         }
 
-        if(block.ambientSound != Sounds.none && shouldAmbientSound()){
-            loops.play(block.ambientSound, self(), block.ambientSoundVolume * ambientVolume());
+        if(!headless){
+            if(sound != null){
+                sound.update(x, y, shouldActiveSound());
+            }
+
+            if(block.ambientSound != Sounds.none && shouldAmbientSound()){
+                control.sound.loop(block.ambientSound, self(), block.ambientSoundVolume * ambientVolume());
+            }
         }
 
         if(enabled || !block.noUpdateDisabled){

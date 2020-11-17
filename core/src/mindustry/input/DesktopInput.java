@@ -54,7 +54,7 @@ public class DesktopInput extends InputHandler{
     /** Whether player is currently deleting removal requests. */
     public boolean deleting = false, shouldShoot = false, panning = false;
     /** Mouse pan speed. */
-    public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 9f;
+    public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 11f;
 
     @Override
     public void buildUI(Group group){
@@ -89,7 +89,7 @@ public class DesktopInput extends InputHandler{
             t.visible(() -> {
                 t.color.a = Mathf.lerpDelta(t.color.a, player.builder().isBuilding() ? 1f : 0f, 0.15f);
 
-                return Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE;
+                return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE;
             });
             t.touchable(() -> t.color.a < 0.1f ? Touchable.disabled : Touchable.childrenOnly);
             t.table(Styles.black6, b -> {
@@ -103,7 +103,7 @@ public class DesktopInput extends InputHandler{
         });
 
         group.fill(t -> {
-            t.visible(() -> lastSchematic != null && !selectRequests.isEmpty() && Navigation.state == NavigationState.NONE);
+            t.visible(() -> ui.hudfrag.shown && lastSchematic != null && !selectRequests.isEmpty() && Navigation.state == NavigationState.NONE);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -536,7 +536,6 @@ public class DesktopInput extends InputHandler{
                 ui.schematics.hide();
             }else{
                 ui.schematics.show();
-                ui.schematics.focusSearchField();
             }
         }
 

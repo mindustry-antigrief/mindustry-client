@@ -612,6 +612,14 @@ public class Tile implements Position, QuadTreeObject, Displayable{
         tile.setBlock(block, team, rotation);
     }
 
+    @Remote(called = Loc.server)
+    public static void setTeam(Building build, Team team){
+        if(build != null){
+            build.team = team;
+            indexer.updateIndices(build.tile);
+        }
+    }
+
     @Remote(called = Loc.server, unreliable = true)
     public static void tileDamage(Building build, float health){
         if(build == null) return;
