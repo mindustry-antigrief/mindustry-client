@@ -806,7 +806,6 @@ public class HudFragment extends Fragment{
             return builder;
         }).growX().pad(8f);
 
-        table.setDisabled(true);
         table.update(() -> {
             //table.background(state.rules.waves ? Tex.wavepane : null);
         });
