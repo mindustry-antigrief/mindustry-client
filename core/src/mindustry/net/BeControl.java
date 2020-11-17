@@ -8,6 +8,7 @@ import arc.util.*;
 import arc.util.async.*;
 import arc.util.serialization.*;
 import mindustry.core.*;
+import mindustry.game.EventType;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.io.*;
@@ -37,11 +38,13 @@ public class BeControl{
     }
 
     public BeControl(){
-        Timer.schedule(() -> {
-            if(checkUpdates && !mobile){
-                checkUpdate(t -> {});
-            }
-        }, updateInterval, updateInterval);
+        Events.on(EventType.ClientLoadEvent.class, event -> {
+            Timer.schedule(() -> {
+                if(checkUpdates && !mobile){
+                    checkUpdate(t -> {});
+                }
+            }, 0, updateInterval);
+        });
 
         if(System.getProperties().containsKey("becopy")){
             try{
