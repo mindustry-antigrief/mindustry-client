@@ -49,7 +49,7 @@ public class BeControl{
 
             if(System.getProperties().containsKey("becopy")){
                 try{
-                    Timer.schedule(() -> new ChangelogDialog().show(), 1); // Show changelog after auto update
+                    new ChangelogDialog().show(); // Show changelog after auto update
                     Fi dest = Fi.get(System.getProperty("becopy"));
                     Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
