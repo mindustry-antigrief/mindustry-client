@@ -9,5 +9,4 @@ public class FooUser {
         if (user == null) return false;
         return FloatEmbed.isEmbedded(user.mouseX) && FloatEmbed.isEmbedded(user.mouseY);
     }
-
 }
