@@ -1,7 +1,7 @@
 name: Java Tests
 
 on:
-  pull_request
+  pull_request:
   push:
     branches-ignore: custom-client
 
