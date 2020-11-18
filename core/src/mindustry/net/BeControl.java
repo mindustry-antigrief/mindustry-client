@@ -7,6 +7,7 @@ import arc.func.*;
 import arc.util.*;
 import arc.util.async.*;
 import arc.util.serialization.*;
+import mindustry.client.ui.ChangelogDialog;
 import mindustry.core.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -25,7 +26,7 @@ import static mindustry.Vars.*;
 public class BeControl{
     private static final int updateInterval = 60 * 1;
 
-    private AsyncExecutor executor = new AsyncExecutor(1);
+    private final AsyncExecutor executor = new AsyncExecutor(1);
     private boolean checkUpdates = Core.settings.getBool("autoupdate");
     private boolean updateAvailable;
     private String updateUrl;
@@ -45,6 +46,7 @@ public class BeControl{
 
         if(System.getProperties().containsKey("becopy")){
             try{
+                new ChangelogDialog().show(); // Show changelog after auto update
                 Fi dest = Fi.get(System.getProperty("becopy"));
                 Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
