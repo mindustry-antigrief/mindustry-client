@@ -9,6 +9,7 @@ import arc.util.async.*;
 import arc.util.serialization.*;
 import mindustry.client.ui.ChangelogDialog;
 import mindustry.core.*;
+import mindustry.game.EventType;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.io.*;
@@ -38,23 +39,26 @@ public class BeControl{
     }
 
     public BeControl(){
-        Timer.schedule(() -> {
-            if(checkUpdates && !mobile){
-                checkUpdate(t -> {});
-            }
-        }, updateInterval, updateInterval);
+        Events.on(EventType.ClientLoadEvent.class, event -> {
+            Timer.schedule(() -> {
+                if(checkUpdates && !mobile){
+                    checkUpdate(t -> {});
+                }
+                }, 0, updateInterval
+            );
 
-        if(System.getProperties().containsKey("becopy")){
-            try{
-                new ChangelogDialog().show(); // Show changelog after auto update
-                Fi dest = Fi.get(System.getProperty("becopy"));
-                Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            if(System.getProperties().containsKey("becopy")){
+                try{
+                    new ChangelogDialog().show(); // Show changelog after auto update
+                    Fi dest = Fi.get(System.getProperty("becopy"));
+                    Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
-                self.copyTo(dest);
-            }catch(Throwable e){
-                e.printStackTrace();
+                    self.copyTo(dest);
+                }catch(Throwable e){
+                    e.printStackTrace();
+                }
             }
-        }
+        });
     }
 
     /** asynchronously checks for updates. */
@@ -107,7 +111,7 @@ public class BeControl{
                     BaseDialog dialog = new BaseDialog("@be.updating");
                     download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                         try{
-                            Runtime.getRuntime().exec(OS.isMac ?
+                            Process p = Runtime.getRuntime().exec(OS.isMac ?
                                 new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
                                 new String[]{"java", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                             );
