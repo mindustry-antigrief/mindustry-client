@@ -1,20 +1,14 @@
-name: Java CI
+name: Release Update
 
 on: 
   push:
     branches: custom-client
-
   workflow_dispatch:
     branches: custom-client
-  
-  pull_request:
-    branches: custom-client
-  
-
+    
 
 jobs:
   build:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -48,7 +42,6 @@ jobs:
         asset_path: ./desktop/build/libs/Mindustry.jar
         asset_name: desktop-release.jar
         asset_content_type: application/zip
-
 
   buildJava15:
     runs-on: ubuntu-latest
