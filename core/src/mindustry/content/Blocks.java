@@ -728,7 +728,7 @@ public class Blocks implements ContentList{
             hasItems = hasPower = true;
             drawer = new DrawRotator();
             ambientSound = Sounds.grinding;
-            ambientSoundVolume = 0.02f;
+            ambientSoundVolume = 0.025f;
 
             consumes.item(Items.scrap, 1);
             consumes.power(0.50f);
@@ -1179,7 +1179,7 @@ public class Blocks implements ContentList{
             size = 2;
             floating = true;
             ambientSound = Sounds.hum;
-            ambientSoundVolume = 0.04f;
+            ambientSoundVolume = 0.06f;
         }};
 
         steamGenerator = new BurnerGenerator("steam-generator"){{
@@ -1217,19 +1217,19 @@ public class Blocks implements ContentList{
 
         solarPanel = new SolarGenerator("solar-panel"){{
             requirements(Category.power, with(Items.lead, 10, Items.silicon, 15));
-            powerProduction = 0.07f;
+            powerProduction = 0.08f;
         }};
 
         largeSolarPanel = new SolarGenerator("solar-panel-large"){{
             requirements(Category.power, with(Items.lead, 100, Items.silicon, 145, Items.phaseFabric, 15));
             size = 3;
-            powerProduction = 0.95f;
+            powerProduction = 1f;
         }};
 
         thoriumReactor = new NuclearReactor("thorium-reactor"){{
             requirements(Category.power, with(Items.lead, 300, Items.silicon, 200, Items.graphite, 150, Items.thorium, 150, Items.metaglass, 50));
             ambientSound = Sounds.hum;
-            ambientSoundVolume = 0.2f;
+            ambientSoundVolume = 0.24f;
             size = 3;
             health = 700;
             itemDuration = 360f;
@@ -1354,7 +1354,7 @@ public class Blocks implements ContentList{
         //region storage
 
         coreShard = new CoreBlock("core-shard"){{
-            requirements(Category.effect, BuildVisibility.editorOnly, with(Items.copper, 1500, Items.lead, 1000));
+            requirements(Category.effect, BuildVisibility.editorOnly, with(Items.copper, 1000, Items.lead, 1000));
             alwaysUnlocked = true;
 
             unitType = UnitTypes.alpha;

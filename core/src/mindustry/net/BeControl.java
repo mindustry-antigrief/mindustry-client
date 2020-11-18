@@ -7,6 +7,7 @@ import arc.func.*;
 import arc.util.*;
 import arc.util.async.*;
 import arc.util.serialization.*;
+import mindustry.client.ui.ChangelogDialog;
 import mindustry.core.*;
 import mindustry.game.EventType;
 import mindustry.gen.*;
@@ -26,7 +27,7 @@ import static mindustry.Vars.*;
 public class BeControl{
     private static final int updateInterval = 60 * 1;
 
-    private AsyncExecutor executor = new AsyncExecutor(1);
+    private final AsyncExecutor executor = new AsyncExecutor(1);
     private boolean checkUpdates = Core.settings.getBool("autoupdate");
     private boolean updateAvailable;
     private String updateUrl;
@@ -43,24 +44,26 @@ public class BeControl{
                 if(checkUpdates && !mobile){
                     checkUpdate(t -> {});
                 }
-            }, 0, updateInterval);
-        });
+                }, 0, updateInterval
+            );
 
-        if(System.getProperties().containsKey("becopy")){
-            try{
-                Fi dest = Fi.get(System.getProperty("becopy"));
-                Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            if(System.getProperties().containsKey("becopy")){
+                try{
+                    Timer.schedule(() -> new ChangelogDialog().show(), 1); // Show changelog after auto update
+                    Fi dest = Fi.get(System.getProperty("becopy"));
+                    Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
-                self.copyTo(dest);
-            }catch(Throwable e){
-                e.printStackTrace();
+                    self.copyTo(dest);
+                }catch(Throwable e){
+                    e.printStackTrace();
+                }
             }
-        }
+        });
     }
 
     /** asynchronously checks for updates. */
     public void checkUpdate(Boolc done){
-        Core.net.httpGet("https://api.github.com/repos/blahblahbloopster/mindustry-client-v6/releases/latest", res -> {
+        Core.net.httpGet("https://api.github.com/repos/buthed010203/mindustry-client-v6/releases/latest", res -> {
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
                 int newBuild = Strings.parseInt(val.getString("tag_name", "0"));

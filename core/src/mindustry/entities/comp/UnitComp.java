@@ -39,6 +39,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Import float x, y, rotation, elevation, maxHealth, drag, armor, hitSize, health, ammo, minFormationSpeed;
     @Import Team team;
     @Import int id;
+    @Import @Nullable Tile mineTile;
 
     private UnitController controller;
     UnitType type;
@@ -125,6 +126,9 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             case shooting -> isShooting() ? 1 : 0;
             case shootX -> World.conv(aimX());
             case shootY -> World.conv(aimY());
+            case mining -> mining() ? 1 : 0;
+            case mineX -> mining() ? mineTile.x : -1;
+            case mineY -> mining() ? mineTile.y : -1;
             case flag -> flag;
             case controlled -> controller instanceof LogicAI || controller instanceof Player ? 1 : 0;
             case payloadCount -> self() instanceof Payloadc pay ? pay.payloads().size : 0;
@@ -392,7 +396,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         }
 
         //remove units spawned by the core
-        if(spawnedByCore && !isPlayer()){
+        if(spawnedByCore && !isPlayer() && !dead){
             Call.unitDespawn(self());
         }
     }
