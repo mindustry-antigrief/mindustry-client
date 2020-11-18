@@ -1,14 +1,17 @@
 name: Java CI
-
 on:
   push:
     branches: custom-client
 
   workflow_dispatch:
     branches: custom-client
+    
+  pull_request:
+    branches: custom-client
 
 
 jobs:
+  if: ${{github.event_name==push}}
   build:
     runs-on: ubuntu-latest
     steps:
