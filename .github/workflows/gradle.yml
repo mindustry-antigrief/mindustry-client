@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Set up JDK 1.8
+    - name: Set up JDK 14
       uses: actions/setup-java@v1
       with:
         java-version: 14
@@ -44,3 +44,15 @@ jobs:
         asset_path: ./desktop/build/libs/Mindustry.jar
         asset_name: desktop-release.jar
         asset_content_type: application/zip
+
+
+  buildJava15:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up JDK 15
+      uses: actions/setup-java@v1
+      with:
+        java-version: 15
+    - name: Run unit tests with gradle and Java 15
+      run: ./gradlew compileJava
