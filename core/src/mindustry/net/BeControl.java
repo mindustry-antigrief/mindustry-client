@@ -49,7 +49,7 @@ public class BeControl{
 
             if(System.getProperties().containsKey("becopy")){
                 try{
-                    new ChangelogDialog().show(); // Show changelog after auto update
+                    if(!System.getProperty("lastBuild").equals(Version.clientVersion)) { new ChangelogDialog().show(); } // Show changelog after auto update
                     Fi dest = Fi.get(System.getProperty("becopy"));
                     Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
@@ -112,8 +112,8 @@ public class BeControl{
                     download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                         try{
                             Runtime.getRuntime().exec(OS.isMac ?
-                                new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                                new String[]{"java", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
+                                new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
+                                new String[]{"java", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                             );
                             System.exit(0);
                         }catch(IOException e){

@@ -22,6 +22,8 @@ public class Version{
     public static boolean enabled = true;
     /** Custom client build number used for auto updates */
     public static int clientBuild = 0;
+    /** Custom client version string used for various things */
+    public static String clientVersion = Core.files.internal("version").readString();
 
     public static void init(){
         if(!enabled) return;
@@ -64,6 +66,6 @@ public class Version{
         if(build == -1){
             return "custom build";
         }
-        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + " (client version " + (Core.files.internal("version").readString()) + ")";
+        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + " (client version " + clientVersion + ")";
     }
 }
