@@ -11,6 +11,7 @@ import arc.util.Time;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.UnitPicker;
+import mindustry.content.UnitTypes;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
 import mindustry.gen.Player;
@@ -56,6 +57,17 @@ public class Client {
                 result.append("[orange] !").append(command.text).append("[white] ").append(command.paramText).append("[lightgray] - ").append(command.description).append("\n");
             }
             player.sendMessage(result.toString());
+        });
+
+        fooCommands.<Player>register("unit", "<unit>", "Unit picker / sniper", (args, player) -> {
+            Seq<UnitType> sorted = content.units().copy();
+            sorted = sorted.sort((b) -> Strings.levenshtein(args[0], b.name));
+            UnitType found = sorted.first();
+            new UnitPicker().findUnit(found);
+        });
+
+        fooCommands.<Player>register("goto","<x> <y>", "Navigates to (x,y)", (args, player) -> {
+            else try {Navigation.navigateTo(Float.parseFloat(args[0])*10, Float.parseFloat(args[1])*10);} catch(Exception e){player.sendMessage("[Scarlet]Invalid value was input");}
         });
 
         Events.on(WorldLoadEvent.class, event -> {
