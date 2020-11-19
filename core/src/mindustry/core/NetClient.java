@@ -192,7 +192,7 @@ public class NetClient implements ApplicationListener{
         CommandResponse response = netServer.clientCommands.handleMessage(message, player);
         if(response.type == ResponseType.noCommand){ //no command to handle
             message = netServer.admins.filterMessage(player, message);
-            //supress chat message if it's filtered out
+            //suppress chat message if it's filtered out
             if(message == null){
                 return;
             }
