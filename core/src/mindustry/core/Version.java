@@ -33,6 +33,7 @@ public class Version{
 
         ObjectMap<String, String> map = new ObjectMap<>();
         PropertiesUtils.load(map, file.reader());
+
         clientBuild =  Integer.parseInt(map.get("clientBuild"));
         clientVersion = version.readString();
         type = map.get("type");
