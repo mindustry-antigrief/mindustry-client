@@ -7,6 +7,7 @@
  * \n does linebreak
 */
 
+# This isn't up to date, use the changelog for now.
 # Default Keybinds
  * r - reset camera
  * y - place waypoint (only works while recording waypoints)

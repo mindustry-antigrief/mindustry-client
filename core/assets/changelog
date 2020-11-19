@@ -1,8 +1,21 @@
-# 3.0
+# Version 3.0
  * Added client player display (allows other foo's users to see you, off by default)
- * Made assist stay a certain distance away, no more drifting into people!
+ * Added setting to highlight messages from other foo's users
+ * Added auto updater (there is a setting if you find it annoying)
+ * Changelog now opens after updating to a new client version
+ * Added client command system as well as various commands (type !help for more info)
+ * Made alt click menu scale correctly when more buttons are added
+ * Player spectate option (camera will follow player)
+ * Navigate to player option (uses pathfinding algorithm to avoid enemies)
+ * Made assist stay a fixed distance away from the target to avoid drifting into them
+ * Added unit picker/sniper which will switch to the specified unit as soon as it is available
+ * Improved various timers (stuff will actually update at the specified intervals if your fps isnt 60)
+ * Wave skipping in campaign is slightly weird currently
+ * Ghosts of blocks that are broken by enemies are now visible on servers
+ * Updated to v115.0
+ * Probably more stuff I forgot
 
- # ​
+# ​
 # Version 2.4
  * Tile logs persist over /sync (does not work for server-forced sync)
 

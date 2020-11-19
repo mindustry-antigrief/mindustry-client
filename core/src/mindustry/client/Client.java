@@ -67,7 +67,7 @@ public class Client {
             player.sendMessage(result.toString());
         });
 
-        fooCommands.<Player>register("unit", "<unit-name>", "Unit picker / sniper", (args, player) -> {
+        fooCommands.<Player>register("unit", "<unit-name>", "Swap to specified unit", (args, player) -> {
             Seq<UnitType> sorted = content.units().copy();
             sorted = sorted.sort((b) -> Strings.levenshtein(args[0], b.name));
             UnitType found = sorted.first();
@@ -83,8 +83,6 @@ public class Client {
             }
         });
 
-
-
         fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to (x,y)", (args, player) -> {
             try {
                 DesktopInput.panning = true;
@@ -94,6 +92,7 @@ public class Client {
                 player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !lookat 10 300");
             }
         });
+
 
         Events.on(WorldLoadEvent.class, event -> {
             if (Time.timeSinceMillis(lastSyncTime) > 5000) {
