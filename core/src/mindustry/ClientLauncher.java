@@ -49,6 +49,8 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         Log.info("[GL] Max texture size: @", Gl.getInt(Gl.maxTextureSize));
         Log.info("[GL] Using @ context.", gl30 != null ? "OpenGL 3" : "OpenGL 2");
         Log.info("[JAVA] Version: @", System.getProperty("java.version"));
+        Log.info("[CLIENT] Build: @", Version.clientBuild);
+        Log.info("[CLIENT] Update URL: @",Version.updateUrl);
 
         Time.setDeltaProvider(() -> {
             float result = Core.graphics.getDeltaTime() * 60f;

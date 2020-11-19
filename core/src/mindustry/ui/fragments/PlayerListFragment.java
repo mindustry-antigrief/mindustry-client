@@ -7,11 +7,14 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import mindustry.client.FooUser;
+import mindustry.client.Spectate;
 import mindustry.client.navigation.AssistPath;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.DesktopInput;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
@@ -37,7 +40,7 @@ public class PlayerListFragment extends Fragment{
                     return;
                 }
 
-                if(visible && timer.get(20)){
+                if(visible && timer.get(60)){
                     rebuild();
                     content.pack();
                     content.act(Core.graphics.getDeltaTime());
@@ -109,10 +112,11 @@ public class PlayerListFragment extends Fragment{
             table.name = user.name();
 
             button.add(table).size(h);
-            button.labelWrap("[#" + user.color().toString().toUpperCase() + "]" + user.name()).width(170f).pad(10);
+            button.labelWrap("[#" + user.color().toString().toUpperCase() + "]" + user.name()).width(300f).pad(10);
             button.add().grow();
 
             button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
+            button.image(Icon.wrench).visible(() -> FooUser.IsUser(user) && !(!user.isLocal() && net.server())).padRight(10).get().updateVisibility();
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();
@@ -161,15 +165,22 @@ public class PlayerListFragment extends Fragment{
                     () -> Navigation.follow(new AssistPath(user))).size(h/2);
             button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
                     () -> Navigation.follow(new UnAssistPath(user))).size(h/2);
+            button.button(Icon.move, Styles.clearPartiali, // Goto
+                    () -> Navigation.navigateTo(user.x, user.y)).size(h/2);
+            button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
+                    () -> {
+                DesktopInput.panning = true;
+                Spectate.pos = user;
+            });
 
-            content.add(button).padBottom(-6).width(350f).maxHeight(h + 14);
+            content.add(button).padBottom(-6).width(600f).maxHeight(h + 14);
             content.row();
             content.image().height(4f).color(state.rules.pvp ? user.team().color : Pal.gray).growX();
             content.row();
         });
 
         if(!found){
-            content.add(Core.bundle.format("players.notfound")).padBottom(6).width(350f).maxHeight(h + 14);
+            content.add(Core.bundle.format("players.notfound")).padBottom(6).width(600f).maxHeight(h + 14);
         }
 
         content.marginBottom(5);

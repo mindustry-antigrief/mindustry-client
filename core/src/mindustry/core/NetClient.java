@@ -11,12 +11,15 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.FooUser;
+import mindustry.client.utils.FloatEmbed;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.graphics.Pal;
 import mindustry.net.Administration.*;
 import mindustry.net.Net.*;
 import mindustry.net.*;
@@ -152,8 +155,14 @@ public class NetClient implements ApplicationListener{
     //called on all clients
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, String sender, Player playersender){
+        Color background = null;
         if(Vars.ui != null){
-            Vars.ui.chatfrag.addMessage(message, sender);
+            if (FooUser.IsUser(playersender) && !playersender.equals(player)) { // Add wrench to client user messages, highlight if enabled
+                sender = colorizeName(playersender.id, "\uE80F " + sender);
+
+                if (Core.settings.getBool("highlightclientmsg")) { background = Color.coral; }
+            }
+            Vars.ui.chatfrag.addMessage(message, sender, background);
         }
 
         if(playersender != null){
@@ -183,7 +192,7 @@ public class NetClient implements ApplicationListener{
         CommandResponse response = netServer.clientCommands.handleMessage(message, player);
         if(response.type == ResponseType.noCommand){ //no command to handle
             message = netServer.admins.filterMessage(player, message);
-            //supress chat message if it's filtered out
+            //suppress chat message if it's filtered out
             if(message == null){
                 return;
             }
@@ -571,19 +580,19 @@ public class NetClient implements ApplicationListener{
             BuildPlan[] requests = null;
             if(player.isBuilder()){
                 //limit to 10 to prevent buffer overflows
-                int usedRequests = Math.min(player.builder().plans().size, 10);
+                int usedRequests = Math.min(player.unit().plans().size, 10);
 
                 int totalLength = 0;
 
                 //prevent buffer overflow by checking config length
                 for(int i = 0; i < usedRequests; i++){
-                    BuildPlan plan = player.builder().plans().get(i);
+                    BuildPlan plan = player.unit().plans().get(i);
                     if(plan.config instanceof byte[] b){
                         int length = b.length;
                         totalLength += length;
                     }
 
-                    if(totalLength > 2048){
+                    if(totalLength > 1024){
                         usedRequests = i + 1;
                         break;
                     }
@@ -591,7 +600,7 @@ public class NetClient implements ApplicationListener{
 
                 requests = new BuildPlan[usedRequests];
                 for(int i = 0; i < usedRequests; i++){
-                    requests[i] = player.builder().plans().get(i);
+                    requests[i] = player.unit().plans().get(i);
                 }
             }
 
@@ -603,11 +612,12 @@ public class NetClient implements ApplicationListener{
             uid,
             player.dead(),
             unit.x, unit.y,
-            player.unit().aimX(), player.unit().aimY(),
+            Core.settings.getBool("displayasuser") ? FloatEmbed.embedInFloat(player.unit().aimX()) : player.unit().aimX(),
+            Core.settings.getBool("displayasuser") ? FloatEmbed.embedInFloat(player.unit().aimY()) : player.unit().aimY(),
             unit.rotation,
             unit instanceof Mechc m ? m.baseRotation() : 0,
             unit.vel.x, unit.vel.y,
-            player.miner().mineTile(),
+            player.unit().mineTile,
             player.boosting, player.shooting, ui.chatfrag.shown(), control.input.isBuilding,
             requests,
             Core.camera.position.x, Core.camera.position.y,

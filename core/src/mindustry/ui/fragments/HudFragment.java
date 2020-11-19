@@ -278,20 +278,18 @@ public class HudFragment extends Fragment{
 
                 info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel).name("fps");
                 info.row();
+                if(android){
+                    info.label(() -> memnative.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)(Core.app.getNativeHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory2");
+                }else{
+                    info.label(() -> mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory");
+                }
+                info.row();
                 info.label(() -> "Players: " + Groups.player.size()).visible(net::active).left() // Player count
                 .style(Styles.outlineLabel).name("players");
                 info.row();
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left()
                 .style(Styles.outlineLabel).name("ping");
-                info.row();
-                if(android){
-                    info.label(() -> memnative.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)(Core.app.getNativeHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory2");
-                    info.row();
-                }else{
-                    info.label(() -> mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory");
-                    info.row();
-                }
-            }).top().left().width(70f);
+            }).top().left();
         });
 
         //core items
@@ -781,6 +779,14 @@ public class HudFragment extends Fragment{
                 return builder;
             }
 
+            if(!state.rules.waves && state.isCampaign()){
+                builder.append("[lightgray]").append(Core.bundle.get("sector.curcapture"));
+            }
+
+            if(!state.rules.waves){
+                return builder;
+            }
+
             if(state.rules.winWave > 1 && state.rules.winWave >= state.wave && state.isCampaign()){
                 builder.append(wavefc.get(state.wave, state.rules.winWave));
             }else{
@@ -806,9 +812,6 @@ public class HudFragment extends Fragment{
             return builder;
         }).growX().pad(8f);
 
-        table.update(() -> {
-            //table.background(state.rules.waves ? Tex.wavepane : null);
-        });
         table.touchable(() -> state.rules.waves ? Touchable.enabled : Touchable.disabled);
 
         return table;

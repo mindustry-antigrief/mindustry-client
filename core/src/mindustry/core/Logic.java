@@ -37,7 +37,7 @@ public class Logic implements ApplicationListener{
             //blocks that get broken are appended to the team's broken block queue
             Tile tile = event.tile;
             //skip null entities or un-rebuildables, for obvious reasons; also skip client since they can't modify these requests
-            if(tile.build == null || !tile.block().rebuildable || net.client()) return;
+            if(tile.build == null || !tile.block().rebuildable) return;
 
             tile.build.addPlan(true);
         });
@@ -125,7 +125,7 @@ public class Logic implements ApplicationListener{
         });
 
         Events.on(SectorCaptureEvent.class, e -> {
-            if(!net.client()){
+            if(!net.client() && e.sector == state.getSector() && e.sector.isBeingPlayed()){
                 for(Tile tile : world.tiles){
                     //convert all blocks to neutral, randomly killing them
                     if(tile.isCenter() && tile.build != null && tile.build.team == state.rules.waveTeam){

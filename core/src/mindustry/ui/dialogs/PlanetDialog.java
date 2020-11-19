@@ -283,7 +283,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
             }
         }
 
-        Sector current = state.getSector() != null && state.getSector().isBeingPlayed() ? state.getSector() : null;
+        Sector current = state.getSector() != null && state.getSector().isBeingPlayed() && state.getSector().planet == planets.planet ? state.getSector() : null;
 
         if(current != null){
             planets.fill(current, hoverColor, -0.001f);
@@ -418,6 +418,8 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
                         Planet planet = content.planets().get(i);
                         if(planet.accessible){
                             pt.button(planet.localizedName, Styles.clearTogglet, () -> {
+                                selected = null;
+                                launchSector = null;
                                 renderer.planets.planet = planet;
                             }).width(200).height(40).growX().update(bb -> bb.setChecked(renderer.planets.planet == planet));
                             pt.row();
@@ -483,6 +485,10 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
             hoverLabel.invalidateHierarchy();
         }else{
             hoverLabel.remove();
+        }
+
+        if(launching && selected != null){
+            lookAt(selected, 0.1f);
         }
 
         if(showing()){
@@ -673,7 +679,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
             if(sector.info.wavesSurvived >= 0 && sector.info.wavesSurvived - sector.info.wavesPassed >= 0 && !sector.isBeingPlayed()){
                 int toCapture = sector.info.attack || sector.info.winWave <= 1 ? -1 : sector.info.winWave - (sector.info.wave + sector.info.wavesPassed);
                 boolean plus = (sector.info.wavesSurvived - sector.info.wavesPassed) >= SectorDamage.maxRetWave - 1;
-                stable.add("[accent]Survives " + Math.min(sector.info.wavesSurvived - sector.info.wavesPassed, toCapture) +
+                stable.add("[accent]Survives " + Math.min(sector.info.wavesSurvived - sector.info.wavesPassed, toCapture <= 0 ? 200 : 0) +
                 (plus ? "+" : "") + (toCapture < 0 ? "" : "/" + toCapture) + " waves");
                 stable.row();
             }
