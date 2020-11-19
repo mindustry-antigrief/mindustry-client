@@ -258,6 +258,7 @@ public class DesktopInput extends InputHandler{
 
         if(input.keyDown(Binding.freecam_modifier) && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
             panning = true;
+            Spectate.pos = null;
             float speed = Time.delta;
             speed *= camera.width;
             speed /= 75f;
@@ -277,7 +278,7 @@ public class DesktopInput extends InputHandler{
 
         if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null){
             panning = false;
-            Spectate.user = null;
+            Spectate.pos = null;
         }
 
         //TODO awful UI state checking code

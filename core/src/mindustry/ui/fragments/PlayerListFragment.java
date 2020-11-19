@@ -170,7 +170,7 @@ public class PlayerListFragment extends Fragment{
             button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
                     () -> {
                 DesktopInput.panning = true;
-                Spectate.user = user;
+                Spectate.pos = user;
             });
 
             content.add(button).padBottom(-6).width(600f).maxHeight(h + 14);

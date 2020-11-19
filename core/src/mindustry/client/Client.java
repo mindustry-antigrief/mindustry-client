@@ -3,6 +3,8 @@ package mindustry.client;
 import arc.*;
 import arc.graphics.Color;
 import arc.math.Mathf;
+import arc.math.geom.Position;
+import arc.math.geom.Vec2;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.CommandHandler;
@@ -11,10 +13,16 @@ import arc.util.Time;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.UnitPicker;
+import mindustry.client.utils.Pair;
 import mindustry.content.UnitTypes;
+import mindustry.core.NetClient;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
+import mindustry.gen.Groups;
 import mindustry.gen.Player;
+import mindustry.input.DesktopInput;
+import mindustry.net.Administration;
+import mindustry.net.Administration.*;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.gen.Call;
 import mindustry.type.UnitType;
@@ -59,7 +67,7 @@ public class Client {
             player.sendMessage(result.toString());
         });
 
-        fooCommands.<Player>register("unit", "<unit>", "Unit picker / sniper", (args, player) -> {
+        fooCommands.<Player>register("unit", "<unit-name>", "Unit picker / sniper", (args, player) -> {
             Seq<UnitType> sorted = content.units().copy();
             sorted = sorted.sort((b) -> Strings.levenshtein(args[0], b.name));
             UnitType found = sorted.first();
@@ -67,7 +75,24 @@ public class Client {
         });
 
         fooCommands.<Player>register("goto","<x> <y>", "Navigates to (x,y)", (args, player) -> {
-            else try {Navigation.navigateTo(Float.parseFloat(args[0])*10, Float.parseFloat(args[1])*10);} catch(Exception e){player.sendMessage("[Scarlet]Invalid value was input");}
+            try {
+                Navigation.navigateTo(Float.parseFloat(args[0])*10, Float.parseFloat(args[1])*10);
+            }
+            catch(Exception e){
+                player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !goto 10 300");
+            }
+        });
+
+
+
+        fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to <x> <y>", (args, player) -> {
+            try {
+                DesktopInput.panning = true;
+                Spectate.pos = new Vec2(Float.parseFloat(args[0])*10, Float.parseFloat(args[1])*10);
+            }
+            catch(Exception e){
+                player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !lookat 10 300");
+            }
         });
 
         Events.on(WorldLoadEvent.class, event -> {
