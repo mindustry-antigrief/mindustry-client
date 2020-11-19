@@ -44,7 +44,7 @@ public class BeControl{
                 if(checkUpdates && !mobile){
                     checkUpdate(t -> {});
                 }
-                }, 0, updateInterval
+                }, 1, updateInterval
             );
 
             if(System.getProperties().containsKey("becopy")){

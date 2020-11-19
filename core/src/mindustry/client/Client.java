@@ -85,7 +85,7 @@ public class Client {
 
 
 
-        fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to <x> <y>", (args, player) -> {
+        fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to (x,y)", (args, player) -> {
             try {
                 DesktopInput.panning = true;
                 Spectate.pos = new Vec2(Float.parseFloat(args[0])*10, Float.parseFloat(args[1])*10);

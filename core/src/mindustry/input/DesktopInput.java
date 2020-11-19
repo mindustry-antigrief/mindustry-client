@@ -91,7 +91,7 @@ public class DesktopInput extends InputHandler{
         group.fill(t -> {
             t.bottom();
             t.visible(() -> {
-                t.color.a = Mathf.lerpDelta(t.color.a, player.builder().isBuilding() ? 1f : 0f, 0.15f);
+                t.color.a = Mathf.lerpDelta(t.color.a, player.unit().isBuilding() ? 1f : 0f, 0.15f);
 
                 return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE;
             });
@@ -424,7 +424,7 @@ public class DesktopInput extends InputHandler{
                 cursorType = cursor.build.getCursor();
             }
 
-            if(isPlacing() || !selectRequests.isEmpty()){
+            if((isPlacing() && player.isBuilder()) || !selectRequests.isEmpty()){
                 cursorType = SystemCursor.hand;
             }
 
@@ -500,7 +500,7 @@ public class DesktopInput extends InputHandler{
         int rawCursorX = World.toTile(Core.input.mouseWorld().x), rawCursorY = World.toTile(Core.input.mouseWorld().y);
 
         // automatically pause building if the current build queue is empty
-        if(Core.settings.getBool("buildautopause") && isBuilding && !player.builder().isBuilding()){
+        if(Core.settings.getBool("buildautopause") && isBuilding && !player.unit().isBuilding()){
             isBuilding = false;
             buildWasAutoPaused = true;
         }
@@ -517,12 +517,12 @@ public class DesktopInput extends InputHandler{
             schematicY += shiftY;
         }
 
-        if(Core.input.keyTap(Binding.deselect)){
-            player.miner().mineTile(null);
+        if(Core.input.keyTap(Binding.deselect) && !isPlacing()){
+            player.unit().mineTile = null;
         }
 
         if(Core.input.keyTap(Binding.clear_building)){
-            player.builder().clearBuilding();
+            player.unit().clearBuilding();
         }
 
         if(Core.input.keyTap(Binding.schematic_select) && !Core.scene.hasKeyboard() && mode != breaking){
@@ -614,8 +614,8 @@ public class DesktopInput extends InputHandler{
                 deleting = true;
             }else if(selected != null){
                 //only begin shooting if there's no cursor event
-                if(!tileTapped(selected.build) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !player.builder().activelyBuilding() && !droppingItem &&
-                    !tryBeginMine(selected) && player.miner().mineTile() == null && !Core.scene.hasKeyboard()){
+                if(!tileTapped(selected.build) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !player.unit().activelyBuilding() && !droppingItem &&
+                    !tryBeginMine(selected) && player.unit().mineTile == null && !Core.scene.hasKeyboard()){
                     player.shooting = shouldShoot;
                 }
             }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine
@@ -640,7 +640,7 @@ public class DesktopInput extends InputHandler{
         if(Core.input.keyDown(Binding.select) && mode == none && !isPlacing() && deleting){
             BuildPlan req = getRequest(cursorX, cursorY);
             if(req != null && req.breaking){
-                player.builder().plans().remove(req);
+                player.unit().plans().remove(req);
             }
         }else{
             deleting = false;
@@ -681,7 +681,7 @@ public class DesktopInput extends InputHandler{
 
             if(sreq != null){
                 if(getRequest(sreq.x, sreq.y, sreq.block.size, sreq) != null){
-                    player.builder().plans().remove(sreq, true);
+                    player.unit().plans().remove(sreq, true);
                 }
                 sreq = null;
             }

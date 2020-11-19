@@ -73,10 +73,10 @@ public class AssistPath extends Path {
             }
         }
 
-        if (assisting.unit() instanceof Builderc && Vars.player.unit() instanceof Builderc) {
-            ((Builderc) Vars.player.unit()).clearBuilding();
-            if (((Builderc) assisting.unit()).activelyBuilding() && assisting.team() == Vars.player.team()) {
-                assisting.builder().plans().forEach(plan -> Vars.player.builder().addBuild(plan, false));
+        if (assisting.isBuilder() && Vars.player.isBuilder()) {
+            Vars.player.unit().clearBuilding();
+            if (assisting.unit().activelyBuilding() && assisting.team() == Vars.player.team()) {
+                assisting.unit().plans().forEach(plan -> Vars.player.unit().addBuild(plan, false));
             }
         }
     }
