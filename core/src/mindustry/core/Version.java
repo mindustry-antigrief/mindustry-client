@@ -22,6 +22,8 @@ public class Version{
     public static boolean enabled = true;
     /** Custom client build number used for auto updates */
     public static int clientBuild = 0;
+    /** Custom client update url used for... updating */
+    public static String updateUrl = "unknown";
     /** Custom client version string used for various things */
     public static String clientVersion = "unknown";
 
@@ -34,7 +36,8 @@ public class Version{
         ObjectMap<String, String> map = new ObjectMap<>();
         PropertiesUtils.load(map, file.reader());
 
-        clientBuild =  Integer.parseInt(map.get("clientBuild"));
+        clientBuild = Integer.parseInt(map.get("clientBuild"));
+        updateUrl = map.get("updateUrl");
         clientVersion = version.readString();
         type = map.get("type");
         number = Integer.parseInt(map.get("number", "4"));
