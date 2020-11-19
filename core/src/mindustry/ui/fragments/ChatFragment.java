@@ -184,9 +184,33 @@ public class ChatFragment extends Table{
 
         history.insert(1, message);
 
-        Call.sendChatMessage(message);
-        if (message.equals("/sync")) {
-            Client.lastSyncTime = Time.millis();
+        //check if it's a command
+        CommandHandler.CommandResponse response = Client.fooCommands.handleMessage(message, player);
+        if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
+
+
+            Call.sendChatMessage(message);
+            if (message.equals("/sync")) {
+                Client.lastSyncTime = Time.millis();
+            }
+
+        }else{
+
+            //a command was sent, now get the output
+            if(response.type != CommandHandler.ResponseType.valid){
+                String text;
+
+                //send usage
+                if(response.type == CommandHandler.ResponseType.manyArguments){
+                    text = "[scarlet]Too many arguments. Usage:[lightgray] " + response.command.text + "[gray] " + response.command.paramText;
+                }else if(response.type == CommandHandler.ResponseType.fewArguments){
+                    text = "[scarlet]Too few arguments. Usage:[lightgray] " + response.command.text + "[gray] " + response.command.paramText;
+                }else{ //unknown command
+                    text = "[scarlet]Unknown command. Check [lightgray]!help[scarlet].";
+                }
+
+                player.sendMessage(text);
+            }
         }
     }
 

@@ -10,10 +10,12 @@ import mindustry.gen.Minerc;
 import mindustry.gen.Player;
 import mindustry.world.blocks.storage.CoreBlock;
 
+import static mindustry.Vars.player;
 import static mindustry.Vars.ui;
 
 public class AssistPath extends Path {
     public final Player assisting;
+    int i = 1;
 
     public AssistPath(Player toAssist) {
         assisting = toAssist;
@@ -36,15 +38,17 @@ public class AssistPath extends Path {
             return;
         }
 
-        new PositionWaypoint(assisting.x, assisting.y, assisting.unit().hitSize * 1.1f + Vars.player.unit().hitSize * 1.1f + 2).run();
+        float tolerance = assisting.unit().hitSize * 1.1f + Vars.player.unit().hitSize * 1.1f + 2;
 
         try {
             Vars.player.shooting(assisting.unit().isShooting); // Match shoot state
-            if (assisting.unit().isShooting) {
-                Vars.player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()); // Match aim coordinates
-                if (Vars.player.unit().type.rotateShooting && assisting.unit().isShooting){ // Rotate player if static weapons when assisted player is shooting
-                    Vars.player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY());}
-        }} catch (Exception e) {}
+            Vars.player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()); // Match aim coordinates
+
+            if ((assisting.unit().isShooting && Vars.player.unit().type.rotateShooting)) { // Rotate to aim coords if needed, otherwise face assisted player
+                Vars.player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY());
+            }
+        } catch (Exception e) {}
+        new PositionWaypoint(assisting.x, assisting.y, tolerance, tolerance).run();
         // TODO: Review -> Only shoot when not moving/free aim turrets (i dont really think its needed)
 //        else if(Vars.player.unit().moving()){
 //            Vars.player.unit().lookAt(Vars.player.unit().vel.angle());
@@ -69,10 +73,10 @@ public class AssistPath extends Path {
             }
         }
 
-        if (assisting.unit() instanceof Builderc && Vars.player.unit() instanceof Builderc) {
-            ((Builderc) Vars.player.unit()).clearBuilding();
-            if (((Builderc) assisting.unit()).activelyBuilding() && assisting.team() == Vars.player.team()) {
-                assisting.builder().plans().forEach(plan -> Vars.player.builder().addBuild(plan, false));
+        if (assisting.isBuilder() && Vars.player.isBuilder()) {
+            Vars.player.unit().clearBuilding();
+            if (assisting.unit().activelyBuilding() && assisting.team() == Vars.player.team()) {
+                assisting.unit().plans().forEach(plan -> Vars.player.unit().addBuild(plan, false));
             }
         }
     }

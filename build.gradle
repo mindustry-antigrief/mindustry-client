@@ -32,6 +32,8 @@ allprojects{
 
     ext{
         versionNumber = '6'
+        if(!project.hasProperty("clientBuild")) clientBuild = '0'
+        if(!project.hasProperty("updateUrl")) updateUrl = 'https://api.github.com/repos/blahblahbloopster/mindustry-client-v6/releases/latest'
         if(!project.hasProperty("versionModifier")) versionModifier = 'beta'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
@@ -125,6 +127,8 @@ allprojects{
                 String buildid = getBuildVersion()
                 println("Compiling with build: '$buildid'")
 
+                props["clientBuild"] = clientBuild
+                props["updateUrl"] = updateUrl
                 props["type"] = versionType
                 props["number"] = versionNumber
                 props["modifier"] = versionModifier

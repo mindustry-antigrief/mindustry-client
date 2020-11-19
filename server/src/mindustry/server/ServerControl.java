@@ -58,6 +58,10 @@ public class ServerControl implements ApplicationListener{
     private String suggested;
 
     public ServerControl(String[] args){
+        setup(args);
+    }
+
+    protected void setup(String[] args){
         Core.settings.defaults(
             "bans", "",
             "admins", "",
@@ -254,7 +258,7 @@ public class ServerControl implements ApplicationListener{
         info("Server loaded. Type @ for help.", "'help'");
     }
 
-    private void registerCommands(){
+    protected void registerCommands(){
         handler.register("help", "Displays this command list.", arg -> {
             info("Commands:");
             for(Command command : handler.getCommandList()){
@@ -272,6 +276,7 @@ public class ServerControl implements ApplicationListener{
             net.dispose();
             Core.app.exit();
         });
+
 
         handler.register("stop", "Stop hosting the server.", arg -> {
             net.closeServer();
@@ -657,7 +662,7 @@ public class ServerControl implements ApplicationListener{
             Player target = Groups.player.find(p -> p.name().equals(arg[0]));
 
             if(target != null){
-                Call.sendMessage("[scarlet] " + target.name() + "[scarlet] has been kicked by the server.");
+                Call.sendMessage("[scarlet]" + target.name() + "[scarlet] has been kicked by the server.");
                 target.kick(KickReason.kick);
                 info("It is done.");
             }else{
@@ -686,7 +691,7 @@ public class ServerControl implements ApplicationListener{
 
             for(Player player : Groups.player){
                 if(netServer.admins.isIDBanned(player.uuid())){
-                    Call.sendMessage("[scarlet] " + player.name + " has been banned.");
+                    Call.sendMessage("[scarlet]" + player.name + " has been banned.");
                     player.con.kick(KickReason.banned);
                 }
             }
@@ -723,7 +728,7 @@ public class ServerControl implements ApplicationListener{
 
         handler.register("unban", "<ip/ID>", "Completely unban a person by IP or ID.", arg -> {
             if(netServer.admins.unbanPlayerIP(arg[0]) || netServer.admins.unbanPlayerID(arg[0])){
-                info("Unbanned player.", arg[0]);
+                info("Unbanned player: @", arg[0]);
             }else{
                 err("That IP/ID is not banned!");
             }

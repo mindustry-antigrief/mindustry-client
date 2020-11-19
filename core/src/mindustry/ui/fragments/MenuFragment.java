@@ -62,7 +62,7 @@ public class MenuFragment extends Fragment{
         if(mobile){
             parent.fill(c -> c.bottom().left().button("", Styles.infot, ui.about::show).size(84, 45).name("info"));
             parent.fill(c -> c.bottom().right().button("", Styles.discordt, ui.discord::show).size(84, 45).name("discord"));
-        }else if(becontrol.active()){
+        }else{
             parent.fill(c -> c.bottom().right().button("@be.check", Icon.refresh, () -> {
                 ui.loadfrag.show();
                 becontrol.checkUpdate(result -> {
@@ -183,6 +183,12 @@ public class MenuFragment extends Fragment{
                         if (!Core.app.openURI("https://discord.gg/yp9ZW7j")) {
                             ui.showErrorMessage("@linkfail");
                             Core.app.setClipboardText("https://discord.gg/yp9ZW7j");
+                        }
+                    }),
+                    new Buttoni("Github", Icon.github, () -> { // Link to client discord
+                        if (!Core.app.openURI("https://github.com/blahblahbloopster/mindustry-client-v6")) {
+                            ui.showErrorMessage("@linkfail");
+                            Core.app.setClipboardText("https://github.com/blahblahbloopster/mindustry-client-v6");
                         }
                     }),
                     new Buttoni("Changelog", Icon.edit, () -> new ChangelogDialog().show()),

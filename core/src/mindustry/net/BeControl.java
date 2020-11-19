@@ -7,7 +7,9 @@ import arc.func.*;
 import arc.util.*;
 import arc.util.async.*;
 import arc.util.serialization.*;
+import mindustry.client.ui.ChangelogDialog;
 import mindustry.core.*;
+import mindustry.game.EventType;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.io.*;
@@ -25,8 +27,8 @@ import static mindustry.Vars.*;
 public class BeControl{
     private static final int updateInterval = 60 * 1;
 
-    private AsyncExecutor executor = new AsyncExecutor(1);
-    private boolean checkUpdates = true;
+    private final AsyncExecutor executor = new AsyncExecutor(1);
+    private boolean checkUpdates = Core.settings.getBool("autoupdate");
     private boolean updateAvailable;
     private String updateUrl;
     private int updateBuild;
@@ -37,34 +39,36 @@ public class BeControl{
     }
 
     public BeControl(){
-        if(active()){
+        Events.on(EventType.ClientLoadEvent.class, event -> {
             Timer.schedule(() -> {
                 if(checkUpdates && !mobile){
                     checkUpdate(t -> {});
                 }
-            }, updateInterval, updateInterval);
-        }
+                }, 1, updateInterval
+            );
 
-        if(System.getProperties().containsKey("becopy")){
-            try{
-                Fi dest = Fi.get(System.getProperty("becopy"));
-                Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            if(System.getProperties().containsKey("becopy")){
+                try{
+                    if(!System.getProperty("lastBuild").equals(Version.clientVersion)) { new ChangelogDialog().show(); } // Show changelog after auto update
+                    Fi dest = Fi.get(System.getProperty("becopy"));
+                    Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
-                self.copyTo(dest);
-            }catch(Throwable e){
-                e.printStackTrace();
+                    self.copyTo(dest);
+                }catch(Throwable e){
+                    e.printStackTrace();
+                }
             }
-        }
+        });
     }
 
     /** asynchronously checks for updates. */
     public void checkUpdate(Boolc done){
-        Core.net.httpGet("https://api.github.com/repos/Anuken/MindustryBuilds/releases/latest", res -> {
+        Core.net.httpGet(Version.updateUrl, res -> {
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
                 int newBuild = Strings.parseInt(val.getString("tag_name", "0"));
-                if(newBuild > Version.build){
-                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith(headless ? "Mindustry-BE-Server" : "Mindustry-BE-Desktop"));
+                if(newBuild != Version.clientBuild){
+                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith(headless ? "Mindustry-BE-Server" : "desktop-release"));
                     String url = asset.getString("browser_download_url", "");
                     updateAvailable = true;
                     updateBuild = newBuild;
@@ -93,7 +97,8 @@ public class BeControl{
 
         if(!headless){
             checkUpdates = false;
-            ui.showCustomConfirm(Core.bundle.format("be.update", "") + " " + updateBuild, "@be.update.confirm", "@ok", "@be.ignore", () -> {
+
+            ui.showCustomConfirm(Core.bundle.format("be.update", "") + " Current: " + Version.clientBuild + " New: " + updateBuild, "@be.update.confirm", "@ok", "@be.ignore", () -> {
                 try{
                     boolean[] cancel = {false};
                     float[] progress = {0};
@@ -107,8 +112,8 @@ public class BeControl{
                     download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                         try{
                             Runtime.getRuntime().exec(OS.isMac ?
-                                new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                                new String[]{"java", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
+                                new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
+                                new String[]{"java", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                             );
                             System.exit(0);
                         }catch(IOException e){
@@ -131,7 +136,7 @@ public class BeControl{
                 }
             }, () -> checkUpdates = false);
         }else{
-            Log.info("&lcA new update is available: &lyBleeding Edge build @", updateBuild);
+            Log.info("&lcCurrent: " + Version.clientBuild + " A new update is available: &lyBleeding Edge build @", updateBuild);
             if(Config.autoUpdate.bool()){
                 Log.info("&lcAuto-downloading next version...");
 

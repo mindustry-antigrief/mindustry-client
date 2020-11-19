@@ -16,11 +16,14 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.Client;
+import mindustry.client.Spectate;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
 import mindustry.client.ui.StupidMarkupParser;
+import mindustry.client.ui.Toast;
+import mindustry.client.ui.UnitPicker;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -52,7 +55,8 @@ public class DesktopInput extends InputHandler{
     /** Selected build request for movement. */
     public @Nullable BuildPlan sreq;
     /** Whether player is currently deleting removal requests. */
-    public boolean deleting = false, shouldShoot = false, panning = false;
+    public boolean deleting = false, shouldShoot = false;
+    public static boolean panning = false;
     /** Mouse pan speed. */
     public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 11f;
 
@@ -87,7 +91,7 @@ public class DesktopInput extends InputHandler{
         group.fill(t -> {
             t.bottom();
             t.visible(() -> {
-                t.color.a = Mathf.lerpDelta(t.color.a, player.builder().isBuilding() ? 1f : 0f, 0.15f);
+                t.color.a = Mathf.lerpDelta(t.color.a, player.unit().isBuilding() ? 1f : 0f, 0.15f);
 
                 return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE;
             });
@@ -254,6 +258,7 @@ public class DesktopInput extends InputHandler{
 
         if(input.keyDown(Binding.freecam_modifier) && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
             panning = true;
+            Spectate.pos = null;
             float speed = Time.delta;
             speed *= camera.width;
             speed /= 75f;
@@ -273,6 +278,7 @@ public class DesktopInput extends InputHandler{
 
         if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null){
             panning = false;
+            Spectate.pos = null;
         }
 
         //TODO awful UI state checking code
@@ -300,13 +306,15 @@ public class DesktopInput extends InputHandler{
                 int itemHeight = 30;
                 Table table = new Table(Tex.buttonTrans);
                 table.touchable = Touchable.childrenOnly;
-                table.setHeight((itemHeight * 3) * (table.getRows() + 1));
                 table.setWidth(400);
+                table.margin(0).marginRight(5);
+                table.fill();
+                table.defaults().height(itemHeight).pad(0f, 5f, 5f, 10f).fillX();
                 try {
-                    table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").margin(0).pad(5).height(itemHeight).left();
-                } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.red);}
-                table.row();
-                table.button("View log", () -> {
+                    table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().pad(5).growX().fillY();
+                } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.scarlet);}
+                table.row().fill();
+                table.button("View log", () -> { // Tile Logs
                     BaseDialog dialog = new BaseDialog("Logs");
                     dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).center();
                     dialog.addCloseButton();
@@ -317,23 +325,14 @@ public class DesktopInput extends InputHandler{
                         }
                     });
                     dialog.show();
-                }).grow().margin(0).pad(5).height(itemHeight).center().colspan(2);
+                });
 
-                //TODO: Old code
-//                table.add(new TextButton("View log")).grow().get().clicked(() -> {
-//                    Dialog dialog = new Dialog("Logs");
-//                    dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).grow().center();
-//
-//                    dialog.cont.row();
-//                    dialog.cont.button("@back", Icon.left, dialog::hide).size(210f, 64f);
-//
-//                    dialog.keyDown(key -> {
-//                        if(key == KeyCode.escape || key == KeyCode.back){
-//                            Core.app.post(dialog::hide);
-//                        }
-//                    });
-//                    dialog.show();
-//                });
+                table.row().fill();
+                table.button("Unit Picker", () -> { // Unit Selector
+                    new UnitPicker().show();
+                });
+                table.setHeight((itemHeight * 1) * (table.getRows() + 1) + 10 * (table.getRows() + 1));
+
 
                 AtomicBoolean released = new AtomicBoolean(false);
                 table.update(() -> {
@@ -425,7 +424,7 @@ public class DesktopInput extends InputHandler{
                 cursorType = cursor.build.getCursor();
             }
 
-            if(isPlacing() || !selectRequests.isEmpty()){
+            if((isPlacing() && player.isBuilder()) || !selectRequests.isEmpty()){
                 cursorType = SystemCursor.hand;
             }
 
@@ -501,7 +500,7 @@ public class DesktopInput extends InputHandler{
         int rawCursorX = World.toTile(Core.input.mouseWorld().x), rawCursorY = World.toTile(Core.input.mouseWorld().y);
 
         // automatically pause building if the current build queue is empty
-        if(Core.settings.getBool("buildautopause") && isBuilding && !player.builder().isBuilding()){
+        if(Core.settings.getBool("buildautopause") && isBuilding && !player.unit().isBuilding()){
             isBuilding = false;
             buildWasAutoPaused = true;
         }
@@ -518,12 +517,12 @@ public class DesktopInput extends InputHandler{
             schematicY += shiftY;
         }
 
-        if(Core.input.keyTap(Binding.deselect)){
-            player.miner().mineTile(null);
+        if(Core.input.keyTap(Binding.deselect) && !isPlacing()){
+            player.unit().mineTile = null;
         }
 
         if(Core.input.keyTap(Binding.clear_building)){
-            player.builder().clearBuilding();
+            player.unit().clearBuilding();
         }
 
         if(Core.input.keyTap(Binding.schematic_select) && !Core.scene.hasKeyboard() && mode != breaking){
@@ -615,8 +614,8 @@ public class DesktopInput extends InputHandler{
                 deleting = true;
             }else if(selected != null){
                 //only begin shooting if there's no cursor event
-                if(!tileTapped(selected.build) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !player.builder().activelyBuilding() && !droppingItem &&
-                    !tryBeginMine(selected) && player.miner().mineTile() == null && !Core.scene.hasKeyboard()){
+                if(!tileTapped(selected.build) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !player.unit().activelyBuilding() && !droppingItem &&
+                    !tryBeginMine(selected) && player.unit().mineTile == null && !Core.scene.hasKeyboard()){
                     player.shooting = shouldShoot;
                 }
             }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine
@@ -641,7 +640,7 @@ public class DesktopInput extends InputHandler{
         if(Core.input.keyDown(Binding.select) && mode == none && !isPlacing() && deleting){
             BuildPlan req = getRequest(cursorX, cursorY);
             if(req != null && req.breaking){
-                player.builder().plans().remove(req);
+                player.unit().plans().remove(req);
             }
         }else{
             deleting = false;
@@ -682,7 +681,7 @@ public class DesktopInput extends InputHandler{
 
             if(sreq != null){
                 if(getRequest(sreq.x, sreq.y, sreq.block.size, sreq) != null){
-                    player.builder().plans().remove(sreq, true);
+                    player.unit().plans().remove(sreq, true);
                 }
                 sreq = null;
             }

@@ -133,6 +133,7 @@ public class SettingsMenuDialog extends SettingsDialog{
                             u.clearUnlock();
                         }
                     });
+                    settings.remove("unlocks");
                 });
             }).marginLeft(4);
 
@@ -149,7 +150,7 @@ public class SettingsMenuDialog extends SettingsDialog{
                             }
                         }
                     }
-                    
+
                     for(var slot : control.saves.getSaveSlots().copy()){
                         if(slot.isSector()){
                             slot.delete();
@@ -325,6 +326,10 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         client.checkPref("reactorwarnings", true);
         client.checkPref("reactorwarningsounds", true);
+        client.checkPref("lighting", true);
+        client.checkPref("displayasuser", false);
+        client.checkPref("highlightclientmsg", false);
+        client.checkPref("autoupdate", true);
         client.checkPref("discordrpc", true, val -> {
             ClientLauncher launcher = (ClientLauncher) app.getListeners().find(item -> item instanceof ClientLauncher);
             if (launcher != null && app.isDesktop()) {
@@ -335,7 +340,7 @@ public class SettingsMenuDialog extends SettingsDialog{
                 }
             }
         });
-        client.sliderPref("weatheropacity", bundle.get("setting.weatheropacity.name"), 50, 0, 100, s -> s + "%");
+        client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);
         game.checkPref("conveyorpathfinding", true);
@@ -409,7 +414,6 @@ public class SettingsMenuDialog extends SettingsDialog{
             }
         }
 
-        client.checkPref("lighting", true);
         graphics.checkPref("effects", true);
         graphics.checkPref("atmosphere", !mobile);
         graphics.checkPref("destroyedblocks", true);
