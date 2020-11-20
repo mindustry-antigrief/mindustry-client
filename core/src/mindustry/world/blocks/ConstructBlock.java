@@ -116,6 +116,8 @@ public class ConstructBlock extends Block{
             tile.build.playerPlaced(config);
         }
 
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config));
+
         Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
 
         if(builder != null && tile.build != null){

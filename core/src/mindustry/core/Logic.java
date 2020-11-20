@@ -56,6 +56,20 @@ public class Logic implements ApplicationListener{
             }
         });
 
+//        Events.on(BlockBuildBeginEvent.class, event -> { TODO: Add a setting to toggle between the event above and this one
+//            if(!event.breaking){
+//                TeamData data = state.teams.get(event.team);
+//                Iterator<BlockPlan> it = data.blocks.iterator();
+//                while(it.hasNext()){
+//                    BlockPlan b = it.next();
+//                    Block block = content.block(b.block);
+//                    if(event.tile.block().bounds(event.tile.x, event.tile.y, Tmp.r1).overlaps(block.bounds(b.x, b.y, Tmp.r2))){
+//                        it.remove();
+//                    }
+//                }
+//            }
+//        });
+
         //when loading a 'damaged' sector, propagate the damage
         Events.on(SaveLoadEvent.class, e -> {
             if(state.isCampaign()){
