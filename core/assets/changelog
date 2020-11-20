@@ -1,3 +1,6 @@
+# Version 3.0.2
+ * Added flying unit trails (disableable in client settings)
+
 # Version 3.0
  * Added client player display (allows other foo's users to see you, off by default)
  * Added setting to highlight messages from other foo's users
