@@ -76,7 +76,7 @@ public class Client {
 
         fooCommands.<Player>register("goto","<x> <y>", "Navigates to (x,y)", (args, player) -> {
             try {
-                Navigation.navigateTo(Float.parseFloat(args[0])*10, Float.parseFloat(args[1])*10);
+                Navigation.navigateTo(Float.parseFloat(args[0])*8, Float.parseFloat(args[1])*8);
             }
             catch(Exception e){
                 player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !goto 10 300");
@@ -86,7 +86,7 @@ public class Client {
         fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to (x,y)", (args, player) -> {
             try {
                 DesktopInput.panning = true;
-                Spectate.pos = new Vec2(Float.parseFloat(args[0])*10, Float.parseFloat(args[1])*10);
+                Spectate.pos = new Vec2(Float.parseFloat(args[0])*8, Float.parseFloat(args[1])*8);
             }
             catch(Exception e){
                 player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !lookat 10 300");
