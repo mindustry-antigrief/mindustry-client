@@ -39,6 +39,7 @@ public class Client {
     public static Seq<BaseTurret.BaseTurretBuild> turrets = new Seq<>();
     public static long lastSyncTime = 0L;
     public static final CommandHandler fooCommands = new CommandHandler("!");
+    public static boolean hideTrails = true;
 
     public static void initialize() {
         fooCommands.<Player>register("help", "[page]", "Lists all client commands.", (args, player) -> {
@@ -127,6 +128,8 @@ public class Client {
         Navigation.update();
         PowerInfo.update();
         Spectate.update();
+
+        hideTrails = Core.settings.getBool("hidetrails");
 
         if (!configs.isEmpty()) {
             try {

@@ -6,16 +6,23 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.pooling.*;
+import mindustry.client.Client;
 
 public class Trail{
     public int length;
 
     private final Seq<Vec3> points;
     private float lastX = -1, lastY = -1;
+    private final boolean toggle;
 
-    public Trail(int length){
+    public Trail(int length, boolean toggle){
         this.length = length;
+        this.toggle = toggle;
         points = new Seq<>(length);
+    }
+
+    public Trail(int length) {
+        this(length, false);
     }
 
     public void clear(){
@@ -23,6 +30,9 @@ public class Trail{
     }
 
     public void draw(Color color, float width){
+        if (toggle && Client.hideTrails) {
+            return;
+        }
         Draw.color(color);
 
         for(int i = 0; i < points.size - 1; i++){

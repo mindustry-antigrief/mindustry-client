@@ -330,6 +330,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("displayasuser", false);
         client.checkPref("highlightclientmsg", false);
         client.checkPref("autoupdate", true);
+        client.checkPref("hidetrails", false);
         client.checkPref("discordrpc", true, val -> {
             ClientLauncher launcher = (ClientLauncher) app.getListeners().find(item -> item instanceof ClientLauncher);
             if (launcher != null && app.isDesktop()) {
