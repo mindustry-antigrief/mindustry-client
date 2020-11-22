@@ -454,12 +454,12 @@ public class ConstructBlock extends Block{
             if (cblock instanceof NuclearReactor) {
                 if (Core.settings.getBool("reactorwarnings")) {
                     long since = Time.timeSinceMillis(lastWarn);
-                    if (progress > lastProgress && since > 0 && progress < .99f) {
+                    if (progress > lastProgress && since > 0 && progress < .99f && lastBuilder != null) {
                         // Play sound for reactor construction (only played when no reactor has been built for 10s)
                         if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) {
                             Sounds.corexplode.play();
                         }
-                        String format = String.format("%s is building a %s at %d,%d (%d blocks from core).", lastAccessed, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8));
+                        String format = String.format("%s is building a %s at %d,%d (%d blocks from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8));
                         String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
                         lastWarn = Time.millis();
                         if (toast == null || toast.parent == null) {
