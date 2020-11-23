@@ -1,8 +1,9 @@
 package mindustry.client.antigreif;
 
+import mindustry.gen.Call;
 import mindustry.world.Tile;
 
-import static mindustry.Vars.world;
+import static mindustry.Vars.*;
 
 public class ConfigRequest {
     public final int x, y;
@@ -18,7 +19,7 @@ public class ConfigRequest {
         if (world != null) {
             Tile tile = world.tile(x, y);
             if (tile == null) return;
-            tile.build.configure(value);
+            Call.tileConfig(player, tile.build, value);
         }
     }
 }

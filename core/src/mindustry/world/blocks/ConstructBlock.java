@@ -59,6 +59,7 @@ public class ConstructBlock extends Block{
         consumesTap = true;
         solidifes = true;
         consBlocks[size - 1] = this;
+        sync = true;
     }
 
     /** Returns a ConstructBlock by size. */
@@ -454,23 +455,25 @@ public class ConstructBlock extends Block{
             if (cblock instanceof NuclearReactor) {
                 if (Core.settings.getBool("reactorwarnings")) {
                     long since = Time.timeSinceMillis(lastWarn);
-                    if (progress > lastProgress && since > 0 && progress < .99f) {
+                    if (progress > lastProgress && since > 0 && progress < .99f && lastBuilder != null) {
                         // Play sound for reactor construction (only played when no reactor has been built for 10s)
                         if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) {
                             Sounds.corexplode.play();
                         }
-                        String format = String.format("%s is building a %s at %d,%d (%d blocks from core).", lastAccessed, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8));
-                        String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
                         lastWarn = Time.millis();
-                        if (toast == null || toast.parent == null) {
-                            toast = new Toast();
-                        } else {
-                            toast.clearChildren();
-                        }
-                        toast.setFadeTime(1f);
-                        toast.add(new Label(format));
-                        toast.row();
-                        toast.add(new Label(format2, monoLabel));
+                        try {
+                            String format = String.format("%s is building a %s at %d,%d (%d blocks from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8));
+                            String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
+                            if (toast == null || toast.parent == null) {
+                                toast = new Toast();
+                            } else {
+                                toast.clearChildren();
+                            }
+                            toast.setFadeTime(1f);
+                            toast.add(new Label(format));
+                            toast.row();
+                            toast.add(new Label(format2, monoLabel));
+                        } catch (Exception ignored) {} // Throws an exception if the player switches units while building a reactor lol
                     }
                 }
             }

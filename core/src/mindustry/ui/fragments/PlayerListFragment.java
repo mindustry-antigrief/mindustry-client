@@ -166,7 +166,7 @@ public class PlayerListFragment extends Fragment{
             button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
                     () -> Navigation.follow(new UnAssistPath(user))).size(h/2);
             button.button(Icon.move, Styles.clearPartiali, // Goto
-                    () -> Navigation.navigateTo(user.x, user.y)).size(h/2);
+                    () -> Navigation.navigateTo(user.x+1, user.y+1)).size(h/2);
             button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
                     () -> {
                 DesktopInput.panning = true;

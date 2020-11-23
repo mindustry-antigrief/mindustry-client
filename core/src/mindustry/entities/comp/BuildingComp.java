@@ -16,6 +16,8 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.audio.*;
+import mindustry.client.Client;
+import mindustry.client.antigreif.ConfigRequest;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -229,7 +231,8 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public void configure(Object value){
         //save last used config
         block.lastConfig = value;
-        Call.tileConfig(player, self(), value);
+        Client.configs.add(new ConfigRequest(tile.x, tile.y, value));
+        // Call.tileConfig(player, self(), value); TODO: Remove line if the line above works correctly
     }
 
     /** Configure from a server. */
@@ -519,7 +522,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public void dumpLiquid(Liquid liquid){
         int dump = this.cdump;
 
-        if(!net.client() && state.isCampaign()) liquid.unlock();
+        if(!net.client() && state.isCampaign() && team == state.rules.defaultTeam) liquid.unlock();
 
         for(int i = 0; i < proximity.size; i++){
             incrementDump(proximity.size);
@@ -620,7 +623,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
      */
     public void offload(Item item){
         int dump = this.cdump;
-        if(!net.client() && state.isCampaign()) item.unlock();
+        if(!net.client() && state.isCampaign() && team == state.rules.defaultTeam) item.unlock();
 
         for(int i = 0; i < proximity.size; i++){
             incrementDump(proximity.size);

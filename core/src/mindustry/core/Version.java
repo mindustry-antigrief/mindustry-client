@@ -55,7 +55,7 @@ public class Version{
             build = Strings.canParseInt(map.get("build")) ? Integer.parseInt(map.get("build")) : -1;
         }
 
-        build = 115;
+        build = 116;
         revision = 0;
         type = "official";
         modifier = "beta";
@@ -71,6 +71,6 @@ public class Version{
         if(build == -1){
             return "custom build";
         }
-        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + " (client version " + clientVersion + ")";
+        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + "\n(Client Version: " + clientVersion + " Release: " + clientBuild + ")";
     }
 }

@@ -7,9 +7,7 @@ import arc.math.geom.Position;
 import arc.math.geom.Vec2;
 import arc.struct.Queue;
 import arc.struct.Seq;
-import arc.util.CommandHandler;
-import arc.util.Strings;
-import arc.util.Time;
+import arc.util.*;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.UnitPicker;
@@ -40,6 +38,8 @@ public class Client {
     public static long lastSyncTime = 0L;
     public static final CommandHandler fooCommands = new CommandHandler("!");
     public static boolean hideTrails = true;
+    private static Interval timer = new Interval();
+    public static Ratekeeper configRateLimit = new Ratekeeper();
 
     public static void initialize() {
         fooCommands.<Player>register("help", "[page]", "Lists all client commands.", (args, player) -> {
@@ -104,25 +104,34 @@ public class Client {
             configs.clear();
             turrets.clear();
         });
+
         Events.on(EventType.UnitChangeEvent.class, event -> { // TODO: Instead of this code, call a class in UnitPicker.java to find and switch to new unit if possible.
             UnitType unit = UnitPicker.found;
             if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 Call.unitControl(player, event.unit);
-                if (event.unit.isPlayer()) {
-                    if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);} // After we switch units successfully, stop listening for this unit
-                    else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer() + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
-                }}
+                Timer.schedule(() -> {
+                    if (event.unit.isPlayer()) {
+                        if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);} // After we switch units successfully, stop listening for this unit
+                        else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer() + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
+                    }
+                    }, .5f);
+            }
         });
+
         Events.on(EventType.UnitCreateEvent.class, event -> { // TODO: Instead of this code, call a class in UnitPicker.java to find and switch to new unit if possible.
             UnitType unit = UnitPicker.found;
             if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 Call.unitControl(player, event.unit);
-                if (event.unit.isPlayer()) {
-                    if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);}  // After we switch units successfully, stop listening for this unit
-                    else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer() + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
-                }}
+                Timer.schedule(() -> {
+                    if (event.unit.isPlayer()) {
+                        if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);}  // After we switch units successfully, stop listening for this unit
+                        else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer() + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
+                    }
+                    }, .5f);
+            }
         });
     }
+
 
     public static void update() {
         Navigation.update();
@@ -132,9 +141,11 @@ public class Client {
         hideTrails = Core.settings.getBool("hidetrails");
 
         if (!configs.isEmpty()) {
-            try {
-                configs.removeFirst().run();
-            } catch (Exception ignored) {}
+                try {
+                    if (configRateLimit.allow(6 * 1000, 25)) {
+                        configs.removeLast().run();
+                    }
+                } catch (Exception e) {Log.info(e.getMessage());}
         }
     }
 

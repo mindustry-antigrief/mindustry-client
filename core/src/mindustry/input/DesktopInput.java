@@ -62,6 +62,7 @@ public class DesktopInput extends InputHandler{
 
     @Override
     public void buildUI(Group group){
+        //respawn hints
         group.fill(t -> {
             t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()));
             t.bottom();
@@ -71,6 +72,7 @@ public class DesktopInput extends InputHandler{
             }).margin(6f);
         });
 
+        //building hints
         group.fill(t -> {
             t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.RECORDING);
             t.bottom();
@@ -106,6 +108,7 @@ public class DesktopInput extends InputHandler{
             }).margin(10f);
         });
 
+        //schematic controls
         group.fill(t -> {
             t.visible(() -> ui.hudfrag.shown && lastSchematic != null && !selectRequests.isEmpty() && Navigation.state == NavigationState.NONE);
             t.bottom();
@@ -244,6 +247,9 @@ public class DesktopInput extends InputHandler{
             Navigation.stopFollowing();
         }
 
+        if(input.keyTap(KeyCode.semicolon) && scene.getKeyboardFocus() == null){
+            Navigation.follow(new BuildPath());
+        }
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
@@ -307,12 +313,13 @@ public class DesktopInput extends InputHandler{
                 Table table = new Table(Tex.buttonTrans);
                 table.touchable = Touchable.childrenOnly;
                 table.setWidth(400);
-                table.margin(0).marginRight(5);
+                table.margin(10);
                 table.fill();
-                table.defaults().height(itemHeight).pad(0f, 5f, 5f, 10f).fillX();
+                table.defaults().height(itemHeight).padTop(5).fillX();
                 try {
-                    table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().pad(5).growX().fillY();
+                    table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().growX().fillY().padTop(-5);
                 } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.scarlet);}
+
                 table.row().fill();
                 table.button("View log", () -> { // Tile Logs
                     BaseDialog dialog = new BaseDialog("Logs");
@@ -331,9 +338,9 @@ public class DesktopInput extends InputHandler{
                 table.button("Unit Picker", () -> { // Unit Selector
                     new UnitPicker().show();
                 });
-                table.setHeight((itemHeight * 1) * (table.getRows() + 1) + 10 * (table.getRows() + 1));
 
 
+                table.setHeight(itemHeight * (table.getRows() + 1) + 10 * (table.getRows() + 1));
                 AtomicBoolean released = new AtomicBoolean(false);
                 table.update(() -> {
                     if(input.keyRelease(Binding.select) && !released.get()){
@@ -343,8 +350,7 @@ public class DesktopInput extends InputHandler{
                     }
                 });
                 scene.add(table);
-                table.setPosition(input.mouseX(), input.mouseY());
-                table.align(Align.topRight);
+                table.setPosition(input.mouseX(), input.mouseY(), Align.topLeft);
             }
             if(Core.input.keyDown(Binding.control) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit();
@@ -370,8 +376,9 @@ public class DesktopInput extends InputHandler{
             player.shooting = false;
         }
 
-        if(state.isGame() && Core.input.keyTap(Binding.minimap) && !scene.hasDialog() && !(scene.getKeyboardFocus() instanceof TextField)){
-            ui.minimapfrag.toggle();
+        if(state.isGame() && !scene.hasDialog() && !(scene.getKeyboardFocus() instanceof TextField)){
+            if(Core.input.keyTap(Binding.minimap)) ui.minimapfrag.toggle();
+            if(Core.input.keyTap(Binding.planet_map) && state.isCampaign()) ui.planet.toggle();
         }
 
         if(state.isMenu() || Core.scene.hasDialog()) return;
@@ -614,7 +621,7 @@ public class DesktopInput extends InputHandler{
                 deleting = true;
             }else if(selected != null){
                 //only begin shooting if there's no cursor event
-                if(!tileTapped(selected.build) && !tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !player.unit().activelyBuilding() && !droppingItem &&
+                if(!tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !tileTapped(selected.build) && !player.unit().activelyBuilding() && !droppingItem &&
                     !tryBeginMine(selected) && player.unit().mineTile == null && !Core.scene.hasKeyboard()){
                     player.shooting = shouldShoot;
                 }

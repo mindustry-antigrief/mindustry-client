@@ -41,7 +41,7 @@ public class BeControl{
     public BeControl(){
         Events.on(EventType.ClientLoadEvent.class, event -> {
             Timer.schedule(() -> {
-                if(checkUpdates && !mobile){
+                if(checkUpdates && !mobile && Version.clientBuild != 0){
                     checkUpdate(t -> {});
                 }
                 }, 1, updateInterval
