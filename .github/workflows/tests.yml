@@ -15,7 +15,7 @@ jobs:
       with:
         java-version: 14
     - name: Compile test JAR
-      run: ./gradlew test desktop:dist
+      run: ./gradlew desktop:dist
     - name: Upload desktop JAR for testing
       uses: actions/upload-artifact@v2
       with:
