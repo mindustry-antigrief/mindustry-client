@@ -56,7 +56,7 @@ public class Version{
         }
 
         build = 117;
-        revision = 0;
+        revision = 1;
         type = "official";
         modifier = "beta";
         number = 6;
