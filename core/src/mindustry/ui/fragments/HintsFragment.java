@@ -50,7 +50,9 @@ public class HintsFragment extends Fragment{
             }else if(hints.size > 0){
                 //check one hint each frame to see if it should be shown.
                 Hint hint = hints.find(Hint::show);
-                if(hint != null && !hint.finished() & !hint.complete()){
+                if(hint != null && hint.complete()){
+                    hints.remove(hint);
+                }else if(hint != null){
                     display(hint);
                 }
             }
@@ -79,7 +81,7 @@ public class HintsFragment extends Fragment{
     void checkNext(){
         if(current != null) return;
 
-        hints.removeAll(h -> h == current || !h.valid() || h.finished() || (h.show() && h.complete()));
+        hints.removeAll(h -> !h.valid() || h.finished() || (h.show() && h.complete()));
         hints.sort(Hint::order);
 
         Hint first = hints.find(Hint::show);
@@ -148,7 +150,7 @@ public class HintsFragment extends Fragment{
         depositItems(() -> player.unit().hasItem(), () -> !player.unit().hasItem()),
         desktopPause(visibleDesktop, () -> isTutorial.get() && !Vars.net.active(), () -> Core.input.keyTap(Binding.pause)),
         research(isTutorial, () -> ui.research.isShown()),
-        unitControl(() -> state.rules.defaultTeam.data().units.size > 1 && !net.active(), () -> !player.dead() && !player.unit().spawnedByCore),
+        unitControl(() -> state.rules.defaultTeam.data().units.size > 2 && !net.active() && !player.dead(), () -> !player.dead() && !player.unit().spawnedByCore),
         respawn(visibleMobile, () -> !player.dead() && !player.unit().spawnedByCore, () -> !player.dead() && player.unit().spawnedByCore),
         launch(() -> isTutorial.get() && state.rules.sector.isCaptured(), () -> ui.planet.isShown()),
         schematicSelect(visibleDesktop, () -> ui.hints.placedBlocks.contains(Blocks.router), () -> Core.input.keyRelease(Binding.schematic_select) || Core.input.keyTap(Binding.pick)),
@@ -158,6 +160,8 @@ public class HintsFragment extends Fragment{
         payloadPickup(() -> !player.unit().dead && player.unit() instanceof Payloadc p && p.payloads().isEmpty(), () -> player.unit() instanceof Payloadc p && p.payloads().any()),
         payloadDrop(() -> !player.unit().dead && player.unit() instanceof Payloadc p && p.payloads().any(), () -> player.unit() instanceof Payloadc p && p.payloads().isEmpty()),
         waveFire(() -> Groups.fire.size() > 0 && Blocks.wave.unlockedNow(), () -> indexer.getAllied(state.rules.defaultTeam, BlockFlag.extinguisher).size() > 0),
+        generator(() -> control.input.block == Blocks.combustionGenerator, () -> ui.hints.placedBlocks.contains(Blocks.combustionGenerator)),
+        guardian(() -> state.boss() != null && state.boss().armor >= 4, () -> state.boss() == null),
         ;
 
         @Nullable
