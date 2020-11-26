@@ -1,8 +1,5 @@
 This is my fork of mindustry v6.  It will have various quality of life and automation features when complete.
 
-## Steam
-Installing the client on steam is rather easy, download the `steam.jar` file from the latest release and rename it to `desktop.jar`. After that, move it to the `jre` folder where the game is installed as seen [here](core/assets/steaminfo.png), accept the file replacement prompt, and you are done.
-
 ![Logo](core/assets-raw/sprites/ui/logo.png)
 
 [![Build Status](https://travis-ci.org/Anuken/Mindustry.svg?branch=master)](https://travis-ci.org/Anuken/Mindustry) 
@@ -14,6 +11,12 @@ _[Trello Board](https://trello.com/b/aE2tcUwF/mindustry-40-plans)_
 _[Wiki](https://mindustrygame.github.io/wiki)_  
 _[Javadoc](https://mindustrygame.github.io/docs/)_ 
 
+## Steam
+1. Installing the client on steam is rather easy, download the `steam.jar` file from the latest release.
+2. Rename the file to `desktop.jar`.
+3. Move the file to the `jre` folder where the game is installed as seen [here](core/assets/steaminfo.png).
+4. Accept the file replacement prompt.
+5. Open the game, and it should work just fine.
 ## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md).
