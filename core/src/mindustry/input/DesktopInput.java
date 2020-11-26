@@ -282,10 +282,6 @@ public class DesktopInput extends InputHandler{
 //            panning = false;
 //        }
 
-        if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null){
-            panning = false;
-            Spectate.pos = null;
-        }
 
         //TODO awful UI state checking code
         if(((player.dead() || state.isPaused()) && !ui.chatfrag.shown()) && !scene.hasField() && !scene.hasDialog()){
@@ -379,6 +375,7 @@ public class DesktopInput extends InputHandler{
         if(state.isGame() && !scene.hasDialog() && !(scene.getKeyboardFocus() instanceof TextField)){
             if(Core.input.keyTap(Binding.minimap)) ui.minimapfrag.toggle();
             if(Core.input.keyTap(Binding.planet_map) && state.isCampaign()) ui.planet.toggle();
+            if(Core.input.keyTap(Binding.research) && state.isCampaign()) ui.research.toggle();
         }
 
         if(state.isMenu() || Core.scene.hasDialog()) return;
@@ -449,6 +446,11 @@ public class DesktopInput extends InputHandler{
 
             if(cursor.build != null && cursor.interactable(player.team()) && !isPlacing() && Math.abs(Core.input.axisTap(Binding.rotate)) > 0 && Core.input.keyDown(Binding.rotateplaced) && cursor.block().rotate && cursor.block().quickRotate){
                 Call.rotateBlock(player, cursor.build, Core.input.axisTap(Binding.rotate) > 0);
+            }
+
+            if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null && !(cursor.build != null && cursor.build.block.rotate && cursor.build.block.quickRotate && cursor.build.interactable(player.team()))){
+                panning = false;
+                Spectate.pos = null;
             }
         }
 

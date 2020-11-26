@@ -8,6 +8,7 @@ import arc.math.geom.Vec2;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.UnitPicker;
@@ -92,6 +93,10 @@ public class Client {
             catch(Exception e){
                 player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !lookat 10 300");
             }
+        });
+
+        fooCommands.<Player>register("here", "[message...]", "Prints your location to chat with an optional message", (args, player) -> {
+            Call.sendChatMessage(String.format("%s (%s, %s)",args.length == 0 ? "" : args[0], player.tileX(), player.tileY()));
         });
 
 

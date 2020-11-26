@@ -1,11 +1,13 @@
 package mindustry.client.navigation;
 
+import arc.math.Mathf;
 import arc.math.geom.Geometry;
 import arc.graphics.Color;
 import arc.math.geom.Position;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.Interval;
+import mindustry.ai.formations.Formation;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.entities.Units;
 import mindustry.entities.units.BuildPlan;
@@ -56,7 +58,7 @@ public class BuildPath extends Path {
             for(BuildPlan p : player.unit().plans()) {
                 if(!(state.rules.infiniteResources || (core != null && (core.items.has(p.block.requirements, state.rules.buildCostMultiplier) || state.rules.infiniteResources)))) temp.addLast(player.unit().plans.removeFirst());
             }
-            BuildPlan best = Geometry.findClosest(player.x, player.y, player.unit().plans);
+            BuildPlan best = Geometry.findClosest(player.getX(), player.getY(), player.unit().plans);
             for (BuildPlan p : temp) player.unit().plans.addLast(p);
             if (best == null) best = Geometry.findClosest(player.x, player.y, player.unit().plans);
             player.unit().plans.remove(best);
@@ -73,7 +75,10 @@ public class BuildPath extends Path {
 
             if(valid){
                 //move toward the request
-                new PositionWaypoint(req.getX(), req.getY(), 0, buildingRange - 8f).run();
+                Formation formation = player.unit().formation;
+                float range = buildingRange - 10;
+                if (formation != null) range = formation.pattern.spacing / (float)Math.sin(180f / formation.pattern.slots * Mathf.degRad);
+                new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();
@@ -82,7 +87,7 @@ public class BuildPath extends Path {
             //follow someone and help them build
             found = false;
 
-            Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.POSITIVE_INFINITY, u -> {
+            Units.nearby(player.unit().team, player.unit().x, player.unit().y, 1000000000, u -> {
                 if(found) return;
 
                 if(u.canBuild() && u != player.unit() && u.activelyBuilding()){
