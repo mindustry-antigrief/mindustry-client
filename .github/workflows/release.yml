@@ -23,7 +23,9 @@ jobs:
         java-version: 14
       
     - name: Build desktop with gradle
-      run: ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=https://api.github.com/repos/${{ github.repository }}/releases/latest
+      run: |
+        ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=https://api.github.com/repos/${{ github.repository }}/releases/latest
+        ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=https://api.github.com/repos/${{ github.repository }}/releases/latest -PversionModifier=steam
 
     - name: Create Release
       id: create_release
@@ -35,26 +37,28 @@ jobs:
         release_name: Release ${{ github.run_number }}
         body: |
           Foo's Client Build ${{ github.run_number }}
+          Steam installation instructions [here](https://github.com/${{ github.repository }}#steam)
         draft: false
         prerelease: false
-    - name: Upload Release Asset
-      id: upload-release-asset
+
+    - name: Upload Desktop (Non-Steam) Release
+      id: upload-desktop-asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./desktop/build/libs/Mindustry.jar
         asset_name: desktop-release.jar
         asset_content_type: application/zip
 
-  buildJava15:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: Set up JDK 15
-      uses: actions/setup-java@v1
+    - name: Upload Steam Release
+      id: upload-steam-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        java-version: 15
-    - name: Run unit tests with gradle and Java 15
-      run: ./gradlew compileJava
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./desktop/build/libs/desktop.jar
+        asset_name: steam.jar
+        asset_content_type: application/zip
