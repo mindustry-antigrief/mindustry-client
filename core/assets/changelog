@@ -1,5 +1,12 @@
+Hi foo
+# Version 4.0
+ *
+
 # Version 3.0.2
- * Added flying unit trails (disableable in client settings)
+ * Added flying unit trails (toggleable in client settings)
+
+# Version 3.0.1
+ * Minor bug fixes
 
 # Version 3.0
  * Added client player display (allows other foo's users to see you, off by default)

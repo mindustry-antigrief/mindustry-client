@@ -15,15 +15,17 @@ public class StupidMarkupParser {
 
     public static Element format(String input) {
         // remove block comments
-        input = input.replaceAll("\\/\\*\\*(.|\\s)*?\\*\\/", "!!");
+        input = input.replaceAll("/\\*\\*(.|\\s)*?\\*/", "!!");
         // remove normal comments
         input = input.replaceAll("//.*^$", "");
+        // make \n actually function
+        input = input.replaceAll("\\\\n", "\n * ");
 
         String[] lines = input.split("\n");
         Seq<Label> elements = new Seq<>();
         for (String line : lines) {
             if (line.startsWith("# ")) {
-                line = line.replace("# ", "");
+                line = line.replace("# ", "\n");
                 Label label = new Label(line);
                 label.setStyle(headingStyle);
                 elements.add(label);
