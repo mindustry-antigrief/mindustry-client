@@ -108,6 +108,7 @@ public class Client {
             Navigation.stopFollowing();
             configs.clear();
             turrets.clear();
+            UnitPicker.found = null;
         });
 
         Events.on(EventType.UnitChangeEvent.class, event -> { // TODO: Instead of this code, call a class in UnitPicker.java to find and switch to new unit if possible.
