@@ -56,6 +56,13 @@ public class Conduit extends LiquidBlock implements Autotiler{
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
+        if (world.tile(req.x, req.y).block() instanceof LiquidJunction) {
+            if (frontTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction || backTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction) {
+                if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conduit)) {
+                    return world.tile(req.x, req.y).block();
+                }
+            }
+        }
         Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conduit || req.block instanceof LiquidJunction));
         if(cont.get(Geometry.d4(req.rotation)) &&
             cont.get(Geometry.d4(req.rotation - 2)) &&
@@ -96,6 +103,11 @@ public class Conduit extends LiquidBlock implements Autotiler{
     /** Returns the tile in front of this one. */
     public Tile frontTile(int x, int y, int rotation) {
         return world.tile(x + Geometry.d4x(rotation), y + Geometry.d4y(rotation));
+    }
+
+    /** Returns the tile behind this one. */
+    public Tile backTile(int x, int y, int rotation){
+        return world.tile(x - Geometry.d4x(rotation), y - Geometry.d4y(rotation));
     }
 
     /** Whether this block can be placed on this tile. */

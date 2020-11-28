@@ -899,8 +899,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(Core.settings.getBool("blockreplace")){
             lineRequests.each(req -> {
                 Block replace = req.block.getReplacement(req, lineRequests);
-                if(replace.unlockedNow()){
-                    req.block = replace;
+                if (replace == null) {
+                    lineRequests.remove(req);
+                } else {
+                    if (replace.unlockedNow()) {
+                        req.block = replace;
+                    }
                 }
             });
         }

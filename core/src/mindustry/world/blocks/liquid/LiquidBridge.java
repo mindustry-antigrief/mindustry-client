@@ -16,7 +16,6 @@ public class LiquidBridge extends ItemBridge{
         hasLiquids = true;
         outputsLiquid = true;
         canOverdrive = false;
-        floating = true;
         group = BlockGroup.liquids;
     }
 
