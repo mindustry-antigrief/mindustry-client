@@ -15,6 +15,7 @@
  * z - navigate to camera (experimental)
  * alt WASD - free camera movement, r to reset
  * alt click - open tile actions menu (contains logs)
+ * hold shift to disable conveyor/conduit auto bridge
 
 # Top Navigation Menu
  * Start recording waypoints - begin a new path, press y to add a waypoint

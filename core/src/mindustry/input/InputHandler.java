@@ -78,6 +78,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public Seq<BuildPlan> lineRequests = new Seq<>();
     public Seq<BuildPlan> selectRequests = new Seq<>();
     private static Pattern pattern = Pattern.compile("\\d+ p");
+    public boolean conveyorPlaceNormal = false;
 
     //methods to override
 
