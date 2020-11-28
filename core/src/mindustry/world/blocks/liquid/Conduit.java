@@ -56,6 +56,8 @@ public class Conduit extends LiquidBlock implements Autotiler{
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
+        if (req.x >= world.width() || req.x <= 0 || req.y >= world.height() || req.y <= 0) return this;
+
         if (world.tile(req.x, req.y).block() instanceof LiquidJunction) {
             if (frontTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction || backTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction) {
                 if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conduit)) {
@@ -112,6 +114,7 @@ public class Conduit extends LiquidBlock implements Autotiler{
 
     /** Whether this block can be placed on this tile. */
     public boolean thisPlaceableOn(Tile tile) {
+        if (tile == null) return false;
         boolean sidePlacableOn = false;
         for(int i = 0;i < 4;i ++) {
             sidePlacableOn = !frontTile(tile.x, tile.y, i).floor().isDeep();
