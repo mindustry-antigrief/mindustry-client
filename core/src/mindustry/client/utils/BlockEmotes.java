@@ -1,9 +1,11 @@
 package mindustry.client.utils;
 
+import arc.struct.ObjectIntMap;
 import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import mindustry.Vars;
 import mindustry.gen.Icon;
+import mindustry.gen.Iconc;
 import mindustry.type.Item;
 import mindustry.type.Liquid;
 import mindustry.type.UnitType;
@@ -25,6 +27,9 @@ public class BlockEmotes {
         }
         for (UnitType unit : Vars.content.units()) {
             emotes.add(new BlockEmote(Fonts.getUnicodeStr(unit.name), unit.name));
+        }
+        for (ObjectIntMap.Entry<String> entry : Iconc.codes) {
+            emotes.add(new BlockEmote(Character.toString((char)entry.value), entry.key));
         }
     }
 
