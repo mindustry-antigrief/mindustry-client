@@ -15,7 +15,7 @@ jobs:
     outputs:
       url: ${{ steps.create_release.outputs.upload_url }}
     strategy:
-      matrix: ${{ fromJson(${releases}) }} # build with multiple versionModifier (modifier in version.java) arguments
+      matrix: ${{ fromJson(releases) }} # build with multiple versionModifier (modifier in version.java) arguments
 
     steps:
       - name: Cancel Previous Workflows
@@ -59,7 +59,7 @@ jobs:
   createRelease:
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(${releases}) }}
+      matrix: ${{ fromJson(releases) }}
 
     steps:
       - name: Download ${{ matrix.assetName }}
