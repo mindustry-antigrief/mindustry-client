@@ -34,6 +34,7 @@ import mindustry.ui.fragments.ChatFragment;
 import mindustry.ui.fragments.HudFragment;
 import mindustry.world.*;
 import mindustry.world.blocks.power.NuclearReactor;
+import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.modules.*;
 
 import java.time.*;
@@ -329,8 +330,9 @@ public class ConstructBlock extends Block{
 
                     if(clampedAmount > 0 && accumulated > 0){ //if it's positive, add it to the core
                         if(core != null && requirements[i].item.unlockedNow()){ //only accept items that are unlocked
-                            int accepting = core.acceptStack(requirements[i].item, accumulated, builder);
-                            core.handleStack(requirements[i].item, accepting, builder);
+                            int accepting = Math.min(accumulated, ((CoreBuild)core).storageCapacity - core.items.get(requirements[i].item));
+                            //transfer items directly, as this is not production.
+                            core.items.add(requirements[i].item, accepting);
                             accumulator[i] -= accepting;
                         }else{
                             accumulator[i] -= accumulated;
