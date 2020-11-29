@@ -14,7 +14,7 @@ jobs:
       releases: "{\"include\":[{\"modifier\":\"steam\", \"assetName\":\"steam.jar\"}, {\"modifier\":\"beta\", \"assetName\":\"desktop-release.jar\"}]}"
     steps:
       - name: Do Nothing
-        
+        run: echo "Does nothing"
 
   gradleBuild:
     runs-on: ubuntu-latest
