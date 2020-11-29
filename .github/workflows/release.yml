@@ -11,10 +11,10 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      releases: ${{ '{\"include\":[{\"modifier\":\"steam\", \"assetName\":\"steam\.jar\"}, {\"modifier\":\"beta\", \"assetName\":\"desktop-release\.jar\"}]}' }}
+      releases: ${{ steps.releases.outputs.releases }}
     steps:
-      - name: Do Nothing
-        run: echo "Does nothing"
+      - name: releases
+        run: echo "::set-output name=releases::{\"include\":[{\"modifier\":\"steam\", \"assetName\":\"steam.jar\"}, {\"modifier\":\"beta\", \"assetName\":\"desktop-release.jar\"}]}"
 
   gradleBuild:
     runs-on: ubuntu-latest
