@@ -1,45 +1,44 @@
 name: Release Update
 
-on: 
+env:
+  matrix: "{\"include\":[{\"modifier\":\"steam\", \"assetName\":\"steam.jar\"}, {\"modifier\":\"beta\", \"assetName\":\"desktop-release.jar\"}]}"
+on:
   push:
     branches: custom-client
   workflow_dispatch:
     branches: custom-client
-    
+
 
 jobs:
   gradleBuild:
     runs-on: ubuntu-latest
     outputs:
-      names: ${{ matrix.assetName }}
-      url: ${{ steps.create_release.outputs.upload_url}}
+      url: ${{ steps.create_release.outputs.upload_url }}
     strategy:
-      matrix:
-        modifier: [steam, beta] # build with multiple versionModifier (modifier in version.java) arguments
-        assetName: [steam.jar, desktop-release.jar] # upload names for the assets built above
+      matrix: ${{ fromJson($matrix) }} # build with multiple versionModifier (modifier in version.java) arguments
 
     steps:
-    - name: Cancel Previous Workflows
-      uses: styfle/cancel-workflow-action@0.6.0
-      with:
-        access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Cancel Previous Workflows
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Checkout Commit
-      uses: actions/checkout@v1
+      - name: Checkout Commit
+        uses: actions/checkout@v1
 
-    - name: Set up JDK 14
-      uses: actions/setup-java@v1
-      with: 
-        java-version: 14
-      
-    - name: Build ${{ matrix.modifier }} With Gradle
-      run: ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=https://api.github.com/repos/${{ github.repository }}/releases/latest -PversionModifier=${{ matrix.modifier }}
+      - name: Set up JDK 14
+        uses: actions/setup-java@v1
+        with:
+          java-version: 14
 
-    - name: Upload ${{ matrix.modifier }} Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ matrix.assetName }}
-        path: desktop/build/libs/Mindustry.jar
+      - name: Build ${{ matrix.modifier }} With Gradle
+        run: ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=https://api.github.com/repos/${{ github.repository }}/releases/latest -PversionModifier=${{ matrix.modifier }}
+
+      - name: Upload ${{ matrix.assetName }} Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ $matrix.assetName }}
+          path: desktop/build/libs/Mindustry.jar
 
     - name: Create Release
       if: strategy.job-index == 0
@@ -57,27 +56,25 @@ jobs:
         prerelease: false
 
 
-
   createRelease:
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        assetName: ${{ fromJson(needs.gradleBuild.outputs.names) }}
+      matrix: ${{ fromJson($matrix) }}
 
     steps:
-    - name: Download ${{ matrix.assetName }}
-      uses: actions/download-artifact@v2
-      id: download
-      with:
-        name: ${{ matrix.assetName }}
+      - name: Download ${{ matrix.assetName }}
+        uses: actions/download-artifact@v2
+        id: download
+        with:
+          name: ${{ matrix.assetName }}
 
-    - name: Upload Desktop (Non-Steam) Release
-      id: upload-desktop-asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.gradleBuild.outputs.url }}
-        asset_path: Mindustry.jar
-        asset_name: ${{ matrix.assetName }}
-        asset_content_type: application/zip
+      - name: Upload ${{ matrix.assetName }} to Release
+        id: upload-desktop-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.gradleBuild.outputs.url }}
+          asset_path: Mindustry.jar
+          asset_name: ${{ matrix.assetName }}
+          asset_content_type: application/zip
