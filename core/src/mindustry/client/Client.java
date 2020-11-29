@@ -13,6 +13,7 @@ import arc.util.Time;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.UnitPicker;
+import mindustry.client.utils.Autocomplete;
 import mindustry.client.utils.Pair;
 import mindustry.content.UnitTypes;
 import mindustry.core.NetClient;
@@ -121,6 +122,9 @@ public class Client {
                     if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);}  // After we switch units successfully, stop listening for this unit
                     else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer() + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
                 }}
+        });
+        Events.on(EventType.ClientLoadEvent.class, event -> {
+            Autocomplete.initialize();
         });
     }
 

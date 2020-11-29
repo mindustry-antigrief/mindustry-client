@@ -13,9 +13,13 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.Client;
+import mindustry.client.utils.Autocomplete;
+import mindustry.client.utils.Autocompleteable;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.ui.*;
+
+import java.util.Arrays;
 
 import static arc.Core.*;
 import static mindustry.Vars.net;
@@ -42,6 +46,8 @@ public class ChatFragment extends Table{
             scene.add(ChatFragment.this);
         }
     };
+    private Seq<Autocompleteable> completion = new Seq<>();
+    private int completionPos = -1;
 
     public ChatFragment(){
         super();
@@ -68,16 +74,39 @@ public class ChatFragment extends Table{
             }
 
             if(shown){
-                if(input.keyTap(Binding.chat_history_prev) && historyPos < history.size - 1){
-                    if(historyPos == 0) history.set(0, chatfield.getText());
-                    historyPos++;
-                    updateChat();
+                if(input.keyTap(Binding.chat_history_prev)){
+//                    if(historyPos == 0) history.set(0, chatfield.getText());
+//                    historyPos++;
+//                    updateChat();
+                    completionPos--;
+                    completionPos = Math.max(completionPos, 0);
+                    completionPos = Math.min(completionPos, completion.size);
                 }
-                if(input.keyTap(Binding.chat_history_next) && historyPos > 0){
-                    historyPos--;
-                    updateChat();
+                if(input.keyTap(Binding.chat_history_next)){
+//                    historyPos--;
+//                    updateChat();
+                    completionPos++;
+                    completionPos = Math.max(completionPos, 0);
+                    completionPos = Math.min(completionPos, completion.size);
+                }
+                if (input.keyTap(Binding.chat_autocomplete) && completion.any()) {
+                    completionPos = Math.max(completionPos, 0);
+                    completionPos = Math.min(completionPos, completion.size);
+
+                    chatfield.setText(completion.get(completionPos).getCompletion(chatfield.getText()));
+                    chatfield.setCursorPosition(chatfield.getText().length());
                 }
                 scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chat_scroll), 0, Math.max(0, messages.size - messagesShown));
+                if (Autocomplete.matches(chatfield.getText())) {
+                    Seq<Autocompleteable> oldCompletion = completion.copy();
+                    completion = Autocomplete.closest(chatfield.getText()).filter(item -> item.matches(chatfield.getText()) > 0.5f);
+                    completion.reverse();
+                    completion.truncate(4);
+                    completion.reverse();
+                    if (!Arrays.equals(completion.items, oldCompletion.items)) {
+                        completionPos = completion.size - 1;
+                    }
+                }
             }
         });
 
@@ -169,11 +198,44 @@ public class ChatFragment extends Table{
             font.getCache().draw();
         }
 
-        Draw.color();
 
         if(fadetime > 0 && !shown){
             fadetime -= Time.delta / 180f;
         }
+
+        if (completion.size > 0 && shown) {
+            float pos = Reflect.<FloatSeq>get(chatfield, "glyphPositions").peek();
+            StringBuilder contents = new StringBuilder();
+            int index = 0;
+            for (Autocompleteable auto : completion) {
+                String completion = auto.getHover(chatfield.getText());
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < Math.min(completion.length(), chatfield.getText().length()); i++) {
+                    if (completion.charAt(i) == chatfield.getText().charAt(i)) {
+                        sb.append(completion.charAt(i));
+                    } else {
+                        break;
+                    }
+                }
+                String ending = completion.substring(sb.length());
+                if (index == completionPos) {
+                    contents.append("[#a9d8ff]");
+                }
+                contents.append(ending);
+                contents.append("[]\n");
+                index++;
+            }
+            font.getCache().clear();
+//            float height = font.getCache().getLayouts().sumf(item -> item.height);
+            float height = font.getData().lineHeight * completion.size;
+//            System.out.println(height);
+            font.getCache().addText(contents.toString(), pos + offsetx + 17f, 10f + height);
+            Draw.color(shadowColor);
+            Fill.crect(pos + offsetx + 17f, 10f + font.getData().lineHeight, font.getCache().getLayouts().max(item -> item.width).width, height - font.getData().lineHeight);
+            Draw.color();
+            font.getCache().draw();
+        }
+        Draw.color();
     }
 
     private void sendMessage(){

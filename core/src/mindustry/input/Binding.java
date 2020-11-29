@@ -79,6 +79,7 @@ public enum Binding implements KeyBind{
     stop_following_path(KeyCode.minus),
     show_turret_ranges(KeyCode.backtick),
     disable_auto_bridging(KeyCode.shiftLeft),
+    chat_autocomplete(KeyCode.tab),
     ;
 
     private final KeybindValue defaultValue;

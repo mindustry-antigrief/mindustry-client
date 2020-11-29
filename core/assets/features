@@ -7,7 +7,6 @@
  * \n does linebreak
 */
 
-# This isn't up to date, use the changelog for now.
 # Default Keybinds
  * r - reset camera
  * y - place waypoint (only works while recording waypoints)
@@ -30,6 +29,11 @@
  * Play a sound on reactor warning (sound can only play after a 10s break in reactor building)
  * Discord rich presence toggle
  * Weather opacity slider
+
+# Misc Changes
+ * Automatic conveyor/conduit bridging (genNAowl)
+ * Autocomplete in chat for content icons (type : and then the first part of the name, use tab to complete)
+ * Autocomplete in chat for player names (type @ and then start typing the name, press tab to complete)
 
 # Credits
  * Game by anuke, client by foo and buthed010203
