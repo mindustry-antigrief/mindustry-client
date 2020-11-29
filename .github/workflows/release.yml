@@ -11,13 +11,14 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      releases: "{\"include\":[{\"modifier\":\"steam\", \"assetName\":\"steam.jar\"}, {\"modifier\":\"beta\", \"assetName\":\"desktop-release.jar\"}]}"
+      releases: ${{ '{\"include\":[{\"modifier\":\"steam\", \"assetName\":\"steam.jar\"}, {\"modifier\":\"beta\", \"assetName\":\"desktop-release.jar\"}]}' }}
     steps:
       - name: Do Nothing
         run: echo "Does nothing"
 
   gradleBuild:
     runs-on: ubuntu-latest
+    needs: setup
     outputs:
       url: ${{ steps.create_release.outputs.upload_url }}
     strategy:
@@ -64,6 +65,7 @@ jobs:
 
   uploadReleaseAssets:
     runs-on: ubuntu-latest
+    needs: [setup, gradleBuild]
     strategy:
       matrix: ${{ fromJson(needs.setup.outputs.releases) }}
 
