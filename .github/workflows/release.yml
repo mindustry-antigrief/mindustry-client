@@ -43,7 +43,7 @@ jobs:
       - name: Upload ${{ matrix.assetName }} Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ $matrix.assetName }}
+          name: ${{ matrix.assetName }}
           path: desktop/build/libs/Mindustry.jar
 
       - name: Create Release
