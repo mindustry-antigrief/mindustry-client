@@ -40,20 +40,20 @@ jobs:
           name: ${{ $matrix.assetName }}
           path: desktop/build/libs/Mindustry.jar
 
-    - name: Create Release
-      if: strategy.job-index == 0
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.run_number }}
-        release_name: Release ${{ github.run_number }}
-        body: |
-          Foo's Client Build ${{ github.run_number }}
-          Steam installation instructions [here](https://github.com/${{ github.repository }}#steam)
-        draft: false
-        prerelease: false
+      - name: Create Release
+        if: strategy.job-index == 0
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
+          body: |
+            Foo's Client Build ${{ github.run_number }}
+            Steam installation instructions [here](https://github.com/${{ github.repository }}#steam)
+          draft: false
+          prerelease: false
 
 
   createRelease:
