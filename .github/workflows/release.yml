@@ -1,7 +1,5 @@
 name: Release Update
 
-env:
-  releases: ${{ '{\"include\":[{\"modifier\":\"steam\", \"assetName\":\"steam.jar\"}, {\"modifier\":\"beta\", \"assetName\":\"desktop-release.jar\"}]}' }}
 on:
   push:
     branches: custom-client
@@ -10,12 +8,17 @@ on:
 
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      releases: "{\"include\":[{\"modifier\":\"steam\", \"assetName\":\"steam.jar\"}, {\"modifier\":\"beta\", \"assetName\":\"desktop-release.jar\"}]}"
+
   gradleBuild:
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.create_release.outputs.upload_url }}
     strategy:
-      matrix: ${{fromJson(env.releases)}} # build with multiple versionModifier (modifier in version.java) arguments
+      matrix: ${{ fromJson(needs.setup.outputs.releases) }} # build with multiple versionModifier (modifier in version.java) arguments
 
     steps:
       - name: Cancel Previous Workflows
@@ -37,7 +40,7 @@ jobs:
       - name: Upload ${{ matrix.assetName }} Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.assetName }}
+          name: ${{ $matrix.assetName }}
           path: desktop/build/libs/Mindustry.jar
 
       - name: Create Release
@@ -56,10 +59,10 @@ jobs:
           prerelease: false
 
 
-  createRelease:
+  uploadReleaseAssets:
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(env.releases) }}
+      matrix: ${{ fromJson(needs.setup.outputs.releases) }}
 
     steps:
       - name: Download ${{ matrix.assetName }}
