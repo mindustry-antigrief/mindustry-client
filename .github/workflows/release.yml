@@ -1,7 +1,7 @@
 name: Release Update
 
 env:
-  releases: ${{ "{\"include\":[{\"modifier\":\"steam\", \"assetName\":\"steam.jar\"}, {\"modifier\":\"beta\", \"assetName\":\"desktop-release.jar\"}]}" }}
+  releases: ${{ '{\"include\":[{\"modifier\":\"steam\", \"assetName\":\"steam.jar\"}, {\"modifier\":\"beta\", \"assetName\":\"desktop-release.jar\"}]}' }}
 on:
   push:
     branches: custom-client
