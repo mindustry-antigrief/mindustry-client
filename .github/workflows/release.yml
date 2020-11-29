@@ -14,7 +14,7 @@ jobs:
       releases: ${{ steps.releases.outputs.releases }}
     steps:
       - name: releases
-        run: echo "::set-output name=releases::{\"include\":[{\"modifier\":\"steam\", \"assetName\":\"steam.jar\"}, {\"modifier\":\"beta\", \"assetName\":\"desktop-release.jar\"}]}"
+        run: echo "::set-output name=releases::{\"include\":[{\"modifier\":\"steam\",\"assetName\":\"steam.jar\"},{\"modifier\":\"beta\",\"assetName\":\"desktop-release.jar\"}]}"
 
   gradleBuild:
     runs-on: ubuntu-latest
