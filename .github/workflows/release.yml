@@ -8,11 +8,6 @@ on:
 
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: test
-        run: ./gradlew test
   setup:
     runs-on: ubuntu-latest
     outputs:
@@ -45,7 +40,9 @@ jobs:
           java-version: 14
 
       - name: Build ${{ matrix.modifier }} With Gradle
-        run: ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=https://api.github.com/repos/${{ github.repository }}/releases/latest -PversionModifier=${{ matrix.modifier }}
+        run: |
+         ./gradlew test
+         ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=https://api.github.com/repos/${{ github.repository }}/releases/latest -PversionModifier=${{ matrix.modifier }}
 
       - name: Upload ${{ matrix.assetName }} Artifact
         uses: actions/upload-artifact@v2
