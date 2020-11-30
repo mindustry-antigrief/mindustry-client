@@ -61,8 +61,11 @@ public class BuildPath extends Path {
             BuildPlan best = Geometry.findClosest(player.getX(), player.getY(), player.unit().plans);
             for (BuildPlan p : temp) player.unit().plans.addLast(p);
             if (best == null) best = Geometry.findClosest(player.x, player.y, player.unit().plans);
-            player.unit().plans.remove(best);
-            player.unit().plans.addFirst(best);
+            if (player.unit().buildPlan() != best) {
+                player.unit().clearBuilding();
+                player.unit().plans.remove(best);
+                player.unit().plans.addFirst(best);
+            }
 
 
             BuildPlan req = player.unit().buildPlan(); //approach request if building
