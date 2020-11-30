@@ -160,6 +160,7 @@ public class Client {
     }
 
     public static TileLog getLog(int x, int y) {
+        if (tileLogs == null) tileLogs = new TileLog[world.height()][world.width()];
         if (tileLogs[y][x] == null) {
             tileLogs[y][x] = new TileLog(world.tile(x, y));
         }
