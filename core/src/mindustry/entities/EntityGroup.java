@@ -16,7 +16,7 @@ import static mindustry.Vars.*;
 public class EntityGroup<T extends Entityc> implements Iterable<T>{
     private static int lastId = 0;
 
-    private final Seq<T> array;
+    public final Seq<T> array;
     private final Seq<T> intersectArray = new Seq<>();
     private final Rect viewport = new Rect();
     private final Rect intersectRect = new Rect();

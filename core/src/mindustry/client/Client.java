@@ -12,6 +12,7 @@ import mindustry.Vars;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.UnitPicker;
+import mindustry.client.utils.Autocomplete;
 import mindustry.client.utils.Pair;
 import mindustry.content.UnitTypes;
 import mindustry.core.NetClient;
@@ -135,6 +136,9 @@ public class Client {
                     }
                     }, .5f);
             }
+        });
+        Events.on(EventType.ClientLoadEvent.class, event -> {
+            Autocomplete.initialize();
         });
     }
 

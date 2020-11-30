@@ -16,6 +16,7 @@ import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
+import mindustry.world.blocks.distribution.*;
 
 import static mindustry.Vars.*;
 
@@ -55,12 +56,80 @@ public class Conduit extends LiquidBlock implements Autotiler{
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
+        if (control.input.conveyorPlaceNormal) {
+            Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conduit || req.block instanceof LiquidJunction));
+            return cont.get(Geometry.d4(req.rotation)) &&
+                    cont.get(Geometry.d4(req.rotation - 2)) &&
+                    req.tile() != null &&
+                    req.tile().block() instanceof Conduit &&
+                    Mathf.mod(req.build().rotation - req.rotation, 2) == 1 ? Blocks.liquidJunction : this;
+        }
+
+        if (req.x >= world.width() || req.x <= 0 || req.y >= world.height() || req.y <= 0) return this;
+
+        if (world.tile(req.x, req.y).block() instanceof LiquidJunction) {
+            if (frontTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction || backTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction) {
+                if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conduit)) {
+                    return world.tile(req.x, req.y).block();
+                }
+            }
+        }
         Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conduit || req.block instanceof LiquidJunction));
-        return cont.get(Geometry.d4(req.rotation)) &&
+        if(cont.get(Geometry.d4(req.rotation)) &&
             cont.get(Geometry.d4(req.rotation - 2)) &&
             req.tile() != null &&
             req.tile().block() instanceof Conduit &&
-            Mathf.mod(req.build().rotation - req.rotation, 2) == 1 ? Blocks.liquidJunction : this;
+            Mathf.mod(req.tile().build.rotation - req.rotation, 2) == 1) {
+            return Blocks.liquidJunction;
+        }
+
+        int ogRot = req.rotation;
+        for(int i = 0;i < 2;i ++) {
+            //TODO: automatically generate bridges?
+            Block[] bridges = {Blocks.bridgeConduit, Blocks.phaseConduit};
+            for(int j = 0;j < bridges.length;j ++) {
+                final int distance = ((ItemBridge)bridges[j]).range;
+                if(req.block instanceof Conduit && !thisPlaceableOn(frontTile(req.x, req.y, req.rotation)) && requests.contains(o -> 
+                    (o.block instanceof Conduit || o.block instanceof ItemBridge) && 
+                    thisPlaceableOn(world.tile(req.x, req.y)) &&
+                    thisPlaceableOn(world.tile(o.x, o.y)) &&
+                    !thisPlaceableOn(frontTile(o.x, o.y, (req.rotation + 2) % 4)) && 
+                    inFront(req.x, req.y, req.rotation, o) && 
+                    Mathf.dstm(req.x, req.y, o.x, o.y) <= distance)) {
+                    return bridges[j];
+                }
+            }
+            req.rotation = (req.rotation + 2) % 4;
+        }
+        req.rotation = ogRot;
+
+        return this;
+    }
+
+    /** Whether the second build plan is "in front" of the first. */
+    public boolean inFront(int x, int y, int rotation, BuildPlan other) {
+        return !(other.x == x && other.y == y) && (other.x - x) == Geometry.d4x(rotation) * Math.abs(other.x - x) && (other.y - y) == Geometry.d4y(rotation) * Math.abs(other.y - y); 
+    }
+
+    /** Returns the tile in front of this one. */
+    public Tile frontTile(int x, int y, int rotation) {
+        return world.tile(x + Geometry.d4x(rotation), y + Geometry.d4y(rotation));
+    }
+
+    /** Returns the tile behind this one. */
+    public Tile backTile(int x, int y, int rotation){
+        return world.tile(x - Geometry.d4x(rotation), y - Geometry.d4y(rotation));
+    }
+
+    /** Whether this block can be placed on this tile. */
+    public boolean thisPlaceableOn(Tile tile) {
+        if (tile == null) return false;
+        boolean sidePlacableOn = false;
+        for(int i = 0;i < 4;i ++) {
+            sidePlacableOn = !frontTile(tile.x, tile.y, i).floor().isDeep();
+            if(sidePlacableOn) break;
+        }
+        return (tile.block() instanceof Conduit || tile.block() == Blocks.air) && (!tile.floor().isDeep() || (sidePlacableOn && floating));
     }
 
     @Override

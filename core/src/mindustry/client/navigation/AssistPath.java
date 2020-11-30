@@ -63,7 +63,7 @@ public class AssistPath extends Path {
 
                 if(core != null && com.mineTile().drop() != null && Vars.player.unit().within(core, Vars.player.unit().type.range) && !Vars.player.unit().acceptsItem(com.mineTile().drop())){
                     if(core.acceptStack(Vars.player.unit().stack.item, Vars.player.unit().stack.amount, Vars.player.unit()) > 0){
-                        Call.transferItemTo(Vars.player.unit().stack.item, Vars.player.unit().stack.amount, Vars.player.unit().x, Vars.player.unit().y, core);
+                        Call.transferItemTo(player.unit(), player.unit().stack.item, player.unit().stack.amount, player.unit().x, player.unit().y, core);
 
                         Vars.player.unit().clearItem();
                     }

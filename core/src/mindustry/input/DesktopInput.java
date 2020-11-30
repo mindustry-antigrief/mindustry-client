@@ -233,6 +233,8 @@ public class DesktopInput extends InputHandler{
             ui.listfrag.toggle();
         }
 
+        conveyorPlaceNormal = input.keyDown(Binding.disable_auto_bridging);
+
         if(Navigation.state == NavigationState.RECORDING){
             if(input.keyTap(Binding.place_waypoint) && scene.getKeyboardFocus() == null){
                 Navigation.addWaypointRecording(new PositionWaypoint(player.x, player.y));

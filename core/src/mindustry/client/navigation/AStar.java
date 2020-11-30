@@ -241,6 +241,7 @@ public class AStar{
         int resolution = 2;  // The resolution of the map is divided by this value
         Seq<TurretPathfindingEntity> pathfindingEntities = new Seq<>();
         for(TurretPathfindingEntity zone : obstacles){
+            if (zone == null) continue;
             pathfindingEntities.add(new TurretPathfindingEntity(zone.x / resolution, zone.y / resolution, (zone.range / tilesize) / resolution));
         }
         block = true;

@@ -17,6 +17,7 @@ import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.meta.*;
+import mindustry.world.blocks.environment.*;
 
 import static mindustry.Vars.*;
 
@@ -77,18 +78,86 @@ public class Conveyor extends Block implements Autotiler{
     }
 
     @Override
+    public boolean canReplace(Block other){
+        return super.canReplace(other) && !(other instanceof StackConveyor);
+    }
+
+    @Override
     public boolean isAccessible(){
         return true;
     }
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
+        if (control.input.conveyorPlaceNormal) {
+            Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conveyor || req.block instanceof Junction));
+            return cont.get(Geometry.d4(req.rotation)) &&
+                    cont.get(Geometry.d4(req.rotation - 2)) &&
+                    req.tile() != null &&
+                    req.tile().block() instanceof Conveyor &&
+                    Mathf.mod(req.tile().build.rotation - req.rotation, 2) == 1 ? Blocks.junction : this;
+        }
+
+        if (req.x >= world.width() || req.x <= 0 || req.y >= world.height() || req.y <= 0) return this;
+        if (world.tile(req.x, req.y).block() instanceof Junction) {
+            if (frontTile(req.x, req.y, req.rotation).block() instanceof Junction || backTile(req.x, req.y, req.rotation).block() instanceof Junction) {
+                if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conveyor)) {
+                    return world.tile(req.x, req.y).block();
+                }
+            }
+        }
+
         Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conveyor || req.block instanceof Junction));
-        return cont.get(Geometry.d4(req.rotation)) &&
+        if(cont.get(Geometry.d4(req.rotation)) &&
             cont.get(Geometry.d4(req.rotation - 2)) &&
             req.tile() != null &&
             req.tile().block() instanceof Conveyor &&
-            Mathf.mod(req.tile().build.rotation - req.rotation, 2) == 1 ? Blocks.junction : this;
+            Mathf.mod(req.tile().build.rotation - req.rotation, 2) == 1){
+            return Blocks.junction;
+        }
+
+        int ogRot = req.rotation;
+        for(int i = 0;i < 2;i ++){
+            //TODO: automatically generate bridges?
+            Block[] bridges = {Blocks.itemBridge, Blocks.phaseConveyor};
+            for (Block bridge : bridges) {
+                final int distance = ((ItemBridge) bridge).range;
+                if (req.block instanceof Conveyor && !thisPlaceableOn(frontTile(req.x, req.y, req.rotation)) &&
+                        requests.contains(o -> (o.block instanceof Conveyor || o.block instanceof ItemBridge) &&
+                                thisPlaceableOn(world.tile(req.x, req.y)) &&
+                                thisPlaceableOn(world.tile(o.x, o.y)) &&
+                                !thisPlaceableOn(frontTile(o.x, o.y, (req.rotation + 2) % 4)) &&
+                                inFront(req.x, req.y, req.rotation, o) &&
+                                Mathf.dstm(req.x, req.y, o.x, o.y) <= distance)) {
+                    return bridge;
+                }
+            }
+            req.rotation = (req.rotation + 2) % 4;
+        }
+        req.rotation = ogRot;
+
+        return this;
+    }
+
+    /** Whether the second build plan is "in front" of the first. */
+    public boolean inFront(int x, int y, int rotation, BuildPlan other){
+        return !(other.x == x && other.y == y) && (other.x - x) == Geometry.d4x(rotation) * Math.abs(other.x - x) && (other.y - y) == Geometry.d4y(rotation) * Math.abs(other.y - y); 
+    }
+
+    /** Returns the tile in front of this one. */
+    public Tile frontTile(int x, int y, int rotation){
+        return world.tile(x + Geometry.d4x(rotation), y + Geometry.d4y(rotation));
+    }
+
+    /** Returns the tile behind this one. */
+    public Tile backTile(int x, int y, int rotation){
+        return world.tile(x - Geometry.d4x(rotation), y - Geometry.d4y(rotation));
+    }
+
+    /** Whether this block can be placed on this tile. */
+    public boolean thisPlaceableOn(Tile tile){
+        if (tile == null) return false;
+        return (tile.block() instanceof Conveyor || tile.block() == Blocks.air) && !tile.floor().isDeep();
     }
 
     public class ConveyorBuild extends Building{
@@ -311,7 +380,7 @@ public class Conveyor extends Block implements Autotiler{
             if(len >= capacity) return false;
             Tile facing = Edges.getFacingEdge(source.tile, tile);
             int direction = Math.abs(facing.relativeTo(tile.x, tile.y) - rotation);
-            return (((direction == 0) && minitem >= itemSpace) || ((direction % 2 == 1) && minitem > 0.7f)) && !(source.block.rotate && (source.rotation + 2) % 4 == rotation);
+            return (((direction == 0) && minitem >= itemSpace) || ((direction % 2 == 1) && minitem > 0.7f)) && !(source.block.rotate && next == source);
         }
 
         @Override
