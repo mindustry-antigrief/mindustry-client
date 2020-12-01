@@ -78,6 +78,7 @@ public class BlockEmotes {
         @Override
         public String getCompletion(String input) {
             Seq<String> items = new Seq<>(input.split(":"));
+            if (items.isEmpty()) return input;
             items.pop();
             String start = items.reduce("", String::concat);
             return start + unicode;

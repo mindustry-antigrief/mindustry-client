@@ -21,6 +21,8 @@ public class Autocomplete {
     }
 
     public static Seq<Autocompleteable> closest(String input) {
-        return BlockEmotes.closest(input).addAll(PlayerCompletion.closest(input)).sort(item -> item.matches(input));
+        Seq<Autocompleteable> all = BlockEmotes.closest(input).addAll(PlayerCompletion.closest(input));
+        if (all == null) return null;
+        return all.sort(item -> item.matches(input));
     }
 }
