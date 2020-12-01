@@ -26,6 +26,7 @@ public class BuildPath extends Path {
     private boolean show;
     boolean found = false;
     Unit following;
+    Interval timer = new Interval();
 
     @Override
     void setShow(boolean show) { this.show = show; }
@@ -51,20 +52,22 @@ public class BuildPath extends Path {
         }
 
         if(player.unit().buildPlan() != null){
-            Building core = player.core();
-            Queue<BuildPlan> temp = new Queue<>();
+            if (timer.get(15)) {
+                Building core = player.core();
+                Queue<BuildPlan> temp = new Queue<>();
 
-            // Find the best build in the player's queue (builds the closest affordable item. if none exists, it builds the closest) theres prob a better method for this but idk what it is
-            for(BuildPlan p : player.unit().plans()) {
-                if(!(state.rules.infiniteResources || (core != null && (core.items.has(p.block.requirements, state.rules.buildCostMultiplier) || state.rules.infiniteResources)))) temp.addLast(player.unit().plans.removeFirst());
-            }
-            BuildPlan best = Geometry.findClosest(player.getX(), player.getY(), player.unit().plans);
-            for (BuildPlan p : temp) player.unit().plans.addLast(p);
-            if (best == null) best = Geometry.findClosest(player.x, player.y, player.unit().plans);
-            if (player.unit().buildPlan() != best) {
-                player.unit().clearBuilding();
-                player.unit().plans.remove(best);
-                player.unit().plans.addFirst(best);
+                // Find the best build in the player's queue (builds the closest affordable item. if none exists, it builds the closest) theres prob a better method for this but idk what it is
+                for(BuildPlan p : player.unit().plans()) if(!(state.rules.infiniteResources || (core != null && (core.items.has(p.block.requirements, state.rules.buildCostMultiplier) || state.rules.infiniteResources)))){
+                    temp.addLast(p);
+                    player.unit().plans.remove(p);
+                }
+                BuildPlan best = Geometry.findClosest(player.x, player.y, player.unit().plans);
+                for (BuildPlan p : temp) player.unit().plans.addLast(p);
+                if (best == null) best = Geometry.findClosest(player.x, player.y, player.unit().plans);
+                if (player.unit().buildPlan() != best) {
+                    player.unit().plans.remove(best);
+                    player.unit().plans.addFirst(best);
+                }
             }
 
 
@@ -87,6 +90,31 @@ public class BuildPath extends Path {
                 player.unit().plans.removeFirst();
             }
         } else {
+            if(!player.unit().team.data().blocks.isEmpty()){
+                Queue<Teams.BlockPlan> blocks = player.unit().team.data().blocks;
+                Queue<BuildPlan> temp = new Queue<>(), temp2 = new Queue<>();
+                Building core = player.core();
+                for (Teams.BlockPlan block : blocks) temp.addLast(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config));
+                for (BuildPlan p : temp) if(!(state.rules.infiniteResources || (core != null && (core.items.has(p.block.requirements, state.rules.buildCostMultiplier) || state.rules.infiniteResources)))){
+                    temp2.addLast(p);
+                    temp.remove(p);
+                }
+                Geometry.findClosest(player.x, player.y, temp);
+//                for (Teams.BlockPlan block : blocks) {
+//                    //check if it's already been placed
+//                    if (world.tile(block.x, block.y)!=null && world.tile(block.x, block.y).block().id==block.block) {
+//                        blocks.removeFirst();
+//                    } else if (Build.validPlace(content.block(block.block), player.unit().team(), block.x, block.y, block.rotation)) { //it's valid.
+//                        //add build request.
+//                        player.unit().addBuild(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config));
+//                    } else {
+//                        //shift head of queue to tail, try something else next time
+//                        blocks.removeFirst();
+//                        blocks.addLast(block);
+//                    }
+//                }
+            }
+
             //follow someone and help them build
             found = false;
 
@@ -108,25 +136,6 @@ public class BuildPath extends Path {
                     }
                 }
             });
-
-            if(!player.unit().team.data().blocks.isEmpty()){
-                Queue<Teams.BlockPlan> blocks = player.unit().team.data().blocks;
-                for (Teams.BlockPlan block : blocks) {
-                    //check if it's already been placed
-                    if (world.tile(block.x, block.y)!=null && world.tile(block.x, block.y).block().id==block.block) {
-                        blocks.removeFirst();
-                    } else if (Build.validPlace(content.block(block.block), player.unit().team(), block.x, block.y, block.rotation)) { //it's valid.
-                        //add build request.
-                        player.unit().addBuild(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config));
-                        //shift build plan to tail so next unit builds something else.
-                        blocks.addLast(blocks.removeFirst());
-                    } else {
-                        //shift head of queue to tail, try something else next time
-                        blocks.removeFirst();
-                        blocks.addLast(block);
-                    }
-                }
-            }
         }
     }
 

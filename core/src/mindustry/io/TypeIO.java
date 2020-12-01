@@ -117,7 +117,7 @@ public class TypeIO{
             case 13: return LAccess.all[read.s()];
             case 14: int blen = read.i(); byte[] bytes = new byte[blen]; read.b(bytes); return bytes;
             case 15: return UnitCommand.all[read.b()];
-            default: throw new IllegalArgumentException("Unknown object type: " + type);
+            default: throw new IllegalArgumentException("Unknown object type: " + type + read.str());
         }
     }
 

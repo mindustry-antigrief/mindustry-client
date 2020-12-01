@@ -170,11 +170,11 @@ public class UnitType extends UnlockableContent{
             }
         }).growX();
 
-        if(unit.controller() instanceof LogicAI){
+        if(unit.controller() instanceof LogicAI p){
             table.row();
-            table.add(Blocks.microProcessor.emoji() + " " + Core.bundle.get("units.processorcontrol")).growX().left();
+            table.add(Blocks.microProcessor.emoji() + " " + Core.bundle.get("units.processorcontrol") + " " ).growX().left();
             table.row();
-            table.label(() -> Iconc.settings + " " + (long)unit.flag + "").color(Color.lightGray).growX().wrap().left();
+            table.label(() -> Iconc.settings + " " + (long)unit.flag + " (" + p.controller.tileX() + ", " + p.controller.tileY() + ")").color(Color.lightGray).wrap().left();
         }
         
         table.row();
