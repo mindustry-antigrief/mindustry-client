@@ -3,30 +3,24 @@ package mindustry.client;
 import arc.*;
 import arc.graphics.Color;
 import arc.math.Mathf;
-import arc.math.geom.Position;
 import arc.math.geom.Vec2;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.*;
-import mindustry.Vars;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
+import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
 import mindustry.client.utils.Autocomplete;
 import mindustry.client.utils.Pair;
-import mindustry.content.UnitTypes;
-import mindustry.core.NetClient;
 import mindustry.entities.Units;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.input.DesktopInput;
-import mindustry.net.Administration;
-import mindustry.net.Administration.*;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
 
-import static arc.Core.camera;
 import static mindustry.Vars.*;
 
 public class Client {
@@ -113,14 +107,15 @@ public class Client {
 
         Events.on(EventType.UnitChangeEvent.class, event -> {
             UnitType unit = UnitPicker.found;
-            if (event.unit.team == player.team()) {
+            if (event.unit.team == player.team() && !(event.player == player)) {
                 Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == unit && !u.dead);
                 if (find != null) {
                     Call.unitControl(player, find);
                     Timer.schedule(() -> {
                         if (event.unit.isPlayer()) {
-                            if (player.unit() == find) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);} // After we switch units successfully, stop listening for this unit
-                            else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
+                            Toast t = new Toast(2);
+                            if (player.unit() == find) { UnitPicker.found = null; t.add("Successfully switched units.");} // After we switch units successfully, stop listening for this unit
+                            else { t.add("Failed to become " + unit + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
                         }
                         }, .5f);
                 }
@@ -133,8 +128,9 @@ public class Client {
                 Call.unitControl(player, event.unit);
                 Timer.schedule(() -> {
                     if (event.unit.isPlayer()) {
-                        if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);}  // After we switch units successfully, stop listening for this unit
-                        else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer().name + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
+                        Toast t = new Toast(2);
+                        if (player.unit() == event.unit) { UnitPicker.found = null; t.add("Successfully switched units.");}  // After we switch units successfully, stop listening for this unit
+                        else { t.add("Failed to become " + unit + ", " + event.unit.getPlayer().name + " is already controlling it (likely using unit sniper).");}
                     }
                     }, .5f);
             }

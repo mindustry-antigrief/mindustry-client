@@ -62,7 +62,7 @@ public class UnitPicker extends BaseDialog{
                 Call.unitControl(player, find); // Switch to unit
                 UnitPicker.found = null; // No need to check if the player has managed to take control as it is very unlikely that 2 players attempt this on the same unit at once.
             } else {
-                new Toast(5f).label(() ->"No " + found + " was found, automatically switching to that unit when it spawns (set picked unit to alpha).");
+                new Toast(5f).label(() ->"No " + found + " was found, automatically switching to that unit when it spawns (set picked unit to alpha to cancel).");
             }
         }
         hide();
