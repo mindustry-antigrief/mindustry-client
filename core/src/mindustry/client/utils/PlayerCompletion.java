@@ -61,11 +61,13 @@ public class PlayerCompletion {
         }
 
         private String getLast(String input) {
-            try {
-                String text = new Seq<>(input.split("\\s")).peek();
+            Seq<String> strings = new Seq<>(input.split("\\s"));
+            if (strings.isEmpty()) {
+                return null;
+            }
+            String text = strings.peek();
             if (!text.startsWith("@")) return null;
             return text.replaceAll("@", "");
-            } catch (Exception ignored) { return null; }
         }
     }
 }
