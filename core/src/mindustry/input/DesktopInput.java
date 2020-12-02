@@ -24,6 +24,7 @@ import mindustry.client.navigation.waypoints.Waypoint;
 import mindustry.client.ui.StupidMarkupParser;
 import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
+import mindustry.content.Blocks;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -181,10 +182,11 @@ public class DesktopInput extends InputHandler{
             if(mode == placing && block != null){
                 for(int i = 0; i < lineRequests.size; i++){
                     BuildPlan req = lineRequests.get(i);
+                    if(req.block == null) continue;
                     if(i == lineRequests.size - 1 && req.block.rotate){
                         drawArrow(block, req.x, req.y, req.rotation);
                     }
-                    drawRequest(lineRequests.get(i));
+                    drawRequest(req);
                 }
             }else if(isPlacing()){
                 if(block.rotate){

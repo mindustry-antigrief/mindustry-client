@@ -130,7 +130,7 @@ public class Conduit extends LiquidBlock implements Autotiler{
             sidePlacableOn = !frontTile(tile.x, tile.y, i).floor().isDeep();
             if(sidePlacableOn) break;
         }
-        return (tile.block() instanceof Conduit || tile.block() == Blocks.air || tile.block() instanceof Boulder) && (!tile.floor().isDeep() || (sidePlacableOn && floating));
+        return (tile.block() instanceof Conduit || tile.block() == Blocks.air || tile.block() instanceof Boulder || tile.block() instanceof ItemBridge || tile.block() instanceof LiquidJunction) && (!tile.floor().isDeep() || (sidePlacableOn && floating));
     }
 
     @Override
