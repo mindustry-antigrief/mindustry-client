@@ -99,7 +99,9 @@ public class BuildPath extends Path {
                     temp2.addLast(p);
                     temp.remove(p);
                 }
-                Geometry.findClosest(player.x, player.y, temp);
+
+                player.unit().addBuild(Geometry.findClosest(player.x, player.y, temp));
+
 //                for (Teams.BlockPlan block : blocks) {
 //                    //check if it's already been placed
 //                    if (world.tile(block.x, block.y)!=null && world.tile(block.x, block.y).block().id==block.block) {
