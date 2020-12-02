@@ -161,7 +161,7 @@ public class NetClient implements ApplicationListener{
             if (FooUser.IsUser(playersender) && !playersender.equals(player)) { // Add wrench to client user messages, highlight if enabled
                 sender = colorizeName(playersender.id, "\uE80F " + sender);
 
-                if (Core.settings.getBool("highlightclientmsg")) { background = Color.coral; }
+                if (Core.settings.getBool("highlightclientmsg")) { background = Color.coral.cpy().mul(0.75f); }
             }
             Vars.ui.chatfrag.addMessage(message, sender, background);
         }

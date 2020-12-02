@@ -75,19 +75,19 @@ public class ChatFragment extends Table{
 
             if(shown){
                 if(input.keyTap(Binding.chat_history_prev)){
-//                    if(historyPos == 0) history.set(0, chatfield.getText());
-//                    historyPos++;
-//                    updateChat();
-                    completionPos--;
-                    completionPos = Math.max(completionPos, 0);
-                    completionPos = Math.min(completionPos, completion.size);
+                    if(historyPos == 0) history.set(0, chatfield.getText());
+                    historyPos++;
+                    updateChat();
+//                    completionPos--;
+//                    completionPos = Math.max(completionPos, 0);
+//                    completionPos = Math.min(completionPos, completion.size);
                 }
                 if(input.keyTap(Binding.chat_history_next)){
-//                    historyPos--;
-//                    updateChat();
-                    completionPos++;
-                    completionPos = Math.max(completionPos, 0);
-                    completionPos = Math.min(completionPos, completion.size);
+                    historyPos--;
+                    updateChat();
+//                    completionPos++;
+//                    completionPos = Math.max(completionPos, 0);
+//                    completionPos = Math.min(completionPos, completion.size);
                 }
                 if (input.keyTap(Binding.chat_autocomplete) && completion.any()) {
                     completionPos = Math.max(completionPos, 0);
