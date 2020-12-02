@@ -120,7 +120,7 @@ public class BuildPath extends Path {
             //follow someone and help them build
             found = false;
 
-            Units.nearby(player.unit().team, player.unit().x, player.unit().y, 1000000000, u -> {
+            Units.nearby(player.unit().team, player.unit().x, player.unit().y, 100000, u -> {
                 if(found) return;
 
                 if(u.canBuild() && u != player.unit() && u.activelyBuilding()){

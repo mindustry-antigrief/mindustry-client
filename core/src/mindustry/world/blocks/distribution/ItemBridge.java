@@ -134,7 +134,7 @@ public class ItemBridge extends Block{
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests) {
-        return (Mathf.dstm(requests.first().x, requests.first().y, req.x, req.y) % this.range == 0 || req == requests.items[requests.size-1]) ? this : null;
+        return (Mathf.dstm(requests.first().x, requests.first().y, req.x, req.y) % this.range == 0 || req == requests.get(requests.size - 1)) ? this : null;
     }
 
     public class ItemBridgeBuild extends Building{
