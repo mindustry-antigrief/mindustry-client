@@ -115,29 +115,30 @@ public class BuildPath extends Path {
 //                        blocks.addLast(block);
 //                    }
 //                }
-            }
+            } else {
 
             //follow someone and help them build
             found = false;
 
-            Units.nearby(player.unit().team, player.unit().x, player.unit().y, 100000, u -> {
-                if(found) return;
+                Units.nearby(player.unit().team, player.unit().x, player.unit().y, 100000, u -> {
+                    if(found) return;
 
-                if(u.canBuild() && u != player.unit() && u.activelyBuilding()){
-                    BuildPlan plan = u.buildPlan();
+                    if(u.canBuild() && u != player.unit() && u.activelyBuilding()){
+                        BuildPlan plan = u.buildPlan();
 
-                    Building build = world.build(plan.x, plan.y);
-                    if(build instanceof ConstructBlock.ConstructBuild cons){
-                        float dist = Math.min(cons.dst(player.unit()) - buildingRange, 0);
+                        Building build = world.build(plan.x, plan.y);
+                        if(build instanceof ConstructBlock.ConstructBuild cons){
+                            float dist = Math.min(cons.dst(player.unit()) - buildingRange, 0);
 
-                        //make sure you can reach the request in time
-                        if(dist / player.unit().speed() < cons.buildCost * 0.9f){
-                            following = u;
-                            found = true;
+                            //make sure you can reach the request in time
+                            if(dist / player.unit().speed() < cons.buildCost * 0.9f){
+                                following = u;
+                                found = true;
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
     }
 
