@@ -472,7 +472,7 @@ public class ConstructBlock extends Block{
                             } else {
                                 toast.clearChildren();
                             }
-                            toast.setFadeTime(1f);
+                            toast.setFadeTime(2f);
                             toast.add(new Label(format));
                             toast.row();
                             toast.add(new Label(format2, monoLabel));
