@@ -144,7 +144,10 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
         //load legacy research
         if(Core.settings.has("unlocks") && !Core.settings.has("junction-unlocked")){
             Core.app.post(() -> {
-                ui.showCustomConfirm("@research", "@research.legacy", "@research.load", "@research.discard", LegacyIO::readResearch, () -> Core.settings.remove("unlocks"));
+                ui.showCustomConfirm("@research", "@research.legacy", "@research.load", "@research.discard", () -> {
+                    LegacyIO.readResearch();
+                    Core.settings.remove("unlocks");
+                }, () -> Core.settings.remove("unlocks"));
             });
         }
 
@@ -490,7 +493,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
             hoverLabel.touchable = Touchable.disabled;
 
             Vec3 pos = planets.cam.project(Tmp.v31.set(hovered.tile.v).setLength(PlanetRenderer.outlineRad).rotate(Vec3.Y, -planets.planet.getRotation()).add(planets.planet.position));
-            hoverLabel.setPosition(pos.x, pos.y, Align.center);
+            hoverLabel.setPosition(pos.x, pos.y - Core.scene.marginBottom, Align.center);
 
             hoverLabel.getText().setLength(0);
             if(hovered != null){
