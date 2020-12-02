@@ -109,6 +109,13 @@ public class HudFragment extends Fragment{
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
             .name("position");
+
+            t.row();
+
+            t.label(() -> "[coral]" + Mathf.floor(player.mouseX / tilesize) + "," + Mathf.floor(player.mouseY / tilesize))
+            .visible(() -> Core.settings.getBool("position"))
+            .touchable(Touchable.disabled)
+            .name("position");
             t.top().right();
         });
 
