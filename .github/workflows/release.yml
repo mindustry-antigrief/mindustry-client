@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.assetName}} Tests
-          path: tests/build/reports/tests/test/index.html
+          path: tests/build/reports/tests/test
 
       - name: Upload ${{ matrix.assetName }} Artifact
         uses: actions/upload-artifact@v2
