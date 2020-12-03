@@ -89,14 +89,14 @@ public class Conveyor extends Block implements Autotiler{
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
-        if (control.input.conveyorPlaceNormal) {
-            Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conveyor || req.block instanceof Junction));
-            return cont.get(Geometry.d4(req.rotation)) &&
-                    cont.get(Geometry.d4(req.rotation - 2)) &&
-                    req.tile() != null &&
-                    req.tile().block() instanceof Conveyor &&
-                    Mathf.mod(req.tile().build.rotation - req.rotation, 2) == 1 ? Blocks.junction : this;
-        }
+//        if (control.input.conveyorPlaceNormal) {
+//            Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conveyor || req.block instanceof Junction));
+//            return cont.get(Geometry.d4(req.rotation)) &&
+//                    cont.get(Geometry.d4(req.rotation - 2)) &&
+//                    req.tile() != null &&
+//                    req.tile().block() instanceof Conveyor &&
+//                    Mathf.mod(req.tile().build.rotation - req.rotation, 2) == 1 ? Blocks.junction : this;
+//        }
 
         if (req.x >= world.width() || req.x <= 0 || req.y >= world.height() || req.y <= 0) return this;
         if (world.tile(req.x, req.y).block() instanceof Junction) {
