@@ -313,7 +313,7 @@ public class ChatFragment extends Table{
     }
 
     public void updateChat(){
-        chatfield.setText(history.get(historyPos));
+        try{chatfield.setText(history.get(historyPos));}catch(Exception ignored){};
         chatfield.setCursorPosition(chatfield.getText().length());
     }
 
