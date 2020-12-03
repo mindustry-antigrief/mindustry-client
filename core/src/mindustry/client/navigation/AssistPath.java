@@ -1,17 +1,14 @@
 package mindustry.client.navigation;
 
-import arc.graphics.Color;
 import arc.math.geom.Position;
 import mindustry.Vars;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
-import mindustry.gen.Builderc;
 import mindustry.gen.Call;
 import mindustry.gen.Minerc;
 import mindustry.gen.Player;
 import mindustry.world.blocks.storage.CoreBlock;
 
 import static mindustry.Vars.player;
-import static mindustry.Vars.ui;
 
 public class AssistPath extends Path {
     public final Player assisting;
@@ -49,10 +46,6 @@ public class AssistPath extends Path {
             }
         } catch (Exception ignored){}
         new PositionWaypoint(assisting.x, assisting.y, tolerance, tolerance).run();
-        // TODO: Review -> Only shoot when not moving/free aim turrets (i dont really think its needed)
-//        else if(Vars.player.unit().moving()){
-//            Vars.player.unit().lookAt(Vars.player.unit().vel.angle());
-//        }
 
 
         if(Vars.player.unit() instanceof Minerc mine && assisting.unit() instanceof Minerc com){ // Code stolen from formationAi.java, matches player mine state to assisting
