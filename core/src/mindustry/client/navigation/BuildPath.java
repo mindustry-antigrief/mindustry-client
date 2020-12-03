@@ -83,7 +83,7 @@ public class BuildPath extends Path {
                 //move toward the request
                 Formation formation = player.unit().formation;
                 float range = buildingRange - 10;
-                if (formation != null) range = formation.pattern.spacing / (float)Math.sin(180f / formation.pattern.slots * Mathf.degRad);
+                if (formation != null) range -= formation.pattern.spacing / (float)Math.sin(180f / formation.pattern.slots * Mathf.degRad);
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{
                 //discard invalid request
@@ -100,7 +100,8 @@ public class BuildPath extends Path {
                     temp.remove(p);
                 }
 
-                player.unit().addBuild(Geometry.findClosest(player.x, player.y, temp));
+                BuildPlan dumb = Geometry.findClosest(player.x, player.y, temp);
+                if(state.rules.infiniteResources || (core != null && (core.items.has(dumb.block.requirements, state.rules.buildCostMultiplier) || state.rules.infiniteResources))) player.unit().addBuild(dumb);
 
 //                for (Teams.BlockPlan block : blocks) {
 //                    //check if it's already been placed
