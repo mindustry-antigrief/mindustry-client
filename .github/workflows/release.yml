@@ -29,6 +29,7 @@ jobs:
     outputs:
       url: ${{ steps.create_release.outputs.upload_url }}
     strategy:
+      fail-fast: false
       matrix: ${{fromJson(needs.setup.outputs.releases)}} # build with multiple versionModifier (modifier in version.java) arguments
 
     steps:
