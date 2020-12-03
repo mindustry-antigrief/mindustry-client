@@ -47,7 +47,7 @@ public class AssistPath extends Path {
             if ((assisting.unit().isShooting && Vars.player.unit().type.rotateShooting)) { // Rotate to aim coords if needed, otherwise face assisted player
                 Vars.player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY());
             }
-        } catch (Exception e) {}
+        } catch (Exception ignored){}
         new PositionWaypoint(assisting.x, assisting.y, tolerance, tolerance).run();
         // TODO: Review -> Only shoot when not moving/free aim turrets (i dont really think its needed)
 //        else if(Vars.player.unit().moving()){
