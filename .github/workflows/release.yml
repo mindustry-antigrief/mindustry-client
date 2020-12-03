@@ -12,7 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       releases: ${{ steps.releases.outputs.releases }}
+
     steps:
+      - name: Cancel Previous Workflows
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
       - id: releases
         run: echo "::set-output name=releases::{\"include\":[{\"modifier\":\"steam\",\"assetName\":\"steam.jar\"},{\"modifier\":\"release\",\"assetName\":\"desktop-release.jar\"}]}"
 
@@ -26,10 +32,6 @@ jobs:
       matrix: ${{fromJson(needs.setup.outputs.releases)}} # build with multiple versionModifier (modifier in version.java) arguments
 
     steps:
-      - name: Cancel Previous Workflows
-        uses: styfle/cancel-workflow-action@0.6.0
-        with:
-          access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout Commit
         uses: actions/checkout@v1
