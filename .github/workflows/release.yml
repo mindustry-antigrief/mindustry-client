@@ -45,6 +45,7 @@ jobs:
          ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=https://api.github.com/repos/${{ github.repository }}/releases/latest -PversionModifier=${{ matrix.modifier }}
 
       - name: Upload ${{ matrix.assetName }} Test Artifact
+        if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.assetName}} Tests
