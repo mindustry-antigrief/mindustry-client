@@ -35,7 +35,7 @@ allprojects{
         if(!project.hasProperty("clientBuild")) clientBuild = '0'
         if(!project.hasProperty("updateUrl")) updateUrl = 'https://api.github.com/repos/blahblahbloopster/mindustry-client-v6/releases/latest'
         if(!project.hasProperty("versionModifier")) versionModifier = 'release'
-        if(!project.hasProperty("buildversion")) buildversion = '120.2'
+        if(!project.hasProperty("buildversion")) buildversion = '120.3'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '891ed912791e01fe9ee6237a6497e5212b85c256'
