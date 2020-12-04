@@ -13,6 +13,7 @@ import arc.scene.event.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.ai.formations.patterns.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
@@ -311,6 +312,20 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         if(player != null) tile.lastAccessed = player.name;
+
+        if(player != null){
+            tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new RotateTileLog(player.unit(), tile2, tile.rotation, tile.rotation + Mathf.sign(direction), Instant.now().getEpochSecond(), "")));
+            if(Navigation.currentlyFollowing instanceof UnAssistPath){
+                if(((UnAssistPath) Navigation.currentlyFollowing).assisting == player){
+                    Time.run(2f, () -> {
+                        if (player != null && tile != null) {
+                            Call.rotateBlock(Vars.player, tile, !direction);
+                        }
+                    });
+                }
+            }
+        }
+
         tile.rotation = Mathf.mod(tile.rotation + Mathf.sign(direction), 4);
         tile.updateProximity();
         tile.noSleep();

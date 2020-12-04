@@ -8,6 +8,7 @@ import mindustry.world.*;
 public class TileLog {
     public Seq<TileLogItem> log = new Seq<>();
     public int x, y;
+    public static final int maxLogSize = 200;
 
     public TileLog(Tile tile){
         x = tile.x;
@@ -15,6 +16,9 @@ public class TileLog {
     }
 
     public void addItem(TileLogItem item) {
+        if (log.size >= maxLogSize) {
+            log.removeRange(0, log.size - (maxLogSize - 1));
+        }
         log.add(item);
     }
 
