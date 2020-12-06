@@ -455,7 +455,7 @@ public class ConstructBlock extends Block{
         public void update() {
             super.update();
             if (cblock instanceof NuclearReactor) {
-                if (Core.settings.getBool("reactorwarnings")) {
+                if (Core.settings.getBool("reactorwarnings") && cblock != null) {
                     long since = Time.timeSinceMillis(lastWarn);
                     if (progress > lastProgress && since > 0 && progress < .99f && lastBuilder != null) {
                         // Play sound for reactor construction (only played when no reactor has been built for 10s)
