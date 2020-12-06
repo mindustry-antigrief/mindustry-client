@@ -68,7 +68,7 @@ public class Fonts{
     }
 
     public static int cursorScale(){
-        return Math.max(1, Mathf.round(Scl.scl(1f)));
+        return 1;
     }
 
     public static void loadFonts(){
