@@ -74,21 +74,17 @@ public class ChatFragment extends Table{
             }
 
             if(shown){
-                if(input.keyTap(Binding.chat_history_prev)){
+                if(input.keyTap(Binding.chat_history_prev) && historyPos < history.size - 1){
                     if(historyPos == 0) history.set(0, chatfield.getText());
                     historyPos++;
                     updateChat();
-//                    completionPos--;
-//                    completionPos = Math.max(completionPos, 0);
-//                    completionPos = Math.min(completionPos, completion.size);
                 }
-                if(input.keyTap(Binding.chat_history_next)){
+                if(input.keyTap(Binding.chat_history_next) && historyPos > 0){
                     historyPos--;
                     updateChat();
-//                    completionPos++;
-//                    completionPos = Math.max(completionPos, 0);
-//                    completionPos = Math.min(completionPos, completion.size);
                 }
+                scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chat_scroll), 0, Math.max(0, messages.size - messagesShown));
+
                 if (input.keyTap(Binding.chat_autocomplete) && completion.any()) {
                     completionPos = Math.max(completionPos, 0);
                     completionPos = Math.min(completionPos, completion.size);
@@ -313,7 +309,7 @@ public class ChatFragment extends Table{
     }
 
     public void updateChat(){
-        try{chatfield.setText(history.get(historyPos));}catch(Exception ignored){};
+        chatfield.setText(history.get(historyPos));
         chatfield.setCursorPosition(chatfield.getText().length());
     }
 

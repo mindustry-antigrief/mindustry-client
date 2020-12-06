@@ -493,5 +493,13 @@ public class Turret extends ReloadTurret{
         public byte version(){
             return 1;
         }
+
+        @Override
+        public void update() {
+            super.update();
+            if (!hasAmmo()) {
+                Client.turrets.remove(this);
+            }
+        }
     }
 }

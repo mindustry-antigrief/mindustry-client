@@ -161,17 +161,19 @@ public class PlayerListFragment extends Fragment{
                     });
                 }).size(h/2);
             }
-            button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
-                    () -> Navigation.follow(new AssistPath(user))).size(h/2);
-            button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
-                    () -> Navigation.follow(new UnAssistPath(user))).size(h/2);
-            button.button(Icon.move, Styles.clearPartiali, // Goto
-                    () -> Navigation.navigateTo(user.x+1, user.y+1)).size(h/2);
-            button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
-                    () -> {
-                DesktopInput.panning = true;
-                Spectate.pos = user;
-            });
+            if (user != player) {
+                button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
+                        () -> Navigation.follow(new AssistPath(user))).size(h / 2);
+                button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
+                        () -> Navigation.follow(new UnAssistPath(user))).size(h / 2);
+                button.button(Icon.move, Styles.clearPartiali, // Goto
+                        () -> Navigation.navigateTo(user.x+1, user.y+1)).size(h / 2);
+                button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
+                        () -> {
+                            DesktopInput.panning = true;
+                            Spectate.pos = user;
+                        });
+            }
 
             content.add(button).padBottom(-6).width(600f).maxHeight(h + 14);
             content.row();

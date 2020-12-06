@@ -2,31 +2,28 @@ package mindustry.client.navigation;
 
 import arc.math.Mathf;
 import arc.math.geom.Geometry;
-import arc.graphics.Color;
 import arc.math.geom.Position;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.Interval;
+import arc.util.Log;
+import arc.util.Nullable;
 import mindustry.ai.formations.Formation;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.entities.Units;
 import mindustry.entities.units.BuildPlan;
 import mindustry.game.Teams;
 import mindustry.gen.*;
-import mindustry.world.Block;
 import mindustry.world.Build;
-import mindustry.world.Tile;
 import mindustry.world.blocks.ConstructBlock;
-import mindustry.world.blocks.storage.CoreBlock;
-import mindustry.world.meta.BlockFlag;
 
 import static mindustry.Vars.*;
 
 public class BuildPath extends Path {
+    Building core = player.core();
     private boolean show;
-    boolean found = false;
-    Unit following;
     Interval timer = new Interval();
+    Queue<BuildPlan> broken = new Queue<>(), assist = new Queue<>();
 
     @Override
     void setShow(boolean show) { this.show = show; }
@@ -36,41 +33,29 @@ public class BuildPath extends Path {
 
     @Override
     void follow() {
+        setShow(true);
 
-        if(following != null){
-            //try to follow and mimic someone
+        if (timer.get(15)) {
 
-            //validate follower
-            if(!following.isValid() || !following.activelyBuilding()){
-                following = null;
-//                player.unit().plans.clear();
-                return;
+            Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
+            if(!player.unit().team.data().blocks.isEmpty())player.unit().team.data().blocks.forEach(block -> broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config)));
+            boolean all = false, found = false;
+            Queue[] queues = {player.unit().plans, broken, assist};
+            for (int x = 0; x < 2; x++) {
+                for (Queue queue : queues) {
+                    Queue<BuildPlan> plans = sortPlans(queue, all, true);
+                    if (plans.isEmpty()) continue;
+                    plans.forEach(player.unit().plans::remove);
+                    plans.forEach(player.unit().plans::addFirst);
+                    found = true;
+                    break;
+                }
+                if (found) break;
+                all = true;
             }
-
-            //set to follower's first build plan, whatever that is
-            player.unit().plans.addFirst(following.buildPlan());
         }
 
-        if(player.unit().buildPlan() != null){
-            if (timer.get(15)) {
-                Building core = player.core();
-                Queue<BuildPlan> temp = new Queue<>();
-
-                // Find the best build in the player's queue (builds the closest affordable item. if none exists, it builds the closest) theres prob a better method for this but idk what it is
-                for(BuildPlan p : player.unit().plans()) if(!(state.rules.infiniteResources || (core != null && (core.items.has(p.block.requirements, state.rules.buildCostMultiplier) || state.rules.infiniteResources)))){
-                    temp.addLast(p);
-                    player.unit().plans.remove(p);
-                }
-                BuildPlan best = Geometry.findClosest(player.x, player.y, player.unit().plans);
-                for (BuildPlan p : temp) player.unit().plans.addLast(p);
-                if (best == null) best = Geometry.findClosest(player.x, player.y, player.unit().plans);
-                if (player.unit().buildPlan() != best) {
-                    player.unit().plans.remove(best);
-                    player.unit().plans.addFirst(best);
-                }
-            }
-
-
+        if (player.unit().isBuilding()) {
             BuildPlan req = player.unit().buildPlan(); //approach request if building
 
             boolean valid =
@@ -89,57 +74,6 @@ public class BuildPath extends Path {
                 //discard invalid request
                 player.unit().plans.removeFirst();
             }
-        } else {
-            if(!player.unit().team.data().blocks.isEmpty()){
-                Queue<Teams.BlockPlan> blocks = player.unit().team.data().blocks;
-                Queue<BuildPlan> temp = new Queue<>(), temp2 = new Queue<>();
-                Building core = player.core();
-                for (Teams.BlockPlan block : blocks) temp.addLast(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config));
-                for (BuildPlan p : temp) if(!(state.rules.infiniteResources || (core != null && (core.items.has(p.block.requirements, state.rules.buildCostMultiplier) || state.rules.infiniteResources)))){
-                    temp2.addLast(p);
-                    temp.remove(p);
-                }
-
-                BuildPlan dumb = Geometry.findClosest(player.x, player.y, temp);
-                if(state.rules.infiniteResources || (core != null && (core.items.has(dumb.block.requirements, state.rules.buildCostMultiplier) || state.rules.infiniteResources))) player.unit().addBuild(dumb);
-
-//                for (Teams.BlockPlan block : blocks) {
-//                    //check if it's already been placed
-//                    if (world.tile(block.x, block.y)!=null && world.tile(block.x, block.y).block().id==block.block) {
-//                        blocks.removeFirst();
-//                    } else if (Build.validPlace(content.block(block.block), player.unit().team(), block.x, block.y, block.rotation)) { //it's valid.
-//                        //add build request.
-//                        player.unit().addBuild(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config));
-//                    } else {
-//                        //shift head of queue to tail, try something else next time
-//                        blocks.removeFirst();
-//                        blocks.addLast(block);
-//                    }
-//                }
-            } else {
-
-            //follow someone and help them build
-            found = false;
-
-                Units.nearby(player.unit().team, player.unit().x, player.unit().y, 100000, u -> {
-                    if(found) return;
-
-                    if(u.canBuild() && u != player.unit() && u.activelyBuilding()){
-                        BuildPlan plan = u.buildPlan();
-
-                        Building build = world.build(plan.x, plan.y);
-                        if(build instanceof ConstructBlock.ConstructBuild cons){
-                            float dist = Math.min(cons.dst(player.unit()) - buildingRange, 0);
-
-                            //make sure you can reach the request in time
-                            if(dist / player.unit().speed() < cons.buildCost * 0.9f){
-                                following = u;
-                                found = true;
-                            }
-                        }
-                    }
-                });
-            }
         }
     }
 
@@ -151,6 +85,27 @@ public class BuildPath extends Path {
     @Override
     Position next() {
         return null;
+    }
+
+    /** @param includeAll whether to include unaffordable plans (appended to end of affordable ones)
+     @param largeFirst reverses the order of outputs, returning the furthest plans first
+     @return {@code Queue<BuildPlan>} sorted by distance */
+    @Nullable
+    public Queue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll, boolean largeFirst) {
+        if (plans == null) return null;
+        Queue<BuildPlan> out = new Queue<>();
+        Seq<BuildPlan> sorted = new Seq<>();
+        sorted.addAll(plans);
+        sorted.sort(p -> Mathf.dstm(player.tileX(), player.tileY(), p.x, p.y));
+        if(!largeFirst)sorted.reverse();
+        for (BuildPlan p : sorted) { // The largest distance is at the start of the sequence by this point
+            if (player.unit().shouldSkip(p, core)) {
+                if (includeAll) out.addLast(p);
+            } else {
+                out.addFirst(p);
+            }
+        }
+        return out;
     }
 }
 

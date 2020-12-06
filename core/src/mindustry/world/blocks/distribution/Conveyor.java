@@ -89,16 +89,8 @@ public class Conveyor extends Block implements Autotiler{
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
-//        if (control.input.conveyorPlaceNormal) {
-//            Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conveyor || req.block instanceof Junction));
-//            return cont.get(Geometry.d4(req.rotation)) &&
-//                    cont.get(Geometry.d4(req.rotation - 2)) &&
-//                    req.tile() != null &&
-//                    req.tile().block() instanceof Conveyor &&
-//                    Mathf.mod(req.tile().build.rotation - req.rotation, 2) == 1 ? Blocks.junction : this;
-//        }
+        if (req.x >= world.width() || req.x <= 0 || req.y >= world.height() || req.y <= 0) return null;
 
-        if (req.x >= world.width() || req.x <= 0 || req.y >= world.height() || req.y <= 0) return this;
         if (world.tile(req.x, req.y).block() instanceof Junction) {
             if (frontTile(req.x, req.y, req.rotation).block() instanceof Junction || backTile(req.x, req.y, req.rotation).block() instanceof Junction) {
                 if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conveyor)) {
@@ -157,7 +149,7 @@ public class Conveyor extends Block implements Autotiler{
     /** Whether this block can be placed on this tile. */
     public boolean thisPlaceableOn(Tile tile){
         if (tile == null) return false;
-        return ((tile.block().group == group && tile.block().size <= size) || tile.block().alwaysReplace) && !tile.floor().isDeep();
+        return (tile.block().group == group || tile.block().alwaysReplace) && !tile.floor().isDeep();
     }
 
     public class ConveyorBuild extends Building{

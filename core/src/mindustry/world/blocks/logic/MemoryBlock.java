@@ -1,5 +1,7 @@
 package mindustry.world.blocks.logic;
 
+import arc.scene.ui.layout.Table;
+import arc.struct.Seq;
 import arc.util.io.*;
 import mindustry.gen.*;
 import mindustry.world.*;
@@ -50,6 +52,25 @@ public class MemoryBlock extends Block{
                 double val = read.d();
                 if(i < memory.length) memory[i] = val;
             }
+        }
+
+        @Override
+        public void display(Table table) {
+            super.display(table);
+            table.row();
+            table.label(() -> {
+                StringBuilder sb = new StringBuilder();
+                int i = 0;
+                for (double item : memory) {
+                    if (i++ > 7) {
+                        sb.append("...");
+                        break;
+                    }
+                    sb.append(item);
+                    sb.append("\n");
+                }
+                return sb.toString();
+            });
         }
     }
 }

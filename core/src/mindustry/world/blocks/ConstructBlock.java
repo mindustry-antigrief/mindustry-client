@@ -464,7 +464,8 @@ public class ConstructBlock extends Block{
                             Sounds.corexplode.play();
                         }
                         lastWarn = Time.millis();
-                        try {
+                        if (lastBuilder.isPlayer()) {
+                            lastBuilder.drawBuildRequests();
                             String format = String.format("%s is building a %s at %d,%d (%d blocks from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8));
                             String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
                             if (toast == null || toast.parent == null) {
@@ -476,7 +477,7 @@ public class ConstructBlock extends Block{
                             toast.add(new Label(format));
                             toast.row();
                             toast.add(new Label(format2, monoLabel));
-                        } catch (Exception ignored) {} // Throws an exception if the player switches units while building a reactor lol
+                        }
                     }
                 }
             }
