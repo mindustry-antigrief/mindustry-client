@@ -34,7 +34,7 @@ public class DesktopLauncher extends ClientLauncher{
         try{
             Vars.loadLogger();
             new SdlApplication(new DesktopLauncher(arg), new SdlConfig(){{
-                title = "Mindustry (Foo's client)";
+                title = "Mindustry (Foo's Client)";
                 maximized = true;
                 stencil = 1;
                 width = 900;

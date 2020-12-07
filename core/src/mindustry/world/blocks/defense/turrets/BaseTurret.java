@@ -79,7 +79,7 @@ public class BaseTurret extends Block{
         @Override
         public void update() {
             super.update();
-            if (team.id == player.team().id) return;
+            if (player == null || team.id == player.team().id) return;
             Client.turrets.add(this);
         }
     }

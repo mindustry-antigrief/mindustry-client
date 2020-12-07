@@ -291,7 +291,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     public void update(){
         if (hasWeapons()) {
-            if (team != player.team()) {
+            if (player != null && team != player.team()) {
                 type.weapons.forEach(weapon -> {
                     if (player.unit().isFlying()? weapon.bullet.collidesAir : weapon.bullet.collidesGround) {
                         Navigation.obstacles.add(new TurretPathfindingEntity(tileX(), tileY(), weapon.bullet.range() * 1.2f));

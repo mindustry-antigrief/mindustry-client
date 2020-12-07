@@ -23,7 +23,6 @@ abstract class PhysicsComp implements Velc, Hitboxc, Flyingc{
 
     void impulse(float x, float y){
         float mass = mass();
-        vel.add(x / mass, y / mass);
     }
 
     void impulse(Vec2 v){

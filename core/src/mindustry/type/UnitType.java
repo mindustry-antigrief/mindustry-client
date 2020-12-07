@@ -22,6 +22,7 @@ import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.Binding;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.environment.*;
@@ -108,6 +109,7 @@ public class UnitType extends UnlockableContent{
     public TextureRegion baseRegion, legRegion, region, shadowRegion, cellRegion,
         occlusionRegion, jointRegion, footRegion, legBaseRegion, baseJointRegion, outlineRegion;
     public TextureRegion[] wreckRegions;
+    public static float alpha = 1f;
 
     protected @Nullable ItemStack[] cachedRequirements;
 
@@ -172,11 +174,11 @@ public class UnitType extends UnlockableContent{
             }
         }).growX();
 
-        if(unit.controller() instanceof LogicAI){
+        if(unit.controller() instanceof LogicAI p){
             table.row();
-            table.add(Blocks.microProcessor.emoji() + " " + Core.bundle.get("units.processorcontrol")).growX().left();
+            table.add(Blocks.microProcessor.emoji() + " " + Core.bundle.get("units.processorcontrol") + " " ).growX().left();
             table.row();
-            table.label(() -> Iconc.settings + " " + (long)unit.flag + "").color(Color.lightGray).growX().wrap().left();
+            table.label(() -> Iconc.settings + " " + (long)unit.flag + " (" + p.controller.tileX() + ", " + p.controller.tileY() + ")").color(Color.lightGray).wrap().left();
         }
         
         table.row();
@@ -404,6 +406,7 @@ public class UnitType extends UnlockableContent{
 
     public void draw(Unit unit){
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
+        alpha = Core.input.keyDown(Binding.invisible_units) ? 0 : unit.controller() instanceof FormationAI ? .3f : 1;
         float z = unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
 
         if(unit.controller().isBeingControlled(player.unit())){
@@ -464,6 +467,7 @@ public class UnitType extends UnlockableContent{
         if(unit.abilities.size > 0){
             for(Ability a : unit.abilities){
                 Draw.reset();
+                Draw.alpha(alpha);
                 a.draw(unit);
             }
 
@@ -475,20 +479,21 @@ public class UnitType extends UnlockableContent{
         if(unit.hasPayload()){
             Payload pay = unit.payloads().first();
             pay.set(unit.x, unit.y, unit.rotation);
+            Draw.alpha(alpha);
             pay.draw();
         }
     }
 
     public void drawShield(Unit unit){
-        float alpha = unit.shieldAlpha();
         float radius = unit.hitSize() * 1.3f;
-        Fill.light(unit.x, unit.y, Lines.circleVertices(radius), radius, Tmp.c1.set(Pal.shieldIn), Tmp.c2.set(Pal.shield).lerp(Color.white, Mathf.clamp(unit.hitTime() / 2f)).a(Pal.shield.a * alpha));
+        Fill.light(unit.x, unit.y, Lines.circleVertices(radius), radius, Tmp.c1.set(Pal.shieldIn), Tmp.c2.set(Pal.shield).lerp(Color.white, Mathf.clamp(unit.hitTime() / 2f)).a(Pal.shield.a * unit.shieldAlpha() * alpha));
     }
 
     public void drawControl(Unit unit){
         Draw.z(Layer.groundUnit - 2);
 
         Draw.color(Pal.accent, Color.white, Mathf.absin(4f, 0.3f));
+        Draw.alpha(alpha);
         Lines.poly(unit.x, unit.y, 4, unit.hitSize + 1.5f);
 
         Draw.reset();
@@ -496,13 +501,14 @@ public class UnitType extends UnlockableContent{
 
     public void drawShadow(Unit unit){
         Draw.color(Pal.shadow);
+        Draw.alpha(Draw.getColor().a * alpha);
         float e = Math.max(unit.elevation, visualElevation);
         Draw.rect(shadowRegion, unit.x + shadowTX * e, unit.y + shadowTY * e, unit.rotation - 90);
         Draw.color();
     }
 
     public void drawOcclusion(Unit unit){
-        Draw.color(0, 0, 0, 0.4f);
+        Draw.color(0, 0, 0, 0.4f * alpha);
         float rad = 1.6f;
         float size = Math.max(region.width, region.height) * Draw.scl;
         Draw.rect(occlusionRegion, unit, size * rad, size * rad);
@@ -517,12 +523,14 @@ public class UnitType extends UnlockableContent{
             float size = (itemSize + Mathf.absin(Time.time, 5f, 1f)) * unit.itemTime;
 
             Draw.mixcol(Pal.accent, Mathf.absin(Time.time, 5f, 0.5f));
+            Draw.alpha(alpha);
             Draw.rect(unit.item().icon(Cicon.medium),
             unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
             unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY),
             size, size, unit.rotation);
 
             Draw.mixcol();
+            Draw.alpha(alpha);
 
             Lines.stroke(1f, Pal.accent);
             Lines.circle(
@@ -550,16 +558,18 @@ public class UnitType extends UnlockableContent{
 
         if(unit instanceof Trailc){
             Trail trail = ((Trailc)unit).trail();
-            trail.draw(unit.team.color, (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f) * scale) * trailScl);
+            trail.draw(unit.team.color.a(alpha), (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f) * scale) * trailScl);
         }
 
         Draw.color(unit.team.color);
+        Draw.alpha(alpha);
         Fill.circle(
             unit.x + Angles.trnsx(unit.rotation + 180, offset),
             unit.y + Angles.trnsy(unit.rotation + 180, offset),
             (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f)) * scale
         );
         Draw.color(Color.white);
+        Draw.alpha(alpha);
         Fill.circle(
             unit.x + Angles.trnsx(unit.rotation + 180, offset - 1f),
             unit.y + Angles.trnsy(unit.rotation + 180, offset - 1f),
@@ -570,6 +580,7 @@ public class UnitType extends UnlockableContent{
 
     public void drawWeapons(Unit unit){
         applyColor(unit);
+        Draw.alpha(alpha);
 
         for(WeaponMount mount : unit.mounts){
             Weapon weapon = mount.weapon;
@@ -581,7 +592,7 @@ public class UnitType extends UnlockableContent{
                 wy = unit.y + Angles.trnsy(rotation, weapon.x, weapon.y) + Angles.trnsy(weaponRotation, 0, recoil);
 
             if(weapon.occlusion > 0){
-                Drawf.shadow(wx, wy, weapon.occlusion);
+                Drawf.shadow(wx, wy, weapon.occlusion, Pal.shadow.a * alpha);
             }
 
             if(weapon.outlineRegion.found()){
@@ -597,6 +608,7 @@ public class UnitType extends UnlockableContent{
                 Draw.z(z);
             }
 
+            Draw.alpha(alpha);
             Draw.rect(weapon.region,
             wx, wy,
             weapon.region.width * Draw.scl * -Mathf.sign(weapon.flipSprite),
@@ -605,6 +617,7 @@ public class UnitType extends UnlockableContent{
 
             if(weapon.heatRegion.found() && mount.heat > 0){
                 Draw.color(weapon.heatColor, mount.heat);
+                Draw.alpha(alpha);
                 Draw.blend(Blending.additive);
                 Draw.rect(weapon.heatRegion,
                 wx, wy,
@@ -623,6 +636,7 @@ public class UnitType extends UnlockableContent{
         Draw.reset();
 
         if(Core.atlas.isFound(outlineRegion)){
+            Draw.alpha(alpha);
             Draw.rect(outlineRegion, unit.x, unit.y, unit.rotation - 90);
         }
     }
@@ -630,6 +644,7 @@ public class UnitType extends UnlockableContent{
     public void drawBody(Unit unit){
         applyColor(unit);
 
+        Draw.alpha(alpha);
         Draw.rect(region, unit.x, unit.y, unit.rotation - 90);
 
         Draw.reset();
@@ -639,6 +654,8 @@ public class UnitType extends UnlockableContent{
         applyColor(unit);
 
         Draw.color(cellColor(unit));
+        Draw.alpha(alpha);
+
         Draw.rect(cellRegion, unit.x, unit.y, unit.rotation - 90);
         Draw.reset();
     }
@@ -649,12 +666,13 @@ public class UnitType extends UnlockableContent{
 
     public void drawLight(Unit unit){
         if(lightRadius > 0){
-            Drawf.light(unit.team, unit.x, unit.y, lightRadius, lightColor, lightOpacity);
+            Drawf.light(unit.team, unit.x, unit.y, lightRadius, lightColor, lightOpacity * alpha);
         }
     }
 
     public <T extends Unit & Legsc> void drawLegs(T unit){
         applyColor(unit);
+        Draw.alpha(alpha);
 
         Leg[] legs = unit.legs();
 
@@ -662,7 +680,7 @@ public class UnitType extends UnlockableContent{
         float rotation = unit.baseRotation();
 
         for(Leg leg : legs){
-            Drawf.shadow(leg.base.x, leg.base.y, ssize);
+            Drawf.shadow(leg.base.x, leg.base.y, ssize, Pal.shadow.a * alpha);
         }
 
         //legs are drawn front first
@@ -681,10 +699,12 @@ public class UnitType extends UnlockableContent{
                 float scl = visualElevation;
                 float elev = Mathf.slope(1f - leg.stage) * scl;
                 Draw.color(Pal.shadow);
+                Draw.alpha(Draw.getColor().a * alpha);
                 Draw.rect(footRegion, leg.base.x + shadowTX * elev, leg.base.y + shadowTY * elev, position.angleTo(leg.base));
                 Draw.color();
             }
 
+            Draw.alpha(alpha);
             Draw.rect(footRegion, leg.base.x, leg.base.y, position.angleTo(leg.base));
 
             Lines.stroke(legRegion.height * Draw.scl * flips);
@@ -728,6 +748,7 @@ public class UnitType extends UnlockableContent{
 
         for(int i : Mathf.signs){
             Draw.mixcol(Tmp.c1.set(mechLegColor).lerp(Color.white, Mathf.clamp(unit.hitTime)), Math.max(Math.max(0, i * extension / mechStride), unit.hitTime));
+            Draw.alpha(alpha);
 
             Draw.rect(legRegion,
             unit.x + Angles.trnsx(mech.baseRotation(), extension * i - boostTrns, -boostTrns*i),
@@ -745,6 +766,7 @@ public class UnitType extends UnlockableContent{
             Draw.color(Color.white);
         }
 
+        Draw.alpha(alpha);
         Draw.rect(baseRegion, unit, mech.baseRotation() - 90);
 
         Draw.mixcol();
@@ -753,6 +775,7 @@ public class UnitType extends UnlockableContent{
     public void applyColor(Unit unit){
         Draw.color();
         Draw.mixcol(Color.white, unit.hitTime);
+        Draw.alpha(alpha);
         if(unit.drownTime > 0 && unit.floorOn().isDeep()){
             Draw.mixcol(unit.floorOn().mapColor, unit.drownTime * 0.8f);
         }

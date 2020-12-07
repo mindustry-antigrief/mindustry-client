@@ -1,5 +1,21 @@
+Hi foo
+# Version 4.0
+ * New smart build path (keybind: ;) that will build things based on priorities (whatever you place > broken buildings > teammate placement queues > anything that isnt finished, also does stuff it can afford first)
+ * Hide all units so you can actually see stuff (hold: o to activate)
+ * Numerous crash fixes
+ * Many fixes to the unit picker
+ * Reactor warning now shows player name again
+ * Units in formation are now only 30% opaque
+ * Auto-bridge improvements
+ * Clicking and dragging with bridges now spaces them at max distance rather than creating a chain of them
+ * Holding SHIFT will disable any placement modifiers (auto bridge and bridge spacing etc.)
+ * I think i added more stuff but i dont even remember what i added lol
+
 # Version 3.0.2
- * Added flying unit trails (disableable in client settings)
+ * Added flying unit trails (toggleable in client settings)
+
+# Version 3.0.1
+ * Minor bug fixes
 
 # Version 3.0
  * Added client player display (allows other foo's users to see you, off by default)

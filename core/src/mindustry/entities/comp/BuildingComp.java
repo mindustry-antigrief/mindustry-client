@@ -17,6 +17,8 @@ import arc.util.io.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.audio.*;
+import mindustry.client.Client;
+import mindustry.client.antigreif.ConfigRequest;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -230,7 +232,8 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public void configure(Object value){
         //save last used config
         block.lastConfig = value;
-        Call.tileConfig(player, self(), value);
+        Client.configs.add(new ConfigRequest(tile.x, tile.y, value));
+        // Call.tileConfig(player, self(), value); TODO: Remove line if the line above works correctly
     }
 
     /** Configure from a server. */

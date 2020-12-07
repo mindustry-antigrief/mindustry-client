@@ -3,32 +3,24 @@ package mindustry.client;
 import arc.*;
 import arc.graphics.Color;
 import arc.math.Mathf;
-import arc.math.geom.Position;
 import arc.math.geom.Vec2;
 import arc.struct.Queue;
 import arc.struct.Seq;
-import arc.util.CommandHandler;
-import arc.util.Strings;
-import arc.util.Time;
+import arc.util.*;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
+import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
 import mindustry.client.utils.Autocomplete;
 import mindustry.client.utils.Pair;
-import mindustry.content.UnitTypes;
-import mindustry.core.NetClient;
+import mindustry.entities.Units;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
-import mindustry.gen.Groups;
-import mindustry.gen.Player;
+import mindustry.gen.*;
 import mindustry.input.DesktopInput;
-import mindustry.net.Administration;
-import mindustry.net.Administration.*;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
-import mindustry.gen.Call;
 import mindustry.type.UnitType;
 
-import static arc.Core.camera;
 import static mindustry.Vars.*;
 
 public class Client {
@@ -41,6 +33,8 @@ public class Client {
     public static long lastSyncTime = 0L;
     public static final CommandHandler fooCommands = new CommandHandler("!");
     public static boolean hideTrails = true;
+    private static Interval timer = new Interval();
+    public static Ratekeeper configRateLimit = new Ratekeeper();
 
     public static void initialize() {
         fooCommands.<Player>register("help", "[page]", "Lists all client commands.", (args, player) -> {
@@ -95,6 +89,14 @@ public class Client {
             }
         });
 
+        fooCommands.<Player>register("here", "[message...]", "Prints your location to chat with an optional message", (args, player) -> {
+            Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", player.tileX(), player.tileY()));
+        });
+
+        fooCommands.<Player>register("cursor", "[message...]", "Prints cursor location to chat with an optional message", (args, player) -> {
+            Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", (int)player.mouseX / tilesize, (int)player.mouseX / tilesize));
+        });
+
 
         Events.on(WorldLoadEvent.class, event -> {
             if (Time.timeSinceMillis(lastSyncTime) > 5000) {
@@ -104,29 +106,44 @@ public class Client {
             Navigation.stopFollowing();
             configs.clear();
             turrets.clear();
+            UnitPicker.found = null;
         });
-        Events.on(EventType.UnitChangeEvent.class, event -> { // TODO: Instead of this code, call a class in UnitPicker.java to find and switch to new unit if possible.
+
+        Events.on(EventType.UnitChangeEvent.class, event -> {
+            UnitType unit = UnitPicker.found;
+            if (event.unit.team == player.team() && !(event.player == player)) {
+                Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == unit && !u.dead);
+                if (find != null) {
+                    Call.unitControl(player, find);
+                    Timer.schedule(() -> {
+                        if (event.unit.isPlayer()) {
+                            Toast t = new Toast(2);
+                            if (player.unit() == find) { UnitPicker.found = null; t.add("Successfully switched units.");} // After we switch units successfully, stop listening for this unit
+                            else if (find.getPlayer() != null) { t.add("Failed to become " + unit + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
+                        }
+                        }, .5f);
+                }
+            }
+        });
+
+        Events.on(EventType.UnitCreateEvent.class, event -> {
             UnitType unit = UnitPicker.found;
             if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 Call.unitControl(player, event.unit);
-                if (event.unit.isPlayer()) {
-                    if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);} // After we switch units successfully, stop listening for this unit
-                    else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer() + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
-                }}
-        });
-        Events.on(EventType.UnitCreateEvent.class, event -> { // TODO: Instead of this code, call a class in UnitPicker.java to find and switch to new unit if possible.
-            UnitType unit = UnitPicker.found;
-            if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
-                Call.unitControl(player, event.unit);
-                if (event.unit.isPlayer()) {
-                    if (player.unit() == event.unit) { UnitPicker.found = null; ui.chatfrag.addMessage("Success", "Unit Picker", Color.yellow);}  // After we switch units successfully, stop listening for this unit
-                    else { ui.chatfrag.addMessage("Failed to become " + unit + ", " + event.unit.getPlayer() + " is already controlling it (likely using unit sniper).", "Unit Picker", Color.yellow);}
-                }}
+                Timer.schedule(() -> {
+                    if (event.unit.isPlayer()) {
+                        Toast t = new Toast(2);
+                        if (player.unit() == event.unit) { UnitPicker.found = null; t.add("Successfully switched units.");}  // After we switch units successfully, stop listening for this unit
+                        else if (event.unit.getPlayer() != null) { t.add("Failed to become " + unit + ", " + event.unit.getPlayer().name + " is already controlling it (likely using unit sniper).");}
+                    }
+                    }, .5f);
+            }
         });
         Events.on(EventType.ClientLoadEvent.class, event -> {
             Autocomplete.initialize();
         });
     }
+
 
     public static void update() {
         Navigation.update();
@@ -136,13 +153,16 @@ public class Client {
         hideTrails = Core.settings.getBool("hidetrails");
 
         if (!configs.isEmpty()) {
-            try {
-                configs.removeFirst().run();
-            } catch (Exception ignored) {}
+                try {
+                    if (configRateLimit.allow(6 * 1000, 25)) {
+                        configs.removeLast().run();
+                    }
+                } catch (Exception e) {Log.info(e.getMessage());}
         }
     }
 
     public static TileLog getLog(int x, int y) {
+        if (tileLogs == null) tileLogs = new TileLog[world.height()][world.width()];
         if (tileLogs[y][x] == null) {
             tileLogs[y][x] = new TileLog(world.tile(x, y));
         }

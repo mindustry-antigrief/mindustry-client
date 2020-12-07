@@ -911,15 +911,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             lineRequests.add(req);
         });
 
-        if(Core.settings.getBool("blockreplace")){
+        if(Core.settings.getBool("blockreplace") && !control.input.conveyorPlaceNormal || !Core.settings.getBool("blockreplace") && control.input.conveyorPlaceNormal){
             lineRequests.each(req -> {
                 Block replace = req.block.getReplacement(req, lineRequests);
-                if (replace == null) {
-                    lineRequests.remove(req);
-                } else {
-                    if (replace.unlockedNow()) {
-                        req.block = replace;
-                    }
+                if (replace == null || replace.unlockedNow()) {
+                    req.block = replace;
                 }
             });
         }
@@ -940,7 +936,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         //check if tapped block is configurable
         if(tile.block.configurable && tile.interactable(player.team())){
-            consumed = true;
+            consumed = false;
             if(((!frag.config.isShown() && tile.shouldShowConfigure(player)) //if the config fragment is hidden, show
             //alternatively, the current selected block can 'agree' to switch config tiles
             || (frag.config.isShown() && frag.config.getSelectedTile().onConfigureTileTapped(tile)))){

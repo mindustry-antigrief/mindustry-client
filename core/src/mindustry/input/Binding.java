@@ -70,6 +70,7 @@ public enum Binding implements KeyBind{
     chat_history_next(KeyCode.down),
     chat_scroll(new Axis(KeyCode.scroll)),
     console(KeyCode.f8),
+
     tile_actions_menu_modifier(KeyCode.altLeft, "client"),
     freecam_modifier(KeyCode.altLeft),
     reset_camera(KeyCode.r),
@@ -78,8 +79,10 @@ public enum Binding implements KeyBind{
     navigate_to_camera(KeyCode.z),
     stop_following_path(KeyCode.minus),
     show_turret_ranges(KeyCode.backtick),
-    disable_auto_bridging(KeyCode.shiftLeft),
+    toggle_placement_modifiers(KeyCode.shiftLeft),
     chat_autocomplete(KeyCode.tab),
+    invisible_units(KeyCode.o),
+    auto_build(KeyCode.semicolon)
     ;
 
     private final KeybindValue defaultValue;

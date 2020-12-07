@@ -24,6 +24,7 @@ import mindustry.client.navigation.waypoints.Waypoint;
 import mindustry.client.ui.StupidMarkupParser;
 import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
+import mindustry.content.Blocks;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -181,10 +182,11 @@ public class DesktopInput extends InputHandler{
             if(mode == placing && block != null){
                 for(int i = 0; i < lineRequests.size; i++){
                     BuildPlan req = lineRequests.get(i);
+                    if(req.block == null) continue;
                     if(i == lineRequests.size - 1 && req.block.rotate){
                         drawArrow(block, req.x, req.y, req.rotation);
                     }
-                    drawRequest(lineRequests.get(i));
+                    drawRequest(req);
                 }
             }else if(isPlacing()){
                 if(block.rotate){
@@ -233,7 +235,7 @@ public class DesktopInput extends InputHandler{
             ui.listfrag.toggle();
         }
 
-        conveyorPlaceNormal = input.keyDown(Binding.disable_auto_bridging);
+        conveyorPlaceNormal = input.keyDown(Binding.toggle_placement_modifiers);
 
         if(Navigation.state == NavigationState.RECORDING){
             if(input.keyTap(Binding.place_waypoint) && scene.getKeyboardFocus() == null){
@@ -249,6 +251,9 @@ public class DesktopInput extends InputHandler{
             Navigation.stopFollowing();
         }
 
+        if(input.keyTap(Binding.auto_build) && scene.getKeyboardFocus() == null){
+            Navigation.follow(new BuildPath());
+        }
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
@@ -281,10 +286,6 @@ public class DesktopInput extends InputHandler{
 //            panning = false;
 //        }
 
-        if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null){
-            panning = false;
-            Spectate.pos = null;
-        }
 
         //TODO awful UI state checking code
         if(((player.dead() || state.isPaused()) && !ui.chatfrag.shown()) && !scene.hasField() && !scene.hasDialog()){
@@ -312,12 +313,13 @@ public class DesktopInput extends InputHandler{
                 Table table = new Table(Tex.buttonTrans);
                 table.touchable = Touchable.childrenOnly;
                 table.setWidth(400);
-                table.margin(0).marginRight(5);
+                table.margin(10);
                 table.fill();
-                table.defaults().height(itemHeight).pad(0f, 5f, 5f, 10f).fillX();
+                table.defaults().height(itemHeight).padTop(5).fillX();
                 try {
-                    table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().pad(5).growX().fillY();
+                    table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().growX().fillY().padTop(-5);
                 } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.scarlet);}
+
                 table.row().fill();
                 table.button("View log", () -> { // Tile Logs
                     BaseDialog dialog = new BaseDialog("Logs");
@@ -336,9 +338,9 @@ public class DesktopInput extends InputHandler{
                 table.button("Unit Picker", () -> { // Unit Selector
                     new UnitPicker().show();
                 });
-                table.setHeight((itemHeight * 1) * (table.getRows() + 1) + 10 * (table.getRows() + 1));
 
 
+                table.setHeight(itemHeight * (table.getRows() + 1) + 10 * (table.getRows() + 1));
                 AtomicBoolean released = new AtomicBoolean(false);
                 table.update(() -> {
                     if(input.keyRelease(Binding.select) && !released.get()){
@@ -348,8 +350,7 @@ public class DesktopInput extends InputHandler{
                     }
                 });
                 scene.add(table);
-                table.setPosition(input.mouseX(), input.mouseY());
-                table.align(Align.topRight);
+                table.setPosition(input.mouseX(), input.mouseY(), Align.topLeft);
             }
             if(Core.input.keyDown(Binding.control) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit();
@@ -449,6 +450,11 @@ public class DesktopInput extends InputHandler{
 
             if(cursor.build != null && cursor.interactable(player.team()) && !isPlacing() && Math.abs(Core.input.axisTap(Binding.rotate)) > 0 && Core.input.keyDown(Binding.rotateplaced) && cursor.block().rotate && cursor.block().quickRotate){
                 Call.rotateBlock(player, cursor.build, Core.input.axisTap(Binding.rotate) > 0);
+            }
+
+            if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null && !(cursor.build != null && cursor.build.block.rotate && cursor.build.block.quickRotate && cursor.build.interactable(player.team()))){
+                panning = false;
+                Spectate.pos = null;
             }
         }
 

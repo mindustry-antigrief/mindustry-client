@@ -18,7 +18,9 @@ public class PlayerCompletion {
     }
 
     public static Seq<PlayerMatcher> closest(String input) {
-        return Groups.player.array.copy().sort(item -> (new PlayerMatcher(item)).matches(input)).map(PlayerMatcher::new);
+        Seq<Player> all =  Groups.player.array.copy();
+        if (all == null) return null;
+        return all.sort(item -> (new PlayerMatcher(item)).matches(input)).map(PlayerMatcher::new);
     }
 
     private static class PlayerMatcher implements Autocompleteable {

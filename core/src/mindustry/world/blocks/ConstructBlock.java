@@ -204,7 +204,6 @@ public class ConstructBlock extends Block{
         private float[] accumulator;
         private float[] totalAccumulator;
 
-        private ChatFragment.ChatMessage message = null;
         private float lastProgress = 0f;
         private Toast toast = null;
 
@@ -230,7 +229,7 @@ public class ConstructBlock extends Block{
 
         @Override
         public void tapped(){
-            //if the target is constructible, begin constructing
+            //if the target is constructable, begin constructing
             if(cblock != null){
                 if(control.input.buildWasAutoPaused && !control.input.isBuilding && player.isBuilder()){
                     control.input.isBuilding = true;
@@ -306,6 +305,10 @@ public class ConstructBlock extends Block{
         }
 
         public void deconstruct(Unit builder, @Nullable Building core, float amount){
+            /*
+            TODO: Look into this
+            tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", this.cblock == null ? previous : this.cblock)));
+             */
             float deconstructMultiplier = state.rules.deconstructRefundMultiplier;
 
             if(builder.isPlayer()){
@@ -462,18 +465,21 @@ public class ConstructBlock extends Block{
                         if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) {
                             Sounds.corexplode.play();
                         }
-                        String format = String.format("%s is building a %s at %d,%d (%d blocks from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8));
-                        String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
                         lastWarn = Time.millis();
-                        if (toast == null || toast.parent == null) {
-                            toast = new Toast();
-                        } else {
-                            toast.clearChildren();
+                        if (lastBuilder.isPlayer()) {
+                            lastBuilder.drawBuildRequests();
+                            String format = String.format("%s is building a %s at %d,%d (%d blocks from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8));
+                            String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
+                            if (toast == null || toast.parent == null) {
+                                toast = new Toast();
+                            } else {
+                                toast.clearChildren();
+                            }
+                            toast.setFadeTime(2f);
+                            toast.add(new Label(format));
+                            toast.row();
+                            toast.add(new Label(format2, monoLabel));
                         }
-                        toast.setFadeTime(1f);
-                        toast.add(new Label(format));
-                        toast.row();
-                        toast.add(new Label(format2, monoLabel));
                     }
                 }
             }

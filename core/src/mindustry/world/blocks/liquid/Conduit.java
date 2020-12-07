@@ -17,6 +17,7 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.environment.Boulder;
 
 import static mindustry.Vars.*;
 
@@ -56,14 +57,14 @@ public class Conduit extends LiquidBlock implements Autotiler{
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
-        if (control.input.conveyorPlaceNormal) {
-            Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conduit || req.block instanceof LiquidJunction));
-            return cont.get(Geometry.d4(req.rotation)) &&
-                    cont.get(Geometry.d4(req.rotation - 2)) &&
-                    req.tile() != null &&
-                    req.tile().block() instanceof Conduit &&
-                    Mathf.mod(req.build().rotation - req.rotation, 2) == 1 ? Blocks.liquidJunction : this;
-        }
+//        if (control.input.conveyorPlaceNormal) {
+//            Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conduit || req.block instanceof LiquidJunction));
+//            return cont.get(Geometry.d4(req.rotation)) &&
+//                    cont.get(Geometry.d4(req.rotation - 2)) &&
+//                    req.tile() != null &&
+//                    req.tile().block() instanceof Conduit &&
+//                    Mathf.mod(req.build().rotation - req.rotation, 2) == 1 ? Blocks.liquidJunction : this;
+//        }
 
         if (req.x >= world.width() || req.x <= 0 || req.y >= world.height() || req.y <= 0) return this;
 
@@ -129,7 +130,7 @@ public class Conduit extends LiquidBlock implements Autotiler{
             sidePlacableOn = !frontTile(tile.x, tile.y, i).floor().isDeep();
             if(sidePlacableOn) break;
         }
-        return (tile.block() instanceof Conduit || tile.block() == Blocks.air) && (!tile.floor().isDeep() || (sidePlacableOn && floating));
+        return ((tile.block().group == group && tile.block().size <= size) || tile.block().alwaysReplace) && (!tile.floor().isDeep() || (sidePlacableOn && floating));
     }
 
     @Override

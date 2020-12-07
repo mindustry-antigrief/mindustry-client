@@ -342,8 +342,10 @@ public class PowerNode extends PowerBlock{
                         }
                     });
                 }else{
-                    while(power.links.size > 0){
-                        configure(power.links.get(0));
+//                    while(power.links.size > 0){ TODO: Remove old code if config queue works out good
+//                        configure(power.links.get(0));
+                    for (int link = power.links.size - 1; link >= 0; link--) {
+                        configure(power.links.get(link));
                     }
                 }
                 deselect();

@@ -253,7 +253,7 @@ public class Turret extends ReloadTurret{
             unit.health(health);
             unit.rotation(rotation);
             unit.team(team);
-            if(team != player.team() && (player.unit().isFlying()? targetAir : targetGround) && hasAmmo()) {
+            if(player != null && team != player.team() && (player.unit().isFlying()? targetAir : targetGround) && hasAmmo()) {
                 Navigation.obstacles.add(new TurretPathfindingEntity(tileX(), tileY(), range * 1.2f));
             }
             unit.set(x, y);
