@@ -6,6 +6,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigreif.RotateTileLog;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
@@ -13,6 +14,8 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
+
+import java.time.Instant;
 
 import static mindustry.Vars.*;
 
@@ -64,6 +67,7 @@ public class Build{
         //auto-rotate the block to the correct orientation and bail out
         if(tile.team() == team && tile.block == result && tile.build != null && tile.block.quickRotate){
             if(unit != null && unit.isPlayer()) tile.build.lastAccessed = unit.getPlayer().name;
+            tile.getLinkedTiles(tile2 -> tile2.addToLog(new RotateTileLog(player.unit(), tile2, tile.build.rotation, Mathf.mod(rotation, 4), Instant.now().getEpochSecond(), "")));
             tile.build.rotation = Mathf.mod(rotation, 4);
             tile.build.updateProximity();
             tile.build.noSleep();
