@@ -106,8 +106,8 @@ public class BuildPath extends Path {
         sorted.sort(p -> Mathf.dstm(player.tileX(), player.tileY(), p.x, p.y));
         if(!largeFirst)sorted.reverse();
         for (BuildPlan p : sorted) { // The largest distance is at the start of the sequence by this point
-            if (player.unit().shouldSkip(p, core)) {
-                if (includeAll) out.addLast(p);
+            if (p.block == null || player.unit().shouldSkip(p, core)) {
+                if (includeAll)out.addLast(p);
             } else {
                 out.addFirst(p);
             }
