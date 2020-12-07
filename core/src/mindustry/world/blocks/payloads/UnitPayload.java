@@ -76,7 +76,7 @@ public class UnitPayload implements Payload{
     public void draw(){
         Drawf.shadow(unit.x, unit.y, 20, Pal.shadow.a * UnitType.alpha);
         Draw.alpha(UnitType.alpha);
-        Draw.rect(unit.type.icon(Cicon.full), unit.x, unit.y, unit.rotation - 90);
+        if (this.unit != null && this.unit.type != null) Draw.rect(unit.type.icon(Cicon.full), unit.x, unit.y, unit.rotation - 90);
 
         //draw warning
         if(deactiveTime > 0){

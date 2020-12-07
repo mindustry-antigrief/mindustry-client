@@ -35,7 +35,6 @@ public class BuildPath extends Path {
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     void follow() {
         if (timer.get(15)) {
-            Log.info(broken + " broken ... assist " + assist + " also the unfinished " + unfinished);
             if(!broken.isEmpty()){broken.forEach(player.unit().plans::remove); broken.clear();} // Jank code to clear the three extra queues
             if(!assist.isEmpty()){assist.forEach(player.unit().plans::remove); assist.clear();}
             if(!unfinished.isEmpty()){unfinished.forEach(player.unit().plans::remove); unfinished.clear();}
@@ -50,6 +49,9 @@ public class BuildPath extends Path {
                 for (Queue queue : queues) {
                     Queue<BuildPlan> plans = sortPlans(queue, all, true);
                     if (plans.isEmpty()) continue;
+                    /* TODO: This doesnt work lol
+                    plans.forEach(plan -> Navigation.obstacles.forEach(obstacle -> {if(Mathf.dstm(obstacle.x, obstacle.y, plan.x, plan.y) <= obstacle.range){plans.remove(plan);player.unit().plans.remove(plan);}}));
+                    if (plans.isEmpty()) continue; */
                     plans.forEach(player.unit().plans::remove);
                     plans.forEach(player.unit().plans::addFirst);
                     found = true;
