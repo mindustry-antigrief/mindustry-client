@@ -32,6 +32,7 @@ import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 import mindustry.world.meta.values.*;
 
+import static arc.Core.scene;
 import static mindustry.Vars.*;
 
 public class UnitType extends UnlockableContent{
@@ -406,7 +407,7 @@ public class UnitType extends UnlockableContent{
 
     public void draw(Unit unit){
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
-        alpha = Core.input.keyDown(Binding.invisible_units) ? 0 : unit.controller() instanceof FormationAI ? .3f : 1;
+        alpha = Core.input.keyDown(Binding.invisible_units) && !scene.hasField() && !scene.hasDialog() && !scene.hasDialog() ? 0 : unit.controller() instanceof FormationAI ? .3f : 1;
         float z = unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
 
         if(unit.controller().isBeingControlled(player.unit())){
