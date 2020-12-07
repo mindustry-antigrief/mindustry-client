@@ -41,7 +41,7 @@ public class BuildPath extends Path {
 
             Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
             if(!player.unit().team.data().blocks.isEmpty())player.unit().team.data().blocks.forEach(block -> broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config)));
-            world.tiles.forEach(tile -> {if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild)unfinished.add(tile.<ConstructBlock.ConstructBuild>bc().previous == tile.<ConstructBlock.ConstructBuild>bc().cblock ? new BuildPlan(tile.x, tile.y) : new BuildPlan(tile.x, tile.y, tile.build.rotation, tile.<ConstructBlock.ConstructBuild>bc().cblock, tile.build.config()));});
+            world.tiles.forEach(tile -> {if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild && tile.isCenter())unfinished.add(tile.<ConstructBlock.ConstructBuild>bc().previous == tile.<ConstructBlock.ConstructBuild>bc().cblock ? new BuildPlan(tile.x, tile.y) : new BuildPlan(tile.x, tile.y, tile.build.rotation, tile.<ConstructBlock.ConstructBuild>bc().cblock, tile.build.config()));});
 
             boolean all = false, found = false;
             Queue[] queues = {player.unit().plans, broken, assist, unfinished};
@@ -49,7 +49,7 @@ public class BuildPath extends Path {
                 for (Queue queue : queues) {
                     Queue<BuildPlan> plans = sortPlans(queue, all, true);
                     if (plans.isEmpty()) continue;
-                    /* TODO: This doesnt work lol
+                    /* TODO: This doesn't work lol
                     plans.forEach(plan -> Navigation.obstacles.forEach(obstacle -> {if(Mathf.dstm(obstacle.x, obstacle.y, plan.x, plan.y) <= obstacle.range){plans.remove(plan);player.unit().plans.remove(plan);}}));
                     if (plans.isEmpty()) continue; */
                     plans.forEach(player.unit().plans::remove);
