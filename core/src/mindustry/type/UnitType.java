@@ -407,7 +407,7 @@ public class UnitType extends UnlockableContent{
 
     public void draw(Unit unit){
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
-        alpha = Core.input.keyDown(Binding.invisible_units) && !scene.hasField() && !scene.hasDialog() && !scene.hasDialog() ? 0 : unit.controller() instanceof FormationAI ? .3f : 1;
+        alpha = Core.input.keyDown(Binding.invisible_units) && !scene.hasField() && !scene.hasDialog() && !state.isPaused() ? 0 : unit.controller() instanceof FormationAI ? .3f : 1;
         float z = unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
 
         if(unit.controller().isBeingControlled(player.unit())){
@@ -458,7 +458,9 @@ public class UnitType extends UnlockableContent{
         drawLight(unit);
 
         if(unit.shieldAlpha > 0 && drawShields){
+            Draw.alpha(alpha);
             drawShield(unit);
+            Draw.alpha(1f);
         }
 
         if(mech != null){
@@ -474,6 +476,8 @@ public class UnitType extends UnlockableContent{
 
             Draw.reset();
         }
+        Draw.alpha(1f);
+        Draw.reset();
     }
 
     public <T extends Unit & Payloadc> void drawPayload(T unit){

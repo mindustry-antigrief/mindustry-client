@@ -24,6 +24,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
 
+import static arc.Core.scene;
 import static mindustry.Vars.*;
 
 public class PlacementFragment extends Fragment{
@@ -449,10 +450,12 @@ public class PlacementFragment extends Fragment{
         //if the mouse intersects the table or the UI has the mouse, no hovering can occur
         if(Core.scene.hasMouse() || topTable.hit(v.x, v.y, false) != null) return null;
 
-        //check for a unit
-        Unit unit = Units.closestOverlap(player.team(), Core.input.mouseWorldX(), Core.input.mouseWorldY(), 5f, u -> !u.isLocal());
-        //if cursor has a unit, display it
-        if(unit != null) return unit;
+        if (!Core.input.keyDown(Binding.invisible_units) && Core.input.keyDown(Binding.invisible_units) && !scene.hasField() && !scene.hasDialog() && !state.isPaused()) {
+            //check for a unit
+            Unit unit = Units.closestOverlap(player.team(), Core.input.mouseWorldX(), Core.input.mouseWorldY(), 5f, u -> !u.isLocal());
+            //if cursor has a unit, display it
+            if (unit != null) return unit;
+        }
 
         //check tile being hovered over
         Tile hoverTile = world.tileWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
