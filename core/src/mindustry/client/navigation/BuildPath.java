@@ -15,6 +15,7 @@ import mindustry.entities.units.BuildPlan;
 import mindustry.game.Teams;
 import mindustry.gen.*;
 import mindustry.world.Build;
+import mindustry.world.Tile;
 import mindustry.world.blocks.ConstructBlock;
 
 import static mindustry.Vars.*;
@@ -23,7 +24,7 @@ public class BuildPath extends Path {
     Building core = player.core();
     private boolean show;
     Interval timer = new Interval();
-    Queue<BuildPlan> broken = new Queue<>(), assist = new Queue<>();
+    Queue<BuildPlan> broken = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>();
 
     @Override
     void setShow(boolean show) { this.show = show; }
@@ -31,16 +32,20 @@ public class BuildPath extends Path {
     @Override
     boolean isShown() { return show; }
 
-    @Override
+    @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     void follow() {
-        setShow(true);
-
         if (timer.get(15)) {
+            Log.info(broken + " broken ... assist " + assist + " also the unfinished " + unfinished);
+            if(!broken.isEmpty()){broken.forEach(player.unit().plans::remove); broken.clear();} // Jank code to clear the three extra queues
+            if(!assist.isEmpty()){assist.forEach(player.unit().plans::remove); assist.clear();}
+            if(!unfinished.isEmpty()){unfinished.forEach(player.unit().plans::remove); unfinished.clear();}
 
             Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
             if(!player.unit().team.data().blocks.isEmpty())player.unit().team.data().blocks.forEach(block -> broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config)));
+            world.tiles.forEach(tile -> {if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild)unfinished.add(tile.<ConstructBlock.ConstructBuild>bc().previous == tile.<ConstructBlock.ConstructBuild>bc().cblock ? new BuildPlan(tile.x, tile.y) : new BuildPlan(tile.x, tile.y, tile.build.rotation, tile.<ConstructBlock.ConstructBuild>bc().cblock, tile.build.config()));});
+
             boolean all = false, found = false;
-            Queue[] queues = {player.unit().plans, broken, assist};
+            Queue[] queues = {player.unit().plans, broken, assist, unfinished};
             for (int x = 0; x < 2; x++) {
                 for (Queue queue : queues) {
                     Queue<BuildPlan> plans = sortPlans(queue, all, true);

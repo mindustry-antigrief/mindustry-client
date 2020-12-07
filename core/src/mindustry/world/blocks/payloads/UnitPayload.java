@@ -11,6 +11,7 @@ import mindustry.entities.EntityCollisions.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 import mindustry.ui.*;
 
 public class UnitPayload implements Payload{
@@ -73,7 +74,8 @@ public class UnitPayload implements Payload{
 
     @Override
     public void draw(){
-        Drawf.shadow(unit.x, unit.y, 20);
+        Drawf.shadow(unit.x, unit.y, 20, Pal.shadow.a * UnitType.alpha);
+        Draw.alpha(UnitType.alpha);
         Draw.rect(unit.type.icon(Cicon.full), unit.x, unit.y, unit.rotation - 90);
 
         //draw warning

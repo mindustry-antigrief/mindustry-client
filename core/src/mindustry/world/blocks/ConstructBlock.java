@@ -204,7 +204,6 @@ public class ConstructBlock extends Block{
         private float[] accumulator;
         private float[] totalAccumulator;
 
-        private ChatFragment.ChatMessage message = null;
         private float lastProgress = 0f;
         private Toast toast = null;
 
@@ -230,7 +229,7 @@ public class ConstructBlock extends Block{
 
         @Override
         public void tapped(){
-            //if the target is constructible, begin constructing
+            //if the target is constructable, begin constructing
             if(cblock != null){
                 if(control.input.buildWasAutoPaused && !control.input.isBuilding && player.isBuilder()){
                     control.input.isBuilding = true;
@@ -306,7 +305,10 @@ public class ConstructBlock extends Block{
         }
 
         public void deconstruct(Unit builder, @Nullable Building core, float amount){
-            if (progress == 1f) {tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", block)));}
+            /*
+            TODO: Look into this
+            tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", this.cblock == null ? previous : this.cblock)));
+             */
             float deconstructMultiplier = state.rules.deconstructRefundMultiplier;
 
             if(builder.isPlayer()){

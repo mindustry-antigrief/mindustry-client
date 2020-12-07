@@ -5,6 +5,7 @@ import arc.util.io.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 import mindustry.ui.*;
 import mindustry.world.*;
 
@@ -54,7 +55,8 @@ public class BuildPayload implements Payload{
 
     @Override
     public void draw(){
-        Drawf.shadow(build.x, build.y, build.block.size * tilesize * 2f);
+        Drawf.shadow(build.x, build.y, build.block.size * tilesize * 2f, Pal.shadow.a * UnitType.alpha);
+        Draw.alpha(UnitType.alpha);
         Draw.rect(build.block.icon(Cicon.full), build.x, build.y);
     }
 }

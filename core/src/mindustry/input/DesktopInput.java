@@ -251,7 +251,7 @@ public class DesktopInput extends InputHandler{
             Navigation.stopFollowing();
         }
 
-        if(input.keyTap(KeyCode.semicolon) && scene.getKeyboardFocus() == null){
+        if(input.keyTap(Binding.auto_build) && scene.getKeyboardFocus() == null){
             Navigation.follow(new BuildPath());
         }
         boolean panCam = false;

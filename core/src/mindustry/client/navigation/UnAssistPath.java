@@ -37,8 +37,8 @@ public class UnAssistPath extends Path {
             return;
         }
 
-        if (assisting.unit() instanceof Builderc) {
-            BuildPlan plan = ((Builderc) assisting.unit()).buildPlan();
+        if (assisting.unit().canBuild()) {
+            BuildPlan plan = assisting.unit().buildPlan();
             if (plan != null) {
                 if (plan.initialized) {
                     Tile tile = Vars.world.tile(plan.x, plan.y);
