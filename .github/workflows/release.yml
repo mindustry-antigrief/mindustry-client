@@ -43,7 +43,18 @@ jobs:
           java-version: 14
 
       - name: Build ${{ matrix.modifier }} With Gradle
-        run: ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=https://api.github.com/repos/${{ github.repository }}/releases/latest -PversionModifier=${{ matrix.modifier }}
+        run: |
+         ./gradlew clean cleanTest test
+         ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=https://api.github.com/repos/${{ github.repository }}/releases/latest -PversionModifier=${{ matrix.modifier }}
+      - name: Pages
+        if: ${{ always() }}
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: tests/build/reports/tests/test
+          TARGET_FOLDER: ${{ matrix.modifier }}
+          CLEAN: true # Automatically remove deleted files from the deploy branch
 
       - name: Upload ${{ matrix.assetName }} Artifact
         uses: actions/upload-artifact@v2
