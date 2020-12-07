@@ -6,6 +6,7 @@
  * List items have a * for each line
  * \n does linebreak
 */
+lol comments are useless
 
 # Default Keybinds
  * r - reset camera
@@ -15,6 +16,8 @@
  * alt WASD - free camera movement, r to reset
  * alt click - open tile actions menu (contains logs)
  * hold shift to disable conveyor/conduit auto bridge
+ * o - make all units invisible (including yourself)
+ * ; - enable "build path", automatically moves to anything you place, rebuilds broken structures and assists teammates
 
 # Top Navigation Menu
  * Start recording waypoints - begin a new path, press y to add a waypoint
@@ -29,6 +32,7 @@
  * Play a sound on reactor warning (sound can only play after a 10s break in reactor building)
  * Discord rich presence toggle
  * Weather opacity slider
+ * Various others
 
 # Misc Changes
  * Automatic conveyor/conduit bridging (genNAowl)

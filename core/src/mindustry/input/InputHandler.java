@@ -911,7 +911,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             lineRequests.add(req);
         });
 
-        if(Core.settings.getBool("blockreplace") && !control.input.conveyorPlaceNormal){
+        if(Core.settings.getBool("blockreplace") && !control.input.conveyorPlaceNormal || !Core.settings.getBool("blockreplace") && control.input.conveyorPlaceNormal){
             lineRequests.each(req -> {
                 Block replace = req.block.getReplacement(req, lineRequests);
                 if (replace == null || replace.unlockedNow()) {

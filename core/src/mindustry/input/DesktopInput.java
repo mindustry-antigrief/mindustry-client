@@ -235,7 +235,7 @@ public class DesktopInput extends InputHandler{
             ui.listfrag.toggle();
         }
 
-        conveyorPlaceNormal = input.keyDown(Binding.disable_auto_bridging);
+        conveyorPlaceNormal = input.keyDown(Binding.toggle_placement_modifiers);
 
         if(Navigation.state == NavigationState.RECORDING){
             if(input.keyTap(Binding.place_waypoint) && scene.getKeyboardFocus() == null){
