@@ -538,6 +538,7 @@ public class UnitType extends UnlockableContent{
             Draw.alpha(alpha);
 
             Lines.stroke(1f, Pal.accent);
+            Draw.alpha(alpha);
             Lines.circle(
             unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
             unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY),
@@ -547,7 +548,7 @@ public class UnitType extends UnlockableContent{
                 Fonts.outline.draw(unit.stack.amount + "",
                 unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
                 unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY) - 3,
-                Pal.accent, 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
+                Pal.accent.a(alpha), 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
                 );
             }
 
