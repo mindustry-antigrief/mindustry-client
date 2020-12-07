@@ -91,6 +91,10 @@ task steamtest(dependsOn: dist){
             }
             rename("Mindustry.jar", "desktop.jar")
         }
+        exec{
+            executable "explorer"
+            args "steam://rungameid/1127400/"
+        }
     }
 }
 

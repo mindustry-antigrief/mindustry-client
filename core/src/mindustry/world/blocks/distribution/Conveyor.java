@@ -79,7 +79,8 @@ public class Conveyor extends Block implements Autotiler{
 
     @Override
     public boolean canReplace(Block other){
-        return super.canReplace(other) && !(other instanceof StackConveyor);
+        if(other.alwaysReplace) return true;
+        return (other != this || rotate) && other.group == this.group && !(other instanceof StackConveyor);
     }
 
     @Override
@@ -149,7 +150,7 @@ public class Conveyor extends Block implements Autotiler{
     /** Whether this block can be placed on this tile. */
     public boolean thisPlaceableOn(Tile tile){
         if (tile == null) return false;
-        return (tile.block().group == group || tile.block().alwaysReplace) && !tile.floor().isDeep();
+        return canReplace(tile.block()) && !tile.floor().isDeep();
     }
 
     public class ConveyorBuild extends Building{
