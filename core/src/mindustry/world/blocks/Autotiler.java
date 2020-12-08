@@ -74,7 +74,7 @@ public interface Autotiler{
 
         Arrays.fill(directionals, null);
         list.each(other -> {
-            if(other.breaking || other == req) return;
+            if(other.breaking || other == req || other.block == null) return;
 
             int i = 0;
             for(Point2 point : Geometry.d4){
