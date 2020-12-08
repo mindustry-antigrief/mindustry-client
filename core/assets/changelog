@@ -1,6 +1,6 @@
 Hi foo
 # Version 4.0
- * New smart build path (keybind: ;) that will build things based on priorities (whatever you place > broken buildings > teammate placement queues > anything that isnt finished, also does stuff it can afford first)
+ * New smart build path (keybind: ;) that will build things based on priorities\n(whatever you place > broken buildings > teammate placement queues > anything that isnt finished, also does stuff it can afford first)
  * Hide all units so you can actually see stuff (hold: o to activate)
  * Numerous crash fixes
  * Many fixes to the unit picker
