@@ -42,6 +42,7 @@ public class CoreBlock extends StorageBlock{
     public float resupplyRate = 10f;
     public float resupplyRange = 60f;
     public Item resupplyItem = Items.copper;
+    private static Interval timer = new Interval();
 
     public CoreBlock(String name){
         super(name);
@@ -62,11 +63,11 @@ public class CoreBlock extends StorageBlock{
     public static void playerSpawn(Tile tile, Player player){
         if(player == null || tile == null) return;
 
-        CoreBuild entity = tile.bc();
+        CoreBuild entity = Geometry.findClosest(player.x, player.y, player.team().cores().copy().filter(i -> i.block == Blocks.coreNucleus));
+        if (entity == null) entity = Geometry.findClosest(player.x, player.y, player.team().cores().copy().filter(i -> i.block == Blocks.coreFoundation));
+        if (entity == null || player != Vars.player) entity = tile.bc();
         CoreBlock block = (CoreBlock)tile.block();
         Fx.spawn.at(entity);
-
-        player.set(entity);
 
         if(!net.client()){
             Unit unit = block.unitType.create(tile.team());
@@ -78,9 +79,12 @@ public class CoreBlock extends StorageBlock{
             unit.add();
         }
 
-        if(state.isCampaign() && player == Vars.player){
-            block.unitType.unlock();
+        if (player == Vars.player) {
+            if(state.isCampaign()) block.unitType.unlock();
+            if (tile != entity.tile) Call.unitControl(player, entity.unit());
         }
+
+        player.set(entity);
     }
 
     @Override
