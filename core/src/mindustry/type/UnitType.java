@@ -458,9 +458,7 @@ public class UnitType extends UnlockableContent{
         drawLight(unit);
 
         if(unit.shieldAlpha > 0 && drawShields){
-            Draw.alpha(alpha);
             drawShield(unit);
-            Draw.alpha(1f);
         }
 
         if(mech != null){
@@ -470,7 +468,6 @@ public class UnitType extends UnlockableContent{
         if(unit.abilities.size > 0){
             for(Ability a : unit.abilities){
                 Draw.reset();
-                Draw.alpha(alpha);
                 a.draw(unit);
             }
 
