@@ -15,6 +15,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.ui.TileInfoFragment;
 import mindustry.client.ui.Toast;
 import mindustry.content.*;
 import mindustry.client.antigreif.*;
@@ -100,6 +101,7 @@ public class HudFragment extends Fragment{
         //minimap + position
         parent.fill(t -> {
             t.name = "minimap/position";
+            t.add(new TileInfoFragment()).top();
             t.visible(() -> Core.settings.getBool("minimap") && shown);
             //minimap
             t.add(new Minimap()).name("minimap");
@@ -108,14 +110,14 @@ public class HudFragment extends Fragment{
             t.label(() -> player.tileX() + "," + player.tileY())
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .name("position");
+            .name("position").right();
 
             t.row();
 
             t.label(() -> "[coral]" + Mathf.floor(player.mouseX / tilesize) + "," + Mathf.floor(player.mouseY / tilesize))
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .name("position");
+            .name("position").right();
             t.top().right();
         });
 
@@ -305,6 +307,7 @@ public class HudFragment extends Fragment{
             t.name = "coreitems";
             t.top().add(coreItems);
             t.visible(() -> Core.settings.getBool("coreitems") && !mobile && !state.isPaused() && shown);
+//            t.add(new TileInfoFragment()).top();
         });
 
         //spawner warning

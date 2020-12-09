@@ -485,12 +485,14 @@ public class UnitType extends UnlockableContent{
             pay.set(unit.x, unit.y, unit.rotation);
             Draw.alpha(alpha);
             pay.draw();
+            Draw.alpha(1f);
         }
     }
 
     public void drawShield(Unit unit){
         float radius = unit.hitSize() * 1.3f;
         Fill.light(unit.x, unit.y, Lines.circleVertices(radius), radius, Tmp.c1.set(Pal.shieldIn), Tmp.c2.set(Pal.shield).lerp(Color.white, Mathf.clamp(unit.hitTime() / 2f)).a(Pal.shield.a * unit.shieldAlpha() * alpha));
+        Draw.alpha(1f);
     }
 
     public void drawControl(Unit unit){
@@ -509,6 +511,7 @@ public class UnitType extends UnlockableContent{
         float e = Math.max(unit.elevation, visualElevation);
         Draw.rect(shadowRegion, unit.x + shadowTX * e, unit.y + shadowTY * e, unit.rotation - 90);
         Draw.color();
+        Draw.alpha(1f);
     }
 
     public void drawOcclusion(Unit unit){
@@ -517,6 +520,7 @@ public class UnitType extends UnlockableContent{
         float size = Math.max(region.width, region.height) * Draw.scl;
         Draw.rect(occlusionRegion, unit, size * rad, size * rad);
         Draw.color();
+        Draw.alpha(1f);
     }
 
     public void drawItems(Unit unit){
@@ -580,6 +584,7 @@ public class UnitType extends UnlockableContent{
             (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f)) / 2f  * scale
         );
         Draw.color();
+        Draw.alpha(1f);
     }
 
     public void drawWeapons(Unit unit){
@@ -643,6 +648,7 @@ public class UnitType extends UnlockableContent{
             Draw.alpha(alpha);
             Draw.rect(outlineRegion, unit.x, unit.y, unit.rotation - 90);
         }
+        Draw.alpha(1f);
     }
 
     public void drawBody(Unit unit){
@@ -774,6 +780,7 @@ public class UnitType extends UnlockableContent{
         Draw.rect(baseRegion, unit, mech.baseRotation() - 90);
 
         Draw.mixcol();
+        Draw.alpha(1f);
     }
 
     public void applyColor(Unit unit){

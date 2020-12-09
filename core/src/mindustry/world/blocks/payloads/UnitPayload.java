@@ -90,5 +90,6 @@ public class UnitPayload implements Payload{
 
             deactiveTime = Math.max(deactiveTime - Time.delta/deactiveDuration, 0f);
         }
+        Draw.alpha(1f);
     }
 }
