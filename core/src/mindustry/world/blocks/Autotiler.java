@@ -79,7 +79,8 @@ public interface Autotiler{
             int i = 0;
             for(Point2 point : Geometry.d4){
                 int x = req.x + point.x, y = req.y + point.y;
-                if(x >= other.x -(other.block.size - 1) / 2 && x <= other.x + (other.block.size / 2) && y >= other.y -(other.block.size - 1) / 2 && y <= other.y + (other.block.size / 2)){
+                int size = other.block == null? 1 : other.block.size;
+                if(x >= other.x -(size - 1) / 2 && x <= other.x + (size / 2) && y >= other.y -(size - 1) / 2 && y <= other.y + (size / 2)){
                     directionals[i] = other;
                 }
                 i++;

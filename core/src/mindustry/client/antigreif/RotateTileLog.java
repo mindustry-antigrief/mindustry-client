@@ -43,4 +43,9 @@ public class RotateTileLog extends TileLogItem {
     protected String formatDate(String date, long minutes) {
         return String.format("%s rotated tile from %s to %s at %s UTC (%d minutes ago).  %s", player, toCardinalDirection(oldRotation), toCardinalDirection(newRotation), date, minutes, additionalInfo);
     }
+
+    @Override
+    protected String formatConcise(String date, long minutes) {
+        return String.format("%s rotated tile %d minutes ago", player, minutes);
+    }
 }

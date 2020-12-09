@@ -28,6 +28,10 @@ public class TileLogItem {
         return String.format("%s interacted with tile at %s UTC (%d minutes ago).  %s", player, date, minutes, additionalInfo);
     }
 
+    protected String formatConcise(String date, long minutes) {
+        return String.format("%s interacted %d minutes ago", player, minutes);
+    }
+
     public String format() {
         Instant instant = Instant.ofEpochSecond(time);
         TimeZone timezone = TimeZone.getTimeZone("UTC");
@@ -39,6 +43,19 @@ public class TileLogItem {
         long minutes = duration.get(ChronoUnit.SECONDS) / 60L;
 
         return formatDate(formatted, minutes);
+    }
+
+    public String formatShort() {
+        Instant instant = Instant.ofEpochSecond(time);
+        TimeZone timezone = TimeZone.getTimeZone("UTC");
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+        format.setTimeZone(timezone);
+        String formatted = format.format(Date.from(instant));
+
+        Duration duration = Duration.between(instant, Instant.now());
+        long minutes = duration.get(ChronoUnit.SECONDS) / 60L;
+
+        return formatConcise(formatted, minutes);
     }
 
     public Element toElement() {

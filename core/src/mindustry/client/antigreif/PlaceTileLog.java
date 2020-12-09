@@ -41,4 +41,9 @@ public class PlaceTileLog extends TileLogItem {
     protected String formatDate(String date, long minutes) {
         return String.format("%s placed %s at %s UTC (%d minutes ago).  %s", player, block.name, date, minutes, additionalInfo);
     }
+
+    @Override
+    protected String formatConcise(String date, long minutes) {
+        return String.format("%s placed %s %d minutes ago", player, block.name, minutes);
+    }
 }

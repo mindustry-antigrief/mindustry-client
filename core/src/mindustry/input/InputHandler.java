@@ -1016,15 +1016,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return world.tile(tileX(x), tileY(y));
     }
 
-    int rawTileX(){
+    public int rawTileX(){
         return World.toTile(Core.input.mouseWorld().x);
     }
 
-    int rawTileY(){
+    public int rawTileY(){
         return World.toTile(Core.input.mouseWorld().y);
     }
 
-    int tileX(float cursorX){
+    public int tileX(float cursorX){
         Vec2 vec = Core.input.mouseWorld(cursorX, 0);
         if(selectedBlock()){
             vec.sub(block.offset, block.offset);
@@ -1032,7 +1032,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return World.toTile(vec.x);
     }
 
-    int tileY(float cursorY){
+    public int tileY(float cursorY){
         Vec2 vec = Core.input.mouseWorld(0, cursorY);
         if(selectedBlock()){
             vec.sub(block.offset, block.offset);
