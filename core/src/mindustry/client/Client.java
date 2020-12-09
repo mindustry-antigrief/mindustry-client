@@ -18,6 +18,7 @@ import mindustry.game.EventType;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.input.DesktopInput;
+import mindustry.world.Tile;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
 
@@ -121,7 +122,7 @@ public class Client {
                             if (player.unit() == find) { UnitPicker.found = null; t.add("Successfully switched units.");} // After we switch units successfully, stop listening for this unit
                             else if (find.getPlayer() != null) { t.add("Failed to become " + unit + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
                         }
-                        }, .5f);
+                        }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
                 }
             }
         });
@@ -136,7 +137,7 @@ public class Client {
                         if (player.unit() == event.unit) { UnitPicker.found = null; t.add("Successfully switched units.");}  // After we switch units successfully, stop listening for this unit
                         else if (event.unit.getPlayer() != null) { t.add("Failed to become " + unit + ", " + event.unit.getPlayer().name + " is already controlling it (likely using unit sniper).");}
                     }
-                    }, .5f);
+                    }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
             }
         });
         Events.on(EventType.ClientLoadEvent.class, event -> {
@@ -155,7 +156,17 @@ public class Client {
         if (!configs.isEmpty()) {
                 try {
                     if (configRateLimit.allow(6 * 1000, 25)) {
-                        configs.removeLast().run();
+                        ConfigRequest req = configs.last();
+                        Tile tile = world.tile(req.x, req.y);
+                        if (tile != null) {
+                            Object initial = tile.build.config();
+                            req.run();
+                            configs.remove(req);
+                            Timer.schedule(() -> {
+                                if(tile.build.config() == initial) configs.addLast(req);
+                                // if(tile != null && req.value != tile.build.config()) configs.addLast(req); TODO: This infinite loops if u config something twice, find a better way to do this
+                            }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
+                        }
                     }
                 } catch (Exception e) {Log.info(e.getMessage());}
         }
