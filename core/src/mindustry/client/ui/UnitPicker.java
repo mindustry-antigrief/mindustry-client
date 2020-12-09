@@ -57,7 +57,7 @@ public class UnitPicker extends BaseDialog{
     public void findUnit(UnitType found) {
         if (found != null) {
             Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead && !(u.controller() instanceof FormationAI));
-            if ( find == null) find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead); // Either no unit or unit is commanded, search for commanded units
+            if (find == null) find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead); // Either no unit or unit is commanded, search for commanded units
             if (find != null) {
                 Call.unitControl(player, find); // Switch to unit
                 UnitPicker.found = null; // No need to check if the player has managed to take control as it is very unlikely that 2 players attempt this on the same unit at once.

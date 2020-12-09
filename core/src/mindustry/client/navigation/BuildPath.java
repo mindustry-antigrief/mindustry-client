@@ -1,21 +1,17 @@
 package mindustry.client.navigation;
 
 import arc.math.Mathf;
-import arc.math.geom.Geometry;
 import arc.math.geom.Position;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.Interval;
-import arc.util.Log;
 import arc.util.Nullable;
 import mindustry.ai.formations.Formation;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.entities.Units;
 import mindustry.entities.units.BuildPlan;
-import mindustry.game.Teams;
 import mindustry.gen.*;
 import mindustry.world.Build;
-import mindustry.world.Tile;
 import mindustry.world.blocks.ConstructBlock;
 
 import static mindustry.Vars.*;
