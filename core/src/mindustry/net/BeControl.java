@@ -115,7 +115,6 @@ public class BeControl{
                                 new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
                                 new String[]{"java", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                             );
-                            //System.exit(0);
                             Core.app.exit();
                         }catch(IOException e){
                             ui.showException(e);
