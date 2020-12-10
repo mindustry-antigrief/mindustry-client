@@ -478,7 +478,11 @@ public class UnitType extends UnlockableContent{
         if(unit.abilities.size > 0){
             for(Ability a : unit.abilities){
                 Draw.reset();
-                Draw.alpha(alpha);
+                if (!(a instanceof ForceFieldAbility)) {
+                    Draw.alpha(alpha);
+                } else {
+                    Draw.alpha(1f);
+                }
                 a.draw(unit);
             }
 
