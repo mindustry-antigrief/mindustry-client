@@ -5,6 +5,7 @@ import arc.graphics.g2d.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import mindustry.client.navigation.waypoints.Waypoint;
+import mindustry.graphics.Layer;
 
 /**
  * A {@link Path} composed of {@link Waypoint} instances.
@@ -74,6 +75,7 @@ public class WaypointPath extends Path {
                     if(lastWaypoint != null){
                         Draw.color(Color.blue);
                         Draw.alpha(0.4f);
+                        Draw.z(Layer.space);
                         Lines.stroke(3f);
                         Lines.line(((Position)lastWaypoint).getX(), ((Position)lastWaypoint).getY(), ((Position)waypoint).getX(), ((Position)waypoint).getY());
                     }

@@ -305,10 +305,8 @@ public class ConstructBlock extends Block{
         }
 
         public void deconstruct(Unit builder, @Nullable Building core, float amount){
-            /*
-            TODO: Look into this
-            tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", this.cblock == null ? previous : this.cblock)));
-             */
+            /* TODO: Look into this
+            tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", this.cblock == null ? previous : this.cblock))); */
             float deconstructMultiplier = state.rules.deconstructRefundMultiplier;
 
             if(builder.isPlayer()){

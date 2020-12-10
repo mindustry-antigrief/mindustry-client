@@ -75,7 +75,6 @@ public class UnitPayload implements Payload{
     @Override
     public void draw(){
         Drawf.shadow(unit.x, unit.y, 20, Pal.shadow.a * UnitType.alpha);
-        Draw.alpha(UnitType.alpha);
         if (this.unit != null && this.unit.type != null) Draw.rect(unit.type.icon(Cicon.full), unit.x, unit.y, unit.rotation - 90);
 
         //draw warning

@@ -100,24 +100,26 @@ public class HudFragment extends Fragment{
 
         //minimap + position
         parent.fill(t -> {
-            t.name = "minimap/position";
-            t.add(new TileInfoFragment()).top();
             t.visible(() -> Core.settings.getBool("minimap") && shown);
-            //minimap
-            t.add(new Minimap()).name("minimap");
+            t.table(ta -> {
+                //tile hud
+                ta.name = "minimap/position";
+                ta.add(new TileInfoFragment()).top();
+                //minimap
+                ta.add(new Minimap()).name("minimap");
+            });
             t.row();
             //position
             t.label(() -> player.tileX() + "," + player.tileY())
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
             .name("position").right();
-
             t.row();
-
+            //cursor position
             t.label(() -> "[coral]" + Mathf.floor(player.mouseX / tilesize) + "," + Mathf.floor(player.mouseY / tilesize))
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .name("position").right();
+            .name("position").right().padRight(10f);
             t.top().right();
         });
 
@@ -224,7 +226,7 @@ public class HudFragment extends Fragment{
                     dialog.show();
                 }).growY().fillX().right().width(40f);
 
-                //table with button to skip wave
+                // button to skip wave
                 s.button(Icon.play, Styles.wavei, 30f, () -> {
                     if(net.client() && player.admin){
                         Call.adminRequest(player, AdminAction.wave);
