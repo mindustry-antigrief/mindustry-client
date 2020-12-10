@@ -172,6 +172,15 @@ public class UnitType extends UnlockableContent{
                 bars.add(new Bar(ammoType.icon + " " + Core.bundle.get("stat.ammo"), ammoType.barColor, () -> unit.ammo / ammoCapacity));
                 bars.row();
             }
+
+            bars.add(new Bar("stat.shield", Pal.shield.cpy().a(1f), () -> {
+                float shield = Math.min(unit.shield(), 1f);
+                if (Float.isNaN(shield)) {
+                    return 0f;
+                } else {
+                    return shield;
+                }
+            }));
         }).growX();
 
         if(unit.controller() instanceof LogicAI p){
@@ -608,6 +617,7 @@ public class UnitType extends UnlockableContent{
                 float z = Draw.z();
                 if(!weapon.top) Draw.z(z - outlineSpace);
 
+                Draw.alpha(alpha);
                 Draw.rect(weapon.outlineRegion,
                 wx, wy,
                 weapon.outlineRegion.width * Draw.scl * -Mathf.sign(weapon.flipSprite),
