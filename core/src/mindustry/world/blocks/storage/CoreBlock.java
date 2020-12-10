@@ -81,7 +81,11 @@ public class CoreBlock extends StorageBlock{
 
         if (player == Vars.player) {
             if(state.isCampaign()) block.unitType.unlock();
-            if (tile != entity.tile) Call.unitControl(player, entity.unit());
+            Log.info(tile + " " + entity.tile);
+            if (tile != entity.tile) {
+                CoreBuild finalEntity = entity;
+                Timer.schedule(() -> Call.unitControl(player, finalEntity.unit()), net.client() ? netClient.getPing()/1000f+.05f : .025f);
+            }
         }
 
         player.set(entity);
