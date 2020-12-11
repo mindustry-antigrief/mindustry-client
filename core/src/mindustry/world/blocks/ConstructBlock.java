@@ -3,14 +3,9 @@ package mindustry.world.blocks;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
-import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.math.*;
-import arc.scene.actions.Actions;
-import arc.scene.style.Drawable;
-import arc.scene.style.Style;
 import arc.scene.ui.Label;
-import arc.scene.ui.layout.Table;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
@@ -20,7 +15,6 @@ import mindustry.client.antigreif.*;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
 import mindustry.client.ui.Toast;
-import mindustry.client.utils.MovingAverage;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -30,13 +24,10 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.ui.*;
-import mindustry.ui.fragments.ChatFragment;
-import mindustry.ui.fragments.HudFragment;
 import mindustry.world.*;
 import mindustry.world.blocks.power.NuclearReactor;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.modules.*;
-
 import java.time.*;
 
 import static mindustry.Vars.*;
@@ -44,8 +35,7 @@ import static mindustry.ui.Styles.monoLabel;
 
 /** A block in the process of construction. */
 public class ConstructBlock extends Block{
-    public static final int maxSize = 16;
-    private static final ConstructBlock[] consBlocks = new ConstructBlock[maxSize];
+    private static final ConstructBlock[] consBlocks = new ConstructBlock[maxBlockSize];
 
     private static long lastWarn;
     private static long lastTime = 0;
@@ -65,7 +55,7 @@ public class ConstructBlock extends Block{
 
     /** Returns a ConstructBlock by size. */
     public static ConstructBlock get(int size){
-        if(size > maxSize) throw new IllegalArgumentException("No. Don't place ConstructBlock of size greater than " + maxSize);
+        if(size > maxBlockSize) throw new IllegalArgumentException("No. Don't place ConstructBlock of size greater than " + maxBlockSize);
         return consBlocks[size - 1];
     }
 
@@ -197,6 +187,7 @@ public class ConstructBlock extends Block{
          */
         public Block previous;
         public Object lastConfig;
+        public boolean wasConstructing;
 
         @Nullable
         public Unit lastBuilder;
@@ -271,6 +262,7 @@ public class ConstructBlock extends Block{
         }
 
         public void construct(Unit builder, @Nullable Building core, float amount, Object config){
+            wasConstructing = true;
             if(cblock == null){
                 kill();
                 return;
@@ -305,6 +297,7 @@ public class ConstructBlock extends Block{
         }
 
         public void deconstruct(Unit builder, @Nullable Building core, float amount){
+            wasConstructing = false;
             /* TODO: Look into this
             tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", this.cblock == null ? previous : this.cblock))); */
             float deconstructMultiplier = state.rules.deconstructRefundMultiplier;
@@ -386,6 +379,7 @@ public class ConstructBlock extends Block{
         }
 
         public void setConstruct(Block previous, Block block){
+            wasConstructing = true;
             this.cblock = block;
             this.previous = previous;
             this.accumulator = new float[block.requirements.length];
@@ -395,6 +389,7 @@ public class ConstructBlock extends Block{
 
         public void setDeconstruct(Block previous){
             if(previous == null) return;
+            wasConstructing = false;
             this.previous = previous;
             this.progress = 1f;
             if(previous.buildCost >= 0.01f){

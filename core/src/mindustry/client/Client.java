@@ -13,6 +13,7 @@ import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
 import mindustry.client.utils.Autocomplete;
 import mindustry.client.utils.Pair;
+import mindustry.core.World;
 import mindustry.entities.Units;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
@@ -23,6 +24,7 @@ import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
 
 import static mindustry.Vars.*;
+import static mindustry.Vars.player;
 
 public class Client {
     private static TileLog[][] tileLogs;
@@ -95,7 +97,7 @@ public class Client {
         });
 
         fooCommands.<Player>register("cursor", "[message...]", "Prints cursor location to chat with an optional message", (args, player) -> {
-            Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", (int)player.mouseX / tilesize, (int)player.mouseY / tilesize));
+            Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", World.toTile(player.mouseX), World.toTile(player.mouseY)));
         });
 
 

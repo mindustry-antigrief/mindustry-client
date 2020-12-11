@@ -1,7 +1,6 @@
 package mindustry.desktop.steam;
 
 import arc.*;
-import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
 import com.codedisaster.steamworks.*;
@@ -22,18 +21,18 @@ public class SStats implements SteamUserStatsCallback{
     public final SteamUserStats stats = new SteamUserStats(this);
 
     private boolean updated = false;
-    //private ObjectSet<String> mechs = new ObjectSet<>();
     private int statSavePeriod = 4; //in minutes
 
     private ObjectSet<String> blocksBuilt = new ObjectSet<>(), unitsBuilt = new ObjectSet<>();
     private ObjectSet<UnitType> t5s = new ObjectSet<>();
-    private ObjectSet<UnitType> tmpSet = new ObjectSet<>();
 
     public SStats(){
         stats.requestCurrentStats();
 
         Events.on(ClientLoadEvent.class, e -> {
-            //mechs = Core.settings.getObject("mechs", ObjectSet.class, ObjectSet::new);
+            unitsBuilt = Core.settings.getJson("units-built" , ObjectSet.class, String.class, ObjectSet::new);
+            blocksBuilt = Core.settings.getJson("blocks-built" , ObjectSet.class, String.class, ObjectSet::new);
+            t5s = ObjectSet.with(UnitTypes.omura, UnitTypes.reign, UnitTypes.toxopid, UnitTypes.eclipse, UnitTypes.oct, UnitTypes.corvus);
 
             Core.app.addListener(new ApplicationListener(){
                 Interval i = new Interval();
@@ -76,14 +75,9 @@ public class SStats implements SteamUserStatsCallback{
     }
 
     private void registerEvents(){
-        Events.on(ClientLoadEvent.class, e -> {
-            unitsBuilt = Core.settings.getJson("units-built" , ObjectSet.class, String.class, ObjectSet::new);
-            blocksBuilt = Core.settings.getJson("blocks-built" , ObjectSet.class, String.class, ObjectSet::new);
-            t5s = ObjectSet.with(UnitTypes.omura, UnitTypes.reign, UnitTypes.toxopid, UnitTypes.eclipse, UnitTypes.oct, UnitTypes.corvus);
-        });
 
         Events.on(UnitDestroyEvent.class, e -> {
-            if(ncustom()){
+            if(campaign()){
                 if(e.unit.team != Vars.player.team()){
                     SStat.unitsDestroyed.add();
 
@@ -106,7 +100,7 @@ public class SStats implements SteamUserStatsCallback{
                 }
             }
 
-            SStat.maxProduction.max(Mathf.round(total));
+            SStat.maxProduction.max(Math.round(total));
         });
 
         Events.run(Trigger.newGame, () -> Core.app.post(() -> {
@@ -249,15 +243,6 @@ public class SStats implements SteamUserStatsCallback{
             }
         });
 
-        Events.on(LoseEvent.class, e -> {
-            if(campaign()){
-                //TODO implement
-                //if(state.getSector().metCondition() && (state.wave - state.getSector().conditionWave) / state.getSector().launchPeriod >= 1){
-                //    skipLaunching2Death.complete();
-                //}
-            }
-        });
-
         Events.on(SectorLaunchEvent.class, e -> {
             SStat.timesLaunched.add();
         });
@@ -267,7 +252,7 @@ public class SStats implements SteamUserStatsCallback{
         });
 
         Events.on(WaveEvent.class, e -> {
-            if(ncustom()){
+            if(campaign()){
                 SStat.maxWavesSurvived.max(Vars.state.wave);
 
                 if(state.stats.buildingsBuilt == 0 && state.wave >= 10){
@@ -301,12 +286,14 @@ public class SStats implements SteamUserStatsCallback{
         });
 
         Events.on(SectorCaptureEvent.class, e -> {
-            if(Vars.state.wave <= 5 && state.rules.attackMode){
-                defeatAttack5Waves.complete();
-            }
+            if(e.sector.isBeingPlayed() || net.client()){
+                if(Vars.state.wave <= 5 && state.rules.attackMode){
+                    defeatAttack5Waves.complete();
+                }
 
-            if(state.stats.buildingsDestroyed == 0){
-                captureNoBlocksBroken.complete();
+                if(state.stats.buildingsDestroyed == 0){
+                    captureNoBlocksBroken.complete();
+                }
             }
 
             if(Vars.state.rules.attackMode){
@@ -323,16 +310,6 @@ public class SStats implements SteamUserStatsCallback{
 
             SStat.sectorsControlled.set(e.sector.planet.sectors.count(Sector::hasBase));
         });
-
-        //TODO dead achievement
-        /*
-        Events.on(MechChangeEvent.class, e -> {
-            if(campaign()){
-                if(mechs.add(e.mech.name)){
-                    SStat.zoneMechsUsed.max(mechs.size);
-                }
-            }
-        });*/
     }
 
     private void save(){
@@ -346,10 +323,6 @@ public class SStats implements SteamUserStatsCallback{
                 ach.complete();
             }
         });
-    }
-
-    private boolean ncustom(){
-        return campaign();
     }
 
     private boolean campaign(){

@@ -122,7 +122,7 @@ public class ItemBridge extends Block{
 
         return ((other.block() == tile.block() && tile.block() == this) || (!(tile.block() instanceof ItemBridge) && other.block() == this))
             && (other.team() == tile.team() || tile.block() != this)
-            && (!checkDouble || other.<ItemBridgeBuild>bc().link != tile.pos());
+            && (!checkDouble || ((ItemBridgeBuild)other.build).link != tile.pos());
     }
 
     public Tile findLink(int x, int y){
@@ -245,7 +245,7 @@ public class ItemBridge extends Block{
             while(it.hasNext){
                 int i = it.next();
                 Tile other = world.tile(i);
-                if(!linkValid(tile, other, false) || other.<ItemBridgeBuild>bc().link != tile.pos()){
+                if(!linkValid(tile, other, false) || ((ItemBridgeBuild)other.build).link != tile.pos()){
                     it.remove();
                 }
             }

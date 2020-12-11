@@ -28,7 +28,7 @@ public class MenuFragment extends Fragment{
 
     public MenuFragment(){
         Events.on(DisposeEvent.class, event -> {
-            renderer.dispose();
+            if (renderer != null)renderer.dispose();
         });
     }
 

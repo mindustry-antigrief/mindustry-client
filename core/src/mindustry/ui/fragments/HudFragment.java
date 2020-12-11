@@ -21,6 +21,7 @@ import mindustry.content.*;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.core.GameState.*;
+import mindustry.core.World;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -104,22 +105,22 @@ public class HudFragment extends Fragment{
             t.table(ta -> {
                 //tile hud
                 ta.name = "minimap/position";
-                ta.add(new TileInfoFragment()).top();
+                ta.add(new TileInfoFragment()).name("tilehud").top();
                 //minimap
                 ta.add(new Minimap()).name("minimap");
-            });
+            }).padRight(7f).padTop(7f);
             t.row();
             //position
             t.label(() -> player.tileX() + "," + player.tileY())
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .name("position").right();
+            .name("position").right().padRight(7f);
             t.row();
             //cursor position
-            t.label(() -> "[coral]" + Mathf.floor(player.mouseX / tilesize) + "," + Mathf.floor(player.mouseY / tilesize))
+            t.label(() -> "[coral]" + World.toTile(player.mouseX) + "," + World.toTile(player.mouseY))
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .name("position").right().padRight(10f);
+            .name("cursor").right().padRight(7f);
             t.top().right();
         });
 

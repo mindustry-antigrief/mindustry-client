@@ -15,6 +15,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.Vars;
 import mindustry.ai.formations.patterns.*;
+import mindustry.ai.types.FormationAI;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigreif.*;
@@ -298,8 +299,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot drop an item.");
         }
 
-        Fx.dropItem.at(player.x, player.y, angle, Color.white, player.unit().item());
-        player.unit().clearItem();
+        player.unit().eachGroup(unit -> {
+            Fx.dropItem.at(unit.x, unit.y, angle, Color.white, unit.item());
+            unit.clearItem();
+        });
     }
 
     @Remote(targets = Loc.both, called = Loc.server, forward = true, unreliable = true)
@@ -478,7 +481,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         if(controlledType != null && player.dead()){
-            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead);
+            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead && !(u.controller() instanceof FormationAI f && !f.isBeingControlled(player.unit())));
 
             if(unit != null){
                 //only trying controlling once a second to prevent packet spam
@@ -583,7 +586,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     public boolean requestMatches(BuildPlan request){
         Tile tile = world.tile(request.x, request.y);
-        return tile != null && tile.block() instanceof ConstructBlock && tile.<ConstructBuild>bc().cblock == request.block;
+        return tile != null && tile.build instanceof ConstructBuild cons && cons.cblock == request.block;
     }
 
     public void drawBreaking(int x, int y){

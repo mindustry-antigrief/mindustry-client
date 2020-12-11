@@ -37,7 +37,7 @@ public class BuildPath extends Path {
 
             Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
             if(!player.unit().team.data().blocks.isEmpty())player.unit().team.data().blocks.forEach(block -> broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config)));
-            world.tiles.forEach(tile -> {if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild && tile.isCenter())unfinished.add(tile.<ConstructBlock.ConstructBuild>bc().previous == tile.<ConstructBlock.ConstructBuild>bc().cblock ? new BuildPlan(tile.x, tile.y) : new BuildPlan(tile.x, tile.y, tile.build.rotation, tile.<ConstructBlock.ConstructBuild>bc().cblock, tile.build.config()));});
+            world.tiles.forEach(tile -> {if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild && tile.isCenter())unfinished.add(((ConstructBlock.ConstructBuild) tile.build).previous == ((ConstructBlock.ConstructBuild) tile.build).cblock ? new BuildPlan(tile.x, tile.y) : new BuildPlan(tile.x, tile.y, tile.build.rotation, ((ConstructBlock.ConstructBuild) tile.build).cblock, tile.build.config()));});
 
             boolean all = false, found = false;
             Queue[] queues = {player.unit().plans, broken, assist, unfinished};
@@ -62,7 +62,7 @@ public class BuildPath extends Path {
             BuildPlan req = player.unit().buildPlan(); //approach request if building
 
             boolean valid =
-                    (req.tile().build instanceof ConstructBlock.ConstructBuild && req.tile().<ConstructBlock.ConstructBuild>bc().cblock == req.block) ||
+                    (req.tile().build instanceof ConstructBlock.ConstructBuild && ((ConstructBlock.ConstructBuild) req.tile().build).cblock == req.block) ||
                             (req.breaking ?
                                     Build.validBreak(player.unit().team(), req.x, req.y) :
                                     Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));

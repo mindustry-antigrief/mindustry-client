@@ -63,9 +63,9 @@ public class CoreBlock extends StorageBlock{
     public static void playerSpawn(Tile tile, Player player){
         if(player == null || tile == null) return;
 
-        CoreBuild entity = Geometry.findClosest(player.x, player.y, player.team().cores().copy().filter(i -> i.block == Blocks.coreNucleus));
-        if (entity == null) entity = Geometry.findClosest(player.x, player.y, player.team().cores().copy().filter(i -> i.block == Blocks.coreFoundation));
-        if (entity == null || player != Vars.player) entity = tile.bc();
+        CoreBuild entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreNucleus));
+        if (entity == null) entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreFoundation));
+        if (entity == null || player != Vars.player) entity = (CoreBuild)tile.build;
         CoreBlock block = (CoreBlock)tile.block();
         Fx.spawn.at(entity);
 
@@ -81,8 +81,8 @@ public class CoreBlock extends StorageBlock{
 
         if (player == Vars.player) {
             if(state.isCampaign()) block.unitType.unlock();
-            Log.info(tile + " " + entity.tile);
             if (tile != entity.tile) {
+                Log.info("Default: " + tile + "     Best: " + entity.tile);
                 CoreBuild finalEntity = entity;
                 Timer.schedule(() -> Call.unitControl(player, finalEntity.unit()), net.client() ? netClient.getPing()/1000f+.05f : .025f);
             }
@@ -338,6 +338,7 @@ public class CoreBlock extends StorageBlock{
         public float handleDamage(float amount){
             if(player != null && team == player.team()){
                 Events.fire(Trigger.teamCoreDamage);
+                Call.sendChatMessage("Core under attack at: (" + x + ", " + y + ")");
             }
             return amount;
         }
