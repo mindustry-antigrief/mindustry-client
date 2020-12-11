@@ -94,7 +94,7 @@ public class Client {
         });
 
         fooCommands.<Player>register("cursor", "[message...]", "Prints cursor location to chat with an optional message", (args, player) -> {
-            Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", (int)player.mouseX / tilesize, (int)player.mouseX / tilesize));
+            Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", (int)player.mouseX / tilesize, (int)player.mouseY / tilesize));
         });
 
 
