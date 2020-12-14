@@ -35,6 +35,7 @@ public class Client {
     public static boolean hideTrails = true;
     private static Interval timer = new Interval();
     public static Ratekeeper configRateLimit = new Ratekeeper();
+    public static boolean hideUnits = false;
 
     public static void initialize() {
         fooCommands.<Player>register("help", "[page]", "Lists all client commands.", (args, player) -> {
