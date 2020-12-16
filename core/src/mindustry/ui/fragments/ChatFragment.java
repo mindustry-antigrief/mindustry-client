@@ -56,20 +56,16 @@ public class ChatFragment extends Table{
         font = Fonts.def;
 
         visible(() -> {
-            if(!net.active() && messages.size > 0){
+            if (state.isMenu() && messages.size > 0) {
+                if (shown) hide();
                 clearMessages();
-
-                if(shown){
-                    hide();
-                }
             }
-
-            return net.active() && ui.hudfrag.shown;
+            return ui.hudfrag.shown;
         });
 
         update(() -> {
 
-            if(net.active() && input.keyTap(Binding.chat) && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null || ui.minimapfrag.shown()) && !ui.scriptfrag.shown()){
+            if(input.keyTap(Binding.chat) && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null || ui.minimapfrag.shown()) && !ui.scriptfrag.shown()){
                 toggle();
             }
 
@@ -248,7 +244,8 @@ public class ChatFragment extends Table{
 
 
             Call.sendChatMessage(message);
-            if (message.equals("/sync")) {
+            if (message.startsWith("/sync")) {
+
                 Client.lastSyncTime = Time.millis();
             }
 
@@ -325,7 +322,7 @@ public class ChatFragment extends Table{
 
     public ChatMessage addMessage(String message, String sender, Color background){
         if(sender == null && message == null) return null;
-        ChatMessage msg = new ChatMessage(message, sender, background);
+        ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy());
         messages.insert(0, msg);
 
         fadetime += 1f;
