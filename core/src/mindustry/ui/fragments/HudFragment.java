@@ -338,7 +338,7 @@ public class HudFragment extends Fragment{
             float[] coreAttackOpacity = {0};
 
             Events.on(TeamCoreDamage.class, event -> {
-                if (coreAttackOpacity[0] == 0) {
+                if (coreAttackOpacity[0] < .01f) {
                     if (Core.settings.getBool("broadcastcoreattack")) {
                         Call.sendChatMessage(Strings.format("Core under attack at: (@, @)", event.core.x, event.core.y));
                     } else {

@@ -16,6 +16,8 @@ import mindustry.world.Build;
 import mindustry.world.blocks.ConstructBlock;
 import mindustry.world.blocks.environment.Boulder;
 
+import java.util.Arrays;
+
 import static mindustry.Vars.*;
 
 public class BuildPath extends Path {
@@ -33,7 +35,7 @@ public class BuildPath extends Path {
     @SuppressWarnings("unchecked")
     public BuildPath(String[] args){
         argHandler:
-        for (String arg : args) {
+        for (String arg : Arrays.toString(args).replaceAll("\\[|\\]", "").split(" ")) {
             switch (arg) {
                 case "all" -> {
                     queues.clear().addAll(player.unit().plans, broken, assist, unfinished, boulders);
