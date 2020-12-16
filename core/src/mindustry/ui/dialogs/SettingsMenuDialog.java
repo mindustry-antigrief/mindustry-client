@@ -323,13 +323,16 @@ public class SettingsMenuDialog extends SettingsDialog{
         }
 
         client.checkPref("reactorwarnings", true);
+        client.sliderPref("reactorwarningdistance", 0, 0, 100, s -> s == 0 ? "Infinite" : s + (s == 1 ? " Block" : " Blocks"));
         client.checkPref("reactorwarningsounds", true);
+        client.sliderPref("reactorsounddistance", 0, 0, 100, s -> s == 0 ? "Infinite" : s + (s == 1 ? " Block" : " Blocks"));
         client.checkPref("lighting", true);
         client.checkPref("displayasuser", false);
         client.checkPref("highlightclientmsg", false);
         client.checkPref("autoupdate", true);
         client.checkPref("hidetrails", false);
         client.checkPref("tilehud", true);
+        client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
         client.checkPref("discordrpc", true, val -> {
             ClientLauncher launcher = (ClientLauncher) app.getListeners().find(item -> item instanceof ClientLauncher);
             if (launcher != null && app.isDesktop()) {
@@ -341,6 +344,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             }
         });
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
+
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);
         game.checkPref("conveyorpathfinding", true);

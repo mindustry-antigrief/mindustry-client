@@ -337,9 +337,18 @@ public class HudFragment extends Fragment{
             float[] coreAttackTime = {0};
             float[] coreAttackOpacity = {0};
 
-            Events.run(Trigger.teamCoreDamage, () -> {
-                coreAttackTime[0] = notifDuration;
+            Events.on(TeamCoreDamage.class, event -> {
+                if (coreAttackOpacity[0] == 0) {
+                    if (Core.settings.getBool("broadcastcoreattack")) {
+                        Call.sendChatMessage(Strings.format("Core under attack at: (@, @)", event.core.x, event.core.y));
+                    } else {
+                        ui.chatfrag.addMessage(Strings.format("Core under attack at: (@, @)", event.core.x, event.core.y), null);
+                    }
+                }
+               coreAttackTime[0] = notifDuration;
             });
+
+            Events.run(Trigger.teamCoreDamage, () -> coreAttackTime[0] = notifDuration); // Legacy code kept in case anuke breaks it
 
             t.top().visible(() -> {
                 if(!shown) return false;
