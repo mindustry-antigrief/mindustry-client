@@ -337,8 +337,8 @@ public class CoreBlock extends StorageBlock{
         @Override
         public float handleDamage(float amount){
             if(player != null && team == player.team()){
-                Events.fire(Trigger.teamCoreDamage);
-                Call.sendChatMessage("Core under attack at: (" + x + ", " + y + ")");
+                // Events.fire(Trigger.teamCoreDamage); Replaced in favor of the event below
+                Events.fire(new TeamCoreDamage(tile));
             }
             return amount;
         }

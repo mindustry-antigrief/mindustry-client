@@ -16,6 +16,7 @@ import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
 import mindustry.client.ui.Toast;
 import mindustry.content.*;
+import mindustry.core.World;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -29,6 +30,7 @@ import mindustry.world.blocks.power.NuclearReactor;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.modules.*;
 import java.time.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static mindustry.Vars.*;
 import static mindustry.ui.Styles.monoLabel;
@@ -451,17 +453,20 @@ public class ConstructBlock extends Block{
         public void update() {
             super.update();
             if (cblock instanceof NuclearReactor) {
-                if (Core.settings.getBool("reactorwarnings") && cblock != null) {
+                AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
+                closestCore().tile.getLinkedTiles(t -> distance.set(Math.min(World.toTile(t.dst(this.tile)) - 1, distance.get())));
+                if (Core.settings.getBool("reactorwarnings") && cblock != null && (Core.settings.getInt("reactorwarningdistance") == 0 || distance.intValue() <= Core.settings.getInt("reactorwarningdistance"))) {
+
                     long since = Time.timeSinceMillis(lastWarn);
                     if (progress > lastProgress && since > 0 && progress < .99f && lastBuilder != null) {
                         // Play sound for reactor construction (only played when no reactor has been built for 10s)
-                        if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) {
+                        if (since > 10 * 1000 && Core.settings.getBool("reactorwarningsounds") && (Core.settings.getInt("reactorsounddistance") == 0 || distance.intValue() <= Core.settings.getInt("reactorwarningdistance"))) {
                             Sounds.corexplode.play();
                         }
                         lastWarn = Time.millis();
                         if (lastBuilder.isPlayer()) {
                             lastBuilder.drawBuildRequests();
-                            String format = String.format("%s is building a %s at %d,%d (%d blocks from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8));
+                            String format = String.format("%s is building a %s at %d,%d (%d block%s from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), distance.intValue(), distance.intValue() == 1 ? "" : "s");
                             String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
                             if (toast == null || toast.parent == null) {
                                 toast = new Toast();

@@ -43,6 +43,13 @@ public class EventType{
         universeDrawEnd
     }
 
+    /** Replaces vanilla {@code teamCoreDamage}, allowing a tile to be passed. */
+    public static class TeamCoreDamage{
+        public final Tile core;
+
+        public TeamCoreDamage(Tile core) { this.core = core; }
+    }
+
     public static class WinEvent{}
     public static class LoseEvent{}
     public static class ResizeEvent{}
