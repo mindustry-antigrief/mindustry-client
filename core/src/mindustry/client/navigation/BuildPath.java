@@ -1,5 +1,6 @@
 package mindustry.client.navigation;
 
+import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.math.geom.Position;
 import arc.struct.Queue;
@@ -13,6 +14,7 @@ import mindustry.entities.units.BuildPlan;
 import mindustry.gen.*;
 import mindustry.world.Build;
 import mindustry.world.blocks.ConstructBlock;
+import mindustry.world.blocks.environment.Boulder;
 
 import static mindustry.Vars.*;
 
@@ -20,7 +22,36 @@ public class BuildPath extends Path {
     Building core = player.core();
     private boolean show;
     Interval timer = new Interval();
-    Queue<BuildPlan> broken = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>();
+    Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>();
+    Seq<Queue<BuildPlan>> queues = new Seq<>();
+
+    @SuppressWarnings("unchecked")
+    public BuildPath(){
+        queues.addAll(player.unit().plans, broken, assist, unfinished, boulders);
+    }
+
+    @SuppressWarnings("unchecked")
+    public BuildPath(String[] args){
+        argHandler:
+        for (String arg : args) {
+            switch (arg) {
+                case "all" -> {
+                    queues.clear().addAll(player.unit().plans, broken, assist, unfinished, boulders);
+                    break argHandler;
+                }
+                case "self" -> queues.add(player.unit().plans);
+                case "broken" -> queues.add(broken);
+                case "boulders" -> queues.add(boulders);
+                case "assist" -> queues.add(assist);
+                case "unfinished" -> queues.add(unfinished);
+                default -> ui.chatfrag.addMessage("[scarlet]Invalid option: " + arg, null);
+            }
+        }
+        if (queues.isEmpty()) {
+            ui.chatfrag.addMessage("[scarlet]No valid options specified, defaulting to self. Valid options:\nAll, self, broken, boulders, assist, unfinished", null);
+            queues.add(player.unit().plans);
+        }
+    }
 
     @Override
     void setShow(boolean show) { this.show = show; }
@@ -31,16 +62,17 @@ public class BuildPath extends Path {
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     void follow() {
         if (timer.get(15)) {
-            if(!broken.isEmpty()){broken.forEach(player.unit().plans::remove); broken.clear();} // Jank code to clear the three extra queues
+            // Jank code to clear the four extra queues
+            if(!broken.isEmpty()){broken.forEach(player.unit().plans::remove); broken.clear();}
+            if(!boulders.isEmpty()){boulders.forEach(player.unit().plans::remove); boulders.clear();}
             if(!assist.isEmpty()){assist.forEach(player.unit().plans::remove); assist.clear();}
             if(!unfinished.isEmpty()){unfinished.forEach(player.unit().plans::remove); unfinished.clear();}
 
-            Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
             if(!player.unit().team.data().blocks.isEmpty())player.unit().team.data().blocks.forEach(block -> broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config)));
-            world.tiles.forEach(tile -> {if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild && tile.isCenter())unfinished.add(((ConstructBlock.ConstructBuild) tile.build).previous == ((ConstructBlock.ConstructBuild) tile.build).cblock ? new BuildPlan(tile.x, tile.y) : new BuildPlan(tile.x, tile.y, tile.build.rotation, ((ConstructBlock.ConstructBuild) tile.build).cblock, tile.build.config()));});
+            Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && player.unit() != null && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
+            world.tiles.forEach(tile -> {if(tile.block().breakable && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder)boulders.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter())unfinished.add(entity.wasConstructing ? new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) : new BuildPlan(tile.x, tile.y));});
 
             boolean all = false, found = false;
-            Queue[] queues = {player.unit().plans, broken, assist, unfinished};
             for (int x = 0; x < 2; x++) {
                 for (Queue queue : queues) {
                     Queue<BuildPlan> plans = sortPlans(queue, all, true);
@@ -62,7 +94,7 @@ public class BuildPath extends Path {
             BuildPlan req = player.unit().buildPlan(); //approach request if building
 
             boolean valid =
-                    (req.tile().build instanceof ConstructBlock.ConstructBuild && ((ConstructBlock.ConstructBuild) req.tile().build).cblock == req.block) ||
+                    (req.tile().build instanceof ConstructBlock.ConstructBuild entity && entity.cblock == req.block) ||
                             (req.breaking ?
                                     Build.validBreak(player.unit().team(), req.x, req.y) :
                                     Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));

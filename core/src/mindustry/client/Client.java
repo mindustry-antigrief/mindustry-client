@@ -36,7 +36,6 @@ public class Client {
     public static long lastSyncTime = 0L;
     public static final CommandHandler fooCommands = new CommandHandler("!");
     public static boolean hideTrails = true;
-    private static Interval timer = new Interval();
     public static Ratekeeper configRateLimit = new Ratekeeper();
 
     public static void initialize() {
@@ -73,7 +72,7 @@ public class Client {
             new UnitPicker().findUnit(found);
         });
 
-        fooCommands.<Player>register("goto","<x> <y>", "Navigates to (x,y)", (args, player) -> {
+        fooCommands.<Player>register("goto","<x> <y>", "Navigates to (x, y)", (args, player) -> {
             try {
                 Navigation.navigateTo(Float.parseFloat(args[0])*8, Float.parseFloat(args[1])*8);
             }
@@ -82,7 +81,7 @@ public class Client {
             }
         });
 
-        fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to (x,y)", (args, player) -> {
+        fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to (x, y)", (args, player) -> {
             try {
                 DesktopInput.panning = true;
                 Spectate.pos = new Vec2(Float.parseFloat(args[0])*8, Float.parseFloat(args[1])*8);
@@ -92,12 +91,24 @@ public class Client {
             }
         });
 
-        fooCommands.<Player>register("here", "[message...]", "Prints your location to chat with an optional message", (args, player) -> {
-            Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", player.tileX(), player.tileY()));
-        });
+        fooCommands.<Player>register("here", "[message...]", "Prints your location to chat with an optional message", (args, player) ->
+                Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", player.tileX(), player.tileY()))
+        );
 
-        fooCommands.<Player>register("cursor", "[message...]", "Prints cursor location to chat with an optional message", (args, player) -> {
-            Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", World.toTile(player.mouseX), World.toTile(player.mouseY)));
+        fooCommands.<Player>register("cursor", "[message...]", "Prints cursor location to chat with an optional message", (args, player) ->
+                Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", World.toTile(player.mouseX), World.toTile(player.mouseY)))
+        );
+
+        fooCommands.<Player>register("builder", "[options...]", "Starts auto build with optional arguments, prioritized from first to last.", (args, player) ->
+                Navigation.follow(new BuildPath(args))
+        );
+        fooCommands.<Player>register("tp", "<x> <y>", "Moves to (x, y) at insane speeds, only works on servers without strict mode enabled.", (args, player) -> {
+            try {
+                Timer.schedule(() -> player.unit().moveAt(new Vec2().set(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1]))).sub(player.unit()), player.dst(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])))), 0, .01f, 15);
+            }
+            catch(Exception e){
+                player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !tp 10 300");
+            }
         });
 
 
