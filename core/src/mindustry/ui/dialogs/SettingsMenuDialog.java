@@ -323,9 +323,9 @@ public class SettingsMenuDialog extends SettingsDialog{
         }
 
         client.checkPref("reactorwarnings", true);
-        client.sliderPref("reactorwarningdistance", 0, 0, 100, s -> s == 0 ? "Infinite" : s + (s == 1 ? " Block" : " Blocks"));
+        client.sliderPref("reactorwarningdistance", 0, 0, 100, s -> s == 0 ? "Infinite" : s + "");
         client.checkPref("reactorwarningsounds", true);
-        client.sliderPref("reactorsounddistance", 0, 0, 100, s -> s == 0 ? "Infinite" : s + (s == 1 ? " Block" : " Blocks"));
+        client.sliderPref("reactorsounddistance", 0, 0, 100, s -> s == 0 ? "Infinite" : s + "");
         client.checkPref("lighting", true);
         client.checkPref("displayasuser", false);
         client.checkPref("highlightclientmsg", false);

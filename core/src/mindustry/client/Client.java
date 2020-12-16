@@ -102,6 +102,7 @@ public class Client {
         fooCommands.<Player>register("builder", "[options...]", "Starts auto build with optional arguments, prioritized from first to last.", (args, player) ->
                 Navigation.follow(new BuildPath(args))
         );
+
         fooCommands.<Player>register("tp", "<x> <y>", "Moves to (x, y) at insane speeds, only works on servers without strict mode enabled.", (args, player) -> {
             try {
                 Timer.schedule(() -> player.unit().moveAt(new Vec2().set(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1]))).sub(player.unit()), player.dst(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])))), 0, .01f, 15);
@@ -110,6 +111,9 @@ public class Client {
                 player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !tp 10 300");
             }
         });
+
+//        fooCommands.<Player>register("tpcursor", "", "tp to cursor", (args, player) ->
+//                        Timer.schedule(() -> player.unit().moveAt(new Vec2().set(World.unconv(Float.parseFloat(args[0])))));
 
 
         Events.on(WorldLoadEvent.class, event -> {
