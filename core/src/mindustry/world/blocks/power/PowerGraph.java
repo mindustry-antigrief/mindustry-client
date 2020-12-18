@@ -5,6 +5,7 @@ import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.utils.*;
+import mindustry.game.Team;
 import mindustry.gen.*;
 import mindustry.world.consumers.*;
 
@@ -23,13 +24,25 @@ public class PowerGraph{
     public final MovingAverage displayPowerBalance = new MovingAverage(60);
     private float lastPowerProduced, lastPowerNeeded, lastUsageFraction, lastPowerStored;
     private float lastScaledPowerIn, lastScaledPowerOut, lastCapacity;
+    public boolean active = true;
+    public Team team;
 
     private long lastFrameUpdated = -1;
     private final int graphID;
     private static int lastGraphID;
+    public static ObjectSet<PowerGraph> activeGraphs = new ObjectSet<>();
 
     {
         graphID = lastGraphID++;
+        activeGraphs.add(this);
+    }
+
+    public void updateActive() {
+        if (!active) return;
+        if (!(Core.graphics.getFrameId() - lastFrameUpdated < 2)) {
+            activeGraphs.remove(this);
+            active = false;
+        }
     }
 
     public int getID(){
@@ -251,6 +264,7 @@ public class PowerGraph{
         if(tile == null || tile.power == null) return;
         tile.power.graph = this;
         all.add(tile);
+        team = tile.team;
 
         if(tile.block.outputsPower && tile.block.consumesPower && !tile.block.consumes.getPower().buffered){
             producers.add(tile);

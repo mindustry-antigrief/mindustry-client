@@ -1,75 +1,30 @@
 package mindustry.client.antigreif;
 
-import arc.Core;
 import arc.math.*;
 import arc.scene.*;
 import arc.scene.event.Touchable;
 import arc.scene.ui.Button;
 import arc.struct.*;
-import arc.util.Interval;
-import arc.util.Log;
 import arc.util.Strings;
-import arc.util.Time;
-import mindustry.*;
+import mindustry.Vars;
 import mindustry.client.ui.*;
 import mindustry.core.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
-import mindustry.world.*;
 import mindustry.world.blocks.power.*;
 import java.util.*;
 import mindustry.gen.*;
 
 public class PowerInfo {
 
-    public static ObjectSet<PowerGraph> graphs = new ObjectSet<>();
     private static PowerGraph found = null;
-    private static final Interval timer = new Interval(2);
 
     public static void initialize() {}
 
     public static void update() {
-        graphs = graphs.select(Objects::nonNull);
-        PowerGraph graph = graphs.asArray().max(g -> g.all.size);
-        if (graph != null) {
-            found = graph;
-            if (timer.get(0, 120)) {
-                // Scan every 2s
-                timer.reset(1, 30);
-                scan();
-            }
-        } else {
-            found = null;
-            if (timer.get(1, 30)) {
-                // Scan once instantly and every .5 additional seconds
-                scan();
-            }
-        }
-    }
-
-    /** Scans the entire world for power nodes and gets the power graphs */
-    private static void scan() {
-        graphs.clear();
-        if (Vars.world == null) {
-            return;
-        } else if (Vars.world.tiles == null) {
-            return;
-        }
-        for (Tile tile : Vars.world.tiles) {
-            if (tile != null) {
-                if (tile.block() instanceof PowerNode) {
-                    if (tile.build != null){
-                        if (tile.build.power != null) {
-                            if (tile.build.power.graph != null) {
-                                if (tile.getTeamID() == Vars.player.team().id){
-                                    graphs.add(tile.build.power.graph);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        ObjectSet<PowerGraph> graphs = PowerGraph.activeGraphs.select(item -> item != null && item.team == Vars.player.team());
+        found = graphs.asArray().max(g -> g.all.size);
+        PowerGraph.activeGraphs.forEach(PowerGraph::updateActive);
     }
 
     public static Element getBars() {
