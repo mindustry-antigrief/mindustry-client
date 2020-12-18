@@ -452,7 +452,7 @@ public class PlacementFragment extends Fragment{
 
         if (!Client.hideUnits) {
             //check for a unit
-            Unit unit = Units.closestOverlap(player.team(), Core.input.mouseWorldX(), Core.input.mouseWorldY(), 5f, u -> !u.isLocal());
+            Unit unit = Units.closestOverlap(Core.input.mouseWorldX(), Core.input.mouseWorldY(), 5f, u -> !u.isLocal());
             //if cursor has a unit, display it
             if (unit != null) return unit;
         }
