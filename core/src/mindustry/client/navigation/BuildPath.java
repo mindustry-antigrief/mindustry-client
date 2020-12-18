@@ -35,7 +35,7 @@ public class BuildPath extends Path {
     @SuppressWarnings("unchecked")
     public BuildPath(String[] args){
         argHandler:
-        for (String arg : Arrays.toString(args).replaceAll("\\[|\\]", "").split(" ")) {
+        for (String arg : Arrays.toString(args).replaceAll("[\\[\\]]", "").split(" ")) {
             switch (arg) {
                 case "all" -> {
                     queues.clear().addAll(player.unit().plans, broken, assist, unfinished, boulders);
