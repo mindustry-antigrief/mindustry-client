@@ -323,9 +323,9 @@ public class SettingsMenuDialog extends SettingsDialog{
         }
 
         client.checkPref("reactorwarnings", true);
-        client.sliderPref("reactorwarningdistance", 0, 0, 100, s -> s == 0 ? "Infinite" : s + "");
+        client.sliderPref("reactorwarningdistance", 0, 0, 100, s -> s == 0 ? "Infinite" : Integer.toString(s));
         client.checkPref("reactorwarningsounds", true);
-        client.sliderPref("reactorsounddistance", 0, 0, 100, s -> s == 0 ? "Infinite" : s + "");
+        client.sliderPref("reactorsounddistance", 0, 0, 100, s -> s == 0 ? "Infinite" : Integer.toString(s));
         client.checkPref("lighting", true);
         client.checkPref("displayasuser", false);
         client.checkPref("highlightclientmsg", false);
@@ -333,6 +333,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("hidetrails", false);
         client.checkPref("tilehud", true);
         client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
+        client.checkPref("clearchatonleave", true);
         client.checkPref("discordrpc", true, val -> {
             ClientLauncher launcher = (ClientLauncher) app.getListeners().find(item -> item instanceof ClientLauncher);
             if (launcher != null && app.isDesktop()) {

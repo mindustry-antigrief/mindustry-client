@@ -111,6 +111,7 @@ public class ChatFragment extends Table{
     }
 
     public void clearMessages(){
+        if (!settings.getBool("clearchatonleave")) return;
         messages.clear();
         history.clear();
         history.insert(0, "");
