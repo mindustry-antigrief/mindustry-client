@@ -316,6 +316,7 @@ public class Weather extends UnlockableContent{
         @Override
         public void draw(){
             float alpha = Core.settings.getInt("weatheropacity") / 100f;
+            if (alpha == 0f) return;
             if(renderer.weatherAlpha() > 0.0001f){
                 Draw.draw(Layer.weather, () -> {
                     weather.rand.setSeed(0);
