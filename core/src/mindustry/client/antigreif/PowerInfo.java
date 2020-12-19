@@ -22,9 +22,14 @@ public class PowerInfo {
     public static void initialize() {}
 
     public static void update() {
+        if (PowerGraph.activeGraphs == null) return;
+        PowerGraph.activeGraphs.forEach(item -> {
+            if (item != null) {
+                item.updateActive();
+            }
+        });
         ObjectSet<PowerGraph> graphs = PowerGraph.activeGraphs.select(item -> item != null && item.team == Vars.player.team());
         found = graphs.asArray().max(g -> g.all.size);
-        PowerGraph.activeGraphs.forEach(PowerGraph::updateActive);
     }
 
     public static Element getBars() {
