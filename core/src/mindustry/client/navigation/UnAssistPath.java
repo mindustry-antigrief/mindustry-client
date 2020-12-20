@@ -4,6 +4,7 @@ import arc.math.geom.Point2;
 import arc.math.geom.Position;
 import arc.struct.IntSet;
 import arc.struct.Seq;
+import arc.util.Log;
 import mindustry.Vars;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.entities.units.BuildPlan;
@@ -37,24 +38,26 @@ public class UnAssistPath extends Path {
             return;
         }
 
-        if (assisting.unit().canBuild()) {
-            BuildPlan plan = assisting.unit().buildPlan();
-            if (plan != null) {
-                if (plan.initialized) {
-                    Tile tile = Vars.world.tile(plan.x, plan.y);
-                    if (tile.build instanceof ConstructBlock.ConstructBuild) {
-                        ConstructBlock.ConstructBuild build = (ConstructBlock.ConstructBuild) tile.build;
-                        if (build.cblock.buildCost > 10) {
-                            if (plan.breaking) {
-                                toUndo.add(new BuildPlan(plan.x, plan.y, build.rotation, build.cblock, build.lastConfig));
-                            } else {
-                                toUndo.add(new BuildPlan(plan.x, plan.y));
+        try {
+            if (assisting.unit().canBuild()) {
+                BuildPlan plan = assisting.unit().buildPlan();
+                if (plan != null) {
+                    if (plan.initialized) {
+                        Tile tile = Vars.world.tile(plan.x, plan.y);
+                        if (tile.build instanceof ConstructBlock.ConstructBuild) {
+                            ConstructBlock.ConstructBuild build = (ConstructBlock.ConstructBuild) tile.build;
+                            if (build.cblock.buildCost > 10) {
+                                if (plan.breaking) {
+                                    toUndo.add(new BuildPlan(plan.x, plan.y, build.rotation, build.cblock, build.lastConfig));
+                                } else {
+                                    toUndo.add(new BuildPlan(plan.x, plan.y));
+                                }
                             }
                         }
                     }
                 }
             }
-        }
+        } catch(Exception e){Log.info(e.getMessage());}
 
         new PositionWaypoint(assisting.x, assisting.y, 0f).run();
         if (Vars.player.unit() instanceof Builderc) {
