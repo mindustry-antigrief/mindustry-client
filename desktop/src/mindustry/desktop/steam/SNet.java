@@ -2,7 +2,6 @@ package mindustry.desktop.steam;
 
 import arc.*;
 import arc.func.*;
-import arc.graphics.Color;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
@@ -20,8 +19,6 @@ import mindustry.net.Packets.*;
 
 import java.io.*;
 import java.nio.*;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
@@ -39,8 +36,6 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
     final CopyOnWriteArrayList<SteamConnection> connections = new CopyOnWriteArrayList<>();
     final IntMap<SteamConnection> steamConnections = new IntMap<>(); //maps steam ID -> valid net connection
-    final Interval timer = new Interval();
-    final long[] alertIDs = {76561198064167539L}; // List of idiot's steam IDs
 
     SteamID currentLobby, currentServer;
     Cons<Host> lobbyCallback;
@@ -56,15 +51,6 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
             @Override
             public void update(){
-                if (timer.get(60) && currentLobby != null){
-                    for (int member = 0 ; member < smat.getNumLobbyMembers(currentLobby) ; member++) {
-                        for (long idiot : alertIDs) {
-                            if (SteamID.createFromNativeHandle(idiot).equals(smat.getLobbyMemberByIndex(currentLobby, member))) {
-                                ui.chatfrag.addMessage("A griefer is in this game: " + idiot, "Client", Color.scarlet);
-                            }
-                        }
-                    }
-                }
                 while((length = snet.isP2PPacketAvailable(0)) != 0){
                     try{
                         readBuffer.position(0);
@@ -300,7 +286,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
     @Override
     public void onLobbyChatUpdate(SteamID lobby, SteamID who, SteamID changer, ChatMemberStateChange change){
-        Log.info("lobby @: @ caused @'s change: @", lobby.handle(), who.handle(), changer.handle(), change);
+        Log.info("lobby @: @ caused @'s change: @", lobby.getAccountID(), who.getAccountID(), changer.getAccountID(), change);
         if(change == ChatMemberStateChange.Disconnected || change == ChatMemberStateChange.Left){
             if(net.client()){
                 //host left, leave as well
