@@ -452,7 +452,7 @@ public class ConstructBlock extends Block{
         @Override
         public void update() {
             super.update();
-            if (cblock instanceof NuclearReactor) {
+            if (cblock instanceof NuclearReactor && team == player.team()) {
                 AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
                 closestCore().tile.getLinkedTiles(t -> distance.set(Math.min(World.toTile(t.dst(this.tile)) - 1, distance.get())));
                 if (Core.settings.getBool("reactorwarnings") && cblock != null && (Core.settings.getInt("reactorwarningdistance") == 0 || distance.intValue() <= Core.settings.getInt("reactorwarningdistance"))) {
@@ -460,7 +460,7 @@ public class ConstructBlock extends Block{
                     long since = Time.timeSinceMillis(lastWarn);
                     if (progress > lastProgress && since > 0 && progress < .99f && lastBuilder != null) {
                         // Play sound for reactor construction (only played when no reactor has been built for 10s)
-                        if (since > 10 * 1000 && Core.settings.getBool("reactorwarningsounds") && (Core.settings.getInt("reactorsounddistance") == 0 || distance.intValue() <= Core.settings.getInt("reactorwarningdistance"))) {
+                        if (since > 10 * 1000 && Core.settings.getBool("reactorwarningsounds") && (Core.settings.getInt("reactorsounddistance") == 0 || distance.intValue() <= Core.settings.getInt("reactorsounddistance"))) {
                             Sounds.corexplode.play();
                         }
                         lastWarn = Time.millis();

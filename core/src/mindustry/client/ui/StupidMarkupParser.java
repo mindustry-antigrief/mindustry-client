@@ -1,14 +1,10 @@
 package mindustry.client.ui;
 
-import arc.Core;
 import arc.graphics.Color;
-import arc.scene.Element;
 import arc.scene.ui.Label;
 import arc.scene.ui.Label.LabelStyle;
 import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
-import arc.util.Align;
-import arc.util.Log;
 import mindustry.graphics.Pal;
 import mindustry.ui.Fonts;
 
