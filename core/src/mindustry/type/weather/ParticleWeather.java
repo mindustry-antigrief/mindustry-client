@@ -46,6 +46,7 @@ public class ParticleWeather extends Weather{
             float windx = state.windVector.x * speed, windy = state.windVector.y * speed;
 
             for(Unit unit : Groups.unit){
+                if (unit.isLocal()) continue;
                 unit.impulse(windx, windy);
             }
         }
