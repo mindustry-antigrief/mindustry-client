@@ -42,7 +42,6 @@ public class CoreBlock extends StorageBlock{
     public float resupplyRate = 10f;
     public float resupplyRange = 60f;
     public Item resupplyItem = Items.copper;
-    private static Interval timer = new Interval();
 
     public CoreBlock(String name){
         super(name);

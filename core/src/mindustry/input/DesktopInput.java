@@ -308,7 +308,7 @@ public class DesktopInput extends InputHandler{
         Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
         if(!scene.hasMouse()){
-            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null){
+            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null){ // Tile actions menu
                 int itemHeight = 30;
                 Table table = new Table(Tex.buttonTrans);
                 table.touchable = Touchable.childrenOnly;
@@ -335,10 +335,14 @@ public class DesktopInput extends InputHandler{
                 });
 
                 table.row().fill();
-                table.button("Unit Picker", () -> { // Unit Selector
-                    new UnitPicker().show();
-                });
+                table.button("Unit Picker", () -> // Unit Picker / Sniper
+                    new UnitPicker().show()
+                );
 
+                table.row().fill();
+                table.button("Teleport to Cursor", () ->
+                    Timer.schedule(() -> player.unit().moveAt(new Vec2().set(World.unconv(cursor.x), World.unconv(cursor.y)).sub(player.unit()), player.dst(World.unconv(cursor.x), World.unconv(cursor.y))), 0, .01f, 15)
+                );
 
                 table.setHeight(itemHeight * (table.getRows() + 1) + 10 * (table.getRows() + 1));
                 AtomicBoolean released = new AtomicBoolean(false);
