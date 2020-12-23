@@ -452,6 +452,7 @@ public class ConstructBlock extends Block{
         @Override
         public void update() {
             super.update();
+            if (closestCore() == null) return;
             if (cblock instanceof NuclearReactor && team == player.team()) {
                 AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
                 closestCore().tile.getLinkedTiles(t -> distance.set(Math.min(World.toTile(t.dst(this.tile)) - 1, distance.get())));
