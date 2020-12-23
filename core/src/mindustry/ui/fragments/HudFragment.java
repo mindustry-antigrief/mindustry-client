@@ -14,6 +14,7 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.ui.TileInfoFragment;
 import mindustry.client.ui.Toast;
@@ -237,7 +238,7 @@ public class HudFragment extends Fragment{
                     else{
                         new Toast(1f).label(() -> "You tried and that's all that matters.");
                     }
-                }).growY().fillX().right().width(40f).name("skip");
+                }).growY().fillX().right().width(40f).disabled(!canSkipWave()).name("skip");
 
                 // Power bar display
                 s.row();
@@ -812,7 +813,7 @@ public class HudFragment extends Fragment{
     }
 
     private boolean canSkipWave(){
-        return state.rules.waves && ((net.server() || player.admin) || !net.active()) /* && state.enemies == 0 && !spawner.isSpawning() */;
+        return state.rules.waves && state.wave < state.rules.winWave && ((net.server() || player.admin) || !net.active()) /* && state.enemies == 0 && !spawner.isSpawning() */;
     }
 
 }
