@@ -11,6 +11,7 @@ import mindustry.ai.formations.Formation;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.entities.Units;
 import mindustry.entities.units.BuildPlan;
+import mindustry.game.Team;
 import mindustry.gen.*;
 import mindustry.world.Build;
 import mindustry.world.blocks.ConstructBlock;
@@ -24,12 +25,12 @@ public class BuildPath extends Path {
     Building core = player.core();
     private boolean show;
     Interval timer = new Interval();
-    Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>();
+    Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>();
     Seq<Queue<BuildPlan>> queues = new Seq<>();
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
-        queues.addAll(player.unit().plans, broken, assist, unfinished, boulders);
+        queues.addAll(player.unit().plans, broken, assist, unfinished, boulders); // Every queue except for cleanup is included by default
     }
 
     @SuppressWarnings("unchecked")
@@ -38,7 +39,7 @@ public class BuildPath extends Path {
         for (String arg : Arrays.toString(args).replaceAll("[\\[\\]]", "").split(" ")) {
             switch (arg) {
                 case "all" -> {
-                    queues.clear().addAll(player.unit().plans, broken, assist, unfinished, boulders);
+                    queues.addAll(player.unit().plans, broken, assist, unfinished, boulders);
                     break argHandler;
                 }
                 case "self" -> queues.add(player.unit().plans);
@@ -46,11 +47,12 @@ public class BuildPath extends Path {
                 case "boulders" -> queues.add(boulders);
                 case "assist" -> queues.add(assist);
                 case "unfinished" -> queues.add(unfinished);
+                case "cleanup" -> queues.add(cleanup);
                 default -> ui.chatfrag.addMessage("[scarlet]Invalid option: " + arg, null);
             }
         }
         if (queues.isEmpty()) {
-            ui.chatfrag.addMessage("[scarlet]No valid options specified, defaulting to self. Valid options:\nAll, self, broken, boulders, assist, unfinished", null);
+            ui.chatfrag.addMessage("[scarlet]No valid options specified, defaulting to self. Valid options:\nAll, self, broken, boulders, assist, unfinished, cleanup", null);
             queues.add(player.unit().plans);
         }
     }
@@ -72,7 +74,7 @@ public class BuildPath extends Path {
 
             if(!player.unit().team.data().blocks.isEmpty())player.unit().team.data().blocks.forEach(block -> broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config)));
             Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && player.unit() != null && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
-            world.tiles.forEach(tile -> {if(tile.block().breakable && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder)boulders.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter())unfinished.add(entity.wasConstructing ? new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) : new BuildPlan(tile.x, tile.y));});
+            world.tiles.forEach(tile -> {if(tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder)boulders.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == Team.derelict && tile.breakable() && tile.isCenter())cleanup.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter())unfinished.add(entity.wasConstructing ? new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) : new BuildPlan(tile.x, tile.y));});
 
             boolean all = false, found = false;
             for (int x = 0; x < 2; x++) {

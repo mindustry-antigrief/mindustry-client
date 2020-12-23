@@ -112,8 +112,9 @@ public class Client {
             }
         });
 
-//        fooCommands.<Player>register("tpcursor", "", "tp to cursor", (args, player) ->
-//                        Timer.schedule(() -> player.unit().moveAt(new Vec2().set(World.unconv(Float.parseFloat(args[0])))));
+        fooCommands.<Player>register("", "[message...]", "Does nothing", (args, player) ->
+            Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
+        );
 
 
         Events.on(WorldLoadEvent.class, event -> {
@@ -139,7 +140,7 @@ public class Client {
                             if (player.unit() == find) { UnitPicker.found = null; t.add("Successfully switched units.");} // After we switch units successfully, stop listening for this unit
                             else if (find.getPlayer() != null) { t.add("Failed to become " + unit + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
                         }
-                        }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
+                        }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
                 }
             }
         });
@@ -154,7 +155,7 @@ public class Client {
                         if (player.unit() == event.unit) { UnitPicker.found = null; t.add("Successfully switched units.");}  // After we switch units successfully, stop listening for this unit
                         else if (event.unit.getPlayer() != null) { t.add("Failed to become " + unit + ", " + event.unit.getPlayer().name + " is already controlling it (likely using unit sniper).");}
                     }
-                    }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
+                    }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
             }
         });
         Events.on(EventType.ClientLoadEvent.class, event -> {
@@ -180,8 +181,8 @@ public class Client {
                             req.run();
                             configs.remove(req);
                             Timer.schedule(() -> {
-                                if(tile.build.config() == initial) configs.addLast(req);
-                                // if(tile != null && req.value != tile.build.config()) configs.addLast(req); TODO: This infinite loops if u config something twice, find a better way to do this
+                                // if(tile.build != null && tile.build.config() == initial) configs.addLast(req); TODO: This can also cause loops
+                                // if(tile.build != null && req.value != tile.build.config()) configs.addLast(req); TODO: This infinite loops if u config something twice, find a better way to do this
                             }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
                         }
                     }
