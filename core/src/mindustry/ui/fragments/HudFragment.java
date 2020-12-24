@@ -339,7 +339,7 @@ public class HudFragment extends Fragment{
             float[] coreAttackOpacity = {0};
 
             Events.on(TeamCoreDamage.class, event -> {
-                if (coreAttackOpacity[0] < .01f) {
+                if (coreAttackOpacity[0] == 0) {
                     if (Core.settings.getBool("broadcastcoreattack")) {
                         Call.sendChatMessage(Strings.format("Core under attack at: (@, @)", event.core.x, event.core.y));
                     } else {
@@ -369,6 +369,7 @@ public class HudFragment extends Fragment{
 
                 return coreAttackOpacity[0] > 0;
             });
+            if (!t.visible) coreAttackOpacity[0] = 0;
             t.table(Tex.button, top -> top.add("@coreattack").pad(2)
             .update(label -> label.color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f)))).touchable(Touchable.disabled);
         });
