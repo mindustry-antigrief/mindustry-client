@@ -230,11 +230,9 @@ public class HudFragment extends Fragment{
 
                 // button to skip wave
                 s.button(Icon.play, Styles.wavei, 30f, () -> {
-                    if (canSkipWave()) {
-                        if (net.client() && player.admin) Call.adminRequest(player, AdminAction.wave);
-                        else if (!net.active() || net.server()) logic.skipWave();
-                    }
-                    else new Toast(1f).label(() -> "You tried and that's all that matters.");
+                    if(!canSkipWave()) new Toast(1f).label(() -> "You tried and that's all that matters.");
+                    else if(net.client() && player.admin) Call.adminRequest(player, AdminAction.wave);
+                    else logic.skipWave();
                 }).growY().fillX().right().width(40f).name("skip");
 
                 // Power bar display
@@ -810,7 +808,7 @@ public class HudFragment extends Fragment{
     }
 
     private boolean canSkipWave(){
-        return !state.rules.waves || state.wave < state.rules.winWave && ((net.server() || player.admin) || !net.active()) /* && state.enemies == 0 && !spawner.isSpawning() */;
+        return state.rules.waves && (state.rules.winWave <= 0 || state.wave < state.rules.winWave) && ((net.server() || player.admin) || !net.active()) /* && state.enemies == 0 && !spawner.isSpawning() */;
     }
 
 }
