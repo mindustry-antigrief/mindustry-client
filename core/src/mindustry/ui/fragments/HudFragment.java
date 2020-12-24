@@ -230,15 +230,12 @@ public class HudFragment extends Fragment{
 
                 // button to skip wave
                 s.button(Icon.play, Styles.wavei, 30f, () -> {
-                    if(net.client() && player.admin){
-                        Call.adminRequest(player, AdminAction.wave);
-                    }else if(!net.active() || net.server()){
-                        logic.skipWave();
+                    if (canSkipWave()) {
+                        if (net.client() && player.admin) Call.adminRequest(player, AdminAction.wave);
+                        else if (!net.active() || net.server()) logic.skipWave();
                     }
-                    else{
-                        new Toast(1f).label(() -> "You tried and that's all that matters.");
-                    }
-                }).growY().fillX().right().width(40f).disabled(!canSkipWave()).name("skip");
+                    else new Toast(1f).label(() -> "You tried and that's all that matters.");
+                }).growY().fillX().right().width(40f).name("skip");
 
                 // Power bar display
                 s.row();
@@ -339,11 +336,11 @@ public class HudFragment extends Fragment{
             float[] coreAttackOpacity = {0};
 
             Events.on(TeamCoreDamage.class, event -> {
-                if (coreAttackOpacity[0] == 0) {
+                if (!t.visible) {
                     if (Core.settings.getBool("broadcastcoreattack")) {
-                        Call.sendChatMessage(Strings.format("Core under attack at: (@, @)", event.core.x, event.core.y));
+                        Call.sendChatMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                     } else {
-                        ui.chatfrag.addMessage(Strings.format("Core under attack at: (@, @)", event.core.x, event.core.y), null);
+                        ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y), null);
                     }
                 }
                coreAttackTime[0] = notifDuration;
@@ -367,9 +364,8 @@ public class HudFragment extends Fragment{
 
                 coreAttackTime[0] -= Time.delta;
 
-                return coreAttackOpacity[0] > 0;
+                return coreAttackOpacity[0] > 0.01f;
             });
-            if (!t.visible) coreAttackOpacity[0] = 0;
             t.table(Tex.button, top -> top.add("@coreattack").pad(2)
             .update(label -> label.color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f)))).touchable(Touchable.disabled);
         });
@@ -814,7 +810,7 @@ public class HudFragment extends Fragment{
     }
 
     private boolean canSkipWave(){
-        return state.rules.waves && state.wave < state.rules.winWave && ((net.server() || player.admin) || !net.active()) /* && state.enemies == 0 && !spawner.isSpawning() */;
+        return !state.rules.waves || state.wave < state.rules.winWave && ((net.server() || player.admin) || !net.active()) /* && state.enemies == 0 && !spawner.isSpawning() */;
     }
 
 }
