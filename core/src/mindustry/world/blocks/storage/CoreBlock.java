@@ -7,7 +7,8 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.Table;
 import arc.struct.*;
-import arc.util.*;
+import arc.util.Log;
+import arc.util.Timer;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
@@ -264,7 +265,7 @@ public class CoreBlock extends StorageBlock{
 
             for(Building other : state.teams.cores(team)){
                 if(other.tile() == tile) continue;
-                storageCapacity += other.block.itemCapacity + other.proximity().sum(e -> owns(e) && owns(other, e) ? e.block.itemCapacity : 0);
+                storageCapacity += other.block.itemCapacity + other.proximity().sum(e -> owns(other, e) ? e.block.itemCapacity : 0);
             }
 
             //Team.sharded.core().items.set(Items.surgeAlloy, 12000)
@@ -397,6 +398,13 @@ public class CoreBlock extends StorageBlock{
                     noEffect = false;
                 }else{
                     super.handleItem(source, item);
+                }
+            }else if(incinerate()){
+                if(items.get(item) >= storageCapacity){
+                    //create item incineration effect at random intervals
+                    if(!noEffect){
+                        incinerateEffect(this, source);
+                    }
                 }
             }
         }

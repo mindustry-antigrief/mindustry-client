@@ -466,7 +466,7 @@ public class ConstructBlock extends Block{
                         }
                         lastWarn = Time.millis();
                         if (lastBuilder.isPlayer()) {
-                            lastBuilder.drawBuildRequests();
+                            lastBuilder.drawBuildPlans();
                             String format = String.format("%s is building a %s at %d,%d (%d block%s from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), distance.intValue(), distance.intValue() == 1 ? "" : "s");
                             String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
                             if (toast == null || toast.parent == null) {

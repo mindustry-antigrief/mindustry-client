@@ -156,7 +156,7 @@ public class DesktopInput extends InputHandler{
                 drawArrow(sreq.block, sreq.x, sreq.y, sreq.rotation, valid);
             }
 
-            sreq.block.drawRequest(sreq, allRequests(), valid);
+            sreq.block.drawPlan(sreq, allRequests(), valid);
 
             drawSelected(sreq.x, sreq.y, sreq.block, getRequest(sreq.x, sreq.y, sreq.block.size, sreq) != null ? Pal.remove : Pal.accent);
         }
@@ -188,6 +188,7 @@ public class DesktopInput extends InputHandler{
                     }
                     drawRequest(req);
                 }
+                lineRequests.each(this::drawOverRequest);
             }else if(isPlacing()){
                 if(block.rotate){
                     drawArrow(block, cursorX, cursorY, rotation);
@@ -750,7 +751,6 @@ public class DesktopInput extends InputHandler{
 
     protected void updateMovement(Unit unit){
         boolean omni = unit.type.omniMovement;
-        boolean ground = unit.isGrounded();
 
         float speed = unit.realSpeed();
         float xa = Core.input.axis(Binding.move_x);

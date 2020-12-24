@@ -35,7 +35,7 @@ allprojects{
         if(!project.hasProperty("clientBuild")) clientBuild = '0'
         if(!project.hasProperty("updateUrl")) updateUrl = 'https://api.github.com/repos/blahblahbloopster/mindustry-client-v6/releases/latest'
         if(!project.hasProperty("versionModifier")) versionModifier = 'release'
-        if(!project.hasProperty("buildversion")) buildversion = '121.2'
+        if(!project.hasProperty("buildversion")) buildversion = '122.0'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '891ed912791e01fe9ee6237a6497e5212b85c256'
@@ -84,6 +84,10 @@ allprojects{
         getNeatVersionString = {
             String buildVersion = getBuildVersion()
             return "v$buildVersion"
+        }
+
+        hasSprites = {
+            return new File(rootDir, "core/assets/sprites/sprites.atlas").exists()
         }
 
         getModifierString = {
@@ -388,7 +392,6 @@ project(":annotations"){
     dependencies{
         implementation 'com.squareup:javapoet:1.12.1'
         implementation "com.github.Anuken.Arc:arc-core:$arcHash"
-        implementation files("${System.getProperty('java.home')}/../lib/tools.jar")
     }
 }
 

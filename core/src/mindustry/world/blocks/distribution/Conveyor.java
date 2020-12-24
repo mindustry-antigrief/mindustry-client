@@ -153,7 +153,7 @@ public class Conveyor extends Block implements Autotiler{
         return canReplace(tile.block()) && !tile.floor().isDeep();
     }
 
-    public class ConveyorBuild extends Building{
+    public class ConveyorBuild extends Building implements ChainedBuilding{
         //parallel array data
         public Item[] ids = new Item[capacity];
         public float[] xs = new float[capacity];
@@ -452,6 +452,12 @@ public class Conveyor extends Block implements Autotiler{
             }
 
             len--;
+        }
+
+        @Nullable
+        @Override
+        public Building next(){
+            return nextc;
         }
     }
 }

@@ -27,7 +27,6 @@ public class PlayerListFragment extends Fragment{
     private boolean visible = false;
     private Interval timer = new Interval();
     private TextField sField;
-    private boolean found = false;
     private Seq<Player> players = new Seq<>();
 
     @Override
@@ -84,7 +83,7 @@ public class PlayerListFragment extends Fragment{
         content.clear();
 
         float h = 74f;
-        found = false;
+        boolean found = false;
 
         players.clear();
         Groups.player.copy(players);
