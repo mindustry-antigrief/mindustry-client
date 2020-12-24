@@ -13,10 +13,12 @@ import mindustry.graphics.Layer;
 public class WaypointPath extends Path {
     private final Seq<Waypoint> waypoints;
     private final Seq<Waypoint> finished;
+    private final Seq<Waypoint> initial;
     private boolean show;
 
     public WaypointPath(Seq<Waypoint> waypoints) {
         this.waypoints = waypoints;
+        this.initial = waypoints.copy();
         finished = new Seq<>();
     }
 
@@ -63,7 +65,17 @@ public class WaypointPath extends Path {
         if (waypoints == null) {
             return true;
         }
+        if (waypoints.isEmpty() && repeat) {
+            onFinish();
+        }
         return waypoints.isEmpty();
+    }
+
+    @Override
+    public void reset() {
+        finished.clear();
+        waypoints.clear();
+        waypoints.addAll(initial);
     }
 
     @Override

@@ -18,7 +18,10 @@ public class AssistPath extends Path {
     }
 
     @Override
-    void setShow(boolean show) {}
+    public void reset() {}
+
+    @Override
+    public void setShow(boolean show) {}
 
     @Override
     boolean isShown() {

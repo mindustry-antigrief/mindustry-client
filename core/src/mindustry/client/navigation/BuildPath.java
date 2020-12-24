@@ -1,6 +1,5 @@
 package mindustry.client.navigation;
 
-import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.math.geom.Position;
 import arc.struct.Queue;
@@ -58,7 +57,7 @@ public class BuildPath extends Path {
     }
 
     @Override
-    void setShow(boolean show) { this.show = show; }
+    public void setShow(boolean show) { this.show = show; }
 
     @Override
     boolean isShown() { return show; }
@@ -119,6 +118,15 @@ public class BuildPath extends Path {
     @Override
     float progress() {
         return 0;
+    }
+
+    @Override
+    public void reset() {
+        broken = new Queue<>();
+        boulders = new Queue<>();
+        assist = new Queue<>();
+        unfinished = new Queue<>();
+        cleanup = new Queue<>();
     }
 
     @Override
