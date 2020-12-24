@@ -3,14 +3,9 @@ package mindustry.world.blocks;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
-import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.math.*;
-import arc.scene.actions.Actions;
-import arc.scene.style.Drawable;
-import arc.scene.style.Style;
 import arc.scene.ui.Label;
-import arc.scene.ui.layout.Table;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
@@ -20,8 +15,8 @@ import mindustry.client.antigreif.*;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
 import mindustry.client.ui.Toast;
-import mindustry.client.utils.MovingAverage;
 import mindustry.content.*;
+import mindustry.core.World;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -30,22 +25,19 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.ui.*;
-import mindustry.ui.fragments.ChatFragment;
-import mindustry.ui.fragments.HudFragment;
 import mindustry.world.*;
 import mindustry.world.blocks.power.NuclearReactor;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.modules.*;
-
 import java.time.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static mindustry.Vars.*;
 import static mindustry.ui.Styles.monoLabel;
 
 /** A block in the process of construction. */
 public class ConstructBlock extends Block{
-    public static final int maxSize = 16;
-    private static final ConstructBlock[] consBlocks = new ConstructBlock[maxSize];
+    private static final ConstructBlock[] consBlocks = new ConstructBlock[maxBlockSize];
 
     private static long lastWarn;
     private static long lastTime = 0;
@@ -65,7 +57,7 @@ public class ConstructBlock extends Block{
 
     /** Returns a ConstructBlock by size. */
     public static ConstructBlock get(int size){
-        if(size > maxSize) throw new IllegalArgumentException("No. Don't place ConstructBlock of size greater than " + maxSize);
+        if(size > maxBlockSize) throw new IllegalArgumentException("No. Don't place ConstructBlock of size greater than " + maxBlockSize);
         return consBlocks[size - 1];
     }
 
@@ -197,6 +189,7 @@ public class ConstructBlock extends Block{
          */
         public Block previous;
         public Object lastConfig;
+        public boolean wasConstructing;
 
         @Nullable
         public Unit lastBuilder;
@@ -271,6 +264,7 @@ public class ConstructBlock extends Block{
         }
 
         public void construct(Unit builder, @Nullable Building core, float amount, Object config){
+            wasConstructing = true;
             if(cblock == null){
                 kill();
                 return;
@@ -305,10 +299,9 @@ public class ConstructBlock extends Block{
         }
 
         public void deconstruct(Unit builder, @Nullable Building core, float amount){
-            /*
-            TODO: Look into this
-            tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", this.cblock == null ? previous : this.cblock)));
-             */
+            wasConstructing = false;
+            /* TODO: Look into this
+            tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", this.cblock == null ? previous : this.cblock))); */
             float deconstructMultiplier = state.rules.deconstructRefundMultiplier;
 
             if(builder.isPlayer()){
@@ -388,6 +381,7 @@ public class ConstructBlock extends Block{
         }
 
         public void setConstruct(Block previous, Block block){
+            wasConstructing = true;
             this.cblock = block;
             this.previous = previous;
             this.accumulator = new float[block.requirements.length];
@@ -397,6 +391,7 @@ public class ConstructBlock extends Block{
 
         public void setDeconstruct(Block previous){
             if(previous == null) return;
+            wasConstructing = false;
             this.previous = previous;
             this.progress = 1f;
             if(previous.buildCost >= 0.01f){
@@ -457,18 +452,22 @@ public class ConstructBlock extends Block{
         @Override
         public void update() {
             super.update();
-            if (cblock instanceof NuclearReactor) {
-                if (Core.settings.getBool("reactorwarnings") && cblock != null) {
+            if (closestCore() == null) return;
+            if (cblock instanceof NuclearReactor && team == player.team()) {
+                AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
+                closestCore().tile.getLinkedTiles(t -> distance.set(Math.min(World.toTile(t.dst(this.tile)) - 1, distance.get())));
+                if (Core.settings.getBool("reactorwarnings") && cblock != null && (Core.settings.getInt("reactorwarningdistance") == 0 || distance.intValue() <= Core.settings.getInt("reactorwarningdistance"))) {
+
                     long since = Time.timeSinceMillis(lastWarn);
                     if (progress > lastProgress && since > 0 && progress < .99f && lastBuilder != null) {
                         // Play sound for reactor construction (only played when no reactor has been built for 10s)
-                        if ((since > 10 * 1000) && (Core.settings.getBool("reactorwarningsounds"))) {
+                        if (since > 10 * 1000 && Core.settings.getBool("reactorwarningsounds") && (Core.settings.getInt("reactorsounddistance") == 0 || distance.intValue() <= Core.settings.getInt("reactorsounddistance"))) {
                             Sounds.corexplode.play();
                         }
                         lastWarn = Time.millis();
                         if (lastBuilder.isPlayer()) {
-                            lastBuilder.drawBuildRequests();
-                            String format = String.format("%s is building a %s at %d,%d (%d blocks from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), Mathf.floor(closestCore().dst(this) / 8));
+                            lastBuilder.drawBuildPlans();
+                            String format = String.format("%s is building a %s at %d,%d (%d block%s from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), distance.intValue(), distance.intValue() == 1 ? "" : "s");
                             String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
                             if (toast == null || toast.parent == null) {
                                 toast = new Toast();

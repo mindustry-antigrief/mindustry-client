@@ -62,12 +62,17 @@ public class Weather extends UnlockableContent{
         return entity;
     }
 
+    @Nullable
+    public WeatherState instance(){
+        return Groups.weather.find(w -> w.weather() == this);
+    }
+
     public boolean isActive(){
-        return Groups.weather.find(w -> w.weather() == this) != null;
+        return instance() != null;
     }
 
     public void remove(){
-        Entityc e = Groups.weather.find(w -> w.weather() == this);
+        var e = instance();
         if(e != null) e.remove();
     }
 
@@ -260,6 +265,8 @@ public class Weather extends UnlockableContent{
         public float cooldown;
         /** Intensity of the weather produced. */
         public float intensity = 1f;
+        /** If true, this weather is always active. */
+        public boolean always = false;
 
         /** Creates a weather entry with some approximate weather values. */
         public WeatherEntry(Weather weather){

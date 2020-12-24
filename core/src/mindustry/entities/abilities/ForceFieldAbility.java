@@ -10,6 +10,7 @@ import arc.util.*;
 import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 
 public class ForceFieldAbility extends Ability{
     /** Shield radius. */
@@ -78,18 +79,19 @@ public class ForceFieldAbility extends Ability{
         checkRadius(unit);
 
         if(unit.shield > 0){
-            Draw.z(Layer.shields);
+            Draw.z(Layer.shields - .5f);
 
             Draw.color(unit.team.color, Color.white, Mathf.clamp(alpha));
             Draw.alpha(1f);
 
             if(Core.settings.getBool("animatedshields")){
+                Draw.alpha(UnitType.alpha);
                 Fill.poly(unit.x, unit.y, 6, realRad);
             }else{
                 Lines.stroke(1.5f);
-                Draw.alpha(0.09f);
+                Draw.alpha(0.09f * UnitType.alpha);
                 Fill.poly(unit.x, unit.y, 6, radius);
-                Draw.alpha(1f);
+                Draw.alpha(1f * UnitType.alpha);
                 Lines.poly(unit.x, unit.y, 6, radius);
             }
         }

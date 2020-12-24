@@ -18,7 +18,7 @@ public class ConfigRequest {
     public void run() {
         if (world != null) {
             Tile tile = world.tile(x, y);
-            if (tile == null) return;
+            if (tile == null || tile.build.config() == value) return;
             Call.tileConfig(player, tile.build, value);
         }
     }

@@ -25,6 +25,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
 
+import static arc.Core.scene;
 import static mindustry.Vars.*;
 
 public class PlacementFragment extends Fragment{
@@ -146,7 +147,7 @@ public class PlacementFragment extends Fragment{
                             break;
                         }
                     }
-                }else if(blockSelectEnd || Time.timeSinceMillis(blockSelectSeqMillis) > 750){ //1st number of combo, select category
+                }else if(blockSelectEnd || Time.timeSinceMillis(blockSelectSeqMillis) > 400){ //1st number of combo, select category
                     //select only visible categories
                     if(!getUnlockedByCategory(Category.all[i]).isEmpty()){
                         currentCategory = Category.all[i];

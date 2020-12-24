@@ -7,7 +7,8 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.Table;
 import arc.struct.*;
-import arc.util.*;
+import arc.util.Log;
+import arc.util.Timer;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
@@ -62,11 +63,11 @@ public class CoreBlock extends StorageBlock{
     public static void playerSpawn(Tile tile, Player player){
         if(player == null || tile == null) return;
 
-        CoreBuild entity = tile.bc();
+        CoreBuild entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreNucleus));
+        if (entity == null) entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreFoundation));
+        if (entity == null || player != Vars.player) entity = (CoreBuild)tile.build;
         CoreBlock block = (CoreBlock)tile.block();
         Fx.spawn.at(entity);
-
-        player.set(entity);
 
         if(!net.client()){
             Unit unit = block.unitType.create(tile.team());
@@ -78,9 +79,16 @@ public class CoreBlock extends StorageBlock{
             unit.add();
         }
 
-        if(state.isCampaign() && player == Vars.player){
-            block.unitType.unlock();
+        if (player == Vars.player) {
+            if(state.isCampaign()) block.unitType.unlock();
+            if (tile != entity.tile) {
+                Log.info("Default: " + tile + "     Best: " + entity.tile);
+                CoreBuild finalEntity = entity;
+                Timer.schedule(() -> Call.unitControl(player, finalEntity.unit()), net.client() ? netClient.getPing()/1000f+.05f : .025f);
+            }
         }
+
+        player.set(entity);
     }
 
     @Override
@@ -257,7 +265,7 @@ public class CoreBlock extends StorageBlock{
 
             for(Building other : state.teams.cores(team)){
                 if(other.tile() == tile) continue;
-                storageCapacity += other.block.itemCapacity + other.proximity().sum(e -> owns(e) && owns(other, e) ? e.block.itemCapacity : 0);
+                storageCapacity += other.block.itemCapacity + other.proximity().sum(e -> owns(other, e) ? e.block.itemCapacity : 0);
             }
 
             //Team.sharded.core().items.set(Items.surgeAlloy, 12000)
@@ -329,7 +337,8 @@ public class CoreBlock extends StorageBlock{
         @Override
         public float handleDamage(float amount){
             if(player != null && team == player.team()){
-                Events.fire(Trigger.teamCoreDamage);
+                // Events.fire(Trigger.teamCoreDamage); Replaced in favor of the event below
+                Events.fire(new TeamCoreDamage(tile));
             }
             return amount;
         }
@@ -389,6 +398,13 @@ public class CoreBlock extends StorageBlock{
                     noEffect = false;
                 }else{
                     super.handleItem(source, item);
+                }
+            }else if(incinerate()){
+                if(items.get(item) >= storageCapacity){
+                    //create item incineration effect at random intervals
+                    if(!noEffect){
+                        incinerateEffect(this, source);
+                    }
                 }
             }
         }

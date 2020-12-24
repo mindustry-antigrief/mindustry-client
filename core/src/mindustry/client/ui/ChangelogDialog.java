@@ -1,7 +1,11 @@
 package mindustry.client.ui;
 
 import arc.Core;
+import arc.scene.Element;
 import arc.scene.ui.ScrollPane;
+import arc.scene.ui.layout.Stack;
+import arc.scene.ui.layout.Table;
+import arc.util.Log;
 import mindustry.ui.dialogs.BaseDialog;
 
 import java.io.IOException;
@@ -13,7 +17,7 @@ public class ChangelogDialog extends BaseDialog {
 
     public ChangelogDialog() {
         super("Changelog");
-        cont.add(new ScrollPane(StupidMarkupParser.format(Core.files.internal("changelog").readString("UTF-8")))).growX().center();
+        cont.pane(StupidMarkupParser.format(Core.files.internal("changelog").readString("UTF-8"))).growX().get().setScrollingDisabled(true, false);
         addCloseButton();
     }
 }

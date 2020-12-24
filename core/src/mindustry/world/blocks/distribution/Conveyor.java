@@ -68,7 +68,6 @@ public class Conveyor extends Block implements Autotiler{
 
     @Override
     public boolean blends(Tile tile, int rotation, int otherx, int othery, int otherrot, Block otherblock){
-        if (otherblock == null) return false;
         return (otherblock.outputsItems() || (lookingAt(tile, rotation, otherx, othery, otherblock) && otherblock.hasItems))
             && lookingAtEither(tile, rotation, otherx, othery, otherrot, otherblock);
     }
@@ -80,7 +79,8 @@ public class Conveyor extends Block implements Autotiler{
 
     @Override
     public boolean canReplace(Block other){
-        return super.canReplace(other) && !(other instanceof StackConveyor);
+        if(other.alwaysReplace) return true;
+        return (other != this || rotate) && other.group == this.group && !(other instanceof StackConveyor);
     }
 
     @Override
@@ -150,10 +150,10 @@ public class Conveyor extends Block implements Autotiler{
     /** Whether this block can be placed on this tile. */
     public boolean thisPlaceableOn(Tile tile){
         if (tile == null) return false;
-        return (tile.block().group == group || tile.block().alwaysReplace) && !tile.floor().isDeep();
+        return canReplace(tile.block()) && !tile.floor().isDeep();
     }
 
-    public class ConveyorBuild extends Building{
+    public class ConveyorBuild extends Building implements ChainedBuilding{
         //parallel array data
         public Item[] ids = new Item[capacity];
         public float[] xs = new float[capacity];
@@ -452,6 +452,12 @@ public class Conveyor extends Block implements Autotiler{
             }
 
             len--;
+        }
+
+        @Nullable
+        @Override
+        public Building next(){
+            return nextc;
         }
     }
 }

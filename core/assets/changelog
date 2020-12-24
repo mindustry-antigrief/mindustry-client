@@ -1,4 +1,28 @@
 Hi foo
+# Version 5.0
+ * Updated to v122
+ * !builder command with multiple options (run with no options for details)
+ * ! command that literally just prints an ! to chat
+ * A ton of bug fixes
+ * Bridge click and drag uses new vanilla one.
+ * Reactor warnings and sounds can have an optional core distance cap
+ * No more infinite wave skipping because it breaks stuff
+ * On spawn/death/ctrl clicking a core, always spawn at the highest tier core available.
+ * Changed formatting of changelog and feature lists, its now aligned to the left and text wraps instead of scrolling horizontally (ur welcome red soul)
+ * Option to not clear chat when leaving a world and joining another (ur welcome again red soul)
+ * New core attack warnings in chat display the exact position of the core being attacked.
+ * Optionally broadcast core attack warnings to entire lobby
+ * Teleport (won't work on most servers but it works in steam lobbies so thats fun, !tp or tile actions menu)
+ * Unit picker fixed for real this time, there was some issues when ping fluctuated a bunch.
+ * Chat now works in singleplayer
+ * Cursor and player position are no longer in a weird spot
+ * Tile log hud is still fucked lol
+ * Warnings when a certain annoying griefer joins your steam lobby
+ * Auto updater no longer crashes the game when running through steam
+ * Auto updater now automatically deletes old versions
+ * Added some additional info to crash logs, changed the format so people can copy paste it nicely...
+ * Probably more stuff I forgot as always
+
 # Version 4.0
  * New smart build path (keybind: ;) that will build things based on priorities (whatever you place > broken buildings > teammate placement queues > anything that isnt finished, also does stuff it can afford first)
  * Hide all units so you can actually see stuff (hold: o to activate)
@@ -34,19 +58,15 @@ Hi foo
  * Updated to v115.0
  * Probably more stuff I forgot
 
-# ​
 # Version 2.4
  * Tile logs persist over /sync (does not work for server-forced sync)
 
-# ​
 # Version 2.3
  * Improved turret range showing performance
 
-# ​
 # Version 2.2
  * Added turret range display bound by default to backtick (`)
 
-# ​
 # Version 2.0
  * UI tweaks:
  * Improved top left UI (the one with player hp and wave info)
@@ -55,7 +75,6 @@ Hi foo
  * UI visible even when waves are disabled on server
  * FPS display now also displays player count when on a server
 
- * ​
  * Antigrief + Assist:
  * Reactor warnings improved
  * Added sound to reactor warnings (can be toggled in settings, can only play after 10s of no reactor construction)
@@ -63,7 +82,6 @@ Hi foo
  * Assist vastly improved, now mimics shooting, mining
  * Doesn't get as close to assisted player, should hopefully reduce the likelihood you from pushing other players
 
- * ​
  * Misc:
  * Added changelog I guess
  * Added client tab to main menu, currently it only has the discord, changelog and feature lists
@@ -72,12 +90,3 @@ Hi foo
  * Alt click "menu" looks good now
  * Alt click "menu" now shows mouse coords as well as block type (for now you can use these coords to find where camera is when freecamming)
  * Probably more stuff I missed
-
- * ​
- * TODO:
- * Attempt to move the core item list to the top left UI or somewhere else that wont get covered by toasts
- * Clean up the code for all of the new stuff
- * Remove some old commented out code if everything is working correctly
- * Make tile config rollback display some sort of success message, maybe a toast?
- * Move power split notifs to toasts (not really important but would be nice)
- * Update feature list (tbf i didnt add any new stuff so..)

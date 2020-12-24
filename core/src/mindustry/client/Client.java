@@ -13,15 +13,18 @@ import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
 import mindustry.client.utils.Autocomplete;
 import mindustry.client.utils.Pair;
+import mindustry.core.World;
 import mindustry.entities.Units;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.input.DesktopInput;
+import mindustry.world.Tile;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
 
 import static mindustry.Vars.*;
+import static mindustry.Vars.player;
 
 public class Client {
     private static TileLog[][] tileLogs;
@@ -33,7 +36,6 @@ public class Client {
     public static long lastSyncTime = 0L;
     public static final CommandHandler fooCommands = new CommandHandler("!");
     public static boolean hideTrails = true;
-    private static Interval timer = new Interval();
     public static Ratekeeper configRateLimit = new Ratekeeper();
     public static boolean hideUnits = false;
 
@@ -71,7 +73,7 @@ public class Client {
             new UnitPicker().findUnit(found);
         });
 
-        fooCommands.<Player>register("goto","<x> <y>", "Navigates to (x,y)", (args, player) -> {
+        fooCommands.<Player>register("goto","<x> <y>", "Navigates to (x, y)", (args, player) -> {
             try {
                 Navigation.navigateTo(Float.parseFloat(args[0])*8, Float.parseFloat(args[1])*8);
             }
@@ -80,7 +82,7 @@ public class Client {
             }
         });
 
-        fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to (x,y)", (args, player) -> {
+        fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to (x, y)", (args, player) -> {
             try {
                 DesktopInput.panning = true;
                 Spectate.pos = new Vec2(Float.parseFloat(args[0])*8, Float.parseFloat(args[1])*8);
@@ -90,13 +92,30 @@ public class Client {
             }
         });
 
-        fooCommands.<Player>register("here", "[message...]", "Prints your location to chat with an optional message", (args, player) -> {
-            Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", player.tileX(), player.tileY()));
+        fooCommands.<Player>register("here", "[message...]", "Prints your location to chat with an optional message", (args, player) ->
+                Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", player.tileX(), player.tileY()))
+        );
+
+        fooCommands.<Player>register("cursor", "[message...]", "Prints cursor location to chat with an optional message", (args, player) ->
+                Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", World.toTile(player.mouseX), World.toTile(player.mouseY)))
+        );
+
+        fooCommands.<Player>register("builder", "[options...]", "Starts auto build with optional arguments, prioritized from first to last.", (args, player) ->
+                Navigation.follow(new BuildPath(args))
+        );
+
+        fooCommands.<Player>register("tp", "<x> <y>", "Moves to (x, y) at insane speeds, only works on servers without strict mode enabled.", (args, player) -> {
+            try {
+                Timer.schedule(() -> player.unit().moveAt(new Vec2().set(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1]))).sub(player.unit()), player.dst(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])))), 0, .01f, 15);
+            }
+            catch(Exception e){
+                player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !tp 10 300");
+            }
         });
 
-        fooCommands.<Player>register("cursor", "[message...]", "Prints cursor location to chat with an optional message", (args, player) -> {
-            Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", (int)player.mouseX / tilesize, (int)player.mouseY / tilesize));
-        });
+        fooCommands.<Player>register("", "[message...]", "Does nothing", (args, player) ->
+            Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
+        );
 
 
         Events.on(WorldLoadEvent.class, event -> {
@@ -122,7 +141,7 @@ public class Client {
                             if (player.unit() == find) { UnitPicker.found = null; t.add("Successfully switched units.");} // After we switch units successfully, stop listening for this unit
                             else if (find.getPlayer() != null) { t.add("Failed to become " + unit + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
                         }
-                        }, .5f);
+                        }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
                 }
             }
         });
@@ -137,7 +156,7 @@ public class Client {
                         if (player.unit() == event.unit) { UnitPicker.found = null; t.add("Successfully switched units.");}  // After we switch units successfully, stop listening for this unit
                         else if (event.unit.getPlayer() != null) { t.add("Failed to become " + unit + ", " + event.unit.getPlayer().name + " is already controlling it (likely using unit sniper).");}
                     }
-                    }, .5f);
+                    }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
             }
         });
         Events.on(EventType.ClientLoadEvent.class, event -> {
@@ -156,7 +175,17 @@ public class Client {
         if (!configs.isEmpty()) {
                 try {
                     if (configRateLimit.allow(6 * 1000, 25)) {
-                        configs.removeLast().run();
+                        ConfigRequest req = configs.last();
+                        Tile tile = world.tile(req.x, req.y);
+                        if (tile != null) {
+                            Object initial = tile.build.config();
+                            req.run();
+                            configs.remove(req);
+                            Timer.schedule(() -> {
+                                // if(tile.build != null && tile.build.config() == initial) configs.addLast(req); TODO: This can also cause loops
+                                // if(tile.build != null && req.value != tile.build.config()) configs.addLast(req); TODO: This infinite loops if u config something twice, find a better way to do this
+                            }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
+                        }
                     }
                 } catch (Exception e) {Log.info(e.getMessage());}
         }

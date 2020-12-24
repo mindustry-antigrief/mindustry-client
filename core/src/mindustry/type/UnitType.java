@@ -33,6 +33,7 @@ import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 import mindustry.world.meta.values.*;
 
+import static arc.Core.scene;
 import static mindustry.Vars.*;
 
 public class UnitType extends UnlockableContent{
@@ -48,7 +49,7 @@ public class UnitType extends UnlockableContent{
     public float health = 200f, range = -1, armor = 0f, maxRange = -1f;
     public float crashDamageMultiplier = 1f;
     public boolean targetAir = true, targetGround = true;
-    public boolean faceTarget = true, rotateShooting = true, isCounted = true, lowAltitude = false;
+    public boolean faceTarget = true, rotateShooting = true, isCounted = true, lowAltitude = false, circleTarget = false;
     public boolean canBoost = false;
     public boolean destructibleWreck = true;
     public float groundLayer = Layer.groundUnit;
@@ -108,7 +109,7 @@ public class UnitType extends UnlockableContent{
 
     public Seq<Weapon> weapons = new Seq<>();
     public TextureRegion baseRegion, legRegion, region, shadowRegion, cellRegion,
-        occlusionRegion, jointRegion, footRegion, legBaseRegion, baseJointRegion, outlineRegion;
+        softShadowRegion, jointRegion, footRegion, legBaseRegion, baseJointRegion, outlineRegion;
     public TextureRegion[] wreckRegions;
     public static float alpha = 1f;
 
@@ -363,7 +364,7 @@ public class UnitType extends UnlockableContent{
         legBaseRegion = Core.atlas.find(name + "-leg-base", name + "-leg");
         baseRegion = Core.atlas.find(name + "-base");
         cellRegion = Core.atlas.find(name + "-cell", Core.atlas.find("power-cell"));
-        occlusionRegion = Core.atlas.find("circle-shadow");
+        softShadowRegion = Core.atlas.find("circle-shadow");
         outlineRegion = Core.atlas.find(name + "-outline");
         shadowRegion = icon(Cicon.full);
 
@@ -452,7 +453,7 @@ public class UnitType extends UnlockableContent{
             drawPayload((Unit & Payloadc)unit);
         }
 
-        drawOcclusion(unit);
+        drawSoftShadow(unit);
 
         Draw.z(z - outlineSpace);
 
@@ -467,9 +468,7 @@ public class UnitType extends UnlockableContent{
         drawLight(unit);
 
         if(unit.shieldAlpha > 0 && drawShields){
-            Draw.alpha(alpha);
             drawShield(unit);
-            Draw.alpha(1f);
         }
 
         if(mech != null){
@@ -479,17 +478,11 @@ public class UnitType extends UnlockableContent{
         if(unit.abilities.size > 0){
             for(Ability a : unit.abilities){
                 Draw.reset();
-                if (!(a instanceof ForceFieldAbility)) {
-                    Draw.alpha(alpha);
-                } else {
-                    Draw.alpha(1f);
-                }
                 a.draw(unit);
             }
 
             Draw.reset();
         }
-        Draw.alpha(1f);
         Draw.reset();
     }
 
@@ -499,14 +492,12 @@ public class UnitType extends UnlockableContent{
             pay.set(unit.x, unit.y, unit.rotation);
             Draw.alpha(alpha);
             pay.draw();
-            Draw.alpha(1f);
         }
     }
 
     public void drawShield(Unit unit){
         float radius = unit.hitSize() * 1.3f;
         Fill.light(unit.x, unit.y, Lines.circleVertices(radius), radius, Tmp.c1.set(Pal.shieldIn), Tmp.c2.set(Pal.shield).lerp(Color.white, Mathf.clamp(unit.hitTime() / 2f)).a(Pal.shield.a * unit.shieldAlpha() * alpha));
-        Draw.alpha(1f);
     }
 
     public void drawControl(Unit unit){
@@ -525,16 +516,14 @@ public class UnitType extends UnlockableContent{
         float e = Math.max(unit.elevation, visualElevation);
         Draw.rect(shadowRegion, unit.x + shadowTX * e, unit.y + shadowTY * e, unit.rotation - 90);
         Draw.color();
-        Draw.alpha(1f);
     }
 
-    public void drawOcclusion(Unit unit){
+    public void drawSoftShadow(Unit unit){
         Draw.color(0, 0, 0, 0.4f * alpha);
         float rad = 1.6f;
         float size = Math.max(region.width, region.height) * Draw.scl;
-        Draw.rect(occlusionRegion, unit, size * rad, size * rad);
+        Draw.rect(softShadowRegion, unit, size * rad, size * rad);
         Draw.color();
-        Draw.alpha(1f);
     }
 
     public void drawItems(Unit unit){
@@ -555,6 +544,7 @@ public class UnitType extends UnlockableContent{
             Draw.alpha(alpha);
 
             Lines.stroke(1f, Pal.accent);
+            Draw.alpha(alpha);
             Lines.circle(
             unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
             unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY),
@@ -564,7 +554,7 @@ public class UnitType extends UnlockableContent{
                 Fonts.outline.draw(unit.stack.amount + "",
                 unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
                 unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY) - 3,
-                Pal.accent, 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
+                Pal.accent.a(alpha), 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
                 );
             }
 
@@ -598,7 +588,6 @@ public class UnitType extends UnlockableContent{
             (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f)) / 2f  * scale
         );
         Draw.color();
-        Draw.alpha(1f);
     }
 
     public void drawWeapons(Unit unit){
@@ -614,8 +603,8 @@ public class UnitType extends UnlockableContent{
             float wx = unit.x + Angles.trnsx(rotation, weapon.x, weapon.y) + Angles.trnsx(weaponRotation, 0, recoil),
                 wy = unit.y + Angles.trnsy(rotation, weapon.x, weapon.y) + Angles.trnsy(weaponRotation, 0, recoil);
 
-            if(weapon.occlusion > 0){
-                Drawf.shadow(wx, wy, weapon.occlusion, Pal.shadow.a * alpha);
+            if(weapon.shadow > 0){
+                Drawf.shadow(wx, wy, weapon.shadow, Pal.shadow.a * alpha);
             }
 
             if(weapon.outlineRegion.found()){
@@ -663,7 +652,6 @@ public class UnitType extends UnlockableContent{
             Draw.alpha(alpha);
             Draw.rect(outlineRegion, unit.x, unit.y, unit.rotation - 90);
         }
-        Draw.alpha(1f);
     }
 
     public void drawBody(Unit unit){
@@ -795,13 +783,11 @@ public class UnitType extends UnlockableContent{
         Draw.rect(baseRegion, unit, mech.baseRotation() - 90);
 
         Draw.mixcol();
-        Draw.alpha(1f);
     }
 
     public void applyColor(Unit unit){
         Draw.color();
-        Draw.mixcol(Color.white, unit.hitTime);
-        Draw.alpha(alpha);
+        Draw.mixcol(Color.white, unit.hitTime * alpha);
         if(unit.drownTime > 0 && unit.floorOn().isDeep()){
             Draw.mixcol(unit.floorOn().mapColor, unit.drownTime * 0.8f);
         }

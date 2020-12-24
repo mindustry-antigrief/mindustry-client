@@ -64,7 +64,7 @@ abstract class CommanderComp implements Entityc, Posc{
         units.clear();
 
         Units.nearby(team, x, y, 150f, u -> {
-            if(u.isAI() && include.get(u) && u != self() && u.type.flying == type.flying && u.hitSize <= hitSize * 1.1f){
+            if(u.isAI() && include.get(u) && u != self() && u.type.flying == type.flying && u.hitSize <= hitSize * 1.1f && !(u.controller() instanceof FormationAI)){
                 units.add(u);
             }
         });

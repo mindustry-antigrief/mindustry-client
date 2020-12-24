@@ -399,6 +399,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
     void setup(){
         zoom = planets.zoom = 1f;
         selectAlpha = 1f;
+        ui.minimapfrag.hide();
 
         clearChildren();
 
@@ -413,7 +414,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
                     public void tap(InputEvent event, float x, float y, int count, KeyCode button){
                         if(showing()) return;
 
-                        if(selected == hovered && count == 2){
+                        if(hovered != null && selected == hovered && count == 2){
                             playSelected();
                         }
 
@@ -766,9 +767,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
                 sector.isBeingPlayed() ? "@sectors.resume" :
                 sector.hasBase() ? "@sectors.go" :
                 locked ? "@locked" : "@sectors.launch",
-                locked ? Icon.lock : Icon.play, () -> {
-                    playSelected();
-            }).growX().height(54f).minWidth(170f).padTop(4).disabled(locked);
+                locked ? Icon.lock : Icon.play, this::playSelected).growX().height(54f).minWidth(170f).padTop(4).disabled(locked);
         }
 
         stable.pack();
@@ -795,6 +794,8 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
     }
 
     void playSelected(){
+        if(selected == null) return;
+
         Sector sector = selected;
 
         if(sector.isBeingPlayed()){

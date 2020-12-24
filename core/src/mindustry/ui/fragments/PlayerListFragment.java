@@ -6,6 +6,7 @@ import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
+import arc.struct.*;
 import arc.util.*;
 import mindustry.client.FooUser;
 import mindustry.client.Spectate;
@@ -26,7 +27,7 @@ public class PlayerListFragment extends Fragment{
     private boolean visible = false;
     private Interval timer = new Interval();
     private TextField sField;
-    private boolean found = false;
+    private Seq<Player> players = new Seq<>();
 
     @Override
     public void build(Group parent){
@@ -82,10 +83,14 @@ public class PlayerListFragment extends Fragment{
         content.clear();
 
         float h = 74f;
-        found = false;
+        boolean found = false;
 
-        Groups.player.sort(Structs.comparing(Player::team));
-        Groups.player.each(user -> {
+        players.clear();
+        Groups.player.copy(players);
+
+        players.sort(Structs.comps(Structs.comparing(Player::team), Structs.comparingBool(p -> !p.admin)));
+
+        for(var user : players){
             found = true;
             NetConnection connection = user.con;
 
@@ -115,8 +120,8 @@ public class PlayerListFragment extends Fragment{
             button.labelWrap("[#" + user.color().toString().toUpperCase() + "]" + user.name()).width(300f).pad(10);
             button.add().grow();
 
-            button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
-            button.image(Icon.wrench).visible(() -> FooUser.IsUser(user) && !(!user.isLocal() && net.server())).padRight(10).get().updateVisibility();
+            button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).padRight(10).get().updateVisibility();
+            button.image(Icon.wrench).visible(() -> FooUser.IsUser(user) && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();
@@ -179,7 +184,7 @@ public class PlayerListFragment extends Fragment{
             content.row();
             content.image().height(4f).color(state.rules.pvp ? user.team().color : Pal.gray).growX();
             content.row();
-        });
+        }
 
         if(!found){
             content.add(Core.bundle.format("players.notfound")).padBottom(6).width(600f).maxHeight(h + 14);

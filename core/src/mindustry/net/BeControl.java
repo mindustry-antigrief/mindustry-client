@@ -25,7 +25,7 @@ import static mindustry.Vars.*;
 
 /** Handles control of bleeding edge builds. */
 public class BeControl{
-    private static final int updateInterval = 60 * 1;
+    private static final int updateInterval = 60;
 
     private final AsyncExecutor executor = new AsyncExecutor(1);
     private boolean checkUpdates = Core.settings.getBool("autoupdate");
@@ -52,6 +52,8 @@ public class BeControl{
                     if(!System.getProperty("lastBuild").equals(Version.clientVersion)) { new ChangelogDialog().show(); } // Show changelog after auto update
                     Fi dest = Fi.get(System.getProperty("becopy"));
                     Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+
+                    for(Fi file : self.parent().findAll(f -> !f.equals(self))) file.delete();
 
                     self.copyTo(dest);
                 }catch(Throwable e){
@@ -115,7 +117,7 @@ public class BeControl{
                                 new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
                                 new String[]{"java", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                             );
-                            System.exit(0);
+                            Core.app.exit();
                         }catch(IOException e){
                             ui.showException(e);
                         }

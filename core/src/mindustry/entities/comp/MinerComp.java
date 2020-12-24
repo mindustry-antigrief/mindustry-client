@@ -118,11 +118,12 @@ abstract class MinerComp implements Itemsc, Posc, Teamc, Rotc, Drawc{
         Draw.z(Layer.flyingUnit + 0.1f);
 
         Draw.color(Color.lightGray, Color.white, 1f - flashScl + Mathf.absin(Time.time, 0.5f, flashScl));
+        Draw.alpha(UnitType.alpha);
 
         Drawf.laser(team(), Core.atlas.find("minelaser"), Core.atlas.find("minelaser-end"), px, py, ex, ey, 0.75f);
 
         if(isLocal()){
-            Lines.stroke(1f, Pal.accent);
+            Lines.stroke(1f, Pal.accent.a(UnitType.alpha));
             Lines.poly(mineTile.worldx(), mineTile.worldy(), 4, tilesize / 2f * Mathf.sqrt2, Time.time);
         }
 

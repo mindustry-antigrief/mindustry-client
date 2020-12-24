@@ -31,6 +31,8 @@ public class Renderer implements ApplicationListener{
     public @Nullable Bloom bloom;
     public FrameBuffer effectBuffer = new FrameBuffer();
     public float laserOpacity = 1f;
+    /** minZoom = zooming out, maxZoom = zooming in */
+    public float minZoom = 0.01f, maxZoom = 6f;
 
     //TODO unused
     private FxProcessor fx = new FxProcessor();
@@ -68,7 +70,7 @@ public class Renderer implements ApplicationListener{
 //        float dest = Mathf.round(targetscale, 0.5f);
         float dest = targetscale;  // note: because the above line is commented out, there may be "jagged pixel scaling"
         camerascale = Mathf.lerpDelta(camerascale, dest, 0.1f);
-        if(Mathf.within(camerascale, dest, 0.001f)) camerascale = dest;
+        if(Mathf.equal(camerascale, dest, 0.001f)) camerascale = dest;
         laserOpacity = Core.settings.getInt("lasersopacity") / 100f;
 
         if(landTime > 0){
@@ -113,7 +115,10 @@ public class Renderer implements ApplicationListener{
         minimap.dispose();
         effectBuffer.dispose();
         blocks.dispose();
-        planets.dispose();
+        if(planets != null){
+            planets.dispose();
+            planets = null;
+        }
         if(bloom != null){
             bloom.dispose();
             bloom = null;
@@ -302,8 +307,7 @@ public class Renderer implements ApplicationListener{
     }
 
     public void clampScale(){
-        float s = Scl.scl(1f);
-        targetscale = Mathf.clamp(targetscale, minScale(), Math.round(s * 6));
+        targetscale = Mathf.clamp(targetscale, minScale(), maxScale());
     }
 
     public float getDisplayScale(){
@@ -311,7 +315,11 @@ public class Renderer implements ApplicationListener{
     }
 
     public float minScale(){
-        return Scl.scl(0.01f);
+        return Scl.scl(minZoom);
+    }
+
+    public float maxScale(){
+        return Mathf.round(Scl.scl(maxZoom));
     }
 
     public float getScale(){

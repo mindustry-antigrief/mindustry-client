@@ -74,13 +74,12 @@ public interface Autotiler{
 
         Arrays.fill(directionals, null);
         list.each(other -> {
-            if(other.breaking || other == req) return;
+            if(other.breaking || other == req || other.block == null) return;
 
             int i = 0;
             for(Point2 point : Geometry.d4){
                 int x = req.x + point.x, y = req.y + point.y;
-                int size = other.block == null? 1 : other.block.size;
-                if(x >= other.x -(size - 1) / 2 && x <= other.x + (size / 2) && y >= other.y -(size - 1) / 2 && y <= other.y + (size / 2)){
+                if(x >= other.x -(other.block.size - 1) / 2 && x <= other.x + (other.block.size / 2) && y >= other.y -(other.block.size - 1) / 2 && y <= other.y + (other.block.size / 2)){
                     directionals[i] = other;
                 }
                 i++;

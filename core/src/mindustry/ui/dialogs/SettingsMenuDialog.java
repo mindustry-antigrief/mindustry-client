@@ -8,7 +8,6 @@ import arc.input.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
-import arc.scene.ui.SettingsDialog.SettingsTable.*;
 import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -323,13 +322,17 @@ public class SettingsMenuDialog extends SettingsDialog{
         }
 
         client.checkPref("reactorwarnings", true);
+        client.sliderPref("reactorwarningdistance", 0, 0, 100, s -> s == 0 ? "Infinite" : Integer.toString(s));
         client.checkPref("reactorwarningsounds", true);
+        client.sliderPref("reactorsounddistance", 0, 0, 100, s -> s == 0 ? "Infinite" : Integer.toString(s));
         client.checkPref("lighting", true);
         client.checkPref("displayasuser", false);
         client.checkPref("highlightclientmsg", false);
         client.checkPref("autoupdate", true);
         client.checkPref("hidetrails", false);
         client.checkPref("tilehud", true);
+        client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
+        client.checkPref("clearchatonleave", true);
         client.checkPref("discordrpc", true, val -> {
             ClientLauncher launcher = (ClientLauncher) app.getListeners().find(item -> item instanceof ClientLauncher);
             if (launcher != null && app.isDesktop()) {
@@ -341,6 +344,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             }
         });
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
+
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);
         game.checkPref("conveyorpathfinding", true);

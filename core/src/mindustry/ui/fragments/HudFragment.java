@@ -14,6 +14,7 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.ui.TileInfoFragment;
 import mindustry.client.ui.Toast;
@@ -21,6 +22,7 @@ import mindustry.content.*;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.core.GameState.*;
+import mindustry.core.World;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -100,24 +102,26 @@ public class HudFragment extends Fragment{
 
         //minimap + position
         parent.fill(t -> {
-            t.name = "minimap/position";
-            t.add(new TileInfoFragment()).top();
             t.visible(() -> Core.settings.getBool("minimap") && shown);
-            //minimap
-            t.add(new Minimap()).name("minimap");
+            t.table(ta -> {
+                //tile hud
+                ta.name = "minimap/position";
+                ta.add(new TileInfoFragment()).name("tilehud").top();
+                //minimap
+                ta.add(new Minimap()).name("minimap");
+            }).padRight(7f).padTop(7f);
             t.row();
             //position
             t.label(() -> player.tileX() + "," + player.tileY())
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .name("position").right();
-
+            .name("position").right().padRight(7f);
             t.row();
-
-            t.label(() -> "[coral]" + Mathf.floor(player.mouseX / tilesize) + "," + Mathf.floor(player.mouseY / tilesize))
+            //cursor position
+            t.label(() -> "[coral]" + World.toTile(player.mouseX) + "," + World.toTile(player.mouseY))
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .name("position").right();
+            .name("cursor").right().padRight(7f);
             t.top().right();
         });
 
@@ -224,16 +228,11 @@ public class HudFragment extends Fragment{
                     dialog.show();
                 }).growY().fillX().right().width(40f);
 
-                //table with button to skip wave
+                // button to skip wave
                 s.button(Icon.play, Styles.wavei, 30f, () -> {
-                    if(net.client() && player.admin){
-                        Call.adminRequest(player, AdminAction.wave);
-                    }else if(!net.active() || net.server()){
-                        logic.skipWave();
-                    }
-                    else{
-                        new Toast(1f).label(() -> "You tried and that's all that matters.");
-                    }
+                    if(!canSkipWave()) new Toast(1f).label(() -> "You tried and that's all that matters.");
+                    else if(net.client() && player.admin) Call.adminRequest(player, AdminAction.wave);
+                    else logic.skipWave();
                 }).growY().fillX().right().width(40f).name("skip");
 
                 // Power bar display
@@ -334,9 +333,18 @@ public class HudFragment extends Fragment{
             float[] coreAttackTime = {0};
             float[] coreAttackOpacity = {0};
 
-            Events.run(Trigger.teamCoreDamage, () -> {
-                coreAttackTime[0] = notifDuration;
+            Events.on(TeamCoreDamage.class, event -> {
+                if (!t.visible) {
+                    if (Core.settings.getBool("broadcastcoreattack")) {
+                        Call.sendChatMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
+                    } else {
+                        ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y), null);
+                    }
+                }
+               coreAttackTime[0] = notifDuration;
             });
+
+            Events.run(Trigger.teamCoreDamage, () -> coreAttackTime[0] = notifDuration); // Legacy code kept in case anuke breaks it
 
             t.top().visible(() -> {
                 if(!shown) return false;
@@ -354,7 +362,7 @@ public class HudFragment extends Fragment{
 
                 coreAttackTime[0] -= Time.delta;
 
-                return coreAttackOpacity[0] > 0;
+                return coreAttackOpacity[0] > 0.01f;
             });
             t.table(Tex.button, top -> top.add("@coreattack").pad(2)
             .update(label -> label.color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f)))).touchable(Touchable.disabled);
@@ -800,7 +808,7 @@ public class HudFragment extends Fragment{
     }
 
     private boolean canSkipWave(){
-        return state.rules.waves && ((net.server() || player.admin) || !net.active()) /* && state.enemies == 0 && !spawner.isSpawning() */;
+        return state.rules.waves && (state.rules.winWave <= 0 || state.wave < state.rules.winWave) && ((net.server() || player.admin) || !net.active()) /* && state.enemies == 0 && !spawner.isSpawning() */;
     }
 
 }

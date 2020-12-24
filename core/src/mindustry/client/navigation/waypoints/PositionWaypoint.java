@@ -4,9 +4,6 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
-import arc.util.Log;
-import arc.util.Time;
-import mindustry.client.navigation.waypoints.Waypoint;
 
 import static mindustry.Vars.*;
 
@@ -56,11 +53,6 @@ public class PositionWaypoint extends Waypoint implements Position {
     }
     @Override
     public void run() {
-        float direction = player.angleTo(this);
-        float x = Mathf.cosDeg(direction) * 2f;
-        float y = Mathf.sinDeg(direction) * 2f;
-        x = Mathf.clamp(x / 10, -1f, 1f);
-        y = Mathf.clamp(y / 10, -1f, 1f);
         moveTo(this, distance, 8f);
 //        if (player.dst(this) > tolerance /* + player.unit().realSpeed() / player.unit().drag * Time.delta */) {
 //            //control.input.updateMovementCustom(player.unit(), x, y, direction);

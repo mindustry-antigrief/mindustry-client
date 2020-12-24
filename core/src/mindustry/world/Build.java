@@ -6,6 +6,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigreif.RotateTileLog;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
@@ -13,6 +14,8 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
+
+import java.time.Instant;
 
 import static mindustry.Vars.*;
 
@@ -41,8 +44,9 @@ public class Build{
         if(tile.build != null) prevBuild.add(tile.build);
 
         tile.setBlock(sub, team, rotation);
-        tile.<ConstructBuild>bc().setDeconstruct(previous);
-        tile.<ConstructBuild>bc().prevBuild = prevBuild;
+        var build = (ConstructBuild)tile.build;
+        build.setDeconstruct(previous);
+        build.prevBuild = prevBuild;
         tile.build.health = tile.build.maxHealth * prevPercent;
         if(unit != null && unit.isPlayer()) tile.build.lastAccessed = unit.getPlayer().name;
 
@@ -64,6 +68,7 @@ public class Build{
         //auto-rotate the block to the correct orientation and bail out
         if(tile.team() == team && tile.block == result && tile.build != null && tile.block.quickRotate){
             if(unit != null && unit.isPlayer()) tile.build.lastAccessed = unit.getPlayer().name;
+            tile.getLinkedTiles(tile2 -> tile2.addToLog(new RotateTileLog(player.unit(), tile2, tile.build.rotation, Mathf.mod(rotation, 4), Instant.now().getEpochSecond(), "")));
             tile.build.rotation = Mathf.mod(rotation, 4);
             tile.build.updateProximity();
             tile.build.noSleep();
@@ -85,7 +90,7 @@ public class Build{
 
         tile.setBlock(sub, team, rotation);
 
-        ConstructBuild build = tile.bc();
+        var build = (ConstructBuild)tile.build;
 
         build.setConstruct(previous.size == sub.size ? previous : Blocks.air, result);
         build.prevBuild = prevBuild;
@@ -150,10 +155,10 @@ public class Build{
                 !check.floor().placeableOn || //solid wall
                     !((type.canReplace(check.block()) || //can replace type
                         //controversial change: allow rebuilding damaged blocks
-                        //this could be buggy and abusable, so I'm not enabling it yet
+                        //this could be buggy and abuse-able, so I'm not enabling it yet
                         //note that this requires a change in BuilderComp as well
                         //(type == check.block() && check.centerX() == x && check.centerY() == y && check.build != null && check.build.health < check.build.maxHealth - 0.0001f) ||
-                        (check.block instanceof ConstructBlock && check.<ConstructBuild>bc().cblock == type && check.centerX() == tile.x && check.centerY() == tile.y)) && //same type in construction
+                        (check.build instanceof ConstructBuild build && build.cblock == type && check.centerX() == tile.x && check.centerY() == tile.y)) && //same type in construction
                     type.bounds(tile.x, tile.y, Tmp.r1).grow(0.01f).contains(check.block.bounds(check.centerX(), check.centerY(), Tmp.r2))) || //no replacement
                 (type.requiresWater && check.floor().liquidDrop != Liquids.water) //requires water but none found
                 ) return false;

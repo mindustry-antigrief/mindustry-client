@@ -12,7 +12,6 @@ import static mindustry.Vars.player;
 
 public class AssistPath extends Path {
     public final Player assisting;
-    int i = 1;
 
     public AssistPath(Player toAssist) {
         assisting = toAssist;

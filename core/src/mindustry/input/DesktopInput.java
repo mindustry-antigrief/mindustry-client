@@ -134,7 +134,7 @@ public class DesktopInput extends InputHandler{
 
         //draw break selection
         if(mode == breaking){
-            drawBreakSelection(selectX, selectY, cursorX, cursorY, !Core.input.keyDown(Binding.schematic_select) ? maxLength : Vars.maxSchematicSize);
+            drawBreakSelection(selectX, selectY, cursorX, cursorY, /*!Core.input.keyDown(Binding.schematic_select) ? maxLength :*/ Vars.maxSchematicSize);
         }
 
         if(Core.input.keyDown(Binding.schematic_select) && !Core.scene.hasKeyboard() && mode != breaking){
@@ -156,7 +156,7 @@ public class DesktopInput extends InputHandler{
                 drawArrow(sreq.block, sreq.x, sreq.y, sreq.rotation, valid);
             }
 
-            sreq.block.drawRequest(sreq, allRequests(), valid);
+            sreq.block.drawPlan(sreq, allRequests(), valid);
 
             drawSelected(sreq.x, sreq.y, sreq.block, getRequest(sreq.x, sreq.y, sreq.block.size, sreq) != null ? Pal.remove : Pal.accent);
         }
@@ -188,6 +188,7 @@ public class DesktopInput extends InputHandler{
                     }
                     drawRequest(req);
                 }
+                lineRequests.each(this::drawOverRequest);
             }else if(isPlacing()){
                 if(block.rotate){
                     drawArrow(block, cursorX, cursorY, rotation);
@@ -321,7 +322,7 @@ public class DesktopInput extends InputHandler{
         Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
         if(!scene.hasMouse()){
-            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null){
+            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null){ // Tile actions menu
                 int itemHeight = 30;
                 Table table = new Table(Tex.buttonTrans);
                 table.touchable = Touchable.childrenOnly;
@@ -348,10 +349,14 @@ public class DesktopInput extends InputHandler{
                 });
 
                 table.row().fill();
-                table.button("Unit Picker", () -> { // Unit Selector
-                    new UnitPicker().show();
-                });
+                table.button("Unit Picker", () -> // Unit Picker / Sniper
+                    new UnitPicker().show()
+                );
 
+                table.row().fill();
+                table.button("Teleport to Cursor", () ->
+                    Timer.schedule(() -> player.unit().moveAt(new Vec2().set(World.unconv(cursor.x), World.unconv(cursor.y)).sub(player.unit()), player.dst(World.unconv(cursor.x), World.unconv(cursor.y))), 0, .01f, 15)
+                );
 
                 table.setHeight(itemHeight * (table.getRows() + 1) + 10 * (table.getRows() + 1));
                 AtomicBoolean released = new AtomicBoolean(false);
@@ -694,7 +699,7 @@ public class DesktopInput extends InputHandler{
                 lineRequests.clear();
                 Events.fire(new LineConfirmEvent());
             }else if(mode == breaking){ //touch up while breaking, break everything in selection
-                removeSelection(selectX, selectY, cursorX, cursorY, !Core.input.keyDown(Binding.schematic_select) ? maxLength : Vars.maxSchematicSize);
+                removeSelection(selectX, selectY, cursorX, cursorY, /*!Core.input.keyDown(Binding.schematic_select) ? maxLength :*/ Vars.maxSchematicSize);
                 if(lastSchematic != null){
                     useSchematic(lastSchematic);
                     lastSchematic = null;
@@ -759,7 +764,6 @@ public class DesktopInput extends InputHandler{
 
     protected void updateMovement(Unit unit){
         boolean omni = unit.type.omniMovement;
-        boolean ground = unit.isGrounded();
 
         float speed = unit.realSpeed();
         float xa = Core.input.axis(Binding.move_x);

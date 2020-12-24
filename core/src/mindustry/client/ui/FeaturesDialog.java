@@ -13,7 +13,7 @@ public class FeaturesDialog extends BaseDialog {
 
     public FeaturesDialog() {
         super("Features and Documentation");
-        cont.add(new ScrollPane(StupidMarkupParser.format(Core.files.internal("features").readString("UTF-8")))).growX().center();
+        cont.pane(StupidMarkupParser.format(Core.files.internal("features").readString("UTF-8"))).growX().get().setScrollingDisabled(true, false);
         addCloseButton();
     }
 }
