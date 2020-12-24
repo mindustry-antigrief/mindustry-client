@@ -25,17 +25,15 @@ import static mindustry.Vars.*;
 public class CrashSender{
 
     public static String createReport(String error){
-        String report = "Mindustry has crashed. How unfortunate.\n";
-        if(Version.build != 0){
-            report += "Report this at https://discord.gg/yp9ZW7j \n\n";
-        }
+        String report = "Your game has crashed, Report this at https://discord.gg/yp9ZW7j\n\n";
+        report += "Copy paste the report below when reporting:\n```java\n";
         return report + "Version: " + Version.combined() + (Vars.headless ? " (Server)" : "") + "\n"
             + "Source: " + Version.updateUrl + "\n"
             + "OS: " + System.getProperty("os.name") + " x" + (OS.is64Bit ? "64" : "32") + "\n"
             + "Java Version: " + System.getProperty("java.version") + "\n"
             + "Java Architecture: " + System.getProperty("sun.arch.data.model") + "\n"
             + mods.list().size + " Mods" + (mods.list().isEmpty() ? "" : ": " + mods.list().toString(", ", mod -> mod.name + ":" + mod.meta.version))
-            + "\n\n" + error;
+            + "```\n\n" + error;
     }
 
     public static void log(Throwable exception){
