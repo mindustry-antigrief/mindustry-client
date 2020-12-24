@@ -13,6 +13,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.Client;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -173,6 +174,15 @@ public class UnitType extends UnlockableContent{
                 bars.add(new Bar(ammoType.icon + " " + Core.bundle.get("stat.ammo"), ammoType.barColor, () -> unit.ammo / ammoCapacity));
                 bars.row();
             }
+
+            bars.add(new Bar("stat.shield", Pal.shield.cpy().a(1f), () -> {
+                float shield = Math.min(unit.shield(), 1f);
+                if (Float.isNaN(shield)) {
+                    return 0f;
+                } else {
+                    return shield;
+                }
+            }));
         }).growX();
 
         if(unit.controller() instanceof LogicAI p){
@@ -407,7 +417,7 @@ public class UnitType extends UnlockableContent{
 
     public void draw(Unit unit){
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
-        alpha = Core.input.keyDown(Binding.invisible_units) && !scene.hasField() && !scene.hasDialog() && !state.isPaused() ? 0 : unit.controller() instanceof FormationAI ? .3f : 1;
+        alpha = Client.hideUnits ? 0 : unit.controller() instanceof FormationAI ? .3f : 1;
         float z = unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
 
         if(unit.controller().isBeingControlled(player.unit())){
@@ -777,8 +787,7 @@ public class UnitType extends UnlockableContent{
 
     public void applyColor(Unit unit){
         Draw.color();
-        Draw.mixcol(Color.white, unit.hitTime);
-        Draw.alpha(alpha);
+        Draw.mixcol(Color.white, unit.hitTime * alpha);
         if(unit.drownTime > 0 && unit.floorOn().isDeep()){
             Draw.mixcol(unit.floorOn().mapColor, unit.drownTime * 0.8f);
         }

@@ -267,11 +267,11 @@ public class Units{
 
     /** Returns the closest ally of this team. Filter by predicate.
      * Unlike the closest() function, this only guarantees that unit hitboxes overlap the range. */
-    public static Unit closestOverlap(Team team, float x, float y, float range, Boolf<Unit> predicate){
+    public static Unit closestOverlap(float x, float y, float range, Boolf<Unit> predicate){
         result = null;
         cdist = 0f;
 
-        nearby(team, x - range, y - range, range*2f, range*2f, e -> {
+        nearby(x - range, y - range, range*2f, range*2f, e -> {
             if(!predicate.get(e)) return;
 
             float dist = e.dst2(x, y);
@@ -287,6 +287,25 @@ public class Units{
     /** Iterates over all units in a rectangle. */
     public static void nearby(Team team, float x, float y, float width, float height, Cons<Unit> cons){
         team.data().tree().intersect(x, y, width, height, cons);
+    }
+
+    /** Returns the closest ally of this team. Filter by predicate.
+     * Unlike the closest() function, this only guarantees that unit hitboxes overlap the range. */
+    public static Unit closestOverlap(Team team, float x, float y, float range, Boolf<Unit> predicate){
+        result = null;
+        cdist = 0f;
+
+        nearby(team, x - range, y - range, range*2f, range*2f, e -> {
+            if(!predicate.get(e)) return;
+
+            float dist = e.dst2(x, y);
+            if(result == null || dist < cdist){
+                result = e;
+                cdist = dist;
+            }
+        });
+
+        return result;
     }
 
     /** Iterates over all units in a circle around this position. */

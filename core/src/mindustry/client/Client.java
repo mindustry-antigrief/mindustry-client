@@ -37,6 +37,7 @@ public class Client {
     public static final CommandHandler fooCommands = new CommandHandler("!");
     public static boolean hideTrails = true;
     public static Ratekeeper configRateLimit = new Ratekeeper();
+    public static boolean hideUnits = false;
 
     public static void initialize() {
         fooCommands.<Player>register("help", "[page]", "Lists all client commands.", (args, player) -> {

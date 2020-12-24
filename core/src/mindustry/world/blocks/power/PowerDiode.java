@@ -4,6 +4,7 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.utils.MovingAverage;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -44,6 +45,8 @@ public class PowerDiode extends Block{
     }
 
     public class PowerDiodeBuild extends Building{
+        public MovingAverage transferred = new MovingAverage(60);
+
         @Override
         public void draw(){
             Draw.rect(region, x, y, 0);
@@ -70,6 +73,7 @@ public class PowerDiode extends Block{
                 float amount = backGraph.getBatteryStored() * (backStored - frontStored) / 2;
                 // prevent sending more than the front can handle
                 amount = Mathf.clamp(amount, 0, frontGraph.getTotalBatteryCapacity() * (1 - frontStored));
+                transferred.add(amount);
 
                 backGraph.useBatteries(amount);
                 frontGraph.chargeBatteries(amount);

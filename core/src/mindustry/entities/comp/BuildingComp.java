@@ -1027,7 +1027,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         table.row();
         table.table(this::displayConsumption).growX();
 
-        boolean displayFlow = (block.category == Category.distribution || block.category == Category.liquid) && Core.settings.getBool("flow") && block.displayFlow;
+        boolean displayFlow = (block.category == Category.distribution || block.category == Category.liquid || block instanceof PowerDiode) && Core.settings.getBool("flow") && block.displayFlow;
 
         if(displayFlow){
             String ps = " " + StatUnit.perSecond.localized();
@@ -1081,6 +1081,10 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
                        }
                     });
                 }).left();
+            }
+            if (block instanceof PowerDiode) {
+                table.row();
+                table.table(t -> t.label(() -> Strings.fixed(((PowerDiode.PowerDiodeBuild)self()).transferred.getAverage() * 60, 2) + " power/sec").get().setStyle(Styles.monoLabel));
             }
         }
 

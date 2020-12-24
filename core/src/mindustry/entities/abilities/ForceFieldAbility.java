@@ -82,6 +82,7 @@ public class ForceFieldAbility extends Ability{
             Draw.z(Layer.shields - .5f);
 
             Draw.color(unit.team.color, Color.white, Mathf.clamp(alpha));
+            Draw.alpha(1f);
 
             if(Core.settings.getBool("animatedshields")){
                 Draw.alpha(UnitType.alpha);

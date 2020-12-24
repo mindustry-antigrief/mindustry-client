@@ -432,7 +432,6 @@ public class SettingsMenuDialog extends SettingsDialog{
         graphics.checkPref("fps", false);
         graphics.checkPref("playerindicators", true);
         graphics.checkPref("indicators", true);
-        graphics.checkPref("showweather", true);
         graphics.checkPref("animatedwater", true);
         if(Shaders.shield != null){
             graphics.checkPref("animatedshields", !mobile);

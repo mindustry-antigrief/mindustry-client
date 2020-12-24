@@ -238,6 +238,19 @@ public class DesktopInput extends InputHandler{
 
         conveyorPlaceNormal = input.keyDown(Binding.toggle_placement_modifiers);
 
+        if (input.shift()) {
+            if (input.keyTap(Binding.invisible_units) && scene.getKeyboardFocus() == null) {
+                Client.hideUnits = !Client.hideUnits;
+            }
+        } else {
+            if (input.keyTap(Binding.invisible_units) && scene.getKeyboardFocus() == null) {
+                Client.hideUnits = !Client.hideUnits;
+            }
+            if (input.keyRelease(Binding.invisible_units) && scene.getKeyboardFocus() == null) {
+                Client.hideUnits = !Client.hideUnits;
+            }
+        }
+
         if(Navigation.state == NavigationState.RECORDING){
             if(input.keyTap(Binding.place_waypoint) && scene.getKeyboardFocus() == null){
                 Navigation.addWaypointRecording(new PositionWaypoint(player.x, player.y));
