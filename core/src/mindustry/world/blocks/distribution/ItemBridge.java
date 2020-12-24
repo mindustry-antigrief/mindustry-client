@@ -147,11 +147,6 @@ public class ItemBridge extends Block{
     }
 
     @Override
-    public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests) {
-        return (Mathf.dstm(requests.first().x, requests.first().y, req.x, req.y) % this.range == 0 || req == requests.get(requests.size - 1)) ? this : null;
-    }
-
-    @Override
     public void onNewPlan(BuildPlan plan){
         if(lastPlan != null && lastPlan.config == null && positionsValid(lastPlan.x, lastPlan.y, plan.x, plan.y)){
             lastPlan.config = new Point2(plan.x - lastPlan.x, plan.y - lastPlan.y);
