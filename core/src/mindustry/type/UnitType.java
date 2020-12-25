@@ -787,7 +787,8 @@ public class UnitType extends UnlockableContent{
 
     public void applyColor(Unit unit){
         Draw.color();
-        Draw.mixcol(Color.white, unit.hitTime * alpha);
+        Draw.mixcol(Color.white, unit.hitTime);
+        Draw.alpha(alpha);
         if(unit.drownTime > 0 && unit.floorOn().isDeep()){
             Draw.mixcol(unit.floorOn().mapColor, unit.drownTime * 0.8f);
         }
