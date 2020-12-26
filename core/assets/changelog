@@ -1,4 +1,8 @@
 Hi foo
+# Version 5.0.3
+ * Option for mining requiring a double click to reduce accidental mining
+ * Auto-updater now only pops up the changelog if it is changed.
+
 # Version 5.0.2
  * Teleportation for paths as an option, this should probably stay off considering how it will get you banned / not work in most places.
  * Warning when entering a game detected as pvp (not 100% accurate but it does it's job good enough).
