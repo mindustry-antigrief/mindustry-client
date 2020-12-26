@@ -49,9 +49,7 @@ public class BeControl{
 
             if(System.getProperties().containsKey("becopy")){
                 try{
-                    ui.showInfoText("Original", System.getProperty("changelog"));
-                    ui.showInfoText("New", Core.files.internal("changelog").readString("UTF-8").replaceAll("\\n.?", ""));
-                    if(!System.getProperty("changelog").equals(Core.files.internal("changelog").readString("UTF-8").replaceAll("\\n.?", ""))) new ChangelogDialog().show(); // Show changelog after auto update
+                    if(!System.getProperty("lastBuild").equals(Version.clientVersion)) new ChangelogDialog().show(); // Show changelog after auto update
                     Fi dest = Fi.get(System.getProperty("becopy"));
                     Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
@@ -117,7 +115,7 @@ public class BeControl{
                         try{
                             Runtime.getRuntime().exec(OS.isMac ?
                                 new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                                new String[]{"java", "-Dchangelog=" + Core.files.internal("changelog").readString("UTF-8").replaceAll("\\n.?", ""), "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
+                                new String[]{"java", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                             );
                             Core.app.exit();
                         }catch(IOException e){

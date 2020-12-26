@@ -21,7 +21,7 @@ _[Javadoc](https://mindustrygame.github.io/docs/)_
 4. Move the file to the `jre` folder where the game is installed as seen [here](core/assets/steaminfo.png).
 5. Accept the file replacement prompt.
 6. Open the game, and it should work just fine.
-- To uninstall the client, delete the `Mindustry.exe` file as  well as the `desktop.jar` file in the `jre` folder. Start the game, accept the error and start it again.
+- To uninstall the client, delete the `Mindustry.exe`file. Start the game, accept the error and start it again.
 
 ### Mac OS
 
