@@ -1,4 +1,14 @@
 Hi foo
+# Version 5.0.2
+ * Teleportation for paths as an option, this should probably stay off considering how it will get you banned / not work in most places.
+ * Warning when entering a game detected as pvp (not 100% accurate but it does it's job good enough).
+ * Crash fix
+
+# Version 5.0.1
+ * Item bridges show entire sequence when hovering
+ * Paths can now be repeated
+ * Bug fixes
+
 # Version 5.0
  * Updated to v122
  * !builder command with multiple options (run with no options for details)
@@ -16,7 +26,7 @@ Hi foo
  * Unit picker fixed for real this time, there was some issues when ping fluctuated a bunch.
  * Chat now works in singleplayer
  * Cursor and player position are no longer in a weird spot
- * Tile log hud is still fucked lol
+ * Tile log hud is still weird lol
  * Warnings when a certain annoying griefer joins your steam lobby
  * Auto updater no longer crashes the game when running through steam
  * Auto updater now automatically deletes old versions
