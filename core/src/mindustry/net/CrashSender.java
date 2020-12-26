@@ -33,7 +33,7 @@ public class CrashSender{
             + "Java Version: " + System.getProperty("java.version") + "\n"
             + "Java Architecture: " + System.getProperty("sun.arch.data.model") + "\n"
             + mods.list().size + " Mods" + (mods.list().isEmpty() ? "" : ": " + mods.list().toString(", ", mod -> mod.name + ":" + mod.meta.version))
-            + "```\n\n" + error;
+            + "\n\n" + error +"```";
     }
 
     public static void log(Throwable exception){

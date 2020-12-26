@@ -7,6 +7,7 @@ import arc.math.geom.Vec2;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.Toast;
@@ -127,6 +128,7 @@ public class Client {
             configs.clear();
             turrets.clear();
             UnitPicker.found = null;
+            if (state.rules.pvp) ui.chatfrag.addMessage("[scarlet]Don't use a client in pvp, it's uncool!", "Your Conscience", Color.crimson);
         });
 
         Events.on(EventType.UnitChangeEvent.class, event -> {
@@ -178,7 +180,7 @@ public class Client {
                         ConfigRequest req = configs.last();
                         Tile tile = world.tile(req.x, req.y);
                         if (tile != null) {
-                            Object initial = tile.build.config();
+//                            Object initial = tile.build.config();
                             req.run();
                             configs.remove(req);
                             Timer.schedule(() -> {
