@@ -55,7 +55,7 @@ public class PositionWaypoint extends Waypoint implements Position {
     }
     @Override
     public void run() {
-        if (Core.settings.getBool("assumeunstrict")) player.unit().moveAt(new Vec2().set(this).sub(player.unit()), player.dst(this));
+        if (Core.settings.getBool("assumeunstrict")) player.unit().moveAt(new Vec2().set(this).sub(player.unit()), Mathf.clamp(player.dst(this), -100, 100));
         else moveTo(this, distance, 8f);
 //        if (player.dst(this) > tolerance /* + player.unit().realSpeed() / player.unit().drag * Time.delta */) {
 //            //control.input.updateMovementCustom(player.unit(), x, y, direction);
