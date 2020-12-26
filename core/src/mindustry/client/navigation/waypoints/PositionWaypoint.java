@@ -1,9 +1,11 @@
 package mindustry.client.navigation.waypoints;
 
+import arc.Core;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
+import arc.util.Timer;
 
 import static mindustry.Vars.*;
 
@@ -53,7 +55,8 @@ public class PositionWaypoint extends Waypoint implements Position {
     }
     @Override
     public void run() {
-        moveTo(this, distance, 8f);
+        if (Core.settings.getBool("assumeunstrict")) player.unit().moveAt(new Vec2().set(this).sub(player.unit()), player.dst(this));
+        else moveTo(this, distance, 8f);
 //        if (player.dst(this) > tolerance /* + player.unit().realSpeed() / player.unit().drag * Time.delta */) {
 //            //control.input.updateMovementCustom(player.unit(), x, y, direction);
 //            moveTo(this, 30, 100);

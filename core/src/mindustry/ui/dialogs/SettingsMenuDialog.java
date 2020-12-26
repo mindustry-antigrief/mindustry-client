@@ -333,6 +333,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("tilehud", true);
         client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
         client.checkPref("clearchatonleave", true);
+        client.checkPref("assumeunstrict", false);
         client.checkPref("discordrpc", true, val -> {
             ClientLauncher launcher = (ClientLauncher) app.getListeners().find(item -> item instanceof ClientLauncher);
             if (launcher != null && app.isDesktop()) {
