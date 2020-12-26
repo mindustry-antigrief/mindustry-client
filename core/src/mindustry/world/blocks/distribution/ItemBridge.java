@@ -200,7 +200,8 @@ public class ItemBridge extends Block{
         public void drawSelect(){
             Tile next = world.tile(link);
             Tile out = tile;
-            while (next != null) {
+            int i = 0;
+            while (next != null && next.build instanceof ItemBridgeBuild && i++ < 100) {
                 out = next;
                 next = world.tile(((ItemBridgeBuild)(next.build)).link);
             }
