@@ -1014,14 +1014,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             && tile.block() == Blocks.air;
     }
 
-    boolean canMineNoCheck(Tile tile){
-        return !Core.scene.hasMouse()
-            && tile.drop() != null
-            && player.unit().validMine(tile)
-            && player.unit().acceptsItem(tile.drop())
-            && tile.block() == Blocks.air;
-    }
-
     /** Returns the tile at the specified MOUSE coordinates. */
     Tile tileAt(float x, float y){
         return world.tile(tileX(x), tileY(y));

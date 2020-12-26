@@ -344,6 +344,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             }
         });
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
+        client.checkPref("doubleclicktomine", true);
 
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);

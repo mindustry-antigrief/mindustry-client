@@ -61,6 +61,7 @@ public class DesktopInput extends InputHandler{
     public static boolean panning = false;
     /** Mouse pan speed. */
     public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 11f;
+    private long lastMineClicked = 0L;
 
     @Override
     public void buildUI(Group group){
@@ -652,9 +653,25 @@ public class DesktopInput extends InputHandler{
             }else if(req != null && req.breaking){
                 deleting = true;
             }else if(selected != null){
+                boolean mine = false;
+                if (settings.getBool("doubleclicktomine")) {
+                    if (canMine(selected)) {
+                        if (Time.timeSinceMillis(lastMineClicked) < 200) {
+                            mine = tryBeginMine(selected);
+                        } else {
+                            lastMineClicked = Time.millis();
+                        }
+                    } else {
+                        if (player.unit() != null) {
+                            player.unit().mineTile = null;
+                        }
+                    }
+                } else {
+                    mine = tryBeginMine(selected);
+                }
                 //only begin shooting if there's no cursor event
                 if(!tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !tileTapped(selected.build) && !player.unit().activelyBuilding() && !droppingItem &&
-                    !tryBeginMine(selected) && player.unit().mineTile == null && !Core.scene.hasKeyboard()){
+                    !mine && player.unit().mineTile == null && !Core.scene.hasKeyboard()){
                     player.shooting = shouldShoot;
                 }
             }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine
