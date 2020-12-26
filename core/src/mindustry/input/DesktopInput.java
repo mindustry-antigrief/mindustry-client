@@ -656,7 +656,7 @@ public class DesktopInput extends InputHandler{
                 boolean mine = false;
                 if (settings.getBool("doubleclicktomine")) {
                     if (canMine(selected)) {
-                        if (Time.timeSinceMillis(lastMineClicked) < 200) {
+                        if (Time.timeSinceMillis(lastMineClicked) < 400) {
                             mine = tryBeginMine(selected);
                         } else {
                             lastMineClicked = Time.millis();
