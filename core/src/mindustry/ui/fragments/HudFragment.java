@@ -222,7 +222,9 @@ public class HudFragment extends Fragment{
                     dialog.cont.row();
                     dialog.cont.add(new TextButton("Stop recording path")).growX().get().clicked(() -> {Navigation.stopRecording(); dialog.hide();});
                     dialog.cont.row();
-                    dialog.cont.add(new TextButton("Follow recorded path")).growX().get().clicked(() -> {if (Navigation.recording != null) {Navigation.follow(new WaypointPath(Navigation.recording));} dialog.hide();});
+                    dialog.cont.add(new TextButton("Follow recorded path")).growX().get().clicked(() -> {if (Navigation.recordedPath != null) {Navigation.recordedPath.reset(); Navigation.follow(Navigation.recordedPath); Navigation.recordedPath.setShow(true);} dialog.hide();});
+                    dialog.cont.row();
+                    dialog.cont.add(new TextButton("Follow recorded path\nand repeat")).growX().get().clicked(() -> {if (Navigation.recordedPath != null) {Navigation.recordedPath.reset(); Navigation.follow(Navigation.recordedPath, true); Navigation.recordedPath.setShow(true);} dialog.hide();});
                     dialog.cont.row();
                     dialog.cont.add(new TextButton("Stop following path")).growX().get().clicked(() -> {Navigation.stopFollowing(); dialog.hide();});
                     dialog.show();

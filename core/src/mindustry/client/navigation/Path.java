@@ -8,8 +8,9 @@ import arc.struct.*;
  */
 public abstract class Path {
     private final Seq<Runnable> listeners = new Seq<>();
+    public boolean repeat = false;
 
-    abstract void setShow(boolean show);
+    public abstract void setShow(boolean show);
 
     abstract boolean isShown();
 
@@ -22,12 +23,21 @@ public abstract class Path {
     abstract float progress();
 
     public boolean isDone() {
-        return progress() >= 0.99;
+        boolean done = progress() >= 0.99;
+        if (done && repeat) {
+            onFinish();
+        }
+        return done && !repeat;
     }
 
     public void onFinish() {
         listeners.forEach(Runnable::run);
+        if (repeat) {
+            reset();
+        }
     }
+
+    public abstract void reset();
 
     public void draw() {}
 

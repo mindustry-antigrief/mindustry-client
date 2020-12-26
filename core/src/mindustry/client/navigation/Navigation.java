@@ -20,14 +20,19 @@ public class Navigation {
     private static Seq<TurretPathfindingEntity> obstaclesNotEmpty = new Seq<>();
     private static final Interval timer = new Interval();
 
-    public static void follow(Path path) {
+    public static void follow(Path path, boolean repeat) {
         stopFollowing();
         currentlyFollowing = path;
         if (path == null){
             state = NavigationState.NONE;
         } else {
             state = NavigationState.FOLLOWING;
+            currentlyFollowing.repeat = repeat;
         }
+    }
+
+    public static void follow(Path path) {
+        follow(path, false);
     }
 
     public static void update() {

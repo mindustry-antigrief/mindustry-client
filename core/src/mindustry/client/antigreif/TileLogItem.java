@@ -18,7 +18,7 @@ public class TileLogItem {
     /** Creates a TileLogItem.  time is unix time. */
     public TileLogItem(Unitc player, Tile tile, long time, String additionalInfo) {
         this.additionalInfo = additionalInfo;
-        this.player = player.isPlayer()? player.getPlayer().name : (player.type() == null? "Null unit" : player.type().name);
+        this.player = player.isPlayer()? player.getPlayer().name + "[white]" : (player.type() == null? "Null unit" : player.type().name);
         this.time = time;
         x = tile.x;
         y = tile.y;

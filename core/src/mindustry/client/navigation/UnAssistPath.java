@@ -22,7 +22,7 @@ public class UnAssistPath extends Path {
     }
 
     @Override
-    void setShow(boolean show) {}
+    public void setShow(boolean show) {}
 
     @Override
     boolean isShown() {
@@ -89,6 +89,11 @@ public class UnAssistPath extends Path {
     @Override
     float progress() {
         return assisting == null? 1f : 0f;
+    }
+
+    @Override
+    public void reset() {
+        toUndo.clear();
     }
 
     @Override

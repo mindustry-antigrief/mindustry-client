@@ -34,6 +34,7 @@ import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.BaseDialog;
 import mindustry.world.*;
+import mindustry.world.blocks.environment.OreBlock;
 import mindustry.world.blocks.payloads.*;
 import java.util.concurrent.atomic.*;
 import static arc.Core.*;
@@ -346,6 +347,13 @@ public class DesktopInput extends InputHandler{
                         }
                     });
                     dialog.show();
+                });
+
+                table.row().fill();
+                table.button("Mine", () -> {
+                    if (cursor.floor().itemDrop != null) {
+                        player.unit().mineTile = player.unit().mineTile == cursor ? null : cursor;
+                    }
                 });
 
                 table.row().fill();
