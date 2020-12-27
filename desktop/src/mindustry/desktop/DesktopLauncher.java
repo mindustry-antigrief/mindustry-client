@@ -7,6 +7,7 @@ import arc.backend.sdl.jni.*;
 import arc.files.*;
 import arc.func.*;
 import arc.math.*;
+import arc.scene.ui.SettingsDialog;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
@@ -29,18 +30,21 @@ public class DesktopLauncher extends ClientLauncher{
     public final static String discordID = "610508934456934412";
     boolean useDiscord = OS.is64Bit && !OS.isARM && !OS.hasProp("nodiscord"), loadError = false;
     Throwable steamError;
+    static SdlConfig config;
 
     public static void main(String[] arg){
         try{
-            Vars.loadLogger();
-            new SdlApplication(new DesktopLauncher(arg), new SdlConfig(){{
+            config = new SdlConfig(){{
                 title = "Mindustry (Foo's Client)";
                 maximized = true;
                 stencil = 1;
                 width = 900;
                 height = 700;
+                samples = 16;
                 setWindowIcon(FileType.internal, "icons/icon_64.png");
-            }});
+            }};
+            Vars.loadLogger();
+            new SdlApplication(new DesktopLauncher(arg), config);
         }catch(Throwable e){
             handleCrash(e);
         }
@@ -70,6 +74,14 @@ public class DesktopLauncher extends ClientLauncher{
         Version.init();
         boolean useSteam = Version.modifier.contains("steam");
         testMobile = Seq.with(args).contains("-testMobile");
+
+//        Events.on(ClientLoadEvent.class, event -> {
+//            ui.settings.client.sliderPref("antialiasingsamples", "setting.antialiasingsamples.name", 4, 0, 32, num -> {
+//                config.samples = num;
+//                SDL.SDL_GL_SetAttribute(14, config.samples);
+//                return String.valueOf(num);
+//            });
+//        });
 
         if(useSteam){
             //delete leftover dlls
