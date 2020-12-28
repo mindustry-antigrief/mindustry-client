@@ -18,6 +18,7 @@ import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.Binding;
 import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.ui.*;
@@ -65,7 +66,7 @@ public class CoreBlock extends StorageBlock{
 
         CoreBuild entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreNucleus));
         if (entity == null) entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreFoundation));
-        if (entity == null || player != Vars.player) entity = (CoreBuild)tile.build;
+        if (entity == null || player != Vars.player || Core.input.keyDown(Binding.control)) entity = (CoreBuild)tile.build;
         CoreBlock block = (CoreBlock)tile.block();
         Fx.spawn.at(entity);
 

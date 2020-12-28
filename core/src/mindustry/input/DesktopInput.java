@@ -351,13 +351,6 @@ public class DesktopInput extends InputHandler{
                 });
 
                 table.row().fill();
-                table.button("Mine", () -> {
-                    if (cursor.floor().itemDrop != null) {
-                        player.unit().mineTile = player.unit().mineTile == cursor ? null : cursor;
-                    }
-                });
-
-                table.row().fill();
                 table.button("Unit Picker", () -> // Unit Picker / Sniper
                     new UnitPicker().show()
                 );

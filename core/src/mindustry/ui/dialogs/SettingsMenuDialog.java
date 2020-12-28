@@ -334,6 +334,10 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
         client.checkPref("clearchatonleave", true);
         client.checkPref("assumeunstrict", false);
+        client.checkPref("doubleclicktomine", true, i -> { // Makes sand and darksand mineable if the setting is toggled on
+            Blocks.sand.asFloor().playerUnmineable = !i;
+            Blocks.darksand.asFloor().playerUnmineable = !i;
+        });
         client.checkPref("discordrpc", true, val -> {
             ClientLauncher launcher = (ClientLauncher) app.getListeners().find(item -> item instanceof ClientLauncher);
             if (launcher != null && app.isDesktop()) {
@@ -345,7 +349,6 @@ public class SettingsMenuDialog extends SettingsDialog{
             }
         });
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
-        client.checkPref("doubleclicktomine", true);
 
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);

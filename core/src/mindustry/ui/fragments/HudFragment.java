@@ -51,6 +51,7 @@ public class HudFragment extends Fragment{
     private Table lastUnlockTable;
     private Table lastUnlockLayout;
     private long lastToast;
+    private final Interval timer = new Interval();
 
     @Override
     public void build(Group parent){
@@ -336,7 +337,7 @@ public class HudFragment extends Fragment{
             float[] coreAttackOpacity = {0};
 
             Events.on(TeamCoreDamage.class, event -> {
-                if (!t.visible) {
+                if (!t.visible && timer.get(10)) {
                     if (Core.settings.getBool("broadcastcoreattack")) {
                         Call.sendChatMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                     } else {
