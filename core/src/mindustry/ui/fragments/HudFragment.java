@@ -118,7 +118,7 @@ public class HudFragment extends Fragment{
             .name("position").right().padRight(7f);
             t.row();
             //cursor position
-            t.label(() -> "[coral]" + World.toTile(player.mouseX) + "," + World.toTile(player.mouseY))
+            t.label(() -> "[coral]" + World.toTile(Core.input.mouseWorldX()) + "," + World.toTile(Core.input.mouseWorldY()))
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
             .name("cursor").right().padRight(7f);

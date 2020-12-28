@@ -36,7 +36,7 @@ public class SettingsMenuDialog extends SettingsDialog{
     private SettingsTable graphics;
     private SettingsTable game;
     private SettingsTable sound;
-    private SettingsTable client;
+    public SettingsTable client;
 
     private Table prefs;
     private Table menu;
