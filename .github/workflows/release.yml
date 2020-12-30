@@ -45,7 +45,7 @@ jobs:
       - name: Build ${{ matrix.modifier }} With Gradle
         run: |
          ./gradlew clean cleanTest test
-         ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=https://api.github.com/repos/${{ github.repository }}/releases/latest -PversionModifier=${{ matrix.modifier }}
+         ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }} -PversionModifier=${{ matrix.modifier }}
       - name: Pages
         if: ${{ always() && strategy.job-index == 1}}
         uses: JamesIves/github-pages-deploy-action@3.7.1
