@@ -188,8 +188,9 @@ public class ConstructBlock extends Block{
          * If a non-recipe block is being deconstructed, this is the block that is being deconstructed.
          */
         public Block previous;
-        public Object lastConfig;
-        public boolean wasConstructing;
+        public @Nullable Object lastConfig;
+        public boolean wasConstructing, activeDeconstruct;
+        public float constructColor;
 
         @Nullable
         public Unit lastBuilder;
@@ -241,13 +242,19 @@ public class ConstructBlock extends Block{
         }
 
         @Override
+        public void updateTile(){
+            constructColor = Mathf.lerpDelta(constructColor, activeDeconstruct ? 1f : 0f, 0.2f);
+            activeDeconstruct = false;
+        }
+
+        @Override
         public void draw(){
             if(!(previous == null || cblock == null || previous == cblock) && Core.atlas.isFound(previous.icon(Cicon.full))){
                 Draw.rect(previous.icon(Cicon.full), x, y, previous.rotate ? rotdeg() : 0);
             }
 
             Draw.draw(Layer.blockBuilding, () -> {
-                Shaders.blockbuild.color = Pal.accent;
+                Draw.color(Pal.accent, Pal.remove, constructColor);
 
                 Block target = cblock == null ? previous : cblock;
 
@@ -260,11 +267,14 @@ public class ConstructBlock extends Block{
                         Draw.flush();
                     }
                 }
+
+                Draw.color();
             });
         }
 
         public void construct(Unit builder, @Nullable Building core, float amount, Object config){
             wasConstructing = true;
+            activeDeconstruct = false;
             if(cblock == null){
                 kill();
                 return;
@@ -302,6 +312,7 @@ public class ConstructBlock extends Block{
             wasConstructing = false;
             /* TODO: Look into this
             tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", this.cblock == null ? previous : this.cblock))); */
+            activeDeconstruct = true;
             float deconstructMultiplier = state.rules.deconstructRefundMultiplier;
 
             if(builder.isPlayer()){
@@ -381,7 +392,8 @@ public class ConstructBlock extends Block{
         }
 
         public void setConstruct(Block previous, Block block){
-            wasConstructing = true;
+            this.constructColor = 0f;
+            this.wasConstructing = true;
             this.cblock = block;
             this.previous = previous;
             this.accumulator = new float[block.requirements.length];
@@ -391,7 +403,9 @@ public class ConstructBlock extends Block{
 
         public void setDeconstruct(Block previous){
             if(previous == null) return;
-            wasConstructing = false;
+
+            this.constructColor = 1f;
+            this.wasConstructing = false;
             this.previous = previous;
             this.progress = 1f;
             if(previous.buildCost >= 0.01f){

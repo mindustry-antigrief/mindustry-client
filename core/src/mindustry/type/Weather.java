@@ -324,7 +324,7 @@ public class Weather extends UnlockableContent{
         public void draw(){
             float alpha = Core.settings.getInt("weatheropacity") / 100f;
             if (alpha == 0f) return;
-            if(renderer.weatherAlpha() > 0.0001f){
+            if(renderer.weatherAlpha() > 0.0001f && renderer.drawWeather && Core.settings.getBool("showweather")){
                 Draw.draw(Layer.weather, () -> {
                     weather.rand.setSeed(0);
                     Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier * alpha);
