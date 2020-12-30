@@ -14,6 +14,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.ClientLauncher;
+import mindustry.client.Client;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
 import mindustry.core.GameState.*;
@@ -329,11 +330,12 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("displayasuser", false);
         client.checkPref("highlightclientmsg", false);
         client.checkPref("autoupdate", true);
-        client.checkPref("hidetrails", false);
+        client.checkPref("hidetrails", false, i -> Client.hideTrails = i);
         client.checkPref("tilehud", true);
         client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
         client.checkPref("clearchatonleave", true);
         client.checkPref("assumeunstrict", false);
+        client.checkPref("logmsgstoconsole", false);
         client.checkPref("doubleclicktomine", true, i -> { // Makes sand and darksand mineable if the setting is toggled on
             Blocks.sand.asFloor().playerUnmineable = !i;
             Blocks.darksand.asFloor().playerUnmineable = !i;
