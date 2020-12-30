@@ -21,6 +21,7 @@ import mindustry.client.*;
 import mindustry.client.antigreif.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.ItemDropoffWaypoint;
+import mindustry.client.navigation.waypoints.ItemPickupWaypoint;
 import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PayloadPickupWaypoint;
 import mindustry.content.*;
@@ -145,6 +146,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }))){
             throw new ValidateException(player, "Player cannot request items.");
         }
+
+        Navigation.addWaypointRecording(new ItemPickupWaypoint(tile.tileX(), tile.tileY(), new ItemStack().set(item, amount)));
 
         //remove item for every controlling unit
         player.unit().eachGroup(unit -> {

@@ -50,7 +50,7 @@ allprojects{
         }
 
         localArc = {
-            return !project.hasProperty("release") && new File(projectDir.parent, '../Arc').exists() && false
+            return !project.hasProperty("release") && new File(projectDir.parent, '../Arc').exists() && System.properties.contains("localArc")
         }
 
         arcModule = { String name ->
