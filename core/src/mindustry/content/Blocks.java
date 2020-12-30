@@ -268,13 +268,11 @@ public class Blocks implements ContentList{
 
         sand = new Floor("sand"){{
             itemDrop = Items.sand;
-            playerUnmineable = !settings.getBool("doubleclicktomine");
             attributes.set(Attribute.oil, 0.7f);
         }};
 
         darksand = new Floor("darksand"){{
             itemDrop = Items.sand;
-            playerUnmineable = !settings.getBool("doubleclicktomine");
             attributes.set(Attribute.oil, 1.5f);
         }};
 

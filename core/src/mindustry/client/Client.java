@@ -14,6 +14,7 @@ import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
 import mindustry.client.utils.Autocomplete;
 import mindustry.client.utils.Pair;
+import mindustry.content.Blocks;
 import mindustry.core.World;
 import mindustry.entities.Units;
 import mindustry.game.EventType;
@@ -24,6 +25,7 @@ import mindustry.world.Tile;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
 
+import static arc.Core.settings;
 import static mindustry.Vars.*;
 import static mindustry.Vars.player;
 
@@ -36,7 +38,7 @@ public class Client {
     public static Seq<BaseTurret.BaseTurretBuild> turrets = new Seq<>();
     public static long lastSyncTime = 0L;
     public static final CommandHandler fooCommands = new CommandHandler("!");
-    public static boolean hideTrails = true;
+    public static boolean hideTrails;
     public static Ratekeeper configRateLimit = new Ratekeeper();
     public static boolean hideUnits = false;
 
@@ -163,6 +165,9 @@ public class Client {
         });
         Events.on(EventType.ClientLoadEvent.class, event -> {
             Autocomplete.initialize();
+            hideTrails = Core.settings.getBool("hidetrails");
+            Blocks.sand.asFloor().playerUnmineable = !settings.getBool("doubleclicktomine");
+            Blocks.darksand.asFloor().playerUnmineable = !settings.getBool("doubleclicktomine");
         });
     }
 
@@ -171,8 +176,6 @@ public class Client {
         Navigation.update();
         PowerInfo.update();
         Spectate.update();
-
-        hideTrails = Core.settings.getBool("hidetrails");
 
         if (!configs.isEmpty()) {
                 try {

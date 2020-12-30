@@ -44,27 +44,20 @@ public class PositionWaypoint extends Waypoint implements Position {
         float length = circleLength <= 0.001f ? 1f : Mathf.clamp((player.unit().dst(target) - circleLength) / smooth, -1f, 1f);
 
         vec.setLength(player.unit().realSpeed() * length);
+        if (Core.settings.getBool("assumeunstrict")) {
+            player.unit().moveAt(vec, Mathf.clamp(player.dst(this), -10, 10));
+            return;
+        }
         if(length < -0.5f){
             vec.rotate(180f);
         }else if(length < 0){
             vec.setZero();
         }
-
         player.unit().moveAt(vec);
         if (!player.unit().isShooting || !player.unit().type.rotateShooting) player.unit().lookAt(vec.angle()); // Look towards waypoint when possible
     }
     @Override
-    public void run() {
-        if (Core.settings.getBool("assumeunstrict")) player.unit().moveAt(new Vec2().set(this).sub(player.unit()), Mathf.clamp(player.dst(this), -100, 100));
-        else moveTo(this, distance, 8f);
-//        if (player.dst(this) > tolerance /* + player.unit().realSpeed() / player.unit().drag * Time.delta */) {
-//            //control.input.updateMovementCustom(player.unit(), x, y, direction);
-//            moveTo(this, 30, 100);
-//        }
-//        else if (player.dst(this) < tolerance) {
-//            player.unit().vel.scl(1.0f - player.unit().drag * Time.delta);
-//        }
-    }
+    public void run() { moveTo(this, distance, 8f); }
 
     @Override
     public float getX() {

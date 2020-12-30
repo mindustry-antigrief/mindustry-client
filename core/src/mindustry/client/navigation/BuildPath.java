@@ -26,6 +26,7 @@ public class BuildPath extends Path {
     Interval timer = new Interval();
     Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>();
     Seq<Queue<BuildPlan>> queues = new Seq<>();
+    boolean firstRun = true;
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
@@ -64,6 +65,7 @@ public class BuildPath extends Path {
 
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     void follow() {
+        if (firstRun) {world.tiles.forEach(tile -> {if(tile.team() == Team.derelict && tile.breakable() && tile.isCenter())cleanup.add(new BuildPlan(tile.x, tile.y));}); firstRun = false;}
         if (timer.get(15)) {
             // Jank code to clear the four extra queues
             if(!broken.isEmpty()){broken.forEach(player.unit().plans::remove); broken.clear();}
@@ -73,7 +75,7 @@ public class BuildPath extends Path {
 
             if(!player.unit().team.data().blocks.isEmpty())player.unit().team.data().blocks.forEach(block -> broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config)));
             Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && player.unit() != null && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
-            world.tiles.forEach(tile -> {if(tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder)boulders.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == Team.derelict && tile.breakable() && tile.isCenter())cleanup.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter())unfinished.add(entity.wasConstructing ? new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) : new BuildPlan(tile.x, tile.y));});
+            world.tiles.forEach(tile -> {if(tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder)boulders.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter())unfinished.add(entity.wasConstructing ? new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) : new BuildPlan(tile.x, tile.y));});
 
             boolean all = false, found = false;
             for (int x = 0; x < 2; x++) {
@@ -122,11 +124,11 @@ public class BuildPath extends Path {
 
     @Override
     public void reset() {
-        broken = new Queue<>();
-        boulders = new Queue<>();
-        assist = new Queue<>();
-        unfinished = new Queue<>();
-        cleanup = new Queue<>();
+        broken.clear();
+        boulders.clear();
+        assist.clear();
+        unfinished.clear();
+        cleanup.clear();
     }
 
     @Override
