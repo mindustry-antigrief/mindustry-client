@@ -41,20 +41,21 @@ public class DesktopLauncher extends ClientLauncher{
                 stencil = 1;
                 width = 900;
                 height = 700;
-                samples = 16;
+                samples = 0;
                 setWindowIcon(FileType.internal, "icons/icon_64.png");
             }};
             Vars.loadLogger();
-            try {
-                new SdlApplication(new DesktopLauncher(arg), config);
-            } catch (Throwable e) {
-                if (Strings.getCauses(e).toString().contains("Couldn't create window")) {
-                    config.samples = 0;
-                    new SdlApplication(new DesktopLauncher(arg), config);
-                } else {
-                    throw e;
-                }
-            }
+            new SdlApplication(new DesktopLauncher(arg), config);
+//            try {
+//                new SdlApplication(new DesktopLauncher(arg), config);
+//            } catch (Throwable e) {
+//                if (Strings.getCauses(e).toString().contains("Couldn't create window")) {
+//                    config.samples = 0;
+//                    new SdlApplication(new DesktopLauncher(arg), config);
+//                } else {
+//                    throw e;
+//                }
+//            }
         }catch(Throwable e){
             handleCrash(e);
         }
