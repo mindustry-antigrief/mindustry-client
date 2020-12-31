@@ -24,6 +24,7 @@ import mindustry.type.*;
 
 import java.io.*;
 
+import static arc.backend.sdl.jni.SDL.SDL_GL_ExtensionSupported;
 import static mindustry.Vars.*;
 
 public class DesktopLauncher extends ClientLauncher{
@@ -34,7 +35,7 @@ public class DesktopLauncher extends ClientLauncher{
 
     public static void main(String[] arg){
         try{
-            config = new SdlConfig(){{
+            config = new SdlConfig() {{
                 title = "Mindustry (Foo's Client)";
                 maximized = true;
                 stencil = 1;
@@ -44,7 +45,16 @@ public class DesktopLauncher extends ClientLauncher{
                 setWindowIcon(FileType.internal, "icons/icon_64.png");
             }};
             Vars.loadLogger();
-            new SdlApplication(new DesktopLauncher(arg), config);
+            try {
+                new SdlApplication(new DesktopLauncher(arg), config);
+            } catch (Throwable e) {
+                if (Strings.getCauses(e).toString().contains("Couldn't create window")) {
+                    config.samples = 0;
+                    new SdlApplication(new DesktopLauncher(arg), config);
+                } else {
+                    throw e;
+                }
+            }
         }catch(Throwable e){
             handleCrash(e);
         }

@@ -35,7 +35,7 @@ allprojects{
         if(!project.hasProperty("clientBuild")) clientBuild = '0'
         if(!project.hasProperty("updateUrl")) updateUrl = 'blahblahbloopster/mindustry-client-v6'
         if(!project.hasProperty("versionModifier")) versionModifier = 'release'
-        if(!project.hasProperty("buildversion")) buildversion = '122.0'
+        if(!project.hasProperty("buildversion")) buildversion = '122.1'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '891ed912791e01fe9ee6237a6497e5212b85c256'
@@ -50,7 +50,7 @@ allprojects{
         }
 
         localArc = {
-            return !project.hasProperty("release") && new File(projectDir.parent, '../Arc').exists() && false
+            return !project.hasProperty("release") && new File(projectDir.parent, '../Arc').exists() && System.properties.contains("localArc")
         }
 
         arcModule = { String name ->
