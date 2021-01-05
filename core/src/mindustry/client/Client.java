@@ -13,8 +13,8 @@ import mindustry.client.navigation.*;
 import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
 import mindustry.client.utils.Autocomplete;
-import mindustry.client.utils.Pair;
 import mindustry.content.Blocks;
+import mindustry.core.NetClient;
 import mindustry.core.World;
 import mindustry.entities.Units;
 import mindustry.game.EventType;
@@ -109,15 +109,19 @@ public class Client {
 
         fooCommands.<Player>register("tp", "<x> <y>", "Moves to (x, y) at insane speeds, only works on servers without strict mode enabled.", (args, player) -> {
             try {
-                Timer.schedule(() -> player.unit().moveAt(new Vec2().set(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1]))).sub(player.unit()), player.dst(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])))), 0, .01f, 15);
+                NetClient.setPosition(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])));
             }
             catch(Exception e){
                 player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !tp 10 300");
             }
         });
 
-        fooCommands.<Player>register("", "[message...]", "Does nothing", (args, player) ->
+        fooCommands.<Player>register("", "[message...]", "Lets you start messages with an !", (args, player) ->
             Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
+        );
+
+        fooCommands.<Player>register("!", "[message...]", "Does nothing", (args, player) ->
+                Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
         );
 
 
@@ -140,7 +144,7 @@ public class Client {
                 if (find != null) {
                     Call.unitControl(player, find);
                     Timer.schedule(() -> {
-                        if (event.unit.isPlayer()) {
+                        if (find.isPlayer()) {
                             Toast t = new Toast(2);
                             if (player.unit() == find) { UnitPicker.found = null; t.add("Successfully switched units.");} // After we switch units successfully, stop listening for this unit
                             else if (find.getPlayer() != null) { t.add("Failed to become " + unit + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
@@ -164,6 +168,12 @@ public class Client {
             }
         });
         Events.on(EventType.ClientLoadEvent.class, event -> {
+            if (settings.has("reactorwarnings")){ // TODO: Remove this code after a reasonable amount of time. (Converts old setting values).
+                settings.put("reactorwarningdistance", settings.getBool("reactorwarnings") ? settings.getInt("reactorwarningdistance") == 0 ? 101 : settings.getInt("reactorwarningdistance") : -1);
+                settings.put("reactorsounddistance", settings.getBool("reactorwarningsounds") ? settings.getInt("reactorsounddistance") == 0 ? 101 : settings.getInt("reactorsounddistance") : -1);
+                settings.remove("reactorwarnings");
+                settings.remove("reactorwarningsounds");
+            }
             Autocomplete.initialize();
             hideTrails = Core.settings.getBool("hidetrails");
             Blocks.sand.asFloor().playerUnmineable = !settings.getBool("doubleclicktomine");

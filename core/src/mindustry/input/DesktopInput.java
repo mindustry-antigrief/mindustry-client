@@ -357,7 +357,7 @@ public class DesktopInput extends InputHandler{
 
                 table.row().fill();
                 table.button("Teleport to Cursor", () ->
-                    Timer.schedule(() -> player.unit().moveAt(new Vec2().set(World.unconv(cursor.x), World.unconv(cursor.y)).sub(player.unit()), player.dst(World.unconv(cursor.x), World.unconv(cursor.y))), 0, .01f, 15)
+                    NetClient.setPosition(World.unconv(cursor.x), World.unconv(cursor.y))
                 );
 
                 table.setHeight(itemHeight * (table.getRows() + 1) + 10 * (table.getRows() + 1));
@@ -471,11 +471,11 @@ public class DesktopInput extends InputHandler{
             if(cursor.build != null && cursor.interactable(player.team()) && !isPlacing() && Math.abs(Core.input.axisTap(Binding.rotate)) > 0 && Core.input.keyDown(Binding.rotateplaced) && cursor.block().rotate && cursor.block().quickRotate){
                 Call.rotateBlock(player, cursor.build, Core.input.axisTap(Binding.rotate) > 0);
             }
+        }
 
-            if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null && !(cursor.build != null && cursor.build.block.rotate && cursor.build.block.quickRotate && cursor.build.interactable(player.team()))){
-                panning = false;
-                Spectate.pos = null;
-            }
+        if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null && (cursor == null || cursor.build == null || !(cursor.build.block.rotate && cursor.build.block.quickRotate && cursor.build.interactable(player.team())))){
+            panning = false;
+            Spectate.pos = null;
         }
 
         if(!Core.scene.hasMouse()){
