@@ -120,8 +120,8 @@ public class PlayerListFragment extends Fragment{
             button.labelWrap("[#" + user.color().toString().toUpperCase() + "]" + user.name()).width(300f).pad(10);
             button.add().grow();
 
-            button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).padRight(10).get().updateVisibility();
-            button.image(Icon.wrench).visible(() -> FooUser.IsUser(user) && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
+            if (user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
+            if (FooUser.IsUser(user) && !(!user.isLocal() && net.server())) button.image(Icon.wrench).padRight(7.5f);
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();
