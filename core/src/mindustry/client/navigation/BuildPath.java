@@ -30,7 +30,7 @@ public class BuildPath extends Path {
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
-        queues.addAll(player.unit().plans, broken, assist, unfinished, boulders); // Every queue except for cleanup is included by default
+        queues.addAll(player.unit().plans, broken, assist, unfinished); // Every queue except for cleanup is included by default
     }
 
     @SuppressWarnings("unchecked")
@@ -39,7 +39,7 @@ public class BuildPath extends Path {
         for (String arg : Arrays.toString(args).replaceAll("[\\[\\]]", "").split(" ")) {
             switch (arg) {
                 case "all" -> {
-                    queues.addAll(player.unit().plans, broken, assist, unfinished, boulders);
+                    queues.addAll(player.unit().plans, broken, assist, unfinished);
                     break argHandler;
                 }
                 case "self" -> queues.add(player.unit().plans);
