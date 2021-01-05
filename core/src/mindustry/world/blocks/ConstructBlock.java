@@ -15,6 +15,7 @@ import mindustry.client.antigreif.*;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
 import mindustry.client.ui.Toast;
+import mindustry.client.utils.Pair;
 import mindustry.content.*;
 import mindustry.core.World;
 import mindustry.entities.*;
@@ -26,10 +27,10 @@ import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
-import mindustry.world.blocks.power.NuclearReactor;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.modules.*;
 import java.time.*;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static mindustry.Vars.*;
@@ -43,6 +44,7 @@ public class ConstructBlock extends Block{
     private static long lastTime = 0;
     private static int pitchSeq = 0;
     private static long lastPlayed;
+    private static Toast toast = null;
 
     public ConstructBlock(int size){
         super("build" + size);
@@ -199,7 +201,6 @@ public class ConstructBlock extends Block{
         private float[] totalAccumulator;
 
         private float lastProgress = 0f;
-        private Toast toast = null;
 
         @Override
         public String getDisplayName(){
@@ -466,37 +467,41 @@ public class ConstructBlock extends Block{
         @Override
         public void update() {
             super.update();
-            if (closestCore() == null) return;
-            if (cblock instanceof NuclearReactor && team == player.team()) { // TODO: Rework code to work for various block types
-                AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
-                closestCore().tile.getLinkedTiles(t -> distance.set(Math.min(World.toTile(t.dst(this.tile)) - 1, distance.get())));
-                if (Core.settings.getBool("reactorwarnings") && cblock != null && (Core.settings.getInt("reactorwarningdistance") == 0 || distance.intValue() <= Core.settings.getInt("reactorwarningdistance"))) {
+            if (!wasConstructing || closestCore() == null || cblock == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
 
-                    long since = Time.timeSinceMillis(lastWarn);
-                    if (progress > lastProgress && since > 0 && progress < .99f && lastBuilder != null) {
-                        // Play sound for reactor construction (only played when no reactor has been built for 10s)
-                        if (since > 10 * 1000 && Core.settings.getBool("reactorwarningsounds") && (Core.settings.getInt("reactorsounddistance") == 0 || distance.intValue() <= Core.settings.getInt("reactorsounddistance"))) {
-                            Sounds.corexplode.play();
+            HashMap<Block, Pair<Integer, Integer>> warnBlocks = new HashMap<>(); // Block, warndist, sounddist (-1 = off, 0 = unlimited)
+            warnBlocks.put(Blocks.thoriumReactor, new Pair<>(Core.settings.getInt("reactorwarningdistance"), Core.settings.getInt("reactorsounddistance")));
+            warnBlocks.put(Blocks.incinerator, new Pair<>(Core.settings.getInt("incineratorwarningdistance"), Core.settings.getInt("incineratorsounddistance")));
+
+            if (warnBlocks.containsKey(cblock)) {
+                AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
+                closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)) - 1, distance.get())))); // Oh god
+                lastBuilder.drawBuildPlans(); // Draw their build plans
+
+                // Play warning sound (only played when no reactor has been built for 10s)
+                if (Time.timeSinceMillis(lastWarn) > 10 * 1000 && ((int) warnBlocks.get(cblock).second == 101 || distance.intValue() <= (int) warnBlocks.get(cblock).second)) {
+                    Sounds.corexplode.play(.5f * (float)Core.settings.getInt("sfxvol") / 100.0F);
+                }
+
+                if ((int) warnBlocks.get(cblock).first == 101 || distance.intValue() <= (int) warnBlocks.get(cblock).first) {
+                    if (lastBuilder.isPlayer()) {
+
+                        String format = String.format("%s is building a %s at %d,%d (%d block%s from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), distance.intValue(), distance.intValue() == 1 ? "" : "s");
+                        String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
+                        if (toast == null || toast.parent == null) {
+                            toast = new Toast(2f, 0f);
+                        } else {
+                            toast.clearChildren();
                         }
-                        lastWarn = Time.millis();
-                        if (lastBuilder.isPlayer()) {
-                            lastBuilder.drawBuildPlans();
-                            String format = String.format("%s is building a %s at %d,%d (%d block%s from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), distance.intValue(), distance.intValue() == 1 ? "" : "s");
-                            String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
-                            if (toast == null || toast.parent == null) {
-                                toast = new Toast();
-                            } else {
-                                toast.clearChildren();
-                            }
-                            toast.setFadeTime(2f);
-                            toast.add(new Label(format));
-                            toast.row();
-                            toast.add(new Label(format2, monoLabel));
-                        }
+                        toast.setFadeTime(2f);
+                        toast.add(new Label(format));
+                        toast.row();
+                        toast.add(new Label(format2, monoLabel));
                     }
                 }
             }
             lastProgress = progress;
+            lastWarn = Time.millis();
         }
     }
 }
