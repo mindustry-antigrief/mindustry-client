@@ -18,32 +18,36 @@ public class Toast extends Table {
     private long fadeTime;
     private TranslateByAction translateByAction;
 
-    public Toast(float fadeTime) {
+    public Toast(float fadeTime, float fadeDuration) {
         super(Tex.button);
         setFadeTime(fadeTime);
         container = Core.scene.table();
         container.top().add(this);
         setTranslation(0f, getPrefHeight());
-        translateByAction = Actions.translateBy(0f, -getPrefHeight(), 1f, Interp.fade);
+        translateByAction = Actions.translateBy(0f, -getPrefHeight(), fadeDuration, Interp.fade);
         color.a = 0f;
-        addAction(Actions.sequence(Actions.parallel(translateByAction, Actions.fadeIn(1f, Interp.pow4)), Actions.run(() -> state = ToastState.NORMAL)));
+        addAction(Actions.sequence(Actions.parallel(translateByAction, Actions.fadeIn(fadeDuration, Interp.pow4)), Actions.run(() -> state = ToastState.NORMAL)));
         setOrigin(Align.bottom);
         update(() -> {
             if (state == ToastState.NORMAL) {
                 if (Instant.now().toEpochMilli() >= lastReset + this.fadeTime) {
                     state = ToastState.FADING_OUT;
-                    addAction(Actions.sequence(Actions.parallel(Actions.translateBy(0f, getPrefHeight(), 1f, Interp.fade),
-                            Actions.fadeOut(1f, Interp.pow4)), Actions.remove()));
+                    addAction(Actions.sequence(Actions.parallel(Actions.translateBy(0f, getPrefHeight(), fadeDuration, Interp.fade),
+                            Actions.fadeOut(fadeDuration, Interp.pow4)), Actions.remove()));
                 }
             }
         });
     }
 
     public Toast() {
-        this(1f);
+        this(1f, 1f);
     }
 
-    /** Number of milliseconds until it fades. */
+    public Toast(float fadeTime){
+        this(fadeTime, 1f);
+    }
+
+    /** Number of seconds until it fades. */
     public void setFadeTime(float fadeTime) {
         this.fadeTime = (long)(fadeTime * 1000);
         lastReset = Instant.now().toEpochMilli();
