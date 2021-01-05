@@ -5,7 +5,6 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
-import arc.util.Timer;
 
 import static mindustry.Vars.*;
 
@@ -41,19 +40,18 @@ public class PositionWaypoint extends Waypoint implements Position {
 
         vec.set(target).sub(player.unit());
 
-        float length = circleLength <= 0.001f ? 1f : Mathf.clamp((player.unit().dst(target) - circleLength) / smooth, -1f, 1f);
-
-        vec.setLength(player.unit().realSpeed() * length);
         if (Core.settings.getBool("assumeunstrict")) {
-            player.unit().moveAt(vec, Mathf.clamp(player.dst(this), -10, 10));
-            return;
+            vec.setLength(player.unit().dst(target) - circleLength);
+            if (vec.len() <= circleLength / 2) vec.setZero();
+            player.trns(vec);
+            player.unit().trns(vec);
+        } else {
+            float length = circleLength <= 0.001f ? 1f : Mathf.clamp((player.unit().dst(target) - circleLength) / smooth, -1f, 1f);
+            vec.setLength(player.unit().realSpeed() * length);
+            if (length < -0.5f) vec.rotate(180f);
+            else if (length < 0) vec.setZero();
+            player.unit().moveAt(vec);
         }
-        if(length < -0.5f){
-            vec.rotate(180f);
-        }else if(length < 0){
-            vec.setZero();
-        }
-        player.unit().moveAt(vec);
         if (!player.unit().isShooting || !player.unit().type.rotateShooting) player.unit().lookAt(vec.angle()); // Look towards waypoint when possible
     }
     @Override
