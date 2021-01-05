@@ -322,10 +322,10 @@ public class SettingsMenuDialog extends SettingsDialog{
             game.checkPref("crashreport", true);
         }
 
-        client.checkPref("reactorwarnings", true);
-        client.sliderPref("reactorwarningdistance", 0, 0, 100, s -> s == 0 ? "Infinite" : Integer.toString(s));
-        client.checkPref("reactorwarningsounds", true);
-        client.sliderPref("reactorsounddistance", 0, 0, 100, s -> s == 0 ? "Infinite" : Integer.toString(s));
+        client.sliderPref("reactorwarningdistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" :Integer.toString(s));
+        client.sliderPref("reactorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
+        client.sliderPref("incineratorwarningdistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" :Integer.toString(s));
+        client.sliderPref("incineratorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
         client.checkPref("lighting", true);
         client.checkPref("displayasuser", false);
         client.checkPref("highlightclientmsg", false);
@@ -336,6 +336,25 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("clearchatonleave", true);
         client.checkPref("assumeunstrict", false);
         client.checkPref("logmsgstoconsole", false);
+        client.checkPref("allowjoinany", false);
+        client.checkPref("drawhitboxes", false);
+        client.pref(new SettingsTable.Setting() {
+            @Override
+            public void add(SettingsTable table) {
+                name = "updateurl";
+                title = Core.bundle.get("setting." + name + ".name");
+                if (!Version.updateUrl.isEmpty()) Core.settings.put("updateurl", Version.updateUrl);
+                settings.defaults("updateurl", "blahblahbloopster/mindustry-client-v6");
+                Label label = new Label(title);
+
+                table.table((t) -> {
+                    t.left().defaults().left();
+                    t.add(label).minWidth(label.getPrefWidth() / Scl.scl(1.0F) + 50.0F);
+                    t.field(settings.getString(name), text -> settings.put(name, text)).growX();
+                }).left().fillX().padTop(3);
+                table.row();
+            }
+        });
         client.checkPref("doubleclicktomine", true, i -> { // Makes sand and darksand mineable if the setting is toggled on
             Blocks.sand.asFloor().playerUnmineable = !i;
             Blocks.darksand.asFloor().playerUnmineable = !i;
@@ -363,7 +382,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         }
 
         if(steam){
-            game.sliderPref("playerlimit", 16, 2, 32, i -> {
+            game.sliderPref("playerlimit", 16, 2, 42069, i -> {
                 platform.updateLobby();
                 return i + "";
             });

@@ -23,7 +23,7 @@ public class Version{
     /** Custom client build number used for auto updates */
     public static int clientBuild = 0;
     /** Custom client update url used for... updating */
-    public static String updateUrl = "unknown";
+    public static String updateUrl = "";
     /** Custom client version string used for various things */
     public static String clientVersion = "unknown";
 
