@@ -33,7 +33,7 @@ allprojects{
     ext{
         versionNumber = '6'
         if(!project.hasProperty("clientBuild")) clientBuild = '0'
-        if(!project.hasProperty("updateUrl")) updateUrl = 'blahblahbloopster/mindustry-client-v6'
+        if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'release'
         if(!project.hasProperty("buildversion")) buildversion = '122.1'
         if(!project.hasProperty("versionType")) versionType = 'official'
