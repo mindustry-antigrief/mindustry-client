@@ -110,20 +110,22 @@ public class HudFragment extends Fragment{
                 ta.add(new TileInfoFragment()).name("tilehud").top();
                 //minimap
                 ta.add(new Minimap()).name("minimap");
-            }).padRight(7f).padTop(7f);
+            });
             t.row();
             //position
             t.label(() -> player.tileX() + "," + player.tileY())
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .name("position").right().padRight(7f);
+            .style(Styles.monoLabel)
+            .name("position").right();
             t.row();
             //cursor position
             t.label(() -> "[coral]" + World.toTile(Core.input.mouseWorldX()) + "," + World.toTile(Core.input.mouseWorldY()))
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .name("cursor").right().padRight(7f);
-            t.top().right();
+            .style(Styles.monoLabel)
+            .name("cursor").right();
+            t.top().right().marginRight(7).marginTop(7);
         });
 
         ui.hints.build(parent);
