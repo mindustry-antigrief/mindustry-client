@@ -65,12 +65,13 @@ public class BeControl{
 
     /** asynchronously checks for updates. */
     public void checkUpdate(Boolc done){
-        Core.net.httpGet("https://api.github.com/repos/" + Version.updateUrl + "/releases/latest", res -> {
+        Core.net.httpGet("https://api.github.com/repos/" + Core.settings.getString("updateurl") + "/releases/latest", res -> {
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
                 int newBuild = Strings.parseInt(val.getString("tag_name", "0"));
                 if(newBuild != Version.clientBuild){
                     Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith(Version.modifier.contains("steam") ? "steam" : "desktop-release"));
+                    if (asset == null) { Core.app.post(() -> done.get(false)); return; }
                     String url = asset.getString("browser_download_url", "");
                     updateAvailable = true;
                     updateBuild = newBuild;
