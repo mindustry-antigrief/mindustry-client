@@ -90,21 +90,22 @@ public class Conveyor extends Block implements Autotiler{
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
-        if (req.x >= world.width() || req.x <= 0 || req.y >= world.height() || req.y <= 0) return null;
+        if (req.tile() == null) return this;
 
-        if (world.tile(req.x, req.y).block() instanceof Junction) {
-            if (frontTile(req.x, req.y, req.rotation).block() instanceof Junction || backTile(req.x, req.y, req.rotation).block() instanceof Junction) {
-                if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conveyor)) {
-                    return world.tile(req.x, req.y).block();
-                }
-            }
-        }
+//        if (req.tile().block() instanceof Junction) {
+//            if (frontTile(req.x, req.y, req.rotation).block() instanceof Junction || backTile(req.x, req.y, req.rotation).block() instanceof Junction) {
+//                if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conveyor)) {
+//                    return req.tile().block();
+//                }
+//            }
+//        }
+
 
         Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conveyor || req.block instanceof Junction));
         if(cont.get(Geometry.d4(req.rotation)) &&
             cont.get(Geometry.d4(req.rotation - 2)) &&
             req.tile() != null &&
-            req.tile().block() instanceof Conveyor &&
+            (req.tile().block() instanceof Conveyor || req.tile().block() instanceof Junction) &&
             Mathf.mod(req.tile().build.rotation - req.rotation, 2) == 1){
             return Blocks.junction;
         }

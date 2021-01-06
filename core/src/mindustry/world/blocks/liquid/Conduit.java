@@ -62,13 +62,12 @@ public class Conduit extends LiquidBlock implements Autotiler{
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
+        if (req.tile() == null) return this;
 
-        if (req.x >= world.width() || req.x <= 0 || req.y >= world.height() || req.y <= 0) return this;
-
-        if (world.tile(req.x, req.y).block() instanceof LiquidJunction) {
+        if (req.tile().block() instanceof LiquidJunction) {
             if (frontTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction || backTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction) {
                 if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conduit)) {
-                    return world.tile(req.x, req.y).block();
+                    return req.tile().block();
                 }
             }
         }

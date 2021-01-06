@@ -338,6 +338,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("logmsgstoconsole", false);
         client.checkPref("allowjoinany", false);
         client.checkPref("drawhitboxes", false);
+        client.checkPref("blockreplace", true);
         client.pref(new SettingsTable.Setting() {
             @Override
             public void add(SettingsTable table) {
@@ -372,7 +373,6 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
 
         game.checkPref("savecreate", true);
-        game.checkPref("blockreplace", true);
         game.checkPref("conveyorpathfinding", true);
         game.checkPref("hints", true);
 
