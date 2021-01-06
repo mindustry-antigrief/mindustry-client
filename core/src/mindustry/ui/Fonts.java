@@ -75,6 +75,7 @@ public class Fonts{
         FreeTypeFontParameter param = fontParameter();
 
         Core.assets.load("default", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> Fonts.def = (Font)f;
+        Core.assets.load("mono", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = f -> Fonts.mono = (Font)f;
         Core.assets.load("chat", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> Fonts.chat = (Font)f;
         Core.assets.load("icon", Font.class, new FreeTypeFontLoaderParameter("fonts/icon.ttf", new FreeTypeFontParameter(){{
             size = 30;
@@ -103,7 +104,7 @@ public class Fonts{
     }
 
     public static void loadContentIcons(){
-        Seq<Font> fonts = Seq.with(Fonts.chat, Fonts.def, Fonts.outline);
+        Seq<Font> fonts = Seq.with(Fonts.chat, Fonts.def, Fonts.outline, Fonts.mono);
         Texture uitex = Core.atlas.find("logo").texture;
         int size = (int)(Fonts.def.getData().lineHeight/Fonts.def.getData().scaleY);
 
@@ -194,8 +195,6 @@ public class Fonts{
         }};
 
         Core.assets.load("outline", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = t -> Fonts.outline = (Font)t;
-
-        Core.assets.load("mono", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = t -> Fonts.mono = (Font)t;
 
         Core.assets.load("tech", Font.class, new FreeTypeFontLoaderParameter("fonts/tech.ttf", new FreeTypeFontParameter(){{
             size = 18;

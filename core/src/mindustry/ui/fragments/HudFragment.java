@@ -113,14 +113,14 @@ public class HudFragment extends Fragment{
             });
             t.row();
             //position
-            t.label(() -> player.tileX() + "," + player.tileY())
+            t.label(() -> player.tileX() + "," + player.tileY() + "\u200B") // Append a zero width space to stop it from being weird
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
             .style(Styles.monoLabel)
             .name("position").right();
             t.row();
             //cursor position
-            t.label(() -> "[coral]" + World.toTile(Core.input.mouseWorldX()) + "," + World.toTile(Core.input.mouseWorldY()))
+            t.label(() -> "[coral]" + World.toTile(Core.input.mouseWorldX()) + "," + World.toTile(Core.input.mouseWorldY()) + "\u200B") // Append a zero width space to stop it from being weird
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
             .style(Styles.monoLabel)
