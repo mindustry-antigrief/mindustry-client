@@ -301,7 +301,9 @@ public class ConstructBlock extends Block{
 
             maxProgress = core == null || team.rules().infiniteResources ? maxProgress : checkRequired(core.items, maxProgress, true);
 
-            progress = Mathf.clamp(progress + maxProgress);
+            progress = state.rules.infiniteResources ? 1 : Mathf.clamp(progress + maxProgress);
+
+            blockWarning();
 
             if(progress >= 1f || state.rules.infiniteResources){
                 if(lastBuilder == null) lastBuilder = builder;
@@ -467,16 +469,18 @@ public class ConstructBlock extends Block{
         @Override
         public void update() {
             super.update();
+        }
+
+        public void blockWarning(){
             if (!wasConstructing || closestCore() == null || cblock == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
 
             HashMap<Block, Pair<Integer, Integer>> warnBlocks = new HashMap<>(); // Block, warndist, sounddist (-1 = off, 0 = unlimited)
             warnBlocks.put(Blocks.thoriumReactor, new Pair<>(Core.settings.getInt("reactorwarningdistance"), Core.settings.getInt("reactorsounddistance")));
             warnBlocks.put(Blocks.incinerator, new Pair<>(Core.settings.getInt("incineratorwarningdistance"), Core.settings.getInt("incineratorsounddistance")));
-
+            lastBuilder.drawBuildPlans(); // Draw their build plans
             if (warnBlocks.containsKey(cblock)) {
                 AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
                 closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)) - 1, distance.get())))); // Oh god
-                lastBuilder.drawBuildPlans(); // Draw their build plans
 
                 // Play warning sound (only played when no reactor has been built for 10s)
                 if (Time.timeSinceMillis(lastWarn) > 10 * 1000 && ((int) warnBlocks.get(cblock).second == 101 || distance.intValue() <= (int) warnBlocks.get(cblock).second)) {
@@ -484,20 +488,17 @@ public class ConstructBlock extends Block{
                 }
 
                 if ((int) warnBlocks.get(cblock).first == 101 || distance.intValue() <= (int) warnBlocks.get(cblock).first) {
-                    if (lastBuilder.isPlayer()) {
-
-                        String format = String.format("%s is building a %s at %d,%d (%d block%s from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), distance.intValue(), distance.intValue() == 1 ? "" : "s");
-                        String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
-                        if (toast == null || toast.parent == null) {
-                            toast = new Toast(2f, 0f);
-                        } else {
-                            toast.clearChildren();
-                        }
-                        toast.setFadeTime(2f);
-                        toast.add(new Label(format));
-                        toast.row();
-                        toast.add(new Label(format2, monoLabel));
+                    String format = String.format("%s is building a %s at %d,%d (%d block%s from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), distance.intValue(), distance.intValue() == 1 ? "" : "s");
+                    String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
+                    if (toast == null || toast.parent == null) {
+                        toast = new Toast(2f, 0f);
+                    } else {
+                        toast.clearChildren();
                     }
+                    toast.setFadeTime(2f);
+                    toast.add(new Label(format));
+                    toast.row();
+                    toast.add(new Label(format2, monoLabel));
                 }
             }
             lastProgress = progress;
