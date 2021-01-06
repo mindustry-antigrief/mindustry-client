@@ -477,8 +477,8 @@ public class ConstructBlock extends Block{
             HashMap<Block, Pair<Integer, Integer>> warnBlocks = new HashMap<>(); // Block, warndist, sounddist (-1 = off, 0 = unlimited)
             warnBlocks.put(Blocks.thoriumReactor, new Pair<>(Core.settings.getInt("reactorwarningdistance"), Core.settings.getInt("reactorsounddistance")));
             warnBlocks.put(Blocks.incinerator, new Pair<>(Core.settings.getInt("incineratorwarningdistance"), Core.settings.getInt("incineratorsounddistance")));
-            lastBuilder.drawBuildPlans(); // Draw their build plans
             if (warnBlocks.containsKey(cblock)) {
+                lastBuilder.drawBuildPlans(); // Draw their build plans
                 AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
                 closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)) - 1, distance.get())))); // Oh god
 
