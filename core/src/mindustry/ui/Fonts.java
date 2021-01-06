@@ -72,10 +72,11 @@ public class Fonts{
 
     public static void loadFonts(){
         largeIcons.clear();
-        FreeTypeFontParameter param = fontParameter();
+        FreeTypeFontParameter monoparam, param = monoparam = fontParameter();
+        monoparam.hinting = Hinting.none;
 
         Core.assets.load("default", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> Fonts.def = (Font)f;
-        Core.assets.load("mono", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = f -> Fonts.mono = (Font)f;
+        Core.assets.load("mono", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", monoparam)).loaded = f -> Fonts.mono = (Font)f;
         Core.assets.load("chat", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> Fonts.chat = (Font)f;
         Core.assets.load("icon", Font.class, new FreeTypeFontLoaderParameter("fonts/icon.ttf", new FreeTypeFontParameter(){{
             size = 30;
