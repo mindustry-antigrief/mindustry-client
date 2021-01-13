@@ -81,8 +81,7 @@ public class DesktopLauncher extends ClientLauncher{
 
     public DesktopLauncher(String[] args){
         Version.init();
-        String filepath = DesktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        boolean useSteam = Version.modifier.contains("steam") || filepath.contains("/steamapps/common/Mindustry/") && filepath.endsWith("/desktop.jar");
+        boolean useSteam = Version.modifier.contains("steam");
         testMobile = Seq.with(args).contains("-testMobile");
 
 //        Events.on(ClientLoadEvent.class, event -> {
