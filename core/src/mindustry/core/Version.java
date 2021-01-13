@@ -43,7 +43,7 @@ public class Version{
         number = Integer.parseInt(map.get("number", "4"));
         modifier = map.get("modifier");
         String filepath = Version.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        if (modifier.equals("release") && filepath.contains("/steamapps/common/Mindustry/") && filepath.endsWith("/desktop.jar")) modifier = "steam";
+        if (modifier.equals("release") && filepath.contains("/steamapps/common/Mindustry/")) modifier = "steam";
         if(map.get("build").contains(".")){
             String[] split = map.get("build").split("\\.");
             try{
