@@ -10,7 +10,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
-import mindustry.client.antigreif.*;
+import mindustry.client.antigrief.*;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;

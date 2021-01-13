@@ -1,4 +1,4 @@
-package mindustry.client.antigreif;
+package mindustry.client.antigrief;
 
 import mindustry.gen.*;
 import mindustry.world.*;
@@ -20,6 +20,6 @@ public class BreakTileLog extends TileLogItem {
 
     @Override
     protected String formatConcise(String date, long minutes) {
-        return String.format("%s broke %s %d minutes ago", player, block.name, minutes);
+        return String.format("%s broke %s (%dm)", player, block.name, minutes);
     }
 }

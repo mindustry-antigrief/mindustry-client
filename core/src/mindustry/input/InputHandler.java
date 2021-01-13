@@ -18,7 +18,7 @@ import mindustry.ai.formations.patterns.*;
 import mindustry.ai.types.FormationAI;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
-import mindustry.client.antigreif.*;
+import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.ItemDropoffWaypoint;
 import mindustry.client.navigation.waypoints.ItemPickupWaypoint;
@@ -49,7 +49,6 @@ import mindustry.world.meta.*;
 
 import java.time.*;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static arc.Core.input;
@@ -486,7 +485,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         if(controlledType != null && player.dead()){
-            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead /* && !(u.controller() instanceof FormationAI f && !f.isBeingControlled(player.unit())) */);
+            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead && (!(u.controller() instanceof FormationAI f) || f.isBeingControlled(player.lastReadUnit)));
 
             if(unit != null){
                 //only trying controlling once a second to prevent packet spam
@@ -829,7 +828,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Draw.reset();
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(1f);
-        request.block.drawRequestConfigTop(request, selectRequests);
+        if(request.block != null) request.block.drawRequestConfigTop(request, selectRequests);
         Draw.reset();
     }
 
@@ -920,10 +919,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             lineRequests.add(req);
         });
 
-        if(Core.settings.getBool("blockreplace") && !control.input.conveyorPlaceNormal || !Core.settings.getBool("blockreplace") && control.input.conveyorPlaceNormal){
+        if(Core.settings.getBool("blockreplace") != control.input.conveyorPlaceNormal){
             lineRequests.each(req -> {
                 Block replace = req.block.getReplacement(req, lineRequests);
-                if (replace == null || replace.unlockedNow()) {
+                if (replace != null && replace.unlockedNow()) {
                     req.block = replace;
                 }
             });

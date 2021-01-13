@@ -1,4 +1,4 @@
-package mindustry.client.antigreif;
+package mindustry.client.antigrief;
 
 import arc.scene.*;
 import arc.scene.ui.*;
@@ -29,7 +29,7 @@ public class TileLogItem {
     }
 
     protected String formatConcise(String date, long minutes) {
-        return String.format("%s interacted %d minutes ago", player, minutes);
+        return String.format("%s interacted (%dm)", player, minutes);
     }
 
     public String format() {

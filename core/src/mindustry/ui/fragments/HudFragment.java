@@ -14,12 +14,11 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.Vars;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.ui.TileInfoFragment;
 import mindustry.client.ui.Toast;
 import mindustry.content.*;
-import mindustry.client.antigreif.*;
+import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.core.GameState.*;
 import mindustry.core.World;
@@ -116,16 +115,16 @@ public class HudFragment extends Fragment{
             t.label(() -> player.tileX() + "," + player.tileY())
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .style(Styles.monoLabel)
+            .style(Styles.monoOutlineLabel)
             .name("position").right();
             t.row();
             //cursor position
             t.label(() -> "[coral]" + World.toTile(Core.input.mouseWorldX()) + "," + World.toTile(Core.input.mouseWorldY()))
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .style(Styles.monoLabel)
+            .style(Styles.monoOutlineLabel)
             .name("cursor").right();
-            t.top().right().marginRight(7).marginTop(7);
+            t.top().right();
         });
 
         ui.hints.build(parent);
@@ -242,14 +241,11 @@ public class HudFragment extends Fragment{
 
                 // Power bar display
                 s.row();
-                s.add(PowerInfo.getBars()).growX().colspan(3).height(65);
+                s.add(PowerInfo.getBars()).growX().colspan(3);
 
                 // Boss bar display
                 s.row();
-                Button boss = new Button(Styles.waveb);
-                boss.touchable = Touchable.disabled;
-                boss.table(Tex.windowEmpty, t -> t.add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white)).margin(0).grow()).grow().visible(() -> state.boss() != null).height(60f).get().name = "boss";
-                s.add(boss).grow().colspan(3).height(65).visible(() -> state.boss() != null);
+                s.table(Tex.wavepane, t -> t.add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white)).grow().colspan(3)).grow().colspan(3).height(65).visible(() -> state.boss() != null).name("boss");
             }).width(dsize * 6 + 4f);
 
             wavesMain.row();

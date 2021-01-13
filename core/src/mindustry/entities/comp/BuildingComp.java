@@ -18,7 +18,7 @@ import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.audio.*;
 import mindustry.client.Client;
-import mindustry.client.antigreif.ConfigRequest;
+import mindustry.client.antigrief.ConfigRequest;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;

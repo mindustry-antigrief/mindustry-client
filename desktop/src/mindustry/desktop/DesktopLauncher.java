@@ -7,7 +7,6 @@ import arc.backend.sdl.jni.*;
 import arc.files.*;
 import arc.func.*;
 import arc.math.*;
-import arc.scene.ui.SettingsDialog;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
@@ -24,7 +23,6 @@ import mindustry.type.*;
 
 import java.io.*;
 
-import static arc.backend.sdl.jni.SDL.SDL_GL_ExtensionSupported;
 import static mindustry.Vars.*;
 
 public class DesktopLauncher extends ClientLauncher{
@@ -83,7 +81,8 @@ public class DesktopLauncher extends ClientLauncher{
 
     public DesktopLauncher(String[] args){
         Version.init();
-        boolean useSteam = Version.modifier.contains("steam");
+        String filepath = DesktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        boolean useSteam = Version.modifier.contains("steam") || filepath.contains("/steamapps/common/Mindustry/") && filepath.endsWith("/desktop.jar");
         testMobile = Seq.with(args).contains("-testMobile");
 
 //        Events.on(ClientLoadEvent.class, event -> {

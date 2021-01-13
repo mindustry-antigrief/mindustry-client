@@ -1,6 +1,7 @@
 package mindustry.client.utils;
 
 import arc.struct.Seq;
+import arc.util.Log;
 import arc.util.Strings;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
@@ -37,7 +38,7 @@ public class PlayerCompletion {
             String text = getLast(input);
             if (text == null) return 0f;
 
-            float dst = BiasedLevenshtein.biasedLevenshtein(text, matchName);
+            float dst = BiasedLevenshtein.biasedLevenshtein(text.toLowerCase(), matchName.toLowerCase());
             dst *= -1;
             dst += matchName.length();
             dst /= matchName.length();

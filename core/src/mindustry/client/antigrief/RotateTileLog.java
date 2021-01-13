@@ -1,13 +1,9 @@
-package mindustry.client.antigreif;
+package mindustry.client.antigrief;
 
 import arc.scene.Element;
 import arc.scene.ui.layout.Table;
-import mindustry.gen.Icon;
 import mindustry.gen.Unitc;
 import mindustry.world.Tile;
-
-import static mindustry.Vars.ui;
-import static mindustry.Vars.world;
 
 public class RotateTileLog extends TileLogItem {
     int newRotation;
@@ -46,6 +42,6 @@ public class RotateTileLog extends TileLogItem {
 
     @Override
     protected String formatConcise(String date, long minutes) {
-        return String.format("%s rotated tile %d minutes ago", player, minutes);
+        return String.format("%s rotated tile (%dm)", player, minutes);
     }
 }

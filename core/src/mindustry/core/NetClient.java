@@ -164,7 +164,7 @@ public class NetClient implements ApplicationListener{
                 if (Core.settings.getBool("highlightclientmsg")) { background = Color.coral.cpy().mul(0.75f); }
             }
             Vars.ui.chatfrag.addMessage(message, sender, background);
-            if (Core.settings.getBool("logmsgstoconsole")) Log.info("&fi@: @", "&lc" + (playersender != null ? playersender.name : "SERVER"), "&lw" + message);
+            if (Core.settings.getBool("logmsgstoconsole")) Log.info("&fi@: @", "&lc" + sender, "&lw" + message);
         }
 
         if(playersender != null){

@@ -7,8 +7,7 @@ import arc.math.geom.Vec2;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.*;
-import mindustry.Vars;
-import mindustry.client.antigreif.*;
+import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
@@ -24,7 +23,9 @@ import mindustry.input.DesktopInput;
 import mindustry.world.Tile;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
+import mindustry.world.blocks.environment.TreeBlock;
 
+import static arc.Core.input;
 import static arc.Core.settings;
 import static mindustry.Vars.*;
 import static mindustry.Vars.player;
@@ -120,9 +121,9 @@ public class Client {
             Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
         );
 
-        fooCommands.<Player>register("!", "[message...]", "Does nothing", (args, player) ->
-                Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
-        );
+        fooCommands.<Player>register("test", "[message...]", "Test command", (args, player) -> {
+                ui.chatfrag.addMessage((world.tileWorld(input.mouseWorldX(), input.mouseWorldY()) == null || !(world.tileWorld(input.mouseWorldX(), input.mouseWorldY()).breakable() || world.tileWorld(input.mouseWorldX(), input.mouseWorldY()).block().alwaysReplace || world.tileWorld(input.mouseWorldX(), input.mouseWorldY()).block() instanceof TreeBlock) || world.tileWorld(input.mouseWorldX(), input.mouseWorldY()).floor().isDeep()) ? "oh no" : "oh yes" , "dumb");
+        });
 
 
         Events.on(WorldLoadEvent.class, event -> {

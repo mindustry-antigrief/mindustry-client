@@ -6,7 +6,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.antigreif.RotateTileLog;
+import mindustry.client.antigrief.RotateTileLog;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
