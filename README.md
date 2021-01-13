@@ -2,8 +2,8 @@ This is my fork of mindustry v6.  It will have various quality of life and autom
 
 ![Logo](core/assets-raw/sprites/ui/logo.png)
 
-[![Build Status](https://travis-ci.org/Anuken/Mindustry.svg?branch=master)](https://travis-ci.org/Anuken/Mindustry) 
-[![Discord](https://img.shields.io/discord/391020510269669376.svg?logo=discord&logoColor=white&logoWidth=20&labelColor=7289DA&label=Discord)](https://discord.gg/mindustry)  
+[![Release Update](../../workflows/Release%20Update/badge.svg)](../gh-pages/index.html)
+[![Discord](https://img.shields.io/discord/741710208501547161.svg?logo=discord&logoColor=white&logoWidth=20&labelColor=7289DA&label=Discord)](https://discord.gg/yp9ZW7j)  
 
 A sandbox tower defense game written in Java.
 
@@ -12,28 +12,27 @@ _[Wiki](https://mindustrygame.github.io/wiki)_
 _[Javadoc](https://mindustrygame.github.io/docs/)_ 
 
 ## Steam
-1. Installing the client on steam is rather easy, download the `steam.jar` file from the latest release.
-2. Rename the file to `desktop.jar`.
-3. Continue with the steps below for your operating system.
+1. Installing the client on steam is rather easy, [download](../../releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
+2. Continue with the steps below for your operating system.
 
 ### Windows
 
-4. Move the file to the `jre` folder where the game is installed as seen [here](core/assets/steaminfo.png).
-5. Accept the file replacement prompt.
-6. Open the game, and it should work just fine.
-- To uninstall the client, delete the `Mindustry.exe`file. Start the game, accept the error and start it again.
+3. Move the file to the `jre` folder where the game is installed as seen [here](core/assets/steaminfo.png).
+4. Accept the file replacement prompt.
+5. Open the game, and it should work just fine.
+- To uninstall the client, delete the `Mindustry.exe` file. Start the game, accept the error and start it again.
 
 ### Mac OS
 
-4. Open the game install folder, right click the `Mindustry.app` file and click `Show Package Contents`.
-5. Navigate to the `Resources` folder `Contents > Resources`.
-6. Replace the `desktop.jar` with the one you just downloaded and renamed.
-7. Launching the game should now start the client.
+3. Open the game install folder, right click the `Mindustry.app` file and click `Show Package Contents`.
+4. Navigate to the `Resources` folder `Contents > Resources`.
+5. Replace the `desktop.jar` with the one you just downloaded.
+6. Launching the game should now start the client.
 - To uninstall the client, delete the `desktop.jar` file in `Resources` as well as the `Mindustry` file in the `MacOS` folder. Start the game, accept the error and start it again.
 
 ### Linux
 
-4. You are using linux, I'm sure you can figure this out yourself.
+3. You are using linux, I'm sure you can figure this out yourself.
 
 ## Contributing
 
