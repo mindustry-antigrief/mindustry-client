@@ -8,31 +8,15 @@ on:
 
 
 jobs:
-  setup:
+
+  build:
     runs-on: ubuntu-latest
-    outputs:
-      releases: ${{ steps.releases.outputs.releases }}
 
     steps:
       - name: Cancel Previous Workflows
         uses: styfle/cancel-workflow-action@0.6.0
         with:
           access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - id: releases
-        run: echo "::set-output name=releases::{\"include\":[{\"modifier\":\"steam\",\"assetName\":\"steam.jar\"},{\"modifier\":\"release\",\"assetName\":\"desktop-release.jar\"}]}"
-
-
-  gradleBuild:
-    runs-on: ubuntu-latest
-    needs: setup
-    outputs:
-      url: ${{ steps.create_release.outputs.upload_url }}
-    strategy:
-      fail-fast: false
-      matrix: ${{fromJson(needs.setup.outputs.releases)}} # build with multiple versionModifier (modifier in version.java) arguments
-
-    steps:
 
       - name: Checkout Commit
         uses: actions/checkout@v1
@@ -42,28 +26,26 @@ jobs:
         with:
           java-version: 14
 
-      - name: Build ${{ matrix.modifier }} With Gradle
-        run: |
-         ./gradlew clean cleanTest test
-         ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }} -PversionModifier=${{ matrix.modifier }}
-      - name: Pages
-        if: ${{ always() && strategy.job-index == 1}}
+      - name: Build Client
+        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}
+
+      - name: Upload Test Results To Pages
+        if: ${{ always() }}
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages # The branch the action should deploy to.
           FOLDER: tests/build/reports/tests/test
-          TARGET_FOLDER: ${{ matrix.modifier }}
           CLEAN: true # Automatically remove deleted files from the deploy branch
 
-      - name: Upload ${{ matrix.assetName }} Artifact
+      - name: Upload Artifact
+        if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.assetName }}
+          name: Zipped Jar
           path: desktop/build/libs/Mindustry.jar
 
       - name: Create Release
-        if: strategy.job-index == 0
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -72,32 +54,38 @@ jobs:
           tag_name: ${{ github.run_number }}
           release_name: Release ${{ github.run_number }}
           body: |
+            ### Download the `desktop.jar` file, not the others
             Foo's Client Build ${{ github.run_number }}
-            Steam installation instructions [here](https://github.com/${{ github.repository }}#steam)
+            Steam installation instructions [here](../../#steam)
           draft: false
           prerelease: false
 
-
-  uploadReleaseAssets:
-    runs-on: ubuntu-latest
-    needs: [setup, gradleBuild]
-    strategy:
-      matrix: ${{fromJson(needs.setup.outputs.releases)}}
-
-    steps:
-      - name: Download ${{ matrix.assetName }}
-        uses: actions/download-artifact@v2
-        id: download
-        with:
-          name: ${{ matrix.assetName }}
-
-      - name: Upload ${{ matrix.assetName }} to Release
-        id: upload-desktop-asset
+      - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.gradleBuild.outputs.url }}
-          asset_path: Mindustry.jar
-          asset_name: ${{ matrix.assetName }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: desktop/build/libs/Mindustry.jar
+          asset_name: desktop.jar
+          asset_content_type: application/zip
+
+      - name: Steam (Redundant, kept for backwards compat.)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: desktop/build/libs/Mindustry.jar
+          asset_name: steam.jar
+          asset_content_type: application/zip
+
+      - name: Desktop-release (Redundant, kept for backwards compat.)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: desktop/build/libs/Mindustry.jar
+          asset_name: desktop-release.jar
           asset_content_type: application/zip
