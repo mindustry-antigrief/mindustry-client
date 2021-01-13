@@ -46,46 +46,46 @@ jobs:
           path: desktop/build/libs/Mindustry.jar
 
       - name: Create Release
-          id: create_release
-          uses: actions/create-release@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            tag_name: ${{ github.run_number }}
-            release_name: Release ${{ github.run_number }}
-            body: |
-              ### Download the `desktop.jar` file, not the others
-              Foo's Client Build ${{ github.run_number }}
-              Steam installation instructions [here](../../#steam)
-            draft: false
-            prerelease: false
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
+          body: |
+            ### Download the `desktop.jar` file, not the others
+            Foo's Client Build ${{ github.run_number }}
+            Steam installation instructions [here](../../#steam)
+          draft: false
+          prerelease: false
 
       - name: Upload Release Asset
-          uses: actions/upload-release-asset@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: Mindustry.jar
-            asset_name: desktop.jar
-            asset_content_type: application/zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: Mindustry.jar
+          asset_name: desktop.jar
+          asset_content_type: application/zip
 
       - name: Steam (Redundant, kept for backwards compat.)
-          uses: actions/upload-release-asset@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: Mindustry.jar
-            asset_name: steam.jar
-            asset_content_type: application/zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: Mindustry.jar
+          asset_name: steam.jar
+          asset_content_type: application/zip
 
       - name: Desktop-release (Redundant, kept for backwards compat.)
-          uses: actions/upload-release-asset@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: Mindustry.jar
-            asset_name: desktop-release.jar
-            asset_content_type: application/zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: Mindustry.jar
+          asset_name: desktop-release.jar
+          asset_content_type: application/zip
