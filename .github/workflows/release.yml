@@ -27,7 +27,7 @@ jobs:
           java-version: 14
 
       - name: Build Client
-        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }} -PversionModifier=${{ matrix.modifier }}
+        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}
 
       - name: Upload Test Results To Pages
         if: ${{ always() }}
@@ -66,7 +66,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: Mindustry.jar
+          asset_path: desktop/build/libs/Mindustry.jar
           asset_name: desktop.jar
           asset_content_type: application/zip
 
@@ -76,7 +76,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: Mindustry.jar
+          asset_path: desktop/build/libs/Mindustry.jar
           asset_name: steam.jar
           asset_content_type: application/zip
 
@@ -86,6 +86,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: Mindustry.jar
+          asset_path: desktop/build/libs/Mindustry.jar
           asset_name: desktop-release.jar
           asset_content_type: application/zip
