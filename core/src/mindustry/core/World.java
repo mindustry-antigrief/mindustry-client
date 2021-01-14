@@ -194,7 +194,7 @@ public class World{
 
     /**
      * Call to signify the end of map loading. Updates tile proximities and sets up physics for the world.
-     * A WorldLoadEvent will be fire.
+     * A WorldLoadEvent will be fired.
      */
     public void endMapLoad(){
 

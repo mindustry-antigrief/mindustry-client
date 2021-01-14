@@ -147,7 +147,7 @@ public class Client {
             configs.clear();
             turrets.clear();
             UnitPicker.found = null;
-            if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!");
+            if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
         });
 
         Events.on(EventType.UnitChangeEvent.class, event -> {
@@ -195,6 +195,7 @@ public class Client {
                     Log.err(e);
                 }
             });
+
             Autocomplete.autocompleters.add(new BlockEmotes());
             Autocomplete.autocompleters.add(new PlayerCompletion());
             Autocomplete.autocompleters.add(new CommandCompletion());
