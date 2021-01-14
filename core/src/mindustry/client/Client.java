@@ -4,7 +4,6 @@ import arc.*;
 import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
-import arc.scene.ui.SettingsDialog;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.*;
@@ -16,14 +15,12 @@ import mindustry.client.utils.*;
 import mindustry.client.utils.Autocomplete;
 import mindustry.content.Blocks;
 import mindustry.core.NetClient;
-import mindustry.core.UI;
 import mindustry.core.World;
 import mindustry.entities.Units;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.input.DesktopInput;
-import mindustry.ui.dialogs.SettingsMenuDialog;
 import mindustry.world.Tile;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
@@ -50,7 +47,7 @@ public class Client {
     public static Ratekeeper configRateLimit = new Ratekeeper();
     public static boolean hideUnits = false;
     /** The last position someone sent in chat or was otherwise put into the buffer, in tile coords. */
-    private static final Vec2 lastSentPos = new Vec2();
+    public static final Vec2 lastSentPos = new Vec2();
 
     public static void initialize() {
         fooCommands.<Player>register("help", "[page]", "Lists all client commands.", (args, player) -> {
@@ -151,22 +148,6 @@ public class Client {
             turrets.clear();
             UnitPicker.found = null;
             if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!");
-        });
-
-        Pattern coordPattern = Pattern.compile("\\d+(\\s|,)\\d+");
-        Events.on(EventType.PlayerChatEvent.class, event -> {
-            if (event.message == null) return;
-            Matcher matcher = coordPattern.matcher(event.message);
-            if (!matcher.matches()) return;
-            String coords = matcher.toMatchResult().group(0);
-            try {
-                int x = Integer.parseInt(coords.split(",")[0]);
-                int y = Integer.parseInt(coords.split(",")[1]);
-                lastSentPos.set(x, y);
-                Timer.schedule(() -> ui.chatfrag.addMessage("!go to navigate to (%d,%d)", "client", Color.coral.cpy().mul(0.75f)), 0.05f);
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-            }
         });
 
         Events.on(EventType.UnitChangeEvent.class, event -> {

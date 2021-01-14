@@ -11,6 +11,7 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.Client;
 import mindustry.client.FooUser;
 import mindustry.client.utils.FloatEmbed;
 import mindustry.core.GameState.*;
@@ -29,6 +30,8 @@ import mindustry.world.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
@@ -37,6 +40,7 @@ public class NetClient implements ApplicationListener{
     private static final float dataTimeout = 60 * 18;
     private static final float playerSyncTime = 2;
     public static final float viewScale = 2f;
+    private static final Pattern coordPattern = Pattern.compile("\\S*?(\\d+)[\\s,]+(\\d+)\\S*");
 
     private long ping;
     private Interval timer = new Interval(5);
@@ -158,13 +162,16 @@ public class NetClient implements ApplicationListener{
     public static void sendMessage(String message, String sender, Player playersender){
         Color background = null;
         if(Vars.ui != null){
-            if (FooUser.IsUser(playersender) && !playersender.equals(player)) { // Add wrench to client user messages, highlight if enabled
+            if (FooUser.IsUser(playersender) && playersender != player) { // Add wrench to client user messages, highlight if enabled
                 sender = colorizeName(playersender.id, "\uE80F " + sender);
-
-                if (Core.settings.getBool("highlightclientmsg")) { background = Color.coral.cpy().mul(0.75f); }
+                if (Core.settings.getBool("highlightclientmsg")) background = Color.coral.cpy().mul(0.75f);
             }
-            Vars.ui.chatfrag.addMessage(message, sender, background);
-            if (Core.settings.getBool("logmsgstoconsole")) Log.info("&fi@: @", "&lc" + (sender == null ? "SERVER" : sender), "&lw" + message);
+
+            Matcher matcher = coordPattern.matcher(message);
+            if (matcher.find()) Client.lastSentPos.set(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+
+            Vars.ui.chatfrag.addMessage(matcher.replaceFirst("[scarlet]$0[]"), sender, background);
+            if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.info("&fi@: @", "&lc" + (playersender == null ? "Server" : playersender.name), "&lw" + message);
         }
 
         if(playersender != null){
