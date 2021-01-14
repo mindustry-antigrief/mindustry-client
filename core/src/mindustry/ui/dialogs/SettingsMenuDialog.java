@@ -344,7 +344,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             public void add(SettingsTable table) {
                 name = "updateurl";
                 title = Core.bundle.get("setting." + name + ".name");
-                if (!Version.updateUrl.isEmpty()) Core.settings.put("updateurl", Version.updateUrl);
+                if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
                 settings.defaults("updateurl", "blahblahbloopster/mindustry-client-v6");
                 Label label = new Label(title);
 

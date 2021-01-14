@@ -4,6 +4,7 @@ import arc.*;
 import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
+import arc.scene.ui.SettingsDialog;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.*;
@@ -11,21 +12,27 @@ import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
+import mindustry.client.utils.*;
 import mindustry.client.utils.Autocomplete;
 import mindustry.content.Blocks;
 import mindustry.core.NetClient;
+import mindustry.core.UI;
 import mindustry.core.World;
 import mindustry.entities.Units;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.input.DesktopInput;
+import mindustry.ui.dialogs.SettingsMenuDialog;
 import mindustry.world.Tile;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
-import mindustry.world.blocks.environment.TreeBlock;
 
-import static arc.Core.input;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import static arc.Core.settings;
 import static mindustry.Vars.*;
 import static mindustry.Vars.player;
@@ -42,6 +49,8 @@ public class Client {
     public static boolean hideTrails;
     public static Ratekeeper configRateLimit = new Ratekeeper();
     public static boolean hideUnits = false;
+    /** The last position someone sent in chat or was otherwise put into the buffer, in tile coords. */
+    private static final Vec2 lastSentPos = new Vec2();
 
     public static void initialize() {
         fooCommands.<Player>register("help", "[page]", "Lists all client commands.", (args, player) -> {
@@ -77,31 +86,38 @@ public class Client {
             new UnitPicker().findUnit(found);
         });
 
-        fooCommands.<Player>register("goto","<x> <y>", "Navigates to (x, y)", (args, player) -> {
+        fooCommands.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last stored coordinate", (args, player) -> {
             try {
-                Navigation.navigateTo(Float.parseFloat(args[0])*8, Float.parseFloat(args[1])*8);
-            }
-            catch(Exception e){
-                player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !goto 10 300");
+                float x, y;
+                System.out.println(Arrays.toString(args));
+                if (args.length == 2) {
+                    x = Float.parseFloat(args[0]);
+                    y = Float.parseFloat(args[1]);
+                } else {
+                    x = lastSentPos.x;
+                    y = lastSentPos.y;
+                }
+                Navigation.navigateTo(World.unconv(x), World.unconv(y));
+            } catch(NumberFormatException | IndexOutOfBoundsException e){
+                player.sendMessage("[scarlet]Invalid coordinates, format is [x] [y] Eg: !go 10 300 or !go");
             }
         });
 
         fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to (x, y)", (args, player) -> {
             try {
                 DesktopInput.panning = true;
-                Spectate.pos = new Vec2(Float.parseFloat(args[0])*8, Float.parseFloat(args[1])*8);
-            }
-            catch(Exception e){
+                Spectate.pos = new Vec2(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])));
+            } catch(NumberFormatException | IndexOutOfBoundsException e){
                 player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !lookat 10 300");
             }
         });
 
         fooCommands.<Player>register("here", "[message...]", "Prints your location to chat with an optional message", (args, player) ->
-                Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", player.tileX(), player.tileY()))
+                Call.sendChatMessage(String.format("%s(%s, %s)", args.length == 0 ? "" : args[0] + " ", player.tileX(), player.tileY()))
         );
 
         fooCommands.<Player>register("cursor", "[message...]", "Prints cursor location to chat with an optional message", (args, player) ->
-                Call.sendChatMessage(String.format("%s(%s, %s)",args.length == 0 ? "" : args[0] + " ", World.toTile(Core.input.mouseWorldX()), World.toTile(Core.input.mouseWorldY())))
+                Call.sendChatMessage(String.format("%s(%s, %s)", args.length == 0 ? "" : args[0] + " ", World.toTile(Core.input.mouseWorldX()), World.toTile(Core.input.mouseWorldY())))
         );
 
         fooCommands.<Player>register("builder", "[options...]", "Starts auto build with optional arguments, prioritized from first to last.", (args, player) ->
@@ -121,10 +137,9 @@ public class Client {
             Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
         );
 
-        fooCommands.<Player>register("test", "[message...]", "Test command", (args, player) -> {
-                ui.chatfrag.addMessage((world.tileWorld(input.mouseWorldX(), input.mouseWorldY()) == null || !(world.tileWorld(input.mouseWorldX(), input.mouseWorldY()).breakable() || world.tileWorld(input.mouseWorldX(), input.mouseWorldY()).block().alwaysReplace || world.tileWorld(input.mouseWorldX(), input.mouseWorldY()).block() instanceof TreeBlock) || world.tileWorld(input.mouseWorldX(), input.mouseWorldY()).floor().isDeep()) ? "oh no" : "oh yes" , "dumb");
-        });
-
+        fooCommands.<Player>register("shrug", "[message...]", "Sends the shrug unicode emoji with an optional message", (args, player) ->
+            Call.sendChatMessage("¯\\_(ツ)_/¯ " + (args.length == 1 ? args[0] : ""))
+        );
 
         Events.on(WorldLoadEvent.class, event -> {
             if (Time.timeSinceMillis(lastSyncTime) > 5000) {
@@ -135,7 +150,23 @@ public class Client {
             configs.clear();
             turrets.clear();
             UnitPicker.found = null;
-            if (state.rules.pvp) ui.chatfrag.addMessage("[scarlet]Don't use a client in pvp, it's uncool!", "Your Conscience", Color.crimson);
+            if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!");
+        });
+
+        Pattern coordPattern = Pattern.compile("\\d+(\\s|,)\\d+");
+        Events.on(EventType.PlayerChatEvent.class, event -> {
+            if (event.message == null) return;
+            Matcher matcher = coordPattern.matcher(event.message);
+            if (!matcher.matches()) return;
+            String coords = matcher.toMatchResult().group(0);
+            try {
+                int x = Integer.parseInt(coords.split(",")[0]);
+                int y = Integer.parseInt(coords.split(",")[1]);
+                lastSentPos.set(x, y);
+                Timer.schedule(() -> ui.chatfrag.addMessage("!go to navigate to (%d,%d)", "client", Color.coral.cpy().mul(0.75f)), 0.05f);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
         });
 
         Events.on(EventType.UnitChangeEvent.class, event -> {
@@ -169,12 +200,23 @@ public class Client {
             }
         });
         Events.on(EventType.ClientLoadEvent.class, event -> {
-            if (settings.has("reactorwarnings")){ // TODO: Remove this code after a reasonable amount of time. (Converts old setting values).
-                settings.put("reactorwarningdistance", settings.getBool("reactorwarnings") ? settings.getInt("reactorwarningdistance") == 0 ? 101 : settings.getInt("reactorwarningdistance") : -1);
-                settings.put("reactorsounddistance", settings.getBool("reactorwarningsounds") ? settings.getInt("reactorsounddistance") == 0 ? 101 : settings.getInt("reactorsounddistance") : -1);
+            settings.getBoolOnce("updatevalues", () -> { // TODO: Remove this code and the updatevalues bool at some point in the future (this converts old settings to new format)
+                settings.put("reactorwarningdistance", settings.getBool("reactorwarnings", true) ? settings.getInt("reactorwarningdistance") == 0 ? 101 : settings.getInt("reactorwarningdistance") : -1);
+                settings.put("reactorsounddistance", settings.getBool("reactorwarningsounds", true) ? settings.getInt("reactorsounddistance") == 0 ? 101 : settings.getInt("reactorsounddistance") : -1);
                 settings.remove("reactorwarnings");
                 settings.remove("reactorwarningsounds");
-            }
+
+                try { // Somehow this works?
+                    Method ohno = ui.settings.client.getClass().getDeclaredMethod("rebuild");
+                    ohno.setAccessible(true);
+                    ohno.invoke(ui.settings.client);
+                } catch (Exception e) {
+                    Log.err(e);
+                }
+            });
+            Autocomplete.autocompleters.add(new BlockEmotes());
+            Autocomplete.autocompleters.add(new PlayerCompletion());
+            Autocomplete.autocompleters.add(new CommandCompletion());
             Autocomplete.initialize();
             hideTrails = Core.settings.getBool("hidetrails");
             Blocks.sand.asFloor().playerUnmineable = !settings.getBool("doubleclicktomine");

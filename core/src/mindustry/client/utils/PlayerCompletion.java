@@ -6,19 +6,28 @@ import arc.util.Strings;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
 
-public class PlayerCompletion {
+public class PlayerCompletion implements Autocompleter {
 
-    public static Autocompleteable getCompletion(String input) {
+    public Autocompleteable getCompletion(String input) {
         return bestMatch(input);
     }
 
-    private static PlayerMatcher bestMatch(String input) {
-        Seq<PlayerMatcher> completions = closest(input);
+    @Override
+    public boolean matches(String input) {
+        Autocompleteable match = bestMatch(input);
+        if (match == null) {
+            return false;
+        }
+        return match.matches(input) > 0.5f;
+    }
+
+    private Autocompleteable bestMatch(String input) {
+        Seq<Autocompleteable> completions = closest(input);
         if (completions.isEmpty()) return null;
         return closest(input).first();
     }
 
-    public static Seq<PlayerMatcher> closest(String input) {
+    public Seq<Autocompleteable> closest(String input) {
         Seq<Player> all =  Groups.player.array.copy();
         if (all == null) return null;
         return all.sort(item -> (new PlayerMatcher(item)).matches(input)).map(PlayerMatcher::new);

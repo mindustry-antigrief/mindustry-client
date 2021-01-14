@@ -19,6 +19,7 @@ import mindustry.annotations.Annotations.*;
 import mindustry.audio.*;
 import mindustry.client.Client;
 import mindustry.client.antigrief.ConfigRequest;
+import mindustry.client.antigrief.DestroyTileLog;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -40,6 +41,8 @@ import mindustry.world.blocks.power.*;
 import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
+
+import java.time.Instant;
 
 import static mindustry.Vars.*;
 
@@ -1362,6 +1365,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public void killed(){
         Events.fire(new BlockDestroyEvent(tile));
         block.breakSound.at(tile);
+        tile.addToLog(new DestroyTileLog(tile, Instant.now().getEpochSecond(), "", tile.block()));
         onDestroyed();
         tile.remove();
         remove();

@@ -3,9 +3,10 @@ package mindustry.client.utils;
 import arc.struct.Seq;
 
 public class Autocomplete {
+    public static Seq<Autocompleter> autocompleters = new Seq<>();
 
     public static void initialize() {
-        BlockEmotes.initialize();
+        autocompleters.forEach(Autocompleter::initialize);
     }
 
     public static String getCompletion(String input) {
@@ -21,7 +22,7 @@ public class Autocomplete {
     }
 
     public static Seq<Autocompleteable> closest(String input) {
-        Seq<Autocompleteable> all = BlockEmotes.closest(input).addAll(PlayerCompletion.closest(input));
+        Seq<Autocompleteable> all = autocompleters.reduce(new Seq<>(), (a, b) -> a.closest(input).addAll(b));
         if (all == null) return null;
         return all.sort(item -> item.matches(input));
     }
