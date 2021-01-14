@@ -12,10 +12,10 @@ import mindustry.type.UnitType;
 import mindustry.ui.Fonts;
 import mindustry.world.Block;
 
-public class BlockEmotes {
+public class BlockEmotes implements Autocompleter {
 
-    private static final Seq<BlockEmote> emotes = new Seq<>();
-    public static void initialize() {
+    private final Seq<BlockEmote> emotes = new Seq<>();
+    public void initialize() {
         for (Block block : Vars.content.blocks()) {
             emotes.add(new BlockEmote(Fonts.getUnicodeStr(block.name), block.name));
         }
@@ -31,17 +31,27 @@ public class BlockEmotes {
         for (ObjectIntMap.Entry<String> entry : Iconc.codes) {
             emotes.add(new BlockEmote(Character.toString((char)entry.value), entry.key));
         }
+        emotes.add(new BlockEmote("\ue84e", "ohno"));
     }
 
-    public static Autocompleteable getCompletion(String input) {
+    public Autocompleteable getCompletion(String input) {
         return bestMatch(input);
     }
 
-    private static BlockEmote bestMatch(String input) {
+    private BlockEmote bestMatch(String input) {
         return emotes.max(e -> e.matches(input));
     }
 
-    public static Seq<Autocompleteable> closest(String input) {
+    @Override
+    public boolean matches(String input) {
+        Autocompleteable match = bestMatch(input);
+        if (match == null) {
+            return false;
+        }
+        return match.matches(input) > 0.5f;
+    }
+
+    public Seq<Autocompleteable> closest(String input) {
         return emotes.sort(item -> item.matches(input)).map(item -> item);
     }
 

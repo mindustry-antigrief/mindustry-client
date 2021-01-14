@@ -104,6 +104,8 @@ public class ChatFragment extends Table{
                     if (!Arrays.equals(completion.items, oldCompletion.items)) {
                         completionPos = completion.size - 1;
                     }
+                } else {
+                    completion.clear();
                 }
             }
         });

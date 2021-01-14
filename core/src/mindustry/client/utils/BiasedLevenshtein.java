@@ -22,7 +22,10 @@ public class BiasedLevenshtein {
 
         int output = dp[x.length()][y.length()];
         if (y.startsWith(x) || x.startsWith(y)) {
-            return output / 5f;
+            return output / 3f;
+        }
+        if (y.contains(x) || x.contains(y)) {
+            return output / 1.5f;
         }
         return output;
     }
