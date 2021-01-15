@@ -5,6 +5,7 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
+import arc.util.Log;
 
 import static mindustry.Vars.*;
 
@@ -41,8 +42,9 @@ public class PositionWaypoint extends Waypoint implements Position {
         vec.set(target).sub(player.unit());
 
         if (Core.settings.getBool("assumeunstrict")) {
-            vec.setLength(player.unit().dst(target) - circleLength);
-            if (vec.len() <= circleLength / 2) vec.setZero();
+            float length = player.unit().dst(target) - circleLength;
+            vec.setLength(length);
+            if (length < 0) vec.rotate(180f);
             player.trns(vec);
             player.unit().trns(vec);
         } else {
