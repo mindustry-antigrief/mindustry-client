@@ -82,7 +82,7 @@ public class ChatFragment extends Table{
                     historyPos--;
                     updateChat();
                 }
-                if(input.keyTap(Binding.chat_mode)){
+                if(!(input.keyTap(Binding.chat_autocomplete) && completion.any()) && input.keyTap(Binding.chat_mode)){
                     nextMode();
                 }
                 scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chat_scroll), 0, Math.max(0, messages.size - messagesShown));

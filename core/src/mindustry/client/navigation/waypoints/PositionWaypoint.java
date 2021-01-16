@@ -44,7 +44,7 @@ public class PositionWaypoint extends Waypoint implements Position {
         if (Core.settings.getBool("assumeunstrict")) {
             float length = player.unit().dst(target) - circleLength;
             vec.setLength(length);
-            if (length < 0) vec.rotate(180f);
+            if (length < 0) vec.setZero();
             player.trns(vec);
             player.unit().trns(vec);
         } else {
