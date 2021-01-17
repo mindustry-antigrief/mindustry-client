@@ -16,6 +16,8 @@ object Crypto {
     private lateinit var factory: KeyFactory
     /** Handles signing.  Not sure if I should have it instantiate a new one very time it's used. */
     private lateinit var signature: Signature
+    /** The size of a signature because [Signature] doesn't let you get the length out. */
+    var signatureSize = 384 / 8
 
     /** Initializes cryptography stuff, must be called before usage. */
     fun init() {
