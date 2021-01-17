@@ -3,7 +3,6 @@ import arc.util.io.*;
 import mindustry.game.*;
 import mindustry.io.*;
 import org.junit.jupiter.api.*;
-
 import java.nio.*;
 
 import static org.junit.jupiter.api.Assertions.*;
