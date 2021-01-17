@@ -45,6 +45,7 @@ public class DesktopLauncher extends ClientLauncher{
             try {
                 new SdlApplication(new DesktopLauncher(arg), config);
             } catch (Throwable e) {
+                e.printStackTrace();
                 config.samples = 0;
                 new SdlApplication(new DesktopLauncher(arg), config);
             }
