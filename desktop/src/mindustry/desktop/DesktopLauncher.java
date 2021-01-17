@@ -7,7 +7,6 @@ import arc.backend.sdl.jni.*;
 import arc.files.*;
 import arc.func.*;
 import arc.math.*;
-import arc.scene.ui.SettingsDialog;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
@@ -21,10 +20,8 @@ import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.net.Net.*;
 import mindustry.type.*;
-
 import java.io.*;
-
-import static arc.backend.sdl.jni.SDL.SDL_GL_ExtensionSupported;
+import com.github.blahblahbloopster.Main;
 import static mindustry.Vars.*;
 
 public class DesktopLauncher extends ClientLauncher{
@@ -80,6 +77,8 @@ public class DesktopLauncher extends ClientLauncher{
         Version.init();
         boolean useSteam = Version.modifier.contains("steam");
         testMobile = Seq.with(args).contains("-testMobile");
+
+        add(Main.INSTANCE);
 
 //        Events.on(ClientLoadEvent.class, event -> {
 //            ui.settings.client.sliderPref("antialiasingsamples", "setting.antialiasingsamples.name", 4, 0, 32, num -> {
