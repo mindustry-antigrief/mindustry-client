@@ -27,6 +27,8 @@ import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
+import mindustry.world.blocks.power.NuclearReactor;
+import mindustry.world.blocks.storage.CoreBlock;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.modules.*;
 import java.time.*;
@@ -499,6 +501,12 @@ public class ConstructBlock extends Block{
                     toast.add(new Label(format));
                     toast.row();
                     toast.add(new Label(format2, monoLabel));
+                }
+
+                if (lastProgress == 0 && cblock instanceof NuclearReactor && distance.intValue() < 10) { // Automatically remove reactors within 10 blocks of core
+                    CoreBlock.findBestCore = false;
+                    Call.unitControl(player, ((CoreBuild)closestCore()).unit());
+                    Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tileX(), tileY())), net.client() ? netClient.getPing()/1000f+.3f : 0);
                 }
             }
             lastProgress = progress;

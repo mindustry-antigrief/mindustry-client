@@ -80,7 +80,7 @@ public class Conveyor extends Block implements Autotiler{
     @Override
     public boolean canReplace(Block other){
         if(other.alwaysReplace) return true;
-        return (other != this || rotate) && other.group == this.group && !(other instanceof StackConveyor);
+        return (other != this || rotate) && (size >= other.size || other instanceof Router) && other.group == this.group && !(other instanceof StackConveyor);
     }
 
     @Override

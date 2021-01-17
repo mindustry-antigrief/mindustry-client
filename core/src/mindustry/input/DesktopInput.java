@@ -269,6 +269,9 @@ public class DesktopInput extends InputHandler{
         if(input.keyTap(Binding.auto_build) && scene.getKeyboardFocus() == null){
             Navigation.follow(new BuildPath());
         }
+        if(input.keyTap(KeyCode.l) && scene.getKeyboardFocus() == null){
+            Navigation.follow(new RepairPath());
+        }
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 

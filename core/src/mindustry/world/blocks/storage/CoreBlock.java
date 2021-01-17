@@ -7,7 +7,6 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.Table;
 import arc.struct.*;
-import arc.util.Log;
 import arc.util.Timer;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
@@ -33,6 +32,8 @@ import static mindustry.Vars.*;
 public class CoreBlock extends StorageBlock{
     //hacky way to pass item modules between methods
     private static ItemModule nextItems;
+
+    public static boolean findBestCore = true;
 
     public UnitType unitType = UnitTypes.alpha;
 
@@ -67,8 +68,11 @@ public class CoreBlock extends StorageBlock{
         CoreBuild entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreNucleus));
         if (entity == null) entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreFoundation));
         if (entity == null || player != Vars.player || Core.input.keyDown(Binding.control)) entity = (CoreBuild)tile.build;
+
         CoreBlock block = (CoreBlock)tile.block();
         Fx.spawn.at(entity);
+
+        player.set(entity);
 
         if(!net.client()){
             Unit unit = block.unitType.create(tile.team());
@@ -80,15 +84,15 @@ public class CoreBlock extends StorageBlock{
             unit.add();
         }
 
-        if (player == Vars.player) {
+        if(player == Vars.player){
             if(state.isCampaign()) block.unitType.unlock();
-            if (tile != entity.tile) {
+            if (tile != entity.tile && findBestCore) {
                 CoreBuild finalEntity = entity;
-                Timer.schedule(() -> Call.unitControl(player, finalEntity.unit()), net.client() ? netClient.getPing()/1000f+.05f : 0);
+                Timer.schedule(() -> Call.unitControl(player, finalEntity.unit()), net.client() ? netClient.getPing()/1000f+.3f : 0);
+            } else {
+                findBestCore = true;
             }
         }
-
-        player.set(entity);
     }
 
     @Override

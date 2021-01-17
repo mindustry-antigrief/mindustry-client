@@ -35,13 +35,9 @@ public class BuildPath extends Path {
 
     @SuppressWarnings("unchecked")
     public BuildPath(String[] args){
-        argHandler:
         for (String arg : Arrays.toString(args).replaceAll("[\\[\\]]", "").split(" ")) {
             switch (arg) {
-                case "all" -> {
-                    queues.addAll(player.unit().plans, broken, assist, unfinished);
-                    break argHandler;
-                }
+                case "all" -> queues.addAll(player.unit().plans, broken, assist, unfinished);
                 case "self" -> queues.add(player.unit().plans);
                 case "broken" -> queues.add(broken);
                 case "boulders" -> queues.add(boulders);
@@ -65,6 +61,7 @@ public class BuildPath extends Path {
 
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     void follow() {
+        // TODO: Cleanup this firstrun nonsense, make sure that unfinished and cleanup don't conflict
         if (firstRun) world.tiles.forEach(tile -> {if(tile.team() == Team.derelict && tile.breakable() && tile.isCenter())cleanup.add(new BuildPlan(tile.x, tile.y));}); firstRun = false;
         if (timer.get(15)) {
             // Jank code to clear the four extra queues TODO: Find a better way to do this
@@ -76,8 +73,8 @@ public class BuildPath extends Path {
             if(queues.contains(broken) && !player.unit().team.data().blocks.isEmpty()) player.unit().team.data().blocks.forEach(block -> broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config)));
             if(queues.contains(assist)) Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && player.unit() != null && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
             if(queues.contains(unfinished) || queues.contains(boulders)) world.tiles.forEach(tile -> {if(tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder)boulders.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter())unfinished.add(entity.wasConstructing ? new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) : new BuildPlan(tile.x, tile.y));});
-
-            boolean all = false, found = false;
+            boolean all = false;
+            dosort:
             for (int x = 0; x < 2; x++) {
                 for (Queue queue : queues) {
                     Queue<BuildPlan> plans = sortPlans(queue, all, true);
@@ -87,10 +84,8 @@ public class BuildPath extends Path {
                     if (plans.isEmpty()) continue; */
                     plans.forEach(player.unit().plans::remove);
                     plans.forEach(player.unit().plans::addFirst);
-                    found = true;
-                    break;
+                    break dosort;
                 }
-                if (found) break;
                 all = true;
             }
         }
