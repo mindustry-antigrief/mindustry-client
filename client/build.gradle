@@ -11,6 +11,8 @@ repositories {
 
 sourceSets.main.kotlin.srcDirs = ["src/"]
 
+compileKotlin.kotlinOptions.jvmTarget = "1.8"
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation project(":core")

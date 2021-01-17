@@ -4,7 +4,12 @@ import arc.ApplicationListener
 
 object Main : ApplicationListener {
 
-    override fun init() {
-//        println("Hello, world!")
-    }
+    /** Run on client load. */
+    override fun init() {}
+
+    /** Run once per frame. */
+    override fun update() {}
+
+    /** Run when the object is disposed. */
+    override fun dispose() {}
 }
