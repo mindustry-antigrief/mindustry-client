@@ -87,7 +87,9 @@ public class NetClient implements ApplicationListener{
             c.versionType = Version.type;
             c.color = player.color().rgba();
             c.usid = getUsid(packet.addressTCP);
-            c.uuid = platform.getUUID();
+            byte[] result = new byte[8];
+            new Rand().nextBytes(result);
+            c.uuid = new String(Base64Coder.encode(result));
 
             if(c.uuid == null){
                 ui.showErrorMessage("@invalidid");
