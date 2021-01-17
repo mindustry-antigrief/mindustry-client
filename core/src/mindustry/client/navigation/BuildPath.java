@@ -102,7 +102,7 @@ public class BuildPath extends Path {
             if(valid){
                 //move toward the request
                 Formation formation = player.unit().formation;
-                float range = buildingRange - player.unit().hitSize()/2;
+                float range = buildingRange - player.unit().hitSize()/2 - 10;
                 if (formation != null) range -= formation.pattern.spacing / (float)Math.sin(180f / formation.pattern.slots * Mathf.degRad);
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{

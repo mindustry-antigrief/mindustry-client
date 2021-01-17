@@ -83,10 +83,9 @@ public class Client {
             new UnitPicker().findUnit(found);
         });
 
-        fooCommands.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last stored coordinate", (args, player) -> {
+        fooCommands.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last stored coordinates posted to chat", (args, player) -> {
             try {
                 float x, y;
-                System.out.println(Arrays.toString(args));
                 if (args.length == 2) {
                     x = Float.parseFloat(args[0]);
                     y = Float.parseFloat(args[1]);
@@ -100,12 +99,20 @@ public class Client {
             }
         });
 
-        fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to (x, y)", (args, player) -> {
+        fooCommands.<Player>register("lookat","[x] [y]", "Moves camera to (x, y) or the last coordinates posted to chat", (args, player) -> {
             try {
                 DesktopInput.panning = true;
-                Spectate.pos = new Vec2(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])));
+                float x, y;
+                if (args.length == 2) {
+                    x = Float.parseFloat(args[0]);
+                    y = Float.parseFloat(args[1]);
+                } else {
+                    x = lastSentPos.x;
+                    y = lastSentPos.y;
+                }
+                Spectate.pos = new Vec2(World.unconv(x), World.unconv(y));
             } catch(NumberFormatException | IndexOutOfBoundsException e){
-                player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !lookat 10 300");
+                player.sendMessage("[scarlet]Invalid coordinates, format is [x] [y] Eg: !lookat 10 300 or !lookat");
             }
         });
 
