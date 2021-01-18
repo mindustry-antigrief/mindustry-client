@@ -3,6 +3,7 @@ package com.github.blahblahbloopster.crypto
 import arc.Core
 import arc.Events
 import arc.graphics.Color
+import arc.util.Log
 import mindustry.Vars
 import mindustry.game.EventType
 import net.i2p.crypto.eddsa.EdDSAPrivateKey
@@ -17,19 +18,19 @@ import kotlin.math.abs
 /** Provides the interface between [Crypto] and a [CommunicationSystem] */
 class MessageCrypto {
     lateinit var communicationSystem: CommunicationSystem
-    val validKeys = mutableListOf<PublicKey>()
-    var keyPair: KeyPair? = null
+    private val validKeys = mutableListOf<PublicKey>()
+    private var keyPair: KeyPair? = null
 
     fun init(communicationSystem: CommunicationSystem) {
         this.communicationSystem = communicationSystem
-        validKeys.add(Crypto.deserializePublic(Core.files.internal("fooKey").readBytes()))
+        validKeys.add(Crypto.deserializePublic(Core.files.internal("fooKey").readBytes()))  // load public key
 
         if (Core.settings.dataDirectory.child("privateKey").exists() && Core.settings.dataDirectory.child("publicKey").exists()) {
             keyPair = KeyPair(
                     Crypto.deserializePublic(Core.settings.dataDirectory.child("publicKey").readBytes()),
                     Crypto.deserializePrivate(Core.settings.dataDirectory.child("privateKey").readBytes())
             )
-            println("Loaded keypair")
+            Log.info("Loaded keypair")
 
             Events.on(EventType.SendChatMessageEvent::class.java) { event ->
                 sign(event.message, (keyPair ?: return@on).private)
@@ -37,39 +38,32 @@ class MessageCrypto {
         }
 
         var player = Triple<Int, Long, String>(0, 0, "")  // Maps player ID to last sent message
-        var recieved = Triple<Int, Long, ByteArray>(0, 0, ByteArray(0))  // Maps player ID to last sent message
+        var received = Triple<Int, Long, ByteArray>(0, 0, ByteArray(0))  // Maps player ID to last sent message
         Events.on(EventType.PlayerChatEventClient::class.java) { event ->
             player = Triple((event.player ?: return@on).id, Instant.now().epochSecond, event.message)
-            println("Got message from ${player.first} at ${player.second} with content ${player.third}")
-            check(player, recieved)
+            check(player, received)
         }
         communicationSystem.listeners.add { input, sender ->
-            recieved = Triple(sender, Instant.now().epochSecond, input)
-            println("Got signature from ${recieved.first} at ${recieved.second} with content ${recieved.third.contentToString()}")
-            check(player, recieved)
+            received = Triple(sender, Instant.now().epochSecond, input)
+            check(player, received)
         }
     }
 
-    private fun check(player: Triple<Int, Long, String>, recieved: Triple<Int, Long, ByteArray>) {
+    /** Checks the validity of a message given two triples, see above. */
+    private fun check(player: Triple<Int, Long, String>, received: Triple<Int, Long, ByteArray>) {
         if (player.first == 0 || player.second == 0L || player.third == "") return
-        if (recieved.first == 0 || recieved.second == 0L || recieved.third.isEmpty()) return
-
+        if (received.first == 0 || received.second == 0L || received.third.isEmpty()) return
         val time = Instant.now().epochSecond
-        if (abs(player.second - time) > 3 || abs(recieved.second - time) > 3) {
-            println("Too old ${abs(player.second - time)}  ${abs(recieved.second - time)}")
+        if (abs(player.second - time) > 3 || abs(received.second - time) > 3) {
             return
         }
 
-        if (player.first != recieved.first) {
-            println("IDs don't match")
+        if (player.first != received.first) {
             return
         }
 
-        if (validKeys.map { verify(player.third, player.first, recieved.third, it) }.contains(true)) {
-            println("Valid!")
+        if (validKeys.map { verify(player.third, player.first, received.third, it) }.contains(true)) {
             Vars.ui.chatfrag.messages.findLast { it.message == player.third }?.backgroundColor = Color.green.cpy().mul(0.75f)
-        } else {
-            println("Invalid signature")
         }
     }
 
@@ -98,24 +92,21 @@ class MessageCrypto {
     /** Verifies an incoming message. */
     fun verify(message: String, sender: Int, signature: ByteArray, key: PublicKey): Boolean {
         if (signature.size != Crypto.signatureSize + 12) {
-            println("Incorrect size")
             return false
         }
         val buffer = ByteBuffer.wrap(signature)
         val time = buffer.long
         val senderId = buffer.int
-        val signatureBytes = buffer.array()
+        val bytes = buffer.array()
+        val signatureBytes = bytes.takeLast(Crypto.signatureSize).toByteArray()
 
         val original = stringToSendable(message, sender, time)
 
-        if (sender != senderId) {
-            println("$sender doesn't match $senderId!")
-        }
-
         return try {
+            val valid = Crypto.verify(original, signatureBytes, key as EdDSAPublicKey)
             abs(Instant.now().epochSecond - time) < 3 &&
                     sender == senderId &&
-                    Crypto.verify(original, signatureBytes, key as EdDSAPublicKey)
+                    valid
         } catch (ignored: Exception) {
             false
         }

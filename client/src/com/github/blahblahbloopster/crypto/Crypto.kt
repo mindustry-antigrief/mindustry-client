@@ -75,8 +75,3 @@ object Crypto {
         return key.seed
     }
 }
-
-//fun main() {
-//    Crypto.init()
-//    val pair = Crypto.generateKeyPair()
-//}
