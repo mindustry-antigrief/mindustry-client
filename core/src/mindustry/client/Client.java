@@ -4,6 +4,8 @@ import arc.*;
 import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
+import arc.struct.IntSet;
+import arc.struct.ObjectSet;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.*;
@@ -44,6 +46,8 @@ public class Client {
     public static boolean hideUnits = false;
     /** The last position someone sent in chat or was otherwise put into the buffer, in tile coords. */
     private static Vec2 lastSentPos = new Vec2();
+    public static IntSet messageBlockPositions = new IntSet();
+    public static final String messageCommunicationPrefix = "IN USE FOR CHAT AUTHENTICATION, do not use";
 
     public static void initialize() {
         fooCommands.<Player>register("help", "[page]", "Lists all client commands.", (args, player) -> {
@@ -144,6 +148,7 @@ public class Client {
             turrets.clear();
             UnitPicker.found = null;
             if (state.rules.pvp) ui.chatfrag.addMessage("[scarlet]Don't use a client in pvp, it's uncool!", "Your Conscience", Color.crimson);
+            messageBlockPositions.clear();
         });
 
         Pattern coordPattern = Pattern.compile("\\d+(\\s|,)\\d+");

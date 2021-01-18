@@ -10,6 +10,7 @@ import arc.scene.ui.layout.*;
 import arc.util.*;
 import arc.util.io.*;
 import arc.util.pooling.*;
+import mindustry.client.Client;
 import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
@@ -56,6 +57,18 @@ public class MessageBlock extends Block{
 
     public class MessageBuild extends Building{
         public StringBuilder message = new StringBuilder();
+
+        @Override
+        public void add() {
+            super.add();
+            Client.messageBlockPositions.add(pos());
+        }
+
+        @Override
+        public void onRemoved() {
+            super.onRemoved();
+            Client.messageBlockPositions.remove(pos());
+        }
 
         @Override
         public void drawSelect(){
@@ -111,6 +124,10 @@ public class MessageBlock extends Block{
                         return true;
                     });
                     a.setMaxLength(maxTextLength);
+                    dialog.buttons.button("AAA", () -> {
+                        configure(Client.messageCommunicationPrefix);
+                        dialog.hide();
+                    });
                     dialog.buttons.button("@ok", () -> {
                         configure(a.getText());
                         dialog.hide();

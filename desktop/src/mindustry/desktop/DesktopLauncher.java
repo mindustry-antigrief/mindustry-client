@@ -42,12 +42,12 @@ public class DesktopLauncher extends ClientLauncher{
                 setWindowIcon(FileType.internal, "icons/icon_64.png");
             }};
             Vars.loadLogger();
-            try {
+//            try {
                 new SdlApplication(new DesktopLauncher(arg), config);
-            } catch (Throwable e) {
-                config.samples = 0;
-                new SdlApplication(new DesktopLauncher(arg), config);
-            }
+//            } catch (Throwable e) {
+//                config.samples = 0;
+//                new SdlApplication(new DesktopLauncher(arg), config);
+//            }
         }catch(Throwable e){
             handleCrash(e);
         }

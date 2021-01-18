@@ -16,6 +16,7 @@ import mindustry.*;
 import mindustry.client.Client;
 import mindustry.client.utils.Autocomplete;
 import mindustry.client.utils.Autocompleteable;
+import mindustry.game.EventType;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.type.*;
@@ -257,6 +258,7 @@ public class ChatFragment extends Table{
 
                 Client.lastSyncTime = Time.millis();
             }
+            Events.fire(new EventType.SendChatMessageEvent(message));
 
         }else{
 

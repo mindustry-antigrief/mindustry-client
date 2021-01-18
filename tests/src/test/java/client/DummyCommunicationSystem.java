@@ -41,4 +41,7 @@ public class DummyCommunicationSystem implements CommunicationSystem {
             }
         });
     }
+
+    @Override
+    public void init() {}
 }

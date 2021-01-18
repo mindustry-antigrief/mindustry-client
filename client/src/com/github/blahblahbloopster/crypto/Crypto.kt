@@ -1,6 +1,7 @@
 package com.github.blahblahbloopster.crypto
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import java.io.File
 import java.security.*
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.RSAKeyGenParameterSpec
@@ -15,15 +16,15 @@ object Crypto {
     /** Handles key deserialization.  Not sure if I should have it instantiate a new one very time it's used. */
     private lateinit var factory: KeyFactory
     /** Handles signing.  Not sure if I should have it instantiate a new one very time it's used. */
-    private lateinit var signature: Signature
+    lateinit var signature: Signature
     /** The size of a signature because [Signature] doesn't let you get the length out. */
-    var signatureSize = 384 / 8
+    var signatureSize = 48
 
     /** Initializes cryptography stuff, must be called before usage. */
     fun init() {
-        Security.addProvider(BouncyCastleProvider())
-        signature = Signature.getInstance("SHA384withRSA", "BC")
-        factory = KeyFactory.getInstance("RSA", "BC")
+//        Security.addProvider(BouncyCastleProvider())
+        signature = Signature.getInstance("SHA384withRSA")
+        factory = KeyFactory.getInstance("RSA")
     }
 
     /** Encodes an RSA [PrivateKey] to bytes.  Decode with [decodePrivate] */
@@ -50,7 +51,7 @@ object Crypto {
 
     /** Generates a new RSA keypair using the native PRNG. */
     fun generateKeyPair(): KeyPair {
-        val generator = KeyPairGenerator.getInstance("RSA", "BC")
+        val generator = KeyPairGenerator.getInstance("RSA")
         generator.initialize(RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4), SecureRandom.getInstance("NativePRNGNonBlocking"))
 
         return generator.genKeyPair()
@@ -79,4 +80,7 @@ object Crypto {
 
 fun main() {
     Crypto.init()
+    val pair = Crypto.generateKeyPair()
+//    println(Crypto.signature.parameters)
+//    println(Crypto.sign(byteArrayOf(1, 2, 3), pair.private).size)
 }

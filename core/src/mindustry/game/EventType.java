@@ -433,6 +433,13 @@ public class EventType{
             this.ip = ip;
         }
     }
-    
+
+    public static class SendChatMessageEvent {
+        public final String message;
+
+        public SendChatMessageEvent(String message) {
+            this.message = message;
+        }
+    }
 }
 

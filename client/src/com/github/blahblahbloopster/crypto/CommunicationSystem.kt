@@ -7,6 +7,9 @@ interface CommunicationSystem {
     /** This instance's ID. */
     val id: Int
 
+    /** Initializes the system. */
+    fun init() {}
+
     /** Sends a [ByteArray] to all other clients.  Note: this may take time. todo: consider moving to a queue system */
     fun send(bytes: ByteArray)
 }
