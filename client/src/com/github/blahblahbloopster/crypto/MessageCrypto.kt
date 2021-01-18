@@ -34,19 +34,19 @@ class MessageCrypto {
             Events.on(EventType.SendChatMessageEvent::class.java) { event ->
                 sign(event.message, (keyPair ?: return@on).private)
             }
+        }
 
-            var player = Triple<Int, Long, String>(0, 0, "")  // Maps player ID to last sent message
-            var recieved = Triple<Int, Long, ByteArray>(0, 0, ByteArray(0))  // Maps player ID to last sent message
-            Events.on(EventType.PlayerChatEventClient::class.java) { event ->
-                player = Triple((event.player ?: return@on).id, Instant.now().epochSecond, event.message)
-                println("Got message from ${player.first} at ${player.second} with content ${player.third}")
-                check(player, recieved)
-            }
-            communicationSystem.listeners.add { input, sender ->
-                recieved = Triple(sender, Instant.now().epochSecond, input)
-                println("Got signature from ${recieved.first} at ${recieved.second} with content ${recieved.third.contentToString()}")
-                check(player, recieved)
-            }
+        var player = Triple<Int, Long, String>(0, 0, "")  // Maps player ID to last sent message
+        var recieved = Triple<Int, Long, ByteArray>(0, 0, ByteArray(0))  // Maps player ID to last sent message
+        Events.on(EventType.PlayerChatEventClient::class.java) { event ->
+            player = Triple((event.player ?: return@on).id, Instant.now().epochSecond, event.message)
+            println("Got message from ${player.first} at ${player.second} with content ${player.third}")
+            check(player, recieved)
+        }
+        communicationSystem.listeners.add { input, sender ->
+            recieved = Triple(sender, Instant.now().epochSecond, input)
+            println("Got signature from ${recieved.first} at ${recieved.second} with content ${recieved.third.contentToString()}")
+            check(player, recieved)
         }
     }
 
