@@ -1,6 +1,8 @@
 package client;
 
 import com.github.blahblahbloopster.crypto.Crypto;
+import net.i2p.crypto.eddsa.EdDSAPrivateKey;
+import net.i2p.crypto.eddsa.EdDSAPublicKey;
 import org.junit.jupiter.api.*;
 import java.security.KeyPair;
 import java.util.Random;
@@ -24,7 +26,7 @@ public class CryptographyTests {
 
         byte[] signature = Crypto.INSTANCE.sign(input, pair.getPrivate());
 
-        assertTrue(Crypto.INSTANCE.verify(input, signature, pair.getPublic()));
+        assertTrue(Crypto.INSTANCE.verify(input, signature, (EdDSAPublicKey) pair.getPublic()));
     }
 
     /** Tests key serialization and deserialization. */
@@ -32,10 +34,10 @@ public class CryptographyTests {
     static void testSerialization() {
         KeyPair pair = Crypto.INSTANCE.generateKeyPair();
 
-        byte[] encodedPublic = Crypto.INSTANCE.encodePublic(pair.getPublic());
-        byte[] encodedPrivate = Crypto.INSTANCE.encodePrivate(pair.getPrivate());
+        byte[] encodedPublic = Crypto.INSTANCE.serializePublic((EdDSAPublicKey) pair.getPublic());
+        byte[] encodedPrivate = Crypto.INSTANCE.serializePrivate((EdDSAPrivateKey) pair.getPrivate());
 
-        assertEquals(Crypto.INSTANCE.decodePublic(encodedPublic), pair.getPublic());
-        assertEquals(Crypto.INSTANCE.decodePrivate(encodedPrivate), pair.getPrivate());
+        assertEquals(Crypto.INSTANCE.deserializePublic(encodedPublic), pair.getPublic());
+        assertEquals(Crypto.INSTANCE.deserializePrivate(encodedPrivate), pair.getPrivate());
     }
 }

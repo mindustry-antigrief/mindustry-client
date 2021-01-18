@@ -148,6 +148,16 @@ public class EventType{
         }
     }
 
+    public static class PlayerChatEventClient{
+        public final Player player;
+        public final String message;
+
+        public PlayerChatEventClient(Player player, String message){
+            this.player = player;
+            this.message = message;
+        }
+    }
+
     /** Called when a sector is conquered, e.g. a boss or base is defeated. */
     public static class SectorCaptureEvent{
         public final Sector sector;

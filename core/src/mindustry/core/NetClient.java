@@ -170,6 +170,8 @@ public class NetClient implements ApplicationListener{
             playersender.lastText(message);
             playersender.textFadeTime(1f);
         }
+
+        Events.fire(new PlayerChatEventClient(playersender, message));
     }
 
     //equivalent to above method but there's no sender and no console log

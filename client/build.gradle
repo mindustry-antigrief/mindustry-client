@@ -30,14 +30,14 @@ arcModule = { String name ->
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
-//    implementation project(":core")
-    implementation files("../core/build/libs/core-release.jar")
-    api arcModule("arc-core")
-    api arcModule("extensions:freetype")
-    api arcModule("extensions:g3d")
-    api arcModule("extensions:fx")
-    api arcModule("extensions:arcnet")
-    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.68'
+    implementation project(":core")
+//    implementation files("../core/build/libs/core-release.jar")
+//    api arcModule("arc-core")
+//    api arcModule("extensions:freetype")
+//    api arcModule("extensions:g3d")
+//    api arcModule("extensions:fx")
+//    api arcModule("extensions:arcnet")
+    compile 'net.i2p.crypto:eddsa:0.3.0'
 }
 
 test {

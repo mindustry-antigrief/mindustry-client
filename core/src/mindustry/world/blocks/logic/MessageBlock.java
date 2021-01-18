@@ -11,6 +11,7 @@ import arc.util.*;
 import arc.util.io.*;
 import arc.util.pooling.*;
 import mindustry.client.Client;
+import mindustry.game.Team;
 import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
@@ -59,9 +60,9 @@ public class MessageBlock extends Block{
         public StringBuilder message = new StringBuilder();
 
         @Override
-        public void add() {
-            super.add();
-            Client.messageBlockPositions.add(pos());
+        public Building init(Tile tile, Team team, boolean shouldAdd, int rotation) {
+            Client.messageBlockPositions.add(tile.pos());
+            return super.init(tile, team, shouldAdd, rotation);
         }
 
         @Override

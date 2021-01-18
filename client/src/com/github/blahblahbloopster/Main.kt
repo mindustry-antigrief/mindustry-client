@@ -2,6 +2,7 @@ package com.github.blahblahbloopster
 
 import arc.ApplicationListener
 import arc.Core
+import arc.util.Timer
 import com.github.blahblahbloopster.crypto.CommunicationSystem
 import com.github.blahblahbloopster.crypto.Crypto
 import com.github.blahblahbloopster.crypto.MessageBlockCommunicationSystem
