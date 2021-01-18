@@ -125,10 +125,10 @@ public class MessageBlock extends Block{
                         return true;
                     });
                     a.setMaxLength(maxTextLength);
-                    dialog.buttons.button("AAA", () -> {
+                    dialog.buttons.button("Use for chat verification", () -> {
                         configure(Client.messageCommunicationPrefix);
                         dialog.hide();
-                    });
+                    }).size(150f, 60f);
                     dialog.buttons.button("@ok", () -> {
                         configure(a.getText());
                         dialog.hide();
