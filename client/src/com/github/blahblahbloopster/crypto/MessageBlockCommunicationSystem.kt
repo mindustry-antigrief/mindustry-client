@@ -52,7 +52,6 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
             }
 
             Call.tileConfig(Vars.player, block.build, Client.messageCommunicationPrefix + Base256Coder.encode(bytes))
-            println("Sent bytes")
             break
         }
     }

@@ -32,13 +32,23 @@ public class DesktopLauncher extends ClientLauncher{
 
     public static void main(String[] arg){
         try{
+            int aaSamples = 0;
+            String env = System.getenv("aaSamples");
+            if (env != null) {
+                if (Strings.canParsePositiveInt(env)) {
+                    aaSamples = Integer.parseInt(env);
+                    aaSamples = Math.min(aaSamples, 32);
+                }
+            }
+            int finalAaSamples = aaSamples;
+
             config = new SdlConfig() {{
                 title = "Mindustry (Foo's Client)";
                 maximized = true;
                 stencil = 1;
                 width = 900;
                 height = 700;
-                samples = 0;
+                samples = finalAaSamples;
                 setWindowIcon(FileType.internal, "icons/icon_64.png");
             }};
             Vars.loadLogger();
