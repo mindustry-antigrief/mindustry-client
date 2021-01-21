@@ -324,9 +324,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot rotate a block.");
         }
 
-        if(player != null) build.lastAccessed = player.name;
-
         if(player != null){
+            build.lastAccessed = player.name;
             build.tile.getLinkedTiles(tile2 -> tile2.addToLog(new RotateTileLog(player.unit(), tile2, build.rotation, build.rotation + Mathf.sign(direction), Instant.now().getEpochSecond(), "")));
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if(((UnAssistPath) Navigation.currentlyFollowing).assisting == player){
@@ -339,10 +338,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        build.rotation = Mathf.mod(build.rotation + Mathf.sign(direction), 4);
-        build.updateProximity();
-        build.noSleep();
-        if(player != null) build.lastAccessed = player.name;
         build.rotation = Mathf.mod(build.rotation + Mathf.sign(direction), 4);
         build.updateProximity();
         build.noSleep();
