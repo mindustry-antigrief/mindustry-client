@@ -20,8 +20,7 @@ public class PowerGraph{
     private final Seq<Building> batteries = new Seq<>(false);
     public final Seq<Building> all = new Seq<>(false);
 
-    private final WindowedMean powerBalance = new WindowedMean(60);
-    public final MovingAverage displayPowerBalance = new MovingAverage(60);
+    public final WindowedMean powerBalance = new WindowedMean(60);
     private float lastPowerProduced, lastPowerNeeded, lastUsageFraction, lastPowerStored;
     private float lastScaledPowerIn, lastScaledPowerOut, lastCapacity;
     public boolean active = true;
@@ -235,7 +234,6 @@ public class PowerGraph{
         lastPowerStored = getBatteryStored();
 
         powerBalance.add((lastPowerProduced - lastPowerNeeded) / Time.delta);
-        displayPowerBalance.add((lastPowerProduced - lastPowerNeeded) / Time.delta);
 
         if(!(consumers.size == 0 && producers.size == 0 && batteries.size == 0)){
 

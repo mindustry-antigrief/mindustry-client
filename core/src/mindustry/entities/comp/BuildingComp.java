@@ -1091,7 +1091,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             }
             if (block instanceof PowerDiode) {
                 table.row();
-                table.table(t -> t.label(() -> Strings.fixed(((PowerDiode.PowerDiodeBuild)self()).transferred.getAverage() * 60, 2) + " power/sec").get().setStyle(Styles.monoLabel));
+                table.table(t -> t.label(() -> Strings.fixed(((PowerDiode.PowerDiodeBuild)self()).transferred.rawMean() * 60, 2) + " power/sec").get().setStyle(Styles.monoLabel));
             }
         }
 

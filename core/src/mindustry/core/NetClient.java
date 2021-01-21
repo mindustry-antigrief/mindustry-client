@@ -12,7 +12,6 @@ import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.Client;
-import mindustry.client.FooUser;
 import mindustry.client.utils.FloatEmbed;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
@@ -26,6 +25,7 @@ import mindustry.net.Net.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
+import mindustry.ui.fragments.PlayerListFragment;
 import mindustry.world.*;
 import mindustry.world.modules.*;
 
@@ -162,7 +162,7 @@ public class NetClient implements ApplicationListener{
     public static void sendMessage(String message, String sender, Player playersender){
         Color background = null;
         if(Vars.ui != null){
-            if (FooUser.IsUser(playersender) && playersender != player) { // Add wrench to client user messages, highlight if enabled
+            if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
                 sender = colorizeName(playersender.id, "\uE80F " + sender);
                 if (Core.settings.getBool("highlightclientmsg")) background = Color.coral.cpy().mul(0.75f);
             }

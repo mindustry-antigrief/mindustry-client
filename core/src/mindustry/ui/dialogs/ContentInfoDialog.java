@@ -7,7 +7,10 @@ import arc.util.*;
 import mindustry.ctype.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+import mindustry.world.blocks.production.GenericCrafter;
 import mindustry.world.meta.*;
+import mindustry.world.meta.values.ItemListValue;
+import mindustry.world.meta.values.NumberValue;
 
 public class ContentInfoDialog extends BaseDialog{
 
@@ -71,7 +74,11 @@ public class ContentInfoDialog extends BaseDialog{
                     inset.add("[lightgray]" + stat.localized() + ":[] ").left();
                     Seq<StatValue> arr = map.get(stat);
                     for(StatValue value : arr){
-                        value.display(inset);
+                        if (stat != Stat.buildCost && value instanceof ItemListValue v && map.containsKey(Stat.productionTime) && map.get(Stat.productionTime).first() instanceof NumberValue p) {
+                            v.display(inset, p.getValue());
+                        } else {
+                            value.display(inset);
+                        }
                         inset.add().size(10f);
                     }
 

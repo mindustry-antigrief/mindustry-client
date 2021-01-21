@@ -86,9 +86,9 @@ public class UnitPayload implements Payload{
             float size = 8f;
             Draw.rect(Icon.warning.getRegion(), unit.x, unit.y, size, size);
 
-            Draw.reset();
-
             deactiveTime = Math.max(deactiveTime - Time.delta/deactiveDuration, 0f);
         }
+
+        Draw.reset();
     }
 }

@@ -5,16 +5,20 @@ import arc.util.*;
 import mindustry.world.meta.*;
 
 /**
- * A stat that is a number with a unit attacked.
+ * A stat that is a number with a unit attached.
  * The number is rounded to 2 decimal places by default.
  */
-public class NumberValue implements StatValue{
+public class NumberValue implements StatValue {
     private final StatUnit unit;
     private final float value;
 
     public NumberValue(float value, StatUnit unit){
         this.unit = unit;
         this.value = value;
+    }
+
+    public float getValue() {
+        return value;
     }
 
     @Override

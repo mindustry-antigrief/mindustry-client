@@ -1,5 +1,6 @@
 package mindustry.client.navigation;
 
+import arc.Core;
 import arc.math.*;
 import arc.struct.*;
 import mindustry.*;
@@ -238,7 +239,7 @@ public class AStar{
     }
 
     public static Seq<int[]> findPathWithObstacles(float playerX, float playerY, float targetX, float targetY, int width, int height, Team team, Seq<TurretPathfindingEntity> obstacles){
-        int resolution = 2;  // The resolution of the map is divided by this value
+        int resolution = Math.max(2, 60 / Core.graphics.getFramesPerSecond() * 2);  // The resolution of the map is divided by this value
         Seq<TurretPathfindingEntity> pathfindingEntities = new Seq<>();
         for(TurretPathfindingEntity zone : obstacles){
             if (zone == null) continue;

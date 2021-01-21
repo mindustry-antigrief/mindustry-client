@@ -8,7 +8,7 @@ import arc.scene.ui.layout.*;
 import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.FooUser;
+import mindustry.client.utils.FloatEmbed;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.units.*;
@@ -47,6 +47,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     transient float deathTimer;
     transient String lastText = "";
     transient float textFadeTime;
+    transient boolean fooUser;
 
     public boolean isBuilder(){
         return unit.canBuild();
@@ -138,6 +139,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
         textFadeTime -= Time.delta / (60 * 5);
 
+        fooUser = FloatEmbed.isEmbedded(mouseX) && FloatEmbed.isEmbedded(mouseY);
     }
 
     @Override
@@ -214,7 +216,6 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     @Override
     public void draw(){
-        boolean fooUser = FooUser.IsUser(self());
 
         Draw.z(Layer.playerName);
         float z = Drawf.text();

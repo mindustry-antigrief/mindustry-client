@@ -5,6 +5,7 @@ import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.math.geom.Vec2;
 import arc.scene.ui.Label;
 import arc.struct.*;
 import arc.util.*;
@@ -503,7 +504,7 @@ public class ConstructBlock extends Block{
                     toast.add(new Label(format2, monoLabel));
                 }
 
-                if (lastProgress == 0 && cblock instanceof NuclearReactor && distance.intValue() < 10) { // Automatically remove reactors within 10 blocks of core
+                if (lastProgress == 0 && cblock instanceof NuclearReactor && distance.intValue() < 10 && Core.settings.getBool("removecorenukes")) { // Automatically remove reactors within 10 blocks of core
                     CoreBlock.findBestCore = false;
                     Call.unitControl(player, ((CoreBuild)closestCore()).unit());
                     Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tileX(), tileY())), net.client() ? netClient.getPing()/1000f+.3f : 0);

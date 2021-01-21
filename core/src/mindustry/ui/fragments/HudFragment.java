@@ -15,6 +15,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.Client;
 import mindustry.client.ui.TileInfoFragment;
 import mindustry.client.ui.Toast;
 import mindustry.content.*;
@@ -341,6 +342,7 @@ public class HudFragment extends Fragment{
                     } else {
                         ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y), null);
                     }
+                    Client.lastSentPos.set(event.core.x, event.core.y);
                 }
                coreAttackTime[0] = notifDuration;
             });

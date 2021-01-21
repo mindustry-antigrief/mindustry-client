@@ -67,7 +67,8 @@ public class CoreBlock extends StorageBlock{
 
         CoreBuild entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreNucleus));
         if (entity == null) entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreFoundation));
-        if (entity == null || player != Vars.player || Core.input.keyDown(Binding.control)) entity = (CoreBuild)tile.build;
+        if (entity == null || player != Vars.player || Core.input.keyDown(Binding.control) || !findBestCore) entity = (CoreBuild)tile.build;
+        findBestCore = true;
 
         CoreBlock block = (CoreBlock)tile.block();
         Fx.spawn.at(entity);
@@ -86,11 +87,9 @@ public class CoreBlock extends StorageBlock{
 
         if(player == Vars.player){
             if(state.isCampaign()) block.unitType.unlock();
-            if (tile != entity.tile && findBestCore) {
+            if (tile != entity.tile) {
                 CoreBuild finalEntity = entity;
                 Timer.schedule(() -> Call.unitControl(player, finalEntity.unit()), net.client() ? netClient.getPing()/1000f+.3f : 0);
-            } else {
-                findBestCore = true;
             }
         }
     }

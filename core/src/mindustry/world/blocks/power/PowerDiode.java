@@ -4,7 +4,6 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.utils.MovingAverage;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -45,7 +44,7 @@ public class PowerDiode extends Block{
     }
 
     public class PowerDiodeBuild extends Building{
-        public MovingAverage transferred = new MovingAverage(60);
+        public WindowedMean transferred = new WindowedMean(60);
 
         @Override
         public void draw(){

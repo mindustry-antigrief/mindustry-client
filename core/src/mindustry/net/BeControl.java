@@ -114,6 +114,7 @@ public class BeControl{
                     BaseDialog dialog = new BaseDialog("@be.updating");
                     download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                         try{
+                            Log.info(file.absolutePath());
                             Runtime.getRuntime().exec(OS.isMac ?
                                 new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
                                 new String[]{"java", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}

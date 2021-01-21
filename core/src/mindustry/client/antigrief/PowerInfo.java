@@ -33,7 +33,7 @@ public class PowerInfo {
     public static Element getBars() {
         Table power = new Table(Tex.wavepane);
 
-        Bar powerBar = new MonospacedBar(() -> Strings.fixed(found != null ? found.displayPowerBalance.getAverage() * 60f : 0f, 1), () -> Pal.powerBar, () -> found != null? found.getSatisfaction() : 0f);
+        Bar powerBar = new MonospacedBar(() -> Strings.fixed(found != null ? found.powerBalance.rawMean() * 60f : 0f, 1), () -> Pal.powerBar, () -> found != null? found.getSatisfaction() : 0f);
         Bar batteryBar = new MonospacedBar(() -> (found != null? UI.formatAmount((int)found.getLastPowerStored()) : 0) + "/" + (found != null? UI.formatAmount((int)found.getLastCapacity()) : 0), () -> Pal.powerBar, () -> found != null? Mathf.clamp(found.getLastPowerStored() / Math.max(found.getLastCapacity(), 0.0001f)) : 0f);
 
         power.add(batteryBar).height(18).growX().padBottom(6);

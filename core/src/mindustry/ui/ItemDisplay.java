@@ -20,6 +20,14 @@ public class ItemDisplay extends Table{
         this.amount = amount;
     }
 
+    public ItemDisplay(Item item, int amount, boolean showName, String rate){
+        add(new ItemImage(new ItemStack(item, amount), rate));
+        if(showName) add(item.localizedName).padLeft(4 + amount > 99 ? 4 : 0);
+
+        this.item = item;
+        this.amount = amount;
+    }
+
     public ItemDisplay(Item item, int amount){
         this(item, amount, true);
     }

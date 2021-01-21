@@ -21,10 +21,7 @@ import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
-import mindustry.client.ui.StupidMarkupParser;
-import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
-import mindustry.content.Blocks;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -34,7 +31,6 @@ import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.BaseDialog;
 import mindustry.world.*;
-import mindustry.world.blocks.environment.OreBlock;
 import mindustry.world.blocks.payloads.*;
 import java.util.concurrent.atomic.*;
 import static arc.Core.*;
@@ -233,7 +229,7 @@ public class DesktopInput extends InputHandler{
     public void update(){
         super.update();
 
-        if(net.active() && Core.input.keyTap(Binding.player_list) && (scene.getKeyboardFocus() == null || scene.getKeyboardFocus().isDescendantOf(ui.listfrag.content) || scene.getKeyboardFocus().isDescendantOf(ui.minimapfrag.elem))){
+        if(Core.input.keyTap(Binding.player_list) && (scene.getKeyboardFocus() == null || scene.getKeyboardFocus().isDescendantOf(ui.listfrag.content) || scene.getKeyboardFocus().isDescendantOf(ui.minimapfrag.elem))){
             ui.listfrag.toggle();
         }
 
@@ -275,8 +271,8 @@ public class DesktopInput extends InputHandler{
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
-        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null){
-            Navigation.navigateTo(camera.position.x, camera.position.y);
+        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null){ // Navigates to cursor despite the bind name
+            Navigation.navigateTo(input.mouseWorld());
         }
 
         if(input.keyDown(Binding.pan) && !scene.hasField() && !scene.hasDialog()){

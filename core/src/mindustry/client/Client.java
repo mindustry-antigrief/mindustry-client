@@ -85,15 +85,8 @@ public class Client {
 
         fooCommands.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last stored coordinates posted to chat", (args, player) -> {
             try {
-                float x, y;
-                if (args.length == 2) {
-                    x = Float.parseFloat(args[0]);
-                    y = Float.parseFloat(args[1]);
-                } else {
-                    x = lastSentPos.x;
-                    y = lastSentPos.y;
-                }
-                Navigation.navigateTo(World.unconv(x), World.unconv(y));
+                if (args.length == 2) lastSentPos.set(Float.parseFloat(args[0]), Float.parseFloat(args[1]));
+                Navigation.navigateTo(lastSentPos.cpy().scl(tilesize));
             } catch(NumberFormatException | IndexOutOfBoundsException e){
                 player.sendMessage("[scarlet]Invalid coordinates, format is [x] [y] Eg: !go 10 300 or !go");
             }
@@ -102,15 +95,8 @@ public class Client {
         fooCommands.<Player>register("lookat","[x] [y]", "Moves camera to (x, y) or the last coordinates posted to chat", (args, player) -> {
             try {
                 DesktopInput.panning = true;
-                float x, y;
-                if (args.length == 2) {
-                    x = Float.parseFloat(args[0]);
-                    y = Float.parseFloat(args[1]);
-                } else {
-                    x = lastSentPos.x;
-                    y = lastSentPos.y;
-                }
-                Spectate.pos = new Vec2(World.unconv(x), World.unconv(y));
+                if (args.length == 2) lastSentPos.set(Float.parseFloat(args[0]), Float.parseFloat(args[1]));
+                Spectate.spectate(lastSentPos.cpy().scl(tilesize));
             } catch(NumberFormatException | IndexOutOfBoundsException e){
                 player.sendMessage("[scarlet]Invalid coordinates, format is [x] [y] Eg: !lookat 10 300 or !lookat");
             }
