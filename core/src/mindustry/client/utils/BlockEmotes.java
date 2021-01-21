@@ -1,5 +1,6 @@
 package mindustry.client.utils;
 
+import arc.scene.ui.TextField;
 import arc.struct.ObjectIntMap;
 import arc.struct.ObjectMap;
 import arc.struct.Seq;
@@ -11,6 +12,8 @@ import mindustry.type.Liquid;
 import mindustry.type.UnitType;
 import mindustry.ui.Fonts;
 import mindustry.world.Block;
+
+import java.lang.reflect.Method;
 
 public class BlockEmotes implements Autocompleter {
 
@@ -31,7 +34,6 @@ public class BlockEmotes implements Autocompleter {
         for (ObjectIntMap.Entry<String> entry : Iconc.codes) {
             emotes.add(new BlockEmote(Character.toString((char)entry.value), entry.key));
         }
-        emotes.add(new BlockEmote("\ue84e", "ohno"));
     }
 
     public Autocompleteable getCompletion(String input) {

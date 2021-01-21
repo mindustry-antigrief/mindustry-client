@@ -148,6 +148,16 @@ public class EventType{
         }
     }
 
+    public static class PlayerChatEventClient{
+        public final Player player;
+        public final String message;
+
+        public PlayerChatEventClient(Player player, String message){
+            this.player = player;
+            this.message = message;
+        }
+    }
+
     /** Called when a sector is conquered, e.g. a boss or base is defeated. */
     public static class SectorCaptureEvent{
         public final Sector sector;
@@ -433,6 +443,13 @@ public class EventType{
             this.ip = ip;
         }
     }
-    
+
+    public static class SendChatMessageEvent {
+        public final String message;
+
+        public SendChatMessageEvent(String message) {
+            this.message = message;
+        }
+    }
 }
 

@@ -20,8 +20,8 @@ import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.net.Net.*;
 import mindustry.type.*;
-
 import java.io.*;
+import com.github.blahblahbloopster.Main;
 
 import static mindustry.Vars.*;
 
@@ -33,22 +33,27 @@ public class DesktopLauncher extends ClientLauncher{
 
     public static void main(String[] arg){
         try{
+            int aaSamples = 0;
+            String env = System.getenv("aaSamples");
+            if (env != null) {
+                if (Strings.canParsePositiveInt(env)) {
+                    aaSamples = Integer.parseInt(env);
+                    aaSamples = Math.min(aaSamples, 32);
+                }
+            }
+            int finalAaSamples = aaSamples;
+
             config = new SdlConfig() {{
                 title = "Mindustry (Foo's Client)";
                 maximized = true;
                 stencil = 1;
                 width = 900;
                 height = 700;
-                samples = 16;
+                samples = finalAaSamples;
                 setWindowIcon(FileType.internal, "icons/icon_64.png");
             }};
             Vars.loadLogger();
-            try {
-                new SdlApplication(new DesktopLauncher(arg), config);
-            } catch (Throwable e) {
-                config.samples = 0;
-                new SdlApplication(new DesktopLauncher(arg), config);
-            }
+            new SdlApplication(new DesktopLauncher(arg), config);
         }catch(Throwable e){
             handleCrash(e);
         }
@@ -64,6 +69,7 @@ public class DesktopLauncher extends ClientLauncher{
         if(useDiscord){
             try{
                 DiscordRPC.INSTANCE.Discord_Initialize(discordID, null, true, "1127400");
+                Log.info("Initialized Discord rich presence.");
                 Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC.INSTANCE::Discord_Shutdown));
             }catch(Throwable t){
                 useDiscord = false;
@@ -77,6 +83,8 @@ public class DesktopLauncher extends ClientLauncher{
         Version.init();
         boolean useSteam = Version.modifier.contains("steam");
         testMobile = Seq.with(args).contains("-testMobile");
+
+        add(Main.INSTANCE);
 
         if(useSteam){
             //delete leftover dlls
@@ -297,8 +305,6 @@ public class DesktopLauncher extends ClientLauncher{
             }
 
             presence.largeImageKey = "logo";
-            presence.smallImageKey = "foo";
-            presence.smallImageText = "Foo's Client";
 
             DiscordRPC.INSTANCE.Discord_UpdatePresence(presence);
         }
