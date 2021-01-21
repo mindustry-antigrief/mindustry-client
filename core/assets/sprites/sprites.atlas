@@ -55,21 +55,21 @@ launch-pad-light
   index: -1
 launchpod
   rotate: false
-  xy: 1777, 1665
+  xy: 3186, 2059
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 force-projector
   rotate: false
-  xy: 1925, 2255
+  xy: 1631, 1961
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 force-projector-icon-logic
   rotate: false
-  xy: 1925, 2255
+  xy: 1631, 1961
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
@@ -83,777 +83,777 @@ force-projector-top
   index: -1
 mend-projector
   rotate: false
-  xy: 1898, 1357
+  xy: 3384, 2019
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mend-projector-icon-logic
   rotate: false
-  xy: 1898, 1357
+  xy: 3384, 2019
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mend-projector-top
   rotate: false
-  xy: 1964, 1357
+  xy: 3450, 2019
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mender
   rotate: false
-  xy: 1949, 659
+  xy: 3449, 1533
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 mender-icon-logic
   rotate: false
-  xy: 1949, 659
+  xy: 3449, 1533
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 mender-top
   rotate: false
-  xy: 1881, 557
+  xy: 3483, 1563
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 overdrive-dome
   rotate: false
-  xy: 1925, 1917
+  xy: 1827, 1917
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 overdrive-dome-icon-logic
   rotate: false
-  xy: 1925, 1917
+  xy: 1827, 1917
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 overdrive-dome-top
   rotate: false
-  xy: 2023, 1961
+  xy: 1925, 1917
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 overdrive-projector
   rotate: false
-  xy: 1898, 1291
+  xy: 3516, 2019
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 overdrive-projector-icon-logic
   rotate: false
-  xy: 1898, 1291
+  xy: 3516, 2019
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 overdrive-projector-top
   rotate: false
-  xy: 1964, 1291
+  xy: 3582, 2019
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 shock-mine
   rotate: false
-  xy: 2973, 1834
+  xy: 2063, 1556
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-loader
   rotate: false
-  xy: 2043, 2451
+  xy: 2341, 2391
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-unloader
   rotate: false
-  xy: 2337, 2391
+  xy: 2733, 2247
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 bridge-arrow
   rotate: false
-  xy: 1859, 951
+  xy: 1869, 1403
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 bridge-conveyor
   rotate: false
-  xy: 1855, 883
+  xy: 1937, 1437
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 bridge-conveyor-icon-logic
   rotate: false
-  xy: 1855, 883
+  xy: 1937, 1437
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 bridge-conveyor-bridge
   rotate: false
-  xy: 1821, 815
+  xy: 1937, 1403
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 bridge-conveyor-end
   rotate: false
-  xy: 1855, 849
+  xy: 1937, 1369
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 center
   rotate: false
-  xy: 1821, 781
+  xy: 1869, 1335
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-0-0
   rotate: false
-  xy: 1199, 2599
+  xy: 3104, 2565
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-0-1
   rotate: false
-  xy: 2844, 2643
+  xy: 3104, 2531
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-0-2
   rotate: false
-  xy: 3104, 2565
+  xy: 1783, 1535
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-0-3
   rotate: false
-  xy: 3104, 2531
+  xy: 4017, 3587
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-1-0
   rotate: false
-  xy: 2371, 1666
+  xy: 1949, 1785
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-1-1
   rotate: false
-  xy: 1598, 1346
+  xy: 4051, 3587
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-1-2
   rotate: false
-  xy: 4017, 3587
+  xy: 1983, 1785
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-1-3
   rotate: false
-  xy: 3267, 1899
+  xy: 1825, 1743
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-2-0
   rotate: false
-  xy: 1719, 957
+  xy: 1825, 1709
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-2-1
   rotate: false
-  xy: 1669, 245
+  xy: 1859, 1743
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-2-2
   rotate: false
-  xy: 4051, 3587
+  xy: 1825, 1675
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-2-3
   rotate: false
-  xy: 1719, 923
+  xy: 1859, 1709
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-3-0
   rotate: false
-  xy: 1669, 211
+  xy: 1825, 1641
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-3-1
   rotate: false
-  xy: 1719, 889
+  xy: 1859, 1675
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-3-2
   rotate: false
-  xy: 1669, 177
+  xy: 1825, 1607
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-3-3
   rotate: false
-  xy: 1719, 855
+  xy: 1859, 1641
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-4-0
   rotate: false
-  xy: 1669, 143
+  xy: 1825, 1573
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-4-1
   rotate: false
-  xy: 1719, 821
+  xy: 1859, 1607
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-4-2
   rotate: false
-  xy: 1669, 109
+  xy: 1859, 1573
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 armored-conveyor-4-3
   rotate: false
-  xy: 1719, 787
+  xy: 1793, 1501
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-0-1
   rotate: false
-  xy: 1923, 863
+  xy: 1741, 1311
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-0-2
   rotate: false
-  xy: 1957, 897
+  xy: 1707, 1277
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-0-3
   rotate: false
-  xy: 1889, 795
+  xy: 1741, 1277
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-1-0
   rotate: false
-  xy: 1923, 829
+  xy: 1707, 1243
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-1-1
   rotate: false
-  xy: 1957, 863
+  xy: 1741, 1243
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-1-2
   rotate: false
-  xy: 1923, 795
+  xy: 1707, 1209
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-1-3
   rotate: false
-  xy: 1957, 829
+  xy: 1741, 1209
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-2-0
   rotate: false
-  xy: 1957, 795
+  xy: 1707, 1175
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-2-1
   rotate: false
-  xy: 2165, 935
+  xy: 1741, 1175
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-2-2
   rotate: false
-  xy: 1889, 761
+  xy: 1707, 1141
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-2-3
   rotate: false
-  xy: 1923, 761
+  xy: 1707, 1107
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-3-0
   rotate: false
-  xy: 1957, 761
+  xy: 1741, 1141
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-3-1
   rotate: false
-  xy: 1753, 763
+  xy: 1741, 1107
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-3-2
   rotate: false
-  xy: 1787, 763
+  xy: 1741, 1073
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-3-3
   rotate: false
-  xy: 1719, 753
+  xy: 1775, 1311
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-4-0
   rotate: false
-  xy: 1711, 719
+  xy: 1775, 1277
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-4-1
   rotate: false
-  xy: 1711, 685
+  xy: 1775, 1243
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-4-2
   rotate: false
-  xy: 1711, 651
+  xy: 1775, 1209
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-4-3
   rotate: false
-  xy: 1711, 617
+  xy: 1775, 1175
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plastanium-conveyor
   rotate: false
-  xy: 1881, 353
+  xy: 2029, 1624
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plastanium-conveyor-0
   rotate: false
-  xy: 1915, 387
+  xy: 2063, 1658
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plastanium-conveyor-1
   rotate: false
-  xy: 1949, 421
+  xy: 2029, 1590
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plastanium-conveyor-2
   rotate: false
-  xy: 1881, 319
+  xy: 2063, 1624
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plastanium-conveyor-edge
   rotate: false
-  xy: 1915, 353
+  xy: 2063, 1590
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plastanium-conveyor-stack
   rotate: false
-  xy: 1915, 319
+  xy: 2131, 1693
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-0-1
   rotate: false
-  xy: 2063, 909
+  xy: 2005, 1420
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-0-2
   rotate: false
-  xy: 2097, 913
+  xy: 2039, 1454
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-0-3
   rotate: false
-  xy: 2131, 913
+  xy: 2005, 1386
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-1-0
   rotate: false
-  xy: 2165, 901
+  xy: 2039, 1420
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-1-1
   rotate: false
-  xy: 1991, 871
+  xy: 2005, 1352
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-1-2
   rotate: false
-  xy: 1991, 837
+  xy: 2039, 1386
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-1-3
   rotate: false
-  xy: 1991, 803
+  xy: 2039, 1352
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-2-0
   rotate: false
-  xy: 1991, 769
+  xy: 2073, 1454
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-2-1
   rotate: false
-  xy: 1991, 735
+  xy: 2073, 1420
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-2-2
   rotate: false
-  xy: 1991, 701
+  xy: 2073, 1386
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-2-3
   rotate: false
-  xy: 2199, 887
+  xy: 2073, 1352
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-3-0
   rotate: false
-  xy: 2233, 887
+  xy: 2107, 1455
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-3-1
   rotate: false
-  xy: 1983, 659
+  xy: 2107, 1421
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-3-2
   rotate: false
-  xy: 1983, 625
+  xy: 2107, 1387
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-3-3
   rotate: false
-  xy: 1983, 591
+  xy: 2107, 1353
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-4-0
   rotate: false
-  xy: 1983, 557
+  xy: 2141, 1455
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-4-1
   rotate: false
-  xy: 1983, 523
+  xy: 2141, 1421
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-4-2
   rotate: false
-  xy: 1983, 489
+  xy: 2141, 1387
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-4-3
   rotate: false
-  xy: 1983, 455
+  xy: 2141, 1353
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 cross
   rotate: false
-  xy: 1703, 209
+  xy: 3381, 1575
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 distributor
   rotate: false
-  xy: 2807, 1630
+  xy: 1575, 1295
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 distributor-icon-logic
   rotate: false
-  xy: 2807, 1630
+  xy: 1575, 1295
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 inverted-sorter
   rotate: false
-  xy: 1779, 627
+  xy: 3957, 1572
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 inverted-sorter-icon-logic
   rotate: false
-  xy: 1779, 627
+  xy: 3957, 1572
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 junction
   rotate: false
-  xy: 1813, 475
+  xy: 1911, 1097
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 junction-icon-logic
   rotate: false
-  xy: 1813, 475
+  xy: 1911, 1097
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 mass-driver-base
   rotate: false
-  xy: 2317, 2097
+  xy: 2415, 2195
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 overflow-gate
   rotate: false
-  xy: 1881, 489
+  xy: 3585, 1546
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 overflow-gate-icon-logic
   rotate: false
-  xy: 1881, 489
+  xy: 3585, 1546
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 payload-conveyor
   rotate: false
-  xy: 2121, 1961
+  xy: 2023, 1961
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 payload-conveyor-edge
   rotate: false
-  xy: 2219, 1961
+  xy: 2121, 1961
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 payload-conveyor-top
   rotate: false
-  xy: 2317, 1999
+  xy: 2219, 1961
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 payload-router-top
   rotate: false
-  xy: 2317, 1999
+  xy: 2219, 1961
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 payload-router
   rotate: false
-  xy: 2415, 1999
+  xy: 2317, 1999
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 payload-router-edge
   rotate: false
-  xy: 2513, 1999
+  xy: 2415, 1999
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 payload-router-over
   rotate: false
-  xy: 2611, 2051
+  xy: 2513, 1999
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 phase-conveyor
   rotate: false
-  xy: 1881, 421
+  xy: 1995, 1658
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-conveyor-arrow
   rotate: false
-  xy: 1915, 455
+  xy: 2029, 1692
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-conveyor-bridge
   rotate: false
-  xy: 1949, 489
+  xy: 1995, 1624
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-conveyor-end
   rotate: false
-  xy: 1881, 387
+  xy: 2029, 1658
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 router
   rotate: false
-  xy: 3437, 1895
+  xy: 2267, 1601
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 router-icon-logic
   rotate: false
-  xy: 3437, 1895
+  xy: 2267, 1601
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 sorter
   rotate: false
-  xy: 3075, 1844
+  xy: 1961, 1547
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 sorter-icon-logic
   rotate: false
-  xy: 3075, 1844
+  xy: 1961, 1547
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 underflow-gate
   rotate: false
-  xy: 1983, 387
+  xy: 1979, 1275
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -888,21 +888,21 @@ blast-drill-top
   index: -1
 drill-item-2
   rotate: false
-  xy: 1766, 1335
+  xy: 1575, 1097
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 steam-generator-liquid
   rotate: false
-  xy: 1766, 1335
+  xy: 1575, 1097
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 drill-item-3
   rotate: false
-  xy: 1631, 1913
+  xy: 1729, 2255
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
@@ -916,7 +916,7 @@ drill-item-4
   index: -1
 laser-drill
   rotate: false
-  xy: 2121, 2255
+  xy: 2023, 2255
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
@@ -937,497 +937,497 @@ laser-drill-rotator
   index: -1
 laser-drill-top
   rotate: false
-  xy: 2219, 2255
+  xy: 2121, 2255
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 mechanical-drill
   rotate: false
-  xy: 1856, 1489
+  xy: 3780, 2042
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mechanical-drill-rotator
   rotate: false
-  xy: 1856, 1423
+  xy: 3846, 2042
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mechanical-drill-top
   rotate: false
-  xy: 1922, 1489
+  xy: 3912, 2042
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 oil-extractor
   rotate: false
-  xy: 2513, 2097
+  xy: 2415, 2097
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 oil-extractor-liquid
   rotate: false
-  xy: 2611, 2149
+  xy: 2513, 2097
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 oil-extractor-rotator
   rotate: false
-  xy: 2709, 2149
+  xy: 2611, 2149
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 oil-extractor-top
   rotate: false
-  xy: 1827, 1917
+  xy: 2709, 2149
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 pneumatic-drill
   rotate: false
-  xy: 2107, 1633
+  xy: 3318, 1993
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 pneumatic-drill-rotator
   rotate: false
-  xy: 2239, 1699
+  xy: 3203, 1927
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 pneumatic-drill-top
   rotate: false
-  xy: 2107, 1567
+  xy: 3269, 1927
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 water-extractor
   rotate: false
-  xy: 2648, 1543
+  xy: 3195, 1729
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 water-extractor-liquid
   rotate: false
-  xy: 2648, 1477
+  xy: 3195, 1663
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 water-extractor-rotator
   rotate: false
-  xy: 2384, 1399
+  xy: 3261, 1729
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 water-extractor-top
   rotate: false
-  xy: 2450, 1399
+  xy: 3261, 1663
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-border
   rotate: false
-  xy: 1825, 985
+  xy: 1893, 1573
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-middle
   rotate: false
-  xy: 1961, 965
+  xy: 1919, 1539
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-select
   rotate: false
-  xy: 1757, 967
+  xy: 4048, 2303
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-liquid
   rotate: false
-  xy: 2097, 947
+  xy: 895, 2323
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 place-arrow
   rotate: false
-  xy: 2709, 2051
+  xy: 2611, 2051
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 bridge-conduit
   rotate: false
-  xy: 1821, 917
+  xy: 1903, 1437
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 bridge-conduit-icon-logic
   rotate: false
-  xy: 1821, 917
+  xy: 1903, 1437
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 bridge-conduit-arrow
   rotate: false
-  xy: 1821, 883
+  xy: 1869, 1369
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 bridge-conveyor-arrow
   rotate: false
-  xy: 1821, 883
+  xy: 1869, 1369
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 bridge-conduit-bridge
   rotate: false
-  xy: 1855, 917
+  xy: 1903, 1403
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 bridge-conduit-end
   rotate: false
-  xy: 1821, 849
+  xy: 1903, 1369
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-bottom
   rotate: false
-  xy: 1961, 931
+  xy: 4052, 1710
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-bottom-0
   rotate: false
-  xy: 1995, 939
+  xy: 4052, 1676
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-bottom-1
   rotate: false
-  xy: 2029, 943
+  xy: 4052, 1642
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-bottom-2
   rotate: false
-  xy: 2063, 943
+  xy: 4048, 1608
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-bottom-3
   rotate: false
-  xy: 2063, 943
+  xy: 4048, 1608
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-bottom-4
   rotate: false
-  xy: 2063, 943
+  xy: 4048, 1608
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-top-0
   rotate: false
-  xy: 2131, 947
+  xy: 895, 2289
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-top-1
   rotate: false
-  xy: 1889, 897
+  xy: 895, 2255
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-top-2
   rotate: false
-  xy: 1889, 863
+  xy: 1711, 1345
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-top-3
   rotate: false
-  xy: 1923, 897
+  xy: 1745, 1345
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-top-4
   rotate: false
-  xy: 1889, 829
+  xy: 1707, 1311
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-junction
   rotate: false
-  xy: 1847, 475
+  xy: 1945, 1233
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-junction-icon-logic
   rotate: false
-  xy: 1847, 475
+  xy: 1945, 1233
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-overflow-gate
   rotate: false
-  xy: 1813, 373
+  xy: 1945, 1131
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-overflow-gate-top
   rotate: false
-  xy: 1847, 407
+  xy: 1945, 1097
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-router-bottom
   rotate: false
-  xy: 1813, 339
+  xy: 1829, 1059
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-router-liquid
   rotate: false
-  xy: 1847, 373
+  xy: 1829, 1025
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-router-top
   rotate: false
-  xy: 1847, 339
+  xy: 1863, 1059
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-tank-bottom
   rotate: false
-  xy: 2121, 2059
+  xy: 2219, 2255
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 liquid-tank-liquid
   rotate: false
-  xy: 2219, 2157
+  xy: 2121, 2059
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 liquid-tank-top
   rotate: false
-  xy: 2219, 2059
+  xy: 2219, 2157
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 mechanical-pump
   rotate: false
-  xy: 1881, 659
+  xy: 3183, 1569
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 mechanical-pump-icon-logic
   rotate: false
-  xy: 1881, 659
+  xy: 3183, 1569
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 mechanical-pump-liquid
   rotate: false
-  xy: 1881, 625
+  xy: 3181, 1535
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 rotary-pump-liquid
   rotate: false
-  xy: 1881, 625
+  xy: 3181, 1535
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 thermal-pump-liquid
   rotate: false
-  xy: 1881, 625
+  xy: 3181, 1535
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-conduit
   rotate: false
-  xy: 1915, 523
+  xy: 3585, 1512
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-conduit-arrow
   rotate: false
-  xy: 1949, 557
+  xy: 1995, 1726
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-conduit-bridge
   rotate: false
-  xy: 1881, 455
+  xy: 2029, 1726
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-conduit-end
   rotate: false
-  xy: 1915, 489
+  xy: 1995, 1692
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plated-conduit-cap
   rotate: false
-  xy: 1949, 319
+  xy: 2097, 1625
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plated-conduit-top-0
   rotate: false
-  xy: 1881, 285
+  xy: 2131, 1659
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plated-conduit-top-1
   rotate: false
-  xy: 1915, 285
+  xy: 2097, 1591
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plated-conduit-top-2
   rotate: false
-  xy: 1949, 285
+  xy: 2131, 1625
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plated-conduit-top-3
   rotate: false
-  xy: 1687, 73
+  xy: 2131, 1591
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plated-conduit-top-4
   rotate: false
-  xy: 1687, 39
+  xy: 2165, 1676
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 pulse-conduit-top-0
   rotate: false
-  xy: 1813, 271
+  xy: 2199, 1642
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 pulse-conduit-top-1
   rotate: false
-  xy: 1847, 271
+  xy: 2199, 1608
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 pulse-conduit-top-2
   rotate: false
-  xy: 1881, 251
+  xy: 2233, 1642
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 pulse-conduit-top-3
   rotate: false
-  xy: 1915, 251
+  xy: 2233, 1608
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 pulse-conduit-top-4
   rotate: false
-  xy: 1949, 251
+  xy: 2267, 1669
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 rotary-pump
   rotate: false
-  xy: 1988, 1435
+  xy: 3467, 1887
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 rotary-pump-icon-logic
   rotate: false
-  xy: 1988, 1435
+  xy: 3467, 1887
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 thermal-pump
   rotate: false
-  xy: 2611, 1953
+  xy: 1631, 1863
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 thermal-pump-icon-logic
   rotate: false
-  xy: 2611, 1953
+  xy: 1631, 1863
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
@@ -1462,238 +1462,238 @@ large-logic-display-icon-logic
   index: -1
 logic-display
   rotate: false
-  xy: 2317, 2195
+  xy: 2219, 2059
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 logic-display-icon-logic
   rotate: false
-  xy: 2317, 2195
+  xy: 2219, 2059
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 logic-processor
   rotate: false
-  xy: 1777, 1599
+  xy: 3318, 2125
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 logic-processor-icon-logic
   rotate: false
-  xy: 1777, 1599
+  xy: 3318, 2125
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 memory-bank
   rotate: false
-  xy: 1922, 1423
+  xy: 3978, 2042
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 memory-bank-icon-logic
   rotate: false
-  xy: 1922, 1423
+  xy: 3978, 2042
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 memory-cell
   rotate: false
-  xy: 1915, 625
+  xy: 3449, 1567
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 memory-cell-icon-logic
   rotate: false
-  xy: 1915, 625
+  xy: 3449, 1567
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 message
   rotate: false
-  xy: 1915, 591
+  xy: 3517, 1563
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 message-icon-logic
   rotate: false
-  xy: 1915, 591
+  xy: 3517, 1563
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 micro-processor
   rotate: false
-  xy: 1949, 625
+  xy: 3483, 1529
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 micro-processor-icon-logic
   rotate: false
-  xy: 1949, 625
+  xy: 3483, 1529
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 switch
   rotate: false
-  xy: 3125, 1742
+  xy: 1971, 1377
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 switch-icon-logic
   rotate: false
-  xy: 3125, 1742
+  xy: 1971, 1377
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 switch-on
   rotate: false
-  xy: 1995, 905
+  xy: 1971, 1343
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 battery
   rotate: false
-  xy: 3335, 1895
+  xy: 1893, 1743
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 battery-icon-logic
   rotate: false
-  xy: 3335, 1895
+  xy: 1893, 1743
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 battery-large
   rotate: false
-  xy: 1323, 2333
+  xy: 1753, 2451
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 battery-large-icon-logic
   rotate: false
-  xy: 1323, 2333
+  xy: 1753, 2451
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 battery-large-top
   rotate: false
-  xy: 1323, 2235
+  xy: 1851, 2451
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 battery-top
   rotate: false
-  xy: 3369, 1895
+  xy: 1893, 1709
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 combustion-generator
   rotate: false
-  xy: 1893, 931
+  xy: 1937, 1335
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 combustion-generator-icon-logic
   rotate: false
-  xy: 1893, 931
+  xy: 1937, 1335
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 combustion-generator-top
   rotate: false
-  xy: 1927, 931
+  xy: 4052, 1744
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 differential-generator
   rotate: false
-  xy: 1533, 2109
+  xy: 1533, 2207
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 differential-generator-icon-logic
   rotate: false
-  xy: 1533, 2109
+  xy: 1533, 2207
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 differential-generator-liquid
   rotate: false
-  xy: 1533, 2011
+  xy: 1533, 2109
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 differential-generator-top
   rotate: false
-  xy: 1631, 2207
+  xy: 1533, 2011
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 diode
   rotate: false
-  xy: 1703, 107
+  xy: 3685, 1578
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 diode-icon-logic
   rotate: false
-  xy: 1703, 107
+  xy: 3685, 1578
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 diode-arrow
   rotate: false
-  xy: 1821, 747
+  xy: 3719, 1594
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 illuminator
   rotate: false
-  xy: 1745, 627
+  xy: 3855, 1548
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 illuminator-icon-logic
   rotate: false
-  xy: 1745, 627
+  xy: 3855, 1548
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 illuminator-top
   rotate: false
-  xy: 1779, 661
+  xy: 3889, 1548
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -1749,735 +1749,735 @@ impact-reactor-plasma-3
   index: -1
 power-node
   rotate: false
-  xy: 1721, 39
+  xy: 2165, 1642
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 power-node-icon-logic
   rotate: false
-  xy: 1721, 39
+  xy: 2165, 1642
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 power-node-large
   rotate: false
-  xy: 2173, 1633
+  xy: 3335, 1927
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 power-node-large-icon-logic
   rotate: false
-  xy: 2173, 1633
+  xy: 3335, 1927
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 power-source
   rotate: false
-  xy: 1745, 287
+  xy: 2233, 1676
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 power-source-icon-logic
   rotate: false
-  xy: 1745, 287
+  xy: 2233, 1676
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 power-void
   rotate: false
-  xy: 1779, 287
+  xy: 2165, 1608
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 power-void-icon-logic
   rotate: false
-  xy: 1779, 287
+  xy: 2165, 1608
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 rtg-generator
   rotate: false
-  xy: 2054, 1501
+  xy: 3533, 1887
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 rtg-generator-icon-logic
   rotate: false
-  xy: 2054, 1501
+  xy: 3533, 1887
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 rtg-generator-top
   rotate: false
-  xy: 3447, 1861
+  xy: 2301, 1601
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 solar-panel
   rotate: false
-  xy: 3041, 1820
+  xy: 2131, 1557
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 solar-panel-icon-logic
   rotate: false
-  xy: 3041, 1820
+  xy: 2131, 1557
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 solar-panel-large
   rotate: false
-  xy: 2513, 1901
+  xy: 3003, 1981
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 solar-panel-large-icon-logic
   rotate: false
-  xy: 2513, 1901
+  xy: 3003, 1981
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 steam-generator
   rotate: false
-  xy: 2318, 1436
+  xy: 3929, 1910
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 steam-generator-cap
   rotate: false
-  xy: 2371, 1597
+  xy: 3929, 1844
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 steam-generator-top
   rotate: false
-  xy: 2437, 1597
+  xy: 3995, 1910
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 steam-generator-turbine0
   rotate: false
-  xy: 2503, 1597
+  xy: 3995, 1844
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 steam-generator-turbine1
   rotate: false
-  xy: 2384, 1531
+  xy: 3731, 1778
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 surge-tower
   rotate: false
-  xy: 2384, 1465
+  xy: 3797, 1778
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 surge-tower-icon-logic
   rotate: false
-  xy: 2384, 1465
+  xy: 3797, 1778
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 thermal-generator
   rotate: false
-  xy: 2516, 1531
+  xy: 3995, 1778
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 thermal-generator-icon-logic
   rotate: false
-  xy: 2516, 1531
+  xy: 3995, 1778
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 thorium-reactor
   rotate: false
-  xy: 2709, 1953
+  xy: 1729, 1863
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 thorium-reactor-icon-logic
   rotate: false
-  xy: 2709, 1953
+  xy: 1729, 1863
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 thorium-reactor-lights
   rotate: false
-  xy: 2611, 1855
+  xy: 1827, 1819
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 thorium-reactor-top
   rotate: false
-  xy: 2709, 1855
+  xy: 1925, 1819
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 alloy-smelter
   rotate: false
-  xy: 1557, 2501
+  xy: 1557, 2403
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 alloy-smelter-icon-logic
   rotate: false
-  xy: 1557, 2501
+  xy: 1557, 2403
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 alloy-smelter-top
   rotate: false
-  xy: 1553, 2403
+  xy: 1655, 2451
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 blast-mixer
   rotate: false
-  xy: 3019, 1888
+  xy: 1553, 413
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-forge
   rotate: false
-  xy: 1617, 2305
+  xy: 1851, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 coal-centrifuge
   rotate: false
-  xy: 3521, 2143
+  xy: 2931, 1717
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 coal-centrifuge-icon-logic
   rotate: false
-  xy: 3521, 2143
+  xy: 2931, 1717
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cryofluid-mixer-bottom
   rotate: false
-  xy: 3381, 1995
+  xy: 3603, 2151
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cryofluid-mixer-liquid
   rotate: false
-  xy: 1724, 1467
+  xy: 3669, 2134
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cryofluid-mixer-top
   rotate: false
-  xy: 1724, 1401
+  xy: 1389, 10
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cultivator
   rotate: false
-  xy: 1775, 1533
+  xy: 1455, 10
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cultivator-middle
   rotate: false
-  xy: 1790, 1467
+  xy: 1521, 10
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cultivator-top
   rotate: false
-  xy: 1790, 1401
+  xy: 1587, 17
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 disassembler
   rotate: false
-  xy: 1631, 2109
+  xy: 1533, 1913
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 disassembler-icon-logic
   rotate: false
-  xy: 1631, 2109
+  xy: 1533, 1913
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 disassembler-liquid
   rotate: false
-  xy: 1631, 2011
+  xy: 1631, 2255
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 disassembler-spinner
   rotate: false
-  xy: 1533, 1913
+  xy: 1631, 2157
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 graphite-press
   rotate: false
-  xy: 3309, 1929
+  xy: 1641, 1239
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 graphite-press-icon-logic
   rotate: false
-  xy: 3309, 1929
+  xy: 1641, 1239
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 incinerator
   rotate: false
-  xy: 1745, 593
+  xy: 3923, 1572
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 incinerator-icon-logic
   rotate: false
-  xy: 1745, 593
+  xy: 3923, 1572
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-source
   rotate: false
-  xy: 1813, 645
+  xy: 1877, 1233
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-source-icon-logic
   rotate: false
-  xy: 1813, 645
+  xy: 1877, 1233
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-void
   rotate: false
-  xy: 1847, 543
+  xy: 1911, 1131
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-void-icon-logic
   rotate: false
-  xy: 1847, 543
+  xy: 1911, 1131
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 kiln
   rotate: false
-  xy: 3375, 1929
+  xy: 1641, 1173
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 kiln-icon-logic
   rotate: false
-  xy: 3375, 1929
+  xy: 1641, 1173
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 kiln-top
   rotate: false
-  xy: 2577, 1609
+  xy: 1641, 1107
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 silicon-smelter-top
   rotate: false
-  xy: 2577, 1609
+  xy: 1641, 1107
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 liquid-source
   rotate: false
-  xy: 1653, 68
+  xy: 1897, 1029
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-source-icon-logic
   rotate: false
-  xy: 1653, 68
+  xy: 1897, 1029
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-void
   rotate: false
-  xy: 1653, 34
+  xy: 1931, 1063
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-void-icon-logic
   rotate: false
-  xy: 1653, 34
+  xy: 1931, 1063
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 melter
   rotate: false
-  xy: 1881, 591
+  xy: 3415, 1541
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 melter-icon-logic
   rotate: false
-  xy: 1881, 591
+  xy: 3415, 1541
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 multi-press
   rotate: false
-  xy: 2513, 2195
+  xy: 2317, 2097
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 multi-press-icon-logic
   rotate: false
-  xy: 2513, 2195
+  xy: 2317, 2097
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 phase-weaver
   rotate: false
-  xy: 2041, 1699
+  xy: 3780, 1976
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 phase-weaver-bottom
   rotate: false
-  xy: 1975, 1567
+  xy: 3846, 1976
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 phase-weaver-weave
   rotate: false
-  xy: 2107, 1699
+  xy: 3912, 1976
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 plastanium-compressor
   rotate: false
-  xy: 2041, 1633
+  xy: 3978, 1976
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 plastanium-compressor-icon-logic
   rotate: false
-  xy: 2041, 1633
+  xy: 3978, 1976
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 plastanium-compressor-top
   rotate: false
-  xy: 2173, 1699
+  xy: 3186, 1993
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 pulverizer
   rotate: false
-  xy: 3277, 1861
+  xy: 2267, 1635
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 pulverizer-rotator
   rotate: false
-  xy: 3311, 1861
+  xy: 2301, 1669
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 pyratite-mixer
   rotate: false
-  xy: 2239, 1633
+  xy: 3467, 1953
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 pyratite-mixer-icon-logic
   rotate: false
-  xy: 2239, 1633
+  xy: 3467, 1953
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 separator
   rotate: false
-  xy: 2030, 1303
+  xy: 3599, 1870
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 separator-icon-logic
   rotate: false
-  xy: 2030, 1303
+  xy: 3599, 1870
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 separator-liquid
   rotate: false
-  xy: 2096, 1369
+  xy: 3665, 1870
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 separator-spinner
   rotate: false
-  xy: 2096, 1303
+  xy: 3599, 1804
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 silicon-crucible
   rotate: false
-  xy: 2317, 1901
+  xy: 2807, 1981
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 silicon-crucible-icon-logic
   rotate: false
-  xy: 2317, 1901
+  xy: 2807, 1981
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 silicon-crucible-top
   rotate: false
-  xy: 2415, 1901
+  xy: 2905, 1981
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 silicon-smelter
   rotate: false
-  xy: 2162, 1369
+  xy: 3665, 1804
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 silicon-smelter-icon-logic
   rotate: false
-  xy: 2162, 1369
+  xy: 3665, 1804
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 spore-press
   rotate: false
-  xy: 2162, 1303
+  xy: 3731, 1910
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 spore-press-frame0
   rotate: false
-  xy: 2252, 1501
+  xy: 3731, 1844
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 spore-press-frame1
   rotate: false
-  xy: 2252, 1435
+  xy: 3797, 1910
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 spore-press-frame2
   rotate: false
-  xy: 2228, 1369
+  xy: 3797, 1844
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 spore-press-liquid
   rotate: false
-  xy: 2228, 1303
+  xy: 3863, 1910
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 spore-press-top
   rotate: false
-  xy: 2318, 1502
+  xy: 3863, 1844
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 basalt-boulder1
   rotate: false
-  xy: 1575, 1218
+  xy: 3245, 1613
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 basalt-boulder2
   rotate: false
-  xy: 1575, 1168
+  xy: 3295, 1613
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 boulder1
   rotate: false
-  xy: 1625, 1179
+  xy: 2797, 1551
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 boulder2
   rotate: false
-  xy: 1675, 1229
+  xy: 2847, 1551
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 dacite-boulder1
   rotate: false
-  xy: 1725, 1129
+  xy: 2233, 1710
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 dacite-boulder2
   rotate: false
-  xy: 1725, 1079
+  xy: 2283, 1703
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 sand-boulder1
   rotate: false
-  xy: 895, 2323
+  xy: 2335, 1601
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 sand-boulder2
   rotate: false
-  xy: 895, 2289
+  xy: 2369, 1621
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 shale-boulder1
   rotate: false
-  xy: 3007, 1854
+  xy: 1995, 1556
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 shale-boulder2
   rotate: false
-  xy: 3041, 1854
+  xy: 2029, 1556
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 snow-boulder1
   rotate: false
-  xy: 1619, 518
+  xy: 1703, 7
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 snow-boulder2
   rotate: false
-  xy: 1619, 468
+  xy: 1723, 471
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 spore-cluster1
   rotate: false
-  xy: 1669, 401
+  xy: 1783, 1569
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 spore-cluster2
   rotate: false
-  xy: 1669, 359
+  xy: 1827, 1777
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 spore-cluster3
   rotate: false
-  xy: 1669, 317
+  xy: 1869, 1777
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
@@ -2512,14 +2512,14 @@ white-tree-shadow
   index: -1
 container
   rotate: false
-  xy: 3653, 2068
+  xy: 3071, 1909
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 container-team
   rotate: false
-  xy: 3243, 1975
+  xy: 3069, 1843
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -2554,77 +2554,77 @@ core-nucleus-team
   index: -1
 core-shard
   rotate: false
-  xy: 2533, 2391
+  xy: 2929, 2275
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 core-shard-team
   rotate: false
-  xy: 2337, 2293
+  xy: 3027, 2275
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 unloader
   rotate: false
-  xy: 1983, 319
+  xy: 1979, 1207
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 unloader-icon-logic
   rotate: false
-  xy: 1983, 319
+  xy: 1979, 1207
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 unloader-center
   rotate: false
-  xy: 1983, 285
+  xy: 1979, 1173
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 vault
   rotate: false
-  xy: 2317, 1803
+  xy: 2317, 1901
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 vault-team
   rotate: false
-  xy: 2415, 1803
+  xy: 2415, 1901
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 arc-heat
   rotate: false
-  xy: 1715, 2369
+  xy: 1389, 100
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-1
   rotate: false
-  xy: 1757, 1001
+  xy: 1893, 1641
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-2
   rotate: false
-  xy: 2807, 1833
+  xy: 1553, 281
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-3
   rotate: false
-  xy: 1421, 2333
+  xy: 1949, 2451
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
@@ -2645,14 +2645,14 @@ foreshadow-heat
   index: -1
 hail-heat
   rotate: false
-  xy: 758, 3251
+  xy: 3125, 2177
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 lancer-heat
   rotate: false
-  xy: 1777, 1731
+  xy: 3252, 2125
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -2666,84 +2666,84 @@ meltdown-heat
   index: -1
 ripple-heat
   rotate: false
-  xy: 1827, 1819
+  xy: 2807, 2079
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 salvo-heat
   rotate: false
-  xy: 2120, 1501
+  xy: 3269, 1861
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 scorch-heat
   rotate: false
-  xy: 3521, 2043
+  xy: 2165, 1574
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 tsunami-liquid
   rotate: false
-  xy: 2121, 1765
+  xy: 2121, 1863
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 tsunami-top
   rotate: false
-  xy: 2219, 1765
+  xy: 2219, 1863
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 wave-liquid
   rotate: false
-  xy: 2582, 1411
+  xy: 3327, 1663
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 wave-top
   rotate: false
-  xy: 2648, 1411
+  xy: 3399, 1755
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 additive-reconstructor
   rotate: false
-  xy: 1259, 2447
+  xy: 1361, 2529
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 additive-reconstructor-top
   rotate: false
-  xy: 1459, 2529
+  xy: 1361, 2431
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 air-factory
   rotate: false
-  xy: 1357, 2431
+  xy: 1459, 2431
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 command-center
   rotate: false
-  xy: 3521, 2077
+  xy: 2997, 1783
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 command-center-team
   rotate: false
-  xy: 3587, 2143
+  xy: 2931, 1651
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -2764,7 +2764,7 @@ exponential-reconstructor-top
   index: -1
 factory-in-3
   rotate: false
-  xy: 1729, 2255
+  xy: 1631, 2059
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
@@ -2792,7 +2792,7 @@ factory-in-9
   index: -1
 factory-out-3
   rotate: false
-  xy: 1827, 2255
+  xy: 1729, 2157
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
@@ -2820,14 +2820,14 @@ factory-out-9
   index: -1
 factory-top-3
   rotate: false
-  xy: 1729, 2157
+  xy: 1827, 2255
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 ground-factory
   rotate: false
-  xy: 2023, 2255
+  xy: 1925, 2255
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
@@ -2848,35 +2848,35 @@ multiplicative-reconstructor-top
   index: -1
 naval-factory
   rotate: false
-  xy: 2415, 2097
+  xy: 2513, 2195
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 rally-point
   rotate: false
-  xy: 2239, 1567
+  xy: 3533, 1953
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 repair-point-base
   rotate: false
-  xy: 3413, 1861
+  xy: 2335, 1635
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 resupply-point
   rotate: false
-  xy: 1988, 1501
+  xy: 3401, 1887
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 resupply-point-icon-logic
   rotate: false
-  xy: 1988, 1501
+  xy: 3401, 1887
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -2897,126 +2897,126 @@ tetrative-reconstructor-top
   index: -1
 copper-wall
   rotate: false
-  xy: 1711, 549
+  xy: 1775, 1107
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 copper-wall-icon-logic
   rotate: false
-  xy: 1711, 549
+  xy: 1775, 1107
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 copper-wall-large
   rotate: false
-  xy: 1521, 9
+  xy: 3063, 1645
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 copper-wall-large-icon-logic
   rotate: false
-  xy: 1521, 9
+  xy: 3063, 1645
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 door
   rotate: false
-  xy: 1855, 747
+  xy: 3753, 1594
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 door-icon-logic
   rotate: false
-  xy: 1855, 747
+  xy: 3753, 1594
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 door-large
   rotate: false
-  xy: 1634, 1329
+  xy: 1575, 1229
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 door-large-icon-logic
   rotate: false
-  xy: 1634, 1329
+  xy: 1575, 1229
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 door-large-open
   rotate: false
-  xy: 1700, 1329
+  xy: 1575, 1163
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 door-open
   rotate: false
-  xy: 1889, 727
+  xy: 3787, 1594
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-wall
   rotate: false
-  xy: 1949, 455
+  xy: 1995, 1590
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-wall-icon-logic
   rotate: false
-  xy: 1949, 455
+  xy: 1995, 1590
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-wall-large
   rotate: false
-  xy: 1975, 1633
+  xy: 3714, 2002
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 phase-wall-large-icon-logic
   rotate: false
-  xy: 1975, 1633
+  xy: 3714, 2002
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 plastanium-wall
   rotate: false
-  xy: 1949, 353
+  xy: 2097, 1659
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plastanium-wall-icon-logic
   rotate: false
-  xy: 1949, 353
+  xy: 2097, 1659
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plastanium-wall-large
   rotate: false
-  xy: 2041, 1567
+  xy: 3252, 1993
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 plastanium-wall-large-icon-logic
   rotate: false
-  xy: 2041, 1567
+  xy: 3252, 1993
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -3030,140 +3030,140 @@ scrap-wall-gigantic
   index: -1
 scrap-wall-huge1
   rotate: false
-  xy: 2023, 1863
+  xy: 3003, 2079
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 scrap-wall-huge2
   rotate: false
-  xy: 2121, 1863
+  xy: 2611, 1953
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 scrap-wall-huge3
   rotate: false
-  xy: 2219, 1863
+  xy: 2709, 1953
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 scrap-wall-large1
   rotate: false
-  xy: 2186, 1501
+  xy: 3401, 1821
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 scrap-wall-large2
   rotate: false
-  xy: 2186, 1435
+  xy: 3467, 1821
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 scrap-wall-large3
   rotate: false
-  xy: 2305, 1634
+  xy: 3533, 1821
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 scrap-wall-large4
   rotate: false
-  xy: 2305, 1568
+  xy: 3599, 1936
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 scrap-wall1
   rotate: false
-  xy: 3555, 2043
+  xy: 2199, 1574
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 scrap-wall2
   rotate: false
-  xy: 3589, 2043
+  xy: 2233, 1574
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 scrap-wall3
   rotate: false
-  xy: 2199, 955
+  xy: 2267, 1567
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 scrap-wall4
   rotate: false
-  xy: 2233, 955
+  xy: 2301, 1567
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 scrap-wall5
   rotate: false
-  xy: 2199, 921
+  xy: 2335, 1567
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 surge-wall
   rotate: false
-  xy: 3125, 1776
+  xy: 1971, 1411
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 surge-wall-icon-logic
   rotate: false
-  xy: 3125, 1776
+  xy: 1971, 1411
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 surge-wall-large
   rotate: false
-  xy: 2450, 1531
+  xy: 3863, 1778
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 surge-wall-large-icon-logic
   rotate: false
-  xy: 2450, 1531
+  xy: 3863, 1778
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 thorium-wall
   rotate: false
-  xy: 2029, 909
+  xy: 2005, 1454
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 thorium-wall-icon-logic
   rotate: false
-  xy: 2029, 909
+  xy: 2005, 1454
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 thorium-wall-large
   rotate: false
-  xy: 2516, 1465
+  xy: 3201, 1795
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 thorium-wall-large-icon-logic
   rotate: false
-  xy: 2516, 1465
+  xy: 3201, 1795
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -3184,28 +3184,28 @@ thruster-top
   index: -1
 titanium-wall
   rotate: false
-  xy: 1983, 421
+  xy: 1979, 1309
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-wall-icon-logic
   rotate: false
-  xy: 1983, 421
+  xy: 1979, 1309
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-wall-large
   rotate: false
-  xy: 2582, 1543
+  xy: 3267, 1795
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 titanium-wall-large-icon-logic
   rotate: false
-  xy: 2582, 1543
+  xy: 3267, 1795
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -3219,7 +3219,7 @@ bullet
   index: -1
 bullet-back
   rotate: false
-  xy: 1544, 1326
+  xy: 3994, 1608
   size: 52, 52
   orig: 52, 52
   offset: 0, 0
@@ -3254,7 +3254,7 @@ circle-shadow
   index: -1
 error
   rotate: false
-  xy: 1775, 1085
+  xy: 2483, 1628
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -3275,42 +3275,42 @@ large-bomb-back
   index: -1
 laser
   rotate: false
-  xy: 1723, 1863
+  xy: 567, 93
   size: 4, 48
   orig: 4, 48
   offset: 0, 0
   index: -1
 laser-end
   rotate: false
-  xy: 2807, 2045
+  xy: 2317, 1827
   size: 72, 72
   orig: 72, 72
   offset: 0, 0
   index: -1
 launch-arrow
   rotate: false
-  xy: 1847, 509
+  xy: 1945, 1301
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 transfer-arrow
   rotate: false
-  xy: 1847, 509
+  xy: 1945, 1301
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 minelaser
   rotate: false
-  xy: 567, 93
+  xy: 397, 2439
   size: 4, 48
   orig: 4, 48
   offset: 0, 0
   index: -1
 minelaser-end
   rotate: false
-  xy: 2881, 2119
+  xy: 2391, 1827
   size: 72, 72
   orig: 72, 72
   offset: 0, 0
@@ -3324,91 +3324,98 @@ missile
   index: -1
 missile-back
   rotate: false
-  xy: 1199, 2633
+  xy: 2341, 2511
   size: 36, 36
   orig: 36, 36
   offset: 0, 0
   index: -1
 parallax-laser
   rotate: false
-  xy: 1523, 1489
+  xy: 929, 2307
   size: 4, 48
   orig: 4, 48
   offset: 0, 0
   index: -1
 parallax-laser-end
   rotate: false
-  xy: 2807, 1971
+  xy: 2465, 1827
   size: 72, 72
   orig: 72, 72
   offset: 0, 0
   index: -1
 particle
   rotate: false
-  xy: 1669, 443
+  xy: 1783, 1611
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 scale_marker
   rotate: false
-  xy: 1, 1
+  xy: 3063, 1843
   size: 4, 4
   orig: 4, 4
   offset: 0, 0
   index: -1
+select-arrow
+  rotate: false
+  xy: 1259, 2545
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
 shell
   rotate: false
-  xy: 1719, 991
+  xy: 1199, 2633
   size: 36, 36
   orig: 36, 36
   offset: 0, 0
   index: -1
 shell-back
   rotate: false
-  xy: 1669, 279
+  xy: 1911, 1781
   size: 36, 36
   orig: 36, 36
   offset: 0, 0
   index: -1
 transfer
   rotate: false
-  xy: 397, 2439
+  xy: 397, 2389
   size: 4, 48
   orig: 4, 48
   offset: 0, 0
   index: -1
 white
   rotate: false
-  xy: 2827, 2438
+  xy: 800, 3288
   size: 3, 3
   orig: 3, 3
   offset: 0, 0
   index: -1
 additive-reconstructor-icon-logic
   rotate: false
-  xy: 1361, 2529
+  xy: 1459, 2529
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-additive-reconstructor-full
   rotate: false
-  xy: 1361, 2529
+  xy: 1459, 2529
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 air-factory-icon-logic
   rotate: false
-  xy: 1455, 2431
+  xy: 1557, 2501
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-air-factory-full
   rotate: false
-  xy: 1455, 2431
+  xy: 1557, 2501
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
@@ -3422,35 +3429,35 @@ alpha-icon-logic
   index: -1
 alpha-outline
   rotate: false
-  xy: 1296, 3079
+  xy: 1525, 3115
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 alpha-wreck0
   rotate: false
-  xy: 2262, 1195
+  xy: 1296, 3079
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 alpha-wreck1
   rotate: false
-  xy: 2805, 1783
+  xy: 4044, 2058
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 alpha-wreck2
   rotate: false
-  xy: 2855, 1779
+  xy: 4044, 2008
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 antumbra-icon-logic
   rotate: false
-  xy: 4067, 2074
+  xy: 3421, 1609
   size: 28, 32
   orig: 28, 32
   offset: 0, 0
@@ -3492,42 +3499,42 @@ arc
   index: -1
 arc-icon-logic
   rotate: false
-  xy: 2577, 1769
+  xy: 1199, 2599
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-arc-full
   rotate: false
-  xy: 2577, 1769
+  xy: 1199, 2599
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 arkyid-foot
   rotate: false
-  xy: 983, 2599
+  xy: 2539, 1829
   size: 70, 70
   orig: 70, 70
   offset: 0, 0
   index: -1
 arkyid-icon-logic
   rotate: false
-  xy: 1389, 100
+  xy: 2844, 2643
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 arkyid-joint-base
   rotate: false
-  xy: 1055, 2599
+  xy: 983, 2599
   size: 70, 70
   orig: 70, 70
   offset: 0, 0
   index: -1
 arkyid-leg
   rotate: false
-  xy: 3719, 2142
+  xy: 3530, 1763
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
@@ -3569,28 +3576,28 @@ arkyid-wreck2
   index: -1
 armored-conveyor-icon-logic
   rotate: false
-  xy: 3301, 1895
+  xy: 1793, 1467
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-armored-conveyor-full
   rotate: false
-  xy: 3301, 1895
+  xy: 1793, 1467
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 artillery-mount-outline
   rotate: false
-  xy: 2955, 2121
+  xy: 1127, 2599
   size: 70, 70
   orig: 70, 70
   offset: 0, 0
   index: -1
 artillery-outline
   rotate: false
-  xy: 1575, 1268
+  xy: 3195, 1605
   size: 48, 56
   orig: 48, 56
   offset: 0, 0
@@ -3604,56 +3611,56 @@ atrax-foot
   index: -1
 atrax-icon-logic
   rotate: false
-  xy: 1519, 2406
+  xy: 3104, 2506
   size: 32, 23
   orig: 32, 23
   offset: 0, 0
   index: -1
 atrax-joint
   rotate: false
-  xy: 1385, 3439
+  xy: 3217, 1577
   size: 26, 26
   orig: 26, 26
   offset: 0, 0
   index: -1
 atrax-leg
   rotate: false
-  xy: 1789, 1835
+  xy: 1519, 2403
   size: 36, 26
   orig: 36, 26
   offset: 0, 0
   index: -1
 atrax-leg-base
   rotate: false
-  xy: 1789, 1807
+  xy: 1617, 2375
   size: 36, 26
   orig: 36, 26
   offset: 0, 0
   index: -1
 atrax-outline
   rotate: false
-  xy: 1529, 1586
+  xy: 91, 7
   size: 88, 64
   orig: 88, 64
   offset: 0, 0
   index: -1
 atrax-wreck0
   rotate: false
-  xy: 91, 7
+  xy: 3495, 2217
   size: 88, 64
   orig: 88, 64
   offset: 0, 0
   index: -1
 atrax-wreck1
   rotate: false
-  xy: 1621, 1704
+  xy: 181, 7
   size: 88, 64
   orig: 88, 64
   offset: 0, 0
   index: -1
 atrax-wreck2
   rotate: false
-  xy: 181, 7
+  xy: 3585, 2217
   size: 88, 64
   orig: 88, 64
   offset: 0, 0
@@ -3674,42 +3681,42 @@ beta-icon-logic
   index: -1
 beta-outline
   rotate: false
-  xy: 2294, 1314
+  xy: 1063, 3255
   size: 56, 54
   orig: 56, 54
   offset: 0, 0
   index: -1
 beta-wreck0
   rotate: false
-  xy: 1063, 3255
+  xy: 3393, 1699
   size: 56, 54
   orig: 56, 54
   offset: 0, 0
   index: -1
 beta-wreck1
   rotate: false
-  xy: 3719, 2086
+  xy: 1259, 2387
   size: 56, 54
   orig: 56, 54
   offset: 0, 0
   index: -1
 beta-wreck2
   rotate: false
-  xy: 1259, 2391
+  xy: 3393, 1643
   size: 56, 54
   orig: 56, 54
   offset: 0, 0
   index: -1
 blast-compound-icon-logic
   rotate: false
-  xy: 3403, 1895
+  xy: 1893, 1675
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-blast-compound-medium
   rotate: false
-  xy: 3403, 1895
+  xy: 1893, 1675
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -3730,140 +3737,140 @@ block-blast-drill-full
   index: -1
 blast-mixer-icon-logic
   rotate: false
-  xy: 3085, 1878
+  xy: 1553, 347
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-basalt-boulder-full
   rotate: false
-  xy: 1575, 1068
+  xy: 2849, 1601
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 block-basalt-full
   rotate: false
-  xy: 1791, 1001
+  xy: 1893, 1607
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-block-forge-full
   rotate: false
-  xy: 1421, 2235
+  xy: 2047, 2451
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-forge-icon-logic
   rotate: false
-  xy: 1421, 2235
+  xy: 2047, 2451
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-block-loader-full
   rotate: false
-  xy: 1435, 2137
+  xy: 2145, 2451
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-loader-icon-logic
   rotate: false
-  xy: 1435, 2137
+  xy: 2145, 2451
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-block-unloader-full
   rotate: false
-  xy: 1435, 2039
+  xy: 2243, 2451
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-unloader-icon-logic
   rotate: false
-  xy: 1435, 2039
+  xy: 2243, 2451
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-boulder-full
   rotate: false
-  xy: 1625, 1279
+  xy: 2899, 1601
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 block-char-full
   rotate: false
-  xy: 1859, 985
+  xy: 1817, 1535
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-command-center-full
   rotate: false
-  xy: 2873, 1829
+  xy: 1553, 215
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 command-center-icon-logic
   rotate: false
-  xy: 2873, 1829
+  xy: 1553, 215
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-conduit-full
   rotate: false
-  xy: 1893, 999
+  xy: 1851, 1539
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conduit-icon-logic
   rotate: false
-  xy: 1893, 999
+  xy: 1851, 1539
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-container-full
   rotate: false
-  xy: 1541, 999
+  xy: 1553, 149
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 container-icon-logic
   rotate: false
-  xy: 1541, 999
+  xy: 1553, 149
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-conveyor-full
   rotate: false
-  xy: 1927, 999
+  xy: 1885, 1539
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-0-0
   rotate: false
-  xy: 1927, 999
+  xy: 1885, 1539
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 conveyor-icon-logic
   rotate: false
-  xy: 1927, 999
+  xy: 1885, 1539
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -3898,133 +3905,133 @@ core-nucleus-icon-logic
   index: -1
 block-core-shard-full
   rotate: false
-  xy: 1435, 1941
+  xy: 1655, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 core-shard-icon-logic
   rotate: false
-  xy: 1435, 1941
+  xy: 1655, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-craters-full
   rotate: false
-  xy: 4048, 2779
+  xy: 1827, 1501
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-cryofluid-mixer-full
   rotate: false
-  xy: 1553, 933
+  xy: 1553, 83
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cryofluid-mixer-icon-logic
   rotate: false
-  xy: 1553, 933
+  xy: 1553, 83
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-cultivator-full
   rotate: false
-  xy: 1553, 867
+  xy: 2807, 1915
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cultivator-icon-logic
   rotate: false
-  xy: 1553, 867
+  xy: 2807, 1915
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-cyclone-full
   rotate: false
-  xy: 1519, 2305
+  xy: 1753, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 cyclone-icon-logic
   rotate: false
-  xy: 1519, 2305
+  xy: 1753, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-dacite-boulder-full
   rotate: false
-  xy: 1675, 1279
+  xy: 2949, 1601
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 block-dacite-full
   rotate: false
-  xy: 4048, 2745
+  xy: 1827, 1467
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-dacite-wall-full
   rotate: false
-  xy: 4048, 2711
+  xy: 1861, 1505
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-dark-metal-full
   rotate: false
-  xy: 4048, 2677
+  xy: 1861, 1471
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-darksand-full
   rotate: false
-  xy: 4048, 2643
+  xy: 1895, 1505
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-dirt-full
   rotate: false
-  xy: 4048, 2609
+  xy: 1895, 1471
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-dirt-wall-full
   rotate: false
-  xy: 4048, 2575
+  xy: 1927, 1747
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-dune-wall-full
   rotate: false
-  xy: 4048, 2541
+  xy: 1927, 1713
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-duo-full
   rotate: false
-  xy: 4048, 2507
+  xy: 1927, 1679
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 duo-icon-logic
   rotate: false
-  xy: 4048, 2507
+  xy: 1927, 1679
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -4059,77 +4066,77 @@ foreshadow-icon-logic
   index: -1
 block-fuse-full
   rotate: false
-  xy: 1651, 2403
+  xy: 1949, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 fuse-icon-logic
   rotate: false
-  xy: 1651, 2403
+  xy: 1949, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-grass-full
   rotate: false
-  xy: 4048, 2473
+  xy: 1927, 1645
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-ground-factory-full
   rotate: false
-  xy: 1749, 2451
+  xy: 2047, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 ground-factory-icon-logic
   rotate: false
-  xy: 1749, 2451
+  xy: 2047, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-hail-full
   rotate: false
-  xy: 4048, 2439
+  xy: 1927, 1611
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 hail-icon-logic
   rotate: false
-  xy: 4048, 2439
+  xy: 1927, 1611
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-hotrock-full
   rotate: false
-  xy: 4048, 2405
+  xy: 1927, 1577
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-ice-full
   rotate: false
-  xy: 4048, 2371
+  xy: 1961, 1751
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-ice-snow-full
   rotate: false
-  xy: 4048, 2337
+  xy: 1961, 1717
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-ice-wall-full
   rotate: false
-  xy: 4048, 2303
+  xy: 1961, 1683
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -4164,91 +4171,91 @@ interplanetary-accelerator-icon-logic
   index: -1
 block-lancer-full
   rotate: false
-  xy: 1553, 801
+  xy: 2873, 1915
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 lancer-icon-logic
   rotate: false
-  xy: 1553, 801
+  xy: 2873, 1915
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-laser-drill-full
   rotate: false
-  xy: 1847, 2451
+  xy: 2145, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 laser-drill-icon-logic
   rotate: false
-  xy: 1847, 2451
+  xy: 2145, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-liquid-router-full
   rotate: false
-  xy: 1893, 965
+  xy: 1961, 1649
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-router-icon-logic
   rotate: false
-  xy: 1893, 965
+  xy: 1961, 1649
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-liquid-tank-full
   rotate: false
-  xy: 1945, 2451
+  xy: 2243, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 liquid-tank-icon-logic
   rotate: false
-  xy: 1945, 2451
+  xy: 2243, 2353
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-magmarock-full
   rotate: false
-  xy: 1927, 965
+  xy: 1961, 1615
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-mass-driver-full
   rotate: false
-  xy: 2141, 2451
+  xy: 2439, 2391
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 mass-driver-icon-logic
   rotate: false
-  xy: 2141, 2451
+  xy: 2439, 2391
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-mechanical-drill-full
   rotate: false
-  xy: 1553, 735
+  xy: 2939, 1915
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mechanical-drill-icon-logic
   rotate: false
-  xy: 1553, 735
+  xy: 2939, 1915
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -4269,21 +4276,21 @@ meltdown-icon-logic
   index: -1
 block-metal-floor-damaged-full
   rotate: false
-  xy: 1961, 999
+  xy: 1961, 1581
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-moss-full
   rotate: false
-  xy: 1995, 1007
+  xy: 1929, 1505
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-mud-full
   rotate: false
-  xy: 1995, 973
+  xy: 1929, 1471
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -4304,406 +4311,406 @@ multiplicative-reconstructor-icon-logic
   index: -1
 block-naval-factory-full
   rotate: false
-  xy: 2239, 2451
+  xy: 2537, 2391
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 naval-factory-icon-logic
   rotate: false
-  xy: 2239, 2451
+  xy: 2537, 2391
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-oil-extractor-full
   rotate: false
-  xy: 1749, 2353
+  xy: 2341, 2293
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 oil-extractor-icon-logic
   rotate: false
-  xy: 1749, 2353
+  xy: 2341, 2293
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-ore-coal-full
   rotate: false
-  xy: 2029, 1011
+  xy: 3387, 1609
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-ore-copper-full
   rotate: false
-  xy: 2029, 977
+  xy: 3659, 1612
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-ore-lead-full
   rotate: false
-  xy: 2582, 1377
+  xy: 3651, 1578
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-ore-scrap-full
   rotate: false
-  xy: 2616, 1377
+  xy: 4048, 2779
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-ore-thorium-full
   rotate: false
-  xy: 2650, 1377
+  xy: 4048, 2745
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-ore-titanium-full
   rotate: false
-  xy: 2684, 1377
+  xy: 4048, 2711
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-parallax-full
   rotate: false
-  xy: 1553, 669
+  xy: 3005, 1915
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 parallax-icon-logic
   rotate: false
-  xy: 1553, 669
+  xy: 3005, 1915
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-payload-conveyor-full
   rotate: false
-  xy: 1847, 2353
+  xy: 2439, 2293
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 payload-conveyor-icon
   rotate: false
-  xy: 1847, 2353
+  xy: 2439, 2293
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 payload-conveyor-icon-logic
   rotate: false
-  xy: 1847, 2353
+  xy: 2439, 2293
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-payload-router-full
   rotate: false
-  xy: 1945, 2353
+  xy: 2537, 2293
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 payload-router-icon
   rotate: false
-  xy: 1945, 2353
+  xy: 2537, 2293
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 payload-router-icon-logic
   rotate: false
-  xy: 1945, 2353
+  xy: 2537, 2293
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-pebbles-full
   rotate: false
-  xy: 2063, 1011
+  xy: 4048, 2677
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-phase-weaver-full
   rotate: false
-  xy: 1553, 603
+  xy: 2805, 1849
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 phase-weaver-icon-logic
   rotate: false
-  xy: 1553, 603
+  xy: 2805, 1849
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-plated-conduit-full
   rotate: false
-  xy: 2063, 977
+  xy: 4048, 2643
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plated-conduit-icon-logic
   rotate: false
-  xy: 2063, 977
+  xy: 4048, 2643
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-pneumatic-drill-full
   rotate: false
-  xy: 1553, 537
+  xy: 2871, 1849
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 pneumatic-drill-icon-logic
   rotate: false
-  xy: 1553, 537
+  xy: 2871, 1849
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-pulse-conduit-full
   rotate: false
-  xy: 2097, 1015
+  xy: 4048, 2609
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 pulse-conduit-icon-logic
   rotate: false
-  xy: 2097, 1015
+  xy: 4048, 2609
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-pulverizer-full
   rotate: false
-  xy: 2097, 981
+  xy: 4048, 2575
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 pulverizer-icon-logic
   rotate: false
-  xy: 2097, 981
+  xy: 4048, 2575
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-repair-point-full
   rotate: false
-  xy: 2131, 1015
+  xy: 4048, 2541
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 repair-point-icon-logic
   rotate: false
-  xy: 2131, 1015
+  xy: 4048, 2541
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-ripple-full
   rotate: false
-  xy: 2043, 2353
+  xy: 2635, 2345
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 ripple-icon-logic
   rotate: false
-  xy: 2043, 2353
+  xy: 2635, 2345
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-salt-wall-full
   rotate: false
-  xy: 2131, 981
+  xy: 4048, 2507
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-salvo-full
   rotate: false
-  xy: 1553, 471
+  xy: 2937, 1849
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 salvo-icon-logic
   rotate: false
-  xy: 1553, 471
+  xy: 2937, 1849
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-sand-boulder-full
   rotate: false
-  xy: 2165, 969
+  xy: 4048, 2473
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-sand-full
   rotate: false
-  xy: 2939, 1861
+  xy: 4048, 2439
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-sand-wall-full
   rotate: false
-  xy: 2973, 1868
+  xy: 4048, 2405
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-scatter-full
   rotate: false
-  xy: 1553, 405
+  xy: 3003, 1849
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 scatter-icon-logic
   rotate: false
-  xy: 1553, 405
+  xy: 3003, 1849
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-scorch-full
   rotate: false
-  xy: 3209, 1862
+  xy: 4048, 2371
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 scorch-icon-logic
   rotate: false
-  xy: 3209, 1862
+  xy: 4048, 2371
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-scrap-wall-full
   rotate: false
-  xy: 3243, 1862
+  xy: 4048, 2337
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 scrap-wall-icon-logic
   rotate: false
-  xy: 3243, 1862
+  xy: 4048, 2337
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-scrap-wall-huge-full
   rotate: false
-  xy: 2141, 2353
+  xy: 2733, 2345
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 scrap-wall-huge-icon-logic
   rotate: false
-  xy: 2141, 2353
+  xy: 2733, 2345
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-scrap-wall-large-full
   rotate: false
-  xy: 1553, 339
+  xy: 2799, 1783
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 scrap-wall-large-icon-logic
   rotate: false
-  xy: 1553, 339
+  xy: 2799, 1783
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-segment-full
   rotate: false
-  xy: 1553, 273
+  xy: 2799, 1717
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 segment-icon-logic
   rotate: false
-  xy: 1553, 273
+  xy: 2799, 1717
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-shale-boulder-full
   rotate: false
-  xy: 1791, 967
+  xy: 1753, 73
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-shale-full
   rotate: false
-  xy: 1753, 933
+  xy: 1753, 39
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-shale-wall-full
   rotate: false
-  xy: 1753, 899
+  xy: 1753, 5
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-shrubs-full
   rotate: false
-  xy: 1787, 933
+  xy: 3701, 1628
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-snow-boulder-full
   rotate: false
-  xy: 1625, 1229
+  xy: 2999, 1601
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 block-snow-full
   rotate: false
-  xy: 1753, 865
+  xy: 3735, 1628
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-snow-wall-full
   rotate: false
-  xy: 1787, 899
+  xy: 3769, 1628
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -4724,84 +4731,84 @@ spectre-icon-logic
   index: -1
 block-spore-cluster-full
   rotate: false
-  xy: 3267, 1933
+  xy: 1785, 1821
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 block-spore-moss-full
   rotate: false
-  xy: 1753, 831
+  xy: 3803, 1628
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-spore-press-full
   rotate: false
-  xy: 1553, 207
+  xy: 2865, 1783
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 spore-press-icon-logic
   rotate: false
-  xy: 1553, 207
+  xy: 2865, 1783
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-spore-wall-full
   rotate: false
-  xy: 1787, 865
+  xy: 3837, 1628
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-steam-generator-full
   rotate: false
-  xy: 1553, 141
+  xy: 2799, 1651
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 steam-generator-icon-logic
   rotate: false
-  xy: 1553, 141
+  xy: 2799, 1651
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-stone-full
   rotate: false
-  xy: 1753, 797
+  xy: 1835, 1433
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-stone-wall-full
   rotate: false
-  xy: 1787, 831
+  xy: 1835, 1399
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-swarmer-full
   rotate: false
-  xy: 1553, 75
+  xy: 2865, 1717
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 swarmer-icon-logic
   rotate: false
-  xy: 1553, 75
+  xy: 2865, 1717
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-tendrils-full
   rotate: false
-  xy: 1787, 797
+  xy: 1835, 1365
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -4829,84 +4836,84 @@ block-thruster-full
   index: -1
 block-titanium-conveyor-full
   rotate: false
-  xy: 1825, 951
+  xy: 1869, 1437
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-0-0
   rotate: false
-  xy: 1825, 951
+  xy: 1869, 1437
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-conveyor-icon-logic
   rotate: false
-  xy: 1825, 951
+  xy: 1869, 1437
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 block-tsunami-full
   rotate: false
-  xy: 2239, 2353
+  xy: 2635, 2247
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 tsunami-icon-logic
   rotate: false
-  xy: 2239, 2353
+  xy: 2635, 2247
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-vault-full
   rotate: false
-  xy: 2435, 2391
+  xy: 2831, 2275
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 vault-icon-logic
   rotate: false
-  xy: 2435, 2391
+  xy: 2831, 2275
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 block-water-extractor-full
   rotate: false
-  xy: 3455, 2135
+  xy: 2931, 1783
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 water-extractor-icon-logic
   rotate: false
-  xy: 3455, 2135
+  xy: 2931, 1783
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 block-wave-full
   rotate: false
-  xy: 3455, 2069
+  xy: 2865, 1651
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 wave-icon-logic
   rotate: false
-  xy: 3455, 2069
+  xy: 2865, 1651
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 bryde-icon-logic
   rotate: false
-  xy: 1855, 815
+  xy: 1835, 1331
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -4941,56 +4948,56 @@ bryde-wreck2
   index: -1
 coal-icon-logic
   rotate: false
-  xy: 1855, 781
+  xy: 1903, 1335
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-coal-medium
   rotate: false
-  xy: 1855, 781
+  xy: 1903, 1335
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 command-center-team-crux
   rotate: false
-  xy: 3587, 2077
+  xy: 2997, 1717
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 command-center-team-sharded
   rotate: false
-  xy: 3653, 2134
+  xy: 2997, 1651
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 container-team-crux
   rotate: false
-  xy: 1389, 10
+  xy: 3063, 1777
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 container-team-sharded
   rotate: false
-  xy: 1455, 10
+  xy: 3063, 1711
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 copper-icon-logic
   rotate: false
-  xy: 1711, 583
+  xy: 1775, 1141
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-copper-medium
   rotate: false
-  xy: 1711, 583
+  xy: 1775, 1141
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -5025,28 +5032,28 @@ core-nucleus-team-sharded
   index: -1
 core-shard-team-crux
   rotate: false
-  xy: 2435, 2293
+  xy: 2831, 2177
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 core-shard-team-sharded
   rotate: false
-  xy: 2533, 2293
+  xy: 2929, 2177
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 corvus-foot
   rotate: false
-  xy: 1529, 1744
+  xy: 3221, 2191
   size: 90, 90
   orig: 90, 90
   offset: 0, 0
   index: -1
 corvus-icon-logic
   rotate: false
-  xy: 1856, 1401
+  xy: 2341, 2489
   size: 31, 20
   orig: 31, 20
   offset: 0, 0
@@ -5060,14 +5067,14 @@ corvus-joint
   index: -1
 corvus-joint-base
   rotate: false
-  xy: 2807, 1899
+  xy: 2367, 1755
   size: 70, 70
   orig: 70, 70
   offset: 0, 0
   index: -1
 toxopid-joint-base
   rotate: false
-  xy: 2807, 1899
+  xy: 2367, 1755
   size: 70, 70
   orig: 70, 70
   offset: 0, 0
@@ -5116,168 +5123,168 @@ corvus-wreck2
   index: -1
 cracks-1-0
   rotate: false
-  xy: 1711, 515
+  xy: 1775, 1073
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 cracks-1-1
   rotate: false
-  xy: 1711, 481
+  xy: 1761, 1039
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 cracks-1-2
   rotate: false
-  xy: 1711, 447
+  xy: 1795, 1039
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 cracks-1-3
   rotate: false
-  xy: 1711, 413
+  xy: 3149, 1569
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 cracks-1-4
   rotate: false
-  xy: 1711, 379
+  xy: 3147, 1535
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 cracks-1-5
   rotate: false
-  xy: 1711, 345
+  xy: 3245, 1579
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 cracks-1-6
   rotate: false
-  xy: 1711, 311
+  xy: 3279, 1579
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 cracks-1-7
   rotate: false
-  xy: 1707, 277
+  xy: 3313, 1579
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 cracks-2-0
   rotate: false
-  xy: 1587, 9
+  xy: 3137, 1909
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cracks-2-1
   rotate: false
-  xy: 1723, 1797
+  xy: 3135, 1843
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cracks-2-2
   rotate: false
-  xy: 1711, 1731
+  xy: 3129, 1777
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cracks-2-3
   rotate: false
-  xy: 1711, 1665
+  xy: 3129, 1711
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cracks-2-4
   rotate: false
-  xy: 1711, 1599
+  xy: 3129, 1645
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cracks-2-5
   rotate: false
-  xy: 1709, 1533
+  xy: 3405, 2151
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cracks-2-6
   rotate: false
-  xy: 2741, 1630
+  xy: 3471, 2151
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cracks-2-7
   rotate: false
-  xy: 3315, 1995
+  xy: 3537, 2151
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 cracks-3-0
   rotate: false
-  xy: 2631, 2345
+  xy: 3027, 2177
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 cracks-3-1
   rotate: false
-  xy: 2729, 2345
+  xy: 1323, 2333
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 cracks-3-2
   rotate: false
-  xy: 2631, 2247
+  xy: 1323, 2235
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 cracks-3-3
   rotate: false
-  xy: 2729, 2247
+  xy: 1421, 2333
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 cracks-3-4
   rotate: false
-  xy: 2827, 2275
+  xy: 1421, 2235
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 cracks-3-5
   rotate: false
-  xy: 2925, 2275
+  xy: 1435, 2137
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 cracks-3-6
   rotate: false
-  xy: 3023, 2275
+  xy: 1435, 2039
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 cracks-3-7
   rotate: false
-  xy: 3121, 2275
+  xy: 1435, 1941
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
@@ -5620,119 +5627,119 @@ cracks-9-7
   index: -1
 crawler-icon-logic
   rotate: false
-  xy: 1703, 243
+  xy: 3347, 1587
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 crawler-leg
   rotate: false
-  xy: 1675, 1129
+  xy: 3049, 1595
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 crawler-outline
   rotate: false
-  xy: 1675, 1079
+  xy: 3099, 1595
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 crawler-wreck0
   rotate: false
-  xy: 1725, 1279
+  xy: 3047, 1545
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 crawler-wreck1
   rotate: false
-  xy: 1725, 1229
+  xy: 3097, 1545
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 crawler-wreck2
   rotate: false
-  xy: 1725, 1179
+  xy: 2183, 1710
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 cryofluid-icon-logic
   rotate: false
-  xy: 1703, 175
+  xy: 3347, 1553
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-cryofluid-medium
   rotate: false
-  xy: 1703, 175
+  xy: 3347, 1553
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 cyclone
   rotate: false
-  xy: 1533, 2207
+  xy: 1519, 2305
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 dagger-icon-logic
   rotate: false
-  xy: 1703, 141
+  xy: 3381, 1541
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 dagger-leg
   rotate: false
-  xy: 1775, 1235
+  xy: 2433, 1678
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 dagger-outline
   rotate: false
-  xy: 1775, 1185
+  xy: 2483, 1678
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 dagger-wreck0
   rotate: false
-  xy: 1825, 1235
+  xy: 2533, 1678
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 dagger-wreck1
   rotate: false
-  xy: 1775, 1135
+  xy: 2383, 1655
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 dagger-wreck2
   rotate: false
-  xy: 1825, 1185
+  xy: 2433, 1628
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 duo
   rotate: false
-  xy: 1923, 727
+  xy: 3821, 1594
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 eclipse-icon-logic
   rotate: false
-  xy: 1957, 727
+  xy: 3719, 1560
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -5767,49 +5774,49 @@ eclipse-wreck2
   index: -1
 eruption-outline
   rotate: false
-  xy: 1825, 1069
+  xy: 2583, 1592
   size: 48, 56
   orig: 48, 56
   offset: 0, 0
   index: -1
 flamethrower-outline
   rotate: false
-  xy: 1925, 1233
+  xy: 1785, 1395
   size: 48, 56
   orig: 48, 56
   offset: 0, 0
   index: -1
 flare-icon-logic
   rotate: false
-  xy: 1753, 729
+  xy: 3753, 1560
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 flare-outline
   rotate: false
-  xy: 1975, 1241
+  xy: 1641, 1057
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 flare-wreck0
   rotate: false
-  xy: 1925, 1183
+  xy: 1611, 1007
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 flare-wreck1
   rotate: false
-  xy: 1875, 1083
+  xy: 1661, 1007
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 flare-wreck2
   rotate: false
-  xy: 1975, 1191
+  xy: 1623, 957
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -5823,14 +5830,14 @@ foreshadow
   index: -1
 fortress-icon-logic
   rotate: false
-  xy: 1619, 75
+  xy: 2595, 3538
   size: 32, 25
   orig: 32, 25
   offset: 0, 0
   index: -1
 fortress-leg
   rotate: false
-  xy: 897, 17
+  xy: 3101, 1975
   size: 80, 60
   orig: 80, 60
   offset: 0, 0
@@ -5872,56 +5879,56 @@ fuse
   index: -1
 gamma-icon-logic
   rotate: false
-  xy: 1787, 729
+  xy: 3787, 1560
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 gamma-outline
   rotate: false
-  xy: 3315, 2061
+  xy: 2113, 1727
   size: 68, 68
   orig: 68, 68
   offset: 0, 0
   index: -1
 gamma-wreck0
   rotate: false
-  xy: 3385, 2131
+  xy: 1541, 995
   size: 68, 68
   orig: 68, 68
   offset: 0, 0
   index: -1
 gamma-wreck1
   rotate: false
-  xy: 3385, 2061
+  xy: 1553, 925
   size: 68, 68
   orig: 68, 68
   offset: 0, 0
   index: -1
 gamma-wreck2
   rotate: false
-  xy: 2879, 1895
+  xy: 1553, 855
   size: 68, 68
   orig: 68, 68
   offset: 0, 0
   index: -1
 graphite-icon-logic
   rotate: false
-  xy: 1745, 695
+  xy: 3821, 1560
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-graphite-medium
   rotate: false
-  xy: 1745, 695
+  xy: 3821, 1560
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 hail
   rotate: false
-  xy: 1745, 661
+  xy: 3855, 1582
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -5935,49 +5942,49 @@ heal-shotgun-weapon-outline
   index: -1
 heal-weapon-mount-outline
   rotate: false
-  xy: 1925, 1083
+  xy: 1623, 807
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 heal-weapon-outline
   rotate: false
-  xy: 1975, 1091
+  xy: 1623, 757
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 horizon-icon-logic
   rotate: false
-  xy: 1779, 695
+  xy: 3889, 1582
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 horizon-outline
   rotate: false
-  xy: 3483, 2209
+  xy: 323, 2341
   size: 72, 72
   orig: 72, 72
   offset: 0, 0
   index: -1
 horizon-wreck0
   rotate: false
-  xy: 323, 2341
+  xy: 807, 5
   size: 72, 72
   orig: 72, 72
   offset: 0, 0
   index: -1
 horizon-wreck1
   rotate: false
-  xy: 3557, 2209
+  xy: 881, 5
   size: 72, 72
   orig: 72, 72
   offset: 0, 0
   index: -1
 horizon-wreck2
   rotate: false
-  xy: 2807, 2119
+  xy: 955, 5
   size: 72, 72
   orig: 72, 72
   offset: 0, 0
@@ -5998,7 +6005,7 @@ interplanetary-accelerator-team-sharded
   index: -1
 item-blast-compound-large
   rotate: false
-  xy: 3709, 3033
+  xy: 758, 3251
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
@@ -6012,21 +6019,21 @@ item-blast-compound-small
   index: -1
 item-blast-compound-tiny
   rotate: false
-  xy: 1157, 2377
+  xy: 1029, 61
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-blast-compound-xlarge
   rotate: false
-  xy: 2025, 1195
+  xy: 1623, 707
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-coal-large
   rotate: false
-  xy: 3612, 2485
+  xy: 3709, 3033
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
@@ -6040,112 +6047,112 @@ item-coal-small
   index: -1
 item-coal-tiny
   rotate: false
-  xy: 2337, 2489
+  xy: 2709, 1858
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-coal-xlarge
   rotate: false
-  xy: 2025, 1145
+  xy: 1623, 657
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-copper-large
   rotate: false
-  xy: 2337, 2507
+  xy: 3612, 2485
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-copper-small
   rotate: false
-  xy: 693, 2331
+  xy: 2611, 1829
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-copper-tiny
   rotate: false
-  xy: 1757, 1061
+  xy: 1157, 2377
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-copper-xlarge
   rotate: false
-  xy: 2025, 1095
+  xy: 1623, 607
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-graphite-large
   rotate: false
-  xy: 2631, 2447
+  xy: 2635, 2447
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-graphite-small
   rotate: false
-  xy: 725, 2857
+  xy: 3731, 1976
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-graphite-tiny
   rotate: false
-  xy: 1175, 2377
+  xy: 2637, 1837
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-graphite-xlarge
   rotate: false
-  xy: 2075, 1149
+  xy: 1623, 557
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-lead-large
   rotate: false
-  xy: 3631, 2241
+  xy: 3735, 2158
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-lead-medium
   rotate: false
-  xy: 1779, 525
+  xy: 1809, 1195
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 lead-icon-logic
   rotate: false
-  xy: 1779, 525
+  xy: 1809, 1195
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-lead-small
   rotate: false
-  xy: 3066, 2929
+  xy: 3704, 1778
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-lead-tiny
   rotate: false
-  xy: 2355, 2489
+  xy: 1029, 43
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-lead-xlarge
   rotate: false
-  xy: 2125, 1149
+  xy: 1673, 957
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -6159,476 +6166,462 @@ item-metaglass-large
   index: -1
 item-metaglass-medium
   rotate: false
-  xy: 1779, 491
+  xy: 1809, 1127
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 metaglass-icon-logic
   rotate: false
-  xy: 1779, 491
+  xy: 1809, 1127
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-metaglass-small
   rotate: false
-  xy: 719, 2331
+  xy: 693, 2331
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-metaglass-tiny
   rotate: false
-  xy: 1757, 1043
+  xy: 1175, 2377
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-metaglass-xlarge
   rotate: false
-  xy: 2075, 1099
+  xy: 1673, 907
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-phase-fabric-large
   rotate: false
-  xy: 1669, 737
+  xy: 3345, 1621
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-phase-fabric-medium
   rotate: false
-  xy: 1779, 457
+  xy: 1843, 1297
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-fabric-icon-logic
   rotate: false
-  xy: 1779, 457
+  xy: 1843, 1297
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-phase-fabric-small
   rotate: false
-  xy: 745, 2331
+  xy: 725, 2857
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-phase-fabric-tiny
   rotate: false
-  xy: 1193, 2377
+  xy: 1029, 25
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-phase-fabric-xlarge
   rotate: false
-  xy: 2125, 1099
+  xy: 1673, 857
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-plastanium-large
   rotate: false
-  xy: 758, 3209
+  xy: 3149, 1603
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
-item-plastanium-medium
-  rotate: false
-  xy: 1779, 423
-  size: 32, 32
-  orig: 32, 32
-  offset: 0, 0
-  index: -1
-plastanium-icon-logic
-  rotate: false
-  xy: 1779, 423
-  size: 32, 32
-  orig: 32, 32
-  offset: 0, 0
-  index: -1
 item-plastanium-small
   rotate: false
-  xy: 771, 2331
+  xy: 3066, 2929
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-plastanium-tiny
   rotate: false
-  xy: 1211, 2377
+  xy: 1193, 2377
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-plastanium-xlarge
   rotate: false
-  xy: 1775, 1035
+  xy: 1673, 807
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-pyratite-large
   rotate: false
-  xy: 3709, 2991
+  xy: 3659, 1646
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-pyratite-medium
   rotate: false
-  xy: 1779, 389
+  xy: 1843, 1195
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 pyratite-icon-logic
   rotate: false
-  xy: 1779, 389
+  xy: 1843, 1195
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-pyratite-small
   rotate: false
-  xy: 797, 2331
+  xy: 719, 2331
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-pyratite-tiny
   rotate: false
-  xy: 1229, 2377
+  xy: 1211, 2377
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-pyratite-xlarge
   rotate: false
-  xy: 1825, 1019
+  xy: 1673, 757
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-sand-large
   rotate: false
-  xy: 3612, 2443
+  xy: 1785, 1779
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-sand-medium
   rotate: false
-  xy: 1779, 355
+  xy: 1843, 1127
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 sand-icon-logic
   rotate: false
-  xy: 1779, 355
+  xy: 1843, 1127
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-sand-small
   rotate: false
-  xy: 823, 2331
+  xy: 745, 2331
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-sand-tiny
   rotate: false
-  xy: 693, 2603
+  xy: 1229, 2377
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-sand-xlarge
   rotate: false
-  xy: 1875, 1033
+  xy: 1673, 707
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-scrap-large
   rotate: false
-  xy: 1669, 695
+  xy: 758, 3209
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-scrap-medium
   rotate: false
-  xy: 1821, 713
+  xy: 1877, 1301
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 scrap-icon-logic
   rotate: false
-  xy: 1821, 713
+  xy: 1877, 1301
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-scrap-small
   rotate: false
-  xy: 849, 2331
+  xy: 771, 2331
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-scrap-tiny
   rotate: false
-  xy: 3753, 3341
+  xy: 3183, 1975
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-scrap-xlarge
   rotate: false
-  xy: 1925, 1033
+  xy: 1673, 657
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-silicon-large
   rotate: false
-  xy: 758, 3167
+  xy: 3709, 2991
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-silicon-medium
   rotate: false
-  xy: 1813, 679
+  xy: 1911, 1301
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 silicon-icon-logic
   rotate: false
-  xy: 1813, 679
+  xy: 1911, 1301
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-silicon-small
   rotate: false
-  xy: 1233, 2607
+  xy: 797, 2331
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-silicon-tiny
   rotate: false
-  xy: 1744, 3067
+  xy: 1029, 7
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-silicon-xlarge
   rotate: false
-  xy: 1975, 1041
+  xy: 1673, 607
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-spore-pod-large
   rotate: false
-  xy: 3709, 2949
+  xy: 3612, 2443
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-spore-pod-medium
   rotate: false
-  xy: 1813, 611
+  xy: 1877, 1199
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 spore-pod-icon-logic
   rotate: false
-  xy: 1813, 611
+  xy: 1877, 1199
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-spore-pod-small
   rotate: false
-  xy: 2823, 1703
+  xy: 823, 2331
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-spore-pod-tiny
   rotate: false
-  xy: 3945, 3863
+  xy: 693, 2603
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-spore-pod-xlarge
   rotate: false
-  xy: 2025, 1045
+  xy: 1673, 557
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-surge-alloy-large
   rotate: false
-  xy: 3612, 2401
+  xy: 758, 3167
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-surge-alloy-medium
   rotate: false
-  xy: 1813, 577
+  xy: 1877, 1165
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 surge-alloy-icon-logic
   rotate: false
-  xy: 1813, 577
+  xy: 1877, 1165
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-surge-alloy-small
   rotate: false
-  xy: 3631, 2215
+  xy: 849, 2331
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-surge-alloy-tiny
   rotate: false
-  xy: 3040, 2769
+  xy: 3753, 3341
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-surge-alloy-xlarge
   rotate: false
-  xy: 2075, 1049
+  xy: 1691, 1057
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-thorium-large
   rotate: false
-  xy: 1669, 653
+  xy: 3709, 2949
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-thorium-medium
   rotate: false
-  xy: 1813, 543
+  xy: 1877, 1131
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 thorium-icon-logic
   rotate: false
-  xy: 1813, 543
+  xy: 1877, 1131
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-thorium-small
   rotate: false
-  xy: 2529, 3781
+  xy: 1233, 2607
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-thorium-tiny
   rotate: false
-  xy: 3750, 2794
+  xy: 1744, 3067
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-thorium-xlarge
   rotate: false
-  xy: 2125, 1049
+  xy: 1711, 1007
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 item-titanium-large
   rotate: false
-  xy: 758, 3125
+  xy: 3612, 2401
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 item-titanium-medium
   rotate: false
-  xy: 1813, 509
+  xy: 1877, 1097
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 titanium-icon-logic
   rotate: false
-  xy: 1813, 509
+  xy: 1877, 1097
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-titanium-small
   rotate: false
-  xy: 4064, 2841
+  xy: 4044, 1982
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 item-titanium-tiny
   rotate: false
-  xy: 1361, 2629
+  xy: 3945, 3863
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 item-titanium-xlarge
   rotate: false
-  xy: 2320, 1264
+  xy: 1723, 957
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 lancer
   rotate: false
-  xy: 2643, 1609
+  xy: 3186, 2125
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 large-artillery-outline
   rotate: false
-  xy: 2175, 1053
+  xy: 1723, 821
   size: 48, 66
   orig: 48, 66
   offset: 0, 0
   index: -1
 large-bullet-mount-outline
   rotate: false
-  xy: 3027, 2094
+  xy: 2511, 1728
   size: 70, 97
   orig: 70, 97
   offset: 0, 0
@@ -6642,224 +6635,224 @@ large-laser-mount-outline
   index: -1
 large-purple-mount-outline
   rotate: false
-  xy: 3171, 2094
+  xy: 2655, 1756
   size: 70, 97
   orig: 70, 97
   offset: 0, 0
   index: -1
 large-weapon-outline
   rotate: false
-  xy: 2225, 1089
+  xy: 1723, 721
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 liquid-cryofluid-large
   rotate: false
-  xy: 1669, 611
+  xy: 758, 3125
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 liquid-cryofluid-small
   rotate: false
-  xy: 2629, 3539
+  xy: 1575, 1071
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 liquid-cryofluid-tiny
   rotate: false
-  xy: 2317, 2335
+  xy: 3040, 2769
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 liquid-cryofluid-xlarge
   rotate: false
-  xy: 2225, 1039
+  xy: 1723, 671
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 liquid-oil-large
   rotate: false
-  xy: 1669, 569
+  xy: 1783, 1737
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 liquid-oil-medium
   rotate: false
-  xy: 1847, 441
+  xy: 1945, 1165
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 oil-icon-logic
   rotate: false
-  xy: 1847, 441
+  xy: 1945, 1165
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-oil-small
   rotate: false
-  xy: 3623, 2051
+  xy: 2529, 3781
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 liquid-oil-tiny
   rotate: false
-  xy: 2611, 2275
+  xy: 3750, 2794
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 liquid-oil-xlarge
   rotate: false
-  xy: 2275, 1145
+  xy: 1723, 621
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 liquid-slag-large
   rotate: false
-  xy: 1669, 527
+  xy: 1783, 1695
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 liquid-slag-medium
   rotate: false
-  xy: 1847, 305
+  xy: 1897, 1063
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 slag-icon-logic
   rotate: false
-  xy: 1847, 305
+  xy: 1897, 1063
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-slag-small
   rotate: false
-  xy: 2939, 1835
+  xy: 4064, 2841
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 liquid-slag-tiny
   rotate: false
-  xy: 1435, 1846
+  xy: 1361, 2629
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 liquid-slag-xlarge
   rotate: false
-  xy: 2275, 1095
+  xy: 1723, 571
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 liquid-water-large
   rotate: false
-  xy: 1669, 485
+  xy: 1783, 1653
   size: 40, 40
   orig: 40, 40
   offset: 0, 0
   index: -1
 liquid-water-medium
   rotate: false
-  xy: 1923, 693
+  xy: 1965, 1063
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 water-icon-logic
   rotate: false
-  xy: 1923, 693
+  xy: 1965, 1063
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-water-small
   rotate: false
-  xy: 2791, 3313
+  xy: 2629, 3539
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: -1
 liquid-water-tiny
   rotate: false
-  xy: 271, 55
+  xy: 2611, 2275
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 liquid-water-xlarge
   rotate: false
-  xy: 2275, 1045
+  xy: 1723, 521
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 mace-icon-logic
   rotate: false
-  xy: 1957, 693
+  xy: 1965, 1029
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 mace-leg
   rotate: false
-  xy: 1843, 1621
+  xy: 3450, 2085
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mace-outline
   rotate: false
-  xy: 1909, 1687
+  xy: 3516, 2085
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mace-wreck0
   rotate: false
-  xy: 1909, 1621
+  xy: 3582, 2085
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mace-wreck1
   rotate: false
-  xy: 1843, 1555
+  xy: 3648, 2068
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mace-wreck2
   rotate: false
-  xy: 1909, 1555
+  xy: 3714, 2068
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mass-driver
   rotate: false
-  xy: 2415, 2195
+  xy: 2317, 2195
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 mega-icon-logic
   rotate: false
-  xy: 1915, 659
+  xy: 3415, 1575
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -6901,140 +6894,140 @@ meltdown
   index: -1
 minke-icon-logic
   rotate: false
-  xy: 2709, 1641
+  xy: 1705, 2565
   size: 27, 32
   orig: 27, 32
   offset: 0, 0
   index: -1
 minke-outline
   rotate: false
-  xy: 1529, 1483
+  xy: 1529, 1707
   size: 88, 101
   orig: 88, 101
   offset: 0, 0
   index: -1
 minke-wreck0
   rotate: false
-  xy: 1619, 1498
+  xy: 1529, 1604
   size: 88, 101
   orig: 88, 101
   offset: 0, 0
   index: -1
 minke-wreck1
   rotate: false
-  xy: 1544, 1380
+  xy: 1529, 1501
   size: 88, 101
   orig: 88, 101
   offset: 0, 0
   index: -1
 minke-wreck2
   rotate: false
-  xy: 1634, 1395
+  xy: 2023, 1760
   size: 88, 101
   orig: 88, 101
   offset: 0, 0
   index: -1
 missiles-mount-outline
   rotate: false
-  xy: 2325, 1095
+  xy: 1619, 457
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 mono-icon-logic
   rotate: false
-  xy: 1881, 523
+  xy: 3517, 1529
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 mono-outline
   rotate: false
-  xy: 2225, 989
+  xy: 1619, 357
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 mono-wreck0
   rotate: false
-  xy: 2275, 995
+  xy: 1669, 407
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 mono-wreck1
   rotate: false
-  xy: 2325, 995
+  xy: 1619, 307
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 mono-wreck2
   rotate: false
-  xy: 2823, 1729
+  xy: 1669, 357
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 mount-purple-weapon-outline
   rotate: false
-  xy: 1657, 1029
+  xy: 1669, 307
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 mount-weapon-outline
   rotate: false
-  xy: 1619, 968
+  xy: 1669, 257
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 nova-icon-logic
   rotate: false
-  xy: 1915, 557
+  xy: 3551, 1554
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 nova-leg
   rotate: false
-  xy: 1619, 868
+  xy: 1669, 207
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 nova-outline
   rotate: false
-  xy: 3951, 2050
+  xy: 3588, 1688
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 nova-wreck0
   rotate: false
-  xy: 4009, 2050
+  xy: 3646, 1688
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 nova-wreck1
   rotate: false
-  xy: 3719, 2028
+  xy: 3704, 1720
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 nova-wreck2
   rotate: false
-  xy: 3777, 1992
+  xy: 3762, 1720
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 oct-icon-logic
   rotate: false
-  xy: 1949, 591
+  xy: 3551, 1520
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -7076,7 +7069,7 @@ omura-cannon-outline
   index: -1
 omura-icon-logic
   rotate: false
-  xy: 983, 2801
+  xy: 2317, 2319
   size: 22, 32
   orig: 22, 32
   offset: 0, 0
@@ -7111,77 +7104,77 @@ omura-wreck2
   index: -1
 parallax
   rotate: false
-  xy: 1975, 1699
+  xy: 3648, 2002
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 phase-conduit-icon-logic
   rotate: false
-  xy: 1949, 523
+  xy: 2063, 1726
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 phase-conveyor-icon-logic
   rotate: false
-  xy: 1915, 421
+  xy: 2063, 1692
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 plastanium-conveyor-icon-logic
   rotate: false
-  xy: 1949, 387
+  xy: 2097, 1693
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 poly-icon-logic
   rotate: false
-  xy: 1721, 73
+  xy: 2199, 1676
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 poly-outline
   rotate: false
-  xy: 3951, 1992
+  xy: 3936, 1720
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 poly-wreck0
   rotate: false
-  xy: 4009, 1992
+  xy: 3994, 1720
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 poly-wreck1
   rotate: false
-  xy: 3151, 1886
+  xy: 3704, 1662
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 poly-wreck2
   rotate: false
-  xy: 3209, 1896
+  xy: 3762, 1662
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 pulsar-icon-logic
   rotate: false
-  xy: 2595, 3536
+  xy: 2757, 3310
   size: 32, 27
   orig: 32, 27
   offset: 0, 0
   index: -1
 pulsar-leg
   rotate: false
-  xy: 2173, 1567
+  xy: 3401, 1953
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -7195,21 +7188,21 @@ pulsar-outline
   index: -1
 pulsar-wreck0
   rotate: false
-  xy: 2953, 1962
+  xy: 1553, 795
   size: 68, 58
   orig: 68, 58
   offset: 0, 0
   index: -1
 pulsar-wreck1
   rotate: false
-  xy: 2949, 1902
+  xy: 1553, 735
   size: 68, 58
   orig: 68, 58
   offset: 0, 0
   index: -1
 pulsar-wreck2
   rotate: false
-  xy: 3023, 1954
+  xy: 1553, 675
   size: 68, 58
   orig: 68, 58
   offset: 0, 0
@@ -7251,42 +7244,42 @@ quad-wreck2
   index: -1
 quasar-icon-logic
   rotate: false
-  xy: 3345, 1861
+  xy: 2301, 1635
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 quasar-leg
   rotate: false
-  xy: 2827, 2193
+  xy: 1619, 1617
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
 quasar-outline
   rotate: false
-  xy: 2909, 2193
+  xy: 1701, 1699
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
 quasar-wreck0
   rotate: false
-  xy: 2991, 2193
+  xy: 1619, 1535
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
 quasar-wreck1
   rotate: false
-  xy: 3073, 2193
+  xy: 1701, 1617
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
 quasar-wreck2
   rotate: false
-  xy: 3155, 2193
+  xy: 1701, 1535
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
@@ -7314,7 +7307,7 @@ reign-outline
   index: -1
 reign-weapon-outline
   rotate: false
-  xy: 2492, 1663
+  xy: 3101, 2037
   size: 83, 138
   orig: 83, 138
   offset: 0, 0
@@ -7342,70 +7335,70 @@ reign-wreck2
   index: -1
 repair-point
   rotate: false
-  xy: 3379, 1861
+  xy: 2335, 1669
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 ripple
   rotate: false
-  xy: 1729, 1863
+  xy: 2709, 2051
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 risso-icon-logic
   rotate: false
-  xy: 4067, 2040
+  xy: 2403, 1621
   size: 28, 32
   orig: 28, 32
   offset: 0, 0
   index: -1
 risso-outline
   rotate: false
-  xy: 3027, 2014
+  xy: 2727, 1716
   size: 70, 78
   orig: 70, 78
   offset: 0, 0
   index: -1
 risso-wreck0
   rotate: false
-  xy: 3099, 2014
+  xy: 2655, 1676
   size: 70, 78
   orig: 70, 78
   offset: 0, 0
   index: -1
 risso-wreck1
   rotate: false
-  xy: 3171, 2014
+  xy: 2583, 1650
   size: 70, 78
   orig: 70, 78
   offset: 0, 0
   index: -1
 risso-wreck2
   rotate: false
-  xy: 3243, 2121
+  xy: 2727, 1636
   size: 70, 78
   orig: 70, 78
   offset: 0, 0
   index: -1
 salvo
   rotate: false
-  xy: 2054, 1435
+  xy: 3203, 1861
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 scatter
   rotate: false
-  xy: 2120, 1435
+  xy: 3335, 1861
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 scepter-icon-logic
   rotate: false
-  xy: 3104, 2503
+  xy: 3167, 2191
   size: 32, 26
   orig: 32, 26
   offset: 0, 0
@@ -7433,7 +7426,7 @@ scepter-outline
   index: -1
 scepter-weapon-outline
   rotate: false
-  xy: 2146, 1199
+  xy: 3878, 1616
   size: 56, 102
   orig: 56, 102
   offset: 0, 0
@@ -7461,7 +7454,7 @@ scepter-wreck2
   index: -1
 scorch
   rotate: false
-  xy: 895, 2255
+  xy: 2369, 1587
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -7475,21 +7468,21 @@ scrap-wall-gigantic-icon-logic
   index: -1
 segment
   rotate: false
-  xy: 2030, 1369
+  xy: 3665, 1936
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 sei-icon-logic
   rotate: false
-  xy: 2233, 921
+  xy: 2369, 1553
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 sei-launcher-outline
   rotate: false
-  xy: 3319, 2201
+  xy: 1629, 1371
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
@@ -7524,21 +7517,21 @@ sei-wreck2
   index: -1
 shock-mine-icon-logic
   rotate: false
-  xy: 3007, 1820
+  xy: 2097, 1557
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 small-basic-weapon-outline
   rotate: false
-  xy: 1619, 718
+  xy: 1669, 107
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 small-mount-weapon-outline
   rotate: false
-  xy: 1619, 618
+  xy: 1653, 7
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -7552,7 +7545,7 @@ spectre
   index: -1
 spiroct-foot
   rotate: false
-  xy: 1975, 1771
+  xy: 1719, 107
   size: 46, 46
   orig: 46, 46
   offset: 0, 0
@@ -7566,7 +7559,7 @@ spiroct-icon-logic
   index: -1
 spiroct-joint
   rotate: false
-  xy: 3109, 1844
+  xy: 1963, 1513
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -7594,119 +7587,119 @@ spiroct-outline
   index: -1
 spiroct-weapon-outline
   rotate: false
-  xy: 1619, 352
+  xy: 1719, 355
   size: 48, 56
   orig: 48, 56
   offset: 0, 0
   index: -1
 spiroct-wreck0
   rotate: false
-  xy: 1435, 1864
+  xy: 3125, 2296
   size: 94, 75
   orig: 94, 75
   offset: 0, 0
   index: -1
 spiroct-wreck1
   rotate: false
-  xy: 2709, 1778
+  xy: 1435, 1864
   size: 94, 75
   orig: 94, 75
   offset: 0, 0
   index: -1
 spiroct-wreck2
   rotate: false
-  xy: 1531, 1836
+  xy: 2709, 1876
   size: 94, 75
   orig: 94, 75
   offset: 0, 0
   index: -1
 splash-0
   rotate: false
-  xy: 3075, 1810
+  xy: 1963, 1479
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 splash-1
   rotate: false
-  xy: 3109, 1810
+  xy: 1997, 1522
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 splash-10
   rotate: false
-  xy: 3057, 1742
+  xy: 2133, 1489
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 splash-11
   rotate: false
-  xy: 3091, 1742
+  xy: 1971, 1445
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 splash-2
   rotate: false
-  xy: 2955, 1800
+  xy: 2031, 1522
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 splash-3
   rotate: false
-  xy: 2955, 1766
+  xy: 1997, 1488
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 splash-4
   rotate: false
-  xy: 2989, 1786
+  xy: 2031, 1488
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 splash-5
   rotate: false
-  xy: 3023, 1786
+  xy: 2065, 1522
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 splash-6
   rotate: false
-  xy: 2989, 1752
+  xy: 2065, 1488
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 splash-7
   rotate: false
-  xy: 3023, 1752
+  xy: 2099, 1523
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 splash-8
   rotate: false
-  xy: 3057, 1776
+  xy: 2099, 1489
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 splash-9
   rotate: false
-  xy: 3091, 1776
+  xy: 2133, 1523
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 swarmer
   rotate: false
-  xy: 2450, 1465
+  xy: 3929, 1778
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -7720,14 +7713,14 @@ toxopid-cannon-outline
   index: -1
 toxopid-foot
   rotate: false
-  xy: 1529, 1652
+  xy: 3313, 2191
   size: 90, 90
   orig: 90, 90
   offset: 0, 0
   index: -1
 toxopid-icon-logic
   rotate: false
-  xy: 2873, 1745
+  xy: 1544, 1327
   size: 26, 32
   orig: 26, 32
   offset: 0, 0
@@ -7776,21 +7769,21 @@ toxopid-wreck2
   index: -1
 tsunami
   rotate: false
-  xy: 2023, 1765
+  xy: 2023, 1863
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 underflow-gate-icon-logic
   rotate: false
-  xy: 1983, 353
+  xy: 1979, 1241
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 unit-alpha-full
   rotate: false
-  xy: 1619, 302
+  xy: 1719, 305
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -7811,14 +7804,14 @@ unit-arkyid-full
   index: -1
 unit-atrax-full
   rotate: false
-  xy: 807, 13
+  xy: 2113, 1797
   size: 88, 64
   orig: 88, 64
   offset: 0, 0
   index: -1
 unit-beta-full
   rotate: false
-  xy: 2204, 1247
+  xy: 3936, 1664
   size: 56, 54
   orig: 56, 54
   offset: 0, 0
@@ -7839,14 +7832,14 @@ unit-corvus-full
   index: -1
 unit-crawler-full
   rotate: false
-  xy: 1619, 252
+  xy: 1719, 255
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 unit-dagger-full
   rotate: false
-  xy: 1619, 202
+  xy: 1719, 205
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -7860,7 +7853,7 @@ unit-eclipse-full
   index: -1
 unit-flare-full
   rotate: false
-  xy: 1619, 152
+  xy: 1719, 155
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -7874,49 +7867,49 @@ unit-fortress-full
   index: -1
 unit-gamma-full
   rotate: false
-  xy: 3093, 1944
+  xy: 1553, 605
   size: 68, 68
   orig: 68, 68
   offset: 0, 0
   index: -1
 unit-horizon-full
   rotate: false
-  xy: 2881, 2045
+  xy: 2293, 1753
   size: 72, 72
   orig: 72, 72
   offset: 0, 0
   index: -1
 unit-mace-full
   rotate: false
-  xy: 2582, 1477
+  xy: 3333, 1795
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 unit-mega-full
   rotate: false
-  xy: 1259, 2545
+  xy: 1259, 2443
   size: 100, 100
   orig: 100, 100
   offset: 0, 0
   index: -1
 unit-minke-full
   rotate: false
-  xy: 2317, 1700
+  xy: 2203, 1760
   size: 88, 101
   orig: 88, 101
   offset: 0, 0
   index: -1
 unit-mono-full
   rotate: false
-  xy: 1619, 102
+  xy: 3451, 1601
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 unit-nova-full
   rotate: false
-  xy: 2204, 1189
+  xy: 3994, 1662
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
@@ -7937,14 +7930,14 @@ unit-omura-full
   index: -1
 unit-poly-full
   rotate: false
-  xy: 2262, 1245
+  xy: 3936, 1606
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 unit-pulsar-full
   rotate: false
-  xy: 3163, 1954
+  xy: 1553, 545
   size: 68, 58
   orig: 68, 58
   offset: 0, 0
@@ -7958,7 +7951,7 @@ unit-quad-full
   index: -1
 unit-quasar-full
   rotate: false
-  xy: 3401, 2201
+  xy: 1711, 1453
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
@@ -7972,7 +7965,7 @@ unit-reign-full
   index: -1
 unit-risso-full
   rotate: false
-  xy: 3243, 2041
+  xy: 2655, 1596
   size: 70, 78
   orig: 70, 78
   offset: 0, 0
@@ -7993,7 +7986,7 @@ unit-sei-full
   index: -1
 unit-spiroct-full
   rotate: false
-  xy: 1627, 1836
+  xy: 3125, 2219
   size: 94, 75
   orig: 94, 75
   offset: 0, 0
@@ -8021,21 +8014,21 @@ unit-zenith-full
   index: -1
 vault-team-crux
   rotate: false
-  xy: 2513, 1803
+  xy: 2513, 1901
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 vault-team-sharded
   rotate: false
-  xy: 2611, 1757
+  xy: 2611, 1855
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
 vela-icon-logic
   rotate: false
-  xy: 2757, 3311
+  xy: 1385, 3439
   size: 32, 26
   orig: 32, 26
   offset: 0, 0
@@ -8070,21 +8063,21 @@ vela-wreck2
   index: -1
 wave
   rotate: false
-  xy: 2516, 1399
+  xy: 3327, 1729
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 zenith-icon-logic
   rotate: false
-  xy: 1983, 251
+  xy: 1979, 1139
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 zenith-missiles-outline
   rotate: false
-  xy: 1669, 779
+  xy: 3601, 1580
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -8119,147 +8112,161 @@ zenith-wreck2
   index: -1
 item-blast-compound
   rotate: false
-  xy: 1745, 559
+  xy: 3923, 1538
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-coal
   rotate: false
-  xy: 1779, 593
+  xy: 3957, 1538
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-copper
   rotate: false
-  xy: 1745, 525
+  xy: 1809, 1297
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-graphite
   rotate: false
-  xy: 1779, 559
+  xy: 1809, 1263
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-lead
   rotate: false
-  xy: 1745, 491
+  xy: 1809, 1229
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-metaglass
   rotate: false
-  xy: 1745, 457
+  xy: 1809, 1161
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-phase-fabric
   rotate: false
-  xy: 1745, 423
+  xy: 1809, 1093
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-plastanium
   rotate: false
-  xy: 1745, 389
+  xy: 1843, 1263
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+item-plastanium-medium
+  rotate: false
+  xy: 1843, 1263
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+plastanium-icon-logic
+  rotate: false
+  xy: 1843, 1263
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-pyratite
   rotate: false
-  xy: 1745, 355
+  xy: 1843, 1229
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-sand
   rotate: false
-  xy: 1745, 321
+  xy: 1843, 1161
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-scrap
   rotate: false
-  xy: 1779, 321
+  xy: 1843, 1093
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-silicon
   rotate: false
-  xy: 1855, 713
+  xy: 1877, 1267
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-spore-pod
   rotate: false
-  xy: 1847, 679
+  xy: 1911, 1267
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-surge-alloy
   rotate: false
-  xy: 1847, 645
+  xy: 1911, 1233
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-thorium
   rotate: false
-  xy: 1847, 611
+  xy: 1911, 1199
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 item-titanium
   rotate: false
-  xy: 1847, 577
+  xy: 1911, 1165
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-cryofluid
   rotate: false
-  xy: 1813, 441
+  xy: 1945, 1267
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-oil
   rotate: false
-  xy: 1813, 407
+  xy: 1945, 1199
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-slag
   rotate: false
-  xy: 1813, 305
+  xy: 1863, 1025
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 liquid-water
   rotate: false
-  xy: 1889, 693
+  xy: 1931, 1029
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 blank
   rotate: false
-  xy: 3219, 2370
+  xy: 3675, 2280
   size: 1, 1
   orig: 1, 1
   offset: 0, 0
@@ -8280,7 +8287,7 @@ circle-small
   index: -1
 shape-3
   rotate: false
-  xy: 2294, 1370
+  xy: 3465, 1756
   size: 63, 63
   orig: 63, 63
   offset: 0, 0
@@ -8294,7 +8301,7 @@ alpha
   index: -1
 alpha-cell
   rotate: false
-  xy: 1525, 3115
+  xy: 1655, 2549
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -8336,14 +8343,14 @@ atrax
   index: -1
 atrax-base
   rotate: false
-  xy: 979, 13
+  xy: 1553, 479
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 atrax-cell
   rotate: false
-  xy: 1621, 1770
+  xy: 3405, 2217
   size: 88, 64
   orig: 88, 64
   offset: 0, 0
@@ -8357,7 +8364,7 @@ beta
   index: -1
 beta-cell
   rotate: false
-  xy: 1575, 1118
+  xy: 2799, 1601
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -8406,35 +8413,35 @@ corvus-weapon-heat
   index: -1
 crawler
   rotate: false
-  xy: 1625, 1129
+  xy: 2897, 1551
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 crawler-base
   rotate: false
-  xy: 1675, 1179
+  xy: 2947, 1551
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 crawler-cell
   rotate: false
-  xy: 1625, 1079
+  xy: 2997, 1551
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 dagger
   rotate: false
-  xy: 1775, 1285
+  xy: 2333, 1703
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 dagger-base
   rotate: false
-  xy: 1825, 1285
+  xy: 2383, 1705
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -8455,7 +8462,7 @@ eclipse-cell
   index: -1
 flare
   rotate: false
-  xy: 1875, 1133
+  xy: 1785, 1345
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -8469,7 +8476,7 @@ fortress
   index: -1
 fortress-base
   rotate: false
-  xy: 1832, 1335
+  xy: 1641, 1305
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -8483,14 +8490,14 @@ fortress-cell
   index: -1
 gamma
   rotate: false
-  xy: 3315, 2131
+  xy: 2727, 1566
   size: 68, 68
   orig: 68, 68
   offset: 0, 0
   index: -1
 gamma-cell
   rotate: false
-  xy: 3777, 2050
+  xy: 3588, 1746
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
@@ -8504,28 +8511,28 @@ horizon
   index: -1
 horizon-cell
   rotate: false
-  xy: 1655, 2525
+  xy: 1711, 1379
   size: 72, 72
   orig: 72, 72
   offset: 0, 0
   index: -1
 mace
   rotate: false
-  xy: 1843, 1753
+  xy: 3252, 2059
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mace-base
   rotate: false
-  xy: 1909, 1753
+  xy: 3318, 2059
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 mace-cell
   rotate: false
-  xy: 1843, 1687
+  xy: 3384, 2085
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
@@ -8546,7 +8553,7 @@ mega-cell
   index: -1
 minke
   rotate: false
-  xy: 1621, 1601
+  xy: 1531, 1810
   size: 88, 101
   orig: 88, 101
   offset: 0, 0
@@ -8560,35 +8567,35 @@ minke-cell
   index: -1
 mono
   rotate: false
-  xy: 2325, 1045
+  xy: 1619, 407
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 mono-cell
   rotate: false
-  xy: 2175, 1003
+  xy: 1669, 457
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 nova
   rotate: false
-  xy: 3835, 2050
+  xy: 3646, 1746
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 nova-base
   rotate: false
-  xy: 1619, 918
+  xy: 1619, 157
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 nova-cell
   rotate: false
-  xy: 3893, 2050
+  xy: 3530, 1705
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
@@ -8623,21 +8630,21 @@ omura-cell
   index: -1
 poly
   rotate: false
-  xy: 3835, 1992
+  xy: 3820, 1720
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 poly-cell
   rotate: false
-  xy: 3893, 1992
+  xy: 3878, 1720
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
 power-cell
   rotate: false
-  xy: 2030, 1245
+  xy: 3820, 1662
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
@@ -8651,7 +8658,7 @@ pulsar
   index: -1
 pulsar-base
   rotate: false
-  xy: 1619, 818
+  xy: 1619, 107
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -8679,21 +8686,21 @@ quad-cell
   index: -1
 quasar
   rotate: false
-  xy: 2577, 1675
+  xy: 1621, 1781
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
 quasar-base
   rotate: false
-  xy: 2659, 1675
+  xy: 1703, 1781
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
 quasar-cell
   rotate: false
-  xy: 2741, 1696
+  xy: 1619, 1699
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
@@ -8721,14 +8728,14 @@ reign-cell
   index: -1
 risso
   rotate: false
-  xy: 2881, 1965
+  xy: 2727, 1796
   size: 70, 78
   orig: 70, 78
   offset: 0, 0
   index: -1
 risso-cell
   rotate: false
-  xy: 1925, 1819
+  xy: 2905, 2079
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
@@ -8810,20 +8817,6 @@ toxopid-cell
   orig: 152, 124
   offset: 0, 0
   index: -1
-vanguard
-  rotate: false
-  xy: 1669, 979
-  size: 48, 48
-  orig: 48, 48
-  offset: 0, 0
-  index: -1
-vanguard-cell
-  rotate: false
-  xy: 1669, 929
-  size: 48, 48
-  orig: 48, 48
-  offset: 0, 0
-  index: -1
 vela
   rotate: false
   xy: 3537, 2933
@@ -8847,14 +8840,14 @@ vela-weapon-heat
   index: -1
 artillery
   rotate: false
-  xy: 2905, 1771
+  xy: 3509, 1647
   size: 48, 56
   orig: 48, 56
   offset: 0, 0
   index: -1
 artillery-mount
   rotate: false
-  xy: 1127, 2599
+  xy: 1055, 2599
   size: 70, 70
   orig: 70, 70
   offset: 0, 0
@@ -8868,21 +8861,21 @@ beam-weapon
   index: -1
 eruption
   rotate: false
-  xy: 1825, 1127
+  xy: 2533, 1620
   size: 48, 56
   orig: 48, 56
   offset: 0, 0
   index: -1
 flakgun
   rotate: false
-  xy: 1875, 1241
+  xy: 3559, 1638
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 flamethrower
   rotate: false
-  xy: 1875, 1183
+  xy: 3609, 1630
   size: 48, 56
   orig: 48, 56
   offset: 0, 0
@@ -8896,28 +8889,28 @@ heal-shotgun-weapon
   index: -1
 heal-weapon
   rotate: false
-  xy: 1925, 1133
+  xy: 1623, 907
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 heal-weapon-mount
   rotate: false
-  xy: 1975, 1141
+  xy: 1623, 857
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 large-artillery
   rotate: false
-  xy: 2175, 1121
+  xy: 1723, 889
   size: 48, 66
   orig: 48, 66
   offset: 0, 0
   index: -1
 large-bullet-mount
   rotate: false
-  xy: 2955, 2022
+  xy: 2439, 1728
   size: 70, 97
   orig: 70, 97
   offset: 0, 0
@@ -8931,42 +8924,42 @@ large-laser-mount
   index: -1
 large-purple-mount
   rotate: false
-  xy: 3099, 2094
+  xy: 2583, 1730
   size: 70, 97
   orig: 70, 97
   offset: 0, 0
   index: -1
 large-weapon
   rotate: false
-  xy: 2225, 1139
+  xy: 1723, 771
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 missiles
   rotate: false
-  xy: 2312, 1195
+  xy: 1623, 507
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 missiles-mount
   rotate: false
-  xy: 2325, 1145
+  xy: 1673, 507
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 mount-purple-weapon
   rotate: false
-  xy: 1607, 1018
+  xy: 1619, 257
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 mount-weapon
   rotate: false
-  xy: 1707, 1029
+  xy: 1619, 207
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -8987,63 +8980,63 @@ omura-cannon-heat
   index: -1
 reign-weapon
   rotate: false
-  xy: 2407, 1663
+  xy: 1544, 1361
   size: 83, 138
   orig: 83, 138
   offset: 0, 0
   index: -1
 scepter-weapon
   rotate: false
-  xy: 2088, 1199
+  xy: 3451, 1651
   size: 56, 102
   orig: 56, 102
   offset: 0, 0
   index: -1
 sei-launcher
   rotate: false
-  xy: 3237, 2201
+  xy: 1629, 1453
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
 small-basic-weapon
   rotate: false
-  xy: 1619, 768
+  xy: 1669, 157
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 small-mount-weapon
   rotate: false
-  xy: 1619, 668
+  xy: 1653, 57
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 small-weapon
   rotate: false
-  xy: 1619, 568
+  xy: 1703, 57
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 spiroct-weapon
   rotate: false
-  xy: 1619, 410
+  xy: 1719, 413
   size: 48, 56
   orig: 48, 56
   offset: 0, 0
   index: -1
 weapon
   rotate: false
-  xy: 1669, 879
+  xy: 3501, 1597
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
   index: -1
 zenith-missiles
   rotate: false
-  xy: 1669, 829
+  xy: 3551, 1588
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
