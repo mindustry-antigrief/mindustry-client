@@ -83,7 +83,8 @@ public enum Binding implements KeyBind{
     toggle_placement_modifiers(KeyCode.shiftLeft),
     chat_autocomplete(KeyCode.tab),
     invisible_units(KeyCode.o),
-    auto_build(KeyCode.semicolon)
+    auto_build(KeyCode.semicolon),
+    auto_repair(KeyCode.l)
     ;
 
     private final KeybindValue defaultValue;

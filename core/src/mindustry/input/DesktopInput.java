@@ -269,7 +269,7 @@ public class DesktopInput extends InputHandler{
         if(input.keyTap(Binding.auto_build) && scene.getKeyboardFocus() == null){
             Navigation.follow(new BuildPath());
         }
-        if(input.keyTap(KeyCode.l) && scene.getKeyboardFocus() == null){
+        if(input.keyTap(Binding.auto_repair) && scene.getKeyboardFocus() == null){
             Navigation.follow(new RepairPath());
         }
         boolean panCam = false;
