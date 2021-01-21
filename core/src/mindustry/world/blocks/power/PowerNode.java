@@ -44,6 +44,7 @@ public class PowerNode extends PowerBlock{
         outputsPower = false;
         canOverdrive = false;
         swapDiagonalPlacement = true;
+        drawDisabled = false;
 
         config(Integer.class, (entity, value) -> {
             PowerModule power = entity.power;
@@ -107,7 +108,7 @@ public class PowerNode extends PowerBlock{
         super.setBars();
         bars.add("power", entity -> new Bar(() ->
         Core.bundle.format("bar.powerbalance",
-            ((entity.power.graph.displayPowerBalance.getAverage() >= 0 ? "+" : "") + Strings.fixed(entity.power.graph.displayPowerBalance.getAverage() * 60, 1))),
+            ((entity.power.graph.displayPowerBalance.getAverage() >= 0 ? "+" : "") + UI.formatAmount((int)(entity.power.graph.displayPowerBalance.getAverage() * 60)))),
             () -> Pal.powerBar,
             () -> Mathf.clamp(entity.power.graph.getLastPowerProduced() / entity.power.graph.getLastPowerNeeded())));
 
@@ -160,7 +161,7 @@ public class PowerNode extends PowerBlock{
 
     protected void setupColor(float satisfaction){
         Draw.color(laserColor1, laserColor2, (1f - satisfaction) * 0.86f + Mathf.absin(3f, 0.1f));
-        Draw.alpha(renderer == null ? 0.5f : renderer.laserOpacity);
+        Draw.alpha(Renderer.laserOpacity);
     }
 
     protected void drawLaser(Team team, float x1, float y1, float x2, float y2, int size1, int size2){
@@ -246,9 +247,9 @@ public class PowerNode extends PowerBlock{
     public boolean linkValid(Building tile, Building link, boolean checkMaxNodes){
         if(tile == link || link == null || !link.block.hasPower || tile.team != link.team) return false;
 
-        if(overlaps(tile, link, laserRange * tilesize) || (link.block instanceof PowerNode && overlaps(link, tile, ((PowerNode)link.block).laserRange * tilesize))){
-            if(checkMaxNodes && link.block instanceof PowerNode){
-                return link.power.links.size < ((PowerNode)link.block).maxNodes || link.power.links.contains(tile.pos());
+        if(overlaps(tile, link, laserRange * tilesize) || (link.block instanceof PowerNode node && overlaps(link, tile, node.laserRange * tilesize))){
+            if(checkMaxNodes && link.block instanceof PowerNode node){
+                return link.power.links.size < node.maxNodes || link.power.links.contains(tile.pos());
             }
             return true;
         }
@@ -396,7 +397,7 @@ public class PowerNode extends PowerBlock{
         public void draw(){
             super.draw();
 
-            if(Mathf.zero(renderer.laserOpacity)) return;
+            if(Mathf.zero(Renderer.laserOpacity)) return;
 
             Draw.z(Layer.power);
             setupColor(power.graph.getSatisfaction());

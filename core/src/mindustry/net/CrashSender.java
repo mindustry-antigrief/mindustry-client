@@ -46,7 +46,12 @@ public class CrashSender{
 
     public static void send(Throwable exception, Cons<File> writeListener){
         try{
-            exception.printStackTrace();
+            try{
+                //log to file
+                Log.err(exception);
+            }catch(Throwable no){
+                exception.printStackTrace();
+            }
 
             //try saving game data
             try{

@@ -184,6 +184,23 @@ public class UnitType extends UnlockableContent{
                     return shield;
                 }
             }));
+
+            for(Ability ability : unit.abilities){
+                ability.displayBars(unit, bars);
+            }
+
+            if(unit instanceof Payloadc payload){
+                bars.add(new Bar("stat.payloadcapacity", Pal.items, () -> payload.payloadUsed() / unit.type().payloadCapacity));
+                bars.row();
+
+                var count = new float[]{-1};
+                bars.table().update(t -> {
+                    if(count[0] != payload.payloadUsed()){
+                        payload.contentInfo(t, 8 * 2, 270);
+                        count[0] = payload.payloadUsed();
+                    }
+                }).growX().left().height(0f).pad(0f);
+            }
         }).growX();
 
         if(unit.controller() instanceof LogicAI p){

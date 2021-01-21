@@ -23,6 +23,8 @@ import mindustry.mod.Mods.*;
 import mindustry.ui.*;
 
 import java.io.*;
+import java.text.*;
+import java.util.*;
 
 import static mindustry.Vars.*;
 
@@ -74,12 +76,25 @@ public class ModsDialog extends BaseDialog{
                     if(status != HttpStatus.OK){
                         ui.showErrorMessage(Core.bundle.format("connectfail", status));
                     }else{
-                        modList = new Json().fromJson(Seq.class, ModListing.class, strResult);
+                        try{
+                            modList = new Json().fromJson(Seq.class, ModListing.class, strResult);
 
-                        //potentially sort mods by game version compatibility, or other criteria
-                        //modList.sort(Structs.comparingBool(m -> !Version.isAtLeast(m.minGameVersion)));
+                            var d = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                            Func<String, Date> parser = text -> {
+                                try{
+                                    return d.parse(text);
+                                }catch(Exception e){
+                                    throw new RuntimeException(e);
+                                }
+                            };
 
-                        listener.get(modList);
+                            modList.sortComparing(m -> parser.get(m.lastUpdated)).reverse();
+                            listener.get(modList);
+                        }catch(Exception e){
+                            e.printStackTrace();
+                            ui.showException(e);
+                        }
+
                     }
                 });
             }, error -> Core.app.post(() -> ui.showException(error)));
@@ -175,7 +190,7 @@ public class ModsDialog extends BaseDialog{
                                     tablebrow.clear();
 
                                     for(ModListing mod : listings){
-                                        if(mod.hasJava || !searchtxt.isEmpty() && !mod.repo.contains(searchtxt) || (Vars.ios && mod.hasScripts)) continue;
+                                        if(mod.hasJava || !searchtxt.isEmpty() && !mod.repo.toLowerCase().contains(searchtxt.toLowerCase()) || (Vars.ios && mod.hasScripts)) continue;
 
                                         tablebrow.button(btn -> {
                                             btn.top().left();
