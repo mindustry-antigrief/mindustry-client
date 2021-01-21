@@ -176,15 +176,6 @@ public class UnitType extends UnlockableContent{
                 bars.row();
             }
 
-            bars.add(new Bar("stat.shield", Pal.shield.cpy().a(1f), () -> {
-                float shield = Math.min(unit.shield(), 1f);
-                if (Float.isNaN(shield)) {
-                    return 0f;
-                } else {
-                    return shield;
-                }
-            }));
-
             for(Ability ability : unit.abilities){
                 ability.displayBars(unit, bars);
             }
