@@ -305,6 +305,8 @@ public class DesktopLauncher extends ClientLauncher{
             }
 
             presence.largeImageKey = "logo";
+            presence.smallImageKey = "foo";
+            presence.smallImageText = "Foo's Client";
 
             DiscordRPC.INSTANCE.Discord_UpdatePresence(presence);
         }
@@ -314,9 +316,9 @@ public class DesktopLauncher extends ClientLauncher{
             SVars.net.friends.setRichPresence("steam_display", "#steam_status_raw");
 
             if(inGame){
-                SVars.net.friends.setRichPresence("steam_status", gameMapWithWave);
+                SVars.net.friends.setRichPresence("steam_status", "Foo's Client | " + gameMapWithWave);
             }else{
-                SVars.net.friends.setRichPresence("steam_status", uiState);
+                SVars.net.friends.setRichPresence("steam_status", "Foo's Client | " + uiState);
             }
         }
     }

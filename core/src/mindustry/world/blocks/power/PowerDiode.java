@@ -74,8 +74,8 @@ public class PowerDiode extends Block{
                 amount = Mathf.clamp(amount, 0, frontGraph.getTotalBatteryCapacity() * (1 - frontStored));
                 transferred.add(amount);
 
-                backGraph.useBatteries(amount);
-                frontGraph.chargeBatteries(amount);
+                backGraph.transferPower(-amount);
+                frontGraph.transferPower(amount);
             }
         }
     }

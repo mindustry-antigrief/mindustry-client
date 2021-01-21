@@ -25,6 +25,8 @@ public class PowerGraph{
     private float lastScaledPowerIn, lastScaledPowerOut, lastCapacity;
     public boolean active = true;
     public Team team;
+    //diodes workaround for correct energy production info
+    private float energyDelta = 0f;
 
     private long lastFrameUpdated = -1;
     private final int graphID;
@@ -76,6 +78,15 @@ public class PowerGraph{
         return lastPowerStored;
     }
 
+    public void transferPower(float amount){
+        if(amount > 0){
+            chargeBatteries(amount);
+        }else{
+            useBatteries(-amount);
+        }
+        energyDelta += amount;
+    }
+
     public float getSatisfaction(){
         if(Mathf.zero(lastPowerProduced)){
             return 0f;
@@ -116,7 +127,7 @@ public class PowerGraph{
         float totalAccumulator = 0f;
         for(Building battery : batteries){
             Consumers consumes = battery.block.consumes;
-            if(consumes.hasPower()){
+            if(battery.enabled && consumes.hasPower()){
                 totalAccumulator += battery.power.status * consumes.getPower().capacity;
             }
         }
@@ -126,7 +137,7 @@ public class PowerGraph{
     public float getBatteryCapacity(){
         float totalCapacity = 0f;
         for(Building battery : batteries){
-            if(battery.block.consumes.hasPower()){
+            if(battery.enabled && battery.block.consumes.hasPower()){
                 ConsumePower power = battery.block.consumes.getPower();
                 totalCapacity += (1f - battery.power.status) * power.capacity;
             }
@@ -137,7 +148,7 @@ public class PowerGraph{
     public float getTotalBatteryCapacity(){
         float totalCapacity = 0f;
         for(Building battery : batteries){
-            if(battery.block.consumes.hasPower()){
+            if(battery.enabled && battery.block.consumes.hasPower()){
                 totalCapacity += battery.block.consumes.getPower().capacity;
             }
         }
@@ -152,7 +163,7 @@ public class PowerGraph{
         float consumedPowerPercentage = Math.min(1.0f, needed / stored);
         for(Building battery : batteries){
             Consumers consumes = battery.block.consumes;
-            if(consumes.hasPower()){
+            if(battery.enabled && consumes.hasPower()){
                 battery.power.status *= (1f-consumedPowerPercentage);
             }
         }
@@ -167,7 +178,7 @@ public class PowerGraph{
 
         for(Building battery : batteries){
             Consumers consumes = battery.block.consumes;
-            if(consumes.hasPower()){
+            if(battery.enabled && consumes.hasPower()){
                 ConsumePower consumePower = consumes.getPower();
                 if(consumePower.capacity > 0f){
                     battery.power.status += (1f- battery.power.status) * chargedPercent;
@@ -227,13 +238,13 @@ public class PowerGraph{
         lastPowerNeeded = powerNeeded;
         lastPowerProduced = powerProduced;
 
-        lastScaledPowerIn = powerProduced / Time.delta;
+        lastScaledPowerIn = (powerProduced + energyDelta) / Time.delta;
         lastScaledPowerOut = powerNeeded / Time.delta;
         lastCapacity = getTotalBatteryCapacity();
-
         lastPowerStored = getBatteryStored();
 
-        powerBalance.add((lastPowerProduced - lastPowerNeeded) / Time.delta);
+        powerBalance.add((lastPowerProduced - lastPowerNeeded + energyDelta) / Time.delta);
+        energyDelta = 0f;
 
         if(!(consumers.size == 0 && producers.size == 0 && batteries.size == 0)){
 

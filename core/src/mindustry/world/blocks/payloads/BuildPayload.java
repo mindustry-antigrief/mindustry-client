@@ -60,4 +60,9 @@ public class BuildPayload implements Payload{
         Draw.rect(build.block.icon(Cicon.full), build.x, build.y);
         Draw.reset();
     }
+
+    @Override
+    public TextureRegion icon(Cicon icon){
+        return block().icon(icon);
+    }
 }
