@@ -239,7 +239,7 @@ public class PowerGraph{
         lastPowerNeeded = powerNeeded;
         lastPowerProduced = powerProduced;
 
-        lastScaledPowerIn = powerProduced / Time.delta;
+        lastScaledPowerIn = (powerProduced + energyDelta) / Time.delta;
         lastScaledPowerOut = powerNeeded / Time.delta;
         lastCapacity = getTotalBatteryCapacity();
         lastPowerStored = getBatteryStored();
