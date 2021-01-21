@@ -155,7 +155,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot request items.");
         }
 
-        Navigation.addWaypointRecording(new ItemPickupWaypoint(tile.tileX(), tile.tileY(), new ItemStack().set(item, amount)));
+        Navigation.addWaypointRecording(new ItemPickupWaypoint(build.tileX(), build.tileY(), new ItemStack().set(item, amount)));
 
         //remove item for every controlling unit
         player.unit().eachGroup(unit -> {
@@ -243,7 +243,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Remote(targets = Loc.server, called = Loc.server)
     public static void pickedBuildPayload(Unit unit, Building build, boolean onGround){
         if(build != null && unit instanceof Payloadc pay){
-            tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadPickupTileLog(unit, tile2, tile2.block(), Instant.now().getEpochSecond(), "")));
+            build.tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadPickupTileLog(unit, tile2, tile2.block(), Instant.now().getEpochSecond(), "")));
 
         if(onGround){
             if(build.block.buildVisibility != BuildVisibility.hidden && build.canPickup() && pay.canPickup(build)){
@@ -325,24 +325,24 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot rotate a block.");
         }
 
-        if(player != null) tile.lastAccessed = player.name;
+        if(player != null) build.lastAccessed = player.name;
 
         if(player != null){
-            tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new RotateTileLog(player.unit(), tile2, tile.rotation, tile.rotation + Mathf.sign(direction), Instant.now().getEpochSecond(), "")));
+            build.tile.getLinkedTiles(tile2 -> tile2.addToLog(new RotateTileLog(player.unit(), tile2, build.rotation, build.rotation + Mathf.sign(direction), Instant.now().getEpochSecond(), "")));
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if(((UnAssistPath) Navigation.currentlyFollowing).assisting == player){
                     Time.run(2f, () -> {
-                        if (player != null && tile != null) {
-                            Call.rotateBlock(Vars.player, tile, !direction);
+                        if (player != null && build != null) {
+                            Call.rotateBlock(Vars.player, build, !direction);
                         }
                     });
                 }
             }
         }
 
-        tile.rotation = Mathf.mod(tile.rotation + Mathf.sign(direction), 4);
-        tile.updateProximity();
-        tile.noSleep();
+        build.rotation = Mathf.mod(build.rotation + Mathf.sign(direction), 4);
+        build.updateProximity();
+        build.noSleep();
         if(player != null) build.lastAccessed = player.name;
         build.rotation = Mathf.mod(build.rotation + Mathf.sign(direction), 4);
         build.updateProximity();
@@ -538,7 +538,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if(build != null && build.team == unit.team){
                 Call.requestBuildPayload(player, build);
                 if(Navigation.state == NavigationState.RECORDING){
-                    Navigation.addWaypointRecording(new PayloadPickupWaypoint(tile.tileX(), tile.tileY()));
+                    Navigation.addWaypointRecording(new PayloadPickupWaypoint(build.tileX(), build.tileY()));
                 }
             }
         }
@@ -1162,7 +1162,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(build != null && build.acceptStack(stack.item, stack.amount, player.unit()) > 0 && build.interactable(player.team()) && build.block.hasItems && player.unit().stack().amount > 0 && build.interactable(player.team())){
             if(Navigation.state == NavigationState.RECORDING){
-                Navigation.addWaypointRecording(new ItemDropoffWaypoint(tile.tileX(), tile.tileY()));
+                Navigation.addWaypointRecording(new ItemDropoffWaypoint(build.tileX(), build.tileY()));
             }
             Call.transferInventory(player, build);
         }else{
