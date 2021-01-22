@@ -222,10 +222,10 @@ public class Client {
 //                            Object initial = tile.build.config();
                             req.run();
                             configs.remove(req);
-                            Timer.schedule(() -> {
-                                // if(tile.build != null && tile.build.config() == initial) configs.addLast(req); TODO: This can also cause loops
-                                // if(tile.build != null && req.value != tile.build.config()) configs.addLast(req); TODO: This infinite loops if u config something twice, find a better way to do this
-                            }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
+//                            Timer.schedule(() -> {
+//                                // if(tile.build != null && tile.build.config() == initial) configs.addLast(req); TODO: This can also cause loops
+//                                // if(tile.build != null && req.value != tile.build.config()) configs.addLast(req); TODO: This infinite loops if u config something twice, find a better way to do this
+//                            }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
                         }
                     }
                 } catch (Exception e) {Log.info(e.getMessage());}
