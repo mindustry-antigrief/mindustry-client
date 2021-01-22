@@ -30,7 +30,7 @@ jobs:
         run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}
 
       - name: Upload Test Results To Pages
-        if: ${{ always() }}
+        if: ${{ !cancelled() }}
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -39,7 +39,7 @@ jobs:
           CLEAN: true # Automatically remove deleted files from the deploy branch
 
       - name: Upload Artifact
-        if: ${{ always() }}
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v2
         with:
           name: Zipped Jar
