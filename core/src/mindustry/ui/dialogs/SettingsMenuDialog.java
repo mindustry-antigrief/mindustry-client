@@ -5,6 +5,7 @@ import arc.files.*;
 import arc.graphics.*;
 import arc.graphics.Texture.*;
 import arc.input.*;
+import arc.math.Mathf;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
@@ -346,6 +347,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         });
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
         client.checkPref("doubleclicktomine", true);
+        client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
 
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);
