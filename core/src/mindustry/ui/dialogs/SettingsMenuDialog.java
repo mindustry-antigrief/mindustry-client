@@ -348,6 +348,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
         client.checkPref("doubleclicktomine", true);
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
+        client.checkPref("autoboost", true);
 
         game.checkPref("savecreate", true);
         game.checkPref("blockreplace", true);
