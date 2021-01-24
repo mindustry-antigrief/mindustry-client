@@ -121,7 +121,7 @@ public class PlayerListFragment extends Fragment{
             button.add().grow();
 
             button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).padRight(10).get().updateVisibility();
-            button.image(Icon.wrench).visible(() -> FooUser.IsUser(user) && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
+            button.image(Icon.wrench).visible(() -> FooUser.isPlayerUser(user) && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();

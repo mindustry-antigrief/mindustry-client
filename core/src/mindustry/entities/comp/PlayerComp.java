@@ -4,6 +4,7 @@ import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.math.geom.Vec2;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import arc.util.pooling.*;
@@ -224,7 +225,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     @Override
     public void draw(){
-        boolean fooUser = FooUser.IsUser(self());
+        boolean fooUser = FooUser.isPlayerUser(self());
 
         Draw.z(Layer.playerName);
         float z = Drawf.text();

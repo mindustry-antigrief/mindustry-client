@@ -1,17 +1,20 @@
 package mindustry.client.utils;
 
 public class FloatEmbed {
-    public static float embedInFloat(float inp) {
+
+    public static float embedInFloat(float inp, byte item) {
         int bits = Float.floatToIntBits(inp);
         bits >>= 8;
         bits <<= 8;
-        bits += 0b10101010;
+        bits += item;
         return Float.intBitsToFloat(bits);
     }
 
-    public static boolean isEmbedded(float inp) {
+    public static boolean isEmbedded(float inp, byte item) {
         int bits = Float.floatToIntBits(inp);
         bits <<= 32 - 8;
-        return bits == 0b10101010000000000000000000000000;
+        int addend = item;
+        addend <<= 32 - 8;
+        return bits == addend;
     }
 }

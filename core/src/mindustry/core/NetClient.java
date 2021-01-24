@@ -4,6 +4,7 @@ import arc.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.math.*;
+import arc.math.geom.Vec2;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.CommandHandler.*;
@@ -12,6 +13,8 @@ import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.FooUser;
+import mindustry.client.navigation.AssistPath;
+import mindustry.client.navigation.Navigation;
 import mindustry.client.utils.FloatEmbed;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
@@ -19,7 +22,6 @@ import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
-import mindustry.graphics.Pal;
 import mindustry.net.Administration.*;
 import mindustry.net.Net.*;
 import mindustry.net.*;
@@ -158,7 +160,7 @@ public class NetClient implements ApplicationListener{
     public static void sendMessage(String message, String sender, Player playersender){
         Color background = null;
         if(Vars.ui != null){
-            if (FooUser.IsUser(playersender) && !playersender.equals(player)) { // Add wrench to client user messages, highlight if enabled
+            if (FooUser.isPlayerUser(playersender) && !playersender.equals(player)) { // Add wrench to client user messages, highlight if enabled
                 sender = colorizeName(playersender.id, "\uE80F " + sender);
 
                 if (Core.settings.getBool("highlightclientmsg")) { background = Color.coral.cpy().mul(0.75f); }
@@ -621,14 +623,15 @@ public class NetClient implements ApplicationListener{
 
             Unit unit = player.dead() ? Nulls.unit : player.unit();
             int uid = player.dead() ? -1 : unit.id;
+            Vec2 pos = Core.settings.getBool("displayasuser") ? FooUser.encode(player.unit().aimX, player.unit().aimY, Navigation.currentlyFollowing instanceof AssistPath) : new Vec2(player.unit().aimX, player.unit().aimY);
 
             Call.clientSnapshot(
             lastSent++,
             uid,
             player.dead(),
             unit.x, unit.y,
-            Core.settings.getBool("displayasuser") ? FloatEmbed.embedInFloat(player.unit().aimX()) : player.unit().aimX(),
-            Core.settings.getBool("displayasuser") ? FloatEmbed.embedInFloat(player.unit().aimY()) : player.unit().aimY(),
+            pos.x,
+            pos.y,
             unit.rotation,
             unit instanceof Mechc m ? m.baseRotation() : 0,
             unit.vel.x, unit.vel.y,
