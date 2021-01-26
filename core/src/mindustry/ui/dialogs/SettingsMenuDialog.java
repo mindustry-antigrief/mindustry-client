@@ -383,7 +383,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         }
 
         if(steam){
-            game.sliderPref("playerlimit", 16, 2, 42069, i -> {
+            game.sliderPref("playerlimit", 16, 2, 250, i -> {
                 platform.updateLobby();
                 return i + "";
             });

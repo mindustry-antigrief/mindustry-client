@@ -22,6 +22,7 @@ import mindustry.net.Packets.*;
 import mindustry.ui.*;
 
 import static mindustry.Vars.*;
+import static mindustry.Vars.port;
 
 public class JoinDialog extends BaseDialog{
     Seq<Server> servers = new Seq<>();
@@ -37,6 +38,7 @@ public class JoinDialog extends BaseDialog{
 
     String lastIp;
     int lastPort;
+    @Nullable public Host lastHost;
     Task ping;
 
     public JoinDialog(){
@@ -121,7 +123,7 @@ public class JoinDialog extends BaseDialog{
                 if(!buttons[0].childrenPressed()){
                     if(server.lastHost != null){
                         Events.fire(new ClientPreConnectEvent(server.lastHost));
-                        safeConnect(server.ip, server.port, server.lastHost.version);
+                        safeConnect(server.ip, server.port, server.lastHost);
                     }else{
                         connect(server.ip, server.port);
                     }
@@ -410,12 +412,12 @@ public class JoinDialog extends BaseDialog{
             if(!Core.settings.getBool("server-disclaimer", false)){
                 ui.showCustomConfirm("@warning", "@servers.disclaimer", "@ok", "@back", () -> {
                     Core.settings.put("server-disclaimer", true);
-                    safeConnect(host.address, host.port, host.version);
+                    safeConnect(host.address, host.port, host);
                 }, () -> {
                     Core.settings.put("server-disclaimer", false);
                 });
             }else{
-                safeConnect(host.address, host.port, host.version);
+                safeConnect(host.address, host.port, host);
             }
         }).width(w).row();
     }
@@ -444,11 +446,15 @@ public class JoinDialog extends BaseDialog{
 
         local.button(b -> buildServer(host, b), Styles.cleart, () -> {
             Events.fire(new ClientPreConnectEvent(host));
-            safeConnect(host.address, host.port, host.version);
+            safeConnect(host.address, host.port, host);
         }).width(w);
     }
 
-    public void connect(String ip, int port){
+    public void connect(String ip, int port) {
+        connect(ip, port, null);
+    }
+
+    public void connect(String ip, int port, Host host){
         if(player.name.trim().isEmpty()){
             ui.showInfo("@noname");
             return;
@@ -468,6 +474,7 @@ public class JoinDialog extends BaseDialog{
             net.connect(lastIp = ip, lastPort = port, () -> {
                 hide();
                 add.hide();
+                lastHost = host;
             });
         });
     }
@@ -481,7 +488,7 @@ public class JoinDialog extends BaseDialog{
                 if(ping == null) return;
                 ping.cancel();
                 ping = null;
-                connect(lastIp, lastPort);
+                connect(lastIp, lastPort, host);
             }, exception -> {});
         }, 1, 1);
         
@@ -493,13 +500,14 @@ public class JoinDialog extends BaseDialog{
         });
     }
 
-    void safeConnect(String ip, int port, int version){
+    void safeConnect(String ip, int port, Host host){
+        int version = host.version;
         if(Core.settings.getBool("allowjoinany")) Version.build = version;
         if(version != Version.build && Version.build != -1 && version != -1){
             ui.showInfo("[scarlet]" + (version > Version.build ? KickReason.clientOutdated : KickReason.serverOutdated).toString() + "\n[]" +
                 Core.bundle.format("server.versions", Version.build, version));
         }else{
-            connect(ip, port);
+            connect(ip, port, host);
         }
     }
 

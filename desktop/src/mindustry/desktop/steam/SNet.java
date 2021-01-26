@@ -383,6 +383,20 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
             smat.setLobbyData(steamID, "versionType", Version.type);
             smat.setLobbyData(steamID, "wave", state.wave + "");
             smat.setLobbyData(steamID, "gamemode", state.rules.mode().name() + "");
+            ui.join.lastHost = new Host(
+                    -1, //invalid ping
+                    smat.getLobbyData(steamID, "name"),
+                    "steam:" + steamID.handle(),
+                    smat.getLobbyData(steamID, "mapname"),
+                    Strings.parseInt(smat.getLobbyData(steamID, "wave"), -1),
+                    smat.getNumLobbyMembers(steamID),
+                    Strings.parseInt(smat.getLobbyData(steamID, "version"), -1),
+                    smat.getLobbyData(steamID, "versionType"),
+                    Gamemode.valueOf(smat.getLobbyData(steamID, "gamemode")),
+                    smat.getLobbyMemberLimit(steamID),
+                    "",
+                    null
+            );
         }
     }
 

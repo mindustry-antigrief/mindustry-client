@@ -107,6 +107,7 @@ public class NetClient implements ApplicationListener{
             platform.updateRPC();
             player.name(Core.settings.getString("name"));
             player.color().set(Core.settings.getInt("color-0"));
+            ui.join.lastHost = null;
 
             if(quiet) return;
 

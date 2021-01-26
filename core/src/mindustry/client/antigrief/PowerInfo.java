@@ -1,5 +1,6 @@
 package mindustry.client.antigrief;
 
+import arc.Core;
 import arc.math.*;
 import arc.scene.*;
 import arc.scene.ui.layout.Table;
@@ -33,8 +34,14 @@ public class PowerInfo {
     public static Element getBars() {
         Table power = new Table(Tex.wavepane);
 
-        Bar powerBar = new MonospacedBar(() -> Strings.fixed(found != null ? found.powerBalance.rawMean() * 60f : 0f, 1), () -> Pal.powerBar, () -> found != null? found.getSatisfaction() : 0f);
-        Bar batteryBar = new MonospacedBar(() -> (found != null? UI.formatAmount((int)found.getLastPowerStored()) : 0) + "/" + (found != null? UI.formatAmount((int)found.getLastCapacity()) : 0), () -> Pal.powerBar, () -> found != null? Mathf.clamp(found.getLastPowerStored() / Math.max(found.getLastCapacity(), 0.0001f)) : 0f);
+        Bar powerBar = new MonospacedBar(
+                () -> Core.bundle.format("bar.powerbalance", found != null ? (found.powerBalance.rawMean() >= 0 ? "+" : "") + UI.formatAmount((int)(found.powerBalance.rawMean() * 60)) : "+0"),
+                () -> Pal.powerBar,
+                () -> found != null ? found.getSatisfaction() : 0);
+        Bar batteryBar = new MonospacedBar(
+                () -> Core.bundle.format("bar.powerstored", found != null ? UI.formatAmount((int)found.getLastPowerStored()) : 0, found != null ? UI.formatAmount((int)found.getLastCapacity()) : 0),
+                () -> Pal.powerBar,
+                () -> found != null ? Mathf.clamp(found.getLastPowerStored() / found.getLastCapacity()) : 0);
 
         power.add(batteryBar).height(18).growX().padBottom(6);
         power.row();

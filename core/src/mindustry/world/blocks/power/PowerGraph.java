@@ -4,6 +4,7 @@ import arc.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.client.utils.*;
 import mindustry.game.Team;
 import mindustry.gen.*;
@@ -21,7 +22,7 @@ public class PowerGraph{
     public final Seq<Building> all = new Seq<>(false);
 
     public final WindowedMean powerBalance = new WindowedMean(60);
-    private float lastPowerProduced, lastPowerNeeded, lastUsageFraction, lastPowerStored;
+    private float lastPowerProduced, lastPowerNeeded, lastPowerStored;
     private float lastScaledPowerIn, lastScaledPowerOut, lastCapacity;
     public boolean active = true;
     public Team team;
@@ -39,7 +40,7 @@ public class PowerGraph{
     }
 
     public void updateActive() {
-        if (!active) return;
+        if (!active || Vars.state.isPaused()) return;
         if (!(Core.graphics.getFrameId() - lastFrameUpdated < 2)) {
             activeGraphs.remove(this);
             active = false;

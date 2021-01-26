@@ -58,8 +58,8 @@ public class ItemImage extends Stack{
             add(new Table(t -> {
                 t.left().bottom().defaults().left();
 
-                t.add("[lightgray]" + rate + "/s[]", .5f).style(Styles.outlineLabel).row();
-                t.add(stack.amount > 1000 ? UI.formatAmount(stack.amount) : stack.amount + "").style(Styles.outlineLabel);
+                t.add(stack.amount > 1000 ? UI.formatAmount(stack.amount) : stack.amount + "").style(Styles.outlineLabel).row();
+                t.add( rate + "/s", .5f).style(Styles.outlineLabel);
                 t.pack();
             }));
         }

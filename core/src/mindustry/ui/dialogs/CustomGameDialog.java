@@ -15,6 +15,8 @@ import mindustry.ui.*;
 
 public class CustomGameDialog extends BaseDialog{
     private MapPlayDialog dialog = new MapPlayDialog();
+    private TextField searchField;
+    private Table maps = new Table().marginBottom(55f);
 
     public CustomGameDialog(){
         super("@customgame");
@@ -31,18 +33,32 @@ public class CustomGameDialog extends BaseDialog{
         buttons.bottom();
         cont.clear();
 
-        Table maps = new Table();
-        maps.marginRight(14);
-        maps.marginBottom(55f);
         ScrollPane pane = new ScrollPane(maps);
+        pane.setScrollingDisabled(true, false);
         pane.setFadeScrollBars(false);
 
+        cont.table(s -> {
+            s.left();
+            s.image(Icon.zoom);
+            searchField = s.field(null, res -> build()).growX().get();
+        }).fillX().padBottom(4).row();
+        Core.scene.setKeyboardFocus(searchField);
+
+        maps.defaults().width(170).fillY().top().pad(4f);
+        build();
+
+        cont.add(pane);
+    }
+
+    void build() {
         int maxwidth = Math.max((int)(Core.graphics.getWidth() / Scl.scl(210)), 1);
         float images = 146f;
 
         int i = 0;
-        maps.defaults().width(170).fillY().top().pad(4f);
+
+        maps.clearChildren();
         for(Map map : Vars.maps.all()){
+            if(searchField.getText().length() > 0 && !map.name().toLowerCase().contains(searchField.getText().toLowerCase())) continue;
 
             if(i % maxwidth == 0){
                 maps.row();
@@ -86,7 +102,5 @@ public class CustomGameDialog extends BaseDialog{
         if(Vars.maps.all().size == 0){
             maps.add("@maps.none").pad(50);
         }
-
-        cont.add(pane).uniformX();
     }
 }
