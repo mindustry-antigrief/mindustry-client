@@ -5,6 +5,7 @@ import arc.math.*;
 import arc.scene.*;
 import arc.scene.ui.layout.Table;
 import arc.struct.*;
+import arc.util.Log;
 import arc.util.Strings;
 import mindustry.Vars;
 import mindustry.client.ui.*;
@@ -41,7 +42,7 @@ public class PowerInfo {
         Bar batteryBar = new MonospacedBar(
                 () -> Core.bundle.format("bar.powerstored", found != null ? UI.formatAmount((int)found.getLastPowerStored()) : 0, found != null ? UI.formatAmount((int)found.getLastCapacity()) : 0),
                 () -> Pal.powerBar,
-                () -> found != null ? Mathf.clamp(found.getLastPowerStored() / found.getLastCapacity()) : 0);
+                () -> found != null ? Mathf.clamp(found.getLastPowerStored() / Math.max(found.getLastCapacity(), 0.0001f)) : 0);
 
         power.add(batteryBar).height(18).growX().padBottom(6);
         power.row();
