@@ -45,7 +45,7 @@ public class CustomGameDialog extends BaseDialog{
         pane.setScrollingDisabled(true, false);
         build();
 
-        cont.add(pane);
+        cont.add(pane).uniformX();
     }
 
     void build() {
