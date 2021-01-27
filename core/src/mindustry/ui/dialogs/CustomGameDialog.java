@@ -26,8 +26,6 @@ public class CustomGameDialog extends BaseDialog{
     }
 
     void setup(){
-        clearChildren();
-        add(titleTable);
         row();
         stack(cont, buttons).grow();
         buttons.bottom();
@@ -45,7 +43,7 @@ public class CustomGameDialog extends BaseDialog{
         pane.setScrollingDisabled(true, false);
         build();
 
-        cont.add(pane).uniformX();
+        cont.add(pane);
     }
 
     void build() {
