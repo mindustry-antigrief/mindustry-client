@@ -142,6 +142,7 @@ allprojects{
 
                 String buildid = getBuildVersion()
                 println("Compiling with build: '$buildid'")
+                if (localArc()) println("Compiling with localArc")
 
                 props["clientBuild"] = clientBuild
                 props["updateUrl"] = updateUrl
