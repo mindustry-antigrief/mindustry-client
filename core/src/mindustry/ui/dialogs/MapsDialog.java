@@ -120,13 +120,13 @@ public class MapsDialog extends BaseDialog{
             s.left();
             s.image(Icon.zoom);
             searchField = s.field(null, res -> build()).growX().get();
-        }).fillX().padBottom(4).row();
+        }).width(210*3).padBottom(4).row();
         Time.runTask(2f, () -> Core.scene.setKeyboardFocus(searchField));
 
         ScrollPane pane = new ScrollPane(maps);
         pane.setFadeScrollBars(false);
         build();
-        cont.add(pane).uniformX();
+        cont.add(pane);
     }
 
     void build() {
