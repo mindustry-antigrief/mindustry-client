@@ -18,7 +18,7 @@ import static mindustry.Vars.*;
 public class MapsDialog extends BaseDialog{
     private BaseDialog dialog;
     private TextField searchField;
-    private Table maps = new Table().marginRight(24);
+    private Table maps = new Table();
 
     public MapsDialog(){
         super("@maps");
@@ -121,11 +121,13 @@ public class MapsDialog extends BaseDialog{
             s.image(Icon.zoom);
             searchField = s.field(null, res -> build()).growX().get();
         }).width(210*3).padBottom(4).row();
-        Time.runTask(2f, () -> Core.scene.setKeyboardFocus(searchField));
+        Time.runTask(2f, () -> {
+            Core.scene.setKeyboardFocus(searchField);
+            build();
+        });
 
         ScrollPane pane = new ScrollPane(maps);
         pane.setFadeScrollBars(false);
-        build();
         cont.add(pane);
     }
 

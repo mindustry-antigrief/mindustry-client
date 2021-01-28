@@ -16,7 +16,7 @@ import mindustry.ui.*;
 public class CustomGameDialog extends BaseDialog{
     private MapPlayDialog dialog = new MapPlayDialog();
     private TextField searchField;
-    private Table maps = new Table().marginBottom(55f).marginRight(12).marginLeft(8);
+    private Table maps = new Table().marginBottom(55f);
 
     public CustomGameDialog(){
         super("@customgame");
@@ -26,22 +26,25 @@ public class CustomGameDialog extends BaseDialog{
     }
 
     void setup(){
-        row();
+        clearChildren();
+        cont.clearChildren();
+        add(titleTable).growX().row();
         stack(cont, buttons).grow();
         buttons.bottom();
-        cont.clear();
 
         cont.table(s -> {
             s.left();
             s.image(Icon.zoom);
-            searchField = s.field(null, res -> build()).growX().get();
+            searchField = s.field(null, text -> build()).growX().get();
         }).fillX().padBottom(4).row();
-        Time.runTask(2f, () -> Core.scene.setKeyboardFocus(searchField));
+        Time.runTask(2f, () -> {
+            Core.scene.setKeyboardFocus(searchField);
+            build();
+        });
 
         ScrollPane pane = new ScrollPane(maps);
         pane.setFadeScrollBars(false);
         pane.setScrollingDisabled(true, false);
-        build();
 
         cont.add(pane);
     }
