@@ -350,7 +350,7 @@ public class DesktopInput extends InputHandler{
 
                 table.row().fill();
                 table.button("Unit Picker", () -> // Unit Picker / Sniper
-                    new UnitPicker().show()
+                    ui.unitPicker.show()
                 );
 
                 table.row().fill();
@@ -358,6 +358,7 @@ public class DesktopInput extends InputHandler{
                     NetClient.setPosition(World.unconv(cursor.x), World.unconv(cursor.y))
                 );
 
+                for (Element button : table.getChildren()) button.clicked(table::remove); // Remove the table when any button is clicked
                 table.setHeight(itemHeight * (table.getRows() + 1) + 10 * (table.getRows() + 1));
                 table.setPosition(input.mouseX() - 1, input.mouseY() + 1, Align.topLeft); // Offset by 1 pixel so the code below doesn't trigger instantly
                 table.update(() -> {

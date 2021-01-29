@@ -20,6 +20,7 @@ import arc.scene.ui.Tooltip.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.client.ui.UnitPicker;
 import mindustry.editor.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -72,6 +73,10 @@ public class UI implements ApplicationListener, Loadable{
     public LogicDialog logic;
 
     public Cursor drillCursor, unloadCursor;
+
+    // Client related
+    public UnitPicker unitPicker;
+
 
     public UI(){
         Fonts.loadFonts();
@@ -190,6 +195,10 @@ public class UI implements ApplicationListener, Loadable{
         mods = new ModsDialog();
         schematics = new SchematicsDialog();
         logic = new LogicDialog();
+
+        // Client related
+        unitPicker = new UnitPicker();
+        // End client related
 
         Group group = Core.scene.root;
 

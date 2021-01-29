@@ -489,7 +489,6 @@ public class UnitType extends UnlockableContent{
                 Draw.reset();
                 a.draw(unit);
             }
-
             Draw.reset();
         }
         Draw.reset();
