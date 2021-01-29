@@ -93,8 +93,8 @@ public class PlayerListFragment extends Fragment{
             found = true;
             NetConnection connection = user.con;
 
-            if(connection == null && net.server() && !user.isLocal()) return;
-            if(sField.getText().length() > 0 && !user.name().toLowerCase().contains(sField.getText().toLowerCase()) && !Strings.stripColors(user.name().toLowerCase()).contains(sField.getText().toLowerCase())) return;
+            if(connection == null && net.server() && !user.isLocal()) continue;
+            if(sField.getText().length() > 0 && !user.name().toLowerCase().contains(sField.getText().toLowerCase()) && !Strings.stripColors(user.name().toLowerCase()).contains(sField.getText().toLowerCase())) continue;
 
             Table button = new Table();
             button.left();

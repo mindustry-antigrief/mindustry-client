@@ -110,25 +110,23 @@ public class Conveyor extends Block implements Autotiler{
             return Blocks.junction;
         }
 
-        int ogRot = req.rotation;
         for(int i = 0;i < 2;i ++){
             //TODO: automatically generate bridges?
             Block[] bridges = {Blocks.itemBridge, Blocks.phaseConveyor};
-            for (Block bridge : bridges) {
-                final int distance = ((ItemBridge) bridge).range;
-                if (req.block instanceof Conveyor && !thisPlaceableOn(frontTile(req.x, req.y, req.rotation)) &&
-                        requests.contains(o -> (o.block instanceof Conveyor || o.block instanceof ItemBridge) &&
-                                thisPlaceableOn(world.tile(req.x, req.y)) &&
-                                thisPlaceableOn(world.tile(o.x, o.y)) &&
-                                !thisPlaceableOn(frontTile(o.x, o.y, (req.rotation + 2) % 4)) &&
-                                inFront(req.x, req.y, req.rotation, o) &&
-                                Mathf.dstm(req.x, req.y, o.x, o.y) <= distance)) {
+            int checkRotation = (req.rotation + i*2) % 4;
+            for(Block bridge : bridges) {
+                int range = ((ItemBridge) bridge).range;
+                if(req.block instanceof Conveyor && !thisPlaceableOn(frontTile(req.x, req.y, checkRotation)) && requests.contains(o ->
+                    (o.block instanceof Conveyor || o.block instanceof ItemBridge) &&
+                    thisPlaceableOn(world.tile(req.x, req.y)) &&
+                    thisPlaceableOn(world.tile(o.x, o.y)) &&
+                    !thisPlaceableOn(frontTile(o.x, o.y, (checkRotation + 2) % 4)) &&
+                    inFront(req.x, req.y, checkRotation, o) &&
+                    Mathf.dstm(req.x, req.y, o.x, o.y) <= range)) {
                     return bridge;
                 }
             }
-            req.rotation = (req.rotation + 2) % 4;
         }
-        req.rotation = ogRot;
 
         return this;
     }

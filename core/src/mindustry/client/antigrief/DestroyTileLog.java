@@ -17,11 +17,11 @@ public class DestroyTileLog extends TileLogItem {
 
     @Override
     protected String formatDate(String date, long minutes) {
-        return String.format("%s destroyed at %s UTC (%d minutes ago).  %s", block.name, date, minutes, additionalInfo);
+        return String.format("%s destroyed at %s UTC (%d minutes ago).  %s", block.localizedName, date, minutes, additionalInfo);
     }
 
     @Override
     protected String formatConcise(String date, long minutes) {
-        return String.format("%s destroyed (%dm)", block.name, minutes);
+        return String.format("%s destroyed (%dm)", block.localizedName, minutes);
     }
 }

@@ -40,7 +40,8 @@ public class PowerGraph{
     }
 
     public void updateActive() {
-        if (!active || Vars.state.isPaused()) return;
+        if (!active) return;
+        if (Vars.state.isPaused()) lastFrameUpdated = Core.graphics.getFrameId();
         if (!(Core.graphics.getFrameId() - lastFrameUpdated < 2)) {
             activeGraphs.remove(this);
             active = false;
@@ -315,7 +316,6 @@ public class PowerGraph{
     }
 
     public void remove(Building tile){
-        removeSingle(tile);
         //begin by clearing the closed set
         closedSet.clear();
 
@@ -333,8 +333,6 @@ public class PowerGraph{
             while(queue.size > 0){
                 //get child from queue
                 Building child = queue.removeFirst();
-                //remove it from this graph
-                removeSingle(child);
                 //add it to the new branch graph
                 graph.add(child);
                 //go through connections

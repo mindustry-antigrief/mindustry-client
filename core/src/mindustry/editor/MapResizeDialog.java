@@ -8,7 +8,7 @@ import arc.util.*;
 import mindustry.ui.dialogs.*;
 
 public class MapResizeDialog extends BaseDialog{
-    public static int minSize = 50, maxSize = 2000, increment = 50;
+    public static int minSize = 50, maxSize = 2000;
     int width, height;
 
     public MapResizeDialog(MapEditor editor, Intc2 cons){

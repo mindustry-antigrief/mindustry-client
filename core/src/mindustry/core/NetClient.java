@@ -164,15 +164,17 @@ public class NetClient implements ApplicationListener{
         Color background = null;
         if(Vars.ui != null){
             if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
-                sender = colorizeName(playersender.id, "\uE80F " + sender);
+                sender = colorizeName(playersender.id, "\uE80F " + (sender != null ? sender : playersender.name)); // Check if sender is null in case server formats message and sends without a sender
                 if (Core.settings.getBool("highlightclientmsg")) background = Color.coral.cpy().mul(0.75f);
             }
 
             Matcher matcher = coordPattern.matcher(message);
-            if (matcher.find()) Client.lastSentPos.set(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
-
-            Vars.ui.chatfrag.addMessage(matcher.replaceFirst("[scarlet]$0[]"), sender, background);
-            if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.info("&fi@: @", "&lc" + (playersender == null ? "Server" : playersender.name), "&lw" + message);
+            if (matcher.find()) {
+                Client.lastSentPos.set(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+                message = matcher.replaceFirst("[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
+            }
+            Vars.ui.chatfrag.addMessage(message, sender, background);
+            if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.info("&fi@: @", "&lc" + (playersender == null ? "Server" : playersender.name), "&lw" + Strings.stripColors(message)); // Make sure we are a client, if we are the server it does this already
         }
 
         if(playersender != null){

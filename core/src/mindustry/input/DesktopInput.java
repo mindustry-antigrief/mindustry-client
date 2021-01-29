@@ -29,6 +29,7 @@ import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.BaseDialog;
 import mindustry.world.*;
@@ -62,18 +63,25 @@ public class DesktopInput extends InputHandler{
 
     @Override
     public void buildUI(Group group){
-        //respawn hints
+        // Various hints
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !player.unit().isBuilding() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()));
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && UnitType.alpha == 0);
+            t.bottom();
+            t.table(Styles.black6, b -> {
+                b.defaults().left();
+                b.label(() -> Core.bundle.format("toggleinvis", "SHIFT + " + Core.keybinds.get(Binding.invisible_units).key.toString()));
+            }).margin(6f);
+        });
+        group.fill(t -> {
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !player.unit().isBuilding() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty() && UnitType.alpha != 0));
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
                 b.label(() -> Core.bundle.format("respawn", Core.keybinds.get(Binding.respawn).key.toString())).style(Styles.outlineLabel);
             }).margin(6f);
         });
-
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.RECORDING);
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.RECORDING && UnitType.alpha != 0);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -81,7 +89,7 @@ public class DesktopInput extends InputHandler{
             }).margin(6f);
         });
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.FOLLOWING);
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.FOLLOWING && UnitType.alpha != 0);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -94,7 +102,7 @@ public class DesktopInput extends InputHandler{
             t.visible(() -> {
                 t.color.a = Mathf.lerpDelta(t.color.a, player.unit().isBuilding() ? 1f : 0f, 0.15f);
 
-                return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE;
+                return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE && UnitType.alpha != 0;
             });
             t.touchable(() -> t.color.a < 0.1f ? Touchable.disabled : Touchable.childrenOnly);
             t.table(Styles.black6, b -> {
@@ -239,17 +247,9 @@ public class DesktopInput extends InputHandler{
 
         conveyorPlaceNormal = input.keyDown(Binding.toggle_placement_modifiers);
 
-        if (input.shift()) {
-            if (input.keyTap(Binding.invisible_units) && scene.getKeyboardFocus() == null) {
-                Client.hideUnits = !Client.hideUnits;
-            }
-        } else {
-            if (input.keyTap(Binding.invisible_units) && scene.getKeyboardFocus() == null) {
-                Client.hideUnits = !Client.hideUnits;
-            }
-            if (input.keyRelease(Binding.invisible_units) && scene.getKeyboardFocus() == null) {
-                Client.hideUnits = !Client.hideUnits;
-            }
+        // Holding o hides units, pressing shift + o inverts the state; holding o will now show them.
+        if ((input.keyTap(Binding.invisible_units) || (input.keyRelease(Binding.invisible_units) && !input.shift())) && scene.getKeyboardFocus() == null) {
+            Client.hideUnits = !Client.hideUnits;
         }
 
         if(Navigation.state == NavigationState.RECORDING){
@@ -269,9 +269,15 @@ public class DesktopInput extends InputHandler{
         if(input.keyTap(Binding.auto_build) && scene.getKeyboardFocus() == null){
             Navigation.follow(new BuildPath());
         }
+
         if(input.keyTap(Binding.auto_repair) && scene.getKeyboardFocus() == null){
             Navigation.follow(new RepairPath());
         }
+
+        if(input.keyTap(Binding.toggle_strict_mode) && scene.getKeyboardFocus() == null){
+            settings.put("assumeunstrict", !settings.getBool("assumeunstrict"));
+        }
+
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
@@ -300,10 +306,6 @@ public class DesktopInput extends InputHandler{
             mode = none;
         }
 
-//        if((Math.abs(Core.input.axis(Binding.move_x)) > 0 || Math.abs(Core.input.axis(Binding.move_y)) > 0 || input.keyDown(Binding.mouse_move)) && (!scene.hasField())){
-//            panning = false;
-//        }
-
 
         //TODO awful UI state checking code
         if(((player.dead() || state.isPaused()) && !ui.chatfrag.shown()) && !scene.hasField() && !scene.hasDialog()){
@@ -328,10 +330,10 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null){ // Tile actions menu
                 int itemHeight = 30;
                 Table table = new Table(Tex.buttonTrans);
-                table.touchable = Touchable.childrenOnly;
                 table.setWidth(400);
                 table.margin(10);
                 table.fill();
+                table.touchable = Touchable.enabled; // This is needed
                 table.defaults().height(itemHeight).padTop(5).fillX();
                 try {
                     table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().growX().fillY().padTop(-5);
@@ -343,11 +345,6 @@ public class DesktopInput extends InputHandler{
                     dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).center();
                     dialog.addCloseButton();
 
-                    dialog.keyDown(key -> {
-                        if(key == KeyCode.escape || key == KeyCode.back){
-                            Core.app.post(dialog::hide);
-                        }
-                    });
                     dialog.show();
                 });
 
@@ -362,16 +359,13 @@ public class DesktopInput extends InputHandler{
                 );
 
                 table.setHeight(itemHeight * (table.getRows() + 1) + 10 * (table.getRows() + 1));
-                AtomicBoolean released = new AtomicBoolean(false);
+                table.setPosition(input.mouseX() - 1, input.mouseY() + 1, Align.topLeft); // Offset by 1 pixel so the code below doesn't trigger instantly
                 table.update(() -> {
-                    if(input.keyRelease(Binding.select) && !released.get()){
-                        released.set(true);
-                    }else if(input.keyRelease(Binding.select)){
-                        scene.root.removeChild(table);
+                    if(input.keyTap(Binding.select) && !table.hasMouse()){
+                        table.remove();
                     }
                 });
                 scene.add(table);
-                table.setPosition(input.mouseX(), input.mouseY(), Align.topLeft);
             }
             if(Core.input.keyDown(Binding.control) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit();

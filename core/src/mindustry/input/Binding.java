@@ -84,7 +84,8 @@ public enum Binding implements KeyBind{
     chat_autocomplete(KeyCode.tab),
     invisible_units(KeyCode.o),
     auto_build(KeyCode.semicolon),
-    auto_repair(KeyCode.l)
+    auto_repair(KeyCode.l),
+    toggle_strict_mode(KeyCode.f7),
     ;
 
     private final KeybindValue defaultValue;

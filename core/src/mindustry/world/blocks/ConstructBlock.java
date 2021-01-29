@@ -34,6 +34,7 @@ import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.modules.*;
 import java.time.*;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static mindustry.Vars.*;
@@ -43,7 +44,7 @@ import static mindustry.ui.Styles.monoLabel;
 public class ConstructBlock extends Block{
     private static final ConstructBlock[] consBlocks = new ConstructBlock[maxBlockSize];
 
-    private static long lastWarn;
+    private static long lastWarn = 0;
     private static long lastTime = 0;
     private static int pitchSeq = 0;
     private static long lastPlayed;
@@ -477,7 +478,7 @@ public class ConstructBlock extends Block{
         public void blockWarning(){
             if (!wasConstructing || closestCore() == null || cblock == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
 
-            HashMap<Block, Pair<Integer, Integer>> warnBlocks = new HashMap<>(); // Block, warndist, sounddist (-1 = off, 0 = unlimited)
+            Map<Block, Pair<Integer, Integer>> warnBlocks = new HashMap<>(); // Block, warndist, sounddist (-1 = off, 0 = unlimited)
             warnBlocks.put(Blocks.thoriumReactor, new Pair<>(Core.settings.getInt("reactorwarningdistance"), Core.settings.getInt("reactorsounddistance")));
             warnBlocks.put(Blocks.incinerator, new Pair<>(Core.settings.getInt("incineratorwarningdistance"), Core.settings.getInt("incineratorsounddistance")));
             if (warnBlocks.containsKey(cblock)) {
@@ -491,8 +492,8 @@ public class ConstructBlock extends Block{
                 }
 
                 if ((int) warnBlocks.get(cblock).first == 101 || distance.intValue() <= (int) warnBlocks.get(cblock).first) {
-                    String format = String.format("%s is building a %s at %d,%d (%d block%s from core).", lastBuilder.getPlayer().name, cblock.name, tileX(), tileY(), distance.intValue(), distance.intValue() == 1 ? "" : "s");
-                    String format2 = String.format("%02d%% completed.", Mathf.round(progress * 100));
+                    String format = String.format("%s is building a %s at %d,%d (%d block%s from core).", lastBuilder.getPlayer().name, cblock.localizedName, tileX(), tileY(), distance.intValue(), distance.intValue() == 1 ? "" : "s");
+                    String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
                     if (toast == null || toast.parent == null) {
                         toast = new Toast(2f, 0f);
                     } else {
@@ -509,9 +510,9 @@ public class ConstructBlock extends Block{
                     Call.unitControl(player, ((CoreBuild)closestCore()).unit());
                     Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tileX(), tileY())), net.client() ? netClient.getPing()/1000f+.3f : 0);
                 }
+                lastProgress = progress;
+                lastWarn = Time.millis();
             }
-            lastProgress = progress;
-            lastWarn = Time.millis();
         }
     }
 }
