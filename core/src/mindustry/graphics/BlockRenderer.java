@@ -18,8 +18,6 @@ import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.power.*;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import static arc.Core.*;
 import static mindustry.Vars.*;
 
@@ -304,8 +302,9 @@ public class BlockRenderer implements Disposable{
         if (Client.showingTurrets) {
             Rect bounds = new Rect();
             Core.camera.bounds(bounds);
+            Rect turretBounds = new Rect();
             Client.turrets.forEach(turret -> {
-                Rect turretBounds = new Rect().setSize(turret.range() * 2).setCenter(turret.x, turret.y);
+                turretBounds.setSize(turret.range() * 2).setCenter(turret.x, turret.y);
                 if (bounds.overlaps(turretBounds)) {
                     Drawf.dashCircle(turret.x, turret.y, turret.range(), turret.team.color);
                 }

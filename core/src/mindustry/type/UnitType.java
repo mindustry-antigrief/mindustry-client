@@ -23,7 +23,6 @@ import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.input.Binding;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.environment.*;
@@ -33,7 +32,6 @@ import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 import mindustry.world.meta.values.*;
 
-import static arc.Core.scene;
 import static mindustry.Vars.*;
 
 public class UnitType extends UnlockableContent{
@@ -487,18 +485,17 @@ public class UnitType extends UnlockableContent{
         if(unit.abilities.size > 0){
             for(Ability a : unit.abilities){
                 Draw.reset();
+                Draw.alpha(alpha);
                 a.draw(unit);
             }
             Draw.reset();
         }
-        Draw.reset();
     }
 
     public <T extends Unit & Payloadc> void drawPayload(T unit){
         if(unit.hasPayload()){
             Payload pay = unit.payloads().first();
             pay.set(unit.x, unit.y, unit.rotation);
-            Draw.alpha(alpha);
             pay.draw();
         }
     }
@@ -549,7 +546,6 @@ public class UnitType extends UnlockableContent{
             size, size, unit.rotation);
 
             Draw.mixcol();
-            Draw.alpha(alpha);
 
             Lines.stroke(1f, Pal.accent);
             Draw.alpha(alpha);
@@ -562,7 +558,7 @@ public class UnitType extends UnlockableContent{
                 Fonts.outline.draw(unit.stack.amount + "",
                 unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
                 unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY) - 3,
-                Pal.accent.a(alpha), 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
+                Pal.accent.cpy().a(alpha), 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
                 );
             }
 
@@ -578,7 +574,7 @@ public class UnitType extends UnlockableContent{
 
         if(unit instanceof Trailc){
             Trail trail = ((Trailc)unit).trail();
-            trail.draw(unit.team.color.a(alpha), (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f) * scale) * trailScl);
+            trail.draw(unit.team.color.cpy().a(alpha), (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f) * scale) * trailScl);
         }
 
         Draw.color(unit.team.color);

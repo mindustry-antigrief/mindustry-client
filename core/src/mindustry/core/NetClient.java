@@ -164,7 +164,11 @@ public class NetClient implements ApplicationListener{
         Color background = null;
         if(Vars.ui != null){
             if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
-                sender = colorizeName(playersender.id, "\uE80F " + (sender != null ? sender : playersender.name)); // Check if sender is null in case server formats message and sends without a sender
+                if (sender != null){
+                    sender = colorizeName(playersender.id, "\uE80F " + sender); // Check if sender is null in case server formats message and sends without a sender
+                } else {
+                    message = colorizeName(playersender.id, "\uE80F " + message);
+                }
                 if (Core.settings.getBool("highlightclientmsg")) background = Color.coral.cpy().mul(0.75f);
             }
 

@@ -3,6 +3,7 @@ package mindustry.world.blocks;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
+import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.Vec2;
@@ -359,6 +360,7 @@ public class ConstructBlock extends Block{
 
             if(progress <= (previous == null ? 0 : previous.deconstructThreshold) || state.rules.infiniteResources){
                 if(lastBuilder == null) lastBuilder = builder;
+                breakWarning();
                 Call.deconstructFinish(tile, this.cblock == null ? previous : this.cblock, lastBuilder);
             }
         }
@@ -473,6 +475,15 @@ public class ConstructBlock extends Block{
         @Override
         public void update() {
             super.update();
+        }
+
+        /** Send a warning in chat when these blocks are broken as they typically shouldn't be broken */
+        public void breakWarning(){
+            Seq<Block> warnBlocks = new Seq<>(new Block[]{Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid, Blocks.duo}); // All blocks that shouldn't be broken.
+            if (wasConstructing || closestCore() == null || state.rules.infiniteResources || lastBuilder == null || !lastBuilder.isPlayer()) return;
+            if (warnBlocks.contains(previous)) {
+                ui.chatfrag.addMessage(Strings.format("[scarlet]@ just removed an @!", Strings.stripColors(lastBuilder.getPlayer().name), previous.localizedName), "Anti-Grief", Color.red);
+            }
         }
 
         public void blockWarning(){

@@ -1,7 +1,6 @@
 package mindustry.client.antigrief;
 
 import mindustry.gen.Nulls;
-import mindustry.gen.Unitc;
 import mindustry.world.Block;
 import mindustry.world.Tile;
 
@@ -21,7 +20,7 @@ public class DestroyTileLog extends TileLogItem {
     }
 
     @Override
-    protected String formatConcise(String date, long minutes) {
-        return String.format("%s destroyed (%dm)", block.localizedName, minutes);
+    protected String formatConcise(String date, String minutes) {
+        return String.format("%s destroyed (%s)", block.localizedName, minutes);
     }
 }

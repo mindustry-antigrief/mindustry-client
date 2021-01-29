@@ -854,6 +854,7 @@ public class Fx{
 
     overclocked = new Effect(50f, e -> {
         color(Pal.accent);
+        alpha(e.color.a);
 
         Fill.square(e.x, e.y, e.fslope() * 2f, 45f);
     }),

@@ -336,7 +336,7 @@ public class HudFragment extends Fragment{
             float[] coreAttackOpacity = {0};
 
             Events.on(TeamCoreDamage.class, event -> {
-                if (!t.visible && timer.get(10)) {
+                if (!t.visible && timer.get(30 * 60)) { // Do once every 30s max
                     if (Core.settings.getBool("broadcastcoreattack")) {
                         Call.sendChatMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                     } else {
