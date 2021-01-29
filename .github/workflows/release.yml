@@ -27,7 +27,7 @@ jobs:
           java-version: 14
 
       - name: Build Client
-        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}
+        run: ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() }}
