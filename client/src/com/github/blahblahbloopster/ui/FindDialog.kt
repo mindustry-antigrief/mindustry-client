@@ -21,7 +21,7 @@ object FindDialog : BaseDialog("@find") {
     private val inputField = TextField()
     private var guesses: List<Block> = emptyList()
 
-    fun updateGuesses() {
+    private fun updateGuesses() {
         guesses = Vars.content.blocks().copy().toMutableList().sortedBy { BiasedLevenshtein.biasedLevenshtein(it.localizedName, inputField.text) }
     }
 
