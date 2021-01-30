@@ -1,6 +1,7 @@
 package mindustry.client;
 
 import arc.*;
+import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.struct.IntSet;
@@ -51,6 +52,8 @@ public class Client {
     public static IntSet messageBlockPositions = new IntSet();
     public static final String messageCommunicationPrefix = "IN USE FOR CHAT AUTHENTICATION, do not use";
     public static ClientInterface mapping;
+    public static final byte FOO_USER = (byte) 0b10101010;
+    public static final byte ASSISTING = (byte) 0b01010101;
 
     public static void initialize() {
         fooCommands.<Player>register("help", "[page]", "Lists all client commands.", (args, player) -> {

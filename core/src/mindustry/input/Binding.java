@@ -86,6 +86,8 @@ public enum Binding implements KeyBind{
     auto_build(KeyCode.semicolon),
     auto_repair(KeyCode.l),
     toggle_strict_mode(KeyCode.f7),
+    find_modifier(KeyCode.controlLeft),
+    find(KeyCode.f)
     ;
 
     private final KeybindValue defaultValue;

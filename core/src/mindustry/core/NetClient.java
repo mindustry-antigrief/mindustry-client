@@ -638,7 +638,11 @@ public class NetClient implements ApplicationListener{
 
             Unit unit = player.dead() ? Nulls.unit : player.unit();
             int uid = player.dead() ? -1 : unit.id;
-            Vec2 pos = Core.settings.getBool("displayasuser") ? FooUser.encode(player.unit().aimX, player.unit().aimY, Navigation.currentlyFollowing instanceof AssistPath) : new Vec2(player.unit().aimX, player.unit().aimY);
+            Vec2 pos = Core.settings.getBool("displayasuser") ?
+                    new Vec2(FloatEmbed.embedInFloat(player.unit().aimX, Client.FOO_USER),
+                            FloatEmbed.embedInFloat(player.unit().aimY,
+                                    Navigation.currentlyFollowing instanceof AssistPath ? Client.ASSISTING : Client.FOO_USER))
+                    : new Vec2(player.unit().aimX, player.unit().aimY);
 
             Call.clientSnapshot(
             lastSent++,
