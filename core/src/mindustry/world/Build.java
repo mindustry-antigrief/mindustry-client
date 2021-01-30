@@ -87,6 +87,7 @@ public class Build{
         tmp.clear();
 
         tile.getLinkedTilesAs(result, t -> {
+            ConstructBlock.breakWarning(t, t.block, unit); // This will totally break if warnBlocks contains a multiblock lol
             if(t.build != null && t.build.team == team && tmp.add(t.build.id)){
                 prevBuild.add(t.build);
             }

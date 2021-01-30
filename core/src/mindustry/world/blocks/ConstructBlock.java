@@ -94,7 +94,7 @@ public class ConstructBlock extends Block{
     public static void breakWarning(Tile tile, Block block, Unit builder){
         if (state.rules.infiniteResources || builder == null || !builder.isPlayer()) return; // Don't warn in sandbox for obvious reasons.
 
-        Seq<Block> warnBlocks = new Seq<>(new Block[]{Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid, Blocks.duo}); // All blocks that shouldn't be broken.
+        Seq<Block> warnBlocks = new Seq<>(new Block[]{Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid, Blocks.duo}); // All blocks that shouldn't be broken. Note: Untested with multiblocks, likely to behave in a strange manner.
 
         if (warnBlocks.contains(block) && Time.timeSinceMillis(tile.lastBreakWarn) > 10_000) {
             AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
@@ -327,7 +327,6 @@ public class ConstructBlock extends Block{
             progress = state.rules.infiniteResources ? 1 : Mathf.clamp(progress + maxProgress);
 
             blockWarning();
-            tile.getLinkedTilesAs(cblock, t -> breakWarning(t, t.block(), builder));
 
             if(progress >= 1f || state.rules.infiniteResources){
                 if(lastBuilder == null) lastBuilder = builder;
