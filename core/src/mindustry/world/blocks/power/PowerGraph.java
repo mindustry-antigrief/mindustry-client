@@ -308,13 +308,16 @@ public class PowerGraph{
         }
     }
 
-    private void removeSingle(Building tile){
-        all.remove(tile, true);
-        producers.remove(tile, true);
-        consumers.remove(tile, true);
-        batteries.remove(tile, true);
+    /** Used for unit tests only. */
+    public void removeList(Building build){
+        all.remove(build);
+        producers.remove(build);
+        consumers.remove(build);
+        batteries.remove(build);
     }
 
+    /** Note that this does not actually remove the building from the graph;
+     * it creates *new* graphs that contain the correct buildings. */
     public void remove(Building tile){
         //begin by clearing the closed set
         closedSet.clear();

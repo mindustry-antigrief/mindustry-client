@@ -71,7 +71,10 @@ public class ConstructBlock extends Block{
     @Remote(called = Loc.server)
     public static void deconstructFinish(Tile tile, Block block, Unit builder){
         if(tile != null && builder != null && block != null){
-            tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", block)));
+            tile.getLinkedTiles(t -> {
+                t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", block));
+                breakWarning(t, block, builder);
+            });
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if(((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()){
                     if(block.isVisible()) {
@@ -85,6 +88,21 @@ public class ConstructBlock extends Block{
         Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null));
         tile.remove();
         if(shouldPlay()) Sounds.breaks.at(tile, calcPitch(false));
+    }
+
+    /** Send a warning in chat when these blocks are broken/picked up/built over as they typically shouldn't be touched. */
+    public static void breakWarning(Tile tile, Block block, Unit builder){
+        if (state.rules.infiniteResources || builder == null || !builder.isPlayer()) return; // Don't warn in sandbox for obvious reasons.
+
+        Seq<Block> warnBlocks = new Seq<>(new Block[]{Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid, Blocks.duo}); // All blocks that shouldn't be broken.
+
+        if (warnBlocks.contains(block) && Time.timeSinceMillis(tile.lastBreakWarn) > 10_000) {
+            AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
+            state.teams.closestCore(tile.worldx(), tile.worldy(), builder.team).tile.getLinkedTiles(t -> tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)) - 1, distance.get())))); // Oh god
+
+            Timer.schedule(() -> ui.chatfrag.addMessage(Strings.format("[scarlet]@ just removed a @! (@ blocks from core)", Strings.stripColors(builder.getPlayer().name), block.localizedName, distance.get()), "Anti Grief"), 0, 0, 4);
+            tile.lastBreakWarn = Time.millis();
+        }
     }
 
     @Remote(called = Loc.server)
@@ -309,6 +327,7 @@ public class ConstructBlock extends Block{
             progress = state.rules.infiniteResources ? 1 : Mathf.clamp(progress + maxProgress);
 
             blockWarning();
+            tile.getLinkedTilesAs(cblock, t -> breakWarning(t, t.block(), builder));
 
             if(progress >= 1f || state.rules.infiniteResources){
                 if(lastBuilder == null) lastBuilder = builder;
@@ -360,7 +379,6 @@ public class ConstructBlock extends Block{
 
             if(progress <= (previous == null ? 0 : previous.deconstructThreshold) || state.rules.infiniteResources){
                 if(lastBuilder == null) lastBuilder = builder;
-                breakWarning();
                 Call.deconstructFinish(tile, this.cblock == null ? previous : this.cblock, lastBuilder);
             }
         }
@@ -477,15 +495,6 @@ public class ConstructBlock extends Block{
             super.update();
         }
 
-        /** Send a warning in chat when these blocks are broken as they typically shouldn't be broken */
-        public void breakWarning(){
-            Seq<Block> warnBlocks = new Seq<>(new Block[]{Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid, Blocks.duo}); // All blocks that shouldn't be broken.
-            if (wasConstructing || closestCore() == null || state.rules.infiniteResources || lastBuilder == null || !lastBuilder.isPlayer()) return;
-            if (warnBlocks.contains(previous)) {
-                ui.chatfrag.addMessage(Strings.format("[scarlet]@ just removed an @!", Strings.stripColors(lastBuilder.getPlayer().name), previous.localizedName), "Anti-Grief", Color.red);
-            }
-        }
-
         public void blockWarning(){
             if (!wasConstructing || closestCore() == null || cblock == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
 
@@ -498,8 +507,9 @@ public class ConstructBlock extends Block{
                 closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)) - 1, distance.get())))); // Oh god
 
                 // Play warning sound (only played when no reactor has been built for 10s)
-                if (Time.timeSinceMillis(lastWarn) > 10 * 1000 && ((int) warnBlocks.get(cblock).second == 101 || distance.intValue() <= (int) warnBlocks.get(cblock).second)) {
-                    Sounds.corexplode.play(.5f * (float)Core.settings.getInt("sfxvol") / 100.0F);
+                if ((int) warnBlocks.get(cblock).second == 101 || distance.intValue() <= (int) warnBlocks.get(cblock).second) {
+                    if (Time.timeSinceMillis(lastWarn) > 10 * 1000) Sounds.corexplode.play(.5f * (float)Core.settings.getInt("sfxvol") / 100.0F);
+                    lastWarn = Time.millis();
                 }
 
                 if ((int) warnBlocks.get(cblock).first == 101 || distance.intValue() <= (int) warnBlocks.get(cblock).first) {
@@ -522,7 +532,6 @@ public class ConstructBlock extends Block{
                     Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tileX(), tileY())), net.client() ? netClient.getPing()/1000f+.3f : 0);
                 }
                 lastProgress = progress;
-                lastWarn = Time.millis();
             }
         }
     }

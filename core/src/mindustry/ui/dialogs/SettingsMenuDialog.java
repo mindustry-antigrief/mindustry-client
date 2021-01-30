@@ -326,7 +326,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.sliderPref("reactorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
         client.sliderPref("incineratorwarningdistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" :Integer.toString(s));
         client.sliderPref("incineratorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
-        client.checkPref("removecorenukes", true);
+        client.checkPref("removecorenukes", false);
         client.checkPref("lighting", true);
         client.checkPref("displayasuser", false);
         client.checkPref("highlightclientmsg", false);

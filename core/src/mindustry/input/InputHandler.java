@@ -242,7 +242,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Remote(targets = Loc.server, called = Loc.server)
     public static void pickedBuildPayload(Unit unit, Building build, boolean onGround){
         if(build != null && unit instanceof Payloadc pay){
-            build.tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadPickupTileLog(unit, tile2, tile2.block(), Instant.now().getEpochSecond(), "")));
+            build.tile.getLinkedTiles(tile2 -> {
+                tile2.addToLog(new PayloadPickupTileLog(unit, tile2, tile2.block(), Instant.now().getEpochSecond(), ""));
+                ConstructBlock.breakWarning(tile2, build.block, unit);
+            });
 
         if(onGround){
             if(build.block.buildVisibility != BuildVisibility.hidden && build.canPickup() && pay.canPickup(build)){
@@ -494,8 +497,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead /* TODO: Make this a thing that actually works? && (!(u.controller() instanceof FormationAI f) || f.isBeingControlled(player.lastReadUnit)) */);
 
             if(unit != null){
-                //only trying controlling once a second to prevent packet spam
-                if(!net.client() || controlInterval.get(0, 70f)){
+                if(!net.client() || controlInterval.get(0, 10f)){
                     Call.unitControl(player, unit);
                 }
             }

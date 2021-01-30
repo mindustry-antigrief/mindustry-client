@@ -73,7 +73,7 @@ public class DesktopInput extends InputHandler{
             }).margin(6f);
         });
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !player.unit().isBuilding() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty() && UnitType.alpha != 0));
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !player.unit().isBuilding() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()) && UnitType.alpha != 0);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -281,7 +281,7 @@ public class DesktopInput extends InputHandler{
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
-        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null){ // Navigates to cursor despite the bind name
+        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null && selectRequests.isEmpty()){ // Navigates to cursor despite the bind name
             Navigation.navigateTo(input.mouseWorld());
         }
 

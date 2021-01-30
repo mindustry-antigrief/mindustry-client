@@ -174,7 +174,7 @@ public class NetClient implements ApplicationListener{
 
             Matcher matcher = coordPattern.matcher(message);
             if (matcher.find()) {
-                Client.lastSentPos.set(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+                try {Client.lastSentPos.set(Long.parseLong(matcher.group(1)), Long.parseLong(matcher.group(2)));} catch (NumberFormatException ignored) {}
                 message = matcher.replaceFirst("[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
             }
             Vars.ui.chatfrag.addMessage(message, sender, background);

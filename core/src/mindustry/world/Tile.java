@@ -27,6 +27,7 @@ public class Tile implements Position, QuadTreeObject, Displayable{
     public byte data;
     /** Tile entity, usually null. */
     public @Nullable Building build;
+    public long lastBreakWarn;
     public short x, y;
     protected Block block;
     protected Floor floor;
