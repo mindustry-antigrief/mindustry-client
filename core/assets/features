@@ -19,6 +19,7 @@ lol comments are useless
  * o - make all units invisible (including yourself)
  * shift o - toggle unit invisibility
  * ; - enable "build path", automatically moves to anything you place, rebuilds broken structures and assists teammates
+ * ctrl f - find block
 
 # Top Navigation Menu
  * Start recording waypoints - begin a new path, press y to add a waypoint
