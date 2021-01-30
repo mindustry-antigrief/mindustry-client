@@ -25,12 +25,9 @@ import mindustry.input.DesktopInput;
 import mindustry.world.Tile;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
-
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import static arc.Core.settings;
 import static mindustry.Vars.*;
 import static mindustry.Vars.player;
@@ -150,6 +147,7 @@ public class Client {
             }
             PowerInfo.initialize();
             Navigation.stopFollowing();
+            Navigation.obstacles.clear();
             configs.clear();
             turrets.clear();
             UnitPicker.found = null;
@@ -226,6 +224,7 @@ public class Client {
             hideTrails = Core.settings.getBool("hidetrails");
             Blocks.sand.asFloor().playerUnmineable = !settings.getBool("doubleclicktomine");
             Blocks.darksand.asFloor().playerUnmineable = !settings.getBool("doubleclicktomine");
+            Navigation.navigator.init();
         });
     }
 

@@ -11,8 +11,7 @@ import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
-import mindustry.client.ui.ChangelogDialog;
-import mindustry.client.ui.FeaturesDialog;
+import mindustry.client.Client;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -192,8 +191,8 @@ public class MenuFragment extends Fragment{
                             Core.app.setClipboardText("https://github.com/blahblahbloopster/mindustry-client-v6");
                         }
                     }),
-                    new Buttoni("Changelog", Icon.edit, () -> new ChangelogDialog().show()),
-                    new Buttoni("Features", Icon.list, () -> new FeaturesDialog().show())
+                    new Buttoni("Changelog", Icon.edit, () -> Client.mapping.showChangelogDialog()),
+                    new Buttoni("Features", Icon.list, () -> Client.mapping.showFeaturesDialog())
                 ), // End of client section
                 new Buttoni("@quit", Icon.exit, Core.app::exit)
             );

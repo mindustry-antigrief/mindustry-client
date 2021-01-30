@@ -6,7 +6,9 @@ import com.github.blahblahbloopster.crypto.CommunicationSystem
 import com.github.blahblahbloopster.crypto.Crypto
 import com.github.blahblahbloopster.crypto.MessageBlockCommunicationSystem
 import com.github.blahblahbloopster.crypto.MessageCrypto
+import com.github.blahblahbloopster.navigation.AStarNavigator
 import mindustry.client.Client
+import mindustry.client.navigation.Navigation
 
 object Main : ApplicationListener {
     var communicationSystem: CommunicationSystem? = null
@@ -22,6 +24,8 @@ object Main : ApplicationListener {
             messageCrypto!!.init(communicationSystem!!)
         }
         Client.mapping = ClientMapping()
+
+        Navigation.navigator = AStarNavigator
     }
 
     /** Run once per frame. */
