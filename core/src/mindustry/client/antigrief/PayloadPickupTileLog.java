@@ -19,7 +19,7 @@ public class PayloadPickupTileLog extends TileLogItem {
     }
 
     @Override
-    protected String formatConcise(String date, String minutes) {
-        return String.format("%s picked up %s (%s)", player, block.localizedName, minutes);
+    protected String formatConcise(String date, long minutes) {
+        return String.format("%s picked up %s (%dm)", player, block.localizedName, minutes);
     }
 }

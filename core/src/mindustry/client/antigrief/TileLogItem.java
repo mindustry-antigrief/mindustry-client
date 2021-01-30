@@ -29,8 +29,8 @@ public class TileLogItem {
         return String.format("%s interacted with tile at %s UTC (%d minutes ago).  %s", player, date, minutes, additionalInfo);
     }
 
-    protected String formatConcise(String date, String minutes) {
-        return String.format("%s interacted (%s)", player, minutes);
+    protected String formatConcise(String date, long minutes) {
+        return String.format("%s interacted (%dm)", player, minutes);
     }
 
     public String format() {
@@ -54,7 +54,7 @@ public class TileLogItem {
         String formatted = format.format(Date.from(instant));
 
         Duration duration = Duration.between(instant, Instant.now());
-        String minutes = Strings.formatMillis(duration.getSeconds() * 1000);
+        long minutes = duration.getSeconds() / 60L;
 
         return formatConcise(formatted, minutes);
     }
