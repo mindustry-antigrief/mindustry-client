@@ -17,7 +17,7 @@ import mindustry.ui.dialogs.*;
 import static mindustry.Vars.*;
 
 
-public class UnitPicker extends BaseDialog{
+public class UnitPicker extends BaseDialog {
     public static UnitType found;
     private TextField findField;
 

@@ -50,6 +50,8 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     private transient float resupplyTime = Mathf.random(10f);
     private transient boolean wasPlayer;
 
+    private final transient ObjectMap<Weapon, TurretPathfindingEntity> pathfindingEntities = new ObjectMap<>();
+
     public void moveAt(Vec2 vector){
         moveAt(vector, type.accel);
     }
@@ -301,11 +303,17 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     public void update(){
         if (hasWeapons()) {
             if (player != null && team != player.team()) {
-                type.weapons.forEach(weapon -> {
-                    if (player.unit().isFlying()? weapon.bullet.collidesAir : weapon.bullet.collidesGround) {
-                        Navigation.obstacles.add(new TurretPathfindingEntity(tileX(), tileY(), weapon.bullet.range() * 1.2f));
+                for (Weapon weapon : type.weapons) {
+                    if (!pathfindingEntities.containsKey(weapon)) {
+                        TurretPathfindingEntity ent = new TurretPathfindingEntity(0f, 0f, weapon.bullet.range(), false);
+                        pathfindingEntities.put(weapon, ent);
                     }
-                });
+                    TurretPathfindingEntity entity = pathfindingEntities.get(weapon);
+                    Navigation.obstacles.add(entity);
+                    entity.x = x;
+                    entity.y = y;
+                    entity.canHitPlayer = player.unit().isFlying()? weapon.bullet.collidesAir : weapon.bullet.collidesGround;
+                }
             }
         }
 

@@ -153,11 +153,20 @@ public class Turret extends ReloadTurret{
         public Vec2 targetPos = new Vec2();
         public BlockUnitc unit = Nulls.blockUnit;
         public boolean wasShooting, charging;
+        private TurretPathfindingEntity pathfindingEntity = null;
 
         @Override
         public void created(){
             unit = (BlockUnitc)UnitTypes.block.create(team);
             unit.tile(this);
+
+            pathfindingEntity = new TurretPathfindingEntity(x, y, range, false);
+        }
+
+        @Override
+        public void remove() {
+            Navigation.obstacles.remove(pathfindingEntity);
+            super.remove();
         }
 
         @Override
@@ -257,9 +266,18 @@ public class Turret extends ReloadTurret{
             unit.health(health);
             unit.rotation(rotation);
             unit.team(team);
-            if(player != null && team != player.team() && (player.unit().isFlying()? targetAir : targetGround) && hasAmmo()) {
-                Navigation.obstacles.add(new TurretPathfindingEntity(tileX(), tileY(), range * 1.2f));
+
+            Navigation.obstacles.add(pathfindingEntity);
+            if (player != null) {
+                pathfindingEntity.canHitPlayer = player.team() != team &&
+                        (player.unit().isFlying() ? targetAir : targetGround) &&
+                        hasAmmo();
             }
+
+            pathfindingEntity.radius = range;
+            pathfindingEntity.x = x;
+            pathfindingEntity.y = y;
+
             unit.set(x, y);
 
             if(logicControlTime > 0){

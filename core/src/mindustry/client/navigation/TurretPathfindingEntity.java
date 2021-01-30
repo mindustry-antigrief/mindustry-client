@@ -1,13 +1,21 @@
 package mindustry.client.navigation;
 
-public class TurretPathfindingEntity{
-    int x, y;
-    float range;
+import arc.math.geom.Circle;
 
-    public TurretPathfindingEntity(int x, int y, float range){
+public class TurretPathfindingEntity extends Circle {
+    public boolean canHitPlayer;
+    private static long nextId = 0;
+    public long id;
+
+    {
+        id = nextId++;
+    }
+
+    public TurretPathfindingEntity(float x, float y, float range, boolean canHitPlayer){
         this.x = x;
         this.y = y;
-        this.range = range;
+        this.radius = range;
+        this.canHitPlayer = canHitPlayer;
     }
 
     @Override
@@ -15,7 +23,20 @@ public class TurretPathfindingEntity{
         return "TurretPathfindingEntity{" +
         "x=" + x +
         ", y=" + y +
-        ", range=" + range +
+        ", radius=" + radius +
         '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(o == this) return true;
+        if(o == null || o.getClass() != this.getClass()) return false;
+        TurretPathfindingEntity c = (TurretPathfindingEntity) o;
+        return this.id == c.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id);
     }
 }

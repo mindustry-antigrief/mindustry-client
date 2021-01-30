@@ -7,7 +7,7 @@ import arc.func.*;
 import arc.util.*;
 import arc.util.async.*;
 import arc.util.serialization.*;
-import mindustry.client.ui.ChangelogDialog;
+import mindustry.client.Client;
 import mindustry.core.*;
 import mindustry.game.EventType;
 import mindustry.gen.*;
@@ -49,7 +49,7 @@ public class BeControl{
 
             if(System.getProperties().containsKey("becopy")){
                 try{
-                    if(!System.getProperty("lastBuild").equals(Version.clientVersion)) new ChangelogDialog().show(); // Show changelog after auto update
+                    if(!System.getProperty("lastBuild").equals(Version.clientVersion)) Client.mapping.showChangelogDialog(); // Show changelog after auto update
                     Fi dest = Fi.get(System.getProperty("becopy"));
                     Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 

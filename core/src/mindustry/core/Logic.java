@@ -424,7 +424,6 @@ public class Logic implements ApplicationListener{
                 state.envAttrs.clear();
                 Groups.weather.each(w -> state.envAttrs.add(w.weather.attrs, w.opacity));
 
-                Navigation.obstacles.clear();
                 Client.turrets.clear();
                 Groups.update();
             }
