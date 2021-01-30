@@ -268,10 +268,11 @@ public class Turret extends ReloadTurret{
             unit.team(team);
 
             Navigation.obstacles.add(pathfindingEntity);
-
-            pathfindingEntity.canHitPlayer = player.team() != team &&
-                    (player.unit().isFlying()? targetAir : targetGround) &&
-                    hasAmmo();
+            if (player != null) {
+                pathfindingEntity.canHitPlayer = player.team() != team &&
+                        (player.unit().isFlying() ? targetAir : targetGround) &&
+                        hasAmmo();
+            }
 
             pathfindingEntity.radius = range;
             pathfindingEntity.x = x;
