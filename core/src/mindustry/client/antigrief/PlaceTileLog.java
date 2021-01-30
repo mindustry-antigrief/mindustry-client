@@ -43,7 +43,7 @@ public class PlaceTileLog extends TileLogItem {
     }
 
     @Override
-    protected String formatConcise(String date, String minutes) {
-        return String.format("%s placed %s (%s)", player, block.localizedName, minutes);
+    protected String formatConcise(String date, long minutes) {
+        return String.format("%s placed %s (%dm)", player, block.localizedName, minutes);
     }
 }

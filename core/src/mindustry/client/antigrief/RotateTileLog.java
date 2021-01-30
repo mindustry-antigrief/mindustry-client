@@ -41,7 +41,7 @@ public class RotateTileLog extends TileLogItem {
     }
 
     @Override
-    protected String formatConcise(String date, String minutes) {
-        return String.format("%s rotated tile (%s)", player, minutes);
+    protected String formatConcise(String date, long minutes) {
+        return String.format("%s rotated tile (%dm)", player, minutes);
     }
 }
