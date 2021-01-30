@@ -27,10 +27,10 @@ jobs:
           java-version: 14
 
       - name: Build Client
-        run: ./gradlew desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}
+        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}
 
       - name: Upload Test Results To Pages
-        if: ${{ !cancelled() && !always() }}
+        if: ${{ !cancelled() }}
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
