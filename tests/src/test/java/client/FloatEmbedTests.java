@@ -2,7 +2,7 @@ package client;
 
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
-import mindustry.client.FooUser;
+import mindustry.client.Client;
 import mindustry.client.utils.FloatEmbed;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -23,16 +23,16 @@ public class FloatEmbedTests {
         Assertions.assertTrue(FloatEmbed.isEmbedded(embedded, item));
 
         Vec2 inputVector = new Vec2((float) (Mathf.rand.nextDouble() * 10000), (float) (Mathf.rand.nextDouble() * 10000));
-        Vec2 notAssisting = FooUser.encode(inputVector.x, inputVector.y, false);
-        Vec2 assisting = FooUser.encode(inputVector.x, inputVector.y, true);
+        Vec2 notAssisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, Client.FOO_USER), FloatEmbed.embedInFloat(inputVector.y, Client.FOO_USER));
+        Vec2 assisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, Client.FOO_USER), FloatEmbed.embedInFloat(inputVector.y, Client.ASSISTING));
 
         Assertions.assertTrue(notAssisting.dst(inputVector) < 0.1f);
         Assertions.assertTrue(assisting.dst(inputVector) < 0.1f);
 
-        Assertions.assertTrue(FooUser.isUser(notAssisting));
-        Assertions.assertTrue(FooUser.isUser(assisting));
+        Assertions.assertTrue(FloatEmbed.isEmbedded(notAssisting.x, Client.FOO_USER));
+        Assertions.assertTrue(FloatEmbed.isEmbedded(assisting.x, Client.FOO_USER));
 
-        Assertions.assertFalse(FooUser.isAssisting(notAssisting));
-        Assertions.assertTrue(FooUser.isAssisting(assisting));
+        Assertions.assertFalse(FloatEmbed.isEmbedded(notAssisting.y, Client.ASSISTING));
+        Assertions.assertTrue(FloatEmbed.isEmbedded(assisting.y, Client.ASSISTING));
     }
 }
