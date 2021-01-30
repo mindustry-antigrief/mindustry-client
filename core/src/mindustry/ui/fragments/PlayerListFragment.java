@@ -2,20 +2,19 @@ package mindustry.ui.fragments;
 
 import arc.*;
 import arc.graphics.g2d.*;
+import arc.input.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.FooUser;
 import mindustry.client.Spectate;
 import mindustry.client.navigation.AssistPath;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.input.DesktopInput;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
@@ -25,9 +24,9 @@ import static mindustry.Vars.*;
 public class PlayerListFragment extends Fragment{
     public Table content = new Table().marginRight(13f).marginLeft(13f);
     private boolean visible = false;
-    private Interval timer = new Interval();
+    private final Interval timer = new Interval();
     private TextField sField;
-    private Seq<Player> players = new Seq<>();
+    private final Seq<Player> players = new Seq<>();
 
     @Override
     public void build(Group parent){
@@ -36,12 +35,12 @@ public class PlayerListFragment extends Fragment{
             cont.name = "playerlist";
             cont.visible(() -> visible);
             cont.update(() -> {
-                if(!(net.active() && state.isGame())){
+                if(!state.isGame()){
                     visible = false;
                     return;
                 }
 
-                if(visible && timer.get(60)){
+                if(visible && timer.get(5) && !Core.input.keyDown(KeyCode.mouseLeft)){
                     rebuild();
                     content.pack();
                     content.act(Core.graphics.getDeltaTime());
@@ -68,9 +67,9 @@ public class PlayerListFragment extends Fragment{
                     menu.defaults().growX().height(50f).fillY();
                     menu.name = "menu";
 
-                    menu.button("@server.bans", ui.bans::show).disabled(b -> net.client());
-                    menu.button("@server.admins", ui.admins::show).disabled(b -> net.client());
-                    menu.button("@close", this::toggle);
+                    menu.button("@server.bans", ui.bans::show).disabled(b -> net.client()).get().getLabel().setWrap(false);
+                    menu.button("@server.admins", ui.admins::show).disabled(b -> net.client()).get().getLabel().setWrap(false);
+                    menu.button("@close", this::toggle).get().getLabel().setWrap(false);
                 }).margin(0f).pad(10f).growX();
 
             }).touchable(Touchable.enabled).margin(14f);
@@ -88,14 +87,14 @@ public class PlayerListFragment extends Fragment{
         players.clear();
         Groups.player.copy(players);
 
-        players.sort(Structs.comps(Structs.comparing(Player::team), Structs.comparingBool(p -> !p.admin)));
+        players.sort(Structs.comps(Structs.comparing(Player::team), Structs.comps(Structs.comparingBool(p -> !p.admin), Structs.comparingBool(p -> !p.fooUser))));
 
         for(var user : players){
             found = true;
             NetConnection connection = user.con;
 
-            if(connection == null && net.server() && !user.isLocal()) return;
-            if(sField.getText().length() > 0 && !user.name().toLowerCase().contains(sField.getText().toLowerCase()) && !Strings.stripColors(user.name().toLowerCase()).contains(sField.getText().toLowerCase())) return;
+            if(connection == null && net.server() && !user.isLocal()) continue;
+            if(sField.getText().length() > 0 && !user.name().toLowerCase().contains(sField.getText().toLowerCase()) && !Strings.stripColors(user.name().toLowerCase()).contains(sField.getText().toLowerCase())) continue;
 
             Table button = new Table();
             button.left();
@@ -120,8 +119,8 @@ public class PlayerListFragment extends Fragment{
             button.labelWrap("[#" + user.color().toString().toUpperCase() + "]" + user.name()).width(300f).pad(10);
             button.add().grow();
 
-            button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).padRight(10).get().updateVisibility();
-            button.image(Icon.wrench).visible(() -> FooUser.isPlayerUser(user) && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
+            if (user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
+            if (user.fooUser && !(!user.isLocal() && net.server())) button.image(Icon.wrench).padRight(7.5f);
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();
@@ -172,12 +171,9 @@ public class PlayerListFragment extends Fragment{
                 button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
                         () -> Navigation.follow(new UnAssistPath(user))).size(h / 2);
                 button.button(Icon.move, Styles.clearPartiali, // Goto
-                        () -> Navigation.navigateTo(user.x+1, user.y+1)).size(h / 2);
+                        () -> Navigation.navigateTo(user)).size(h / 2);
                 button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
-                        () -> {
-                            DesktopInput.panning = true;
-                            Spectate.pos = user;
-                        });
+                        () -> Spectate.spectate(user));
             }
 
             content.add(button).padBottom(-6).width(600f).maxHeight(h + 14);

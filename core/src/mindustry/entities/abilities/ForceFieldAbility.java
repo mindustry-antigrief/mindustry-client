@@ -81,19 +81,19 @@ public class ForceFieldAbility extends Ability{
         checkRadius(unit);
 
         if(unit.shield > 0){
-            Draw.z(Layer.shields - .5f);
+            Draw.z(Layer.shields - .5f + UnitType.alpha); // Scuffed method to draw unit shields.
 
-            Draw.color(unit.team.color, Color.white, Mathf.clamp(alpha));
-            Draw.alpha(1f);
+            Draw.color(unit.team.color, Color.white, Mathf.clamp(alpha * UnitType.alpha));
 
             if(Core.settings.getBool("animatedshields")){
-                Draw.alpha(UnitType.alpha);
+                Draw.alpha(Mathf.clamp(UnitType.alpha * 2));
                 Fill.poly(unit.x, unit.y, 6, realRad);
+                Draw.alpha(1f);
             }else{
                 Lines.stroke(1.5f);
                 Draw.alpha(0.09f * UnitType.alpha);
                 Fill.poly(unit.x, unit.y, 6, radius);
-                Draw.alpha(1f * UnitType.alpha);
+                Draw.alpha(UnitType.alpha);
                 Lines.poly(unit.x, unit.y, 6, radius);
             }
         }

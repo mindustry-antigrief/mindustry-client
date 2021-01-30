@@ -10,7 +10,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
-import mindustry.client.antigreif.*;
+import mindustry.client.antigrief.*;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -27,6 +27,7 @@ public class Tile implements Position, QuadTreeObject, Displayable{
     public byte data;
     /** Tile entity, usually null. */
     public @Nullable Building build;
+    public long lastBreakWarn;
     public short x, y;
     protected Block block;
     protected Floor floor;

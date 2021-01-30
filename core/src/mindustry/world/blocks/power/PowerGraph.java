@@ -4,6 +4,7 @@ import arc.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.client.utils.*;
 import mindustry.game.Team;
 import mindustry.gen.*;
@@ -20,9 +21,8 @@ public class PowerGraph{
     private final Seq<Building> batteries = new Seq<>(false);
     public final Seq<Building> all = new Seq<>(false);
 
-    private final WindowedMean powerBalance = new WindowedMean(60);
-    public final MovingAverage displayPowerBalance = new MovingAverage(60);
-    private float lastPowerProduced, lastPowerNeeded, lastUsageFraction, lastPowerStored;
+    public final WindowedMean powerBalance = new WindowedMean(60);
+    private float lastPowerProduced, lastPowerNeeded, lastPowerStored;
     private float lastScaledPowerIn, lastScaledPowerOut, lastCapacity;
     public boolean active = true;
     public Team team;
@@ -41,6 +41,7 @@ public class PowerGraph{
 
     public void updateActive() {
         if (!active) return;
+        if (Vars.state.isPaused()) lastFrameUpdated = Core.graphics.getFrameId();
         if (!(Core.graphics.getFrameId() - lastFrameUpdated < 2)) {
             activeGraphs.remove(this);
             active = false;
@@ -246,7 +247,6 @@ public class PowerGraph{
 
         powerBalance.add((lastPowerProduced - lastPowerNeeded + energyDelta) / Time.delta);
         energyDelta = 0f;
-        displayPowerBalance.add((lastPowerProduced - lastPowerNeeded) / Time.delta);
 
         if(!(consumers.size == 0 && producers.size == 0 && batteries.size == 0)){
 
@@ -308,15 +308,17 @@ public class PowerGraph{
         }
     }
 
-    private void removeSingle(Building tile){
-        all.remove(tile, true);
-        producers.remove(tile, true);
-        consumers.remove(tile, true);
-        batteries.remove(tile, true);
+    /** Used for unit tests only. */
+    public void removeList(Building build){
+        all.remove(build);
+        producers.remove(build);
+        consumers.remove(build);
+        batteries.remove(build);
     }
 
+    /** Note that this does not actually remove the building from the graph;
+     * it creates *new* graphs that contain the correct buildings. */
     public void remove(Building tile){
-        removeSingle(tile);
         //begin by clearing the closed set
         closedSet.clear();
 
@@ -334,8 +336,6 @@ public class PowerGraph{
             while(queue.size > 0){
                 //get child from queue
                 Building child = queue.removeFirst();
-                //remove it from this graph
-                removeSingle(child);
                 //add it to the new branch graph
                 graph.add(child);
                 //go through connections

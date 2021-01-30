@@ -6,7 +6,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.antigreif.RotateTileLog;
+import mindustry.client.antigrief.RotateTileLog;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
@@ -87,6 +87,7 @@ public class Build{
         tmp.clear();
 
         tile.getLinkedTilesAs(result, t -> {
+            ConstructBlock.breakWarning(t, t.block, unit); // This will totally break if warnBlocks contains a multiblock lol
             if(t.build != null && t.build.team == team && tmp.add(t.build.id)){
                 prevBuild.add(t.build);
             }

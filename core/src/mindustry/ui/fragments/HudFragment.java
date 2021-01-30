@@ -14,12 +14,12 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.Vars;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.Client;
 import mindustry.client.ui.TileInfoFragment;
 import mindustry.client.ui.Toast;
 import mindustry.content.*;
-import mindustry.client.antigreif.*;
+import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.core.GameState.*;
 import mindustry.core.World;
@@ -43,7 +43,7 @@ public class HudFragment extends Fragment{
     public boolean shown = true;
 
     private ImageButton flip;
-    private CoreItemsDisplay coreItems = new CoreItemsDisplay();
+    private final CoreItemsDisplay coreItems = new CoreItemsDisplay();
 
     private String hudText = "";
     private boolean showHudText;
@@ -51,6 +51,7 @@ public class HudFragment extends Fragment{
     private Table lastUnlockTable;
     private Table lastUnlockLayout;
     private long lastToast;
+    private final Interval timer = new Interval();
 
     @Override
     public void build(Group parent){
@@ -109,19 +110,21 @@ public class HudFragment extends Fragment{
                 ta.add(new TileInfoFragment()).name("tilehud").top();
                 //minimap
                 ta.add(new Minimap()).name("minimap");
-            }).padRight(7f).padTop(7f);
+            });
             t.row();
             //position
             t.label(() -> player.tileX() + "," + player.tileY())
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .name("position").right().padRight(7f);
+            .style(Styles.monoOutlineLabel)
+            .name("position").right();
             t.row();
             //cursor position
             t.label(() -> "[coral]" + World.toTile(Core.input.mouseWorldX()) + "," + World.toTile(Core.input.mouseWorldY()))
             .visible(() -> Core.settings.getBool("position"))
             .touchable(Touchable.disabled)
-            .name("cursor").right().padRight(7f);
+            .style(Styles.monoOutlineLabel)
+            .name("cursor").right();
             t.top().right();
         });
 
@@ -239,14 +242,11 @@ public class HudFragment extends Fragment{
 
                 // Power bar display
                 s.row();
-                s.add(PowerInfo.getBars()).growX().colspan(3).height(65);
+                s.add(PowerInfo.getBars()).growX().colspan(3);
 
                 // Boss bar display
                 s.row();
-                Button boss = new Button(Styles.waveb);
-                boss.touchable = Touchable.disabled;
-                boss.table(Tex.windowEmpty, t -> t.add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white)).margin(0).grow()).grow().visible(() -> state.boss() != null).height(60f).get().name = "boss";
-                s.add(boss).grow().colspan(3).height(65).visible(() -> state.boss() != null);
+                s.table(Tex.wavepane, t -> t.add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white)).grow().colspan(3)).grow().colspan(3).height(65).visible(() -> state.boss() != null).name("boss");
             }).width(dsize * 6 + 4f);
 
             wavesMain.row();
@@ -295,7 +295,7 @@ public class HudFragment extends Fragment{
                     info.label(() -> mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory");
                 }
                 info.row();
-                info.label(() -> "Players: " + Groups.player.size()).visible(net::active).left() // Player count
+                info.label(() -> "Players: " + Groups.player.size() + (ui.join.lastHost != null ? "/" + ui.join.lastHost.playerLimit : "")).visible(net::active).left() // Player count
                 .style(Styles.outlineLabel).name("players");
                 info.row();
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left()
@@ -336,12 +336,13 @@ public class HudFragment extends Fragment{
             float[] coreAttackOpacity = {0};
 
             Events.on(TeamCoreDamage.class, event -> {
-                if (!t.visible) {
+                if (!t.visible && timer.get(30 * 60)) { // Do once every 30s max
                     if (Core.settings.getBool("broadcastcoreattack")) {
                         Call.sendChatMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                     } else {
                         ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y), null);
                     }
+                    Client.lastSentPos.set(event.core.x, event.core.y);
                 }
                coreAttackTime[0] = notifDuration;
             });

@@ -12,7 +12,7 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.FooUser;
+import mindustry.client.Client;
 import mindustry.client.navigation.AssistPath;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.utils.FloatEmbed;
@@ -27,10 +27,13 @@ import mindustry.net.Net.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
+import mindustry.ui.fragments.PlayerListFragment;
 import mindustry.world.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
@@ -39,6 +42,7 @@ public class NetClient implements ApplicationListener{
     private static final float dataTimeout = 60 * 18;
     private static final float playerSyncTime = 2;
     public static final float viewScale = 2f;
+    private static final Pattern coordPattern = Pattern.compile("\\S*?(\\d+)[\\s,]+(\\d+)\\S*");
 
     private long ping;
     private Interval timer = new Interval(5);
@@ -105,6 +109,7 @@ public class NetClient implements ApplicationListener{
             platform.updateRPC();
             player.name(Core.settings.getString("name"));
             player.color().set(Core.settings.getInt("color-0"));
+            ui.join.lastHost = null;
 
             if(quiet) return;
 
@@ -160,12 +165,22 @@ public class NetClient implements ApplicationListener{
     public static void sendMessage(String message, String sender, Player playersender){
         Color background = null;
         if(Vars.ui != null){
-            if (FooUser.isPlayerUser(playersender) && !playersender.equals(player)) { // Add wrench to client user messages, highlight if enabled
-                sender = colorizeName(playersender.id, "\uE80F " + sender);
+            if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
+                if (sender != null){
+                    sender = colorizeName(playersender.id, "\uE80F " + sender); // Check if sender is null in case server formats message and sends without a sender
+                } else {
+                    message = colorizeName(playersender.id, "\uE80F " + message);
+                }
+                if (Core.settings.getBool("highlightclientmsg")) background = Color.coral.cpy().mul(0.75f);
+            }
 
-                if (Core.settings.getBool("highlightclientmsg")) { background = Color.coral.cpy().mul(0.75f); }
+            Matcher matcher = coordPattern.matcher(message);
+            if (matcher.find()) {
+                try {Client.lastSentPos.set(Long.parseLong(matcher.group(1)), Long.parseLong(matcher.group(2)));} catch (NumberFormatException ignored) {}
+                message = matcher.replaceFirst("[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
             }
             Vars.ui.chatfrag.addMessage(message, sender, background);
+            if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.info("&fi@: @", "&lc" + (playersender == null ? "Server" : playersender.name), "&lw" + Strings.stripColors(message)); // Make sure we are a client, if we are the server it does this already
         }
 
         if(playersender != null){

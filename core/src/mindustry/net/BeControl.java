@@ -49,7 +49,7 @@ public class BeControl{
 
             if(System.getProperties().containsKey("becopy")){
                 try{
-                    if(!System.getProperty("lastBuild").equals(Version.clientVersion)) { new ChangelogDialog().show(); } // Show changelog after auto update
+                    if(!System.getProperty("lastBuild").equals(Version.clientVersion)) new ChangelogDialog().show(); // Show changelog after auto update
                     Fi dest = Fi.get(System.getProperty("becopy"));
                     Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
@@ -65,12 +65,13 @@ public class BeControl{
 
     /** asynchronously checks for updates. */
     public void checkUpdate(Boolc done){
-        Core.net.httpGet(Version.updateUrl, res -> {
+        Core.net.httpGet("https://api.github.com/repos/" + Core.settings.getString("updateurl") + "/releases/latest", res -> {
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
                 int newBuild = Strings.parseInt(val.getString("tag_name", "0"));
                 if(newBuild != Version.clientBuild){
-                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith(Version.modifier.contains("steam") ? "steam" : "desktop-release"));
+                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith("desktop.jar"));
+                    if (asset == null) { Core.app.post(() -> done.get(false)); return; }
                     String url = asset.getString("browser_download_url", "");
                     updateAvailable = true;
                     updateBuild = newBuild;
@@ -113,6 +114,7 @@ public class BeControl{
                     BaseDialog dialog = new BaseDialog("@be.updating");
                     download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                         try{
+                            Log.info(file.absolutePath());
                             Runtime.getRuntime().exec(OS.isMac ?
                                 new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
                                 new String[]{"java", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}

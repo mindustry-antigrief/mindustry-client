@@ -51,7 +51,7 @@ public class UnitPicker extends BaseDialog{
             cont.row().add(img);
         }
 
-        keyDown(KeyCode.enter, () -> {findUnit(found);});
+        keyDown(KeyCode.enter, () -> findUnit(found));
     }
 
     public void findUnit(UnitType found) {

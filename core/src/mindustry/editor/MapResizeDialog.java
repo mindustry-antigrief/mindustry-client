@@ -8,7 +8,7 @@ import arc.util.*;
 import mindustry.ui.dialogs.*;
 
 public class MapResizeDialog extends BaseDialog{
-    public static int minSize = 50, maxSize = 2000, increment = 50;
+    public static int minSize = 50, maxSize = 2000;
     int width, height;
 
     public MapResizeDialog(MapEditor editor, Intc2 cons){
@@ -27,7 +27,7 @@ public class MapResizeDialog extends BaseDialog{
                 table.field((w ? width : height) + "", TextFieldFilter.digitsOnly, value -> {
                     int val = Integer.parseInt(value);
                     if(w) width = val; else height = val;
-                }).valid(value -> Strings.canParsePositiveInt(value) && Integer.parseInt(value) <= maxSize && Integer.parseInt(value) >= minSize).addInputDialog(3);
+                }).valid(value -> Strings.canParsePositiveInt(value) && Integer.parseInt(value) <= maxSize && Integer.parseInt(value) >= minSize).addInputDialog(4);
 
                 table.row();
             }

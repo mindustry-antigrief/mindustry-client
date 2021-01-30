@@ -17,6 +17,8 @@ import static mindustry.Vars.*;
 
 public class MapsDialog extends BaseDialog{
     private BaseDialog dialog;
+    private TextField searchField;
+    private Table maps = new Table();
 
     public MapsDialog(){
         super("@maps");
@@ -53,7 +55,7 @@ public class MapsDialog extends BaseDialog{
                     Events.fire(new MapMakeEvent());
                 });
 
-                if(maps.byName(text) != null){
+                if(Vars.maps.byName(text) != null){
                     ui.showErrorMessage("@editor.exists");
                 }else{
                     show.run();
@@ -64,7 +66,7 @@ public class MapsDialog extends BaseDialog{
         buttons.button("@editor.importmap", Icon.upload, () -> {
             platform.showFileChooser(true, mapExtension, file -> {
                 ui.loadAnd(() -> {
-                    maps.tryCatchMapError(() -> {
+                    Vars.maps.tryCatchMapError(() -> {
                         if(MapIO.isImage(file)){
                             ui.showErrorMessage("@editor.errorimage");
                             return;
@@ -76,7 +78,7 @@ public class MapsDialog extends BaseDialog{
                         String name = map.tags.get("name", () -> {
                             String result = "unknown";
                             int number = 0;
-                            while(maps.byName(result + number++) != null);
+                            while(Vars.maps.byName(result + number++) != null);
                             return result + number;
                         });
 
@@ -86,20 +88,20 @@ public class MapsDialog extends BaseDialog{
                             return;
                         }
 
-                        Map conflict = maps.all().find(m -> m.name().equals(name));
+                        Map conflict = Vars.maps.all().find(m -> m.name().equals(name));
 
                         if(conflict != null && !conflict.custom){
                             ui.showInfo(Core.bundle.format("editor.import.exists", name));
                         }else if(conflict != null){
                             ui.showConfirm("@confirm", Core.bundle.format("editor.overwrite.confirm", map.name()), () -> {
-                                maps.tryCatchMapError(() -> {
-                                    maps.removeMap(conflict);
-                                    maps.importMap(map.file);
+                                Vars.maps.tryCatchMapError(() -> {
+                                    Vars.maps.removeMap(conflict);
+                                    Vars.maps.importMap(map.file);
                                     setup();
                                 });
                             });
                         }else{
-                            maps.importMap(map.file);
+                            Vars.maps.importMap(map.file);
                             setup();
                         }
 
@@ -111,17 +113,33 @@ public class MapsDialog extends BaseDialog{
 
         cont.clear();
 
-        Table maps = new Table();
-        maps.marginRight(24);
+        cont.add(buttons).growX();
+        cont.row();
+
+        cont.table(s -> {
+            s.left();
+            s.image(Icon.zoom);
+            searchField = s.field(null, res -> build()).growX().get();
+        }).width(210*3).padBottom(4).row();
+        Time.runTask(2f, () -> {
+            Core.scene.setKeyboardFocus(searchField);
+            build();
+        });
 
         ScrollPane pane = new ScrollPane(maps);
         pane.setFadeScrollBars(false);
+        cont.add(pane);
+    }
 
+    void build() {
         int maxwidth = Math.max((int)(Core.graphics.getWidth() / Scl.scl(230)), 1);
         float mapsize = 200f;
 
         int i = 0;
+
+        maps.clearChildren();
         for(Map map : Vars.maps.all()){
+            if(searchField.getText().length() > 0 && !map.name().toLowerCase().contains(searchField.getText().toLowerCase())) continue;
 
             if(i % maxwidth == 0){
                 maps.row();
@@ -144,10 +162,6 @@ public class MapsDialog extends BaseDialog{
         if(Vars.maps.all().size == 0){
             maps.add("@maps.none");
         }
-
-        cont.add(buttons).growX();
-        cont.row();
-        cont.add(pane).uniformX();
     }
 
     void showMapInfo(Map map){
@@ -204,7 +218,7 @@ public class MapsDialog extends BaseDialog{
                 platform.viewListing(map);
             }else{
                 ui.showConfirm("@confirm", Core.bundle.format("map.delete", map.name()), () -> {
-                    maps.removeMap(map);
+                    Vars.maps.removeMap(map);
                     dialog.hide();
                     setup();
                 });

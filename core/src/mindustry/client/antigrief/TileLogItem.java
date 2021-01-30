@@ -1,7 +1,8 @@
-package mindustry.client.antigreif;
+package mindustry.client.antigrief;
 
 import arc.scene.*;
 import arc.scene.ui.*;
+import arc.util.Strings;
 import mindustry.gen.*;
 import mindustry.world.*;
 import java.text.*;
@@ -28,8 +29,8 @@ public class TileLogItem {
         return String.format("%s interacted with tile at %s UTC (%d minutes ago).  %s", player, date, minutes, additionalInfo);
     }
 
-    protected String formatConcise(String date, long minutes) {
-        return String.format("%s interacted %d minutes ago", player, minutes);
+    protected String formatConcise(String date, String minutes) {
+        return String.format("%s interacted (%s)", player, minutes);
     }
 
     public String format() {
@@ -53,7 +54,7 @@ public class TileLogItem {
         String formatted = format.format(Date.from(instant));
 
         Duration duration = Duration.between(instant, Instant.now());
-        long minutes = duration.get(ChronoUnit.SECONDS) / 60L;
+        String minutes = Strings.formatMillis(duration.getSeconds() * 1000);
 
         return formatConcise(formatted, minutes);
     }

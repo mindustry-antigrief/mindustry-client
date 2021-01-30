@@ -40,7 +40,7 @@ public class CoreItemsDisplay extends Table{
             if(usedItems.contains(item)){
                 image(item.icon(Cicon.small)).padRight(3);
                 //TODO leaks garbage
-                label(() -> core == null ? "0" : UI.formatAmount(core.items.get(item))).padRight(3).left().get().setStyle(Styles.monoLabel);
+                label(() -> core == null ? "0" : UI.formatAmount(core.items.get(item))).padRight(3).left().style(Styles.monoLabel);
 
                 if(++i % 4 == 0){
                     row();

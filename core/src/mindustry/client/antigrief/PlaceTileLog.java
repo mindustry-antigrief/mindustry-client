@@ -1,4 +1,4 @@
-package mindustry.client.antigreif;
+package mindustry.client.antigrief;
 
 import arc.scene.Element;
 import arc.scene.ui.ImageButton;
@@ -39,11 +39,11 @@ public class PlaceTileLog extends TileLogItem {
 
     @Override
     protected String formatDate(String date, long minutes) {
-        return String.format("%s placed %s at %s UTC (%d minutes ago).  %s", player, block.name, date, minutes, additionalInfo);
+        return String.format("%s placed %s at %s UTC (%d minutes ago).  %s", player, block.localizedName, date, minutes, additionalInfo);
     }
 
     @Override
-    protected String formatConcise(String date, long minutes) {
-        return String.format("%s placed %s %d minutes ago", player, block.name, minutes);
+    protected String formatConcise(String date, String minutes) {
+        return String.format("%s placed %s (%s)", player, block.localizedName, minutes);
     }
 }

@@ -80,7 +80,7 @@ public class Conveyor extends Block implements Autotiler{
     @Override
     public boolean canReplace(Block other){
         if(other.alwaysReplace) return true;
-        return (other != this || rotate) && other.group == this.group && !(other instanceof StackConveyor);
+        return (other != this || rotate) && (size >= other.size || other instanceof Router) && other.group == this.group && !(other instanceof StackConveyor);
     }
 
     @Override
@@ -90,44 +90,43 @@ public class Conveyor extends Block implements Autotiler{
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
-        if (req.x >= world.width() || req.x <= 0 || req.y >= world.height() || req.y <= 0) return null;
+        if (req.tile() == null) return this;
 
-        if (world.tile(req.x, req.y).block() instanceof Junction) {
-            if (frontTile(req.x, req.y, req.rotation).block() instanceof Junction || backTile(req.x, req.y, req.rotation).block() instanceof Junction) {
-                if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conveyor)) {
-                    return world.tile(req.x, req.y).block();
-                }
-            }
-        }
+//        if (req.tile().block() instanceof Junction) {
+//            if (frontTile(req.x, req.y, req.rotation).block() instanceof Junction || backTile(req.x, req.y, req.rotation).block() instanceof Junction) {
+//                if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conveyor)) {
+//                    return req.tile().block();
+//                }
+//            }
+//        }
+
 
         Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conveyor || req.block instanceof Junction));
         if(cont.get(Geometry.d4(req.rotation)) &&
             cont.get(Geometry.d4(req.rotation - 2)) &&
             req.tile() != null &&
-            req.tile().block() instanceof Conveyor &&
+            (req.tile().block() instanceof Conveyor || req.tile().block() instanceof Junction) &&
             Mathf.mod(req.tile().build.rotation - req.rotation, 2) == 1){
             return Blocks.junction;
         }
 
-        int ogRot = req.rotation;
         for(int i = 0;i < 2;i ++){
             //TODO: automatically generate bridges?
             Block[] bridges = {Blocks.itemBridge, Blocks.phaseConveyor};
-            for (Block bridge : bridges) {
-                final int distance = ((ItemBridge) bridge).range;
-                if (req.block instanceof Conveyor && !thisPlaceableOn(frontTile(req.x, req.y, req.rotation)) &&
-                        requests.contains(o -> (o.block instanceof Conveyor || o.block instanceof ItemBridge) &&
-                                thisPlaceableOn(world.tile(req.x, req.y)) &&
-                                thisPlaceableOn(world.tile(o.x, o.y)) &&
-                                !thisPlaceableOn(frontTile(o.x, o.y, (req.rotation + 2) % 4)) &&
-                                inFront(req.x, req.y, req.rotation, o) &&
-                                Mathf.dstm(req.x, req.y, o.x, o.y) <= distance)) {
+            int checkRotation = (req.rotation + i*2) % 4;
+            for(Block bridge : bridges) {
+                int range = ((ItemBridge) bridge).range;
+                if(req.block instanceof Conveyor && !thisPlaceableOn(frontTile(req.x, req.y, checkRotation)) && requests.contains(o ->
+                    (o.block instanceof Conveyor || o.block instanceof ItemBridge) &&
+                    thisPlaceableOn(world.tile(req.x, req.y)) &&
+                    thisPlaceableOn(world.tile(o.x, o.y)) &&
+                    !thisPlaceableOn(frontTile(o.x, o.y, (checkRotation + 2) % 4)) &&
+                    inFront(req.x, req.y, checkRotation, o) &&
+                    Mathf.dstm(req.x, req.y, o.x, o.y) <= range)) {
                     return bridge;
                 }
             }
-            req.rotation = (req.rotation + 2) % 4;
         }
-        req.rotation = ogRot;
 
         return this;
     }

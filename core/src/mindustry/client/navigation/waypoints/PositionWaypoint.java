@@ -5,7 +5,7 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
-import arc.util.Timer;
+import arc.util.Log;
 
 import static mindustry.Vars.*;
 
@@ -41,30 +41,23 @@ public class PositionWaypoint extends Waypoint implements Position {
 
         vec.set(target).sub(player.unit());
 
-        float length = circleLength <= 0.001f ? 1f : Mathf.clamp((player.unit().dst(target) - circleLength) / smooth, -1f, 1f);
-
-        vec.setLength(player.unit().realSpeed() * length);
-        if(length < -0.5f){
-            vec.rotate(180f);
-        }else if(length < 0){
-            vec.setZero();
+        if (Core.settings.getBool("assumeunstrict")) {
+            float length = player.unit().dst(target) - circleLength;
+            vec.setLength(length);
+            if (length < 0) vec.setZero();
+            player.trns(vec);
+            player.unit().trns(vec);
+        } else {
+            float length = circleLength <= 0.001f ? 1f : Mathf.clamp((player.unit().dst(target) - circleLength) / smooth, -1f, 1f);
+            vec.setLength(player.unit().realSpeed() * length);
+            if (length < -0.5f) vec.rotate(180f);
+            else if (length < 0) vec.setZero();
+            player.unit().moveAt(vec);
         }
-
-        player.unit().moveAt(vec);
         if (!player.unit().isShooting || !player.unit().type.rotateShooting) player.unit().lookAt(vec.angle()); // Look towards waypoint when possible
     }
     @Override
-    public void run() {
-        if (Core.settings.getBool("assumeunstrict")) player.unit().moveAt(new Vec2().set(this).sub(player.unit()), player.dst(this));
-        else moveTo(this, distance, 8f);
-//        if (player.dst(this) > tolerance /* + player.unit().realSpeed() / player.unit().drag * Time.delta */) {
-//            //control.input.updateMovementCustom(player.unit(), x, y, direction);
-//            moveTo(this, 30, 100);
-//        }
-//        else if (player.dst(this) < tolerance) {
-//            player.unit().vel.scl(1.0f - player.unit().drag * Time.delta);
-//        }
-    }
+    public void run() { moveTo(this, distance, 8f); }
 
     @Override
     public float getX() {

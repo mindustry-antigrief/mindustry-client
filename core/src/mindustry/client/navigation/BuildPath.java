@@ -26,21 +26,18 @@ public class BuildPath extends Path {
     Interval timer = new Interval();
     Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>();
     Seq<Queue<BuildPlan>> queues = new Seq<>();
+    boolean firstRun = true;
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
-        queues.addAll(player.unit().plans, broken, assist, unfinished, boulders); // Every queue except for cleanup is included by default
+        queues.addAll(player.unit().plans, broken, assist, unfinished); // Every queue except for cleanup is included by default
     }
 
     @SuppressWarnings("unchecked")
     public BuildPath(String[] args){
-        argHandler:
         for (String arg : Arrays.toString(args).replaceAll("[\\[\\]]", "").split(" ")) {
             switch (arg) {
-                case "all" -> {
-                    queues.addAll(player.unit().plans, broken, assist, unfinished, boulders);
-                    break argHandler;
-                }
+                case "all" -> queues.addAll(player.unit().plans, broken, assist, unfinished);
                 case "self" -> queues.add(player.unit().plans);
                 case "broken" -> queues.add(broken);
                 case "boulders" -> queues.add(boulders);
@@ -64,18 +61,20 @@ public class BuildPath extends Path {
 
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     void follow() {
+        // TODO: Cleanup this firstrun nonsense, make sure that unfinished and cleanup don't conflict
+        if (firstRun) world.tiles.forEach(tile -> {if(tile.team() == Team.derelict && tile.breakable() && tile.isCenter())cleanup.add(new BuildPlan(tile.x, tile.y));}); firstRun = false;
         if (timer.get(15)) {
-            // Jank code to clear the four extra queues
-            if(!broken.isEmpty()){broken.forEach(player.unit().plans::remove); broken.clear();}
-            if(!boulders.isEmpty()){boulders.forEach(player.unit().plans::remove); boulders.clear();}
-            if(!assist.isEmpty()){assist.forEach(player.unit().plans::remove); assist.clear();}
-            if(!unfinished.isEmpty()){unfinished.forEach(player.unit().plans::remove); unfinished.clear();}
+            // Jank code to clear the four extra queues TODO: Find a better way to do this
+            if(!broken.isEmpty() && queues.contains(broken)){broken.forEach(player.unit().plans::remove); broken.clear();}
+            if(!boulders.isEmpty() && queues.contains(boulders)){boulders.forEach(player.unit().plans::remove); boulders.clear();}
+            if(!assist.isEmpty() && queues.contains(assist)){assist.forEach(player.unit().plans::remove); assist.clear();}
+            if(!unfinished.isEmpty() && queues.contains(unfinished)){unfinished.forEach(player.unit().plans::remove); unfinished.clear();}
 
-            if(!player.unit().team.data().blocks.isEmpty())player.unit().team.data().blocks.forEach(block -> broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config)));
-            Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && player.unit() != null && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
-            world.tiles.forEach(tile -> {if(tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder)boulders.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == Team.derelict && tile.breakable() && tile.isCenter())cleanup.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter())unfinished.add(entity.wasConstructing ? new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) : new BuildPlan(tile.x, tile.y));});
-
-            boolean all = false, found = false;
+            if(queues.contains(broken) && !player.unit().team.data().blocks.isEmpty()) player.unit().team.data().blocks.forEach(block -> broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config)));
+            if(queues.contains(assist)) Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && player.unit() != null && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
+            if(queues.contains(unfinished) || queues.contains(boulders)) world.tiles.forEach(tile -> {if(tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder)boulders.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter())unfinished.add(entity.wasConstructing ? new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) : new BuildPlan(tile.x, tile.y));});
+            boolean all = false;
+            dosort:
             for (int x = 0; x < 2; x++) {
                 for (Queue queue : queues) {
                     Queue<BuildPlan> plans = sortPlans(queue, all, true);
@@ -85,10 +84,8 @@ public class BuildPath extends Path {
                     if (plans.isEmpty()) continue; */
                     plans.forEach(player.unit().plans::remove);
                     plans.forEach(player.unit().plans::addFirst);
-                    found = true;
-                    break;
+                    break dosort;
                 }
-                if (found) break;
                 all = true;
             }
         }
@@ -105,7 +102,7 @@ public class BuildPath extends Path {
             if(valid){
                 //move toward the request
                 Formation formation = player.unit().formation;
-                float range = buildingRange - 10;
+                float range = buildingRange - player.unit().hitSize()/2 - 10;
                 if (formation != null) range -= formation.pattern.spacing / (float)Math.sin(180f / formation.pattern.slots * Mathf.degRad);
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{
@@ -122,11 +119,11 @@ public class BuildPath extends Path {
 
     @Override
     public void reset() {
-        broken = new Queue<>();
-        boulders = new Queue<>();
-        assist = new Queue<>();
-        unfinished = new Queue<>();
-        cleanup = new Queue<>();
+        broken.clear();
+        boulders.clear();
+        assist.clear();
+        unfinished.clear();
+        cleanup.clear();
     }
 
     @Override

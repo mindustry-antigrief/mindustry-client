@@ -7,6 +7,7 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.graphics.gl.*;
 import arc.math.*;
+import arc.math.geom.Rect;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.client.navigation.*;
@@ -262,6 +263,9 @@ public class Renderer implements ApplicationListener{
 
         Draw.draw(Layer.plans, overlays::drawBottom);
         Navigation.draw();
+        Draw.z(Layer.space);
+        if(Core.settings.getBool("drawhitboxes")) Groups.unit.forEach(u -> {Draw.color(u.team.color.cpy().a(.5f)); Fill.rect(u.x, u.y, u.hitSize(), u.hitSize());});
+        Draw.color();
 
         if(animateShields && Shaders.shield != null){
             Draw.drawRange(Layer.shields, 1f, () -> effectBuffer.begin(Color.clear), () -> {

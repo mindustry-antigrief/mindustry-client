@@ -1,20 +1,20 @@
 package mindustry.client;
 
 import arc.*;
-import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.struct.IntSet;
-import arc.struct.ObjectSet;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.*;
-import mindustry.Vars;
-import mindustry.client.antigreif.*;
+import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
 import mindustry.client.utils.*;
+import mindustry.client.utils.Autocomplete;
+import mindustry.content.Blocks;
+import mindustry.core.NetClient;
 import mindustry.core.World;
 import mindustry.entities.Units;
 import mindustry.game.EventType;
@@ -25,10 +25,12 @@ import mindustry.world.Tile;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static arc.Core.settings;
 import static mindustry.Vars.*;
 import static mindustry.Vars.player;
 
@@ -41,11 +43,11 @@ public class Client {
     public static Seq<BaseTurret.BaseTurretBuild> turrets = new Seq<>();
     public static long lastSyncTime = 0L;
     public static final CommandHandler fooCommands = new CommandHandler("!");
-    public static boolean hideTrails = true;
+    public static boolean hideTrails;
     public static Ratekeeper configRateLimit = new Ratekeeper();
     public static boolean hideUnits = false;
     /** The last position someone sent in chat or was otherwise put into the buffer. */
-    public static Vec2 lastSentPos = new Vec2();
+    public static final Vec2 lastSentPos = new Vec2();
     public static IntSet messageBlockPositions = new IntSet();
     public static final String messageCommunicationPrefix = "IN USE FOR CHAT AUTHENTICATION, do not use";
     public static ClientInterface mapping;
@@ -84,10 +86,9 @@ public class Client {
             new UnitPicker().findUnit(found);
         });
 
-        fooCommands.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last stored coordinate", (args, player) -> {
+        fooCommands.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last stored coordinates posted to chat", (args, player) -> {
             try {
                 float x, y;
-                System.out.println(Arrays.toString(args));
                 if (args.length == 2) {
                     x = Float.parseFloat(args[0]);
                     y = Float.parseFloat(args[1]);
@@ -101,12 +102,13 @@ public class Client {
             }
         });
 
-        fooCommands.<Player>register("lookat","<x> <y>", "Moves camera to (x, y)", (args, player) -> {
+        fooCommands.<Player>register("lookat","[x] [y]", "Moves camera to (x, y) or the last coordinates posted to chat", (args, player) -> {
             try {
                 DesktopInput.panning = true;
-                Spectate.pos = new Vec2(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])));
+                if (args.length == 2) lastSentPos.set(Float.parseFloat(args[0]), Float.parseFloat(args[1]));
+                Spectate.spectate(lastSentPos.cpy().scl(tilesize));
             } catch(NumberFormatException | IndexOutOfBoundsException e){
-                player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !lookat 10 300");
+                player.sendMessage("[scarlet]Invalid coordinates, format is [x] [y] Eg: !lookat 10 300 or !lookat");
             }
         });
 
@@ -115,7 +117,7 @@ public class Client {
         );
 
         fooCommands.<Player>register("cursor", "[message...]", "Prints cursor location to chat with an optional message", (args, player) ->
-                Call.sendChatMessage(String.format("%s(%s, %s)", args.length == 0 ? "" : args[0] + " ", World.toTile(player.mouseX), World.toTile(player.mouseY)))
+                Call.sendChatMessage(String.format("%s(%s, %s)", args.length == 0 ? "" : args[0] + " ", World.toTile(Core.input.mouseWorldX()), World.toTile(Core.input.mouseWorldY())))
         );
 
         fooCommands.<Player>register("builder", "[options...]", "Starts auto build with optional arguments, prioritized from first to last.", (args, player) ->
@@ -124,20 +126,20 @@ public class Client {
 
         fooCommands.<Player>register("tp", "<x> <y>", "Moves to (x, y) at insane speeds, only works on servers without strict mode enabled.", (args, player) -> {
             try {
-                Timer.schedule(() -> player.unit().moveAt(new Vec2().set(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1]))).sub(player.unit()), player.dst(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])))), 0, .01f, 15);
+                NetClient.setPosition(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])));
             }
             catch(Exception e){
                 player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !tp 10 300");
             }
         });
 
-        fooCommands.<Player>register("", "[message...]", "Does nothing", (args, player) ->
+        fooCommands.<Player>register("", "[message...]", "Lets you start messages with an !", (args, player) ->
             Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
         );
 
-        fooCommands.<Player>register("shrug", "[message...]", "Sends the shrug unicode emoji with an optional message", (args, player) -> {
-            Call.sendChatMessage("¯\\_(ツ)_/¯" + (args.length > 0? args[0] : ""));
-        });
+        fooCommands.<Player>register("shrug", "[message...]", "Sends the shrug unicode emoji with an optional message", (args, player) ->
+            Call.sendChatMessage("¯\\_(ツ)_/¯ " + (args.length == 1 ? args[0] : ""))
+        );
 
         Events.on(WorldLoadEvent.class, event -> {
             if (Time.timeSinceMillis(lastSyncTime) > 5000) {
@@ -148,7 +150,7 @@ public class Client {
             configs.clear();
             turrets.clear();
             UnitPicker.found = null;
-            if (state.rules.pvp) ui.chatfrag.addMessage("[scarlet]Don't use a client in pvp, it's uncool!", "Your Conscience", Color.crimson);
+            if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
             messageBlockPositions.clear();
         });
 
@@ -175,7 +177,7 @@ public class Client {
                 if (find != null) {
                     Call.unitControl(player, find);
                     Timer.schedule(() -> {
-                        if (event.unit.isPlayer()) {
+                        if (find.isPlayer()) {
                             Toast t = new Toast(2);
                             if (player.unit() == find) { UnitPicker.found = null; t.add("Successfully switched units.");} // After we switch units successfully, stop listening for this unit
                             else if (find.getPlayer() != null) { t.add("Failed to become " + unit + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
@@ -199,10 +201,28 @@ public class Client {
             }
         });
         Events.on(EventType.ClientLoadEvent.class, event -> {
+            settings.getBoolOnce("updatevalues", () -> { // TODO: Remove this code and the updatevalues bool at some point in the future (this converts old settings to new format)
+                settings.put("reactorwarningdistance", settings.getBool("reactorwarnings", true) ? settings.getInt("reactorwarningdistance") == 0 ? 101 : settings.getInt("reactorwarningdistance") : -1);
+                settings.put("reactorsounddistance", settings.getBool("reactorwarningsounds", true) ? settings.getInt("reactorsounddistance") == 0 ? 101 : settings.getInt("reactorsounddistance") : -1);
+                settings.remove("reactorwarnings");
+                settings.remove("reactorwarningsounds");
+
+                try { // Somehow this works?
+                    Method ohno = ui.settings.client.getClass().getDeclaredMethod("rebuild");
+                    ohno.setAccessible(true);
+                    ohno.invoke(ui.settings.client);
+                } catch (Exception e) {
+                    Log.err(e);
+                }
+            });
+
             Autocomplete.autocompleters.add(new BlockEmotes());
             Autocomplete.autocompleters.add(new PlayerCompletion());
             Autocomplete.autocompleters.add(new CommandCompletion());
             Autocomplete.initialize();
+            hideTrails = Core.settings.getBool("hidetrails");
+            Blocks.sand.asFloor().playerUnmineable = !settings.getBool("doubleclicktomine");
+            Blocks.darksand.asFloor().playerUnmineable = !settings.getBool("doubleclicktomine");
         });
     }
 
@@ -211,8 +231,6 @@ public class Client {
         Navigation.update();
         PowerInfo.update();
         Spectate.update();
-
-        hideTrails = Core.settings.getBool("hidetrails");
 
         if (!configs.isEmpty()) {
                 try {

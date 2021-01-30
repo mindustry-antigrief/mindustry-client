@@ -22,10 +22,11 @@ import mindustry.net.Net.*;
 import mindustry.type.*;
 import java.io.*;
 import com.github.blahblahbloopster.Main;
+
 import static mindustry.Vars.*;
 
 public class DesktopLauncher extends ClientLauncher{
-    public final static String discordID = "610508934456934412";
+    public final static String discordID = "514551367759822855";
     boolean useDiscord = OS.is64Bit && !OS.isARM && !OS.hasProp("nodiscord"), loadError = false;
     Throwable steamError;
     static SdlConfig config;
@@ -85,14 +86,6 @@ public class DesktopLauncher extends ClientLauncher{
 
         add(Main.INSTANCE);
 
-//        Events.on(ClientLoadEvent.class, event -> {
-//            ui.settings.client.sliderPref("antialiasingsamples", "setting.antialiasingsamples.name", 4, 0, 32, num -> {
-//                config.samples = num;
-//                SDL.SDL_GL_SetAttribute(14, config.samples);
-//                return String.valueOf(num);
-//            });
-//        });
-
         if(useSteam){
             //delete leftover dlls
             Fi file = new Fi(".");
@@ -108,17 +101,7 @@ public class DesktopLauncher extends ClientLauncher{
                         ui.showErrorMessage(Core.bundle.format("steam.error", (steamError.getMessage() == null) ? steamError.getClass().getSimpleName() : steamError.getClass().getSimpleName() + ": " + steamError.getMessage()));
                     })));
                 }
-                if(useDiscord && Core.settings.getBool("discordrpc")){
-                    try{
-                        DiscordRPC.INSTANCE.Discord_Initialize(discordID, null, true, "1127400");
-                        Log.info("Initialized Discord rich presence.");
-                        Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC.INSTANCE::Discord_Shutdown));
-                    }catch(Throwable t){
-                        useDiscord = false;
-                        Log.err("Failed to initialize discord. Enable debug logging for details.");
-                        Log.debug("Discord init error: \n@\n", Strings.getStackTrace(t));
-                    }
-                }
+                if(Core.settings.getBool("discordrpc")) startDiscord();
             });
 
             try{
@@ -322,6 +305,8 @@ public class DesktopLauncher extends ClientLauncher{
             }
 
             presence.largeImageKey = "logo";
+            presence.smallImageKey = "foo";
+            presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientBuild == -1 ? "Dev" : "v" + Version.clientBuild);
 
             DiscordRPC.INSTANCE.Discord_UpdatePresence(presence);
         }
@@ -330,11 +315,7 @@ public class DesktopLauncher extends ClientLauncher{
             //Steam mostly just expects us to give it a nice string, but it apparently expects "steam_display" to always be a loc token, so I've uploaded this one which just passes through 'steam_status' raw.
             SVars.net.friends.setRichPresence("steam_display", "#steam_status_raw");
 
-            if(inGame){
-                SVars.net.friends.setRichPresence("steam_status", gameMapWithWave);
-            }else{
-                SVars.net.friends.setRichPresence("steam_status", uiState);
-            }
+            SVars.net.friends.setRichPresence("steam_status", Strings.format("Foo's Client (@) | @", Version.clientBuild == -1 ? "Dev" : "v" + Version.clientBuild, inGame ? gameMapWithWave : uiState));
         }
     }
 

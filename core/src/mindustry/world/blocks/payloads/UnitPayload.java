@@ -82,22 +82,21 @@ public class UnitPayload implements Payload{
 
     @Override
     public void draw(){
-        Drawf.shadow(unit.x, unit.y, 20, Pal.shadow.a * UnitType.alpha);
-        Draw.alpha(UnitType.alpha);
+        Drawf.shadow(unit.x, unit.y, 20, UnitType.alpha);
         if (this.unit != null && this.unit.type != null) Draw.rect(unit.type.icon(Cicon.full), unit.x, unit.y, unit.rotation - 90);
 
         //draw warning
         if(deactiveTime > 0){
             Draw.color(Color.scarlet);
-            Draw.alpha(0.8f * Interp.exp5Out.apply(deactiveTime));
+            Draw.alpha(0.8f * Interp.exp5Out.apply(deactiveTime) * UnitType.alpha);
 
             float size = 8f;
             Draw.rect(Icon.warning.getRegion(), unit.x, unit.y, size, size);
 
-            Draw.reset();
-
             deactiveTime = Math.max(deactiveTime - Time.delta/deactiveDuration, 0f);
         }
+
+        Draw.reset();
     }
 
     @Override

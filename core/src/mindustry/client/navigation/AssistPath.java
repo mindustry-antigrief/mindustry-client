@@ -37,7 +37,7 @@ public class AssistPath extends Path {
             return;
         }
 
-        float tolerance = assisting.unit().hitSize * 1.1f + Vars.player.unit().hitSize * 1.1f + 2;
+        float tolerance = Math.max(assisting.unit().hitSize * 1.5f, Vars.player.unit().hitSize * 1.5f);
 
         try {
             Vars.player.shooting(assisting.unit().isShooting); // Match shoot state

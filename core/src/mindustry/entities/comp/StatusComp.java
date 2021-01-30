@@ -1,6 +1,7 @@
 package mindustry.entities.comp;
 
 import arc.graphics.*;
+import arc.graphics.g2d.Draw;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
@@ -133,6 +134,7 @@ abstract class StatusComp implements Posc, Flyingc{
 
     public void draw(){
         for(StatusEntry e : statuses){
+            Draw.alpha(UnitType.alpha);
             e.effect.draw(self());
         }
     }

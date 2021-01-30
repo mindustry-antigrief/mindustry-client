@@ -22,20 +22,17 @@ import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
-import mindustry.client.ui.StupidMarkupParser;
-import mindustry.client.ui.Toast;
 import mindustry.client.ui.UnitPicker;
-import mindustry.content.Blocks;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.BaseDialog;
 import mindustry.world.*;
-import mindustry.world.blocks.environment.OreBlock;
 import mindustry.world.blocks.payloads.*;
 import java.util.concurrent.atomic.*;
 import static arc.Core.*;
@@ -66,19 +63,25 @@ public class DesktopInput extends InputHandler{
 
     @Override
     public void buildUI(Group group){
-        //respawn hints
+        // Various hints
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()));
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && UnitType.alpha == 0);
+            t.bottom();
+            t.table(Styles.black6, b -> {
+                b.defaults().left();
+                b.label(() -> Core.bundle.format("toggleinvis", "SHIFT + " + Core.keybinds.get(Binding.invisible_units).key.toString()));
+            }).margin(6f);
+        });
+        group.fill(t -> {
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !player.unit().isBuilding() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()) && UnitType.alpha != 0);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
                 b.label(() -> Core.bundle.format("respawn", Core.keybinds.get(Binding.respawn).key.toString())).style(Styles.outlineLabel);
             }).margin(6f);
         });
-
-        //building hints
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.RECORDING);
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.RECORDING && UnitType.alpha != 0);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -86,7 +89,7 @@ public class DesktopInput extends InputHandler{
             }).margin(6f);
         });
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.FOLLOWING);
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.FOLLOWING && UnitType.alpha != 0);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -99,7 +102,7 @@ public class DesktopInput extends InputHandler{
             t.visible(() -> {
                 t.color.a = Mathf.lerpDelta(t.color.a, player.unit().isBuilding() ? 1f : 0f, 0.15f);
 
-                return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE;
+                return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE && UnitType.alpha != 0;
             });
             t.touchable(() -> t.color.a < 0.1f ? Touchable.disabled : Touchable.childrenOnly);
             t.table(Styles.black6, b -> {
@@ -238,23 +241,15 @@ public class DesktopInput extends InputHandler{
     public void update(){
         super.update();
 
-        if(net.active() && Core.input.keyTap(Binding.player_list) && (scene.getKeyboardFocus() == null || scene.getKeyboardFocus().isDescendantOf(ui.listfrag.content) || scene.getKeyboardFocus().isDescendantOf(ui.minimapfrag.elem))){
+        if(Core.input.keyTap(Binding.player_list) && (scene.getKeyboardFocus() == null || scene.getKeyboardFocus().isDescendantOf(ui.listfrag.content) || scene.getKeyboardFocus().isDescendantOf(ui.minimapfrag.elem))){
             ui.listfrag.toggle();
         }
 
         conveyorPlaceNormal = input.keyDown(Binding.toggle_placement_modifiers);
 
-        if (input.shift()) {
-            if (input.keyTap(Binding.invisible_units) && scene.getKeyboardFocus() == null) {
-                Client.hideUnits = !Client.hideUnits;
-            }
-        } else {
-            if (input.keyTap(Binding.invisible_units) && scene.getKeyboardFocus() == null) {
-                Client.hideUnits = !Client.hideUnits;
-            }
-            if (input.keyRelease(Binding.invisible_units) && scene.getKeyboardFocus() == null) {
-                Client.hideUnits = !Client.hideUnits;
-            }
+        // Holding o hides units, pressing shift + o inverts the state; holding o will now show them.
+        if ((input.keyTap(Binding.invisible_units) || (input.keyRelease(Binding.invisible_units) && !input.shift())) && scene.getKeyboardFocus() == null) {
+            Client.hideUnits = !Client.hideUnits;
         }
 
         if(Navigation.state == NavigationState.RECORDING){
@@ -274,11 +269,20 @@ public class DesktopInput extends InputHandler{
         if(input.keyTap(Binding.auto_build) && scene.getKeyboardFocus() == null){
             Navigation.follow(new BuildPath());
         }
+
+        if(input.keyTap(Binding.auto_repair) && scene.getKeyboardFocus() == null){
+            Navigation.follow(new RepairPath());
+        }
+
+        if(input.keyTap(Binding.toggle_strict_mode) && scene.getKeyboardFocus() == null){
+            settings.put("assumeunstrict", !settings.getBool("assumeunstrict"));
+        }
+
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
-        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null){
-            Navigation.navigateTo(camera.position.x, camera.position.y);
+        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null && selectRequests.isEmpty()){ // Navigates to cursor despite the bind name
+            Navigation.navigateTo(input.mouseWorld());
         }
 
         if(input.keyDown(Binding.pan) && !scene.hasField() && !scene.hasDialog()){
@@ -316,7 +320,6 @@ public class DesktopInput extends InputHandler{
             if(input.keyDown(Binding.mouse_move)){
                 panCam = true;
             }
-            panning = false;
 
             Core.camera.position.add(Tmp.v1.setZero().add(Core.input.axis(Binding.move_x), Core.input.axis(Binding.move_y)).nor().scl(camSpeed));
         }else if(!player.dead() && !panning){
@@ -332,13 +335,13 @@ public class DesktopInput extends InputHandler{
         Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
         if(!scene.hasMouse()){
-            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null){ // Tile actions menu
+            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null){ // Tile actions / alt click menu
                 int itemHeight = 30;
                 Table table = new Table(Tex.buttonTrans);
-                table.touchable = Touchable.childrenOnly;
                 table.setWidth(400);
                 table.margin(10);
                 table.fill();
+                table.touchable = Touchable.enabled; // This is needed
                 table.defaults().height(itemHeight).padTop(5).fillX();
                 try {
                     table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().growX().fillY().padTop(-5);
@@ -350,42 +353,30 @@ public class DesktopInput extends InputHandler{
                     dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).center();
                     dialog.addCloseButton();
 
-                    dialog.keyDown(key -> {
-                        if(key == KeyCode.escape || key == KeyCode.back){
-                            Core.app.post(dialog::hide);
-                        }
-                    });
                     dialog.show();
+                    table.remove();
                 });
 
                 table.row().fill();
-                table.button("Mine", () -> {
-                    if (cursor.floor().itemDrop != null) {
-                        player.unit().mineTile = player.unit().mineTile == cursor ? null : cursor;
-                    }
+                table.button("Unit Picker", () -> {// Unit Picker / Sniper
+                    ui.unitPicker.show();
+                    table.remove();
                 });
 
                 table.row().fill();
-                table.button("Unit Picker", () -> // Unit Picker / Sniper
-                    new UnitPicker().show()
-                );
-
-                table.row().fill();
-                table.button("Teleport to Cursor", () ->
-                    Timer.schedule(() -> player.unit().moveAt(new Vec2().set(World.unconv(cursor.x), World.unconv(cursor.y)).sub(player.unit()), player.dst(World.unconv(cursor.x), World.unconv(cursor.y))), 0, .01f, 15)
-                );
+                table.button("Teleport to Cursor", () -> {
+                    NetClient.setPosition(World.unconv(cursor.x), World.unconv(cursor.y));
+                    table.remove();
+                });
 
                 table.setHeight(itemHeight * (table.getRows() + 1) + 10 * (table.getRows() + 1));
-                AtomicBoolean released = new AtomicBoolean(false);
+                table.setPosition(input.mouseX() - 1, input.mouseY() + 1, Align.topLeft); // Offset by 1 pixel so the code below doesn't trigger instantly
                 table.update(() -> {
-                    if(input.keyRelease(Binding.select) && !released.get()){
-                        released.set(true);
-                    }else if(input.keyRelease(Binding.select)){
-                        scene.root.removeChild(table);
+                    if(input.keyTap(Binding.select) && !table.hasMouse()){
+                        table.remove();
                     }
                 });
                 scene.add(table);
-                table.setPosition(input.mouseX(), input.mouseY(), Align.topLeft);
             }
             if(Core.input.keyDown(Binding.control) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit();
@@ -486,11 +477,11 @@ public class DesktopInput extends InputHandler{
             if(cursor.build != null && cursor.interactable(player.team()) && !isPlacing() && Math.abs(Core.input.axisTap(Binding.rotate)) > 0 && Core.input.keyDown(Binding.rotateplaced) && cursor.block().rotate && cursor.block().quickRotate){
                 Call.rotateBlock(player, cursor.build, Core.input.axisTap(Binding.rotate) > 0);
             }
+        }
 
-            if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null && !(cursor.build != null && cursor.build.block.rotate && cursor.build.block.quickRotate && cursor.build.interactable(player.team()))){
-                panning = false;
-                Spectate.pos = null;
-            }
+        if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null && (cursor == null || cursor.build == null || !(cursor.build.block.rotate && cursor.build.block.quickRotate && cursor.build.interactable(player.team())))){
+            panning = false;
+            Spectate.pos = null;
         }
 
         if(!Core.scene.hasMouse()){
@@ -664,7 +655,7 @@ public class DesktopInput extends InputHandler{
                 boolean mine = false;
                 if (settings.getBool("doubleclicktomine")) {
                     if (canMine(selected)) {
-                        if (Time.timeSinceMillis(lastMineClicked) < 200) {
+                        if (Time.timeSinceMillis(lastMineClicked) < 400) {
                             mine = tryBeginMine(selected);
                         } else {
                             lastMineClicked = Time.millis();

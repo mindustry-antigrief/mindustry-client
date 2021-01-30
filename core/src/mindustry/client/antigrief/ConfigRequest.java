@@ -1,4 +1,4 @@
-package mindustry.client.antigreif;
+package mindustry.client.antigrief;
 
 import mindustry.gen.Call;
 import mindustry.world.Tile;

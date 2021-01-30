@@ -1,8 +1,11 @@
 package mindustry.client.navigation;
 
+import arc.math.geom.Position;
 import arc.math.geom.Vec2;
 import arc.struct.*;
 import arc.util.Interval;
+import arc.util.Log;
+import arc.util.Time;
 import mindustry.Vars;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
@@ -18,7 +21,6 @@ public class Navigation {
     public static Seq<TurretPathfindingEntity> obstacles = new Seq<>();
     private static Vec2 targetPos = null;
     private static Seq<TurretPathfindingEntity> obstaclesNotEmpty = new Seq<>();
-    private static final Interval timer = new Interval();
 
     public static void follow(Path path, boolean repeat) {
         stopFollowing();
@@ -36,10 +38,8 @@ public class Navigation {
     }
 
     public static void update() {
-        if (targetPos != null) { // must be navigating, TODO: dejank
-            if (timer.get(10)) {
-                navigateTo(targetPos.x, targetPos.y);
-            }
+        if (targetPos != null && playerNavigator.taskQueue.size() == 0) { // must be navigating, TODO: dejank
+                navigateTo(targetPos);
         }
 
         if (currentlyFollowing != null && !isPaused) {
@@ -74,12 +74,19 @@ public class Navigation {
         }
     }
 
+    public static void navigateTo(Position pos) {
+        navigateTo(pos.getX(), pos.getY());
+    }
+
     public static void navigateTo(float drawX, float drawY) {
         if (obstaclesNotEmpty.isEmpty()) {
-            targetPos = new Vec2(drawX, drawY);
             follow(new WaypointPath(Seq.with(new PositionWaypoint(drawX, drawY))));
+            currentlyFollowing.setShow(true);
+            targetPos = new Vec2(drawX, drawY);
             return;
         }
+
+        targetPos = new Vec2(drawX, drawY);
         playerNavigator.taskQueue.post(() -> {
             Seq<int[]> points = AStar.findPathWithObstacles(player.x, player.y, drawX, drawY, world.width(), world.height(), player.team(), obstaclesNotEmpty);
             if (points != null) {
@@ -92,9 +99,11 @@ public class Navigation {
                     if (waypoints.size > 1) {
                         waypoints.remove(0);
                     }
-                    follow(new WaypointPath(waypoints));
-                    currentlyFollowing.setShow(true);
-                    targetPos = new Vec2(drawX, drawY);
+                    if (targetPos != null) { // Don't create new path if stopFollowing has been run
+                        follow(new WaypointPath(waypoints));
+                        targetPos = new Vec2(drawX, drawY);
+                        currentlyFollowing.setShow(true);
+                    }
                 }
             }
         });

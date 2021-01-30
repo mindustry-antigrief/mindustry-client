@@ -53,7 +53,7 @@ public class MonospacedBar extends Bar {
 
         Draw.color();
 
-        Font font = Fonts.mono;
+        Font font = Fonts.monoOutline;
         GlyphLayout lay = Pools.obtain(GlyphLayout.class, GlyphLayout::new);
         lay.setText(font, name);
 

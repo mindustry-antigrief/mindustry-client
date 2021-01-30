@@ -18,7 +18,7 @@ import mindustry.ai.formations.patterns.*;
 import mindustry.ai.types.FormationAI;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
-import mindustry.client.antigreif.*;
+import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.ItemDropoffWaypoint;
 import mindustry.client.navigation.waypoints.ItemPickupWaypoint;
@@ -49,7 +49,6 @@ import mindustry.world.meta.*;
 
 import java.time.*;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static arc.Core.input;
@@ -243,7 +242,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Remote(targets = Loc.server, called = Loc.server)
     public static void pickedBuildPayload(Unit unit, Building build, boolean onGround){
         if(build != null && unit instanceof Payloadc pay){
-            build.tile.getLinkedTiles(tile2 -> tile2.addToLog(new PayloadPickupTileLog(unit, tile2, tile2.block(), Instant.now().getEpochSecond(), "")));
+            build.tile.getLinkedTiles(tile2 -> {
+                tile2.addToLog(new PayloadPickupTileLog(unit, tile2, tile2.block(), Instant.now().getEpochSecond(), ""));
+                ConstructBlock.breakWarning(tile2, build.block, unit);
+            });
 
         if(onGround){
             if(build.block.buildVisibility != BuildVisibility.hidden && build.canPickup() && pay.canPickup(build)){
@@ -325,9 +327,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot rotate a block.");
         }
 
-        if(player != null) build.lastAccessed = player.name;
-
         if(player != null){
+            build.lastAccessed = player.name;
             build.tile.getLinkedTiles(tile2 -> tile2.addToLog(new RotateTileLog(player.unit(), tile2, build.rotation, build.rotation + Mathf.sign(direction), Instant.now().getEpochSecond(), "")));
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if(((UnAssistPath) Navigation.currentlyFollowing).assisting == player){
@@ -340,10 +341,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        build.rotation = Mathf.mod(build.rotation + Mathf.sign(direction), 4);
-        build.updateProximity();
-        build.noSleep();
-        if(player != null) build.lastAccessed = player.name;
         build.rotation = Mathf.mod(build.rotation + Mathf.sign(direction), 4);
         build.updateProximity();
         build.noSleep();
@@ -497,11 +494,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         if(controlledType != null && player.dead()){
-            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead /* && !(u.controller() instanceof FormationAI f && !f.isBeingControlled(player.unit())) */);
+            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead /* TODO: Make this a thing that actually works? && (!(u.controller() instanceof FormationAI f) || f.isBeingControlled(player.lastReadUnit)) */);
 
             if(unit != null){
-                //only trying controlling once a second to prevent packet spam
-                if(!net.client() || controlInterval.get(0, 70f)){
+                if(!net.client() || controlInterval.get(0, 10f)){
                     Call.unitControl(player, unit);
                 }
             }
@@ -840,7 +836,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Draw.reset();
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(1f);
-        request.block.drawRequestConfigTop(request, selectRequests);
+        if(request.block != null) request.block.drawRequestConfigTop(request, selectRequests);
         Draw.reset();
     }
 
@@ -931,10 +927,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             lineRequests.add(req);
         });
 
-        if(Core.settings.getBool("blockreplace") && !control.input.conveyorPlaceNormal || !Core.settings.getBool("blockreplace") && control.input.conveyorPlaceNormal){
+        if(Core.settings.getBool("blockreplace") != control.input.conveyorPlaceNormal){
             lineRequests.each(req -> {
                 Block replace = req.block.getReplacement(req, lineRequests);
-                if (replace == null || replace.unlockedNow()) {
+                if (replace != null && replace.unlockedNow()) {
                     req.block = replace;
                 }
             });
@@ -956,9 +952,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         //check if tapped block is configurable
         if(build.block.configurable && build.interactable(player.team())){
-            if(((!frag.config.isShown() && build.shouldShowConfigure(player)) //if the config fragment is hidden, show
+            if((!frag.config.isShown() && build.shouldShowConfigure(player)) //if the config fragment is hidden, show
             //alternatively, the current selected block can 'agree' to switch config tiles
-            || (frag.config.isShown() && frag.config.getSelectedTile().onConfigureTileTapped(build)))){
+            || (frag.config.isShown() && frag.config.getSelectedTile().onConfigureTileTapped(build))){
                 Sounds.click.at(build);
                 frag.config.showConfig(build);
             }

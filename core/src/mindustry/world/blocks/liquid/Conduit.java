@@ -62,13 +62,12 @@ public class Conduit extends LiquidBlock implements Autotiler{
 
     @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
+        if (req.tile() == null) return this;
 
-        if (req.x >= world.width() || req.x <= 0 || req.y >= world.height() || req.y <= 0) return this;
-
-        if (world.tile(req.x, req.y).block() instanceof LiquidJunction) {
+        if (req.tile().block() instanceof LiquidJunction) {
             if (frontTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction || backTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction) {
                 if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conduit)) {
-                    return world.tile(req.x, req.y).block();
+                    return req.tile().block();
                 }
             }
         }
@@ -81,25 +80,23 @@ public class Conduit extends LiquidBlock implements Autotiler{
             return Blocks.liquidJunction;
         }
 
-        int ogRot = req.rotation;
         for(int i = 0;i < 2;i ++) {
             //TODO: automatically generate bridges?
             Block[] bridges = {Blocks.bridgeConduit, Blocks.phaseConduit};
-            for(int j = 0;j < bridges.length;j ++) {
-                final int distance = ((ItemBridge)bridges[j]).range;
-                if(req.block instanceof Conduit && !thisPlaceableOn(frontTile(req.x, req.y, req.rotation)) && requests.contains(o -> 
-                    (o.block instanceof Conduit || o.block instanceof ItemBridge) && 
+            int checkRotation = (req.rotation + i*2) % 4;
+            for(Block bridge : bridges) {
+                int range = ((ItemBridge)bridge).range;
+                if(req.block instanceof Conduit && !thisPlaceableOn(frontTile(req.x, req.y, checkRotation)) && requests.contains(o ->
+                    (o.block instanceof Conduit || o.block instanceof ItemBridge) &&
                     thisPlaceableOn(world.tile(req.x, req.y)) &&
                     thisPlaceableOn(world.tile(o.x, o.y)) &&
-                    !thisPlaceableOn(frontTile(o.x, o.y, (req.rotation + 2) % 4)) && 
-                    inFront(req.x, req.y, req.rotation, o) && 
-                    Mathf.dstm(req.x, req.y, o.x, o.y) <= distance)) {
-                    return bridges[j];
+                    !thisPlaceableOn(frontTile(o.x, o.y, (checkRotation + 2) % 4)) &&
+                    inFront(req.x, req.y, checkRotation, o) &&
+                    Mathf.dstm(req.x, req.y, o.x, o.y) <= range)) {
+                    return bridge;
                 }
             }
-            req.rotation = (req.rotation + 2) % 4;
         }
-        req.rotation = ogRot;
 
         return this;
     }
