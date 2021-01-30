@@ -302,6 +302,10 @@ public class DesktopInput extends InputHandler{
             mode = none;
         }
 
+        if (input.keyDown(Binding.find_modifier) && input.keyRelease(Binding.find)) {
+            Client.mapping.showFindDialog();
+        }
+
 //        if((Math.abs(Core.input.axis(Binding.move_x)) > 0 || Math.abs(Core.input.axis(Binding.move_y)) > 0 || input.keyDown(Binding.mouse_move)) && (!scene.hasField())){
 //            panning = false;
 //        }

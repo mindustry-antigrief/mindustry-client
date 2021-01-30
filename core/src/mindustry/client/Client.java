@@ -44,10 +44,11 @@ public class Client {
     public static boolean hideTrails = true;
     public static Ratekeeper configRateLimit = new Ratekeeper();
     public static boolean hideUnits = false;
-    /** The last position someone sent in chat or was otherwise put into the buffer, in tile coords. */
-    private static Vec2 lastSentPos = new Vec2();
+    /** The last position someone sent in chat or was otherwise put into the buffer. */
+    public static Vec2 lastSentPos = new Vec2();
     public static IntSet messageBlockPositions = new IntSet();
     public static final String messageCommunicationPrefix = "IN USE FOR CHAT AUTHENTICATION, do not use";
+    public static ClientInterface mapping;
 
     public static void initialize() {
         fooCommands.<Player>register("help", "[page]", "Lists all client commands.", (args, player) -> {
@@ -91,8 +92,8 @@ public class Client {
                     x = Float.parseFloat(args[0]);
                     y = Float.parseFloat(args[1]);
                 } else {
-                    x = lastSentPos.x;
-                    y = lastSentPos.y;
+                    x = World.conv(lastSentPos.x);
+                    y = World.conv(lastSentPos.y);
                 }
                 Navigation.navigateTo(World.unconv(x), World.unconv(y));
             } catch(NumberFormatException | IndexOutOfBoundsException e){
@@ -160,7 +161,7 @@ public class Client {
             try {
                 int x = Integer.parseInt(coords.split(",")[0]);
                 int y = Integer.parseInt(coords.split(",")[1]);
-                lastSentPos.set(x, y);
+                lastSentPos.set(World.unconv(x), World.unconv(y));
                 Timer.schedule(() -> ui.chatfrag.addMessage("!go to navigate to (%d,%d)", "client", Color.coral.cpy().mul(0.75f)), 0.05f);
             } catch (NumberFormatException e) {
                 e.printStackTrace();

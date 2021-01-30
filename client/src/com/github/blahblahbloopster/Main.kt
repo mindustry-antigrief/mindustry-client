@@ -2,11 +2,11 @@ package com.github.blahblahbloopster
 
 import arc.ApplicationListener
 import arc.Core
-import arc.util.Timer
 import com.github.blahblahbloopster.crypto.CommunicationSystem
 import com.github.blahblahbloopster.crypto.Crypto
 import com.github.blahblahbloopster.crypto.MessageBlockCommunicationSystem
 import com.github.blahblahbloopster.crypto.MessageCrypto
+import mindustry.client.Client
 
 object Main : ApplicationListener {
     var communicationSystem: CommunicationSystem? = null
@@ -21,6 +21,7 @@ object Main : ApplicationListener {
             messageCrypto = MessageCrypto()
             messageCrypto!!.init(communicationSystem!!)
         }
+        Client.mapping = ClientMapping()
     }
 
     /** Run once per frame. */
