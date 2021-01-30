@@ -1,7 +1,6 @@
 package mindustry.client;
 
 import arc.*;
-import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.struct.IntSet;
@@ -27,9 +26,6 @@ import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static arc.Core.settings;
 import static mindustry.Vars.*;
@@ -47,7 +43,7 @@ public class Client {
     public static boolean hideTrails;
     public static Ratekeeper configRateLimit = new Ratekeeper();
     public static boolean hideUnits = false;
-    /** The last position someone sent in chat or was otherwise put into the buffer. */
+    /** The last position in TILE COORDS someone sent in chat or was otherwise put into the buffer. */
     public static final Vec2 lastSentPos = new Vec2();
     public static IntSet messageBlockPositions = new IntSet();
     public static final String messageCommunicationPrefix = "IN USE FOR CHAT AUTHENTICATION, do not use";
@@ -89,17 +85,10 @@ public class Client {
             new UnitPicker().findUnit(found);
         });
 
-        fooCommands.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last stored coordinates posted to chat", (args, player) -> {
+        fooCommands.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last coordinates posted to chat", (args, player) -> {
             try {
-                float x, y;
-                if (args.length == 2) {
-                    x = Float.parseFloat(args[0]);
-                    y = Float.parseFloat(args[1]);
-                } else {
-                    x = World.conv(lastSentPos.x);
-                    y = World.conv(lastSentPos.y);
-                }
-                Navigation.navigateTo(World.unconv(x), World.unconv(y));
+                if (args.length == 2) lastSentPos.set(Float.parseFloat(args[0]), Float.parseFloat(args[1]));
+                Navigation.navigateTo(lastSentPos.cpy().scl(tilesize));
             } catch(NumberFormatException | IndexOutOfBoundsException e){
                 player.sendMessage("[scarlet]Invalid coordinates, format is [x] [y] Eg: !go 10 300 or !go");
             }
@@ -155,22 +144,6 @@ public class Client {
             UnitPicker.found = null;
             if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
             messageBlockPositions.clear();
-        });
-
-        Pattern coordPattern = Pattern.compile("\\d+(\\s|,)\\d+");
-        Events.on(EventType.PlayerChatEvent.class, event -> {
-            if (event.message == null) return;
-            Matcher matcher = coordPattern.matcher(event.message);
-            if (!matcher.matches()) return;
-            String coords = matcher.toMatchResult().group(0);
-            try {
-                int x = Integer.parseInt(coords.split(",")[0]);
-                int y = Integer.parseInt(coords.split(",")[1]);
-                lastSentPos.set(World.unconv(x), World.unconv(y));
-                Timer.schedule(() -> ui.chatfrag.addMessage("!go to navigate to (%d,%d)", "client", Color.coral.cpy().mul(0.75f)), 0.05f);
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-            }
         });
 
         Events.on(EventType.UnitChangeEvent.class, event -> {
