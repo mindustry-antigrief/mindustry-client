@@ -354,6 +354,15 @@ public class SettingsMenuDialog extends SettingsDialog{
                     t.left().defaults().left();
                     t.add(label).minWidth(label.getPrefWidth() / Scl.scl(1.0F) + 50.0F);
                     t.field(settings.getString(name), text -> settings.put(name, text)).growX();
+                    t.button("@be.check", Icon.refresh, () -> {
+                        ui.loadfrag.show();
+                        becontrol.checkUpdate(result -> {
+                            ui.loadfrag.hide();
+                            if(!result){
+                                ui.showInfo("@be.noupdates");
+                            }
+                        });
+                    }).name("becheck").padLeft(10).get().getLabel().setWrap(false);
                 }).left().fillX().padTop(3);
                 table.row();
             }
