@@ -340,6 +340,8 @@ project(":core"){
         api "com.github.Anuken:rhino:$rhinoVersion"
         if(localArc() && debugged()) api arcModule("extensions:recorder")
 
+        implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.20"
+
         compileOnly project(":annotations")
         annotationProcessor project(":annotations")
         annotationProcessor 'com.github.Anuken:jabel:34e4c172e65b3928cd9eabe1993654ea79c409cd'

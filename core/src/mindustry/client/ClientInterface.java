@@ -8,4 +8,10 @@ package mindustry.client;
 public interface ClientInterface {
 
     void showFindDialog();
+
+    void showChangelogDialog();
+
+    void showFeaturesDialog();
+
+
 }
