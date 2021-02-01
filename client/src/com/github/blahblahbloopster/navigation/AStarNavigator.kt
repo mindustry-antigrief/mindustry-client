@@ -120,8 +120,8 @@ object AStarNavigator : Navigator() {
         end ?: return null
         obstacles ?: return null
 
-        val width = max(obstacles.maxOf { it.x }, max(start.x, end.x))
-        val height = max(obstacles.maxOf { it.y }, max(start.y, end.y))
+        val width = max(obstacles.maxOfOrNull { it.x } ?: 0f, max(start.x, end.x))
+        val height = max(obstacles.maxOfOrNull { it.y } ?: 0f, max(start.y, end.y))
 
         val tileWidth = width.roundToInt() / 8
         val tileHeight = height.roundToInt() / 8
