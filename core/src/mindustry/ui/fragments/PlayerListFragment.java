@@ -13,6 +13,7 @@ import mindustry.client.Spectate;
 import mindustry.client.navigation.AssistPath;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
+import mindustry.core.NetClient;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
@@ -116,7 +117,7 @@ public class PlayerListFragment extends Fragment{
             table.name = user.name();
 
             button.add(table).size(h);
-            button.labelWrap("[#" + user.color().toString().toUpperCase() + "]" + user.name()).width(300f).pad(10);
+            button.button("[#" + user.color().toString().toUpperCase() + "]" + user.name(), Styles.nonetdef, () -> Core.app.setClipboardText(NetClient.colorizeName(user.id, user.name))).width(300f).growY().pad(10);
             button.add().grow();
 
             if (user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
