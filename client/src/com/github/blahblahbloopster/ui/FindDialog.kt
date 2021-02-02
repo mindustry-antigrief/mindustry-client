@@ -61,7 +61,7 @@ object FindDialog : BaseDialog("@find") {
                     hide()
                     return@keyDown
                 }
-                Client.lastSentPos.set(closest)
+                Client.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
                 Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", "client", Color.coral.cpy().mul(0.75f))
                 hide()
             }

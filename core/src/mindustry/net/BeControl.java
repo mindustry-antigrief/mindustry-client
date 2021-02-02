@@ -25,9 +25,10 @@ import static mindustry.Vars.*;
 
 /** Handles control of bleeding edge builds. */
 public class BeControl{
-    private static final int updateInterval = 60;
+    private static final int updateInterval = 90; // Poll every 90s (40/hr), this leaves us with 20 requests per hour to spare.
 
     private final AsyncExecutor executor = new AsyncExecutor(1);
+    /** Whether or not to automatically display an update prompt on client load and every subsequent minute. */
     private boolean checkUpdates = Core.settings.getBool("autoupdate");
     private boolean updateAvailable;
     private String updateUrl;
@@ -41,8 +42,12 @@ public class BeControl{
     public BeControl(){
         Events.on(EventType.ClientLoadEvent.class, event -> {
             Timer.schedule(() -> {
-                if(checkUpdates && !mobile && Version.clientBuild != 0){
-                    checkUpdate(t -> {});
+                if(!mobile && Version.clientBuild != 0){
+                    checkUpdate(result -> {
+                        if (result && checkUpdates) {
+                            showUpdateDialog();
+                        }
+                    });
                 }
                 }, 1, updateInterval
             );
@@ -77,7 +82,6 @@ public class BeControl{
                     updateBuild = newBuild;
                     updateUrl = url;
                     Core.app.post(() -> {
-                        showUpdateDialog();
                         done.get(true);
                     });
                 }else{
@@ -92,6 +96,11 @@ public class BeControl{
     /** @return whether a new update is available */
     public boolean isUpdateAvailable(){
         return updateAvailable;
+    }
+
+    /** Sets updateAvailable to the specified value */
+    public void setUpdateAvailable(boolean available){
+        updateAvailable = available;
     }
 
     /** shows the dialog for updating the game on desktop, or a prompt for doing so on the server */

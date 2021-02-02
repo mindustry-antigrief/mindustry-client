@@ -4,6 +4,7 @@ import arc.Core;
 import arc.math.geom.Position;
 import arc.math.geom.Vec2;
 import arc.struct.*;
+import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
 import java.util.HashSet;
@@ -105,8 +106,11 @@ public class Navigation {
                 waypoints.reverse();
 
                 if (waypoints.any()) {
+                    int i = 0;
                     if (waypoints.size > 1) {
-                        waypoints.remove(0);
+                        do { // Remove any waypoints which backtrack at the start, this is a shitty solution to the problem but oh well.
+                            waypoints.remove(0);
+                        } while (i++ < 5 && waypoints.any() && ((PositionWaypoint) waypoints.first()).dst(new Vec2(drawX, drawY)) + tilesize > player.dst(new Vec2(drawX, drawY)));
                     }
                     if (targetPos != null) { // Don't create new path if stopFollowing has been run
                         follow(new WaypointPath(waypoints));

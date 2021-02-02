@@ -99,6 +99,7 @@ public class Conveyor extends Block implements Autotiler{
 //                }
 //            }
 //        }
+//        TODO: Why is this even here anymore? isnt it useless? can i remove it? what does it even do? good questions
 
 
         Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conveyor || req.block instanceof Junction));
