@@ -132,6 +132,11 @@ public class Client {
             Call.sendChatMessage("¯\\_(ツ)_/¯ " + (args.length == 1 ? args[0] : ""))
         );
 
+        fooCommands.<Player>register("login", "[name] [pw]", "Used for cn, don't use this if you care at all about security.", true, (args, player) -> {
+            if (args.length == 2) settings.put("cnpw", args[0] + " "  + args[1]);
+            else Call.sendChatMessage("/login " + settings.getString("cnpw", ""));
+        });
+
         Events.on(WorldLoadEvent.class, event -> {
             if (Time.timeSinceMillis(lastSyncTime) > 5000) {
                 tileLogs = new TileLog[world.height()][world.width()];
