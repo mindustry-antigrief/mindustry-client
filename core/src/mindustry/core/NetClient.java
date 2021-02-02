@@ -191,7 +191,7 @@ public class NetClient implements ApplicationListener{
     @Remote(called = Loc.server, targets = Loc.server)
     public static void sendMessage(String message){
         if(Vars.ui != null){
-            Log.info(message + " hello yes this is a server message :)");
+            Log.info(message);
             message = processCoords(message);
             Vars.ui.chatfrag.addMessage(message, null);
         }
