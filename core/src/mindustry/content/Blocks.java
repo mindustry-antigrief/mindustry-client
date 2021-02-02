@@ -1397,6 +1397,7 @@ public class Blocks implements ContentList{
             size = 3;
             itemCapacity = 1000;
             flags = EnumSet.of(BlockFlag.storage);
+            group = BlockGroup.transportation;
         }};
 
         container = new StorageBlock("container"){{
@@ -1404,6 +1405,7 @@ public class Blocks implements ContentList{
             size = 2;
             itemCapacity = 300;
             flags = EnumSet.of(BlockFlag.storage);
+            group = BlockGroup.transportation;
         }};
 
         unloader = new Unloader("unloader"){{
