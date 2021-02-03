@@ -1,15 +1,13 @@
 package com.github.blahblahbloopster.navigation
 
 import arc.math.Mathf
-import arc.math.geom.Circle
-import arc.math.geom.Geometry
-import arc.math.geom.Vec2
+import arc.math.geom.*
+import mindustry.Vars.*
 import mindustry.client.navigation.Navigator
 import mindustry.core.World
 import java.util.*
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.roundToInt
+import kotlin.math.*
+import kotlin.ranges.*
 
 // Taken from http://www.codebytes.in/2015/02/a-shortest-path-finding-algorithm.html
 // and modified
@@ -123,8 +121,8 @@ object AStarNavigator : Navigator() {
         val width = max(obstacles.maxOfOrNull { it.x } ?: 0f, max(start.x, end.x))
         val height = max(obstacles.maxOfOrNull { it.y } ?: 0f, max(start.y, end.y))
 
-        val tileWidth = width.roundToInt() / 8
-        val tileHeight = height.roundToInt() / 8
+        val tileWidth = ceil(width / tilesize).toInt() + 1
+        val tileHeight = ceil(height / tilesize).toInt() + 1
 
         start.clamp(0f, 0f, height, width)
         end.clamp(0f, 0f, height, width)

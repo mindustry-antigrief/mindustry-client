@@ -30,7 +30,7 @@ public class BuildPath extends Path {
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
-        queues.addAll(player.unit().plans, broken, assist, unfinished); // Every queue except for cleanup is included by default
+        queues.addAll(player.unit().plans, broken, assist, unfinished); // Every queue except for cleanup and boulders is included by default
     }
 
     @SuppressWarnings("unchecked")
@@ -62,7 +62,7 @@ public class BuildPath extends Path {
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     void follow() {
         // TODO: Cleanup this firstrun nonsense, make sure that unfinished and cleanup don't conflict
-        if (firstRun) world.tiles.forEach(tile -> {if(tile.team() == Team.derelict && tile.breakable() && tile.isCenter())cleanup.add(new BuildPlan(tile.x, tile.y));}); firstRun = false;
+        if (firstRun) world.tiles.forEach(tile -> {if(tile.team() == Team.derelict && tile.breakable() && tile.isCenter() && !(tile.block() instanceof Boulder))cleanup.add(new BuildPlan(tile.x, tile.y));}); firstRun = false;
         if (timer.get(15)) {
             // Jank code to clear the four extra queues TODO: Find a better way to do this
             if(!broken.isEmpty() && queues.contains(broken)){broken.forEach(player.unit().plans::remove); broken.clear();}

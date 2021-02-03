@@ -68,6 +68,8 @@ public class MenuFragment extends Fragment{
                     ui.loadfrag.hide();
                     if(!result){
                         ui.showInfo("@be.noupdates");
+                    } else {
+                        becontrol.showUpdateDialog();
                     }
                 });
             }).size(200, 60).name("becheck").update(t -> {

@@ -22,7 +22,7 @@ public abstract class Navigator {
         Seq<Circle> realObstacles = new Seq<>(new Circle[0]);
         for (TurretPathfindingEntity turret : obstacles) {
             if (turret.canHitPlayer) {
-                realObstacles.add(new Circle(turret.x / resolution, turret.y / resolution, turret.radius / resolution));
+                realObstacles.add(new Circle(turret.x / resolution, turret.y / resolution, turret.radius*1.1f / resolution));
             }
         }
         Vec2[] path = findPath(start, end, realObstacles.toArray());

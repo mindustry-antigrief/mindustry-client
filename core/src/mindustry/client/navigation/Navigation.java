@@ -36,12 +36,12 @@ public class Navigation {
 
     public static void update() {
         if (targetPos != null && playerNavigator.taskQueue.size() == 0) { // must be navigating, TODO: dejank
-                navigateTo(targetPos);
+            navigateTo(targetPos);
         }
 
-        if (Core.graphics.getFrameId() % 60 == 0) {
-            obstacles.clear();
-        }
+//        if (Core.graphics.getFrameId() % 60 == 0) { TODO: Remove if unneeded, make it use an interval otherwise
+//            obstacles.clear();
+//        }
 
         if (currentlyFollowing != null && !isPaused) {
             currentlyFollowing.follow();
@@ -85,6 +85,7 @@ public class Navigation {
     }
 
     public static void navigateTo(float drawX, float drawY) {
+        state = NavigationState.FOLLOWING;
         if (obstacles.isEmpty()) {
             follow(new WaypointPath(Seq.with(new PositionWaypoint(drawX, drawY))));
             currentlyFollowing.setShow(true);
@@ -105,8 +106,11 @@ public class Navigation {
                 waypoints.reverse();
 
                 if (waypoints.any()) {
+                    int i = 0;
                     if (waypoints.size > 1) {
-                        waypoints.remove(0);
+                        do { // Remove any waypoints which backtrack at the start, this is a shitty solution to the problem but oh well.
+                            waypoints.remove(0);
+                        } while (i++ < 5 && waypoints.any() && ((PositionWaypoint) waypoints.first()).dst(new Vec2(drawX, drawY)) + tilesize > player.dst(new Vec2(drawX, drawY)));
                     }
                     if (targetPos != null) { // Don't create new path if stopFollowing has been run
                         follow(new WaypointPath(waypoints));

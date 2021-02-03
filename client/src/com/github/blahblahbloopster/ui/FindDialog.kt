@@ -8,6 +8,7 @@ import arc.scene.ui.Image
 import arc.scene.ui.TextField
 import arc.scene.ui.layout.Table
 import mindustry.Vars
+import mindustry.Vars.player
 import mindustry.client.Client
 import mindustry.client.utils.BiasedLevenshtein
 import mindustry.ui.Cicon
@@ -22,7 +23,7 @@ object FindDialog : BaseDialog("@find") {
     private var guesses: List<Block> = emptyList()
 
     private fun updateGuesses() {
-        guesses = Vars.content.blocks().copy().toMutableList().sortedBy { BiasedLevenshtein.biasedLevenshtein(it.localizedName, inputField.text) }
+        guesses = Vars.content.blocks().copy().toMutableList().sortedBy { BiasedLevenshtein.biasedLevenshtein(it.localizedName.toLowerCase(), inputField.text.toLowerCase()) }
     }
 
     init {
@@ -51,7 +52,7 @@ object FindDialog : BaseDialog("@find") {
                 val filtered = mutableListOf<Tile>()
                 val block = guesses[0]
                 Vars.world.tiles.eachTile { tile ->
-                    if (tile.block().id == block.id) {
+                    if (tile.isCenter && tile.block().id == block.id && tile.team() == player.team()) {
                         filtered.add(tile)
                     }
                 }
@@ -61,7 +62,8 @@ object FindDialog : BaseDialog("@find") {
                     hide()
                     return@keyDown
                 }
-                Client.lastSentPos.set(closest)
+                Client.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
+                //TODO: Make the line below use toasts similar to UnitPicker.java
                 Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", "client", Color.coral.cpy().mul(0.75f))
                 hide()
             }

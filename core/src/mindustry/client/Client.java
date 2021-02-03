@@ -25,8 +25,7 @@ import mindustry.world.Tile;
 import mindustry.world.blocks.defense.turrets.BaseTurret;
 import mindustry.type.UnitType;
 import java.lang.reflect.Method;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import static arc.Core.settings;
 import static mindustry.Vars.*;
 import static mindustry.Vars.player;
@@ -80,9 +79,9 @@ public class Client {
 
         fooCommands.<Player>register("unit", "<unit-name>", "Swap to specified unit", (args, player) -> {
             Seq<UnitType> sorted = content.units().copy();
-            sorted = sorted.sort((b) -> Strings.levenshtein(args[0], b.name));
+            sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshtein(args[0], b.name));
             UnitType found = sorted.first();
-            new UnitPicker().findUnit(found);
+            ui.unitPicker.findUnit(found);
         });
 
         fooCommands.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last coordinates posted to chat", (args, player) -> {
@@ -132,6 +131,11 @@ public class Client {
         fooCommands.<Player>register("shrug", "[message...]", "Sends the shrug unicode emoji with an optional message", (args, player) ->
             Call.sendChatMessage("¯\\_(ツ)_/¯ " + (args.length == 1 ? args[0] : ""))
         );
+
+        fooCommands.<Player>register("login", "[name] [pw]", "Used for CN. [scarlet]Don't use this if you care at all about security.", (args, player) -> {
+            if (args.length == 2) settings.put("cnpw", args[0] + " "  + args[1]);
+            else Call.sendChatMessage("/login " + settings.getString("cnpw", ""));
+        });
 
         Events.on(WorldLoadEvent.class, event -> {
             if (Time.timeSinceMillis(lastSyncTime) > 5000) {

@@ -43,7 +43,7 @@ public class SettingsMenuDialog extends SettingsDialog{
     private Table prefs;
     private Table menu;
     private BaseDialog dataDialog;
-    private boolean wasPaused;
+    private boolean wasPaused, urlChanged;
 
     public SettingsMenuDialog(){
         hidden(() -> {
@@ -348,13 +348,28 @@ public class SettingsMenuDialog extends SettingsDialog{
                 title = Core.bundle.get("setting." + name + ".name");
                 if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
                 settings.defaults("updateurl", "blahblahbloopster/mindustry-client-v6");
-                Label label = new Label(title);
 
-                table.table((t) -> {
-                    t.left().defaults().left();
+                table.table(t -> {
+                    t.button(Icon.refresh, Styles.settingtogglei, 32, () -> {
+                        ui.loadfrag.show();
+                        becontrol.checkUpdate(result -> {
+                            ui.loadfrag.hide();
+                            urlChanged = false;
+                            if(!result){
+                                ui.showInfo("@be.noupdates");
+                            } else {
+                                becontrol.showUpdateDialog();
+                            }
+                        });
+                    }).update(u -> u.setChecked(becontrol.isUpdateAvailable() || urlChanged)).padRight(4);
+                    Label label = new Label(title);
                     t.add(label).minWidth(label.getPrefWidth() / Scl.scl(1.0F) + 50.0F);
-                    t.field(settings.getString(name), text -> settings.put(name, text)).growX();
-                }).left().fillX().padTop(3);
+                    t.field(settings.getString(name), text -> {
+                        becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
+                        urlChanged = true;
+                        settings.put(name, text);
+                    }).growX();
+                }).left().fillX().padTop(3).height(32);
                 table.row();
             }
         });
@@ -372,10 +387,11 @@ public class SettingsMenuDialog extends SettingsDialog{
                 }
             }
         });
-        client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
         client.checkPref("doubleclicktomine", true);
-        client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
         client.checkPref("autoboost", true);
+        client.checkPref("showuserid", false);
+        client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
+        client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
 
         game.checkPref("savecreate", true);
         game.checkPref("conveyorpathfinding", true);

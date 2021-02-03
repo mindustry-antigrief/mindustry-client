@@ -26,8 +26,8 @@ public class Styles{
     //TODO all these names are inconsistent and not descriptive
     public static Drawable black, black9, black8, black6, black3, black5, none, flatDown, flatOver;
     public static ButtonStyle defaultb, waveb, modsb;
-    public static TextButtonStyle defaultt, squaret, nodet, cleart, discordt, nonet, infot, clearPartialt, clearTogglet, clearToggleMenut, togglet, transt, fullTogglet, logict;
-    public static ImageButtonStyle defaulti, wavei, nodei, righti, emptyi, emptytogglei, selecti, logici, geni, colori, accenti, cleari, clearFulli, clearPartiali, clearPartial2i, clearTogglei, clearTransi, clearToggleTransi, clearTogglePartiali;
+    public static TextButtonStyle defaultt, squaret, nodet, cleart, discordt, nonet, nonetdef, infot, clearPartialt, clearTogglet, clearToggleMenut, togglet, transt, fullTogglet, logict;
+    public static ImageButtonStyle defaulti, wavei, nodei, righti, emptyi, emptytogglei, settingtogglei, selecti, logici, geni, colori, accenti, cleari, clearFulli, clearPartiali, clearPartial2i, clearTogglei, clearTransi, clearToggleTransi, clearTogglePartiali;
     public static ScrollPaneStyle defaultPane, horizontalPane, smallPane;
     public static KeybindDialogStyle defaultKeybindDialog;
     public static SliderStyle defaultSlider, vSlider;
@@ -97,6 +97,11 @@ public class Styles{
             fontColor = Color.lightGray;
             overFontColor = Pal.accent;
             disabledFontColor = Color.gray;
+            up = none;
+        }};
+        nonetdef = new TextButtonStyle(){{
+            font = Fonts.def;
+            fontColor = Color.white;
             up = none;
         }};
         cleart = new TextButtonStyle(){{
@@ -213,6 +218,11 @@ public class Styles{
         emptytogglei = new ImageButtonStyle(){{
             imageCheckedColor = Color.white;
             imageDownColor = Color.white;
+            imageUpColor = Color.gray;
+        }};
+        settingtogglei = new ImageButtonStyle(){{
+            imageCheckedColor = Pal.accent;
+            imageDownColor = Pal.accent;
             imageUpColor = Color.gray;
         }};
         selecti = new ImageButtonStyle(){{
