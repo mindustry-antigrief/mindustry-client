@@ -4,7 +4,6 @@ import arc.Core;
 import arc.math.geom.Position;
 import arc.math.geom.Vec2;
 import arc.struct.*;
-import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
 import java.util.HashSet;
@@ -37,12 +36,12 @@ public class Navigation {
 
     public static void update() {
         if (targetPos != null && playerNavigator.taskQueue.size() == 0) { // must be navigating, TODO: dejank
-                navigateTo(targetPos);
+            navigateTo(targetPos);
         }
 
-        if (Core.graphics.getFrameId() % 60 == 0) {
-            obstacles.clear();
-        }
+//        if (Core.graphics.getFrameId() % 60 == 0) { TODO: Remove if unneeded, make it use an interval otherwise
+//            obstacles.clear();
+//        }
 
         if (currentlyFollowing != null && !isPaused) {
             currentlyFollowing.follow();
@@ -86,6 +85,7 @@ public class Navigation {
     }
 
     public static void navigateTo(float drawX, float drawY) {
+        state = NavigationState.FOLLOWING;
         if (obstacles.isEmpty()) {
             follow(new WaypointPath(Seq.with(new PositionWaypoint(drawX, drawY))));
             currentlyFollowing.setShow(true);

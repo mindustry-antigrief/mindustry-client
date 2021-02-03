@@ -8,6 +8,7 @@ import arc.scene.ui.Image
 import arc.scene.ui.TextField
 import arc.scene.ui.layout.Table
 import mindustry.Vars
+import mindustry.Vars.player
 import mindustry.client.Client
 import mindustry.client.utils.BiasedLevenshtein
 import mindustry.ui.Cicon
@@ -51,7 +52,7 @@ object FindDialog : BaseDialog("@find") {
                 val filtered = mutableListOf<Tile>()
                 val block = guesses[0]
                 Vars.world.tiles.eachTile { tile ->
-                    if (tile.isCenter && tile.block().id == block.id) {
+                    if (tile.isCenter && tile.block().id == block.id && tile.team() == player.team()) {
                         filtered.add(tile)
                     }
                 }
