@@ -28,6 +28,7 @@ import mindustry.input.*;
 import mindustry.ui.*;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.util.zip.*;
 
 import static arc.Core.*;
@@ -35,10 +36,10 @@ import static mindustry.Vars.net;
 import static mindustry.Vars.*;
 
 public class SettingsMenuDialog extends SettingsDialog{
-    private SettingsTable graphics;
-    private SettingsTable game;
-    private SettingsTable sound;
-    public SettingsTable client;
+    private BetterSettingsTable graphics;
+    private BetterSettingsTable game;
+    private BetterSettingsTable sound;
+    public BetterSettingsTable client;
 
     private Table prefs;
     private Table menu;
@@ -75,10 +76,10 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         menu = new Table(Tex.button);
 
-        game = new SettingsTable();
-        graphics = new SettingsTable();
-        sound = new SettingsTable();
-        client = new SettingsTable();
+        game = new BetterSettingsTable();
+        graphics = new BetterSettingsTable();
+        sound = new BetterSettingsTable();
+        client = new BetterSettingsTable();
 
         prefs = new Table();
         prefs.top();
@@ -343,7 +344,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("blockreplace", true);
         client.pref(new SettingsTable.Setting() {
             @Override
-            public void add(SettingsTable table) {
+            public void add(SettingsTable table) { // Update URL with update button, this should really be moved to save some space lol
                 name = "updateurl";
                 title = Core.bundle.get("setting." + name + ".name");
                 if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
@@ -515,6 +516,35 @@ public class SettingsMenuDialog extends SettingsDialog{
         }
 
         graphics.checkPref("flow", true);
+    }
+
+    public static class BetterSettingsTable extends SettingsTable{
+        /** Add a section/subcategory to the specified setting table. */
+        public void section(String name){
+            list.add(new Section(name));
+
+            try {
+                Method ohno = this.getClass().getDeclaredMethod("rebuild");
+                ohno.setAccessible(true);
+                ohno.invoke(this);
+            } catch (Exception e) {
+                Log.err(e);
+            }
+        }
+
+        public static class Section extends SettingsTable.Setting{
+            Section(String name) {
+                this.name = name;
+                this.title = bundle.get("setting." + name + ".name");
+            }
+
+            @Override
+            public void add(SettingsTable table) {
+                table.row();
+                table.add("[accent]" + title);
+                table.row();
+            }
+        }
     }
 
     public void exportData(Fi file) throws IOException{

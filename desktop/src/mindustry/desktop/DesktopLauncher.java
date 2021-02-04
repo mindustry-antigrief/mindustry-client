@@ -307,6 +307,7 @@ public class DesktopLauncher extends ClientLauncher{
             presence.largeImageKey = "logo";
             presence.smallImageKey = "foo";
             presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientBuild == -1 ? "Dev" : "Build " + Version.clientBuild);
+            presence.startTimestamp = beginTime/1000;
 
             DiscordRPC.INSTANCE.Discord_UpdatePresence(presence);
         }

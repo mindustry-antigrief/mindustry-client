@@ -10,6 +10,7 @@ import arc.math.geom.Rect;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.Client;
+import mindustry.client.navigation.TurretPathfindingEntity;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.game.Teams.*;
@@ -20,6 +21,7 @@ import mindustry.world.blocks.power.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.navigation.Navigation.obstacles;
 
 public class BlockRenderer implements Disposable{
     public static final int crackRegions = 8, maxCrackSize = 9;
@@ -309,6 +311,11 @@ public class BlockRenderer implements Disposable{
                     Drawf.dashCircle(turret.x, turret.y, turret.range(), turret.team.color);
                 }
             });
+            for (TurretPathfindingEntity turret : obstacles) {
+                Draw.color(turret.canHitPlayer ? Color.green : Color.red, 0.2f);
+            Fill.circle(turret.x, turret.y, turret.radius);
+        }
+        Draw.color();
         }
     }
 

@@ -15,6 +15,7 @@ import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 import mindustry.world.blocks.defense.Wall.*;
 
 import static mindustry.Vars.*;
@@ -44,6 +45,7 @@ abstract class BulletComp implements Timedc, Damagec, Hitboxc, Teamc, Posc, Draw
 
     @Override
     public void drawBullets(){
+        if (UnitType.alpha == 0) return;
         type.draw(self());
     }
 

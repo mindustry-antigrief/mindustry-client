@@ -388,9 +388,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!player.dead() && !state.isPaused() && !(Core.scene.getKeyboardFocus() instanceof TextField)){
-            if(!Navigation.isFollowing()){
                 updateMovement(player.unit());
-            }
 
             if(Core.input.keyDown(Binding.respawn) && !player.unit().spawnedByCore() && !scene.hasField()){
                 Call.unitClear(player);
@@ -786,7 +784,7 @@ public class DesktopInput extends InputHandler{
         }
     }
 
-    protected void updateMovement(Unit unit){
+    protected void updateMovement(Unit unit){ // Heavily modified to support navigation
         boolean omni = unit.type.omniMovement;
 
         float speed = unit.realSpeed();
@@ -802,21 +800,23 @@ public class DesktopInput extends InputHandler{
             movement.add(input.mouseWorld().sub(player).scl(1f / 25f * speed)).limit(speed);
         }
 
-        float mouseAngle = Angles.mouseAngle(unit.x, unit.y);
-        boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !boosted && unit.type.rotateShooting;
+        if(!Navigation.isFollowing()){
+            float mouseAngle = Angles.mouseAngle(unit.x, unit.y);
+            boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !boosted && unit.type.rotateShooting;
 
-        if(aimCursor){
-            unit.lookAt(mouseAngle);
-        }else{
-            unit.lookAt(unit.prefRotation());
-        }
+            if(aimCursor){
+                unit.lookAt(mouseAngle);
+            }else{
+                unit.lookAt(unit.prefRotation());
+            }
 
-        if(omni){
-            unit.moveAt(movement);
-        }else{
-            unit.moveAt(Tmp.v2.trns(unit.rotation, movement.len()));
-            if(!movement.isZero()){
-                unit.vel.rotateTo(movement.angle(), unit.type.rotateSpeed * Math.max(Time.delta, 1));
+            if(omni){
+                unit.moveAt(movement);
+            }else{
+                unit.moveAt(Tmp.v2.trns(unit.rotation, movement.len()));
+                if(!movement.isZero()){
+                    unit.vel.rotateTo(movement.angle(), unit.type.rotateSpeed * Math.max(Time.delta, 1));
+                }
             }
         }
 

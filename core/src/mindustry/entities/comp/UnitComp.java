@@ -288,6 +288,9 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     public void remove(){
         team.data().updateCount(type, -1);
         controller.removed(self());
+        for (Weapon weapon : type.weapons) {
+            Navigation.obstacles.remove(pathfindingEntities.get(weapon));
+        }
     }
 
     @Override

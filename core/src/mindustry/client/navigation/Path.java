@@ -3,12 +3,18 @@ package mindustry.client.navigation;
 import arc.math.geom.Position;
 import arc.struct.*;
 
+import static mindustry.Vars.player;
+
 /**
  * A way of representing a path
  */
 public abstract class Path {
     private final Seq<Runnable> listeners = new Seq<>();
     public boolean repeat = false;
+
+    public void init() {
+        addListener(() -> player.shooting(false));
+    }
 
     public abstract void setShow(boolean show);
 

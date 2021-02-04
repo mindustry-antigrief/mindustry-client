@@ -8,6 +8,7 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 
 public class ContinuousLaserBulletType extends BulletType{
     public float length = 220f;
@@ -80,6 +81,7 @@ public class ContinuousLaserBulletType extends BulletType{
 
     @Override
     public void draw(Bullet b){
+        if (UnitType.alpha == 0) return;
         float realLength = Damage.findLaserLength(b, length);
         float fout = Mathf.clamp(b.time > b.lifetime - fadeTime ? 1f - (b.time - (lifetime - fadeTime)) / fadeTime : 1f);
         float baseLen = realLength * fout;

@@ -21,13 +21,11 @@ public class Navigation {
 
     public static void follow(Path path, boolean repeat) {
         stopFollowing();
+        if (path == null) return;
         currentlyFollowing = path;
-        if (path == null){
-            state = NavigationState.NONE;
-        } else {
-            state = NavigationState.FOLLOWING;
-            currentlyFollowing.repeat = repeat;
-        }
+        currentlyFollowing.init();
+        state = NavigationState.FOLLOWING;
+        currentlyFollowing.repeat = repeat;
     }
 
     public static void follow(Path path) {

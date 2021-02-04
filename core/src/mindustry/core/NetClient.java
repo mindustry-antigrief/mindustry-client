@@ -39,7 +39,7 @@ import java.util.zip.*;
 import static mindustry.Vars.*;
 
 public class NetClient implements ApplicationListener{
-    private static final float dataTimeout = 60 * 18;
+    private static final float dataTimeout = 60 * 30; // Give up after 30s (vanilla is 18s)
     private static final float playerSyncTime = 2;
     public static final float viewScale = 2f;
     private static final Pattern coordPattern = Pattern.compile("\\S*?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\S*"); // This regex is a mess, it captures the coords into $1 and $2 while $0 contains all surrounding text as well. https://regex101.com is the superior regex tester
