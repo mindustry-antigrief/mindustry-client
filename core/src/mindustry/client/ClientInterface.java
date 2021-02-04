@@ -1,5 +1,8 @@
 package mindustry.client;
 
+import arc.math.geom.Vec2;
+import mindustry.gen.Player;
+
 /**
  * This is an interface implemented by the client module in kotlin.
  * It serves as the mapping between the java and kotlin modules.
@@ -13,5 +16,7 @@ public interface ClientInterface {
 
     void showFeaturesDialog();
 
+    void setAssistPath(Player player);
 
+    Vec2 floatEmbed();
 }

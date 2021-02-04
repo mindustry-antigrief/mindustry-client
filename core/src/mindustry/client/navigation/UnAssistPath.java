@@ -25,12 +25,12 @@ public class UnAssistPath extends Path {
     public void setShow(boolean show) {}
 
     @Override
-    boolean isShown() {
+    public boolean getShow() {
         return false;
     }
 
     @Override
-    void follow() {
+    public void follow() {
         if (assisting == null || Vars.player == null) {
             return;
         }
@@ -87,7 +87,7 @@ public class UnAssistPath extends Path {
     }
 
     @Override
-    float progress() {
+    public float progress() {
         return assisting == null? 1f : 0f;
     }
 
@@ -97,7 +97,7 @@ public class UnAssistPath extends Path {
     }
 
     @Override
-    Position next() {
+    public Position next() {
         return null;
     }
 }

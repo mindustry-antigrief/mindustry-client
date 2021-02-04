@@ -12,15 +12,15 @@ public abstract class Path {
 
     public abstract void setShow(boolean show);
 
-    abstract boolean isShown();
+    public abstract boolean getShow();
 
     public void addListener(Runnable listener) {
         listeners.add(listener);
     }
 
-    abstract void follow();
+    public abstract void follow();
 
-    abstract float progress();
+    public abstract float progress();
 
     public boolean isDone() {
         boolean done = progress() >= 0.99;
@@ -41,5 +41,5 @@ public abstract class Path {
 
     public void draw() {}
 
-    abstract Position next();
+    public abstract Position next();
 }

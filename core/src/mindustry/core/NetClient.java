@@ -13,7 +13,6 @@ import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.Client;
-import mindustry.client.navigation.AssistPath;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.utils.FloatEmbed;
 import mindustry.core.GameState.*;
@@ -27,10 +26,8 @@ import mindustry.net.Net.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
-import mindustry.ui.fragments.PlayerListFragment;
 import mindustry.world.*;
 import mindustry.world.modules.*;
-
 import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -643,11 +640,7 @@ public class NetClient implements ApplicationListener{
 
             Unit unit = player.dead() ? Nulls.unit : player.unit();
             int uid = player.dead() ? -1 : unit.id;
-            Vec2 pos = Core.settings.getBool("displayasuser") ?
-                    new Vec2(FloatEmbed.embedInFloat(player.unit().aimX, Client.FOO_USER),
-                            FloatEmbed.embedInFloat(player.unit().aimY,
-                                    Navigation.currentlyFollowing instanceof AssistPath ? Client.ASSISTING : Client.FOO_USER))
-                    : new Vec2(player.unit().aimX, player.unit().aimY);
+            Vec2 pos = Client.mapping.floatEmbed();
 
             Call.clientSnapshot(
             lastSent++,

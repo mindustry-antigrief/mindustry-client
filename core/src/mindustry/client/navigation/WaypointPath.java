@@ -28,7 +28,7 @@ public class WaypointPath extends Path {
     }
 
     @Override
-    public boolean isShown() {
+    public boolean getShow() {
         return show;
     }
 

@@ -57,10 +57,10 @@ public class BuildPath extends Path {
     public void setShow(boolean show) { this.show = show; }
 
     @Override
-    boolean isShown() { return show; }
+    public boolean getShow() { return show; }
 
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
-    void follow() {
+    public void follow() {
         // TODO: Cleanup this firstrun nonsense, make sure that unfinished and cleanup don't conflict
         if (firstRun) world.tiles.forEach(tile -> {if(tile.team() == Team.derelict && tile.breakable() && tile.isCenter() && !(tile.block() instanceof Boulder))cleanup.add(new BuildPlan(tile.x, tile.y));}); firstRun = false;
         if (timer.get(15)) {
@@ -113,7 +113,7 @@ public class BuildPath extends Path {
     }
 
     @Override
-    float progress() {
+    public float progress() {
         return 0;
     }
 
@@ -127,7 +127,7 @@ public class BuildPath extends Path {
     }
 
     @Override
-    Position next() {
+    public Position next() {
         return null;
     }
 

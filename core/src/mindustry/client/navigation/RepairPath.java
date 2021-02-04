@@ -12,12 +12,12 @@ public class RepairPath extends Path {
     public void setShow(boolean show) {}
 
     @Override
-    boolean isShown() {
+    public boolean getShow() {
         return false;
     }
 
     @Override
-    void follow() {
+    public void follow() {
         Building build = Geometry.findClosest(player.x, player.y, indexer.getDamaged(player.team()));
         if (build == null || (player.unit() != null && player.unit().type != null && !player.unit().type.canHeal)) return;
         player.shooting(player.unit().inRange(build));
@@ -26,7 +26,7 @@ public class RepairPath extends Path {
     }
 
     @Override
-    float progress() {
+    public float progress() {
         if (player.unit() != null && (!player.unit().type.canHeal || indexer.getDamaged(player.team()).isEmpty())) {
             player.shooting(false);
             return 1;
@@ -40,7 +40,7 @@ public class RepairPath extends Path {
     }
 
     @Override
-    Position next() {
+    public Position next() {
         return null;
     }
 }
