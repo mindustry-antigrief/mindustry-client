@@ -182,9 +182,9 @@ public class MenuFragment extends Fragment{
                 new Buttoni("@about.button", Icon.info, ui.about::show),
                 new Buttoni("Client", Icon.wrench,
                     new Buttoni("Discord", Icon.discord, () -> { // Link to client discord
-                        if (!Core.app.openURI("https://discord.gg/yp9ZW7j")) {
+                        if (!Core.app.openURI(clientDiscord)) {
                             ui.showErrorMessage("@linkfail");
-                            Core.app.setClipboardText("https://discord.gg/yp9ZW7j");
+                            Core.app.setClipboardText(clientDiscord);
                         }
                     }),
                     new Buttoni("Github", Icon.github, () -> { // Link to client discord

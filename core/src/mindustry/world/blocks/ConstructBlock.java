@@ -97,10 +97,7 @@ public class ConstructBlock extends Block{
         Seq<Block> warnBlocks = new Seq<>(new Block[]{Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid}); // All blocks that shouldn't be broken. Note: Untested with multiblocks, likely to behave in a strange manner.
 
         if (warnBlocks.contains(block) && Time.timeSinceMillis(tile.lastBreakWarn) > 10_000) { //TODO: Revise this, maybe do break warns per user?
-            AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
-            state.teams.closestCore(tile.worldx(), tile.worldy(), builder.team).tile.getLinkedTiles(t -> tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)) - 1, distance.get())))); // Oh god
-
-            Timer.schedule(() -> ui.chatfrag.addMessage(Strings.format("[scarlet]@ just removed a @! (@ blocks from core)", Strings.stripColors(builder.getPlayer().name), block.localizedName, distance.get()), "Anti Grief"), 0, 0, 2);
+            Timer.schedule(() -> ui.chatfrag.addMessage(Strings.format("[accent]@ [scarlet]just removed/picked up a @ at (@, @)", Strings.stripColors(builder.getPlayer().name), block.localizedName, tile.x, tile.y), "Anti Grief"), 0, 0, 2);
             tile.lastBreakWarn = Time.millis();
         }
     }

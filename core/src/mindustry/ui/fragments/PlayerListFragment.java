@@ -32,6 +32,7 @@ public class PlayerListFragment extends Fragment{
     @Override
     public void build(Group parent){
         content.name = "players";
+
         parent.fill(cont -> {
             cont.name = "playerlist";
             cont.visible(() -> visible);

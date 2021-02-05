@@ -69,6 +69,20 @@ public interface Platform{
     default void updateRPC(){
     }
 
+    default void stopDiscord(){
+    }
+
+    default void startDiscord(){
+    }
+
+    default void toggleDiscord(boolean toggle){
+        if (toggle) {
+            startDiscord();
+        } else {
+            stopDiscord();
+        }
+    }
+
     /** Must be a base64 string 8 bytes in length. */
     default String getUUID(){
         String uuid = Core.settings.getString("uuid", "");

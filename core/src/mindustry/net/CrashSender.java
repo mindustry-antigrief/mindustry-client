@@ -25,7 +25,7 @@ import static mindustry.Vars.*;
 public class CrashSender{
 
     public static String createReport(String error){
-        String report = "Your game has crashed, Report this at https://discord.gg/yp9ZW7j\n\n";
+        String report = "Ohno, the game has crashed. Report this at: " + clientDiscord + "\n\n";
         report += "Copy paste the report below when reporting:\n```java\n";
         return report + "Version: " + Version.combined() + (Vars.headless ? " (Server)" : "") + "\n"
             + "Source: " + settings.getString("updateurl") + "\n"

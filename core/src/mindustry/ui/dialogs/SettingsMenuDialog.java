@@ -44,7 +44,7 @@ public class SettingsMenuDialog extends SettingsDialog{
     private Table prefs;
     private Table menu;
     private BaseDialog dataDialog;
-    private boolean wasPaused, urlChanged;
+    private boolean wasPaused;
 
     public SettingsMenuDialog(){
         hidden(() -> {
@@ -301,6 +301,46 @@ public class SettingsMenuDialog extends SettingsDialog{
         sound.sliderPref("sfxvol", bundle.get("setting.sfxvol.name", "SFX Volume"), 100, 0, 100, 1, i -> i + "%");
         sound.sliderPref("ambientvol", bundle.get("setting.ambientvol.name", "Ambient Volume"), 100, 0, 100, 1, i -> i + "%");
 
+
+        // Start Client Settings
+        client.category("antigrief");
+        client.sliderPref("reactorwarningdistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" :Integer.toString(s));
+        client.sliderPref("reactorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
+        client.sliderPref("incineratorwarningdistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" :Integer.toString(s));
+        client.sliderPref("incineratorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
+        client.checkPref("removecorenukes", false);
+
+        client.category("chat");
+        client.checkPref("clearchatonleave", true);
+        client.checkPref("logmsgstoconsole", true);
+        client.checkPref("displayasuser", false);
+        client.checkPref("highlightclientmsg", false);
+        client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
+        client.checkPref("showuserid", false);
+
+        client.category("controls");
+        client.checkPref("blockreplace", true);
+        client.checkPref("doubleclicktomine", true);
+        client.checkPref("autoboost", false);
+
+        client.category("graphics");
+        client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
+        client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
+        client.checkPref("lighting", true);
+        client.checkPref("hidetrails", false, i -> Client.hideTrails = i);
+        client.checkPref("drawhitboxes", false);
+
+        client.category("misc");
+        client.updatePref();
+        client.checkPref("autoupdate", true);
+        client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
+        client.checkPref("assumeunstrict", false);
+        client.checkPref("allowjoinany", false);
+
+
+        //End Client Settings
+
+
         game.screenshakePref();
         if(mobile){
             game.checkPref("autotarget", true);
@@ -323,78 +363,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         if(!mobile){
             game.checkPref("crashreport", true);
         }
-
-        client.sliderPref("reactorwarningdistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" :Integer.toString(s));
-        client.sliderPref("reactorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
-        client.sliderPref("incineratorwarningdistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" :Integer.toString(s));
-        client.sliderPref("incineratorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
-        client.checkPref("removecorenukes", false);
-        client.checkPref("lighting", true);
-        client.checkPref("displayasuser", false);
-        client.checkPref("highlightclientmsg", false);
-        client.checkPref("autoupdate", true);
-        client.checkPref("hidetrails", false, i -> Client.hideTrails = i);
-        client.checkPref("tilehud", true);
-        client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
-        client.checkPref("clearchatonleave", true);
-        client.checkPref("assumeunstrict", false);
-        client.checkPref("logmsgstoconsole", false);
-        client.checkPref("allowjoinany", false);
-        client.checkPref("drawhitboxes", false);
-        client.checkPref("blockreplace", true);
-        client.pref(new SettingsTable.Setting() {
-            @Override
-            public void add(SettingsTable table) { // Update URL with update button, this should really be moved to save some space lol
-                name = "updateurl";
-                title = Core.bundle.get("setting." + name + ".name");
-                if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
-                settings.defaults("updateurl", "blahblahbloopster/mindustry-client-v6");
-
-                table.table(t -> {
-                    t.button(Icon.refresh, Styles.settingtogglei, 32, () -> {
-                        ui.loadfrag.show();
-                        becontrol.checkUpdate(result -> {
-                            ui.loadfrag.hide();
-                            urlChanged = false;
-                            if(!result){
-                                ui.showInfo("@be.noupdates");
-                            } else {
-                                becontrol.showUpdateDialog();
-                            }
-                        });
-                    }).update(u -> u.setChecked(becontrol.isUpdateAvailable() || urlChanged)).padRight(4);
-                    Label label = new Label(title);
-                    t.add(label).minWidth(label.getPrefWidth() / Scl.scl(1.0F) + 50.0F);
-                    t.field(settings.getString(name), text -> {
-                        becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
-                        urlChanged = true;
-                        settings.put(name, text);
-                    }).growX();
-                }).left().fillX().padTop(3).height(32);
-                table.row();
-            }
-        });
-        client.checkPref("doubleclicktomine", true, i -> { // Makes sand and darksand mineable if the setting is toggled on
-            Blocks.sand.asFloor().playerUnmineable = !i;
-            Blocks.darksand.asFloor().playerUnmineable = !i;
-        });
-        client.checkPref("discordrpc", true, val -> {
-            ClientLauncher launcher = (ClientLauncher) app.getListeners().find(item -> item instanceof ClientLauncher);
-            if (launcher != null && app.isDesktop()) {
-                if (!val) {
-                    launcher.stopDiscord();
-                } else {
-                    launcher.startDiscord();
-                }
-            }
-        });
-        client.checkPref("doubleclicktomine", true);
-        client.checkPref("autoboost", true);
-        client.checkPref("showuserid", false);
-        client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
-        client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
-
-        game.checkPref("savecreate", true);
+        game.checkPref("savecreate", true); // Autosave
         game.checkPref("conveyorpathfinding", true);
         game.checkPref("hints", true);
 
@@ -518,32 +487,72 @@ public class SettingsMenuDialog extends SettingsDialog{
         graphics.checkPref("flow", true);
     }
 
-    public static class BetterSettingsTable extends SettingsTable{
-        /** Add a section/subcategory to the specified setting table. */
-        public void section(String name){
-            list.add(new Section(name));
 
-            try {
-                Method ohno = this.getClass().getDeclaredMethod("rebuild");
-                ohno.setAccessible(true);
-                ohno.invoke(this);
-            } catch (Exception e) {
-                Log.err(e);
-            }
+    /** Extends arc's {@link SettingsTable}, allows the addition of custom setting types without editing arc. */
+    public static class BetterSettingsTable extends SettingsTable{
+        /** Add a section/subcategory. */
+        public void category(String name){
+            pref(new Category(name));
         }
 
-        public static class Section extends SettingsTable.Setting{
-            Section(String name) {
+        /* TODO: Actually add this at some point, this sounds like a massive pain in the ass tho.
+        public void textPref(String name, String def){
+            settings.defaults(name, def);
+            pref(new TextPref(name));
+        } */
+
+        // Elements are actually added below
+        public static class Category extends Setting{
+            Category(String name) {
                 this.name = name;
-                this.title = bundle.get("setting." + name + ".name");
+                this.title = bundle.get("setting." + name + ".category");
             }
 
             @Override
             public void add(SettingsTable table) {
-                table.row();
+                table.add("").row(); // Add a cell first as .row doesn't work if there are no cells in the current row.
                 table.add("[accent]" + title);
                 table.row();
             }
+        }
+
+
+        /** Since the update pref takes half a page and implementing all this in a non static manner is a pain, I'm leaving it here for now. */
+        private void updatePref(){
+            settings.defaults("updateurl", "blahblahbloopster/mindustry-client-v6");
+            if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
+            pref(new Setting() {
+                boolean urlChanged;
+
+                @Override
+                public void add(SettingsTable table) { // Update URL with update button TODO: Move this to TextPref when i decide im willing to spend 6 hours doing so
+                    name = "updateurl";
+                    title = Core.bundle.get("setting." + name + ".name");
+
+                    table.table(t -> {
+                        t.button(Icon.refresh, Styles.settingtogglei, 32, () -> {
+                            ui.loadfrag.show();
+                            becontrol.checkUpdate(result -> {
+                                ui.loadfrag.hide();
+                                urlChanged = false;
+                                if(!result){
+                                    ui.showInfo("@be.noupdates");
+                                } else {
+                                    becontrol.showUpdateDialog();
+                                }
+                            });
+                        }).update(u -> u.setChecked(becontrol.isUpdateAvailable() || urlChanged)).padRight(4);
+                        Label label = new Label(title);
+                        t.add(label).minWidth(label.getPrefWidth() / Scl.scl(1.0F) + 50.0F);
+                        t.field(settings.getString(name), text -> {
+                            becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
+                            urlChanged = true;
+                            settings.put(name, text);
+                        }).growX();
+                    }).left().fillX().padTop(3).height(32);
+                    table.row();
+                }
+            });
         }
     }
 

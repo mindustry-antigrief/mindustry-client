@@ -126,6 +126,7 @@ public class Navigation {
     }
 
     public static void stopRecording() {
+        if (recording == null) return;
         state = NavigationState.NONE;
         recordedPath = new WaypointPath(recording);
         recording = null;

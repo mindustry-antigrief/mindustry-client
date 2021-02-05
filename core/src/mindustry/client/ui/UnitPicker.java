@@ -65,7 +65,7 @@ public class UnitPicker extends BaseDialog {
                 new Toast(5f).label(() ->"No " + found + " was found, automatically switching to that unit when it spawns (set picked unit to alpha to cancel).");
             }
         }
-        hide();
+        Core.app.post(this::hide);
     }
 
     public UnitPicker show(){

@@ -215,18 +215,18 @@ public class DesktopInput extends InputHandler{
 
             }else if(mode == payloadPlace){
                 if(player.unit() instanceof Payloadc){
-                    Payload payload = ((Payloadc)player.unit()).hasPayload()? ((Payloadc)player.unit()).payloads().peek() : null;
+                    Payload payload = ((Payloadc)player.unit()).hasPayload() ? ((Payloadc)player.unit()).payloads().peek() : null;
                     if(payload != null){
                         if(payload instanceof BuildPayload){
                             drawRequest(cursorX, cursorY, ((BuildPayload)payload).block(), 0);
                             if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, ((BuildPayload)payload).block(), 0)){
-                                Navigation.follow(new WaypointPath(new Seq<>(new Waypoint[]{new PositionWaypoint(player.x, player.y), new PayloadDropoffWaypoint(cursorX, cursorY)})));
-                                NavigationState previousState = Navigation.state;
-                                Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
                                 if(Navigation.state == NavigationState.RECORDING){
                                     Navigation.addWaypointRecording(new PayloadDropoffWaypoint(cursorX, cursorY));
                                 }
-                                mode = none;
+                                Navigation.follow(new WaypointPath(new Seq<>(new Waypoint[]{new PositionWaypoint(player.x, player.y), new PayloadDropoffWaypoint(cursorX, cursorY)})));
+                                NavigationState previousState = Navigation.state;
+                                Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
+                                mode = ((Payloadc)player.unit()).payloads().size > 1 ? payloadPlace : none; // Disable payloadplace mode if this is the only payload.
                             }
                         }
                     }

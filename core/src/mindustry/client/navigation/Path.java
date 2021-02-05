@@ -5,9 +5,7 @@ import arc.struct.*;
 
 import static mindustry.Vars.player;
 
-/**
- * A way of representing a path
- */
+/** A way of representing a path */
 public abstract class Path {
     private final Seq<Runnable> listeners = new Seq<>();
     public boolean repeat = false;

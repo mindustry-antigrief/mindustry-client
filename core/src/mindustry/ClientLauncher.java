@@ -111,10 +111,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         Client.initialize();
     }
 
-    public void stopDiscord(){}
-
-    public void startDiscord(){}
-
     @Override
     public void add(ApplicationListener module){
         super.add(module);
