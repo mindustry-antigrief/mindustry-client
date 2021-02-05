@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions
+    url:  https://discord.gg/yp9ZW7j
+    about: It is preferred that you ask questions on discord as we are typically more active there and it is easier to chat without waiting 3 hours for a reply.
+  - name: Bug Report
+    url: https://discord.gg/yp9ZW7j
+    about: Reporting bugs in discord makes it easier to ask questions in order to find out what went wrong.
