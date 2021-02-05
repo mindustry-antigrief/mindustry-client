@@ -311,11 +311,6 @@ public class BlockRenderer implements Disposable{
                     Drawf.dashCircle(turret.x, turret.y, turret.range(), turret.team.color);
                 }
             });
-            for (TurretPathfindingEntity turret : obstacles) {
-                Draw.color(turret.canHitPlayer ? Color.green : Color.red, 0.2f);
-            Fill.circle(turret.x, turret.y, turret.radius);
-        }
-        Draw.color();
         }
     }
 
