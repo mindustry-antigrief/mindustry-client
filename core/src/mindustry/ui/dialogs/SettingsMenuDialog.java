@@ -14,7 +14,6 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
-import mindustry.ClientLauncher;
 import mindustry.client.Client;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
@@ -28,7 +27,6 @@ import mindustry.input.*;
 import mindustry.ui.*;
 
 import java.io.*;
-import java.lang.reflect.Method;
 import java.util.zip.*;
 
 import static arc.Core.*;
@@ -117,9 +115,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             t.row();
 
             t.button("@settings.clearsaves", Icon.trash, style, () -> {
-                ui.showConfirm("@confirm", "@settings.clearsaves.confirm", () -> {
-                    control.saves.deleteAll();
-                });
+                ui.showConfirm("@confirm", "@settings.clearsaves.confirm", () -> control.saves.deleteAll());
             }).marginLeft(4);
 
             t.row();
@@ -327,6 +323,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
         client.checkPref("lighting", true);
+        client.checkPref("disablemonofont", false); // Requires Restart
         client.checkPref("hidetrails", false, i -> Client.hideTrails = i);
         client.checkPref("drawhitboxes", false);
 
@@ -336,8 +333,6 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("assumeunstrict", false);
         client.checkPref("allowjoinany", false);
-
-
         //End Client Settings
 
 
@@ -379,9 +374,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             });
 
             if(!Version.modifier.contains("beta")){
-                game.checkPref("publichost", false, i -> {
-                    platform.updateLobby();
-                });
+                game.checkPref("publichost", false, i -> platform.updateLobby());
             }
         }
 

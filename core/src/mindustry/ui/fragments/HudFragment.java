@@ -216,23 +216,6 @@ public class HudFragment extends Fragment{
                 //wave info button with text
                 s.add(makeStatusTable()).grow().name("status");
 
-                // Waypoint button
-                s.button(Icon.move, Styles.wavei, 30f, () -> {
-                    BaseDialog dialog = new BaseDialog("Waypoints");
-                    dialog.addCloseButton();
-                    dialog.cont.setWidth(200f);
-                    dialog.cont.add(new TextButton("Record path")).growX().get().clicked(() -> {Navigation.startRecording(); dialog.hide();});
-                    dialog.cont.row();
-                    dialog.cont.add(new TextButton("Stop recording path")).growX().get().clicked(() -> {Navigation.stopRecording(); dialog.hide();});
-                    dialog.cont.row();
-                    dialog.cont.add(new TextButton("Follow recorded path")).growX().get().clicked(() -> {if (Navigation.recordedPath != null) {Navigation.recordedPath.reset(); Navigation.follow(Navigation.recordedPath); Navigation.recordedPath.setShow(true);} dialog.hide();});
-                    dialog.cont.row();
-                    dialog.cont.add(new TextButton("Follow recorded path\nand repeat")).growX().get().clicked(() -> {if (Navigation.recordedPath != null) {Navigation.recordedPath.reset(); Navigation.follow(Navigation.recordedPath, true); Navigation.recordedPath.setShow(true);} dialog.hide();});
-                    dialog.cont.row();
-                    dialog.cont.add(new TextButton("Stop following path")).growX().get().clicked(() -> {Navigation.stopFollowing(); dialog.hide();});
-                    dialog.show();
-                }).growY().fillX().right().width(40f);
-
                 // button to skip wave
                 s.button(Icon.play, Styles.wavei, 30f, () -> {
                     if(!canSkipWave()) new Toast(1f).label(() -> "You tried and that's all that matters.");
@@ -242,14 +225,12 @@ public class HudFragment extends Fragment{
 
                 // Power bar display
                 s.row();
-                s.add(PowerInfo.getBars()).growX().colspan(3);
+                s.add(PowerInfo.getBars()).growX().colspan(s.getColumns());
 
                 // Boss bar display
                 s.row();
-                s.table(Tex.wavepane, t -> t.add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white)).grow().colspan(3)).grow().colspan(3).height(65).visible(() -> state.boss() != null).name("boss");
+                s.table(Tex.wavepane, t -> t.add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white)).grow()).grow().colspan(s.getColumns()).height(65).visible(() -> state.boss() != null).name("boss");
             }).width(dsize * 6 + 4f);
-
-            wavesMain.row();
 
             editorMain.name = "editor";
 

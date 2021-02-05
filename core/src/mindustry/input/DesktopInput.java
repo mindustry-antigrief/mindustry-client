@@ -369,6 +369,23 @@ public class DesktopInput extends InputHandler{
                     table.remove();
                 });
 
+                table.row().fill();
+                table.button("Waypoints", () -> {
+                    BaseDialog dialog = new BaseDialog("Waypoints");
+                    dialog.addCloseButton();
+                    dialog.cont.setWidth(200f);
+                    dialog.cont.add(new TextButton("Record path")).growX().get().clicked(() -> {Navigation.startRecording(); dialog.hide();});
+                    dialog.cont.row();
+                    dialog.cont.add(new TextButton("Stop recording path")).growX().get().clicked(() -> {Navigation.stopRecording(); dialog.hide();});
+                    dialog.cont.row();
+                    dialog.cont.add(new TextButton("Follow recorded path")).growX().get().clicked(() -> {if (Navigation.recordedPath != null) {Navigation.recordedPath.reset(); Navigation.follow(Navigation.recordedPath); Navigation.recordedPath.setShow(true);} dialog.hide();});
+                    dialog.cont.row();
+                    dialog.cont.add(new TextButton("Follow recorded path\nand repeat")).growX().get().clicked(() -> {if (Navigation.recordedPath != null) {Navigation.recordedPath.reset(); Navigation.follow(Navigation.recordedPath, true); Navigation.recordedPath.setShow(true);} dialog.hide();});
+                    dialog.cont.row();
+                    dialog.cont.add(new TextButton("Stop following path")).growX().get().clicked(() -> {Navigation.stopFollowing(); dialog.hide();});
+                    dialog.show();
+                });
+
                 table.setHeight(itemHeight * (table.getRows() + 1) + 10 * (table.getRows() + 1));
                 table.setPosition(input.mouseX() - 1, input.mouseY() + 1, Align.topLeft); // Offset by 1 pixel so the code below doesn't trigger instantly
                 table.update(() -> {

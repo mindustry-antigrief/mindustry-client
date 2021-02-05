@@ -335,11 +335,11 @@ public class Styles{
             fontColor = Color.white;
         }};
         monoLabel = new LabelStyle(){{
-            font = Fonts.mono;
+            font = Core.settings.getBool("disablemonofont") ? Fonts.def : Fonts.mono; // Some people don't like the mono font, restarting the client after toggling the setting is required.
             fontColor = Color.white;
         }};
         monoOutlineLabel = new LabelStyle(){{
-            font = Fonts.monoOutline;
+            font = Core.settings.getBool("disablemonofont") ? Fonts.outline : Fonts.monoOutline; // Some people don't like the mono font, restarting the client after toggling the setting is required.
             fontColor = Color.white;
         }};
         outlineLabel = new LabelStyle(){{
