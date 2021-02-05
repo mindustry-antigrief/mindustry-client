@@ -3,7 +3,7 @@ name: Java Tests
 on:
   pull_request:
   push:
-    branches-ignore: custom-client
+    branches-ignore: [custom-client, dev]
 
 jobs:
   buildJava14:
