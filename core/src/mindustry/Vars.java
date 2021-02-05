@@ -56,6 +56,8 @@ public class Vars implements Loadable{
     public static final String donationURL = "https://anuke.itch.io/mindustry/purchase";
     /** URL for discord invite. */
     public static final String discordURL = "https://discord.gg/mindustry";
+    /** URL for client discord. */
+    public static final String clientDiscord = "https://discord.gg/yp9ZW7j";
     /** URL for sending crash reports to */
     public static final String crashReportURL = "http://192.99.169.18/report";
     /** URL the links to the wiki's modding guide.*/
@@ -243,7 +245,6 @@ public class Vars implements Loadable{
             locales = Seq.with(locales).and(new Locale("router")).toArray(Locale.class);
         }
 
-        Version.init();
 
         dataDirectory = settings.getDataDirectory();
         screenshotDirectory = dataDirectory.child("screenshots/");

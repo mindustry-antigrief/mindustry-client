@@ -8,6 +8,7 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 
 public class ShrapnelBulletType extends BulletType{
     public float length = 100f;
@@ -52,6 +53,7 @@ public class ShrapnelBulletType extends BulletType{
 
     @Override
     public void draw(Bullet b){
+        if (UnitType.alpha == 0) return;
         float realLength = b.fdata;
 
         Draw.color(fromColor, toColor, b.fin());

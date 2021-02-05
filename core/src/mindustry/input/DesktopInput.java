@@ -215,18 +215,18 @@ public class DesktopInput extends InputHandler{
 
             }else if(mode == payloadPlace){
                 if(player.unit() instanceof Payloadc){
-                    Payload payload = ((Payloadc)player.unit()).hasPayload()? ((Payloadc)player.unit()).payloads().peek() : null;
+                    Payload payload = ((Payloadc)player.unit()).hasPayload() ? ((Payloadc)player.unit()).payloads().peek() : null;
                     if(payload != null){
                         if(payload instanceof BuildPayload){
                             drawRequest(cursorX, cursorY, ((BuildPayload)payload).block(), 0);
                             if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, ((BuildPayload)payload).block(), 0)){
-                                Navigation.follow(new WaypointPath(new Seq<>(new Waypoint[]{new PositionWaypoint(player.x, player.y), new PayloadDropoffWaypoint(cursorX, cursorY)})));
-                                NavigationState previousState = Navigation.state;
-                                Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
                                 if(Navigation.state == NavigationState.RECORDING){
                                     Navigation.addWaypointRecording(new PayloadDropoffWaypoint(cursorX, cursorY));
                                 }
-                                mode = none;
+                                Navigation.follow(new WaypointPath(new Seq<>(new Waypoint[]{new PositionWaypoint(player.x, player.y), new PayloadDropoffWaypoint(cursorX, cursorY)})));
+                                NavigationState previousState = Navigation.state;
+                                Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
+                                mode = ((Payloadc)player.unit()).payloads().size > 1 ? payloadPlace : none; // Disable payloadplace mode if this is the only payload.
                             }
                         }
                     }
@@ -388,9 +388,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!player.dead() && !state.isPaused() && !(Core.scene.getKeyboardFocus() instanceof TextField)){
-            if(!Navigation.isFollowing()){
                 updateMovement(player.unit());
-            }
 
             if(Core.input.keyDown(Binding.respawn) && !player.unit().spawnedByCore() && !scene.hasField()){
                 Call.unitClear(player);
@@ -786,7 +784,7 @@ public class DesktopInput extends InputHandler{
         }
     }
 
-    protected void updateMovement(Unit unit){
+    protected void updateMovement(Unit unit){ // Heavily modified to support navigation
         boolean omni = unit.type.omniMovement;
 
         float speed = unit.realSpeed();
@@ -802,21 +800,23 @@ public class DesktopInput extends InputHandler{
             movement.add(input.mouseWorld().sub(player).scl(1f / 25f * speed)).limit(speed);
         }
 
-        float mouseAngle = Angles.mouseAngle(unit.x, unit.y);
-        boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !boosted && unit.type.rotateShooting;
+        if(!Navigation.isFollowing()){
+            float mouseAngle = Angles.mouseAngle(unit.x, unit.y);
+            boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !boosted && unit.type.rotateShooting;
 
-        if(aimCursor){
-            unit.lookAt(mouseAngle);
-        }else{
-            unit.lookAt(unit.prefRotation());
-        }
+            if(aimCursor){
+                unit.lookAt(mouseAngle);
+            }else{
+                unit.lookAt(unit.prefRotation());
+            }
 
-        if(omni){
-            unit.moveAt(movement);
-        }else{
-            unit.moveAt(Tmp.v2.trns(unit.rotation, movement.len()));
-            if(!movement.isZero()){
-                unit.vel.rotateTo(movement.angle(), unit.type.rotateSpeed * Math.max(Time.delta, 1));
+            if(omni){
+                unit.moveAt(movement);
+            }else{
+                unit.moveAt(Tmp.v2.trns(unit.rotation, movement.len()));
+                if(!movement.isZero()){
+                    unit.vel.rotateTo(movement.angle(), unit.type.rotateSpeed * Math.max(Time.delta, 1));
+                }
             }
         }
 

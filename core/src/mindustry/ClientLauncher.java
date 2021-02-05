@@ -29,7 +29,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
     private static final int loadingFPS = 20;
 
     private long lastTime;
-    private long beginTime;
+    protected long beginTime;
     private boolean finished = false;
     private LoadRenderer loader;
 
@@ -110,10 +110,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
         Client.initialize();
     }
-
-    public void stopDiscord(){}
-
-    public void startDiscord(){}
 
     @Override
     public void add(ApplicationListener module){

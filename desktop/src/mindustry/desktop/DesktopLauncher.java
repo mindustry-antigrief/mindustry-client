@@ -43,8 +43,9 @@ public class DesktopLauncher extends ClientLauncher{
             }
             int finalAaSamples = aaSamples;
 
+            Version.init();
             config = new SdlConfig() {{
-                title = "Mindustry (Foo's Client)";
+                title = Strings.format("Mindustry (v@) | Foo's Client (@)", Version.buildString(), Version.clientBuild == -1 ? "Dev" : "Build " + Version.clientBuild);
                 maximized = true;
                 stencil = 1;
                 width = 900;
@@ -80,7 +81,6 @@ public class DesktopLauncher extends ClientLauncher{
     }
 
     public DesktopLauncher(String[] args){
-        Version.init();
         boolean useSteam = Version.modifier.contains("steam");
         testMobile = Seq.with(args).contains("-testMobile");
 
@@ -261,7 +261,7 @@ public class DesktopLauncher extends ClientLauncher{
     @Override
     public void updateRPC(){
         //if we're using neither discord nor steam, do no work
-        if(!useDiscord && !steam) return;
+        if((!useDiscord || !Core.settings.getBool("discordrpc")) && !steam) return;
 
         //common elements they each share
         boolean inGame = state.isGame();
@@ -291,7 +291,7 @@ public class DesktopLauncher extends ClientLauncher{
             }
         }
 
-        if(useDiscord){
+        if(useDiscord && Core.settings.getBool("discordrpc")){
             DiscordRichPresence presence = new DiscordRichPresence();
 
             if(inGame){
@@ -307,6 +307,7 @@ public class DesktopLauncher extends ClientLauncher{
             presence.largeImageKey = "logo";
             presence.smallImageKey = "foo";
             presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientBuild == -1 ? "Dev" : "Build " + Version.clientBuild);
+            presence.startTimestamp = beginTime/1000;
 
             DiscordRPC.INSTANCE.Discord_UpdatePresence(presence);
         }

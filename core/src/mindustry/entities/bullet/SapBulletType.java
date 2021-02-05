@@ -9,6 +9,7 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 
 public class SapBulletType extends BulletType{
     public float length = 100f;
@@ -30,6 +31,7 @@ public class SapBulletType extends BulletType{
 
     @Override
     public void draw(Bullet b){
+        if (UnitType.alpha == 0) return;
         if(b.data instanceof Position data){
             Tmp.v1.set(data).lerp(b, b.fin());
 

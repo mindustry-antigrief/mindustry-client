@@ -1,5 +1,6 @@
 package mindustry.client.navigation;
 
+import arc.Core;
 import arc.math.geom.Geometry;
 import arc.math.geom.Position;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
@@ -29,6 +30,8 @@ public class RepairPath extends Path {
     public float progress() {
         if (player.unit() != null && (!player.unit().type.canHeal || indexer.getDamaged(player.team()).isEmpty())) {
             player.shooting(false);
+        }
+        if (player.unit() != null && (player.unit().type != null && !player.unit().type.canHeal || indexer.getDamaged(player.team()).isEmpty())) {
             return 1;
         }
         return 0;

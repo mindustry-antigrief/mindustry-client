@@ -32,6 +32,7 @@ public class PlayerListFragment extends Fragment{
     @Override
     public void build(Group parent){
         content.name = "players";
+
         parent.fill(cont -> {
             cont.name = "playerlist";
             cont.visible(() -> visible);
@@ -51,7 +52,7 @@ public class PlayerListFragment extends Fragment{
             });
 
             cont.table(Tex.buttonTrans, pane -> {
-                pane.label(() -> Core.bundle.format(Groups.player.size() == 1 ? "players.single" : "players", Groups.player.size()));
+                pane.label(() -> Core.bundle.format("players" + (Groups.player.size() == 1 && (ui.join.lastHost == null || ui.join.lastHost.playerLimit <= 0) ? ".single" : ""), Groups.player.size() + (ui.join.lastHost != null && ui.join.lastHost.playerLimit > 0 ? " / " + ui.join.lastHost.playerLimit : "")));
                 pane.row();
                 sField = pane.field(null, text -> {
                     rebuild();

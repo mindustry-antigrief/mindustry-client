@@ -267,11 +267,9 @@ public class Turret extends ReloadTurret{
             unit.rotation(rotation);
             unit.team(team);
 
-            Navigation.obstacles.add(pathfindingEntity);
             if (player != null) {
-                pathfindingEntity.canHitPlayer = player.team() != team &&
-                        (player.unit().isFlying() ? targetAir : targetGround) &&
-                        hasAmmo();
+                if (team != player.team()) Navigation.obstacles.add(pathfindingEntity);
+                pathfindingEntity.canHitPlayer = validateTarget(player);
             }
 
             pathfindingEntity.radius = range;
@@ -333,8 +331,11 @@ public class Turret extends ReloadTurret{
             super.handleLiquid(source, liquid, amount);
         }
 
-        protected boolean validateTarget(){
+        protected boolean validateTarget(Posc target){
             return !Units.invalidateTarget(target, team, x, y) || isControlled() || logicControlled();
+        }
+        protected boolean validateTarget(){
+            return validateTarget(target);
         }
 
         protected void findTarget(){

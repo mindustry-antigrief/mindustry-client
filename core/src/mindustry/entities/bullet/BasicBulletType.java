@@ -7,6 +7,7 @@ import arc.math.*;
 import arc.util.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 
 /** An extended BulletType for most ammo-based bullets shot from turrets and units. */
 public class BasicBulletType extends BulletType{
@@ -42,6 +43,7 @@ public class BasicBulletType extends BulletType{
 
     @Override
     public void draw(Bullet b){
+        if (UnitType.alpha == 0) return;
         float height = this.height * ((1f - shrinkY) + shrinkY * b.fout());
         float width = this.width * ((1f - shrinkX) + shrinkX * b.fout());
         float offset = -90 + (spin != 0 ? Mathf.randomSeed(b.id, 360f) + b.time * spin : 0f);

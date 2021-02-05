@@ -21,13 +21,11 @@ public class Navigation {
 
     public static void follow(Path path, boolean repeat) {
         stopFollowing();
+        if (path == null) return;
         currentlyFollowing = path;
-        if (path == null){
-            state = NavigationState.NONE;
-        } else {
-            state = NavigationState.FOLLOWING;
-            currentlyFollowing.repeat = repeat;
-        }
+        currentlyFollowing.init();
+        state = NavigationState.FOLLOWING;
+        currentlyFollowing.repeat = repeat;
     }
 
     public static void follow(Path path) {
@@ -112,7 +110,7 @@ public class Navigation {
                             waypoints.remove(0);
                         } while (i++ < 5 && waypoints.any() && ((PositionWaypoint) waypoints.first()).dst(new Vec2(drawX, drawY)) + tilesize > player.dst(new Vec2(drawX, drawY)));
                     }
-                    if (targetPos != null) { // Don't create new path if stopFollowing has been run
+                    if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
                         follow(new WaypointPath(waypoints));
                         targetPos = new Vec2(drawX, drawY);
                         currentlyFollowing.setShow(true);
@@ -128,6 +126,7 @@ public class Navigation {
     }
 
     public static void stopRecording() {
+        if (recording == null) return;
         state = NavigationState.NONE;
         recordedPath = new WaypointPath(recording);
         recording = null;

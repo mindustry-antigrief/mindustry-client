@@ -6,6 +6,7 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 
 public class LightningBulletType extends BulletType{
     protected Color lightningColor = Pal.lancerLaser;
@@ -33,6 +34,7 @@ public class LightningBulletType extends BulletType{
 
     @Override
     public void draw(Bullet b){
+        if (UnitType.alpha == 0) return;
     }
 
     @Override

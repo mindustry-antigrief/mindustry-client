@@ -3,6 +3,7 @@ package mindustry.entities.bullet;
 import arc.graphics.g2d.*;
 import mindustry.gen.*;
 import mindustry.content.*;
+import mindustry.type.UnitType;
 
 public class LaserBoltBulletType extends BasicBulletType{
     public float width = 2f, height = 7f;
@@ -23,6 +24,7 @@ public class LaserBoltBulletType extends BasicBulletType{
 
     @Override
     public void draw(Bullet b){
+        if (UnitType.alpha == 0) return;
         Draw.color(backColor);
         Lines.stroke(width);
         Lines.lineAngleCenter(b.x, b.y, b.rotation(), height);

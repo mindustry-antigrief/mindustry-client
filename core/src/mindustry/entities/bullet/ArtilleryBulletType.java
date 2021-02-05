@@ -3,6 +3,7 @@ package mindustry.entities.bullet;
 import arc.graphics.g2d.*;
 import mindustry.content.*;
 import mindustry.gen.*;
+import mindustry.type.UnitType;
 
 //TODO scale velocity depending on fslope()
 public class ArtilleryBulletType extends BasicBulletType{
@@ -39,6 +40,7 @@ public class ArtilleryBulletType extends BasicBulletType{
 
     @Override
     public void draw(Bullet b){
+        if (UnitType.alpha == 0) return;
         float baseScale = 0.7f;
         float scale = (baseScale + b.fslope() * (1f - baseScale));
 

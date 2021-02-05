@@ -202,8 +202,6 @@ public class Client {
             Autocomplete.autocompleters.add(new CommandCompletion());
             Autocomplete.initialize();
             hideTrails = Core.settings.getBool("hidetrails");
-            Blocks.sand.asFloor().playerUnmineable = !settings.getBool("doubleclicktomine");
-            Blocks.darksand.asFloor().playerUnmineable = !settings.getBool("doubleclicktomine");
             Navigation.navigator.init();
         });
     }

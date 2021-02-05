@@ -8,6 +8,7 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 
 public class LaserBulletType extends BulletType{
     public Color[] colors = {Pal.lancerLaser.cpy().mul(1f, 1f, 1f, 0.4f), Pal.lancerLaser, Color.white};
@@ -89,6 +90,7 @@ public class LaserBulletType extends BulletType{
 
     @Override
     public void draw(Bullet b){
+        if (UnitType.alpha == 0) return;
         float realLength = b.fdata;
 
         float f = Mathf.curve(b.fin(), 0f, 0.2f);

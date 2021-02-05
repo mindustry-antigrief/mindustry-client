@@ -10,6 +10,7 @@ import mindustry.entities.bullet.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.io.*;
+import mindustry.type.UnitType;
 import mindustry.world.*;
 
 import static mindustry.Vars.*;

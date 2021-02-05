@@ -6,6 +6,7 @@ import arc.math.*;
 import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.UnitType;
 import mindustry.world.blocks.distribution.MassDriver.*;
 
 import static mindustry.Vars.*;
@@ -22,6 +23,7 @@ public class MassDriverBolt extends BulletType{
 
     @Override
     public void draw(Bullet b){
+        if (UnitType.alpha == 0) return;
         float w = 11f, h = 13f;
 
         Draw.color(Pal.bulletYellowBack);

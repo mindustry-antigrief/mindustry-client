@@ -196,7 +196,7 @@ public class UnitType extends UnlockableContent{
             table.row();
             table.add(Blocks.microProcessor.emoji() + " " + Core.bundle.get("units.processorcontrol") + " " ).growX().left();
             table.row();
-            table.label(() -> Iconc.settings + " " + (long)unit.flag + " (" + p.controller.tileX() + ", " + p.controller.tileY() + ")").color(Color.lightGray).wrap().left();
+            table.label(() -> Iconc.settings + " " + (long)unit.flag + " (" + (p.controller != null ? p.controller.tileX() : "?") + ", " + (p.controller != null ? p.controller.tileY() : "?") + ")").color(Color.lightGray).wrap().left();
         }
         
         table.row();
@@ -249,7 +249,7 @@ public class UnitType extends UnlockableContent{
 
         if(mineTier >= 1){
             stats.addPercent(Stat.mineSpeed, mineSpeed);
-            stats.add(Stat.mineTier, new BlockFilterValue(b -> b instanceof Floor f && f.itemDrop != null && f.itemDrop.hardness <= mineTier && !f.playerUnmineable));
+            stats.add(Stat.mineTier, new BlockFilterValue(b -> b instanceof Floor f && f.itemDrop != null && f.itemDrop.hardness <= mineTier && (!f.playerUnmineable || Core.settings.getBool("doubleclicktomine"))));
         }
         if(buildSpeed > 0){
             stats.addPercent(Stat.buildSpeed, buildSpeed);
@@ -425,6 +425,7 @@ public class UnitType extends UnlockableContent{
     public void draw(Unit unit){
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
         alpha = Client.hideUnits ? 0 : (unit.controller() instanceof FormationAI || unit.playerNonNull().assisting && !unit.isLocal()) ? .3f : 1;
+        if (alpha == 0) return; // Don't bother drawing what we can't see.
         float z = unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
 
         if(unit.controller().isBeingControlled(player.unit())){

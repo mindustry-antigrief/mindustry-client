@@ -56,16 +56,15 @@ object FindDialog : BaseDialog("@find") {
                         filtered.add(tile)
                     }
                 }
-                val closest = Geometry.findClosest(Vars.player.x, Vars.player.y, filtered)
+                val closest = Geometry.findClosest(player.x, player.y, filtered)
                 if (closest == null) {
                     Vars.ui.chatfrag.addMessage("No ${block.localizedName} was found", "client", Color.coral.cpy().mul(0.75f))
-                    hide()
-                    return@keyDown
+                } else {
+                    Client.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
+                    //TODO: Make the line below use toasts similar to UnitPicker.java
+                    Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", "client", Color.coral.cpy().mul(0.75f))
                 }
-                Client.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
-                //TODO: Make the line below use toasts similar to UnitPicker.java
-                Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", "client", Color.coral.cpy().mul(0.75f))
-                hide()
+                Core.app.post(this::hide)
             }
         }
 
