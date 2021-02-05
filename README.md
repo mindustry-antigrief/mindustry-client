@@ -1,5 +1,4 @@
 This is my fork of mindustry v6.  It will have various quality of life and automation features when complete.
-
 ![Logo](core/assets-raw/sprites/ui/logo.png)
 
 [![Release Update](../../workflows/Release%20Update/badge.svg?branch=custom-client)](../gh-pages/index.html)
@@ -11,6 +10,7 @@ _[Trello Board](https://trello.com/b/aE2tcUwF/mindustry-40-plans)_
 _[Wiki](https://mindustrygame.github.io/wiki)_  
 _[Javadoc](https://mindustrygame.github.io/docs/)_ 
 
+## [Development/Unstable Builds](../../../mindustry-client-v6-builds)
 ## Steam
 1. Installing the client on steam is rather easy, [download](../../releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
 2. Continue with the steps below for your operating system.
