@@ -83,11 +83,13 @@ public class ConstructBlock extends Block{
                 }
             }
         }
-        Team team = tile.team();
-        Fx.breakBlock.at(tile.drawx(), tile.drawy(), block.size);
-        Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null));
-        tile.remove();
-        if(shouldPlay()) Sounds.breaks.at(tile, calcPitch(false));
+        if (tile != null && block != null) {
+            Team team = tile.team();
+            Fx.breakBlock.at(tile.drawx(), tile.drawy(), block.size);
+            Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null));
+            tile.remove();
+            if (shouldPlay()) Sounds.breaks.at(tile, calcPitch(false));
+        }
     }
 
     /** Send a warning in chat when these blocks are broken/picked up/built over as they typically shouldn't be touched. */
