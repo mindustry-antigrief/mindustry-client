@@ -27,6 +27,7 @@ jobs:
         run: |
           git clone --depth=1 --branch=main https://github.com/mindustry-antigrief/mindustry-client-v6-builds ../mindustry-client-v6-builds
           cd ../mindustry-client-v6-builds
-          git tag ${{ github.run_number }}
+          BNUM=$(($GITHUB_RUN_NUMBER))
+          git tag ${BNUM}
           git config --global user.name "Build Uploader"
-          git push https://mindustry-antigreif-releases:${{ secrets.RELEASE_TOKEN }}@github.com/mindustry-antigrief/mindustry-client-v6-builds ${{ github.run_number }}
+          git push https://mindustry-antigreif-releases:${{ secrets.RELEASE_TOKEN }}@github.com/mindustry-antigrief/mindustry-client-v6-builds ${BNUM}
