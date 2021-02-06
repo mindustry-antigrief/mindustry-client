@@ -30,4 +30,4 @@ jobs:
           BNUM=$(($GITHUB_RUN_NUMBER))
           git tag ${BNUM}
           git config --global user.name "Build Uploader"
-          git push https://github.com/mindustry-antigrief/mindustry-client-v6-builds:${{ secrets.RELEASE_TOKEN }}@mindustry-antigreif-releases ${BNUM}
+          git push https://github.com/mindustry-antigrief:${{ secrets.RELEASE_TOKEN }}@mindustry-antigreif-releases/mindustry-client-v6-builds ${BNUM}
