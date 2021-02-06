@@ -369,7 +369,7 @@ public class ChatFragment extends Table{
     }
 
     public static class ChatMessage{
-        public final String sender;
+        public String sender;
         public String message;
         public String formattedMessage;
         public Color backgroundColor = null;

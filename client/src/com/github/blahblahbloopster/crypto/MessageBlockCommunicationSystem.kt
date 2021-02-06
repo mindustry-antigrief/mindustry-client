@@ -1,7 +1,6 @@
 package com.github.blahblahbloopster.crypto
 
 import arc.Events
-import arc.util.serialization.Base64Coder
 import mindustry.Vars
 import mindustry.client.Client
 import mindustry.game.EventType
@@ -29,7 +28,7 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
             val id = if (event.player == null) 0 else event.player.id
             val bytes: ByteArray
             try {
-                bytes = Base256Coder.decode(message.removePrefix(Client.messageCommunicationPrefix))!!
+                bytes = Base65536Coder.decode(message.removePrefix(Client.messageCommunicationPrefix))!!
             } catch (exception: Exception) {
                 exception.printStackTrace()
                 return@on
@@ -51,7 +50,7 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
                 continue
             }
 
-            Call.tileConfig(Vars.player, block.build, Client.messageCommunicationPrefix + Base256Coder.encode(bytes))
+            Call.tileConfig(Vars.player, block.build, Client.messageCommunicationPrefix + Base65536Coder.encode(bytes))
             break
         }
     }
