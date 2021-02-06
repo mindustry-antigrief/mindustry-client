@@ -18,16 +18,35 @@ jobs:
           java-version: 14
 
       - name: Run Tests
-        run: ./gradlew test
+        run: |
+          ./gradlew test desktop:dist
+          mv desktop/build/libs/Mindustry.jar desktop/build/libs/desktop.jar
 
         # TODO: Upload tests to builds repo pages
 
+      - name: Push directory to another repository
+        # You may pin to the exact commit or the version.
+        # uses: cpina/github-action-push-to-another-repository@976916018a4108195b74a5663a045141c6708c79
+        uses: cpina/github-action-push-to-another-repository@v1.2
+        with:
+          # Source directory from the origin directory
+          source-directory: desktop/build/libs
+          # Name of the destination username/organization
+          destination-github-username: mindustry-antigrief
+          # Destination repository
+          destination-repository-name: mindustry-client-v6-builds
+          # Email for the git commit
+          user-email: naguiar010203@gmail.com
+          # [Optional] set target branch name for the destination repository. Defaults to "master"
+          target-branch: main # optional, default is master
+          # [Optional] commit message for the output repository. ORIGIN_COMMIT is replaced by the URL@commit in the origin repo
+          #commit-message: # optional, default is Update from ORIGIN_COMMIT
+          
       - name: Push To Unstable
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' }}
         run: |
           git clone --depth=1 --branch=main https://github.com/mindustry-antigrief/mindustry-client-v6-builds ../mindustry-client-v6-builds
           cd ../mindustry-client-v6-builds
-          BNUM=$(($GITHUB_RUN_NUMBER))
-          git tag ${BNUM}
+          git tag ${{ github.run_number }}
           git config --global user.name "Build Uploader"
-          git push https://github.com/mindustry-antigrief:${{ secrets.RELEASE_TOKEN }}@mindustry-antigreif-releases/mindustry-client-v6-builds ${BNUM}
+          git push https://github.com/mindustry-antigrief:${{ secrets.RELEASE_TOKEN }}@mindustry-antigreif-releases/mindustry-client-v6-builds ${{ github.run_number }}
