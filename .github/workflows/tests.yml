@@ -18,14 +18,14 @@ jobs:
           java-version: 14
 
       - name: Run Tests
-        run: ./gradlew clean cleanTest test
+        run: ./gradlew test
 
         # TODO: Upload tests to builds repo pages
 
       - name: Push To Unstable
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' }}
         run: |
-          git clone --depth=1 --branch=master https://github.com/mindustry-antigrief/mindustry-client-v6-builds ../mindustry-client-v6-builds
+          git clone --depth=1 --branch=main https://github.com/mindustry-antigrief/mindustry-client-v6-builds ../mindustry-client-v6-builds
           cd ../mindustry-client-v6-builds
           git tag ${{ github.run_number }}
           git push https://mindustry-antigrief:${{ secrets.API_TOKEN_GITHUB }}@github.com/mindustry-antigrief/mindustry-client-v6-builds ${{ github.run_number }}
