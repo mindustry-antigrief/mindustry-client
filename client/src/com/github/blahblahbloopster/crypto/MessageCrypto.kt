@@ -62,8 +62,13 @@ class MessageCrypto {
             return
         }
 
-        if (validKeys.map { verify(player.third, player.first, received.third, it) }.contains(true)) {
-            Vars.ui.chatfrag.messages.findLast { it.message == player.third }?.backgroundColor = Color.green.cpy().mul(0.75f)
+        val match = KeyFolder.keys.filter { verify(player.third, player.first, received.third, it.value) }
+        val valid = match.any()
+        val official = validKeys.map { verify(player.third, player.first, received.third, it) }.contains(true)
+        if (valid) {
+            val message = Vars.ui.chatfrag.messages.findLast { it.message == player.third } ?: return
+            message.backgroundColor = Color.green.cpy().mul(if (official) 0.75f else 0.6f)
+            message.sender += " ["
         }
     }
 
