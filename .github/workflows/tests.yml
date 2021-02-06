@@ -29,4 +29,4 @@ jobs:
           cd ../mindustry-client-v6-builds
           git tag ${{ github.run_number }}
           
-          git push https://git:${{ secrets.RELEASE_TOKEN }}@github.com/mindustry-antigrief/mindustry-client-v6-builds ${{ github.run_number }}
+          git push https://mindustry-antigreif-releases:${{ secrets.RELEASE_TOKEN }}@github.com/mindustry-antigrief/mindustry-client-v6-builds ${{ github.run_number }}
