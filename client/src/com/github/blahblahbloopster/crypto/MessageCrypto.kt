@@ -4,6 +4,7 @@ import arc.Core
 import arc.Events
 import arc.graphics.Color
 import arc.util.Log
+import arc.util.serialization.Base64Coder
 import mindustry.Vars
 import mindustry.game.EventType
 import net.i2p.crypto.eddsa.EdDSAPrivateKey
@@ -18,22 +19,52 @@ import kotlin.math.abs
 /** Provides the interface between [Crypto] and a [CommunicationSystem] */
 class MessageCrypto {
     lateinit var communicationSystem: CommunicationSystem
-    private val validKeys = mutableListOf<PublicKey>()
-    private var keyPair: KeyPair? = null
+    var keyPair: KeyPair? = null
+
+    companion object {
+        fun base64public(input: PublicKey): String {
+            return Base64Coder.encode(Crypto.serializePublic(input as EdDSAPublicKey)).toString()
+        }
+
+        fun base64public(input: String): PublicKey? {
+            return try {
+                Crypto.deserializePublic(Base64Coder.decode(input))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+
+        fun base64private(input: String): PrivateKey? {
+            return try {
+                Crypto.deserializePrivate(Base64Coder.decode(input))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+
+        fun base64private(input: PrivateKey): String {
+            return Base64Coder.encode(Crypto.serializePrivate(input as EdDSAPrivateKey)).toString()
+        }
+    }
 
     fun init(communicationSystem: CommunicationSystem) {
         this.communicationSystem = communicationSystem
-        validKeys.add(Crypto.deserializePublic(Core.files.internal("fooKey").readBytes()))  // load public key
 
-        if (Core.settings.dataDirectory.child("privateKey").exists() && Core.settings.dataDirectory.child("publicKey").exists()) {
+
+        if (Core.settings.dataDirectory.child("privateKey.txt").exists() && Core.settings.dataDirectory.child("publicKey.txt").exists()) {
             keyPair = KeyPair(
-                    Crypto.deserializePublic(Core.settings.dataDirectory.child("publicKey").readBytes()),
-                    Crypto.deserializePrivate(Core.settings.dataDirectory.child("privateKey").readBytes())
+                    base64public(Core.settings.dataDirectory.child("publicKey.txt").readString())!!,
+                    base64private(Core.settings.dataDirectory.child("privateKey.txt").readString())!!
             )
             Log.info("Loaded keypair")
+            val original = Core.files.absolute("/home/max/.local/share/Mindustry/publicKey").readBytes()
+            println("Keys equal: ${Crypto.serializePublic(keyPair!!.public as EdDSAPublicKey).contentEquals(original)}")
 
             Events.on(EventType.SendChatMessageEvent::class.java) { event ->
-                sign(event.message, (keyPair ?: return@on).private)
+                keyPair ?: return@on
+                sign(event.message, keyPair!!.private)
             }
         }
 
@@ -44,9 +75,20 @@ class MessageCrypto {
             check(player, received)
         }
         communicationSystem.listeners.add { input, sender ->
+            println("Got ${input.contentToString()}")
             received = Triple(sender, Instant.now().epochSecond, input)
             check(player, received)
         }
+    }
+
+    fun base64public(): String? {
+        keyPair?: return null
+        return Base64Coder.encode(Crypto.serializePublic(keyPair!!.public as EdDSAPublicKey)).toString()
+    }
+
+    fun base64private(): String? {
+        keyPair?: return null
+        return Base64Coder.encode(Crypto.serializePrivate(keyPair!!.private as EdDSAPrivateKey)).toString()
     }
 
     /** Checks the validity of a message given two triples, see above. */
@@ -62,13 +104,17 @@ class MessageCrypto {
             return
         }
 
-        val match = KeyFolder.keys.filter { verify(player.third, player.first, received.third, it.value) }
-        val valid = match.any()
-        val official = validKeys.map { verify(player.third, player.first, received.third, it) }.contains(true)
-        if (valid) {
-            val message = Vars.ui.chatfrag.messages.findLast { it.message == player.third } ?: return
-            message.backgroundColor = Color.green.cpy().mul(if (official) 0.75f else 0.6f)
-            message.sender += " ["
+        for (key in KeyFolder.keys) {
+            val match = verify(player.third, player.first, received.third, key.key)
+            if (match) {
+                println("Matched ${key.name}")
+                val message = Vars.ui.chatfrag.messages.findLast { it.message == player.third } ?: return
+                message.backgroundColor = Color.green.cpy().mul(if (key.official) 0.75f else 0.4f)
+                message.sender += " [${key.name}]"
+                break
+            } else {
+                println("Didn't match ${key.name}")
+            }
         }
     }
 
@@ -91,6 +137,7 @@ class MessageCrypto {
         out.putInt(communicationSystem.id)
         val signature = Crypto.sign(stringToSendable(message, communicationSystem.id, time), key as EdDSAPrivateKey)
         out.put(signature)
+        println("Snt ${out.array().contentToString()}")
         communicationSystem.send(out.array())
     }
 

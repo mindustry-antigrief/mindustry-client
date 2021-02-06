@@ -187,14 +187,16 @@ public class MenuFragment extends Fragment{
                             Core.app.setClipboardText(clientDiscord);
                         }
                     }),
-                    new Buttoni("Github", Icon.github, () -> { // Link to client discord
+                    new Buttoni("Github", Icon.github, () -> { // Link to client github
                         if (!Core.app.openURI("https://github.com/blahblahbloopster/mindustry-client-v6")) {
                             ui.showErrorMessage("@linkfail");
                             Core.app.setClipboardText("https://github.com/blahblahbloopster/mindustry-client-v6");
                         }
                     }),
                     new Buttoni("Changelog", Icon.edit, () -> Client.mapping.showChangelogDialog()),
-                    new Buttoni("Features", Icon.list, () -> Client.mapping.showFeaturesDialog())
+                    new Buttoni("Features", Icon.list, () -> Client.mapping.showFeaturesDialog()),
+                    new Buttoni("Generate Keypair", Icon.lock, () -> Client.mapping.generateKey()),
+                    new Buttoni("Share Key", Icon.bookOpen, () -> Client.mapping.generateKey())
                 ), // End of client section
                 new Buttoni("@quit", Icon.exit, Core.app::exit)
             );

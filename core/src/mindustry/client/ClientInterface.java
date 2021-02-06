@@ -19,4 +19,8 @@ public interface ClientInterface {
     void setAssistPath(Player player);
 
     Vec2 floatEmbed();
+
+    void generateKey();
+
+    void shareKey();
 }

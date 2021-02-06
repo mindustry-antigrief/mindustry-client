@@ -1,30 +1,27 @@
 package com.github.blahblahbloopster.crypto
 
 import java.io.IOException
-import java.nio.ByteBuffer
 import kotlin.jvm.Throws
 
-/** Encodes data by converting the ByteArray to a string with 2 bytes per character.  This may cause problems. */
-object Base65536Coder {
+object Base256Coder {
 
     @Throws(IOException::class)
     fun decode(input: String): ByteArray {
-        val inp = ByteBuffer.wrap(input.toByteArray())
-        val size = inp.int
         try {
-            val bytes = ByteArray(size)
-            inp.get(bytes)
-            return bytes
+            val output = ByteArray(input.length)
+            var i = 0
+            for (char in input.codePoints()) {
+                output[i] = (char - 128).toByte()
+                i++
+            }
+            return output
         } catch (e: Exception) {
             throw IOException(e.stackTraceToString())
         }
     }
 
     fun encode(input: ByteArray): String {
-        val out = ByteBuffer.allocate(input.size + Int.SIZE_BYTES)
-        out.putInt(input.size)
-        out.put(input)
-        return String(out.array())
+        return String(input.map { it + 128 }.toIntArray(), 0, 1)
     }
 
     fun encode(string: String): String {
