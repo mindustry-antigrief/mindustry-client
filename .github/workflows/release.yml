@@ -2,7 +2,6 @@ name: Release Update
 
 on:
   push:
-    branches: custom-client
     tags: v*
   workflow_dispatch:
 
