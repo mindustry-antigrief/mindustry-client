@@ -2,6 +2,8 @@ package com.github.blahblahbloopster
 
 import arc.Core
 import arc.math.geom.Vec2
+import arc.util.serialization.Base64Coder
+import com.github.blahblahbloopster.crypto.Crypto
 import com.github.blahblahbloopster.ui.ChangelogDialog
 import com.github.blahblahbloopster.ui.FeaturesDialog
 import com.github.blahblahbloopster.ui.FindDialog
@@ -9,9 +11,13 @@ import mindustry.Vars
 import mindustry.client.Client
 import mindustry.client.ClientInterface
 import com.github.blahblahbloopster.navigation.AssistPath
+import com.github.blahblahbloopster.ui.KeyShareDialog
 import mindustry.client.navigation.Navigation
 import mindustry.client.utils.FloatEmbed
 import mindustry.gen.Player
+import mindustry.ui.dialogs.BaseDialog
+import net.i2p.crypto.eddsa.EdDSAPrivateKey
+import net.i2p.crypto.eddsa.EdDSAPublicKey
 
 class ClientMapping : ClientInterface {
 
@@ -45,5 +51,24 @@ class ClientMapping : ClientInterface {
                 )
             else -> Vec2(Vars.player.unit().aimX, Vars.player.unit().aimY)
         }
+    }
+
+    override fun generateKey() {
+        val generate = {
+            val pair = Crypto.generateKeyPair()
+            Core.settings.dataDirectory.child("privateKey.txt").writeString(Base64Coder.encode(Crypto.serializePrivate(pair.private as EdDSAPrivateKey)).toString(), false)
+            Core.settings.dataDirectory.child("publicKey.txt").writeString(Base64Coder.encode(Crypto.serializePublic(pair.public as EdDSAPublicKey)).toString(), false)
+        }
+
+        if (Main.messageCrypto?.keyPair != null) {
+            Vars.ui.showConfirm("Key Overwrite",
+                "This will irreversibly overwrite your key.  Are you sure you want to do this?", generate)
+        } else {
+            generate()
+        }
+    }
+
+    override fun shareKey() {
+        KeyShareDialog().show()
     }
 }
