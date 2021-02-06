@@ -28,6 +28,8 @@ jobs:
         # You may pin to the exact commit or the version.
         # uses: cpina/github-action-push-to-another-repository@976916018a4108195b74a5663a045141c6708c79
         uses: cpina/github-action-push-to-another-repository@v1.2
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.RELEASE_TOKEN }}
         with:
           # Source directory from the origin directory
           source-directory: desktop/build/libs
