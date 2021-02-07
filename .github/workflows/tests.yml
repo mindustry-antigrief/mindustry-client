@@ -53,7 +53,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Test Results To Pages
-        if: ${{ !cancelled() && github.event_name == 'push' && github.repository == 'mindustry-antigrief/mindustry-client-v6' }}
+        if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client-v6' }}
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           ACCESS_TOKEN: ${{ secrets.RELEASE_TOKEN }}
