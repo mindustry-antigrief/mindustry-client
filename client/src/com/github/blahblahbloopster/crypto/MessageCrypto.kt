@@ -60,7 +60,6 @@ class MessageCrypto {
             )
             Log.info("Loaded keypair")
             val original = Core.files.absolute("/home/max/.local/share/Mindustry/publicKey").readBytes()
-            println("Keys equal: ${Crypto.serializePublic(keyPair!!.public as EdDSAPublicKey).contentEquals(original)}")
 
             Events.on(EventType.SendChatMessageEvent::class.java) { event ->
                 keyPair ?: return@on
@@ -75,7 +74,6 @@ class MessageCrypto {
             check(player, received)
         }
         communicationSystem.listeners.add { input, sender ->
-            println("Got ${input.contentToString()}")
             received = Triple(sender, Instant.now().epochSecond, input)
             check(player, received)
         }
@@ -107,13 +105,10 @@ class MessageCrypto {
         for (key in KeyFolder.keys) {
             val match = verify(player.third, player.first, received.third, key.key)
             if (match) {
-                println("Matched ${key.name}")
                 val message = Vars.ui.chatfrag.messages.findLast { it.message == player.third } ?: return
                 message.backgroundColor = Color.green.cpy().mul(if (key.official) 0.75f else 0.4f)
                 message.sender += " [${key.name}]"
                 break
-            } else {
-                println("Didn't match ${key.name}")
             }
         }
     }
@@ -137,7 +132,6 @@ class MessageCrypto {
         out.putInt(communicationSystem.id)
         val signature = Crypto.sign(stringToSendable(message, communicationSystem.id, time), key as EdDSAPrivateKey)
         out.put(signature)
-        println("Snt ${out.array().contentToString()}")
         communicationSystem.send(out.array())
     }
 
