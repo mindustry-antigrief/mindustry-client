@@ -1,10 +1,12 @@
 package com.github.blahblahbloopster.ui
 
 import arc.Core
+import com.github.blahblahbloopster.ClientMapping
 import com.github.blahblahbloopster.Main
 import com.github.blahblahbloopster.crypto.KeyFolder
 import com.github.blahblahbloopster.crypto.MessageCrypto
 import mindustry.Vars
+import mindustry.client.Client
 import mindustry.gen.Icon
 import mindustry.ui.dialogs.BaseDialog
 
@@ -25,6 +27,9 @@ class KeyShareDialog : BaseDialog("Key Share") {
         }
         cont.row()
         cont.button("Export Key") {
+            Main.messageCrypto?.keyPair ?: run {
+                Client.mapping.generateKey()
+            }
             Core.app.clipboardText = Main.messageCrypto?.base64public() ?: ""
             Vars.ui.announce("Copied to clipboard.")
         }
@@ -37,7 +42,7 @@ class KeyShareDialog : BaseDialog("Key Share") {
         }
 
         private fun build() {
-            KeyFolder.folder ?: hide()
+            KeyFolder.folder ?: run {hide(); return}
             val fldr = KeyFolder.folder!!
             cont.label("Imports someone else's key.  You can then receive verified messages from them," +
                     " and if they have your key you can chat with encryption.")
