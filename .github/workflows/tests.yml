@@ -32,8 +32,8 @@ jobs:
           body: |
             Foo's Client Unstable ${{ github.run_number }}
             Steam installation instructions [here](../../#steam)
-            Latest Commit Message:
-            ${{ github.event.head_commit.message }}
+            **Latest Commit Message:**
+            *${{ github.event.head_commit.message }}*
           commitish: main
           tag_name: ${{ github.run_number }}
           release_name: Unstable ${{ github.run_number }}
