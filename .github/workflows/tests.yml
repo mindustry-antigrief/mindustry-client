@@ -27,6 +27,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
+          body: |
+            Foo's Client Unstable ${{ github.run_number }}
+            Steam installation instructions [here](../../#steam)
+            Latest Commit Message:
+            ${{ github.event.head_commit.message }}
           commitish: main
           tag_name: ${{ github.run_number }}
           release_name: Unstable ${{ github.run_number }}
@@ -49,7 +54,7 @@ jobs:
         if: ${{ !cancelled() && github.event_name == 'push' && github.repository == 'mindustry-antigrief/mindustry-client-v6' }}
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
-          ACCESS_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           REPOSITORY_NAME: ${{ github.repository }}-builds
           BRANCH: gh-pages # The branch the action should deploy to.
           FOLDER: tests/build/reports/tests/test
