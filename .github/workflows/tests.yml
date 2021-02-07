@@ -18,7 +18,7 @@ jobs:
           java-version: 14
 
       - name: Run Tests
-        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository_owner }}/mindustry-client-v6-builds
+        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}-builds
 
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' }}
@@ -50,7 +50,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           ACCESS_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          REPOSITORY_NAME: mindustry-client-v6-builds
+          REPOSITORY_NAME: ${{ github.repository }}-builds
           BRANCH: gh-pages # The branch the action should deploy to.
           FOLDER: tests/build/reports/tests/test
           CLEAN: true # Automatically remove deleted files from the deploy branch
