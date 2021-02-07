@@ -23,29 +23,16 @@ jobs:
           mv desktop/build/libs/Mindustry.jar desktop/build/libs/desktop.jar
 
         # TODO: Upload tests to builds repo pages
+          
       - name: Create Release
-        if: ${{ !cancelled() }}
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' }}
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           tag_name: ${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
-          repo: mindustry-antigrief/mindustry-client-v6-builds
-          body: |
-            Foo's Client BE Build ${{ github.run_number }}
-            Steam installation instructions [here](../../#steam)
+          release_name: Unstable ${{ github.run_number }}
+          repo: mindustry-client-v6-builds
           draft: false
           prerelease: false
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: desktop/build/libs/Mindustry.jar
-          asset_name: desktop.jar
-          asset_content_type: application/zip
-
