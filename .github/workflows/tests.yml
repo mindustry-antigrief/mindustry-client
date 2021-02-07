@@ -1,10 +1,6 @@
 name: Java Tests # Tests and pushes to unstable
 
-on:
-  push:
-    branches: custom-client
-    tags: v*
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 
 jobs:
@@ -27,7 +23,7 @@ jobs:
         run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}-builds
 
       - name: Create Release
-        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' }}
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/custom-client' }}
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -46,7 +42,7 @@ jobs:
           prerelease: false
 
       - name: Upload Release Asset
-        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' }}
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/custom-client' }}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -57,7 +53,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Test Results To Pages
-        if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client-v6' }}
+        if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/custom-client' }}
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           ACCESS_TOKEN: ${{ secrets.RELEASE_TOKEN }}
