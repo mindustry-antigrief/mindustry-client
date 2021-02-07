@@ -18,22 +18,39 @@ jobs:
           java-version: 14
 
       - name: Run Tests
-        run: |
-          ./gradlew test desktop:dist
-          mv desktop/build/libs/Mindustry.jar desktop/build/libs/desktop.jar
+        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository_owner }}/mindustry-client-v6-builds
 
-        # TODO: Upload tests to builds repo pages
-          
       - name: Create Release
-        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' }}
+        if: ${{ github.repository == "mindustry-antigrief/mindustry-client-v6" }}
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          commitish: 18a1eb85ae13420f178224f216aadf517cb60398
+          commitish: main
           tag_name: ${{ github.run_number }}
           release_name: Unstable ${{ github.run_number }}
           repo: mindustry-client-v6-builds
           draft: false
           prerelease: false
+
+      - name: Upload Release Asset
+        if: ${{ github.repository == "mindustry-antigrief/mindustry-client-v6" }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: desktop/build/libs/Mindustry.jar
+          asset_name: desktop.jar
+          asset_content_type: application/zip
+
+      - name: Upload Test Results To Pages
+        if: ${{ !cancelled() && github.event_name == "push" && github.repository == "mindustry-antigrief/mindustry-client-v6" }}
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          ACCESS_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          REPOSITORY_NAME: mindustry-client-v6-builds
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: tests/build/reports/tests/test
+          CLEAN: true # Automatically remove deleted files from the deploy branch
