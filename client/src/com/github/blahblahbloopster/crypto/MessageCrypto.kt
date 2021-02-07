@@ -49,9 +49,12 @@ class MessageCrypto {
         }
     }
 
+    private data class PlayerTriple(val id: Int, val time: Long, val message: String)
+
+    private data class ReceivedTriple(val id: Int, val time: Long, val signature: ByteArray)
+
     fun init(communicationSystem: CommunicationSystem) {
         this.communicationSystem = communicationSystem
-
 
         if (Core.settings.dataDirectory.child("privateKey.txt").exists() && Core.settings.dataDirectory.child("publicKey.txt").exists()) {
             keyPair = KeyPair(
@@ -59,7 +62,6 @@ class MessageCrypto {
                     base64private(Core.settings.dataDirectory.child("privateKey.txt").readString())!!
             )
             Log.info("Loaded keypair")
-            val original = Core.files.absolute("/home/max/.local/share/Mindustry/publicKey").readBytes()
 
             Events.on(EventType.SendChatMessageEvent::class.java) { event ->
                 keyPair ?: return@on
@@ -67,14 +69,15 @@ class MessageCrypto {
             }
         }
 
-        var player = Triple<Int, Long, String>(0, 0, "")  // Maps player ID to last sent message
-        var received = Triple<Int, Long, ByteArray>(0, 0, ByteArray(0))  // Maps player ID to last sent message
+        var player = PlayerTriple(0, 0, "")  // Maps player ID to last sent message
+        var received = ReceivedTriple(0, 0, byteArrayOf()) // Maps player ID to last sent message
+
         Events.on(EventType.PlayerChatEventClient::class.java) { event ->
-            player = Triple((event.player ?: return@on).id, Instant.now().epochSecond, event.message)
+            player = PlayerTriple((event.player ?: return@on).id, Instant.now().epochSecond, event.message)
             check(player, received)
         }
         communicationSystem.listeners.add { input, sender ->
-            received = Triple(sender, Instant.now().epochSecond, input)
+            received = ReceivedTriple(sender, Instant.now().epochSecond, input)
             check(player, received)
         }
     }
@@ -90,22 +93,22 @@ class MessageCrypto {
     }
 
     /** Checks the validity of a message given two triples, see above. */
-    private fun check(player: Triple<Int, Long, String>, received: Triple<Int, Long, ByteArray>) {
-        if (player.first == 0 || player.second == 0L || player.third == "") return
-        if (received.first == 0 || received.second == 0L || received.third.isEmpty()) return
+    private fun check(player: PlayerTriple, received: ReceivedTriple) {
+        if (player.id == 0 || player.time == 0L || player.message == "") return
+        if (received.id == 0 || received.time == 0L || received.signature.isEmpty()) return
         val time = Instant.now().epochSecond
-        if (abs(player.second - time) > 3 || abs(received.second - time) > 3) {
+        if (abs(player.time - time) > 3 || abs(received.time - time) > 3) {
             return
         }
 
-        if (player.first != received.first) {
+        if (player.id != received.id) {
             return
         }
 
         for (key in KeyFolder.keys) {
-            val match = verify(player.third, player.first, received.third, key.key)
+            val match = verify(player.message, player.id, received.signature, key.key)
             if (match) {
-                val message = Vars.ui.chatfrag.messages.findLast { it.message == player.third } ?: return
+                val message = Vars.ui.chatfrag.messages.find { it.message.contains(player.message) } ?: break
                 message.backgroundColor = Color.green.cpy().mul(if (key.official) 0.75f else 0.4f)
                 message.verifiedSender = key.name
                 message.format()
