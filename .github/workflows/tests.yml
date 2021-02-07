@@ -31,7 +31,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          commitish: main
+          commitish: 18a1eb85ae13420f178224f216aadf517cb60398
           tag_name: ${{ github.run_number }}
           release_name: Unstable ${{ github.run_number }}
           repo: mindustry-client-v6-builds
