@@ -15,12 +15,12 @@ import java.security.KeyFactory
  */
 object Crypto {
     var signatureSize = 64
-    private lateinit var engine: Signature
+    private lateinit var signatureEngine: Signature
 
     /** Initializes cryptography stuff, must be called before usage. */
     fun init() {
         Security.addProvider(EdDSASecurityProvider())
-        engine = EdDSAEngine.getInstance("NONEwithEdDSA")  // It appears that it actually uses SHA512 instead of nothing
+        signatureEngine = EdDSAEngine.getInstance("NONEwithEdDSA")  // It appears that it actually uses SHA512 instead of nothing
     }
 
     fun generateKeyPair(): KeyPair {
@@ -34,10 +34,14 @@ object Crypto {
      * Note: vulnerable to replay attack.
      */
     fun sign(input: ByteArray, key: PrivateKey): ByteArray {
-        engine.initSign(key)
-        engine.setParameter(EdDSAEngine.ONE_SHOT_MODE)
-        engine.update(input)
-        return engine.sign()
+        signatureEngine.initSign(key)
+        signatureEngine.setParameter(EdDSAEngine.ONE_SHOT_MODE)
+        signatureEngine.update(input)
+        return signatureEngine.sign()
+    }
+
+    fun encrypt(input: ByteArray, key: Key) {
+
     }
 
     /**
@@ -45,10 +49,10 @@ object Crypto {
      * Note: vulnerable to replay attack.
      */
     fun verify(original: ByteArray, sign: ByteArray, key: EdDSAPublicKey): Boolean {
-        engine.initVerify(key)
-        engine.setParameter(EdDSAEngine.ONE_SHOT_MODE)
-        engine.update(original)
-        return engine.verify(sign)
+        signatureEngine.initVerify(key)
+        signatureEngine.setParameter(EdDSAEngine.ONE_SHOT_MODE)
+        signatureEngine.update(original)
+        return signatureEngine.verify(sign)
     }
 
     /** Serializes the private key into a [ByteArray].  Deserialize with [deserializePublic]. */

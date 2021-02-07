@@ -21,7 +21,29 @@ class MessageCrypto {
     lateinit var communicationSystem: CommunicationSystem
     var keyPair: KeyPair? = null
 
+    private var player = PlayerTriple(0, 0, "")  // Maps player ID to last sent message
+    private var received = ReceivedTriple(0, 0, byteArrayOf()) // Maps player ID to last sent message
+
     companion object {
+        const val VERSION = 1
+        private const val ENCRYPTED_VALIDITY_CHECK: Byte = 0b10101010.toByte()
+
+        enum class TransmissionType(onReceived: (senderId: Int, content: ByteArray, messageCrypto: MessageCrypto) -> Unit) {
+            SIGNATURE({ senderId, content, messageCrypto ->
+                messageCrypto.received = ReceivedTriple(
+                    senderId,
+                    Instant.now().epochSecond,
+                    content
+                )
+                messageCrypto.check(messageCrypto.player, messageCrypto.received)
+            }),
+//            ENCRYPTED_CHAT({ senderId, content, messageCrypto ->
+//                for (key in KeyFolder.keys) {
+//                    if (Crypto)
+//                }
+//            })
+        }
+
         fun base64public(input: PublicKey): String {
             return Base64Coder.encode(Crypto.serializePublic(input as EdDSAPublicKey)).toString()
         }
@@ -68,9 +90,6 @@ class MessageCrypto {
                 sign(event.message, keyPair!!.private)
             }
         }
-
-        var player = PlayerTriple(0, 0, "")  // Maps player ID to last sent message
-        var received = ReceivedTriple(0, 0, byteArrayOf()) // Maps player ID to last sent message
 
         Events.on(EventType.PlayerChatEventClient::class.java) { event ->
             player = PlayerTriple((event.player ?: return@on).id, Instant.now().epochSecond, event.message)

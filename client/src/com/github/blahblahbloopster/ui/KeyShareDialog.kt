@@ -19,6 +19,9 @@ class KeyShareDialog : BaseDialog("Key Share") {
     private fun build() {
         cont.labelWrap("To exchange keys with someone, export your key and have them import it, and vise versa.")  // todo: in game chat warning
         cont.row()
+        cont.labelWrap("Note: While it is okay to share keys over a publicly-visible medium, DO NOT share keys in-game." +
+                "  It can lead to security problems.")
+        cont.row()
         cont.labelWrap("After exchanging keys, you will be able to securely chat with the person using the !e <name> [message...] command," +
                 "and your regular messages will be verified for people with your key.")
         cont.row()
@@ -31,7 +34,7 @@ class KeyShareDialog : BaseDialog("Key Share") {
                 Client.mapping.generateKey()
             }
             Core.app.clipboardText = Main.messageCrypto?.base64public() ?: ""
-            Vars.ui.announce("Copied to clipboard.")
+            Vars.ui.announce("Copied key to clipboard.\nHave the other person import it.")
         }
     }
 
