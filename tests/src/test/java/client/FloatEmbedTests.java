@@ -16,18 +16,18 @@ public class FloatEmbedTests {
         Mathf.rand.nextBytes(temp);
         byte item = temp[0];
 
-        float input = (float) (Mathf.rand.nextDouble() * 10000);
+        float input = (float) (Mathf.rand.nextDouble() * 8000);
 
         float embedded = FloatEmbed.embedInFloat(input, item);
         Assertions.assertTrue(Math.abs(embedded - input) < 0.1);
         Assertions.assertTrue(FloatEmbed.isEmbedded(embedded, item));
 
-        Vec2 inputVector = new Vec2((float) (Mathf.rand.nextDouble() * 10000), (float) (Mathf.rand.nextDouble() * 10000));
+        Vec2 inputVector = new Vec2((float) (Mathf.rand.nextDouble() * 8000), (float) (Mathf.rand.nextDouble() * 8000));
         Vec2 notAssisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, Client.FOO_USER), FloatEmbed.embedInFloat(inputVector.y, Client.FOO_USER));
         Vec2 assisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, Client.FOO_USER), FloatEmbed.embedInFloat(inputVector.y, Client.ASSISTING));
 
-        Assertions.assertTrue(notAssisting.dst(inputVector) < 0.1f);
-        Assertions.assertTrue(assisting.dst(inputVector) < 0.1f);
+        Assertions.assertTrue(notAssisting.dst(inputVector) < 1f);
+        Assertions.assertTrue(assisting.dst(inputVector) < 1f);
 
         Assertions.assertTrue(FloatEmbed.isEmbedded(notAssisting.x, Client.FOO_USER));
         Assertions.assertTrue(FloatEmbed.isEmbedded(assisting.x, Client.FOO_USER));
