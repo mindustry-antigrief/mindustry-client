@@ -23,4 +23,6 @@ public interface ClientInterface {
     void generateKey();
 
     void shareKey();
+
+    boolean shouldAddZws();
 }

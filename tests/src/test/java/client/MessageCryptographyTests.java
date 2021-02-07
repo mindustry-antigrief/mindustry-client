@@ -25,7 +25,7 @@ public class MessageCryptographyTests {
 
     /** Tests that signing messages works. */
     @Test
-    static void testSending() {
+    void testSending() {
         KeyPair client1pair = Crypto.INSTANCE.generateKeyPair();
         KeyPair client2pair = Crypto.INSTANCE.generateKeyPair();
 
@@ -51,6 +51,14 @@ public class MessageCryptographyTests {
         Assertions.assertTrue(valid.get());
 
         message = "Test test blah";
+        client2.sign(message, client2pair.getPrivate());
+        Assertions.assertTrue(valid.get());
+
+        message = "aaa";
+        client2.sign(message, client2pair.getPrivate());
+        Assertions.assertTrue(valid.get());
+
+        message = "aaaa";
         client2.sign(message, client2pair.getPrivate());
         Assertions.assertTrue(valid.get());
 

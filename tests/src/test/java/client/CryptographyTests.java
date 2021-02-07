@@ -18,7 +18,7 @@ public class CryptographyTests {
 
     /** Tests signature creation and validation. */
     @Test
-    static void testSigning() {
+    void testSigning() {
         KeyPair pair = Crypto.INSTANCE.generateKeyPair();
 
         byte[] input = new byte[128];
@@ -31,7 +31,7 @@ public class CryptographyTests {
 
     /** Tests key serialization and deserialization. */
     @Test
-    static void testSerialization() {
+    void testSerialization() {
         KeyPair pair = Crypto.INSTANCE.generateKeyPair();
 
         byte[] encodedPublic = Crypto.INSTANCE.serializePublic((EdDSAPublicKey) pair.getPublic());

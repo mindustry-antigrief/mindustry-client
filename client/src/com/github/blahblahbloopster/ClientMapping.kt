@@ -71,4 +71,8 @@ class ClientMapping : ClientInterface {
     override fun shareKey() {
         KeyShareDialog().show()
     }
+
+    override fun shouldAddZws(): Boolean {
+        return Main.messageCrypto?.keyPair != null
+    }
 }

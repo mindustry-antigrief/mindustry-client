@@ -11,7 +11,7 @@ public class FloatEmbedTests {
 
     /** Tests the float embedding system. */
     @Test
-    static void testFloatEmbed() {
+    void testFloatEmbed() {
         byte[] temp = new byte[1];
         Mathf.rand.nextBytes(temp);
         byte item = temp[0];

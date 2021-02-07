@@ -12,6 +12,7 @@ import arc.scene.ui.Label.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import kotlin.random.Random;
 import mindustry.*;
 import mindustry.client.Client;
 import mindustry.client.utils.Autocomplete;
@@ -251,8 +252,6 @@ public class ChatFragment extends Table{
         //check if it's a command
         CommandHandler.CommandResponse response = Client.fooCommands.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
-
-
             Call.sendChatMessage(message);
             if (message.startsWith("/sync")) {
 
