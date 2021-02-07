@@ -31,8 +31,8 @@ jobs:
         with:
           body: |
             Foo's Client Unstable ${{ github.run_number }}
-            Steam installation instructions [here](../../#steam)
-            **Latest Commit Message:**
+            Steam installation instructions [here](../../../mindustry-client-v6#steam)
+            **Commit Message:**
             *${{ github.event.head_commit.message }}*
           commitish: main
           tag_name: ${{ github.run_number }}
