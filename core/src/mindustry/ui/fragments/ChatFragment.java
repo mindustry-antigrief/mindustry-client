@@ -373,6 +373,7 @@ public class ChatFragment extends Table{
         public String message;
         public String formattedMessage;
         public Color backgroundColor = null;
+        public String verifiedSender = null;
 
         public ChatMessage(String message, String sender){
             this.message = message;
@@ -390,8 +391,8 @@ public class ChatFragment extends Table{
         public void format() {
             if(sender == null){ //no sender, this is a server message?
                 formattedMessage = message == null ? "" : message;
-            }else {
-                formattedMessage = "[coral][[" + sender + "[coral]]:[white] " + message;
+            } else {
+                formattedMessage = "[coral][[" + sender + "[coral]]" + (verifiedSender == null ? "" : (" [[[white]" + verifiedSender + "[]]]")) + ":[white] " + message;
             }
         }
     }
