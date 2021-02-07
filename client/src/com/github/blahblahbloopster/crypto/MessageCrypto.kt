@@ -107,7 +107,8 @@ class MessageCrypto {
             if (match) {
                 val message = Vars.ui.chatfrag.messages.findLast { it.message == player.third } ?: return
                 message.backgroundColor = Color.green.cpy().mul(if (key.official) 0.75f else 0.4f)
-                message.sender += " [${key.name}]"
+                message.verifiedSender = key.name
+                message.format()
                 break
             }
         }
