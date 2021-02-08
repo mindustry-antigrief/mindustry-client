@@ -517,6 +517,5 @@ public class Turret extends ReloadTurret{
         public byte version(){
             return 1;
         }
-
     }
 }
