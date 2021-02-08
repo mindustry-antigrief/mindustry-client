@@ -7,11 +7,15 @@ import arc.math.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.navigation.Navigation;
+import mindustry.client.navigation.TurretPathfindingEntity;
 import mindustry.content.*;
 import mindustry.entities.*;
+import mindustry.game.Team;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
+import mindustry.world.Tile;
 import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 
@@ -71,7 +75,29 @@ public class TractorBeamTurret extends BaseTurret{
         public float coolant = 1f;
 
         @Override
+        public Building init(Tile tile, Team team, boolean shouldAdd, int rotation) {
+            pathfindingEntity = new TurretPathfindingEntity(x, y, range, false, team);
+            return super.init(tile, team, shouldAdd, rotation);
+        }
+
+        @Override
+        public void remove() {
+            Navigation.obstacles.remove(pathfindingEntity);
+            super.remove();
+        }
+
+        @Override
         public void updateTile(){
+
+            if (player != null && player.unit() != null && team != player.team()) {
+                Navigation.obstacles.add(pathfindingEntity);
+                pathfindingEntity.canHitPlayer =  (!consumesPower || efficiency() > 0) && (player.unit().isFlying() ? targetAir : targetGround);
+            }
+
+            pathfindingEntity.radius = range;
+            pathfindingEntity.x = x;
+            pathfindingEntity.y = y;
+            pathfindingEntity.team = team;
 
             //retarget
             if(timer(timerTarget, retargetTime)){

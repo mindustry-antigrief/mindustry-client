@@ -36,7 +36,6 @@ public class Client {
     public static ClientMode mode = ClientMode.normal;
     public static Queue<ConfigRequest> configs = new Queue<>();
     public static boolean showingTurrets = false;
-    public static Seq<BaseTurret.BaseTurretBuild> turrets = new Seq<>();
     public static long lastSyncTime = 0L;
     public static final CommandHandler fooCommands = new CommandHandler("!");
     public static boolean hideTrails;
@@ -145,7 +144,6 @@ public class Client {
             Navigation.stopFollowing();
             Navigation.obstacles.clear();
             configs.clear();
-            turrets.clear();
             UnitPicker.found = null;
             if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
             messageBlockPositions.clear();

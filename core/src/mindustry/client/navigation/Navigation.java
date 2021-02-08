@@ -37,13 +37,9 @@ public class Navigation {
             navigateTo(targetPos);
         }
 
-//        if (Core.graphics.getFrameId() % 60 == 0) { TODO: Remove if unneeded, make it use an interval otherwise
-//            obstacles.clear();
-//        }
-
         if (currentlyFollowing != null && !isPaused) {
             currentlyFollowing.follow();
-            if (currentlyFollowing.isDone()) {
+            if (currentlyFollowing != null && currentlyFollowing.isDone()) {
                 stopFollowing();
             }
         }

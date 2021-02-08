@@ -309,14 +309,14 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             if (player != null && team != player.team()) {
                 for (Weapon weapon : type.weapons) {
                     if (!pathfindingEntities.containsKey(weapon)) {
-                        TurretPathfindingEntity ent = new TurretPathfindingEntity(0f, 0f, weapon.bullet.range(), false);
+                        TurretPathfindingEntity ent = new TurretPathfindingEntity(0f, 0f, weapon.bullet.range(), false, team);
                         pathfindingEntities.put(weapon, ent);
                     }
                     TurretPathfindingEntity entity = pathfindingEntities.get(weapon);
                     Navigation.obstacles.add(entity);
                     entity.x = x;
                     entity.y = y;
-                    entity.canHitPlayer = player.unit().isFlying()? weapon.bullet.collidesAir : weapon.bullet.collidesGround;
+                    entity.canHitPlayer = player.unit().isFlying() ? weapon.bullet.collidesAir : weapon.bullet.collidesGround && (!state.rules.unitAmmo || ammo > 0);
                 }
             }
         }

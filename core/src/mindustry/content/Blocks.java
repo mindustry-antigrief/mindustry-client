@@ -1585,6 +1585,7 @@ public class Blocks implements ContentList{
             damage = 0.3f;
             health = 160 * size * size;
             rotateSpeed = 10;
+            flags = EnumSet.of(BlockFlag.turret);
 
             consumes.powerCond(3f, (TractorBeamBuild e) -> e.target != null);
         }};
@@ -1643,6 +1644,7 @@ public class Blocks implements ContentList{
             shootLength = 5f;
             bulletDamage = 25f;
             reloadTime = 9f;
+            flags = EnumSet.of(BlockFlag.turret);
         }};
 
         tsunami = new LiquidTurret("tsunami"){{
