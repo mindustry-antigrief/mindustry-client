@@ -2,8 +2,7 @@ name: Java Tests # Tests and pushes to unstable
 
 on: 
   push:
-    tags-ignore:
-      - v*
+    branches: "**"
   workflow_dispatch:
 
 
