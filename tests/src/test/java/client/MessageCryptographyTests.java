@@ -1,7 +1,9 @@
 package client;
 
 import com.github.blahblahbloopster.crypto.Crypto;
+import com.github.blahblahbloopster.crypto.KeyQuad;
 import com.github.blahblahbloopster.crypto.MessageCrypto;
+import com.github.blahblahbloopster.crypto.PublicKeyPair;
 import kotlin.Unit;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
@@ -28,13 +30,13 @@ public class MessageCryptographyTests {
     /** Tests that signing messages works. */
     @Test
     void testSending() {
-        AsymmetricCipherKeyPair client1pair = Crypto.INSTANCE.generateKeyPair();
-        AsymmetricCipherKeyPair client2pair = Crypto.INSTANCE.generateKeyPair();
+        KeyQuad client1pair = Crypto.INSTANCE.generateKeyQuad();
+        KeyQuad client2pair = Crypto.INSTANCE.generateKeyQuad();
 
         client1.communicationSystem.getListeners().add(
                 (inp, id) -> {
                     valid.set(
-                            client1.verify(message, id, inp, (Ed25519PublicKeyParameters) client2pair.getPublic())
+                            client1.verify(message, id, inp, new PublicKeyPair(client2pair))
                     );
                     return Unit.INSTANCE;
                 }
@@ -42,30 +44,30 @@ public class MessageCryptographyTests {
         client2.communicationSystem.getListeners().add(
                 (inp, id) -> {
                     valid.set(
-                            client2.verify(message, id, inp, (Ed25519PublicKeyParameters) client1pair.getPublic())
+                            client2.verify(message, id, inp, new PublicKeyPair(client1pair))
                     );
                     return Unit.INSTANCE;
                 }
         );
 
         message = "Hello world!";
-        client1.sign(message, client1pair.getPrivate());
+        client1.sign(message, client1pair);
         Assertions.assertTrue(valid.get());
 
         message = "Test test blah";
-        client2.sign(message, client2pair.getPrivate());
+        client2.sign(message, client2pair);
         Assertions.assertTrue(valid.get());
 
         message = "aaa";
-        client2.sign(message, client2pair.getPrivate());
+        client2.sign(message, client2pair);
         Assertions.assertTrue(valid.get());
 
         message = "aaaa";
-        client2.sign(message, client2pair.getPrivate());
+        client2.sign(message, client2pair);
         Assertions.assertTrue(valid.get());
 
         message = "oh no";
-        client2.sign(message, client1pair.getPrivate());  // invalid, using wrong key to sign
+        client2.sign(message, client1pair);  // invalid, using wrong key to sign
         Assertions.assertFalse(valid.get());
     }
 }

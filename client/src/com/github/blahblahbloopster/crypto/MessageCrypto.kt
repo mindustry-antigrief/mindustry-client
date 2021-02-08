@@ -18,7 +18,7 @@ import kotlin.math.abs
 /** Provides the interface between [Crypto] and a [CommunicationSystem] */
 class MessageCrypto {
     lateinit var communicationSystem: CommunicationSystem
-    var keyPair: AsymmetricCipherKeyPair? = null
+    var keyQuad: KeyQuad? = null
 
     private var player = PlayerTriple(0, 0, "")  // Maps player ID to last sent message
     private var received = ReceivedTriple(0, 0, byteArrayOf()) // Maps player ID to last sent message
@@ -36,20 +36,17 @@ class MessageCrypto {
                 )
                 messageCrypto.check(messageCrypto.player, messageCrypto.received)
             }),
-//            ENCRYPTED_CHAT({ senderId, content, messageCrypto ->
-//                for (key in KeyFolder.keys) {
-//                    if (Crypto)
-//                }
-//            })
+            ENCRYPTED_CHAT({ senderId, content, messageCrypto ->
+            })
         }
 
         fun base64public(input: Ed25519PublicKeyParameters): String {
             return Base64Coder.encode(Crypto.serializePublic(input)).toString()
         }
 
-        fun base64public(input: String): Ed25519PublicKeyParameters? {
+        fun base64public(input: String): PublicKeyPair? {
             return try {
-                Crypto.deserializePublic(Base64Coder.decode(input))
+                PublicKeyPair(Base64Coder.decode(input))
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
@@ -77,16 +74,14 @@ class MessageCrypto {
     fun init(communicationSystem: CommunicationSystem) {
         this.communicationSystem = communicationSystem
 
-        if (Core.settings.dataDirectory.child("privateKey.txt").exists() && Core.settings.dataDirectory.child("publicKey.txt").exists()) {
-            keyPair = AsymmetricCipherKeyPair(
-                    base64public(Core.settings.dataDirectory.child("publicKey.txt").readString())!! as AsymmetricKeyParameter,
-                    base64private(Core.settings.dataDirectory.child("privateKey.txt").readString())!! as AsymmetricKeyParameter
-            )
-            Log.info("Loaded keypair")
+        if (Core.settings.dataDirectory.child("key.txt").exists()) {
+            try {
+                keyQuad = KeyQuad(Base64Coder.decode(Core.settings.dataDirectory.child("key.txt").readString()))
+                Log.info("Loaded keypair")
+            } catch (ignored: Exception) {}
 
             Events.on(EventType.SendChatMessageEvent::class.java) { event ->
-                keyPair ?: return@on
-                sign(event.message, keyPair!!.private)
+                sign(event.message, keyQuad ?: return@on)
             }
         }
 
@@ -101,13 +96,7 @@ class MessageCrypto {
     }
 
     fun base64public(): String? {
-        keyPair?: return null
-        return Base64Coder.encode(Crypto.serializePublic(keyPair!!.public as Ed25519PublicKeyParameters)).toString()
-    }
-
-    fun base64private(): String? {
-        keyPair?: return null
-        return Base64Coder.encode(Crypto.serializePrivate(keyPair!!.private as Ed25519PrivateKeyParameters)).toString()
+        return Base64Coder.encode(PublicKeyPair(keyQuad ?: return null).serialize()).toString()
     }
 
     /** Checks the validity of a message given two triples, see above. */
@@ -124,7 +113,7 @@ class MessageCrypto {
         }
 
         for (key in KeyFolder.keys) {
-            val match = verify(player.message, player.id, received.signature, key.key)
+            val match = verify(player.message, player.id, received.signature, key.keys)
             if (match) {
                 val message = Vars.ui.chatfrag.messages.find { it.message.contains(player.message) } ?: break
                 message.backgroundColor = Color.green.cpy().mul(if (key.official) 0.75f else 0.4f)
@@ -147,20 +136,18 @@ class MessageCrypto {
     }
 
     /** Signs an outgoing message.  Includes the sender ID and current time to prevent impersonation and replay attacks. */
-    fun sign(message: String, key: AsymmetricKeyParameter) {
+    fun sign(message: String, key: KeyQuad) {
         val time = Instant.now().epochSecond
         val out = ByteBuffer.allocate(Crypto.signatureSize + 12)
         out.putLong(time)
         out.putInt(communicationSystem.id)
-        val signature = Crypto.sign(stringToSendable(message, communicationSystem.id, time),
-            key as Ed25519PrivateKeyParameters
-        )
+        val signature = Crypto.sign(stringToSendable(message, communicationSystem.id, time), key.edPrivateKey)
         out.put(signature)
         communicationSystem.send(out.array())
     }
 
     /** Verifies an incoming message. */
-    fun verify(message: String, sender: Int, signature: ByteArray, key: Ed25519PublicKeyParameters): Boolean {
+    fun verify(message: String, sender: Int, signature: ByteArray, key: PublicKeyPair): Boolean {
         if (signature.size != Crypto.signatureSize + 12) {
             return false
         }
@@ -173,7 +160,7 @@ class MessageCrypto {
         val original = stringToSendable(message, sender, time)
 
         return try {
-            val valid = Crypto.verify(original, signatureBytes, key)
+            val valid = Crypto.verify(original, signatureBytes, key.edPublicKey)
             abs(Instant.now().epochSecond - time) < 3 &&
                     sender == senderId &&
                     valid

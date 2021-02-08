@@ -1,7 +1,6 @@
 package com.github.blahblahbloopster.ui
 
 import arc.Core
-import com.github.blahblahbloopster.ClientMapping
 import com.github.blahblahbloopster.Main
 import com.github.blahblahbloopster.crypto.KeyFolder
 import com.github.blahblahbloopster.crypto.MessageCrypto
@@ -30,7 +29,7 @@ class KeyShareDialog : BaseDialog("Key Share") {
         }
         cont.row()
         cont.button("Export Key") {
-            Main.messageCrypto?.keyPair ?: run {
+            Main.messageCrypto?.keyQuad ?: run {
                 Client.mapping.generateKey()
             }
             Core.app.clipboardText = Main.messageCrypto?.base64public() ?: ""

@@ -54,16 +54,11 @@ class ClientMapping : ClientInterface {
 
     override fun generateKey() {
         val generate = {
-            val pair = Crypto.generateKeyPair()
-            Core.settings.dataDirectory.child("privateKey.txt").writeString(Base64Coder.encode(Crypto.serializePrivate(
-                pair.private as Ed25519PrivateKeyParameters
-            )).toString(), false)
-            Core.settings.dataDirectory.child("publicKey.txt").writeString(Base64Coder.encode(Crypto.serializePublic(
-                pair.public as Ed25519PublicKeyParameters
-            )).toString(), false)
+            val pair = Crypto.generateKeyQuad()
+            Core.settings.dataDirectory.child("key.txt").writeString((Base64Coder.encode(pair.serialize()).concatToString()), false)
         }
 
-        if (Main.messageCrypto?.keyPair != null) {
+        if (Main.messageCrypto?.keyQuad != null) {
             Vars.ui.showConfirm("Key Overwrite",
                 "This will irreversibly overwrite your key.  Are you sure you want to do this?", generate)
         } else {
@@ -76,6 +71,6 @@ class ClientMapping : ClientInterface {
     }
 
     override fun shouldAddZws(): Boolean {
-        return Main.messageCrypto?.keyPair != null
+        return Main.messageCrypto?.keyQuad != null
     }
 }

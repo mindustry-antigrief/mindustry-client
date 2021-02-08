@@ -1,5 +1,11 @@
 package com.github.blahblahbloopster.crypto
 
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
+import com.github.blahblahbloopster.Main
 
-data class KeyHolder(val key: Ed25519PublicKeyParameters, val name: String, val official: Boolean)
+data class KeyHolder(val keys: PublicKeyPair, val name: String, val official: Boolean) {
+    private var cryptoClient: CryptoClient? = null
+    val crypto get() = cryptoClient ?: run {
+        Main.messageCrypto?.keyQuad ?: return@run null
+        return@run CryptoClient(Main.messageCrypto!!.keyQuad!!)
+    }
+}
