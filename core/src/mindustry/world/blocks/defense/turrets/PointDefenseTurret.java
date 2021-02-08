@@ -8,11 +8,15 @@ import arc.math.geom.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.navigation.Navigation;
+import mindustry.client.navigation.TurretPathfindingEntity;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.world.meta.*;
+
+import static mindustry.Vars.player;
 
 public class PointDefenseTurret extends ReloadTurret{
     public final int timerTarget = timers++;
@@ -58,7 +62,20 @@ public class PointDefenseTurret extends ReloadTurret{
         public @Nullable Bullet target;
 
         @Override
+        public void created() {
+            pathfindingEntity = new TurretPathfindingEntity(x, y, range, false, team);
+        }
+
+        @Override
         public void updateTile(){
+            if (player != null && player.unit() != null && team != player.team()) {
+                Navigation.obstacles.add(pathfindingEntity);
+                // Can't ever hit player, don't bother checking
+                pathfindingEntity.radius = range;
+                pathfindingEntity.x = x;
+                pathfindingEntity.y = y;
+                pathfindingEntity.team = team;
+            }
 
             //retarget
             if(timer(timerTarget, retargetTime)){

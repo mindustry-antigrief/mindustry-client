@@ -75,9 +75,8 @@ public class TractorBeamTurret extends BaseTurret{
         public float coolant = 1f;
 
         @Override
-        public Building init(Tile tile, Team team, boolean shouldAdd, int rotation) {
+        public void created() {
             pathfindingEntity = new TurretPathfindingEntity(x, y, range, false, team);
-            return super.init(tile, team, shouldAdd, rotation);
         }
 
         @Override
@@ -91,7 +90,7 @@ public class TractorBeamTurret extends BaseTurret{
 
             if (player != null && player.unit() != null && team != player.team()) {
                 Navigation.obstacles.add(pathfindingEntity);
-                pathfindingEntity.canHitPlayer =  cons.valid() && (player.unit().isFlying() ? targetAir : targetGround);
+                pathfindingEntity.canHitPlayer = cons.valid() && (player.unit().isFlying() ? targetAir : targetGround);
                 pathfindingEntity.radius = range;
                 pathfindingEntity.x = x;
                 pathfindingEntity.y = y;
