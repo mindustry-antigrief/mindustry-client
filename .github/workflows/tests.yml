@@ -1,6 +1,10 @@
 name: Java Tests # Tests and pushes to unstable
 
-on: [push, workflow_dispatch]
+on: 
+  push:
+    tags-ignore:
+      - v*
+  workflow_dispatch:
 
 
 jobs:
