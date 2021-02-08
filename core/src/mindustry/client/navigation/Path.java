@@ -11,7 +11,6 @@ public abstract class Path {
     public boolean repeat = false;
 
     public void init() {
-        addListener(() -> player.shooting(false));
     }
 
     public abstract void setShow(boolean show);

@@ -10,6 +10,11 @@ import static mindustry.Vars.*;
 
 public class RepairPath extends Path {
     @Override
+    public void init() {
+        addListener(() -> player.shooting(false));
+    }
+
+    @Override
     public void setShow(boolean show) {}
 
     @Override
