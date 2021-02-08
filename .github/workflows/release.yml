@@ -56,12 +56,11 @@ jobs:
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() }}
-        uses: JamesIves/github-pages-deploy-action@3.7.1
+        uses: JamesIves/github-pages-deploy-action@4.0.0
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: tests/build/reports/tests/test
-          CLEAN: true # Automatically remove deleted files from the deploy branch
+          branch: gh-pages # The branch the action should deploy to.
+          folder: tests/build/reports/tests/test
+          silent: true
 
       - name: Upload Artifact # Only uploaded on fail to save some time
         if: ${{ failure() }}
