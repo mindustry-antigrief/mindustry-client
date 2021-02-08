@@ -306,6 +306,7 @@ public class BlockRenderer implements Disposable{
         }
 
         if (Client.showingTurrets) {
+            Draw.z(Layer.space);
             Rect bounds = new Rect();
             Core.camera.bounds(bounds);
             obstacles.forEach(t -> {

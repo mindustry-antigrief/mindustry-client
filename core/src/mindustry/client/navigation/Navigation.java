@@ -105,7 +105,7 @@ public class Navigation {
                     if (waypoints.size > 1) {
                         do { // Remove any waypoints which backtrack at the start, this is a shitty solution to the problem but oh well.
                             waypoints.remove(0);
-                        } while (i++ < 5 && waypoints.any() && ((PositionWaypoint) waypoints.first()).dst(new Vec2(drawX, drawY)) + tilesize > player.dst(new Vec2(drawX, drawY)));
+                        } while (i++ < 5 && waypoints.any() && ((PositionWaypoint) waypoints.first()).dst(new Vec2(drawX, drawY)) + tilesize/2f > player.dst(new Vec2(drawX, drawY)));
                     }
                     if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
                         follow(new WaypointPath(waypoints));
