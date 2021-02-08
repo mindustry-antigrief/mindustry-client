@@ -12,6 +12,7 @@ _[Javadoc](https://mindustrygame.github.io/docs/)_
 
 ## [Development/Unstable Builds](../../../mindustry-client-v6-builds)
 ## Steam
+* Windows easy installer, run this command in a CMD window [**as admin**](https://www.howtogeek.com/howto/windows-vista/run-a-command-as-administrator-from-the-windows-vista-run-box/) (replace the path if needed): `cd /d C:\Steam\steamapps\common\Mindustry && del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe && curl -L -o jre\client.jar https://github.com/mindustry-antigrief/mindustry-client-v6/releases/latest/download/desktop.jar && echo Done!` then [set the game's launch options](https://support.steampowered.com/kb_article.php?ref=1040-JWMT-2947) to `/c java -jar "%cd%\jre\client.jar"`
 1. Installing the client on steam is rather easy, [download](../../releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
 2. Continue with the steps below for your operating system.
 
@@ -20,7 +21,7 @@ _[Javadoc](https://mindustrygame.github.io/docs/)_
 3. Move the file to the `jre` folder where the game is installed as seen [here](core/assets/steamInfo.png).
 4. Accept the file replacement prompt.
 5. Open the game, and it should work just fine.
-- To uninstall the client, delete the `Mindustry.exe` file. Start the game, accept the error and start it again.
+    6. If you don't want to do this every time the game updates, rename the new `desktop.jar` to `client.jar`, start a cmd window as **admin**, run `cd /d C:\Steam\steamapps\common\Mindustry && ren jre\desktop.jar client.jar && del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe` (replace the path at the start if needed). Now, right click mindustry on steam, click properties then paste `/c java -jar "%cd%\jre\client.jar"` into the launch options (changing the steam path again if needed). You should no longer need to install the client every time the game updates.
 
 ### Mac OS
 

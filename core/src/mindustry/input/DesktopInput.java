@@ -55,7 +55,7 @@ public class DesktopInput extends InputHandler{
     /** Selected build request for movement. */
     public @Nullable BuildPlan sreq;
     /** Whether player is currently deleting removal requests. */
-    public boolean deleting = false, shouldShoot = false;
+    public boolean deleting = false, wasBuilding = true, shouldShoot = false;
     public static boolean panning = false;
     /** Mouse pan speed. */
     public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 11f;
@@ -100,18 +100,19 @@ public class DesktopInput extends InputHandler{
         group.fill(t -> {
             t.bottom();
             t.visible(() -> {
-                t.color.a = Mathf.lerpDelta(t.color.a, player.unit().isBuilding() ? 1f : 0f, 0.15f);
+                t.color.a = Mathf.lerpDelta(t.color.a, !isBuilding && !Core.settings.getBool("buildautopause") || player.unit().isBuilding() ? 1f : 0f, 0.15f);
 
                 return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE && UnitType.alpha != 0;
             });
             t.touchable(() -> t.color.a < 0.1f ? Touchable.disabled : Touchable.childrenOnly);
             t.table(Styles.black6, b -> {
                 b.defaults().left();
-                b.label(() -> Core.bundle.format(!isBuilding ?  "resumebuilding" : "pausebuilding", Core.keybinds.get(Binding.pause_building).key.toString())).style(Styles.outlineLabel);
-                b.row();
-                b.label(() -> Core.bundle.format("cancelbuilding", Core.keybinds.get(Binding.clear_building).key.toString())).style(Styles.outlineLabel);
-                b.row();
-                b.label(() -> Core.bundle.format("selectschematic", Core.keybinds.get(Binding.schematic_select).key.toString())).style(Styles.outlineLabel);
+                b.label(() -> ((!isBuilding || !wasBuilding) && !Core.settings.getBool("buildautopause") && !player.unit().isBuilding() ?
+                    Core.bundle.format("enablebuilding", Core.keybinds.get(Binding.pause_building).key.toString()) :
+                    Core.bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", Core.keybinds.get(Binding.pause_building).key.toString()) +
+                    "\n" + Core.bundle.format("cancelbuilding", Core.keybinds.get(Binding.clear_building).key.toString()) +
+                    "\n" + Core.bundle.format("selectschematic", Core.keybinds.get(Binding.schematic_select).key.toString())
+                )).style(Styles.outlineLabel);
             }).margin(10f);
         });
 
@@ -634,6 +635,7 @@ public class DesktopInput extends InputHandler{
             buildWasAutoPaused = false;
 
             if(isBuilding){
+                wasBuilding = player.unit().isBuilding();
                 player.shooting = false;
             }
         }
@@ -757,6 +759,7 @@ public class DesktopInput extends InputHandler{
             }
 
             mode = none;
+            wasBuilding = true;
         }
 
         if(Core.input.keyTap(Binding.toggle_block_status)){

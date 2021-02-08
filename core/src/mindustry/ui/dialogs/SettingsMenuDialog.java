@@ -243,7 +243,7 @@ public class SettingsMenuDialog extends SettingsDialog{
                 super.touchUp(event, x, y, pointer, button);
             }
         });
-        pane.setFadeScrollBars(false);
+        pane.setFadeScrollBars(true);
 
         row();
         add(pane).grow().top();

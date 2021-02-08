@@ -34,7 +34,8 @@ allprojects{
         if(!project.hasProperty("clientBuild")) clientBuild = '0'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'release'
-        if(!project.hasProperty("buildversion")) buildversion = '124.0'
+        if(!project.hasProperty("buildversion")) buildversion = '124.1'
+        if(!project.hasProperty("clientVersion")) clientVersion = '6.2.0, Feb. 7, 2021'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '891ed912791e01fe9ee6237a6497e5212b85c256'
@@ -145,6 +146,7 @@ allprojects{
 
                 props["clientBuild"] = clientBuild
                 props["updateUrl"] = updateUrl
+                props["clientVersion"] = clientVersion
                 props["type"] = versionType
                 props["number"] = versionNumber
                 props["modifier"] = versionModifier
@@ -324,6 +326,11 @@ project(":core"){
             def changelogs = file("../fastlane/metadata/android/en-US/changelogs/")
             new File(changelogs, androidVersion + ".txt").text = (result)
         }
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes){
+        classifier = 'sources'
+        from sourceSets.main.allSource
     }
 
     dependencies{

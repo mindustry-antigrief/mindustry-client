@@ -31,14 +31,13 @@ public class Version{
         if(!enabled) return;
 
         Fi file = OS.isAndroid || OS.isIos ? Core.files.internal("version.properties") : new Fi("version.properties", FileType.internal);
-        Fi version = OS.isAndroid || OS.isIos ? Core.files.internal("version") : new Fi("version", FileType.internal);
 
         ObjectMap<String, String> map = new ObjectMap<>();
         PropertiesUtils.load(map, file.reader());
 
         clientBuild = Integer.parseInt(map.get("clientBuild"));
         updateUrl = map.get("updateUrl");
-        clientVersion = version.readString();
+        clientVersion = map.get("clientVersion");
         type = map.get("type");
         number = Integer.parseInt(map.get("number", "4"));
         modifier = map.get("modifier");
