@@ -19,7 +19,7 @@ public class FloatEmbedTests {
         float input = (float) (Mathf.rand.nextDouble() * 8000);
 
         float embedded = FloatEmbed.embedInFloat(input, item);
-        Assertions.assertTrue(Math.abs(embedded - input) < 0.1);
+        Assertions.assertTrue(Math.abs(embedded - input) < 1f);
         Assertions.assertTrue(FloatEmbed.isEmbedded(embedded, item));
 
         Vec2 inputVector = new Vec2((float) (Mathf.rand.nextDouble() * 8000), (float) (Mathf.rand.nextDouble() * 8000));
