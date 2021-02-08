@@ -38,6 +38,7 @@ public class WaypointPath extends Path {
         waypoint.run();
         if (waypoint.isDone()) {
             waypoint.onFinish();
+            waypoints.remove(0);
         }
     }
 

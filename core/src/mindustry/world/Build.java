@@ -6,6 +6,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigrief.BreakTileLog;
 import mindustry.client.antigrief.RotateTileLog;
 import mindustry.content.*;
 import mindustry.entities.*;
@@ -87,6 +88,7 @@ public class Build{
         tmp.clear();
 
         tile.getLinkedTilesAs(result, t -> {
+//            t.addToLog(new BreakTileLog(unit, t, Instant.now().getEpochSecond(), "", t.block)); TODO: Add replacements as extra data, this is too spammy.
             ConstructBlock.breakWarning(t, t.block, unit); // This will totally break if warnBlocks contains a multiblock lol
             if(t.build != null && t.build.team == team && tmp.add(t.build.id)){
                 prevBuild.add(t.build);

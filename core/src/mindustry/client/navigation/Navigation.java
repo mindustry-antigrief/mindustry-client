@@ -1,6 +1,7 @@
 package mindustry.client.navigation;
 
 import arc.Core;
+import arc.math.Mathf;
 import arc.math.geom.Position;
 import arc.math.geom.Vec2;
 import arc.struct.*;
@@ -81,7 +82,7 @@ public class Navigation {
     public static void navigateTo(float drawX, float drawY) {
         state = NavigationState.FOLLOWING;
         if (obstacles.isEmpty()) {
-            follow(new WaypointPath(Seq.with(new PositionWaypoint(drawX, drawY))));
+            follow(new WaypointPath(Seq.with(new PositionWaypoint(Mathf.clamp(drawX, 0, world.unitWidth()), Mathf.clamp(drawY, 0, world.unitHeight())))));
             currentlyFollowing.setShow(true);
             targetPos = new Vec2(drawX, drawY);
             return;
