@@ -7,11 +7,11 @@ import arc.util.Log
 import arc.util.serialization.Base64Coder
 import mindustry.Vars
 import mindustry.game.EventType
-import net.i2p.crypto.eddsa.EdDSAPrivateKey
-import net.i2p.crypto.eddsa.EdDSAPublicKey
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter
+import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import java.nio.ByteBuffer
-import java.security.KeyPair
-import java.security.PrivateKey
 import java.security.PublicKey
 import java.time.Instant
 import kotlin.math.abs
@@ -19,7 +19,7 @@ import kotlin.math.abs
 /** Provides the interface between [Crypto] and a [CommunicationSystem] */
 class MessageCrypto {
     lateinit var communicationSystem: CommunicationSystem
-    var keyPair: KeyPair? = null
+    var keyPair: AsymmetricCipherKeyPair? = null
 
     private var player = PlayerTriple(0, 0, "")  // Maps player ID to last sent message
     private var received = ReceivedTriple(0, 0, byteArrayOf()) // Maps player ID to last sent message
@@ -44,11 +44,11 @@ class MessageCrypto {
 //            })
         }
 
-        fun base64public(input: PublicKey): String {
-            return Base64Coder.encode(Crypto.serializePublic(input as EdDSAPublicKey)).toString()
+        fun base64public(input: Ed25519PublicKeyParameters): String {
+            return Base64Coder.encode(Crypto.serializePublic(input)).toString()
         }
 
-        fun base64public(input: String): PublicKey? {
+        fun base64public(input: String): Ed25519PublicKeyParameters? {
             return try {
                 Crypto.deserializePublic(Base64Coder.decode(input))
             } catch (e: Exception) {
@@ -57,7 +57,7 @@ class MessageCrypto {
             }
         }
 
-        fun base64private(input: String): PrivateKey? {
+        fun base64private(input: String): Ed25519PrivateKeyParameters? {
             return try {
                 Crypto.deserializePrivate(Base64Coder.decode(input))
             } catch (e: Exception) {
@@ -66,8 +66,8 @@ class MessageCrypto {
             }
         }
 
-        fun base64private(input: PrivateKey): String {
-            return Base64Coder.encode(Crypto.serializePrivate(input as EdDSAPrivateKey)).toString()
+        fun base64private(input: Ed25519PrivateKeyParameters): String {
+            return Base64Coder.encode(Crypto.serializePrivate(input)).toString()
         }
     }
 
@@ -79,9 +79,9 @@ class MessageCrypto {
         this.communicationSystem = communicationSystem
 
         if (Core.settings.dataDirectory.child("privateKey.txt").exists() && Core.settings.dataDirectory.child("publicKey.txt").exists()) {
-            keyPair = KeyPair(
-                    base64public(Core.settings.dataDirectory.child("publicKey.txt").readString())!!,
-                    base64private(Core.settings.dataDirectory.child("privateKey.txt").readString())!!
+            keyPair = AsymmetricCipherKeyPair(
+                    base64public(Core.settings.dataDirectory.child("publicKey.txt").readString())!! as AsymmetricKeyParameter,
+                    base64private(Core.settings.dataDirectory.child("privateKey.txt").readString())!! as AsymmetricKeyParameter
             )
             Log.info("Loaded keypair")
 
@@ -103,12 +103,12 @@ class MessageCrypto {
 
     fun base64public(): String? {
         keyPair?: return null
-        return Base64Coder.encode(Crypto.serializePublic(keyPair!!.public as EdDSAPublicKey)).toString()
+        return Base64Coder.encode(Crypto.serializePublic(keyPair!!.public as Ed25519PublicKeyParameters)).toString()
     }
 
     fun base64private(): String? {
         keyPair?: return null
-        return Base64Coder.encode(Crypto.serializePrivate(keyPair!!.private as EdDSAPrivateKey)).toString()
+        return Base64Coder.encode(Crypto.serializePrivate(keyPair!!.private as Ed25519PrivateKeyParameters)).toString()
     }
 
     /** Checks the validity of a message given two triples, see above. */
@@ -148,18 +148,20 @@ class MessageCrypto {
     }
 
     /** Signs an outgoing message.  Includes the sender ID and current time to prevent impersonation and replay attacks. */
-    fun sign(message: String, key: PrivateKey) {
+    fun sign(message: String, key: AsymmetricKeyParameter) {
         val time = Instant.now().epochSecond
         val out = ByteBuffer.allocate(Crypto.signatureSize + 12)
         out.putLong(time)
         out.putInt(communicationSystem.id)
-        val signature = Crypto.sign(stringToSendable(message, communicationSystem.id, time), key as EdDSAPrivateKey)
+        val signature = Crypto.sign(stringToSendable(message, communicationSystem.id, time),
+            key as Ed25519PrivateKeyParameters
+        )
         out.put(signature)
         communicationSystem.send(out.array())
     }
 
     /** Verifies an incoming message. */
-    fun verify(message: String, sender: Int, signature: ByteArray, key: PublicKey): Boolean {
+    fun verify(message: String, sender: Int, signature: ByteArray, key: Ed25519PublicKeyParameters): Boolean {
         if (signature.size != Crypto.signatureSize + 12) {
             return false
         }
@@ -172,7 +174,7 @@ class MessageCrypto {
         val original = stringToSendable(message, sender, time)
 
         return try {
-            val valid = Crypto.verify(original, signatureBytes, key as EdDSAPublicKey)
+            val valid = Crypto.verify(original, signatureBytes, key)
             abs(Instant.now().epochSecond - time) < 3 &&
                     sender == senderId &&
                     valid

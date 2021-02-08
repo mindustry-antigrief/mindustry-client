@@ -16,8 +16,8 @@ import mindustry.client.navigation.Navigation
 import mindustry.client.utils.FloatEmbed
 import mindustry.gen.Player
 import mindustry.ui.dialogs.BaseDialog
-import net.i2p.crypto.eddsa.EdDSAPrivateKey
-import net.i2p.crypto.eddsa.EdDSAPublicKey
+import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 
 class ClientMapping : ClientInterface {
 
@@ -56,8 +56,12 @@ class ClientMapping : ClientInterface {
     override fun generateKey() {
         val generate = {
             val pair = Crypto.generateKeyPair()
-            Core.settings.dataDirectory.child("privateKey.txt").writeString(Base64Coder.encode(Crypto.serializePrivate(pair.private as EdDSAPrivateKey)).toString(), false)
-            Core.settings.dataDirectory.child("publicKey.txt").writeString(Base64Coder.encode(Crypto.serializePublic(pair.public as EdDSAPublicKey)).toString(), false)
+            Core.settings.dataDirectory.child("privateKey.txt").writeString(Base64Coder.encode(Crypto.serializePrivate(
+                pair.private as Ed25519PrivateKeyParameters
+            )).toString(), false)
+            Core.settings.dataDirectory.child("publicKey.txt").writeString(Base64Coder.encode(Crypto.serializePublic(
+                pair.public as Ed25519PublicKeyParameters
+            )).toString(), false)
         }
 
         if (Main.messageCrypto?.keyPair != null) {
