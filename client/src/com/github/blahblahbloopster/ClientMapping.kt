@@ -15,7 +15,6 @@ import com.github.blahblahbloopster.ui.KeyShareDialog
 import mindustry.client.navigation.Navigation
 import mindustry.client.utils.FloatEmbed
 import mindustry.gen.Player
-import mindustry.ui.dialogs.BaseDialog
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 

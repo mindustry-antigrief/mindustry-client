@@ -1,10 +1,10 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.4.20'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
 }
 sourceSets.test.resources.srcDirs = ["src/test/resources"]
 sourceSets.test.java.srcDirs = ["src/test/java"]
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.20"
+    implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.68'
 }
-

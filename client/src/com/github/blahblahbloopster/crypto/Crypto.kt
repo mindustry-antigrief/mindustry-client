@@ -7,6 +7,7 @@ import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator
 import org.bouncycastle.crypto.generators.X25519KeyPairGenerator
 import org.bouncycastle.crypto.params.*
 import org.bouncycastle.crypto.signers.Ed25519Signer
+import org.bouncycastle.jcajce.interfaces.EdDSAPublicKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.*
 import javax.crypto.Cipher
@@ -27,7 +28,7 @@ object Crypto {
     fun init() {
         Security.addProvider(BouncyCastleProvider())
         signatureEngine = Ed25519Signer()
-        aes = Cipher.getInstance("AES/CBC/PKCS5Padding", "BC")
+        aes = Cipher.getInstance("AES/CBC/PKCS5Padding")
     }
 
     fun generateKeyPair(): AsymmetricCipherKeyPair {

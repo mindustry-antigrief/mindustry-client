@@ -3,6 +3,8 @@ package client;
 import com.github.blahblahbloopster.crypto.Crypto;
 import com.github.blahblahbloopster.crypto.MessageCrypto;
 import kotlin.Unit;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -26,13 +28,13 @@ public class MessageCryptographyTests {
     /** Tests that signing messages works. */
     @Test
     void testSending() {
-        KeyPair client1pair = Crypto.INSTANCE.generateKeyPair();
-        KeyPair client2pair = Crypto.INSTANCE.generateKeyPair();
+        AsymmetricCipherKeyPair client1pair = Crypto.INSTANCE.generateKeyPair();
+        AsymmetricCipherKeyPair client2pair = Crypto.INSTANCE.generateKeyPair();
 
         client1.communicationSystem.getListeners().add(
                 (inp, id) -> {
                     valid.set(
-                            client1.verify(message, id, inp, client2pair.getPublic())
+                            client1.verify(message, id, inp, (Ed25519PublicKeyParameters) client2pair.getPublic())
                     );
                     return Unit.INSTANCE;
                 }
@@ -40,7 +42,7 @@ public class MessageCryptographyTests {
         client2.communicationSystem.getListeners().add(
                 (inp, id) -> {
                     valid.set(
-                            client2.verify(message, id, inp, client1pair.getPublic())
+                            client2.verify(message, id, inp, (Ed25519PublicKeyParameters) client1pair.getPublic())
                     );
                     return Unit.INSTANCE;
                 }

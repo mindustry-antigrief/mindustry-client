@@ -12,7 +12,6 @@ import org.bouncycastle.crypto.params.AsymmetricKeyParameter
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import java.nio.ByteBuffer
-import java.security.PublicKey
 import java.time.Instant
 import kotlin.math.abs
 
