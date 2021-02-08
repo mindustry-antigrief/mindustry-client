@@ -91,7 +91,7 @@ public class TractorBeamTurret extends BaseTurret{
 
             if (player != null && player.unit() != null && team != player.team()) {
                 Navigation.obstacles.add(pathfindingEntity);
-                pathfindingEntity.canHitPlayer =  (!consumesPower || efficiency() > 0) && (player.unit().isFlying() ? targetAir : targetGround);
+                pathfindingEntity.canHitPlayer =  cons.valid() && (player.unit().isFlying() ? targetAir : targetGround);
             }
 
             pathfindingEntity.radius = range;
