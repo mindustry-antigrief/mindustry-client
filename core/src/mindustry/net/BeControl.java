@@ -75,11 +75,12 @@ public class BeControl{
                 Jval val = Jval.read(res.getResultAsString());
                 int newBuild = Strings.parseInt(val.getString("tag_name", "0"));
                 if(newBuild != Version.clientBuild){
-                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").startsWith("desktop.jar"));
+                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().startsWith("desktop.jar"));
+                    if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().startsWith("mindustry.jar"));
                     if (asset == null) { Core.app.post(() -> done.get(false)); return; }
                     String url = asset.getString("browser_download_url", "");
                     updateAvailable = true;
-                    updateBuild = newBuild;
+                    updateBuild = Math.max(0, newBuild);
                     updateUrl = url;
                     Core.app.post(() -> {
                         done.get(true);

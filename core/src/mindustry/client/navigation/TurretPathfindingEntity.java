@@ -7,18 +7,19 @@ public class TurretPathfindingEntity extends Circle {
     public boolean canHitPlayer;
     private static long nextId = 0;
     public long id;
-    public Team team;
+    public Team team = Team.derelict;
+    public boolean turret; // Whether this is a turret or just a unit weapon.
 
     {
         id = nextId++;
     }
 
-    public TurretPathfindingEntity(float x, float y, float range, boolean canHitPlayer, Team team){
+    public TurretPathfindingEntity(float x, float y, float range, boolean canHitPlayer, boolean turret){
         this.x = x;
         this.y = y;
         this.radius = range;
         this.canHitPlayer = canHitPlayer;
-        this.team = team;
+        this.turret = turret;
     }
 
     @Override

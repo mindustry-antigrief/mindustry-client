@@ -310,7 +310,7 @@ public class BlockRenderer implements Disposable{
             Rect bounds = new Rect();
             Core.camera.bounds(bounds);
             obstacles.forEach(t -> {
-                if (!bounds.overlaps(t.x-t.radius/2, t.y-t.radius/2, t.radius, t.radius)) return;
+                if (!((settings.getBool("unitranges") || t.turret) && bounds.overlaps(t.x - t.radius / 2, t.y - t.radius / 2, t.radius, t.radius))) return;
                 if (t.canHitPlayer) {
                     Drawf.circles(t.x, t.y, t.radius, t.team.color);
                 } else {

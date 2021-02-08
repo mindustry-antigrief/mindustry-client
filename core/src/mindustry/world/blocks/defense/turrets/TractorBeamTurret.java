@@ -76,7 +76,7 @@ public class TractorBeamTurret extends BaseTurret{
 
         @Override
         public void created() {
-            pathfindingEntity = new TurretPathfindingEntity(x, y, range, false, team);
+            pathfindingEntity = new TurretPathfindingEntity(x, y, range, false, true);
         }
 
         @Override

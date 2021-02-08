@@ -325,6 +325,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
+        client.checkPref("unitranges", false);
         client.checkPref("disablemonofont", false); // Requires Restart
         client.checkPref("hidetrails", false, i -> Client.hideTrails = i);
         client.checkPref("drawhitboxes", false);
