@@ -789,6 +789,7 @@ public class Blocks implements ContentList{
             health = 130 * wallHealthMultiplier;
             insulated = true;
             absorbLasers = true;
+            schematicPriority = 10;
         }};
 
         plastaniumWallLarge = new Wall("plastanium-wall-large"){{
@@ -797,6 +798,7 @@ public class Blocks implements ContentList{
             size = 2;
             insulated = true;
             absorbLasers = true;
+            schematicPriority = 10;
         }};
 
         thoriumWall = new Wall("thorium-wall"){{
@@ -1583,6 +1585,7 @@ public class Blocks implements ContentList{
             damage = 0.3f;
             health = 160 * size * size;
             rotateSpeed = 10;
+            flags = EnumSet.of(BlockFlag.turret);
 
             consumes.powerCond(3f, (TractorBeamBuild e) -> e.target != null);
         }};
@@ -1641,6 +1644,7 @@ public class Blocks implements ContentList{
             shootLength = 5f;
             bulletDamage = 25f;
             reloadTime = 9f;
+            flags = EnumSet.of(BlockFlag.turret);
         }};
 
         tsunami = new LiquidTurret("tsunami"){{
@@ -1664,6 +1668,7 @@ public class Blocks implements ContentList{
             shootEffect = Fx.shootLiquid;
             range = 190f;
             health = 250 * size * size;
+            flags = EnumSet.of(BlockFlag.turret, BlockFlag.extinguisher);
         }};
 
         fuse = new ItemTurret("fuse"){{

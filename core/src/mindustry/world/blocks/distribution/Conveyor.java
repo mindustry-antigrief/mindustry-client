@@ -102,7 +102,7 @@ public class Conveyor extends Block implements Autotiler{
 //        TODO: Why is this even here anymore? isnt it useless? can i remove it? what does it even do? good questions
 
 
-        Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conveyor || req.block instanceof Junction));
+        Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && (req.block instanceof Conveyor || req.block instanceof Junction));
         if(cont.get(Geometry.d4(req.rotation)) &&
             cont.get(Geometry.d4(req.rotation - 2)) &&
             req.tile() != null &&
@@ -134,7 +134,7 @@ public class Conveyor extends Block implements Autotiler{
 
     /** Whether the second build plan is "in front" of the first. */
     public boolean inFront(int x, int y, int rotation, BuildPlan other){
-        return !(other.x == x && other.y == y) && (other.x - x) == Geometry.d4x(rotation) * Math.abs(other.x - x) && (other.y - y) == Geometry.d4y(rotation) * Math.abs(other.y - y); 
+        return !(other.x == x && other.y == y) && (other.x - x) == Geometry.d4x(rotation) * Math.abs(other.x - x) && (other.y - y) == Geometry.d4y(rotation) * Math.abs(other.y - y);
     }
 
     /** Returns the tile in front of this one. */

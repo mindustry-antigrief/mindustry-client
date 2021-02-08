@@ -1,17 +1,7 @@
 package mindustry.world.blocks.defense.turrets;
 
-import arc.Core;
-import arc.graphics.g2d.Draw;
-import arc.graphics.g2d.Lines;
-import arc.math.Mathf;
-import arc.math.geom.Rect;
-import arc.math.geom.Vec2;
-import arc.struct.ObjectMap;
-import arc.struct.Seq;
-import arc.struct.StringMap;
-import arc.util.Time;
 import mindustry.client.Client;
-import mindustry.client.utils.Pair;
+import mindustry.client.navigation.TurretPathfindingEntity;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
@@ -65,6 +55,7 @@ public class BaseTurret extends Block{
 
     public class BaseTurretBuild extends Building implements Ranged{
         public float rotation = 90;
+        protected TurretPathfindingEntity pathfindingEntity = null;
 
         @Override
         public float range(){
@@ -74,13 +65,6 @@ public class BaseTurret extends Block{
         @Override
         public void drawSelect(){
             Drawf.dashCircle(x, y, range, team.color);
-        }
-
-        @Override
-        public void update() {
-            super.update();
-            if (player == null || team.id == player.team().id) return;
-            Client.turrets.add(this);
         }
     }
 }

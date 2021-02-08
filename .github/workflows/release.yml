@@ -27,25 +27,8 @@ jobs:
 
       - name: Build Client
         run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}
-
-      - name: Upload Test Results To Pages
-        if: ${{ !cancelled() }}
-        uses: JamesIves/github-pages-deploy-action@3.7.1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: tests/build/reports/tests/test
-          CLEAN: true # Automatically remove deleted files from the deploy branch
-
-      - name: Upload Artifact # Only uploaded on fail to save some time
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: Zipped Jar
-          path: desktop/build/libs/Mindustry.jar
-
+      
       - name: Create Release
-        if: ${{ !cancelled() }}
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -69,6 +52,23 @@ jobs:
           asset_path: desktop/build/libs/Mindustry.jar
           asset_name: desktop.jar
           asset_content_type: application/zip
+
+
+      - name: Upload Test Results To Pages
+        if: ${{ !cancelled() }}
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: tests/build/reports/tests/test
+          CLEAN: true # Automatically remove deleted files from the deploy branch
+
+      - name: Upload Artifact # Only uploaded on fail to save some time
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: Zipped Jar
+          path: desktop/build/libs/Mindustry.jar
 
       - name: Steam (Redundant, kept for backwards compat.)
         uses: actions/upload-release-asset@v1

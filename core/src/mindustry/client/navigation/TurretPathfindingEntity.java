@@ -1,21 +1,24 @@
 package mindustry.client.navigation;
 
 import arc.math.geom.Circle;
+import mindustry.game.Team;
 
 public class TurretPathfindingEntity extends Circle {
     public boolean canHitPlayer;
     private static long nextId = 0;
     public long id;
+    public Team team;
 
     {
         id = nextId++;
     }
 
-    public TurretPathfindingEntity(float x, float y, float range, boolean canHitPlayer){
+    public TurretPathfindingEntity(float x, float y, float range, boolean canHitPlayer, Team team){
         this.x = x;
         this.y = y;
         this.radius = range;
         this.canHitPlayer = canHitPlayer;
+        this.team = team;
     }
 
     @Override

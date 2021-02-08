@@ -17,7 +17,11 @@ import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.world.*;
+import mindustry.world.blocks.defense.turrets.BaseTurret;
+import mindustry.world.blocks.defense.turrets.TractorBeamTurret;
+import mindustry.world.blocks.defense.turrets.Turret;
 import mindustry.world.blocks.power.*;
+import mindustry.world.meta.BlockFlag;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -304,11 +308,12 @@ public class BlockRenderer implements Disposable{
         if (Client.showingTurrets) {
             Rect bounds = new Rect();
             Core.camera.bounds(bounds);
-            Rect turretBounds = new Rect();
-            Client.turrets.forEach(turret -> {
-                turretBounds.setSize(turret.range() * 2).setCenter(turret.x, turret.y);
-                if (bounds.overlaps(turretBounds)) {
-                    Drawf.dashCircle(turret.x, turret.y, turret.range(), turret.team.color);
+            obstacles.forEach(t -> {
+                if (!bounds.overlaps(t.x-t.radius/2, t.y-t.radius/2, t.radius, t.radius)) return;
+                if (t.canHitPlayer) {
+                    Drawf.circles(t.x, t.y, t.radius, t.team.color);
+                } else {
+                    Drawf.dashCircle(t.x, t.y, t.radius, t.team.color);
                 }
             });
         }

@@ -304,6 +304,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.sliderPref("reactorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
         client.sliderPref("incineratorwarningdistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" :Integer.toString(s));
         client.sliderPref("incineratorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
+        client.checkPref("breakwarnings", true);
         client.checkPref("removecorenukes", false);
 
         client.category("chat");
@@ -457,11 +458,11 @@ public class SettingsMenuDialog extends SettingsDialog{
             graphics.checkPref("animatedshields", !mobile);
         }
 
-        if(!ios){
+        //if(!ios){
             graphics.checkPref("bloom", true, val -> renderer.toggleBloom(val));
-        }else{
-            Core.settings.put("bloom", false);
-        }
+        //}else{
+        //    Core.settings.put("bloom", false);
+        //}
 
         graphics.checkPref("pixelate", false, val -> {
             if(val){

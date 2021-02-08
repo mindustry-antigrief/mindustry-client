@@ -94,7 +94,7 @@ public class ConstructBlock extends Block{
 
     /** Send a warning in chat when these blocks are broken/picked up/built over as they typically shouldn't be touched. */
     public static void breakWarning(Tile tile, Block block, Unit builder){
-        if (state.rules.infiniteResources || builder == null || !builder.isPlayer()) return; // Don't warn in sandbox for obvious reasons.
+        if (!Core.settings.getBool("breakwarnings") || state.rules.infiniteResources || builder == null || !builder.isPlayer()) return; // Don't warn in sandbox for obvious reasons.
 
         Seq<Block> warnBlocks = new Seq<>(new Block[]{Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid}); // All blocks that shouldn't be broken. Note: Untested with multiblocks, likely to behave in a strange manner.
 

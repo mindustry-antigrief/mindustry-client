@@ -1,6 +1,6 @@
 name: Java Tests # Tests and pushes to unstable
 
-on:
+on: 
   push:
     branches: "**"
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
-        with:
+        with: 
           persist-credentials: false
 
       - name: Set up JDK 14

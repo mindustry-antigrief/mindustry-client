@@ -345,7 +345,6 @@ public class PowerGraph{
                     if(next != tile && next.power.graph != graph){
                         graph.add(next);
                         queue.addLast(next);
-                        closedSet.add(next.pos());
                     }
                 }
             }

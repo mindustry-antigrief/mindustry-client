@@ -542,6 +542,10 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     }
 
     public void dumpLiquid(Liquid liquid){
+        dumpLiquid(liquid, 2f);
+    }
+
+    public void dumpLiquid(Liquid liquid, float scaling){
         int dump = this.cdump;
 
         if(liquids.get(liquid) <= 0.0001f) return;
@@ -557,7 +561,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
                 float ofract = other.liquids.get(liquid) / other.block.liquidCapacity;
                 float fract = liquids.get(liquid) / block.liquidCapacity;
 
-                if(ofract < fract) transferLiquid(other, (fract - ofract) * block.liquidCapacity / 2f, liquid);
+                if(ofract < fract) transferLiquid(other, (fract - ofract) * block.liquidCapacity / scaling, liquid);
             }
         }
 
@@ -987,6 +991,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
                 int amount = items.get(item);
                 explosiveness += item.explosiveness * amount;
                 flammability += item.flammability * amount;
+                power += item.charge * amount * 100f;
             }
         }
 
@@ -1314,6 +1319,8 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             case health -> health;
             case maxHealth -> maxHealth;
             case efficiency -> efficiency();
+            case timescale -> timeScale;
+            case range -> this instanceof Ranged r ? r.range() / tilesize : 0;
             case rotation -> rotation;
             case totalItems -> items == null ? 0 : items.total();
             case totalLiquids -> liquids == null ? 0 : liquids.total();

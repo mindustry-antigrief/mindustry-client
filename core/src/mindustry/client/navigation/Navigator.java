@@ -4,6 +4,8 @@ import arc.math.geom.Circle;
 import arc.math.geom.Vec2;
 import arc.struct.Seq;
 
+import static mindustry.Vars.*;
+
 /** An abstract class for a navigation algorithm, i.e. A*. */
 public abstract class Navigator {
 
@@ -18,7 +20,7 @@ public abstract class Navigator {
 
     public Vec2[] navigate(Vec2 start, Vec2 end, TurretPathfindingEntity[] obstacles, int resolution) {
         start.scl(1f / resolution);
-        end.scl(1f / resolution);
+        end.clamp(0, 0, world.unitHeight(), world.unitWidth()).scl(1f / resolution);
         Seq<Circle> realObstacles = new Seq<>(new Circle[0]);
         for (TurretPathfindingEntity turret : obstacles) {
             if (turret.canHitPlayer) {

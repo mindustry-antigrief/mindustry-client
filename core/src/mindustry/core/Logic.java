@@ -216,7 +216,7 @@ public class Logic implements ApplicationListener{
     }
 
     public void skipWave(){
-        state.wavetime = 0;
+        runWave();
     }
 
     public void runWave(){
@@ -424,7 +424,6 @@ public class Logic implements ApplicationListener{
                 state.envAttrs.clear();
                 Groups.weather.each(w -> state.envAttrs.add(w.weather.attrs, w.opacity));
 
-                Client.turrets.clear();
                 Groups.update();
             }
 

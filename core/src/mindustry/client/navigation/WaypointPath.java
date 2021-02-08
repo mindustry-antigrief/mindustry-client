@@ -11,14 +11,12 @@ import mindustry.graphics.Layer;
 /** A {@link Path} composed of {@link Waypoint} instances. */
 public class WaypointPath extends Path {
     private final Seq<Waypoint> waypoints;
-    private final Seq<Waypoint> finished;
     private final Seq<Waypoint> initial;
     private boolean show;
 
     public WaypointPath(Seq<Waypoint> waypoints) {
         this.waypoints = waypoints;
         this.initial = waypoints.copy();
-        finished = new Seq<>();
     }
 
     @Override
@@ -35,12 +33,11 @@ public class WaypointPath extends Path {
     public void follow() {
         if (waypoints == null || waypoints.isEmpty()) return;
 
-        while (waypoints.size > 1 && Core.settings.getBool("assumeunstrict")) finished.add(waypoints.remove(0)); // Only the last waypoint is needed when we are just teleporting there anyways.
+        while (waypoints.size > 1 && Core.settings.getBool("assumeunstrict")) waypoints.remove(0); // Only the last waypoint is needed when we are just teleporting there anyways.
         Waypoint waypoint = waypoints.first();
         waypoint.run();
         if (waypoint.isDone()) {
             waypoint.onFinish();
-            finished.add(waypoints.remove(0));
         }
     }
 
@@ -62,7 +59,6 @@ public class WaypointPath extends Path {
 
     @Override
     public void reset() {
-        finished.clear();
         waypoints.clear();
         waypoints.addAll(initial);
     }

@@ -81,6 +81,7 @@ public class Turret extends ReloadTurret{
 
     public @Load(value = "@-base", fallback = "block-@size") TextureRegion baseRegion;
     public @Load("@-heat") TextureRegion heatRegion;
+    public float elevation = -1f;
 
     public Cons<TurretBuild> drawer = tile -> Draw.rect(region, tile.x + tr2.x, tile.y + tr2.y, tile.rotation - 90);
     public Cons<TurretBuild> heatDrawer = tile -> {
@@ -128,6 +129,7 @@ public class Turret extends ReloadTurret{
         }
         
         if(shootLength < 0) shootLength = size * tilesize / 2f;
+        if(elevation < 0) elevation = size / 2f;
 
         super.init();
     }
@@ -153,14 +155,13 @@ public class Turret extends ReloadTurret{
         public Vec2 targetPos = new Vec2();
         public BlockUnitc unit = Nulls.blockUnit;
         public boolean wasShooting, charging;
-        private TurretPathfindingEntity pathfindingEntity = null;
 
         @Override
         public void created(){
             unit = (BlockUnitc)UnitTypes.block.create(team);
             unit.tile(this);
 
-            pathfindingEntity = new TurretPathfindingEntity(x, y, range, false);
+            pathfindingEntity = new TurretPathfindingEntity(x, y, range, false, team);
         }
 
         @Override
@@ -246,7 +247,7 @@ public class Turret extends ReloadTurret{
 
             tr2.trns(rotation, -recoil);
 
-            Drawf.shadow(region, x + tr2.x - (size / 2f), y + tr2.y - (size / 2f), rotation - 90);
+            Drawf.shadow(region, x + tr2.x - elevation, y + tr2.y - elevation, rotation - 90);
             drawer.get(this);
 
             if(heatRegion != Core.atlas.find("error")){
@@ -267,14 +268,14 @@ public class Turret extends ReloadTurret{
             unit.rotation(rotation);
             unit.team(team);
 
-            if (player != null) {
-                if (team != player.team()) Navigation.obstacles.add(pathfindingEntity);
-                pathfindingEntity.canHitPlayer = validateTarget(player);
+            if (player != null && player.unit() != null && team != player.team()) {
+                Navigation.obstacles.add(pathfindingEntity);
+                pathfindingEntity.canHitPlayer = cons.valid() && (player.unit().isFlying() ? targetAir : targetGround);
+                pathfindingEntity.radius = range;
+                pathfindingEntity.x = x;
+                pathfindingEntity.y = y;
+                pathfindingEntity.team = team;
             }
-
-            pathfindingEntity.radius = range;
-            pathfindingEntity.x = x;
-            pathfindingEntity.y = y;
 
             unit.set(x, y);
 
@@ -331,11 +332,8 @@ public class Turret extends ReloadTurret{
             super.handleLiquid(source, liquid, amount);
         }
 
-        protected boolean validateTarget(Posc target){
-            return !Units.invalidateTarget(target, team, x, y) || isControlled() || logicControlled();
-        }
         protected boolean validateTarget(){
-            return validateTarget(target);
+            return !Units.invalidateTarget(target, team, x, y) || isControlled() || logicControlled();
         }
 
         protected void findTarget(){
@@ -515,14 +513,6 @@ public class Turret extends ReloadTurret{
         @Override
         public byte version(){
             return 1;
-        }
-
-        @Override
-        public void update() {
-            super.update();
-            if (!hasAmmo()) {
-                Client.turrets.remove(this);
-            }
         }
     }
 }
