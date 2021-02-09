@@ -21,7 +21,7 @@ _[Javadoc](https://mindustrygame.github.io/docs/)_
 3. Move the file to the `jre` folder where the game is installed as seen [here](core/assets/steamInfo.png).
 4. Accept the file replacement prompt.
 5. Open the game, and it should work just fine.
-    6. If you don't want to do this every time the game updates, rename the new `desktop.jar` to `client.jar`, start a cmd window as **admin**, run `cd /d C:\Steam\steamapps\common\Mindustry && ren jre\desktop.jar client.jar && del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe` (replace the path at the start if needed). Now, right click mindustry on steam, click properties then paste `/c java -jar "%cd%\jre\client.jar"` into the launch options (changing the steam path again if needed). You should no longer need to install the client every time the game updates.
+    1. If you don't want to do this every time the game updates, rename the new `desktop.jar` to `client.jar`, start a cmd window as **admin**, run `cd /d C:\Steam\steamapps\common\Mindustry && ren jre\desktop.jar client.jar && del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe` (replace the path at the start if needed). Now, right click mindustry on steam, click properties then paste `/c java -jar "%cd%\jre\client.jar"` into the launch options (changing the steam path again if needed). You should no longer need to install the client every time the game updates.
 
 ### Mac OS
 
