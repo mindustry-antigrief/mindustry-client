@@ -29,10 +29,10 @@ class KeyShareDialog : BaseDialog("Key Share") {
         }
         cont.row()
         cont.button("Export Key") {
-            Main.messageCrypto?.keyQuad ?: run {
+            Main.messageCrypto.keyQuad ?: run {
                 Client.mapping.generateKey()
             }
-            Core.app.clipboardText = Main.messageCrypto?.base64public() ?: ""
+            Core.app.clipboardText = Main.messageCrypto.base64public() ?: ""
             Vars.ui.announce("Copied key to clipboard.\nHave the other person import it.")
         }
     }

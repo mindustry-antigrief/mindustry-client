@@ -12,4 +12,8 @@ interface CommunicationSystem {
 
     /** Sends a [ByteArray] to all other clients.  Note: this may take time. todo: consider moving to a queue system */
     fun send(bytes: ByteArray)
+
+    fun addListener(listener: (input: ByteArray, sender: Int) -> Unit) {
+        listeners.add(listener)
+    }
 }

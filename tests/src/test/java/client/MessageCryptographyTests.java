@@ -1,17 +1,11 @@
 package client;
 
-import com.github.blahblahbloopster.crypto.Crypto;
-import com.github.blahblahbloopster.crypto.KeyQuad;
-import com.github.blahblahbloopster.crypto.MessageCrypto;
-import com.github.blahblahbloopster.crypto.PublicKeyPair;
+import com.github.blahblahbloopster.crypto.*;
 import kotlin.Unit;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.security.KeyPair;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MessageCryptographyTests {

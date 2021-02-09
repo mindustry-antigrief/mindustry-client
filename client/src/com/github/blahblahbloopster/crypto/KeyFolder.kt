@@ -12,7 +12,7 @@ object KeyFolder : Initializable {
     var folder: Fi? = null
 
     override fun initializeAlways() {
-        keys.add(KeyHolder(PublicKeyPair(Base64Coder.decode(Core.files.internal("fooKey").readString())), "foo", true))
+//        keys.add(KeyHolder(PublicKeyPair(Base64Coder.decode(Core.files.internal("fooKey").readString())), "foo", true))
         val folderName = Core.settings.getString("keyfolder") ?: run {
             Log.info("No key folder, not initializing keys")
             return

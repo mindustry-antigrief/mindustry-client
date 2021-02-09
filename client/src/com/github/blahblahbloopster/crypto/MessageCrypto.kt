@@ -4,15 +4,15 @@ import arc.Core
 import arc.Events
 import arc.graphics.Color
 import arc.util.Log
+import arc.util.Time
 import arc.util.serialization.Base64Coder
 import mindustry.Vars
 import mindustry.game.EventType
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair
-import org.bouncycastle.crypto.params.AsymmetricKeyParameter
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import java.nio.ByteBuffer
 import java.time.Instant
+import java.util.zip.DeflaterInputStream
 import kotlin.math.abs
 
 /** Provides the interface between [Crypto] and a [CommunicationSystem] */
@@ -20,29 +20,11 @@ class MessageCrypto {
     lateinit var communicationSystem: CommunicationSystem
     var keyQuad: KeyQuad? = null
 
-    private var player = PlayerTriple(0, 0, "")  // Maps player ID to last sent message
-    private var received = ReceivedTriple(0, 0, byteArrayOf()) // Maps player ID to last sent message
+    var player = PlayerTriple(0, 0, "")  // Maps player ID to last sent message
+    var received = ReceivedTriple(0, 0, byteArrayOf()) // Maps player ID to last sent message
 
     companion object {
-        const val VERSION = 1
-        private const val ENCRYPTED_VALIDITY_CHECK: Byte = 0b10101010.toByte()
-
-        enum class TransmissionType(onReceived: (senderId: Int, content: ByteArray, messageCrypto: MessageCrypto) -> Unit) {
-            SIGNATURE({ senderId, content, messageCrypto ->
-                messageCrypto.received = ReceivedTriple(
-                    senderId,
-                    Instant.now().epochSecond,
-                    content
-                )
-                messageCrypto.check(messageCrypto.player, messageCrypto.received)
-            }),
-            ENCRYPTED_CHAT({ senderId, content, messageCrypto ->
-            })
-        }
-
-        fun base64public(input: Ed25519PublicKeyParameters): String {
-            return Base64Coder.encode(Crypto.serializePublic(input)).toString()
-        }
+        private const val ENCRYPTION_VALIDITY = 0b10101010.toByte()
 
         fun base64public(input: String): PublicKeyPair? {
             return try {
@@ -52,24 +34,11 @@ class MessageCrypto {
                 null
             }
         }
-
-        fun base64private(input: String): Ed25519PrivateKeyParameters? {
-            return try {
-                Crypto.deserializePrivate(Base64Coder.decode(input))
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        }
-
-        fun base64private(input: Ed25519PrivateKeyParameters): String {
-            return Base64Coder.encode(Crypto.serializePrivate(input)).toString()
-        }
     }
 
-    private data class PlayerTriple(val id: Int, val time: Long, val message: String)
+    data class PlayerTriple(val id: Int, val time: Long, val message: String)
 
-    private data class ReceivedTriple(val id: Int, val time: Long, val signature: ByteArray)
+    data class ReceivedTriple(val id: Int, val time: Long, val signature: ByteArray)
 
     fun init(communicationSystem: CommunicationSystem) {
         this.communicationSystem = communicationSystem
@@ -82,6 +51,10 @@ class MessageCrypto {
 
             Events.on(EventType.SendChatMessageEvent::class.java) { event ->
                 sign(event.message, keyQuad ?: return@on)
+                Time.run(0.05f) {
+                    val message = Vars.ui.chatfrag.messages.find { it.message.contains(player.message) } ?: return@run
+                    message.backgroundColor = Color.green.cpy().mul(0.4f)
+                }
             }
         }
 
@@ -138,12 +111,38 @@ class MessageCrypto {
     /** Signs an outgoing message.  Includes the sender ID and current time to prevent impersonation and replay attacks. */
     fun sign(message: String, key: KeyQuad) {
         val time = Instant.now().epochSecond
-        val out = ByteBuffer.allocate(Crypto.signatureSize + 12)
+        val out = ByteBuffer.allocate(Crypto.signatureSize + 16)
+        out.putInt(0)  // Signatures are type 0
         out.putLong(time)
         out.putInt(communicationSystem.id)
         val signature = Crypto.sign(stringToSendable(message, communicationSystem.id, time), key.edPrivateKey)
         out.put(signature)
         communicationSystem.send(out.array())
+    }
+
+    fun encrypt(message: String, destination: KeyHolder) {
+        val time = Instant.now().epochSecond
+        val id = communicationSystem.id
+        val compressor = DeflaterInputStream(message.toByteArray().inputStream())
+        val encoded = compressor.readAllBytes()
+        val plaintext = ByteBuffer.allocate(encoded.size + Long.SIZE_BYTES + Int.SIZE_BYTES + Byte.SIZE_BYTES)
+        plaintext.putLong(time)
+        plaintext.putInt(id)
+        plaintext.put(ENCRYPTION_VALIDITY)
+        val ciphertext = destination.crypto?.encrypt(plaintext.array()) ?: return
+        val toSend = ByteBuffer.allocate(ciphertext.size + Int.SIZE_BYTES + Long.SIZE_BYTES + Int.SIZE_BYTES)
+        toSend.putInt(1)  // Encrypted messages are type 1
+        toSend.putLong(time)
+        toSend.putInt(id)
+        toSend.put(ciphertext)
+        communicationSystem.send(toSend.array())
+    }
+
+    fun handle(input: ByteArray) {
+        val buf = ByteBuffer.wrap(input)
+        val type = buf.int
+        val time = buf.long
+        val id = buf.int
     }
 
     /** Verifies an incoming message. */

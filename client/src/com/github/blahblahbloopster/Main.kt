@@ -8,8 +8,8 @@ import mindustry.client.Client
 import mindustry.client.navigation.Navigation
 
 object Main : ApplicationListener {
-    var communicationSystem: CommunicationSystem? = null
-    var messageCrypto: MessageCrypto? = null
+    lateinit var communicationSystem: CommunicationSystem
+    lateinit var messageCrypto: MessageCrypto
 
     /** Run on client load. */
     override fun init() {
@@ -17,10 +17,12 @@ object Main : ApplicationListener {
         KeyFolder.initializeAlways()
         if (Core.app.isDesktop) {
             communicationSystem = MessageBlockCommunicationSystem()
-            communicationSystem!!.init()
-            messageCrypto = MessageCrypto()
-            messageCrypto!!.init(communicationSystem!!)
+            communicationSystem.init()
+        } else {
+            communicationSystem = DummyCommunicationSystem()
         }
+        messageCrypto = MessageCrypto()
+        messageCrypto.init(communicationSystem)
         Client.mapping = ClientMapping()
 
         Navigation.navigator = AStarNavigator

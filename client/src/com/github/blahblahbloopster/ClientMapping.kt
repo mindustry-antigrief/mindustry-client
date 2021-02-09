@@ -15,8 +15,6 @@ import com.github.blahblahbloopster.ui.KeyShareDialog
 import mindustry.client.navigation.Navigation
 import mindustry.client.utils.FloatEmbed
 import mindustry.gen.Player
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 
 class ClientMapping : ClientInterface {
 
@@ -54,8 +52,9 @@ class ClientMapping : ClientInterface {
 
     override fun generateKey() {
         val generate = {
-            val pair = Crypto.generateKeyQuad()
-            Core.settings.dataDirectory.child("key.txt").writeString((Base64Coder.encode(pair.serialize()).concatToString()), false)
+            val quad = Crypto.generateKeyQuad()
+            Core.settings.dataDirectory.child("key.txt").writeString((Base64Coder.encode(quad.serialize()).concatToString()), false)
+            Main.messageCrypto?.keyQuad = quad
         }
 
         if (Main.messageCrypto?.keyQuad != null) {
@@ -68,9 +67,5 @@ class ClientMapping : ClientInterface {
 
     override fun shareKey() {
         KeyShareDialog().show()
-    }
-
-    override fun shouldAddZws(): Boolean {
-        return Main.messageCrypto?.keyQuad != null
     }
 }

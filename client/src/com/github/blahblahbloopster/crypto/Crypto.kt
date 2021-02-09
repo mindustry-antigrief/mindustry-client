@@ -163,30 +163,10 @@ object Crypto {
      * Verifies a signature from [sign] given the input, signature, and corresponding public key.
      * Note: vulnerable to replay attack.
      */
-    fun verify(original: ByteArray, sign: ByteArray, key: Ed25519PublicKeyParameters): Boolean {
+    fun verify(original: ByteArray, sign: ByteArray, key: EdPublicKey): Boolean {
         signatureEngine.init(false, key)
         signatureEngine.update(original, 0, original.size)
         return signatureEngine.verifySignature(sign)
-    }
-
-    /** Serializes the private key into a [ByteArray].  Deserialize with [deserializePublic]. */
-    fun serializePublic(key: Ed25519PublicKeyParameters): ByteArray {
-        return key.encoded
-    }
-
-    /** Serializes the public key into a [ByteArray].  Deserialize with [deserializePrivate]. */
-    fun deserializePrivate(input: ByteArray): Ed25519PrivateKeyParameters {
-        return Ed25519PrivateKeyParameters(input, 0)
-    }
-
-    /** Deserializes the public key from a [ByteArray].  Serialize with [serializePublic]. */
-    fun deserializePublic(input: ByteArray): Ed25519PublicKeyParameters {
-        return Ed25519PublicKeyParameters(input, 0)
-    }
-
-    /** Deserializes the private key from a [ByteArray].  Serialize with [serializePrivate]. */
-    fun serializePrivate(key: Ed25519PrivateKeyParameters): ByteArray {
-        return key.encoded
     }
 }
 
