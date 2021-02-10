@@ -20,8 +20,14 @@ jobs:
         with:
           java-version: 14
 
+      - name: Timestamp
+        id: time
+        uses: 1466587594/get-current-time@v2
+        with:
+          format: ${[GITHUB_RUN_NUMBER]}, MMM. D, YYYY # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
+
       - name: Run Tests
-        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}-builds
+        run: ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}"
 
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/custom-client' }}

@@ -32,7 +32,7 @@ jobs:
           format: ${[GITHUB_REF/refs\/tags\//]}, MMM. D, YYYY # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
 
       - name: Build Client
-        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }} -PclientVersion="${{ steps.time.outputs.formattedTime }}"
+        run: ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${{ steps.time.outputs.formattedTime }}"
 
       - name: Create Release
         id: create_release
@@ -40,8 +40,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.run_number }}
-          release_name: Release ${{ github.run_number }} (${{ GITHUB.REF }})
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
           body: |
             ### Download the `desktop.jar` file, not the others
             Foo's Client Build ${{ github.run_number }}
