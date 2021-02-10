@@ -32,7 +32,7 @@ public class BeControl{
     private boolean checkUpdates = Core.settings.getBool("autoupdate");
     private boolean updateAvailable;
     private String updateUrl;
-    private int updateBuild;
+    private String updateBuild;
 
     /** @return whether this is a bleeding edge build. */
     public boolean active(){
@@ -42,7 +42,7 @@ public class BeControl{
     public BeControl(){
         Events.on(EventType.ClientLoadEvent.class, event -> {
             Timer.schedule(() -> {
-                if(!mobile && Version.clientBuild != 0){
+                if(!mobile && !Version.clientVersion.equals("v1.0.0, Jan. 1, 1970")){
                     checkUpdate(result -> {
                         if (result && checkUpdates) {
                             showUpdateDialog();
@@ -54,7 +54,7 @@ public class BeControl{
 
             if(System.getProperties().containsKey("becopy")){
                 try{
-                    if(!System.getProperty("lastBuild").equals(Version.clientVersion)) Client.mapping.showChangelogDialog(); // Show changelog after auto update
+                    if(Strings.parseInt(System.getProperty("lastBuild")) != Core.files.internal("changelog").readString().hashCode()) Client.mapping.showChangelogDialog(); // Show changelog after auto update
                     Fi dest = Fi.get(System.getProperty("becopy"));
                     Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
@@ -73,18 +73,16 @@ public class BeControl{
         Core.net.httpGet("https://api.github.com/repos/" + Core.settings.getString("updateurl") + "/releases/latest", res -> {
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
-                int newBuild = Strings.parseInt(val.getString("tag_name", "0"));
-                if(newBuild != Version.clientBuild){
+                String newBuild = val.getString("tag_name", "0");
+                if(!newBuild.equals(Version.clientVersion)){
                     Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().startsWith("desktop.jar"));
                     if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().startsWith("mindustry.jar"));
                     if (asset == null) { Core.app.post(() -> done.get(false)); return; }
                     String url = asset.getString("browser_download_url", "");
                     updateAvailable = true;
-                    updateBuild = Math.max(0, newBuild);
+                    updateBuild = newBuild;
                     updateUrl = url;
-                    Core.app.post(() -> {
-                        done.get(true);
-                    });
+                    Core.app.post(() -> done.get(true));
                 }else{
                     Core.app.post(() -> done.get(false));
                 }
@@ -111,7 +109,7 @@ public class BeControl{
         if(!headless){
             checkUpdates = false;
 
-            ui.showCustomConfirm(Core.bundle.format("be.update", "") + " Current: " + Version.clientBuild + " New: " + updateBuild, "@be.update.confirm", "@ok", "@be.ignore", () -> {
+            ui.showCustomConfirm(Core.bundle.format("be.update", "") + " Current: " + Version.clientVersion + " New: " + updateBuild, "@be.update.confirm", "@ok", "@be.ignore", () -> {
                 try{
                     boolean[] cancel = {false};
                     float[] progress = {0};
@@ -126,8 +124,8 @@ public class BeControl{
                         try{
                             Log.info(file.absolutePath());
                             Runtime.getRuntime().exec(OS.isMac ?
-                                new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                                new String[]{"java", "-DlastBuild=" + Version.clientVersion, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
+                                new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Core.files.internal("changelog").readString().hashCode(), "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
+                                new String[]{"java", "-DlastBuild=" + Core.files.internal("changelog").readString().hashCode(), "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                             );
                             Core.app.exit();
                         }catch(IOException e){
@@ -150,7 +148,7 @@ public class BeControl{
                 }
             }, () -> checkUpdates = false);
         }else{
-            Log.info("&lcCurrent: " + Version.clientBuild + " A new update is available: &lyBleeding Edge build @", updateBuild);
+            Log.info("&lcCurrent: " + Version.clientVersion + " A new update is available: &lyBleeding Edge build @", updateBuild);
             if(Config.autoUpdate.bool()){
                 Log.info("&lcAuto-downloading next version...");
 

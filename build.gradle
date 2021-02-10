@@ -31,11 +31,10 @@ allprojects{
 
     ext{
         versionNumber = '6'
-        if(!project.hasProperty("clientBuild")) clientBuild = '0'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'release'
         if(!project.hasProperty("buildversion")) buildversion = '124.1'
-        if(!project.hasProperty("clientVersion")) clientVersion = '6.2.1, Feb. 8, 2021'
+        if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '891ed912791e01fe9ee6237a6497e5212b85c256'
@@ -144,7 +143,6 @@ allprojects{
                 println("Compiling with build: '$buildid'")
                 if (localArc()) println("Compiling with localArc")
 
-                props["clientBuild"] = clientBuild
                 props["updateUrl"] = updateUrl
                 props["clientVersion"] = clientVersion
                 props["type"] = versionType

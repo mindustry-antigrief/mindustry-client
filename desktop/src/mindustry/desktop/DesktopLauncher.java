@@ -45,7 +45,7 @@ public class DesktopLauncher extends ClientLauncher{
 
             Version.init();
             config = new SdlConfig() {{
-                title = Strings.format("Mindustry (v@) | Foo's Client (@)", Version.buildString(), Version.clientBuild == -1 ? "Dev" : "Build " + Version.clientBuild);
+                title = Strings.format("Mindustry (v@) | Foo's Client (@)", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
                 maximized = true;
                 stencil = 1;
                 width = 900;
@@ -306,7 +306,7 @@ public class DesktopLauncher extends ClientLauncher{
 
             presence.largeImageKey = "logo";
             presence.smallImageKey = "foo";
-            presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientBuild == -1 ? "Dev" : "Build " + Version.clientBuild);
+            presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
             presence.startTimestamp = beginTime/1000;
 
             DiscordRPC.INSTANCE.Discord_UpdatePresence(presence);
@@ -316,7 +316,7 @@ public class DesktopLauncher extends ClientLauncher{
             //Steam mostly just expects us to give it a nice string, but it apparently expects "steam_display" to always be a loc token, so I've uploaded this one which just passes through 'steam_status' raw.
             SVars.net.friends.setRichPresence("steam_display", "#steam_status_raw");
 
-            SVars.net.friends.setRichPresence("steam_status", Strings.format("Foo's Client (@) | @", Version.clientBuild == -1 ? "Dev" : "v" + Version.clientBuild, inGame ? gameMapWithWave : uiState));
+            SVars.net.friends.setRichPresence("steam_status", Strings.format("Foo's Client (@) | @", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, inGame ? gameMapWithWave : uiState));
         }
     }
 

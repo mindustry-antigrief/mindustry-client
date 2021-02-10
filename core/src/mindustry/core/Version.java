@@ -20,12 +20,10 @@ public class Version{
     public static int revision = 0;
     /** Whether version loading is enabled. */
     public static boolean enabled = true;
-    /** Custom client build number used for auto updates */
-    public static int clientBuild = 0;
     /** Custom client update url used for... updating */
     public static String updateUrl = "";
     /** Custom client version string used for various things */
-    public static String clientVersion = "unknown";
+    public static String clientVersion = "v1.0.0, Jan. 1, 1970";
 
     public static void init(){
         if(!enabled) return;
@@ -35,7 +33,6 @@ public class Version{
         ObjectMap<String, String> map = new ObjectMap<>();
         PropertiesUtils.load(map, file.reader());
 
-        clientBuild = Integer.parseInt(map.get("clientBuild"));
         updateUrl = map.get("updateUrl");
         clientVersion = map.get("clientVersion");
         type = map.get("type");
@@ -79,6 +76,6 @@ public class Version{
         if(build == -1){
             return "custom build";
         }
-        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + "\n(Client Version: " + clientVersion + " Release: " + clientBuild + ")";
+        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + "\n(Client Version: " + clientVersion + ")";
     }
 }
