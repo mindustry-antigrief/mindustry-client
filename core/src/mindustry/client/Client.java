@@ -151,33 +151,37 @@ public class Client {
 
         Events.on(EventType.UnitChangeEvent.class, event -> {
             UnitType unit = UnitPicker.found;
-            if (event.unit.team == player.team() && !(event.player == player)) {
-                Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == unit && !u.dead);
-                if (find != null) {
-                    Call.unitControl(player, find);
-                    Timer.schedule(() -> {
-                        if (find.isPlayer()) {
-                            Toast t = new Toast(2);
-                            if (player.unit() == find) { UnitPicker.found = null; t.add("Successfully switched units.");} // After we switch units successfully, stop listening for this unit
-                            else if (find.getPlayer() != null) { t.add("Failed to become " + unit + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
-                        }
-                        }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
+            Core.app.post(() -> {
+                if (event.unit.team == player.team() && !(event.player == player)) {
+                    Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == unit && !u.dead);
+                    if (find != null) {
+                        Call.unitControl(player, find);
+                        Timer.schedule(() -> {
+                            if (find.isPlayer()) {
+                                Toast t = new Toast(2);
+                                if (player.unit() == find) { UnitPicker.found = null; t.add("Successfully switched units.");} // After we switch units successfully, stop listening for this unit
+                                else if (find.getPlayer() != null) { t.add("Failed to become " + unit + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
+                            }
+                            }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
+                    }
                 }
-            }
+            });
         });
 
         Events.on(EventType.UnitCreateEvent.class, event -> {
             UnitType unit = UnitPicker.found;
-            if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
-                Call.unitControl(player, event.unit);
-                Timer.schedule(() -> {
-                    if (event.unit.isPlayer()) {
-                        Toast t = new Toast(2);
-                        if (player.unit() == event.unit) { UnitPicker.found = null; t.add("Successfully switched units.");}  // After we switch units successfully, stop listening for this unit
-                        else if (event.unit.getPlayer() != null) { t.add("Failed to become " + unit + ", " + event.unit.getPlayer().name + " is already controlling it (likely using unit sniper).");}
-                    }
-                    }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
-            }
+            Core.app.post(() -> {
+                if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
+                    Call.unitControl(player, event.unit);
+                    Timer.schedule(() -> {
+                        if (event.unit.isPlayer()) {
+                            Toast t = new Toast(2);
+                            if (player.unit() == event.unit) { UnitPicker.found = null; t.add("Successfully switched units.");}  // After we switch units successfully, stop listening for this unit
+                            else if (event.unit.getPlayer() != null) { t.add("Failed to become " + unit + ", " + event.unit.getPlayer().name + " is already controlling it (likely using unit sniper).");}
+                        }
+                        }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
+                }
+            });
         });
         Events.on(EventType.ClientLoadEvent.class, event -> {
             settings.getBoolOnce("updatevalues", () -> { // TODO: Remove this code and the updatevalues bool at some point in the future (this converts old settings to new format)

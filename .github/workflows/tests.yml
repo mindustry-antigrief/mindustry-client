@@ -62,3 +62,4 @@ jobs:
           branch: gh-pages # The branch the action should deploy to.
           folder: tests/build/reports/tests/test
           silent: true
+          single-commit: true
