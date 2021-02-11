@@ -32,7 +32,10 @@ jobs:
           format: MMM. D, YYYY # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
 
       - name: Build Client
-        run: ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}"
+        id: build
+        run: |
+          echo ::set-output name=string::${GITHUB_REF/refs\/tags\//}
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}"
 
       - name: Create Release
         id: create_release
@@ -41,10 +44,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${GITHUB_REF/refs\/tags\//} (${{ steps.time.outputs.formattedTime }})
+          release_name: Release ${{ steps.build.outputs.string }} (${{ steps.build.outputs.string }})
           body: |
             ### Download the `desktop.jar` file, not the others
-            Foo's Client (${GITHUB_REF/refs\/tags\//})
+            Foo's Client (${{ steps.build.outputs.string }})
             Steam installation instructions [here](../../#steam)
           draft: false
           prerelease: false
