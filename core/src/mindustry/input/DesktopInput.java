@@ -22,7 +22,6 @@ import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
-import mindustry.client.ui.UnitPicker;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -34,9 +33,8 @@ import mindustry.ui.*;
 import mindustry.ui.dialogs.BaseDialog;
 import mindustry.world.*;
 import mindustry.world.blocks.payloads.*;
-import java.util.concurrent.atomic.*;
+
 import static arc.Core.*;
-import static mindustry.Vars.net;
 import static mindustry.Vars.*;
 import static mindustry.input.PlaceMode.*;
 
@@ -259,11 +257,11 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(input.keyTap(Binding.show_turret_ranges)){
+        if(input.keyTap(Binding.show_turret_ranges) && scene.getKeyboardFocus() == null){
             Client.showingTurrets = !Client.showingTurrets;
         }
 
-        if(input.keyTap(Binding.hide_blocks)){
+        if(input.keyTap(Binding.hide_blocks) && scene.getKeyboardFocus() == null){
             Client.hidingBlocks = !Client.hidingBlocks;
         }
 

@@ -144,6 +144,7 @@ public class BlockRenderer implements Disposable{
     }
 
     public void drawShadows(){
+        if (Client.hidingBlocks) return;
         if(!shadowEvents.isEmpty()){
             Draw.flush();
 

@@ -9,6 +9,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.client.Client;
 import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -136,7 +137,7 @@ public class Effect{
 
     public static void create(Effect effect, float x, float y, float rotation, Color color, Object data){
         if(headless || effect == Fx.none) return;
-        if(Core.settings.getBool("effects") && UnitType.alpha != 0){
+        if(Core.settings.getBool("effects") && UnitType.alpha != 0 && !Client.hidingBlocks){
             Rect view = Core.camera.bounds(Tmp.r1);
             Rect pos = Tmp.r2.setSize(effect.clip).setCenter(x, y);
 
@@ -152,7 +153,7 @@ public class Effect{
                 entity.data = (data);
                 entity.lifetime = (effect.lifetime);
                 entity.set(x, y);
-                entity.color.set(color);
+                entity.color.set(color.cpy().a(color.a * UnitType.alpha));
                 if(data instanceof Posc) entity.parent = ((Posc)data);
                 entity.add();
             }

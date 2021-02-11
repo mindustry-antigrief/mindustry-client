@@ -5,30 +5,21 @@ import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.struct.IntSet;
 import arc.struct.Queue;
-import arc.struct.Seq;
 import arc.util.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
-import mindustry.client.ui.Toast;
-import mindustry.client.ui.UnitPicker;
 import mindustry.client.utils.*;
 import mindustry.client.utils.Autocomplete;
-import mindustry.content.Blocks;
 import mindustry.core.NetClient;
 import mindustry.core.World;
-import mindustry.entities.Units;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.input.DesktopInput;
 import mindustry.world.Tile;
-import mindustry.world.blocks.defense.turrets.BaseTurret;
-import mindustry.type.UnitType;
-import java.lang.reflect.Method;
 
 import static arc.Core.settings;
 import static mindustry.Vars.*;
-import static mindustry.Vars.player;
 
 public class Client {
     private static TileLog[][] tileLogs;
@@ -141,7 +132,7 @@ public class Client {
         });
 
         fooCommands.<Player>register("unit", "<unit-name>", "Swap to specified unit", (args, player) -> {
-            ui.unitPicker.findUnit(content.units().sort(b -> BiasedLevenshtein.biasedLevenshtein(args[0], b.name)).first());
+            ui.unitPicker.findUnit(content.units().copy().sort(b -> BiasedLevenshtein.biasedLevenshtein(args[0], b.name)).first());
         });
 
         fooCommands.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last coordinates posted to chat", (args, player) -> {

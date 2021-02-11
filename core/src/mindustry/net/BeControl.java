@@ -73,7 +73,7 @@ public class BeControl{
             if(res.getStatus() == HttpStatus.OK){
                 Jval val = Jval.read(res.getResultAsString());
                 String newBuild = val.getString("tag_name", "0");
-                if(!newBuild.equals(Version.clientVersion)){
+                if(!Version.clientVersion.startsWith(newBuild)){
                     Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().startsWith("desktop.jar"));
                     if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().startsWith("mindustry.jar"));
                     if (asset == null) { Core.app.post(() -> done.get(false)); return; }

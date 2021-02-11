@@ -29,7 +29,7 @@ jobs:
         id: time
         uses: 1466587594/get-current-time@v2
         with:
-          format: ${[GITHUB_REF/refs\/tags\//]}, MMM. D, YYYY # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
+          format: [${GITHUB_REF/refs\/tags\//}], MMM. D, YYYY # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
 
       - name: Build Client
         run: ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${{ steps.time.outputs.formattedTime }}"

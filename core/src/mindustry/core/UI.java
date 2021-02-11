@@ -198,7 +198,7 @@ public class UI implements ApplicationListener, Loadable{
 
         // Client related
         unitPicker = new UnitPicker();
-        // End client related
+
 
         Group group = Core.scene.root;
 

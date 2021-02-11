@@ -4,6 +4,7 @@ import arc.*;
 import arc.input.*;
 import arc.scene.ui.*;
 import arc.struct.*;
+import arc.util.Log;
 import arc.util.Timer;
 import mindustry.ai.types.FormationAI;
 import mindustry.client.utils.BiasedLevenshtein;
@@ -20,6 +21,7 @@ import static mindustry.Vars.*;
 
 public class UnitPicker extends BaseDialog {
     public UnitType found;
+    Seq<UnitType> sorted = content.units().copy();
 
     public UnitPicker(){
         super("Unit Picker");
@@ -27,32 +29,31 @@ public class UnitPicker extends BaseDialog {
         onResize(this::build);
         shown(this::build);
         setup();
+        keyDown(KeyCode.enter, () -> findUnit(sorted.first()));
     }
 
-    public void build(){
-
+    void build(){
         cont.clear();
         buttons.clear();
-        clearListeners();
         addCloseButton();
+
         Seq<Image> imgs = new Seq<>();
-        for(int i = 0; i < 10; i += 1){
+        for(int i = 0; i < 10; i++){
             imgs.add(new Image());
         }
-        cont.field("", string -> {
-            Seq<UnitType> sorted = content.units().sort((b) -> BiasedLevenshtein.biasedLevenshtein(string, b.name));
-            for (int i = 0; i < imgs.size - 1; i += 1) {
+        TextField searchField = cont.field("", string -> {
+            sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshtein(string, b.name));
+            for (int i = 0; i < imgs.size; i++) {
                 Image region = new Image(sorted.get(i).icon(Cicon.large));
                 region.setSize(32);
                 imgs.get(i).setDrawable(region.getDrawable());
             }
-            requestKeyboard();
-        });
+        }).get();
         for(Image img : imgs){
             cont.row().add(img);
         }
 
-        keyDown(KeyCode.enter, () -> findUnit(found));
+        Core.app.post(searchField::requestKeyboard);
     }
 
     public void findUnit(UnitType found) {
@@ -64,14 +65,15 @@ public class UnitPicker extends BaseDialog {
                 this.found = null; // No need to check if the player has managed to take control as it is very unlikely that 2 players attempt this on the same unit at once.
             } else {
                 new Toast(5f).label(() ->"No " + found + " was found, automatically switching to that unit when it spawns (set picked unit to alpha to cancel).");
+                this.found = found;
             }
         }
-        Core.app.post(this::hide);
+        hide();
     }
 
     private void setup(){
         Events.on(EventType.UnitChangeEvent.class, event -> { //TODO: Test Player.lastReadUnit
-            if (event.unit.team == player.team() && !(event.player == player)) {
+            if (event.unit.team == player.team() && event.player != player) {
                 Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead);
                 if (find != null) {
                     Call.unitControl(player, find);
@@ -87,6 +89,7 @@ public class UnitPicker extends BaseDialog {
         });
 
         Events.on(EventType.UnitCreateEvent.class, event -> {
+            Log.info(event.unit.dead + " " + event.unit.type + " " + event.unit.team + " " + event.unit.isPlayer());
             if (!event.unit.dead && event.unit.type == found && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 Call.unitControl(player, event.unit);
                 Timer.schedule(() -> {
