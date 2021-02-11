@@ -44,7 +44,7 @@ jobs:
           commitish: main
           tag_name: ${{ github.run_number }}
           release_name: Unstable ${{ github.run_number }}
-          repo: ${{ github.event.repository.name }}
+          repo: ${{ github.event.repository.name }}-builds
           draft: false
           prerelease: false
 
