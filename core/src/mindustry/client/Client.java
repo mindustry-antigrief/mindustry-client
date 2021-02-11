@@ -56,7 +56,7 @@ public class Client {
         });
 
         Events.on(EventType.ClientLoadEvent.class, event -> {
-            int changeHash = Core.files.internal("changelog").readString().hashCode(); // Display changelog if the file contents have changed (this is really scuffed lol).
+            int changeHash = Core.files.internal("changelog").readString().hashCode(); // Display changelog if the file contents have changed & on first run. (this is really scuffed lol).
             if (settings.getInt("changeHash") != changeHash) Client.mapping.showChangelogDialog();
             settings.put("changeHash", changeHash);
 
