@@ -44,7 +44,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ steps.build.outputs.string }} (${{ steps.build.outputs.string }})
+          release_name: Release ${{ steps.build.outputs.string }} (${{ steps.time.outputs.formattedTime }})
           body: |
             ### Download the `desktop.jar` file, not the others
             Foo's Client (${{ steps.build.outputs.string }})
