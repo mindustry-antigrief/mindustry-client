@@ -35,7 +35,7 @@ jobs:
         id: build
         run: |
           echo ::set-output name=string::${GITHUB_REF/refs\/tags\//}
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}"
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" --parallel
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() }}
