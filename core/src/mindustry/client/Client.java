@@ -35,12 +35,11 @@ public class Client {
     //todo: use this instead of Navigation.isFollowing and such
     public static ClientMode mode = ClientMode.normal;
     public static Queue<ConfigRequest> configs = new Queue<>();
-    public static boolean showingTurrets = false;
+    public static boolean showingTurrets, hideUnits, hidingBlocks;
     public static long lastSyncTime = 0L;
     public static final CommandHandler fooCommands = new CommandHandler("!");
     public static boolean hideTrails;
     public static Ratekeeper configRateLimit = new Ratekeeper();
-    public static boolean hideUnits = false;
     /** The last position in TILE COORDS someone sent in chat or was otherwise put into the buffer. */
     public static final Vec2 lastSentPos = new Vec2();
     public static IntSet messageBlockPositions = new IntSet();
@@ -50,6 +49,71 @@ public class Client {
     public static final byte ASSISTING = (byte) 0b01010101;
 
     public static void initialize() {
+        registerCommands();
+
+        Events.on(WorldLoadEvent.class, event -> {
+            if (Time.timeSinceMillis(lastSyncTime) > 5000) {
+                tileLogs = new TileLog[world.height()][world.width()];
+            }
+            PowerInfo.initialize();
+            Navigation.stopFollowing();
+            Navigation.obstacles.clear();
+            configs.clear();
+            ui.unitPicker.found = null;
+            if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
+            messageBlockPositions.clear();
+        });
+
+        Events.on(EventType.ClientLoadEvent.class, event -> {
+            int changeHash = Core.files.internal("changelog").readString().hashCode(); // Display changelog if the file contents have changed (this is really scuffed lol).
+            if (settings.getInt("changeHash") != changeHash) Client.mapping.showChangelogDialog();
+            settings.put("changeHash", changeHash);
+
+            settings.remove("updatevalues"); // TODO: Remove this line at some point in the future, removes an unused setting value. (added feb 10)
+
+            hideTrails = Core.settings.getBool("hidetrails");
+            Autocomplete.autocompleters.add(new BlockEmotes());
+            Autocomplete.autocompleters.add(new PlayerCompletion());
+            Autocomplete.autocompleters.add(new CommandCompletion());
+            Autocomplete.initialize();
+            Navigation.navigator.init();
+        });
+    }
+
+
+    public static void update() {
+        Navigation.update();
+        PowerInfo.update();
+        Spectate.update();
+
+        if (!configs.isEmpty()) {
+                try {
+                    if (configRateLimit.allow(6 * 1000, 25)) {
+                        ConfigRequest req = configs.last();
+                        Tile tile = world.tile(req.x, req.y);
+                        if (tile != null) {
+//                            Object initial = tile.build.config();
+                            req.run();
+                            configs.remove(req);
+//                            Timer.schedule(() -> {
+//                                // if(tile.build != null && tile.build.config() == initial) configs.addLast(req); TODO: This can also cause loops
+//                                // if(tile.build != null && req.value != tile.build.config()) configs.addLast(req); TODO: This infinite loops if u config something twice, find a better way to do this
+//                            }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
+                        }
+                    }
+                } catch (Exception e) {Log.info(e.getMessage());}
+        }
+    }
+
+    public static TileLog getLog(int x, int y) {
+        if (tileLogs == null) tileLogs = new TileLog[world.height()][world.width()];
+        if (tileLogs[y][x] == null) {
+            tileLogs[y][x] = new TileLog(world.tile(x, y));
+        }
+        return tileLogs[y][x];
+    }
+
+    private static void registerCommands(){
         fooCommands.<Player>register("help", "[page]", "Lists all client commands.", (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){
                 player.sendMessage("[scarlet]'page' must be a number.");
@@ -77,10 +141,7 @@ public class Client {
         });
 
         fooCommands.<Player>register("unit", "<unit-name>", "Swap to specified unit", (args, player) -> {
-            Seq<UnitType> sorted = content.units().copy();
-            sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshtein(args[0], b.name));
-            UnitType found = sorted.first();
-            ui.unitPicker.findUnit(found);
+            ui.unitPicker.findUnit(content.units().sort(b -> BiasedLevenshtein.biasedLevenshtein(args[0], b.name)).first());
         });
 
         fooCommands.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last coordinates posted to chat", (args, player) -> {
@@ -124,120 +185,16 @@ public class Client {
         });
 
         fooCommands.<Player>register("", "[message...]", "Lets you start messages with an !", (args, player) ->
-            Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
+                Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
         );
 
         fooCommands.<Player>register("shrug", "[message...]", "Sends the shrug unicode emoji with an optional message", (args, player) ->
-            Call.sendChatMessage("¯\\_(ツ)_/¯ " + (args.length == 1 ? args[0] : ""))
+                Call.sendChatMessage("¯\\_(ツ)_/¯ " + (args.length == 1 ? args[0] : ""))
         );
 
         fooCommands.<Player>register("login", "[name] [pw]", "Used for CN. [scarlet]Don't use this if you care at all about security.", (args, player) -> {
             if (args.length == 2) settings.put("cnpw", args[0] + " "  + args[1]);
             else Call.sendChatMessage("/login " + settings.getString("cnpw", ""));
         });
-
-        Events.on(WorldLoadEvent.class, event -> {
-            if (Time.timeSinceMillis(lastSyncTime) > 5000) {
-                tileLogs = new TileLog[world.height()][world.width()];
-            }
-            PowerInfo.initialize();
-            Navigation.stopFollowing();
-            Navigation.obstacles.clear();
-            configs.clear();
-            UnitPicker.found = null;
-            if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
-            messageBlockPositions.clear();
-        });
-
-        Events.on(EventType.UnitChangeEvent.class, event -> {
-            UnitType unit = UnitPicker.found;
-            Core.app.post(() -> {
-                if (event.unit.team == player.team() && !(event.player == player)) {
-                    Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == unit && !u.dead);
-                    if (find != null) {
-                        Call.unitControl(player, find);
-                        Timer.schedule(() -> {
-                            if (find.isPlayer()) {
-                                Toast t = new Toast(2);
-                                if (player.unit() == find) { UnitPicker.found = null; t.add("Successfully switched units.");} // After we switch units successfully, stop listening for this unit
-                                else if (find.getPlayer() != null) { t.add("Failed to become " + unit + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
-                            }
-                            }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
-                    }
-                }
-            });
-        });
-
-        Events.on(EventType.UnitCreateEvent.class, event -> {
-            UnitType unit = UnitPicker.found;
-            Core.app.post(() -> {
-                if (!event.unit.dead && event.unit.type == unit && event.unit.team == player.team() && !event.unit.isPlayer()) {
-                    Call.unitControl(player, event.unit);
-                    Timer.schedule(() -> {
-                        if (event.unit.isPlayer()) {
-                            Toast t = new Toast(2);
-                            if (player.unit() == event.unit) { UnitPicker.found = null; t.add("Successfully switched units.");}  // After we switch units successfully, stop listening for this unit
-                            else if (event.unit.getPlayer() != null) { t.add("Failed to become " + unit + ", " + event.unit.getPlayer().name + " is already controlling it (likely using unit sniper).");}
-                        }
-                        }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
-                }
-            });
-        });
-        Events.on(EventType.ClientLoadEvent.class, event -> {
-            settings.getBoolOnce("updatevalues", () -> { // TODO: Remove this code and the updatevalues bool at some point in the future (this converts old settings to new format)
-                settings.put("reactorwarningdistance", settings.getBool("reactorwarnings", true) ? settings.getInt("reactorwarningdistance") == 0 ? 101 : settings.getInt("reactorwarningdistance") : -1);
-                settings.put("reactorsounddistance", settings.getBool("reactorwarningsounds", true) ? settings.getInt("reactorsounddistance") == 0 ? 101 : settings.getInt("reactorsounddistance") : -1);
-                settings.remove("reactorwarnings");
-                settings.remove("reactorwarningsounds");
-
-                try { // Somehow this works?
-                    Method ohno = ui.settings.client.getClass().getDeclaredMethod("rebuild");
-                    ohno.setAccessible(true);
-                    ohno.invoke(ui.settings.client);
-                } catch (Exception e) {
-                    Log.err(e);
-                }
-            });
-
-            Autocomplete.autocompleters.add(new BlockEmotes());
-            Autocomplete.autocompleters.add(new PlayerCompletion());
-            Autocomplete.autocompleters.add(new CommandCompletion());
-            Autocomplete.initialize();
-            hideTrails = Core.settings.getBool("hidetrails");
-            Navigation.navigator.init();
-        });
-    }
-
-
-    public static void update() {
-        Navigation.update();
-        PowerInfo.update();
-        Spectate.update();
-
-        if (!configs.isEmpty()) {
-                try {
-                    if (configRateLimit.allow(6 * 1000, 25)) {
-                        ConfigRequest req = configs.last();
-                        Tile tile = world.tile(req.x, req.y);
-                        if (tile != null) {
-//                            Object initial = tile.build.config();
-                            req.run();
-                            configs.remove(req);
-//                            Timer.schedule(() -> {
-//                                // if(tile.build != null && tile.build.config() == initial) configs.addLast(req); TODO: This can also cause loops
-//                                // if(tile.build != null && req.value != tile.build.config()) configs.addLast(req); TODO: This infinite loops if u config something twice, find a better way to do this
-//                            }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
-                        }
-                    }
-                } catch (Exception e) {Log.info(e.getMessage());}
-        }
-    }
-
-    public static TileLog getLog(int x, int y) {
-        if (tileLogs == null) tileLogs = new TileLog[world.height()][world.width()];
-        if (tileLogs[y][x] == null) {
-            tileLogs[y][x] = new TileLog(world.tile(x, y));
-        }
-        return tileLogs[y][x];
     }
 }

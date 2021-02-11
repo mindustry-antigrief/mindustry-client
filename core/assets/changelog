@@ -5,7 +5,7 @@ Hi foo
  * Option for mining requiring a double click to reduce accidental mining
 
 # Version 5.0.2
- * Teleportation for paths as an option, this should probably stay off considering how it will get you banned / not work in most places.
+ * Teleportation for paths as an option, this should probably stay off considering that it will get you banned / not work in most places.
  * Warning when entering a game detected as pvp (not 100% accurate but it does it's job good enough).
  * Crash fix
 

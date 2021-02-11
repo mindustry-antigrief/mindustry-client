@@ -263,6 +263,10 @@ public class DesktopInput extends InputHandler{
             Client.showingTurrets = !Client.showingTurrets;
         }
 
+        if(input.keyTap(Binding.hide_blocks)){
+            Client.hidingBlocks = !Client.hidingBlocks;
+        }
+
         if(input.keyTap(Binding.stop_following_path) && scene.getKeyboardFocus() == null){
             Navigation.stopFollowing();
         }

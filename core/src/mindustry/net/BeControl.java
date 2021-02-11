@@ -54,7 +54,6 @@ public class BeControl{
 
             if(System.getProperties().containsKey("becopy")){
                 try{
-                    if(Strings.parseInt(System.getProperty("lastBuild")) != Core.files.internal("changelog").readString().hashCode()) Client.mapping.showChangelogDialog(); // Show changelog after auto update
                     Fi dest = Fi.get(System.getProperty("becopy"));
                     Fi self = Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
@@ -124,8 +123,8 @@ public class BeControl{
                         try{
                             Log.info(file.absolutePath());
                             Runtime.getRuntime().exec(OS.isMac ?
-                                new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Core.files.internal("changelog").readString().hashCode(), "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                                new String[]{"java", "-DlastBuild=" + Core.files.internal("changelog").readString().hashCode(), "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
+                                new String[]{"java", "-XstartOnFirstThread", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
+                                new String[]{"java", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                             );
                             Core.app.exit();
                         }catch(IOException e){

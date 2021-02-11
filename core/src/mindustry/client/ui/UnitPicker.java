@@ -3,11 +3,12 @@ package mindustry.client.ui;
 import arc.*;
 import arc.input.*;
 import arc.scene.ui.*;
-import arc.scene.utils.*;
 import arc.struct.*;
+import arc.util.Timer;
 import mindustry.ai.types.FormationAI;
 import mindustry.client.utils.BiasedLevenshtein;
 import mindustry.entities.Units;
+import mindustry.game.EventType;
 import mindustry.gen.Call;
 import mindustry.gen.Unit;
 import mindustry.type.UnitType;
@@ -18,11 +19,14 @@ import static mindustry.Vars.*;
 
 
 public class UnitPicker extends BaseDialog {
-    public static UnitType found;
-    private TextField findField;
+    public UnitType found;
 
     public UnitPicker(){
         super("Unit Picker");
+
+        onResize(this::build);
+        shown(this::build);
+        setup();
     }
 
     public void build(){
@@ -35,18 +39,15 @@ public class UnitPicker extends BaseDialog {
         for(int i = 0; i < 10; i += 1){
             imgs.add(new Image());
         }
-        findField = Elem.newField("", (string) -> {
-            Seq<UnitType> sorted = content.units().copy();
-            sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshtein(string, b.name));
-            found = sorted.first();
-            for(int i = 0; i < imgs.size - 1; i += 1){
+        cont.field("", string -> {
+            Seq<UnitType> sorted = content.units().sort((b) -> BiasedLevenshtein.biasedLevenshtein(string, b.name));
+            for (int i = 0; i < imgs.size - 1; i += 1) {
                 Image region = new Image(sorted.get(i).icon(Cicon.large));
                 region.setSize(32);
                 imgs.get(i).setDrawable(region.getDrawable());
             }
-
+            requestKeyboard();
         });
-        cont.add(findField);
         for(Image img : imgs){
             cont.row().add(img);
         }
@@ -60,7 +61,7 @@ public class UnitPicker extends BaseDialog {
             if (find == null) find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead); // Either no unit or unit is commanded, search for commanded units
             if (find != null) {
                 Call.unitControl(player, find); // Switch to unit
-                UnitPicker.found = null; // No need to check if the player has managed to take control as it is very unlikely that 2 players attempt this on the same unit at once.
+                this.found = null; // No need to check if the player has managed to take control as it is very unlikely that 2 players attempt this on the same unit at once.
             } else {
                 new Toast(5f).label(() ->"No " + found + " was found, automatically switching to that unit when it spawns (set picked unit to alpha to cancel).");
             }
@@ -68,10 +69,34 @@ public class UnitPicker extends BaseDialog {
         Core.app.post(this::hide);
     }
 
-    public UnitPicker show(){
-        build();
-        super.show();
-        Core.scene.setKeyboardFocus(findField);
-        return this;
+    private void setup(){
+        Events.on(EventType.UnitChangeEvent.class, event -> { //TODO: Test Player.lastReadUnit
+            if (event.unit.team == player.team() && !(event.player == player)) {
+                Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead);
+                if (find != null) {
+                    Call.unitControl(player, find);
+                    Timer.schedule(() -> {
+                        if (find.isPlayer()) {
+                            Toast t = new Toast(2);
+                            if (player.unit() == find) { found = null; t.add("Successfully switched units.");} // After we switch units successfully, stop listening for this unit
+                            else if (find.getPlayer() != null) { t.add("Failed to become " + found + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
+                        }
+                    }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
+                }
+            }
+        });
+
+        Events.on(EventType.UnitCreateEvent.class, event -> {
+            if (!event.unit.dead && event.unit.type == found && event.unit.team == player.team() && !event.unit.isPlayer()) {
+                Call.unitControl(player, event.unit);
+                Timer.schedule(() -> {
+                    if (event.unit.isPlayer()) {
+                        Toast t = new Toast(2);
+                        if (player.unit() == event.unit) { found = null; t.add("Successfully switched units.");}  // After we switch units successfully, stop listening for this unit
+                        else if (event.unit.getPlayer() != null) { t.add("Failed to become " + found + ", " + event.unit.getPlayer().name + " is already controlling it (likely using unit sniper).");}
+                    }
+                }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
+            }
+        });
     }
 }

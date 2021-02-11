@@ -255,6 +255,7 @@ public class BlockRenderer implements Disposable{
     }
 
     public void drawBlocks(){
+        if (Client.hidingBlocks) return;
         drawDestroyed();
 
         //draw most tile stuff

@@ -41,10 +41,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          release_name: Release ${{ steps.time.outputs.formattedTime }}
           body: |
             ### Download the `desktop.jar` file, not the others
-            Foo's Client (${{ github.ref }})
+            Foo's Client (${GITHUB_REF/refs\/tags\//})
             Steam installation instructions [here](../../#steam)
           draft: false
           prerelease: false
