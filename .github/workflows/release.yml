@@ -60,10 +60,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ steps.build.outputs.string }} (${{ steps.time.outputs.formattedTime }})
-          body: |
-            ### Download the `desktop.jar` file, not the others
-            Foo's Client (${{ steps.build.outputs.string }})
-            Steam installation instructions [here](../../#steam)
+          body_path: core/assets/changelog
           draft: false
           prerelease: false
 

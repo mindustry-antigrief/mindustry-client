@@ -1,12 +1,54 @@
-Hi foo
-# Foo and I are too lazy to update this, join the discord in the client tab on the main menu if you have any questions.
+Foo's Client (${{ steps.build.outputs.string }})
+Steam installation instructions [here](../../#steam)
+
+
+# Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date.
+
+# Version 6.3.0/6.3.1 (Feb. 11, 2021)
+ * Fixed 4 UnitPicker bugs
+ * Fixed build repo url
+ * Reworked auto updater and client version to be more user friendly (no longer a clientVersion and clientBuild), older versions of the client will show the new version as "0" but that should fix itself as soon as you update
+ * Hotkey to toggle block visibility (I)
+ * Show changelog when client is first run as well as every time the changelog is edited
+ * Cleaned up some code
+ * Don't draw effects/particles if units or buildings are invisible, they are annoying
+ * Finished actions rework, everything works which is nice
+
+# Version 6.2
+ * Updated to v124
+ * Turret ranges now display differently based on whether or not they can hit you
+ * Setting to show unit ranges when showing turret ranges
+ * Parallaxes are now displayed as turrets and avoided when navigating
+ * Turrets are now properly treated as disabled when they lack power/coolant if needed
+ * Progress on actions overhaul
+ * New repository for unstable builds @ https://kik.to/fooUnstable (all changes are instantly pushed here, providing they don't fail to build)
+ * Probably more stuff I missed
+
+# Version 6.1
+ * Fixed many bugs (mostly with navigation)
+ * Added !login command (use at your own risk)
+ * Added sections to the settings menu
+ *
+ * Began work on overhauling actions
+ * More stuff I can't remember
+
+# Version 6.0
+ * Many various bug fixes
+ * Many minor code cleanups and optimizations
+ * Reworked navigation (big speed increase, no longer backtracks)
+ * Added more settings
+ * Added warnings for certain blocks being broken
+ * Added auto repair (L)
+ * Code cleanup
+ * A few small performance enhancements
+ * A lot more stuff that I can't remember
 
 # Version 5.0.3
  * Option for mining requiring a double click to reduce accidental mining
 
 # Version 5.0.2
- * Teleportation for paths as an option, this should probably stay off considering that it will get you banned / not work in most places.
- * Warning when entering a game detected as pvp (not 100% accurate but it does it's job good enough).
+ * Teleportation for paths as an option, this should probably stay off considering that it will get you banned / not work in most places
+ * Warning when entering a game detected as pvp (not 100% accurate but it does it's job good enough)
  * Crash fix
 
 # Version 5.0.1
@@ -19,7 +61,7 @@ Hi foo
  * !builder command with multiple options (run with no options for details)
  * ! command that literally just prints an ! to chat
  * A ton of bug fixes
- * Bridge click and drag uses new vanilla one.
+ * Bridge click and drag uses new vanilla one
  * Reactor warnings and sounds can have an optional core distance cap
  * No more infinite wave skipping because it breaks stuff
  * On spawn/death/ctrl clicking a core, always spawn at the highest tier core available.
@@ -28,7 +70,7 @@ Hi foo
  * New core attack warnings in chat display the exact position of the core being attacked.
  * Optionally broadcast core attack warnings to entire lobby
  * Teleport (won't work on most servers but it works in steam lobbies so thats fun, !tp or tile actions menu)
- * Unit picker fixed for real this time, there was some issues when ping fluctuated a bunch.
+ * Unit picker fixed for real this time, there was some issues when ping fluctuated a bunch
  * Chat now works in singleplayer
  * Cursor and player position are no longer in a weird spot
  * Tile log hud is still weird lol
