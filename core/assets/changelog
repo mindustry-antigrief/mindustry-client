@@ -1,4 +1,3 @@
-Foo's Client (${{ steps.build.outputs.string }})
 Steam installation instructions [here](../../#steam)
 
 
