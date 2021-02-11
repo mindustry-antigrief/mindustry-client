@@ -34,9 +34,9 @@ import static mindustry.Vars.net;
 import static mindustry.Vars.*;
 
 public class SettingsMenuDialog extends SettingsDialog{
-    private BetterSettingsTable graphics;
-    private BetterSettingsTable game;
-    private BetterSettingsTable sound;
+    public BetterSettingsTable graphics;
+    public BetterSettingsTable game;
+    public BetterSettingsTable sound;
     public BetterSettingsTable client;
 
     private Table prefs;
