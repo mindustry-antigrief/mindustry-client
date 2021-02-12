@@ -5,12 +5,9 @@ on:
     tags: v*
   workflow_dispatch:
 
-
 jobs:
-
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Cancel Previous Workflows
         uses: styfle/cancel-workflow-action@0.6.0
@@ -34,8 +31,9 @@ jobs:
       - name: Build Client
         id: build
         run: |
+          echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
           echo "CHANGELOG=$(cat core/assets/changelog | cut -f 2,3 -d "#")" >> $GITHUB_ENV
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${{ github.ref/refs\/tags\// }}, ${{ steps.time.outputs.formattedTime }}"
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}"
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() }}
@@ -59,9 +57,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref/refs\/tags\// }} (${{ steps.time.outputs.formattedTime }})
+          release_name: Release ${{ env.VERSION }} (${{ steps.time.outputs.formattedTime }})
           body: |
-            Foo's Client (${{ github.ref/refs\/tags\// }})
+            Foo's Client (${{ env.VERSION }})
             Steam installation instructions [here](../../#steam)
             ${{ env.CHANGELOG }}
           draft: true
