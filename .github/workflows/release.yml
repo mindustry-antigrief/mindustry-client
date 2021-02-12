@@ -32,8 +32,11 @@ jobs:
         id: build
         run: |
           echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-          echo "CHANGELOG=$(cat core/assets/changelog | cut -f 2,3 -d "#")" >> $GITHUB_ENV
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}"
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          cat core/assets/changelog | cut -f 2,3 -d "#" >> $GITHUB_ENV
+          echo EOF >> $GITHUB_ENV
+          
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" --parallel
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() }}
