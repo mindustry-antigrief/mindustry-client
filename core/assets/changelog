@@ -1,8 +1,4 @@
-Foo's Client (${{ steps.build.outputs.string }})
-Steam installation instructions [here](../../#steam)
-
-
-# Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date.
+# Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
 # Version 6.3.0/6.3.1 (Feb. 11, 2021)
  * Fixed 4 UnitPicker bugs
@@ -28,7 +24,6 @@ Steam installation instructions [here](../../#steam)
  * Fixed many bugs (mostly with navigation)
  * Added !login command (use at your own risk)
  * Added sections to the settings menu
- *
  * Began work on overhauling actions
  * More stuff I can't remember
 
