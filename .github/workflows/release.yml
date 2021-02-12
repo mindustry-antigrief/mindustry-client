@@ -29,13 +29,13 @@ jobs:
         id: time
         uses: 1466587594/get-current-time@v2
         with:
-          format: MMM. D, YYYY # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
+          format: MMM. D, YYYY # Pulls the tag name and current date to produce clientVersion -> v1.0.0, Jan. 1, 1970
 
       - name: Build Client
         id: build
         run: |
-          echo ::set-output name=string::${GITHUB_REF/refs\/tags\//}
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}"
+          echo "CHANGELOG=$(cat core/assets/changelog | cut -f 2,3 -d "#")" >> $GITHUB_ENV
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${{ github.ref/refs\/tags\// }}, ${{ steps.time.outputs.formattedTime }}"
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() }}
@@ -59,9 +59,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ steps.build.outputs.string }} (${{ steps.time.outputs.formattedTime }})
-          body_path: core/assets/changelog
-          draft: false
+          release_name: Release ${{ github.ref/refs\/tags\// }} (${{ steps.time.outputs.formattedTime }})
+          body: |
+            Foo's Client (${{ github.ref/refs\/tags\// }})
+            Steam installation instructions [here](../../#steam)
+            ${{ env.CHANGELOG }}
+          draft: true
           prerelease: false
 
       - name: Upload Release Asset
