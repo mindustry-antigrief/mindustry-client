@@ -3,7 +3,6 @@ name: Release Update
 on:
   push:
     tags: v*
-  workflow_dispatch:
 
 jobs:
   build:
@@ -30,12 +29,13 @@ jobs:
 
       - name: Build Client
         run: |
-          echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-          awk -v RS='#' 'NR==3{printf"## "; print; printf"\n"; exit}' core/assets/changelog >> $GITHUB_ENV
+          echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV # The name of the tag which triggered the build
+          
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV # These 3 lines are very confusing but github is weird so they are needed, gets the last entry into the changelog.
+          awk -v RS='#' 'NR==3{printf"#### "; print; printf"\n"; exit}' core/assets/changelog >> $GITHUB_ENV
           echo EOF >> $GITHUB_ENV
           
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" --parallel
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" --parallel # Testing and building in parallel saves a few dozen seconds.
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() }}
@@ -45,13 +45,6 @@ jobs:
           folder: tests/build/reports/tests/test
           silent: true
 
-      - name: Upload Artifact # Only uploaded on fail to save some time
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: Zipped Jar
-          path: desktop/build/libs/Mindustry.jar
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -60,7 +53,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ env.VERSION }} (${{ steps.time.outputs.formattedTime }})
-          body: |
+          body: | # The release body with the latest set of changes from the changelog
             # Foo's Client (${{ env.VERSION }})
             ### Steam installation instructions [here](../../#steam)
             ## Latest Changelog (May be out of date)
@@ -77,3 +70,10 @@ jobs:
           asset_path: desktop/build/libs/Mindustry.jar
           asset_name: desktop.jar
           asset_content_type: application/zip
+
+      - name: Upload Artifact # Only uploaded on fail to save some time
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: Zipped Jar
+          path: desktop/build/libs/Mindustry.jar
