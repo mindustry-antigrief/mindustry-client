@@ -67,6 +67,12 @@ public class PointDefenseTurret extends ReloadTurret{
         }
 
         @Override
+        public void remove() {
+            Navigation.obstacles.remove(pathfindingEntity);
+            super.remove();
+        }
+
+        @Override
         public void updateTile(){
             if (player != null && player.unit() != null && team != player.team()) {
                 Navigation.obstacles.add(pathfindingEntity);

@@ -186,10 +186,10 @@ object AStarNavigator : Navigator() {
 //            b += 1
 //        }
         //Reset
-        val px = World.conv(playerX).toInt()
-        val py = World.conv(playerY).toInt()
-        val ex = World.conv(targetX).toInt()
-        val ey = World.conv(targetY).toInt()
+        val px = World.toTile(playerX)
+        val py = World.toTile(playerY)
+        val ex = World.toTile(targetX)
+        val ey = World.toTile(targetY)
         grid = emptyArray()
         grid = Array(tileWidth) { arrayOfNulls(tileHeight) }
         closed = emptyArray()

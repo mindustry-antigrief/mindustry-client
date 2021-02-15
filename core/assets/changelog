@@ -1,5 +1,11 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 6.3.3
+ * Unit picker will now always send a success message
+ * Segment obstacles now removed on death
+ * Navigation will no longer attempt to strafe at "low" fps
+ * No longer spamming logs with some random garbage
+
 # Version 6.3.2
  * Unit trails removed, they broke mods apparently.
  * Navigation now works correctly when moving diagonally (it will actually move diagonally instead of on one axis at a time).
