@@ -89,7 +89,6 @@ public class UnitPicker extends BaseDialog {
         });
 
         Events.on(EventType.UnitCreateEvent.class, event -> {
-            Log.info(event.unit.dead + " " + event.unit.type + " " + event.unit.team + " " + event.unit.isPlayer());
             if (!event.unit.dead && event.unit.type == found && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 Call.unitControl(player, event.unit);
                 Timer.schedule(() -> {
