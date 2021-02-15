@@ -35,25 +35,25 @@ public class UnitTypes implements ContentList{
     public static @EntityDef(value = {Unitc.class, Legsc.class}, legacy = true) UnitType spiroct, arkyid, toxopid;
 
     //air
-    public static @EntityDef({Unitc.class, Trailc.class}) UnitType flare, eclipse, horizon, zenith, antumbra;
+    public static @EntityDef({Unitc.class}) UnitType flare, eclipse, horizon, zenith, antumbra;
 
     //air
-    public static @EntityDef(value = {Unitc.class, Trailc.class}, legacy = true) UnitType mono;
+    public static @EntityDef(value = {Unitc.class}, legacy = true) UnitType mono;
 
     //air
-    public static @EntityDef(value = {Unitc.class, Trailc.class}, legacy = true) UnitType poly;
+    public static @EntityDef(value = {Unitc.class}, legacy = true) UnitType poly;
 
     //air + payload
-    public static @EntityDef({Unitc.class, Payloadc.class, Trailc.class}) UnitType mega;
+    public static @EntityDef({Unitc.class, Payloadc.class}) UnitType mega;
 
     //air + payload
-    public static @EntityDef(value = {Unitc.class, Payloadc.class, Trailc.class}, legacy = true) UnitType quad;
+    public static @EntityDef(value = {Unitc.class, Payloadc.class}, legacy = true) UnitType quad;
 
     //air + payload + ammo distribution
-    public static @EntityDef({Unitc.class, Payloadc.class, AmmoDistributec.class, Trailc.class}) UnitType oct;
+    public static @EntityDef({Unitc.class, Payloadc.class, AmmoDistributec.class}) UnitType oct;
 
     //air
-    public static @EntityDef(value = {Unitc.class, Trailc.class}, legacy = true) UnitType alpha, beta, gamma;
+    public static @EntityDef(value = {Unitc.class}, legacy = true) UnitType alpha, beta, gamma;
 
     //water
     public static @EntityDef({Unitc.class, WaterMovec.class}) UnitType risso, minke, bryde, sei, omura;

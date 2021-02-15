@@ -1,6 +1,12 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
-# Version 6.3.0/6.3.1 (Feb. 11, 2021)
+# Version 6.3.2
+ * Unit trails removed, they broke mods apparently.
+ * Navigation now works correctly when moving diagonally (it will actually move diagonally instead of on one axis at a time).
+ * Fixed a rare crash
+ * Made settings tables public, they should have been anyways and they were causing mods to break.
+
+# Version 6.3.0/6.3.1
  * Fixed 4 UnitPicker bugs
  * Fixed build repo url
  * Reworked auto updater and client version to be more user friendly (no longer a clientVersion and clientBuild), older versions of the client will show the new version as "0" but that should fix itself as soon as you update

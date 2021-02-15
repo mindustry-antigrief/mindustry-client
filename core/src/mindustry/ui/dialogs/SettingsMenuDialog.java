@@ -327,7 +327,6 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("lighting", true);
         client.checkPref("unitranges", false);
         client.checkPref("disablemonofont", false); // Requires Restart
-        client.checkPref("hidetrails", false, i -> Client.hideTrails = i);
         client.checkPref("drawhitboxes", false);
 
         client.category("misc");

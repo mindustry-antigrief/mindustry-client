@@ -347,13 +347,13 @@ public class ContentParser{
     );
 
     private Prov<Unit> unitType(JsonValue value){
-        if(value == null) return TrailUnit::create;
+        if(value == null) return UnitEntity::create;
         return switch(value.asString()){
-            case "flying" -> TrailUnit::create;
+            case "flying" -> UnitEntity::create;
             case "mech" -> MechUnit::create;
             case "legs" -> LegsUnit::create;
             case "naval" -> UnitWaterMove::create;
-            case "payload" -> PayloadTrailUnit::create;
+            case "payload" -> PayloadUnit::create;
             default -> throw new RuntimeException("Invalid unit type: '" + value + "'. Must be 'flying/mech/legs/naval/payload'.");
         };
     }

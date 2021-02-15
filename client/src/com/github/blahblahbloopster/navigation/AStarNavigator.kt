@@ -212,7 +212,7 @@ object AStarNavigator : Navigator() {
         setEndCell(ex, ey)
         for (i in 0 until tileWidth) {
             for (j in 0 until tileHeight) {
-                grid[i][j] = Cell(i, j).apply { heuristicCost = abs(i - endI) + abs(j - endJ) }
+                grid[i][j] = Cell(i, j).apply { heuristicCost = max(abs(i - endI), abs(j - endJ)) }
                 //                  System.out.print(grid[i][j].heuristicCost+" ");
             }
             //              System.out.println();

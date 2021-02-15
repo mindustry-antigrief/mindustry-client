@@ -87,6 +87,6 @@ public class WaypointPath extends Path {
 
     @Override
     public Position next() {
-        return waypoints.peek() instanceof Position ? (Position)waypoints.peek() : null; // TODO: Ask foo why this uses .peek() instead of .first();
+        return waypoints.first() instanceof Position ? (Position)waypoints.first() : null;
     }
 }
