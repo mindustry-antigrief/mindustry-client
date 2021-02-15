@@ -3,14 +3,10 @@ name: Release Update
 on:
   push:
     tags: v*
-  workflow_dispatch:
-
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Cancel Previous Workflows
         uses: styfle/cancel-workflow-action@0.6.0
@@ -29,13 +25,17 @@ jobs:
         id: time
         uses: 1466587594/get-current-time@v2
         with:
-          format: MMM. D, YYYY # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
+          format: MMM. D, YYYY # Pulls the tag name and current date to produce clientVersion -> v1.0.0, Jan. 1, 1970
 
       - name: Build Client
-        id: build
         run: |
-          echo ::set-output name=string::${GITHUB_REF/refs\/tags\//}
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" --parallel
+          echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV # The name of the tag which triggered the build
+
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV # These 3 lines are very confusing but github is weird so they are needed, gets the last entry into the changelog.
+          awk -v RS='#' 'NR==3{printf"#### "; print; printf"\n"; exit}' core/assets/changelog >> $GITHUB_ENV
+          echo EOF >> $GITHUB_ENV
+
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" --parallel # Testing and building in parallel saves a few dozen seconds.
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() }}
@@ -45,13 +45,6 @@ jobs:
           folder: tests/build/reports/tests/test
           silent: true
 
-      - name: Upload Artifact # Only uploaded on fail to save some time
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: Zipped Jar
-          path: desktop/build/libs/Mindustry.jar
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -59,9 +52,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ steps.build.outputs.string }} (${{ steps.time.outputs.formattedTime }})
-          body_path: core/assets/changelog
-          draft: false
+          release_name: Release ${{ env.VERSION }} (${{ steps.time.outputs.formattedTime }})
+          body: | # The release body with the latest set of changes from the changelog
+            # Foo's Client (${{ env.VERSION }})
+            ### Steam installation instructions [here](../../#steam)
+            ## Latest Changelog (May be out of date)
+            ${{ env.CHANGELOG }}
+          draft: true
           prerelease: false
 
       - name: Upload Release Asset
@@ -73,3 +70,10 @@ jobs:
           asset_path: desktop/build/libs/Mindustry.jar
           asset_name: desktop.jar
           asset_content_type: application/zip
+
+      - name: Upload Artifact # Only uploaded on fail to save some time
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: Zipped Jar
+          path: desktop/build/libs/Mindustry.jar
