@@ -20,6 +20,7 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
         Events.on(EventType.ConfigEvent::class.java) { event ->
             event ?: return@on
             event.tile ?: return@on
+            event.value ?: return@on
             event.tile.block ?: return@on
             if (event.tile.block !is MessageBlock) return@on
 
