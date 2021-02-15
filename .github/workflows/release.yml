@@ -58,7 +58,7 @@ jobs:
             ### Steam installation instructions [here](../../#steam)
             ## Latest Changelog (May be out of date)
             ${{ env.CHANGELOG }}
-          draft: true
+          draft: false
           prerelease: false
 
       - name: Upload Release Asset
