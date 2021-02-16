@@ -10,6 +10,7 @@ import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.*;
+import arc.scene.event.Touchable;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
