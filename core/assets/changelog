@@ -1,5 +1,11 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 6.3.4
+ * Fire particle multiplier (you can finally reduce the lag from anything catching on fire)
+ * The setting to auto remove reactors will now do so within 20 blocks of core to reflect changes to splash damage
+ * Clicking the "core is under attack" warning at the top of the screen will move the camera to the core which is under attack
+ * Updated to v125
+
 # Version 6.3.3
  * Unit picker will now always send a success message
  * Segment obstacles now removed on death

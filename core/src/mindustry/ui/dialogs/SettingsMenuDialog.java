@@ -323,6 +323,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.category("graphics");
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
+        client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%");
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("unitranges", false);

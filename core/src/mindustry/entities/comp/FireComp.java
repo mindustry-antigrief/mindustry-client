@@ -1,5 +1,6 @@
 package mindustry.entities.comp;
 
+import arc.Core;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.util.*;
@@ -27,11 +28,11 @@ abstract class FireComp implements Timedc, Posc, Firec, Syncc{
 
     @Override
     public void update(){
-        if(Mathf.chance(0.09 * Time.delta)){
+        if(Mathf.chance(0.09 * Time.delta * Core.settings.getInt("firescl") / 100f)){
             Fx.fire.at(x + Mathf.range(4f), y + Mathf.range(4f));
         }
 
-        if(Mathf.chance(0.05 * Time.delta)){
+        if(Mathf.chance(0.05 * Time.delta * Core.settings.getInt("firescl") / 100f)){
             Fx.fireSmoke.at(x + Mathf.range(4f), y + Mathf.range(4f));
         }
 

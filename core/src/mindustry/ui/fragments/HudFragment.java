@@ -16,6 +16,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.Client;
+import mindustry.client.Spectate;
 import mindustry.client.ui.TileInfoFragment;
 import mindustry.client.ui.Toast;
 import mindustry.content.*;
@@ -348,8 +349,8 @@ public class HudFragment extends Fragment{
 
                 return coreAttackOpacity[0] > 0.01f;
             });
-            t.table(Tex.button, top -> top.add("@coreattack").pad(2)
-            .update(label -> label.color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f)))).touchable(Touchable.disabled);
+            t.button("@coreattack", () -> Spectate.spectate(Client.lastSentPos)).pad(2)
+            .update(label -> label.color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f)));
         });
 
         //'saving' indicator
