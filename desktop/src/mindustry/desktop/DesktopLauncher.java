@@ -47,7 +47,6 @@ public class DesktopLauncher extends ClientLauncher{
             config = new SdlConfig() {{
                 title = Strings.format("Mindustry (v@) | Foo's Client (@)", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
                 maximized = true;
-                stencil = 1;
                 width = 900;
                 height = 700;
                 samples = finalAaSamples;
@@ -154,6 +153,7 @@ public class DesktopLauncher extends ClientLauncher{
                 player.name = SVars.net.friends.getPersonaName();
                 Core.settings.put("name", player.name);
             }
+            steamPlayerName = SVars.net.friends.getPersonaName();
             //update callbacks
             Core.app.addListener(new ApplicationListener(){
                 @Override

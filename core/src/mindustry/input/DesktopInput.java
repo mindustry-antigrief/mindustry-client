@@ -4,13 +4,11 @@ import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
 import arc.graphics.Color;
-import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.*;
-import arc.scene.event.*;
+import arc.scene.event.Touchable;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -53,7 +51,7 @@ public class DesktopInput extends InputHandler{
     /** Selected build request for movement. */
     public @Nullable BuildPlan sreq;
     /** Whether player is currently deleting removal requests. */
-    public boolean deleting = false, wasBuilding = true, shouldShoot = false;
+    public boolean deleting = false, shouldShoot = false;
     public static boolean panning = false;
     /** Mouse pan speed. */
     public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 11f;
@@ -105,7 +103,7 @@ public class DesktopInput extends InputHandler{
             t.touchable(() -> t.color.a < 0.1f ? Touchable.disabled : Touchable.childrenOnly);
             t.table(Styles.black6, b -> {
                 b.defaults().left();
-                b.label(() -> ((!isBuilding || !wasBuilding) && !Core.settings.getBool("buildautopause") && !player.unit().isBuilding() ?
+                b.label(() -> (!isBuilding && !Core.settings.getBool("buildautopause") && !player.unit().isBuilding() ?
                     Core.bundle.format("enablebuilding", Core.keybinds.get(Binding.pause_building).key.toString()) :
                     Core.bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", Core.keybinds.get(Binding.pause_building).key.toString()) +
                     "\n" + Core.bundle.format("cancelbuilding", Core.keybinds.get(Binding.clear_building).key.toString()) +
@@ -637,7 +635,6 @@ public class DesktopInput extends InputHandler{
             buildWasAutoPaused = false;
 
             if(isBuilding){
-                wasBuilding = player.unit().isBuilding();
                 player.shooting = false;
             }
         }
@@ -761,7 +758,6 @@ public class DesktopInput extends InputHandler{
             }
 
             mode = none;
-            wasBuilding = true;
         }
 
         if(Core.input.keyTap(Binding.toggle_block_status)){
