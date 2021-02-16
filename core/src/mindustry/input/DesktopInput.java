@@ -10,7 +10,6 @@ import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.*;
-import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -53,11 +52,16 @@ public class DesktopInput extends InputHandler{
     /** Selected build request for movement. */
     public @Nullable BuildPlan sreq;
     /** Whether player is currently deleting removal requests. */
-    public boolean deleting = false, wasBuilding = true, shouldShoot = false;
+    public boolean deleting = false, shouldShoot = false;
     public static boolean panning = false;
     /** Mouse pan speed. */
     public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 11f;
     private long lastMineClicked = 0L;
+
+    boolean showHint(){
+        return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() &&
+            (!isBuilding && !Core.settings.getBool("buildautopause") || player.unit().isBuilding() || !player.dead() && !player.unit().spawnedByCore());
+    }
 
     @Override
     public void buildUI(Group group){
@@ -74,6 +78,7 @@ public class DesktopInput extends InputHandler{
             t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !player.unit().isBuilding() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()) && UnitType.alpha != 0);
             t.bottom();
             t.table(Styles.black6, b -> {
+                StringBuilder str = new StringBuilder();
                 b.defaults().left();
                 b.label(() -> Core.bundle.format("respawn", Core.keybinds.get(Binding.respawn).key.toString())).style(Styles.outlineLabel);
             }).margin(6f);
@@ -637,7 +642,6 @@ public class DesktopInput extends InputHandler{
             buildWasAutoPaused = false;
 
             if(isBuilding){
-                wasBuilding = player.unit().isBuilding();
                 player.shooting = false;
             }
         }
@@ -761,7 +765,6 @@ public class DesktopInput extends InputHandler{
             }
 
             mode = none;
-            wasBuilding = true;
         }
 
         if(Core.input.keyTap(Binding.toggle_block_status)){
