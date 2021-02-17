@@ -1,6 +1,5 @@
 package mindustry.client.navigation;
 
-import arc.Core;
 import arc.math.Mathf;
 import arc.math.geom.Position;
 import arc.math.geom.Vec2;
@@ -90,9 +89,7 @@ public class Navigation {
 
         targetPos = new Vec2(drawX, drawY);
         playerNavigator.taskQueue.post(() -> {
-            TurretPathfindingEntity[] obstacleArray = new TurretPathfindingEntity[obstacles.size()];
-            obstacles.toArray(obstacleArray);
-            Vec2[] points = navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacleArray, 2);
+            Vec2[] points = navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacles.toArray(new TurretPathfindingEntity[0]), 2);
             if (points != null) {
                 Seq<Waypoint> waypoints = new Seq<>();
                 for (Vec2 point : points) {
@@ -102,9 +99,9 @@ public class Navigation {
 
                 if (waypoints.any()) {
                     int i = 0;
-                    do { // Remove any waypoints which backtrack at the start, this is a shitty solution to the problem but oh well.
+                    while (i++ < 5 && waypoints.size > 1 && ((PositionWaypoint) waypoints.first()).dst(new Vec2(drawX, drawY)) + tilesize/2f > player.dst(new Vec2(drawX, drawY))) { // Remove any waypoints which backtrack at the start, this is a shitty solution to the problem but oh well.
                         waypoints.remove(0);
-                    } while (i++ < 5 && waypoints.size > 1 && ((PositionWaypoint) waypoints.first()).dst(new Vec2(drawX, drawY)) + tilesize/2f > player.dst(new Vec2(drawX, drawY)));
+                    }
                     if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
                         follow(new WaypointPath(waypoints));
                         targetPos = new Vec2(drawX, drawY);

@@ -312,7 +312,6 @@ public class HudFragment extends Fragment{
         //'core is under attack' table
         parent.fill(t -> {
             t.name = "coreattack";
-            t.touchable = Touchable.disabled;
             float notifDuration = 240f;
             float[] coreAttackTime = {0};
             float[] coreAttackOpacity = {0};
@@ -329,7 +328,7 @@ public class HudFragment extends Fragment{
                coreAttackTime[0] = notifDuration;
             });
 
-            Events.run(Trigger.teamCoreDamage, () -> coreAttackTime[0] = notifDuration); // Legacy code kept in case anuke breaks it
+            Events.run(Trigger.teamCoreDamage, () -> coreAttackTime[0] = notifDuration); // Legacy event kept in case anuke does something with it
 
             t.top().visible(() -> {
                 if(!shown) return false;
@@ -349,8 +348,8 @@ public class HudFragment extends Fragment{
 
                 return coreAttackOpacity[0] > 0.01f;
             });
-            t.button("@coreattack", () -> Spectate.spectate(Client.lastSentPos)).pad(2)
-            .update(label -> label.color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f)));
+            t.button("@coreattack", () -> Spectate.spectate(Client.lastSentPos.cpy().scl(tilesize))).pad(2)
+            .update(label -> label.getLabel().color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f))).get().getLabel().setWrap(false);
         });
 
         //'saving' indicator

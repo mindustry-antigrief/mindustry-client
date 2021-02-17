@@ -26,6 +26,11 @@ object AStarNavigator : Navigator() {
     private var endI = 0
     private var endJ = 0
     private var block = false
+    private var width = 0f
+    private var height = 0f
+    private var tileWidth = 0
+    private var tileHeight = 0
+
     private fun setBlocked(i: Int, j: Int) {
         grid[i][j] = null
     }
@@ -117,20 +122,14 @@ object AStarNavigator : Navigator() {
         start ?: return null
         end ?: return null
         obstacles ?: return null
+        width = max(obstacles.maxOfOrNull { it.x } ?: 0f, max(start.x, end.x))
+        height = max(obstacles.maxOfOrNull { it.y } ?: 0f, max(start.y, end.y))
 
-        val width = max(obstacles.maxOfOrNull { it.x } ?: 0f, max(start.x, end.x))
-        val height = max(obstacles.maxOfOrNull { it.y } ?: 0f, max(start.y, end.y))
-
-        val tileWidth = ceil(width / tilesize).toInt() + 1
-        val tileHeight = ceil(height / tilesize).toInt() + 1
+        tileWidth = ceil(width / tilesize).toInt() + 1
+        tileHeight = ceil(height / tilesize).toInt() + 1
 
         start.clamp(0f, 0f, height, width)
         end.clamp(0f, 0f, height, width)
-
-        val playerX = start.x
-        val playerY = start.y
-        val targetX = end.x
-        val targetY = end.y
 
 
         if (obstacles.isEmpty()) {
@@ -142,9 +141,9 @@ object AStarNavigator : Navigator() {
 //            if(turret.getTeam() == player.getTeam()){
 //                continue;
 //            }
-            val range = World.conv(turret.radius).toInt()
-            val x = World.conv(turret.x).toInt()
-            val y = World.conv(turret.y).toInt()
+            val range = World.toTile(turret.radius)
+            val x = World.toTile(turret.x)
+            val y = World.toTile(turret.y)
             Geometry.circle(x, y, range) { tx, ty ->
                 if (tx < 0 || tx >= tileWidth || ty < 0 || ty >= tileHeight) {
                     return@circle
@@ -186,15 +185,12 @@ object AStarNavigator : Navigator() {
 //            b += 1
 //        }
         //Reset
-        val px = World.toTile(playerX)
-        val py = World.toTile(playerY)
-        val ex = World.toTile(targetX)
-        val ey = World.toTile(targetY)
-        grid = emptyArray()
+        val px = World.toTile(start.x)
+        val py = World.toTile(start.y)
+        val ex = World.toTile(end.x)
+        val ey = World.toTile(end.y)
         grid = Array(tileWidth) { arrayOfNulls(tileHeight) }
-        closed = emptyArray()
         closed = Array(tileWidth) { BooleanArray(tileHeight) }
-        costly = emptyArray()
         costly = Array(tileWidth) { BooleanArray(tileHeight) }
         open.clear()
         open = PriorityQueue { o1: Cell?, o2: Cell? ->
