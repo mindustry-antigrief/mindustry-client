@@ -4,6 +4,7 @@ import arc.math.Mathf;
 import arc.math.geom.Position;
 import arc.math.geom.Vec2;
 import arc.struct.*;
+import mindustry.Vars;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
 import java.util.HashSet;
@@ -37,7 +38,7 @@ public class Navigation {
             navigateTo(targetPos);
         }
 
-        if (currentlyFollowing != null && !isPaused) {
+        if (currentlyFollowing != null && !isPaused && !Vars.state.isPaused()) {
             currentlyFollowing.follow();
             if (currentlyFollowing != null && currentlyFollowing.isDone()) {
                 stopFollowing();

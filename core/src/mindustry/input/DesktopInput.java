@@ -55,7 +55,7 @@ public class DesktopInput extends InputHandler{
     public static boolean panning = false;
     /** Mouse pan speed. */
     public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 11f;
-    private long lastMineClicked = 0L;
+    private long lastMineClicked, lastShiftZ;
 
     @Override
     public void buildUI(Group group){
@@ -282,11 +282,15 @@ public class DesktopInput extends InputHandler{
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
-        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null && selectRequests.isEmpty()){ // Navigates to cursor despite the bind name
-            Navigation.navigateTo(input.mouseWorld());
+        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null && (selectRequests.isEmpty() || input.shift())){ // Navigates to cursor, holding shift will nav to lastSentPos instead (if shift is held and the player is placing a schem, it will nav to camera instead, if shift isnt held it does nothing)
+            if(input.shift() && selectRequests.isEmpty()){
+                if(Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(Client.lastSentPos.cpy().scl(tilesize));
+                else Spectate.spectate(Client.lastSentPos.cpy().scl(tilesize));
+                lastShiftZ = Time.millis();
+            } else Navigation.navigateTo(input.mouseWorld());
         }
 
-        if(input.keyDown(Binding.pan) && !scene.hasField() && !scene.hasDialog()){
+        if(input.keyDown(Binding.pan) && scene.getKeyboardFocus() == null){
             panCam = true;
             panning = true;
         }
@@ -609,7 +613,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!selectRequests.isEmpty()){
-            if(Core.input.keyTap(Binding.schematic_flip_x)){
+            if(Core.input.keyTap(Binding.schematic_flip_x) && !input.shift()){ // Don't rotate when shift is held, if shift is held navigate instead.
                 flipRequests(selectRequests, true);
             }
 
