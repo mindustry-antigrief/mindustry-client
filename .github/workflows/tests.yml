@@ -2,12 +2,10 @@ name: Java Tests # Tests and pushes to unstable
 
 on: 
   push:
-    branches: "**"
+    branches: "**" # Doesn't run for tags
   workflow_dispatch:
 
-
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
@@ -24,7 +22,7 @@ jobs:
         id: time
         uses: 1466587594/get-current-time@v2
         with:
-          format: ${[GITHUB_RUN_NUMBER]}, MMM. D, YYYY # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
+          format: ${[GITHUB_RUN_NUMBER]}, MMM. D, YYYY [Unstable] # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
 
       - name: Run Tests
         run: ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
