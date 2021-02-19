@@ -18,7 +18,7 @@ object AStarNavigator : Navigator() {
 
     //Blocked cells are just null Cell values in grid
     private var grid: Array<Array<Cell?>> = Array(5) { arrayOfNulls(5) }
-    private var open = PriorityQueue<Cell?>()
+    private var open = PriorityQueue<Cell?>(500)
     private var closed: Array<BooleanArray> = emptyArray()
     private var costly: Array<BooleanArray> = emptyArray()
     private var startI = 0
@@ -30,6 +30,8 @@ object AStarNavigator : Navigator() {
     private var height = 0f
     private var tileWidth = 0
     private var tileHeight = 0
+
+    fun Int.clamp(min: Int, max: Int) = coerceIn(min, max)
 
     private fun setBlocked(i: Int, j: Int) {
         grid[i][j] = null
@@ -53,24 +55,24 @@ object AStarNavigator : Navigator() {
         //        if(closed[t.i][t.j]){
 //            t_final_cost *= 100;
 //        }
-        val inOpen = open.contains(t)
+        val inOpen = open.contains(t)  // O(N)
         if (!inOpen || tFinalCost < t.finalCost) {
             t.finalCost = tFinalCost
             t.parent = current
-            if (!inOpen) open.add(t)
+            if (!inOpen) open.add(t)  // O(N)
         }
     }
 
     private fun aStarSearch() {
         //add the start location to open list.
-        endI = Mathf.clamp(endI, 0, grid.size - 1)
-        endJ = Mathf.clamp(endJ, 0, grid[0].size - 1)
-        startI = Mathf.clamp(startI, 0, grid.size - 1)
-        startJ = Mathf.clamp(startJ, 0, grid[0].size - 1)
+        endI = endI.clamp(0, grid.size - 1)
+        endJ = endJ.clamp(0, grid[0].size - 1)
+        startI = startI.clamp(0, grid.size - 1)
+        startJ = startJ.clamp(0, grid[0].size - 1)
         open.add(grid[startI][startJ])
         var current: Cell?
         while (true) {
-            current = open.poll()
+            current = open.poll()  // O(log(n))
             if (current == null) break
             closed[current.i][current.j] = true
             if (current == grid[endI][endJ]) {
@@ -135,55 +137,7 @@ object AStarNavigator : Navigator() {
         if (obstacles.isEmpty()) {
             return arrayOf(end)
         }
-        //        long startTime = System.currentTimeMillis();
-        val blocked2 = ArrayList<IntArray>()
-        for (turret in obstacles) {
-//            if(turret.getTeam() == player.getTeam()){
-//                continue;
-//            }
-            val range = World.toTile(turret.radius)
-            val x = World.toTile(turret.x)
-            val y = World.toTile(turret.y)
-            Geometry.circle(x, y, range) { tx, ty ->
-                if (tx < 0 || tx >= tileWidth || ty < 0 || ty >= tileHeight) {
-                    return@circle
-                }
-                blocked2.add(intArrayOf(tx, ty))
-            }
-//            var colNum = 0
-//            while (colNum <= width - 1) {
-//                if (colNum > x + range) {
-//                    colNum += 1
-//                    continue
-//                }
-//                if (colNum < x - range) {
-//                    colNum += 1
-//                    continue
-//                }
-//                var blockNum = 0
-//                while (blockNum <= height - 1) {
-//                    if (blockNum > y + range) {
-//                        blockNum += 1
-//                        continue
-//                    }
-//                    if (blockNum < y - range) {
-//                        blockNum += 1
-//                        continue
-//                    }
-//                    if (Mathf.sqrt(Mathf.pow(x - colNum, 2f) + Mathf.pow(y - blockNum, 2f)) < range) {
-//                        blocked2.add(intArrayOf(colNum, blockNum))
-//                    }
-//                    blockNum += 1
-//                }
-//                colNum += 1
-//            }
-        }
-        val blocked = blocked2.toTypedArray()
-//        var b = 0
-//        while (b <= blocked2.size - 1) {
-//            blocked[b] = blocked2[b]
-//            b += 1
-//        }
+
         //Reset
         val px = World.toTile(start.x)
         val py = World.toTile(start.y)
@@ -215,44 +169,28 @@ object AStarNavigator : Navigator() {
         }
         grid[px][py]?.finalCost = 0
 
-        /*
-             Set blocked cells. Simply set the cell values to null
-             for blocked cells.
-           */
-        for (ints in blocked) {
-            if (block) {
-                setBlocked(ints[0], ints[1])
-            } else {
-                costly[ints[0]][ints[1]] = true
+        for (turret in obstacles) {
+            val range = World.toTile(turret.radius)
+            val x = World.toTile(turret.x)
+            val y = World.toTile(turret.y)
+            for (dx in -range..range) {
+                for (dy in -range..range) {
+                    if (dx + x < 0 || dx + x >= tileWidth || dy + y < 0 || dy + y >= tileHeight) continue
+                    if (Mathf.within(dx.toFloat(), dy.toFloat(), range.toFloat())) {
+                        if (block) {
+                            setBlocked(dx + x, dy + y)
+                        } else {
+                            costly[dx + x][dy + y] = true
+                        }
+                    }
+                }
             }
         }
+
         grid[px][py] = Cell(px, py)
 
-        //Display initial map
-//        System.out.println("Grid: ");
-//        for(int i = 0; i < width; ++i){
-//            for(int j = 0; j < height; ++j){
-//                if(i == px && j == py) System.out.print("SO  "); //Source
-//                else if(i == ex && j == ey) System.out.print("DE  ");  //Destination
-//                else if(grid[i][j] != null) System.out.printf("%-3d ", 0);
-//                else System.out.print("BL  ");
-//            }
-//            System.out.println();
-//        }
-//        System.out.println();
-//        System.out.println("eifwief");
-//        System.out.println(grid.length);
-//        System.out.println(grid[0].length);
         aStarSearch()
-        //        System.out.println("\nScores for cells: ");
-//        for(int i = 0; i < width; ++i){
-//            for(int j = 0; j < height; ++j){
-//                if(grid[i][j] != null) System.out.printf("%-3d ", grid[i][j].finalCost);
-//                else System.out.print("BL  ");
-//            }
-//            System.out.println();
-//        }
-//        System.out.println();
+
         return if (closed[endI][endJ]) {
             val points = mutableListOf<Vec2>()
             //Trace back the path
