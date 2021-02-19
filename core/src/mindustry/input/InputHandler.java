@@ -849,7 +849,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     protected void drawRequest(BuildPlan request){
-        request.block.drawPlan(request, allRequests(), validPlace(request.x, request.y, request.block, request.rotation));
+        if (request.requestInterval.get(6)) request.requestValid = validPlace(request.x, request.y, request.block, request.rotation); // Update 10x a second
+        request.block.drawPlan(request, allRequests(), request.requestValid);
     }
 
     /** Draws a placement icon for a specific block. */
