@@ -124,8 +124,8 @@ object AStarNavigator : Navigator() {
         start ?: return null
         end ?: return null
         obstacles ?: return null
-        width = max(obstacles.maxOfOrNull { it.x } ?: 0f, max(start.x, end.x))
-        height = max(obstacles.maxOfOrNull { it.y } ?: 0f, max(start.y, end.y))
+        width = max(obstacles.maxOfOrNull { it.x + it.radius + tilesize * 2 } ?: 0f, max(start.x, end.x))
+        height = max(obstacles.maxOfOrNull { it.y + it.radius + tilesize * 2 } ?: 0f, max(start.y, end.y))
 
         tileWidth = ceil(width / tilesize).toInt() + 1
         tileHeight = ceil(height / tilesize).toInt() + 1

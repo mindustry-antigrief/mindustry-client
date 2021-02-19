@@ -38,7 +38,7 @@ public class PlayerNavigationThread implements Runnable {
     public void run() {
         while (true) {
             try {
-                if(state.isPlaying() && Navigation.state == NavigationState.FOLLOWING) taskQueue.run();
+                if(state != null && state.isPlaying() && Navigation.state == NavigationState.FOLLOWING) taskQueue.run();
             } catch (Exception e) {
                 e.printStackTrace();
             }
