@@ -1,5 +1,6 @@
 package mindustry.client.navigation;
 
+import arc.Core;
 import arc.math.Mathf;
 import arc.math.geom.Position;
 import arc.struct.Queue;
@@ -105,6 +106,7 @@ public class BuildPath extends Path {
                 Formation formation = player.unit().formation;
                 float range = buildingRange - player.unit().hitSize()/2 - 10;
                 if (formation != null) range -= formation.pattern.spacing / (float)Math.sin(180f / formation.pattern.slots * Mathf.degRad);
+                if (Core.settings.getBool("assumeunstrict")) range /= 2; // Teleport closer so its not weird when building stuff like conveyors
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{
                 //discard invalid request

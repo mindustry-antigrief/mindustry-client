@@ -525,7 +525,6 @@ public class ConstructBlock extends Block{
                 }
 
                 if (lastProgress == 0 && cblock instanceof NuclearReactor && distance.intValue() < 20 && Core.settings.getBool("removecorenukes")) { // Automatically remove reactors within 20 blocks of core
-                    CoreBlock.findBestCore = false;
                     Call.unitControl(player, ((CoreBuild)closestCore()).unit());
                     Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tileX(), tileY())), net.client() ? netClient.getPing()/1000f+.3f : 0);
                 }

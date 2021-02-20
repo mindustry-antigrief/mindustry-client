@@ -14,6 +14,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.ai.types.LogicAI;
 import mindustry.client.Client;
 import mindustry.client.Spectate;
 import mindustry.client.navigation.*;
@@ -391,7 +392,7 @@ public class DesktopInput extends InputHandler{
                     dialog.show();
                 });
 
-                table.setHeight(itemHeight * (table.getRows() + 1) + 10 * (table.getRows() + 1));
+                table.setHeight((itemHeight + 10) * (table.getRows() + 1));
                 table.setPosition(input.mouseX() - 1, input.mouseY() + 1, Align.topLeft); // Offset by 1 pixel so the code below doesn't trigger instantly
                 table.update(() -> {
                     if(input.keyTap(Binding.select) && !table.hasMouse()){
@@ -400,10 +401,11 @@ public class DesktopInput extends InputHandler{
                 });
                 scene.add(table);
             }
-            if(Core.input.keyDown(Binding.control) && Core.input.keyTap(Binding.select)){
+            if((input.keyDown(Binding.control) || input.shift()) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit();
                 if(on != null){
-                    Call.unitControl(player, on);
+                    if (input.keyDown(Binding.control)) Call.unitControl(player, on); // Ctrl + click: control unit
+                    else if (on.controller() instanceof LogicAI p && p.controller != null) Spectate.spectate(p.controller); // Shift + click logic unit: spectate processor
                     shouldShoot = false;
                 }
             }
@@ -672,27 +674,11 @@ public class DesktopInput extends InputHandler{
             }else if(req != null && req.breaking){
                 deleting = true;
             }else if(selected != null){
-                boolean mine = false;
-                if (settings.getBool("doubleclicktomine")) {
-                    if (canMine(selected)) {
-                        if (Time.timeSinceMillis(lastMineClicked) < 400) {
-                            mine = tryBeginMine(selected);
-                        } else {
-                            lastMineClicked = Time.millis();
-                        }
-                    } else {
-                        if (player.unit() != null) {
-                            player.unit().mineTile = null;
-                        }
-                    }
-                } else {
-                    mine = tryBeginMine(selected);
-                }
                 //only begin shooting if there's no cursor event
-                if(!tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !tileTapped(selected.build) && !player.unit().activelyBuilding() && !droppingItem &&
-                    !mine && player.unit().mineTile == null && !Core.scene.hasKeyboard()){
+                if(!tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !tileTapped(selected.build) && !player.unit().activelyBuilding() && !droppingItem && !((!settings.getBool("doubleclicktomine") || Time.timeSinceMillis(lastMineClicked) < 400) && tryBeginMine(selected)) && player.unit().mineTile == null && !Core.scene.hasKeyboard()){
                     player.shooting = shouldShoot;
                 }
+                if (canMine(selected)) lastMineClicked = Time.millis();
             }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine
                 player.shooting = shouldShoot;
             }
@@ -840,9 +826,9 @@ public class DesktopInput extends InputHandler{
                     unit.vel.rotateTo(movement.angle(), unit.type.rotateSpeed * Math.max(Time.delta, 1));
                 }
             }
+            unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
         }
 
-        unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
         unit.controlWeapons(true, player.shooting && !boosted);
 
         // if autoboost, invert the behavior of the boost key

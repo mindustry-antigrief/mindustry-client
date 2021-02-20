@@ -3,7 +3,11 @@
 # Version 6.3.5
  * Added a button to easily switch between stable and unstable.
  * Fixed turret ranges hiding incorrectly
- * Version will now display "(Unstable)" when playing on unstable
+ * Version will now display "Unstable" when playing on unstable
+ * Navigation performance improvements, uses significantly less memory, cpu, is faster and the stuttering should be (almost) entirely gone
+ * Navigation should now be able
+ * Cleaned up a bunch of code in various places
+ * Significantly reduced frame loss when the player has many build plans and is placing a large schematic
 
 # Version 6.3.4
  * Fire particle multiplier (you can finally reduce the lag from anything catching on fire)

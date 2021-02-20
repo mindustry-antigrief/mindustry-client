@@ -274,9 +274,9 @@ public class PowerGraph{
 
     public void add(Building build){
         if(build == null || build.power == null) return;
-        team = build.team;
 
         if(build.power.graph != this || !build.power.init){
+            team = build.team;
             build.power.graph = this;
             build.power.init = true;
             all.add(build);

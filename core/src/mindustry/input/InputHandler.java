@@ -849,7 +849,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     protected void drawRequest(BuildPlan request){
-        if (request.requestInterval.get(6)) request.requestValid = validPlace(request.x, request.y, request.block, request.rotation); // Update 10x a second
+        if (request.requestInterval.get(6)) request.requestValid = validPlace(request.x, request.y, request.block, request.rotation); // Validity checked 10x a second rather than per frame to reduce lag
         request.block.drawPlan(request, allRequests(), request.requestValid);
     }
 
