@@ -1,13 +1,15 @@
 package com.github.blahblahbloopster.navigation
 
 import arc.math.Mathf
-import arc.math.geom.*
-import mindustry.Vars.*
+import arc.math.geom.Circle
+import arc.math.geom.Vec2
+import mindustry.Vars.tilesize
 import mindustry.client.navigation.Navigator
 import mindustry.core.World
 import java.util.*
-import kotlin.math.*
-import kotlin.ranges.*
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.max
 
 // Taken from http://www.codebytes.in/2015/02/a-shortest-path-finding-algorithm.html
 // and modified
@@ -18,39 +20,39 @@ object AStarNavigator : Navigator() {
 
     //Blocked cells are just null Cell values in grid
     private var grid: Array<Array<Cell?>> = Array(5) { arrayOfNulls(5) }
-    private var open = PriorityQueue<Cell?>(500)
+    private var open = PriorityQueue<Cell>(500)
     private var closed: Array<BooleanArray> = emptyArray()
     private var costly: Array<BooleanArray> = emptyArray()
-    private var startI = 0
-    private var startJ = 0
-    private var endI = 0
-    private var endJ = 0
+    private var startX = 0
+    private var startY = 0
+    private var endX = 0
+    private var endY = 0
     private var block = false
     private var width = 0f
     private var height = 0f
     private var tileWidth = 0
     private var tileHeight = 0
 
-    fun Int.clamp(min: Int, max: Int) = coerceIn(min, max)
+    private fun Int.clamp(min: Int, max: Int) = coerceIn(min, max)
 
-    private fun setBlocked(i: Int, j: Int) {
-        grid[i][j] = null
+    private fun setBlocked(x: Int, y: Int) {
+        grid[x][y] = null
     }
 
     override fun init() {}
 
-    private fun setStartCell(i: Int, j: Int) {
-        startI = i
-        startJ = j
+    private fun setStartCell(x: Int, y: Int) {
+        startX = x
+        startY = y
     }
 
-    private fun setEndCell(i: Int, j: Int) {
-        endI = i
-        endJ = j
+    private fun setEndCell(x: Int, y: Int) {
+        endX = x
+        endY = y
     }
 
     private fun checkAndUpdateCost(current: Cell?, t: Cell?, cost: Int) {
-        if (t == null || closed[t.i][t.j]) return
+        if (t == null || closed[t.x][t.y]) return
         val tFinalCost = t.heuristicCost + cost
         //        if(closed[t.i][t.j]){
 //            t_final_cost *= 100;
@@ -59,60 +61,60 @@ object AStarNavigator : Navigator() {
         if (!inOpen || tFinalCost < t.finalCost) {
             t.finalCost = tFinalCost
             t.parent = current
-            if (!inOpen) open.add(t)  // O(N)
+            if (!inOpen) open.add(t) // O(N)
         }
     }
 
     private fun aStarSearch() {
         //add the start location to open list.
-        endI = endI.clamp(0, grid.size - 1)
-        endJ = endJ.clamp(0, grid[0].size - 1)
-        startI = startI.clamp(0, grid.size - 1)
-        startJ = startJ.clamp(0, grid[0].size - 1)
-        open.add(grid[startI][startJ])
+        endX = endX.clamp(0, grid.size - 1)
+        endY = endY.clamp(0, grid[0].size - 1)
+        startX = startX.clamp(0, grid.size - 1)
+        startY = startY.clamp(0, grid[0].size - 1)
+        open.add(grid[startX][startY])
         var current: Cell?
         while (true) {
             current = open.poll()  // O(log(n))
             if (current == null) break
-            closed[current.i][current.j] = true
-            if (current == grid[endI][endJ]) {
+            closed[current.x][current.y] = true
+            if (current == grid[endX][endY]) {
                 return
             }
             var t: Cell?
-            val multiplier: Int = if (costly[current.i][current.j]) {
+            val multiplier: Int = if (costly[current.x][current.y]) {
                 5
             } else {
                 1
             }
-            if (current.i - 1 >= 0) {
-                t = grid[current.i - 1][current.j]
+            if (current.x - 1 >= 0) {
+                t = grid[current.x - 1][current.y]
                 checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier)
-                if (current.j - 1 >= 0) {
-                    t = grid[current.i - 1][current.j - 1]
+                if (current.y - 1 >= 0) {
+                    t = grid[current.x - 1][current.y - 1]
                     checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier)
                 }
-                if (current.j + 1 < grid[0].size) {
-                    t = grid[current.i - 1][current.j + 1]
+                if (current.y + 1 < grid[0].size) {
+                    t = grid[current.x - 1][current.y + 1]
                     checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier)
                 }
             }
-            if (current.j - 1 >= 0) {
-                t = grid[current.i][current.j - 1]
+            if (current.y - 1 >= 0) {
+                t = grid[current.x][current.y - 1]
                 checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier)
             }
-            if (current.j + 1 < grid[0].size) {
-                t = grid[current.i][current.j + 1]
+            if (current.y + 1 < grid[0].size) {
+                t = grid[current.x][current.y + 1]
                 checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier)
             }
-            if (current.i + 1 < grid.size) {
-                t = grid[current.i + 1][current.j]
+            if (current.x + 1 < grid.size) {
+                t = grid[current.x + 1][current.y]
                 checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier)
-                if (current.j - 1 >= 0) {
-                    t = grid[current.i + 1][current.j - 1]
+                if (current.y - 1 >= 0) {
+                    t = grid[current.x + 1][current.y - 1]
                     checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier)
                 }
-                if (current.j + 1 < grid[0].size) {
-                    t = grid[current.i + 1][current.j + 1]
+                if (current.y + 1 < grid[0].size) {
+                    t = grid[current.x + 1][current.y + 1]
                     checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier)
                 }
             }
@@ -143,15 +145,25 @@ object AStarNavigator : Navigator() {
         val py = World.toTile(start.y)
         val ex = World.toTile(end.x)
         val ey = World.toTile(end.y)
-        grid = Array(tileWidth) { arrayOfNulls(tileHeight) }
-        closed = Array(tileWidth) { BooleanArray(tileHeight) }
-        costly = Array(tileWidth) { BooleanArray(tileHeight) }
-        open.clear()
-        open = PriorityQueue { o1: Cell?, o2: Cell? ->
-            o1 ?: return@PriorityQueue 0
-            o2 ?: return@PriorityQueue 0
-            o1.finalCost.compareTo(o2.finalCost)
+
+        if (grid.size != tileWidth || grid.getOrNull(0)?.size != tileHeight) {
+            grid = Array(tileWidth) { arrayOfNulls(tileHeight) }
         }
+
+        if (closed.size == tileWidth && closed.getOrNull(0)?.size == tileHeight) {
+            closed.forEach { it.fill(false) }
+        } else {
+            closed = Array(tileWidth) { BooleanArray(tileHeight) }
+        }
+
+        if (costly.size == tileWidth && costly.getOrNull(0)?.size == tileHeight) {
+            costly.forEach { it.fill(false) }
+        } else {
+            costly = Array(tileWidth) { BooleanArray(tileHeight) }
+        }
+
+        open.clear()
+
         //Set start position
         setStartCell(px, py)
         if (costly[px][py]) {
@@ -160,12 +172,13 @@ object AStarNavigator : Navigator() {
 
         //Set End Location
         setEndCell(ex, ey)
-        for (i in 0 until tileWidth) {
-            for (j in 0 until tileHeight) {
-                grid[i][j] = Cell(i, j).apply { heuristicCost = max(abs(i - endI), abs(j - endJ)) }
-                //                  System.out.print(grid[i][j].heuristicCost+" ");
+        for (x in 0 until tileWidth) {
+            for (y in 0 until tileHeight) {
+                grid[x][y] ?: run { grid[x][y] = Cell(x, y) }
+                grid[x][y]?.finalCost = 0
+                grid[x][y]?.parent = null
+                grid[x][y]?.heuristicCost = max(abs(x - endX), abs(y - endY))
             }
-            //              System.out.println();
         }
         grid[px][py]?.finalCost = 0
 
@@ -191,12 +204,12 @@ object AStarNavigator : Navigator() {
 
         aStarSearch()
 
-        return if (closed[endI][endJ]) {
+        return if (closed[endX][endY]) {
             val points = mutableListOf<Vec2>()
             //Trace back the path
-            var current = grid[endI][endJ]
+            var current = grid[endX][endY]
             while (current?.parent != null) {
-                points.add(Vec2(World.unconv(current.parent!!.i.toFloat()), World.unconv(current.parent!!.j.toFloat())))
+                points.add(Vec2(World.unconv(current.parent!!.x.toFloat()), World.unconv(current.parent!!.y.toFloat())))
                 current = current.parent
             }
             //            System.out.println("Time taken = " + (System.currentTimeMillis() - startTime) + " ms");
@@ -208,12 +221,17 @@ object AStarNavigator : Navigator() {
         }
     }
 
-    class Cell(var i: Int, var j: Int) {
+    class Cell(var x: Int, var y: Int) : Comparable<Cell> {
         var heuristicCost = 0 //Heuristic cost
         var finalCost = 0 //G+H
         var parent: Cell? = null
+
         override fun toString(): String {
-            return "[$i, $j]"
+            return "[$x, $y]"
+        }
+
+        override fun compareTo(other: Cell): Int {
+            return finalCost.compareTo(other.finalCost)
         }
     }
 }
