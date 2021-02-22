@@ -38,7 +38,7 @@ public class PlayerCompletion implements Autocompleter {
         private final String matchName;
 
         public PlayerMatcher(Player player) {
-            name = "[#" + player.color.toString() + "]" + player.name;
+            name = "[#" + player.color().toString().toUpperCase() + "]" + player.name;
             matchName = Strings.stripColors(name.replaceAll("\\s", ""));
         }
 
