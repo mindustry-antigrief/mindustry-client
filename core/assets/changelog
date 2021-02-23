@@ -5,7 +5,7 @@
  * Fixed turret ranges hiding incorrectly
  * Version will now display "Unstable" when playing on unstable
  * Navigation performance improvements, uses significantly less memory, cpu, is faster and the stuttering should be (almost) entirely gone
- * Navigation should now be able
+ * Navigation should now be better at finding the best path
  * Cleaned up a bunch of code in various places
  * Significantly reduced frame loss when the player has many build plans and is placing a large schematic
  * Fixed a crash related to bridges (had to revert to vanilla bridge link display to do so)
