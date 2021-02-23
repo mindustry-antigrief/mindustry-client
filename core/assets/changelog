@@ -8,6 +8,7 @@
  * Navigation should now be able
  * Cleaned up a bunch of code in various places
  * Significantly reduced frame loss when the player has many build plans and is placing a large schematic
+ * Fixed a crash related to bridges (had to revert to vanilla bridge link display to do so)
 
 # Version 6.3.4
  * Fire particle multiplier (you can finally reduce the lag from anything catching on fire)
