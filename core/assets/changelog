@@ -4,6 +4,7 @@
  * Added a button to easily switch between stable and unstable.
  * Fixed turret ranges hiding incorrectly
  * Version will now display "Unstable" when playing on unstable
+ * Button to toggle between stable and unstable branches
  * Navigation performance improvements, uses significantly less memory, cpu, is faster and the stuttering should be (almost) entirely gone
  * Navigation should now be better at finding the best path
  * Cleaned up a bunch of code in various places
