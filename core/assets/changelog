@@ -4,10 +4,12 @@
  * Added a button to easily switch between stable and unstable.
  * Fixed turret ranges hiding incorrectly
  * Version will now display "Unstable" when playing on unstable
+ * Button to toggle between stable and unstable branches
  * Navigation performance improvements, uses significantly less memory, cpu, is faster and the stuttering should be (almost) entirely gone
- * Navigation should now be able
+ * Navigation should now be better at finding the best path
  * Cleaned up a bunch of code in various places
  * Significantly reduced frame loss when the player has many build plans and is placing a large schematic
+ * Fixed a crash related to bridges (had to revert to vanilla bridge link display to do so)
 
 # Version 6.3.4
  * Fire particle multiplier (you can finally reduce the lag from anything catching on fire)
