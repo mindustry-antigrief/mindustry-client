@@ -317,7 +317,6 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         client.category("controls");
         client.checkPref("blockreplace", true);
-        client.checkPref("doubleclicktomine", true);
         client.checkPref("autoboost", false);
 
         client.category("graphics");
@@ -370,6 +369,8 @@ public class SettingsMenuDialog extends SettingsDialog{
             game.checkPref("backgroundpause", true);
             game.checkPref("buildautopause", false);
         }
+
+        game.checkPref("doubletapmine", settings.getBool("doubleclicktomine")); // TODO: Remove in a month or so
 
         if(steam){
             game.sliderPref("playerlimit", 16, 2, 250, i -> {
