@@ -69,7 +69,6 @@ public class Renderer implements ApplicationListener{
     @Override
     public void update(){
         Color.white.set(1f, 1f, 1f, 1f);
-        Gl.clear(Gl.stencilBufferBit);
 
 //        float dest = Mathf.round(targetscale, 0.5f);
         float dest = targetscale;  // note: because the above line is commented out, there may be "jagged pixel scaling"
@@ -211,7 +210,7 @@ public class Renderer implements ApplicationListener{
         Draw.draw(Layer.background, this::drawBackground);
         Draw.draw(Layer.floor, blocks.floor::drawFloor);
         Draw.draw(Layer.block - 1, blocks::drawShadows);
-        Draw.draw(Layer.block, () -> {
+        Draw.draw(Layer.block - 0.09f, () -> {
             blocks.floor.beginDraw();
             blocks.floor.drawLayer(CacheLayer.walls);
             blocks.floor.endDraw();

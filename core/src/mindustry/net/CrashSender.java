@@ -29,7 +29,6 @@ public class CrashSender{
         report += "Copy paste the report below when reporting:\n```java\n";
         return report + "Version: " + Version.combined() + (Vars.headless ? " (Server)" : "") + "\n"
             + "Source: " + settings.getString("updateurl") + "\n"
-            + "Client Build: " + Version.clientBuild + "\n"
             + "OS: " + System.getProperty("os.name") + " x" + (OS.is64Bit ? "64" : "32") + "\n"
             + "Java Version: " + System.getProperty("java.version") + "\n"
             + "Java Architecture: " + System.getProperty("sun.arch.data.model") + "\n"

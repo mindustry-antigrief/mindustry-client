@@ -35,25 +35,25 @@ public class UnitTypes implements ContentList{
     public static @EntityDef(value = {Unitc.class, Legsc.class}, legacy = true) UnitType spiroct, arkyid, toxopid;
 
     //air
-    public static @EntityDef({Unitc.class, Trailc.class}) UnitType flare, eclipse, horizon, zenith, antumbra;
+    public static @EntityDef({Unitc.class}) UnitType flare, eclipse, horizon, zenith, antumbra;
 
     //air
-    public static @EntityDef(value = {Unitc.class, Trailc.class}, legacy = true) UnitType mono;
+    public static @EntityDef(value = {Unitc.class}, legacy = true) UnitType mono;
 
     //air
-    public static @EntityDef(value = {Unitc.class, Trailc.class}, legacy = true) UnitType poly;
+    public static @EntityDef(value = {Unitc.class}, legacy = true) UnitType poly;
 
     //air + payload
-    public static @EntityDef({Unitc.class, Payloadc.class, Trailc.class}) UnitType mega;
+    public static @EntityDef({Unitc.class, Payloadc.class}) UnitType mega;
 
     //air + payload
-    public static @EntityDef(value = {Unitc.class, Payloadc.class, Trailc.class}, legacy = true) UnitType quad;
+    public static @EntityDef(value = {Unitc.class, Payloadc.class}, legacy = true) UnitType quad;
 
     //air + payload + ammo distribution
-    public static @EntityDef({Unitc.class, Payloadc.class, AmmoDistributec.class, Trailc.class}) UnitType oct;
+    public static @EntityDef({Unitc.class, Payloadc.class, AmmoDistributec.class}) UnitType oct;
 
     //air
-    public static @EntityDef(value = {Unitc.class, Trailc.class}, legacy = true) UnitType alpha, beta, gamma;
+    public static @EntityDef(value = {Unitc.class}, legacy = true) UnitType alpha, beta, gamma;
 
     //water
     public static @EntityDef({Unitc.class, WaterMovec.class}) UnitType risso, minke, bryde, sei, omura;
@@ -565,9 +565,9 @@ public class UnitTypes implements ContentList{
                     hitEffect = Fx.pulverize;
                     lifetime = 10f;
                     speed = 1f;
-                    splashDamageRadius = 70f;
+                    splashDamageRadius = 58f;
                     instantDisappear = true;
-                    splashDamage = 80f;
+                    splashDamage = 85f;
                     killShooter = true;
                     hittable = false;
                     collidesAir = true;
@@ -769,7 +769,7 @@ public class UnitTypes implements ContentList{
                     width = height = 19f;
                     collidesTiles = true;
                     ammoMultiplier = 4f;
-                    splashDamageRadius = 95f;
+                    splashDamageRadius = 80f;
                     splashDamage = 65f;
                     backColor = Pal.sapBulletBack;
                     frontColor = lightningColor = Pal.sapBullet;
@@ -867,7 +867,7 @@ public class UnitTypes implements ContentList{
                     width = height = 25f;
                     collidesTiles = collides = true;
                     ammoMultiplier = 4f;
-                    splashDamageRadius = 90f;
+                    splashDamageRadius = 80f;
                     splashDamage = 75f;
                     backColor = Pal.sapBulletBack;
                     frontColor = lightningColor = Pal.sapBullet;
@@ -888,7 +888,7 @@ public class UnitTypes implements ContentList{
                         lifetime = 90f;
                         width = height = 20f;
                         collidesTiles = false;
-                        splashDamageRadius = 80f;
+                        splashDamageRadius = 70f;
                         splashDamage = 40f;
                         backColor = Pal.sapBulletBack;
                         frontColor = lightningColor = Pal.sapBullet;
@@ -1366,8 +1366,8 @@ public class UnitTypes implements ContentList{
                     collides = false;
 
                     healPercent = 15f;
-                    splashDamage = 230f;
-                    splashDamageRadius = 120f;
+                    splashDamage = 220f;
+                    splashDamageRadius = 80f;
                 }};
             }});
         }};
@@ -1537,7 +1537,7 @@ public class UnitTypes implements ContentList{
                     width = 15f;
                     collidesTiles = false;
                     ammoMultiplier = 4f;
-                    splashDamageRadius = 60f;
+                    splashDamageRadius = 50f;
                     splashDamage = 80f;
                     backColor = Pal.missileYellowBack;
                     frontColor = Pal.missileYellow;
@@ -1590,7 +1590,7 @@ public class UnitTypes implements ContentList{
         }};
 
         sei = new UnitType("sei"){{
-            health = 10200;
+            health = 10500;
             armor = 12f;
 
             speed = 0.73f;

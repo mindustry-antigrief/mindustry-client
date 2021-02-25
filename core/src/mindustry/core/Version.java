@@ -20,25 +20,21 @@ public class Version{
     public static int revision = 0;
     /** Whether version loading is enabled. */
     public static boolean enabled = true;
-    /** Custom client build number used for auto updates */
-    public static int clientBuild = 0;
     /** Custom client update url used for... updating */
     public static String updateUrl = "";
     /** Custom client version string used for various things */
-    public static String clientVersion = "unknown";
+    public static String clientVersion = "v1.0.0, Jan. 1, 1970";
 
     public static void init(){
         if(!enabled) return;
 
         Fi file = OS.isAndroid || OS.isIos ? Core.files.internal("version.properties") : new Fi("version.properties", FileType.internal);
-        Fi version = OS.isAndroid || OS.isIos ? Core.files.internal("version") : new Fi("version", FileType.internal);
 
         ObjectMap<String, String> map = new ObjectMap<>();
         PropertiesUtils.load(map, file.reader());
 
-        clientBuild = Integer.parseInt(map.get("clientBuild"));
         updateUrl = map.get("updateUrl");
-        clientVersion = version.readString();
+        clientVersion = map.get("clientVersion");
         type = map.get("type");
         number = Integer.parseInt(map.get("number", "4"));
         modifier = map.get("modifier");
@@ -80,6 +76,6 @@ public class Version{
         if(build == -1){
             return "custom build";
         }
-        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + "\n(Client Version: " + clientVersion + " Release: " + clientBuild + ")";
+        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + "\n(Client Version: " + (clientVersion.equals("v0.0.0") ? "Dev" : clientVersion) + ")";
     }
 }

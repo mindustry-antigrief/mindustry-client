@@ -1,9 +1,10 @@
 package mindustry.client.navigation;
 
-import arc.Core;
+import arc.math.Mathf;
 import arc.math.geom.Position;
 import arc.math.geom.Vec2;
 import arc.struct.*;
+import mindustry.Vars;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
 import java.util.HashSet;
@@ -37,7 +38,7 @@ public class Navigation {
             navigateTo(targetPos);
         }
 
-        if (currentlyFollowing != null && !isPaused) {
+        if (currentlyFollowing != null && !isPaused && !Vars.state.isPaused()) {
             currentlyFollowing.follow();
             if (currentlyFollowing != null && currentlyFollowing.isDone()) {
                 stopFollowing();
@@ -81,7 +82,7 @@ public class Navigation {
     public static void navigateTo(float drawX, float drawY) {
         state = NavigationState.FOLLOWING;
         if (obstacles.isEmpty()) {
-            follow(new WaypointPath(Seq.with(new PositionWaypoint(drawX, drawY))));
+            follow(new WaypointPath(Seq.with(new PositionWaypoint(Mathf.clamp(drawX, 0, world.unitWidth()), Mathf.clamp(drawY, 0, world.unitHeight())))));
             currentlyFollowing.setShow(true);
             targetPos = new Vec2(drawX, drawY);
             return;
@@ -89,9 +90,7 @@ public class Navigation {
 
         targetPos = new Vec2(drawX, drawY);
         playerNavigator.taskQueue.post(() -> {
-            TurretPathfindingEntity[] obstacleArray = new TurretPathfindingEntity[obstacles.size()];
-            obstacles.toArray(obstacleArray);
-            Vec2[] points = navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacleArray, 2);
+            Vec2[] points = navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacles.toArray(new TurretPathfindingEntity[0]), 2);
             if (points != null) {
                 Seq<Waypoint> waypoints = new Seq<>();
                 for (Vec2 point : points) {
@@ -101,10 +100,8 @@ public class Navigation {
 
                 if (waypoints.any()) {
                     int i = 0;
-                    if (waypoints.size > 1) {
-                        do { // Remove any waypoints which backtrack at the start, this is a shitty solution to the problem but oh well.
-                            waypoints.remove(0);
-                        } while (i++ < 5 && waypoints.any() && ((PositionWaypoint) waypoints.first()).dst(new Vec2(drawX, drawY)) + tilesize > player.dst(new Vec2(drawX, drawY)));
+                    while (i++ < 5 && waypoints.size > 1 && ((PositionWaypoint) waypoints.first()).dst(new Vec2(drawX, drawY)) + tilesize/2f > player.dst(new Vec2(drawX, drawY))) { // Remove any waypoints which backtrack at the start, this is a shitty solution to the problem but oh well.
+                        waypoints.remove(0);
                     }
                     if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
                         follow(new WaypointPath(waypoints));

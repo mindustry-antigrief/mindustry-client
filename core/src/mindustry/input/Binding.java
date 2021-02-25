@@ -80,9 +80,10 @@ public enum Binding implements KeyBind{
     navigate_to_camera(KeyCode.z), // This navigates to the cursor despite the name, see bundle.properties
     stop_following_path(KeyCode.minus),
     show_turret_ranges(KeyCode.backtick),
+    hide_blocks(KeyCode.i),
+    invisible_units(KeyCode.o),
     toggle_placement_modifiers(KeyCode.shiftLeft),
     chat_autocomplete(KeyCode.tab),
-    invisible_units(KeyCode.o),
     auto_build(KeyCode.semicolon),
     auto_repair(KeyCode.l),
     toggle_strict_mode(KeyCode.f7),

@@ -81,6 +81,7 @@ public class NetClient implements ApplicationListener{
 
             ConnectPacket c = new ConnectPacket();
             c.name = player.name;
+            c.locale = Core.settings.getString("locale");
             c.mods = mods.getModStrings();
             c.mobile = mobile;
             c.versionType = Version.type;
@@ -195,8 +196,10 @@ public class NetClient implements ApplicationListener{
     }
 
     private static String processCoords(String message){
+        if (message == null) return "";
         Matcher matcher = coordPattern.matcher(message);
         if (!matcher.find()) return message;
+        Log.info(Long.parseLong(matcher.group(1)) + "   " + Long.parseLong(matcher.group(2)));
             try {Client.lastSentPos.set(Long.parseLong(matcher.group(1)), Long.parseLong(matcher.group(2)));} catch (NumberFormatException ignored) {}
             return matcher.replaceFirst("[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
     }
@@ -510,7 +513,7 @@ public class NetClient implements ApplicationListener{
             netClient.byteStream.setBytes(net.decompressSnapshot(coreData, coreDataLen));
             DataInputStream input = netClient.dataStream;
 
-            byte cores = input.readByte();
+            int cores = input.readInt();
             for(int i = 0; i < cores; i++){
                 int pos = input.readInt();
                 Tile tile = world.tile(pos);

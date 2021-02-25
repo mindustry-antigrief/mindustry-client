@@ -38,6 +38,7 @@ public class WaypointPath extends Path {
         waypoint.run();
         if (waypoint.isDone()) {
             waypoint.onFinish();
+            waypoints.remove(0);
         }
     }
 
@@ -86,6 +87,6 @@ public class WaypointPath extends Path {
 
     @Override
     public Position next() {
-        return waypoints.peek() instanceof Position ? (Position)waypoints.peek() : null; // TODO: Ask foo why this uses .peek() instead of .first();
+        return waypoints.first() instanceof Position ? (Position)waypoints.first() : null;
     }
 }

@@ -3,14 +3,10 @@ name: Release Update
 on:
   push:
     tags: v*
-  workflow_dispatch:
-
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Cancel Previous Workflows
         uses: styfle/cancel-workflow-action@0.6.0
@@ -25,21 +21,43 @@ jobs:
         with:
           java-version: 14
 
+      - name: Timestamp
+        id: time
+        uses: 1466587594/get-current-time@v2
+        with:
+          format: MMM. D, YYYY # Pulls the tag name and current date to produce clientVersion -> v1.0.0, Jan. 1, 1970
+
       - name: Build Client
-        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}
-      
+        run: |
+          echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV # The name of the tag which triggered the build
+
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV # These 3 lines are very confusing but github is weird so they are needed, gets the last entry into the changelog.
+          awk -v RS='#' 'NR==3{printf"#### "; print; printf"\n"; exit}' core/assets/changelog >> $GITHUB_ENV
+          echo EOF >> $GITHUB_ENV
+
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" --parallel # Testing and building in parallel saves a few dozen seconds.
+
+      - name: Upload Test Results To Pages
+        if: ${{ !cancelled() }}
+        uses: JamesIves/github-pages-deploy-action@4.0.0
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: tests/build/reports/tests/test
+          silent: true
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.run_number }}
-          release_name: Release ${{ github.run_number }} (${{ GITHUB.REF }})
-          body: |
-            ### Download the `desktop.jar` file, not the others
-            Foo's Client Build ${{ github.run_number }}
-            Steam installation instructions [here](../../#steam)
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ env.VERSION }} (${{ steps.time.outputs.formattedTime }})
+          body: | # The release body with the latest set of changes from the changelog
+            # Foo's Client (${{ env.VERSION }})
+            ### Steam installation instructions [here](../../#steam)
+            ## Latest Changelog (May be out of date)
+            ${{ env.CHANGELOG }}
           draft: false
           prerelease: false
 
@@ -53,39 +71,9 @@ jobs:
           asset_name: desktop.jar
           asset_content_type: application/zip
 
-
-      - name: Upload Test Results To Pages
-        if: ${{ !cancelled() }}
-        uses: JamesIves/github-pages-deploy-action@3.7.1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: tests/build/reports/tests/test
-          CLEAN: true # Automatically remove deleted files from the deploy branch
-
       - name: Upload Artifact # Only uploaded on fail to save some time
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: Zipped Jar
           path: desktop/build/libs/Mindustry.jar
-
-      - name: Steam (Redundant, kept for backwards compat.)
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: desktop/build/libs/Mindustry.jar
-          asset_name: steam.jar
-          asset_content_type: application/zip
-
-      - name: Desktop-release (Redundant, kept for backwards compat.)
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: desktop/build/libs/Mindustry.jar
-          asset_name: desktop-release.jar
-          asset_content_type: application/zip

@@ -4,13 +4,11 @@ import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
 import arc.graphics.Color;
-import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.*;
-import arc.scene.event.*;
+import arc.scene.event.Touchable;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -22,7 +20,6 @@ import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
-import mindustry.client.ui.UnitPicker;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -34,9 +31,8 @@ import mindustry.ui.*;
 import mindustry.ui.dialogs.BaseDialog;
 import mindustry.world.*;
 import mindustry.world.blocks.payloads.*;
-import java.util.concurrent.atomic.*;
+
 import static arc.Core.*;
-import static mindustry.Vars.net;
 import static mindustry.Vars.*;
 import static mindustry.input.PlaceMode.*;
 
@@ -59,7 +55,7 @@ public class DesktopInput extends InputHandler{
     public static boolean panning = false;
     /** Mouse pan speed. */
     public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 11f;
-    private long lastMineClicked = 0L;
+    private long lastMineClicked, lastShiftZ;
 
     @Override
     public void buildUI(Group group){
@@ -100,18 +96,19 @@ public class DesktopInput extends InputHandler{
         group.fill(t -> {
             t.bottom();
             t.visible(() -> {
-                t.color.a = Mathf.lerpDelta(t.color.a, player.unit().isBuilding() ? 1f : 0f, 0.15f);
+                t.color.a = Mathf.lerpDelta(t.color.a, !isBuilding && !Core.settings.getBool("buildautopause") || player.unit().isBuilding() ? 1f : 0f, 0.15f);
 
                 return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE && UnitType.alpha != 0;
             });
             t.touchable(() -> t.color.a < 0.1f ? Touchable.disabled : Touchable.childrenOnly);
             t.table(Styles.black6, b -> {
                 b.defaults().left();
-                b.label(() -> Core.bundle.format(!isBuilding ?  "resumebuilding" : "pausebuilding", Core.keybinds.get(Binding.pause_building).key.toString())).style(Styles.outlineLabel);
-                b.row();
-                b.label(() -> Core.bundle.format("cancelbuilding", Core.keybinds.get(Binding.clear_building).key.toString())).style(Styles.outlineLabel);
-                b.row();
-                b.label(() -> Core.bundle.format("selectschematic", Core.keybinds.get(Binding.schematic_select).key.toString())).style(Styles.outlineLabel);
+                b.label(() -> (!isBuilding && !Core.settings.getBool("buildautopause") && !player.unit().isBuilding() ?
+                    Core.bundle.format("enablebuilding", Core.keybinds.get(Binding.pause_building).key.toString()) :
+                    Core.bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", Core.keybinds.get(Binding.pause_building).key.toString()) +
+                    "\n" + Core.bundle.format("cancelbuilding", Core.keybinds.get(Binding.clear_building).key.toString()) +
+                    "\n" + Core.bundle.format("selectschematic", Core.keybinds.get(Binding.schematic_select).key.toString())
+                )).style(Styles.outlineLabel);
             }).margin(10f);
         });
 
@@ -258,8 +255,12 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(input.keyTap(Binding.show_turret_ranges)){
+        if(input.keyTap(Binding.show_turret_ranges) && scene.getKeyboardFocus() == null){
             Client.showingTurrets = !Client.showingTurrets;
+        }
+
+        if(input.keyTap(Binding.hide_blocks) && scene.getKeyboardFocus() == null){
+            Client.hidingBlocks = !Client.hidingBlocks;
         }
 
         if(input.keyTap(Binding.stop_following_path) && scene.getKeyboardFocus() == null){
@@ -281,11 +282,15 @@ public class DesktopInput extends InputHandler{
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
-        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null && selectRequests.isEmpty()){ // Navigates to cursor despite the bind name
-            Navigation.navigateTo(input.mouseWorld());
+        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null && (selectRequests.isEmpty() || input.shift())){ // Navigates to cursor, holding shift will nav to lastSentPos instead (if shift is held and the player is placing a schem, it will nav to camera instead, if shift isnt held it does nothing)
+            if(input.shift() && selectRequests.isEmpty()){
+                if(Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(Client.lastSentPos.cpy().scl(tilesize));
+                else Spectate.spectate(Client.lastSentPos.cpy().scl(tilesize));
+                lastShiftZ = Time.millis();
+            } else Navigation.navigateTo(input.mouseWorld());
         }
 
-        if(input.keyDown(Binding.pan) && !scene.hasField() && !scene.hasDialog()){
+        if(input.keyDown(Binding.pan) && scene.getKeyboardFocus() == null){
             panCam = true;
             panning = true;
         }
@@ -608,7 +613,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!selectRequests.isEmpty()){
-            if(Core.input.keyTap(Binding.schematic_flip_x)){
+            if(Core.input.keyTap(Binding.schematic_flip_x) && !input.shift()){ // Don't rotate when shift is held, if shift is held navigate instead.
                 flipRequests(selectRequests, true);
             }
 

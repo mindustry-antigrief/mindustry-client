@@ -144,6 +144,7 @@ public class BlockRenderer implements Disposable{
     }
 
     public void drawShadows(){
+        if (Client.hidingBlocks) return;
         if(!shadowEvents.isEmpty()){
             Draw.flush();
 
@@ -255,6 +256,7 @@ public class BlockRenderer implements Disposable{
     }
 
     public void drawBlocks(){
+        if (Client.hidingBlocks) return;
         drawDestroyed();
 
         //draw most tile stuff
@@ -306,10 +308,11 @@ public class BlockRenderer implements Disposable{
         }
 
         if (Client.showingTurrets) {
+            Draw.z(Layer.space);
             Rect bounds = new Rect();
             Core.camera.bounds(bounds);
             obstacles.forEach(t -> {
-                if (!bounds.overlaps(t.x-t.radius/2, t.y-t.radius/2, t.radius, t.radius)) return;
+                if (!((settings.getBool("unitranges") || t.turret) && bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius*2, t.radius*2))) return;
                 if (t.canHitPlayer) {
                     Drawf.circles(t.x, t.y, t.radius, t.team.color);
                 } else {

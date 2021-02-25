@@ -31,10 +31,10 @@ allprojects{
 
     ext{
         versionNumber = '6'
-        if(!project.hasProperty("clientBuild")) clientBuild = '0'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'release'
-        if(!project.hasProperty("buildversion")) buildversion = '124.0'
+        if(!project.hasProperty("buildversion")) buildversion = '125'
+        if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '891ed912791e01fe9ee6237a6497e5212b85c256'
@@ -143,8 +143,8 @@ allprojects{
                 println("Compiling with build: '$buildid'")
                 if (localArc()) println("Compiling with localArc")
 
-                props["clientBuild"] = clientBuild
                 props["updateUrl"] = updateUrl
+                props["clientVersion"] = clientVersion
                 props["type"] = versionType
                 props["number"] = versionNumber
                 props["modifier"] = versionModifier
@@ -324,6 +324,15 @@ project(":core"){
             def changelogs = file("../fastlane/metadata/android/en-US/changelogs/")
             new File(changelogs, androidVersion + ".txt").text = (result)
         }
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes){
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+    
+    artifacts{
+        archives sourcesJar
     }
 
     dependencies{

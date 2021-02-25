@@ -124,7 +124,6 @@ abstract class MinerComp implements Itemsc, Posc, Teamc, Rotc, Drawc{
 
         if(isLocal()){
             Lines.stroke(1f, Pal.accent);
-            Draw.alpha(UnitType.alpha);
             Lines.poly(mineTile.worldx(), mineTile.worldy(), 4, tilesize / 2f * Mathf.sqrt2, Time.time);
         }
 

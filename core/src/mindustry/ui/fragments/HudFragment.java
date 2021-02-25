@@ -16,6 +16,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.Client;
+import mindustry.client.Spectate;
 import mindustry.client.ui.TileInfoFragment;
 import mindustry.client.ui.Toast;
 import mindustry.content.*;
@@ -311,7 +312,6 @@ public class HudFragment extends Fragment{
         //'core is under attack' table
         parent.fill(t -> {
             t.name = "coreattack";
-            t.touchable = Touchable.disabled;
             float notifDuration = 240f;
             float[] coreAttackTime = {0};
             float[] coreAttackOpacity = {0};
@@ -328,7 +328,7 @@ public class HudFragment extends Fragment{
                coreAttackTime[0] = notifDuration;
             });
 
-            Events.run(Trigger.teamCoreDamage, () -> coreAttackTime[0] = notifDuration); // Legacy code kept in case anuke breaks it
+            Events.run(Trigger.teamCoreDamage, () -> coreAttackTime[0] = notifDuration); // Legacy event kept in case anuke does something with it
 
             t.top().visible(() -> {
                 if(!shown) return false;
@@ -348,8 +348,8 @@ public class HudFragment extends Fragment{
 
                 return coreAttackOpacity[0] > 0.01f;
             });
-            t.table(Tex.button, top -> top.add("@coreattack").pad(2)
-            .update(label -> label.color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f)))).touchable(Touchable.disabled);
+            t.button("@coreattack", () -> Spectate.spectate(Client.lastSentPos.cpy().scl(tilesize))).pad(2)
+            .update(label -> label.getLabel().color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f))).get().getLabel().setWrap(false);
         });
 
         //'saving' indicator
@@ -670,20 +670,11 @@ public class HudFragment extends Fragment{
 
                 if(Float.isNaN(value) || Float.isInfinite(value)) value = 1f;
 
-                drawInner(Pal.darkishGray);
-
-                Draw.beginStencil();
-
-                Fill.crect(x, y, width, height * value);
-
-                Draw.beginStenciled();
-
-                drawInner(Tmp.c1.set(color).lerp(Color.white, blink));
-
-                Draw.endStencil();
+                drawInner(Pal.darkishGray, 1f);
+                drawInner(Tmp.c1.set(color).lerp(Color.white, blink), value);
             }
 
-            void drawInner(Color color){
+            void drawInner(Color color, float fract){
                 if(flip){
                     x += width;
                     width = -width;
@@ -693,19 +684,26 @@ public class HudFragment extends Fragment{
                 float bh = height/2f;
                 Draw.color(color);
 
+                float f1 = Math.min(fract * 2f, 1f), f2 = (fract - 0.5f) * 2f;
+
+                float bo = -(1f - f1) * (width - stroke);
+
                 Fill.quad(
                 x, y,
                 x + stroke, y,
-                x + width, y + bh,
-                x + width - stroke, y + bh
+                x + width + bo, y + bh * f1,
+                x + width - stroke + bo, y + bh * f1
                 );
 
-                Fill.quad(
-                x + width, y + bh,
-                x + width - stroke, y + bh,
-                x, y + height,
-                x + stroke, y + height
-                );
+                if(f2 > 0){
+                    float bx = x + (width - stroke) * (1f - f2);
+                    Fill.quad(
+                    x + width, y + bh,
+                    x + width - stroke, y + bh,
+                    bx, y + height * fract,
+                    bx + stroke, y + height * fract
+                    );
+                }
 
                 Draw.reset();
 

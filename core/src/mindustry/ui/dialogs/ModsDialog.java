@@ -38,7 +38,7 @@ public class ModsDialog extends BaseDialog{
 
     private String searchtxt = "";
     private @Nullable Seq<ModListing> modList;
-    private boolean orderDate = true;
+    private boolean orderDate = false;
     private BaseDialog currentContent;
 
     private BaseDialog browser;
@@ -77,7 +77,6 @@ public class ModsDialog extends BaseDialog{
         browser.cont.pane(tablebrow -> {
             tablebrow.margin(10f).top();
             browserTable = tablebrow;
-            rebuildBrowser();
         }).get().setScrollingDisabled(true, false);
         browser.addCloseButton();
 
@@ -155,7 +154,7 @@ public class ModsDialog extends BaseDialog{
 
                     }
                 });
-            }, error -> Core.app.post(() -> ui.showException(error)));
+            }, error -> Core.app.post(() -> modError(error)));
         }else{
             listener.get(modList);
         }
@@ -267,7 +266,7 @@ public class ModsDialog extends BaseDialog{
                             title.table(text -> {
                                 boolean hideDisabled = !mod.isSupported() || mod.hasUnmetDependencies() || mod.hasContentErrors();
 
-                                text.add("" + Strings.stripColors(mod.meta.displayName()) + "\n[lightgray]v" + Strings.stripColors(trimText(mod.meta.version)) + (mod.enabled() || hideDisabled ? "" : "\n" + Core.bundle.get("mod.disabled") + ""))
+                                text.add("[accent]" + Strings.stripColors(mod.meta.displayName()) + "\n[lightgray]v" + Strings.stripColors(trimText(mod.meta.version)) + (mod.enabled() || hideDisabled ? "" : "\n" + Core.bundle.get("mod.disabled") + ""))
                                     .wrap().top().width(300f).growX().left();
 
                                 text.row();
@@ -385,7 +384,7 @@ public class ModsDialog extends BaseDialog{
 
                         }).tooltip(c.localizedName);
 
-                        if(++i % Math.min(Core.graphics.getWidth() / Scl.scl(70), 14) == 0) cs.row();
+                        if(++i % Math.min(Core.graphics.getWidth() / Scl.scl(110), 14) == 0) cs.row();
                     }
                 }).grow();
                 d.addCloseButton();
@@ -508,6 +507,7 @@ public class ModsDialog extends BaseDialog{
     }
 
     private String trimText(String text){
+        if(text == null) return "";
         if(text.contains("\n")){
             return text.substring(0, text.indexOf("\n"));
         }

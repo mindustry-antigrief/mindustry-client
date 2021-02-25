@@ -94,7 +94,7 @@ public class ConstructBlock extends Block{
 
     /** Send a warning in chat when these blocks are broken/picked up/built over as they typically shouldn't be touched. */
     public static void breakWarning(Tile tile, Block block, Unit builder){
-        if (!Core.settings.getBool("breakwarnings") || state.rules.infiniteResources || builder == null || !builder.isPlayer()) return; // Don't warn in sandbox for obvious reasons.
+        if (!Core.settings.getBool("breakwarnings") || !tile.isCenter() || state.rules.infiniteResources || builder == null || !builder.isPlayer()) return; // Don't warn in sandbox for obvious reasons.
 
         Seq<Block> warnBlocks = new Seq<>(new Block[]{Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid}); // All blocks that shouldn't be broken. Note: Untested with multiblocks, likely to behave in a strange manner.
 
@@ -524,7 +524,7 @@ public class ConstructBlock extends Block{
                     toast.add(new Label(format2, monoLabel));
                 }
 
-                if (lastProgress == 0 && cblock instanceof NuclearReactor && distance.intValue() < 10 && Core.settings.getBool("removecorenukes")) { // Automatically remove reactors within 10 blocks of core
+                if (lastProgress == 0 && cblock instanceof NuclearReactor && distance.intValue() < 20 && Core.settings.getBool("removecorenukes")) { // Automatically remove reactors within 20 blocks of core
                     CoreBlock.findBestCore = false;
                     Call.unitControl(player, ((CoreBuild)closestCore()).unit());
                     Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tileX(), tileY())), net.client() ? netClient.getPing()/1000f+.3f : 0);

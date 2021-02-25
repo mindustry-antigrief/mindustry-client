@@ -161,7 +161,7 @@ public class Turret extends ReloadTurret{
             unit = (BlockUnitc)UnitTypes.block.create(team);
             unit.tile(this);
 
-            pathfindingEntity = new TurretPathfindingEntity(x, y, range, false, team);
+            pathfindingEntity = new TurretPathfindingEntity(x, y, range, false, true);
         }
 
         @Override

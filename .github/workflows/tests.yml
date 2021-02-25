@@ -2,28 +2,30 @@ name: Java Tests # Tests and pushes to unstable
 
 on: 
   push:
-    branches: "**"
+    branches: "**" # Doesn't run for tags
   workflow_dispatch:
 
-
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
-        with: 
-          persist-credentials: false
 
       - name: Set up JDK 14
         uses: actions/setup-java@v1
         with:
           java-version: 14
 
+      - name: Timestamp
+        id: time
+        uses: 1466587594/get-current-time@v2
+        with:
+          format: ${[GITHUB_RUN_NUMBER]}, MMM. D, YYYY [Unstable] # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
+
       - name: Run Tests
-        run: ./gradlew test desktop:dist -PclientBuild=${{ github.run_number }} -PupdateUrl=${{ github.repository }}-builds
+        run: ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
 
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/custom-client' }}
@@ -33,14 +35,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           body: |
-            Foo's Client Unstable ${{ github.run_number }}
+            Foo's Client Unstable (${{ github.run_number }})
             Steam installation instructions [here](../../../mindustry-client-v6#steam)
             **Commit Message:**
             *${{ github.event.head_commit.message }}*
           commitish: main
           tag_name: ${{ github.run_number }}
           release_name: Unstable ${{ github.run_number }}
-          repo: mindustry-client-v6-builds
+          repo: ${{ github.event.repository.name }}-builds
           draft: false
           prerelease: false
 
@@ -57,10 +59,11 @@ jobs:
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/custom-client' }}
-        uses: JamesIves/github-pages-deploy-action@3.7.1
+        uses: JamesIves/github-pages-deploy-action@4.0.0
         with:
-          ACCESS_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          REPOSITORY_NAME: ${{ github.repository }}-builds
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: tests/build/reports/tests/test
-          CLEAN: true # Automatically remove deleted files from the deploy branch
+          token: ${{ secrets.RELEASE_TOKEN }}
+          repository-name: ${{ github.repository }}-builds
+          branch: gh-pages # The branch the action should deploy to.
+          folder: tests/build/reports/tests/test
+          silent: true
+          single-commit: true

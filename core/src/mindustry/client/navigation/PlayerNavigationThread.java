@@ -5,6 +5,8 @@ import arc.util.TaskQueue;
 import arc.util.async.Threads;
 import mindustry.game.EventType;
 
+import static mindustry.Vars.state;
+
 public class PlayerNavigationThread implements Runnable {
     private Thread thread = null;
     public TaskQueue taskQueue = new TaskQueue();
@@ -36,7 +38,7 @@ public class PlayerNavigationThread implements Runnable {
     public void run() {
         while (true) {
             try {
-                taskQueue.run();
+                if(state != null && state.isPlaying() && Navigation.state == NavigationState.FOLLOWING) taskQueue.run();
             } catch (Exception e) {
                 e.printStackTrace();
             }
