@@ -19,6 +19,9 @@ public class MessageCryptographyTests {
         Crypto.INSTANCE.init();
         client1.init(new DummyCommunicationSystem());
         client2.init(new DummyCommunicationSystem());
+
+        client1.setKeys(new DummyKeyList());
+        client2.setKeys(new DummyKeyList());
     }
 
     /** Tests that signing messages works. */
@@ -26,6 +29,12 @@ public class MessageCryptographyTests {
     void testSending() {
         KeyQuad client1pair = Crypto.INSTANCE.generateKeyQuad();
         KeyQuad client2pair = Crypto.INSTANCE.generateKeyQuad();
+
+        KeyHolder client1holder = new KeyHolder(client1pair.publicPair(), "client1", false);
+        KeyHolder client2holder = new KeyHolder(client2pair.publicPair(), "client2", false);
+
+        client1.getKeys().add(client2holder);
+        client2.getKeys().add(client1holder);
 
         client1.communicationSystem.getListeners().add(
                 (inp, id) -> {
@@ -63,5 +72,11 @@ public class MessageCryptographyTests {
         message = "oh no";
         client2.sign(message, client1pair);  // invalid, using wrong key to sign
         Assertions.assertFalse(valid.get());
+
+        message = "hello world";
+        client1.encrypt(message, client2holder);
+
+        message = "testing";
+        client2.encrypt(message, client1holder);
     }
 }

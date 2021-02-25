@@ -1,76 +1,62 @@
 package com.github.blahblahbloopster.ui
 
 import arc.Core
+import arc.scene.ui.TextField
+import arc.scene.ui.layout.Table
 import com.github.blahblahbloopster.Main
-import com.github.blahblahbloopster.crypto.KeyFolder
+import com.github.blahblahbloopster.crypto.KeyHolder
 import com.github.blahblahbloopster.crypto.MessageCrypto
 import mindustry.Vars
-import mindustry.client.Client
 import mindustry.gen.Icon
 import mindustry.ui.dialogs.BaseDialog
 
-class KeyShareDialog : BaseDialog("Key Share") {
+class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share") {
+    private val keys = Table()
 
     init {
         build()
     }
 
     private fun build() {
-        cont.labelWrap("To exchange keys with someone, export your key and have them import it, and vise versa.")  // todo: in game chat warning
-        cont.row()
-        cont.labelWrap("Note: While it is okay to share keys over a publicly-visible medium, DO NOT share keys in-game." +
-                "  It can lead to security problems.")
-        cont.row()
-        cont.labelWrap("After exchanging keys, you will be able to securely chat with the person using the !e <name> [message...] command," +
-                "and your regular messages will be verified for people with your key.")
-        cont.row()
-        cont.button("Import Key") {
-            KeyImportDialog().show()
-        }
-        cont.row()
-        cont.button("Export Key") {
-            Main.messageCrypto.keyQuad ?: run {
-                Client.mapping.generateKey()
-            }
-            Core.app.clipboardText = Main.messageCrypto.base64public() ?: ""
-            Vars.ui.announce("Copied key to clipboard.\nHave the other person import it.")
-        }
-    }
-
-    private class KeyImportDialog : BaseDialog("Key Import") {
-
-        init {
-            build()
+        clear()
+        for (key in messageCrypto.keys) {
+            val table = Table()
+            table.label(key.name).left()
+            table.button(Icon.cancel) {
+                messageCrypto.keys.remove(key)
+            }.right()
+            keys.row(table)
         }
 
-        private fun build() {
-            KeyFolder.folder ?: run {hide(); return}
-            val fldr = KeyFolder.folder!!
-            cont.label("Imports someone else's key.  You can then receive verified messages from them," +
-                    " and if they have your key you can chat with encryption.")
-            cont.row()
-            val name = cont.field("Easy-to-type name (no spaces)") {}.get()
-            name.setValidator {
-                it.length in 1..20 && !it.contains(" ")
-            }
+        pane {
+            it.add(keys)
+        }
 
-            cont.row()
-            val keyInput = cont.field("Key (from the other person's \"export key\")") {}.get()
-            cont.row()
-            button(Icon.ok) {
-                if (name.isValid) {
-                    try {
-                        MessageCrypto.base64public(name.text) ?: return@button
-                        fldr.child("${name.text}.txt").writeString(keyInput.text)
-                        hide()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+        button("Import Key") {
+            Vars.ui.dialog("Import Key") {
+                val nameInput = TextField("Name")
+                nameInput.maxLength = 30
+                row(nameInput)
+
+                val keyInput = TextField("Key")
+                row(keyInput)
+
+                button("Import") button2@{
+                    val key = MessageCrypto.base64public(keyInput.text) ?: return@button2
+                    val name = nameInput.text
+                    if (name.length !in 2..30 || name in messageCrypto.keys.map { it.name }) return@button2
+
+                    messageCrypto.keys.add(KeyHolder(key, name))
+                    hide()
                 }
-            }
-            button("close") {
-                hide()
-            }
+                addCloseButton()
+            }.show()
         }
+
+        button("Export Key") {
+            Core.app.clipboardText = Main.messageCrypto.base64public()
+            Vars.ui.showInfoFade("@copied")
+        }
+        addCloseButton()
     }
 }

@@ -47,6 +47,8 @@ class KeyQuad {
         edPublicKey = EdPublicKey(buff.bytes(EdPublicKey.KEY_SIZE), 0)
     }
 
+    fun publicPair() = PublicKeyPair(xPublicKey, edPublicKey)
+
     fun serialize(): ByteArray {
         return xPrivateKey.encoded.plus(xPublicKey.encoded).plus(edPrivateKey.encoded).plus(edPublicKey.encoded)
     }

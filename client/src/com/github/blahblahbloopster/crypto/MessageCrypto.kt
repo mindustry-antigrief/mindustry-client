@@ -6,12 +6,17 @@ import arc.graphics.Color
 import arc.util.Log
 import arc.util.Time
 import arc.util.serialization.Base64Coder
+import com.github.blahblahbloopster.ui.age
+import com.github.blahblahbloopster.ui.remainingBytes
+import com.github.blahblahbloopster.ui.toInstant
 import mindustry.Vars
 import mindustry.game.EventType
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import java.nio.ByteBuffer
+import java.time.Duration
 import java.time.Instant
+import java.time.temporal.Temporal
 import java.util.zip.DeflaterInputStream
 import kotlin.math.abs
 
@@ -22,6 +27,7 @@ class MessageCrypto {
 
     var player = PlayerTriple(0, 0, "")  // Maps player ID to last sent message
     var received = ReceivedTriple(0, 0, byteArrayOf()) // Maps player ID to last sent message
+    var keys: KeyList = KeyFolder
 
     companion object {
         private const val ENCRYPTION_VALIDITY = 0b10101010.toByte()
@@ -62,10 +68,6 @@ class MessageCrypto {
             player = PlayerTriple((event.player ?: return@on).id, Instant.now().epochSecond, event.message)
             check(player, received)
         }
-        communicationSystem.listeners.add { input, sender ->
-            received = ReceivedTriple(sender, Instant.now().epochSecond, input)
-            check(player, received)
-        }
     }
 
     fun base64public(): String? {
@@ -85,7 +87,7 @@ class MessageCrypto {
             return
         }
 
-        for (key in KeyFolder.keys) {
+        for (key in keys) {
             val match = verify(player.message, player.id, received.signature, key.keys)
             if (match) {
                 val message = Vars.ui.chatfrag.messages.find { it.message.contains(player.message) } ?: break
@@ -129,6 +131,7 @@ class MessageCrypto {
         plaintext.putLong(time)
         plaintext.putInt(id)
         plaintext.put(ENCRYPTION_VALIDITY)
+        plaintext.put(encoded)
         val ciphertext = destination.crypto?.encrypt(plaintext.array()) ?: return
         val toSend = ByteBuffer.allocate(ciphertext.size + Int.SIZE_BYTES + Long.SIZE_BYTES + Int.SIZE_BYTES)
         toSend.putInt(1)  // Encrypted messages are type 1
@@ -138,11 +141,38 @@ class MessageCrypto {
         communicationSystem.send(toSend.array())
     }
 
-    fun handle(input: ByteArray) {
+    fun handle(input: ByteArray, sender: Int) {
         val buf = ByteBuffer.wrap(input)
         val type = buf.int
         val time = buf.long
         val id = buf.int
+        val content = buf.remainingBytes()
+
+        when (type) {
+            0 -> {
+                received = ReceivedTriple(sender, Instant.now().epochSecond, content)
+                check(player, received)
+            }
+            1 -> {
+                for (key in keys) {
+                    val crypto = key.crypto ?: continue
+                    val decoded = crypto.decrypt(content)
+                    val buffer = ByteBuffer.wrap(decoded)
+                    val timeSent = buffer.long
+                    val senderId = buffer.int
+                    val validity = buffer.get()
+                    val plaintext = buffer.remainingBytes()
+
+                    if (validity != ENCRYPTION_VALIDITY) continue
+
+                    if (timeSent.toInstant().age() > 3 || time.toInstant().age() > 3) return
+
+                    if (senderId != sender) return
+
+                    println(plaintext.decodeToString())
+                }
+            }
+        }
     }
 
     /** Verifies an incoming message. */
