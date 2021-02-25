@@ -56,7 +56,11 @@ public class DesktopInput extends InputHandler{
     public static boolean panning = false;
     /** Mouse pan speed. */
     public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 11f;
-    private long lastMineClicked, lastShiftZ;
+    /** Delta time between consecutive clicks. */
+    public long selectMillis = 0;
+    /** Previously selected tile. */
+    public Tile prevSelected;
+    private long lastShiftZ;
 
     @Override
     public void buildUI(Group group){
@@ -673,15 +677,19 @@ public class DesktopInput extends InputHandler{
                 sreq = req;
             }else if(req != null && req.breaking){
                 deleting = true;
+            }else if(Core.settings.getBool("doubletapmine") && selected == prevSelected && Time.timeSinceMillis(selectMillis) < 500){
+                tryBeginMine(selected);
             }else if(selected != null){
                 //only begin shooting if there's no cursor event
-                if(!tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !tileTapped(selected.build) && !player.unit().activelyBuilding() && !droppingItem && !((!settings.getBool("doubleclicktomine") || Time.timeSinceMillis(lastMineClicked) < 400) && tryBeginMine(selected)) && player.unit().mineTile == null && !Core.scene.hasKeyboard()){
+                if(!tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !tileTapped(selected.build) && !player.unit().activelyBuilding() && !droppingItem
+                        && (Core.settings.getBool("doubletapmine") ? !tryStopMine(selected) : !tryBeginMine(selected)) && !Core.scene.hasKeyboard()){
                     player.shooting = shouldShoot;
                 }
-                if (canMine(selected)) lastMineClicked = Time.millis();
             }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine
                 player.shooting = shouldShoot;
             }
+            selectMillis = Time.millis();
+            prevSelected = selected;
         }else if(Core.input.keyTap(Binding.deselect) && isPlacing()){
             block = null;
             mode = none;

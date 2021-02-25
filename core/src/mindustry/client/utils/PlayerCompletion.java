@@ -38,8 +38,8 @@ public class PlayerCompletion implements Autocompleter {
         private final String matchName;
 
         public PlayerMatcher(Player player) {
-            name = "[#" + player.color().toString().toUpperCase() + "]" + player.name;
-            matchName = Strings.stripColors(name.replaceAll("\\s", ""));
+            name = Strings.stripColors(player.name);
+            matchName = Strings.stripGlyphs(player.name.replaceAll("\\s", "")); // Strip glyphs cause they are annoying to type
         }
 
         @Override
