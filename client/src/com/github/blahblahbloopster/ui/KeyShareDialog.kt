@@ -17,16 +17,26 @@ class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share")
         build()
     }
 
-    private fun build() {
-        clear()
+    private fun regenerate() {
+        keys.clear()
         for (key in messageCrypto.keys) {
             val table = Table()
             table.label(key.name).left()
             table.button(Icon.cancel) {
                 messageCrypto.keys.remove(key)
+                regenerate()
             }.right()
             keys.row(table)
         }
+    }
+
+    private fun build() {
+        clear()
+
+        labelWrap("To exchange keys have both people import each other's key.  Do not do this in in-game chat, " +
+                "because it can be altered by servers, introducing security problems.")
+
+        regenerate()
 
         pane {
             it.add(keys)
@@ -49,6 +59,7 @@ class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share")
                     if (name.length !in 2..30 || name in messageCrypto.keys.map { it.name }) return@button2
 
                     messageCrypto.keys.add(KeyHolder(key, name, false, messageCrypto))
+                    regenerate()
                     hide()
                 }
                 row()

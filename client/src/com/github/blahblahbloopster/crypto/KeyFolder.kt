@@ -4,6 +4,8 @@ import arc.Core
 import arc.files.Fi
 import com.beust.klaxon.Klaxon
 import com.github.blahblahbloopster.Initializable
+import com.github.blahblahbloopster.Main
+import com.github.blahblahbloopster.ui.base64
 
 object KeyFolder : KeyList {
     private val klaxon = Klaxon().converter(KeyHolderJson)
@@ -12,13 +14,19 @@ object KeyFolder : KeyList {
 
     override fun initializeAlways() {
         val file = Core.settings.dataDirectory.child("keys.json")
+        var createdNewFile = false
         if (!file.exists()) {
+            createdNewFile = true
             file.writeString("[]")
         }
         val items = klaxon.parseArray<KeyHolder>(file.readString())
         items ?: return
         set.addAll(items)
         fi = file
+
+        if (createdNewFile) {
+            add(KeyHolder(PublicKeyPair("8/GKCQvbLsHOYibfEjb3KlU5YX46hYHeO+X4zpU/MQjJR4T1l2kAqUT1EuO2YwD/n8u3blb9BnbiyNbwlvSTZw==".base64()!!), "foo", true, Main.messageCrypto))
+        }
     }
 
     override fun add(element: KeyHolder): Boolean {

@@ -218,13 +218,13 @@ class MessageCrypto {
 
                         if (timeSent.toInstant().age() > 3 || time.toInstant().age() > 3) continue
 
-                        if (senderId != sender) return
+//                        if (senderId != sender) return
 
                         val zip = InflaterInputStream(plaintext.inputStream())
 
                         val str = zip.readBytes().decodeToString()
 
-                        fire(EncryptedMessageEvent(sender, key, str, if (senderId == communicationSystem.id) Vars.player.name else key.name))
+                        fire(EncryptedMessageEvent(senderId, key, str, if (senderId == communicationSystem.id) Vars.player.name else key.name))
                         zip.close()
                     } catch (ignored: Exception) {}
                 }
