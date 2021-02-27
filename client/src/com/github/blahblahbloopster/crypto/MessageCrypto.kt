@@ -190,44 +190,54 @@ class MessageCrypto {
     }
 
     private fun handle(input: ByteArray, sender: Int) {
-        val buf = ByteBuffer.wrap(input)
-        val type = buf.int
-        val time = buf.long
-        val id = buf.int
-        val content = buf.remainingBytes()
+        try {
+            val buf = ByteBuffer.wrap(input)
+            val type = buf.int
+            val time = buf.long
+            val id = buf.int
+            val content = buf.remainingBytes()
 
-        when (type) {
-            0 -> {
-                received = ReceivedTriple(sender, time, content)
-                check(player, received)
-            }
-            1 -> {
-                for (key in keys) {
-                    val crypto = key.crypto ?: continue
-                    try {
-                        val decoded = crypto.decrypt(content)
-                        val buffer = ByteBuffer.wrap(decoded)
-                        val timeSent = buffer.long
-                        val senderId = buffer.int
-                        val validity = buffer.get()
-                        val plaintext = buffer.remainingBytes()
+            when (type) {
+                0 -> {
+                    received = ReceivedTriple(sender, time, content)
+                    check(player, received)
+                }
+                1 -> {
+                    for (key in keys) {
+                        val crypto = key.crypto ?: continue
+                        try {
+                            val decoded = crypto.decrypt(content)
+                            val buffer = ByteBuffer.wrap(decoded)
+                            val timeSent = buffer.long
+                            val senderId = buffer.int
+                            val validity = buffer.get()
+                            val plaintext = buffer.remainingBytes()
 
-                        if (validity != ENCRYPTION_VALIDITY) continue
+                            if (validity != ENCRYPTION_VALIDITY) continue
 
-                        if (timeSent.toInstant().age() > 3 || time.toInstant().age() > 3) continue
+                            if (timeSent.toInstant().age() > 3 || time.toInstant().age() > 3) continue
 
 //                        if (senderId != sender) return
 
-                        val zip = InflaterInputStream(plaintext.inputStream())
+                            val zip = InflaterInputStream(plaintext.inputStream())
 
-                        val str = zip.readBytes().decodeToString()
+                            val str = zip.readBytes().decodeToString()
 
-                        fire(EncryptedMessageEvent(senderId, key, str, if (senderId == communicationSystem.id) Vars.player.name else key.name))
-                        zip.close()
-                    } catch (ignored: Exception) {}
+                            fire(
+                                EncryptedMessageEvent(
+                                    senderId,
+                                    key,
+                                    str,
+                                    if (senderId == communicationSystem.id) Vars.player.name else key.name
+                                )
+                            )
+                            zip.close()
+                        } catch (ignored: Exception) {
+                        }
+                    }
                 }
             }
-        }
+        } catch (e: Exception) {}
     }
 
     /** Verifies an incoming message. */
