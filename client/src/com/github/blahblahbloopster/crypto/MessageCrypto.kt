@@ -84,28 +84,26 @@ class MessageCrypto {
                 Log.info("Loaded keypair")
             } catch (ignored: Exception) {}
 
-            Events.on(EventType.SendChatMessageEvent::class.java) { event ->
-                sign(event.message, keyQuad ?: return@on)
-                Time.run(0.05f) {
-                    val message = Vars.ui.chatfrag.messages.find { it.message.contains(player.message) } ?: return@run
-                    message.backgroundColor = Color.green.cpy().mul(0.4f)
-                }
-            }
+//            Events.on(EventType.SendChatMessageEvent::class.java) { event ->
+//                sign(event.message, keyQuad ?: return@on)
+//                Core.app.post {
+//                    Core.app.post inner@{
+//                        val message = Vars.ui.chatfrag.messages.find { it.message.contains(player.message) } ?: return@inner
+//                        message.backgroundColor = Color.green.cpy().mul(0.4f)
+//                    }
+//                }
+//            }
         }
 
         if (Core.app?.isDesktop == true) {
             listeners.add {
-                Core.app.post {
-                    Core.app.post inner@{
-                        if (it is SignatureEvent && it.valid && it.message != null) {
-                            val message = Vars.ui?.chatfrag?.messages?.find { msg -> msg.message.contains(it.message) }
-                            message?.backgroundColor = Color.green.cpy().mul(if (it.senderKey?.official == true) 0.75f else 0.4f)
-                            message?.verifiedSender = it.senderKey?.name ?: return@inner
-                            message?.format()
-                        } else if (it is EncryptedMessageEvent && it.message != null) {
-                            Vars.ui?.chatfrag?.addMessage(it.message, it.senderName, Color.blue.cpy().mul(if (it.senderKey.official) 1f else 0.5f))
-                        }
-                    }
+                if (it is SignatureEvent && it.valid && it.message != null) {
+                    val message = Vars.ui?.chatfrag?.messages?.find { msg -> msg.message.contains(it.message) }
+                    message?.backgroundColor = Color.green.cpy().mul(if (it.senderKey?.official == true) 0.75f else 0.4f)
+                    message?.verifiedSender = it.senderKey?.name ?: return@add
+                    message?.format()
+                } else if (it is EncryptedMessageEvent && it.message != null) {
+                    Vars.ui?.chatfrag?.addMessage(it.message, it.senderName, Color.blue.cpy().mul(if (it.senderKey.official) 1f else 0.5f))
                 }
             }
         }
