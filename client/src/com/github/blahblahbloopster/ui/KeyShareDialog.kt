@@ -46,7 +46,7 @@ class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share")
                     val name = nameInput.text
                     if (name.length !in 2..30 || name in messageCrypto.keys.map { it.name }) return@button2
 
-                    messageCrypto.keys.add(KeyHolder(key, name))
+                    messageCrypto.keys.add(KeyHolder(key, name, false, messageCrypto))
                     hide()
                 }
                 addCloseButton()

@@ -28,9 +28,22 @@ class MessageCrypto {
     var player = PlayerTriple(0, 0, "")  // Maps player ID to last sent message
     var received = ReceivedTriple(0, 0, byteArrayOf()) // Maps player ID to last sent message
     var keys: KeyList = KeyFolder
+    val listeners = mutableListOf<(MessageCryptoEvent) -> Unit>()
+
+    fun fire(event: MessageCryptoEvent) {
+        listeners.forEach {
+            it(event)
+        }
+    }
 
     companion object {
         private const val ENCRYPTION_VALIDITY = 0b10101010.toByte()
+
+        open class MessageCryptoEvent
+
+        class SignatureEvent(val sender: Int, val senderKey: KeyHolder?, val message: String?, val valid: Boolean) : MessageCryptoEvent()
+
+        class EncryptedMessageEvent(val sender: Int, val senderCryptoClient: CryptoClient?, val message: String?) : MessageCryptoEvent()
 
         fun base64public(input: String): PublicKeyPair? {
             return try {
@@ -48,8 +61,9 @@ class MessageCrypto {
 
     fun init(communicationSystem: CommunicationSystem) {
         this.communicationSystem = communicationSystem
+        communicationSystem.addListener(::handle)
 
-        if (Core.settings.dataDirectory.child("key.txt").exists()) {
+        if (Core.settings?.dataDirectory?.child("key.txt")?.exists() == true) {  // Protects against nullability
             try {
                 keyQuad = KeyQuad(Base64Coder.decode(Core.settings.dataDirectory.child("key.txt").readString()))
                 Log.info("Loaded keypair")
@@ -60,6 +74,17 @@ class MessageCrypto {
                 Time.run(0.05f) {
                     val message = Vars.ui.chatfrag.messages.find { it.message.contains(player.message) } ?: return@run
                     message.backgroundColor = Color.green.cpy().mul(0.4f)
+                }
+            }
+        }
+
+        if (Core.app?.isDesktop == true) {
+            listeners.add {
+                if (it is SignatureEvent && it.valid && it.message != null) {
+                    val message = Vars.ui?.chatfrag?.messages?.find { msg -> msg.message.contains(it.message) }
+                    message?.backgroundColor = Color.green.cpy().mul(if (it.senderKey?.official == true) 0.75f else 0.4f)
+                    message?.verifiedSender = it.senderKey?.name ?: return@add
+                    message?.format()
                 }
             }
         }
@@ -76,27 +101,31 @@ class MessageCrypto {
 
     /** Checks the validity of a message given two triples, see above. */
     private fun check(player: PlayerTriple, received: ReceivedTriple) {
+        fun event(sender: Int = 0, keyHolder: KeyHolder? = null, message: String? = null, valid: Boolean = false, official: Boolean = false) {
+            fire(SignatureEvent(sender, keyHolder, message, valid))
+        }
+
         if (player.id == 0 || player.time == 0L || player.message == "") return
         if (received.id == 0 || received.time == 0L || received.signature.isEmpty()) return
         val time = Instant.now().epochSecond
         if (abs(player.time - time) > 3 || abs(received.time - time) > 3) {
+            event(player.id, message = player.message)
             return
         }
 
         if (player.id != received.id) {
+            event(message = player.message)
             return
         }
 
         for (key in keys) {
-            val match = verify(player.message, player.id, received.signature, key.keys)
+            val match = verify(player.message, received.id, received.signature, key.keys, received.time)
             if (match) {
-                val message = Vars.ui.chatfrag.messages.find { it.message.contains(player.message) } ?: break
-                message.backgroundColor = Color.green.cpy().mul(if (key.official) 0.75f else 0.4f)
-                message.verifiedSender = key.name
-                message.format()
-                break
+                event(player.id, key, player.message, true, key.official)
+                return
             }
         }
+        event()
     }
 
     /**
@@ -150,7 +179,7 @@ class MessageCrypto {
 
         when (type) {
             0 -> {
-                received = ReceivedTriple(sender, Instant.now().epochSecond, content)
+                received = ReceivedTriple(sender, time, content)
                 check(player, received)
             }
             1 -> {
@@ -176,25 +205,18 @@ class MessageCrypto {
     }
 
     /** Verifies an incoming message. */
-    fun verify(message: String, sender: Int, signature: ByteArray, key: PublicKeyPair): Boolean {
-        if (signature.size != Crypto.signatureSize + 12) {
+    private fun verify(message: String, sender: Int, signature: ByteArray, key: PublicKeyPair, time: Long): Boolean {
+        if (signature.size != Crypto.signatureSize) {
             return false
         }
-        val buffer = ByteBuffer.wrap(signature)
-        val time = buffer.long
-        val senderId = buffer.int
-        val bytes = buffer.array()
-        val signatureBytes = bytes.takeLast(Crypto.signatureSize).toByteArray()
 
         val original = stringToSendable(message, sender, time)
 
-        return try {
-            val valid = Crypto.verify(original, signatureBytes, key.edPublicKey)
-            abs(Instant.now().epochSecond - time) < 3 &&
-                    sender == senderId &&
-                    valid
-        } catch (ignored: Exception) {
-            false
-        }
+        val validSignature = try {
+            Crypto.verify(original, signature, key.edPublicKey)
+        } catch (ignored: java.lang.Exception) { false.apply { ignored.printStackTrace() } }
+        val age = abs(time.toInstant().age())
+
+        return age < 3 && validSignature
     }
 }

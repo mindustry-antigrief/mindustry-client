@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MessageCryptographyTests {
@@ -26,51 +27,57 @@ public class MessageCryptographyTests {
 
     /** Tests that signing messages works. */
     @Test
-    void testSending() {
+    void testSending() throws InterruptedException {
         KeyQuad client1pair = Crypto.INSTANCE.generateKeyQuad();
         KeyQuad client2pair = Crypto.INSTANCE.generateKeyQuad();
 
-        KeyHolder client1holder = new KeyHolder(client1pair.publicPair(), "client1", false);
-        KeyHolder client2holder = new KeyHolder(client2pair.publicPair(), "client2", false);
+        KeyHolder client1holder = new KeyHolder(client1pair.publicPair(), "client1", false, client2);
+        KeyHolder client2holder = new KeyHolder(client2pair.publicPair(), "client2", false, client1);
 
         client1.getKeys().add(client2holder);
         client2.getKeys().add(client1holder);
 
-        client1.communicationSystem.getListeners().add(
-                (inp, id) -> {
-                    valid.set(
-                            client1.verify(message, id, inp, new PublicKeyPair(client2pair))
-                    );
-                    return Unit.INSTANCE;
-                }
-        );
-        client2.communicationSystem.getListeners().add(
-                (inp, id) -> {
-                    valid.set(
-                            client2.verify(message, id, inp, new PublicKeyPair(client1pair))
-                    );
-                    return Unit.INSTANCE;
-                }
-        );
+        client1.getListeners().add(event -> {
+            if (event instanceof MessageCrypto.Companion.SignatureEvent) {
+                valid.set(((MessageCrypto.Companion.SignatureEvent) event).getValid());
+            }
+            return null;
+        });
+        client2.getListeners().add(event -> {
+            if (event instanceof MessageCrypto.Companion.SignatureEvent) {
+                valid.set(((MessageCrypto.Companion.SignatureEvent) event).getValid());
+            }
+            return null;
+        });
 
         message = "Hello world!";
+        client2.setPlayer(new MessageCrypto.PlayerTriple(client1.communicationSystem.getId(), Instant.now().getEpochSecond(), message));
         client1.sign(message, client1pair);
+        Thread.sleep(100L);
         Assertions.assertTrue(valid.get());
 
         message = "Test test blah";
+        client1.setPlayer(new MessageCrypto.PlayerTriple(client2.communicationSystem.getId(), Instant.now().getEpochSecond(), message));
         client2.sign(message, client2pair);
+        Thread.sleep(100L);
         Assertions.assertTrue(valid.get());
 
         message = "aaa";
+        client1.setPlayer(new MessageCrypto.PlayerTriple(client2.communicationSystem.getId(), Instant.now().getEpochSecond(), message));
         client2.sign(message, client2pair);
+        Thread.sleep(100L);
         Assertions.assertTrue(valid.get());
 
         message = "aaaa";
+        client1.setPlayer(new MessageCrypto.PlayerTriple(client2.communicationSystem.getId(), Instant.now().getEpochSecond(), message));
         client2.sign(message, client2pair);
+        Thread.sleep(100L);
         Assertions.assertTrue(valid.get());
 
         message = "oh no";
+        client1.setPlayer(new MessageCrypto.PlayerTriple(client2.communicationSystem.getId(), Instant.now().getEpochSecond(), message));
         client2.sign(message, client1pair);  // invalid, using wrong key to sign
+        Thread.sleep(100L);
         Assertions.assertFalse(valid.get());
 
         message = "hello world";
