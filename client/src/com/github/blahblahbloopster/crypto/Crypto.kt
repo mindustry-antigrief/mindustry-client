@@ -77,23 +77,6 @@ class KeyQuad {
     }
 }
 
-object PublicKeyJson : Converter {
-    override fun canConvert(cls: Class<*>) = cls == PublicKeyPair::class.java
-
-    override fun fromJson(jv: JsonValue): PublicKeyPair {
-        try {
-            return PublicKeyPair(jv.objString("encoded").base64()!!)
-        } catch (e: Exception) {
-            throw KlaxonException("Couldn't parse public key")
-        }
-    }
-
-    override fun toJson(value: Any): String {
-        if (value !is PublicKeyPair) throw KlaxonException("Not a public key pair")
-        return """{"encoded": "${value.serialize().base64()}"}"""
-    }
-}
-
 object KeyHolderJson : Converter {
     override fun canConvert(cls: Class<*>) = cls == KeyHolder::class.java
 
