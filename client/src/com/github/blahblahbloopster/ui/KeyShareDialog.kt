@@ -4,9 +4,11 @@ import arc.Core
 import arc.scene.ui.TextField
 import arc.scene.ui.layout.Table
 import com.github.blahblahbloopster.Main
+import com.github.blahblahbloopster.crypto.Crypto
 import com.github.blahblahbloopster.crypto.KeyHolder
 import com.github.blahblahbloopster.crypto.MessageCrypto
 import mindustry.Vars
+import mindustry.client.Client
 import mindustry.gen.Icon
 import mindustry.ui.dialogs.BaseDialog
 
@@ -64,6 +66,7 @@ class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share")
             }.show()
         }.growX()
         button("Export Key") {
+            Main.messageCrypto.keyQuad ?: Client.mapping.generateKey()
             Core.app.clipboardText = Main.messageCrypto.base64public()
             Vars.ui.showInfoFade("@copied")
         }.growX()
