@@ -11,6 +11,7 @@ import org.bouncycastle.crypto.signers.Ed25519Signer
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.nio.ByteBuffer
 import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.security.Security
 import javax.crypto.Cipher
@@ -151,7 +152,7 @@ object Crypto {
     var signatureSize = 64
     private lateinit var signatureEngine: Ed25519Signer
     private lateinit var aes: Cipher
-    private val random = SecureRandom.getInstance("NativePRNGNonBlocking")
+    private val random = try { SecureRandom.getInstance("NativePRNGNonBlocking") } catch (e: NoSuchAlgorithmException) { SecureRandom.getInstance("WINDOWS-PRNG") }
 
     /** Initializes cryptography stuff, must be called before usage. */
     fun init() {
