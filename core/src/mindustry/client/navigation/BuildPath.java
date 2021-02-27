@@ -17,8 +17,6 @@ import mindustry.world.Build;
 import mindustry.world.blocks.ConstructBlock;
 import mindustry.world.blocks.environment.Boulder;
 
-import java.util.Arrays;
-
 import static mindustry.Vars.*;
 
 public class BuildPath extends Path {
@@ -26,7 +24,7 @@ public class BuildPath extends Path {
     private boolean show;
     Interval timer = new Interval();
     Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>();
-    Seq<Queue<BuildPlan>> queues = new Seq<>();
+    Seq<Queue<BuildPlan>> queues = new Seq<>(7);
     boolean firstRun = true;
 
     @SuppressWarnings("unchecked")
@@ -35,8 +33,8 @@ public class BuildPath extends Path {
     }
 
     @SuppressWarnings("unchecked")
-    public BuildPath(String[] args){
-        for (String arg : Arrays.toString(args).replaceAll("[\\[\\]]", "").split(" ")) {
+    public BuildPath(String args){
+        for (String arg : args.split("\\s")) {
             switch (arg) {
                 case "all" -> queues.addAll(player.unit().plans, broken, assist, unfinished);
                 case "self" -> queues.add(player.unit().plans);

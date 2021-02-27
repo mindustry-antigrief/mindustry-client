@@ -9,7 +9,6 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.navigation.Navigation;
-import mindustry.client.navigation.TurretPathfindingEntity;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
@@ -62,11 +61,6 @@ public class PointDefenseTurret extends ReloadTurret{
         public @Nullable Bullet target;
 
         @Override
-        public void created() {
-            pathfindingEntity = new TurretPathfindingEntity(x, y, range, false, true);
-        }
-
-        @Override
         public void remove() {
             Navigation.obstacles.remove(pathfindingEntity);
             super.remove();
@@ -77,7 +71,7 @@ public class PointDefenseTurret extends ReloadTurret{
             if (player != null && player.unit() != null && team != player.team()) {
                 Navigation.obstacles.add(pathfindingEntity);
                 // Can't ever hit player, don't bother checking
-                pathfindingEntity.radius = range;
+                pathfindingEntity.canShoot = cons.valid();
                 pathfindingEntity.x = x;
                 pathfindingEntity.y = y;
                 pathfindingEntity.team = team;

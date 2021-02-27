@@ -1,6 +1,5 @@
 package mindustry.world.blocks.defense.turrets;
 
-import mindustry.client.Client;
 import mindustry.client.navigation.TurretPathfindingEntity;
 import mindustry.content.*;
 import mindustry.entities.*;
@@ -55,7 +54,7 @@ public class BaseTurret extends Block{
 
     public class BaseTurretBuild extends Building implements Ranged{
         public float rotation = 90;
-        protected TurretPathfindingEntity pathfindingEntity = null;
+        protected TurretPathfindingEntity pathfindingEntity = new TurretPathfindingEntity(range,true);
 
         @Override
         public float range(){

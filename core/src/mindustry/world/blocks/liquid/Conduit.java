@@ -13,6 +13,7 @@ import mindustry.content.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.Placement;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
@@ -55,81 +56,23 @@ public class Conduit extends LiquidBlock implements Autotiler{
     }
 
     @Override
-    public boolean canReplace(Block other){
-        if(other.alwaysReplace) return true;
-        return (other != this || rotate) && other.group == this.group;
-    }
-
-    @Override
     public Block getReplacement(BuildPlan req, Seq<BuildPlan> requests){
-        if (req.tile() == null) return this;
-
-        if (req.tile().block() instanceof LiquidJunction) {
-            if (frontTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction || backTile(req.x, req.y, req.rotation).block() instanceof LiquidJunction) {
-                if (requests.contains(o -> Mathf.dstm(req.x, req.y, o.x, o.y) == 1 && o.block instanceof Conduit)) {
-                    return req.tile().block();
-                }
-            }
-        }
         Boolf<Point2> cont = p -> requests.contains(o -> o.x == req.x + p.x && o.y == req.y + p.y && o.rotation == req.rotation && (req.block instanceof Conduit || req.block instanceof LiquidJunction));
-        if(cont.get(Geometry.d4(req.rotation)) &&
+        return cont.get(Geometry.d4(req.rotation)) &&
             cont.get(Geometry.d4(req.rotation - 2)) &&
             req.tile() != null &&
             req.tile().block() instanceof Conduit &&
-            Mathf.mod(req.tile().build.rotation - req.rotation, 2) == 1) {
-            return Blocks.liquidJunction;
-        }
-
-        for(int i = 0;i < 2;i ++) {
-            //TODO: automatically generate bridges?
-            Block[] bridges = {Blocks.bridgeConduit, Blocks.phaseConduit};
-            int checkRotation = (req.rotation + i*2) % 4;
-            for(Block bridge : bridges) {
-                int range = ((ItemBridge)bridge).range;
-                if(req.block instanceof Conduit && !thisPlaceableOn(frontTile(req.x, req.y, checkRotation)) && requests.contains(o ->
-                    (o.block instanceof Conduit || o.block instanceof ItemBridge) &&
-                    thisPlaceableOn(world.tile(req.x, req.y)) &&
-                    thisPlaceableOn(world.tile(o.x, o.y)) &&
-                    !thisPlaceableOn(frontTile(o.x, o.y, (checkRotation + 2) % 4)) &&
-                    inFront(req.x, req.y, checkRotation, o) &&
-                    Mathf.dstm(req.x, req.y, o.x, o.y) <= range)) {
-                    return bridge;
-                }
-            }
-        }
-
-        return this;
-    }
-
-    /** Whether the second build plan is "in front" of the first. */
-    public boolean inFront(int x, int y, int rotation, BuildPlan other) {
-        return !(other.x == x && other.y == y) && (other.x - x) == Geometry.d4x(rotation) * Math.abs(other.x - x) && (other.y - y) == Geometry.d4y(rotation) * Math.abs(other.y - y); 
-    }
-
-    /** Returns the tile in front of this one. */
-    public Tile frontTile(int x, int y, int rotation) {
-        return world.tile(x + Geometry.d4x(rotation), y + Geometry.d4y(rotation));
-    }
-
-    /** Returns the tile behind this one. */
-    public Tile backTile(int x, int y, int rotation){
-        return world.tile(x - Geometry.d4x(rotation), y - Geometry.d4y(rotation));
-    }
-
-    /** Whether this block can be placed on this tile. */
-    public boolean thisPlaceableOn(Tile tile) {
-        if (tile == null) return false;
-        boolean sidePlacableOn = false;
-        for(int i = 0;i < 4;i ++) {
-            sidePlacableOn = !frontTile(tile.x, tile.y, i).floor().isDeep();
-            if(sidePlacableOn) break;
-        }
-        return canReplace(tile.block()) && (!tile.floor().isDeep() || (sidePlacableOn && floating));
+            Mathf.mod(req.build().rotation - req.rotation, 2) == 1 ? Blocks.liquidJunction : this;
     }
 
     @Override
     public boolean blends(Tile tile, int rotation, int otherx, int othery, int otherrot, Block otherblock){
         return otherblock.hasLiquids && (otherblock.outputsLiquid || (lookingAt(tile, rotation, otherx, othery, otherblock))) && lookingAtEither(tile, rotation, otherx, othery, otherrot, otherblock);
+    }
+
+    @Override
+    public void handlePlacementLine(Seq<BuildPlan> plans){
+        Placement.calculateBridges(plans, (ItemBridge)Blocks.bridgeConduit);
     }
 
     @Override

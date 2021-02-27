@@ -56,6 +56,7 @@ public class CoreBlock extends StorageBlock{
         group = BlockGroup.none;
         configurable = true;
         drawDisabled = false;
+        rebuildable = false; // Good luck rebuilding a core
     }
 
     @Remote(called = Loc.server)
