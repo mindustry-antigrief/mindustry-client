@@ -16,7 +16,9 @@ import java.time.Instant
 import java.util.zip.DeflaterInputStream
 import java.util.zip.InflaterInputStream
 
-/** Provides the interface between [Crypto] and a [CommunicationSystem] */
+/** Provides the interface between [Crypto] and a [CommunicationSystem], and handles some UI stuff.
+ * TODO: replace a lot of this with a real packet system
+ */
 class MessageCrypto {
     lateinit var communicationSystem: CommunicationSystem
     var keyQuad: KeyQuad? = null
@@ -26,7 +28,7 @@ class MessageCrypto {
     var keys: KeyList = KeyFolder
     val listeners = mutableListOf<(MessageCryptoEvent) -> Unit>()
 
-    fun fire(event: MessageCryptoEvent) {
+    private fun fire(event: MessageCryptoEvent) {
         listeners.forEach {
             it(event)
         }
@@ -111,7 +113,7 @@ class MessageCrypto {
     }
 
     fun base64public(): String? {
-        return Base64Coder.encode(PublicKeyPair(keyQuad ?: return null).serialize()).toString()
+        return Base64Coder.encode(PublicKeyPair(keyQuad ?: return null).serialize()).concatToString()
     }
 
     /** Checks the validity of a message given two triples, see above. */

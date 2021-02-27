@@ -32,6 +32,8 @@ class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share")
             it.add(keys)
         }
 
+        row()
+
         button("Import Key") {
             Vars.ui.dialog("Import Key") {
                 val nameInput = TextField("Name")
@@ -51,12 +53,13 @@ class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share")
                 }
                 addCloseButton()
             }.show()
-        }
-
+        }.growX()
         button("Export Key") {
             Core.app.clipboardText = Main.messageCrypto.base64public()
             Vars.ui.showInfoFade("@copied")
-        }
-        addCloseButton()
+        }.growX()
+        button("Close") {
+            hide()
+        }.growX()
     }
 }
