@@ -103,7 +103,7 @@ class MessageCrypto {
                             message?.verifiedSender = it.senderKey?.name ?: return@inner
                             message?.format()
                         } else if (it is EncryptedMessageEvent && it.message != null) {
-                            Vars.ui?.chatfrag?.addMessage(it.message, it.senderName, Color.blue.cpy().mul(if (it.senderKey.official) 0.75f else 0.4f))
+                            Vars.ui?.chatfrag?.addMessage(it.message, it.senderName, Color.blue.cpy().mul(if (it.senderKey.official) 1f else 0.5f))
                         }
                     }
                 }

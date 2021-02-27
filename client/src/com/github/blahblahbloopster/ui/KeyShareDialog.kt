@@ -33,9 +33,6 @@ class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share")
     private fun build() {
         clear()
 
-        labelWrap("To exchange keys have both people import each other's key.  Do not do this in in-game chat, " +
-                "because it can be altered by servers, introducing security problems.")
-
         regenerate()
 
         pane {
