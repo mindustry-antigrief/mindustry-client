@@ -83,17 +83,13 @@ public class ChatFragment extends Table{
                     historyPos--;
                     updateChat();
                 }
-                if(!(input.keyTap(Binding.chat_autocomplete) && completion.any()) && input.keyTap(Binding.chat_mode)){
-                    nextMode();
-                }
-                scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chat_scroll), 0, Math.max(0, messages.size - messagesShown));
-
-                if (input.keyTap(Binding.chat_autocomplete) && completion.any()) {
+                if (input.keyTap(Binding.chat_autocomplete) && completion.any() && mode == ChatMode.normal) {
                     completionPos = Math.max(completionPos, 0);
                     completionPos = Math.min(completionPos, completion.size);
-
-                    chatfield.setText(completion.get(completionPos).getCompletion(chatfield.getText()));
-                    chatfield.setCursorPosition(chatfield.getText().length());
+                    chatfield.setText(completion.get(completionPos).getCompletion(chatfield.getText()) + " ");
+                    updateCursor();
+                } else if (input.keyTap(Binding.chat_mode)) {
+                    nextMode();
                 }
                 scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chat_scroll), 0, Math.max(0, messages.size - messagesShown));
                 if (Autocomplete.matches(chatfield.getText())) {
@@ -355,11 +351,15 @@ public class ChatFragment extends Table{
         ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy());
         messages.insert(0, msg);
 
-        fadetime += 1f;
-        fadetime = Math.min(fadetime, messagesShown) + 1f;
+        doFade(6); // fadetime was originally incremented by 2f, that works out to 6s
         
         if(scrollPos > 0) scrollPos++;
         return msg;
+    }
+
+    public void doFade(float seconds){
+        fadetime += seconds/3; // Seconds/3 since this is scaled by 3 anyways fadetime -= Time.delta / 180f;
+        fadetime = Math.min(fadetime, messagesShown);
     }
 
     public ChatMessage addMessage(String message, String sender) {

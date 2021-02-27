@@ -15,7 +15,6 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.Vars;
 import mindustry.ai.formations.patterns.*;
-import mindustry.ai.types.FormationAI;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
@@ -39,8 +38,8 @@ import mindustry.net.*;
 import mindustry.type.*;
 import mindustry.ui.fragments.*;
 import mindustry.world.*;
-import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
+import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.payloads.*;
 import mindustry.world.blocks.power.*;
@@ -356,34 +355,34 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     @Remote(targets = Loc.both, called = Loc.both, forward = true)
-    public static void tileConfig(@Nullable Player player, Building tile, @Nullable Object value){
-        if(tile == null) return;
-        if(net.server() && (!Units.canInteract(player, tile) ||
-            !netServer.admins.allowAction(player, ActionType.configure, tile.tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");
+    public static void tileConfig(@Nullable Player player, Building build, @Nullable Object value){
+        if(build == null) return;
+        if(net.server() && (!Units.canInteract(player, build) ||
+                !netServer.admins.allowAction(player, ActionType.configure, build.tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");
 
-        Object previous = tile.config();
+        Object previous = build.config();
 
-        tile.configured(player == null || player.dead() ? null : player.unit(), value);
-        Core.app.post(() -> Events.fire(new ConfigEvent(tile, player, value)));
+        build.configured(player == null || player.dead() ? null : player.unit(), value);
+        Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
 
         if(player != null){
-            tile.tile.getLinkedTiles(tile2 -> tile2.addToLog(new ConfigTileLog(player.unit(), tile2, tile.config(), previous, Instant.now().getEpochSecond(), "")));
-            if(Navigation.currentlyFollowing instanceof UnAssistPath){
-                if(((UnAssistPath) Navigation.currentlyFollowing).assisting == player){
-                    Client.configs.add(new ConfigRequest(tile.tileX(), tile.tileY(), previous));
+            build.tile.getLinkedTiles(t -> t.addToLog(new ConfigTileLog(player.unit(), t, build.config(), previous, Instant.now().getEpochSecond(), "")));
+            if(Navigation.currentlyFollowing instanceof UnAssistPath path){
+                if(path.assisting == player){
+                    Client.configs.add(new ConfigRequest(build.tileX(), build.tileY(), previous));
                 }
             }
-            if (tile.block instanceof PowerNode) {
-                if (value instanceof Integer) {
-                    if (new Seq<>((Point2[])previous).contains(Point2.unpack((Integer) value))) {
-                        ((PowerNode.PowerNodeBuild) tile).disconnections++;
-                        String message = String.format("%s disconnected %d power link%s at %d,%d", player.name, ((PowerNode.PowerNodeBuild) tile).disconnections, ((PowerNode.PowerNodeBuild) tile).disconnections == 1 ? "" : "s", tile.tileX(), tile.tileY());
-                        if (((PowerNode.PowerNodeBuild) tile).message == null || ui.chatfrag.messages.indexOf(((PowerNode.PowerNodeBuild) tile).message) > 8) {
-                            ((PowerNode.PowerNodeBuild) tile).disconnections = 1;
-                            ((PowerNode.PowerNodeBuild) tile).message = ui.chatfrag.addMessage(message, "client", Color.scarlet);
+            if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
+                if (value instanceof Integer val) {
+                    if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) {
+                        String message = Strings.format("@ disconnected @ power @ at (@, @)", player.name, ++node.disconnections, node.disconnections == 1 ? "link" : "links", build.tileX(), build.tileY());
+                        if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
+                            node.disconnections = 1;
+                            node.message = ui.chatfrag.addMessage(message, null, Color.scarlet.cpy().mul(.75f));
                         } else {
-                            ((PowerNode.PowerNodeBuild) tile).message.message = message;
-                            ((PowerNode.PowerNodeBuild) tile).message.format();
+                            ui.chatfrag.doFade(2);
+                            node.message.message = message;
+                            node.message.format();
                         }
                     }
                 } else if (value instanceof Point2[]) {
@@ -844,12 +843,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Draw.reset();
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(1f);
-        if(request.block != null) request.block.drawRequestConfigTop(request, selectRequests);
+        request.block.drawRequestConfigTop(request, cons -> {
+            selectRequests.each(cons);
+            lineRequests.each(cons);
+        });
         Draw.reset();
     }
 
     protected void drawRequest(BuildPlan request){
-        if (request.requestInterval.get(6)) request.requestValid = validPlace(request.x, request.y, request.block, request.rotation); // Update 10x a second
+        if (request.requestInterval.get(6)) request.requestValid = validPlace(request.x, request.y, request.block, request.rotation); // Validity checked 10x a second rather than per frame to reduce lag
         request.block.drawPlan(request, allRequests(), request.requestValid);
     }
 
@@ -939,10 +941,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(Core.settings.getBool("blockreplace") != control.input.conveyorPlaceNormal){
             lineRequests.each(req -> {
                 Block replace = req.block.getReplacement(req, lineRequests);
-                if (replace != null && replace.unlockedNow()) {
+                if (replace.unlockedNow()) {
                     req.block = replace;
                 }
             });
+
+            block.handlePlacementLine(lineRequests);
         }
     }
 
@@ -1027,11 +1031,28 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return false;
     }
 
+    /** Tries to stop mining, returns true if mining was stopped. */
+    boolean tryStopMine(){
+        if(player.unit().mining()){
+            player.unit().mineTile = null;
+            return true;
+        }
+        return false;
+    }
+
+    boolean tryStopMine(Tile tile){
+        if(player.unit().mineTile == tile){
+            player.unit().mineTile = null;
+            return true;
+        }
+        return false;
+    }
+
     boolean canMine(Tile tile){
         return !Core.scene.hasMouse()
             && tile.drop() != null
             && player.unit().validMine(tile)
-            && !((!Core.settings.getBool("doubleclicktomine") && tile.floor().playerUnmineable) && tile.overlay().itemDrop == null)
+            && !((!Core.settings.getBool("doubletapmine") && tile.floor().playerUnmineable) && tile.overlay().itemDrop == null)
             && player.unit().acceptsItem(tile.drop())
             && tile.block() == Blocks.air;
     }

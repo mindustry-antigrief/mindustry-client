@@ -1,9 +1,28 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 6.4.0
+ * Swap to vanilla double click mining, uses the vanilla setting now (should remember your setting)
+ * Swap to vanilla conveyor auto bridge
+ * Fixed power split warnings, added a setting for them (might add a setting later that has a minimum amount of affected buildings)
+ * Added slag grief warnings with the appropriate settings (alerts for players building melters, oil extractors and spore presses)
+ * Fixed a mod related crash
+ * Fixed quite a few bugs (finally made the stupid chat modes not a pain in the ass to switch through)
+ * Many code optimizations and lots of cleanup
+ * Turrets with no ammo won't have their range displayed, turrets with ammo that cant hit the player have their range displayed in gray (will probably change this later), turrets which can hit the player are displayed in their team's color
+ * Navigation resolution reduced to 1 from 2 (since navigation no longer creates much lag, we can actually run it at full resolution and it should just work better)
+ * Mentioning names in chat (@person) or copying them from player list (clicking username) no longer copies colors, they were a waste of space and were generally annoying
+ * Logic jump statements can jump to themselves (good for making timers and such)
+ * Repair path works better with formations
+ 
 # Version 6.3.5
- * Added a button to easily switch between stable and unstable.
+ * Added a button to easily switch between stable and unstable
  * Fixed turret ranges hiding incorrectly
- * Version will now display "(Unstable)" when playing on unstable
+ * Version will now display "Unstable" when playing on unstable
+ * Navigation performance improvements, uses significantly less memory, cpu, is faster and the stuttering should be (almost) entirely gone
+ * Navigation should now be better at finding the best path
+ * Cleaned up a bunch of code in various places
+ * Significantly reduced frame loss when the player has many build plans and is placing a large schematic
+ * Fixed a crash related to bridges (had to revert to vanilla bridge link display to do so)
 
 # Version 6.3.4
  * Fire particle multiplier (you can finally reduce the lag from anything catching on fire)

@@ -410,11 +410,7 @@ public class LCanvas extends Table{
                     localToStageCoordinates(Tmp.v1.set(x, y));
                     StatementElem elem = canvas.hovered;
 
-                    if(elem != null && !isDescendantOf(elem)){
-                        setter.get(elem);
-                    }else{
-                        setter.get(null);
-                    }
+                    setter.get(elem); // Changed to allow jumping to self
                     selecting = false;
                 }
             });

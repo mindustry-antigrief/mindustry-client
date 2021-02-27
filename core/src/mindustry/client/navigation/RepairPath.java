@@ -28,7 +28,7 @@ public class RepairPath extends Path {
         if (build == null || player.unit() == null) return;
         player.shooting(player.unit().inRange(build));
         player.unit().aimLook(build);
-        new PositionWaypoint(build.x, build.y, 8, 8).run();
+        new PositionWaypoint(build.x, build.y, 16, 16).run();
     }
 
     @Override

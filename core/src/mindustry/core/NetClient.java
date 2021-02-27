@@ -13,8 +13,6 @@ import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.Client;
-import mindustry.client.navigation.Navigation;
-import mindustry.client.utils.FloatEmbed;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;

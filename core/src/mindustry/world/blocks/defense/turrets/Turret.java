@@ -11,9 +11,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.Client;
 import mindustry.client.navigation.Navigation;
-import mindustry.client.navigation.TurretPathfindingEntity;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
@@ -160,8 +158,6 @@ public class Turret extends ReloadTurret{
         public void created(){
             unit = (BlockUnitc)UnitTypes.block.create(team);
             unit.tile(this);
-
-            pathfindingEntity = new TurretPathfindingEntity(x, y, range, false, true);
         }
 
         @Override
@@ -270,11 +266,12 @@ public class Turret extends ReloadTurret{
 
             if (player != null && player.unit() != null && team != player.team()) {
                 Navigation.obstacles.add(pathfindingEntity);
-                pathfindingEntity.canHitPlayer = cons.valid() && (player.unit().isFlying() ? targetAir : targetGround);
-                pathfindingEntity.radius = range;
+                pathfindingEntity.canHitPlayer = player.unit().isFlying() ? targetAir : targetGround;
+                pathfindingEntity.canShoot = cons.valid();
                 pathfindingEntity.x = x;
                 pathfindingEntity.y = y;
                 pathfindingEntity.team = team;
+//                pathfindingEntity.team = team;
             }
 
             unit.set(x, y);

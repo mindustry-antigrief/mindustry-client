@@ -163,7 +163,7 @@ public class Client {
         );
 
         fooCommands.<Player>register("builder", "[options...]", "Starts auto build with optional arguments, prioritized from first to last.", (args, player) ->
-                Navigation.follow(new BuildPath(args))
+                Navigation.follow(new BuildPath(args.length  == 0 ? "" : args[0]))
         );
 
         fooCommands.<Player>register("tp", "<x> <y>", "Moves to (x, y) at insane speeds, only works on servers without strict mode enabled.", (args, player) -> {

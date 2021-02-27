@@ -1,5 +1,6 @@
 package mindustry.client.navigation;
 
+import arc.Core;
 import arc.math.Mathf;
 import arc.math.geom.Position;
 import arc.struct.Queue;
@@ -16,8 +17,6 @@ import mindustry.world.Build;
 import mindustry.world.blocks.ConstructBlock;
 import mindustry.world.blocks.environment.Boulder;
 
-import java.util.Arrays;
-
 import static mindustry.Vars.*;
 
 public class BuildPath extends Path {
@@ -25,7 +24,7 @@ public class BuildPath extends Path {
     private boolean show;
     Interval timer = new Interval();
     Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>();
-    Seq<Queue<BuildPlan>> queues = new Seq<>();
+    Seq<Queue<BuildPlan>> queues = new Seq<>(7);
     boolean firstRun = true;
 
     @SuppressWarnings("unchecked")
@@ -34,8 +33,8 @@ public class BuildPath extends Path {
     }
 
     @SuppressWarnings("unchecked")
-    public BuildPath(String[] args){
-        for (String arg : Arrays.toString(args).replaceAll("[\\[\\]]", "").split(" ")) {
+    public BuildPath(String args){
+        for (String arg : args.split("\\s")) {
             switch (arg) {
                 case "all" -> queues.addAll(player.unit().plans, broken, assist, unfinished);
                 case "self" -> queues.add(player.unit().plans);
@@ -105,6 +104,7 @@ public class BuildPath extends Path {
                 Formation formation = player.unit().formation;
                 float range = buildingRange - player.unit().hitSize()/2 - 10;
                 if (formation != null) range -= formation.pattern.spacing / (float)Math.sin(180f / formation.pattern.slots * Mathf.degRad);
+                if (Core.settings.getBool("assumeunstrict")) range /= 2; // Teleport closer so its not weird when building stuff like conveyors
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{
                 //discard invalid request

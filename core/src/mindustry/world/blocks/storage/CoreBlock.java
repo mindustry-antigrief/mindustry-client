@@ -33,8 +33,6 @@ public class CoreBlock extends StorageBlock{
     //hacky way to pass item modules between methods
     private static ItemModule nextItems;
 
-    public static boolean findBestCore = true;
-
     public UnitType unitType = UnitTypes.alpha;
 
     public final int timerResupply = timers++;
@@ -58,16 +56,12 @@ public class CoreBlock extends StorageBlock{
         group = BlockGroup.none;
         configurable = true;
         drawDisabled = false;
+        rebuildable = false; // Good luck rebuilding a core
     }
 
     @Remote(called = Loc.server)
     public static void playerSpawn(Tile tile, Player player){
-        if(player == null || tile == null) return;
-
-        CoreBuild entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreNucleus));
-        if (entity == null) entity = Geometry.findClosest(tile.worldx(), tile.worldy(), player.team().cores().copy().filter(i -> i.block == Blocks.coreFoundation));
-        if (entity == null || player != Vars.player || Core.input.keyDown(Binding.control) || !findBestCore) entity = (CoreBuild)tile.build;
-        findBestCore = true;
+        if(player == null || tile == null || !(tile.build instanceof CoreBuild entity)) return;
 
         CoreBlock block = (CoreBlock)tile.block();
         Fx.spawn.at(entity);
@@ -84,12 +78,8 @@ public class CoreBlock extends StorageBlock{
             unit.add();
         }
 
-        if(player == Vars.player){
-            if(state.isCampaign()) block.unitType.unlock();
-            if (tile != entity.tile) {
-                CoreBuild finalEntity = entity;
-                Timer.schedule(() -> Call.unitControl(player, finalEntity.unit()), net.client() ? netClient.getPing()/1000f+.3f : 0);
-            }
+        if(state.isCampaign() && player == Vars.player){
+            block.unitType.unlock();
         }
     }
 

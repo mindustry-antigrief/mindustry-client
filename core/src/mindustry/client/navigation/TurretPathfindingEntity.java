@@ -4,7 +4,7 @@ import arc.math.geom.Circle;
 import mindustry.game.Team;
 
 public class TurretPathfindingEntity extends Circle {
-    public boolean canHitPlayer;
+    public boolean canHitPlayer, canShoot;
     private static long nextId = 0;
     public long id;
     public Team team = Team.derelict;
@@ -14,11 +14,8 @@ public class TurretPathfindingEntity extends Circle {
         id = nextId++;
     }
 
-    public TurretPathfindingEntity(float x, float y, float range, boolean canHitPlayer, boolean turret){
-        this.x = x;
-        this.y = y;
+    public TurretPathfindingEntity(float range, boolean turret) {
         this.radius = range;
-        this.canHitPlayer = canHitPlayer;
         this.turret = turret;
     }
 

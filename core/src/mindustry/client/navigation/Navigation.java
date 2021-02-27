@@ -4,6 +4,7 @@ import arc.math.Mathf;
 import arc.math.geom.Position;
 import arc.math.geom.Vec2;
 import arc.struct.*;
+import arc.util.Interval;
 import mindustry.Vars;
 import mindustry.client.navigation.waypoints.PositionWaypoint;
 import mindustry.client.navigation.waypoints.Waypoint;
@@ -19,6 +20,7 @@ public class Navigation {
     public static HashSet<TurretPathfindingEntity> obstacles = new HashSet<>();
     private static Vec2 targetPos = null;
     public static Navigator navigator;
+    private static final Interval timer = new Interval();
 
     public static void follow(Path path, boolean repeat) {
         stopFollowing();
@@ -34,6 +36,8 @@ public class Navigation {
     }
 
     public static void update() {
+        if (timer.get(600)) obstacles.clear(); // Refresh all obstacles every 600s since sometimes they don't get removed properly for whatever reason TODO: Check if this happens because it still runs update even when dead, if so just the removal of the obstacle
+
         if (targetPos != null && playerNavigator.taskQueue.size() == 0) { // must be navigating, TODO: dejank
             navigateTo(targetPos);
         }
@@ -90,7 +94,7 @@ public class Navigation {
 
         targetPos = new Vec2(drawX, drawY);
         playerNavigator.taskQueue.post(() -> {
-            Vec2[] points = navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacles.toArray(new TurretPathfindingEntity[0]), 2);
+            Vec2[] points = navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacles.toArray(new TurretPathfindingEntity[0]), 1);
             if (points != null) {
                 Seq<Waypoint> waypoints = new Seq<>();
                 for (Vec2 point : points) {

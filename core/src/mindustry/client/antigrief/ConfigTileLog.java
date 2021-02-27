@@ -24,7 +24,7 @@ public class ConfigTileLog extends TileLogItem {
     public Element toElement() {
         Table t = new Table();
         t.add(super.toElement());
-        t.button(Icon.undo, () -> {
+        t.button(Icon.refresh1, () -> {
             try {
                 System.out.println(configuration);
                 world.tile(x, y).build.configure(configuration);
@@ -32,16 +32,7 @@ public class ConfigTileLog extends TileLogItem {
                 ui.showErrorMessage("Failed to rollback configuration");
                 e.printStackTrace();
             }
-        });
-        t.button(Icon.eraser, () -> {
-            try {
-                System.out.println(oldConfiguration);
-                world.tile(x, y).build.configure(oldConfiguration);
-            } catch(Exception e) {
-                ui.showErrorMessage("Failed to undo configuration");
-                e.printStackTrace();
-            }
-        });
+        }).tooltip("Restore this configuration");
         return t;
     }
 }

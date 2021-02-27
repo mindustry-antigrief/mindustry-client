@@ -36,10 +36,7 @@ public class ItemBridge extends Block{
     public @Load("@-arrow") TextureRegion arrowRegion;
 
     //for autolink
-    @Nullable
-    public ItemBridgeBuild lastBuild;
-    @Nullable
-    public BuildPlan lastPlan;
+    public @Nullable ItemBridgeBuild lastBuild;
 
     public ItemBridge(String name){
         super(name);
@@ -155,12 +152,14 @@ public class ItemBridge extends Block{
     }
 
     @Override
-    public void onNewPlan(BuildPlan plan){
-        if(lastPlan != null && lastPlan.config == null && positionsValid(lastPlan.x, lastPlan.y, plan.x, plan.y)){
-            lastPlan.config = new Point2(plan.x - lastPlan.x, plan.y - lastPlan.y);
+    public void handlePlacementLine(Seq<BuildPlan> plans){
+        for(int i = 0; i < plans.size - 1; i++){
+            var cur = plans.get(i);
+            var next = plans.get(i + 1);
+            if(positionsValid(cur.x, cur.y, next.x, next.y)){
+                cur.config = new Point2(next.x - cur.x, next.y - cur.y);
+            }
         }
-
-        lastPlan = plan;
     }
 
     @Override
@@ -180,56 +179,40 @@ public class ItemBridge extends Block{
         public void playerPlaced(Object config){
             super.playerPlaced(config);
 
-            if(config != null) return;
-
-            Tile link = findLink(tile.x, tile.y);
-            if(linkValid(tile, link) && !proximity.contains(link.build)){
-                link.build.configure(tile.pos());
+            if(config == null){
+                Tile link = findLink(tile.x, tile.y);
+                if(linkValid(tile, link) && !proximity.contains(link.build)){
+                    link.build.configure(tile.pos());
+                }
             }
 
             lastBuild = this;
         }
 
-        private void drawLinks(Tile source, AtomicInteger depth) {
-            if (depth.incrementAndGet() > 100) return;
-            IntSetIterator it = ((ItemBridgeBuild)source.build).incoming.iterator();
-            while (it.hasNext) {
-                int item = it.next();
-                if (linkValid(source, world.tile(item), false)) {
-                    drawInput(world.tile(item), source);
-                    drawLinks(world.tile(item), depth);
-                }
-            }
-        }
-
         @Override
         public void drawSelect(){
-            Tile next = world.tile(link);
-            Tile out = tile;
-            int i = 0;
-            while (next != null && next.build instanceof ItemBridgeBuild && i++ < 100) {
-                out = next;
-                next = world.tile(((ItemBridgeBuild)(next.build)).link);
+            if(linkValid(tile, world.tile(link))){
+                drawInput(world.tile(link));
             }
-            AtomicInteger integer = new AtomicInteger(0);
-            drawLinks(out, integer);
+
+            incoming.each(pos -> drawInput(world.tile(pos)));
 
             Draw.reset();
         }
 
-        private void drawInput(Tile start, Tile end){
-            if(!linkValid(start, end, false)) return;
-            boolean linked = end.pos() == ((ItemBridgeBuild)(start.build)).link;
+        private void drawInput(Tile other){
+            if(!linkValid(tile, other, false)) return;
+            boolean linked = other.pos() == link;
 
-            Tmp.v2.trns(start.angleTo(end), 2f);
-            float tx = start.drawx(), ty = start.drawy();
-            float ox = end.drawx(), oy = end.drawy();
+            Tmp.v2.trns(tile.angleTo(other), 2f);
+            float tx = tile.drawx(), ty = tile.drawy();
+            float ox = other.drawx(), oy = other.drawy();
             float alpha = Math.abs((linked ? 100 : 0)-(Time.time * 2f) % 100f) / 100f;
             float x = Mathf.lerp(ox, tx, alpha);
             float y = Mathf.lerp(oy, ty, alpha);
 
-            Tile otherLink = linked ? end : start;
-            int rel = (linked ? start : end).absoluteRelativeTo(otherLink.x, otherLink.y);
+            Tile otherLink = linked ? other : tile;
+            int rel = (linked ? tile : other).absoluteRelativeTo(otherLink.x, otherLink.y);
 
             //draw "background"
             Draw.color(Pal.gray);

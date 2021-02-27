@@ -3,16 +3,15 @@ package mindustry.world.blocks;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
-import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.math.*;
-import arc.math.geom.Vec2;
 import arc.scene.ui.Label;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.Client;
+import mindustry.client.Spectate;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.UnAssistPath;
@@ -30,8 +29,8 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.power.NuclearReactor;
-import mindustry.world.blocks.storage.CoreBlock;
 import mindustry.world.blocks.storage.CoreBlock.*;
+import mindustry.world.blocks.storage.StorageBlock;
 import mindustry.world.modules.*;
 import java.time.*;
 import java.util.HashMap;
@@ -96,7 +95,7 @@ public class ConstructBlock extends Block{
     public static void breakWarning(Tile tile, Block block, Unit builder){
         if (!Core.settings.getBool("breakwarnings") || !tile.isCenter() || state.rules.infiniteResources || builder == null || !builder.isPlayer()) return; // Don't warn in sandbox for obvious reasons.
 
-        Seq<Block> warnBlocks = new Seq<>(new Block[]{Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid}); // All blocks that shouldn't be broken. Note: Untested with multiblocks, likely to behave in a strange manner.
+        Seq<Block> warnBlocks = Seq.with(Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid); // All blocks that shouldn't be broken. Note: Untested with multiblocks, likely to behave in a strange manner.
 
         if (warnBlocks.contains(block) && Time.timeSinceMillis(tile.lastBreakWarn) > 10_000) { //TODO: Revise this, maybe do break warns per user?
             Timer.schedule(() -> ui.chatfrag.addMessage(Strings.format("[accent]@ [scarlet]just removed/picked up a @ at (@, @)", Strings.stripColors(builder.getPlayer().name), block.localizedName, tile.x, tile.y), "Anti Grief"), 0, 0, 2);
@@ -496,22 +495,27 @@ public class ConstructBlock extends Block{
         public void blockWarning(){
             if (!wasConstructing || closestCore() == null || cblock == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
 
-            Map<Block, Pair<Integer, Integer>> warnBlocks = new HashMap<>(); // Block, warndist, sounddist (-1 = off, 0 = unlimited)
+            Map<Block, Pair<Integer, Integer>> warnBlocks = new HashMap<>(); // Block, warndist, sounddist (0 = off, 101 = always)
             warnBlocks.put(Blocks.thoriumReactor, new Pair<>(Core.settings.getInt("reactorwarningdistance"), Core.settings.getInt("reactorsounddistance")));
             warnBlocks.put(Blocks.incinerator, new Pair<>(Core.settings.getInt("incineratorwarningdistance"), Core.settings.getInt("incineratorsounddistance")));
+            warnBlocks.put(Blocks.melter, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")));
+            warnBlocks.put(Blocks.oilExtractor, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")));
+            warnBlocks.put(Blocks.sporePress, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")));
+
             if (warnBlocks.containsKey(cblock)) {
-                lastBuilder.drawBuildPlans(); // Draw their build plans
+                lastBuilder.drawBuildPlans(); // Draw their build plans TODO: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
                 AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
-                closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)) - 1, distance.get())))); // Oh god
+                closestCore().proximity.each(e -> e instanceof StorageBlock.StorageBuild, block -> block.tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get()))))); // This stupidity finds the smallest distance between vaults on the closest core and the block being built
+                closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get())))); // This stupidity checks the distance to the core as well just in case it ends up being shorter
 
                 // Play warning sound (only played when no reactor has been built for 10s)
-                if ((int) warnBlocks.get(cblock).second == 101 || distance.intValue() <= (int) warnBlocks.get(cblock).second) {
+                if (warnBlocks.get(cblock).second == 101 || distance.get() <= warnBlocks.get(cblock).second) {
                     if (Time.timeSinceMillis(lastWarn) > 10 * 1000) Sounds.corexplode.play(.5f * (float)Core.settings.getInt("sfxvol") / 100.0F);
                     lastWarn = Time.millis();
                 }
 
-                if ((int) warnBlocks.get(cblock).first == 101 || distance.intValue() <= (int) warnBlocks.get(cblock).first) {
-                    String format = String.format("%s is building a %s at %d,%d (%d block%s from core).", lastBuilder.getPlayer().name, cblock.localizedName, tileX(), tileY(), distance.intValue(), distance.intValue() == 1 ? "" : "s");
+                if (warnBlocks.get(cblock).first == 101 || distance.get() <= warnBlocks.get(cblock).first) {
+                    String format = Strings.format("@ is building a @ at @, @ (@ block@ from core).", lastBuilder.getPlayer().name, cblock.localizedName, tileX(), tileY(), distance.get(), distance.get() == 1 ? "" : "s");
                     String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
                     if (toast == null || toast.parent == null) {
                         toast = new Toast(2f, 0f);
@@ -522,10 +526,11 @@ public class ConstructBlock extends Block{
                     toast.add(new Label(format));
                     toast.row();
                     toast.add(new Label(format2, monoLabel));
+                    toast.clicked(() -> Spectate.spectate(Client.lastSentPos.cpy().scl(tilesize)));
+                    Client.lastSentPos.set(tileX(), tileY());
                 }
 
-                if (lastProgress == 0 && cblock instanceof NuclearReactor && distance.intValue() < 20 && Core.settings.getBool("removecorenukes")) { // Automatically remove reactors within 20 blocks of core
-                    CoreBlock.findBestCore = false;
+                if (lastProgress == 0 && Core.settings.getBool("removecorenukes") && cblock instanceof NuclearReactor && !lastBuilder.isLocal() && distance.get() <= 20) { // Automatically remove reactors within 20 blocks of core
                     Call.unitControl(player, ((CoreBuild)closestCore()).unit());
                     Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tileX(), tileY())), net.client() ? netClient.getPing()/1000f+.3f : 0);
                 }

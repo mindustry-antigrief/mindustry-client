@@ -14,7 +14,6 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
-import mindustry.client.Client;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
 import mindustry.core.GameState.*;
@@ -32,18 +31,17 @@ import java.util.zip.*;
 import static arc.Core.*;
 import static mindustry.Vars.net;
 import static mindustry.Vars.*;
-
 public class SettingsMenuDialog extends SettingsDialog{
-    public BetterSettingsTable graphics;
-    public BetterSettingsTable game;
-    public BetterSettingsTable sound;
-    public BetterSettingsTable client;
+    /** Mods break if these are changed to BetterSettingsTable so instead we cast them into different vars and just use those. */
+    public SettingsTable graphics = new BetterSettingsTable(), sound = new BetterSettingsTable(), game = new BetterSettingsTable();
+    public BetterSettingsTable realGraphics, realGame, realSound, client;
 
     private Table prefs;
     private Table menu;
     private BaseDialog dataDialog;
     private boolean wasPaused;
 
+    /** Test */
     public SettingsMenuDialog(){
         hidden(() -> {
             Sounds.back.play();
@@ -74,9 +72,9 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         menu = new Table(Tex.button);
 
-        game = new BetterSettingsTable();
-        graphics = new BetterSettingsTable();
-        sound = new BetterSettingsTable();
+        realGame = (BetterSettingsTable) game;
+        realGraphics = (BetterSettingsTable) graphics;
+        realSound = (BetterSettingsTable) sound;
         client = new BetterSettingsTable();
 
         prefs = new Table();
@@ -244,6 +242,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             }
         });
         pane.setFadeScrollBars(true);
+        pane.setCancelTouchFocus(false);
 
         row();
         add(pane).grow().top();
@@ -293,18 +292,21 @@ public class SettingsMenuDialog extends SettingsDialog{
     }
 
     void addSettings(){
-        sound.sliderPref("musicvol", bundle.get("setting.musicvol.name", "Music Volume"), 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("sfxvol", bundle.get("setting.sfxvol.name", "SFX Volume"), 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("ambientvol", bundle.get("setting.ambientvol.name", "Ambient Volume"), 100, 0, 100, 1, i -> i + "%");
+        realSound.sliderPref("musicvol", bundle.get("setting.musicvol.name", "Music Volume"), 100, 0, 100, 1, i -> i + "%");
+        realSound.sliderPref("sfxvol", bundle.get("setting.sfxvol.name", "SFX Volume"), 100, 0, 100, 1, i -> i + "%");
+        realSound.sliderPref("ambientvol", bundle.get("setting.ambientvol.name", "Ambient Volume"), 100, 0, 100, 1, i -> i + "%");
 
 
-        // Start Client Settings
+        // Client Settings, organized exactly the same as Bundle.properties: text first, sliders second, checked boxes third, unchecked boxes last
         client.category("antigrief");
-        client.sliderPref("reactorwarningdistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" :Integer.toString(s));
-        client.sliderPref("reactorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
-        client.sliderPref("incineratorwarningdistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" :Integer.toString(s));
-        client.sliderPref("incineratorsounddistance", 0, -1, 101, s -> s == 101 ? "Always" : s == -1 ? "Never" : Integer.toString(s));
-        client.checkPref("breakwarnings", true);
+        client.sliderPref("reactorwarningdistance", 40, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
+        client.sliderPref("reactorsounddistance", 25, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
+        client.sliderPref("incineratorwarningdistance", 5, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
+        client.sliderPref("incineratorsounddistance", 3, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
+        client.sliderPref("slagwarningdistance", 10, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
+        client.sliderPref("slagsounddistance", 5, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
+        client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
+        client.checkPref("powersplitwarnings", true); // TODO: Add a minimum building requirement and a setting for it
         client.checkPref("removecorenukes", false);
 
         client.category("chat");
@@ -317,7 +319,6 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         client.category("controls");
         client.checkPref("blockreplace", true);
-        client.checkPref("doubleclicktomine", true);
         client.checkPref("autoboost", false);
 
         client.category("graphics");
@@ -345,13 +346,13 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("assumeunstrict", false);
         client.checkPref("allowjoinany", false);
-        //End Client Settings
+        // End Client Settings
 
 
-        game.screenshakePref();
+        realGame.screenshakePref();
         if(mobile){
-            game.checkPref("autotarget", true);
-            game.checkPref("keyboard", false, val -> control.setInput(val ? new DesktopInput() : new MobileInput()));
+            realGame.checkPref("autotarget", true);
+            realGame.checkPref("keyboard", false, val -> control.setInput(val ? new DesktopInput() : new MobileInput()));
             if(Core.settings.getBool("keyboard")){
                 control.setInput(new DesktopInput());
             }
@@ -365,51 +366,53 @@ public class SettingsMenuDialog extends SettingsDialog{
                 control.setInput(new MobileInput());
             }
         }*/
-        game.sliderPref("saveinterval", 60, 10, 5 * 120, 10, i -> Core.bundle.format("setting.seconds", i));
+        realGame.sliderPref("saveinterval", 60, 10, 5 * 120, 10, i -> Core.bundle.format("setting.seconds", i));
 
         if(!mobile){
-            game.checkPref("crashreport", true);
+            realGame.checkPref("crashreport", true);
         }
-        game.checkPref("savecreate", true); // Autosave
-        game.checkPref("conveyorpathfinding", true);
-        game.checkPref("hints", true);
-        game.checkPref("logichints", true);
+        realGame.checkPref("savecreate", true); // Autosave
+        realGame.checkPref("conveyorpathfinding", true);
+        realGame.checkPref("hints", true);
+        realGame.checkPref("logichints", true);
 
         if(!mobile){
-            game.checkPref("backgroundpause", true);
-            game.checkPref("buildautopause", false);
+            realGame.checkPref("backgroundpause", true);
+            realGame.checkPref("buildautopause", false);
         }
+
+        realGame.checkPref("doubletapmine", settings.getBool("doubleclicktomine")); // TODO: Remove in a month or so
 
         if(steam){
-            game.sliderPref("playerlimit", 16, 2, 250, i -> {
+            realGame.sliderPref("playerlimit", 16, 2, 250, i -> {
                 platform.updateLobby();
                 return i + "";
             });
 
             if(!Version.modifier.contains("beta")){
-                game.checkPref("publichost", false, i -> platform.updateLobby());
+                realGame.checkPref("publichost", false, i -> platform.updateLobby());
             }
         }
 
-        graphics.sliderPref("uiscale", 100, 25, 300, 25, s -> {
+        realGraphics.sliderPref("uiscale", 100, 25, 300, 25, s -> {
             if(ui.settings != null){
                 Core.settings.put("uiscalechanged", true);
             }
             return s + "%";
         });
-        graphics.sliderPref("fpscap", 240, 15, 245, 5, s -> (s > 240 ? Core.bundle.get("setting.fpscap.none") : Core.bundle.format("setting.fpscap.text", s)));
-        graphics.sliderPref("chatopacity", 100, 0, 100, 5, s -> s + "%");
-        graphics.sliderPref("lasersopacity", 100, 0, 100, 5, s -> {
+        realGraphics.sliderPref("fpscap", 240, 15, 245, 5, s -> (s > 240 ? Core.bundle.get("setting.fpscap.none") : Core.bundle.format("setting.fpscap.text", s)));
+        realGraphics.sliderPref("chatopacity", 100, 0, 100, 5, s -> s + "%");
+        realGraphics.sliderPref("lasersopacity", 100, 0, 100, 5, s -> {
             if(ui.settings != null){
                 Core.settings.put("preferredlaseropacity", s);
             }
             return s + "%";
         });
-        graphics.sliderPref("bridgeopacity", 100, 0, 100, 5, s -> s + "%");
+        realGraphics.sliderPref("bridgeopacity", 100, 0, 100, 5, s -> s + "%");
 
         if(!mobile){
-            graphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
-            graphics.checkPref("fullscreen", false, b -> {
+            realGraphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
+            realGraphics.checkPref("fullscreen", false, b -> {
                 if(b){
                     Core.graphics.setFullscreenMode(Core.graphics.getDisplayMode());
                 }else{
@@ -417,7 +420,7 @@ public class SettingsMenuDialog extends SettingsDialog{
                 }
             });
 
-            graphics.checkPref("borderlesswindow", false, b -> Core.graphics.setUndecorated(b));
+            realGraphics.checkPref("borderlesswindow", false, b -> Core.graphics.setUndecorated(b));
 
             Core.graphics.setVSync(Core.settings.getBool("vsync"));
             if(Core.settings.getBool("fullscreen")){
@@ -428,7 +431,7 @@ public class SettingsMenuDialog extends SettingsDialog{
                 Core.app.post(() -> Core.graphics.setUndecorated(true));
             }
         }else if(!ios){
-            graphics.checkPref("landscape", false, b -> {
+            realGraphics.checkPref("landscape", false, b -> {
                 if(b){
                     platform.beginForceLandscape();
                 }else{
@@ -441,38 +444,38 @@ public class SettingsMenuDialog extends SettingsDialog{
             }
         }
 
-        graphics.checkPref("effects", true);
-        graphics.checkPref("atmosphere", !mobile);
-        graphics.checkPref("destroyedblocks", true);
-        graphics.checkPref("blockstatus", false);
-        graphics.checkPref("playerchat", true);
+        realGraphics.checkPref("effects", true);
+        realGraphics.checkPref("atmosphere", !mobile);
+        realGraphics.checkPref("destroyedblocks", true);
+        realGraphics.checkPref("blockstatus", false);
+        realGraphics.checkPref("playerchat", true);
         if(!mobile){
-            graphics.checkPref("coreitems", true);
+            realGraphics.checkPref("coreitems", true);
         }
-        graphics.checkPref("minimap", !mobile);
-        graphics.checkPref("smoothcamera", true);
-        graphics.checkPref("position", false);
-        graphics.checkPref("fps", false);
-        graphics.checkPref("playerindicators", true);
-        graphics.checkPref("indicators", true);
-        graphics.checkPref("animatedwater", true);
+        realGraphics.checkPref("minimap", !mobile);
+        realGraphics.checkPref("smoothcamera", true);
+        realGraphics.checkPref("position", false);
+        realGraphics.checkPref("fps", false);
+        realGraphics.checkPref("playerindicators", true);
+        realGraphics.checkPref("indicators", true);
+        realGraphics.checkPref("animatedwater", true);
         if(Shaders.shield != null){
-            graphics.checkPref("animatedshields", !mobile);
+            realGraphics.checkPref("animatedshields", !mobile);
         }
 
         //if(!ios){
-            graphics.checkPref("bloom", true, val -> renderer.toggleBloom(val));
+            realGraphics.checkPref("bloom", true, val -> renderer.toggleBloom(val));
         //}else{
         //    Core.settings.put("bloom", false);
         //}
 
-        graphics.checkPref("pixelate", false, val -> {
+        realGraphics.checkPref("pixelate", false, val -> {
             if(val){
                 Events.fire(Trigger.enablePixelation);
             }
         });
 
-        graphics.checkPref("linear", !mobile, b -> {
+        realGraphics.checkPref("linear", !mobile, b -> {
             for(Texture tex : Core.atlas.getTextures()){
                 TextureFilter filter = b ? TextureFilter.linear : TextureFilter.nearest;
                 tex.setFilter(filter, filter);
@@ -490,7 +493,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             Core.settings.put("swapdiagonal", false);
         }
 
-        graphics.checkPref("flow", true);
+        realGraphics.checkPref("flow", true);
     }
 
 
@@ -533,7 +536,7 @@ public class SettingsMenuDialog extends SettingsDialog{
                 @Override
                 public void add(SettingsTable table) { // Update URL with update button TODO: Move this to TextPref when i decide im willing to spend 6 hours doing so
                     name = "updateurl";
-                    title = Core.bundle.get("setting." + name + ".name");
+                    title = bundle.get("setting." + name + ".name");
 
                     table.table(t -> {
                         t.button(Icon.refresh, Styles.settingtogglei, 32, () -> {
@@ -628,7 +631,7 @@ public class SettingsMenuDialog extends SettingsDialog{
 
     private void visible(int index){
         prefs.clearChildren();
-        prefs.add(new Table[]{game, graphics, sound, client}[index]);
+        prefs.add(new Table[]{realGame, realGraphics, realSound, client}[index]);
     }
 
     @Override

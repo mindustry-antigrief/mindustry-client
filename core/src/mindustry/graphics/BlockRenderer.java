@@ -10,18 +10,14 @@ import arc.math.geom.Rect;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.Client;
-import mindustry.client.navigation.TurretPathfindingEntity;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
+import mindustry.game.Team;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.world.*;
-import mindustry.world.blocks.defense.turrets.BaseTurret;
-import mindustry.world.blocks.defense.turrets.TractorBeamTurret;
-import mindustry.world.blocks.defense.turrets.Turret;
 import mindustry.world.blocks.power.*;
-import mindustry.world.meta.BlockFlag;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -312,12 +308,8 @@ public class BlockRenderer implements Disposable{
             Rect bounds = new Rect();
             Core.camera.bounds(bounds);
             obstacles.forEach(t -> {
-                if (!((settings.getBool("unitranges") || t.turret) && bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius*2, t.radius*2))) return;
-                if (t.canHitPlayer) {
-                    Drawf.circles(t.x, t.y, t.radius, t.team.color);
-                } else {
-                    Drawf.dashCircle(t.x, t.y, t.radius, t.team.color);
-                }
+                if (!t.canShoot || !(settings.getBool("unitranges") || t.turret) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius*2, t.radius*2)) return;
+                Drawf.dashCircle(t.x, t.y, t.radius, t.canHitPlayer ? t.team.color : Team.derelict.color);
             });
         }
     }
