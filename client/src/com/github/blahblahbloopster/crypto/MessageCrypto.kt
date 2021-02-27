@@ -39,7 +39,7 @@ class MessageCrypto {
 
         class SignatureEvent(val sender: Int, val senderKey: KeyHolder?, val message: String?, val valid: Boolean) : MessageCryptoEvent()
 
-        class EncryptedMessageEvent(val sender: Int, val senderCryptoClient: CryptoClient?, val message: String?) : MessageCryptoEvent()
+        class EncryptedMessageEvent(val sender: Int, val senderKey: KeyHolder, val message: String?) : MessageCryptoEvent()
 
         fun base64public(input: String): PublicKeyPair? {
             return try {
@@ -95,9 +95,11 @@ class MessageCrypto {
             listeners.add {
                 if (it is SignatureEvent && it.valid && it.message != null) {
                     val message = Vars.ui?.chatfrag?.messages?.find { msg -> msg.message.contains(it.message) }
-                    message?.backgroundColor = Color.green.cpy().mul(if (it.senderKey?.official == true) 0.75f else 0.4f)
+                    message?.backgroundColor = Color.sky.cpy().mul(if (it.senderKey?.official == true) 0.75f else 0.4f)
                     message?.verifiedSender = it.senderKey?.name ?: return@add
                     message?.format()
+                } else if (it is EncryptedMessageEvent && it.message != null) {
+                    Vars.ui?.chatfrag?.addMessage(it.message, it.senderKey.name, Color.green.cpy().mul(if (it.senderKey.official) 0.75f else 0.4f))
                 }
             }
         }
@@ -216,7 +218,7 @@ class MessageCrypto {
 
                         val str = zip.readAllBytes().decodeToString()
 
-                        fire(EncryptedMessageEvent(sender, crypto, str))
+                        fire(EncryptedMessageEvent(sender, key, str))
                         zip.close()
                     } catch (ignored: Exception) {}
                 }

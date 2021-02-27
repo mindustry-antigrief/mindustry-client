@@ -71,7 +71,6 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
             try {
                 bytes = Base32768Coder.decode(message.removePrefix(Client.messageCommunicationPrefix))
             } catch (exception: Exception) {
-                exception.printStackTrace()
                 return@on
             }
 
@@ -90,16 +89,6 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
             if (!build.message.startsWith(Client.messageCommunicationPrefix)) {
                 continue
             }
-//            val encoded = Base32768Coder.encode(bytes)
-//            val lengthLimit = (Blocks.message as MessageBlock).maxTextLength - (Client.messageCommunicationPrefix.length + 6) - 1
-//            val cut = encoded.chunked(lengthLimit)
-//            val transmissionId = Random.nextInt(0, 1_000_000)
-//            for ((i, item) in cut.withIndex()) {
-//                val toSend = Client.messageCommunicationPrefix + i.toString().padStart(3, '0') + cut.size.toString().padStart(6, '0') + transmissionId.toString().padStart(3, '0') + item
-//                Time.run(0.5f * i) {
-//                    Call.tileConfig(Vars.player, block.build, toSend)
-//                }
-//            }
 
             Call.tileConfig(Vars.player, block.build, Client.messageCommunicationPrefix + Base32768Coder.encode(bytes))
             break
