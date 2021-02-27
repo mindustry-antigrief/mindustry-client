@@ -14,16 +14,28 @@ object Main : ApplicationListener {
     /** Run on client load. */
     override fun init() {
         Crypto.init()
-        KeyFolder.initializeAlways()
         if (Core.app.isDesktop) {
             communicationSystem = MessageBlockCommunicationSystem()
             communicationSystem.init()
+
+            Client.fooCommands.register("e", "<destination> [message...]", "Send an encrypted chat message") { args ->
+                if (args.size < 2) return@register
+                val dest = args[0]
+                val message = args[1]
+
+                for (key in messageCrypto.keys) {
+                    if (key.name.equals(dest, true)) {
+                        messageCrypto.encrypt(message, key)
+                    }
+                }
+            }
         } else {
             communicationSystem = DummyCommunicationSystem()
         }
         messageCrypto = MessageCrypto()
         messageCrypto.init(communicationSystem)
         Client.mapping = ClientMapping()
+        KeyFolder.initializeAlways()
 
         Navigation.navigator = AStarNavigator
     }

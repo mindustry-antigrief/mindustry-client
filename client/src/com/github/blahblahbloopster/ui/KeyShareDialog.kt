@@ -51,6 +51,7 @@ class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share")
                     messageCrypto.keys.add(KeyHolder(key, name, false, messageCrypto))
                     hide()
                 }
+                row()
                 addCloseButton()
             }.show()
         }.growX()

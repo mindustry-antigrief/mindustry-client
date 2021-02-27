@@ -1,5 +1,8 @@
 package com.github.blahblahbloopster.crypto
 
+import com.beust.klaxon.*
+import com.github.blahblahbloopster.Main
+import com.github.blahblahbloopster.ui.base64
 import org.bouncycastle.crypto.agreement.X25519Agreement
 import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator
 import org.bouncycastle.crypto.generators.X25519KeyPairGenerator
@@ -7,7 +10,9 @@ import org.bouncycastle.crypto.params.*
 import org.bouncycastle.crypto.signers.Ed25519Signer
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.nio.ByteBuffer
-import java.security.*
+import java.security.MessageDigest
+import java.security.SecureRandom
+import java.security.Security
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -72,10 +77,52 @@ class KeyQuad {
     }
 }
 
+object PublicKeyJson : Converter {
+    override fun canConvert(cls: Class<*>) = cls == PublicKeyPair::class.java
+
+    override fun fromJson(jv: JsonValue): PublicKeyPair {
+        try {
+            return PublicKeyPair(jv.objString("encoded").base64()!!)
+        } catch (e: Exception) {
+            throw KlaxonException("Couldn't parse public key")
+        }
+    }
+
+    override fun toJson(value: Any): String {
+        if (value !is PublicKeyPair) throw KlaxonException("Not a public key pair")
+        return """{"encoded": "${value.serialize().base64()}"}"""
+    }
+}
+
+object KeyHolderJson : Converter {
+    override fun canConvert(cls: Class<*>) = cls == KeyHolder::class.java
+
+    override fun fromJson(jv: JsonValue): KeyHolder {
+        return try {
+            KeyHolder(
+                PublicKeyPair(jv.objString("keys").base64()!!),
+                jv.objString("name"),
+                jv.objInt("official") == 1,
+                Main.messageCrypto
+            )
+        } catch (exception: Exception) {
+            exception.printStackTrace()
+            throw KlaxonException("Could not deserialize KeyHolder")
+        }
+    }
+
+    override fun toJson(value: Any): String {
+        if (value !is KeyHolder) throw KlaxonException("Not a public key pair")
+        return """{"keys": "${value.keys.serialize().base64()}", "name": "${Render.escapeString(value.name)}", "official": ${if (value.official) 1 else 0}}"""
+    }
+}
+
 class PublicKeyPair {
 
-    val xPublicKey: XPublicKey
+    @Json(ignored = true)
     val edPublicKey: EdPublicKey
+    @Json(ignored = true)
+    val xPublicKey: XPublicKey
 
     constructor(xPublicKey: XPublicKey, edPublicKey: EdPublicKey) {
         this.xPublicKey = xPublicKey

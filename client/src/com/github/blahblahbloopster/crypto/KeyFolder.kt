@@ -6,7 +6,7 @@ import com.beust.klaxon.Klaxon
 import com.github.blahblahbloopster.Initializable
 
 object KeyFolder : KeyList {
-    private val klaxon = Klaxon()
+    private val klaxon = Klaxon().converter(KeyHolderJson)
     private var set = mutableSetOf<KeyHolder>()
     private var fi: Fi? = null
 

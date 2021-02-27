@@ -171,7 +171,7 @@ class MessageCrypto {
         val time = Instant.now().epochSecond
         val id = communicationSystem.id
         val compressor = DeflaterInputStream(message.toByteArray().inputStream())
-        val encoded = compressor.readAllBytes()
+        val encoded = compressor.readBytes()
         val plaintext = ByteBuffer.allocate(encoded.size + Long.SIZE_BYTES + Int.SIZE_BYTES + Byte.SIZE_BYTES)
         plaintext.putLong(time)
         plaintext.putInt(id)
@@ -218,7 +218,7 @@ class MessageCrypto {
 
                         val zip = InflaterInputStream(plaintext.inputStream())
 
-                        val str = zip.readAllBytes().decodeToString()
+                        val str = zip.readBytes().decodeToString()
 
                         fire(EncryptedMessageEvent(sender, key, str))
                         zip.close()
