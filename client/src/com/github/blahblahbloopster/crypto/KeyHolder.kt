@@ -6,7 +6,7 @@ data class KeyHolder(val keys: PublicKeyPair, val name: String, val official: Bo
     @Json(ignored = true)
     val crypto get() = cryptoClient ?: run {
         messageCrypto.keyQuad ?: return@run null
-        return@run CryptoClient(messageCrypto.keyQuad!!)
+        return@run CryptoClient(messageCrypto.keyQuad!!).apply { cryptoClient = this }
     }
     @Json(ignored = true)
     private var cryptoClient: CryptoClient? = null

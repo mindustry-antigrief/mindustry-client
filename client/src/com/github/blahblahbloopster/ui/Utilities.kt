@@ -12,6 +12,7 @@ import java.nio.ByteBuffer
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.Temporal
+import kotlin.math.abs
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -29,7 +30,8 @@ fun Long.toInstant(): Instant = Instant.ofEpochSecond(this)
 /** Seconds between this and [other].  If [other] happened after this, it will be positive. */
 fun Temporal.secondsBetween(other: Temporal) = Duration.between(this, other).seconds
 
-fun Temporal.age() = this.secondsBetween(Instant.now())
+/** The age of this temporal. Always positive. */
+fun Temporal.age() = abs(this.secondsBetween(Instant.now()))
 
 /** Adds an element to the table followed by a row. */
 fun Table.row(element: Element): Cell<Element> {

@@ -11,14 +11,10 @@ import com.github.blahblahbloopster.ui.remainingBytes
 import com.github.blahblahbloopster.ui.toInstant
 import mindustry.Vars
 import mindustry.game.EventType
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import java.nio.ByteBuffer
-import java.time.Duration
 import java.time.Instant
-import java.time.temporal.Temporal
 import java.util.zip.DeflaterInputStream
-import kotlin.math.abs
+import java.util.zip.InflaterInputStream
 
 /** Provides the interface between [Crypto] and a [CommunicationSystem] */
 class MessageCrypto {
@@ -48,16 +44,33 @@ class MessageCrypto {
         fun base64public(input: String): PublicKeyPair? {
             return try {
                 PublicKeyPair(Base64Coder.decode(input))
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
+            } catch (e: Exception) { null }
         }
     }
 
     data class PlayerTriple(val id: Int, val time: Long, val message: String)
 
-    data class ReceivedTriple(val id: Int, val time: Long, val signature: ByteArray)
+    data class ReceivedTriple(val id: Int, val time: Long, val signature: ByteArray) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as ReceivedTriple
+
+            if (id != other.id) return false
+            if (time != other.time) return false
+            if (!signature.contentEquals(other.signature)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = id
+            result = 31 * result + time.hashCode()
+            result = 31 * result + signature.contentHashCode()
+            return result
+        }
+    }
 
     fun init(communicationSystem: CommunicationSystem) {
         this.communicationSystem = communicationSystem
@@ -101,14 +114,13 @@ class MessageCrypto {
 
     /** Checks the validity of a message given two triples, see above. */
     private fun check(player: PlayerTriple, received: ReceivedTriple) {
-        fun event(sender: Int = 0, keyHolder: KeyHolder? = null, message: String? = null, valid: Boolean = false, official: Boolean = false) {
+        fun event(sender: Int = 0, keyHolder: KeyHolder? = null, message: String? = null, valid: Boolean = false) {
             fire(SignatureEvent(sender, keyHolder, message, valid))
         }
 
         if (player.id == 0 || player.time == 0L || player.message == "") return
         if (received.id == 0 || received.time == 0L || received.signature.isEmpty()) return
-        val time = Instant.now().epochSecond
-        if (abs(player.time - time) > 3 || abs(received.time - time) > 3) {
+        if (player.time.toInstant().age() > 3 || received.time.toInstant().age() > 3) {
             event(player.id, message = player.message)
             return
         }
@@ -121,7 +133,7 @@ class MessageCrypto {
         for (key in keys) {
             val match = verify(player.message, received.id, received.signature, key.keys, received.time)
             if (match) {
-                event(player.id, key, player.message, true, key.official)
+                event(player.id, key, player.message, true)
                 return
             }
         }
@@ -167,10 +179,11 @@ class MessageCrypto {
         toSend.putLong(time)
         toSend.putInt(id)
         toSend.put(ciphertext)
+
         communicationSystem.send(toSend.array())
     }
 
-    fun handle(input: ByteArray, sender: Int) {
+    private fun handle(input: ByteArray, sender: Int) {
         val buf = ByteBuffer.wrap(input)
         val type = buf.int
         val time = buf.long
@@ -185,20 +198,27 @@ class MessageCrypto {
             1 -> {
                 for (key in keys) {
                     val crypto = key.crypto ?: continue
-                    val decoded = crypto.decrypt(content)
-                    val buffer = ByteBuffer.wrap(decoded)
-                    val timeSent = buffer.long
-                    val senderId = buffer.int
-                    val validity = buffer.get()
-                    val plaintext = buffer.remainingBytes()
+                    try {
+                        val decoded = crypto.decrypt(content)
+                        val buffer = ByteBuffer.wrap(decoded)
+                        val timeSent = buffer.long
+                        val senderId = buffer.int
+                        val validity = buffer.get()
+                        val plaintext = buffer.remainingBytes()
 
-                    if (validity != ENCRYPTION_VALIDITY) continue
+                        if (validity != ENCRYPTION_VALIDITY) continue
 
-                    if (timeSent.toInstant().age() > 3 || time.toInstant().age() > 3) return
+                        if (timeSent.toInstant().age() > 3 || time.toInstant().age() > 3) continue
 
-                    if (senderId != sender) return
+                        if (senderId != sender) return
 
-                    println(plaintext.decodeToString())
+                        val zip = InflaterInputStream(plaintext.inputStream())
+
+                        val str = zip.readAllBytes().decodeToString()
+
+                        fire(EncryptedMessageEvent(sender, crypto, str))
+                        zip.close()
+                    } catch (ignored: Exception) {}
                 }
             }
         }
@@ -214,8 +234,8 @@ class MessageCrypto {
 
         val validSignature = try {
             Crypto.verify(original, signature, key.edPublicKey)
-        } catch (ignored: java.lang.Exception) { false.apply { ignored.printStackTrace() } }
-        val age = abs(time.toInstant().age())
+        } catch (ignored: java.lang.Exception) { false }
+        val age = time.toInstant().age()
 
         return age < 3 && validSignature
     }
