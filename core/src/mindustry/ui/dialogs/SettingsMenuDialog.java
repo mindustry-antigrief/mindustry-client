@@ -41,7 +41,6 @@ public class SettingsMenuDialog extends SettingsDialog{
     private BaseDialog dataDialog;
     private boolean wasPaused;
 
-    /** Test */
     public SettingsMenuDialog(){
         hidden(() -> {
             Sounds.back.play();
