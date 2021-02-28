@@ -31,6 +31,7 @@ import java.util.zip.*;
 import static arc.Core.*;
 import static mindustry.Vars.net;
 import static mindustry.Vars.*;
+
 public class SettingsMenuDialog extends SettingsDialog{
     /** Mods break if these are changed to BetterSettingsTable so instead we cast them into different vars and just use those. */
     public SettingsTable graphics = new BetterSettingsTable(), sound = new BetterSettingsTable(), game = new BetterSettingsTable();
