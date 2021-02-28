@@ -331,15 +331,6 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("disablemonofont", false); // Requires Restart
         client.checkPref("drawhitboxes", false);
 
-        client.category("cryptography");
-        button("setkeydir", () -> {
-            platform.showFileChooser(true, "keyfilechooser", "", file -> {
-                if (file.isDirectory()) {
-                    settings.put("keyfolder", file.absolutePath());
-                }
-            });
-        });
-
         client.category("misc");
         client.updatePref();
         client.checkPref("autoupdate", true);
