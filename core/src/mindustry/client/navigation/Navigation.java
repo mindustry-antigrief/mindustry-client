@@ -1,5 +1,8 @@
 package mindustry.client.navigation;
 
+import arc.graphics.Color;
+import arc.graphics.g2d.Draw;
+import arc.graphics.g2d.Fill;
 import arc.math.Mathf;
 import arc.math.geom.Position;
 import arc.math.geom.Vec2;
@@ -72,11 +75,11 @@ public class Navigation {
             recordedPath.draw();
         }
 
-//        Draw.color(Color.green, 0.2f);
-//        for (TurretPathfindingEntity turret : obstacles) {
-//            Fill.circle(turret.x, turret.y, turret.radius);
-//        }
-//        Draw.color();
+        Draw.color(Color.green, 0.2f);
+        for (TurretPathfindingEntity turret : obstacles) {
+            Fill.circle(turret.x, turret.y, turret.radius);
+        }
+        Draw.color();
     }
 
     public static void navigateTo(Position pos) {
@@ -103,10 +106,7 @@ public class Navigation {
                 waypoints.reverse();
 
                 if (waypoints.any()) {
-                    int i = 0;
-                    while (i++ < 5 && waypoints.size > 1 && ((PositionWaypoint) waypoints.first()).dst(new Vec2(drawX, drawY)) + tilesize/2f > player.dst(new Vec2(drawX, drawY))) { // Remove any waypoints which backtrack at the start, this is a shitty solution to the problem but oh well.
-                        waypoints.remove(0);
-                    }
+                    if (waypoints.size > 1) waypoints.remove(0);
                     if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
                         follow(new WaypointPath(waypoints));
                         targetPos = new Vec2(drawX, drawY);

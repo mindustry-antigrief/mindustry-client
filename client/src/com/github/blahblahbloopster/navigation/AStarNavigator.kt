@@ -3,7 +3,9 @@ package com.github.blahblahbloopster.navigation
 import arc.math.Mathf
 import arc.math.geom.Circle
 import arc.math.geom.Vec2
+import arc.util.Log
 import mindustry.Vars.tilesize
+import mindustry.Vars.world
 import mindustry.client.navigation.Navigator
 import mindustry.core.World
 import java.util.*
@@ -126,8 +128,8 @@ object AStarNavigator : Navigator() {
         start ?: return null
         end ?: return null
         obstacles ?: return null
-        width = max(obstacles.maxOfOrNull { it.x + it.radius + tilesize * 2 } ?: 0f, max(start.x, end.x)).coerceAtMost(max(start.x, end.x))
-        height = max(obstacles.maxOfOrNull { it.y + it.radius + tilesize * 2 } ?: 0f, max(start.y, end.y)).coerceAtMost(max(start.y, end.y))
+        width = max(obstacles.maxOfOrNull { it.x + it.radius + tilesize * 2 } ?: 0f, max(start.x, end.x)).coerceAtMost(world.unitWidth().toFloat())
+        height = max(obstacles.maxOfOrNull { it.y + it.radius + tilesize * 2 } ?: 0f, max(start.y, end.y)).coerceAtMost(world.unitHeight().toFloat())
 
         tileWidth = ceil(width / tilesize).toInt() + 1
         tileHeight = ceil(height / tilesize).toInt() + 1
@@ -183,17 +185,14 @@ object AStarNavigator : Navigator() {
         grid[px][py]?.finalCost = 0
 
         for (turret in obstacles) {
-            val range = World.toTile(turret.radius)
-            val x = World.toTile(turret.x)
-            val y = World.toTile(turret.y)
-            for (dx in -range..range) {
-                for (dy in -range..range) {
-                    if (dx + x < 0 || dx + x >= tileWidth || dy + y < 0 || dy + y >= tileHeight) continue
-                    if (Mathf.within(dx.toFloat(), dy.toFloat(), range.toFloat())) {
+            for (dx in ((turret.x - turret.radius)/tilesize).toInt()..((turret.x + turret.radius)/tilesize).toInt()) {
+                for (dy in ((turret.y - turret.radius)/tilesize).toInt()..((turret.y + turret.radius)/tilesize).toInt()) {
+                    if (dx >= tileWidth || dx < 0 || dy >= tileHeight || dy < 0) continue
+                    if (turret.contains(dx * tilesize.toFloat(), dy * tilesize.toFloat())) {
                         if (block) {
-                            setBlocked(dx + x, dy + y)
+                            setBlocked(dx, dy)
                         } else {
-                            costly[dx + x][dy + y] = true
+                            costly[dx][dy] = true
                         }
                     }
                 }

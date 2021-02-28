@@ -18,6 +18,11 @@ public abstract class FormationPattern{
     /** Returns the location of the given slot index. */
     public abstract Vec3 calculateSlotLocation(Vec3 out, int slot);
 
+    /** Returns the radius of this formation */
+    public float radius(){ // Not abstract in case anuke adds more formations later
+        return 0f;
+    }
+
     /**
      * Returns true if the pattern can support the given number of slots
      * @param slotCount the number of slots

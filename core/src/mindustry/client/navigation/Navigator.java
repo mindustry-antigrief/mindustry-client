@@ -1,5 +1,6 @@
 package mindustry.client.navigation;
 
+import arc.math.Mathf;
 import arc.math.geom.Circle;
 import arc.math.geom.Vec2;
 import arc.struct.Seq;
@@ -24,7 +25,7 @@ public abstract class Navigator {
         Seq<Circle> realObstacles = new Seq<>(new Circle[0]);
         for (TurretPathfindingEntity turret : obstacles) {
             if (turret.canHitPlayer && turret.canShoot) {
-                realObstacles.add(new Circle(turret.x / resolution, turret.y / resolution, turret.radius / resolution));
+                realObstacles.add(new Circle(turret.x / resolution, turret.y / resolution, (turret.radius + (player.unit().formation() == null ? 0f : player.unit().formation().pattern.spacing / (float)Math.sin(180f / player.unit().formation.pattern.slots * Mathf.degRad)) + 8) / resolution));
             }
         }
         Vec2[] path = findPath(start, end, realObstacles.toArray());

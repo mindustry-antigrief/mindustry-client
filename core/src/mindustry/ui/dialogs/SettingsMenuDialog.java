@@ -320,11 +320,13 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.category("controls");
         client.checkPref("blockreplace", true);
         client.checkPref("autoboost", false);
+        client.checkPref("assumeunstrict", false);
 
         client.category("graphics");
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
-        client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%");
+        client.sliderPref("effectscl", 100, 0, 100, 5, s -> s + "%");
+        client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%[lightgrey] (after stack: " + s * settings.getInt("effectscl") / 100 + "%)[]");
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("unitranges", false);
@@ -335,7 +337,6 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.updatePref();
         client.checkPref("autoupdate", true);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
-        client.checkPref("assumeunstrict", false);
         client.checkPref("allowjoinany", false);
         // End Client Settings
 
@@ -503,13 +504,13 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         // Elements are actually added below
         public static class Category extends Setting{
-            Category(String name) {
+            Category(String name){
                 this.name = name;
                 this.title = bundle.get("setting." + name + ".category");
             }
 
             @Override
-            public void add(SettingsTable table) {
+            public void add(SettingsTable table){
                 table.add("").row(); // Add a cell first as .row doesn't work if there are no cells in the current row.
                 table.add("[accent]" + title);
                 table.row();

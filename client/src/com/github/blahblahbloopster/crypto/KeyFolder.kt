@@ -14,11 +14,9 @@ object KeyFolder : KeyList {
 
     override fun initializeAlways() {
         val file = Core.settings.dataDirectory.child("keys.json")
-        var createdNewFile = false
-        if (!file.exists()) {
-            createdNewFile = true
-            file.writeString("[]")
-        }
+        var createdNewFile = !file.exists()
+        if (createdNewFile) file.writeString("[]")
+
         val items = klaxon.parseArray<KeyHolder>(file.readString())
         items ?: return
         set.addAll(items)
@@ -26,6 +24,7 @@ object KeyFolder : KeyList {
 
         if (createdNewFile) {
             add(KeyHolder(PublicKeyPair("8/GKCQvbLsHOYibfEjb3KlU5YX46hYHeO+X4zpU/MQjJR4T1l2kAqUT1EuO2YwD/n8u3blb9BnbiyNbwlvSTZw==".base64()!!), "foo", true, Main.messageCrypto))
+            add(KeyHolder(PublicKeyPair("wnnWJvq5c60ryrYndufA5i6JVZcHijLoCHMDsnHPVx76jmfThaX+pxnAAGID6l9jVbFefC6tq8SFsBE5mGU0LQ==".base64()!!), "buthed", true, Main.messageCrypto))
         }
     }
 

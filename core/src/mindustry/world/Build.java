@@ -6,8 +6,8 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.antigrief.BreakTileLog;
 import mindustry.client.antigrief.RotateTileLog;
+import mindustry.client.antigrief.TileLogItem;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
@@ -72,7 +72,7 @@ public class Build{
         //auto-rotate the block to the correct orientation and bail out
         if(tile.team() == team && tile.block == result && tile.build != null && tile.block.quickRotate){
             if(unit != null && unit.getControllerName() != null) tile.build.lastAccessed = unit.getControllerName();
-            tile.getLinkedTiles(tile2 -> tile2.addToLog(new RotateTileLog(unit, tile2, tile.build.rotation, Mathf.mod(rotation, 4), Instant.now().getEpochSecond(), "")));
+            tile.getLinkedTiles(t -> t.addToLog(new TileLogItem(unit, t, Instant.now().getEpochSecond(), TileLogItem.toCardinalDirection(Mathf.mod(rotation, 4)), "rotated", tile.block)));
             tile.build.rotation = Mathf.mod(rotation, 4);
             tile.build.updateProximity();
             tile.build.noSleep();
@@ -88,7 +88,6 @@ public class Build{
         tmp.clear();
 
         tile.getLinkedTilesAs(result, t -> {
-//            t.addToLog(new BreakTileLog(unit, t, Instant.now().getEpochSecond(), "", t.block)); TODO: Add replacements as extra data, this is too spammy.
             ConstructBlock.breakWarning(t, t.block, unit); // This will totally break if warnBlocks contains a multiblock lol
             if(t.build != null && t.build.team == team && tmp.add(t.build.id)){
                 prevBuild.add(t.build);

@@ -58,10 +58,14 @@ public class PausedDialog extends BaseDialog{
 
             cont.row();
 
-            cont.button("@quit", Icon.exit, this::showQuitConfirm).update(s -> s.setText(control.saves.getCurrent() != null && control.saves.getCurrent().isAutosave() ? "@save.quit" : "@quit"));
-            cont.button("@features", Icon.book, () -> Client.mapping.showFeaturesDialog());
+            cont.button("@client.changelog", Icon.edit, () -> Client.mapping.showChangelogDialog());
+            cont.button("@client.features", Icon.book, () -> Client.mapping.showFeaturesDialog());
+
             cont.row();
-            cont.button("Share Key", Icon.book, () -> Client.mapping.shareKey());
+
+            cont.button("@client.keyshare", Icon.book, () -> Client.mapping.shareKey());
+            cont.button("@quit", Icon.exit, this::showQuitConfirm).update(s -> s.setText(control.saves.getCurrent() != null && control.saves.getCurrent().isAutosave() ? "@save.quit" : "@quit"));
+
 
         }else{
             cont.defaults().size(130f).pad(5);

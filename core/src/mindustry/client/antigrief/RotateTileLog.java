@@ -1,7 +1,5 @@
 package mindustry.client.antigrief;
 
-import arc.scene.Element;
-import arc.scene.ui.layout.Table;
 import mindustry.gen.Unitc;
 import mindustry.world.Tile;
 
@@ -13,26 +11,9 @@ public class RotateTileLog extends TileLogItem {
      * Creates a TileLogItem.  time is unix time.
      */
     public RotateTileLog(Unitc player, Tile tile, int oldRotation, int newRotation, long time, String additionalInfo){
-        super(player, tile, time, additionalInfo);
+        super(player, tile, time, additionalInfo, "rotated", tile.block());
         this.newRotation = newRotation;
         this.oldRotation = oldRotation;
-    }
-
-    @Override
-    public Element toElement() {
-        Table t = new Table();
-        t.add(super.toElement());
-        return t;
-    }
-
-    private String toCardinalDirection(int rotation) {
-        return switch (rotation) {
-            case (0) -> "east";
-            case (1) -> "north";
-            case (2) -> "west";
-            case (3) -> "south";
-            default -> String.valueOf(rotation);
-        };
     }
 
     @Override

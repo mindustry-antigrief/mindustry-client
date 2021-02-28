@@ -15,7 +15,7 @@ public class ConfigTileLog extends TileLogItem {
      * Creates a TileLogItem.  time is unix time.
      */
     public ConfigTileLog(Unitc player, Tile tile, Object newConfig, Object previous, long time, String additionalInfo){
-        super(player, tile, time, additionalInfo);
+        super(player, tile, time, additionalInfo, "configured", tile.block());
         configuration = newConfig;
         oldConfiguration = previous;
     }
@@ -24,13 +24,11 @@ public class ConfigTileLog extends TileLogItem {
     public Element toElement() {
         Table t = new Table();
         t.add(super.toElement());
-        t.button(Icon.refresh1, () -> {
+        t.button(Icon.refresh, () -> {
             try {
-                System.out.println(configuration);
                 world.tile(x, y).build.configure(configuration);
             } catch(Exception e) {
                 ui.showErrorMessage("Failed to rollback configuration");
-                e.printStackTrace();
             }
         }).tooltip("Restore this configuration");
         return t;

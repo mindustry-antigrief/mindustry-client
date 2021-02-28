@@ -206,10 +206,10 @@ public class MenuFragment extends Fragment{
                             Core.app.setClipboardText("https://github.com/blahblahbloopster/mindustry-client-v6");
                         }
                     }),
-                    new Buttoni("Changelog", Icon.edit, () -> Client.mapping.showChangelogDialog()),
-                    new Buttoni("Features", Icon.list, () -> Client.mapping.showFeaturesDialog()),
-                    new Buttoni("Generate Keypair", Icon.lock, () -> Client.mapping.generateKey()),
-                    new Buttoni("Share Key", Icon.bookOpen, () -> Client.mapping.shareKey())
+                    new Buttoni("@client.changelog", Icon.edit, () -> Client.mapping.showChangelogDialog()),
+                    new Buttoni("@client.features", Icon.list, () -> Client.mapping.showFeaturesDialog()),
+                    new Buttoni("@client.makekey", Icon.lock, () -> Client.mapping.generateKey()),
+                    new Buttoni("@client.keyshare", Icon.bookOpen, () -> Client.mapping.shareKey())
                 ), // End of client section
                 new Buttoni("@quit", Icon.exit, Core.app::exit)
             );
