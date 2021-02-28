@@ -19,10 +19,10 @@ object AStarNavigator : Navigator() {
     private const val V_H_COST = 10
 
     //Blocked cells are just null Cell values in grid
-    private var grid: Array<Array<Cell?>> = Array(5) { arrayOfNulls(5) }
+    private var grid: Array<Array<Cell?>> = emptyArray()
     private var open = PriorityQueue<Cell>(500)
     private var closed: Array<BooleanArray> = emptyArray()
-    private var costly: Array<BooleanArray> = emptyArray()
+    private var addedCosts: Array<IntArray> = emptyArray()
     private var startX = 0
     private var startY = 0
     private var endX = 0
@@ -81,41 +81,41 @@ object AStarNavigator : Navigator() {
                 return
             }
             var t: Cell?
-            val multiplier: Int = if (costly[current.x][current.y]) {
-                5
-            } else {
-                1
-            }
+//            val multiplier: Int = if (costly[current.x][current.y]) {
+//                5
+//            } else {
+//                1
+//            }
             if (current.x - 1 >= 0) {
                 t = grid[current.x - 1][current.y]
-                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier)
+                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) + addedCosts[current.x - 1][current.y])
                 if (current.y - 1 >= 0) {
                     t = grid[current.x - 1][current.y - 1]
-                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier)
+                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) + addedCosts[current.x - 1][current.y - 1])
                 }
                 if (current.y + 1 < grid[0].size) {
                     t = grid[current.x - 1][current.y + 1]
-                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier)
+                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) + addedCosts[current.x - 1][current.y + 1])
                 }
             }
             if (current.y - 1 >= 0) {
                 t = grid[current.x][current.y - 1]
-                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier)
+                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) + addedCosts[current.x][current.y - 1])
             }
             if (current.y + 1 < grid[0].size) {
                 t = grid[current.x][current.y + 1]
-                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier)
+                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) + addedCosts[current.x][current.y + 1])
             }
             if (current.x + 1 < grid.size) {
                 t = grid[current.x + 1][current.y]
-                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) * multiplier)
+                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) + addedCosts[current.x + 1][current.y])
                 if (current.y - 1 >= 0) {
                     t = grid[current.x + 1][current.y - 1]
-                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier)
+                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) + addedCosts[current.x + 1][current.y - 1])
                 }
                 if (current.y + 1 < grid[0].size) {
                     t = grid[current.x + 1][current.y + 1]
-                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) * multiplier)
+                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) + addedCosts[current.x + 1][current.y + 1])
                 }
             }
         }
@@ -156,19 +156,16 @@ object AStarNavigator : Navigator() {
             closed = Array(tileWidth) { BooleanArray(tileHeight) }
         }
 
-        if (costly.size == tileWidth && costly.getOrNull(0)?.size == tileHeight) {
-            costly.forEach { it.fill(false) }
+        if (addedCosts.size == tileWidth && addedCosts.getOrNull(0)?.size == tileHeight) {
+            addedCosts.forEach { it.fill(0) }
         } else {
-            costly = Array(tileWidth) { BooleanArray(tileHeight) }
+            addedCosts = Array(tileWidth) { IntArray(tileHeight) }
         }
 
         open.clear()
 
         //Set start position
         setStartCell(px, py)
-        if (costly[px][py]) {
-            costly[px][py] = false
-        }
 
         //Set End Location
         setEndCell(ex, ey)
@@ -193,7 +190,7 @@ object AStarNavigator : Navigator() {
                         if (block) {
                             setBlocked(dx + x, dy + y)
                         } else {
-                            costly[dx + x][dy + y] = true
+                            addedCosts[dx + x][dy + y] += (2 * range) - (abs(dx) + abs(dy)) + 5
                         }
                     }
                 }
