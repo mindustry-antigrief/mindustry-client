@@ -1,7 +1,11 @@
 package com.github.blahblahbloopster.navigation
 
+import arc.graphics.Color
+import arc.graphics.g2d.Draw
+import arc.graphics.g2d.Fill
 import arc.math.Mathf
 import arc.math.geom.Circle
+import arc.math.geom.Geometry.d8
 import arc.math.geom.Vec2
 import mindustry.Vars.tilesize
 import mindustry.client.navigation.Navigator
@@ -54,9 +58,7 @@ object AStarNavigator : Navigator() {
     private fun checkAndUpdateCost(current: Cell?, t: Cell?, cost: Int) {
         if (t == null || closed[t.x][t.y]) return
         val tFinalCost = t.heuristicCost + cost
-        //        if(closed[t.i][t.j]){
-//            t_final_cost *= 100;
-//        }
+
         val inOpen = open.contains(t)  // O(N)
         if (!inOpen || tFinalCost < t.finalCost) {
             t.finalCost = tFinalCost
@@ -67,56 +69,36 @@ object AStarNavigator : Navigator() {
 
     private fun aStarSearch() {
         //add the start location to open list.
-        endX = endX.clamp(0, grid.size - 1)
-        endY = endY.clamp(0, grid[0].size - 1)
         startX = startX.clamp(0, grid.size - 1)
         startY = startY.clamp(0, grid[0].size - 1)
         open.add(grid[startX][startY])
+
+        endX = endX.clamp(0, grid.size - 1)
+        endY = endY.clamp(0, grid[0].size - 1)
+
         var current: Cell?
         while (true) {
-            current = open.poll()  // O(log(n))
-            if (current == null) break
-            closed[current.x][current.y] = true
-            if (current == grid[endX][endY]) {
+            current = open.poll() ?: break  // Get a tile to explore
+            closed[current.x][current.y] = true  // Don't go through it again
+            if (current == grid[endX][endY]) {  // Made it to the finish
                 return
             }
-            var t: Cell?
-//            val multiplier: Int = if (costly[current.x][current.y]) {
-//                5
-//            } else {
-//                1
-//            }
-            if (current.x - 1 >= 0) {
-                t = grid[current.x - 1][current.y]
-                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) + addedCosts[current.x - 1][current.y])
-                if (current.y - 1 >= 0) {
-                    t = grid[current.x - 1][current.y - 1]
-                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) + addedCosts[current.x - 1][current.y - 1])
+
+            // Check surrounding tiles
+            for (addend in d8) {
+                val x = current.x + addend.x
+                val y = current.y + addend.y
+
+                if (x < 0 || y < 0 || x >= tileWidth || y >= tileHeight) {
+                    continue
                 }
-                if (current.y + 1 < grid[0].size) {
-                    t = grid[current.x - 1][current.y + 1]
-                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) + addedCosts[current.x - 1][current.y + 1])
-                }
-            }
-            if (current.y - 1 >= 0) {
-                t = grid[current.x][current.y - 1]
-                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) + addedCosts[current.x][current.y - 1])
-            }
-            if (current.y + 1 < grid[0].size) {
-                t = grid[current.x][current.y + 1]
-                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) + addedCosts[current.x][current.y + 1])
-            }
-            if (current.x + 1 < grid.size) {
-                t = grid[current.x + 1][current.y]
-                checkAndUpdateCost(current, t, (current.finalCost + V_H_COST) + addedCosts[current.x + 1][current.y])
-                if (current.y - 1 >= 0) {
-                    t = grid[current.x + 1][current.y - 1]
-                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) + addedCosts[current.x + 1][current.y - 1])
-                }
-                if (current.y + 1 < grid[0].size) {
-                    t = grid[current.x + 1][current.y + 1]
-                    checkAndUpdateCost(current, t, (current.finalCost + DIAGONAL_COST) + addedCosts[current.x + 1][current.y + 1])
-                }
+
+                // Add to the open list with calculated cost
+                checkAndUpdateCost(
+                    current,
+                    grid[x][y],
+                    (current.finalCost + if (abs(addend.x) + abs(addend.y) == 1) V_H_COST else DIAGONAL_COST) + addedCosts[x][y]
+                )
             }
         }
     }
@@ -190,7 +172,7 @@ object AStarNavigator : Navigator() {
                         if (block) {
                             setBlocked(dx + x, dy + y)
                         } else {
-                            addedCosts[dx + x][dy + y] += (2 * range) - (abs(dx) + abs(dy)) + 5
+                            addedCosts[dx + x][dy + y] += ceil(((2 * range) - (abs(dx) + abs(dy))) / 5f).toInt() + 5
                         }
                     }
                 }
