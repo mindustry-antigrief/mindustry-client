@@ -872,7 +872,6 @@ public class Fx{
     }),
 
     overclocked = new Effect(50f, e -> {
-        if (e.color.a == 0) return; // Don't draw what we can't see.
         color(Pal.accent);
         alpha(e.color.a);
 

@@ -22,4 +22,9 @@ public class SquareFormation extends FormationPattern{
 
         return out.set(cx - (side/2f - 0.5f), cy - (side/2f - 0.5f), 0).scl(spacing);
     }
+
+    @Override
+    public float radius(){
+        return Mathf.ceil(Mathf.sqrt(slots + 1)) * spacing;
+    }
 }

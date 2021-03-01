@@ -17,9 +17,7 @@ import arc.util.io.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.audio.*;
-import mindustry.client.Client;
-import mindustry.client.antigrief.ConfigRequest;
-import mindustry.client.antigrief.DestroyTileLog;
+import mindustry.client.antigrief.TileLogItem;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -1393,7 +1391,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public void killed(){
         Events.fire(new BlockDestroyEvent(tile));
         block.breakSound.at(tile);
-        tile.getLinkedTiles(t -> t.addToLog(new DestroyTileLog(t, Instant.now().getEpochSecond(), "", t.block())));
+        tile.getLinkedTiles(t -> t.addToLog(new TileLogItem(Nulls.unit, t, Instant.now().getEpochSecond(), "", "destroyed", tile.block())));
         onDestroyed();
         tile.remove();
         remove();

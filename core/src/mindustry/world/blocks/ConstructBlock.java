@@ -71,7 +71,7 @@ public class ConstructBlock extends Block{
     public static void deconstructFinish(Tile tile, Block block, Unit builder){
         if(tile != null && builder != null && block != null){
             tile.getLinkedTiles(t -> {
-                t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", block));
+                t.addToLog(new TileLogItem(builder, t, Instant.now().getEpochSecond(), "", "broke", block));
                 breakWarning(t, block, builder);
             });
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
@@ -334,8 +334,6 @@ public class ConstructBlock extends Block{
 
         public void deconstruct(Unit builder, @Nullable Building core, float amount){
             wasConstructing = false;
-            /* TODO: Look into this
-            tile.getLinkedTiles(t -> t.addToLog(new BreakTileLog(builder, t, Instant.now().getEpochSecond(), "", this.cblock == null ? previous : this.cblock))); */
             activeDeconstruct = true;
             float deconstructMultiplier = state.rules.deconstructRefundMultiplier;
 

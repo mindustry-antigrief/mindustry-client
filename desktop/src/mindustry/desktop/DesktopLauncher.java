@@ -50,7 +50,7 @@ public class DesktopLauncher extends ClientLauncher{
                 width = 900;
                 height = 700;
                 samples = finalAaSamples;
-                setWindowIcon(FileType.internal, "icons/icon_64.png");
+                setWindowIcon(FileType.internal, "icons/foo_64.png");
             }};
             Vars.loadLogger();
             new SdlApplication(new DesktopLauncher(arg), config);

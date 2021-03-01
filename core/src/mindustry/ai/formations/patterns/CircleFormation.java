@@ -23,4 +23,8 @@ public class CircleFormation extends FormationPattern{
         return outLocation;
     }
 
+    @Override
+    public float radius(){
+        return spacing / (float)Math.sin(180f / slots * Mathf.degRad);
+    }
 }

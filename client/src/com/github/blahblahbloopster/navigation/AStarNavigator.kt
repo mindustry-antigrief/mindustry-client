@@ -1,8 +1,5 @@
 package com.github.blahblahbloopster.navigation
 
-import arc.graphics.Color
-import arc.graphics.g2d.Draw
-import arc.graphics.g2d.Fill
 import arc.math.Mathf
 import arc.math.geom.Circle
 import arc.math.geom.Geometry.d8
@@ -23,7 +20,7 @@ object AStarNavigator : Navigator() {
     private const val V_H_COST = 10
 
     //Blocked cells are just null Cell values in grid
-    private var grid: Array<Array<Cell?>> = emptyArray()
+    private var grid: Array<Array<Cell?>> = Array(5) { arrayOfNulls(5) }
     private var open = PriorityQueue<Cell>(500)
     private var closed: Array<BooleanArray> = emptyArray()
     private var addedCosts: Array<IntArray> = emptyArray()
@@ -162,16 +159,14 @@ object AStarNavigator : Navigator() {
         grid[px][py]?.finalCost = 0
 
         for (turret in obstacles) {
-            val range = World.toTile(turret.radius)
-            val x = World.toTile(turret.x)
-            val y = World.toTile(turret.y)
-            for (dx in -range..range) {
-                for (dy in -range..range) {
-                    if (dx + x < 0 || dx + x >= tileWidth || dy + y < 0 || dy + y >= tileHeight) continue
-                    if (Mathf.within(dx.toFloat(), dy.toFloat(), range.toFloat())) {
+            for (dx in ((turret.x - turret.radius)/tilesize).toInt()..((turret.x + turret.radius)/tilesize).toInt()) {
+                for (dy in ((turret.y - turret.radius)/tilesize).toInt()..((turret.y + turret.radius)/tilesize).toInt()) {
+                    if (dx >= tileWidth || dx < 0 || dy >= tileHeight || dy < 0) continue
+                    if (turret.contains(dx * tilesize.toFloat(), dy * tilesize.toFloat())) {
                         if (block) {
-                            setBlocked(dx + x, dy + y)
+                            setBlocked(dx, dy)
                         } else {
+                            costly[dx][dy] = true
                             addedCosts[dx + x][dy + y] += ceil(((2 * range) - (abs(dx) + abs(dy))) / 5f).toInt() + 5
                         }
                     }

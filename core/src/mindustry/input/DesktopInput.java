@@ -74,7 +74,7 @@ public class DesktopInput extends InputHandler{
             }).margin(6f);
         });
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !player.unit().isBuilding() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()) && UnitType.alpha != 0);
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !player.unit().isBuilding() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()) && UnitType.alpha > 0);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -82,7 +82,7 @@ public class DesktopInput extends InputHandler{
             }).margin(6f);
         });
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.RECORDING && UnitType.alpha != 0);
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.RECORDING && UnitType.alpha > 0);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -90,7 +90,7 @@ public class DesktopInput extends InputHandler{
             }).margin(6f);
         });
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.FOLLOWING && UnitType.alpha != 0);
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.FOLLOWING && UnitType.alpha > 0);
             t.bottom();
             t.table(Styles.black6, b -> {
                 b.defaults().left();
@@ -103,7 +103,7 @@ public class DesktopInput extends InputHandler{
             t.visible(() -> {
                 t.color.a = Mathf.lerpDelta(t.color.a, !isBuilding && !Core.settings.getBool("buildautopause") || player.unit().isBuilding() ? 1f : 0f, 0.15f);
 
-                return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE && UnitType.alpha != 0;
+                return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() && t.color.a > 0.01f && Navigation.state == NavigationState.NONE && UnitType.alpha > 0;
             });
             t.touchable(() -> t.color.a < 0.1f ? Touchable.disabled : Touchable.childrenOnly);
             t.table(Styles.black6, b -> {
@@ -360,7 +360,9 @@ public class DesktopInput extends InputHandler{
                 table.row().fill();
                 table.button("View log", () -> { // Tile Logs
                     BaseDialog dialog = new BaseDialog("Logs");
-                    dialog.cont.add(new ScrollPane(cursor.getLog().toTable())).center();
+                    ScrollPane pane = new ScrollPane(cursor.getLog().toTable());
+                    pane.setFadeScrollBars(true);
+                    dialog.cont.add(pane).center();
                     dialog.addCloseButton();
 
                     dialog.show();
