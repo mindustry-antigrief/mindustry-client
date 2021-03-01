@@ -141,7 +141,7 @@ abstract class StatusComp implements Posc, Flyingc{
     public void draw(){
         for(StatusEntry e : statuses){
             Draw.alpha(UnitType.alpha);
-            e.effect.draw(self());
+            if (e.effect != null) e.effect.draw(self());
         }
     }
 

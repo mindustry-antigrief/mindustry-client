@@ -4,6 +4,7 @@
  * Navigation should actually find the shortest path every time now
  * Navigation will properly avoid turrets (they may still shoot at you once in a while but that should be pretty rare)
  * Navigation will try not to kill your entire formation
+ * Navigation should backtrack less again
  * Message encryption system, probably never useful but foo decided it would be a fun project
  * Fixed mentioning of players in chat (@person)
 
