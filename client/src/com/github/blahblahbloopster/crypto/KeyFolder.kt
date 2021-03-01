@@ -10,22 +10,17 @@ import com.github.blahblahbloopster.ui.base64
 object KeyFolder : KeyList {
     private val klaxon = Klaxon().converter(KeyHolderJson)
     private var set = mutableSetOf<KeyHolder>()
-    private var fi: Fi? = null
+    private var fi = Core.settings.dataDirectory.child("keys.json")
 
     override fun initializeAlways() {
-        val file = Core.settings.dataDirectory.child("keys.json")
-        var createdNewFile = !file.exists()
-        if (createdNewFile) file.writeString("[]")
-
-        val items = klaxon.parseArray<KeyHolder>(file.readString())
-        items ?: return
-        set.addAll(items)
-        fi = file
-
-        if (createdNewFile) {
+        if (!fi.exists()) {
             add(KeyHolder(PublicKeyPair("8/GKCQvbLsHOYibfEjb3KlU5YX46hYHeO+X4zpU/MQjJR4T1l2kAqUT1EuO2YwD/n8u3blb9BnbiyNbwlvSTZw==".base64()!!), "foo", true, Main.messageCrypto))
             add(KeyHolder(PublicKeyPair("wnnWJvq5c60ryrYndufA5i6JVZcHijLoCHMDsnHPVx76jmfThaX+pxnAAGID6l9jVbFefC6tq8SFsBE5mGU0LQ==".base64()!!), "buthed", true, Main.messageCrypto))
         }
+
+        val items = klaxon.parseArray<KeyHolder>(fi.readString())
+        items ?: return
+        set.addAll(items)
     }
 
     override fun add(element: KeyHolder): Boolean {
@@ -35,7 +30,7 @@ object KeyFolder : KeyList {
     }
 
     private fun save() {
-        fi?.writeString(klaxon.toJsonString(set))
+        fi.writeString(klaxon.toJsonString(set))
     }
 
     private class KeyIterator : MutableIterator<KeyHolder> {

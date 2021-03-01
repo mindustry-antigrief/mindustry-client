@@ -25,14 +25,14 @@ public class TileLogItem {
         this.block = block;
         this.action = action;
         this.additionalInfo = additionalInfo;
-        this.player = player.isPlayer() ? player.getPlayer().name + "[white]" : (player.type() == null ? "Null unit" : player.type().name);
+        this.player = player.isPlayer() ? player.getPlayer().name + "[white]" : (player.type() == null ? "" : player.type().name);
         this.time = time;
         x = tile.x;
         y = tile.y;
     }
 
     protected String formatDate(String date, long minutes) {
-        return Strings.format("@ @ @ at @ UTC (@ minutes ago). @", player, action, block.localizedName, date, minutes, additionalInfo);
+        return Strings.format("@@ @ at @ UTC (@ minutes ago). @", player.equals("") ? "" : player + " ", action, block.localizedName, date, minutes, additionalInfo);
     }
 
     protected String formatConcise(String date, long minutes) {

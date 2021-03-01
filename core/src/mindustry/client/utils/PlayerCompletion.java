@@ -39,7 +39,7 @@ public class PlayerCompletion implements Autocompleter {
 
         public PlayerMatcher(Player player) {
             name = Strings.stripColors(player.name);
-            matchName = Strings.stripGlyphs(player.name.replaceAll("\\s", "")); // Strip glyphs cause they are annoying to type
+            matchName = Strings.stripColors(player.name.replaceAll("\\s", ""));
         }
 
         @Override

@@ -5,6 +5,7 @@
  * Navigation will properly avoid turrets (they may still shoot at you once in a while but that should be pretty rare)
  * Navigation will try not to kill your entire formation
  * Message encryption system, probably never useful but foo decided it would be a fun project
+ * Fixed mentioning of players in chat (@person)
 
 # Version 6.4.0
  * Swap to vanilla double click mining, uses the vanilla setting now (should remember your setting)
