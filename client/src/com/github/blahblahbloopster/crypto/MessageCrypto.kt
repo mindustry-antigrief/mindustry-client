@@ -194,6 +194,7 @@ class MessageCrypto {
             val buf = ByteBuffer.wrap(input)
             val type = buf.int
             val time = buf.long
+            val id = buf.int
             val content = buf.remainingBytes()
 
             when (type) {
