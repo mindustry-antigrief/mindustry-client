@@ -4,6 +4,7 @@ import arc.math.Mathf;
 import arc.math.geom.Circle;
 import arc.math.geom.Vec2;
 import arc.struct.Seq;
+import mindustry.Vars;
 
 import static mindustry.Vars.*;
 
@@ -17,7 +18,7 @@ public abstract class Navigator {
      *  Finds a path between the start and end points provided an array of circular obstacles.
      *  May return null if no path is found.
      */
-    abstract protected Vec2[] findPath(Vec2 start, Vec2 end, Circle[] obstacles);
+    abstract protected Vec2[] findPath(Vec2 start, Vec2 end, Circle[] obstacles, float width, float height);
 
     public Vec2[] navigate(Vec2 start, Vec2 end, TurretPathfindingEntity[] obstacles, int resolution) {
         start.scl(1f / resolution);
@@ -28,7 +29,7 @@ public abstract class Navigator {
                 realObstacles.add(new Circle(turret.x / resolution, turret.y / resolution, (turret.radius + (player.unit().formation() == null ? 0f : player.unit().formation().pattern.spacing / (float)Math.sin(180f / player.unit().formation.pattern.slots * Mathf.degRad)) + 8) / resolution));
             }
         }
-        Vec2[] path = findPath(start, end, realObstacles.toArray());
+        Vec2[] path = findPath(start, end, realObstacles.toArray(), ((float) world.unitWidth()) / resolution, ((float) world.unitHeight()) / resolution);
 
         if (path == null) {
             return null;

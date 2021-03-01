@@ -1,6 +1,5 @@
 package com.github.blahblahbloopster.navigation
 
-import arc.math.Mathf
 import arc.math.geom.Circle
 import arc.math.geom.Geometry.d8
 import arc.math.geom.Vec2
@@ -29,8 +28,6 @@ object AStarNavigator : Navigator() {
     private var endX = 0
     private var endY = 0
     private var block = false
-    private var width = 0f
-    private var height = 0f
     private var tileWidth = 0
     private var tileHeight = 0
 
@@ -101,12 +98,10 @@ object AStarNavigator : Navigator() {
     }
 
 
-    override fun findPath(start: Vec2?, end: Vec2?, obstacles: Array<Circle>?): Array<Vec2>? {
+    override fun findPath(start: Vec2?, end: Vec2?, obstacles: Array<Circle>?, width: Float, height: Float): Array<Vec2>? {
         start ?: return null
         end ?: return null
         obstacles ?: return null
-        width = max(obstacles.maxOfOrNull { it.x + it.radius + tilesize * 2 } ?: 0f, max(start.x, end.x)).coerceAtMost(max(start.x, end.x))
-        height = max(obstacles.maxOfOrNull { it.y + it.radius + tilesize * 2 } ?: 0f, max(start.y, end.y)).coerceAtMost(max(start.y, end.y))
 
         tileWidth = ceil(width / tilesize).toInt() + 1
         tileHeight = ceil(height / tilesize).toInt() + 1
@@ -159,15 +154,20 @@ object AStarNavigator : Navigator() {
         grid[px][py]?.finalCost = 0
 
         for (turret in obstacles) {
-            for (dx in ((turret.x - turret.radius)/tilesize).toInt()..((turret.x + turret.radius)/tilesize).toInt()) {
-                for (dy in ((turret.y - turret.radius)/tilesize).toInt()..((turret.y + turret.radius)/tilesize).toInt()) {
-                    if (dx >= tileWidth || dx < 0 || dy >= tileHeight || dy < 0) continue
-                    if (turret.contains(dx * tilesize.toFloat(), dy * tilesize.toFloat())) {
+            val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
+            val upperXBound = ((turret.x + turret.radius) / tilesize).toInt()
+            val lowerYBound = ((turret.y - turret.radius) / tilesize).toInt()
+            val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
+            for (x in lowerXBound..upperXBound) {
+                for (y in lowerYBound..upperYBound) {
+
+                    if (x >= tileWidth || x < 0 || y >= tileHeight || y < 0) continue
+
+                    if (turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
                         if (block) {
-                            setBlocked(dx, dy)
+                            setBlocked(x, y)
                         } else {
-                            costly[dx][dy] = true
-                            addedCosts[dx + x][dy + y] += ceil(((2 * range) - (abs(dx) + abs(dy))) / 5f).toInt() + 5
+                            addedCosts[x][y] += ceil(((2 * turret.radius * tilesize) - (abs(x) + abs(y))) / 5f).toInt() + 5
                         }
                     }
                 }
