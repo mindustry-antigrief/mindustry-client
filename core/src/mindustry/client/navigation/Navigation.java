@@ -75,11 +75,11 @@ public class Navigation {
             recordedPath.draw();
         }
 
-        Draw.color(Color.green, 0.2f);
-        for (TurretPathfindingEntity turret : obstacles) {
-            Fill.circle(turret.x, turret.y, turret.radius);
-        }
-        Draw.color();
+//        Draw.color(Color.green, 0.2f);
+//        for (TurretPathfindingEntity turret : obstacles) {
+//            Fill.circle(turret.x, turret.y, turret.radius);
+//        }
+//        Draw.color();
     }
 
     public static void navigateTo(Position pos) {

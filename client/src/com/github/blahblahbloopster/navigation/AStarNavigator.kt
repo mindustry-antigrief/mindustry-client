@@ -1,6 +1,5 @@
 package com.github.blahblahbloopster.navigation
 
-import arc.math.Mathf
 import arc.math.geom.Circle
 import arc.math.geom.Vec2
 import mindustry.Vars.*

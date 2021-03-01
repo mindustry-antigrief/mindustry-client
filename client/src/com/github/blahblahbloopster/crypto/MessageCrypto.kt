@@ -99,11 +99,11 @@ class MessageCrypto {
             listeners.add {
                 if (it is SignatureEvent && it.valid && it.message != null) {
                     val message = Vars.ui?.chatfrag?.messages?.find { msg -> msg.message.contains(it.message) }
-                    message?.backgroundColor = Color.green.cpy().mul(if (it.senderKey?.official == true) 0.75f else 0.4f)
+                    message?.backgroundColor = Color.green.cpy().mul(if (it.senderKey?.official == true) 0.75f else if (Core.settings.getBool("highlightcryptomsg")) 0.4f else 0f)
                     message?.verifiedSender = it.senderKey?.name ?: return@add
                     message?.format()
                 } else if (it is EncryptedMessageEvent && it.message != null) {
-                    Vars.ui?.chatfrag?.addMessage(it.message, it.senderName, Color.blue.cpy().mul(if (it.senderKey.official) 1f else 0.5f))
+                    Vars.ui?.chatfrag?.addMessage(it.message, it.senderName, Color.blue.cpy().mul(if (it.senderKey.official) 1f else if (Core.settings.getBool("highlightcryptomsg")) 0.5f else 0f))
                 }
             }
         }
