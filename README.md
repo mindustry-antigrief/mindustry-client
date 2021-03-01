@@ -2,6 +2,7 @@ This is my fork of mindustry v6.  It will have various quality of life and autom
 ![Logo](core/assets-raw/sprites/ui/logo.png)
 
 [![Release Update](../../workflows/Release%20Update/badge.svg)](https://mindustry-antigrief.github.io/mindustry-client-v6)
+[![Tests (Unstable)](../../workflows/Java%20Tests/badge.svg)](https://mindustry-antigrief.github.io/mindustry-client-v6-builds)
 [![Discord](https://img.shields.io/discord/741710208501547161.svg?logo=discord&logoColor=white&logoWidth=20&labelColor=7289DA&label=Discord&color=17cf48)](https://discord.gg/yp9ZW7j)
 
 A sandbox tower defense game written in Java.
