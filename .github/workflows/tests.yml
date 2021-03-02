@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     env:
-      COMMIT: ${GITHUB_SHA::8}
+      COMMIT: $(${GITHUB_SHA::8})
     runs-on: ubuntu-latest
 
     steps:
