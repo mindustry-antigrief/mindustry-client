@@ -35,13 +35,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           body: |
-            Foo's Client Unstable (${{ github.run_number }})
+            Foo's Client Unstable (${GITHUB_SHA::8})
             Steam installation instructions [here](../../../mindustry-client-v6#steam)
             **Commit Message:**
             *${{ github.event.head_commit.message }}*
           commitish: main
-          tag_name: ${{ github.run_number }}
-          release_name: Unstable ${{ github.run_number }}
+          tag_name: ${GITHUB_SHA::8}
+          release_name: Unstable ${GITHUB_SHA::8}
           repo: ${{ github.event.repository.name }}-builds
           draft: false
           prerelease: false
