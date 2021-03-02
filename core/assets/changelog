@@ -3,10 +3,12 @@
 # Version 6.5.0
  * Navigation should actually find the shortest path every time now
  * Navigation will properly avoid turrets (they may still shoot at you once in a while but that should be pretty rare)
- * Navigation will try not to kill your entire formation
+ * Navigation will try not to kill your entire formation (for whatever reason, this doesn't slow you down on servers)
  * Navigation should backtrack less again
- * Message encryption system, probably never useful but foo decided it would be a fun project
- * Fixed mentioning of players in chat (@person)
+ * Navigation paths should no longer jitter around randomly, it will find the best path and commit to it (even if that means entering turret ranges because all paths are blocked)
+ * Message encryption system, probably never useful but foo decided it would be a fun project (!e <key> <message> to send an encrypted message to that person, you will need to exchange keys with other players through the "manage keys" button in the pause menu)
+ * Message verification system, messages from players who's keys you have imported will appear in green with their name swapped for whatever you named the key (this confirms the players identity and cannot be spoofed or bypassed)
+ * Fixed autocomplete when mentioning players in chat (@person) not working
 
 # Version 6.4.0
  * Swap to vanilla double click mining, uses the vanilla setting now (should remember your setting)

@@ -14,7 +14,7 @@ import kotlin.random.Random
 class MessageBlockCommunicationSystem : CommunicationSystem {
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
     override val id: Int get() = run {
-        Vars.player ?: return 0
+        Vars.player ?: return -1
         return Vars.player.id
     }
 
@@ -24,7 +24,6 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
             event ?: return@on
             event.tile ?: return@on
             event.value ?: return@on
-            event.tile.block ?: return@on
             if (event.tile.block !is MessageBlock) return@on
 
             val message = event.value as String
@@ -46,17 +45,15 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
     }
 
     override fun send(bytes: ByteArray) {
-        for (block in Vars.world.tiles) {
-            if (block == null || block.block() !is MessageBlock) {
-                continue
-            }
-            val build = block.build as MessageBlock.MessageBuild
+        for (tile in Vars.world.tiles) {
+            // if it isn't a message block or is null continue
+            val build = tile.build as? MessageBlock.MessageBuild ?: continue
 
             if (!build.message.startsWith(Client.messageCommunicationPrefix)) {
                 continue
             }
 
-            Call.tileConfig(Vars.player, block.build, Client.messageCommunicationPrefix + Base32768Coder.encode(bytes))
+            Call.tileConfig(Vars.player, build, Client.messageCommunicationPrefix + Base32768Coder.encode(bytes))
             break
         }
     }

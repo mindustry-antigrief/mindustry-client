@@ -4,6 +4,7 @@ import arc.ApplicationListener
 import arc.Core
 import com.github.blahblahbloopster.crypto.*
 import com.github.blahblahbloopster.navigation.AStarNavigator
+import mindustry.Vars
 import mindustry.client.Client
 import mindustry.client.navigation.Navigation
 
@@ -13,28 +14,29 @@ object Main : ApplicationListener {
 
     /** Run on client load. */
     override fun init() {
+        Client.mapping = ClientMapping()
         Crypto.init()
         if (Core.app.isDesktop) {
             communicationSystem = MessageBlockCommunicationSystem()
             communicationSystem.init()
 
-            Client.fooCommands.register("e", "<destination> [message...]", "Send an encrypted chat message") { args ->
-                if (args.size < 2) return@register
+            Client.fooCommands.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
                 val dest = args[0]
                 val message = args[1]
 
                 for (key in messageCrypto.keys) {
                     if (key.name.equals(dest, true)) {
                         messageCrypto.encrypt(message, key)
+                        return@register
                     }
                 }
+                Vars.ui.chatfrag.addMessage("[scarlet]Invalid key! They are listed in the \"manage keys\" section of the pause menu", null)
             }
         } else {
             communicationSystem = DummyCommunicationSystem()
         }
         messageCrypto = MessageCrypto()
         messageCrypto.init(communicationSystem)
-        Client.mapping = ClientMapping()
         KeyFolder.initializeAlways()
 
         Navigation.navigator = AStarNavigator

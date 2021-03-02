@@ -1,6 +1,7 @@
 package com.github.blahblahbloopster.ui
 
 import arc.Core
+import arc.input.KeyCode
 import arc.scene.ui.TextField
 import arc.scene.ui.layout.Table
 import com.github.blahblahbloopster.Main
@@ -73,5 +74,6 @@ class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share")
         button("Close") {
             hide()
         }.growX()
+        keyDown(KeyCode.escape) { hide() } // Why is kotlin so ${adjective}?
     }
 }

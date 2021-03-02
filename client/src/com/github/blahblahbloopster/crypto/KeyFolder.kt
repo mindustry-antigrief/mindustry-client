@@ -10,12 +10,13 @@ import com.github.blahblahbloopster.ui.base64
 object KeyFolder : KeyList {
     private val klaxon = Klaxon().converter(KeyHolderJson)
     private var set = mutableSetOf<KeyHolder>()
-    private var fi = Core.settings.dataDirectory.child("keys.json")
+    private lateinit var fi: Fi
 
     override fun initializeAlways() {
+        fi = Core.settings.dataDirectory.child("keys.json")
         if (!fi.exists()) {
             add(KeyHolder(PublicKeyPair("8/GKCQvbLsHOYibfEjb3KlU5YX46hYHeO+X4zpU/MQjJR4T1l2kAqUT1EuO2YwD/n8u3blb9BnbiyNbwlvSTZw==".base64()!!), "foo", true, Main.messageCrypto))
-            add(KeyHolder(PublicKeyPair("wnnWJvq5c60ryrYndufA5i6JVZcHijLoCHMDsnHPVx76jmfThaX+pxnAAGID6l9jVbFefC6tq8SFsBE5mGU0LQ==".base64()!!), "buthed", true, Main.messageCrypto))
+            add(KeyHolder(PublicKeyPair("wnnWJvq5c60ryrYndufA5i6JVZcHijLoCHMDsnHPVx76jmfThaX+pxnAAGID6l9jVbFefC6tq8SFsBE5mGU0LQ==".base64()!!), "buthed010203", true, Main.messageCrypto))
         }
 
         val items = klaxon.parseArray<KeyHolder>(fi.readString())

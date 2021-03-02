@@ -47,7 +47,7 @@ public class BuildPath extends Path {
             }
         }
         if (queues.isEmpty()) {
-            ui.chatfrag.addMessage("[scarlet]No valid options specified, defaulting to self. Valid options:\nAll, self, broken, boulders, assist, unfinished, cleanup", null);
+            ui.chatfrag.addMessage("[scarlet]No valid options specified, defaulting to self.\nValid options: All, self, broken, boulders, assist, unfinished, cleanup", null);
             queues.add(player.unit().plans);
         }
     }
