@@ -12,6 +12,7 @@ import mindustry.Vars
 import mindustry.client.Client
 import mindustry.core.NetClient
 import mindustry.game.EventType
+import mindustry.gen.Iconc
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.util.zip.DeflaterInputStream
@@ -99,10 +100,10 @@ class MessageCrypto {
                 if (it is SignatureEvent && it.valid && it.message != null) {
                     val message = Vars.ui?.chatfrag?.messages?.find { msg -> msg.message.contains(it.message) }
                     message?.backgroundColor = Color.green.cpy().mul(if (it.senderKey?.official == true) .75f else if (Core.settings.getBool("highlightcryptomsg")) 0.4f else 0f)
-                    message?.sender = NetClient.colorizeName(it.sender, it.senderKey?.name ?: return@add)
+                    message?.sender = NetClient.colorizeName(it.sender, Iconc.lock + " " + (it.senderKey?.name ?: return@add))
                     message?.format()
                 } else if (it is EncryptedMessageEvent && it.message != null) {
-                    Vars.ui?.chatfrag?.addMessage(it.message, NetClient.colorizeName(it.sender, it.senderName), Color.blue.cpy().mul(if (it.senderKey.official) .75f else if (Core.settings.getBool("highlightcryptomsg")) 0.4f else 0f))
+                    Vars.ui?.chatfrag?.addMessage(it.message, NetClient.colorizeName(it.sender, Iconc.lock + " " + it.senderName), Color.blue.cpy().mul(if (it.senderKey.official) .75f else if (Core.settings.getBool("highlightcryptomsg")) 0.4f else 0f))
                 }
             }
         }
