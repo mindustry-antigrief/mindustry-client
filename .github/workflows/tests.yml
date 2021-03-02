@@ -27,7 +27,7 @@ jobs:
       - name: Run Tests
         run: |
           echo "COMMIT=${GITHUB_SHA::8}" >> $GITHUB_ENV
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${{ env.COMMIT }}, ${{ steps.time.outputs.formattedTime }}" --parallel
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${GITHUB_SHA::8}, ${{ steps.time.outputs.formattedTime }}" --parallel
 
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch') }}
