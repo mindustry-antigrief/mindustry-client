@@ -17,39 +17,6 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
         Vars.player ?: return 0
         return Vars.player.id
     }
-//    private val incomingMessages = mutableListOf<IncomingMessage>()
-//
-//    private class IncomingMessage(val totalTransmissions: Int, val sender: Int, val transmissionId: Int) {
-//        val received = MutableList<String?>(totalTransmissions) { null }
-//        private var current = 0
-//
-//        fun onReceive(messageNoPrefix: String, senderId: Int): Boolean {
-//            if (messageNoPrefix.length > 12 && senderId == sender) {
-//                val packetIndex = messageNoPrefix.substring(0 until 3).toIntOrNull() ?: return false
-//                val totalCount = messageNoPrefix.substring(3 until 6).toIntOrNull() ?: return false
-//                val id = messageNoPrefix.substring(6 until 12).toIntOrNull() ?: return false
-//
-//                if (packetIndex < 0 || packetIndex > totalTransmissions) return false
-//                if (totalCount < 0) return false
-//                if (id != transmissionId) return false
-//
-//                val content = messageNoPrefix.removeRange(0 until 12)
-//                if (totalCount == totalTransmissions && packetIndex == current) {
-//                    received[current] = content
-//                    current++
-//                    return true
-//                }
-//            }
-//            return false
-//        }
-//
-//        fun contentIfReady(): String? {
-//            if (received.size == totalTransmissions) {
-//                return received.joinToString("")
-//            }
-//            return null
-//        }
-//    }
 
     /** Initializes listeners. */
     override fun init() {
@@ -64,8 +31,6 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
             if (!message.startsWith(Client.messageCommunicationPrefix)) return@on
 
             val id = if (event.player == null) 0 else event.player.id
-
-//            val match = incomingMessages.find { it.onReceive(message.removePrefix(Client.messageCommunicationPrefix), id) } ?: IncomingMessage()
 
             val bytes: ByteArray
             try {
@@ -85,7 +50,8 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
             if (block == null || block.block() !is MessageBlock) {
                 continue
             }
-            val build: MessageBlock.MessageBuild = block.build as MessageBlock.MessageBuild
+            val build = block.build as MessageBlock.MessageBuild
+
             if (!build.message.startsWith(Client.messageCommunicationPrefix)) {
                 continue
             }
