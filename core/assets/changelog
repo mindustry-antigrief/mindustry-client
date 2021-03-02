@@ -8,6 +8,7 @@
  * Navigation paths should no longer jitter around randomly, it will find the best path and commit to it (even if that means entering turret ranges because all paths are blocked)
  * Message encryption system, probably never useful but foo decided it would be a fun project (!e <key> <message> to send an encrypted message to that person, you will need to exchange keys with other players through the "manage keys" button in the pause menu)
  * Message verification system, messages from players who's keys you have imported will appear in green with their name swapped for whatever you named the key (this confirms the players identity and cannot be spoofed or bypassed)
+ * Names of players from which messages are encrypted/verified will be prefixed with a , a malicious player or server could spoof this if they really wanted to so its recommended to keep highlighting on
  * Fixed autocomplete when mentioning players in chat (@person) not working
 
 # Version 6.4.0
