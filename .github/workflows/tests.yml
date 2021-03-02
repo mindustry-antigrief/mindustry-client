@@ -7,8 +7,6 @@ on:
 
 jobs:
   build:
-    env:
-      COMMIT: $(${GITHUB_SHA::8})
     runs-on: ubuntu-latest
 
     steps:
@@ -27,7 +25,9 @@ jobs:
           format: MMM. D, YYYY [Unstable] # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
 
       - name: Run Tests
-        run: ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${{ env.COMMIT }}, ${{ steps.time.outputs.formattedTime }}" --parallel
+        run: |
+          echo "COMMIT=${GITHUB_SHA::8}" >> $GITHUB_ENV
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${{ env.COMMIT }}, ${{ steps.time.outputs.formattedTime }}" --parallel
 
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch') }}
