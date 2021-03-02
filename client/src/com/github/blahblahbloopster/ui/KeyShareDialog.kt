@@ -69,7 +69,7 @@ class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share")
             }.show()
         }.growX()
         button("Export Key") {
-            Main.messageCrypto.keyQuad ?: Client.mapping.generateKey()
+            Main.messageCrypto.keyQuad
             Core.app.clipboardText = Main.messageCrypto.base64public()
             Vars.ui.showInfoFade("@copied")
         }.growX()

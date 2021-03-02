@@ -23,7 +23,7 @@ import java.util.zip.InflaterInputStream
  */
 class MessageCrypto {
     lateinit var communicationSystem: CommunicationSystem
-    var keyQuad: KeyQuad? = null
+    lateinit var keyQuad: KeyQuad
 
     var player = PlayerTriple(-1, 0, "")  // Maps player ID to last sent message
     var received = ReceivedTriple(-1, 0, byteArrayOf()) // Maps player ID to last sent message
@@ -80,7 +80,7 @@ class MessageCrypto {
         this.communicationSystem = communicationSystem
         communicationSystem.addListener(::handle)
 
-        if (Core.settings?.dataDirectory?.child("key.txt")?.exists() == false) Client.mapping?.generateKey()
+        if (Core.settings?.dataDirectory?.child("key.txt")?.exists() == false) Client.mapping?.generateKey() // Generate a key on startup if one doesn't already exist
 
         try {
             keyQuad = KeyQuad(Base64Coder.decode(Core.settings.dataDirectory.child("key.txt").readString()))
@@ -156,10 +156,9 @@ class MessageCrypto {
     /** Signs an outgoing message.  Includes the sender ID and current time to prevent impersonation and replay attacks. */
     fun sign(message: String, key: KeyQuad) {
         val time = Instant.now().epochSecond
-        val out = ByteBuffer.allocate(Crypto.signatureSize + 16)
+        val out = ByteBuffer.allocate(Crypto.signatureSize + 12)
         out.putInt(0)  // Signatures are type 0
         out.putLong(time)
-        out.putInt(communicationSystem.id)
         val signature = Crypto.sign(stringToSendable(message, communicationSystem.id, time), key.edPrivateKey)
         out.put(signature)
         communicationSystem.send(out.array())
@@ -170,16 +169,14 @@ class MessageCrypto {
         val id = communicationSystem.id
         val compressor = DeflaterInputStream(message.toByteArray().inputStream())
         val encoded = compressor.readBytes()
-        val plaintext = ByteBuffer.allocate(encoded.size + Long.SIZE_BYTES + Int.SIZE_BYTES + Byte.SIZE_BYTES)
+        val plaintext = ByteBuffer.allocate(encoded.size + Long.SIZE_BYTES + Byte.SIZE_BYTES)
         plaintext.putLong(time)
-        plaintext.putInt(id)
         plaintext.put(ENCRYPTION_VALIDITY)
         plaintext.put(encoded)
         val ciphertext = destination.crypto?.encrypt(plaintext.array()) ?: return
-        val toSend = ByteBuffer.allocate(ciphertext.size + Int.SIZE_BYTES + Long.SIZE_BYTES + Int.SIZE_BYTES)
+        val toSend = ByteBuffer.allocate(ciphertext.size + Int.SIZE_BYTES + Long.SIZE_BYTES)
         toSend.putInt(1)  // Encrypted messages are type 1
         toSend.putLong(time)
-        toSend.putInt(id)
         toSend.put(ciphertext)
 
         communicationSystem.send(toSend.array())
@@ -190,7 +187,6 @@ class MessageCrypto {
             val buf = ByteBuffer.wrap(input)
             val type = buf.int
             val time = buf.long
-            val id = buf.int
             val content = buf.remainingBytes()
 
             when (type) {
@@ -205,7 +201,6 @@ class MessageCrypto {
                             val decoded = crypto.decrypt(content)
                             val buffer = ByteBuffer.wrap(decoded)
                             val timeSent = buffer.long
-                            val senderId = buffer.int
                             val validity = buffer.get()
                             val plaintext = buffer.remainingBytes()
 
@@ -221,10 +216,10 @@ class MessageCrypto {
 
                             fire(
                                 EncryptedMessageEvent(
-                                    senderId,
+                                    sender,
                                     key,
                                     str,
-                                    if (senderId == communicationSystem.id) Vars.player.name else key.name
+                                    if (sender == communicationSystem.id) Vars.player.name else key.name
                                 )
                             )
                             zip.close()

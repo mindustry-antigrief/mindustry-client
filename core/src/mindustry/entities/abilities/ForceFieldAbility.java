@@ -81,7 +81,7 @@ public class ForceFieldAbility extends Ability{
         checkRadius(unit);
 
         if(unit.shield > 0){
-            Draw.z(Layer.shields - .5f + UnitType.alpha); // Scuffed method to draw unit shields.
+            Draw.z(Layer.shields - .5f + UnitType.alpha); // Scuffed way of drawing unit force fields correctly, this will draw the least transparent ones higher so it shouldn't look weird
 
             Draw.color(unit.team.color, Color.white, Mathf.clamp(alpha * UnitType.alpha));
 
