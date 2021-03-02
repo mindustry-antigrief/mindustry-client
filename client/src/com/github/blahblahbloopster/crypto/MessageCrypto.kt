@@ -5,9 +5,9 @@ import arc.Events
 import arc.graphics.Color
 import arc.util.Log
 import arc.util.serialization.Base64Coder
-import com.github.blahblahbloopster.ui.age
-import com.github.blahblahbloopster.ui.remainingBytes
-import com.github.blahblahbloopster.ui.toInstant
+import com.github.blahblahbloopster.age
+import com.github.blahblahbloopster.remainingBytes
+import com.github.blahblahbloopster.toInstant
 import mindustry.Vars
 import mindustry.client.Client
 import mindustry.core.NetClient

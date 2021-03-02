@@ -1,4 +1,4 @@
-package com.github.blahblahbloopster.ui
+package com.github.blahblahbloopster
 
 import arc.scene.Element
 import arc.scene.ui.Dialog
@@ -20,9 +20,13 @@ fun Table.label(text: String): Cell<Label> {
 }
 
 fun ByteBuffer.remainingBytes(): ByteArray {
-    val array = ByteArray(remaining())
-    get(array)
-    return array
+    return bytes(remaining())
+}
+
+fun ByteBuffer.bytes(num: Int): ByteArray {
+    val bytes = ByteArray(num)
+    get(bytes)
+    return bytes
 }
 
 /** Converts a [Long] representing unix time in seconds to [Instant] */

@@ -15,7 +15,7 @@ object Main : ApplicationListener {
     /** Run on client load. */
     override fun init() {
         Client.mapping = ClientMapping()
-        Crypto.init()
+        Crypto.initializeAlways()
         if (Core.app.isDesktop) {
             communicationSystem = MessageBlockCommunicationSystem()
             communicationSystem.init()

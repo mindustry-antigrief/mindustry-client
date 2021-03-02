@@ -5,9 +5,11 @@ import arc.input.KeyCode
 import arc.scene.ui.TextField
 import arc.scene.ui.layout.Table
 import com.github.blahblahbloopster.Main
-import com.github.blahblahbloopster.crypto.Crypto
 import com.github.blahblahbloopster.crypto.KeyHolder
 import com.github.blahblahbloopster.crypto.MessageCrypto
+import com.github.blahblahbloopster.dialog
+import com.github.blahblahbloopster.label
+import com.github.blahblahbloopster.row
 import mindustry.Vars
 import mindustry.client.Client
 import mindustry.gen.Icon

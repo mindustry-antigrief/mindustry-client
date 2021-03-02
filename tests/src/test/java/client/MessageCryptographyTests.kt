@@ -24,7 +24,7 @@ class MessageCryptographyTests {
         @JvmStatic
         @BeforeAll
         fun init() {
-            Crypto.init()
+            Crypto.initializeAlways()
             client1.init(DummyCommunicationSystem())
             client2.init(DummyCommunicationSystem())
             client1.keys = DummyKeyList()

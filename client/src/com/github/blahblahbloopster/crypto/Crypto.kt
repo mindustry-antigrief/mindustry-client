@@ -1,15 +1,13 @@
 package com.github.blahblahbloopster.crypto
 
-import com.beust.klaxon.*
-import com.github.blahblahbloopster.Main
-import com.github.blahblahbloopster.ui.base64
+import com.github.blahblahbloopster.Initializable
 import org.bouncycastle.crypto.agreement.X25519Agreement
 import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator
 import org.bouncycastle.crypto.generators.X25519KeyPairGenerator
 import org.bouncycastle.crypto.params.*
 import org.bouncycastle.crypto.signers.Ed25519Signer
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.nio.ByteBuffer
+import org.bouncycastle.math.ec.rfc8032.Ed25519
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
@@ -25,137 +23,21 @@ typealias XPrivateKey = X25519PrivateKeyParameters
 typealias EdPublicKey = Ed25519PublicKeyParameters
 typealias EdPrivateKey = Ed25519PrivateKeyParameters
 
-
-fun ByteBuffer.bytes(num: Int): ByteArray {
-    val bytes = ByteArray(num)
-    get(bytes)
-    return bytes
-}
-
-class KeyQuad {
-    val xPrivateKey: XPrivateKey
-    val xPublicKey: XPublicKey
-    val edPrivateKey: EdPrivateKey
-    val edPublicKey: EdPublicKey
-
-    constructor(xPrivateKey: XPrivateKey, xPublicKey: XPublicKey, edPrivateKey: EdPrivateKey, edPublicKey: EdPublicKey) {
-        this.xPrivateKey = xPrivateKey
-        this.xPublicKey = xPublicKey
-        this.edPrivateKey = edPrivateKey
-        this.edPublicKey = edPublicKey
-    }
-
-    constructor(input: ByteArray) {
-        val buff = ByteBuffer.wrap(input)
-        xPrivateKey = XPrivateKey(buff.bytes(XPrivateKey.SECRET_SIZE), 0)
-        xPublicKey = XPublicKey(buff.bytes(XPublicKey.KEY_SIZE), 0)
-        edPrivateKey = EdPrivateKey(buff.bytes(EdPrivateKey.KEY_SIZE), 0)
-        edPublicKey = EdPublicKey(buff.bytes(EdPublicKey.KEY_SIZE), 0)
-    }
-
-    fun publicPair() = PublicKeyPair(xPublicKey, edPublicKey)
-
-    fun serialize(): ByteArray {
-        return xPrivateKey.encoded.plus(xPublicKey.encoded).plus(edPrivateKey.encoded).plus(edPublicKey.encoded)
-    }
-
-    override operator fun equals(other: Any?): Boolean {
-        if (other is KeyQuad) {
-            return other.xPrivateKey.encoded.contentEquals(xPrivateKey.encoded) &&
-                    other.xPublicKey.encoded.contentEquals(xPublicKey.encoded) &&
-                    other.edPrivateKey.encoded.contentEquals(edPrivateKey.encoded) &&
-                    other.edPublicKey.encoded.contentEquals(edPublicKey.encoded)
-        }
-        return false
-    }
-
-    override fun hashCode(): Int {
-        var result = xPrivateKey.encoded.contentHashCode()
-        result = 31 * result + xPublicKey.encoded.contentHashCode()
-        result = 31 * result + edPrivateKey.encoded.contentHashCode()
-        result = 31 * result + edPublicKey.encoded.contentHashCode()
-        return result
-    }
-}
-
-object KeyHolderJson : Converter {
-    override fun canConvert(cls: Class<*>) = cls == KeyHolder::class.java
-
-    override fun fromJson(jv: JsonValue): KeyHolder {
-        return try {
-            KeyHolder(
-                PublicKeyPair(jv.objString("keys").base64()!!),
-                jv.objString("name"),
-                jv.objInt("official") == 1,
-                Main.messageCrypto
-            )
-        } catch (exception: Exception) {
-            exception.printStackTrace()
-            throw KlaxonException("Could not deserialize KeyHolder")
-        }
-    }
-
-    override fun toJson(value: Any): String {
-        if (value !is KeyHolder) throw KlaxonException("Not a public key pair")
-        return """{"keys": "${value.keys.serialize().base64()}", "name": "${Render.escapeString(value.name)}", "official": ${if (value.official) 1 else 0}}"""
-    }
-}
-
-class PublicKeyPair {
-
-    @Json(ignored = true)
-    val edPublicKey: EdPublicKey
-    @Json(ignored = true)
-    val xPublicKey: XPublicKey
-
-    constructor(xPublicKey: XPublicKey, edPublicKey: EdPublicKey) {
-        this.xPublicKey = xPublicKey
-        this.edPublicKey = edPublicKey
-    }
-
-    constructor(input: ByteArray) {
-        val buff = ByteBuffer.wrap(input)
-        xPublicKey = XPublicKey(buff.bytes(XPublicKey.KEY_SIZE), 0)
-        edPublicKey = EdPublicKey(buff.bytes(EdPublicKey.KEY_SIZE), 0)
-    }
-
-    constructor(key: KeyQuad) {
-        xPublicKey = key.xPublicKey
-        edPublicKey = key.edPublicKey
-    }
-
-    fun serialize(): ByteArray {
-        return xPublicKey.encoded.plus(edPublicKey.encoded)
-    }
-
-    override operator fun equals(other: Any?): Boolean {
-        if (other is PublicKeyPair) {
-            return other.xPublicKey.encoded.contentEquals(xPublicKey.encoded) &&
-                    other.edPublicKey.encoded.contentEquals(edPublicKey.encoded)
-        }
-        return false
-    }
-
-    override fun hashCode(): Int {
-        var result = xPublicKey.encoded.contentHashCode()
-        result = 31 * result + edPublicKey.encoded.contentHashCode()
-        return result
-    }
-}
-
 /**
- * Utility class that handles signing.
- * Uses ED25519 for signing.
- * For encryption, it should be modified to send keys via ED25519 or ECDH and move to AES.
+ * Utility object that handles signing and encryption.
+ * Uses ED25519 for signing and X25519 to generate a shared AES key.
+ * DISCLAIMER: I am not a cryptographer.  This implementation may be buggy.
  */
-object Crypto {
-    var signatureSize = 64
+object Crypto : Initializable {
+    /** The length of a signature, in bytes. */
+    var signatureSize = Ed25519.SIGNATURE_SIZE
     private lateinit var signatureEngine: Ed25519Signer
     private lateinit var aes: Cipher
+    /** The secure random number generator. */
     private val random = try { SecureRandom.getInstance("NativePRNGNonBlocking") } catch (e: NoSuchAlgorithmException) { SecureRandom.getInstance("WINDOWS-PRNG") }
 
     /** Initializes cryptography stuff, must be called before usage. */
-    fun init() {
+    override fun initializeAlways() {
         Security.addProvider(BouncyCastleProvider())
         signatureEngine = Ed25519Signer()
         aes = Cipher.getInstance("AES/CBC/PKCS5Padding")
@@ -174,7 +56,7 @@ object Crypto {
 
     /**
      * Signs an input with a private key (verify with [verify]).
-     * Note: vulnerable to replay attack.
+     * Note: vulnerable to replay attack, do not use on its own.
      */
     fun sign(input: ByteArray, key: Ed25519PrivateKeyParameters): ByteArray {
         signatureEngine.init(true, key)
@@ -182,11 +64,13 @@ object Crypto {
         return signatureEngine.generateSignature()
     }
 
+    /** Encrypts a message with AES. */
     fun encrypt(input: ByteArray, key: SecretKeySpec, iv: IvParameterSpec): ByteArray {
         aes.init(Cipher.ENCRYPT_MODE, key, iv)
         return aes.doFinal(input)
     }
 
+    /** Decrypts a message with AES. */
     fun decrypt(input: ByteArray, key: SecretKeySpec, iv: IvParameterSpec): ByteArray {
         aes.init(Cipher.DECRYPT_MODE, key, iv)
         return aes.doFinal(input)
@@ -194,7 +78,6 @@ object Crypto {
 
     /**
      * Verifies a signature from [sign] given the input, signature, and corresponding public key.
-     * Note: vulnerable to replay attack.
      */
     fun verify(original: ByteArray, sign: ByteArray, key: EdPublicKey): Boolean {
         signatureEngine.init(false, key)
@@ -203,13 +86,15 @@ object Crypto {
     }
 }
 
-
+/** Represents a client with a [KeyQuad].  It talks to exactly one other client and deals with generating the shared
+ * secret and encryption. */
 class CryptoClient(val key: KeyQuad) {
     var sharedSecret: ByteArray = byteArrayOf()
     lateinit var aesKey: SecretKeySpec
     lateinit var iv: IvParameterSpec
     lateinit var otherKey: EdPublicKey
 
+    /** Generates the shared secret and initializes the AES cipher.  Must be called before using the other methods. */
     fun generate(other: PublicKeyPair) {
         otherKey = other.edPublicKey
         val agreement = X25519Agreement()
@@ -245,7 +130,7 @@ class CryptoClient(val key: KeyQuad) {
 }
 
 fun main() {
-    Crypto.init()
+    Crypto.initializeAlways()
 
     // Test serialization
     val quad = Crypto.generateKeyQuad()

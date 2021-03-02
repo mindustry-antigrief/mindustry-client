@@ -3,9 +3,8 @@ package com.github.blahblahbloopster.crypto
 import arc.Core
 import arc.files.Fi
 import com.beust.klaxon.Klaxon
-import com.github.blahblahbloopster.Initializable
 import com.github.blahblahbloopster.Main
-import com.github.blahblahbloopster.ui.base64
+import com.github.blahblahbloopster.base64
 
 object KeyFolder : KeyList {
     private val klaxon = Klaxon().converter(KeyHolderJson)

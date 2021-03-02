@@ -17,7 +17,7 @@ class CryptographyTests {
         @BeforeAll
         @JvmStatic
         fun init() {
-            Crypto.init()
+            Crypto.initializeAlways()
         }
     }
 
