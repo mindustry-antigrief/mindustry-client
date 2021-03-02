@@ -22,32 +22,34 @@ jobs:
         id: time
         uses: 1466587594/get-current-time@v2
         with:
-          format: ${[GITHUB_RUN_NUMBER]}, MMM. D, YYYY [Unstable] # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
+          format: MMM. D, YYYY [Unstable] # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
 
       - name: Run Tests
-        run: ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
+        run: |
+          echo "COMMIT=${GITHUB_SHA::8}" >> $GITHUB_ENV
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${{ env.COMMIT }}, ${{ steps.time.outputs.formattedTime }}" --parallel
 
       - name: Create Release
-        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/custom-client' }}
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch') }}
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           body: |
-            Foo's Client Unstable (${{ github.run_number }})
+            Foo's Client Unstable (${{ env.COMMIT }})
             Steam installation instructions [here](../../../mindustry-client-v6#steam)
             **Commit Message:**
             *${{ github.event.head_commit.message }}*
           commitish: main
-          tag_name: ${{ github.run_number }}
-          release_name: Unstable ${{ github.run_number }}
+          tag_name: ${{ env.COMMIT }}
+          release_name: Unstable ${{ env.COMMIT }}
           repo: ${{ github.event.repository.name }}-builds
           draft: false
           prerelease: false
 
       - name: Upload Release Asset
-        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/custom-client' }}
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch') }}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -58,7 +60,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Test Results To Pages
-        if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/custom-client' }}
+        if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch') }}
         uses: JamesIves/github-pages-deploy-action@4.0.0
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
