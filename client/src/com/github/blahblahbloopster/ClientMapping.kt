@@ -57,12 +57,7 @@ class ClientMapping : ClientInterface {
             Main.messageCrypto.keyQuad = quad
         }
 
-        if (Main.messageCrypto.keyQuad != null) {
-            Vars.ui.showConfirm("Key Overwrite",
-                "This will irreversibly overwrite your key.  Are you sure you want to do this?", generate)
-        } else {
-            generate()
-        }
+        Vars.ui.showConfirm("Key Overwrite", "This will irreversibly overwrite your key.  Are you sure you want to do this?", generate)
     }
 
     override fun shareKey() {

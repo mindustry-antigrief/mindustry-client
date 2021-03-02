@@ -88,7 +88,7 @@ class MessageCrypto {
         } catch (ignored: Exception) {}
 
         Events.on(EventType.SendChatMessageEvent::class.java) { event ->
-            sign(event.message, keyQuad ?: return@on)
+            sign(event.message, keyQuad)
         }
         Events.on(EventType.PlayerChatEventClient::class.java) { event ->
             player = PlayerTriple((event.player ?: return@on).id, Instant.now().epochSecond, event.message)
@@ -109,8 +109,8 @@ class MessageCrypto {
         }
     }
 
-    fun base64public(): String? {
-        return Base64Coder.encode(PublicKeyPair(keyQuad ?: return null).serialize()).concatToString()
+    fun base64public(): String {
+        return Base64Coder.encode(PublicKeyPair(keyQuad).serialize()).concatToString()
     }
 
     /** Checks the validity of a message given two triples, see above. */
@@ -173,7 +173,7 @@ class MessageCrypto {
         plaintext.putLong(time)
         plaintext.put(ENCRYPTION_VALIDITY)
         plaintext.put(encoded)
-        val ciphertext = destination.crypto?.encrypt(plaintext.array()) ?: return
+        val ciphertext = destination.crypto.encrypt(plaintext.array())
         val toSend = ByteBuffer.allocate(ciphertext.size + Int.SIZE_BYTES + Long.SIZE_BYTES)
         toSend.putInt(1)  // Encrypted messages are type 1
         toSend.putLong(time)
@@ -196,7 +196,7 @@ class MessageCrypto {
                 }
                 1 -> {
                     for (key in keys) {
-                        val crypto = key.crypto ?: continue
+                        val crypto = key.crypto
                         try {
                             val decoded = crypto.decrypt(content)
                             val buffer = ByteBuffer.wrap(decoded)

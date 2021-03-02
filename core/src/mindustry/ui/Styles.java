@@ -234,7 +234,7 @@ public class Styles{
         settingtogglei = new ImageButtonStyle(){{
             imageCheckedColor = Pal.accent;
             imageDownColor = Pal.accent;
-            imageUpColor = Color.gray;
+            imageUpColor = Color.darkGray;
         }};
         selecti = new ImageButtonStyle(){{
             checked = buttonSelect;
