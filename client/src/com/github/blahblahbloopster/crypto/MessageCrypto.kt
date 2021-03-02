@@ -80,7 +80,7 @@ class MessageCrypto {
         this.communicationSystem = communicationSystem
         communicationSystem.addListener(::handle)
 
-        if (Core.settings?.dataDirectory?.child("key.txt")?.exists() == false) Client.mapping.generateKey()
+        if (Core.settings?.dataDirectory?.child("key.txt")?.exists() == false) Client.mapping?.generateKey()
 
         try {
             keyQuad = KeyQuad(Base64Coder.decode(Core.settings.dataDirectory.child("key.txt").readString()))
