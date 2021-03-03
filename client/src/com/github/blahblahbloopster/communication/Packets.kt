@@ -1,7 +1,7 @@
 package com.github.blahblahbloopster.communication
 
 import com.github.blahblahbloopster.*
-import com.github.blahblahbloopster.crypto.CommunicationSystem
+import com.github.blahblahbloopster.crypto.*
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -11,7 +11,9 @@ import kotlin.reflect.KClass
 object Packets {
     /** The list of registered types of [Transmission].  Transmissions MUST be registered here before use. */
     private val registeredTransmissionTypes = listOf<RegisteredTransmission<*>>(
-        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission)
+        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),
+        RegisteredTransmission(SignatureTransmission::class, ::SignatureTransmission),
+        RegisteredTransmission(EncryptedMessageTransmission::class, ::EncryptedMessageTransmission)
     )
 
     private data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (content: ByteArray, id: Long) -> T)
@@ -105,7 +107,7 @@ object Packets {
     /** Handles sending and receiving [Transmission]s on a [CommunicationSystem].
      * There should only be one of these per communication system to avoid exceeding the rate.
      */
-    class CommunicationClient(private val communicationSystem: CommunicationSystem) {
+    class CommunicationClient(val communicationSystem: CommunicationSystem) {
         /** The time that the last packet was sent at. */
         private var lastSent: Instant = Instant.ofEpochSecond(0)
         /** A queue of packets waiting to be sent. */
@@ -113,10 +115,14 @@ object Packets {
         /** A list of incoming connections.  Each transmission ID is mapped to a nullable list of bytearray segments. */
         private val incoming = mutableMapOf<Long, MutableList<ByteArray?>>()
         /** A list of listeners to be run when a transmission is received. */
-        val listeners = mutableListOf<(Transmission) -> Unit>()
+        val listeners = mutableListOf<(transmission: Transmission, senderId: Int) -> Unit>()
 
         init {
             communicationSystem.addListener(::handle)
+        }
+
+        fun addListener(listener: (transmission: Transmission, senderId: Int) -> Unit) {
+            listeners.add(listener)
         }
 
         /** Updates sending.  Call once per tick. */
@@ -141,7 +147,7 @@ object Packets {
 
         /** Handles an incoming packet. */
         private fun handle(input: ByteArray, sender: Int) {
-            if (sender == communicationSystem.id) return
+//            if (sender == communicationSystem.id) return
             val buf = input.buffer()
 
             try {
@@ -179,7 +185,7 @@ object Packets {
                     val transmission = registeredTransmissionTypes[header.transmissionType].constructor(inflated, header.transmissionId)  // Deserialize the transmission
 
                     for (listener in listeners) {
-                        listener(transmission)
+                        listener(transmission, sender)
                     }
                 }
             } catch (e: Exception) { e.printStackTrace() }

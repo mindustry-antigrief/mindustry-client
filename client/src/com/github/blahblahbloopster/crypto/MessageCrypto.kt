@@ -1,13 +1,11 @@
 package com.github.blahblahbloopster.crypto
 
-import arc.Core
-import arc.Events
+import arc.*
 import arc.graphics.Color
 import arc.util.Log
 import arc.util.serialization.Base64Coder
-import com.github.blahblahbloopster.age
-import com.github.blahblahbloopster.remainingBytes
-import com.github.blahblahbloopster.toInstant
+import com.github.blahblahbloopster.*
+import com.github.blahblahbloopster.communication.*
 import mindustry.Vars
 import mindustry.client.Client
 import mindustry.core.NetClient
@@ -15,15 +13,14 @@ import mindustry.game.EventType
 import mindustry.gen.Iconc
 import java.nio.ByteBuffer
 import java.time.Instant
-import java.util.zip.DeflaterInputStream
-import java.util.zip.InflaterInputStream
+import java.util.zip.*
 
 /** Provides the interface between [Crypto] and a [CommunicationSystem], and handles some UI stuff.
  * TODO: replace a lot of this with a real packet system
  */
 class MessageCrypto {
-    lateinit var communicationSystem: CommunicationSystem
     lateinit var keyQuad: KeyQuad
+    lateinit var communicationClient: Packets.CommunicationClient
 
     var player = PlayerTriple(-1, 0, "")  // Maps player ID to last sent message
     var received = ReceivedTriple(-1, 0, byteArrayOf()) // Maps player ID to last sent message
@@ -76,9 +73,9 @@ class MessageCrypto {
         }
     }
 
-    fun init(communicationSystem: CommunicationSystem) {
-        this.communicationSystem = communicationSystem
-        communicationSystem.addListener(::handle)
+    fun init(communicationClient: Packets.CommunicationClient) {
+        this.communicationClient = communicationClient
+        communicationClient.addListener(::handle)
 
         if (Core.settings?.dataDirectory?.child("key.txt")?.exists() == false) Client.mapping?.generateKey() // Generate a key on startup if one doesn't already exist
 
@@ -156,17 +153,12 @@ class MessageCrypto {
     /** Signs an outgoing message.  Includes the sender ID and current time to prevent impersonation and replay attacks. */
     fun sign(message: String, key: KeyQuad) {
         val time = Instant.now().epochSecond
-        val out = ByteBuffer.allocate(Crypto.signatureSize + 12)
-        out.putInt(0)  // Signatures are type 0
-        out.putLong(time)
-        val signature = Crypto.sign(stringToSendable(message, communicationSystem.id, time), key.edPrivateKey)
-        out.put(signature)
-        communicationSystem.send(out.array())
+        val signature = Crypto.sign(stringToSendable(message, communicationClient.communicationSystem.id, time), key.edPrivateKey)
+        communicationClient.send(SignatureTransmission(signature))
     }
 
     fun encrypt(message: String, destination: KeyHolder) {
         val time = Instant.now().epochSecond
-        val id = communicationSystem.id
         val compressor = DeflaterInputStream(message.toByteArray().inputStream())
         val encoded = compressor.readBytes()
         val plaintext = ByteBuffer.allocate(encoded.size + Long.SIZE_BYTES + Byte.SIZE_BYTES)
@@ -174,31 +166,23 @@ class MessageCrypto {
         plaintext.put(ENCRYPTION_VALIDITY)
         plaintext.put(encoded)
         val ciphertext = destination.crypto.encrypt(plaintext.array())
-        val toSend = ByteBuffer.allocate(ciphertext.size + Int.SIZE_BYTES + Long.SIZE_BYTES)
-        toSend.putInt(1)  // Encrypted messages are type 1
-        toSend.putLong(time)
-        toSend.put(ciphertext)
 
-        communicationSystem.send(toSend.array())
+        communicationClient.send(EncryptedMessageTransmission(ciphertext))
     }
 
-    private fun handle(input: ByteArray, sender: Int) {
+    private fun handle(input: Transmission, sender: Int) {
         try {
-            val buf = ByteBuffer.wrap(input)
-            val type = buf.int
-            val time = buf.long
-            val content = buf.remainingBytes()
-
-            when (type) {
-                0 -> {
-                    received = ReceivedTriple(sender, time, content)
+            when(input) {
+                is SignatureTransmission -> {
+                    received = ReceivedTriple(sender, Instant.now().epochSecond, input.signature)
                     check(player, received)
                 }
-                1 -> {
+                is EncryptedMessageTransmission -> {
                     for (key in keys) {
                         val crypto = key.crypto
                         try {
-                            val decoded = crypto.decrypt(content)
+                            val decoded = crypto.decrypt(input.ciphertext)
+
                             val buffer = ByteBuffer.wrap(decoded)
                             val timeSent = buffer.long
                             val validity = buffer.get()
@@ -206,29 +190,24 @@ class MessageCrypto {
 
                             if (validity != ENCRYPTION_VALIDITY) continue
 
-                            if (timeSent.toInstant().age() > 3 || time.toInstant().age() > 3) continue
+                            if (timeSent.toInstant().age() > 3 || input.timeSent.age() > 3) continue
 
-//                        if (senderId != sender) return
-
-                            val zip = InflaterInputStream(plaintext.inputStream())
-
-                            val str = zip.readBytes().decodeToString()
+                            val str = plaintext.inflate().decodeToString()
 
                             fire(
                                 EncryptedMessageEvent(
                                     sender,
                                     key,
                                     str,
-                                    if (sender == communicationSystem.id) Vars.player.name else key.name
+                                    if (sender == communicationClient.communicationSystem.id) Vars.player.name else key.name
                                 )
                             )
-                            zip.close()
                         } catch (ignored: Exception) {
                         }
                     }
                 }
             }
-        } catch (e: Exception) {}
+        } catch (e: Exception) { e.printStackTrace() }
     }
 
     /** Verifies an incoming message. */
