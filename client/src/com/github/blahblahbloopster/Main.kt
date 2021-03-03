@@ -33,7 +33,7 @@ object Main : ApplicationListener {
                 Vars.ui.chatfrag.addMessage("[scarlet]Invalid key! They are listed in the \"manage keys\" section of the pause menu", null)
             }
         } else {
-            communicationSystem = DummyCommunicationSystem()
+            communicationSystem = DummyCommunicationSystem(mutableListOf())
         }
         messageCrypto = MessageCrypto()
         messageCrypto.init(communicationSystem)

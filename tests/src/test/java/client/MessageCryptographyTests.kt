@@ -25,8 +25,9 @@ class MessageCryptographyTests {
         @BeforeAll
         fun init() {
             Crypto.initializeAlways()
-            client1.init(DummyCommunicationSystem())
-            client2.init(DummyCommunicationSystem())
+            val pool = mutableListOf<DummyCommunicationSystem>()
+            client1.init(DummyCommunicationSystem(pool))
+            client2.init(DummyCommunicationSystem(pool))
             client1.keys = DummyKeyList()
             client2.keys = DummyKeyList()
         }

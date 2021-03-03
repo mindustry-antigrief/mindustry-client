@@ -9,11 +9,11 @@ import java.util.*
 import kotlin.reflect.KClass
 
 object Packets {
-    val registeredTransmissionTypes = listOf<RegisteredTransmission<*>>(
-        RegisteredTransmission(DummyTransmission::class) { DummyTransmission(it) }
+    private val registeredTransmissionTypes = listOf<RegisteredTransmission<*>>(
+        RegisteredTransmission(DummyTransmission::class) { input, id -> DummyTransmission(input, id) }
     )
 
-    data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (ByteArray) -> T)
+    private data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (content: ByteArray, id: Long) -> T)
 
     private class Header {
         val sequenceCount: Int
@@ -112,6 +112,7 @@ object Packets {
         }
 
         fun handle(input: ByteArray, sender: Int) {
+            if (sender == communicationSystem.id) return
             val buf = input.buffer()
 
             try {
@@ -138,13 +139,13 @@ object Packets {
                 entry[header.sequenceNumber] = content
 
                 if (!entry.contains(null)) {
-                    val transmission = registeredTransmissionTypes[header.transmissionType].constructor(entry.reduceRight { a, b -> a!! + b!! }!!)
+                    val transmission = registeredTransmissionTypes[header.transmissionType].constructor(entry.reduceRight { a, b -> a!! + b!! }!!, header.transmissionId)
 
                     for (listener in listeners) {
                         listener(transmission)
                     }
                 }
-            } catch (e: Exception) {}
+            } catch (e: Exception) { e.printStackTrace() }
         }
 
         fun send(transmission: Transmission) {
