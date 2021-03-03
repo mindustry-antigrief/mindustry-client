@@ -1,5 +1,7 @@
 package com.github.blahblahbloopster.crypto
 
+import com.github.blahblahbloopster.ceil
+import com.github.blahblahbloopster.floor
 import java.io.IOException
 import java.math.BigInteger
 import kotlin.jvm.Throws
@@ -11,6 +13,10 @@ import kotlin.jvm.Throws
  */
 object Base32768Coder {
     private const val BITS = 15
+
+    fun availableBytes(length: Int) = ((length.toDouble() * BITS) / 8).floor()
+
+    fun encodedLengthOf(bytes: Int) = ((bytes.toDouble() * 8) / BITS).ceil()
 
     fun encode(input: ByteArray): String {
         var inp = BigInteger(byteArrayOf(1).plus(input))

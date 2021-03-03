@@ -14,6 +14,8 @@ import java.time.Duration
 import java.time.Instant
 import java.time.temporal.Temporal
 import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.ceil
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -56,3 +58,11 @@ fun String.base64(): ByteArray? = try { Base64Coder.decode(this) } catch (e: Ill
 fun Int.toBytes() = byteArrayOf((this shr 24).toByte(), (this shr 16).toByte(), (this shr 8).toByte(), (this).toByte())
 
 fun Long.toBytes() = byteArrayOf((this shr 56).toByte(), (this shr 48).toByte(), (this shr 40).toByte(), (this shr 32).toByte(), (this shr 24).toByte(), (this shr 16).toByte(), (this shr 8).toByte(), (this).toByte())
+
+fun Double.floor() = floor(this).toInt()
+
+fun Float.floor() = floor(this).toInt()
+
+fun Double.ceil() = ceil(this).toInt()
+
+fun Float.ceil() = ceil(this).toInt()

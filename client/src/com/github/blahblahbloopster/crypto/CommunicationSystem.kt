@@ -6,6 +6,10 @@ interface CommunicationSystem {
     val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit>
     /** This instance's ID. */
     val id: Int
+    /** The maximum number of bytes that can be sent at once. */
+    val MAX_LENGTH: Int
+    /** The time in milliseconds to wait between transmissions. */
+    val RATE: Long
 
     /** Initializes the system. */
     fun init() {}
