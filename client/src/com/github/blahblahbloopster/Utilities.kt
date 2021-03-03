@@ -52,3 +52,7 @@ inline fun UI.dialog(name: String, style: Dialog.DialogStyle = Styles.defaultDia
 fun ByteArray.base64(): String = Base64Coder.encode(this).concatToString()
 
 fun String.base64(): ByteArray? = try { Base64Coder.decode(this) } catch (e: IllegalArgumentException) { null }
+
+fun Int.toBytes() = byteArrayOf((this shr 24).toByte(), (this shr 16).toByte(), (this shr 8).toByte(), (this).toByte())
+
+fun Long.toBytes() = byteArrayOf((this shr 56).toByte(), (this shr 48).toByte(), (this shr 40).toByte(), (this shr 32).toByte(), (this shr 24).toByte(), (this shr 16).toByte(), (this shr 8).toByte(), (this).toByte())
