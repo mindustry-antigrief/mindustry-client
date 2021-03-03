@@ -7,6 +7,8 @@ import java.util.function.Consumer
 class DummyCommunicationSystem : CommunicationSystem {
     override val listeners: MutableList<(ByteArray, Int) -> Unit> = mutableListOf()
     override val id = Random().nextInt()
+    override val MAX_LENGTH: Int = 64
+    override val RATE: Long = 10L
 
     private fun received(bytes: ByteArray, sender: Int) {
         listeners.forEach(Consumer { it.invoke(bytes, sender) })

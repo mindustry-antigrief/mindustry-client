@@ -12,7 +12,9 @@ import mindustry.ui.dialogs.BaseDialog
 import java.nio.ByteBuffer
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.time.temporal.Temporal
+import java.time.temporal.TemporalUnit
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.ceil
@@ -35,10 +37,12 @@ fun ByteBuffer.bytes(num: Int): ByteArray {
 fun Long.toInstant(): Instant = Instant.ofEpochSecond(this)
 
 /** Seconds between this and [other].  If [other] happened after this, it will be positive. */
-fun Temporal.secondsBetween(other: Temporal) = Duration.between(this, other).seconds
+fun Temporal.secondsBetween(other: Temporal) = timeSince(other, ChronoUnit.SECONDS)
 
-/** The age of this temporal. Always positive. */
-fun Temporal.age() = abs(this.secondsBetween(Instant.now()))
+fun Temporal.timeSince(other: Temporal, unit: TemporalUnit) = unit.between(this, other)
+
+/** The age of this temporal in the given unit (by default seconds). Always positive. */
+fun Temporal.age(unit: TemporalUnit = ChronoUnit.SECONDS) = abs(this.timeSince(Instant.now(), unit))
 
 /** Adds an element to the table followed by a row. */
 fun Table.row(element: Element): Cell<Element> {
@@ -66,3 +70,5 @@ fun Float.floor() = floor(this).toInt()
 fun Double.ceil() = ceil(this).toInt()
 
 fun Float.ceil() = ceil(this).toInt()
+
+fun ByteArray.buffer(): ByteBuffer = ByteBuffer.wrap(this)
