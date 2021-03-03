@@ -25,7 +25,7 @@ class PacketTests {
         client1.send(transmission2)
         client2.send(transmission3)
 
-        val listener = { t: Transmission ->
+        val listener = { t: Transmission, _: Int ->
             if (t is DummyTransmission) {
                 when (t.id) {
                     transmission1.id -> output1 = t.content
