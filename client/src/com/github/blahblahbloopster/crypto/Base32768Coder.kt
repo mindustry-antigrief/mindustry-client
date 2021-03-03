@@ -1,8 +1,10 @@
 package com.github.blahblahbloopster.crypto
 
-import com.github.blahblahbloopster.crypto.Base32768Coder.BITS
-import java.io.*
-import java.math.*
+import com.github.blahblahbloopster.ceil
+import com.github.blahblahbloopster.floor
+import java.io.IOException
+import java.math.BigInteger
+import kotlin.jvm.Throws
 
 /** You've heard of base64, now get ready for... base32768.  Encodes 15 bits of data into each unicode character,
  * which so far has not caused any problems.  If it turns out to break stuff, the [BITS] constant can be changed
@@ -11,6 +13,10 @@ import java.math.*
  */
 object Base32768Coder {
     private const val BITS = 15
+
+    fun availableBytes(length: Int) = ((length.toDouble() * BITS) / 8).floor()
+
+    fun encodedLengthOf(bytes: Int) = ((bytes.toDouble() * 8) / BITS).ceil()
 
     fun encode(input: ByteArray): String {
         var inp = BigInteger(byteArrayOf(1).plus(input))

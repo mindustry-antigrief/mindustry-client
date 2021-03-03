@@ -1,19 +1,21 @@
 package mindustry.client.navigation;
 
-import arc.*;
-import arc.math.*;
-import arc.math.geom.*;
-import arc.struct.*;
-import arc.util.*;
-import mindustry.ai.formations.*;
-import mindustry.client.navigation.waypoints.*;
-import mindustry.entities.*;
-import mindustry.entities.units.*;
+import arc.Core;
+import arc.math.Mathf;
+import arc.math.geom.Position;
+import arc.struct.Queue;
+import arc.struct.Seq;
+import arc.util.Interval;
+import arc.util.Nullable;
+import mindustry.ai.formations.Formation;
+import mindustry.client.navigation.waypoints.PositionWaypoint;
+import mindustry.entities.Units;
+import mindustry.entities.units.BuildPlan;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.*;
-import mindustry.world.blocks.*;
-import mindustry.world.blocks.environment.*;
+import mindustry.world.blocks.ConstructBlock;
+import mindustry.world.blocks.environment.Boulder;
 
 import static mindustry.Vars.*;
 
@@ -56,20 +58,56 @@ public class BuildPath extends Path {
     @Override
     public boolean getShow() { return show; }
 
+    private void cleanQueue(Queue<BuildPlan> queue) {
+        if (!queue.isEmpty() && queues.contains(queue)) {
+            for (BuildPlan item : queue) {
+                player.unit().plans.remove(item);
+            }
+            queue.clear();
+        }
+    }
+
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     public void follow() {
         // TODO: Cleanup this firstrun nonsense, make sure that unfinished and cleanup don't conflict
         if (firstRun) world.tiles.forEach(tile -> {if(tile.team() == Team.derelict && tile.breakable() && tile.isCenter() && !(tile.block() instanceof Boulder))cleanup.add(new BuildPlan(tile.x, tile.y));}); firstRun = false;
         if (timer.get(15)) {
             // Jank code to clear the four extra queues TODO: Find a better way to do this
-            if(!broken.isEmpty() && queues.contains(broken)){broken.forEach(player.unit().plans::remove); broken.clear();}
-            if(!boulders.isEmpty() && queues.contains(boulders)){boulders.forEach(player.unit().plans::remove); boulders.clear();}
-            if(!assist.isEmpty() && queues.contains(assist)){assist.forEach(player.unit().plans::remove); assist.clear();}
-            if(!unfinished.isEmpty() && queues.contains(unfinished)){unfinished.forEach(player.unit().plans::remove); unfinished.clear();}
+            cleanQueue(broken);
+            cleanQueue(boulders);
+            cleanQueue(assist);
+            cleanQueue(unfinished);
 
-            if(queues.contains(broken) && !player.unit().team.data().blocks.isEmpty()) player.unit().team.data().blocks.forEach(block -> broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config)));
-            if(queues.contains(assist)) Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, u -> {if(u.canBuild() && player.unit() != null && u != player.unit() && u.isBuilding())u.plans.forEach(assist::add);});
-            if(queues.contains(unfinished) || queues.contains(boulders)) world.tiles.forEach(tile -> {if(tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder)boulders.add(new BuildPlan(tile.x, tile.y)); else if(tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter())unfinished.add(entity.wasConstructing ? new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) : new BuildPlan(tile.x, tile.y));});
+            if(queues.contains(broken) && !player.unit().team.data().blocks.isEmpty()) {
+                for (Teams.BlockPlan block : player.unit().team.data().blocks) {
+                    broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config));
+                }
+            }
+
+            if(queues.contains(assist)) {
+                Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, unit -> {
+                    if(unit.canBuild() && player.unit() != null && unit != player.unit() && unit.isBuilding()) {
+                        Queue<BuildPlan> buildPlans = assist;
+                        for (BuildPlan plan : unit.plans) {
+                            buildPlans.add(plan);
+                        }
+                    }
+                });
+            }
+            if(queues.contains(unfinished) || queues.contains(boulders)) {
+                for (Tile tile : world.tiles) {
+                    if (tile.breakable() && tile.block() instanceof Boulder ||
+                            tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder) {
+                        boulders.add(new BuildPlan(tile.x, tile.y));
+                    }
+                    else if (tile.team() == player.team() &&
+                            tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter()) {
+                        unfinished.add(entity.wasConstructing ?
+                                new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) :
+                                new BuildPlan(tile.x, tile.y));
+                    }
+                }
+            }
 
             boolean all = false;
             dosort:

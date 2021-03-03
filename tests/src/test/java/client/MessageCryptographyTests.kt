@@ -1,17 +1,12 @@
 package client
 
+import com.github.blahblahbloopster.communication.Packets
+import com.github.blahblahbloopster.crypto.*
 import com.github.blahblahbloopster.crypto.Crypto.generateKeyQuad
-import com.github.blahblahbloopster.crypto.Crypto
-import com.github.blahblahbloopster.crypto.KeyHolder
 import com.github.blahblahbloopster.crypto.MessageCrypto.Companion.MessageCryptoEvent
 import com.github.blahblahbloopster.crypto.MessageCrypto.Companion.SignatureEvent
 import com.github.blahblahbloopster.crypto.MessageCrypto.PlayerTriple
-import com.github.blahblahbloopster.crypto.MessageCrypto
-import org.junit.jupiter.api.BeforeAll
-import com.github.blahblahbloopster.crypto.DummyCommunicationSystem
-import com.github.blahblahbloopster.crypto.DummyKeyList
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -25,10 +20,19 @@ class MessageCryptographyTests {
         @BeforeAll
         fun init() {
             Crypto.initializeAlways()
-            client1.init(DummyCommunicationSystem())
-            client2.init(DummyCommunicationSystem())
+            val pool = mutableListOf<DummyCommunicationSystem>()
+            client1.init(Packets.CommunicationClient(DummyCommunicationSystem(pool)))
+            client2.init(Packets.CommunicationClient(DummyCommunicationSystem(pool)))
             client1.keys = DummyKeyList()
             client2.keys = DummyKeyList()
+        }
+    }
+
+    private fun update() {
+        for (i in 0..20) {
+            client1.communicationClient.update()
+            client2.communicationClient.update()
+            Thread.sleep(10L)
         }
     }
 
@@ -70,37 +74,43 @@ class MessageCryptographyTests {
             }
         }
         var message = "Hello world!"
-        client2.player = PlayerTriple(client1.communicationSystem.id, Instant.now().epochSecond, message)
+        client2.player = PlayerTriple(client1.communicationClient.communicationSystem.id, Instant.now().epochSecond, message)
         client1.sign(message, client1pair)
+        update()
         Assertions.assertTrue(valid.get())
 
         message = "Test test blah"
-        client1.player = PlayerTriple(client2.communicationSystem.id, Instant.now().epochSecond, message)
+        client1.player = PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message)
         client2.sign(message, client2pair)
+        update()
         Assertions.assertTrue(valid.get())
 
         message = "aaa"
-        client1.player = PlayerTriple(client2.communicationSystem.id, Instant.now().epochSecond, message)
+        client1.player = PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message)
         client2.sign(message, client2pair)
+        update()
         Assertions.assertTrue(valid.get())
 
         message = "aaaa"
-        client1.player = PlayerTriple(client2.communicationSystem.id, Instant.now().epochSecond, message)
+        client1.player = PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message)
         client2.sign(message, client2pair)
+        update()
         Assertions.assertTrue(valid.get())
 
         message = "oh no"
-        client1.player = PlayerTriple(client2.communicationSystem.id, Instant.now().epochSecond, message)
+        client1.player = PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message)
         client2.sign(message, client1pair) // invalid, using wrong key to sign
-        Thread.sleep(10L)
+        update()
         Assertions.assertFalse(valid.get())
 
         message = "hello world"
         client1.encrypt(message, client2holder)
+        update()
         Assertions.assertEquals(message, receivedMessage)
 
         message = "testing"
         client2.encrypt(message, client1holder)
+        update()
         Assertions.assertEquals(message, receivedMessage)
     }
 }

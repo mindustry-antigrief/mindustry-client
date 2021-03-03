@@ -3,17 +3,19 @@ package com.github.blahblahbloopster.crypto
 import java.util.*
 import java.util.function.*
 
-/** A dummy [CommunicationSystem] for tests.  */
-class DummyCommunicationSystem : CommunicationSystem {
+/** A dummy [CommunicationSystem] for tests. */
+class DummyCommunicationSystem(private val pool: MutableList<DummyCommunicationSystem>) : CommunicationSystem {
     override val listeners: MutableList<(ByteArray, Int) -> Unit> = mutableListOf()
     override val id = Random().nextInt()
+    override val MAX_LENGTH: Int = 64
+    override val RATE: Long = 10L
 
     private fun received(bytes: ByteArray, sender: Int) {
         listeners.forEach(Consumer { it.invoke(bytes, sender) })
     }
 
     override fun send(bytes: ByteArray) {
-        systems.forEach(Consumer { item: DummyCommunicationSystem ->
+        pool.forEach(Consumer { item: DummyCommunicationSystem ->
             if (item !== this) {
                 item.received(bytes, id)
             }
@@ -22,11 +24,7 @@ class DummyCommunicationSystem : CommunicationSystem {
 
     override fun init() {}
 
-    companion object {
-        private val systems = ArrayList<DummyCommunicationSystem>()
-    }
-
     init {
-        systems.add(this)
+        pool.add(this)
     }
 }

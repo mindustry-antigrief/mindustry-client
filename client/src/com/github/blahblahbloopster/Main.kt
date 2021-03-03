@@ -1,15 +1,17 @@
 package com.github.blahblahbloopster
 
 import arc.*
+import com.github.blahblahbloopster.communication.*
 import com.github.blahblahbloopster.crypto.*
-import com.github.blahblahbloopster.navigation.*
-import mindustry.*
-import mindustry.client.*
-import mindustry.client.navigation.*
+import com.github.blahblahbloopster.navigation.AStarNavigator
+import mindustry.Vars
+import mindustry.client.Client
+import mindustry.client.navigation.Navigation
 
 object Main : ApplicationListener {
     lateinit var communicationSystem: CommunicationSystem
     lateinit var messageCrypto: MessageCrypto
+    lateinit var communicationClient: Packets.CommunicationClient
 
     /** Run on client load. */
     override fun init() {
@@ -31,18 +33,33 @@ object Main : ApplicationListener {
                 }
                 Vars.ui.chatfrag.addMessage("[scarlet]Invalid key! They are listed in the \"manage keys\" section of the pause menu", null)
             }
+
+            Client.fooCommands.register("c", "<message...>", "Send a message TESTING") { args ->
+                val message = args[0]
+
+                communicationClient.send(DummyTransmission(message.toByteArray()))
+            }
         } else {
-            communicationSystem = DummyCommunicationSystem()
+            communicationSystem = DummyCommunicationSystem(mutableListOf())
         }
         messageCrypto = MessageCrypto()
-        messageCrypto.init(communicationSystem)
+        communicationClient = Packets.CommunicationClient(communicationSystem)
+        messageCrypto.init(communicationClient)
         KeyFolder.initializeAlways()
 
         Navigation.navigator = AStarNavigator
+
+        communicationClient.addListener { transmission, _ ->
+            if (transmission is DummyTransmission) {
+                println("GOT TRANSMISSION: ${transmission.content.decodeToString()}")
+            }
+        }
     }
 
     /** Run once per frame. */
-    override fun update() {}
+    override fun update() {
+        communicationClient.update()
+    }
 
     /** Run when the object is disposed. */
     override fun dispose() {}
