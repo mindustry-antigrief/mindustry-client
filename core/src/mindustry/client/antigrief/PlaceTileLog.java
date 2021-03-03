@@ -1,7 +1,7 @@
 package mindustry.client.antigrief;
 
-import arc.scene.Element;
-import arc.scene.ui.layout.Table;
+import arc.scene.*;
+import arc.scene.ui.layout.*;
 import mindustry.gen.*;
 import mindustry.world.*;
 

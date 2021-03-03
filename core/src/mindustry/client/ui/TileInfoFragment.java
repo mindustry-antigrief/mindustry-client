@@ -1,20 +1,17 @@
 package mindustry.client.ui;
 
-import arc.Core;
-import arc.graphics.g2d.TextureRegion;
-import arc.scene.style.NinePatchDrawable;
-import arc.scene.ui.Image;
-import arc.scene.ui.Label;
-import arc.scene.ui.layout.Table;
-import arc.struct.Seq;
-import mindustry.Vars;
-import mindustry.client.Client;
-import mindustry.client.antigrief.TileLog;
-import mindustry.client.antigrief.TileLogItem;
-import mindustry.gen.Icon;
-import mindustry.gen.Tex;
-import mindustry.ui.Cicon;
-import mindustry.world.Tile;
+import arc.*;
+import arc.graphics.g2d.*;
+import arc.scene.style.*;
+import arc.scene.ui.*;
+import arc.scene.ui.layout.*;
+import arc.struct.*;
+import mindustry.*;
+import mindustry.client.*;
+import mindustry.client.antigrief.*;
+import mindustry.gen.*;
+import mindustry.ui.*;
+import mindustry.world.*;
 
 public class TileInfoFragment extends Table {
 

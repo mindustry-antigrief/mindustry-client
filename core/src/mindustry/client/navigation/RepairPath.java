@@ -1,10 +1,8 @@
 package mindustry.client.navigation;
 
-import arc.Core;
-import arc.math.geom.Geometry;
-import arc.math.geom.Position;
-import mindustry.client.navigation.waypoints.PositionWaypoint;
-import mindustry.gen.Building;
+import arc.math.geom.*;
+import mindustry.client.navigation.waypoints.*;
+import mindustry.gen.*;
 
 import static mindustry.Vars.*;
 

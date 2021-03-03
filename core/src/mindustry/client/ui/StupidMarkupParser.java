@@ -1,12 +1,12 @@
 package mindustry.client.ui;
 
-import arc.graphics.Color;
-import arc.scene.ui.Label;
-import arc.scene.ui.Label.LabelStyle;
-import arc.scene.ui.layout.Table;
-import arc.struct.Seq;
-import mindustry.graphics.Pal;
-import mindustry.ui.Fonts;
+import arc.graphics.*;
+import arc.scene.ui.*;
+import arc.scene.ui.Label.*;
+import arc.scene.ui.layout.*;
+import arc.struct.*;
+import mindustry.graphics.*;
+import mindustry.ui.*;
 
 public class StupidMarkupParser {
     private static final LabelStyle headingStyle = new LabelStyle(Fonts.def, Pal.accent);

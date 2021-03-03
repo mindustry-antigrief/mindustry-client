@@ -1,8 +1,8 @@
 package com.github.blahblahbloopster.ui
 
-import arc.Core
-import mindustry.ui.dialogs.BaseDialog
-import mindustry.client.ui.StupidMarkupParser
+import arc.*
+import mindustry.client.ui.*
+import mindustry.ui.dialogs.*
 
 object FeaturesDialog : BaseDialog("@client.features") {
     init {

@@ -1,7 +1,7 @@
 package mindustry.client.antigrief;
 
-import mindustry.gen.Call;
-import mindustry.world.Tile;
+import mindustry.gen.*;
+import mindustry.world.*;
 
 import static mindustry.Vars.*;
 

@@ -1,15 +1,12 @@
 package com.github.blahblahbloopster.navigation
 
-import arc.math.geom.Circle
-import arc.math.geom.Geometry.d8
-import arc.math.geom.Vec2
-import mindustry.Vars.tilesize
-import mindustry.client.navigation.Navigator
-import mindustry.core.World
+import arc.math.geom.*
+import arc.math.geom.Geometry.*
+import mindustry.Vars.*
+import mindustry.client.navigation.*
+import mindustry.core.*
 import java.util.*
-import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.max
+import kotlin.math.*
 
 // Taken from http://www.codebytes.in/2015/02/a-shortest-path-finding-algorithm.html
 // and modified

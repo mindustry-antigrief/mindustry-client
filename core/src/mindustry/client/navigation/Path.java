@@ -1,9 +1,7 @@
 package mindustry.client.navigation;
 
-import arc.math.geom.Position;
+import arc.math.geom.*;
 import arc.struct.*;
-
-import static mindustry.Vars.player;
 
 /** A way of representing a path */
 public abstract class Path {

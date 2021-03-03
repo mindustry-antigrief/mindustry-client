@@ -1,19 +1,14 @@
 package com.github.blahblahbloopster.ui
 
-import arc.Core
-import arc.input.KeyCode
-import arc.scene.ui.TextField
-import arc.scene.ui.layout.Table
-import com.github.blahblahbloopster.Main
-import com.github.blahblahbloopster.crypto.KeyHolder
-import com.github.blahblahbloopster.crypto.MessageCrypto
-import com.github.blahblahbloopster.dialog
-import com.github.blahblahbloopster.label
-import com.github.blahblahbloopster.row
-import mindustry.Vars
-import mindustry.client.Client
-import mindustry.gen.Icon
-import mindustry.ui.dialogs.BaseDialog
+import arc.*
+import arc.input.*
+import arc.scene.ui.*
+import arc.scene.ui.layout.*
+import com.github.blahblahbloopster.*
+import com.github.blahblahbloopster.crypto.*
+import mindustry.*
+import mindustry.gen.*
+import mindustry.ui.dialogs.*
 
 class KeyShareDialog(val messageCrypto: MessageCrypto) : BaseDialog("Key Share") {
     private val keys = Table()

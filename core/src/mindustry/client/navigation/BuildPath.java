@@ -1,21 +1,19 @@
 package mindustry.client.navigation;
 
-import arc.Core;
-import arc.math.Mathf;
-import arc.math.geom.Position;
-import arc.struct.Queue;
-import arc.struct.Seq;
-import arc.util.Interval;
-import arc.util.Nullable;
-import mindustry.ai.formations.Formation;
-import mindustry.client.navigation.waypoints.PositionWaypoint;
-import mindustry.entities.Units;
-import mindustry.entities.units.BuildPlan;
-import mindustry.game.Team;
+import arc.*;
+import arc.math.*;
+import arc.math.geom.*;
+import arc.struct.*;
+import arc.util.*;
+import mindustry.ai.formations.*;
+import mindustry.client.navigation.waypoints.*;
+import mindustry.entities.*;
+import mindustry.entities.units.*;
+import mindustry.game.*;
 import mindustry.gen.*;
-import mindustry.world.Build;
-import mindustry.world.blocks.ConstructBlock;
-import mindustry.world.blocks.environment.Boulder;
+import mindustry.world.*;
+import mindustry.world.blocks.*;
+import mindustry.world.blocks.environment.*;
 
 import static mindustry.Vars.*;
 

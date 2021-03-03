@@ -1,17 +1,14 @@
 package mindustry.client.navigation;
 
-import arc.graphics.Color;
-import arc.graphics.g2d.Draw;
-import arc.graphics.g2d.Fill;
-import arc.math.Mathf;
-import arc.math.geom.Position;
-import arc.math.geom.Vec2;
+import arc.math.*;
+import arc.math.geom.*;
 import arc.struct.*;
-import arc.util.Interval;
-import mindustry.Vars;
-import mindustry.client.navigation.waypoints.PositionWaypoint;
-import mindustry.client.navigation.waypoints.Waypoint;
-import java.util.HashSet;
+import arc.util.*;
+import mindustry.*;
+import mindustry.client.navigation.waypoints.*;
+
+import java.util.*;
+
 import static mindustry.Vars.*;
 
 public class Navigation {

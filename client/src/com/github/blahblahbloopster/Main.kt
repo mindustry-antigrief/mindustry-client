@@ -1,12 +1,11 @@
 package com.github.blahblahbloopster
 
-import arc.ApplicationListener
-import arc.Core
+import arc.*
 import com.github.blahblahbloopster.crypto.*
-import com.github.blahblahbloopster.navigation.AStarNavigator
-import mindustry.Vars
-import mindustry.client.Client
-import mindustry.client.navigation.Navigation
+import com.github.blahblahbloopster.navigation.*
+import mindustry.*
+import mindustry.client.*
+import mindustry.client.navigation.*
 
 object Main : ApplicationListener {
     lateinit var communicationSystem: CommunicationSystem

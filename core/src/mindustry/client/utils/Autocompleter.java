@@ -1,6 +1,6 @@
 package mindustry.client.utils;
 
-import arc.struct.Seq;
+import arc.struct.*;
 
 public interface Autocompleter {
     default void initialize() { }

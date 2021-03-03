@@ -1,19 +1,17 @@
 package mindustry.client.antigrief;
 
-import arc.Core;
+import arc.*;
 import arc.math.*;
 import arc.scene.*;
-import arc.scene.ui.layout.Table;
+import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.util.Log;
-import arc.util.Strings;
-import mindustry.Vars;
+import mindustry.*;
 import mindustry.client.ui.*;
 import mindustry.core.*;
+import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.power.*;
-import mindustry.gen.*;
 
 public class PowerInfo {
 

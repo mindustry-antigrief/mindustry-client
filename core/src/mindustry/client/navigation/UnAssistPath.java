@@ -1,17 +1,14 @@
 package mindustry.client.navigation;
 
-import arc.math.geom.Point2;
-import arc.math.geom.Position;
-import arc.struct.IntSet;
-import arc.struct.Seq;
-import arc.util.Log;
-import mindustry.Vars;
-import mindustry.client.navigation.waypoints.PositionWaypoint;
-import mindustry.entities.units.BuildPlan;
-import mindustry.gen.Builderc;
-import mindustry.gen.Player;
-import mindustry.world.Tile;
-import mindustry.world.blocks.ConstructBlock;
+import arc.math.geom.*;
+import arc.struct.*;
+import arc.util.*;
+import mindustry.*;
+import mindustry.client.navigation.waypoints.*;
+import mindustry.entities.units.*;
+import mindustry.gen.*;
+import mindustry.world.*;
+import mindustry.world.blocks.*;
 
 public class UnAssistPath extends Path {
     public final Player assisting;

@@ -1,6 +1,6 @@
 package mindustry.client.navigation.waypoints;
 
-import arc.Core;
+import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;

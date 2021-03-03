@@ -1,24 +1,21 @@
 package mindustry.client;
 
 import arc.*;
-import arc.math.Mathf;
-import arc.math.geom.Vec2;
-import arc.struct.IntSet;
-import arc.struct.Queue;
+import arc.math.*;
+import arc.math.geom.*;
+import arc.struct.*;
 import arc.util.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.utils.*;
-import mindustry.client.utils.Autocomplete;
-import mindustry.core.NetClient;
-import mindustry.core.World;
-import mindustry.game.EventType;
+import mindustry.core.*;
+import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
-import mindustry.input.DesktopInput;
-import mindustry.world.Tile;
+import mindustry.input.*;
+import mindustry.world.*;
 
-import static arc.Core.settings;
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class Client {

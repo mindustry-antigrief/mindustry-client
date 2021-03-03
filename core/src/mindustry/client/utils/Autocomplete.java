@@ -1,6 +1,6 @@
 package mindustry.client.utils;
 
-import arc.struct.Seq;
+import arc.struct.*;
 
 public class Autocomplete {
     public static Seq<Autocompleter> autocompleters = new Seq<>();

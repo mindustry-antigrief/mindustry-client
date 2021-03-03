@@ -1,22 +1,18 @@
 package com.github.blahblahbloopster.crypto
 
-import arc.Core
-import arc.Events
-import arc.graphics.Color
-import arc.util.Log
-import arc.util.serialization.Base64Coder
-import com.github.blahblahbloopster.age
-import com.github.blahblahbloopster.remainingBytes
-import com.github.blahblahbloopster.toInstant
-import mindustry.Vars
-import mindustry.client.Client
-import mindustry.core.NetClient
-import mindustry.game.EventType
-import mindustry.gen.Iconc
-import java.nio.ByteBuffer
-import java.time.Instant
-import java.util.zip.DeflaterInputStream
-import java.util.zip.InflaterInputStream
+import arc.*
+import arc.graphics.*
+import arc.util.*
+import arc.util.serialization.*
+import com.github.blahblahbloopster.*
+import mindustry.*
+import mindustry.client.*
+import mindustry.core.*
+import mindustry.game.*
+import mindustry.gen.*
+import java.nio.*
+import java.time.*
+import java.util.zip.*
 
 /** Provides the interface between [Crypto] and a [CommunicationSystem], and handles some UI stuff.
  * TODO: replace a lot of this with a real packet system

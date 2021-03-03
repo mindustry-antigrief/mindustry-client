@@ -1,11 +1,11 @@
 package mindustry.client.navigation;
 
-import arc.Events;
-import arc.util.TaskQueue;
-import arc.util.async.Threads;
-import mindustry.game.EventType;
+import arc.*;
+import arc.util.*;
+import arc.util.async.*;
+import mindustry.game.*;
 
-import static mindustry.Vars.state;
+import static mindustry.Vars.*;
 
 public class PlayerNavigationThread implements Runnable {
     private Thread thread = null;

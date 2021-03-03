@@ -1,7 +1,7 @@
 package mindustry.client;
 
-import arc.math.geom.Vec2;
-import mindustry.gen.Player;
+import arc.math.geom.*;
+import mindustry.gen.*;
 
 /**
  * This is an interface implemented by the client module in kotlin.

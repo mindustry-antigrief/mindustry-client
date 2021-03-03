@@ -1,15 +1,11 @@
 package com.github.blahblahbloopster.crypto
 
-import arc.Events
-import arc.util.Time
-import arc.util.Timer
-import mindustry.Vars
-import mindustry.client.Client
-import mindustry.content.Blocks
-import mindustry.game.EventType
-import mindustry.gen.Call
-import mindustry.world.blocks.logic.MessageBlock
-import kotlin.random.Random
+import arc.*
+import mindustry.*
+import mindustry.client.*
+import mindustry.game.*
+import mindustry.gen.*
+import mindustry.world.blocks.logic.*
 
 class MessageBlockCommunicationSystem : CommunicationSystem {
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()

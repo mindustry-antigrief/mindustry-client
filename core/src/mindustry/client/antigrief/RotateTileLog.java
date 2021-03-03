@@ -1,7 +1,7 @@
 package mindustry.client.antigrief;
 
-import mindustry.gen.Unitc;
-import mindustry.world.Tile;
+import mindustry.gen.*;
+import mindustry.world.*;
 
 public class RotateTileLog extends TileLogItem {
     int newRotation;

@@ -1,10 +1,7 @@
 package mindustry.client.navigation;
 
-import arc.math.Mathf;
-import arc.math.geom.Circle;
-import arc.math.geom.Vec2;
-import arc.struct.Seq;
-import mindustry.Vars;
+import arc.math.geom.*;
+import arc.struct.*;
 
 import static mindustry.Vars.*;
 

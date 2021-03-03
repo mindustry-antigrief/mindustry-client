@@ -1,7 +1,7 @@
 package mindustry.client.navigation;
 
-import arc.math.geom.Circle;
-import mindustry.game.Team;
+import arc.math.geom.*;
+import mindustry.game.*;
 
 public class TurretPathfindingEntity extends Circle {
     public boolean canHitPlayer, canShoot;

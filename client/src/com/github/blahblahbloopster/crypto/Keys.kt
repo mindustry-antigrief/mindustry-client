@@ -1,10 +1,8 @@
 package com.github.blahblahbloopster.crypto
 
 import com.beust.klaxon.*
-import com.github.blahblahbloopster.Main
-import com.github.blahblahbloopster.base64
-import com.github.blahblahbloopster.bytes
-import java.nio.ByteBuffer
+import com.github.blahblahbloopster.*
+import java.nio.*
 
 /** Holds an ED25519 and X25519 keypair. */
 class KeyQuad {

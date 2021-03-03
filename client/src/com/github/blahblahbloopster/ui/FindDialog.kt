@@ -1,20 +1,18 @@
 package com.github.blahblahbloopster.ui
 
-import arc.Core
-import arc.graphics.Color
-import arc.input.KeyCode
-import arc.math.geom.Geometry
-import arc.scene.ui.Image
-import arc.scene.ui.TextField
-import arc.scene.ui.layout.Table
-import mindustry.Vars
-import mindustry.Vars.player
-import mindustry.client.Client
-import mindustry.client.utils.BiasedLevenshtein
-import mindustry.ui.Cicon
-import mindustry.ui.dialogs.BaseDialog
-import mindustry.world.Block
-import mindustry.world.Tile
+import arc.*
+import arc.graphics.*
+import arc.input.*
+import arc.math.geom.*
+import arc.scene.ui.*
+import arc.scene.ui.layout.*
+import mindustry.*
+import mindustry.Vars.*
+import mindustry.client.*
+import mindustry.client.utils.*
+import mindustry.ui.*
+import mindustry.ui.dialogs.*
+import mindustry.world.*
 
 object FindDialog : BaseDialog("@find") {
     private val imageTable = Table()

@@ -1,8 +1,8 @@
 package com.github.blahblahbloopster.crypto
 
-import java.io.IOException
-import java.math.BigInteger
-import kotlin.jvm.Throws
+import com.github.blahblahbloopster.crypto.Base32768Coder.BITS
+import java.io.*
+import java.math.*
 
 /** You've heard of base64, now get ready for... base32768.  Encodes 15 bits of data into each unicode character,
  * which so far has not caused any problems.  If it turns out to break stuff, the [BITS] constant can be changed

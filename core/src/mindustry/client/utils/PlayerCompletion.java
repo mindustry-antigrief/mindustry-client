@@ -1,10 +1,8 @@
 package mindustry.client.utils;
 
-import arc.struct.Seq;
-import arc.util.Log;
-import arc.util.Strings;
-import mindustry.gen.Groups;
-import mindustry.gen.Player;
+import arc.struct.*;
+import arc.util.*;
+import mindustry.gen.*;
 
 public class PlayerCompletion implements Autocompleter {
 

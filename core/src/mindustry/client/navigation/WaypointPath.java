@@ -1,12 +1,12 @@
 package mindustry.client.navigation;
 
-import arc.Core;
+import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.geom.*;
 import arc.struct.*;
-import mindustry.client.navigation.waypoints.Waypoint;
-import mindustry.graphics.Layer;
+import mindustry.client.navigation.waypoints.*;
+import mindustry.graphics.*;
 
 /** A {@link Path} composed of {@link Waypoint} instances. */
 public class WaypointPath extends Path {

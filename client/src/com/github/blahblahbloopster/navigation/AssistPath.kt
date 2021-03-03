@@ -1,13 +1,11 @@
 package com.github.blahblahbloopster.navigation
 
-import arc.math.geom.Position
+import arc.math.geom.*
+import mindustry.Vars.*
 import mindustry.client.navigation.Path
-import mindustry.client.navigation.waypoints.PositionWaypoint
-import mindustry.gen.Call
-import mindustry.gen.Minerc
-import mindustry.gen.Player
-import kotlin.math.max
-import mindustry.Vars.player
+import mindustry.client.navigation.waypoints.*
+import mindustry.gen.*
+import kotlin.math.*
 
 class AssistPath(private val assisting: Player?) : Path() {
     private var show: Boolean = true

@@ -1,10 +1,9 @@
 package com.github.blahblahbloopster.crypto
 
-import arc.Core
-import arc.files.Fi
-import com.beust.klaxon.Klaxon
-import com.github.blahblahbloopster.Main
-import com.github.blahblahbloopster.base64
+import arc.*
+import arc.files.*
+import com.beust.klaxon.*
+import com.github.blahblahbloopster.*
 
 object KeyFolder : KeyList {
     private val klaxon = Klaxon().converter(KeyHolderJson)

@@ -1,20 +1,16 @@
 package com.github.blahblahbloopster
 
-import arc.Core
-import arc.math.geom.Vec2
-import arc.util.serialization.Base64Coder
-import com.github.blahblahbloopster.crypto.Crypto
-import com.github.blahblahbloopster.ui.ChangelogDialog
-import com.github.blahblahbloopster.ui.FeaturesDialog
-import com.github.blahblahbloopster.ui.FindDialog
-import mindustry.Vars
-import mindustry.client.Client
-import mindustry.client.ClientInterface
-import com.github.blahblahbloopster.navigation.AssistPath
-import com.github.blahblahbloopster.ui.KeyShareDialog
-import mindustry.client.navigation.Navigation
-import mindustry.client.utils.FloatEmbed
-import mindustry.gen.Player
+import arc.*
+import arc.math.geom.*
+import arc.util.serialization.*
+import com.github.blahblahbloopster.crypto.*
+import com.github.blahblahbloopster.navigation.*
+import com.github.blahblahbloopster.ui.*
+import mindustry.*
+import mindustry.client.*
+import mindustry.client.navigation.*
+import mindustry.client.utils.*
+import mindustry.gen.*
 
 class ClientMapping : ClientInterface {
 

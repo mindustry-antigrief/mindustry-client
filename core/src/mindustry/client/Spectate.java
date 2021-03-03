@@ -1,11 +1,10 @@
 package mindustry.client;
 
-import arc.Core;
-import arc.math.geom.Position;
-import mindustry.gen.Player;
-import mindustry.input.DesktopInput;
+import arc.*;
+import arc.math.geom.*;
+import mindustry.input.*;
 
-import static arc.Core.camera;
+import static arc.Core.*;
 
 public class Spectate {
     public static Position pos;

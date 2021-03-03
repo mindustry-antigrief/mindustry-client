@@ -1,9 +1,9 @@
 package mindustry.client.utils;
 
-import arc.struct.Seq;
-import arc.util.Reflect;
-import mindustry.Vars;
-import mindustry.client.Client;
+import arc.struct.*;
+import arc.util.*;
+import mindustry.*;
+import mindustry.client.*;
 
 public class CommandCompletion implements Autocompleter {
     private final Seq<CommandCompletable> commands = new Seq<>();

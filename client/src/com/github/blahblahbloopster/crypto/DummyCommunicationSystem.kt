@@ -1,7 +1,7 @@
 package com.github.blahblahbloopster.crypto
 
 import java.util.*
-import java.util.function.Consumer
+import java.util.function.*
 
 /** A dummy [CommunicationSystem] for tests.  */
 class DummyCommunicationSystem : CommunicationSystem {

@@ -4,6 +4,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import mindustry.*;
 import mindustry.gen.*;
+
 import static mindustry.Vars.*;
 
 public class PayloadPickupWaypoint extends Waypoint implements Position {

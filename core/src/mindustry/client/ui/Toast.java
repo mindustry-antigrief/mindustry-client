@@ -1,13 +1,13 @@
 package mindustry.client.ui;
 
-import arc.Core;
-import arc.math.Interp;
-import arc.scene.actions.Actions;
-import arc.scene.actions.TranslateByAction;
-import arc.scene.ui.layout.Table;
-import arc.util.Align;
-import mindustry.gen.Tex;
-import java.time.Instant;
+import arc.*;
+import arc.math.*;
+import arc.scene.actions.*;
+import arc.scene.ui.layout.*;
+import arc.util.*;
+import mindustry.gen.*;
+
+import java.time.*;
 
 /** An info toast that pops down from the top of the screen. */
 public class Toast extends Table {
