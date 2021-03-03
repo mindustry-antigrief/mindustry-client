@@ -5,7 +5,6 @@ import arc.files.Fi
 import com.beust.klaxon.Klaxon
 import com.github.blahblahbloopster.Main
 import com.github.blahblahbloopster.base64
-import mindustry.client.Client
 
 object KeyFolder : KeyList {
     private val klaxon = Klaxon().converter(KeyHolderJson)
@@ -13,7 +12,6 @@ object KeyFolder : KeyList {
     private lateinit var fi: Fi
 
     override fun initializeAlways() {
-        if (Core.settings?.dataDirectory?.child("key.txt")?.exists() == false) Client.mapping?.generateKey()
         fi = Core.settings.dataDirectory.child("keys.json")
         if (!fi.exists()) {
             add(KeyHolder(PublicKeyPair("8/GKCQvbLsHOYibfEjb3KlU5YX46hYHeO+X4zpU/MQjJR4T1l2kAqUT1EuO2YwD/n8u3blb9BnbiyNbwlvSTZw==".base64()!!), "foo", true, Main.messageCrypto))

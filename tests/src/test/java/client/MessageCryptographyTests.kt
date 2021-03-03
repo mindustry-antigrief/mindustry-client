@@ -46,11 +46,11 @@ class MessageCryptographyTests {
         val client1holder = KeyHolder(client1pair.publicPair(), "client1", false, client2)
         val client2holder = KeyHolder(client2pair.publicPair(), "client2", false, client1)
 
-        client1holder.crypto!!.generate(client1pair.publicPair())
-        client2holder.crypto!!.generate(client2pair.publicPair())
+        client1holder.crypto.generate(client1pair.publicPair())
+        client2holder.crypto.generate(client2pair.publicPair())
 
-        Assertions.assertTrue(client1holder.crypto!!.aesKey.encoded.contentEquals(client2holder.crypto!!.aesKey.encoded))
-        Assertions.assertTrue(client1holder.crypto!!.iv.iv.contentEquals(client2holder.crypto!!.iv.iv))
+        Assertions.assertTrue(client1holder.crypto.aesKey.encoded.contentEquals(client2holder.crypto.aesKey.encoded))
+        Assertions.assertTrue(client1holder.crypto.iv.iv.contentEquals(client2holder.crypto.iv.iv))
 
         client1.keys.add(client2holder)
         client2.keys.add(client1holder)

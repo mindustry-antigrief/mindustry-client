@@ -11,6 +11,7 @@ import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.client.Client;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
@@ -208,7 +209,7 @@ public class MenuFragment extends Fragment{
                     }),
                     new Buttoni("@client.changelog", Icon.edit, () -> Client.mapping.showChangelogDialog()),
                     new Buttoni("@client.features", Icon.list, () -> Client.mapping.showFeaturesDialog()),
-                    new Buttoni("@client.makekey", Icon.lock, () -> Client.mapping.generateKey()),
+                    new Buttoni("@client.makekey", Icon.lock, () -> Vars.ui.showConfirm("Key Overwrite", "This will irreversibly overwrite your key.  Are you sure you want to do this?", () -> Client.mapping.generateKey())),
                     new Buttoni("@client.keyshare", Icon.lock, () -> Client.mapping.shareKey())
                 ), // End of client section
                 new Buttoni("@quit", Icon.exit, Core.app::exit)

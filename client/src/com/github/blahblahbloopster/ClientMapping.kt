@@ -51,13 +51,9 @@ class ClientMapping : ClientInterface {
     }
 
     override fun generateKey() {
-        val generate = {
-            val quad = Crypto.generateKeyQuad()
-            Core.settings.dataDirectory.child("key.txt").writeString((Base64Coder.encode(quad.serialize()).concatToString()), false)
-            Main.messageCrypto.keyQuad = quad
-        }
-
-        Vars.ui.showConfirm("Key Overwrite", "This will irreversibly overwrite your key.  Are you sure you want to do this?", generate)
+        val quad = Crypto.generateKeyQuad()
+        Core.settings.dataDirectory.child("key.txt").writeString((Base64Coder.encode(quad.serialize()).concatToString()), false)
+        Main.messageCrypto.keyQuad = quad
     }
 
     override fun shareKey() {

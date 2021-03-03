@@ -80,10 +80,9 @@ class MessageCrypto {
         this.communicationSystem = communicationSystem
         communicationSystem.addListener(::handle)
 
-        if (Core.settings?.dataDirectory?.child("key.txt")?.exists() == false) Client.mapping?.generateKey() // Generate a key on startup if one doesn't already exist
-
-        try {
-            keyQuad = KeyQuad(Base64Coder.decode(Core.settings.dataDirectory.child("key.txt").readString()))
+        try { // Load key, generate if it doesn't exist
+            if (!Core.settings.dataDirectory.child("key.txt").exists()) Client.mapping?.generateKey()
+            else keyQuad = KeyQuad(Base64Coder.decode(Core.settings.dataDirectory.child("key.txt").readString()))
             Log.info("Loaded keypair")
         } catch (ignored: Exception) {}
 
@@ -166,7 +165,6 @@ class MessageCrypto {
 
     fun encrypt(message: String, destination: KeyHolder) {
         val time = Instant.now().epochSecond
-        val id = communicationSystem.id
         val compressor = DeflaterInputStream(message.toByteArray().inputStream())
         val encoded = compressor.readBytes()
         val plaintext = ByteBuffer.allocate(encoded.size + Long.SIZE_BYTES + Byte.SIZE_BYTES)
