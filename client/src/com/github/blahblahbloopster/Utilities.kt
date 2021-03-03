@@ -1,23 +1,17 @@
 package com.github.blahblahbloopster
 
 import arc.scene.Element
-import arc.scene.ui.Dialog
-import arc.scene.ui.Label
-import arc.scene.ui.layout.Cell
-import arc.scene.ui.layout.Table
+import arc.scene.ui.*
+import arc.scene.ui.layout.*
 import arc.util.serialization.Base64Coder
 import mindustry.core.UI
 import mindustry.ui.Styles
 import mindustry.ui.dialogs.BaseDialog
 import java.nio.ByteBuffer
-import java.time.Duration
 import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.time.temporal.Temporal
-import java.time.temporal.TemporalUnit
-import kotlin.math.abs
-import kotlin.math.floor
-import kotlin.math.ceil
+import java.time.temporal.*
+import java.util.zip.*
+import kotlin.math.*
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -72,3 +66,23 @@ fun Double.ceil() = ceil(this).toInt()
 fun Float.ceil() = ceil(this).toInt()
 
 fun ByteArray.buffer(): ByteBuffer = ByteBuffer.wrap(this)
+
+object Compression {
+    fun compress(input: ByteArray): ByteArray {
+        val deflater = DeflaterInputStream(input.inputStream())
+        val output = deflater.readBytes()
+        deflater.close()
+        return output
+    }
+
+    fun inflate(input: ByteArray): ByteArray {
+        val inflater = InflaterInputStream(input.inputStream())
+        val output = inflater.readBytes()
+        inflater.close()
+        return output
+    }
+}
+
+fun ByteArray.compress() = Compression.compress(this)
+
+fun ByteArray.inflate() = Compression.inflate(this)
