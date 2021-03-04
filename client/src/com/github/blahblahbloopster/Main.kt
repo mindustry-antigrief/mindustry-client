@@ -80,7 +80,7 @@ object Main : ApplicationListener {
     override fun update() {
         communicationClient.update()
 
-        if (Core.input?.keyTap(Binding.send_build_queue) == true) {
+        if (Core.scene.keyboardFocus == null && (Core.input?.keyTap(Binding.send_build_queue) == true)) {
             dispatchingBuildPlans = !dispatchingBuildPlans
             if (!communicationClient.inUse) {
                 sendBuildPlans()
