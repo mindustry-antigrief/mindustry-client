@@ -20,7 +20,7 @@ object Main : ApplicationListener {
     lateinit var messageCrypto: MessageCrypto
     lateinit var communicationClient: Packets.CommunicationClient
     private var dispatchedBuildPlans = mutableListOf<BuildPlan>()
-    private val buildPlanInterval = Interval()
+    private val buildPlanInterval = Interval(2)
 
     /** Run on client load. */
     override fun init() {
