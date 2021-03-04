@@ -13,7 +13,8 @@ object Packets {
     private val registeredTransmissionTypes = listOf<RegisteredTransmission<*>>(
         RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),
         RegisteredTransmission(SignatureTransmission::class, ::SignatureTransmission),
-        RegisteredTransmission(EncryptedMessageTransmission::class, ::EncryptedMessageTransmission)
+        RegisteredTransmission(EncryptedMessageTransmission::class, ::EncryptedMessageTransmission),
+        RegisteredTransmission(BuildQueueTransmission::class, ::BuildQueueTransmission)
     )
 
     private data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (content: ByteArray, id: Long) -> T)
@@ -108,6 +109,8 @@ object Packets {
      * There should only be one of these per communication system to avoid exceeding the rate.
      */
     class CommunicationClient(val communicationSystem: CommunicationSystem) {
+        val inUse get() = lastSent.age() < 1
+
         /** The time that the last packet was sent at. */
         private var lastSent: Instant = Instant.ofEpochSecond(0)
         /** A queue of packets waiting to be sent. */
@@ -128,17 +131,10 @@ object Packets {
         /** Updates sending.  Call once per tick. */
         fun update() {
             if (lastSent.age(ChronoUnit.MILLIS) >= communicationSystem.RATE) {
-                val toSend = outgoing.peek() ?: return  // If there's nothing waiting to be sent, skip it
+                val toSend = outgoing.peek() ?: return  // If there's nothing waiting to be sent, return before resetting the timer
 
-                val packet = toSend.packets.poll()  // Get the next packet to be sent in the outgoing connection
-
-//                println(toSend)
-
-                if (packet == null) {
-                    toSend.onFinish?.invoke()
-                    outgoing.removeFirst()
-                    return
-                }
+                // Get the next packet to be sent in the outgoing connection.  If it doesn't exit, move to the next one
+                val packet = toSend.packets.poll() ?: run { outgoing.remove(toSend); toSend.onFinish?.invoke(); return }
 
                 lastSent = Instant.now()  // Reset timer
                 communicationSystem.send(packet.bytes())

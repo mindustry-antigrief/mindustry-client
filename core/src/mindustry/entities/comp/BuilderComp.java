@@ -55,7 +55,7 @@ abstract class BuilderComp implements Posc, Teamc, Rotc{
             buildAlpha = Mathf.lerpDelta(buildAlpha, activelyBuilding() ? 1f : 0f, 0.15f);
         }
 
-        if(!updateBuilding || !canBuild()) return;
+        if((!updateBuilding || !canBuild()) && self() != player.unit()) return;
 
         float finalPlaceDst = state.rules.infiniteResources ? Float.MAX_VALUE : buildingRange;
         boolean infinite = state.rules.infiniteResources || team().rules().infiniteResources;
@@ -68,6 +68,8 @@ abstract class BuilderComp implements Posc, Teamc, Rotc{
                 it.remove();
             }
         }
+
+        if(!updateBuilding || !canBuild()) return;
 
         Building core = core();
 

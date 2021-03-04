@@ -34,6 +34,7 @@ public class Client {
     public static IntSet messageBlockPositions = new IntSet();
     public static final String messageCommunicationPrefix = "IN USE FOR CHAT AUTHENTICATION, do not use";
     public static ClientInterface mapping;
+    public static boolean dispatchingBuildPlans = false;
     public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;
 
     public static void initialize() {

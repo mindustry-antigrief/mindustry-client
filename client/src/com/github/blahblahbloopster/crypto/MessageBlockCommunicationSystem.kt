@@ -15,7 +15,7 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
         return Vars.player.id
     }
     override val MAX_LENGTH = Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - Client.messageCommunicationPrefix.length)
-    override val RATE = 1000L
+    override val RATE = 500L
 
     /** Initializes listeners. */
     override fun init() {

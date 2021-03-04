@@ -35,6 +35,7 @@ import mindustry.world.blocks.payloads.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.Client.dispatchingBuildPlans;
 import static mindustry.input.PlaceMode.*;
 
 public class DesktopInput extends InputHandler{
@@ -71,6 +72,14 @@ public class DesktopInput extends InputHandler{
             t.table(Styles.black6, b -> {
                 b.defaults().left();
                 b.label(() -> Core.bundle.format("toggleinvis", "SHIFT + " + Core.keybinds.get(Binding.invisible_units).key.toString()));
+            }).margin(6f);
+        });
+        group.fill(t -> {
+            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && dispatchingBuildPlans);
+            t.bottom();
+            t.table(Styles.black6, b -> {
+                b.defaults().left();
+                b.label(() -> Core.bundle.format("togglesendbuildplans", Core.keybinds.get(Binding.send_build_queue).key.toString()));
             }).margin(6f);
         });
         group.fill(t -> {
@@ -112,7 +121,8 @@ public class DesktopInput extends InputHandler{
                     Core.bundle.format("enablebuilding", Core.keybinds.get(Binding.pause_building).key.toString()) :
                     Core.bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", Core.keybinds.get(Binding.pause_building).key.toString()) +
                     "\n" + Core.bundle.format("cancelbuilding", Core.keybinds.get(Binding.clear_building).key.toString()) +
-                    "\n" + Core.bundle.format("selectschematic", Core.keybinds.get(Binding.schematic_select).key.toString())
+                    "\n" + Core.bundle.format("selectschematic", Core.keybinds.get(Binding.schematic_select).key.toString()) +
+                    "\n" + Core.bundle.format("sendbuildplan", Core.keybinds.get(Binding.send_build_queue).key.toString())
                 )).style(Styles.outlineLabel);
             }).margin(10f);
         });

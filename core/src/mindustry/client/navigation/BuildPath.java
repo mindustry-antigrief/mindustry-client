@@ -2,7 +2,7 @@ package mindustry.client.navigation;
 
 import arc.Core;
 import arc.math.Mathf;
-import arc.math.geom.Position;
+import arc.math.geom.*;
 import arc.struct.Queue;
 import arc.struct.Seq;
 import arc.util.Interval;
@@ -23,31 +23,31 @@ public class BuildPath extends Path {
     Building core = player.core();
     private boolean show;
     Interval timer = new Interval();
-    Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>();
-    Seq<Queue<BuildPlan>> queues = new Seq<>(7);
-    boolean firstRun = true;
+    public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>();
+    public Seq<Queue<BuildPlan>> queues = new Seq<>(8);
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
-        queues.addAll(player.unit().plans, broken, assist, unfinished); // Every queue except for cleanup and boulders is included by default
+        queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist); // Every queue except for cleanup and boulders is included by default
     }
 
     @SuppressWarnings("unchecked")
     public BuildPath(String args){
         for (String arg : args.split("\\s")) {
             switch (arg) {
-                case "all" -> queues.addAll(player.unit().plans, broken, assist, unfinished);
+                case "all" -> queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist);
                 case "self" -> queues.add(player.unit().plans);
                 case "broken" -> queues.add(broken);
                 case "boulders" -> queues.add(boulders);
                 case "assist" -> queues.add(assist);
                 case "unfinished" -> queues.add(unfinished);
                 case "cleanup" -> queues.add(cleanup);
+                case "networkassist" -> queues.add(networkAssist);
                 default -> ui.chatfrag.addMessage("[scarlet]Invalid option: " + arg, null);
             }
         }
         if (queues.isEmpty()) {
-            ui.chatfrag.addMessage("[scarlet]No valid options specified, defaulting to self.\nValid options: All, self, broken, boulders, assist, unfinished, cleanup", null);
+            ui.chatfrag.addMessage("[scarlet]No valid options specified, defaulting to self.\nValid options: All, self, broken, boulders, assist, unfinished, cleanup, networkassist", null);
             queues.add(player.unit().plans);
         }
     }
@@ -58,7 +58,7 @@ public class BuildPath extends Path {
     @Override
     public boolean getShow() { return show; }
 
-    private void cleanQueue(Queue<BuildPlan> queue) {
+    private void clearQueue(Queue<BuildPlan> queue) {
         if (!queue.isEmpty() && queues.contains(queue)) {
             for (BuildPlan item : queue) {
                 player.unit().plans.remove(item);
@@ -67,16 +67,30 @@ public class BuildPath extends Path {
         }
     }
 
+    @Override
+    public void init() {
+        for (Tile tile : world.tiles) {
+            if (tile.team() == Team.derelict && tile.breakable() && tile.isCenter() && !(tile.block() instanceof Boulder)) {
+                cleanup.add(new BuildPlan(tile.x, tile.y));
+            }
+        }
+    }
+
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     public void follow() {
-        // TODO: Cleanup this firstrun nonsense, make sure that unfinished and cleanup don't conflict
-        if (firstRun) world.tiles.forEach(tile -> {if(tile.team() == Team.derelict && tile.breakable() && tile.isCenter() && !(tile.block() instanceof Boulder))cleanup.add(new BuildPlan(tile.x, tile.y));}); firstRun = false;
+        // TODO: Make sure that unfinished and cleanup don't conflict
         if (timer.get(15)) {
-            // Jank code to clear the four extra queues TODO: Find a better way to do this
-            cleanQueue(broken);
-            cleanQueue(boulders);
-            cleanQueue(assist);
-            cleanQueue(unfinished);
+            clearQueue(broken);
+            clearQueue(boulders);
+            clearQueue(assist);
+            clearQueue(unfinished);
+            // Don't clear network assist queue, instead remove finished plans
+            for (BuildPlan plan : networkAssist) {
+                if (plan.isDone()) {
+                    networkAssist.remove(plan);
+                    player.unit().plans.remove(plan);
+                }
+            }
 
             if(queues.contains(broken) && !player.unit().team.data().blocks.isEmpty()) {
                 for (Teams.BlockPlan block : player.unit().team.data().blocks) {

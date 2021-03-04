@@ -88,7 +88,8 @@ public enum Binding implements KeyBind{
     auto_repair(KeyCode.l),
     toggle_strict_mode(KeyCode.f7),
     find_modifier(KeyCode.controlLeft),
-    find(KeyCode.f)
+    find(KeyCode.f),
+    send_build_queue(KeyCode.apostrophe)
     ;
 
     private final KeybindValue defaultValue;

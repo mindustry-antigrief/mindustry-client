@@ -6,21 +6,23 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.navigation.waypoints.*;
+import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 import static mindustry.Vars.*;
 
 public class Navigation {
-    public static Path currentlyFollowing = null;
+    @Nullable public static Path currentlyFollowing = null;
     public static boolean isPaused = false;
-    public static NavigationState state = NavigationState.NONE;
-    public static Path recordedPath = null;
-    public static Seq<Waypoint> recording = null;
-    public static HashSet<TurretPathfindingEntity> obstacles = new HashSet<>();
-    private static Vec2 targetPos = null;
+    @NotNull public static NavigationState state = NavigationState.NONE;
+    @Nullable public static Path recordedPath = null;
+    @Nullable public static Seq<Waypoint> recording = null;
+    @NotNull public static HashSet<TurretPathfindingEntity> obstacles = new HashSet<>();
+    @Nullable private static Vec2 targetPos = null;
     public static Navigator navigator;
-    private static final Interval timer = new Interval();
+    @NotNull private static final Interval timer = new Interval();
 
     public static void follow(Path path, boolean repeat) {
         stopFollowing();

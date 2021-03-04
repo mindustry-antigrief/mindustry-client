@@ -3,6 +3,7 @@ package mindustry.entities.units;
 import arc.func.*;
 import arc.math.geom.*;
 import arc.util.*;
+import mindustry.content.Blocks;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.*;
@@ -162,10 +163,11 @@ public class BuildPlan implements Position{
     }
 
     public boolean isDone(){
+        Tile tile = world.tile(x, y);
         if(breaking){
-            return world.tile(x, y).block() == null;
+            return tile.block() == null || tile.block() == Blocks.air || tile.block() == tile.floor();  // covering all the bases
         }else{
-            return world.tile(x, y).block() == block;
+            return tile.block() == block;
         }
     }
 
