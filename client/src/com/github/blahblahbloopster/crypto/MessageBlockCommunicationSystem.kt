@@ -1,12 +1,14 @@
 package com.github.blahblahbloopster.crypto
 
 import arc.*
+import arc.util.*
 import mindustry.*
 import mindustry.client.*
 import mindustry.content.Blocks
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.world.blocks.logic.*
+import java.io.IOException
 
 class MessageBlockCommunicationSystem : CommunicationSystem {
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
@@ -15,7 +17,7 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
         return Vars.player.id
     }
     override val MAX_LENGTH = Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - Client.messageCommunicationPrefix.length)
-    override val RATE = 500L
+    override val RATE: Float = 30f // 500ms
 
     /** Initializes listeners. */
     override fun init() {
@@ -45,15 +47,12 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
 
     override fun send(bytes: ByteArray) {
         for (tile in Vars.world.tiles) {
-            // if it isn't a message block or is null continue
-            val build = tile.build as? MessageBlock.MessageBuild ?: continue
-
-            if (!build.message.startsWith(Client.messageCommunicationPrefix)) {
-                continue
-            }
+            val build = tile.build as? MessageBlock.MessageBuild ?: continue // If it isn't a message block with the prefix, continue
+            if (!build.message.startsWith(Client.messageCommunicationPrefix)) continue
 
             Call.tileConfig(Vars.player, build, Client.messageCommunicationPrefix + Base32768Coder.encode(bytes))
-            break
+            return
         }
+        throw IOException() // Throws an exception when no valid block is found
     }
 }

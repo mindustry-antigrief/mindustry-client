@@ -8,6 +8,7 @@ import com.github.blahblahbloopster.*
 import com.github.blahblahbloopster.communication.*
 import mindustry.Vars
 import mindustry.client.Client
+import mindustry.client.ui.Toast
 import mindustry.core.NetClient
 import mindustry.game.EventType
 import mindustry.gen.Iconc
@@ -166,7 +167,7 @@ class MessageCrypto {
         plaintext.put(encoded)
         val ciphertext = destination.crypto.encrypt(plaintext.array())
 
-        communicationClient.send(EncryptedMessageTransmission(ciphertext))
+        communicationClient.send(EncryptedMessageTransmission(ciphertext), { Toast(3f).add("@client.encryptedsuccess") }, { Toast(3f).add("@client.nomessageblock") })
     }
 
     private fun handle(input: Transmission, sender: Int) {

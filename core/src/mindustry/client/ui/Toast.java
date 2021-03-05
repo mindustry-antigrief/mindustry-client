@@ -11,16 +11,18 @@ import java.time.*;
 
 /** An info toast that pops down from the top of the screen. */
 public class Toast extends Table {
-    /** The last time fadeTime was reset.  In unix epoch time. */
+    /** Time since fadeAfter was set (unix epoch),  */
     private long lastReset;
     private final Table container;
     private ToastState state = ToastState.FADING_IN;
-    private long fadeTime;
+    private long fadeAfter;
     private TranslateByAction translateByAction;
 
-    public Toast(float fadeTime, float fadeDuration) {
+    /** @param fadeAfter begins fading after this many seconds
+     * @param fadeDuration fades over this many seconds */
+    public Toast(float fadeAfter, float fadeDuration) {
         super(Tex.button);
-        setFadeTime(fadeTime);
+        setFadeAfter(fadeAfter);
         container = Core.scene.table();
         container.top().add(this);
         setTranslation(0f, getPrefHeight());
@@ -30,7 +32,7 @@ public class Toast extends Table {
         setOrigin(Align.bottom);
         update(() -> {
             if (state == ToastState.NORMAL) {
-                if (Instant.now().toEpochMilli() >= lastReset + this.fadeTime) {
+                if (Instant.now().toEpochMilli() >= lastReset + this.fadeAfter) {
                     state = ToastState.FADING_OUT;
                     addAction(Actions.sequence(Actions.parallel(Actions.translateBy(0f, getPrefHeight(), fadeDuration, Interp.fade),
                             Actions.fadeOut(fadeDuration, Interp.pow4)), Actions.remove()));
@@ -39,17 +41,19 @@ public class Toast extends Table {
         });
     }
 
+    /** Creates a {@link #Toast(float, float)} with {@code fadeAfter} and {@code fadeDuration} of 1s */
     public Toast() {
         this(1f, 1f);
     }
 
-    public Toast(float fadeTime){
-        this(fadeTime, 1f);
+    /** Creates a {@link #Toast(float, float)} with a {@code fadeDuration} of 1s */
+    public Toast(float fadeAfter){
+        this(fadeAfter, 1f);
     }
 
     /** Number of seconds until it fades. */
-    public void setFadeTime(float fadeTime) {
-        this.fadeTime = (long)(fadeTime * 1000);
+    public void setFadeAfter(float fadeTime) {
+        this.fadeAfter = (long)(fadeTime * 1000);
         lastReset = Instant.now().toEpochMilli();
     }
 

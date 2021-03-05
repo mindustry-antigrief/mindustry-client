@@ -78,14 +78,13 @@ public class BuildPath extends Path {
 
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     public void follow() {
-        // TODO: Make sure that unfinished and cleanup don't conflict
         if (timer.get(15)) {
             clearQueue(broken);
             clearQueue(boulders);
             clearQueue(assist);
             clearQueue(unfinished);
-            // Don't clear network assist queue, instead remove finished plans
-            for (BuildPlan plan : networkAssist) {
+            clearQueue(cleanup);
+            for (BuildPlan plan : networkAssist) { // Don't clear network assist queue, instead remove finished plans
                 if (plan.isDone()) {
                     networkAssist.remove(plan);
                     player.unit().plans.remove(plan);
@@ -108,18 +107,18 @@ public class BuildPath extends Path {
                     }
                 });
             }
-            if(queues.contains(unfinished) || queues.contains(boulders)) {
+            if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup)) {
                 for (Tile tile : world.tiles) {
-                    if (tile.breakable() && tile.block() instanceof Boulder ||
-                            tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder) {
+                    if (tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder) {
                         boulders.add(new BuildPlan(tile.x, tile.y));
-                    }
-                    else if (tile.team() == player.team() &&
-                            tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter()) {
+                    } else if(queues.contains(cleanup) && (tile.build instanceof ConstructBlock.ConstructBuild d && d.activeDeconstruct && d.lastBuilder != null && d.lastBuilder == player.unit()) || (tile.team() == Team.derelict && tile.breakable() && tile.isCenter() && !(tile.block() instanceof Boulder))) {
+                        cleanup.add(new BuildPlan(tile.x, tile.y));
+                    } else if (tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter()) {
                         unfinished.add(entity.wasConstructing ?
                                 new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) :
                                 new BuildPlan(tile.x, tile.y));
                     }
+
                 }
             }
 
@@ -191,7 +190,7 @@ public class BuildPath extends Path {
         Queue<BuildPlan> out = new Queue<>();
         Seq<BuildPlan> sorted = new Seq<>();
         sorted.addAll(plans);
-        sorted.sort(p -> Mathf.dstm(player.tileX(), player.tileY(), p.x, p.y));
+        sorted.sort(p -> p.dst(player));
         if(!largeFirst)sorted.reverse();
         for (BuildPlan p : sorted) { // The largest distance is at the start of the sequence by this point
             if (p.block == null || player.unit().shouldSkip(p, core)) {

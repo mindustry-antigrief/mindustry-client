@@ -1,7 +1,10 @@
 package com.github.blahblahbloopster.communication
 
+import arc.util.Interval
+import arc.util.Log
 import com.github.blahblahbloopster.*
 import com.github.blahblahbloopster.crypto.*
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -109,10 +112,10 @@ object Packets {
      * There should only be one of these per communication system to avoid exceeding the rate.
      */
     class CommunicationClient(val communicationSystem: CommunicationSystem) {
-        val inUse get() = lastSent.age() < 1
+        val inUse get() = !lastSent.check(0, 60f) // 1s
 
         /** The time that the last packet was sent at. */
-        private var lastSent: Instant = Instant.ofEpochSecond(0)
+        private var lastSent = Interval()
         /** A queue of packets waiting to be sent. */
         private val outgoing = LinkedList<OutgoingTransmission>()
         /** A list of incoming connections.  Each transmission ID is mapped to a nullable list of bytearray segments. */
@@ -130,14 +133,14 @@ object Packets {
 
         /** Updates sending.  Call once per tick. */
         fun update() {
-            if (lastSent.age(ChronoUnit.MILLIS) >= communicationSystem.RATE) {
-                val toSend = outgoing.peek() ?: return  // If there's nothing waiting to be sent, return before resetting the timer
+            if (lastSent.check(0, communicationSystem.RATE)) {
+                val toSend = outgoing.peek() ?: return // Return if there's nothing to send
 
-                // Get the next packet to be sent in the outgoing connection.  If it doesn't exit, move to the next one
+                // Gets the next packet in this transmission, if there are no more packets move to the next transmission
                 val packet = toSend.packets.poll() ?: run { outgoing.remove(toSend); toSend.onFinish?.invoke(); return }
 
-                lastSent = Instant.now()  // Reset timer
-                communicationSystem.send(packet.bytes())
+                lastSent.reset(0, 0f) // Sending a packet, reset the timer fully
+                try { communicationSystem.send(packet.bytes()) } catch (e: IOException) { outgoing.remove(toSend); toSend.onError?.invoke() }
             }
         }
 
@@ -187,14 +190,14 @@ object Packets {
             } catch (e: Exception) { e.printStackTrace() }
         }
 
-        private data class OutgoingTransmission(val packets: Queue<Packet>, val onFinish: (() -> Unit)?)
+        private data class OutgoingTransmission(val packets: Queue<Packet>, val onFinish: (() -> Unit)?, val onError: (() -> Unit)?)
 
         /**
          * Splits the transmission into packets and queues them for sending.
          * @param transmission The transmission to be sent.
          * @param onFinish A lambda that will be run once it is sent, null by default.
          */
-        fun send(transmission: Transmission, onFinish: (() -> Unit)? = null) {
+        fun send(transmission: Transmission, onFinish: (() -> Unit)? = null, onError: (() -> Unit)? = null) {
             val type = registeredTransmissionTypes.indexOfFirst { it.type == transmission::class }
 
             if (type == -1)
@@ -210,7 +213,7 @@ object Packets {
                 packets.add(Packet(content, batches.size, index, transmission.id, type))
             }
 
-            outgoing.add(OutgoingTransmission(packets, onFinish))
+            outgoing.add(OutgoingTransmission(packets, onFinish, onError))
         }
     }
 }

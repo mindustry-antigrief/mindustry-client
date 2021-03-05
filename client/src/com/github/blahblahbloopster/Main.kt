@@ -1,19 +1,20 @@
 package com.github.blahblahbloopster
 
 import arc.*
-import arc.math.geom.Point2
-import arc.struct.IntSet
-import arc.util.Interval
+import arc.math.geom.*
+import arc.struct.*
+import arc.util.*
 import com.github.blahblahbloopster.communication.*
 import com.github.blahblahbloopster.crypto.*
-import com.github.blahblahbloopster.navigation.AStarNavigator
-import mindustry.Vars
-import mindustry.client.Client
-import mindustry.client.Client.dispatchingBuildPlans
+import com.github.blahblahbloopster.navigation.*
+import mindustry.*
+import mindustry.client.*
+import mindustry.client.Client.*
 import mindustry.client.navigation.*
-import mindustry.entities.units.BuildPlan
-import mindustry.game.EventType
-import mindustry.input.Binding
+import mindustry.client.ui.*
+import mindustry.entities.units.*
+import mindustry.game.*
+import mindustry.input.*
 
 object Main : ApplicationListener {
     lateinit var communicationSystem: CommunicationSystem
@@ -24,13 +25,13 @@ object Main : ApplicationListener {
 
     /** Run on client load. */
     override fun init() {
-        Client.mapping = ClientMapping()
+        mapping = ClientMapping()
         Crypto.initializeAlways()
         if (Core.app.isDesktop) {
             communicationSystem = MessageBlockCommunicationSystem()
             communicationSystem.init()
 
-            Client.fooCommands.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
+            fooCommands.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
                 val dest = args[0]
                 val message = args[1]
 
@@ -40,7 +41,7 @@ object Main : ApplicationListener {
                         return@register
                     }
                 }
-                Vars.ui.chatfrag.addMessage("[scarlet]Invalid key! They are listed in the \"manage keys\" section of the pause menu", null)
+                Toast(3f).add("@client.invalidkey")
             }
         } else {
             communicationSystem = DummyCommunicationSystem(mutableListOf())
@@ -61,7 +62,7 @@ object Main : ApplicationListener {
                         val positions = IntSet()
                         for (plan in path.networkAssist) positions.add(Point2.pack(plan.x, plan.y))
 
-                        for (plan in transmission.plans) {
+                        for (plan in transmission.plans.sortedByDescending { it.dst(Vars.player) }) {
                             if (path.networkAssist.size > 500) return@addListener  // too many plans, not accepting new ones
                             if (positions.contains(Point2.pack(plan.x, plan.y))) continue
                             path.networkAssist.add(plan)
@@ -80,15 +81,11 @@ object Main : ApplicationListener {
     override fun update() {
         communicationClient.update()
 
-        if (Core.scene.keyboardFocus == null && (Core.input?.keyTap(Binding.send_build_queue) == true)) {
+        if (Core.scene.keyboardFocus == null && Core.input?.keyTap(Binding.send_build_queue) == true) {
             dispatchingBuildPlans = !dispatchingBuildPlans
-            if (!communicationClient.inUse) {
-                sendBuildPlans()
-            }
         }
 
-        val lowEnough = if (buildPlanInterval.get(1, 30f)) Vars.player.unit().plans.intersect(dispatchedBuildPlans).size < 20 else false
-        if (dispatchingBuildPlans && lowEnough && !communicationClient.inUse && buildPlanInterval.get(10 * 60f)) {
+        if (dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(10 * 60f)) {
             sendBuildPlans()
         }
     }
@@ -96,9 +93,7 @@ object Main : ApplicationListener {
     private fun sendBuildPlans(num: Int = 300) {
         val toSend = Vars.player.unit().plans.toList().takeLast(num).toTypedArray()
         if (toSend.isEmpty()) return
-        communicationClient.send(BuildQueueTransmission(toSend)) {
-            Vars.ui.chatfrag.addMessage("Finished sending ${toSend.size} buildplans", "client")
-        }
+        communicationClient.send(BuildQueueTransmission(toSend), { Toast(3f).add(Core.bundle.format("client.sentplans", toSend.size)) }, { Toast(3f).add("@client.nomessageblock")})
         dispatchedBuildPlans.addAll(toSend)
     }
 

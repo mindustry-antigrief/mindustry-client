@@ -75,14 +75,6 @@ public class DesktopInput extends InputHandler{
             }).margin(6f);
         });
         group.fill(t -> {
-            t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && dispatchingBuildPlans);
-            t.bottom();
-            t.table(Styles.black6, b -> {
-                b.defaults().left();
-                b.label(() -> Core.bundle.format("togglesendbuildplans", Core.keybinds.get(Binding.send_build_queue).key.toString()));
-            }).margin(6f);
-        });
-        group.fill(t -> {
             t.visible(() -> Core.settings.getBool("hints") && ui.hudfrag.shown && Navigation.state == NavigationState.NONE && !player.dead() && !player.unit().spawnedByCore() && !player.unit().isBuilding() && !(Core.settings.getBool("hints") && lastSchematic != null && !selectRequests.isEmpty()) && UnitType.alpha > 0);
             t.bottom();
             t.table(Styles.black6, b -> {
@@ -122,7 +114,7 @@ public class DesktopInput extends InputHandler{
                     Core.bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", Core.keybinds.get(Binding.pause_building).key.toString()) +
                     "\n" + Core.bundle.format("cancelbuilding", Core.keybinds.get(Binding.clear_building).key.toString()) +
                     "\n" + Core.bundle.format("selectschematic", Core.keybinds.get(Binding.schematic_select).key.toString()) +
-                    "\n" + Core.bundle.format("sendbuildplan", Core.keybinds.get(Binding.send_build_queue).key.toString())
+                    "\n" + Core.bundle.format(dispatchingBuildPlans ? "togglesendbuildplans" : "sendbuildplans", Core.keybinds.get(Binding.send_build_queue).key.toString())
                 )).style(Styles.outlineLabel);
             }).margin(10f);
         });
