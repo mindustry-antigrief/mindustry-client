@@ -916,24 +916,12 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public void placed(){
         if(net.client()) return;
 
-        if(block.consumesPower || block.outputsPower){
-            int range = 10;
-            tempTiles.clear();
-            Geometry.circle(tileX(), tileY(), range, (x, y) -> {
-                Building other = world.build(x, y);
-                if(other != null && other.block instanceof PowerNode node && node.linkValid(other, self()) && !PowerNode.insulated(other, self())
-                    && !other.proximity().contains(this.<Building>self()) &&
-                !(block.outputsPower && proximity.contains(p -> p.power != null && p.power.graph == other.power.graph))){
-                    tempTiles.add(other.tile);
+        if((block.consumesPower || block.outputsPower) && block.hasPower){
+            PowerNode.getNodeLinks(tile, block, team, other -> {
+                if(!other.power.links.contains(pos())){
+                    other.configureAny(pos());
                 }
             });
-            tempTiles.sort(Structs.comparingFloat(t -> t.dst2(tile)));
-            if(!tempTiles.isEmpty()){
-                Tile toLink = tempTiles.first();
-                if(!toLink.build.power.links.contains(pos())){
-                    toLink.build.configureAny(pos());
-                }
-            }
         }
     }
 
@@ -970,6 +958,12 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         if(block.configurations.containsKey(type)){
             block.configurations.get(type).get(this, value);
+        }else if(value instanceof Building build){
+            //copy config of another building
+            var conf = build.config();
+            if(conf != null && !(conf instanceof Building)){
+                configured(builder, conf);
+            }
         }
     }
 
@@ -1154,7 +1148,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
     /** Returns whether or not a hand cursor should be shown over this block. */
     public Cursor getCursor(){
-        return block.configurable && team == player.team() ? SystemCursor.hand : SystemCursor.arrow;
+        return block.configurable && interactable(player.team()) ? SystemCursor.hand : SystemCursor.arrow;
     }
 
     /**
@@ -1318,6 +1312,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         return switch(sensor){
             case x -> World.conv(x);
             case y -> World.conv(y);
+            case dead -> !isValid() ? 1 : 0;
             case team -> team.id;
             case health -> health;
             case maxHealth -> maxHealth;
@@ -1336,8 +1331,9 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             case powerNetStored -> power == null ? 0 : power.graph.getLastPowerStored();
             case powerNetCapacity -> power == null ? 0 : power.graph.getLastCapacity();
             case enabled -> enabled ? 1 : 0;
-            case controlled -> this instanceof ControlBlock c ? c.isControlled() ? 1 : 0 : 0;
+            case controlled -> this instanceof ControlBlock c && c.isControlled() ? GlobalConstants.ctrlPlayer : 0;
             case payloadCount -> getPayload() != null ? 1 : 0;
+            case size -> block.size;
             default -> Float.NaN; //gets converted to null in logic
         };
     }

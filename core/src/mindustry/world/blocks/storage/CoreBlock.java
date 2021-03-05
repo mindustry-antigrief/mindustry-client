@@ -57,6 +57,8 @@ public class CoreBlock extends StorageBlock{
         configurable = true;
         drawDisabled = false;
         rebuildable = false; // Good luck rebuilding a core
+        canOverdrive = false;
+        replaceable = false;
     }
 
     @Remote(called = Loc.server)

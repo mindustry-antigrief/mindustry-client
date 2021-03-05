@@ -106,11 +106,6 @@ public class ModsDialog extends BaseDialog{
             }
         });
 
-        shown(() -> Core.app.post(() -> {
-            Core.settings.getBoolOnce("modsalpha", () -> {
-                ui.showText("@mods", "@mods.alphainfo");
-            });
-        }));
     }
 
     void modError(Throwable error){
@@ -283,6 +278,9 @@ public class ModsDialog extends BaseDialog{
                                 }else if(mod.hasContentErrors()){
                                     text.labelWrap("@mod.erroredcontent").growX();
                                     text.row();
+                                }else if(mod.meta.hidden){
+                                    text.labelWrap("@mod.multiplayer.compatible").growX();
+                                    text.row();
                                 }
                             }).top().growX();
 
@@ -309,7 +307,7 @@ public class ModsDialog extends BaseDialog{
 
                             if(steam && !mod.hasSteamID()){
                                 right.row();
-                                right.button(Icon.download, Styles.clearTransi, () -> {
+                                right.button(Icon.export, Styles.clearTransi, () -> {
                                     platform.publish(mod);
                                 }).size(50f);
                             }

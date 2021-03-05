@@ -1,6 +1,7 @@
 package mindustry.world.blocks.defense.turrets;
 
 import mindustry.client.navigation.TurretPathfindingEntity;
+import arc.struct.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
@@ -28,6 +29,9 @@ public class BaseTurret extends Block{
         update = true;
         solid = true;
         outlineIcon = true;
+        priority = TargetPriority.turret;
+        group = BlockGroup.turrets;
+        flags = EnumSet.of(BlockFlag.turret);
     }
 
     @Override
@@ -42,6 +46,8 @@ public class BaseTurret extends Block{
 
     @Override
     public void drawPlace(int x, int y, int rotation, boolean valid){
+        super.drawPlace(x, y, rotation, valid);
+
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, range, Pal.placing);
     }
 

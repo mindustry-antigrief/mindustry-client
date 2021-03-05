@@ -42,7 +42,6 @@ import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.payloads.*;
-import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.meta.*;
 
@@ -1024,8 +1023,24 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     /** Tries to begin mining a tile, returns true if successful. */
     boolean tryBeginMine(Tile tile){
         if(canMine(tile)){
-            //if a block is clicked twice, reset it
-            player.unit().mineTile = player.unit().mineTile == tile ? null : tile;
+            player.unit().mineTile = tile;
+            return true;
+        }
+        return false;
+    }
+
+    /** Tries to stop mining, returns true if mining was stopped. */
+    boolean tryStopMine(){
+        if(player.unit().mining()){
+            player.unit().mineTile = null;
+            return true;
+        }
+        return false;
+    }
+
+    boolean tryStopMine(Tile tile){
+        if(player.unit().mineTile == tile){
+            player.unit().mineTile = null;
             return true;
         }
         return false;

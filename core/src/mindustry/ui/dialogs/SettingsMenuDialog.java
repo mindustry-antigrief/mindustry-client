@@ -376,6 +376,12 @@ public class SettingsMenuDialog extends SettingsDialog{
 
         realGame.checkPref("doubletapmine", settings.getBool("doubleclicktomine")); // TODO: Remove in a month or so
 
+        game.checkPref("doubletapmine", false);
+
+        if(!ios){
+            game.checkPref("modcrashdisable", true);
+        }
+
         if(steam){
             realGame.sliderPref("playerlimit", 16, 2, 250, i -> {
                 platform.updateLobby();

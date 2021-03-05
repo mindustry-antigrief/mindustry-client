@@ -240,8 +240,8 @@ public class UnitTypes implements ContentList{
                     fragVelocityMin = 0.4f;
 
                     hitEffect = Fx.blastExplosion;
-                    splashDamage = 18f;
-                    splashDamageRadius = 30f;
+                    splashDamage = 16f;
+                    splashDamageRadius = 13f;
 
                     fragBullets = 2;
                     fragLifeMin = 0f;
@@ -257,7 +257,7 @@ public class UnitTypes implements ContentList{
                         lifetime = 20f;
                         hitEffect = Fx.flakExplosion;
                         splashDamage = 15f;
-                        splashDamageRadius = 15f;
+                        splashDamageRadius = 10f;
                     }};
                 }};
             }}
@@ -322,9 +322,8 @@ public class UnitTypes implements ContentList{
                 x = 5f;
                 shake = 2.2f;
                 y = 0.5f;
-                shootY = 5f;
-
                 shootY = 2.5f;
+
                 reload = 38f;
                 shots = 3;
                 inaccuracy = 35;
@@ -359,7 +358,6 @@ public class UnitTypes implements ContentList{
 
         quasar = new UnitType("quasar"){{
             mineTier = 3;
-            hitSize = 12f;
             boostMultiplier = 2f;
             health = 650f;
             buildSpeed = 1.7f;
@@ -407,19 +405,20 @@ public class UnitTypes implements ContentList{
             rotateSpeed = 1.6f;
             canDrown = false;
             mechFrontSway = 1f;
+            buildSpeed = 3f;
 
             mechStepParticles = true;
             mechStepShake = 0.15f;
             ammoType = AmmoTypes.powerHigh;
 
-            speed = 0.35f;
-            boostMultiplier = 2.1f;
+            speed = 0.38f;
+            boostMultiplier = 2.2f;
             engineOffset = 12f;
             engineSize = 6f;
             lowAltitude = true;
 
-            health = 7200f;
-            armor = 8f;
+            health = 7500f;
+            armor = 9f;
             canBoost = true;
             landShake = 4f;
             immunities = ObjectSet.with(StatusEffects.burning);
@@ -443,8 +442,8 @@ public class UnitTypes implements ContentList{
                 cooldownTime = 200f;
 
                 bullet = new ContinuousLaserBulletType(){{
-                    damage = 26f;
-                    length = 170f;
+                    damage = 28f;
+                    length = 175f;
                     hitEffect = Fx.hitMeltHeal;
                     drawSize = 420f;
                     lifetime = 160f;
@@ -454,7 +453,7 @@ public class UnitTypes implements ContentList{
 
                     shootEffect = Fx.greenLaserChargeSmall;
 
-                    incendChance = 0.08f;
+                    incendChance = 0.09f;
                     incendSpread = 5f;
                     incendAmount = 1;
 
@@ -471,7 +470,6 @@ public class UnitTypes implements ContentList{
         }};
 
         corvus = new UnitType("corvus"){{
-            mineTier = 1;
             hitSize = 29f;
             health = 18000f;
             armor = 9f;
@@ -769,7 +767,7 @@ public class UnitTypes implements ContentList{
                     width = height = 19f;
                     collidesTiles = true;
                     ammoMultiplier = 4f;
-                    splashDamageRadius = 80f;
+                    splashDamageRadius = 70f;
                     splashDamage = 65f;
                     backColor = Pal.sapBulletBack;
                     frontColor = lightningColor = Pal.sapBullet;
@@ -1373,6 +1371,8 @@ public class UnitTypes implements ContentList{
         }};
 
         oct = new UnitType("oct"){{
+            defaultController = DefenderAI::new;
+
             armor = 16f;
             health = 24000;
             speed = 0.8f;
@@ -1537,7 +1537,7 @@ public class UnitTypes implements ContentList{
                     width = 15f;
                     collidesTiles = false;
                     ammoMultiplier = 4f;
-                    splashDamageRadius = 50f;
+                    splashDamageRadius = 40f;
                     splashDamage = 80f;
                     backColor = Pal.missileYellowBack;
                     frontColor = Pal.missileYellow;

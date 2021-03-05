@@ -63,6 +63,11 @@ public class DesktopInput extends InputHandler{
     public Tile prevSelected;
     private long lastShiftZ;
 
+    boolean showHint(){
+        return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty() &&
+            (!isBuilding && !Core.settings.getBool("buildautopause") || player.unit().isBuilding() || !player.dead() && !player.unit().spawnedByCore());
+    }
+
     @Override
     public void buildUI(Group group){
         // Various hints
@@ -684,7 +689,7 @@ public class DesktopInput extends InputHandler{
             }else if(selected != null){
                 //only begin shooting if there's no cursor event
                 if(!tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !tileTapped(selected.build) && !player.unit().activelyBuilding() && !droppingItem
-                    && !((!settings.getBool("doubletapmine") || selected == prevSelected && Time.timeSinceMillis(selectMillis) < 500) && tryBeginMine(selected)) && !Core.scene.hasKeyboard()){
+                    && !(tryStopMine(selected) || (!settings.getBool("doubletapmine") || selected == prevSelected && Time.timeSinceMillis(selectMillis) < 500) && tryBeginMine(selected)) && !Core.scene.hasKeyboard()){
                     player.shooting = shouldShoot;
                 }
             }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine
