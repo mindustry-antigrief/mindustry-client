@@ -1,29 +1,26 @@
 package mindustry.annotations;
 
-import arc.Core;
-import arc.files.*;
-import arc.struct.*;
-import arc.util.Log;
-import arc.util.Log.*;
+import arc.files.Fi;
+import arc.struct.Seq;
 import arc.util.*;
+import arc.util.Log.LogLevel;
 import com.squareup.javapoet.*;
-import com.sun.source.util.*;
-import com.sun.tools.javac.model.*;
-import com.sun.tools.javac.processing.*;
-import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.util.*;
+import com.sun.source.util.Trees;
+import com.sun.tools.javac.model.JavacElements;
+import com.sun.tools.javac.processing.JavacProcessingEnvironment;
+import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.util.Context;
 import mindustry.annotations.util.*;
 
 import javax.annotation.processing.*;
-import javax.lang.model.*;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
-import javax.lang.model.type.*;
-import javax.lang.model.util.*;
-import javax.tools.Diagnostic.*;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
+import javax.tools.Diagnostic.Kind;
 import javax.tools.*;
 import java.io.*;
-import java.lang.annotation.*;
-import java.util.List;
+import java.lang.annotation.Annotation;
 import java.util.*;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
@@ -207,14 +204,15 @@ public abstract class BaseProcessor extends AbstractProcessor{
 
         Log.level = LogLevel.info;
 
-        if(System.getProperty("debug") != null){
+        Log.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+        if(System.getProperty("debug") != null || true){
             Log.level = LogLevel.debug;
         }
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv){
-        Core.files.absolute("/tmp/aaa3.txt").writeString("AAAAAAAAAAAA");
         if(round++ >= rounds) return false; //only process 1 round
         if(rootDirectory == null){
             try{

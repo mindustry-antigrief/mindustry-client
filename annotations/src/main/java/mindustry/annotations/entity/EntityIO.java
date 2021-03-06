@@ -1,6 +1,5 @@
 package mindustry.annotations.entity;
 
-import arc.Core;
 import arc.files.Fi;
 import arc.math.Mathf;
 import arc.struct.*;
@@ -81,8 +80,6 @@ public class EntityIO{
     void write(MethodSpec.Builder method, boolean write) throws Exception{
         this.method = method;
         this.write = write;
-
-        Core.files.absolute("/tmp/aaa.txt").writeString("AAAAAAAAAAAA");
 
         //subclasses *have* to call this method
         method.addAnnotation(CallSuper.class);
