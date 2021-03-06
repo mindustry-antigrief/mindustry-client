@@ -1,5 +1,6 @@
 package mindustry.annotations;
 
+import arc.Core;
 import arc.files.*;
 import arc.struct.*;
 import arc.util.Log;
@@ -213,6 +214,7 @@ public abstract class BaseProcessor extends AbstractProcessor{
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv){
+        Core.files.absolute("/tmp/aaa3.txt").writeString("AAAAAAAAAAAA");
         if(round++ >= rounds) return false; //only process 1 round
         if(rootDirectory == null){
             try{

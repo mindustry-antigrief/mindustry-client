@@ -1,5 +1,6 @@
 package mindustry.annotations.entity;
 
+import arc.Core;
 import arc.files.*;
 import arc.func.*;
 import arc.struct.*;
@@ -53,6 +54,7 @@ public class EntityProcess extends BaseProcessor{
         allGroups.addAll(elements(GroupDef.class));
         allDefs.addAll(elements(EntityDef.class));
         allInterfaces.addAll(types(EntityInterface.class));
+        Core.files.absolute("/tmp/aaa2.txt").writeString("AAAAAAAAAAAA");
 
         //round 1: generate component interfaces
         if(round == 1){

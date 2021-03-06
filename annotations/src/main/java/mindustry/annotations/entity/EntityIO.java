@@ -1,17 +1,18 @@
 package mindustry.annotations.entity;
 
-import arc.files.*;
-import arc.math.*;
+import arc.Core;
+import arc.files.Fi;
+import arc.math.Mathf;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.*;
+import arc.util.serialization.Json;
 import com.squareup.javapoet.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.annotations.*;
-import mindustry.annotations.util.*;
-import mindustry.annotations.util.TypeIOResolver.*;
+import mindustry.annotations.BaseProcessor;
+import mindustry.annotations.util.Svar;
+import mindustry.annotations.util.TypeIOResolver.ClassSerializer;
 
-import javax.lang.model.element.*;
+import javax.lang.model.element.Modifier;
 
 import static mindustry.annotations.BaseProcessor.instanceOf;
 
@@ -80,6 +81,8 @@ public class EntityIO{
     void write(MethodSpec.Builder method, boolean write) throws Exception{
         this.method = method;
         this.write = write;
+
+        Core.files.absolute("/tmp/aaa.txt").writeString("AAAAAAAAAAAA");
 
         //subclasses *have* to call this method
         method.addAnnotation(CallSuper.class);
