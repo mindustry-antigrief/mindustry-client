@@ -29,7 +29,7 @@ class MessageCryptographyTests {
     }
 
     private fun update() {
-        for (i in 0..20) {
+        for (i in 0..50) {
             client1.communicationClient.update()
             client2.communicationClient.update()
             Thread.sleep(10L)

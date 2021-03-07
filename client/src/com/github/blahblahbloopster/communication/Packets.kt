@@ -1,7 +1,6 @@
 package com.github.blahblahbloopster.communication
 
 import arc.util.Interval
-import arc.util.Log
 import com.github.blahblahbloopster.*
 import com.github.blahblahbloopster.crypto.*
 import java.io.IOException

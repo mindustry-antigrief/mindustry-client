@@ -167,7 +167,7 @@ class MessageCrypto {
         plaintext.put(encoded)
         val ciphertext = destination.crypto.encrypt(plaintext.array())
 
-        communicationClient.send(EncryptedMessageTransmission(ciphertext), { Toast(3f).add("@client.encryptedsuccess") }, { Toast(3f).add("@client.nomessageblock") })
+        communicationClient.send(EncryptedMessageTransmission(ciphertext), { if (Core.app?.isDesktop == true) Toast(3f).add("@client.encryptedsuccess") }, { if (Core.app?.isDesktop == true) Toast(3f).add("@client.nomessageblock") })
     }
 
     private fun handle(input: Transmission, sender: Int) {
@@ -199,7 +199,7 @@ class MessageCrypto {
                                     sender,
                                     key,
                                     str,
-                                    if (sender == communicationClient.communicationSystem.id) Vars.player.name else key.name
+                                    if (sender == communicationClient.communicationSystem.id && Core.app?.isDesktop == true) Vars.player.name else key.name
                                 )
                             )
                         } catch (ignored: Exception) {
