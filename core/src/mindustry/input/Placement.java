@@ -15,7 +15,6 @@ import static mindustry.Vars.*;
 
 public class Placement{
     private static final Seq<BuildPlan> plans1 = new Seq<>();
-    private static final Seq<BuildPlan> plans1 = new Seq<>();
     private static final Seq<Point2> tmpPoints = new Seq<>(), tmpPoints2 = new Seq<>();
     private static final NormalizeResult result = new NormalizeResult();
     private static final NormalizeDrawResult drawResult = new NormalizeDrawResult();

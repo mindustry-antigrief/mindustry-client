@@ -91,16 +91,6 @@ public class Conveyor extends Block implements Autotiler{
     }
 
     @Override
-    public boolean canReplace(Block other){
-        return super.canReplace(other) && !(other instanceof StackConveyor);
-    }
-
-    @Override
-    public void handlePlacementLine(Seq<BuildPlan> plans){
-        Placement.calculateBridges(plans, (ItemBridge)Blocks.itemBridge);
-    }
-
-    @Override
     public boolean isAccessible(){
         return true;
     }

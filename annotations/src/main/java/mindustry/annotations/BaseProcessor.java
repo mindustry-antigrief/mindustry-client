@@ -190,36 +190,22 @@ public abstract class BaseProcessor extends AbstractProcessor{
 
     @Override
     public synchronized void init(ProcessingEnvironment env){
-        if (true) {
-            throw new RuntimeException("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        }
-        System.out.println("AAAA");
         super.init(env);
-        System.out.println("BBBB");
 
         JavacProcessingEnvironment javacProcessingEnv = (JavacProcessingEnvironment)env;
-        System.out.println("CCCC");
 
         trees = Trees.instance(env);
-        System.out.println("DDDD");
         typeu = env.getTypeUtils();
-        System.out.println("EEEE");
         elementu = javacProcessingEnv.getElementUtils();
-        System.out.println("FFFF");
         filer = env.getFiler();
-        System.out.println("GGGG");
         messager = env.getMessager();
-        System.out.println("HHHH");
         context = ((JavacProcessingEnvironment)env).getContext();
-        System.out.println("IIII");
         maker = TreeMaker.instance(javacProcessingEnv.getContext());
-        System.out.println("JJJJ");
 
         Log.level = LogLevel.info;
 
-        Log.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
-        if(System.getProperty("debug") != null || true){
+        if(System.getProperty("debug") != null){
             Log.level = LogLevel.debug;
         }
     }

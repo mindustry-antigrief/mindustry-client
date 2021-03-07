@@ -2,51 +2,49 @@ package mindustry.input;
 
 import arc.*;
 import arc.func.*;
-import arc.graphics.*;
+import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.input.*;
-import arc.input.GestureDetector.*;
+import arc.input.GestureDetector.GestureListener;
 import arc.math.*;
 import arc.math.geom.*;
-import arc.scene.*;
-import arc.scene.event.*;
+import arc.scene.Group;
+import arc.scene.event.Touchable;
 import arc.scene.ui.layout.*;
-import arc.struct.*;
+import arc.struct.Seq;
 import arc.util.*;
 import mindustry.Vars;
-import mindustry.ai.formations.patterns.*;
+import mindustry.ai.formations.patterns.CircleFormation;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.*;
+import mindustry.client.Client;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
-import mindustry.client.navigation.waypoints.ItemDropoffWaypoint;
-import mindustry.client.navigation.waypoints.ItemPickupWaypoint;
-import mindustry.client.navigation.waypoints.PayloadDropoffWaypoint;
-import mindustry.client.navigation.waypoints.PayloadPickupWaypoint;
+import mindustry.client.navigation.waypoints.*;
 import mindustry.content.*;
-import mindustry.core.*;
-import mindustry.entities.*;
-import mindustry.entities.units.*;
+import mindustry.core.World;
+import mindustry.entities.Units;
+import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType.*;
-import mindustry.game.*;
-import mindustry.game.Teams.*;
+import mindustry.game.Schematic;
+import mindustry.game.Teams.BlockPlan;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.Placement.*;
-import mindustry.net.Administration.*;
-import mindustry.net.*;
+import mindustry.net.Administration.ActionType;
+import mindustry.net.ValidateException;
 import mindustry.type.*;
-import mindustry.ui.fragments.*;
+import mindustry.ui.fragments.OverlayFragment;
 import mindustry.world.*;
-import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.*;
-import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.ConstructBlock.ConstructBuild;
+import mindustry.world.blocks.distribution.ChainedBuilding;
 import mindustry.world.blocks.payloads.*;
-import mindustry.world.blocks.storage.CoreBlock.*;
-import mindustry.world.meta.*;
+import mindustry.world.blocks.power.PowerNode;
+import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
+import mindustry.world.meta.BuildVisibility;
 
-import java.time.*;
-import java.util.*;
+import java.time.Instant;
+import java.util.Iterator;
 import java.util.regex.Pattern;
 
 import static arc.Core.input;
@@ -1024,23 +1022,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     boolean tryBeginMine(Tile tile){
         if(canMine(tile)){
             player.unit().mineTile = tile;
-            return true;
-        }
-        return false;
-    }
-
-    /** Tries to stop mining, returns true if mining was stopped. */
-    boolean tryStopMine(){
-        if(player.unit().mining()){
-            player.unit().mineTile = null;
-            return true;
-        }
-        return false;
-    }
-
-    boolean tryStopMine(Tile tile){
-        if(player.unit().mineTile == tile){
-            player.unit().mineTile = null;
             return true;
         }
         return false;
