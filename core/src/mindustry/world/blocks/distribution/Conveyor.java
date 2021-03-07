@@ -13,13 +13,11 @@ import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
-import mindustry.input.Placement;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.meta.*;
-import mindustry.world.blocks.environment.*;
 
 import static mindustry.Vars.*;
 

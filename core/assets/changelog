@@ -10,6 +10,7 @@
  * Message verification system, messages from players who's keys you have imported will appear in green with their name swapped for whatever you named the key (this makes it easy to identify players)
  * Names of players from which messages are encrypted/verified will be prefixed with a , a malicious player or server could spoof this if they really wanted to so its recommended to keep highlighting on
  * Fixed autocomplete when mentioning players in chat (@person) not working
+ * Updated to v126
 
 # Version 6.4.0
  * Swap to vanilla double click mining, uses the vanilla setting now (should remember your setting)

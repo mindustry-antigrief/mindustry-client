@@ -1,17 +1,17 @@
 package mindustry.annotations.entity;
 
-import arc.files.Fi;
-import arc.math.Mathf;
+import arc.files.*;
+import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.Json;
+import arc.util.serialization.*;
 import com.squareup.javapoet.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.annotations.BaseProcessor;
-import mindustry.annotations.util.Svar;
-import mindustry.annotations.util.TypeIOResolver.ClassSerializer;
+import mindustry.annotations.*;
+import mindustry.annotations.util.*;
+import mindustry.annotations.util.TypeIOResolver.*;
 
-import javax.lang.model.element.Modifier;
+import javax.lang.model.element.*;
 
 import static mindustry.annotations.BaseProcessor.instanceOf;
 

@@ -2,52 +2,52 @@ package mindustry.input;
 
 import arc.*;
 import arc.func.*;
-import arc.graphics.Color;
+import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
-import arc.input.GestureDetector.GestureListener;
+import arc.input.GestureDetector.*;
 import arc.math.*;
 import arc.math.geom.*;
-import arc.scene.Group;
-import arc.scene.event.Touchable;
+import arc.scene.*;
+import arc.scene.event.*;
 import arc.scene.ui.layout.*;
-import arc.struct.Seq;
+import arc.struct.*;
 import arc.util.*;
-import mindustry.Vars;
-import mindustry.ai.formations.patterns.CircleFormation;
+import mindustry.*;
+import mindustry.ai.formations.patterns.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.Client;
+import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.content.*;
-import mindustry.core.World;
-import mindustry.entities.Units;
-import mindustry.entities.units.BuildPlan;
+import mindustry.core.*;
+import mindustry.entities.*;
+import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
-import mindustry.game.Schematic;
-import mindustry.game.Teams.BlockPlan;
+import mindustry.game.*;
+import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.Placement.*;
-import mindustry.net.Administration.ActionType;
-import mindustry.net.ValidateException;
+import mindustry.net.Administration.*;
+import mindustry.net.*;
 import mindustry.type.*;
-import mindustry.ui.fragments.OverlayFragment;
+import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
-import mindustry.world.blocks.ConstructBlock.ConstructBuild;
-import mindustry.world.blocks.distribution.ChainedBuilding;
+import mindustry.world.blocks.ConstructBlock.*;
+import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.payloads.*;
-import mindustry.world.blocks.power.PowerNode;
-import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
-import mindustry.world.meta.BuildVisibility;
+import mindustry.world.blocks.power.*;
+import mindustry.world.blocks.storage.CoreBlock.*;
+import mindustry.world.meta.*;
 
-import java.time.Instant;
-import java.util.Iterator;
-import java.util.regex.Pattern;
+import java.time.*;
+import java.util.*;
+import java.util.regex.*;
 
-import static arc.Core.input;
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
@@ -150,7 +150,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void requestItem(Player player, Building build, Item item, int amount){
         if(player == null || build == null || !build.interactable(player.team()) || !player.within(build, buildingRange) || player.dead()) return;
 
-        if(net.server() && (!Units.canInteract(player, build) ||
+        if(Vars.net.server() && (!Units.canInteract(player, build) ||
         !netServer.admins.allowAction(player, ActionType.withdrawItem, build.tile(), action -> {
             action.item = item;
             action.itemAmount = amount;
@@ -174,7 +174,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void transferInventory(Player player, Building build){
         if(player == null || build == null || !player.within(build, buildingRange) || build.items == null || player.dead()) return;
 
-        if(net.server() && (player.unit().stack.amount <= 0 || !Units.canInteract(player, build) ||
+        if(Vars.net.server() && (player.unit().stack.amount <= 0 || !Units.canInteract(player, build) ||
         !netServer.admins.allowAction(player, ActionType.depositItem, build.tile, action -> {
             action.itemAmount = player.unit().stack.amount;
             action.item = player.unit().item();
@@ -276,7 +276,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(targets = Loc.both, called = Loc.server)
     public static void requestDropPayload(Player player, float x, float y){
-        if(player == null || net.client()) return;
+        if(player == null || Vars.net.client()) return;
 
         Payloadc pay = (Payloadc)player.unit();
 
@@ -312,7 +312,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void dropItem(Player player, float angle){
         if(player == null) return;
 
-        if(net.server() && player.unit().stack.amount <= 0){
+        if(Vars.net.server() && player.unit().stack.amount <= 0){
             throw new ValidateException(player, "Player cannot drop an item.");
         }
 
@@ -326,7 +326,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void rotateBlock(@Nullable Player player, Building build, boolean direction){
         if(build == null) return;
 
-        if(net.server() && (!Units.canInteract(player, build) ||
+        if(Vars.net.server() && (!Units.canInteract(player, build) ||
             !netServer.admins.allowAction(player, ActionType.rotate, build.tile(), action -> action.rotation = Mathf.mod(build.rotation + Mathf.sign(direction), 4)))){
             throw new ValidateException(player, "Player cannot rotate a block.");
         }
@@ -354,7 +354,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Remote(targets = Loc.both, called = Loc.both, forward = true)
     public static void tileConfig(@Nullable Player player, Building build, @Nullable Object value){
         if(build == null) return;
-        if(net.server() && (!Units.canInteract(player, build) ||
+        if(Vars.net.server() && (!Units.canInteract(player, build) ||
                 !netServer.admins.allowAction(player, ActionType.configure, build.tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");
 
         Object previous = build.config();
@@ -403,14 +403,14 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(player == null) return;
 
         //make sure player is allowed to control the unit
-        if(net.server() && !netServer.admins.allowAction(player, ActionType.control, action -> action.unit = unit)){
+        if(Vars.net.server() && !netServer.admins.allowAction(player, ActionType.control, action -> action.unit = unit)){
             throw new ValidateException(player, "Player cannot control a unit.");
         }
 
         //clear player unit when they possess a core
         if(unit instanceof BlockUnitc block && block.tile() instanceof CoreBuild build){
             Fx.spawn.at(player);
-            if(net.client()){
+            if(Vars.net.client()){
                 control.input.controlledType = null;
             }
 
@@ -421,7 +421,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             player.clearUnit();
             //make sure it's AI controlled, so players can't overwrite each other
         }else if(unit.isAI() && unit.team == player.team() && !unit.dead){
-            if(!net.client()){
+            if(!Vars.net.client()){
                 player.unit(unit);
             }
 
@@ -449,7 +449,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(player == null || player.dead() || !(player.unit() instanceof Commanderc commander)) return;
 
         //make sure player is allowed to make the command
-        if(net.server() && !netServer.admins.allowAction(player, ActionType.command, action -> {})){
+        if(Vars.net.server() && !netServer.admins.allowAction(player, ActionType.command, action -> {})){
             throw new ValidateException(player, "Player cannot command a unit.");
         }
 
@@ -501,7 +501,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead /* TODO: Make this a thing that actually works? && (!(u.controller() instanceof FormationAI f) || f.isBeingControlled(player.lastReadUnit)) */);
 
             if(unit != null){
-                if(!net.client() || controlInterval.get(0, 10f)){
+                if(!Vars.net.client() || controlInterval.get(0, 10f)){
                     Call.unitControl(player, unit);
                 }
             }
@@ -516,7 +516,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
 
             if(unit != null){
-                if(net.client()){
+                if(Vars.net.client()){
                     Call.unitControl(player, unit);
                 }else{
                     unit.controller(player);
@@ -780,7 +780,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        if (!net.client()) {
+        if (!Vars.net.client()) {
             for (BlockPlan req : player.team().data().blocks) {
                 Block block = content.block(req.block);
                 if (block.bounds(req.x, req.y, Tmp.r2).overlaps(Tmp.r1)) {
@@ -915,7 +915,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         //remove blocks to rebuild
         Iterator<BlockPlan> broken = state.teams.get(player.team()).blocks.iterator();
-        if (!net.client()) {
+        if (!Vars.net.client()) {
             while (broken.hasNext()) {
                 BlockPlan req = broken.next();
                 Block block = content.block(req.block);

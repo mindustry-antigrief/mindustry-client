@@ -13,7 +13,6 @@ import mindustry.content.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.input.Placement;
 import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.world.*;
