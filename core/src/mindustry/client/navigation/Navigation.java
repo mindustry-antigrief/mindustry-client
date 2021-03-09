@@ -96,7 +96,7 @@ public class Navigation {
 
         targetPos = new Vec2(drawX, drawY);
         playerNavigator.taskQueue.post(() -> {
-            Vec2[] points = navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacles.toArray(new TurretPathfindingEntity[0]), 1);
+            Vec2[] points = navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacles.toArray(new TurretPathfindingEntity[0]));
             if (points != null) {
                 Seq<Waypoint> waypoints = new Seq<>();
                 for (Vec2 point : points) {
