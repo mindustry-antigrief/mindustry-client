@@ -24,17 +24,15 @@ public class Client {
     //todo: use this instead of Navigation.isFollowing and such
     public static ClientMode mode = ClientMode.normal;
     public static Queue<ConfigRequest> configs = new Queue<>();
-    public static boolean showingTurrets, hideUnits, hidingBlocks;
+    public static boolean showingTurrets, hideUnits, hidingBlocks, dispatchingBuildPlans;
     public static long lastSyncTime = 0L;
     public static final CommandHandler fooCommands = new CommandHandler("!");
-    public static boolean hideTrails;
     public static Ratekeeper configRateLimit = new Ratekeeper();
     /** The last position in TILE COORDS someone sent in chat or was otherwise put into the buffer. */
     public static final Vec2 lastSentPos = new Vec2();
     public static IntSet messageBlockPositions = new IntSet();
     public static final String messageCommunicationPrefix = "IN USE FOR CHAT AUTHENTICATION, do not use";
     public static ClientInterface mapping;
-    public static boolean dispatchingBuildPlans = false;
     public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;
 
     public static void initialize() {
@@ -49,6 +47,7 @@ public class Client {
             Navigation.obstacles.clear();
             configs.clear();
             ui.unitPicker.found = null;
+            showingTurrets = hideUnits = hidingBlocks = dispatchingBuildPlans = false;
             if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
             messageBlockPositions.clear();
         });
@@ -60,7 +59,6 @@ public class Client {
 
             settings.remove("updatevalues"); // TODO: Remove this line at some point in the future, removes an unused setting value. (added feb 10)
 
-            hideTrails = Core.settings.getBool("hidetrails");
             Autocomplete.autocompleters.add(new BlockEmotes());
             Autocomplete.autocompleters.add(new PlayerCompletion());
             Autocomplete.autocompleters.add(new CommandCompletion());
