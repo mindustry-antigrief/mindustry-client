@@ -1,6 +1,5 @@
 package mindustry.annotations.entity;
 
-import arc.Core;
 import arc.files.*;
 import arc.func.*;
 import arc.struct.*;
