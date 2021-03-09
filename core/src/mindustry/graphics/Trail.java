@@ -30,7 +30,7 @@ public class Trail{
     }
 
     public void draw(Color color, float width){
-        if (toggle && Client.hideTrails) {
+        if (toggle) {
             return;
         }
         Draw.color(color);
