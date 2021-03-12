@@ -107,7 +107,8 @@ object Packets {
         }
     }
 
-    /** Handles sending and receiving [Transmission]s on a [CommunicationSystem].
+    /**
+     * Handles sending and receiving [Transmission]s on a [CommunicationSystem].
      * There should only be one of these per communication system to avoid exceeding the rate.
      */
     class CommunicationClient(val communicationSystem: CommunicationSystem) {
@@ -118,9 +119,11 @@ object Packets {
         /** A queue of packets waiting to be sent. */
         private val outgoing = LinkedList<OutgoingTransmission>()
         /** A list of incoming connections.  Each transmission ID is mapped to a nullable list of bytearray segments. */
-        private val incoming = mutableMapOf<Long, MutableList<ByteArray?>>()
+        private val incoming = mutableMapOf<Long, IncomingTransmission>()
         /** A list of listeners to be run when a transmission is received. */
         val listeners = mutableListOf<(transmission: Transmission, senderId: Int) -> Unit>()
+
+        data class IncomingTransmission(val segments: MutableList<ByteArray?>, var expirationTime: Instant)
 
         init {
             communicationSystem.addListener(::handle)
@@ -140,6 +143,11 @@ object Packets {
 
                 lastSent.reset(0, 0f) // Sending a packet, reset the timer fully
                 try { communicationSystem.send(packet.bytes()) } catch (e: IOException) { outgoing.remove(toSend); toSend.onError?.invoke() }
+            }
+            for (inc in incoming) {
+                if (inc.value.expirationTime.isBefore(Instant.now())) {
+                    incoming.remove(inc.key)
+                }
             }
         }
 
@@ -171,14 +179,15 @@ object Packets {
 
                 val entry = incoming[header.transmissionId] ?: run {
                     if (incoming.size > 50) return@run null  // too many incoming connections
-                    incoming[header.transmissionId] = MutableList(header.sequenceCount) { null }  // Create new incoming connection entry
+                    incoming[header.transmissionId] = IncomingTransmission(MutableList(header.sequenceCount) { null }, Instant.now().plusSeconds(15))  // Create new incoming connection entry
                     return@run incoming[header.transmissionId]
                 } ?: return
 
-                entry[header.sequenceNumber] = content
+                entry.segments[header.sequenceNumber] = content
+                entry.expirationTime = Instant.now().plusSeconds(15)
 
-                if (!entry.contains(null)) {
-                    val array = entry.reduceRight { a, b -> a!! + b!! }!!  // Collapse the list of packet contents to the full byte array
+                if (!entry.segments.contains(null)) {
+                    val array = entry.segments.reduceRight { a, b -> a!! + b!! }!!  // Collapse the list of packet contents to the full byte array
                     val inflated = array.inflate()  // Decompress the transmission
                     val transmission = registeredTransmissionTypes[header.transmissionType].constructor(inflated, header.transmissionId)  // Deserialize the transmission
 
