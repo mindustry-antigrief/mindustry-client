@@ -8,6 +8,7 @@ import java.nio.ByteBuffer
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 object Packets {
@@ -119,7 +120,7 @@ object Packets {
         /** A queue of packets waiting to be sent. */
         private val outgoing = LinkedList<OutgoingTransmission>()
         /** A list of incoming connections.  Each transmission ID is mapped to a nullable list of bytearray segments. */
-        private val incoming = mutableMapOf<Long, IncomingTransmission>()
+        private val incoming = ConcurrentHashMap<Long, IncomingTransmission>()
         /** A list of listeners to be run when a transmission is received. */
         val listeners = mutableListOf<(transmission: Transmission, senderId: Int) -> Unit>()
 
