@@ -1,21 +1,22 @@
 package mindustry.client;
 
 import arc.*;
-import arc.math.*;
-import arc.math.geom.*;
+import arc.graphics.Color;
+import arc.math.Mathf;
+import arc.math.geom.Vec2;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.utils.*;
 import mindustry.core.*;
-import mindustry.game.*;
-import mindustry.game.EventType.*;
+import mindustry.game.EventType;
+import mindustry.game.EventType.WorldLoadEvent;
 import mindustry.gen.*;
-import mindustry.input.*;
-import mindustry.world.*;
+import mindustry.input.DesktopInput;
+import mindustry.world.Tile;
 
-import static arc.Core.*;
+import static arc.Core.settings;
 import static mindustry.Vars.*;
 
 public class Client {
@@ -183,5 +184,7 @@ public class Client {
             if (args.length == 2) settings.put("cnpw", args[0] + " "  + args[1]);
             else Call.sendChatMessage("/login " + settings.getString("cnpw", ""));
         });
+
+        fooCommands.<Player>register("js", "[code...]", "Runs JS on the client.", (arg, player) -> ui.chatfrag.addMessage(mods.getScripts().runConsole(arg[0]), "client", Color.coral.cpy().mul(0.75f)));
     }
 }
