@@ -28,7 +28,6 @@ import mindustry.world.consumers.*;
 import mindustry.world.draw.*;
 import mindustry.world.meta.*;
 
-import static arc.Core.settings;
 import static mindustry.type.ItemStack.*;
 
 public class Blocks implements ContentList{

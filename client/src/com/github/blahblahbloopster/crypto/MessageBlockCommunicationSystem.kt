@@ -4,11 +4,11 @@ import arc.*
 import arc.util.*
 import mindustry.*
 import mindustry.client.*
-import mindustry.content.Blocks
+import mindustry.content.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.world.blocks.logic.*
-import java.io.IOException
+import java.io.*
 
 class MessageBlockCommunicationSystem : CommunicationSystem {
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
@@ -30,7 +30,7 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
             val message = event.value as String
             if (!message.startsWith(Client.messageCommunicationPrefix)) return@on
 
-            val id = if (event.player == null) 0 else event.player.id
+            val id = if (event.player == null) -1 else event.player.id
 
             val bytes: ByteArray
             try {

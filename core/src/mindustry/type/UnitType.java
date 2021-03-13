@@ -11,10 +11,9 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.*;
 import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.Client;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -193,11 +192,11 @@ public class UnitType extends UnlockableContent{
             }
         }).growX();
 
-        if(unit.controller() instanceof LogicAI p){
+        if(unit.controller() instanceof LogicAI ai){
             table.row();
             table.add(Blocks.microProcessor.emoji() + " " + Core.bundle.get("units.processorcontrol")).growX().wrap().left();
             table.row();
-            table.label(() -> Iconc.settings + " " + (long)unit.flag + " (" + (p.controller != null ? p.controller.tileX() : "?") + ", " + (p.controller != null ? p.controller.tileY() : "?") + ")").color(Color.lightGray).wrap().left();
+            table.label(() -> Iconc.settings + " " + (long)unit.flag + " (" + (ai.controller != null ? ai.controller.tileX() + ", " + ai.controller.tileY() : "?, ?") + ")").color(Color.lightGray).wrap().left();
         }
         
         table.row();

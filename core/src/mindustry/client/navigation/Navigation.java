@@ -40,7 +40,7 @@ public class Navigation {
     public static void update() {
         if (timer.get(600)) obstacles.clear(); // Refresh all obstacles every 600s since sometimes they don't get removed properly for whatever reason TODO: Check if this happens because it still runs update even when dead, if so just the removal of the obstacle
 
-        if (targetPos != null && playerNavigator.taskQueue.size() == 0) { // must be navigating, TODO: dejank
+        if (targetPos != null && clientThread.taskQueue.size() == 0) { // must be navigating, TODO: dejank
             navigateTo(targetPos);
         }
 
@@ -82,6 +82,7 @@ public class Navigation {
     }
 
     public static void navigateTo(Position pos) {
+        if (pos == null) return; // Apparently this can happen somehow?
         navigateTo(pos.getX(), pos.getY());
     }
 
@@ -95,7 +96,7 @@ public class Navigation {
         }
 
         targetPos = new Vec2(drawX, drawY);
-        playerNavigator.taskQueue.post(() -> {
+        clientThread.taskQueue.post(() -> {
             Vec2[] points = navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacles.toArray(new TurretPathfindingEntity[0]));
             if (points != null) {
                 Seq<PositionWaypoint> waypoints = new Seq<>();
@@ -105,7 +106,7 @@ public class Navigation {
                 waypoints.reverse();
 
                 if (waypoints.any()) {
-                    while (waypoints.size > 1 && !waypoints.first().within(player, 8)) waypoints.remove(0);
+                    while (waypoints.size > 1 && waypoints.min(wp -> wp.dst(player)) != waypoints.first()) waypoints.remove(0);
                     if (waypoints.size > 1) waypoints.remove(0);
                     if (waypoints.size > 1) waypoints.remove(0);
                     if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run

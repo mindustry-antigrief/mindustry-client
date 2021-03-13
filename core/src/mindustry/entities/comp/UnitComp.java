@@ -514,8 +514,8 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         return isPlayer() ? (Player)controller : null;
     }
 
-    public Player playerNonNull() {
-        return isPlayer() ? (Player) controller : Nulls.player;
+    public Player playerNonNull(){
+        return isPlayer() ? (Player)controller : Nulls.player;
     }
 
     @Override

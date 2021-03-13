@@ -1,21 +1,22 @@
 package mindustry.client.navigation;
 
-import arc.Core;
-import arc.math.Mathf;
+import arc.*;
+import arc.math.*;
 import arc.math.geom.*;
-import arc.struct.Queue;
-import arc.struct.Seq;
-import arc.util.Interval;
-import arc.util.Nullable;
-import mindustry.ai.formations.Formation;
-import mindustry.client.navigation.waypoints.PositionWaypoint;
-import mindustry.entities.Units;
-import mindustry.entities.units.BuildPlan;
+import arc.struct.*;
+import arc.util.*;
+import mindustry.ai.formations.*;
+import mindustry.client.*;
+import mindustry.client.antigrief.*;
+import mindustry.client.navigation.waypoints.*;
+import mindustry.entities.*;
+import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.*;
-import mindustry.world.blocks.ConstructBlock;
-import mindustry.world.blocks.environment.Boulder;
+import mindustry.world.blocks.*;
+import mindustry.world.blocks.environment.*;
+import mindustry.world.blocks.logic.*;
 
 import static mindustry.Vars.*;
 
@@ -23,8 +24,8 @@ public class BuildPath extends Path {
     Building core = player.core();
     private boolean show;
     Interval timer = new Interval();
-    public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>();
-    public Seq<Queue<BuildPlan>> queues = new Seq<>(8);
+    public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>();
+    public Seq<Queue<BuildPlan>> queues = new Seq<>(9);
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
@@ -43,11 +44,13 @@ public class BuildPath extends Path {
                 case "unfinished" -> queues.add(unfinished);
                 case "cleanup" -> queues.add(cleanup);
                 case "networkassist" -> queues.add(networkAssist);
+                case "virus" -> queues.add(virus); // Intentionally undocumented due to potential false positives
                 default -> ui.chatfrag.addMessage("[scarlet]Invalid option: " + arg, null);
             }
         }
         if (queues.isEmpty()) {
-            ui.chatfrag.addMessage("[scarlet]No valid options specified, defaulting to self.\nValid options: All, self, broken, boulders, assist, unfinished, cleanup, networkassist", null);
+            ui.chatfrag.addMessage("[scarlet]No valid options specified, defaulting to self." +
+                "\nValid options: All, self, broken, boulders, assist, unfinished, cleanup, networkassist", null);
             queues.add(player.unit().plans);
         }
     }
@@ -67,15 +70,6 @@ public class BuildPath extends Path {
         }
     }
 
-    @Override
-    public void init() {
-        for (Tile tile : world.tiles) {
-            if (tile.team() == Team.derelict && tile.breakable() && tile.isCenter() && !(tile.block() instanceof Boulder)) {
-                cleanup.add(new BuildPlan(tile.x, tile.y));
-            }
-        }
-    }
-
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     public void follow() {
         if (timer.get(15)) {
@@ -84,6 +78,7 @@ public class BuildPath extends Path {
             clearQueue(assist);
             clearQueue(unfinished);
             clearQueue(cleanup);
+            clearQueue(virus);
             for (BuildPlan plan : networkAssist) { // Don't clear network assist queue, instead remove finished plans
                 if (plan.isDone()) {
                     networkAssist.remove(plan);
@@ -107,26 +102,42 @@ public class BuildPath extends Path {
                     }
                 });
             }
-            if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup)) {
+            if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus)) {
                 for (Tile tile : world.tiles) {
-                    if (tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild d && d.previous instanceof Boulder) {
+                    if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build) {
+                        clientThread.taskQueue.post(() -> {
+                            if (build.code.contains("ucontrol build") && build.code.contains("ubind") && (build.code.contains("@thisx") && build.code.contains("@thisy") || build.code.contains("@this") || build.code.contains("@controller"))) { // Doesn't use a regex as those are expensive
+                                Client.configs.add(new ConfigRequest(build.tileX(), build.tileY(), LogicBlock.compress(String.format("print \"Logic grief auto removed by:\"\nprint \"%.34s\"", Strings.stripColors(player.name)), build.relativeConnections()))); // Remove configs on all of these potential virus blocks
+                                virus.add(new BuildPlan(tile.x, tile.y)); // Partially delete the spammed processors, prioritizes ones that haven't been configured yet in the event that you get ratelimited
+                            }
+                        });
+
+                    } else if (queues.contains(boulders) && tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild build && build.previous instanceof Boulder) {
                         boulders.add(new BuildPlan(tile.x, tile.y));
-                    } else if(queues.contains(cleanup) && (tile.build instanceof ConstructBlock.ConstructBuild d && d.activeDeconstruct && d.lastBuilder != null && d.lastBuilder == player.unit()) || (tile.team() == Team.derelict && tile.breakable() && tile.isCenter() && !(tile.block() instanceof Boulder))) {
+
+                    } else if (queues.contains(cleanup) && (tile.build instanceof ConstructBlock.ConstructBuild build && build.activeDeconstruct && build.lastBuilder != null && build.lastBuilder == player.unit()) || (tile.team() == Team.derelict && tile.breakable() && tile.isCenter() && !(tile.block() instanceof Boulder))) {
                         cleanup.add(new BuildPlan(tile.x, tile.y));
-                    } else if (tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild entity && tile.isCenter()) {
-                        unfinished.add(entity.wasConstructing ?
-                                new BuildPlan(tile.x, tile.y, tile.build.rotation, entity.cblock, tile.build.config()) :
+
+                    } else if (queues.contains(unfinished) && tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild build && tile.isCenter()) {
+                        unfinished.add(build.wasConstructing ?
+                                new BuildPlan(tile.x, tile.y, tile.build.rotation, build.cblock, tile.build.config()) :
                                 new BuildPlan(tile.x, tile.y));
                     }
-
                 }
             }
+             if (queues.contains(virus) && virus.isEmpty()) { // Once the virus has been stopped, fully remove the processors
+                 for (Tile tile : world.tiles) {
+                     if (tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild build && build.previous instanceof LogicBlock) {
+                         virus.add(new BuildPlan(tile.x, tile.y));
+                     }
+                 }
+             }
 
             boolean all = false;
             dosort:
             for (int x = 0; x < 2; x++) {
                 for (Queue queue : queues) {
-                    Queue<BuildPlan> plans = sortPlans(queue, all, true);
+                    Queue<BuildPlan> plans = sortPlans(queue, all, !all);
                     if (plans.isEmpty()) continue;
                     /* TODO: This doesn't work lol
                     plans.forEach(plan -> Navigation.obstacles.forEach(obstacle -> {if(Mathf.dstm(obstacle.x, obstacle.y, plan.x, plan.y) <= obstacle.range){plans.remove(plan);player.unit().plans.remove(plan);}}));
@@ -151,7 +162,7 @@ public class BuildPath extends Path {
             if(valid){
                 //move toward the request
                 Formation formation = player.unit().formation;
-                float range = buildingRange - player.unit().hitSize()/2 - 10;
+                float range = buildingRange - player.unit().hitSize()/2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.spacing / (float)Math.sin(180f / formation.pattern.slots * Mathf.degRad);
                 if (Core.settings.getBool("assumeunstrict")) range /= 2; // Teleport closer so its not weird when building stuff like conveyors
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
@@ -183,7 +194,7 @@ public class BuildPath extends Path {
 
     /** @param includeAll whether to include unaffordable plans (appended to end of affordable ones)
      @param largeFirst reverses the order of outputs, returning the furthest plans first
-     @return {@code Queue<BuildPlan>} sorted by distance */
+     @return {@link Queue<BuildPlan>} sorted by distance */
     @Nullable
     public Queue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll, boolean largeFirst) {
         if (plans == null) return null;

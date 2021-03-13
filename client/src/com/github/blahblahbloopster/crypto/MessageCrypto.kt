@@ -1,19 +1,19 @@
 package com.github.blahblahbloopster.crypto
 
 import arc.*
-import arc.graphics.Color
-import arc.util.Log
-import arc.util.serialization.Base64Coder
+import arc.graphics.*
+import arc.util.*
+import arc.util.serialization.*
 import com.github.blahblahbloopster.*
 import com.github.blahblahbloopster.communication.*
-import mindustry.Vars
-import mindustry.client.Client
-import mindustry.client.ui.Toast
-import mindustry.core.NetClient
-import mindustry.game.EventType
-import mindustry.gen.Iconc
-import java.nio.ByteBuffer
-import java.time.Instant
+import mindustry.*
+import mindustry.client.*
+import mindustry.client.ui.*
+import mindustry.core.*
+import mindustry.game.*
+import mindustry.gen.*
+import java.nio.*
+import java.time.*
 import java.util.zip.*
 
 /** Provides the interface between [Crypto] and a [CommunicationSystem], and handles some UI stuff.
@@ -115,6 +115,9 @@ class MessageCrypto {
         fun event(sender: Int = -1, keyHolder: KeyHolder? = null, message: String? = null, valid: Boolean = false) {
             fire(SignatureEvent(sender, keyHolder, message, valid))
         }
+        Log.debug("LocalP: ${Vars.player.id} MessageP: ${player.id} PacketP: ${received.id}")
+        Log.debug("LocalT: ${Instant.now().epochSecond} MessageT: ${player.time.toInstant().epochSecond} PacketT: ${received.time.toInstant().epochSecond}")
+        Log.debug(received.signature.isEmpty().toString())
         if (Vars.player?.id == player.id || Vars.player?.id == received.id) return
         if (player.id == -1 || player.time == 0L || player.message == "") return
         if (received.id == -1 || received.time == 0L || received.signature.isEmpty()) return
@@ -174,6 +177,7 @@ class MessageCrypto {
         try {
             when(input) {
                 is SignatureTransmission -> {
+                    Log.debug("Handling transmission from: $sender")
                     received = ReceivedTriple(sender, Instant.now().epochSecond, input.signature)
                     check(player, received)
                 }

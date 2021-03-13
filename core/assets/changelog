@@ -1,10 +1,17 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 6.5.1
+ * Fix a crash related to chatting in singleplayer
+ * Fix a setting missing from the settings menu
+ * Blocks placed/interacted with by ai will appear in [lightgray]light gray[]
+ * Fixed build path moving back and forth constantly when nothing is affordable
+ * Navigation backtracking fixed properly this time, hopefully this wont cause issues
+ * Reworked hints, they should be more reliable and not overlap ever
+
 # Version 6.5.0
  * Navigation should actually find the shortest path every time now
  * Navigation will properly avoid turrets (they may still shoot at you once in a while but that should be pretty rare)
  * Navigation will try not to kill your entire formation (for whatever reason, this doesn't slow you down on servers)
- * Navigation should backtrack less again
  * Navigation paths should no longer jitter around randomly, it will find the best path and commit to it (even if that means entering turret ranges because all paths are blocked)
  * Message encryption system, probably never useful but foo decided it would be a fun project (!e <key> <message> to send an encrypted message to that person, you will need to exchange keys with other players through the "manage keys" button in the pause menu)
  * Message verification system, messages from players who's keys you have imported will appear in green with their name swapped for whatever you named the key (this makes it easy to identify players)

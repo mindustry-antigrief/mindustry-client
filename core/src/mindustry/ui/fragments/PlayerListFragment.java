@@ -119,7 +119,7 @@ public class PlayerListFragment extends Fragment{
             button.add().grow();
 
             if (user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
-            if (user.fooUser && !(!user.isLocal() && net.server())) button.image(Icon.wrench).padRight(7.5f);
+            if (user.fooUser && !user.isLocal()) button.image(Icon.wrench).padRight(7.5f);
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();

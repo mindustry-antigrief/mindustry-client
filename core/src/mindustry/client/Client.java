@@ -31,7 +31,6 @@ public class Client {
     public static Ratekeeper configRateLimit = new Ratekeeper();
     /** The last position in TILE COORDS someone sent in chat or was otherwise put into the buffer. */
     public static final Vec2 lastSentPos = new Vec2();
-    public static IntSet messageBlockPositions = new IntSet();
     public static final String messageCommunicationPrefix = "IN USE FOR CHAT AUTHENTICATION, do not use";
     public static ClientInterface mapping;
     public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;
@@ -48,17 +47,17 @@ public class Client {
             Navigation.obstacles.clear();
             configs.clear();
             ui.unitPicker.found = null;
+            control.input.lastVirusWarning = null;
             showingTurrets = hideUnits = hidingBlocks = dispatchingBuildPlans = false;
             if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
-            messageBlockPositions.clear();
         });
 
         Events.on(EventType.ClientLoadEvent.class, event -> {
-            int changeHash = Core.files.internal("changelog").readString().hashCode(); // Display changelog if the file contents have changed & on first run. (this is really scuffed lol).
+            int changeHash = Core.files.internal("changelog").readString().hashCode(); // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
             if (settings.getInt("changeHash") != changeHash) Client.mapping.showChangelogDialog();
             settings.put("changeHash", changeHash);
 
-            settings.remove("updatevalues"); // TODO: Remove this line at some point in the future, removes an unused setting value. (added feb 10)
+            if (settings.getBool("debug")) Log.level = Log.LogLevel.debug; // Set log level to debug if the setting is checked
 
             Autocomplete.autocompleters.add(new BlockEmotes());
             Autocomplete.autocompleters.add(new PlayerCompletion());
@@ -76,7 +75,7 @@ public class Client {
 
         if (!configs.isEmpty()) {
                 try {
-                    if (configRateLimit.allow(6 * 1000, 25)) {
+                    if (configRateLimit.allow(6 * 1000, 20)) {
                         ConfigRequest req = configs.last();
                         Tile tile = world.tile(req.x, req.y);
                         if (tile != null) {
@@ -166,8 +165,7 @@ public class Client {
         fooCommands.<Player>register("tp", "<x> <y>", "Moves to (x, y) at insane speeds, only works on servers without strict mode enabled.", (args, player) -> {
             try {
                 NetClient.setPosition(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])));
-            }
-            catch(Exception e){
+            } catch(Exception e) {
                 player.sendMessage("[scarlet]Invalid coordinates, format is <x> <y> Eg: !tp 10 300");
             }
         });
@@ -185,6 +183,7 @@ public class Client {
             else Call.sendChatMessage("/login " + settings.getString("cnpw", ""));
         });
 
-        fooCommands.<Player>register("js", "[code...]", "Runs JS on the client.", (arg, player) -> ui.chatfrag.addMessage(mods.getScripts().runConsole(arg[0]), "client", Color.coral.cpy().mul(0.75f)));
+        fooCommands.<Player>register("js", "<code...>", "Runs JS on the client.", (arg, player) ->
+                ui.chatfrag.addMessage(mods.getScripts().runConsole(arg[0]), "client", Color.coral.cpy().mul(0.75f)));
     }
 }
