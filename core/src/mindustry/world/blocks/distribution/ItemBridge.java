@@ -1,7 +1,5 @@
 package mindustry.world.blocks.distribution;
 
-import arc.*;
-import arc.func.Boolf;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -11,7 +9,6 @@ import arc.struct.IntSet.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.content.Blocks;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
@@ -20,8 +17,6 @@ import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static mindustry.Vars.*;
 

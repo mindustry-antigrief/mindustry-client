@@ -1,14 +1,21 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 6.5.2
+ * Fix hints consuming click, even when invisible
+ * Fix green verified messages
+ * Auto bridge doesn't bridge over blocks in the transportation category (aside from plast conveyors)
+
 # Version 6.5.1
  * Fix a crash related to chatting in singleplayer
  * Fix a setting missing from the settings menu
  * Blocks placed/interacted with by ai will appear in [lightgray]light gray[]
+ * Player names no longer have color in placement logs and warnings
  * Fixed build path moving back and forth constantly when nothing is affordable
  * Navigation backtracking fixed properly this time, hopefully this wont cause issues
  * Reworked hints, they should be more reliable and not overlap ever
  * Fixed an issue that caused encrypted messages to break after 50 of them were sent (the message verification is still broken)
  * Fixed an issue with placing cores
+ * Added a debug setting that just prints more stuff to the console
 
 # Version 6.5.0
  * Navigation should actually find the shortest path every time now

@@ -69,8 +69,9 @@ public class DesktopInput extends InputHandler{
     public void buildUI(Group group){
         //various hints
         group.fill(t -> {
-            t.visible(this::showHint);
             t.bottom();
+            t.visible(this::showHint);
+            t.touchable = Touchable.disabled; // Don't consume clicks
             t.table(Styles.black6, b -> {
                 StringBuilder str = new StringBuilder();
                 StringBuilder tmp = new StringBuilder();

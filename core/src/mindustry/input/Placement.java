@@ -5,7 +5,6 @@ import arc.func.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
-import mindustry.entities.units.*;
 import arc.util.pooling.*;
 import mindustry.entities.units.*;
 import mindustry.world.*;
@@ -116,7 +115,7 @@ public class Placement{
         }
 
         Boolf<BuildPlan> placeable = plan -> (plan.placeable(player.team())) ||
-            (plan.tile() != null && plan.tile().block() == plan.block); //don't count the same block as inaccessible
+            (plan.tile() != null && (plan.tile().block() == plan.block || plan.tile().block().group == plan.block.group && !(plan.tile().block() instanceof StackConveyor))); //don't count the same block as inaccessible
 
         var result = plans1.clear();
         var team = player.team();
