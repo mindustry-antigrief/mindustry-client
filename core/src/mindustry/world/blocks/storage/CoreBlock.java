@@ -52,6 +52,8 @@ public class CoreBlock extends StorageBlock{
         loopSound = Sounds.respawning;
         loopSoundVolume = 1f;
         drawDisabled = false;
+        configurable = true;
+        rebuildable = false;
         canOverdrive = false;
         replaceable = false;
     }

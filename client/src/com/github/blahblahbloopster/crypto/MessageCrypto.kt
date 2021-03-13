@@ -115,7 +115,7 @@ class MessageCrypto {
         fun event(sender: Int = -1, keyHolder: KeyHolder? = null, message: String? = null, valid: Boolean = false) {
             fire(SignatureEvent(sender, keyHolder, message, valid))
         }
-        Log.debug("LocalP: ${Vars.player.id} MessageP: ${player.id} PacketP: ${received.id}")
+        Log.debug("LocalP: ${Vars.player?.id} MessageP: ${player.id} PacketP: ${received.id}")
         Log.debug("LocalT: ${Instant.now().epochSecond} MessageT: ${player.time.toInstant().epochSecond} PacketT: ${received.time.toInstant().epochSecond}")
         Log.debug(received.signature.isEmpty().toString())
         if (Vars.player?.id == player.id || Vars.player?.id == received.id) return
