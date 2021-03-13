@@ -7,6 +7,7 @@
  * Fixed build path moving back and forth constantly when nothing is affordable
  * Navigation backtracking fixed properly this time, hopefully this wont cause issues
  * Reworked hints, they should be more reliable and not overlap ever
+ * Fixed an issue that caused encrypted messages to break after 50 of them were sent (the message verification is still broken)
 
 # Version 6.5.0
  * Navigation should actually find the shortest path every time now
