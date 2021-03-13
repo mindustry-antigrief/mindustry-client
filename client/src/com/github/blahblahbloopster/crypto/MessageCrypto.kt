@@ -23,8 +23,8 @@ class MessageCrypto {
     lateinit var keyQuad: KeyQuad
     lateinit var communicationClient: Packets.CommunicationClient
 
-    var player = PlayerTriple(-1, 0, "")  // Maps player ID to last sent message
-    var received = ReceivedTriple(-1, 0, byteArrayOf()) // Maps player ID to last sent message
+    private var player: PlayerTriple? = null     // Maps player ID to last sent message
+    private var received: ReceivedTriple? = null // Maps player ID to last sent message
     var keys: KeyList = KeyFolder
     val listeners = mutableListOf<(MessageCryptoEvent) -> Unit>()
 
@@ -52,36 +52,18 @@ class MessageCrypto {
 
     data class PlayerTriple(val id: Int, val time: Long, val message: String)
 
-    data class ReceivedTriple(val id: Int, val time: Long, val signature: ByteArray) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as ReceivedTriple
-
-            if (id != other.id) return false
-            if (time != other.time) return false
-            if (!signature.contentEquals(other.signature)) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = id
-            result = 31 * result + time.hashCode()
-            result = 31 * result + signature.contentHashCode()
-            return result
-        }
-    }
+    data class ReceivedTriple(val id: Int, val time: Long, val transmission: SignatureTransmission)
 
     fun init(communicationClient: Packets.CommunicationClient) {
         this.communicationClient = communicationClient
         communicationClient.addListener(::handle)
 
         try { // Load key, generate if it doesn't exist
-            if (!Core.settings.dataDirectory.child("key.txt").exists()) Client.mapping?.generateKey()
-            else keyQuad = KeyQuad(Base64Coder.decode(Core.settings.dataDirectory.child("key.txt").readString()))
-            Log.info("Loaded keypair")
+            if (Core.app.isDesktop) {
+                if (!Core.settings.dataDirectory.child("key.txt").exists()) Client.mapping?.generateKey()
+                else keyQuad = KeyQuad(Base64Coder.decode(Core.settings.dataDirectory.child("key.txt").readString()))
+                Log.info("Loaded keypair")
+            }
         } catch (ignored: Exception) {}
 
         Events.on(EventType.SendChatMessageEvent::class.java) { event ->
@@ -111,13 +93,14 @@ class MessageCrypto {
     }
 
     /** Checks the validity of a message given two triples, see above. */
-    private fun check(player: PlayerTriple, received: ReceivedTriple) {
+    private fun check(player: PlayerTriple?, received: ReceivedTriple?) {
+        player ?: return
+        received ?: return
+
         fun event(sender: Int = -1, keyHolder: KeyHolder? = null, message: String? = null, valid: Boolean = false) {
             fire(SignatureEvent(sender, keyHolder, message, valid))
         }
         if (Vars.player?.id == player.id || Vars.player?.id == received.id) return
-        if (player.id == -1 || player.time == 0L || player.message == "") return
-        if (received.id == -1 || received.time == 0L || received.signature.isEmpty()) return
 
         if (player.time.toInstant().age() > 3 || received.time.toInstant().age() > 3) {
             event(player.id, message = player.message)
@@ -130,7 +113,7 @@ class MessageCrypto {
         }
 
         for (key in keys) {
-            val match = verify(player.message, received.id, received.signature, key.keys, received.time)
+            val match = verify(player.message, received.id, received.transmission.signature, key.keys, received.transmission.time.epochSecond)
             if (match) {
                 event(player.id, key, player.message, true)
                 return
@@ -152,9 +135,9 @@ class MessageCrypto {
 
     /** Signs an outgoing message.  Includes the sender ID and current time to prevent impersonation and replay attacks. */
     fun sign(message: String, key: KeyQuad) {
-        val time = Instant.now().epochSecond
-        val signature = Crypto.sign(stringToSendable(message, communicationClient.communicationSystem.id, time), key.edPrivateKey)
-        communicationClient.send(SignatureTransmission(signature))
+        val time = Instant.now()
+        val signature = Crypto.sign(stringToSendable(message, communicationClient.communicationSystem.id, time.epochSecond), key.edPrivateKey)
+        communicationClient.send(SignatureTransmission(signature, time))
     }
 
     fun encrypt(message: String, destination: KeyHolder) {
@@ -172,9 +155,9 @@ class MessageCrypto {
 
     private fun handle(input: Transmission, sender: Int) {
         try {
-            when(input) {
+            when (input) {
                 is SignatureTransmission -> {
-                    received = ReceivedTriple(sender, Instant.now().epochSecond, input.signature)
+                    received = ReceivedTriple(sender, Instant.now().epochSecond, input)
                     check(player, received)
                 }
                 is EncryptedMessageTransmission -> {
@@ -202,8 +185,7 @@ class MessageCrypto {
                                     if (sender == communicationClient.communicationSystem.id && Core.app?.isDesktop == true) Vars.player.name else key.name
                                 )
                             )
-                        } catch (ignored: Exception) {
-                        }
+                        } catch (ignored: Exception) {}
                     }
                 }
             }

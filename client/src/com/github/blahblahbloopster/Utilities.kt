@@ -1,17 +1,24 @@
 package com.github.blahblahbloopster
 
 import arc.scene.Element
-import arc.scene.ui.*
-import arc.scene.ui.layout.*
+import arc.scene.ui.Dialog
+import arc.scene.ui.Label
+import arc.scene.ui.layout.Cell
+import arc.scene.ui.layout.Table
 import arc.util.serialization.Base64Coder
 import mindustry.core.UI
 import mindustry.ui.Styles
 import mindustry.ui.dialogs.BaseDialog
 import java.nio.ByteBuffer
 import java.time.Instant
-import java.time.temporal.*
-import java.util.zip.*
-import kotlin.math.*
+import java.time.temporal.ChronoUnit
+import java.time.temporal.Temporal
+import java.time.temporal.TemporalUnit
+import java.util.zip.DeflaterInputStream
+import java.util.zip.InflaterInputStream
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
