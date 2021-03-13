@@ -63,6 +63,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         });
 
         released(() -> {
+            if(scene.getKeyboardFocus() != this) return;
             try { // This is the most cancer way to do this but this is what happens when you need to make something public without editing the original file
                 Method ohno = SettingsTable.class.getDeclaredMethod("rebuild");
                 ohno.setAccessible(true);
@@ -318,6 +319,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.sliderPref("slagsounddistance", 5, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
         client.checkPref("powersplitwarnings", true); // TODO: Add a minimum building requirement and a setting for it
+        client.checkPref("viruswarnings", true);
         client.checkPref("removecorenukes", false);
 
         client.category("chat");
@@ -350,6 +352,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("autoupdate", true);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("allowjoinany", false);
+        client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
         // End Client Settings
 
 
@@ -386,6 +389,10 @@ public class SettingsMenuDialog extends SettingsDialog{
         }
 
         game.checkPref("doubletapmine", settings.getBool("doubleclicktomine")); // TODO: Remove in a month or so
+
+        if(!ios){
+            game.checkPref("modcrashdisable", true);
+        }
 
         if(steam){
             game.sliderPref("playerlimit", 16, 2, 250, i -> {

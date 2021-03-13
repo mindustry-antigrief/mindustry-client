@@ -1,15 +1,15 @@
 package com.github.blahblahbloopster.communication
 
-import arc.util.Interval
+import arc.util.*
 import com.github.blahblahbloopster.*
 import com.github.blahblahbloopster.crypto.*
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.time.Instant
-import java.time.temporal.ChronoUnit
+import java.io.*
+import java.nio.*
+import java.time.*
+import java.time.temporal.*
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.reflect.KClass
+import java.util.concurrent.*
+import kotlin.reflect.*
 
 object Packets {
     /** The list of registered types of [Transmission].  Transmissions MUST be registered here before use. */
@@ -143,7 +143,7 @@ object Packets {
                 val packet = toSend.packets.poll() ?: run { outgoing.remove(toSend); toSend.onFinish?.invoke(); return }
 
                 lastSent.reset(0, 0f) // Sending a packet, reset the timer fully
-                try { communicationSystem.send(packet.bytes()) } catch (e: IOException) { outgoing.remove(toSend); toSend.onError?.invoke() }
+                try { communicationSystem.send(packet.bytes()) } catch (e: Exception) { outgoing.remove(toSend); toSend.onError?.invoke() }
             }
             for (inc in incoming) {
                 if (inc.value.expirationTime.isBefore(Instant.now())) {
@@ -168,18 +168,18 @@ object Packets {
                 if (header.transmissionType >= registeredTransmissionTypes.size)
                     throw IndexOutOfBoundsException("Transmission type ${header.transmissionType} not found!")
 
-                if (header.sequenceCount > 500) {  // too many packets
+                if (header.sequenceCount > 500) { // Too many packets
                     incoming.remove(header.transmissionId)
                     return
                 }
 
-                if (header.expirationTime.isBefore(Instant.now())) {
+                if (header.expirationTime.isBefore(Instant.now())) { // Too old
                     incoming.remove(header.transmissionId)
-                    return  // too old
+                    return
                 }
 
                 val entry = incoming[header.transmissionId] ?: run {
-                    if (incoming.size > 50) return@run null  // too many incoming connections
+                    if (incoming.size > 50) { Log.debug("Too many incoming transmissions"); return@run null }  // too many incoming connections
                     incoming[header.transmissionId] = IncomingTransmission(MutableList(header.sequenceCount) { null }, Instant.now().plusSeconds(15))  // Create new incoming connection entry
                     return@run incoming[header.transmissionId]
                 } ?: return
@@ -196,7 +196,7 @@ object Packets {
                         listener(transmission, sender)
                     }
                 }
-            } catch (e: Exception) { e.printStackTrace() }
+            } catch (e: Exception) { Log.err(e) }
         }
 
         private data class OutgoingTransmission(val packets: Queue<Packet>, val onFinish: (() -> Unit)?, val onError: (() -> Unit)?)

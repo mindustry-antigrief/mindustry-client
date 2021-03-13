@@ -38,6 +38,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
@@ -45,7 +46,6 @@ import mindustry.world.meta.*;
 
 import java.time.*;
 import java.util.*;
-import java.util.regex.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -75,8 +75,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public BuildPlan brequest = new BuildPlan();
     public Seq<BuildPlan> lineRequests = new Seq<>();
     public Seq<BuildPlan> selectRequests = new Seq<>();
-    private static Pattern pattern = Pattern.compile("\\d+ p");
     public boolean conveyorPlaceNormal = false;
+    /** Last logic virus warning block */
+    @Nullable
+    public LogicBlock.LogicBuild lastVirusWarning;
+    public long lastVirusWarnTime;
 
     public InputHandler(){
         Events.on(UnitDestroyEvent.class, e -> {
@@ -385,6 +388,19 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 } else if (value instanceof Point2[]) {
                     //todo
                 }
+            } else if (Core.settings.getBool("viruswarnings") && build instanceof LogicBlock.LogicBuild l) {
+                clientThread.taskQueue.post(() -> {
+                    if (l.code.contains("ucontrol build") && l.code.contains("ubind") && (l.code.contains("@thisx") && l.code.contains("@thisy") || l.code.contains("@this"))) {
+                        // TODO: The line below should probably be removed at some point
+                        if (l.code.startsWith("end")) ui.chatfrag.addMessage(Strings.format("@ has removed a logic virus at (@, @)", player.name, l.tileX(), l.tileY()), null, Pal.accent.cpy().mul(.75f));
+                        else {
+                            ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", player.name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
+                            control.input.lastVirusWarning = l;
+                            control.input.lastVirusWarnTime = Time.millis();
+                            Client.lastSentPos.set(l.tileX(), l.tileY());
+                        }
+                    }
+                });
             }
         }
     }
@@ -1099,10 +1115,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public @Nullable Unit selectedUnit(){
-        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, 40f, Unitc::isAI);
+        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f, Unitc::isAI);
         if(unit != null){
             unit.hitbox(Tmp.r1);
-            Tmp.r1.grow(6f);
+            Tmp.r1.grow(input.shift() ? tilesize * 6 : 6f ); // If shift is held, add 3 tiles of leeway, makes it easier to shift click units controlled by processors and such
             if(Tmp.r1.contains(Core.input.mouseWorld())){
                 return unit;
             }

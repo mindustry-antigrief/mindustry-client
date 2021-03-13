@@ -1,24 +1,22 @@
 package com.github.blahblahbloopster.crypto
 
 import arc.*
-import arc.graphics.Color
-import arc.util.Log
-import arc.util.serialization.Base64Coder
+import arc.graphics.*
+import arc.util.*
+import arc.util.serialization.*
 import com.github.blahblahbloopster.*
 import com.github.blahblahbloopster.communication.*
-import mindustry.Vars
-import mindustry.client.Client
-import mindustry.client.ui.Toast
-import mindustry.core.NetClient
-import mindustry.game.EventType
-import mindustry.gen.Iconc
-import java.nio.ByteBuffer
-import java.time.Instant
+import mindustry.*
+import mindustry.client.*
+import mindustry.client.ui.*
+import mindustry.core.*
+import mindustry.game.*
+import mindustry.gen.*
+import java.nio.*
+import java.time.*
 import java.util.zip.*
 
-/** Provides the interface between [Crypto] and a [CommunicationSystem], and handles some UI stuff.
- * TODO: replace a lot of this with a real packet system
- */
+/** Provides the interface between [Crypto] and a [CommunicationSystem], and handles some UI stuff. */
 class MessageCrypto {
     lateinit var keyQuad: KeyQuad
     lateinit var communicationClient: Packets.CommunicationClient

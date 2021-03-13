@@ -10,8 +10,7 @@ import arc.util.*;
 import arc.util.Log.*;
 import mindustry.ai.*;
 import mindustry.async.*;
-import mindustry.audio.*;
-import mindustry.client.navigation.PlayerNavigationThread;
+import mindustry.client.navigation.ClientThread;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
@@ -212,7 +211,7 @@ public class Vars implements Loadable{
     public static WaveSpawner spawner;
     public static BlockIndexer indexer;
     public static Pathfinder pathfinder;
-    public static PlayerNavigationThread playerNavigator;
+    public static ClientThread clientThread;
 
     public static Control control;
     public static Logic logic;
@@ -277,7 +276,7 @@ public class Vars implements Loadable{
         spawner = new WaveSpawner();
         indexer = new BlockIndexer();
         pathfinder = new Pathfinder();
-        playerNavigator = new PlayerNavigationThread();
+        clientThread = new ClientThread();
         bases = new BaseRegistry();
         constants = new GlobalConstants();
 

@@ -3,42 +3,44 @@ package mindustry.world.blocks;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
+import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
-import arc.scene.ui.Label;
+import arc.scene.ui.*;
 import arc.struct.*;
+import arc.util.Timer;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.Client;
-import mindustry.client.Spectate;
+import mindustry.client.*;
 import mindustry.client.antigrief.*;
-import mindustry.client.navigation.Navigation;
-import mindustry.client.navigation.UnAssistPath;
-import mindustry.client.ui.Toast;
-import mindustry.client.utils.Pair;
+import mindustry.client.navigation.*;
+import mindustry.client.ui.*;
+import mindustry.client.utils.*;
 import mindustry.content.*;
-import mindustry.core.World;
+import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
-import mindustry.world.blocks.power.NuclearReactor;
+import mindustry.world.blocks.logic.*;
+import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
-import mindustry.world.blocks.storage.StorageBlock;
+import mindustry.world.blocks.storage.*;
 import mindustry.world.modules.*;
+
 import java.time.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
 import static mindustry.Vars.*;
-import static mindustry.ui.Styles.monoLabel;
+import static mindustry.ui.Styles.*;
 
 /** A block in the process of construction. */
 public class ConstructBlock extends Block{
@@ -77,6 +79,7 @@ public class ConstructBlock extends Block{
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if(((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()){
                     if(block.isVisible()) {
+                        Log.debug("Build: " + tile.build.config() + " Block: " + tile.block().lastConfig);
                         ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, block, tile.build.config()));
                     }
                 }
@@ -139,6 +142,12 @@ public class ConstructBlock extends Block{
 
         if(builder != null && tile.build != null){
             tile.getLinkedTiles(t -> t.addToLog(new PlaceTileLog(builder, t, Instant.now().getEpochSecond(), "", block, tile.build.config())));
+            if (Core.settings.getBool("viruswarnings") && builder.isPlayer() && tile.build instanceof LogicBlock.LogicBuild l && l.code.contains("ucontrol build") && l.code.contains("ubind") && (l.code.contains("@thisx") && l.code.contains("@thisy") || l.code.contains("@this"))) {
+                ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", builder.getPlayer().name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
+                control.input.lastVirusWarning = l;
+                control.input.lastVirusWarnTime = Time.millis();
+                Client.lastSentPos.set(l.tileX(), l.tileY());
+            }
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if (((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()) {
                     if(Navigation.currentlyFollowing != null) {
@@ -490,7 +499,7 @@ public class ConstructBlock extends Block{
             super.update();
         }
 
-        public void blockWarning(){
+        public void blockWarning() { // TODO: Account for non player building stuff
             if (!wasConstructing || closestCore() == null || cblock == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
 
             Map<Block, Pair<Integer, Integer>> warnBlocks = new HashMap<>(); // Block, warndist, sounddist (0 = off, 101 = always)
@@ -513,7 +522,7 @@ public class ConstructBlock extends Block{
                 }
 
                 if (warnBlocks.get(cblock).first == 101 || distance.get() <= warnBlocks.get(cblock).first) {
-                    String format = Strings.format("@ is building a @ at @, @ (@ block@ from core).", lastBuilder.getPlayer().name, cblock.localizedName, tileX(), tileY(), distance.get(), distance.get() == 1 ? "" : "s");
+                    String format = Strings.format("@ is building a @ at @, @ (@ block@ from core).", Strings.stripColors(lastBuilder.playerNonNull().name), cblock.localizedName, tileX(), tileY(), distance.get(), distance.get() == 1 ? "" : "s");
                     String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
                     if (toast == null || toast.parent == null) {
                         toast = new Toast(2f, 0f);
