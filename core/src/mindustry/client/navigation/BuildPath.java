@@ -1,6 +1,5 @@
 package mindustry.client.navigation;
 
-import arc.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
@@ -127,7 +126,7 @@ public class BuildPath extends Path {
                  activeVirus = !virus.isEmpty();
                  if (!activeVirus) { // The virus has stopped spreading, start cleaning up
                      for (Tile tile : world.tiles) {
-                         if (tile.team() == player.team() && (tile.build instanceof ConstructBlock.ConstructBuild cb && cb.previous instanceof LogicBlock || tile.build instanceof LogicBlock.LogicBuild build && build.code.contains("print \"Logic grief auto removed by:\"\nprint \""))) {
+                         if (tile.team() == player.team() && (tile.build instanceof ConstructBlock.ConstructBuild cb && cb.cblock instanceof LogicBlock || tile.build instanceof LogicBlock.LogicBuild build && build.code.contains("print \"Logic grief auto removed by:\"\nprint \""))) {
                              virus.add(new BuildPlan(tile.x, tile.y));
                          }
                      }
@@ -174,7 +173,6 @@ public class BuildPath extends Path {
                 Formation formation = player.unit().formation;
                 float range = buildingRange - player.unit().hitSize()/2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.spacing / (float)Math.sin(180f / formation.pattern.slots * Mathf.degRad);
-                if (Core.settings.getBool("assumeunstrict")) range /= 1.5; // Teleport closer so its not out of range when building things such as conveyors
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{
                 //discard invalid request
