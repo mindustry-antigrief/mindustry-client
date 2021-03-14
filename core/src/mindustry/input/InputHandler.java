@@ -388,19 +388,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 } else if (value instanceof Point2[]) {
                     //todo
                 }
-            } else if (Core.settings.getBool("viruswarnings") && build instanceof LogicBlock.LogicBuild l) {
-                clientThread.taskQueue.post(() -> {
-                    if (l.code.contains("ucontrol build") && l.code.contains("ubind") && (l.code.contains("@thisx") && l.code.contains("@thisy") || l.code.contains("@this"))) {
-                        // TODO: The line below should probably be removed at some point
-                        if (l.code.startsWith("end")) ui.chatfrag.addMessage(Strings.format("@ has removed a logic virus at (@, @)", player.name, l.tileX(), l.tileY()), null, Pal.accent.cpy().mul(.75f));
-                        else {
-                            ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", player.name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
-                            control.input.lastVirusWarning = l;
-                            control.input.lastVirusWarnTime = Time.millis();
-                            Client.lastSentPos.set(l.tileX(), l.tileY());
-                        }
-                    }
-                });
+            } else if (Core.settings.getBool("viruswarnings") && value instanceof byte[] && build instanceof LogicBlock.LogicBuild l && l.code.contains("ucontrol build") && l.code.contains("ubind") && (l.code.contains("@thisx") && l.code.contains("@thisy") || l.code.contains("@this"))) {
+                ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", player.name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
+                control.input.lastVirusWarning = l;
+                control.input.lastVirusWarnTime = Time.millis();
+                Client.lastSentPos.set(l.tileX(), l.tileY());
             }
         }
     }

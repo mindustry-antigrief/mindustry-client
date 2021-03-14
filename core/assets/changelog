@@ -1,5 +1,13 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 6.5.3
+ * Changed icons for encrypted and verified messages
+ * Fixed a bug in buildpath
+ * Fixed discord rich presence not starting on client launch when not on steam
+ * Fixed logic virus warnings being incredibly spammy
+ * Removed virus removal messages, those were just annoying
+ * A !js command was added an update or two ago but I forgot to list it in the changelog
+
 # Version 6.5.2
  * Fix hints consuming click, even when invisible
  * Fix green verified messages

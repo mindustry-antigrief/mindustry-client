@@ -12,6 +12,7 @@ import arc.util.*;
 import arc.util.serialization.*;
 import club.minnced.discord.rpc.*;
 import com.codedisaster.steamworks.*;
+import com.github.blahblahbloopster.*;
 import mindustry.*;
 import mindustry.core.*;
 import mindustry.desktop.steam.*;
@@ -20,8 +21,8 @@ import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.net.Net.*;
 import mindustry.type.*;
+
 import java.io.*;
-import com.github.blahblahbloopster.Main;
 
 import static mindustry.Vars.*;
 
@@ -99,7 +100,6 @@ public class DesktopLauncher extends ClientLauncher{
                         ui.showErrorMessage(Core.bundle.format("steam.error", (steamError.getMessage() == null) ? steamError.getClass().getSimpleName() : steamError.getClass().getSimpleName() + ": " + steamError.getMessage()));
                     })));
                 }
-                if(Core.settings.getBool("discordrpc")) startDiscord();
             });
 
             try{

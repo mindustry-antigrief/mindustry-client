@@ -142,7 +142,7 @@ public class ConstructBlock extends Block{
 
         if(builder != null && tile.build != null){
             tile.getLinkedTiles(t -> t.addToLog(new PlaceTileLog(builder, t, Instant.now().getEpochSecond(), "", block, tile.build.config())));
-            if (Core.settings.getBool("viruswarnings") && builder.isPlayer() && tile.build instanceof LogicBlock.LogicBuild l && l.code.contains("ucontrol build") && l.code.contains("ubind") && (l.code.contains("@thisx") && l.code.contains("@thisy") || l.code.contains("@this"))) {
+            if (Core.settings.getBool("viruswarnings") && builder.isPlayer() && config instanceof byte[] && tile.build instanceof LogicBlock.LogicBuild l && l.code.contains("ucontrol build") && l.code.contains("ubind") && (l.code.contains("@thisx") && l.code.contains("@thisy") || l.code.contains("@this"))) {
                 ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", builder.getPlayer().name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
                 control.input.lastVirusWarning = l;
                 control.input.lastVirusWarnTime = Time.millis();
@@ -333,7 +333,7 @@ public class ConstructBlock extends Block{
 
             progress = state.rules.infiniteResources ? 1 : Mathf.clamp(progress + maxProgress);
 
-            blockWarning();
+            blockWarning(config);
 
             if(progress >= 1f || state.rules.infiniteResources){
                 if(lastBuilder == null) lastBuilder = builder;
@@ -499,7 +499,7 @@ public class ConstructBlock extends Block{
             super.update();
         }
 
-        public void blockWarning() { // TODO: Account for non player building stuff
+        public void blockWarning(Object config) { // TODO: Account for non player building stuff
             if (!wasConstructing || closestCore() == null || cblock == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
 
             Map<Block, Pair<Integer, Integer>> warnBlocks = new HashMap<>(); // Block, warndist, sounddist (0 = off, 101 = always)
@@ -541,8 +541,8 @@ public class ConstructBlock extends Block{
                     Call.unitControl(player, ((CoreBuild)closestCore()).unit());
                     Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tileX(), tileY())), net.client() ? netClient.getPing()/1000f+.3f : 0);
                 }
-                lastProgress = progress;
             }
+            lastProgress = progress;
         }
     }
 }

@@ -1,22 +1,23 @@
 package mindustry.client;
 
 import arc.*;
-import arc.graphics.Color;
-import arc.math.Mathf;
-import arc.math.geom.Vec2;
+import arc.graphics.*;
+import arc.math.*;
+import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.utils.*;
 import mindustry.core.*;
-import mindustry.game.EventType;
-import mindustry.game.EventType.WorldLoadEvent;
+import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
-import mindustry.input.DesktopInput;
-import mindustry.world.Tile;
+import mindustry.input.*;
+import mindustry.net.*;
+import mindustry.world.*;
 
-import static arc.Core.settings;
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class Client {
@@ -58,6 +59,7 @@ public class Client {
             settings.put("changeHash", changeHash);
 
             if (settings.getBool("debug")) Log.level = Log.LogLevel.debug; // Set log level to debug if the setting is checked
+            if (Core.settings.getBool("discordrpc")) platform.startDiscord();
 
             Autocomplete.autocompleters.add(new BlockEmotes());
             Autocomplete.autocompleters.add(new PlayerCompletion());
@@ -75,7 +77,7 @@ public class Client {
 
         if (!configs.isEmpty()) {
                 try {
-                    if (configRateLimit.allow(6 * 1000, 20)) {
+                    if (configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000, Administration.Config.interactRateLimit.num())) {
                         ConfigRequest req = configs.last();
                         Tile tile = world.tile(req.x, req.y);
                         if (tile != null) {

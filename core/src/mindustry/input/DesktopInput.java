@@ -79,7 +79,9 @@ public class DesktopInput extends InputHandler{
                 b.label(() -> {
                     if(!showHint()) return str;
                     str.setLength(0);
-                    if(player.unit().isBuilding()){
+                    if(!isBuilding && !Core.settings.getBool("buildautopause") && !player.unit().isBuilding()){
+                        str.append("\n").append(Core.bundle.format("enablebuilding", Core.keybinds.get(Binding.pause_building).key.toString()));
+                    }else if(player.unit().isBuilding()){
                         str.append("\n")
                             .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
                             .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))

@@ -118,6 +118,25 @@ public class LogicBlock extends Block{
         }
     }
 
+    /** Jank method to get the code from a byte array. */
+    public static String decompress(byte[] data){
+        if (data == null) return "";
+        try{
+            DataInputStream stream = new DataInputStream(new InflaterInputStream(new ByteArrayInputStream(data)));
+
+            stream.read(); // Version
+            int bytelen = stream.readInt();
+            if(bytelen > maxByteLen) throw new RuntimeException("Malformed logic data! Length: " + bytelen);
+            byte[] bytes = new byte[bytelen];
+            stream.readFully(bytes);
+
+            return new String(bytes, charset);
+        }catch(IOException e){
+            Log.err(e);
+        }
+        return ""; // Somehow this failed to read the code
+    }
+
     @Override
     public void setStats(){
         super.setStats();

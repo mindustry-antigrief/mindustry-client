@@ -7,12 +7,12 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.formations.*;
 import mindustry.client.*;
-import mindustry.client.antigrief.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.net.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.environment.*;
@@ -22,10 +22,11 @@ import static mindustry.Vars.*;
 
 public class BuildPath extends Path {
     Building core = player.core();
-    private boolean show;
+    private boolean show, activeVirus;
     Interval timer = new Interval();
     public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>();
     public Seq<Queue<BuildPlan>> queues = new Seq<>(9);
+    public Seq<BuildPlan> sorted = new Seq<>();
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
@@ -105,12 +106,9 @@ public class BuildPath extends Path {
             if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus)) {
                 for (Tile tile : world.tiles) {
                     if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build) {
-                        clientThread.taskQueue.post(() -> {
-                            if (build.code.contains("ucontrol build") && build.code.contains("ubind") && (build.code.contains("@thisx") && build.code.contains("@thisy") || build.code.contains("@this") || build.code.contains("@controller"))) { // Doesn't use a regex as those are expensive
-                                Client.configs.add(new ConfigRequest(build.tileX(), build.tileY(), LogicBlock.compress(String.format("print \"Logic grief auto removed by:\"\nprint \"%.34s\"", Strings.stripColors(player.name)), build.relativeConnections()))); // Remove configs on all of these potential virus blocks
-                                virus.add(new BuildPlan(tile.x, tile.y)); // Partially delete the spammed processors, prioritizes ones that haven't been configured yet in the event that you get ratelimited
-                            }
-                        });
+                        if (build.code.contains("ucontrol build") && build.code.contains("ubind") && (build.code.contains("@thisx") && build.code.contains("@thisy") || build.code.contains("@this") || build.code.contains("@controller"))) { // Doesn't use a regex as those are expensive
+                            virus.add(new BuildPlan(tile.x, tile.y)); // Partially delete the spammed processors, prioritizes ones that haven't been configured yet in the event that you get ratelimited
+                        }
 
                     } else if (queues.contains(boulders) && tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild build && build.previous instanceof Boulder) {
                         boulders.add(new BuildPlan(tile.x, tile.y));
@@ -125,17 +123,20 @@ public class BuildPath extends Path {
                     }
                 }
             }
-             if (queues.contains(virus) && virus.isEmpty()) { // Once the virus has been stopped, fully remove the processors
-                 for (Tile tile : world.tiles) {
-                     if (tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild build && build.previous instanceof LogicBlock) {
-                         virus.add(new BuildPlan(tile.x, tile.y));
+             if (queues.contains(virus)) {
+                 activeVirus = !virus.isEmpty();
+                 if (!activeVirus) { // The virus has stopped spreading, start cleaning up
+                     for (Tile tile : world.tiles) {
+                         if (tile.team() == player.team() && (tile.build instanceof ConstructBlock.ConstructBuild cb && cb.previous instanceof LogicBlock || tile.build instanceof LogicBlock.LogicBuild build && build.code.contains("print \"Logic grief auto removed by:\"\nprint \""))) {
+                             virus.add(new BuildPlan(tile.x, tile.y));
+                         }
                      }
                  }
              }
 
             boolean all = false;
-            dosort:
-            for (int x = 0; x < 2; x++) {
+            sort:
+            for (int i = 0; i < 2; i++) {
                 for (Queue queue : queues) {
                     Queue<BuildPlan> plans = sortPlans(queue, all, !all);
                     if (plans.isEmpty()) continue;
@@ -144,27 +145,32 @@ public class BuildPath extends Path {
                     if (plans.isEmpty()) continue; */
                     plans.forEach(player.unit().plans::remove);
                     plans.forEach(player.unit().plans::addFirst);
-                    break dosort;
+                    break sort;
                 }
                 all = true;
             }
         }
 
-        if (player.unit().isBuilding()) {
-            BuildPlan req = player.unit().buildPlan(); //approach request if building
+        if (player.unit().isBuilding()) { // Approach request if building
+            BuildPlan req;
+            while (activeVirus && !virus.isEmpty() && Client.configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000, Administration.Config.interactRateLimit.num())) { // Remove config from virus blocks if we arent hitting the config ratelimit
+                req = sorted.clear().addAll(virus).max(plan -> plan.dst(player));
+                Call.tileConfig(player, req.build(), LogicBlock.compress(String.format("print \"Logic grief auto removed by:\"\nprint \"%.34s\"", Strings.stripColors(player.name)), ((LogicBlock.LogicBuild) req.build()).relativeConnections()));
+            }
+            req = player.unit().buildPlan();
 
             boolean valid =
-                    (req.tile().build instanceof ConstructBlock.ConstructBuild entity && entity.cblock == req.block) ||
-                            (req.breaking ?
-                                    Build.validBreak(player.unit().team(), req.x, req.y) :
-                                    Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));
+                    activeVirus && virus.indexOf(req, true) != -1 ? req.tile().block() instanceof LogicBlock : (req.tile().build instanceof ConstructBlock.ConstructBuild entity && entity.cblock == req.block) ||
+                        (req.breaking ?
+                            Build.validBreak(player.unit().team(), req.x, req.y) :
+                            Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));
 
             if(valid){
                 //move toward the request
                 Formation formation = player.unit().formation;
                 float range = buildingRange - player.unit().hitSize()/2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.spacing / (float)Math.sin(180f / formation.pattern.slots * Mathf.degRad);
-                if (Core.settings.getBool("assumeunstrict")) range /= 2; // Teleport closer so its not weird when building stuff like conveyors
+                if (Core.settings.getBool("assumeunstrict")) range /= 1.5; // Teleport closer so its not out of range when building things such as conveyors
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{
                 //discard invalid request
@@ -199,15 +205,15 @@ public class BuildPath extends Path {
     public Queue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll, boolean largeFirst) {
         if (plans == null) return null;
         Queue<BuildPlan> out = new Queue<>();
-        Seq<BuildPlan> sorted = new Seq<>();
+        sorted.clear();
         sorted.addAll(plans);
-        sorted.sort(p -> p.dst(player));
+        sorted.sort(plan -> plan.dst(player));
         if(!largeFirst)sorted.reverse();
-        for (BuildPlan p : sorted) { // The largest distance is at the start of the sequence by this point
-            if (p.block == null || player.unit().shouldSkip(p, core)) {
-                if (includeAll)out.addLast(p);
+        for (BuildPlan plan : sorted) { // The largest distance is at the start of the sequence by this point
+            if (plan.block == null || player.unit().shouldSkip(plan, core)) {
+                if (includeAll)out.addLast(plan);
             } else {
-                out.addFirst(p);
+                out.addFirst(plan);
             }
         }
         return out;
