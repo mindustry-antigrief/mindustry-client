@@ -292,7 +292,7 @@ public class DesktopInput extends InputHandler{
 
                 if(Time.timeSinceMillis(lastVirusWarnTime) < 3000 && lastVirusWarning != null && world.tile(lastVirusWarning.pos()).build == lastVirusWarning){ // Logic virus
                     lastVirusWarning.configure(LogicBlock.compress("end\n" + lastVirusWarning.code, lastVirusWarning.relativeConnections())); // Disable the block while we look into it
-                    Vars.ui.logic.show(lastVirusWarning.code, code -> lastVirusWarning.configure(LogicBlock.compress(code, lastVirusWarning.relativeConnections()))); // Inspect the code
+                    try{Vars.ui.logic.show(lastVirusWarning.code, code -> lastVirusWarning.configure(LogicBlock.compress(code, lastVirusWarning.relativeConnections())));}catch(Exception ignored){} // Inspect the code
                     lastVirusWarning = null;
                 }
             }
