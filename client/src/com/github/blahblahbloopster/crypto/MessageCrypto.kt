@@ -104,7 +104,7 @@ class MessageCrypto {
         }
         if (Vars.player?.id == player.id || Vars.player?.id == received.id) return
 
-        if (player.time.toInstant().age() > 3 || received.time.toInstant().age() > 3) {
+        if (player.time.toInstant().age() > 15 || received.time.toInstant().age() > 15) {
             event(player.id, message = player.message)
             return
         }
@@ -207,6 +207,6 @@ class MessageCrypto {
         } catch (ignored: java.lang.Exception) { false }
         val age = time.toInstant().age()
 
-        return age < 3 && validSignature
+        return age < 15 && validSignature
     }
 }
