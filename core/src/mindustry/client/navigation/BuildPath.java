@@ -156,7 +156,9 @@ public class BuildPath extends Path {
             req = sorted.clear().addAll(virus).max(plan -> plan.dst(player));
             virus.remove(req);
             player.unit().plans.remove(req);
-            Call.tileConfig(player, req.build(), LogicBlock.compress(String.format("print \"Logic grief auto removed by:\"\nprint \"%.34s\"", Strings.stripColors(player.name)), ((LogicBlock.LogicBuild) req.build()).relativeConnections()));
+            if (req.build() instanceof LogicBlock.LogicBuild l) {
+                Call.tileConfig(player, req.build(), LogicBlock.compress(String.format("print \"Logic grief auto removed by:\"\nprint \"%.34s\"", Strings.stripColors(player.name)), l.relativeConnections()));
+            }
         }
 
         if (player.unit().isBuilding()) { // Approach request if building
