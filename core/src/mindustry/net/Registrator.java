@@ -10,7 +10,8 @@ public class Registrator{
     new ClassEntry(StreamChunk.class, StreamChunk::new),
     new ClassEntry(WorldStream.class, WorldStream::new),
     new ClassEntry(ConnectPacket.class, ConnectPacket::new),
-    new ClassEntry(InvokePacket.class, InvokePacket::new)
+    new ClassEntry(InvokePacket.class, InvokePacket::new),
+    new ClassEntry(ClientNetworkPacket.class, ClientNetworkPacket::new)
     };
     private static final ObjectIntMap<Class<?>> ids = new ObjectIntMap<>();
 

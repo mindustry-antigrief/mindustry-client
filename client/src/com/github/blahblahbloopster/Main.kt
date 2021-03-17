@@ -31,6 +31,8 @@ object Main : ApplicationListener {
             communicationSystem = MessageBlockCommunicationSystem()
             communicationSystem.init()
 
+            PluginCommunicationSystem.init()
+
             fooCommands.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
                 val dest = args[0]
                 val message = args[1]
@@ -45,18 +47,32 @@ object Main : ApplicationListener {
             }
         } else {
             communicationSystem = DummyCommunicationSystem(mutableListOf())
+            communicationSystem.init()
         }
         messageCrypto = MessageCrypto()
-        communicationClient = Packets.CommunicationClient(communicationSystem)
+        initializeCommunication(communicationSystem)
         messageCrypto.init(communicationClient)
         KeyFolder.initializeAlways()
 
         Navigation.navigator = AStarNavigator
 
+        Events.on(EventType.WorldLoadEvent::class.java) {
+            dispatchedBuildPlans.clear()
+            communicationSystem = MessageBlockCommunicationSystem()
+            communicationSystem.init()
+            initializeCommunication(communicationSystem)
+        }
+    }
+
+    fun initializeCommunication(communicationSystem: CommunicationSystem) {
+        communicationSystem.listeners.clear()
+        this.communicationSystem = communicationSystem
+        this.messageCrypto = MessageCrypto()
+        communicationClient = Packets.CommunicationClient(communicationSystem)
         communicationClient.addListener { transmission, senderId ->
             when (transmission) {
                 is BuildQueueTransmission -> {
-                    if (senderId == communicationSystem.id) return@addListener
+                    if (senderId == Main.communicationSystem.id) return@addListener
                     val path = Navigation.currentlyFollowing as? BuildPath ?: return@addListener
                     if (path.queues.contains(path.networkAssist)) {
                         val positions = IntSet()
@@ -71,10 +87,7 @@ object Main : ApplicationListener {
                 }
             }
         }
-
-        Events.on(EventType.WorldLoadEvent::class.java) {
-            dispatchedBuildPlans.clear()
-        }
+        messageCrypto.init(communicationClient)
     }
 
     /** Run once per frame. */

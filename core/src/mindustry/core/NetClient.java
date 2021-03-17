@@ -13,6 +13,7 @@ import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
+import mindustry.content.Fx;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -378,6 +379,11 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both, unreliable = true)
     public static void effect(Effect effect, float x, float y, float rotation, Color color){
         if(effect == null) return;
+
+        if (x == -1f && y == 0f && rotation == 1f && color.equals(Color.clear) && effect.id == Fx.none.id) {  // Transmitted by plugin
+            Client.mapping.setPluginNetworking(true);
+            Vars.net.send(new ClientNetworkPacket(new byte[]{1}), SendMode.udp);
+        }
 
         effect.at(x, y, rotation, color);
     }

@@ -1,16 +1,23 @@
 package com.github.blahblahbloopster
 
-import arc.*
-import arc.math.geom.*
-import arc.util.serialization.*
-import com.github.blahblahbloopster.crypto.*
-import com.github.blahblahbloopster.navigation.*
-import com.github.blahblahbloopster.ui.*
-import mindustry.*
-import mindustry.client.*
-import mindustry.client.navigation.*
-import mindustry.client.utils.*
-import mindustry.gen.*
+import arc.Core
+import arc.math.geom.Vec2
+import arc.util.serialization.Base64Coder
+import com.github.blahblahbloopster.communication.PluginCommunicationSystem
+import com.github.blahblahbloopster.crypto.Crypto
+import com.github.blahblahbloopster.crypto.DummyCommunicationSystem
+import com.github.blahblahbloopster.crypto.MessageBlockCommunicationSystem
+import com.github.blahblahbloopster.navigation.AssistPath
+import com.github.blahblahbloopster.ui.ChangelogDialog
+import com.github.blahblahbloopster.ui.FeaturesDialog
+import com.github.blahblahbloopster.ui.FindDialog
+import com.github.blahblahbloopster.ui.KeyShareDialog
+import mindustry.Vars
+import mindustry.client.Client
+import mindustry.client.ClientInterface
+import mindustry.client.navigation.Navigation
+import mindustry.client.utils.FloatEmbed
+import mindustry.gen.Player
 
 class ClientMapping : ClientInterface {
 
@@ -54,5 +61,19 @@ class ClientMapping : ClientInterface {
 
     override fun shareKey() {
         KeyShareDialog(Main.messageCrypto).show()
+    }
+
+    override fun setPluginNetworking(enable: Boolean) {
+        when {
+            enable -> {
+                Main.initializeCommunication(PluginCommunicationSystem)
+            }
+            Core.app?.isDesktop == true -> {
+                Main.initializeCommunication(MessageBlockCommunicationSystem())
+            }
+            else -> {
+                Main.initializeCommunication(DummyCommunicationSystem(mutableListOf()))
+            }
+        }
     }
 }

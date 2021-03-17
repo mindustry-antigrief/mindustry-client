@@ -40,6 +40,7 @@ public class Client {
         registerCommands();
 
         Events.on(WorldLoadEvent.class, event -> {
+            mapping.setPluginNetworking(false);
             if (Time.timeSinceMillis(lastSyncTime) > 5000) {
                 tileLogs = new TileLog[world.height()][world.width()];
             }
@@ -77,7 +78,7 @@ public class Client {
 
         if (!configs.isEmpty()) {
                 try {
-                    if (configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000, Administration.Config.interactRateLimit.num())) {
+                    if (configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) {
                         ConfigRequest req = configs.last();
                         Tile tile = world.tile(req.x, req.y);
                         if (tile != null) {
@@ -90,7 +91,7 @@ public class Client {
 //                            }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
                         }
                     }
-                } catch (Exception e) {Log.info(e.getMessage());}
+                } catch (Exception e) { Log.info(e.getMessage()); }
         }
     }
 
