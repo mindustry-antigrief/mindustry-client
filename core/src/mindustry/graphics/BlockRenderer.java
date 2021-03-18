@@ -140,7 +140,7 @@ public class BlockRenderer implements Disposable{
     }
 
     public void drawShadows(){
-        if (Client.hidingBlocks) return;
+        if (Client.vars.getHidingBlocks()) return;
         if(!shadowEvents.isEmpty()){
             Draw.flush();
 
@@ -252,7 +252,7 @@ public class BlockRenderer implements Disposable{
     }
 
     public void drawBlocks(){
-        if (Client.hidingBlocks) return;
+        if (Client.vars.getHidingBlocks()) return;
         drawDestroyed();
 
         //draw most tile stuff
@@ -303,7 +303,7 @@ public class BlockRenderer implements Disposable{
             }
         }
 
-        if (Client.showingTurrets) {
+        if (Client.vars.getHidingBlocks()) {
             Draw.z(Layer.space);
             Rect bounds = new Rect();
             Core.camera.bounds(bounds);

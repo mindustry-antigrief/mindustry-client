@@ -16,7 +16,7 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
         Vars.player ?: return -1
         return Vars.player.id
     }
-    override val MAX_LENGTH = Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - Client.messageCommunicationPrefix.length)
+    override val MAX_LENGTH = Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - Client.vars.messageBlockCommunicationPrefix.length)
     override val RATE: Float = 30f // 500ms
 
     /** Initializes listeners. */
@@ -28,13 +28,13 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
             if (event.tile.block !is MessageBlock) return@on
 
             val message = event.value as String
-            if (!message.startsWith(Client.messageCommunicationPrefix)) return@on
+            if (!message.startsWith(Client.vars.messageBlockCommunicationPrefix)) return@on
 
             val id = if (event.player == null) -1 else event.player.id
 
             val bytes: ByteArray
             try {
-                bytes = Base32768Coder.decode(message.removePrefix(Client.messageCommunicationPrefix))
+                bytes = Base32768Coder.decode(message.removePrefix(Client.vars.messageBlockCommunicationPrefix))
             } catch (exception: Exception) {
                 return@on
             }
@@ -48,9 +48,9 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
     override fun send(bytes: ByteArray) {
         for (tile in Vars.world.tiles) {
             val build = tile.build as? MessageBlock.MessageBuild ?: continue // If it isn't a message block with the prefix, continue
-            if (!build.message.startsWith(Client.messageCommunicationPrefix)) continue
+            if (!build.message.startsWith(Client.vars.messageBlockCommunicationPrefix)) continue
 
-            Call.tileConfig(Vars.player, build, Client.messageCommunicationPrefix + Base32768Coder.encode(bytes))
+            Call.tileConfig(Vars.player, build, Client.vars.messageBlockCommunicationPrefix + Base32768Coder.encode(bytes))
             return
         }
         throw IOException() // Throws an exception when no valid block is found

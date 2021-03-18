@@ -41,13 +41,13 @@ class ClientMapping : ClientInterface {
         return when {
             Navigation.currentlyFollowing is AssistPath && Core.settings.getBool("displayasuser") ->
                 Vec2(
-                    FloatEmbed.embedInFloat(Vars.player.unit().aimX, Client.FOO_USER),
-                    FloatEmbed.embedInFloat(Vars.player.unit().aimY, Client.ASSISTING)
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimX, Client.vars.fooUser),
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimY, Client.vars.assisting)
                 )
             Core.settings.getBool("displayasuser") ->
                 Vec2(
-                    FloatEmbed.embedInFloat(Vars.player.unit().aimX, Client.FOO_USER),
-                    FloatEmbed.embedInFloat(Vars.player.unit().aimY, Client.FOO_USER)
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimX, Client.vars.fooUser),
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimY, Client.vars.fooUser)
                 )
             else -> Vec2(Vars.player.unit().aimX, Vars.player.unit().aimY)
         }

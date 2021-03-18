@@ -13,9 +13,9 @@ public class CommandCompletion implements Autocompleter {
         String prefix = Reflect.get(Vars.netServer.clientCommands, "prefix");
         String finalPrefix = prefix;
         commands.addAll(Vars.netServer.clientCommands.getCommandList().map(inp -> new CommandCompletable(inp.text, inp.text + inp.paramText, finalPrefix)));
-        prefix = Reflect.get(Client.fooCommands, "prefix");
+        prefix = Reflect.get(Client.vars.getFooCommands(), "prefix");
         String finalPrefix1 = prefix;
-        commands.addAll(Client.fooCommands.getCommandList().map(inp -> new CommandCompletable(inp.text, inp.text + inp.paramText, finalPrefix1)));
+        commands.addAll(Client.vars.getFooCommands().getCommandList().map(inp -> new CommandCompletable(inp.text, inp.text + inp.paramText, finalPrefix1)));
     }
 
     @Override

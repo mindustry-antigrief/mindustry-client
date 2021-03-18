@@ -242,12 +242,12 @@ public class ChatFragment extends Table{
         history.insert(1, message);
 
         //check if it's a command
-        CommandHandler.CommandResponse response = Client.fooCommands.handleMessage(message, player);
+        CommandHandler.CommandResponse response = Client.vars.getFooCommands().handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
             Call.sendChatMessage(message);
             if (message.startsWith("/sync")) {
 
-                Client.lastSyncTime = Time.millis();
+                Client.vars.setLastSyncTime(Time.millis());
             }
             Events.fire(new EventType.SendChatMessageEvent(message));
 

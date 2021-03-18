@@ -23,15 +23,19 @@ object Main : ApplicationListener {
     private var dispatchedBuildPlans = mutableListOf<BuildPlan>()
     private val buildPlanInterval = Interval(2)
 
+    init {
+        vars = ClientVarsImpl
+        mapping = ClientMapping()
+    }
+
     /** Run on client load. */
     override fun init() {
-        mapping = ClientMapping()
         Crypto.initializeAlways()
         if (Core.app.isDesktop) {
             communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem, PluginCommunicationSystem)
             communicationSystem.init()
 
-            fooCommands.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
+            vars.fooCommands.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
                 val dest = args[0]
                 val message = args[1]
 
@@ -64,7 +68,7 @@ object Main : ApplicationListener {
         }
     }
 
-    fun initializeCommunication(communicationSystem: CommunicationSystem) {
+    private fun initializeCommunication(communicationSystem: CommunicationSystem) {
         communicationSystem.clearListeners()
         this.messageCrypto = MessageCrypto()
         communicationClient = Packets.CommunicationClient(communicationSystem)
@@ -94,10 +98,10 @@ object Main : ApplicationListener {
         communicationClient.update()
 
         if (Core.scene.keyboardFocus == null && Core.input?.keyTap(Binding.send_build_queue) == true) {
-            dispatchingBuildPlans = !dispatchingBuildPlans
+            vars.dispatchingBuildPlans = !vars.dispatchingBuildPlans
         }
 
-        if (dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(10 * 60f)) {
+        if (vars.dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(10 * 60f)) {
             sendBuildPlans()
         }
     }

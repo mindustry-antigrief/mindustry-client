@@ -323,7 +323,7 @@ public class HudFragment extends Fragment{
                     } else {
                         ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y), null);
                     }
-                    Client.lastSentPos.set(event.core.x, event.core.y);
+                    Client.vars.getLastSentPos().set(event.core.x, event.core.y);
                 }
                coreAttackTime[0] = notifDuration;
             });
@@ -348,7 +348,7 @@ public class HudFragment extends Fragment{
 
                 return coreAttackOpacity[0] > 0.01f;
             });
-            t.button("@coreattack", () -> Spectate.spectate(Client.lastSentPos.cpy().scl(tilesize))).pad(2)
+            t.button("@coreattack", () -> Spectate.spectate(Client.vars.getLastSentPos().cpy().scl(tilesize))).pad(2)
             .update(label -> label.getLabel().color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f))).get().getLabel().setWrap(false);
         });
 

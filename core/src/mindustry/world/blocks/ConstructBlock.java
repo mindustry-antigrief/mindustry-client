@@ -146,7 +146,7 @@ public class ConstructBlock extends Block{
                 ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", builder.getPlayer().name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
                 control.input.lastVirusWarning = l;
                 control.input.lastVirusWarnTime = Time.millis();
-                Client.lastSentPos.set(l.tileX(), l.tileY());
+                Client.vars.getLastSentPos().set(l.tileX(), l.tileY());
             }
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if (((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()) {
@@ -158,7 +158,7 @@ public class ConstructBlock extends Block{
                         }
                         ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y));
                         if (config != null) {
-                            Client.configs.add(new ConfigRequest(tile.x, tile.y, null));
+                            Client.vars.getConfigs().add(new ConfigRequest(tile.x, tile.y, null));
                         }
                     }
                 }
@@ -533,8 +533,8 @@ public class ConstructBlock extends Block{
                     toast.add(new Label(format));
                     toast.row();
                     toast.add(new Label(format2, monoLabel));
-                    toast.clicked(() -> Spectate.spectate(Client.lastSentPos.cpy().scl(tilesize)));
-                    Client.lastSentPos.set(tileX(), tileY());
+                    toast.clicked(() -> Spectate.spectate(Client.vars.getLastSentPos().cpy().scl(tilesize)));
+                    Client.vars.getLastSentPos().set(tileX(), tileY());
                 }
 
                 if (lastProgress == 0 && Core.settings.getBool("removecorenukes") && cblock instanceof NuclearReactor && !lastBuilder.isLocal() && distance.get() <= 20) { // Automatically remove reactors within 20 blocks of core
