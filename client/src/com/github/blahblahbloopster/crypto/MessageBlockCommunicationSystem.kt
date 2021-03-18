@@ -10,7 +10,7 @@ import mindustry.gen.*
 import mindustry.world.blocks.logic.*
 import java.io.*
 
-class MessageBlockCommunicationSystem : CommunicationSystem {
+object MessageBlockCommunicationSystem : CommunicationSystem() {
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
     override val id: Int get() = run {
         Vars.player ?: return -1

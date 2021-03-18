@@ -66,13 +66,13 @@ class ClientMapping : ClientInterface {
     override fun setPluginNetworking(enable: Boolean) {
         when {
             enable -> {
-                Main.initializeCommunication(PluginCommunicationSystem)
+                Main.communicationSystem.activeCommunicationSystem = PluginCommunicationSystem
             }
             Core.app?.isDesktop == true -> {
-                Main.initializeCommunication(MessageBlockCommunicationSystem())
+                Main.communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
             }
             else -> {
-                Main.initializeCommunication(DummyCommunicationSystem(mutableListOf()))
+                Main.communicationSystem.activeCommunicationSystem = DummyCommunicationSystem(mutableListOf())
             }
         }
     }

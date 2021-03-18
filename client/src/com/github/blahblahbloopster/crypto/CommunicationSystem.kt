@@ -1,23 +1,31 @@
 package com.github.blahblahbloopster.crypto
 
 /** An interface for ways to transmit information between clients. */
-interface CommunicationSystem {
+abstract class CommunicationSystem {
     /** List of lambdas to run when a message is received. */
-    val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit>
+    protected abstract val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit>
     /** This instance's ID. */
-    val id: Int
+    abstract val id: Int
     /** The maximum number of bytes that can be sent at once. */
-    val MAX_LENGTH: Int
+    abstract val MAX_LENGTH: Int
     /** The time in 1/60s to wait between transmissions. */
-    val RATE: Float
+    abstract val RATE: Float
 
     /** Initializes the system. */
-    fun init() {}
+    open fun init() {}
+
+    open fun clearListeners() {
+        listeners.clear()
+    }
 
     /** Sends a [ByteArray] to all other clients.  Note: this may take time. todo: consider moving to a queue system */
-    fun send(bytes: ByteArray)
+    abstract fun send(bytes: ByteArray)
 
-    fun addListener(listener: (input: ByteArray, sender: Int) -> Unit) {
+    open fun addListener(listener: (input: ByteArray, sender: Int) -> Unit) {
         listeners.add(listener)
+    }
+
+    open fun addAllListeners(items: Collection<(input: ByteArray, sender: Int) -> Unit>) {
+        listeners.addAll(items)
     }
 }

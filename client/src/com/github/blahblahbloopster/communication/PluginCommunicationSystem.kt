@@ -5,7 +5,7 @@ import mindustry.Vars
 import mindustry.net.Net
 import mindustry.net.Packets
 
-object PluginCommunicationSystem : CommunicationSystem {
+object PluginCommunicationSystem : CommunicationSystem() {
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
 
     override val id: Int get() {

@@ -4,7 +4,7 @@ import java.util.*
 import java.util.function.Consumer
 
 /** A dummy [CommunicationSystem] for tests. */
-class DummyCommunicationSystem(private val pool: MutableList<DummyCommunicationSystem>) : CommunicationSystem {
+class DummyCommunicationSystem(private val pool: MutableList<DummyCommunicationSystem>) : CommunicationSystem() {
     override val listeners: MutableList<(ByteArray, Int) -> Unit> = mutableListOf()
     override val id = Random().nextInt()
     override val MAX_LENGTH: Int = 64

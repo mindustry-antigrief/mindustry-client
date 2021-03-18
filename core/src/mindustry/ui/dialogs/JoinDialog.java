@@ -13,6 +13,7 @@ import arc.util.Timer.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.core.*;
+import mindustry.game.EventType;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -478,6 +479,7 @@ public class JoinDialog extends BaseDialog{
                     lastHost = host;
                 }
             });
+            Events.fire(new EventType.ServerJoinEvent());
         });
     }
 

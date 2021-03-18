@@ -79,6 +79,7 @@ public class EventType{
     public static class FileTreeInitEvent{}
     /** Called when a game begins and the world is loaded. */
     public static class WorldLoadEvent{}
+    public static class ServerJoinEvent{}
 
     /** Called when a sector is destroyed by waves when you're not there. */
     public static class SectorLoseEvent{

@@ -17,7 +17,7 @@ import mindustry.game.*
 import mindustry.input.*
 
 object Main : ApplicationListener {
-    lateinit var communicationSystem: CommunicationSystem
+    lateinit var communicationSystem: SwitchableCommunicationSystem
     lateinit var messageCrypto: MessageCrypto
     lateinit var communicationClient: Packets.CommunicationClient
     private var dispatchedBuildPlans = mutableListOf<BuildPlan>()
@@ -28,10 +28,8 @@ object Main : ApplicationListener {
         mapping = ClientMapping()
         Crypto.initializeAlways()
         if (Core.app.isDesktop) {
-            communicationSystem = MessageBlockCommunicationSystem()
+            communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem, PluginCommunicationSystem)
             communicationSystem.init()
-
-            PluginCommunicationSystem.init()
 
             fooCommands.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
                 val dest = args[0]
@@ -46,7 +44,7 @@ object Main : ApplicationListener {
                 Toast(3f).add("@client.invalidkey")
             }
         } else {
-            communicationSystem = DummyCommunicationSystem(mutableListOf())
+            communicationSystem = SwitchableCommunicationSystem(DummyCommunicationSystem(mutableListOf()))
             communicationSystem.init()
         }
         messageCrypto = MessageCrypto()
@@ -58,15 +56,16 @@ object Main : ApplicationListener {
 
         Events.on(EventType.WorldLoadEvent::class.java) {
             dispatchedBuildPlans.clear()
-            communicationSystem = MessageBlockCommunicationSystem()
+        }
+        Events.on(EventType.ServerJoinEvent::class.java) {
+            communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
             communicationSystem.init()
             initializeCommunication(communicationSystem)
         }
     }
 
     fun initializeCommunication(communicationSystem: CommunicationSystem) {
-        communicationSystem.listeners.clear()
-        this.communicationSystem = communicationSystem
+        communicationSystem.clearListeners()
         this.messageCrypto = MessageCrypto()
         communicationClient = Packets.CommunicationClient(communicationSystem)
         communicationClient.addListener { transmission, senderId ->
