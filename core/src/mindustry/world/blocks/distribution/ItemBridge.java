@@ -142,7 +142,7 @@ public class ItemBridge extends Block{
 
     public Tile findLink(int x, int y){
         Tile tile = world.tile(x, y);
-        if(tile != null && lastBuild != null && linkValid(tile, lastBuild.tile) && lastBuild.tile != tile){
+        if(tile != null && lastBuild != null && linkValid(tile, lastBuild.tile) && lastBuild.tile != tile && lastBuild.link == -1){
             return lastBuild.tile;
         }
         return null;
@@ -177,7 +177,7 @@ public class ItemBridge extends Block{
             super.playerPlaced(config);
 
             Tile link = findLink(tile.x, tile.y);
-            if(linkValid(tile, link) && !proximity.contains(link.build) && ((ItemBridgeBuild)link.build).link == -1){
+            if(linkValid(tile, link) && !proximity.contains(link.build)){
                 link.build.configure(tile.pos());
             }
 
