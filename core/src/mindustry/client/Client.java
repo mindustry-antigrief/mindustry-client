@@ -23,7 +23,6 @@ public class Client {
 
     private static int fuelTimer;
     /** Last time (millis) that the !fuel command was run */
-    public static long lastFuelTime;
     private static final Interval timer = new Interval();
 
     public static void initialize() {
@@ -90,7 +89,7 @@ public class Client {
         }
 
         if (timer.get(Integer.MAX_VALUE) || fuelTimer > 0 && timer.get(fuelTimer * 60)) { // Auto fuel for cn
-            lastFuelTime = Time.millis();
+            ClientVars.lastFuelTime = Time.millis();
             Call.sendChatMessage("/fuel");
             Time.run(10f, () -> Call.tileTap(player, world.tile(0,0)));
             Time.run(20f, () -> Call.tileTap(player, world.tile(world.width() - 1, world.height() - 1)));
