@@ -5,7 +5,6 @@ import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.input.KeyCode;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.*;
@@ -25,8 +24,6 @@ import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.net.Net;
-import mindustry.net.Packets;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
@@ -36,7 +33,6 @@ import mindustry.world.blocks.payloads.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
-import static mindustry.client.Client.*;
 import static mindustry.input.PlaceMode.*;
 
 public class DesktopInput extends InputHandler{
@@ -93,16 +89,16 @@ public class DesktopInput extends InputHandler{
                     if(!player.dead() && !player.unit().spawnedByCore()){
                         str.append("\n").append(bundle.format("respawn", keybinds.get(Binding.respawn).key.toString()));
                     }
-                    if(player.unit().isBuilding() || vars.getDispatchingBuildPlans()){
-                        str.append("\n").append(bundle.format(vars.getDispatchingBuildPlans() ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
+                    if(player.unit().isBuilding() || Client.vars.getDispatchingBuildPlans()){
+                        str.append("\n").append(bundle.format(Client.vars.getDispatchingBuildPlans() ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
                     }
                     if(UnitType.alpha == 0){
                         str.append("\n").append(bundle.format("client.toggleunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
                     }
-                    if(vars.getShowingTurrets()){
+                    if(Client.vars.getShowingTurrets()){
                         str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
                     }
-                    if(vars.getHidingBlocks()){
+                    if(Client.vars.getHidingBlocks()){
                         str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
                     }
                     if(Navigation.state == NavigationState.RECORDING){
@@ -294,9 +290,11 @@ public class DesktopInput extends InputHandler{
                 lastShiftZ = Time.millis();
 
                 if(Time.timeSinceMillis(lastVirusWarnTime) < 3000 && lastVirusWarning != null && world.tile(lastVirusWarning.pos()).build == lastVirusWarning){ // Logic virus
-                    lastVirusWarning.configure(LogicBlock.compress("end\n" + lastVirusWarning.code, lastVirusWarning.relativeConnections())); // Disable the block while we look into it
-                    try{Vars.ui.logic.show(lastVirusWarning.code, code -> lastVirusWarning.configure(LogicBlock.compress(code, lastVirusWarning.relativeConnections())));}catch(Exception ignored){} // Inspect the code
+                    virusBuild = lastVirusWarning; // Store this build in its own var so it isnt overwritten
                     lastVirusWarning = null;
+
+                    virusBuild.configure(LogicBlock.compress("end\n" + virusBuild.code, virusBuild.relativeConnections())); // Disable the block while we look into it
+                    try{Vars.ui.logic.show(virusBuild.code, code -> virusBuild.configure(LogicBlock.compress(code, virusBuild.relativeConnections())));}catch(Exception ignored){} // Inspect the code
                 }
             }
         }

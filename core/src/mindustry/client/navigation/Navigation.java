@@ -1,13 +1,13 @@
 package mindustry.client.navigation;
 
+import arc.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.navigation.waypoints.*;
-import org.jetbrains.annotations.*;
-import org.jetbrains.annotations.Nullable;
+import mindustry.core.*;
 
 import java.util.*;
 
@@ -16,13 +16,13 @@ import static mindustry.Vars.*;
 public class Navigation {
     @Nullable public static Path currentlyFollowing = null;
     public static boolean isPaused = false;
-    @NotNull public static NavigationState state = NavigationState.NONE;
+    public static NavigationState state = NavigationState.NONE;
     @Nullable public static Path recordedPath = null;
     @Nullable public static Seq<Waypoint> recording = null;
-    @NotNull public static HashSet<TurretPathfindingEntity> obstacles = new HashSet<>();
+    public static HashSet<TurretPathfindingEntity> obstacles = new HashSet<>();
     @Nullable private static Vec2 targetPos = null;
     public static Navigator navigator;
-    @NotNull private static final Interval timer = new Interval();
+    private static final Interval timer = new Interval();
 
     public static void follow(Path path, boolean repeat) {
         stopFollowing();
@@ -87,6 +87,10 @@ public class Navigation {
     }
 
     public static void navigateTo(float drawX, float drawY) {
+        if (Core.settings.getBool("assumeunstrict")) {
+            NetClient.setPosition(drawX, drawY); // TODO: Detect whether or not the player is at their new destination, if not run with assumeunstrict off
+            return;
+        }
         state = NavigationState.FOLLOWING;
         if (obstacles.isEmpty()) {
             follow(new WaypointPath<>(Seq.with(new PositionWaypoint(Mathf.clamp(drawX, 0, world.unitWidth()), Mathf.clamp(drawY, 0, world.unitHeight())))));

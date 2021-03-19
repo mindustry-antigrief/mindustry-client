@@ -205,6 +205,7 @@ object Packets {
          * Splits the transmission into packets and queues them for sending.
          * @param transmission The transmission to be sent.
          * @param onFinish A lambda that will be run once it is sent, null by default.
+         * @param onError A lambda that will be run when no suitable message block is found.
          */
         fun send(transmission: Transmission, onFinish: (() -> Unit)? = null, onError: (() -> Unit)? = null) {
             val type = registeredTransmissionTypes.indexOfFirst { it.type == transmission::class }

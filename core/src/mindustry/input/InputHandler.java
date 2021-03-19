@@ -78,7 +78,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public boolean conveyorPlaceNormal = false;
     /** Last logic virus warning block */
     @Nullable
-    public LogicBlock.LogicBuild lastVirusWarning;
+    public LogicBlock.LogicBuild lastVirusWarning, virusBuild;
     public long lastVirusWarnTime;
 
     public InputHandler(){
@@ -376,6 +376,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 if (value instanceof Integer val) {
                     if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) {
                         String message = Strings.format("@ disconnected @ power @ at (@, @)", player.name, ++node.disconnections, node.disconnections == 1 ? "link" : "links", build.tileX(), build.tileY());
+                        Client.vars.getLastSentPos().set(build.tileX(), build.tileY());
                         if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
                             node.disconnections = 1;
                             node.message = ui.chatfrag.addMessage(message, null, Color.scarlet.cpy().mul(.75f));
@@ -388,7 +389,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 } else if (value instanceof Point2[]) {
                     //todo
                 }
-            } else if (Core.settings.getBool("viruswarnings") && value instanceof byte[] && build instanceof LogicBlock.LogicBuild l && l.code.contains("ucontrol build") && l.code.contains("ubind") && (l.code.contains("@thisx") && l.code.contains("@thisy") || l.code.contains("@this"))) {
+            } else if (Core.settings.getBool("viruswarnings") && value instanceof byte[] && build instanceof LogicBlock.LogicBuild l && !l.code.startsWith("end") && l.code.contains("ucontrol build") && l.code.contains("ubind") && (l.code.contains("@thisx") && l.code.contains("@thisy") || l.code.contains("@this"))) {
                 ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", player.name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
                 control.input.lastVirusWarning = l;
                 control.input.lastVirusWarnTime = Time.millis();
@@ -474,9 +475,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     public Eachable<BuildPlan> allRequests(){
         return cons -> {
-            for(BuildPlan request : player.unit().plans()) cons.get(request);
-            for(BuildPlan request : selectRequests) cons.get(request);
-            for(BuildPlan request : lineRequests) cons.get(request);
+//            for(BuildPlan request : player.unit().plans()) cons.get(request);
+//            for(BuildPlan request : selectRequests) cons.get(request);
+//            for(BuildPlan request : lineRequests) cons.get(request);
         };
     }
 
@@ -856,8 +857,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     protected void drawRequest(BuildPlan request){
-        if (request.requestInterval.get(6)) request.requestValid = validPlace(request.x, request.y, request.block, request.rotation); // Validity checked 10x a second rather than per frame to reduce lag
-        request.block.drawPlan(request, allRequests(), request.requestValid);
+        request.block.drawPlan(request, allRequests(), validPlace(request.x, request.y, request.block, request.rotation));
     }
 
     /** Draws a placement icon for a specific block. */

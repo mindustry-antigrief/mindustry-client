@@ -1,30 +1,30 @@
 package mindustry.client;
 
 import arc.*;
-import arc.graphics.Color;
-import arc.math.Mathf;
+import arc.math.*;
 import arc.util.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.utils.*;
 import mindustry.core.*;
-import mindustry.game.EventType;
-import mindustry.game.EventType.WorldLoadEvent;
+import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
-import mindustry.input.DesktopInput;
-import mindustry.net.Administration;
-import mindustry.world.Tile;
+import mindustry.input.*;
+import mindustry.net.*;
+import mindustry.world.*;
 
-import static arc.Core.settings;
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class Client {
     // TODO: Organize section below at least somewhat.
     private static TileLog[][] tileLogs;
-    /** The last position in TILE COORDS someone sent in chat or was otherwise put into the buffer. */
     public static ClientInterface mapping;
 
     public static ClientVars vars;
+    private static int fuelTimer;
+    private static final Interval timer = new Interval();
 
     public static void initialize() {
         registerCommands();
@@ -44,6 +44,7 @@ public class Client {
 
             vars.setShowingTurrets(false);
             vars.setHideUnits(false);
+            vars.setHidingBlocks(false);
             vars.setDispatchingBuildPlans(false);
 
             if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
@@ -86,7 +87,13 @@ public class Client {
 //                            }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
                         }
                     }
-                } catch (Exception e) { Log.info(e.getMessage()); }
+                } catch (Exception e) { Log.err(e); }
+        }
+
+        if (timer.get(Integer.MAX_VALUE) || fuelTimer > 0 && timer.get(fuelTimer * 60)) { // Auto fuel for cn
+            Call.sendChatMessage("/fuel");
+            Time.run(10f, () -> Call.tileTap(player, world.tile(0,0)));
+            Time.run(20f, () -> Call.tileTap(player, world.tile(world.width() - 1, world.height() - 1)));
         }
     }
 
@@ -125,15 +132,15 @@ public class Client {
             player.sendMessage(result.toString());
         });
 
-        vars.getFooCommands().<Player>register("unit", "<unit-name>", "Swap to specified unit", (args, player) -> {
-            ui.unitPicker.findUnit(content.units().copy().sort(b -> BiasedLevenshtein.biasedLevenshtein(args[0], b.name)).first());
-        });
+        vars.getFooCommands().<Player>register("unit", "<unit-name>", "Swap to specified unit", (args, player) ->
+            ui.unitPicker.findUnit(content.units().copy().sort(b -> BiasedLevenshtein.biasedLevenshtein(args[0], b.name)).first())
+        );
 
         vars.getFooCommands().<Player>register("go","[x] [y]", "Navigates to (x, y) or the last coordinates posted to chat", (args, player) -> {
             try {
                 if (args.length == 2) vars.getLastSentPos().set(Float.parseFloat(args[0]), Float.parseFloat(args[1]));
                 Navigation.navigateTo(vars.getLastSentPos().cpy().scl(tilesize));
-            } catch(NumberFormatException | IndexOutOfBoundsException e){
+            } catch(NumberFormatException | IndexOutOfBoundsException e) {
                 player.sendMessage("[scarlet]Invalid coordinates, format is [x] [y] Eg: !go 10 300 or !go");
             }
         });
@@ -143,21 +150,21 @@ public class Client {
                 DesktopInput.panning = true;
                 if (args.length == 2) vars.getLastSentPos().set(Float.parseFloat(args[0]), Float.parseFloat(args[1]));
                 Spectate.spectate(vars.getLastSentPos().cpy().scl(tilesize));
-            } catch(NumberFormatException | IndexOutOfBoundsException e){
+            } catch(NumberFormatException | IndexOutOfBoundsException e) {
                 player.sendMessage("[scarlet]Invalid coordinates, format is [x] [y] Eg: !lookat 10 300 or !lookat");
             }
         });
 
         vars.getFooCommands().<Player>register("here", "[message...]", "Prints your location to chat with an optional message", (args, player) ->
-                Call.sendChatMessage(String.format("%s(%s, %s)", args.length == 0 ? "" : args[0] + " ", player.tileX(), player.tileY()))
+            Call.sendChatMessage(String.format("%s(%s, %s)", args.length == 0 ? "" : args[0] + " ", player.tileX(), player.tileY()))
         );
 
         vars.getFooCommands().<Player>register("cursor", "[message...]", "Prints cursor location to chat with an optional message", (args, player) ->
-                Call.sendChatMessage(String.format("%s(%s, %s)", args.length == 0 ? "" : args[0] + " ", World.toTile(Core.input.mouseWorldX()), World.toTile(Core.input.mouseWorldY())))
+            Call.sendChatMessage(String.format("%s(%s, %s)", args.length == 0 ? "" : args[0] + " ", World.toTile(Core.input.mouseWorldX()), World.toTile(Core.input.mouseWorldY())))
         );
 
         vars.getFooCommands().<Player>register("builder", "[options...]", "Starts auto build with optional arguments, prioritized from first to last.", (args, player) ->
-                Navigation.follow(new BuildPath(args.length  == 0 ? "" : args[0]))
+            Navigation.follow(new BuildPath(args.length  == 0 ? "" : args[0]))
         );
 
         vars.getFooCommands().<Player>register("tp", "<x> <y>", "Moves to (x, y) at insane speeds, only works on servers without strict mode enabled.", (args, player) -> {
@@ -169,11 +176,11 @@ public class Client {
         });
 
         vars.getFooCommands().<Player>register("", "[message...]", "Lets you start messages with an !", (args, player) ->
-                Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
+            Call.sendChatMessage("!" + (args.length == 1 ? args[0] : ""))
         );
 
         vars.getFooCommands().<Player>register("shrug", "[message...]", "Sends the shrug unicode emoji with an optional message", (args, player) ->
-                Call.sendChatMessage("¯\\_(ツ)_/¯ " + (args.length == 1 ? args[0] : ""))
+            Call.sendChatMessage("¯\\_(ツ)_/¯ " + (args.length == 1 ? args[0] : ""))
         );
 
         vars.getFooCommands().<Player>register("login", "[name] [pw]", "Used for CN. [scarlet]Don't use this if you care at all about security.", (args, player) -> {
@@ -181,7 +188,22 @@ public class Client {
             else Call.sendChatMessage("/login " + settings.getString("cnpw", ""));
         });
 
-        vars.getFooCommands().<Player>register("js", "<code...>", "Runs JS on the client.", (arg, player) ->
-                ui.chatfrag.addMessage(mods.getScripts().runConsole(arg[0]), "client", Color.coral.cpy().mul(0.75f)));
+        vars.getFooCommands().<Player>register("js", "<code...>", "Runs JS on the client.", (args, player) ->
+            player.sendMessage("[accent]" + mods.getScripts().runConsole(args[0]))
+        );
+
+        vars.getFooCommands().<Player>register("fuel", "[interval]", "Runs the fuel command on cn, selects the entire map, optional interval in seconds (min 30)", (args, player) -> {
+            if (args.length == 0) timer.reset(0, -Integer.MAX_VALUE); // Jank way to fuel once right now
+            else {
+                try {
+                    fuelTimer = Short.parseShort(args[0]);
+                    if (fuelTimer > 0) fuelTimer = Math.max(fuelTimer, 30); // Min of 30s
+                    player.sendMessage("[accent]Successfully set auto-fuel to run every " + fuelTimer + " seconds. (use !fuel 0 to disable)");
+                } catch (Exception e) {
+                    fuelTimer = 0;
+                    player.sendMessage("[scarlet]That number was invalid, disabling auto-fuel.");
+                }
+            }
+        });
     }
 }

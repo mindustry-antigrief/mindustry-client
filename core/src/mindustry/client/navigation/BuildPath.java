@@ -22,10 +22,10 @@ import static mindustry.Vars.*;
 public class BuildPath extends Path {
     Building core = player.core();
     private boolean show, activeVirus;
-    Interval timer = new Interval();
+    Interval timer = new Interval(2);
     public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>();
     public Seq<Queue<BuildPlan>> queues = new Seq<>(9);
-    public Seq<BuildPlan> sorted = new Seq<>();
+    public Seq<BuildPlan> sorted = new Seq<>(), invalid = new Seq<>();
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
@@ -73,6 +73,7 @@ public class BuildPath extends Path {
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     public void follow() {
         if (timer.get(15)) {
+            if (timer.get(1, 600)) invalid.clear(); // Clear this every 10s just in case
             clearQueue(broken);
             clearQueue(boulders);
             clearQueue(assist);
@@ -164,13 +165,7 @@ public class BuildPath extends Path {
         if (player.unit().isBuilding()) { // Approach request if building
             req = player.unit().buildPlan();
 
-            boolean valid =
-                    activeVirus && virus.indexOf(req, true) != -1 ? req.tile().block() instanceof LogicBlock : (req.tile().build instanceof ConstructBlock.ConstructBuild entity && entity.cblock == req.block) ||
-                        (req.breaking ?
-                            Build.validBreak(player.unit().team(), req.x, req.y) :
-                            Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));
-
-            if(valid){
+            if(validPlan(req)){
                 //move toward the request
                 Formation formation = player.unit().formation;
                 float range = buildingRange - player.unit().hitSize()/2 - 32; // Range - 4 tiles
@@ -178,7 +173,7 @@ public class BuildPath extends Path {
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{
                 //discard invalid request
-                player.unit().plans.removeFirst();
+                invalid.add(player.unit().plans.removeFirst());
             }
         }
     }
@@ -214,6 +209,8 @@ public class BuildPath extends Path {
         sorted.sort(plan -> plan.dst(player));
         if(!largeFirst)sorted.reverse();
         for (BuildPlan plan : sorted) { // The largest distance is at the start of the sequence by this point
+            if (!validPlan(plan)) continue;
+//            if (invalid.contains(plan)) continue; TODO: Should I use this or the line above?
             if (plan.block == null || player.unit().shouldSkip(plan, core)) {
                 if (includeAll)out.addLast(plan);
             } else {
@@ -221,6 +218,13 @@ public class BuildPath extends Path {
             }
         }
         return out;
+    }
+
+    boolean validPlan (BuildPlan req) {
+        return (!activeVirus || virus.indexOf(req, true) == -1 || req.tile().block() instanceof LogicBlock) && (req.tile().build instanceof ConstructBlock.ConstructBuild entity && entity.cblock == req.block) ||
+            (req.breaking ?
+            Build.validBreak(player.unit().team(), req.x, req.y) :
+            Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));
     }
 }
 

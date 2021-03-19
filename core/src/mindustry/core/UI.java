@@ -564,6 +564,8 @@ public class UI implements ApplicationListener, Loadable{
             return number / 1000 + "[gray]" + Core.bundle.get("unit.thousands") + "[]";
         }else if(mag >= 1000){
             return Strings.fixed(number / 1000f, 1) + "[gray]" + Core.bundle.get("unit.thousands") + "[]";
+        }else if(mag == Integer.MIN_VALUE){ //format the smallest possible number correctly
+            return "-2.1[gray]" + Core.bundle.get("unit.billions") + "[]";
         }else{
             return number + "";
         }

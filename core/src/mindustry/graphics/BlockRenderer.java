@@ -303,7 +303,7 @@ public class BlockRenderer implements Disposable{
             }
         }
 
-        if (Client.vars.getHidingBlocks()) {
+        if (Client.vars.getShowingTurrets()) {
             Draw.z(Layer.space);
             Rect bounds = new Rect();
             Core.camera.bounds(bounds);
