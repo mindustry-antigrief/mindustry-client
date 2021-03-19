@@ -389,7 +389,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 } else if (value instanceof Point2[]) {
                     //todo
                 }
-            } else if (Core.settings.getBool("viruswarnings") && value instanceof byte[] && build instanceof LogicBlock.LogicBuild l && !l.code.startsWith("end") && l.code.contains("ucontrol build") && l.code.contains("ubind") && (l.code.contains("@thisx") && l.code.contains("@thisy") || l.code.contains("@this"))) {
+            } else if (Core.settings.getBool("viruswarnings") && value instanceof byte[] && build instanceof LogicBlock.LogicBuild l && BuildPath.virusBlock(l.code)) {
                 ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", player.name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
                 control.input.lastVirusWarning = l;
                 control.input.lastVirusWarnTime = Time.millis();
@@ -475,9 +475,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     public Eachable<BuildPlan> allRequests(){
         return cons -> {
-//            for(BuildPlan request : player.unit().plans()) cons.get(request);
-//            for(BuildPlan request : selectRequests) cons.get(request);
-//            for(BuildPlan request : lineRequests) cons.get(request);
+            for(BuildPlan request : player.unit().plans()) cons.get(request);
+            for(BuildPlan request : selectRequests) cons.get(request);
+            for(BuildPlan request : lineRequests) cons.get(request);
         };
     }
 

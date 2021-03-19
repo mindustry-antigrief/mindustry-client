@@ -1,28 +1,15 @@
 package mindustry.client.utils;
 
 import arc.struct.*;
-import mindustry.*;
 import mindustry.gen.*;
-import mindustry.type.*;
 import mindustry.ui.*;
-import mindustry.world.*;
 
 public class BlockEmotes implements Autocompleter {
 
     private final Seq<BlockEmote> emotes = new Seq<>();
     public void initialize() {
-        for (Block block : Vars.content.blocks()) {
-            emotes.add(new BlockEmote(Fonts.getUnicodeStr(block.name), block.name));
-        }
-        for (Item item : Vars.content.items()) {
-            emotes.add(new BlockEmote(Fonts.getUnicodeStr(item.name), item.name));
-        }
-        for (Liquid liquid : Vars.content.liquids()) {
-            emotes.add(new BlockEmote(Fonts.getUnicodeStr(liquid.name), liquid.name));
-        }
-        for (UnitType unit : Vars.content.units()) {
-            emotes.add(new BlockEmote(Fonts.getUnicodeStr(unit.name), unit.name));
-        }
+        Fonts.stringIcons.each((name, ch) -> emotes.add(new BlockEmotes.BlockEmote(ch, name)));
+
         for (ObjectIntMap.Entry<String> entry : Iconc.codes) {
             emotes.add(new BlockEmote(Character.toString((char)entry.value), entry.key));
         }

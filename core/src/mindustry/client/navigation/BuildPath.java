@@ -19,7 +19,7 @@ import mindustry.world.blocks.logic.*;
 
 import static mindustry.Vars.*;
 
-public class BuildPath extends Path {
+public class    BuildPath extends Path {
     Building core = player.core();
     private boolean show, activeVirus;
     Interval timer = new Interval(2);
@@ -106,7 +106,7 @@ public class BuildPath extends Path {
             if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus)) {
                 for (Tile tile : world.tiles) {
                     if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build) {
-                        if (build.code.contains("ucontrol build") && build.code.contains("ubind") && (build.code.contains("@thisx") && build.code.contains("@thisy") || build.code.contains("@this") || build.code.contains("@controller"))) { // Doesn't use a regex as those are expensive
+                        if (virusBlock(build.code, false)) {
                             virus.add(new BuildPlan(tile.x, tile.y)); // Partially delete the spammed processors, prioritizes ones that haven't been configured yet in the event that you get ratelimited
                         }
 
@@ -221,10 +221,20 @@ public class BuildPath extends Path {
     }
 
     boolean validPlan (BuildPlan req) {
-        return (!activeVirus || virus.indexOf(req, true) == -1 || req.tile().block() instanceof LogicBlock) && (req.tile().build instanceof ConstructBlock.ConstructBuild entity && entity.cblock == req.block) ||
+        return (!activeVirus || virus.indexOf(req, true) == -1 || req.tile().block() instanceof LogicBlock) &&
             (req.breaking ?
             Build.validBreak(player.unit().team(), req.x, req.y) :
             Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));
+    }
+
+    public static boolean virusBlock (String code, boolean checkEnd) {
+        if (checkEnd && code.startsWith("end")) return false;
+        return code.contains("ucontrol build") && code.contains("ubind")
+            && (((code.contains("@x") || code.contains("@shootX") || code.contains("@thisx")) && (code.contains("@y") || code.contains("@shootY") ||code.contains("@thisy")) || code.contains("@this") || code.contains("@controller"))); // Doesn't use a regex as those are expensive
+    }
+
+    public static boolean virusBlock (String code) {
+        return virusBlock(code, true);
     }
 }
 

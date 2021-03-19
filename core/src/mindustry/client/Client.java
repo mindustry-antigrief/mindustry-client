@@ -35,6 +35,7 @@ public class Client {
             vars.getMapping().setPluginNetworking(false);
             if (Time.timeSinceMillis(vars.getLastSyncTime()) > 5000) {
                 tileLogs = new TileLog[world.height()][world.width()];
+                fuelTimer = 0;
             }
             PowerInfo.initialize();
             Navigation.stopFollowing();
@@ -43,7 +44,6 @@ public class Client {
             ui.unitPicker.found = null;
             control.input.lastVirusWarning = null;
 
-            fuelTimer = 0;
             vars.setShowingTurrets(false);
             vars.setHideUnits(false);
             vars.setHidingBlocks(false);
@@ -210,7 +210,6 @@ public class Client {
                 } catch (Exception e) {
                     fuelTimer = 0;
                     player.sendMessage("[scarlet]That number was invalid, disabling auto-fuel.");
-                    return;
                 }
             }
         });

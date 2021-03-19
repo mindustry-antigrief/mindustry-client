@@ -9,6 +9,9 @@
  * Parallaxes now move the player again
  * Fixed an issue with logic virus warnings appearing when peeking into a logic block
  * Power split notifications now work with SHIFT + Z
+ * Fixed bridge clicking and dragging not linking with nearby bridges
+ * Added some additional icons to :emote: autocomplete 
+ * Improved logic virus detection
  TODO: Finish me
 
 # Version 6.5.3
