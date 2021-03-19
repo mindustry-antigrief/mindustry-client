@@ -89,16 +89,16 @@ public class DesktopInput extends InputHandler{
                     if(!player.dead() && !player.unit().spawnedByCore()){
                         str.append("\n").append(bundle.format("respawn", keybinds.get(Binding.respawn).key.toString()));
                     }
-                    if(player.unit().isBuilding() || Client.vars.getDispatchingBuildPlans()){
-                        str.append("\n").append(bundle.format(Client.vars.getDispatchingBuildPlans() ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
+                    if(player.unit().isBuilding() || ClientVars.dispatchingBuildPlans){
+                        str.append("\n").append(bundle.format(ClientVars.dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
                     }
                     if(UnitType.alpha == 0){
                         str.append("\n").append(bundle.format("client.toggleunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
                     }
-                    if(Client.vars.getShowingTurrets()){
+                    if(ClientVars.showingTurrets){
                         str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
                     }
-                    if(Client.vars.getHidingBlocks()){
+                    if(ClientVars.hidingBlocks){
                         str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
                     }
                     if(Navigation.state == NavigationState.RECORDING){
@@ -246,7 +246,7 @@ public class DesktopInput extends InputHandler{
 
         // Holding o hides units, pressing shift + o inverts the state; holding o will now show them.
         if ((input.keyTap(Binding.invisible_units) || (input.keyRelease(Binding.invisible_units) && !input.shift())) && scene.getKeyboardFocus() == null) {
-            Client.vars.setHideUnits(!Client.vars.getHideUnits());
+            ClientVars.hidingUnits = !ClientVars.hidingUnits;
         }
 
         if(Navigation.state == NavigationState.RECORDING){
@@ -256,11 +256,11 @@ public class DesktopInput extends InputHandler{
         }
 
         if(input.keyTap(Binding.show_turret_ranges) && scene.getKeyboardFocus() == null){
-            Client.vars.setShowingTurrets(!Client.vars.getShowingTurrets());
+            ClientVars.showingTurrets = !ClientVars.showingTurrets;
         }
 
         if(input.keyTap(Binding.hide_blocks) && scene.getKeyboardFocus() == null){
-            Client.vars.setHidingBlocks(!Client.vars.getHidingBlocks());
+            ClientVars.hidingBlocks = !ClientVars.hidingBlocks;
         }
 
         if(input.keyTap(Binding.stop_following_path) && scene.getKeyboardFocus() == null){
@@ -285,8 +285,8 @@ public class DesktopInput extends InputHandler{
         if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null){
             if(selectRequests.any() == input.shift()) Navigation.navigateTo(input.mouseWorld()); // Z to nav to camera (SHIFT + Z when placing schem)
             else if (selectRequests.isEmpty()){ // SHIFT + Z to view lastSentPos, double tap to nav there, special case for logic viruses as well (does nothing when placing schem)
-                if(Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(Client.vars.getLastSentPos().cpy().scl(tilesize));
-                else Spectate.spectate(Client.vars.getLastSentPos().cpy().scl(tilesize));
+                if(Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(ClientVars.lastSentPos.cpy().scl(tilesize));
+                else Spectate.spectate(ClientVars.lastSentPos.cpy().scl(tilesize));
                 lastShiftZ = Time.millis();
 
                 if(Time.timeSinceMillis(lastVirusWarnTime) < 3000 && lastVirusWarning != null && world.tile(lastVirusWarning.pos()).build == lastVirusWarning){ // Logic virus

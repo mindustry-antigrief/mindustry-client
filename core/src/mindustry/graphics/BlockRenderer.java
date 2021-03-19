@@ -9,7 +9,7 @@ import arc.math.*;
 import arc.math.geom.Rect;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.Client;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.game.Team;
@@ -140,7 +140,7 @@ public class BlockRenderer implements Disposable{
     }
 
     public void drawShadows(){
-        if (Client.vars.getHidingBlocks()) return;
+        if (ClientVars.hidingBlocks) return;
         if(!shadowEvents.isEmpty()){
             Draw.flush();
 
@@ -252,7 +252,7 @@ public class BlockRenderer implements Disposable{
     }
 
     public void drawBlocks(){
-        if (Client.vars.getHidingBlocks()) return;
+        if (ClientVars.hidingBlocks) return;
         drawDestroyed();
 
         //draw most tile stuff
@@ -303,7 +303,7 @@ public class BlockRenderer implements Disposable{
             }
         }
 
-        if (Client.vars.getShowingTurrets()) {
+        if (ClientVars.showingTurrets) {
             Draw.z(Layer.space);
             Rect bounds = new Rect();
             Core.camera.bounds(bounds);

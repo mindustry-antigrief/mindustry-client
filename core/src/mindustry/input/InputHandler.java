@@ -369,14 +369,14 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             build.tile.getLinkedTiles(t -> t.addToLog(new ConfigTileLog(player.unit(), t, build.config(), previous, Instant.now().getEpochSecond(), "")));
             if(Navigation.currentlyFollowing instanceof UnAssistPath path){
                 if(path.assisting == player){
-                    Client.vars.getConfigs().add(new ConfigRequest(build.tileX(), build.tileY(), previous));
+                    ClientVars.configs.add(new ConfigRequest(build.tileX(), build.tileY(), previous));
                 }
             }
             if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
                 if (value instanceof Integer val) {
                     if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) {
                         String message = Strings.format("@ disconnected @ power @ at (@, @)", player.name, ++node.disconnections, node.disconnections == 1 ? "link" : "links", build.tileX(), build.tileY());
-                        Client.vars.getLastSentPos().set(build.tileX(), build.tileY());
+                        ClientVars.lastSentPos.set(build.tileX(), build.tileY());
                         if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
                             node.disconnections = 1;
                             node.message = ui.chatfrag.addMessage(message, null, Color.scarlet.cpy().mul(.75f));
@@ -393,7 +393,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", player.name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
                 control.input.lastVirusWarning = l;
                 control.input.lastVirusWarnTime = Time.millis();
-                Client.vars.getLastSentPos().set(l.tileX(), l.tileY());
+                ClientVars.lastSentPos.set(l.tileX(), l.tileY());
             }
         }
     }

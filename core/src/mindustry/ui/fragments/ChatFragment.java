@@ -13,7 +13,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.Vars;
-import mindustry.client.Client;
+import mindustry.client.*;
 import mindustry.client.utils.*;
 import mindustry.game.EventType;
 import mindustry.gen.Call;
@@ -242,12 +242,12 @@ public class ChatFragment extends Table{
         history.insert(1, message);
 
         //check if it's a command
-        CommandHandler.CommandResponse response = Client.vars.getFooCommands().handleMessage(message, player);
+        CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
             Call.sendChatMessage(message);
             if (message.startsWith("/sync")) {
 
-                Client.vars.setLastSyncTime(Time.millis());
+                ClientVars.lastSyncTime = Time.millis();
             }
             Events.fire(new EventType.SendChatMessageEvent(message));
 

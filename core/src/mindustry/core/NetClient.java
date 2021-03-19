@@ -174,7 +174,7 @@ public class NetClient implements ApplicationListener{
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, String sender, Player playersender){
         Color background = null;
-        if(Vars.ui != null && !(Time.timeSinceMillis(Client.lastFuelTime) < 1000 && (message.startsWith("Tap") || message.startsWith("Coord") || message.startsWith("Vaults")))){
+        if(Vars.ui != null && !(Time.timeSinceMillis(ClientVars.lastFuelTime) < 1000 && (message.startsWith("Tap") || message.startsWith("Coord") || message.startsWith("Vaults")))){
             if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
                 if (sender != null){
                     sender = colorizeName(playersender.id, Iconc.wrench + " " + sender); // Check if sender is null in case server formats message and sends without a sender
@@ -212,7 +212,7 @@ public class NetClient implements ApplicationListener{
         Matcher matcher = coordPattern.matcher(message);
         if (!matcher.find()) return message;
         Log.info(Long.parseLong(matcher.group(1)) + "   " + Long.parseLong(matcher.group(2)));
-            try {Client.vars.getLastSentPos().set(Long.parseLong(matcher.group(1)), Long.parseLong(matcher.group(2)));} catch (NumberFormatException ignored) {}
+            try {ClientVars.lastSentPos.set(Long.parseLong(matcher.group(1)), Long.parseLong(matcher.group(2)));} catch (NumberFormatException ignored) {}
             return matcher.replaceFirst("[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
     }
 
