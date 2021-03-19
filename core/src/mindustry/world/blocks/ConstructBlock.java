@@ -88,7 +88,7 @@ public class ConstructBlock extends Block{
         if (tile != null && block != null) {
             Team team = tile.team();
             Fx.breakBlock.at(tile.drawx(), tile.drawy(), block.size);
-            Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null));
+            Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null, tile.block(), tile.build == null? null : tile.build.config()));
             tile.remove();
             if (shouldPlay()) Sounds.breaks.at(tile, calcPitch(false));
         }
@@ -113,6 +113,11 @@ public class ConstructBlock extends Block{
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild co ? co.prevBuild : null;
 
+
+        if (block == null) {
+            Events.fire(new BlockBreakEvent(tile, team, builder, tile.block(), tile.build == null? null : tile.build.config()));
+        }
+
         tile.setBlock(block, team, rotation);
 
         if(tile.build != null){
@@ -136,7 +141,7 @@ public class ConstructBlock extends Block{
             tile.build.playerPlaced(config);
         }
 
-        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config));
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, oldBlock, oldConfig));
 
         Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
 
@@ -197,7 +202,7 @@ public class ConstructBlock extends Block{
             tile.build.placed();
         }
 
-        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config));
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, oldBlock, oldConfig));
     }
 
     @Override

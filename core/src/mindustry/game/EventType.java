@@ -317,13 +317,33 @@ public class EventType{
         public final @Nullable Unit unit;
         public final boolean breaking;
         public final @Nullable Object config;
+        public final @Nullable Block oldBlock;
+        public final @Nullable Object oldConfig;
 
-        public BlockBuildEndEvent(Tile tile, @Nullable Unit unit, Team team, boolean breaking, @Nullable Object config){
+        public BlockBuildEndEvent(Tile tile, @Nullable Unit unit, Team team, boolean breaking, @Nullable Object config, @Nullable Block oldBlock, @Nullable Object oldConfig){
             this.tile = tile;
             this.team = team;
             this.unit = unit;
             this.breaking = breaking;
             this.config = config;
+            this.oldBlock = oldBlock;
+            this.oldConfig = oldConfig;
+        }
+    }
+
+    public static class BlockBreakEvent {
+        public final Tile tile;
+        public final Team team;
+        public final @Nullable Unit unit;
+        public final Block oldBlock;
+        public final @Nullable Object oldConfig;
+
+        public BlockBreakEvent(Tile tile, Team team, @Nullable Unit unit, Block oldBlock, @Nullable Object oldConfig) {
+            this.tile = tile;
+            this.team = team;
+            this.unit = unit;
+            this.oldBlock = oldBlock;
+            this.oldConfig = oldConfig;
         }
     }
 

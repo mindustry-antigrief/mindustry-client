@@ -20,11 +20,13 @@ abstract class TileLog(val position: IntRectangle, override val cause: Interacto
     constructor(tile: Tile, cause: Interactor) : this(tile.linkedArea(), cause)
 }
 
+class TileRecord {
+    val logs = mutableListOf<TileLog>()
+}
+
 class ConfigureTileLog(tile: Tile, cause: Interactor, val oldConfiguration: Any?, val newConfiguration: Any?) : TileLog(tile, cause)
 
 open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val configuration: Any?) : TileLog(tile, cause)
-
-class TileReplacedLog(tile: Tile, cause: Interactor, oldBlock: Block, oldConfiguration: Any?, newBlock: Block, val newConfiguration: Any?) : TilePlacedLog(tile, cause, oldBlock, oldConfiguration)
 
 class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, configuration: Any?) : TilePlacedLog(tile, cause, block, configuration)
 
