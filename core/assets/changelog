@@ -7,6 +7,8 @@
  * Long names in the player list now wrap
  * Fixed an impossibly rare edge case where core items were formatted wrong if the team had exactly -2147483648 of them
  * Parallaxes now move the player again
+ * Fixed an issue with logic virus warnings appearing when peeking into a logic block
+ * Power split notifications now work with SHIFT + Z
  TODO: Finish me
 
 # Version 6.5.3

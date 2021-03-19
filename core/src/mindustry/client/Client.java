@@ -18,12 +18,14 @@ import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class Client {
-    // TODO: Organize section below at least somewhat.
+    // TODO: Move the section below to clientVars
     private static TileLog[][] tileLogs;
     public static ClientInterface mapping;
 
     public static ClientVars vars;
     private static int fuelTimer;
+    /** Last time (millis) that the !fuel command was run */
+    public static long lastFuelTime;
     private static final Interval timer = new Interval();
 
     public static void initialize() {
@@ -39,9 +41,9 @@ public class Client {
             Navigation.obstacles.clear();
             vars.getConfigs().clear();
             ui.unitPicker.found = null;
-
             control.input.lastVirusWarning = null;
 
+            fuelTimer = 0;
             vars.setShowingTurrets(false);
             vars.setHideUnits(false);
             vars.setHidingBlocks(false);
@@ -75,15 +77,14 @@ public class Client {
         if (!vars.getConfigs().isEmpty()) {
                 try {
                     if (vars.getConfigRateLimit().allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) {
-                        ConfigRequest req = vars.getConfigs().last();
+                        ConfigRequest req = vars.getConfigs().removeLast();
                         Tile tile = world.tile(req.x, req.y);
                         if (tile != null) {
 //                            Object initial = tile.build.config();
                             req.run();
-                            vars.getConfigs().remove(req);
 //                            Timer.schedule(() -> {
-//                                // if(tile.build != null && tile.build.config() == initial) configs.addLast(req); TODO: This can also cause loops
-//                                // if(tile.build != null && req.value != tile.build.config()) configs.addLast(req); TODO: This infinite loops if u config something twice, find a better way to do this
+//                                 if(tile.build != null && tile.build.config() == initial) configs.addLast(req); TODO: This can also cause loops
+//                                 if(tile.build != null && req.value != tile.build.config()) configs.addLast(req); TODO: This infinite loops if u config something twice, find a better way to do this
 //                            }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
                         }
                     }
@@ -91,6 +92,7 @@ public class Client {
         }
 
         if (timer.get(Integer.MAX_VALUE) || fuelTimer > 0 && timer.get(fuelTimer * 60)) { // Auto fuel for cn
+            lastFuelTime = Time.millis();
             Call.sendChatMessage("/fuel");
             Time.run(10f, () -> Call.tileTap(player, world.tile(0,0)));
             Time.run(20f, () -> Call.tileTap(player, world.tile(world.width() - 1, world.height() - 1)));
@@ -193,15 +195,22 @@ public class Client {
         );
 
         vars.getFooCommands().<Player>register("fuel", "[interval]", "Runs the fuel command on cn, selects the entire map, optional interval in seconds (min 30)", (args, player) -> {
-            if (args.length == 0) timer.reset(0, -Integer.MAX_VALUE); // Jank way to fuel once right now
-            else {
+            if (args.length == 0) {
+                timer.reset(0, -Integer.MAX_VALUE); // Jank way to fuel once right now
+                player.sendMessage("[accent]Fueled successfully.");
+            }   else {
                 try {
                     fuelTimer = Short.parseShort(args[0]);
-                    if (fuelTimer > 0) fuelTimer = Math.max(fuelTimer, 30); // Min of 30s
-                    player.sendMessage("[accent]Successfully set auto-fuel to run every " + fuelTimer + " seconds. (use !fuel 0 to disable)");
+                    if (fuelTimer > 0){
+                        fuelTimer = Math.max(fuelTimer, 30); // Min of 30s
+                        player.sendMessage("[accent]Successfully set auto-fuel to run every " + fuelTimer + " seconds. (use !fuel 0 to disable)");
+                    } else {
+                        player.sendMessage("[accent]Successfully disabled auto-fuel.");
+                    }
                 } catch (Exception e) {
                     fuelTimer = 0;
                     player.sendMessage("[scarlet]That number was invalid, disabling auto-fuel.");
+                    return;
                 }
             }
         });
