@@ -114,7 +114,7 @@ public class MessageBlock extends Block{
                     });
                     a.setMaxLength(maxTextLength);
                     dialog.buttons.button("Use for chat verification", () -> {
-                        configure(Client.vars.getMessageBlockCommunicationPrefix());
+                        configure(ClientVars.MESSAGE_BLOCK_PREFIX);
                         dialog.hide();
                     }).size(150f, 60f);
                     dialog.buttons.button("@ok", () -> {

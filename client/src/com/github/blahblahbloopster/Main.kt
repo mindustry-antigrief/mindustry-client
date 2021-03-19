@@ -24,7 +24,6 @@ object Main : ApplicationListener {
     private val buildPlanInterval = Interval(2)
 
     init {
-        vars = ClientVarsImpl
         mapping = ClientMapping()
     }
 
@@ -35,7 +34,7 @@ object Main : ApplicationListener {
             communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem, PluginCommunicationSystem)
             communicationSystem.init()
 
-            vars.fooCommands.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
+            ClientVars.clientCommandHandler.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
                 val dest = args[0]
                 val message = args[1]
 
@@ -98,10 +97,10 @@ object Main : ApplicationListener {
         communicationClient.update()
 
         if (Core.scene.keyboardFocus == null && Core.input?.keyTap(Binding.send_build_queue) == true) {
-            vars.dispatchingBuildPlans = !vars.dispatchingBuildPlans
+            ClientVars.dispatchingBuildPlans = !ClientVars.dispatchingBuildPlans
         }
 
-        if (vars.dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(10 * 60f)) {
+        if (ClientVars.dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(10 * 60f)) {
             sendBuildPlans()
         }
     }

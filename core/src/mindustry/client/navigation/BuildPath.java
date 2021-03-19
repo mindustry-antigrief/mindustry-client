@@ -153,7 +153,7 @@ public class    BuildPath extends Path {
 
 
         BuildPlan req;
-        while (activeVirus && !virus.isEmpty() && Client.vars.getConfigRateLimit().allow(Administration.Config.interactRateWindow.num() * 1000, Administration.Config.interactRateLimit.num())) { // Remove config from virus blocks if we arent hitting the config ratelimit
+        while (activeVirus && !virus.isEmpty() && ClientVars.configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) { // Remove config from virus blocks if we arent hitting the config ratelimit
             req = sorted.clear().addAll(virus).max(plan -> plan.dst(player));
             virus.remove(req);
             player.unit().plans.remove(req);

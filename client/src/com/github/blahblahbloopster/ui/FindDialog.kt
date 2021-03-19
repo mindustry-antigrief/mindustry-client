@@ -9,7 +9,7 @@ import arc.scene.ui.TextField
 import arc.scene.ui.layout.Table
 import mindustry.Vars
 import mindustry.Vars.player
-import mindustry.client.Client
+import mindustry.client.ClientVars
 import mindustry.client.utils.BiasedLevenshtein
 import mindustry.ui.Cicon
 import mindustry.ui.dialogs.BaseDialog
@@ -60,7 +60,7 @@ object FindDialog : BaseDialog("@find") {
                 if (closest == null) {
                     Vars.ui.chatfrag.addMessage("No ${block.localizedName} was found", "client", Color.coral.cpy().mul(0.75f))
                 } else {
-                    Client.vars.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
+                    ClientVars.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
                     //TODO: Make the line below use toasts similar to UnitPicker.java
                     Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", "client", Color.coral.cpy().mul(0.75f))
                 }

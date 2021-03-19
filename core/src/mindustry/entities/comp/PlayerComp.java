@@ -8,7 +8,7 @@ import arc.scene.ui.layout.Scl;
 import arc.util.*;
 import arc.util.pooling.Pools;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.Client;
+import mindustry.client.*;
 import mindustry.client.utils.FloatEmbed;
 import mindustry.content.UnitTypes;
 import mindustry.core.NetClient;
@@ -150,8 +150,8 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
         textFadeTime -= Time.delta / (60 * 5);
 
-        fooUser = FloatEmbed.isEmbedded(mouseX, Client.vars.getFooUser()) && (FloatEmbed.isEmbedded(mouseY, Client.vars.getAssisting()) || FloatEmbed.isEmbedded(mouseY, Client.vars.getFooUser()));
-        assisting = FloatEmbed.isEmbedded(mouseX, Client.vars.getFooUser()) && FloatEmbed.isEmbedded(mouseY, Client.vars.getAssisting());
+        fooUser = FloatEmbed.isEmbedded(mouseX, ClientVars.FOO_USER) && (FloatEmbed.isEmbedded(mouseY, ClientVars.ASSISTING) || FloatEmbed.isEmbedded(mouseY, ClientVars.FOO_USER));
+        assisting = FloatEmbed.isEmbedded(mouseX, ClientVars.FOO_USER) && FloatEmbed.isEmbedded(mouseY, ClientVars.ASSISTING);
     }
 
     @Override

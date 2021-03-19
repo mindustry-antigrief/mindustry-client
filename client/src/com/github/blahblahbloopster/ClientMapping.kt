@@ -13,8 +13,8 @@ import com.github.blahblahbloopster.ui.FeaturesDialog
 import com.github.blahblahbloopster.ui.FindDialog
 import com.github.blahblahbloopster.ui.KeyShareDialog
 import mindustry.Vars
-import mindustry.client.Client
 import mindustry.client.ClientInterface
+import mindustry.client.ClientVars
 import mindustry.client.navigation.Navigation
 import mindustry.client.utils.FloatEmbed
 import mindustry.gen.Player
@@ -41,13 +41,13 @@ class ClientMapping : ClientInterface {
         return when {
             Navigation.currentlyFollowing is AssistPath && Core.settings.getBool("displayasuser") ->
                 Vec2(
-                    FloatEmbed.embedInFloat(Vars.player.unit().aimX, Client.vars.fooUser),
-                    FloatEmbed.embedInFloat(Vars.player.unit().aimY, Client.vars.assisting)
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.ASSISTING)
                 )
             Core.settings.getBool("displayasuser") ->
                 Vec2(
-                    FloatEmbed.embedInFloat(Vars.player.unit().aimX, Client.vars.fooUser),
-                    FloatEmbed.embedInFloat(Vars.player.unit().aimY, Client.vars.fooUser)
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.FOO_USER)
                 )
             else -> Vec2(Vars.player.unit().aimX, Vars.player.unit().aimY)
         }
