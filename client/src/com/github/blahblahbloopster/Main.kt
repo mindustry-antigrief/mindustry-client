@@ -50,8 +50,8 @@ object Main : ApplicationListener {
             communicationSystem = SwitchableCommunicationSystem(DummyCommunicationSystem(mutableListOf()))
             communicationSystem.init()
         }
+        communicationClient = Packets.CommunicationClient(communicationSystem)
         messageCrypto = MessageCrypto()
-        initializeCommunication(communicationSystem)
         messageCrypto.init(communicationClient)
         KeyFolder.initializeAlways()
 
@@ -62,19 +62,12 @@ object Main : ApplicationListener {
         }
         Events.on(EventType.ServerJoinEvent::class.java) {
             communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
-            communicationSystem.init()
-            initializeCommunication(communicationSystem)
         }
-    }
 
-    private fun initializeCommunication(communicationSystem: CommunicationSystem) {
-        communicationSystem.clearListeners()
-        this.messageCrypto = MessageCrypto()
-        communicationClient = Packets.CommunicationClient(communicationSystem)
         communicationClient.addListener { transmission, senderId ->
             when (transmission) {
                 is BuildQueueTransmission -> {
-                    if (senderId == Main.communicationSystem.id) return@addListener
+                    if (senderId == communicationSystem.id) return@addListener
                     val path = Navigation.currentlyFollowing as? BuildPath ?: return@addListener
                     if (path.queues.contains(path.networkAssist)) {
                         val positions = IntSet()
@@ -89,7 +82,6 @@ object Main : ApplicationListener {
                 }
             }
         }
-        messageCrypto.init(communicationClient)
     }
 
     /** Run once per frame. */
