@@ -24,7 +24,7 @@ class TileRecord {
     val logs = mutableListOf<TileLog>()
 }
 
-class ConfigureTileLog(tile: Tile, cause: Interactor, val oldConfiguration: Any?, val newConfiguration: Any?) : TileLog(tile, cause)
+class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, val oldConfiguration: Any?, val newConfiguration: Any?) : TileLog(tile, cause)
 
 open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val configuration: Any?) : TileLog(tile, cause)
 
