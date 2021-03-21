@@ -61,7 +61,7 @@ public class DesktopInput extends InputHandler{
     private long lastShiftZ;
 
     boolean showHint(){
-        return ui.hudfrag.shown && Core.settings.getBool("hints");
+        return ui.hudfrag.shown && (Core.settings.getBool("hints") || selectRequests.any());
     }
 
     @Override
@@ -70,7 +70,7 @@ public class DesktopInput extends InputHandler{
         group.fill(t -> {
             t.bottom();
             t.visible(this::showHint);
-            t.touchable(() -> t.color.a > 0.1 ? Touchable.childrenOnly : Touchable.disabled); // Don't consume clicks when invisible
+            t.touchable(() -> t.color.a > 0 ? Touchable.childrenOnly : Touchable.disabled); // Don't consume clicks when invisible
             t.table(Styles.black6, b -> {
                 StringBuilder str = new StringBuilder(), tmp = new StringBuilder();
                 b.defaults().left();
@@ -122,7 +122,7 @@ public class DesktopInput extends InputHandler{
                     if (c.hasChildren() && (lastSchematic == null || selectRequests.isEmpty())) {
                         c.clearChildren();
                     } else if (!c.hasChildren() && (lastSchematic != null && selectRequests.any())) {
-                        c.button("@schematic.add", Icon.save, this::showSchematicSave).size(250f, 50f).disabled(d -> lastSchematic == null || lastSchematic.file != null);
+                        c.button("@schematic.add", Icon.save, this::showSchematicSave).grow().disabled(d -> lastSchematic == null || lastSchematic.file != null);
                     }
                 });
             }).margin(10f);
