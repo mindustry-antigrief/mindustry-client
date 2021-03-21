@@ -77,43 +77,45 @@ public class DesktopInput extends InputHandler{
                 b.label(() -> {
                     if(!showHint()) return str;
                     str.setLength(0);
-                    if(!isBuilding && !settings.getBool("buildautopause") && !player.unit().isBuilding()){
-                        str.append("\n").append(bundle.format("enablebuilding", keybinds.get(Binding.pause_building).key.toString()));
-                    }else if(player.unit().isBuilding()){
-                        str.append("\n")
-                            .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
-                            .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
-                            .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
-                    }
-                    if(!player.dead() && !player.unit().spawnedByCore()){
-                        str.append("\n").append(bundle.format("respawn", keybinds.get(Binding.respawn).key.toString()));
-                    }
-                    if(player.unit().isBuilding() || ClientVars.dispatchingBuildPlans){
-                        str.append("\n").append(bundle.format(ClientVars.dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
-                    }
-                    if(UnitType.alpha == 0){
-                        str.append("\n").append(bundle.format("client.toggleunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
-                    }
-                    if(ClientVars.showingTurrets){
-                        str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
-                    }
-                    if(ClientVars.hidingBlocks){
-                        str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
-                    }
-                    if(Navigation.state == NavigationState.RECORDING){
-                        str.append("\n").append(bundle.format("client.waypoint", keybinds.get(Binding.place_waypoint).key.toString()));
-                    }else if(Navigation.state == NavigationState.FOLLOWING){
-                        str.append("\n").append(bundle.format("client.stoppath", keybinds.get(Binding.stop_following_path).key.toString()));
-                    }
+                    if(Core.settings.getBool("hints")) {
+                        if(!isBuilding && !settings.getBool("buildautopause") && !player.unit().isBuilding()){
+                            str.append("\n").append(bundle.format("enablebuilding", keybinds.get(Binding.pause_building).key.toString()));
+                        }else if(player.unit().isBuilding()){
+                            str.append("\n")
+                                .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
+                                .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
+                                .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
+                        }
+                        if(!player.dead() && !player.unit().spawnedByCore()){
+                            str.append("\n").append(bundle.format("respawn", keybinds.get(Binding.respawn).key.toString()));
+                        }
+                        if(player.unit().isBuilding() || ClientVars.dispatchingBuildPlans){
+                            str.append("\n").append(bundle.format(ClientVars.dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
+                        }
+                        if(UnitType.alpha == 0){
+                            str.append("\n").append(bundle.format("client.toggleunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
+                        }
+                        if(ClientVars.showingTurrets){
+                            str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
+                        }
+                        if(ClientVars.hidingBlocks){
+                            str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
+                        }
+                        if(Navigation.state == NavigationState.RECORDING){
+                            str.append("\n").append(bundle.format("client.waypoint", keybinds.get(Binding.place_waypoint).key.toString()));
+                        }else if(Navigation.state == NavigationState.FOLLOWING){
+                            str.append("\n").append(bundle.format("client.stoppath", keybinds.get(Binding.stop_following_path).key.toString()));
+                        }
 
-                    if(selectRequests.any()){ // Any selection
-                        str.append("\n").append(bundle.format("schematic.flip", keybinds.get(Binding.schematic_flip_x).key.toString(), keybinds.get(Binding.schematic_flip_y).key.toString()));
-                        if(selectRequests.size > 1024){ // Any selection with more than 1024 blocks
-                            str.append("\n").append(bundle.format("client.largeschematic", keybinds.get(Binding.toggle_placement_modifiers).key.toString()));
+                        if(selectRequests.any()){ // Any selection
+                            str.append("\n").append(bundle.format("schematic.flip", keybinds.get(Binding.schematic_flip_x).key.toString(), keybinds.get(Binding.schematic_flip_y).key.toString()));
                         }
                     }
+                    if(selectRequests.size > 1024){ // Any selection with more than 1024 blocks
+                        str.append("\n").append(bundle.format("client.largeschematic", keybinds.get(Binding.toggle_placement_modifiers).key.toString()));
+                    }
 
-                    t.color.a = Mathf.lerpDelta(t.color.a, Mathf.num(showHint() && str.length() != 0), 0.15f);
+                    t.color.a = Mathf.lerpDelta(t.color.a, Mathf.num(showHint() && (str.length() != 0 || lastSchematic != null && selectRequests.any())), 0.15f);
                     return str.length() != 0 ? tmp.replace(0, tmp.length(), str.deleteCharAt(0).toString()) : tmp;
                 }).style(Styles.outlineLabel);
 
@@ -122,9 +124,9 @@ public class DesktopInput extends InputHandler{
                     if (c.hasChildren() && (lastSchematic == null || selectRequests.isEmpty())) {
                         c.clearChildren();
                     } else if (!c.hasChildren() && (lastSchematic != null && selectRequests.any())) {
-                        c.button("@schematic.add", Icon.save, this::showSchematicSave).grow().disabled(d -> lastSchematic == null || lastSchematic.file != null);
+                        c.button("@schematic.add", Icon.save, this::showSchematicSave).grow().disabled(d -> lastSchematic == null || lastSchematic.file != null).get().getLabel().setWrap(false);
                     }
-                });
+                }).grow().minSize(250f, 50f);
             }).margin(10f);
         });
     }
