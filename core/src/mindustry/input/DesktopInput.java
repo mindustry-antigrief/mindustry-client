@@ -61,7 +61,7 @@ public class DesktopInput extends InputHandler{
     private long lastShiftZ;
 
     boolean showHint(){
-        return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty();
+        return ui.hudfrag.shown && Core.settings.getBool("hints");
     }
 
     @Override
@@ -70,16 +70,15 @@ public class DesktopInput extends InputHandler{
         group.fill(t -> {
             t.bottom();
             t.visible(this::showHint);
-            t.touchable = Touchable.disabled; // Don't consume clicks
+            t.touchable(() -> t.color.a > 0.1 ? Touchable.childrenOnly : Touchable.disabled); // Don't consume clicks when invisible
             t.table(Styles.black6, b -> {
-                StringBuilder str = new StringBuilder();
-                StringBuilder tmp = new StringBuilder();
+                StringBuilder str = new StringBuilder(), tmp = new StringBuilder();
                 b.defaults().left();
                 b.label(() -> {
                     if(!showHint()) return str;
                     str.setLength(0);
-                    if(!isBuilding && !Core.settings.getBool("buildautopause") && !player.unit().isBuilding()){
-                        str.append("\n").append(Core.bundle.format("enablebuilding", Core.keybinds.get(Binding.pause_building).key.toString()));
+                    if(!isBuilding && !settings.getBool("buildautopause") && !player.unit().isBuilding()){
+                        str.append("\n").append(bundle.format("enablebuilding", keybinds.get(Binding.pause_building).key.toString()));
                     }else if(player.unit().isBuilding()){
                         str.append("\n")
                             .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
@@ -106,26 +105,27 @@ public class DesktopInput extends InputHandler{
                     }else if(Navigation.state == NavigationState.FOLLOWING){
                         str.append("\n").append(bundle.format("client.stoppath", keybinds.get(Binding.stop_following_path).key.toString()));
                     }
+
+                    if(selectRequests.any()){ // Any selection
+                        str.append("\n").append(bundle.format("schematic.flip", keybinds.get(Binding.schematic_flip_x).key.toString(), keybinds.get(Binding.schematic_flip_y).key.toString()));
+                        if(selectRequests.size > 1024){ // Any selection with more than 1024 blocks
+                            str.append("\n").append(bundle.format("client.largeschematic", keybinds.get(Binding.toggle_placement_modifiers).key.toString()));
+                        }
+                    }
+
                     t.color.a = Mathf.lerpDelta(t.color.a, Mathf.num(showHint() && str.length() != 0), 0.15f);
                     return str.length() != 0 ? tmp.replace(0, tmp.length(), str.deleteCharAt(0).toString()) : tmp;
                 }).style(Styles.outlineLabel);
-            }).margin(10f);
-        });
 
-        //schematic controls
-        group.fill(t -> {
-            t.visible(() -> ui.hudfrag.shown && lastSchematic != null && !selectRequests.isEmpty());
-            t.bottom();
-            t.table(Styles.black6, b -> {
-                b.defaults().left();
-                b.label(() -> Core.bundle.format("schematic.flip",
-                    Core.keybinds.get(Binding.schematic_flip_x).key.toString(),
-                    Core.keybinds.get(Binding.schematic_flip_y).key.toString())).style(Styles.outlineLabel).visible(() -> Core.settings.getBool("hints"));
                 b.row();
-                b.table(a -> {
-                    a.button("@schematic.add", Icon.save, this::showSchematicSave).colspan(2).size(250f, 50f).disabled(f -> lastSchematic == null || lastSchematic.file != null);
+                b.table().update(c -> { // This is the worst way possible to add/remove the schematic save button but it works ok
+                    if (c.hasChildren() && (lastSchematic == null || selectRequests.isEmpty())) {
+                        c.clearChildren();
+                    } else if (!c.hasChildren() && (lastSchematic != null && selectRequests.any())) {
+                        c.button("@schematic.add", Icon.save, this::showSchematicSave).size(250f, 50f).disabled(d -> lastSchematic == null || lastSchematic.file != null);
+                    }
                 });
-            }).margin(6f);
+            }).margin(10f);
         });
     }
 
@@ -670,8 +670,9 @@ public class DesktopInput extends InputHandler{
 
             if(Core.input.keyDown(Binding.break_block)){
                 mode = none;
-            }else if(!selectRequests.isEmpty()){
+            }else if(selectRequests.any()){
                 flushRequests(selectRequests);
+                if(selectRequests.size > 1024 && !Core.input.keyDown(Binding.toggle_placement_modifiers))selectRequests.clear(); // Deselect large schems
             }else if(isPlacing()){
                 selectX = cursorX;
                 selectY = cursorY;

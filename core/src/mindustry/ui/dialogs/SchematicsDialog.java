@@ -67,6 +67,7 @@ public class SchematicsDialog extends BaseDialog{
                         ui.showInfo("@schematic.disabled");
                     }else{
                         control.input.useSchematic(firstSchematic);
+                        control.input.lastSchematic = null;
                         hide();
                     }
                 }
@@ -171,6 +172,7 @@ public class SchematicsDialog extends BaseDialog{
                                 ui.showInfo("@schematic.disabled");
                             }else{
                                 control.input.useSchematic(s);
+                                control.input.lastSchematic = null;
                                 hide();
                             }
                         }

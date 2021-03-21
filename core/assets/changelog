@@ -12,6 +12,8 @@
  * Fixed bridge clicking and dragging not linking with nearby bridges
  * Added some additional icons to :emote: autocomplete 
  * Improved logic virus detection
+ * Larger schematics are automatically deselected when placed, hold SHIFT to place multiple
+ * Reworked hints some more
  TODO: Finish me
 
 # Version 6.5.3
