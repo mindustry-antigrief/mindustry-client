@@ -4,4 +4,5 @@ before_install:
   - jshell --version
 install:
   - ./gradlew clean desktop:dist
+  - mkdir -p ~/.m2/repository/
   - cp desktop/build/libs/Mindustry.jar ~/.m2/repository/
