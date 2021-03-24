@@ -16,13 +16,11 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
-import mindustry.client.ui.TileInfoFragment;
-import mindustry.client.ui.Toast;
-import mindustry.content.*;
 import mindustry.client.antigrief.*;
-import mindustry.client.navigation.*;
+import mindustry.client.ui.*;
+import mindustry.content.*;
 import mindustry.core.GameState.*;
-import mindustry.core.World;
+import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -32,7 +30,6 @@ import mindustry.input.*;
 import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.ui.*;
-import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
 

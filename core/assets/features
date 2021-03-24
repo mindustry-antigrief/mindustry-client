@@ -6,7 +6,7 @@
  * List items have a * for each line
  * \n does linebreak
 */
-lol comments are useless
+# This list is way out of date and is a work in progress, it is recommended to read through the changelog instead.
 
 # Default Keybinds
  * r - reset camera

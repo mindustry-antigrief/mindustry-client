@@ -3,6 +3,7 @@ package mindustry.input;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
+import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -60,22 +61,17 @@ public class DesktopInput extends InputHandler{
     public Tile prevSelected;
     private long lastShiftZ;
 
-    boolean showHint(){
-        return ui.hudfrag.shown && (Core.settings.getBool("hints") || selectRequests.any());
-    }
-
     @Override
     public void buildUI(Group group){
         //various hints
         group.fill(t -> {
             t.bottom();
-            t.visible(this::showHint);
-            t.touchable(() -> t.color.a > 0 ? Touchable.childrenOnly : Touchable.disabled); // Don't consume clicks when invisible
+            t.visible(() -> ui.hudfrag.shown);
             t.table(Styles.black6, b -> {
                 StringBuilder str = new StringBuilder(), tmp = new StringBuilder();
+                Boolp showHint = () -> str.length() != 0 || lastSchematic != null && selectRequests.any();
                 b.defaults().left();
                 b.label(() -> {
-                    if(!showHint()) return str;
                     str.setLength(0);
                     if(Core.settings.getBool("hints")) {
                         if(!isBuilding && !settings.getBool("buildautopause") && !player.unit().isBuilding()){
@@ -115,18 +111,24 @@ public class DesktopInput extends InputHandler{
                         str.append("\n").append(bundle.format("client.largeschematic", keybinds.get(Binding.toggle_placement_modifiers).key.toString()));
                     }
 
-                    t.color.a = Mathf.lerpDelta(t.color.a, Mathf.num(showHint() && (str.length() != 0 || lastSchematic != null && selectRequests.any())), 0.15f);
+                    t.color.a = Mathf.lerpDelta(t.color.a, Mathf.num(showHint.get()), .15f);
+                    if (t.color.a > .01f) {
+                        t.touchable = Touchable.childrenOnly;
+                    } else {
+                        t.touchable = Touchable.disabled;
+                        tmp.setLength(0); // Empty this so it doesnt look all wonky if hints are toggled off while playing
+                    }
                     return str.length() != 0 ? tmp.replace(0, tmp.length(), str.deleteCharAt(0).toString()) : tmp;
                 }).style(Styles.outlineLabel);
 
                 b.row();
                 b.table().update(c -> { // This is the worst way possible to add/remove the schematic save button but it works ok
-                    if (c.hasChildren() && (lastSchematic == null || selectRequests.isEmpty())) {
+                    if (!c.hasChildren() && lastSchematic != null && selectRequests.any()) {
+                        c.button("@schematic.add", Icon.save, this::showSchematicSave).grow().padTop(10).disabled(d -> lastSchematic == null || lastSchematic.file != null).get().getLabel().setWrap(false);
+                    } else if (c.hasChildren() && showHint.get() && (lastSchematic == null || selectRequests.isEmpty())) {
                         c.clearChildren();
-                    } else if (!c.hasChildren() && (lastSchematic != null && selectRequests.any())) {
-                        c.button("@schematic.add", Icon.save, this::showSchematicSave).grow().disabled(d -> lastSchematic == null || lastSchematic.file != null).get().getLabel().setWrap(false);
                     }
-                }).grow().minSize(250f, 50f);
+                }).growX();
             }).margin(10f);
         });
     }
@@ -674,7 +676,10 @@ public class DesktopInput extends InputHandler{
                 mode = none;
             }else if(selectRequests.any()){
                 flushRequests(selectRequests);
-                if(selectRequests.size > 1024 && !Core.input.keyDown(Binding.toggle_placement_modifiers))selectRequests.clear(); // Deselect large schems
+                if(selectRequests.size > 1024 && !Core.input.keyDown(Binding.toggle_placement_modifiers)) { // Deselect large schems
+                    selectRequests.clear();
+                    lastSchematic = null;
+                }
             }else if(isPlacing()){
                 selectX = cursorX;
                 selectY = cursorY;
