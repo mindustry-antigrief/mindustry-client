@@ -61,7 +61,7 @@ public class DesktopInput extends InputHandler{
     private long lastShiftZ;
 
     boolean showHint(){
-        return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty();
+        return ui.hudfrag.shown && (Core.settings.getBool("hints") || selectRequests.any());
     }
 
     @Override
@@ -70,62 +70,64 @@ public class DesktopInput extends InputHandler{
         group.fill(t -> {
             t.bottom();
             t.visible(this::showHint);
-            t.touchable = Touchable.disabled; // Don't consume clicks
+            t.touchable(() -> t.color.a > 0 ? Touchable.childrenOnly : Touchable.disabled); // Don't consume clicks when invisible
             t.table(Styles.black6, b -> {
-                StringBuilder str = new StringBuilder();
-                StringBuilder tmp = new StringBuilder();
+                StringBuilder str = new StringBuilder(), tmp = new StringBuilder();
                 b.defaults().left();
                 b.label(() -> {
                     if(!showHint()) return str;
                     str.setLength(0);
-                    if(!isBuilding && !Core.settings.getBool("buildautopause") && !player.unit().isBuilding()){
-                        str.append("\n").append(Core.bundle.format("enablebuilding", Core.keybinds.get(Binding.pause_building).key.toString()));
-                    }else if(player.unit().isBuilding()){
-                        str.append("\n")
-                            .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
-                            .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
-                            .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
+                    if(Core.settings.getBool("hints")) {
+                        if(!isBuilding && !settings.getBool("buildautopause") && !player.unit().isBuilding()){
+                            str.append("\n").append(bundle.format("enablebuilding", keybinds.get(Binding.pause_building).key.toString()));
+                        }else if(player.unit().isBuilding()){
+                            str.append("\n")
+                                .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
+                                .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
+                                .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
+                        }
+                        if(!player.dead() && !player.unit().spawnedByCore()){
+                            str.append("\n").append(bundle.format("respawn", keybinds.get(Binding.respawn).key.toString()));
+                        }
+                        if(player.unit().isBuilding() || ClientVars.dispatchingBuildPlans){
+                            str.append("\n").append(bundle.format(ClientVars.dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
+                        }
+                        if(UnitType.alpha == 0){
+                            str.append("\n").append(bundle.format("client.toggleunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
+                        }
+                        if(ClientVars.showingTurrets){
+                            str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
+                        }
+                        if(ClientVars.hidingBlocks){
+                            str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
+                        }
+                        if(Navigation.state == NavigationState.RECORDING){
+                            str.append("\n").append(bundle.format("client.waypoint", keybinds.get(Binding.place_waypoint).key.toString()));
+                        }else if(Navigation.state == NavigationState.FOLLOWING){
+                            str.append("\n").append(bundle.format("client.stoppath", keybinds.get(Binding.stop_following_path).key.toString()));
+                        }
+
+                        if(selectRequests.any()){ // Any selection
+                            str.append("\n").append(bundle.format("schematic.flip", keybinds.get(Binding.schematic_flip_x).key.toString(), keybinds.get(Binding.schematic_flip_y).key.toString()));
+                        }
                     }
-                    if(!player.dead() && !player.unit().spawnedByCore()){
-                        str.append("\n").append(bundle.format("respawn", keybinds.get(Binding.respawn).key.toString()));
+                    if(selectRequests.size > 1024){ // Any selection with more than 1024 blocks
+                        str.append("\n").append(bundle.format("client.largeschematic", keybinds.get(Binding.toggle_placement_modifiers).key.toString()));
                     }
-                    if(player.unit().isBuilding() || ClientVars.dispatchingBuildPlans){
-                        str.append("\n").append(bundle.format(ClientVars.dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
-                    }
-                    if(UnitType.alpha == 0){
-                        str.append("\n").append(bundle.format("client.toggleunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
-                    }
-                    if(ClientVars.showingTurrets){
-                        str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
-                    }
-                    if(ClientVars.hidingBlocks){
-                        str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
-                    }
-                    if(Navigation.state == NavigationState.RECORDING){
-                        str.append("\n").append(bundle.format("client.waypoint", keybinds.get(Binding.place_waypoint).key.toString()));
-                    }else if(Navigation.state == NavigationState.FOLLOWING){
-                        str.append("\n").append(bundle.format("client.stoppath", keybinds.get(Binding.stop_following_path).key.toString()));
-                    }
-                    t.color.a = Mathf.lerpDelta(t.color.a, Mathf.num(showHint() && str.length() != 0), 0.15f);
+
+                    t.color.a = Mathf.lerpDelta(t.color.a, Mathf.num(showHint() && (str.length() != 0 || lastSchematic != null && selectRequests.any())), 0.15f);
                     return str.length() != 0 ? tmp.replace(0, tmp.length(), str.deleteCharAt(0).toString()) : tmp;
                 }).style(Styles.outlineLabel);
-            }).margin(10f);
-        });
 
-        //schematic controls
-        group.fill(t -> {
-            t.visible(() -> ui.hudfrag.shown && lastSchematic != null && !selectRequests.isEmpty());
-            t.bottom();
-            t.table(Styles.black6, b -> {
-                b.defaults().left();
-                b.label(() -> Core.bundle.format("schematic.flip",
-                    Core.keybinds.get(Binding.schematic_flip_x).key.toString(),
-                    Core.keybinds.get(Binding.schematic_flip_y).key.toString())).style(Styles.outlineLabel).visible(() -> Core.settings.getBool("hints"));
                 b.row();
-                b.table(a -> {
-                    a.button("@schematic.add", Icon.save, this::showSchematicSave).colspan(2).size(250f, 50f).disabled(f -> lastSchematic == null || lastSchematic.file != null);
-                });
-            }).margin(6f);
+                b.table().update(c -> { // This is the worst way possible to add/remove the schematic save button but it works ok
+                    if (c.hasChildren() && (lastSchematic == null || selectRequests.isEmpty())) {
+                        c.clearChildren();
+                    } else if (!c.hasChildren() && (lastSchematic != null && selectRequests.any())) {
+                        c.button("@schematic.add", Icon.save, this::showSchematicSave).grow().disabled(d -> lastSchematic == null || lastSchematic.file != null).get().getLabel().setWrap(false);
+                    }
+                }).grow().minSize(250f, 50f);
+            }).margin(10f);
         });
     }
 
@@ -670,8 +672,9 @@ public class DesktopInput extends InputHandler{
 
             if(Core.input.keyDown(Binding.break_block)){
                 mode = none;
-            }else if(!selectRequests.isEmpty()){
+            }else if(selectRequests.any()){
                 flushRequests(selectRequests);
+                if(selectRequests.size > 1024 && !Core.input.keyDown(Binding.toggle_placement_modifiers))selectRequests.clear(); // Deselect large schems
             }else if(isPlacing()){
                 selectX = cursorX;
                 selectY = cursorY;

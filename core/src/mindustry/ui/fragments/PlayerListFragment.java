@@ -63,7 +63,7 @@ public class PlayerListFragment extends Fragment{
                 pane.row();
 
                 pane.table(menu -> {
-                    menu.defaults().growX().height(50f).fillY();
+                    menu.defaults().pad(5).growX().height(50f).fillY();
                     menu.name = "menu";
 
                     menu.button("@server.bans", ui.bans::show).disabled(b -> net.client()).get().getLabel().setWrap(false);

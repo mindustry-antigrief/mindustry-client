@@ -41,10 +41,7 @@ public class Client {
             ui.unitPicker.found = null;
             control.input.lastVirusWarning = null;
 
-            ClientVars.showingTurrets = false;
-            ClientVars.hidingUnits = false;
-            ClientVars.hidingBlocks = false;
-            ClientVars.dispatchingBuildPlans = false;
+            ClientVars.showingTurrets = ClientVars.hidingUnits = ClientVars.hidingBlocks = ClientVars.dispatchingBuildPlans = false;
 
             if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
         });
