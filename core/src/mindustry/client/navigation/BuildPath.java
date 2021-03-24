@@ -19,7 +19,7 @@ import mindustry.world.blocks.logic.*;
 
 import static mindustry.Vars.*;
 
-public class BuildPath extends Path {
+public class    BuildPath extends Path {
     Building core = player.core();
     private boolean show, activeVirus;
     Interval timer = new Interval(2);
