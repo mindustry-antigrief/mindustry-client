@@ -152,18 +152,18 @@ public class Client {
         });
 
         ClientVars.clientCommandHandler.<Player>register("here", "[message...]", "Prints your location to chat with an optional message", (args, player) ->
-            Call.sendChatMessage(String.format("%s(%s, %s)", args.length == 0 ? "" : args[0] + " ", player.tileX(), player.tileY()))
+            Call.sendChatMessage(Strings.format("@(@, @)", args.length == 0 ? "" : args[0] + " ", player.tileX(), player.tileY()))
         );
 
         ClientVars.clientCommandHandler.<Player>register("cursor", "[message...]", "Prints cursor location to chat with an optional message", (args, player) ->
-            Call.sendChatMessage(String.format("%s(%s, %s)", args.length == 0 ? "" : args[0] + " ", World.toTile(Core.input.mouseWorldX()), World.toTile(Core.input.mouseWorldY())))
+            Call.sendChatMessage(Strings.format("@(@, @)", args.length == 0 ? "" : args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
         );
 
         ClientVars.clientCommandHandler.<Player>register("builder", "[options...]", "Starts auto build with optional arguments, prioritized from first to last.", (args, player) ->
-            Navigation.follow(new BuildPath(args.length  == 0 ? "" : args[0]))
+            Navigation.follow(new BuildPath(args.length  == 0 ? "" : args[0])) // TODO: This is so scuffed lol
         );
 
-        ClientVars.clientCommandHandler.<Player>register("tp", "<x> <y>", "Moves to (x, y) at insane speeds, only works on servers without strict mode enabled.", (args, player) -> {
+        ClientVars.clientCommandHandler.<Player>register("tp", "<x> <y>", "Teleports to (x, y), only works on servers without strict mode enabled.", (args, player) -> {
             try {
                 NetClient.setPosition(World.unconv(Float.parseFloat(args[0])), World.unconv(Float.parseFloat(args[1])));
             } catch(Exception e) {
@@ -187,6 +187,11 @@ public class Client {
         ClientVars.clientCommandHandler.<Player>register("js", "<code...>", "Runs JS on the client.", (args, player) ->
             player.sendMessage("[accent]" + mods.getScripts().runConsole(args[0]))
         );
+
+        ClientVars.clientCommandHandler.<Player>register("/js", "<code...>", "Runs JS on the client as well as the server.", (args, player) -> {
+            Call.sendChatMessage("!js " + args[0]);
+            Call.sendChatMessage("/js " + args[0]);
+        });
 
         ClientVars.clientCommandHandler.<Player>register("fuel", "[interval]", "Runs the fuel command on cn, selects the entire map, optional interval in seconds (min 30)", (args, player) -> {
             if (args.length == 0) {

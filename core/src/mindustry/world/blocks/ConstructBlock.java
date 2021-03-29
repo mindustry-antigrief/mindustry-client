@@ -239,7 +239,7 @@ public class ConstructBlock extends Block{
 
         @Override
         public TextureRegion getDisplayIcon(){
-            return (cblock == null ? previous : cblock).icon(Cicon.full);
+            return (cblock == null ? previous == null ? Blocks.air : previous : cblock).icon(Cicon.full);
         }
 
         @Override

@@ -4,6 +4,7 @@
  * Fixed an issue with not enough / too many particles appearing based on fps
  * Improved navigation when assume unstrict is toggled on
  * Added !fuel command with an optional interval in seconds to run /fuel on cn
+ * Added !/js command, runs js code on the server and the client (sends /js to the server, will not work if that command doesnt exist or you dont have permission)
  * Long names in the player list now wrap
  * Fixed an impossibly rare edge case where core items were formatted wrong if the team had exactly -2147483648 of them
  * Parallaxes now move the player again
