@@ -234,7 +234,7 @@ public class ConstructBlock extends Block{
 
         @Override
         public String getDisplayName(){
-            return Core.bundle.format("block.constructing", cblock == null ? previous.localizedName : cblock.localizedName);
+            return Core.bundle.format("block.constructing", cblock == null ? previous == null ? Core.bundle.get("block.unknown") : previous.localizedName : cblock.localizedName);
         }
 
         @Override
