@@ -1,6 +1,6 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
-# Version 6.5.4
+# Version 6.6.0
  * Fixed an issue with not enough / too many particles appearing based on fps
  * Improved navigation when assume unstrict is toggled on
  * Added !fuel command with an optional interval in seconds to run /fuel on cn
@@ -13,9 +13,14 @@
  * Fixed bridge clicking and dragging not linking with nearby bridges
  * Added some additional icons to :emote: autocomplete 
  * Improved logic virus detection
- * Larger schematics are automatically deselected when placed, hold SHIFT to place multiple
- * Reworked hints some more
- TODO: Finish me
+ * Larger schematics (>1024 blocks) are automatically deselected when placed, hold SHIFT to place multiple
+ * Reworked hints some more, added some new ones
+ * Fixed a bug where encrypted messages would appear more than once
+ * Changes to the encrypted message system to allow it to work through a plugin
+ * Fixed a crash with buildpath
+ * Lots of cleanup internally
+ * Probably more stuff I missed
+ * Updated to v126.2
 
 # Version 6.5.3
  * Changed icons for encrypted and verified messages

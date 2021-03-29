@@ -35,13 +35,13 @@ import static mindustry.Vars.*;
 
 public class NetServer implements ApplicationListener{
     /** note that snapshots are compressed, so the max snapshot size here is above the typical UDP safe limit */
-    private static final int maxSnapshotSize = 800, timerBlockSync = 0;
-    private static final float serverSyncTime = 12, blockSyncTime = 60 * 6;
+    private static final int maxSnapshotSize = 800, timerBlockSync = 0, serverSyncTime = 200;
+    private static final float blockSyncTime = 60 * 6;
     private static final FloatBuffer fbuffer = FloatBuffer.allocate(20);
     private static final Vec2 vector = new Vec2();
     private static final Rect viewport = new Rect();
     /** If a player goes away of their server-side coordinates by this distance, they get teleported back. */
-    private static final float correctDist = tilesize * 12f;
+    private static final float correctDist = tilesize * 14f;
 
     public final Administration admins = new Administration();
     public final CommandHandler clientCommands = new CommandHandler("/");
@@ -464,12 +464,17 @@ public class NetServer implements ApplicationListener{
                     return;
                 }
 
-                if(!arg[0].equalsIgnoreCase("y") && !arg[0].equalsIgnoreCase("n")){
+                int sign = switch(arg[0].toLowerCase()){
+                    case "y", "yes" ->  1;
+                    case "n", "no" -> -1;
+                    default -> 0;
+                };
+
+                if(sign == 0){
                     player.sendMessage("[scarlet]Vote either 'y' (yes) or 'n' (no).");
                     return;
                 }
 
-                int sign = arg[0].equalsIgnoreCase("y") ? 1 : -1;
                 currentlyKicking[0].vote(player, sign);
             }
         });
@@ -656,9 +661,6 @@ public class NetServer implements ApplicationListener{
 
             long elapsed = Time.timeSinceMillis(con.lastReceivedClientTime);
             float maxSpeed = unit.realSpeed();
-            if(unit.isGrounded()){
-                maxSpeed *= unit.floorSpeedMultiplier();
-            }
 
             float maxMove = elapsed / 1000f * 60f * maxSpeed * 1.2f;
 
@@ -734,8 +736,8 @@ public class NetServer implements ApplicationListener{
             logic.skipWave();
             info("&lc@ has skipped the wave.", player.name);
         }else if(action == AdminAction.ban){
-            netServer.admins.banPlayerIP(other.con.address);
             netServer.admins.banPlayerID(other.con.uuid);
+            netServer.admins.banPlayerIP(other.con.address);
             other.kick(KickReason.banned);
             info("&lc@ has banned @.", player.name, other.name);
         }else if(action == AdminAction.kick){
@@ -967,9 +969,11 @@ public class NetServer implements ApplicationListener{
                     return;
                 }
 
-                NetConnection connection = player.con;
+                var connection = player.con;
 
-                if(!player.timer(0, serverSyncTime) || !connection.hasConnected) return;
+                if(Time.timeSinceMillis(connection.syncTime) < serverSyncTime || !connection.hasConnected) return;
+
+                connection.syncTime = Time.millis();
 
                 try{
                     writeEntitySnapshot(player);

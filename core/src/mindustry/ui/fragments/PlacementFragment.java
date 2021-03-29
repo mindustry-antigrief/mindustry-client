@@ -191,6 +191,14 @@ public class PlacementFragment extends Fragment{
             return true;
         }
 
+        if(Core.input.keyTap(Binding.block_info)){
+            Block displayBlock = menuHoverBlock != null ? menuHoverBlock : input.block;
+            if(displayBlock != null){
+                ui.content.show(displayBlock);
+                Events.fire(new BlockInfoEvent());
+            }
+        }
+
         return false;
     }
 
@@ -330,7 +338,7 @@ public class PlacementFragment extends Fragment{
 
                                             int amount = core.items.get(stack.item);
                                             int stackamount = Math.round(stack.amount * state.rules.buildCostMultiplier);
-                                            String color = (amount < stackamount / 2f ? "[red]" : amount < stackamount ? "[accent]" : "[white]");
+                                            String color = (amount < stackamount / 2f ? "[scarlet]" : amount < stackamount ? "[accent]" : "[white]");
 
                                             return color + UI.formatAmount(amount) + "[white]/" + stackamount;
                                         }).padLeft(5);

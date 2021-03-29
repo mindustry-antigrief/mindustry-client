@@ -189,7 +189,7 @@ public class Client {
         );
 
         ClientVars.clientCommandHandler.<Player>register("/js", "<code...>", "Runs JS on the client as well as the server.", (args, player) -> {
-            Call.sendChatMessage("!js " + args[0]);
+            player.sendMessage("[accent]" + mods.getScripts().runConsole(args[0]));
             Call.sendChatMessage("/js " + args[0]);
         });
 
@@ -197,7 +197,7 @@ public class Client {
             if (args.length == 0) {
                 timer.reset(0, -Integer.MAX_VALUE); // Jank way to fuel once right now
                 player.sendMessage("[accent]Fueled successfully.");
-            }   else {
+            } else {
                 try {
                     fuelTimer = Short.parseShort(args[0]);
                     if (fuelTimer > 0){

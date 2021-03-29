@@ -205,10 +205,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(targets = Loc.both, called = Loc.server)
     public static void requestUnitPayload(Player player, Unit target){
-        if(player == null) return;
+        if(player == null || !(player.unit() instanceof Payloadc pay)) return;
 
         Unit unit = player.unit();
-        Payloadc pay = (Payloadc)unit;
 
         if(target.isAI() && target.isGrounded() && pay.canPickup(target)
         && target.within(unit, unit.type.hitSize * 2f + target.type.hitSize * 2f)){
@@ -218,10 +217,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(targets = Loc.both, called = Loc.server)
     public static void requestBuildPayload(Player player, Building build){
-        if(player == null) return;
+        if(player == null || !(player.unit() instanceof Payloadc pay)) return;
 
         Unit unit = player.unit();
-        Payloadc pay = (Payloadc)unit;
 
         if(build != null && build.team == unit.team
         && unit.within(build, tilesize * build.block.size * 1.2f + tilesize * 5f)){
@@ -389,7 +387,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 } else if (value instanceof Point2[]) {
                     //todo
                 }
-            } else if (Core.settings.getBool("viruswarnings") && value instanceof byte[] && build instanceof LogicBlock.LogicBuild l && BuildPath.virusBlock(l.code)) {
+            } else if (Core.settings.getBool("viruswarnings") && value instanceof byte[] && build instanceof LogicBlock.LogicBuild l && BuildPath.virusBlock(l)) {
                 ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", player.name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
                 control.input.lastVirusWarning = l;
                 control.input.lastVirusWarnTime = Time.millis();

@@ -6,11 +6,8 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.ctype.*;
 import mindustry.graphics.*;
-import mindustry.ui.*;
-import mindustry.world.blocks.production.GenericCrafter;
 import mindustry.world.meta.*;
-import mindustry.world.meta.values.ItemListValue;
-import mindustry.world.meta.values.NumberValue;
+import mindustry.world.meta.values.*;
 
 public class ContentInfoDialog extends BaseDialog{
 
@@ -30,9 +27,9 @@ public class ContentInfoDialog extends BaseDialog{
         content.checkStats();
 
         table.table(title1 -> {
-            int size = 8 * 6;
+            var size = content.prefDatabaseIcon();
 
-            title1.image(content.icon(Cicon.xlarge)).size(size).scaling(Scaling.fit);
+            title1.image(content.icon(size)).size(size.size).scaling(Scaling.fit);
             title1.add("[accent]" + content.localizedName).padLeft(5);
         });
 

@@ -25,7 +25,7 @@ public class BuildPath extends Path {
     Interval timer = new Interval(2);
     public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>();
     public Seq<Queue<BuildPlan>> queues = new Seq<>(9);
-    public Seq<BuildPlan> sorted = new Seq<>(), invalid = new Seq<>();
+    public Seq<BuildPlan> sorted = new Seq<>();
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
@@ -73,7 +73,6 @@ public class BuildPath extends Path {
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     public void follow() {
         if (timer.get(15)) {
-            if (timer.get(1, 600)) invalid.clear(); // Clear this every 10s just in case
             clearQueue(broken);
             clearQueue(boulders);
             clearQueue(assist);
@@ -106,7 +105,7 @@ public class BuildPath extends Path {
             if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus)) {
                 for (Tile tile : world.tiles) {
                     if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build) {
-                        if (virusBlock(build.code, false)) {
+                        if (virusBlock(build, false)) {
                             virus.add(new BuildPlan(tile.x, tile.y)); // Partially delete the spammed processors, prioritizes ones that haven't been configured yet in the event that you get ratelimited
                         }
 
@@ -173,7 +172,7 @@ public class BuildPath extends Path {
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{
                 //discard invalid request
-                invalid.add(player.unit().plans.removeFirst());
+                player.unit().plans.removeFirst();
             }
         }
     }
@@ -210,7 +209,6 @@ public class BuildPath extends Path {
         if(!largeFirst)sorted.reverse();
         for (BuildPlan plan : sorted) { // The largest distance is at the start of the sequence by this point
             if (!validPlan(plan)) continue;
-//            if (invalid.contains(plan)) continue; TODO: Should I use this or the line above?
             if (plan.block == null || player.unit().shouldSkip(plan, core)) {
                 if (includeAll)out.addLast(plan);
             } else {
@@ -227,14 +225,15 @@ public class BuildPath extends Path {
             Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));
     }
 
-    public static boolean virusBlock (String code, boolean checkEnd) {
+    public static boolean virusBlock (LogicBlock.LogicBuild block, boolean checkEnd) {
+        String code = block.code;
         if (checkEnd && code.startsWith("end")) return false;
         return code.contains("ucontrol build") && code.contains("ubind")
             && (((code.contains("@x") || code.contains("@shootX") || code.contains("@thisx")) && (code.contains("@y") || code.contains("@shootY") ||code.contains("@thisy")) || code.contains("@this") || code.contains("@controller"))); // Doesn't use a regex as those are expensive
     }
 
-    public static boolean virusBlock (String code) {
-        return virusBlock(code, true);
+    public static boolean virusBlock (LogicBlock.LogicBuild block) {
+        return virusBlock(block, true);
     }
 }
 
