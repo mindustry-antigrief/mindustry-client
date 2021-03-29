@@ -13,9 +13,14 @@
  * Fixed bridge clicking and dragging not linking with nearby bridges
  * Added some additional icons to :emote: autocomplete 
  * Improved logic virus detection
- * Larger schematics are automatically deselected when placed, hold SHIFT to place multiple
- * Reworked hints some more
- TODO: Finish me
+ * Larger schematics (>1024 blocks) are automatically deselected when placed, hold SHIFT to place multiple
+ * Reworked hints some more, added some new ones
+ * Fixed a bug where encrypted messages would appear more than once
+ * Changes to the encrypted message system to allow it to work through a plugin
+ * Fixed a crash with buildpath
+ * Lots of cleanup internally
+ * Probably more stuff I missed
+ * Updated to v126.2
 
 # Version 6.5.3
  * Changed icons for encrypted and verified messages

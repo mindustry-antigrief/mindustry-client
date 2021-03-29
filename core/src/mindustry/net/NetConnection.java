@@ -18,6 +18,7 @@ public abstract class NetConnection{
     public boolean mobile, modclient;
     public @Nullable Player player;
     public boolean kicked = false;
+    public long syncTime;
 
     /** When this connection was established. */
     public long connectTime = Time.millis();
@@ -61,7 +62,7 @@ public abstract class NetConnection{
     }
 
     /** Kick with an arbitrary reason, and a kick duration in milliseconds. */
-    public void kick(String reason, int kickDuration){
+    public void kick(String reason, long kickDuration){
         if(kicked) return;
 
         Log.info("Kicking connection @; Reason: @", address, reason.replace("\n", " "));

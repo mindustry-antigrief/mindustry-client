@@ -142,7 +142,7 @@ public class ConstructBlock extends Block{
 
         if(builder != null && tile.build != null){
             tile.getLinkedTiles(t -> t.addToLog(new PlaceTileLog(builder, t, Instant.now().getEpochSecond(), "", block, tile.build.config())));
-            if (Core.settings.getBool("viruswarnings") && builder.isPlayer() && config instanceof byte[] && tile.build instanceof LogicBlock.LogicBuild l && BuildPath.virusBlock(l.code)) {
+            if (Core.settings.getBool("viruswarnings") && builder.isPlayer() && config instanceof byte[] && tile.build instanceof LogicBlock.LogicBuild l && BuildPath.virusBlock(l)) {
                 ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", builder.getPlayer().name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
                 control.input.lastVirusWarning = l;
                 control.input.lastVirusWarnTime = Time.millis();
@@ -342,6 +342,11 @@ public class ConstructBlock extends Block{
         }
 
         public void deconstruct(Unit builder, @Nullable Building core, float amount){
+            //reset accumulated resources when switching modes
+            if(wasConstructing){
+                Arrays.fill(accumulator, 0);
+                Arrays.fill(totalAccumulator, 0);
+            }
             wasConstructing = false;
             activeDeconstruct = true;
             float deconstructMultiplier = state.rules.deconstructRefundMultiplier;

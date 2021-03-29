@@ -26,12 +26,6 @@ public class MenuFragment extends Fragment{
     private Button currentMenu;
     private MenuRenderer renderer;
 
-    public MenuFragment(){
-        Events.on(DisposeEvent.class, event -> {
-            if (renderer != null)renderer.dispose();
-        });
-    }
-
     @Override
     public void build(Group parent){
         renderer = new MenuRenderer();
