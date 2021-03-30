@@ -10,6 +10,7 @@ import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
+import mindustry.game.EventType;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.type.*;
@@ -60,6 +61,7 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
     }
 
     void pickup(Building tile){
+        Events.fire(new EventType.BuildPayloadPickup(tile.tile, self(), tile));
         tile.pickedUp();
         tile.tile.remove();
         payloads.add(new BuildPayload(tile));
@@ -133,6 +135,7 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
         int tx = World.toTile(x - tile.block.offset), ty = World.toTile(y - tile.block.offset);
         Tile on = Vars.world.tile(tx, ty);
         if(on != null && Build.validPlace(tile.block, tile.team, tx, ty, tile.rotation, false)){
+            Events.fire(new EventType.BuildPayloadDrop(on, self(), payload.build));
             int rot = (int)((rotation + 45f) / 90f) % 4;
             payload.place(on, rot);
 

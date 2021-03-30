@@ -93,3 +93,20 @@ object Compression {
 fun ByteArray.compress() = Compression.compress(this)
 
 fun ByteArray.inflate() = Compression.inflate(this)
+
+/** Pretty slow */
+fun String.restrictToAscii(): String {
+    val new = StringBuilder()
+    for (char in this) {
+        if (char in ' '..'~') {
+            new.append(char)
+        }
+    }
+    return new.toString()
+}
+
+fun String.capLength(length: Int): String {
+    if (this.length <= length) return this
+    if (length <= 3) return substring(0 until length)
+    return substring(0 until length - 3) + "..."
+}

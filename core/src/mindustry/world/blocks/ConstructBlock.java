@@ -72,10 +72,6 @@ public class ConstructBlock extends Block{
     @Remote(called = Loc.server)
     public static void deconstructFinish(Tile tile, Block block, Unit builder){
         if(tile != null && builder != null && block != null){
-            tile.getLinkedTiles(t -> {
-                t.addToLog(new TileLogItem(builder, t, Instant.now().getEpochSecond(), "", "broke", block));
-                breakWarning(t, block, builder);
-            });
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if(((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()){
                     if(block.isVisible()) {
@@ -86,9 +82,10 @@ public class ConstructBlock extends Block{
             }
         }
         if (tile != null && block != null) {
+            tile.getLinkedTiles(t -> Events.fire(new BlockBuildEventTile(t, tile.team(), builder, block, Blocks.air, tile.build == null? null : tile.build.config(), null)));
             Team team = tile.team();
             Fx.breakBlock.at(tile.drawx(), tile.drawy(), block.size);
-            Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null, tile.block(), tile.build == null? null : tile.build.config()));
+            Events.fire(new BlockBuildEndEvent(tile, builder, team, true, tile.build == null? null : tile.build.config(), tile.block()));
             tile.remove();
             if (shouldPlay()) Sounds.breaks.at(tile, calcPitch(false));
         }
@@ -112,6 +109,7 @@ public class ConstructBlock extends Block{
 
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild co ? co.prevBuild : null;
+        Block prevBlock = tile.block();
 
 
         if (block == null) {
@@ -141,7 +139,13 @@ public class ConstructBlock extends Block{
             tile.build.playerPlaced(config);
         }
 
-        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, oldBlock, oldConfig));
+        if (prev != null) {
+            for (var item : prev) {
+                Events.fire(new BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
+            }
+        }
+
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
 
         Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
 
@@ -197,12 +201,20 @@ public class ConstructBlock extends Block{
     }
 
     public static void constructed(Tile tile, Block block, Unit builder, byte rotation, Team team, Object config){
+        Block prev = tile.block();
+
+        if (tile.build instanceof ConstructBuild) {
+            for (var item : ((ConstructBuild) tile.build).prevBuild) {
+                Events.fire(new EventType.BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
+            }
+        }
+
         Call.constructFinish(tile, block, builder, rotation, team, config);
         if(tile.build != null){
             tile.build.placed();
         }
 
-        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, oldBlock, oldConfig));
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prev));
     }
 
     @Override
