@@ -2,6 +2,8 @@ package mindustry.client;
 
 import arc.math.geom.*;
 import mindustry.gen.*;
+import mindustry.world.Tile;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This is an interface implemented by the client module in kotlin.
@@ -25,4 +27,6 @@ public interface ClientInterface {
     void shareKey();
 
     void setPluginNetworking(boolean enable);
+
+    void showTileLogs(@NotNull Tile tile);
 }

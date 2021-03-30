@@ -203,8 +203,8 @@ public class ConstructBlock extends Block{
     public static void constructed(Tile tile, Block block, Unit builder, byte rotation, Team team, Object config){
         Block prev = tile.block();
 
-        if (tile.build instanceof ConstructBuild) {
-            for (var item : ((ConstructBuild) tile.build).prevBuild) {
+        if (tile.build instanceof ConstructBuild b) {
+            for (var item : b.prevBuild != null ? b.prevBuild : new Seq<Building>()) {
                 Events.fire(new EventType.BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
             }
         }

@@ -4,6 +4,7 @@ import arc.*
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
+import com.github.blahblahbloopster.antigrief.TileRecords
 import com.github.blahblahbloopster.communication.*
 import com.github.blahblahbloopster.crypto.*
 import com.github.blahblahbloopster.navigation.*
@@ -46,6 +47,7 @@ object Main : ApplicationListener {
                 }
                 Toast(3f).add("@client.invalidkey")
             }
+            TileRecords.initialize()
         } else {
             communicationSystem = SwitchableCommunicationSystem(DummyCommunicationSystem(mutableListOf()))
             communicationSystem.init()

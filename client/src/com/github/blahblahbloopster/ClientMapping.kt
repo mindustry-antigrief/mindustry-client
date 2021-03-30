@@ -3,6 +3,7 @@ package com.github.blahblahbloopster
 import arc.Core
 import arc.math.geom.Vec2
 import arc.util.serialization.Base64Coder
+import com.github.blahblahbloopster.antigrief.TileRecords
 import com.github.blahblahbloopster.communication.PluginCommunicationSystem
 import com.github.blahblahbloopster.crypto.Crypto
 import com.github.blahblahbloopster.crypto.DummyCommunicationSystem
@@ -18,6 +19,7 @@ import mindustry.client.ClientVars
 import mindustry.client.navigation.Navigation
 import mindustry.client.utils.FloatEmbed
 import mindustry.gen.Player
+import mindustry.world.Tile
 
 class ClientMapping : ClientInterface {
 
@@ -75,5 +77,12 @@ class ClientMapping : ClientInterface {
                 Main.communicationSystem.activeCommunicationSystem = DummyCommunicationSystem(mutableListOf())
             }
         }
+    }
+
+    override fun showTileLogs(tile: Tile) {
+        Vars.ui.dialog("Logs") {
+            add(TileRecords.getLogs(tile)?.toElement())
+            addCloseButton()
+        }.show()
     }
 }

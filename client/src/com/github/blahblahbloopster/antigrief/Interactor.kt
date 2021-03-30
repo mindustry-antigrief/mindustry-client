@@ -9,11 +9,11 @@ interface Interactor {
     val name: String
 }
 
-open class UnitInteractor(unit: Unit) : Interactor {
+open class UnitInteractor(unit: Unit?) : Interactor {
     override val name: String = when {
-        unit.isPlayer -> "${unit.type.localizedName} controlled by ${unit.playerNonNull().name}"
-        unit.controller() is LogicAI -> "${unit.type.localizedName} logic-controlled by a processor accessed by ${(unit.controller() as LogicAI).controller.lastAccessed}"
-        else -> unit.type.localizedName
+        unit?.isPlayer == true -> "${unit.type.localizedName} controlled by ${unit.playerNonNull().name}"
+        unit?.controller() is LogicAI -> "${unit.type.localizedName} logic-controlled by a processor accessed by ${(unit.controller() as LogicAI).controller.lastAccessed}"
+        else -> unit?.type?.localizedName ?: "null unit"
     }
 }
 

@@ -363,13 +363,14 @@ public class DesktopInput extends InputHandler{
 
                 table.row().fill();
                 table.button("View log", () -> { // Tile Logs
-                    BaseDialog dialog = new BaseDialog("Logs");
-                    ScrollPane pane = new ScrollPane(cursor.getLog().toTable());
-                    pane.setFadeScrollBars(true);
-                    dialog.cont.add(pane).center();
-                    dialog.addCloseButton();
-
-                    dialog.show();
+//                    BaseDialog dialog = new BaseDialog("Logs");
+//                    ScrollPane pane = new ScrollPane(cursor.getLog().toTable());
+//                    pane.setFadeScrollBars(true);
+//                    dialog.cont.add(pane).center();
+//                    dialog.addCloseButton();
+//
+//                    dialog.show();
+                    Client.mapping.showTileLogs(cursor);
                     table.remove();
                 });
 

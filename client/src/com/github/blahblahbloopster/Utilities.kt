@@ -5,6 +5,7 @@ import arc.scene.ui.Dialog
 import arc.scene.ui.Label
 import arc.scene.ui.layout.Cell
 import arc.scene.ui.layout.Table
+import arc.util.Strings
 import arc.util.serialization.Base64Coder
 import mindustry.core.UI
 import mindustry.ui.Styles
@@ -110,3 +111,5 @@ fun String.capLength(length: Int): String {
     if (length <= 3) return substring(0 until length)
     return substring(0 until length - 3) + "..."
 }
+
+fun String.stripColors(): String = Strings.stripColors(this)
