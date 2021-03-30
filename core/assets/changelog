@@ -1,7 +1,8 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
 # Version 6.6.1
- * Patched a crash when hovering an invalid "build"
+ * Patched a crash when hovering an invalid "build" (impossible without js but whatever)
+ * Fixed invisible/sandbox blocks being impossible to place with payload place mode (\)
 
 # Version 6.6.0
  * Fixed an issue with not enough / too many particles appearing based on fps

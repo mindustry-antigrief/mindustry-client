@@ -219,8 +219,11 @@ public class DesktopInput extends InputHandler{
                     Payload payload = ((Payloadc)player.unit()).hasPayload() ? ((Payloadc)player.unit()).payloads().peek() : null;
                     if(payload != null){
                         if(payload instanceof BuildPayload){
-                            drawRequest(cursorX, cursorY, ((BuildPayload)payload).block(), 0);
-                            if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, ((BuildPayload)payload).block(), 0)){
+                            Block block = ((BuildPayload)payload).block();
+                            boolean wasVisible = block.isVisible();
+                            if (!wasVisible) state.rules.revealedBlocks.add(block);
+                            drawRequest(cursorX, cursorY, block, 0);
+                            if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, block, 0)){
                                 if(Navigation.state == NavigationState.RECORDING){
                                     Navigation.addWaypointRecording(new PayloadDropoffWaypoint(cursorX, cursorY));
                                 }
@@ -229,6 +232,7 @@ public class DesktopInput extends InputHandler{
                                 Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
                                 mode = ((Payloadc)player.unit()).payloads().size > 1 ? payloadPlace : none; // Disable payloadplace mode if this is the only payload.
                             }
+                            if (!wasVisible) state.rules.revealedBlocks.remove(block);
                         }
                     }
                 }
