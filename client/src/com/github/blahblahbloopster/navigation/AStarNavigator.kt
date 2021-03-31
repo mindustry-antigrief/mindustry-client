@@ -104,7 +104,7 @@ object AStarNavigator : Navigator() {
                 checkAndUpdateCost(
                     current,
                     grid[x, y],
-                    (current.finalCost + if (abs(x1) + abs(y1) == 1) V_H_COST else DIAGONAL_COST) + addedCosts[x][y]
+                    current.finalCost + addedCosts[x][y]
                 )
             }
         }
@@ -161,7 +161,8 @@ object AStarNavigator : Navigator() {
             for (y in 0 until tileHeight) {
                 grid[x, y].finalCost = 0
                 grid[x, y].parent = null
-                grid[x, y].heuristicCost = max(abs(x - endX), abs(y - endY))
+                val small = min(abs(x - endX), abs(y - endY))
+                grid[x, y].heuristicCost = 14 * small + 10 * (max(abs(x - endX), abs(y - endY)) - small)
             }
         }
         grid[px, py].finalCost = 0
@@ -174,10 +175,10 @@ object AStarNavigator : Navigator() {
             for (x in lowerXBound..upperXBound) {
                 for (y in lowerYBound..upperYBound) {
 
-                    if (x >= tileWidth || x < 0 || y >= tileHeight || y < 0) continue
+                    if (x >= tileWidth || x < 0 || y >= tileHeight || y < 0 || addedCosts[x][y] != 0) continue
 
                     if (turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
-                        addedCosts[x][y] += ceil(((2 * turret.radius * tilesize) - (abs(x) + abs(y))) / 5f).toInt() + 5
+                        addedCosts[x][y] = 10000
                     }
                 }
             }
