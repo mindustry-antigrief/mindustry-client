@@ -1,22 +1,21 @@
 package mindustry.ui.dialogs;
 
-import arc.*;
+import arc.Core;
 import arc.graphics.*;
-import arc.graphics.Texture.*;
+import arc.graphics.Texture.TextureWrap;
 import arc.graphics.g2d.*;
-import arc.input.*;
-import arc.math.*;
-import arc.scene.style.*;
+import arc.input.KeyCode;
+import arc.math.Mathf;
+import arc.scene.style.TextureRegionDrawable;
 import arc.scene.ui.*;
-import arc.scene.ui.ImageButton.*;
-import arc.scene.ui.TextButton.*;
+import arc.scene.ui.ImageButton.ImageButtonStyle;
+import arc.scene.ui.TextButton.TextButtonStyle;
 import arc.scene.ui.layout.*;
 import arc.util.*;
-import mindustry.*;
 import mindustry.game.*;
 import mindustry.gen.*;
-import mindustry.graphics.*;
-import mindustry.input.*;
+import mindustry.graphics.Pal;
+import mindustry.input.Binding;
 import mindustry.type.*;
 import mindustry.ui.*;
 
@@ -63,12 +62,10 @@ public class SchematicsDialog extends BaseDialog{
 
             t.update(() -> {
                 if(Core.input.keyTap(Binding.chat) && Core.scene.getKeyboardFocus() == searchField && firstSchematic != null){
-                    if(!Vars.state.rules.schematicsAllowed){
-                        ui.showInfo("@schematic.disabled");
-                    }else{
-                        control.input.useSchematic(firstSchematic);
-                        hide();
-                    }
+                    ui.showInfo("@schematic.disabled");
+                    control.input.useSchematic(firstSchematic);
+                    control.input.lastSchematic = null;
+                    hide();
                 }
             });
 
@@ -167,12 +164,8 @@ public class SchematicsDialog extends BaseDialog{
                         if(state.isMenu()){
                             showInfo(s);
                         }else{
-                            if(!Vars.state.rules.schematicsAllowed){
-                                ui.showInfo("@schematic.disabled");
-                            }else{
-                                control.input.useSchematic(s);
-                                hide();
-                            }
+                            control.input.useSchematic(s);
+                            control.input.lastSchematic = null;
                         }
                     }).pad(4).style(Styles.cleari).get();
 
@@ -248,13 +241,13 @@ public class SchematicsDialog extends BaseDialog{
     public void showExport(Schematic s){
         BaseDialog dialog = new BaseDialog("@editor.export");
         dialog.cont.pane(p -> {
-           p.margin(10f);
-           p.table(Tex.button, t -> {
-               TextButtonStyle style = Styles.cleart;
+            p.margin(10f);
+            p.table(Tex.button, t -> {
+                TextButtonStyle style = Styles.cleart;
                 t.defaults().size(280f, 60f).left();
                 if(steam && !s.hasSteamID()){
                     t.button("@schematic.shareworkshop", Icon.book, style,
-                        () -> platform.publish(s)).marginLeft(12f);
+                            () -> platform.publish(s)).marginLeft(12f);
                     t.row();
                     dialog.hide();
                 }
