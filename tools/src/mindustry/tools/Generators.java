@@ -9,6 +9,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.async.*;
 import arc.util.noise.*;
 import mindustry.ctype.*;
 import mindustry.game.*;
@@ -91,6 +92,7 @@ public class Generators{
             }
 
             for(int i = Byte.MIN_VALUE; i <= Byte.MAX_VALUE; i++){
+                AsyncExecutor e = new AsyncExecutor(16);
                 Image result = new Image(size, size);
                 byte[][] mask = new byte[size][size];
 
@@ -114,7 +116,7 @@ public class Generators{
                     }
                 }
 
-                result.each((x, y) -> {
+                result.each((x, y) -> e.submit(() -> {
                     byte m = mask[x][y];
                     if(m != 0){
                         //mid
@@ -147,8 +149,9 @@ public class Generators{
 
                         result.draw(x, y, m == 1 ? Color.white : m == 2 ? dark : mid);
                     }
-                });
+                }));
 
+                e.dispose();
                 result.save("../blocks/environment/cliffmask" + (val & 0xff));
             }
         });
