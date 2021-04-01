@@ -12,6 +12,7 @@ import arc.util.*;
 import arc.util.serialization.*;
 import club.minnced.discord.rpc.*;
 import com.codedisaster.steamworks.*;
+import com.github.blahblahbloopster.*;
 import mindustry.*;
 import mindustry.core.*;
 import mindustry.desktop.steam.*;
@@ -20,8 +21,8 @@ import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.net.Net.*;
 import mindustry.type.*;
+
 import java.io.*;
-import com.github.blahblahbloopster.Main;
 
 import static mindustry.Vars.*;
 
@@ -87,8 +88,7 @@ public class DesktopLauncher extends ClientLauncher{
 
         if(useSteam){
             //delete leftover dlls
-            Fi file = new Fi(".");
-            for(Fi other : file.parent().list()){
+            for(Fi other : new Fi(".").parent().list()){
                 if(other.name().contains("steam") && (other.extension().equals("dll") || other.extension().equals("so") || other.extension().equals("dylib"))){
                     other.delete();
                 }
@@ -100,7 +100,6 @@ public class DesktopLauncher extends ClientLauncher{
                         ui.showErrorMessage(Core.bundle.format("steam.error", (steamError.getMessage() == null) ? steamError.getClass().getSimpleName() : steamError.getClass().getSimpleName() + ": " + steamError.getMessage()));
                     })));
                 }
-                if(Core.settings.getBool("discordrpc")) startDiscord();
             });
 
             try{
@@ -211,7 +210,7 @@ public class DesktopLauncher extends ClientLauncher{
         CrashSender.send(e, file -> {
             Throwable fc = Strings.getFinalCause(e);
             if(!fbgp){
-                dialog.get(() -> message("A crash has occured. It has been saved in:\n" + file.getAbsolutePath() + "\n" + fc.getClass().getSimpleName().replace("Exception", "") + (fc.getMessage() == null ? "" : ":\n" + fc.getMessage())));
+                dialog.get(() -> message("A crash has occurred. It has been saved in:\n" + file.getAbsolutePath() + "\n" + fc.getClass().getSimpleName().replace("Exception", "") + (fc.getMessage() == null ? "" : ":\n" + fc.getMessage())));
             }
         });
     }

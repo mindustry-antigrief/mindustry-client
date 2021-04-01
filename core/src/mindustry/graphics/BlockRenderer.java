@@ -9,7 +9,7 @@ import arc.math.*;
 import arc.math.geom.Rect;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.Client;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.game.Team;
@@ -23,7 +23,7 @@ import static arc.Core.*;
 import static mindustry.Vars.*;
 import static mindustry.client.navigation.Navigation.obstacles;
 
-public class BlockRenderer implements Disposable{
+public class BlockRenderer{
     public static final int crackRegions = 8, maxCrackSize = 9;
 
     private static final int initialRequests = 32 * 32;
@@ -140,7 +140,7 @@ public class BlockRenderer implements Disposable{
     }
 
     public void drawShadows(){
-        if (Client.hidingBlocks) return;
+        if (ClientVars.hidingBlocks) return;
         if(!shadowEvents.isEmpty()){
             Draw.flush();
 
@@ -252,7 +252,7 @@ public class BlockRenderer implements Disposable{
     }
 
     public void drawBlocks(){
-        if (Client.hidingBlocks) return;
+        if (ClientVars.hidingBlocks) return;
         drawDestroyed();
 
         //draw most tile stuff
@@ -303,7 +303,7 @@ public class BlockRenderer implements Disposable{
             }
         }
 
-        if (Client.showingTurrets) {
+        if (ClientVars.showingTurrets) {
             Draw.z(Layer.space);
             Rect bounds = new Rect();
             Core.camera.bounds(bounds);
@@ -314,11 +314,4 @@ public class BlockRenderer implements Disposable{
         }
     }
 
-    @Override
-    public void dispose(){
-        shadows.dispose();
-        dark.dispose();
-        shadows = dark = null;
-        floor.dispose();
-    }
 }

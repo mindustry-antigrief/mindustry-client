@@ -1,15 +1,66 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 6.6.1
+ * Patched a crash when hovering an invalid "build" (impossible without js but whatever)
+ * Fixed invisible/sandbox blocks being impossible to place with payload place mode (\)
+
+# Version 6.6.0
+ * Fixed an issue with not enough / too many particles appearing based on fps
+ * Improved navigation when assume unstrict is toggled on
+ * Added !fuel command with an optional interval in seconds to run /fuel on cn
+ * Added !/js command, runs js code on the server and the client (sends /js to the server, will not work if that command doesnt exist or you dont have permission)
+ * Long names in the player list now wrap
+ * Fixed an impossibly rare edge case where core items were formatted wrong if the team had exactly -2147483648 of them
+ * Parallaxes now move the player again
+ * Fixed an issue with logic virus warnings appearing when peeking into a logic block
+ * Power split notifications now work with SHIFT + Z
+ * Fixed bridge clicking and dragging not linking with nearby bridges
+ * Added some additional icons to :emote: autocomplete 
+ * Improved logic virus detection
+ * Larger schematics (>1024 blocks) are automatically deselected when placed, hold SHIFT to place multiple
+ * Reworked hints some more, added some new ones
+ * Fixed a bug where encrypted messages would appear more than once
+ * Changes to the encrypted message system to allow it to work through a plugin
+ * Fixed a crash with buildpath
+ * Lots of cleanup internally
+ * Probably more stuff I missed
+ * Updated to v126.2
+
+# Version 6.5.3
+ * Changed icons for encrypted and verified messages
+ * Fixed a bug in buildpath
+ * Fixed discord rich presence not starting on client launch when not on steam
+ * Fixed logic virus warnings being incredibly spammy
+ * Removed virus removal messages, those were just annoying
+ * A !js command was added an update or two ago but I forgot to list it in the changelog
+
+# Version 6.5.2
+ * Fix hints consuming click, even when invisible
+ * Fix green verified messages
+ * Auto bridge doesn't bridge over blocks in the transportation category (aside from plast conveyors)
+
+# Version 6.5.1
+ * Fix a crash related to chatting in singleplayer
+ * Fix a setting missing from the settings menu
+ * Blocks placed/interacted with by ai will appear in [lightgray]light gray[]
+ * Player names no longer have color in placement logs and warnings
+ * Fixed build path moving back and forth constantly when nothing is affordable
+ * Navigation backtracking fixed properly this time, hopefully this wont cause issues
+ * Reworked hints, they should be more reliable and not overlap ever
+ * Fixed an issue that caused encrypted messages to break after 50 of them were sent (the message verification is still broken)
+ * Fixed an issue with placing cores
+ * Added a debug setting that just prints more stuff to the console
+
 # Version 6.5.0
  * Navigation should actually find the shortest path every time now
  * Navigation will properly avoid turrets (they may still shoot at you once in a while but that should be pretty rare)
  * Navigation will try not to kill your entire formation (for whatever reason, this doesn't slow you down on servers)
- * Navigation should backtrack less again
  * Navigation paths should no longer jitter around randomly, it will find the best path and commit to it (even if that means entering turret ranges because all paths are blocked)
  * Message encryption system, probably never useful but foo decided it would be a fun project (!e <key> <message> to send an encrypted message to that person, you will need to exchange keys with other players through the "manage keys" button in the pause menu)
  * Message verification system, messages from players who's keys you have imported will appear in green with their name swapped for whatever you named the key (this makes it easy to identify players)
  * Names of players from which messages are encrypted/verified will be prefixed with a , a malicious player or server could spoof this if they really wanted to so its recommended to keep highlighting on
  * Fixed autocomplete when mentioning players in chat (@person) not working
+ * Updated to v126
 
 # Version 6.4.0
  * Swap to vanilla double click mining, uses the vanilla setting now (should remember your setting)

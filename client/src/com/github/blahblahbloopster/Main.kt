@@ -17,21 +17,24 @@ import mindustry.game.*
 import mindustry.input.*
 
 object Main : ApplicationListener {
-    lateinit var communicationSystem: CommunicationSystem
+    lateinit var communicationSystem: SwitchableCommunicationSystem
     lateinit var messageCrypto: MessageCrypto
     lateinit var communicationClient: Packets.CommunicationClient
     private var dispatchedBuildPlans = mutableListOf<BuildPlan>()
     private val buildPlanInterval = Interval(2)
 
+    init {
+        mapping = ClientMapping()
+    }
+
     /** Run on client load. */
     override fun init() {
-        mapping = ClientMapping()
         Crypto.initializeAlways()
         if (Core.app.isDesktop) {
-            communicationSystem = MessageBlockCommunicationSystem()
+            communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem, PluginCommunicationSystem)
             communicationSystem.init()
 
-            fooCommands.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
+            ClientVars.clientCommandHandler.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
                 val dest = args[0]
                 val message = args[1]
 
@@ -44,14 +47,22 @@ object Main : ApplicationListener {
                 Toast(3f).add("@client.invalidkey")
             }
         } else {
-            communicationSystem = DummyCommunicationSystem(mutableListOf())
+            communicationSystem = SwitchableCommunicationSystem(DummyCommunicationSystem(mutableListOf()))
+            communicationSystem.init()
         }
-        messageCrypto = MessageCrypto()
         communicationClient = Packets.CommunicationClient(communicationSystem)
+        messageCrypto = MessageCrypto()
         messageCrypto.init(communicationClient)
         KeyFolder.initializeAlways()
 
         Navigation.navigator = AStarNavigator
+
+        Events.on(EventType.WorldLoadEvent::class.java) {
+            dispatchedBuildPlans.clear()
+        }
+        Events.on(EventType.ServerJoinEvent::class.java) {
+            communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
+        }
 
         communicationClient.addListener { transmission, senderId ->
             when (transmission) {
@@ -71,10 +82,6 @@ object Main : ApplicationListener {
                 }
             }
         }
-
-        Events.on(EventType.WorldLoadEvent::class.java) {
-            dispatchedBuildPlans.clear()
-        }
     }
 
     /** Run once per frame. */
@@ -82,10 +89,10 @@ object Main : ApplicationListener {
         communicationClient.update()
 
         if (Core.scene.keyboardFocus == null && Core.input?.keyTap(Binding.send_build_queue) == true) {
-            dispatchingBuildPlans = !dispatchingBuildPlans
+            ClientVars.dispatchingBuildPlans = !ClientVars.dispatchingBuildPlans
         }
 
-        if (dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(10 * 60f)) {
+        if (ClientVars.dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(10 * 60f)) {
             sendBuildPlans()
         }
     }

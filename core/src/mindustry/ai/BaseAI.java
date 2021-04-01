@@ -32,7 +32,6 @@ public class BaseAI{
     private static final Seq<Tile> tmpTiles = new Seq<>();
 
     private static int correct = 0, incorrect = 0;
-    private static boolean anyDrills;
 
     private int lastX, lastY, lastW, lastH;
     private boolean triedWalls, foundPath;
@@ -209,6 +208,16 @@ public class BaseAI{
             }
             Tile wtile = world.tile(realX, realY);
 
+            if(tile.block instanceof PayloadConveyor || tile.block instanceof PayloadAcceptor){
+                //near a building
+                for(Point2 point : Edges.getEdges(tile.block.size)){
+                    var t = world.build(tile.x + point.x, tile.y + point.y);
+                    if(t != null){
+                        return false;
+                    }
+                }
+            }
+
             //may intersect AI path
             tmpTiles.clear();
             if(tile.block.solid && wtile != null && wtile.getLinkedTilesAs(tile.block, tmpTiles).contains(t -> path.contains(t.pos()))){
@@ -218,7 +227,7 @@ public class BaseAI{
 
         //make sure at least X% of resource requirements are met
         correct = incorrect = 0;
-        anyDrills = false;
+        boolean anyDrills = false;
 
         if(part.required instanceof Item){
             for(Stile tile : result.tiles){

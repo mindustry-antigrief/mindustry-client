@@ -1,31 +1,30 @@
 package mindustry.entities.comp;
 
 import arc.*;
-import arc.graphics.*;
+import arc.graphics.Color;
 import arc.graphics.g2d.*;
-import arc.math.*;
-import arc.math.geom.Vec2;
-import arc.scene.ui.layout.*;
+import arc.math.Mathf;
+import arc.scene.ui.layout.Scl;
 import arc.util.*;
-import arc.util.pooling.*;
+import arc.util.pooling.Pools;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.Client;
+import mindustry.client.*;
 import mindustry.client.utils.FloatEmbed;
-import mindustry.content.*;
-import mindustry.core.*;
-import mindustry.entities.units.*;
-import mindustry.game.EventType.*;
-import mindustry.game.*;
+import mindustry.content.UnitTypes;
+import mindustry.core.NetClient;
+import mindustry.entities.units.UnitController;
+import mindustry.game.EventType.UnitChangeEvent;
+import mindustry.game.Team;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.net.Administration.*;
-import mindustry.net.*;
-import mindustry.net.Packets.*;
+import mindustry.net.Administration.PlayerInfo;
+import mindustry.net.NetConnection;
+import mindustry.net.Packets.KickReason;
 import mindustry.type.UnitType;
 import mindustry.ui.*;
-import mindustry.world.*;
-import mindustry.world.blocks.storage.*;
-import mindustry.world.blocks.storage.CoreBlock.*;
+import mindustry.world.Tile;
+import mindustry.world.blocks.storage.CoreBlock;
+import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 
 import static mindustry.Vars.*;
 
@@ -116,8 +115,12 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         unit.aim(mouseX, mouseY);
         //this is only necessary when the thing being controlled isn't synced
         unit.controlWeapons(shooting, shooting);
+        //save previous formation to prevent reset
+        var formation = unit.formation;
         //extra precaution, necessary for non-synced things
         unit.controller(this);
+        //keep previous formation
+        unit.formation = formation;
     }
 
     @Override
@@ -136,7 +139,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
             //update some basic state to sync things
             if(unit.type.canBoost){
                 Tile tile = unit.tileOn();
-                unit.elevation = Mathf.approachDelta(unit.elevation, (tile != null && tile.solid()) || boosting ? 1f : 0f, 0.08f);
+                unit.elevation = Mathf.approachDelta(unit.elevation, (tile != null && tile.solid()) || boosting ? 1f : 0f, unit.type.riseSpeed);
             }
         }else if((core = bestCore()) != null){
             //have a small delay before death to prevent the camera from jumping around too quickly
@@ -151,8 +154,8 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
         textFadeTime -= Time.delta / (60 * 5);
 
-        fooUser = FloatEmbed.isEmbedded(mouseX, Client.FOO_USER) && (FloatEmbed.isEmbedded(mouseY, Client.ASSISTING) || FloatEmbed.isEmbedded(mouseY, Client.FOO_USER));
-        assisting = FloatEmbed.isEmbedded(mouseX, Client.FOO_USER) && FloatEmbed.isEmbedded(mouseY, Client.ASSISTING);
+        fooUser = FloatEmbed.isEmbedded(mouseX, ClientVars.FOO_USER) && (FloatEmbed.isEmbedded(mouseY, ClientVars.ASSISTING) || FloatEmbed.isEmbedded(mouseY, ClientVars.FOO_USER));
+        assisting = FloatEmbed.isEmbedded(mouseX, ClientVars.FOO_USER) && FloatEmbed.isEmbedded(mouseY, ClientVars.ASSISTING);
     }
 
     @Override
@@ -227,7 +230,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         con.kick(reason);
     }
 
-    void kick(String reason, int duration){
+    void kick(String reason, long duration){
         con.kick(reason, duration);
     }
 

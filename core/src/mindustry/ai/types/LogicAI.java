@@ -19,7 +19,7 @@ public class LogicAI extends AIController{
     /** Time after which the unit resets its controlled and reverts to a normal unit. */
     public static final float logicControlTimeout = 10 * Time.toSeconds;
 
-    public LUnitControl control = LUnitControl.stop;
+    public LUnitControl control = LUnitControl.idle;
     public float moveX, moveY, moveRad;
     public float itemTimer, payTimer, controlTimer = logicControlTimeout, targetTimer;
     @Nullable

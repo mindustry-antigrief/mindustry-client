@@ -9,12 +9,12 @@ import mindustry.client.navigation.waypoints.*;
 import mindustry.graphics.*;
 
 /** A {@link Path} composed of {@link Waypoint} instances. */
-public class WaypointPath extends Path {
-    private final Seq<Waypoint> waypoints;
-    private final Seq<Waypoint> initial;
+public class WaypointPath<T extends Waypoint> extends Path {
+    private final Seq<T> waypoints;
+    private final Seq<T> initial;
     private boolean show;
 
-    public WaypointPath(Seq<Waypoint> waypoints) {
+    public WaypointPath(Seq<T> waypoints) {
         this.waypoints = waypoints;
         this.initial = waypoints.copy();
     }

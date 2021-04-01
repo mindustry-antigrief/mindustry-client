@@ -1,15 +1,15 @@
 package com.github.blahblahbloopster.communication
 
-import arc.util.Interval
-import arc.util.Log
+import arc.util.*
 import com.github.blahblahbloopster.*
 import com.github.blahblahbloopster.crypto.*
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.time.Instant
-import java.time.temporal.ChronoUnit
+import java.io.*
+import java.nio.*
+import java.time.*
+import java.time.temporal.*
 import java.util.*
-import kotlin.reflect.KClass
+import java.util.concurrent.*
+import kotlin.reflect.*
 
 object Packets {
     /** The list of registered types of [Transmission].  Transmissions MUST be registered here before use. */
@@ -108,7 +108,8 @@ object Packets {
         }
     }
 
-    /** Handles sending and receiving [Transmission]s on a [CommunicationSystem].
+    /**
+     * Handles sending and receiving [Transmission]s on a [CommunicationSystem].
      * There should only be one of these per communication system to avoid exceeding the rate.
      */
     class CommunicationClient(val communicationSystem: CommunicationSystem) {
@@ -119,9 +120,11 @@ object Packets {
         /** A queue of packets waiting to be sent. */
         private val outgoing = LinkedList<OutgoingTransmission>()
         /** A list of incoming connections.  Each transmission ID is mapped to a nullable list of bytearray segments. */
-        private val incoming = mutableMapOf<Long, MutableList<ByteArray?>>()
+        private val incoming = ConcurrentHashMap<Long, IncomingTransmission>()
         /** A list of listeners to be run when a transmission is received. */
         val listeners = mutableListOf<(transmission: Transmission, senderId: Int) -> Unit>()
+
+        data class IncomingTransmission(val segments: MutableList<ByteArray?>, var expirationTime: Instant)
 
         init {
             communicationSystem.addListener(::handle)
@@ -140,7 +143,12 @@ object Packets {
                 val packet = toSend.packets.poll() ?: run { outgoing.remove(toSend); toSend.onFinish?.invoke(); return }
 
                 lastSent.reset(0, 0f) // Sending a packet, reset the timer fully
-                try { communicationSystem.send(packet.bytes()) } catch (e: IOException) { outgoing.remove(toSend); toSend.onError?.invoke() }
+                try { communicationSystem.send(packet.bytes()) } catch (e: Exception) { outgoing.remove(toSend); toSend.onError?.invoke() }
+            }
+            for (inc in incoming) {
+                if (inc.value.expirationTime.isBefore(Instant.now())) {
+                    incoming.remove(inc.key)
+                }
             }
         }
 
@@ -160,26 +168,27 @@ object Packets {
                 if (header.transmissionType >= registeredTransmissionTypes.size)
                     throw IndexOutOfBoundsException("Transmission type ${header.transmissionType} not found!")
 
-                if (header.sequenceCount > 500) {  // too many packets
+                if (header.sequenceCount > 500) { // Too many packets
                     incoming.remove(header.transmissionId)
                     return
                 }
 
-                if (header.expirationTime.isBefore(Instant.now())) {
+                if (header.expirationTime.isBefore(Instant.now())) { // Too old
                     incoming.remove(header.transmissionId)
-                    return  // too old
+                    return
                 }
 
                 val entry = incoming[header.transmissionId] ?: run {
-                    if (incoming.size > 50) return@run null  // too many incoming connections
-                    incoming[header.transmissionId] = MutableList(header.sequenceCount) { null }  // Create new incoming connection entry
+                    if (incoming.size > 50) { Log.debug("Too many incoming transmissions"); return@run null }  // too many incoming connections
+                    incoming[header.transmissionId] = IncomingTransmission(MutableList(header.sequenceCount) { null }, Instant.now().plusSeconds(15))  // Create new incoming connection entry
                     return@run incoming[header.transmissionId]
                 } ?: return
 
-                entry[header.sequenceNumber] = content
+                entry.segments[header.sequenceNumber] = content
+                entry.expirationTime = Instant.now().plusSeconds(15)
 
-                if (!entry.contains(null)) {
-                    val array = entry.reduceRight { a, b -> a!! + b!! }!!  // Collapse the list of packet contents to the full byte array
+                if (!entry.segments.contains(null)) {
+                    val array = entry.segments.reduceRight { a, b -> a!! + b!! }!!  // Collapse the list of packet contents to the full byte array
                     val inflated = array.inflate()  // Decompress the transmission
                     val transmission = registeredTransmissionTypes[header.transmissionType].constructor(inflated, header.transmissionId)  // Deserialize the transmission
 
@@ -187,7 +196,7 @@ object Packets {
                         listener(transmission, sender)
                     }
                 }
-            } catch (e: Exception) { e.printStackTrace() }
+            } catch (e: Exception) { Log.err(e) }
         }
 
         private data class OutgoingTransmission(val packets: Queue<Packet>, val onFinish: (() -> Unit)?, val onError: (() -> Unit)?)
@@ -196,6 +205,7 @@ object Packets {
          * Splits the transmission into packets and queues them for sending.
          * @param transmission The transmission to be sent.
          * @param onFinish A lambda that will be run once it is sent, null by default.
+         * @param onError A lambda that will be run when no suitable message block is found.
          */
         fun send(transmission: Transmission, onFinish: (() -> Unit)? = null, onError: (() -> Unit)? = null) {
             val type = registeredTransmissionTypes.indexOfFirst { it.type == transmission::class }

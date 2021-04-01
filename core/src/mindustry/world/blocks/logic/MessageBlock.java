@@ -10,8 +10,7 @@ import arc.scene.ui.layout.*;
 import arc.util.*;
 import arc.util.io.*;
 import arc.util.pooling.*;
-import mindustry.client.Client;
-import mindustry.game.Team;
+import mindustry.client.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
@@ -46,8 +45,7 @@ public class MessageBlock extends Block{
             for(int i = 0; i < text.length(); i++){
                 char c = text.charAt(i);
                 if(c == '\n'){
-                    count ++;
-                    if(count <= maxNewlines){
+                    if(count++ <= maxNewlines){
                         tile.message.append('\n');
                     }
                 }else{
@@ -59,18 +57,6 @@ public class MessageBlock extends Block{
 
     public class MessageBuild extends Building{
         public StringBuilder message = new StringBuilder();
-
-        @Override
-        public Building init(Tile tile, Team team, boolean shouldAdd, int rotation) {
-            Client.messageBlockPositions.add(tile.pos());
-            return super.init(tile, team, shouldAdd, rotation);
-        }
-
-        @Override
-        public void onRemoved() {
-            super.onRemoved();
-            Client.messageBlockPositions.remove(pos());
-        }
 
         @Override
         public void drawSelect(){
@@ -127,7 +113,7 @@ public class MessageBlock extends Block{
                     });
                     a.setMaxLength(maxTextLength);
                     dialog.buttons.button("Use for chat verification", () -> {
-                        configure(Client.messageCommunicationPrefix);
+                        configure(ClientVars.MESSAGE_BLOCK_PREFIX);
                         dialog.hide();
                     }).size(150f, 60f);
                     dialog.buttons.button("@ok", () -> {

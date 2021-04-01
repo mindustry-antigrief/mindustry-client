@@ -15,15 +15,12 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.Client;
-import mindustry.client.Spectate;
-import mindustry.client.ui.TileInfoFragment;
-import mindustry.client.ui.Toast;
-import mindustry.content.*;
+import mindustry.client.*;
 import mindustry.client.antigrief.*;
-import mindustry.client.navigation.*;
+import mindustry.client.ui.*;
+import mindustry.content.*;
 import mindustry.core.GameState.*;
-import mindustry.core.World;
+import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -33,7 +30,6 @@ import mindustry.input.*;
 import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.ui.*;
-import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
 
@@ -323,7 +319,7 @@ public class HudFragment extends Fragment{
                     } else {
                         ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y), null);
                     }
-                    Client.lastSentPos.set(event.core.x, event.core.y);
+                    ClientVars.lastSentPos.set(event.core.x, event.core.y);
                 }
                coreAttackTime[0] = notifDuration;
             });
@@ -348,7 +344,7 @@ public class HudFragment extends Fragment{
 
                 return coreAttackOpacity[0] > 0.01f;
             });
-            t.button("@coreattack", () -> Spectate.spectate(Client.lastSentPos.cpy().scl(tilesize))).pad(2)
+            t.button("@coreattack", () -> Spectate.spectate(ClientVars.lastSentPos.cpy().scl(tilesize))).pad(2)
             .update(label -> label.getLabel().color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f))).get().getLabel().setWrap(false);
         });
 
@@ -675,6 +671,9 @@ public class HudFragment extends Fragment{
             }
 
             void drawInner(Color color, float fract){
+                if(fract < 0) return;
+
+                fract = Mathf.clamp(fract);
                 if(flip){
                     x += width;
                     width = -width;

@@ -31,10 +31,6 @@ public class BuildPlan implements Position{
     /** Visual scale. Used only for rendering.*/
     public float animScale = 0f;
 
-    /** Used to prevent lag when validating schematic placement. */
-    public Interval requestInterval = new Interval();
-    public boolean requestValid;
-
     /** This creates a build request. */
     public BuildPlan(int x, int y, int rotation, Block block){
         this.x = x;

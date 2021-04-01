@@ -1,11 +1,10 @@
 package client;
 
-import arc.math.Mathf;
-import arc.math.geom.Vec2;
-import mindustry.client.Client;
-import mindustry.client.utils.FloatEmbed;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import arc.math.*;
+import arc.math.geom.*;
+import mindustry.client.*;
+import mindustry.client.utils.*;
+import org.junit.jupiter.api.*;
 
 public class FloatEmbedTests {
 
@@ -23,16 +22,16 @@ public class FloatEmbedTests {
         Assertions.assertTrue(FloatEmbed.isEmbedded(embedded, item));
 
         Vec2 inputVector = new Vec2((float) (Mathf.rand.nextDouble() * 8000), (float) (Mathf.rand.nextDouble() * 8000));
-        Vec2 notAssisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, Client.FOO_USER), FloatEmbed.embedInFloat(inputVector.y, Client.FOO_USER));
-        Vec2 assisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, Client.FOO_USER), FloatEmbed.embedInFloat(inputVector.y, Client.ASSISTING));
+        Vec2 notAssisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, ClientVars.FOO_USER), FloatEmbed.embedInFloat(inputVector.y, ClientVars.FOO_USER));
+        Vec2 assisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, ClientVars.FOO_USER), FloatEmbed.embedInFloat(inputVector.y, ClientVars.ASSISTING));
 
         Assertions.assertTrue(notAssisting.dst(inputVector) < 1f);
         Assertions.assertTrue(assisting.dst(inputVector) < 1f);
 
-        Assertions.assertTrue(FloatEmbed.isEmbedded(notAssisting.x, Client.FOO_USER));
-        Assertions.assertTrue(FloatEmbed.isEmbedded(assisting.x, Client.FOO_USER));
+        Assertions.assertTrue(FloatEmbed.isEmbedded(notAssisting.x, ClientVars.FOO_USER));
+        Assertions.assertTrue(FloatEmbed.isEmbedded(assisting.x, ClientVars.FOO_USER));
 
-        Assertions.assertFalse(FloatEmbed.isEmbedded(notAssisting.y, Client.ASSISTING));
-        Assertions.assertTrue(FloatEmbed.isEmbedded(assisting.y, Client.ASSISTING));
+        Assertions.assertFalse(FloatEmbed.isEmbedded(notAssisting.y, ClientVars.ASSISTING));
+        Assertions.assertTrue(FloatEmbed.isEmbedded(assisting.y, ClientVars.ASSISTING));
     }
 }

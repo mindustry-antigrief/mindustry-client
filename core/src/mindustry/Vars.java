@@ -10,8 +10,7 @@ import arc.util.*;
 import arc.util.Log.*;
 import mindustry.ai.*;
 import mindustry.async.*;
-import mindustry.audio.*;
-import mindustry.client.navigation.PlayerNavigationThread;
+import mindustry.client.navigation.ClientThread;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
@@ -34,6 +33,8 @@ import java.util.*;
 import static arc.Core.*;
 
 public class Vars implements Loadable{
+    /** Whether the game failed to launch last time. */
+    public static boolean failedToLaunch = false;
     /** Whether to load locales.*/
     public static boolean loadLocales = true;
     /** Whether the logger is loaded. */
@@ -176,6 +177,8 @@ public class Vars implements Loadable{
     public static Fi schematicDirectory;
     /** data subdirectory used for bleeding edge build versions */
     public static Fi bebuildDirectory;
+    /** file used to store launch ID */
+    public static Fi launchIDFile;
     /** empty map, indicates no current map */
     public static Map emptyMap;
     /** map file extension */
@@ -208,7 +211,7 @@ public class Vars implements Loadable{
     public static WaveSpawner spawner;
     public static BlockIndexer indexer;
     public static Pathfinder pathfinder;
-    public static PlayerNavigationThread playerNavigator;
+    public static ClientThread clientThread;
 
     public static Control control;
     public static Logic logic;
@@ -273,7 +276,7 @@ public class Vars implements Loadable{
         spawner = new WaveSpawner();
         indexer = new BlockIndexer();
         pathfinder = new Pathfinder();
-        playerNavigator = new PlayerNavigationThread();
+        clientThread = new ClientThread();
         bases = new BaseRegistry();
         constants = new GlobalConstants();
 
@@ -287,6 +290,27 @@ public class Vars implements Loadable{
 
         mods.load();
         maps.load();
+    }
+
+    /** Checks if a launch failure occurred.
+     * If this is the case, failedToLaunch is set to true. */
+    public static void checkLaunch(){
+        settings.setAppName(appName);
+        launchIDFile = settings.getDataDirectory().child("launchid.dat");
+
+        if(launchIDFile.exists()){
+            failedToLaunch = true;
+        }else{
+            failedToLaunch = false;
+            launchIDFile.writeString("go away");
+        }
+    }
+
+    /** Cleans up after a successful launch. */
+    public static void finishLaunch(){
+        if(launchIDFile != null){
+            launchIDFile.delete();
+        }
     }
 
     public static void loadLogger(){

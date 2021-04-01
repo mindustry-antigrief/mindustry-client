@@ -1,14 +1,14 @@
 package com.github.blahblahbloopster.crypto
 
 import java.util.*
-import java.util.function.*
+import java.util.function.Consumer
 
 /** A dummy [CommunicationSystem] for tests. */
-class DummyCommunicationSystem(private val pool: MutableList<DummyCommunicationSystem>) : CommunicationSystem {
+class DummyCommunicationSystem(private val pool: MutableList<DummyCommunicationSystem>) : CommunicationSystem() {
     override val listeners: MutableList<(ByteArray, Int) -> Unit> = mutableListOf()
     override val id = Random().nextInt()
     override val MAX_LENGTH: Int = 64
-    override val RATE: Float = .6f // 10ms
+    override val RATE: Float = 0f // Unlimited
 
     private fun received(bytes: ByteArray, sender: Int) {
         listeners.forEach(Consumer { it.invoke(bytes, sender) })

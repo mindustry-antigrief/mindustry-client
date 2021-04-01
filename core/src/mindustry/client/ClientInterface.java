@@ -23,4 +23,6 @@ public interface ClientInterface {
     void generateKey();
 
     void shareKey();
+
+    void setPluginNetworking(boolean enable);
 }

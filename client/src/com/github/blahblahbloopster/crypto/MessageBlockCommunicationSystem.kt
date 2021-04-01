@@ -4,19 +4,19 @@ import arc.*
 import arc.util.*
 import mindustry.*
 import mindustry.client.*
-import mindustry.content.Blocks
+import mindustry.content.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.world.blocks.logic.*
-import java.io.IOException
+import java.io.*
 
-class MessageBlockCommunicationSystem : CommunicationSystem {
+object MessageBlockCommunicationSystem : CommunicationSystem() {
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
     override val id: Int get() = run {
         Vars.player ?: return -1
         return Vars.player.id
     }
-    override val MAX_LENGTH = Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - Client.messageCommunicationPrefix.length)
+    override val MAX_LENGTH = Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - ClientVars.MESSAGE_BLOCK_PREFIX.length)
     override val RATE: Float = 30f // 500ms
 
     /** Initializes listeners. */
@@ -28,13 +28,13 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
             if (event.tile.block !is MessageBlock) return@on
 
             val message = event.value as String
-            if (!message.startsWith(Client.messageCommunicationPrefix)) return@on
+            if (!message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)) return@on
 
-            val id = if (event.player == null) 0 else event.player.id
+            val id = if (event.player == null) -1 else event.player.id
 
             val bytes: ByteArray
             try {
-                bytes = Base32768Coder.decode(message.removePrefix(Client.messageCommunicationPrefix))
+                bytes = Base32768Coder.decode(message.removePrefix(ClientVars.MESSAGE_BLOCK_PREFIX))
             } catch (exception: Exception) {
                 return@on
             }
@@ -48,9 +48,9 @@ class MessageBlockCommunicationSystem : CommunicationSystem {
     override fun send(bytes: ByteArray) {
         for (tile in Vars.world.tiles) {
             val build = tile.build as? MessageBlock.MessageBuild ?: continue // If it isn't a message block with the prefix, continue
-            if (!build.message.startsWith(Client.messageCommunicationPrefix)) continue
+            if (!build.message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)) continue
 
-            Call.tileConfig(Vars.player, build, Client.messageCommunicationPrefix + Base32768Coder.encode(bytes))
+            Call.tileConfig(Vars.player, build, ClientVars.MESSAGE_BLOCK_PREFIX + Base32768Coder.encode(bytes))
             return
         }
         throw IOException() // Throws an exception when no valid block is found

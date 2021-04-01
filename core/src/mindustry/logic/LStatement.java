@@ -51,7 +51,7 @@ public abstract class LStatement{
     }
 
     protected Cell<TextField> fields(Table table, String desc, String value, Cons<String> setter){
-        table.add(desc).padLeft(10).left().self(this::param);;
+        table.add(desc).padLeft(10).left().self(this::param);
         return field(table, value, setter).width(85f).padRight(10).left();
     }
 
@@ -75,7 +75,7 @@ public abstract class LStatement{
                 sizer.get(t.button(p.toString(), Styles.logicTogglet, () -> {
                     getter.get(p);
                     hide.run();
-                }).self(c -> tooltip(c, "lenum." + p.name())).checked(current == p).group(group));
+                }).self(c -> tooltip(c, p)).checked(current == p).group(group));
 
                 if(++i % cols == 0) t.row();
             }

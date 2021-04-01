@@ -1,10 +1,7 @@
 package mindustry.client.utils;
 
-/**
- * Does exactly what you think, why isn't this built in
- */
+/** Does exactly what you think, why isn't this built in */
 public class Pair<K, V> {
-
     public K first;
     public V second;
 

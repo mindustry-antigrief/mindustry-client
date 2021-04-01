@@ -11,7 +11,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.Client;
+import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -22,10 +22,9 @@ import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
-import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
 
-import static arc.Core.scene;
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class PlacementFragment extends Fragment{
@@ -100,9 +99,9 @@ public class PlacementFragment extends Fragment{
         scrollPositions.put(currentCategory, blockPane.getScrollY());
 
         if(Core.input.keyTap(Binding.pick) && player.isBuilder()){ //mouse eyedropper select
-            Building tile = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
-            Block tryRecipe = tile == null ? null : tile instanceof ConstructBuild c ? c.cblock : tile.block;
-            Object tryConfig = tile == null ? null : tile.config();
+            var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
+            Block tryRecipe = build == null ? null : build instanceof ConstructBuild c ? c.cblock : build.block;
+            Object tryConfig = build == null || !build.block.copyConfig ? null : build.config();
 
             for(BuildPlan req : player.unit().plans()){
                 if(!req.breaking && req.block.bounds(req.x, req.y, Tmp.r1).contains(Core.input.mouseWorld())){
@@ -190,6 +189,14 @@ public class PlacementFragment extends Fragment{
             }while(categoryEmpty[currentCategory.ordinal()]);
             input.block = getSelectedBlock(currentCategory);
             return true;
+        }
+
+        if(Core.input.keyTap(Binding.block_info)){
+            Block displayBlock = menuHoverBlock != null ? menuHoverBlock : input.block;
+            if(displayBlock != null){
+                ui.content.show(displayBlock);
+                Events.fire(new BlockInfoEvent());
+            }
         }
 
         return false;
@@ -331,7 +338,7 @@ public class PlacementFragment extends Fragment{
 
                                             int amount = core.items.get(stack.item);
                                             int stackamount = Math.round(stack.amount * state.rules.buildCostMultiplier);
-                                            String color = (amount < stackamount / 2f ? "[red]" : amount < stackamount ? "[accent]" : "[white]");
+                                            String color = (amount < stackamount / 2f ? "[scarlet]" : amount < stackamount ? "[accent]" : "[white]");
 
                                             return color + UI.formatAmount(amount) + "[white]/" + stackamount;
                                         }).padLeft(5);
@@ -451,9 +458,9 @@ public class PlacementFragment extends Fragment{
         //if the mouse intersects the table or the UI has the mouse, no hovering can occur
         if(Core.scene.hasMouse() || topTable.hit(v.x, v.y, false) != null) return null;
 
-        if (!Client.hideUnits) {
+        if (!ClientVars.hidingUnits) {
             //check for a unit
-            Unit unit = Units.closestOverlap(Core.input.mouseWorldX(), Core.input.mouseWorldY(), 5f, u -> !u.isLocal());
+            Unit unit = Units.closestOverlap(Core.input.mouseWorldX(), Core.input.mouseWorldY(), input.shift() ? tilesize * 6 : 5f, u -> !u.isLocal());
             //if cursor has a unit, display it
             if (unit != null) return unit;
         }

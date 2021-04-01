@@ -1,18 +1,20 @@
 package com.github.blahblahbloopster.ui
 
-import arc.*
-import arc.graphics.*
-import arc.input.*
-import arc.math.geom.*
-import arc.scene.ui.*
-import arc.scene.ui.layout.*
-import mindustry.*
-import mindustry.Vars.*
-import mindustry.client.*
-import mindustry.client.utils.*
-import mindustry.ui.*
-import mindustry.ui.dialogs.*
-import mindustry.world.*
+import arc.Core
+import arc.graphics.Color
+import arc.input.KeyCode
+import arc.math.geom.Geometry
+import arc.scene.ui.Image
+import arc.scene.ui.TextField
+import arc.scene.ui.layout.Table
+import mindustry.Vars
+import mindustry.Vars.player
+import mindustry.client.ClientVars
+import mindustry.client.utils.BiasedLevenshtein
+import mindustry.ui.Cicon
+import mindustry.ui.dialogs.BaseDialog
+import mindustry.world.Block
+import mindustry.world.Tile
 
 object FindDialog : BaseDialog("@find") {
     private val imageTable = Table()
@@ -58,7 +60,7 @@ object FindDialog : BaseDialog("@find") {
                 if (closest == null) {
                     Vars.ui.chatfrag.addMessage("No ${block.localizedName} was found", "client", Color.coral.cpy().mul(0.75f))
                 } else {
-                    Client.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
+                    ClientVars.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
                     //TODO: Make the line below use toasts similar to UnitPicker.java
                     Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", "client", Color.coral.cpy().mul(0.75f))
                 }

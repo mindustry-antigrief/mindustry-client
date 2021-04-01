@@ -1,12 +1,15 @@
 package client
 
+import arc.util.Reflect
 import com.github.blahblahbloopster.communication.Packets
 import com.github.blahblahbloopster.crypto.*
 import com.github.blahblahbloopster.crypto.Crypto.generateKeyQuad
 import com.github.blahblahbloopster.crypto.MessageCrypto.Companion.MessageCryptoEvent
 import com.github.blahblahbloopster.crypto.MessageCrypto.Companion.SignatureEvent
 import com.github.blahblahbloopster.crypto.MessageCrypto.PlayerTriple
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -29,7 +32,7 @@ class MessageCryptographyTests {
     }
 
     private fun update() {
-        for (i in 0..20) {
+        for (i in 0..50) {
             client1.communicationClient.update()
             client2.communicationClient.update()
             Thread.sleep(10L)
@@ -59,46 +62,43 @@ class MessageCryptographyTests {
         client1.keys.add(client2holder)
         client2.keys.add(client1holder)
 
-        client1.listeners.add { event: MessageCryptoEvent? ->
+        val listener = { event: MessageCryptoEvent? ->
             if (event is SignatureEvent) {
                 valid.set(event.valid)
             } else if (event is MessageCrypto.Companion.EncryptedMessageEvent) {
                 receivedMessage = event.message
             }
         }
-        client2.listeners.add { event: MessageCryptoEvent? ->
-            if (event is SignatureEvent) {
-                valid.set(event.valid)
-            } else if (event is MessageCrypto.Companion.EncryptedMessageEvent) {
-                receivedMessage = event.message
-            }
-        }
+
+        client1.listeners.add(listener)
+        client2.listeners.add(listener)
+
         var message = "Hello world!"
-        client2.player = PlayerTriple(client1.communicationClient.communicationSystem.id, Instant.now().epochSecond, message)
+        Reflect.set(client2, "player", PlayerTriple(client1.communicationClient.communicationSystem.id, Instant.now().epochSecond, message))
         client1.sign(message, client1pair)
         update()
         Assertions.assertTrue(valid.get())
 
         message = "Test test blah"
-        client1.player = PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message)
+        Reflect.set(client1, "player", PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message))
         client2.sign(message, client2pair)
         update()
         Assertions.assertTrue(valid.get())
 
         message = "aaa"
-        client1.player = PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message)
+        Reflect.set(client1, "player", PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message))
         client2.sign(message, client2pair)
         update()
         Assertions.assertTrue(valid.get())
 
         message = "aaaa"
-        client1.player = PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message)
+        Reflect.set(client1, "player", PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message))
         client2.sign(message, client2pair)
         update()
         Assertions.assertTrue(valid.get())
 
         message = "oh no"
-        client1.player = PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message)
+        Reflect.set(client1, "player", PlayerTriple(client2.communicationClient.communicationSystem.id, Instant.now().epochSecond, message))
         client2.sign(message, client1pair) // invalid, using wrong key to sign
         update()
         Assertions.assertFalse(valid.get())

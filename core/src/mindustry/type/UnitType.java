@@ -11,10 +11,9 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.*;
 import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.Client;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -44,7 +43,7 @@ public class UnitType extends UnlockableContent{
     public Prov<? extends Unit> constructor;
     public Prov<? extends UnitController> defaultController = () -> !flying ? new GroundAI() : new FlyingAI();
     public float speed = 1.1f, boostMultiplier = 1f, rotateSpeed = 5f, baseRotateSpeed = 5f;
-    public float drag = 0.3f, accel = 0.5f, landShake = 0f, rippleScale = 1f, fallSpeed = 0.018f;
+    public float drag = 0.3f, accel = 0.5f, landShake = 0f, rippleScale = 1f, riseSpeed = 0.08f, fallSpeed = 0.018f;
     public float health = 200f, range = -1, armor = 0f, maxRange = -1f;
     public float crashDamageMultiplier = 1f;
     public boolean targetAir = true, targetGround = true;
@@ -193,11 +192,11 @@ public class UnitType extends UnlockableContent{
             }
         }).growX();
 
-        if(unit.controller() instanceof LogicAI p){
+        if(unit.controller() instanceof LogicAI ai){
             table.row();
-            table.add(Blocks.microProcessor.emoji() + " " + Core.bundle.get("units.processorcontrol")).growX().left();
+            table.add(Blocks.microProcessor.emoji() + " " + Core.bundle.get("units.processorcontrol")).growX().wrap().left();
             table.row();
-            table.label(() -> Iconc.settings + " " + (long)unit.flag + " (" + (p.controller != null ? p.controller.tileX() : "?") + ", " + (p.controller != null ? p.controller.tileY() : "?") + ")").color(Color.lightGray).wrap().left();
+            table.label(() -> Iconc.settings + " " + (long)unit.flag + " (" + (ai.controller != null ? ai.controller.tileX() + ", " + ai.controller.tileY() : "?, ?") + ")").color(Color.lightGray).wrap().left();
         }
         
         table.row();
@@ -431,7 +430,7 @@ public class UnitType extends UnlockableContent{
 
     public void draw(Unit unit){
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
-        alpha = Client.hideUnits ? 0 : (unit.controller() instanceof FormationAI || unit.playerNonNull().assisting && !unit.isLocal()) ? .3f : 1;
+        alpha = ClientVars.hidingUnits ? 0 : (unit.controller() instanceof FormationAI || unit.playerNonNull().assisting && !unit.isLocal()) ? .3f : 1;
         if (alpha == 0) return; // Don't bother drawing what we can't see.
         float z = unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
 

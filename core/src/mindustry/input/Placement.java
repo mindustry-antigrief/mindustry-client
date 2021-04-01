@@ -5,8 +5,8 @@ import arc.func.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
-import mindustry.entities.units.*;
 import arc.util.pooling.*;
+import mindustry.entities.units.*;
 import mindustry.world.*;
 import mindustry.world.blocks.distribution.*;
 
@@ -14,16 +14,16 @@ import static mindustry.Vars.*;
 
 public class Placement{
     private static final Seq<BuildPlan> plans1 = new Seq<>();
-    private final static Seq<Point2> tmpPoints = new Seq<>(), tmpPoints2 = new Seq<>();
+    private static final Seq<Point2> tmpPoints = new Seq<>(), tmpPoints2 = new Seq<>();
     private static final NormalizeResult result = new NormalizeResult();
     private static final NormalizeDrawResult drawResult = new NormalizeDrawResult();
-    private static Bresenham2 bres = new Bresenham2();
-    private static Seq<Point2> points = new Seq<>();
+    private static final Bresenham2 bres = new Bresenham2();
+    private static final Seq<Point2> points = new Seq<>();
 
     //for pathfinding
-    private static IntFloatMap costs = new IntFloatMap();
-    private static IntIntMap parents = new IntIntMap();
-    private static IntSet closed = new IntSet();
+    private static final IntFloatMap costs = new IntFloatMap();
+    private static final IntIntMap parents = new IntIntMap();
+    private static final IntSet closed = new IntSet();
 
     /** Normalize a diagonal line into points. */
     public static Seq<Point2> pathfindLine(boolean conveyors, int startX, int startY, int endX, int endY){
@@ -110,15 +110,16 @@ public class Placement{
 
     public static void calculateBridges(Seq<BuildPlan> plans, ItemBridge bridge){
         //check for orthogonal placement + unlocked state
-        if(plans.isEmpty() || !(plans.first().x == plans.peek().x || plans.first().y == plans.peek().y || !bridge.unlockedNow())){
+        if(!(plans.first().x == plans.peek().x || plans.first().y == plans.peek().y) || !bridge.unlockedNow()){
             return;
         }
+
         Boolf<BuildPlan> placeable = plan -> (plan.placeable(player.team())) ||
-            (plan.tile() != null && plan.tile().block() == plan.block); //don't count the same block as inaccessible
+            (plan.tile() != null && (plan.tile().block() == plan.block || plan.tile().block().group == plan.block.group && !(plan.tile().block() instanceof StackConveyor))); //don't count the same block as inaccessible
 
         var result = plans1.clear();
         var team = player.team();
-        var rotated = plans.first().tile() != null && plans.first().tile().absoluteRelativeTo(plans.peek().x, plans.peek().y) == (plans.first().rotation + 2) % 4;
+        var rotated = plans.first().tile() != null && plans.first().tile().absoluteRelativeTo(plans.peek().x, plans.peek().y) == Mathf.mod(plans.first().rotation + 2, 4);
 
         outer:
         for(int i = 0; i < plans.size;){
@@ -167,7 +168,6 @@ public class Placement{
 
         plans.set(result);
     }
-
 
     private static float tileHeuristic(Tile tile, Tile other){
         Block block = control.input.block;

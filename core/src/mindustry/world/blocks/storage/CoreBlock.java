@@ -5,9 +5,8 @@ import arc.func.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
-import arc.scene.ui.layout.Table;
+import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.util.Timer;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
@@ -17,7 +16,6 @@ import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.input.Binding;
 import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.ui.*;
@@ -53,10 +51,11 @@ public class CoreBlock extends StorageBlock{
         unitCapModifier = 10;
         loopSound = Sounds.respawning;
         loopSoundVolume = 1f;
-        group = BlockGroup.none;
-        configurable = true;
         drawDisabled = false;
-        rebuildable = false; // Good luck rebuilding a core
+        configurable = true;
+        rebuildable = false;
+        canOverdrive = false;
+        replaceable = false;
     }
 
     @Remote(called = Loc.server)

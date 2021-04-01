@@ -12,13 +12,12 @@ import mindustry.content.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.input.Placement;
+import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.meta.*;
-import mindustry.world.blocks.environment.*;
 
 import static mindustry.Vars.*;
 
@@ -73,11 +72,7 @@ public class Conveyor extends Block implements Autotiler{
             && lookingAtEither(tile, rotation, otherx, othery, otherrot, otherblock);
     }
 
-    @Override
-    public TextureRegion[] icons(){
-        return new TextureRegion[]{regions[0][0]};
-    }
-
+    //stack conveyors should be bridged over, not replaced
     @Override
     public boolean canReplace(Block other){
         return super.canReplace(other) && !(other instanceof StackConveyor);
@@ -86,6 +81,11 @@ public class Conveyor extends Block implements Autotiler{
     @Override
     public void handlePlacementLine(Seq<BuildPlan> plans){
         Placement.calculateBridges(plans, (ItemBridge)Blocks.itemBridge);
+    }
+
+    @Override
+    public TextureRegion[] icons(){
+        return new TextureRegion[]{regions[0][0]};
     }
 
     @Override

@@ -1,31 +1,28 @@
 package mindustry.ui.fragments;
 
 import arc.*;
-import arc.Input.*;
-import arc.func.*;
-import arc.graphics.*;
+import arc.Input.TextInput;
+import arc.func.Boolp;
+import arc.graphics.Color;
 import arc.graphics.g2d.*;
-import arc.math.*;
-import arc.scene.*;
+import arc.math.Mathf;
+import arc.scene.Group;
 import arc.scene.ui.*;
-import arc.scene.ui.Label.*;
+import arc.scene.ui.Label.LabelStyle;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import kotlin.random.Random;
-import mindustry.*;
-import mindustry.client.Client;
-import mindustry.client.utils.Autocomplete;
-import mindustry.client.utils.Autocompleteable;
+import mindustry.Vars;
+import mindustry.client.*;
+import mindustry.client.utils.*;
 import mindustry.game.EventType;
-import mindustry.gen.*;
-import mindustry.input.*;
-import mindustry.ui.*;
+import mindustry.gen.Call;
+import mindustry.input.Binding;
+import mindustry.ui.Fonts;
 
 import java.util.Arrays;
 
 import static arc.Core.*;
-import static mindustry.Vars.net;
 import static mindustry.Vars.*;
 
 public class ChatFragment extends Table{
@@ -245,12 +242,12 @@ public class ChatFragment extends Table{
         history.insert(1, message);
 
         //check if it's a command
-        CommandHandler.CommandResponse response = Client.fooCommands.handleMessage(message, player);
+        CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
             Call.sendChatMessage(message);
             if (message.startsWith("/sync")) {
 
-                Client.lastSyncTime = Time.millis();
+                ClientVars.lastSyncTime = Time.millis();
             }
             Events.fire(new EventType.SendChatMessageEvent(message));
 
@@ -347,12 +344,16 @@ public class ChatFragment extends Table{
     }
 
     public ChatMessage addMessage(String message, String sender, Color background){
+        return addMessage(message, sender, background, "");
+    }
+
+    public ChatMessage addMessage(String message, String sender, Color background, String prefix){
         if(sender == null && message == null) return null;
-        ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy());
+        ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy(), prefix);
         messages.insert(0, msg);
 
         doFade(6); // fadetime was originally incremented by 2f, that works out to 6s
-        
+
         if(scrollPos > 0) scrollPos++;
         return msg;
     }
@@ -371,6 +372,7 @@ public class ChatFragment extends Table{
         public String message;
         public String formattedMessage;
         public Color backgroundColor = null;
+        public String prefix = "";
 
         public ChatMessage(String message, String sender){
             this.message = message;
@@ -385,11 +387,19 @@ public class ChatFragment extends Table{
             format();
         }
 
+        public ChatMessage(String message, String sender, Color color, String prefix){
+            this.message = message;
+            this.sender = sender;
+            this.prefix = prefix;
+            backgroundColor = color;
+            format();
+        }
+
         public void format() {
             if(sender == null){ //no sender, this is a server message?
                 formattedMessage = message == null ? "" : message;
             } else {
-                formattedMessage = "[coral][[" + sender + "[coral]]:[white] " + message;
+                formattedMessage = prefix + "[coral][[" + sender + "[coral]]:[white] " + message;
             }
         }
     }

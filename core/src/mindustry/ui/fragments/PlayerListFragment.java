@@ -63,7 +63,7 @@ public class PlayerListFragment extends Fragment{
                 pane.row();
 
                 pane.table(menu -> {
-                    menu.defaults().growX().height(50f).fillY();
+                    menu.defaults().pad(5).growX().height(50f).fillY();
                     menu.name = "menu";
 
                     menu.button("@server.bans", ui.bans::show).disabled(b -> net.client()).get().getLabel().setWrap(false);
@@ -115,11 +115,11 @@ public class PlayerListFragment extends Fragment{
             table.name = user.name();
 
             button.add(table).size(h);
-            button.button(Core.input.shift() ? String.valueOf(user.id) : "[#" + user.color().toString().toUpperCase() + "]" + user.name() + (Core.settings.getBool("showuserid") ? " [accent](#" + user.id +")" : ""), Styles.nonetdef, () -> Core.app.setClipboardText(Core.input.shift() ? String.valueOf(user.id) : Strings.stripColors(user.name))).width(300f).growY().pad(10);
+            button.button(Core.input.shift() ? String.valueOf(user.id) : "[#" + user.color().toString().toUpperCase() + "]" + user.name() + (Core.settings.getBool("showuserid") ? " [accent](#" + user.id +")" : ""), Styles.nonetdef, () -> Core.app.setClipboardText(Core.input.shift() ? String.valueOf(user.id) : Strings.stripColors(user.name))).wrap().width(300f).growY().pad(10);
             button.add().grow();
 
             if (user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
-            if (user.fooUser && !(!user.isLocal() && net.server())) button.image(Icon.wrench).padRight(7.5f);
+            if (user.fooUser && !user.isLocal()) button.image(Icon.wrench).padRight(7.5f);
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();

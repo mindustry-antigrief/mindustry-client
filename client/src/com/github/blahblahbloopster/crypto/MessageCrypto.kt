@@ -1,30 +1,28 @@
 package com.github.blahblahbloopster.crypto
 
 import arc.*
-import arc.graphics.Color
-import arc.util.Log
-import arc.util.serialization.Base64Coder
+import arc.graphics.*
+import arc.util.*
+import arc.util.serialization.*
 import com.github.blahblahbloopster.*
 import com.github.blahblahbloopster.communication.*
-import mindustry.Vars
-import mindustry.client.Client
-import mindustry.client.ui.Toast
-import mindustry.core.NetClient
-import mindustry.game.EventType
-import mindustry.gen.Iconc
-import java.nio.ByteBuffer
-import java.time.Instant
+import mindustry.*
+import mindustry.client.*
+import mindustry.client.ui.*
+import mindustry.core.*
+import mindustry.game.*
+import mindustry.gen.*
+import java.nio.*
+import java.time.*
 import java.util.zip.*
 
-/** Provides the interface between [Crypto] and a [CommunicationSystem], and handles some UI stuff.
- * TODO: replace a lot of this with a real packet system
- */
+/** Provides the interface between [Crypto] and a [CommunicationSystem], and handles some UI stuff. */
 class MessageCrypto {
     lateinit var keyQuad: KeyQuad
     lateinit var communicationClient: Packets.CommunicationClient
 
-    var player = PlayerTriple(-1, 0, "")  // Maps player ID to last sent message
-    var received = ReceivedTriple(-1, 0, byteArrayOf()) // Maps player ID to last sent message
+    private var player: PlayerTriple? = null     // Maps player ID to last sent message
+    private var received: ReceivedTriple? = null // Maps player ID to last sent message
     var keys: KeyList = KeyFolder
     val listeners = mutableListOf<(MessageCryptoEvent) -> Unit>()
 
@@ -52,36 +50,18 @@ class MessageCrypto {
 
     data class PlayerTriple(val id: Int, val time: Long, val message: String)
 
-    data class ReceivedTriple(val id: Int, val time: Long, val signature: ByteArray) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as ReceivedTriple
-
-            if (id != other.id) return false
-            if (time != other.time) return false
-            if (!signature.contentEquals(other.signature)) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = id
-            result = 31 * result + time.hashCode()
-            result = 31 * result + signature.contentHashCode()
-            return result
-        }
-    }
+    data class ReceivedTriple(val id: Int, val time: Long, val transmission: SignatureTransmission)
 
     fun init(communicationClient: Packets.CommunicationClient) {
         this.communicationClient = communicationClient
         communicationClient.addListener(::handle)
 
         try { // Load key, generate if it doesn't exist
-            if (!Core.settings.dataDirectory.child("key.txt").exists()) Client.mapping?.generateKey()
-            else keyQuad = KeyQuad(Base64Coder.decode(Core.settings.dataDirectory.child("key.txt").readString()))
-            Log.info("Loaded keypair")
+            if (Core.app.isDesktop) {
+                if (!Core.settings.dataDirectory.child("key.txt").exists()) Client.mapping?.generateKey()
+                else keyQuad = KeyQuad(Base64Coder.decode(Core.settings.dataDirectory.child("key.txt").readString()))
+                Log.info("Loaded keypair")
+            }
         } catch (ignored: Exception) {}
 
         Events.on(EventType.SendChatMessageEvent::class.java) { event ->
@@ -97,10 +77,14 @@ class MessageCrypto {
                 if (it is SignatureEvent && it.valid && it.message != null) {
                     val message = Vars.ui?.chatfrag?.messages?.find { msg -> msg.message.contains(it.message) }
                     message?.backgroundColor = Color.green.cpy().mul(if (it.senderKey?.official == true) .75f else if (Core.settings.getBool("highlightcryptomsg")) 0.4f else 0f)
-                    message?.sender = NetClient.colorizeName(it.sender, Iconc.lock + " " + (it.senderKey?.name ?: return@add))
+                    message?.sender = NetClient.colorizeName(it.sender, it.senderKey?.name ?: return@add)
+                    message?.prefix = Iconc.ok + " "
                     message?.format()
                 } else if (it is EncryptedMessageEvent && it.message != null) {
-                    Vars.ui?.chatfrag?.addMessage(it.message, NetClient.colorizeName(it.sender, Iconc.lock + " " + it.senderName), Color.blue.cpy().mul(if (it.senderKey.official) .75f else if (Core.settings.getBool("highlightcryptomsg")) 0.4f else 0f))
+                    Vars.ui?.chatfrag?.addMessage(it.message,
+                            NetClient.colorizeName(it.sender, it.senderName),
+                            Color.blue.cpy().mul(if (it.senderKey.official) .75f else if (Core.settings.getBool("highlightcryptomsg")) 0.4f else 0f),
+                            "${Iconc.lock} ")
                 }
             }
         }
@@ -111,15 +95,16 @@ class MessageCrypto {
     }
 
     /** Checks the validity of a message given two triples, see above. */
-    private fun check(player: PlayerTriple, received: ReceivedTriple) {
+    private fun check(player: PlayerTriple?, received: ReceivedTriple?) {
+        player ?: return
+        received ?: return
+
         fun event(sender: Int = -1, keyHolder: KeyHolder? = null, message: String? = null, valid: Boolean = false) {
             fire(SignatureEvent(sender, keyHolder, message, valid))
         }
         if (Vars.player?.id == player.id || Vars.player?.id == received.id) return
-        if (player.id == -1 || player.time == 0L || player.message == "") return
-        if (received.id == -1 || received.time == 0L || received.signature.isEmpty()) return
 
-        if (player.time.toInstant().age() > 3 || received.time.toInstant().age() > 3) {
+        if (player.time.toInstant().age() > 15 || received.time.toInstant().age() > 15) {
             event(player.id, message = player.message)
             return
         }
@@ -130,7 +115,7 @@ class MessageCrypto {
         }
 
         for (key in keys) {
-            val match = verify(player.message, received.id, received.signature, key.keys, received.time)
+            val match = verify(player.message, received.id, received.transmission.signature, key.keys, received.transmission.time.epochSecond)
             if (match) {
                 event(player.id, key, player.message, true)
                 return
@@ -152,9 +137,9 @@ class MessageCrypto {
 
     /** Signs an outgoing message.  Includes the sender ID and current time to prevent impersonation and replay attacks. */
     fun sign(message: String, key: KeyQuad) {
-        val time = Instant.now().epochSecond
-        val signature = Crypto.sign(stringToSendable(message, communicationClient.communicationSystem.id, time), key.edPrivateKey)
-        communicationClient.send(SignatureTransmission(signature))
+        val time = Instant.now()
+        val signature = Crypto.sign(stringToSendable(message, communicationClient.communicationSystem.id, time.epochSecond), key.edPrivateKey)
+        communicationClient.send(SignatureTransmission(signature, time))
     }
 
     fun encrypt(message: String, destination: KeyHolder) {
@@ -167,14 +152,14 @@ class MessageCrypto {
         plaintext.put(encoded)
         val ciphertext = destination.crypto.encrypt(plaintext.array())
 
-        communicationClient.send(EncryptedMessageTransmission(ciphertext), { Toast(3f).add("@client.encryptedsuccess") }, { Toast(3f).add("@client.nomessageblock") })
+        communicationClient.send(EncryptedMessageTransmission(ciphertext), { if (Core.app?.isDesktop == true) Toast(3f).add("@client.encryptedsuccess") }, { if (Core.app?.isDesktop == true) Toast(3f).add("@client.nomessageblock") })
     }
 
     private fun handle(input: Transmission, sender: Int) {
         try {
-            when(input) {
+            when (input) {
                 is SignatureTransmission -> {
-                    received = ReceivedTriple(sender, Instant.now().epochSecond, input.signature)
+                    received = ReceivedTriple(sender, Instant.now().epochSecond, input)
                     check(player, received)
                 }
                 is EncryptedMessageTransmission -> {
@@ -199,11 +184,10 @@ class MessageCrypto {
                                     sender,
                                     key,
                                     str,
-                                    if (sender == communicationClient.communicationSystem.id) Vars.player.name else key.name
+                                    if (sender == communicationClient.communicationSystem.id && Core.app?.isDesktop == true) Vars.player.name else key.name
                                 )
                             )
-                        } catch (ignored: Exception) {
-                        }
+                        } catch (ignored: Exception) {}
                     }
                 }
             }
@@ -223,6 +207,6 @@ class MessageCrypto {
         } catch (ignored: java.lang.Exception) { false }
         val age = time.toInstant().age()
 
-        return age < 3 && validSignature
+        return age < 15 && validSignature
     }
 }

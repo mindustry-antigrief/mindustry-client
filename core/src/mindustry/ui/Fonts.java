@@ -32,7 +32,7 @@ public class Fonts{
     private static final String mainFont = "fonts/font.woff";
     private static final ObjectSet<String> unscaled = ObjectSet.with("iconLarge");
     private static ObjectIntMap<String> unicodeIcons = new ObjectIntMap<>();
-    private static ObjectMap<String, String> stringIcons = new ObjectMap<>();
+    public static ObjectMap<String, String> stringIcons = new ObjectMap<>();
     private static ObjectMap<String, TextureRegion> largeIcons = new ObjectMap<>();
     private static TextureRegion[] iconTable;
     private static int lastCid;
@@ -120,7 +120,6 @@ public class Fonts{
 
                 if(region.texture != uitex){
                     continue;
-                    //throw new IllegalArgumentException("Font icon '" + texture + "' is not in the UI texture.");
                 }
 
                 unicodeIcons.put(nametex[0], ch);
