@@ -1,6 +1,8 @@
 package com.github.blahblahbloopster.navigation
 
 import arc.math.geom.*
+import arc.struct.*
+import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.navigation.*
 import mindustry.core.*
@@ -11,13 +13,11 @@ import kotlin.math.*
 // and modified
 
 object AStarNavigator : Navigator() {
-    private const val DIAGONAL_COST = 14
-    private const val V_H_COST = 10
 
     //Blocked cells are just null Cell values in grid
     private var grid: Array<Array<Cell>> = emptyArray()
-    private var open = PriorityQueue<Cell>(500)
-    private var closed: Array<BooleanArray> = emptyArray()
+    private var open = PQueue<Cell>()
+    private lateinit var closed: GridBits
     private var addedCosts: Array<IntArray> = emptyArray()
     private var startX = 0
     private var startY = 0
@@ -27,40 +27,35 @@ object AStarNavigator : Navigator() {
     private var tileHeight = 0
 
     private inline fun d8(cons: (x: Int, y: Int) -> Unit) {
-        cons(-1, -1)
-        cons(-1, 0)
-        cons(-1, 1)
-        cons(0, -1)
-        cons(0, 0)
-        cons(0, 1)
-        cons(1, -1)
         cons(1, 0)
         cons(1, 1)
+        cons(0, 1)
+        cons(-1, 1)
+        cons(-1, 0)
+        cons(-1, -1)
+        cons(0, -1)
+        cons(1, -1)
     }
 
     private fun Int.clamp(min: Int, max: Int) = coerceIn(min, max)
 
     override fun init() {}
 
-    private fun setStartCell(x: Int, y: Int) {
-        startX = x
-        startY = y
+    /** Calculates the heuristic for this cell */
+    private fun h(cell: Cell): Double {
+        val dx = abs(cell.x - endX)
+        val dy = abs(cell.y - endY)
+        return dx + dy - 1.414 * min(dx, dy)
     }
 
-    private fun setEndCell(x: Int, y: Int) {
-        endX = x
-        endY = y
-    }
+    private fun checkAndUpdateCost(current: Cell, t: Cell, cost: Double) {
 
-    private fun checkAndUpdateCost(current: Cell, t: Cell, cost: Int) {
-        if (closed[t.x][t.y]) return
-        val tFinalCost = t.heuristicCost + cost
-
-        val inOpen = open.contains(t)  // O(N)
-        if (!inOpen || tFinalCost < t.finalCost) {
-            t.finalCost = tFinalCost
-            t.parent = current
-            if (!inOpen) open.add(t) // O(N)
+        if (!closed.get(t.x, t.y) || cost < t.g) {
+            closed.set(t.x, t.y)
+            t.g = cost
+            t.f = t.g + h(t)
+            t.cameFrom = current
+            open.add(t) // O(N)
         }
     }
 
@@ -69,15 +64,15 @@ object AStarNavigator : Navigator() {
         startX = startX.clamp(0, grid.size - 1)
         startY = startY.clamp(0, grid[0].size - 1)
         open.add(grid[startX][startY])
+        closed.set(startX, startY)
 
         endX = endX.clamp(0, grid.size - 1)
         endY = endY.clamp(0, grid[0].size - 1)
 
         var current: Cell?
-        while (true) {
-            current = open.poll() ?: break  // Get a tile to explore
-            closed[current.x][current.y] = true  // Don't go through it again
-            if (current == grid[endX][endY]) {  // Made it to the finish
+        while (!open.empty()) {
+            current = open.poll() // Get a tile to explore
+            if (current == grid[endX][endY]) { // Made it to the finish
                 return
             }
 
@@ -94,7 +89,7 @@ object AStarNavigator : Navigator() {
                 checkAndUpdateCost(
                         current,
                         grid[x][y],
-                        current.finalCost + addedCosts[x][y]
+                        (current.g + addedCosts[x][y] + if (abs(x1) + abs(y1) == 1) 1.0 else 1.414) * if (abs(x1) + abs(y1) == 1) 1.0 else 1.001
                 )
             }
         }
@@ -118,19 +113,19 @@ object AStarNavigator : Navigator() {
         }
 
         //Reset
-        val px = World.toTile(start.x)
-        val py = World.toTile(start.y)
-        val ex = World.toTile(end.x)
-        val ey = World.toTile(end.y)
+        startX = World.toTile(start.x)
+        startY = World.toTile(start.y)
+        endX = World.toTile(end.x)
+        endY = World.toTile(end.y)
 
         if (grid.size != tileWidth || grid.getOrNull(0)?.size != tileHeight) {
             grid = Array(tileWidth) { x -> Array(tileHeight) { y -> Cell(x, y) } }
         }
 
-        if (closed.size == tileWidth && closed.getOrNull(0)?.size == tileHeight) {
-            closed.forEach { it.fill(false) }
+        if (this::closed.isInitialized && closed.width() == tileWidth && closed.height() == tileHeight) {
+            closed.clear()
         } else {
-            closed = Array(tileWidth) { BooleanArray(tileHeight) }
+            closed = GridBits(tileWidth, tileHeight)
         }
 
         if (addedCosts.size == tileWidth && addedCosts.getOrNull(0)?.size == tileHeight) {
@@ -141,21 +136,14 @@ object AStarNavigator : Navigator() {
 
         open.clear()
 
-        // Set start position
-        setStartCell(px, py)
-
-        // Set End Location
-        setEndCell(ex, ey)
         // Reset all cells
         for (x in 0 until tileWidth) {
             for (y in 0 until tileHeight) {
-                grid[x][y].finalCost = 0
-                grid[x][y].parent = null
-                val small = min(abs(x - endX), abs(y - endY))
-                grid[x][y].heuristicCost = 14 * small + 10 * (max(abs(x - endX), abs(y - endY)) - small)
+                grid[x][y].g = 0.0
+                grid[x][y].f = 0.0 // TODO: Is this needed?
+                grid[x][y].cameFrom = null
             }
         }
-        grid[px][py].finalCost = 0
 
         for (turret in obstacles) {
             val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
@@ -164,27 +152,23 @@ object AStarNavigator : Navigator() {
             val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
             for (x in lowerXBound..upperXBound) {
                 for (y in lowerYBound..upperYBound) {
-
-                    if (x >= tileWidth || x < 0 || y >= tileHeight || y < 0 || addedCosts[x][y] != 0) continue
-
-                    if (turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
-                        addedCosts[x][y] = 10000
+                    if (Structs.inBounds(x, y, tileWidth, tileHeight) && addedCosts[x][y] == 0 && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
+                        addedCosts[x][y] = 1000
+//                        closed.set(x, y) TODO: The line above will always succeed, this line will do nothing if there is no path, add a hotkey to toggle
                     }
                 }
             }
         }
 
-        grid[px][py] = Cell(px, py)
-
         aStarSearch()
 
-        return if (closed[endX][endY]) {
+        return if (closed.get(endX, endY)) {
             val points = mutableListOf<Vec2>()
             //Trace back the path
             var current: Cell? = grid[endX][endY]
-            while (current?.parent != null) {
-                points.add(Vec2(World.unconv(current.parent!!.x.toFloat()), World.unconv(current.parent!!.y.toFloat())))
-                current = current.parent
+            while (current?.cameFrom != null) {
+                points.add(Vec2(World.unconv(current.cameFrom!!.x.toFloat()), World.unconv(current.cameFrom!!.y.toFloat())))
+                current = current.cameFrom
             }
             //            System.out.println("Time taken = " + (System.currentTimeMillis() - startTime) + " ms");
             points.toTypedArray()
@@ -196,16 +180,16 @@ object AStarNavigator : Navigator() {
     }
 
     class Cell(var x: Int, var y: Int) : Comparable<Cell> {
-        var heuristicCost = 0 //Heuristic cost
-        var finalCost = 0 //G+H
-        var parent: Cell? = null
+        var g = 0.0
+        var f = Double.POSITIVE_INFINITY // g + h, estimate of best possible path
+        var cameFrom: Cell? = null
 
         override fun toString(): String {
             return "[$x, $y]"
         }
 
-        override fun compareTo(other: Cell): Int {
-            return finalCost.compareTo(other.finalCost)
+        override fun compareTo(other: Cell): Int { // lower f is better
+            return f.compareTo(other.f)
         }
     }
 }
