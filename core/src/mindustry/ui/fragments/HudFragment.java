@@ -285,7 +285,7 @@ public class HudFragment extends Fragment{
         parent.fill(t -> {
             t.name = "coreitems";
             t.top().add(coreItems);
-            t.visible(() -> Core.settings.getBool("coreitems") && !mobile && !state.isPaused() && shown);
+            t.visible(() -> Core.settings.getBool("coreitems") && !state.isPaused() && shown);
 //            t.add(new TileInfoFragment()).top();
         });
 
