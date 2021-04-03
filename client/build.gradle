@@ -1,13 +1,11 @@
-plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.4.31'
-}
-
 group 'com.github.blahblahbloopster'
 version 'release'
 
 repositories {
     mavenCentral()
 }
+
+apply plugin: "kotlin"
 
 sourceSets.main.kotlin.srcDirs = ["src/"]
 sourceSets.test.java.srcDirs = ["src/test"]
