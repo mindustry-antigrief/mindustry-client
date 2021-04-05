@@ -21,10 +21,6 @@ public class Client {
     private static TileLog[][] tileLogs;
     public static ClientInterface mapping;
 
-    private static int fuelTimer;
-    /** Last time (millis) that the !fuel command was run */
-    private static final Interval timer = new Interval();
-
     public static void initialize() {
         registerCommands();
 
@@ -32,7 +28,6 @@ public class Client {
             mapping.setPluginNetworking(false);
             if (Time.timeSinceMillis(ClientVars.lastSyncTime) > 5000) {
                 tileLogs = new TileLog[world.height()][world.width()];
-                fuelTimer = 0;
             }
             PowerInfo.initialize();
             Navigation.stopFollowing();
@@ -83,13 +78,6 @@ public class Client {
                         }
                     }
                 } catch (Exception e) { Log.err(e); }
-        }
-
-        if (timer.get(Integer.MAX_VALUE) || fuelTimer > 0 && timer.get(fuelTimer * 60)) { // Auto fuel for cn
-            ClientVars.lastFuelTime = Time.millis();
-            Call.sendChatMessage("/fuel");
-            Time.run(10f, () -> Call.tileTap(player, world.tile(0,0)));
-            Time.run(20f, () -> Call.tileTap(player, world.tile(world.width() - 1, world.height() - 1)));
         }
     }
 
@@ -187,30 +175,5 @@ public class Client {
         ClientVars.clientCommandHandler.<Player>register("js", "<code...>", "Runs JS on the client.", (args, player) ->
             player.sendMessage("[accent]" + mods.getScripts().runConsole(args[0]))
         );
-
-        ClientVars.clientCommandHandler.<Player>register("/js", "<code...>", "Runs JS on the client as well as the server.", (args, player) -> {
-            player.sendMessage("[accent]" + mods.getScripts().runConsole(args[0]));
-            Call.sendChatMessage("/js " + args[0]);
-        });
-
-        ClientVars.clientCommandHandler.<Player>register("fuel", "[interval]", "Runs the fuel command on cn, selects the entire map, optional interval in seconds (min 30)", (args, player) -> {
-            if (args.length == 0) {
-                timer.reset(0, -Integer.MAX_VALUE); // Jank way to fuel once right now
-                player.sendMessage("[accent]Fueled successfully.");
-            } else {
-                try {
-                    fuelTimer = Short.parseShort(args[0]);
-                    if (fuelTimer > 0){
-                        fuelTimer = Math.max(fuelTimer, 30); // Min of 30s
-                        player.sendMessage("[accent]Successfully set auto-fuel to run every " + fuelTimer + " seconds. (use !fuel 0 to disable)");
-                    } else {
-                        player.sendMessage("[accent]Successfully disabled auto-fuel.");
-                    }
-                } catch (Exception e) {
-                    fuelTimer = 0;
-                    player.sendMessage("[scarlet]That number was invalid, disabling auto-fuel.");
-                }
-            }
-        });
     }
 }
