@@ -3,6 +3,8 @@
 # Version 6.6.1
  * Patched a crash when hovering an invalid "build" (impossible without js but whatever)
  * Fixed invisible/sandbox blocks being impossible to place with payload place mode (\)
+ * Major improvements to navigation
+ * Fix for fire particles getting out of control, no longer spawns more particles at lower fps, the slider is still there if you want it
 
 # Version 6.6.0
  * Fixed an issue with not enough / too many particles appearing based on fps
