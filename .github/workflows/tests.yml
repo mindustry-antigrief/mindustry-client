@@ -59,6 +59,13 @@ jobs:
           asset_name: desktop.jar
           asset_content_type: application/zip
 
+      - name: Upload Artifact (No release was made)
+        if: ${{ !(github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch')) }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: Desktop JAR (zipped)
+          path: desktop/build/libs/Mindustry.jar
+
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch') }}
         uses: JamesIves/github-pages-deploy-action@4.0.0
