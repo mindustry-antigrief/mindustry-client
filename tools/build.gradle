@@ -15,7 +15,8 @@ def doAntialias = !project.hasProperty("disableAntialias")
 def colorMap = new IntMap<List<Color>>(), colorIndexMap = new IntIntMap()
 //on my machine, I have a native Nim AA implementation that is ~10x faster
 //it's not compiled for other platforms so they don't get it
-def useFastAA = System.getProperty("user.name") == "anuke"
+def aaPath = project.findProperty("fastAA")
+def useFastAA = aaPath != null
 
 def transformColors = { List<List<String>> list ->
     list.each{ colors ->
@@ -40,7 +41,7 @@ def antialias = { File file ->
     if(!doAntialias) return
 
     if(useFastAA){
-        "antialias ${file.absolutePath}".execute().waitFor()
+        (aaPath + file.absolutePath).execute().waitFor()
         return
     }
 
