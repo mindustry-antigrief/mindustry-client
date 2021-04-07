@@ -5,6 +5,9 @@
  * Fixed invisible/sandbox blocks being impossible to place with payload place mode (\)
  * Major improvements to navigation
  * Fix for fire particles getting out of control, no longer spawns more particles at lower fps, the slider is still there if you want it
+ * Buildpath will only draw up to 300 plans at a time to prevent massive lag when using !builder broken on large maps
+ * Added a button to unlock all steam achievements (steam only)
+ * Other various improvements
 
 # Version 6.6.0
  * Fixed an issue with not enough / too many particles appearing based on fps

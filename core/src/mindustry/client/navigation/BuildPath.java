@@ -95,9 +95,8 @@ public class BuildPath extends Path {
             if(queues.contains(assist)) {
                 Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, unit -> {
                     if(unit.canBuild() && player.unit() != null && unit != player.unit() && unit.isBuilding()) {
-                        Queue<BuildPlan> buildPlans = assist;
                         for (BuildPlan plan : unit.plans) {
-                            buildPlans.add(plan);
+                            assist.add(plan);
                         }
                     }
                 });
@@ -137,7 +136,7 @@ public class BuildPath extends Path {
             sort:
             for (int i = 0; i < 2; i++) {
                 for (Queue queue : queues) {
-                    Queue<BuildPlan> plans = sortPlans(queue, all, !all);
+                    Queue<BuildPlan> plans = sortPlans(queue, all, all); // TODO: should large first always be false or should it stay as all?
                     if (plans.isEmpty()) continue;
                     /* TODO: This doesn't work lol
                     plans.forEach(plan -> Navigation.obstacles.forEach(obstacle -> {if(Mathf.dstm(obstacle.x, obstacle.y, plan.x, plan.y) <= obstacle.range){plans.remove(plan);player.unit().plans.remove(plan);}}));
@@ -205,14 +204,13 @@ public class BuildPath extends Path {
         Queue<BuildPlan> out = new Queue<>();
         sorted.clear();
         sorted.addAll(plans);
-        sorted.sort(plan -> plan.dst(player));
-        if(!largeFirst)sorted.reverse();
+        sorted.sort(Structs.comps(Structs.comparingBool(plan -> !(plan.block == null || player.unit().shouldSkip(plan, core))), Structs.comparingFloat(plan -> plan.dst(player))));
+        if (!largeFirst) sorted.reverse();
         for (BuildPlan plan : sorted) { // The largest distance is at the start of the sequence by this point
             if (!validPlan(plan)) continue;
-            if (plan.block == null || player.unit().shouldSkip(plan, core)) {
-                if (includeAll)out.addLast(plan);
-            } else {
-                out.addFirst(plan);
+            if (includeAll || plan.block != null && !player.unit().shouldSkip(plan, core)) { // TODO: This is terrible and slow
+                out.addLast(plan);
+                if (out.size > 300) out.removeFirst();
             }
         }
         return out;

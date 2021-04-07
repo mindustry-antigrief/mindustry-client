@@ -74,7 +74,7 @@ object Main : ApplicationListener {
                         for (plan in path.networkAssist) positions.add(Point2.pack(plan.x, plan.y))
 
                         for (plan in transmission.plans.sortedByDescending { it.dst(Vars.player) }) {
-                            if (path.networkAssist.size > 500) return@addListener  // too many plans, not accepting new ones
+                            if (path.networkAssist.size > 1000) return@addListener  // too many plans, not accepting new ones
                             if (positions.contains(Point2.pack(plan.x, plan.y))) continue
                             path.networkAssist.add(plan)
                         }
