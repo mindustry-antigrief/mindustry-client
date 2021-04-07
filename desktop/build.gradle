@@ -64,7 +64,7 @@ task steamtest(dependsOn: dist){
     doLast{
         copy{
             from "build/libs/Mindustry.jar"
-            if(System.properties["os.name"].contains("Mac")){
+            if(System.getProperty("os.name").toLowerCase().contains("mac")){
                 into "/Users/anuke/Library/Application Support/Steam/steamapps/common/Mindustry/Mindustry.app/Contents/Resources"
             }else{
                 into "D:\\Steam2\\steamapps\\common\\Mindustry\\jre"

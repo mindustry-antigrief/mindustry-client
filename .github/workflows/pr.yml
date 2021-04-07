@@ -16,7 +16,10 @@ jobs:
           java-version: 14
 
       - name: Compile test JAR
-        run: ./gradlew desktop:dist
+        run: |
+          export PATH=./tools:$PATH
+          chmod +x ./tools/antialias
+          ./gradlew desktop:dist -PfastAA --parallel
 
       - name: Upload desktop JAR for testing
         uses: actions/upload-artifact@v2

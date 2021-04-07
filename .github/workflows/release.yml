@@ -35,7 +35,9 @@ jobs:
           awk -v RS='#' 'NR==3{printf"#### "; print; printf"\n"; exit}' core/assets/changelog >> $GITHUB_ENV
           echo EOF >> $GITHUB_ENV
 
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" --parallel # Testing and building in parallel saves a few dozen seconds.
+          export PATH=./tools:$PATH
+          chmod +x ./tools/antialias
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" -PfastAA --parallel # Testing and building in parallel saves a few dozen seconds.
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() }}
