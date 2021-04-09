@@ -11,6 +11,7 @@ import mindustry.client.communication.*
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
+import mindustry.client.utils.FloatEmbed
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.input.*
@@ -21,10 +22,6 @@ object Main : ApplicationListener {
     lateinit var communicationClient: Packets.CommunicationClient
     private var dispatchedBuildPlans = mutableListOf<BuildPlan>()
     private val buildPlanInterval = Interval(2)
-
-    init {
-        mapping = ClientMapping()
-    }
 
     /** Run on client load. */
     override fun init() {
@@ -93,6 +90,36 @@ object Main : ApplicationListener {
 
         if (ClientVars.dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(10 * 60f)) {
             sendBuildPlans()
+        }
+    }
+
+    fun setPluginNetworking(enable: Boolean) {
+        when {
+            enable -> {
+                communicationSystem.activeCommunicationSystem = PluginCommunicationSystem
+            }
+            Core.app?.isDesktop == true -> {
+                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
+            }
+            else -> {
+                communicationSystem.activeCommunicationSystem = DummyCommunicationSystem(mutableListOf())
+            }
+        }
+    }
+
+    fun floatEmbed(): Vec2 {
+        return when {
+            Navigation.currentlyFollowing is AssistPath && Core.settings.getBool("displayasuser") ->
+                Vec2(
+                        FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
+                        FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.ASSISTING)
+                )
+            Core.settings.getBool("displayasuser") ->
+                Vec2(
+                        FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
+                        FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.FOO_USER)
+                )
+            else -> Vec2(Vars.player.unit().aimX, Vars.player.unit().aimY)
         }
     }
 

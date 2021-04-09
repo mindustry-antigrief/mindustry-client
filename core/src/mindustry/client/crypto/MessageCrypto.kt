@@ -50,6 +50,13 @@ class MessageCrypto {
                 PublicKeyPair(Base64Coder.decode(input))
             } catch (e: Exception) { null }
         }
+
+        /** Uses [Core.settings], do not run in tests. */
+        fun generateKey() {
+            val quad = Crypto.generateKeyQuad()
+            Core.settings.dataDirectory.child("key.txt").writeString((Base64Coder.encode(quad.serialize()).concatToString()), false)
+            Main.messageCrypto.keyQuad = quad
+        }
     }
 
     data class PlayerTriple(val id: Int, val time: Long, val message: String)
@@ -62,7 +69,7 @@ class MessageCrypto {
 
         try { // Load key, generate if it doesn't exist
             if (Core.app.isDesktop) {
-                if (!Core.settings.dataDirectory.child("key.txt").exists()) Client.mapping?.generateKey()
+                if (!Core.settings.dataDirectory.child("key.txt").exists()) generateKey()
                 else keyQuad = KeyQuad(Base64Coder.decode(Core.settings.dataDirectory.child("key.txt").readString()))
                 Log.info("Loaded keypair")
             }

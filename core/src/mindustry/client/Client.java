@@ -5,6 +5,7 @@ import arc.math.*;
 import arc.util.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
+import mindustry.client.ui.ChangelogDialog;
 import mindustry.client.utils.*;
 import mindustry.core.*;
 import mindustry.game.*;
@@ -18,16 +19,13 @@ import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class Client {
-    private static TileLog[][] tileLogs;
-    public static ClientInterface mapping;
-
     public static void initialize() {
         registerCommands();
 
         Events.on(WorldLoadEvent.class, event -> {
-            mapping.setPluginNetworking(false);
+            Main.INSTANCE.setPluginNetworking(false);
             if (Time.timeSinceMillis(ClientVars.lastSyncTime) > 5000) {
-                tileLogs = new TileLog[world.height()][world.width()];
+                TileLogs.INSTANCE.reset(world);
             }
             PowerInfo.initialize();
             Navigation.stopFollowing();
@@ -43,7 +41,7 @@ public class Client {
 
         Events.on(EventType.ClientLoadEvent.class, event -> {
             int changeHash = Core.files.internal("changelog").readString().hashCode(); // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
-            if (settings.getInt("changeHash") != changeHash) Client.mapping.showChangelogDialog();
+            if (settings.getInt("changeHash") != changeHash) ChangelogDialog.INSTANCE.show();
             settings.put("changeHash", changeHash);
 
             if (settings.getBool("debug")) Log.level = Log.LogLevel.debug; // Set log level to debug if the setting is checked
@@ -79,14 +77,6 @@ public class Client {
                     }
                 } catch (Exception e) { Log.err(e); }
         }
-    }
-
-    public static TileLog getLog(int x, int y) {
-        if (tileLogs == null) tileLogs = new TileLog[world.height()][world.width()];
-        if (tileLogs[y][x] == null) {
-            tileLogs[y][x] = new TileLog(world.tile(x, y));
-        }
-        return tileLogs[y][x];
     }
 
     private static void registerCommands(){

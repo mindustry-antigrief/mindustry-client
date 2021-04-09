@@ -19,6 +19,7 @@ import mindustry.ai.types.*;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
+import mindustry.client.ui.FindDialog;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -329,7 +330,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if (input.keyDown(Binding.find_modifier) && input.keyRelease(Binding.find)) {
-            Client.mapping.showFindDialog();
+            FindDialog.INSTANCE.show();
         }
 
 //        if((Math.abs(Core.input.axis(Binding.move_x)) > 0 || Math.abs(Core.input.axis(Binding.move_y)) > 0 || input.keyDown(Binding.mouse_move)) && (!scene.hasField())){

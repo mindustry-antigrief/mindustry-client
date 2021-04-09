@@ -166,7 +166,7 @@ public class PlayerListFragment extends Fragment{
             }
             if (user != player) {
                 button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
-                        () -> Client.mapping.setAssistPath(user)).size(h / 2);
+                        () -> Navigation.follow(new AssistPath(user))).size(h / 2);
                 button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
                         () -> Navigation.follow(new UnAssistPath(user))).size(h / 2);
                 button.button(Icon.move, Styles.clearPartiali, // Goto

@@ -385,7 +385,7 @@ public class NetClient implements ApplicationListener{
         if(effect == null) return;
 
         if (x == -1f && y == 0f && rotation == 1f && color.equals(Color.clear) && effect.id == Fx.none.id) {  // Transmitted by plugin
-            Client.mapping.setPluginNetworking(true);
+            Main.INSTANCE.setPluginNetworking(true);
             Vars.net.send(new ClientNetworkPacket(new byte[]{1}), SendMode.udp);
         }
 
@@ -672,7 +672,7 @@ public class NetClient implements ApplicationListener{
 
             Unit unit = player.dead() ? Nulls.unit : player.unit();
             int uid = player.dead() ? -1 : unit.id;
-            Vec2 pos = Client.mapping.floatEmbed();
+            Vec2 pos = Main.INSTANCE.floatEmbed();
 
             Call.clientSnapshot(
             lastSent++,
