@@ -760,7 +760,7 @@ public class EntityProcess extends BaseProcessor{
 
             //store nulls
             TypeSpec.Builder nullsBuilder = TypeSpec.classBuilder("Nulls").addModifiers(Modifier.PUBLIC).addModifiers(Modifier.FINAL);
-            ObjectSet<String> nullList = ObjectSet.with("unit", "blockUnit");
+            ObjectSet<String> nullList = ObjectSet.with("unit", "blockUnit", "player", "building"); //todo: Change to just unit and blockUnit to match vanilla
 
             //create mock types of all components
             for(Stype interf : allInterfaces){
