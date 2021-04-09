@@ -89,6 +89,7 @@ public class Navigation {
     public static void navigateTo(float drawX, float drawY) {
         if (Core.settings.getBool("assumeunstrict")) {
             NetClient.setPosition(Mathf.clamp(drawX, 0, world.unitWidth()), Mathf.clamp(drawY, 0, world.unitHeight())); // TODO: Detect whether or not the player is at their new destination, if not run with assumeunstrict off
+            player.snapInterpolation();
             return;
         }
         state = NavigationState.FOLLOWING;

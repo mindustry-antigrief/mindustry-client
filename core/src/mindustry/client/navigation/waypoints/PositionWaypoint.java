@@ -46,6 +46,7 @@ public class PositionWaypoint extends Waypoint implements Position {
             if (length < 0) vec.setZero();
             player.trns(vec);
             player.unit().trns(vec);
+            player.snapInterpolation();
         } else {
             float length = circleLength <= 0.001f ? 1f : Mathf.clamp((player.unit().dst(target) - circleLength - (player.unit().formation == null ? 0f : player.unit().formation.pattern.radius())) / smooth, -1f, 1f);
             vec.setLength(player.unit().realSpeed() * length);
