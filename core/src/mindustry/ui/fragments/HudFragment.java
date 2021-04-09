@@ -344,7 +344,7 @@ public class HudFragment extends Fragment{
 
                 return coreAttackOpacity[0] > 0.01f;
             });
-            t.button("@coreattack", () -> Spectate.spectate(ClientVars.lastSentPos.cpy().scl(tilesize))).pad(2)
+            t.button("@coreattack", () -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize))).pad(2)
             .update(label -> label.getLabel().color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f))).get().getLabel().setWrap(false);
         });
 

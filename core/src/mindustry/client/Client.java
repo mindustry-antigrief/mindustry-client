@@ -61,7 +61,7 @@ public class Client {
     public static void update() {
         Navigation.update();
         PowerInfo.update();
-        Spectate.update();
+        Spectate.INSTANCE.update();
 
         if (!ClientVars.configs.isEmpty()) {
                 try {
@@ -133,7 +133,7 @@ public class Client {
             try {
                 DesktopInput.panning = true;
                 if (args.length == 2) ClientVars.lastSentPos.set(Float.parseFloat(args[0]), Float.parseFloat(args[1]));
-                Spectate.spectate(ClientVars.lastSentPos.cpy().scl(tilesize));
+                Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize));
             } catch(NumberFormatException | IndexOutOfBoundsException e) {
                 player.sendMessage("[scarlet]Invalid coordinates, format is [x] [y] Eg: !lookat 10 300 or !lookat");
             }

@@ -538,7 +538,7 @@ public class ConstructBlock extends Block{
                     toast.add(new Label(format));
                     toast.row();
                     toast.add(new Label(format2, monoLabel));
-                    toast.clicked(() -> Spectate.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
+                    toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
                     ClientVars.lastSentPos.set(tileX(), tileY());
                 }
 

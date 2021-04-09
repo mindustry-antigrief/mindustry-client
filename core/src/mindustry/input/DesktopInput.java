@@ -294,7 +294,7 @@ public class DesktopInput extends InputHandler{
             if(selectRequests.any() == input.shift()) Navigation.navigateTo(input.mouseWorld()); // Z to nav to camera (SHIFT + Z when placing schem)
             else if (selectRequests.isEmpty()){ // SHIFT + Z to view lastSentPos, double tap to nav there, special case for logic viruses as well (does nothing when placing schem)
                 if(Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(ClientVars.lastSentPos.cpy().scl(tilesize));
-                else Spectate.spectate(ClientVars.lastSentPos.cpy().scl(tilesize));
+                else Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize));
                 lastShiftZ = Time.millis();
 
                 if(Time.timeSinceMillis(lastVirusWarnTime) < 3000 && lastVirusWarning != null && world.tile(lastVirusWarning.pos()).build == lastVirusWarning){ // Logic virus
@@ -314,7 +314,7 @@ public class DesktopInput extends InputHandler{
 
         if(input.keyDown(Binding.freecam_modifier) && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
             panning = true;
-            Spectate.pos = null;
+            Spectate.INSTANCE.setPos(null);
             float speed = Time.delta;
             speed *= camera.width;
             speed /= 75f;
@@ -423,7 +423,7 @@ public class DesktopInput extends InputHandler{
                 Unit on = selectedUnit();
                 if(on != null){
                     if (input.keyDown(Binding.control)) Call.unitControl(player, on); // Ctrl + click: control unit
-                    else if (on.controller() instanceof LogicAI p && p.controller != null) Spectate.spectate(p.controller); // Shift + click logic unit: spectate processor
+                    else if (on.controller() instanceof LogicAI p && p.controller != null) Spectate.INSTANCE.spectate(p.controller); // Shift + click logic unit: spectate processor
                     shouldShoot = false;
                 }
             }
@@ -528,7 +528,7 @@ public class DesktopInput extends InputHandler{
 
         if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null && (cursor == null || cursor.build == null || !(cursor.build.block.rotate && cursor.build.block.quickRotate && cursor.build.interactable(player.team())))){
             panning = false;
-            Spectate.pos = null;
+            Spectate.INSTANCE.setPos(null);
         }
 
         if(!Core.scene.hasMouse()){

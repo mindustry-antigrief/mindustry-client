@@ -377,6 +377,9 @@ project(":core"){
         api "com.github.Anuken:rhino:$rhinoVersion"
         if(localArc() && debugged()) api arcModule("extensions:recorder")
 
+        implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.68'
+        implementation group: 'com.beust', name: 'klaxon', version: '5.4'  // Yes, I'm aware arc has a json system, but I don't know how to use it.
+
         annotationProcessor 'com.github.Anuken:jabel:34e4c172e65b3928cd9eabe1993654ea79c409cd'
         compileOnly project(":annotations")
         kapt project(":annotations")

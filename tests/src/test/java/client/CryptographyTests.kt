@@ -1,9 +1,9 @@
 package client
 
-import com.github.blahblahbloopster.crypto.Crypto
-import com.github.blahblahbloopster.crypto.CryptoClient
-import com.github.blahblahbloopster.crypto.KeyQuad
-import com.github.blahblahbloopster.crypto.PublicKeyPair
+import mindustry.client.crypto.Crypto
+import mindustry.client.crypto.CryptoClient
+import mindustry.client.crypto.KeyQuad
+import mindustry.client.crypto.PublicKeyPair
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll

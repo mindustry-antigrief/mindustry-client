@@ -1,12 +1,12 @@
 package client
 
 import arc.util.Reflect
-import com.github.blahblahbloopster.communication.Packets
-import com.github.blahblahbloopster.crypto.*
-import com.github.blahblahbloopster.crypto.Crypto.generateKeyQuad
-import com.github.blahblahbloopster.crypto.MessageCrypto.Companion.MessageCryptoEvent
-import com.github.blahblahbloopster.crypto.MessageCrypto.Companion.SignatureEvent
-import com.github.blahblahbloopster.crypto.MessageCrypto.PlayerTriple
+import mindustry.client.communication.Packets
+import mindustry.client.crypto.*
+import mindustry.client.crypto.Crypto.generateKeyQuad
+import mindustry.client.crypto.MessageCrypto.Companion.MessageCryptoEvent
+import mindustry.client.crypto.MessageCrypto.Companion.SignatureEvent
+import mindustry.client.crypto.MessageCrypto.PlayerTriple
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test

@@ -172,7 +172,7 @@ public class PlayerListFragment extends Fragment{
                 button.button(Icon.move, Styles.clearPartiali, // Goto
                         () -> Navigation.navigateTo(user)).size(h / 2);
                 button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
-                        () -> Spectate.spectate(user));
+                        () -> Spectate.INSTANCE.spectate(user));
             }
 
             content.add(button).padBottom(-6).width(600f).maxHeight(h + 14);
