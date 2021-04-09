@@ -248,7 +248,6 @@ project(":desktop"){
 
     dependencies{
         implementation project(":core")
-        implementation project(":client")
         implementation arcModule("natives:natives-desktop")
         implementation arcModule("natives:natives-freetype-desktop")
         implementation 'com.github.MinnDevelopment:java-discord-rpc:v2.0.1'
@@ -288,7 +287,6 @@ project(":ios"){
 
     dependencies{
         implementation project(":core")
-        implementation project(":client")
 
         implementation arcModule("natives:natives-ios")
         implementation arcModule("natives:natives-freetype-ios")
@@ -418,7 +416,6 @@ project(":server"){
 
     dependencies{
         implementation project(":core")
-        implementation project(":client")
         implementation arcModule("backends:backend-headless")
     }
 }
@@ -428,7 +425,6 @@ project(":tests"){
 
     dependencies{
         testImplementation project(":core")
-        testImplementation project(":client")
         testImplementation "org.junit.jupiter:junit-jupiter-params:5.3.1"
         testImplementation "org.junit.jupiter:junit-jupiter-api:5.3.1"
         testImplementation arcModule("backends:backend-headless")
@@ -450,7 +446,6 @@ project(":tools"){
 
     dependencies{
         implementation project(":core")
-        implementation project(":client")
 
         implementation arcModule("natives:natives-desktop")
         implementation arcModule("natives:natives-freetype-desktop")
