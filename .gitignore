@@ -163,3 +163,5 @@ arc-core/
 cache/
 
 client/build/
+
+core/annotations/
