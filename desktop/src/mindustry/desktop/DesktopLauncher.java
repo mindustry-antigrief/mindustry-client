@@ -1,26 +1,26 @@
 package mindustry.desktop;
 
 import arc.*;
-import arc.Files.*;
+import arc.Files.FileType;
 import arc.backend.sdl.*;
-import arc.backend.sdl.jni.*;
-import arc.files.*;
-import arc.func.*;
-import arc.math.*;
-import arc.struct.*;
+import arc.backend.sdl.jni.SDL;
+import arc.files.Fi;
+import arc.func.Cons;
+import arc.math.Rand;
+import arc.struct.Seq;
 import arc.util.*;
-import arc.util.serialization.*;
+import arc.util.serialization.Base64Coder;
 import club.minnced.discord.rpc.*;
-import com.codedisaster.steamworks.*;
+import com.codedisaster.steamworks.SteamAPI;
 import mindustry.*;
 import mindustry.client.Main;
-import mindustry.core.*;
+import mindustry.core.Version;
 import mindustry.desktop.steam.*;
 import mindustry.game.EventType.*;
-import mindustry.gen.*;
+import mindustry.gen.Groups;
 import mindustry.net.*;
-import mindustry.net.Net.*;
-import mindustry.type.*;
+import mindustry.net.Net.NetProvider;
+import mindustry.type.Publishable;
 
 import java.io.*;
 
@@ -36,10 +36,17 @@ public class DesktopLauncher extends ClientLauncher{
         try{
             int aaSamples = 0;
             String env = System.getenv("aaSamples");
+            int idx = Seq.with(arg).indexOf("aaSamples");
             if (env != null) {
                 if (Strings.canParsePositiveInt(env)) {
                     aaSamples = Integer.parseInt(env);
                     aaSamples = Math.min(aaSamples, 32);
+                }
+            }
+            if (idx >= 0) {
+                if (arg.length > idx + 1 && Strings.canParsePositiveInt(arg[idx + 1])) {
+                    aaSamples = Integer.parseInt(arg[idx + 1]);
+                    aaSamples = Math.min(aaSamples, 16);
                 }
             }
             int finalAaSamples = aaSamples;
