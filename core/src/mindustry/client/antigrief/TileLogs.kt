@@ -1,5 +1,6 @@
 package mindustry.client.antigrief
 
+import mindustry.Vars
 import mindustry.core.World
 
 object TileLogs {
@@ -14,6 +15,7 @@ object TileLogs {
     }
 
     operator fun get(x: Int, y: Int): TileLog {
+        if (Vars.world?.width() != width || Vars.world?.height() != height) reset(Vars.world)
         return logs[(y * width) + x]
     }
 }

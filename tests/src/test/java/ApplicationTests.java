@@ -8,6 +8,7 @@ import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 import mindustry.*;
+import mindustry.client.antigrief.TileLogs;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.core.GameState.*;
