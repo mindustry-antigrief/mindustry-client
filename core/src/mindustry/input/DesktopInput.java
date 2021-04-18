@@ -20,6 +20,7 @@ import mindustry.client.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.client.ui.FindDialog;
+import mindustry.client.ui.MarkerDialog;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -568,6 +569,8 @@ public class DesktopInput extends InputHandler{
         table.button(Icon.book, Styles.clearPartiali, () -> {
             ui.database.show();
         }).tooltip("@database");
+
+        table.button(Icon.map, Styles.clearPartiali, MarkerDialog.INSTANCE::show).tooltip("@database");
 
         table.button(Icon.tree, Styles.clearPartiali, () -> {
             ui.research.show();

@@ -10,6 +10,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
+import mindustry.client.navigation.Markers;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -32,6 +33,7 @@ public class MinimapRenderer{
         Events.on(WorldLoadEvent.class, event -> {
             reset();
             updateAll();
+            Markers.INSTANCE.clear();
         });
 
         //make sure to call on the graphics thread
@@ -110,6 +112,18 @@ public class MinimapRenderer{
                     drawLabel(x + rx, y + ry, player.name, player.team().color);
                 }
             }
+        }
+
+        for(var marker : Markers.INSTANCE){
+            float rx = !withLabels ? (marker.getUnitX() - rect.x) / rect.width * w : marker.getUnitX() / (world.width() * tilesize) * w;
+            float ry = !withLabels ? (marker.getUnitY() - rect.y) / rect.width * h : marker.getUnitY() / (world.height() * tilesize) * h;
+
+            Draw.mixcol(marker.getColor(), 1f);
+            float scale = Scl.scl(3f) / 2f * scaling * 32f;
+            var region = marker.getShape();
+            Draw.rect(region.getRegion(), x + rx, y + ry, scale, scale * (float)region.getRegion().height / region.getRegion().width, 0f);
+            drawLabel(x + rx, y + ry, marker.getName(), marker.getColor());
+            Draw.reset();
         }
 
         Draw.reset();

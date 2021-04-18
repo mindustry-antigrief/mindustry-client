@@ -5,8 +5,6 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import mindustry.*
-import mindustry.client.*
-import mindustry.client.Client.*
 import mindustry.client.communication.*
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*

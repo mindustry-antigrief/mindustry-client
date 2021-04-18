@@ -6,7 +6,6 @@ import arc.scene.ui.Label
 import arc.scene.ui.layout.Cell
 import arc.scene.ui.layout.Table
 import arc.util.serialization.Base64Coder
-import mindustry.core.UI
 import mindustry.ui.Styles
 import mindustry.ui.dialogs.BaseDialog
 import java.nio.ByteBuffer
@@ -46,13 +45,13 @@ fun Temporal.timeSince(other: Temporal, unit: TemporalUnit) = unit.between(this,
 fun Temporal.age(unit: TemporalUnit = ChronoUnit.SECONDS) = abs(this.timeSince(Instant.now(), unit))
 
 /** Adds an element to the table followed by a row. */
-fun Table.row(element: Element): Cell<Element> {
+fun <T : Element> Table.row(element: T): Cell<T> {
     val out = add(element)
     row()
     return out
 }
 
-inline fun UI.dialog(name: String, style: Dialog.DialogStyle = Styles.defaultDialog, dialog: BaseDialog.() -> Unit): Dialog {
+inline fun dialog(name: String, style: Dialog.DialogStyle = Styles.defaultDialog, dialog: BaseDialog.() -> Unit): Dialog {
     return BaseDialog(name, style).apply { clear() }.apply(dialog)
 }
 
@@ -93,3 +92,18 @@ object Compression {
 fun ByteArray.compress() = Compression.compress(this)
 
 fun ByteArray.inflate() = Compression.inflate(this)
+
+inline fun <T> Iterable<T>.sortedThreshold(threshold: Double, predicate: (T) -> Double): List<T> {
+    return zip(map(predicate))  // Compute the predicate for each value and put it in pairs with the original item
+        .filter { it.second >= threshold }  // Filter by threshold
+        .sortedBy { it.second }  // Sort
+        .unzip().first  // Go from a list of pairs back to a list
+}
+
+fun String.replaceLast(deliminator: String, replacement: String): String {
+    val index = lastIndexOf(deliminator)
+    if (index == -1) return this
+    return replaceRange(index, index + deliminator.length, replacement)
+}
+
+fun String.removeLast(deliminator: String) = replaceLast(deliminator, "")

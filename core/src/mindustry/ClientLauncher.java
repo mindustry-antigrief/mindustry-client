@@ -114,7 +114,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         assets.loadRun("contentinit", ContentLoader.class, () -> content.init(), () -> content.load());
         assets.loadRun("baseparts", BaseRegistry.class, () -> {}, () -> bases.load());
 
-        Client.initialize();
+        Client.INSTANCE.initialize();
     }
 
     @Override
@@ -180,7 +180,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             }
         }
 
-        Client.update();
+        Client.INSTANCE.update();
 
         lastTime = Time.nanos();
     }
