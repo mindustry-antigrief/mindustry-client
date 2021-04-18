@@ -17,8 +17,6 @@ import mindustry.client.navigation.Markers
 import mindustry.client.navigation.Navigation
 import mindustry.client.ui.ChangelogDialog
 import mindustry.client.utils.*
-import mindustry.client.utils.completion.Completions
-import mindustry.client.utils.completion.IconCompletions
 import mindustry.core.NetClient
 import mindustry.core.World
 import mindustry.game.EventType.ClientLoadEvent
@@ -62,15 +60,11 @@ object Client {
                 Log.LogLevel.debug // Set log level to debug if the setting is checked
             if (Core.settings.getBool("discordrpc")) Vars.platform.startDiscord()
 
-//            Autocomplete.autocompleters.add(BlockEmotes())
-//            Autocomplete.autocompleters.add(PlayerCompletion())
-//            Autocomplete.autocompleters.add(CommandCompletion())
-//
-//            Autocomplete.initialize()
+            Autocomplete.autocompleters.add(BlockEmotes())
+            Autocomplete.autocompleters.add(PlayerCompletion())
+            Autocomplete.autocompleters.add(CommandCompletion())
 
-            Completions.engines.add(IconCompletions)
-
-            IconCompletions.initialize()
+            Autocomplete.initialize()
 
             Navigation.navigator.init()
         }
