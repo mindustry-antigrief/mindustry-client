@@ -12,7 +12,9 @@ import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.struct.Queue;
 import arc.util.*;
+import arc.util.Timer;
 import mindustry.*;
 import mindustry.ai.formations.patterns.*;
 import mindustry.annotations.Annotations.*;
@@ -42,6 +44,7 @@ import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
+import mindustry.world.blocks.units.*;
 import mindustry.world.meta.*;
 
 import java.time.*;
@@ -49,6 +52,7 @@ import java.util.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.Vars.player;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
     /** Used for dropping items. */
@@ -56,6 +60,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     /** Maximum line length. */
     final static int maxLength = 100;
     final static Rect r1 = new Rect(), r2 = new Rect();
+
+    final static Queue<BuildPlan> plans = new Queue<>();
+    static Timer.Task persistTask;
 
     public final OverlayFragment frag = new OverlayFragment();
 
@@ -205,10 +212,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(targets = Loc.both, called = Loc.server)
     public static void requestUnitPayload(Player player, Unit target){
-        if(player == null) return;
+        if(player == null || !(player.unit() instanceof Payloadc pay)) return;
 
         Unit unit = player.unit();
-        Payloadc pay = (Payloadc)unit;
 
         if(target.isAI() && target.isGrounded() && pay.canPickup(target)
         && target.within(unit, unit.type.hitSize * 2f + target.type.hitSize * 2f)){
@@ -218,10 +224,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(targets = Loc.both, called = Loc.server)
     public static void requestBuildPayload(Player player, Building build){
-        if(player == null) return;
+        if(player == null || !(player.unit() instanceof Payloadc pay)) return;
 
         Unit unit = player.unit();
-        Payloadc pay = (Payloadc)unit;
 
         if(build != null && build.team == unit.team
         && unit.within(build, tilesize * build.block.size * 1.2f + tilesize * 5f)){
@@ -372,7 +377,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     ClientVars.configs.add(new ConfigRequest(build.tileX(), build.tileY(), previous));
                 }
             }
-            if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
+            if (Core.settings.getBool("commandwarnings") && build instanceof CommandCenter.CommandBuild cmd) {
+                ui.chatfrag.addMessage(Strings.format("@ set command center at (@, @) to @", player.name, cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), null, Color.scarlet.cpy().mul(.75f));
+
+            } else if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
                 if (value instanceof Integer val) {
                     if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) {
                         String message = Strings.format("@ disconnected @ power @ at (@, @)", player.name, ++node.disconnections, node.disconnections == 1 ? "link" : "links", build.tileX(), build.tileY());
@@ -389,7 +397,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 } else if (value instanceof Point2[]) {
                     //todo
                 }
-            } else if (Core.settings.getBool("viruswarnings") && value instanceof byte[] && build instanceof LogicBlock.LogicBuild l && BuildPath.virusBlock(l.code)) {
+            } else if (Core.settings.getBool("viruswarnings") && value instanceof byte[] && build instanceof LogicBlock.LogicBuild l && BuildPath.virusBlock(l)) {
                 ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", player.name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
                 control.input.lastVirusWarning = l;
                 control.input.lastVirusWarnTime = Time.millis();
@@ -415,6 +423,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(Vars.net.server() && !netServer.admins.allowAction(player, ActionType.control, action -> action.unit = unit)){
             throw new ValidateException(player, "Player cannot control a unit.");
         }
+
+        if (player.isLocal()) persistPlans(); // Restore plans after swapping units
 
         //clear player unit when they possess a core
         if(unit instanceof BlockUnitc block && block.tile() instanceof CoreBuild build){
@@ -445,12 +455,28 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(targets = Loc.both, called = Loc.both, forward = true)
     public static void unitClear(Player player){
-        //no free core teleports?
-        if(player == null || !player.dead() && player.unit().spawnedByCore) return;
+        if (player == null) return;
+        if (player.isLocal()) {
+            if (!player.dead() && player.unit().spawnedByCore) Call.unitControl(player, player.bestCore().unit()); // Bypass vanilla code which prevents you from respawning at core when already a core unit
+            else persistPlans(); // Not a core unit, restore plans here rather than letting the unitControl method do that
+        }
 
         Fx.spawn.at(player);
         player.clearUnit();
         player.deathTimer = Player.deathDelay + 1f; //for instant respawn
+    }
+
+    /** Terribly scuffed way to persist plans between unit death or swapping. */// TODO: Should this be disabled while running BuildPath?
+    public static void persistPlans() { // TODO: Wait for the player to actually be alive before adding plans rather than waiting a fixed amount of time
+        if (persistTask != null && persistTask.isScheduled()) persistTask.cancel(); // If a task is already scheduled, delay it with the same set of build plans (in case of rapid swaps/deaths)
+        else player.unit().plans.each(plans::add); // Make a copy of the player's build queue
+        persistTask = Timer.schedule(() -> {
+            if (!player.dead()) {
+                plans.each(player.unit()::addBuild);
+                plans.clear();
+                persistTask.cancel();
+            }
+        }, .1f + (Vars.net.client() ? netClient.getPing() / 1000f : 0f), .5f);
     }
 
     @Remote(targets = Loc.both, called = Loc.server, forward = true)
@@ -510,7 +536,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead /* TODO: Make this a thing that actually works? && (!(u.controller() instanceof FormationAI f) || f.isBeingControlled(player.lastReadUnit)) */);
 
             if(unit != null){
-                if(!Vars.net.client() || controlInterval.get(0, 10f)){
+                if(!Vars.net.client() || controlInterval.get(10f)){
                     Call.unitControl(player, unit);
                 }
             }
@@ -1066,6 +1092,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return world.tile(tileX(x), tileY(y));
     }
 
+    public Tile cursorTile(){
+        return world.tileWorld(input.mouseWorldX(), input.mouseWorldY());
+    }
+
     public int rawTileX(){
         return World.toTile(Core.input.mouseWorld().x);
     }
@@ -1107,6 +1137,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public @Nullable Unit selectedUnit(){
+        if (ClientVars.hidingUnits) return null;
         Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f, Unitc::isAI);
         if(unit != null){
             unit.hitbox(Tmp.r1);
@@ -1385,7 +1416,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 //            }
 //        }
 
-        //update commander inut
+        //update commander input
 //        if(unit instanceof Commanderc){
 //            if(Core.input.keyTap(Binding.command)){
 //                Call.unitCommand(player);

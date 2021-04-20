@@ -9,6 +9,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.async.*;
 import arc.util.noise.*;
 import mindustry.ctype.*;
 import mindustry.game.*;
@@ -91,6 +92,7 @@ public class Generators{
             }
 
             for(int i = Byte.MIN_VALUE; i <= Byte.MAX_VALUE; i++){
+                AsyncExecutor e = new AsyncExecutor(16);
                 Image result = new Image(size, size);
                 byte[][] mask = new byte[size][size];
 
@@ -114,7 +116,7 @@ public class Generators{
                     }
                 }
 
-                result.each((x, y) -> {
+                result.each((x, y) -> e.submit(() -> {
                     byte m = mask[x][y];
                     if(m != 0){
                         //mid
@@ -147,8 +149,9 @@ public class Generators{
 
                         result.draw(x, y, m == 1 ? Color.white : m == 2 ? dark : mid);
                     }
-                });
+                }));
 
+                e.dispose();
                 result.save("../blocks/environment/cliffmask" + (val & 0xff));
             }
         });
@@ -376,13 +379,29 @@ public class Generators{
         });
 
         ImagePacker.generate("item-icons", () -> {
-            for(UnlockableContent item : Seq.<UnlockableContent>withArrays(content.items(), content.liquids())){
+            for(UnlockableContent item : Seq.<UnlockableContent>withArrays(content.items(), content.liquids(), content.statusEffects())){
+                if(item instanceof StatusEffect && !ImagePacker.has(item.getContentType().name() + "-" + item.name)){
+                    continue;
+                }
+
                 Image base = ImagePacker.get(item.getContentType().name() + "-" + item.name);
+                //tint status effect icon color
+                if(item instanceof StatusEffect){
+                    StatusEffect stat = (StatusEffect)item;
+                    Image tint = base;
+                    base.each((x, y) -> tint.draw(x, y, tint.getColor(x, y).mul(stat.color)));
+
+                    //outline the image
+                    Image container = new Image(38, 38);
+                    container.draw(base, 3, 3);
+                    base = container.outline(3, Pal.gray);
+                }
+
                 for(Cicon icon : Cicon.scaled){
                     //if(icon.size == base.width) continue;
                     Image image = new Image(icon.size, icon.size);
                     image.drawScaled(base);
-                    image.save(item.getContentType().name() + "-" + item.name + "-" + icon.name(), false);
+                    image.save((item instanceof StatusEffect ? "../ui/" : "") + item.getContentType().name() + "-" + item.name + "-" + icon.name(), !(item instanceof StatusEffect));
 
                     if(icon == Cicon.medium){
                         image.save("../ui/" + item.getContentType() + "-" + item.name + "-icon");

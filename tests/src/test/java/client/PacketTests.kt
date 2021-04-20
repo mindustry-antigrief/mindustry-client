@@ -1,7 +1,7 @@
 package client
 
-import com.github.blahblahbloopster.communication.*
-import com.github.blahblahbloopster.crypto.DummyCommunicationSystem
+import mindustry.client.communication.*
+import mindustry.client.crypto.DummyCommunicationSystem
 import org.junit.jupiter.api.*
 import kotlin.random.Random
 

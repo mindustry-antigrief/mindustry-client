@@ -114,7 +114,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         assets.loadRun("contentinit", ContentLoader.class, () -> content.init(), () -> content.load());
         assets.loadRun("baseparts", BaseRegistry.class, () -> {}, () -> bases.load());
 
-        Client.initialize();
+        Client.INSTANCE.initialize();
     }
 
     @Override
@@ -147,7 +147,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             if(assets.update(1000 / loadingFPS)){
                 loader.dispose();
                 loader = null;
-                Log.info("Total time to load: @", Time.timeSinceMillis(beginTime));
+                Log.info("Total time to load: @ms", Time.timeSinceMillis(beginTime));
                 for(ApplicationListener listener : modules){
                     listener.init();
                 }
@@ -180,7 +180,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             }
         }
 
-        Client.update();
+        Client.INSTANCE.update();
 
         lastTime = Time.nanos();
     }

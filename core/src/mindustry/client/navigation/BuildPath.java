@@ -19,13 +19,13 @@ import mindustry.world.blocks.logic.*;
 
 import static mindustry.Vars.*;
 
-public class    BuildPath extends Path {
+public class BuildPath extends Path {
     Building core = player.core();
     private boolean show, activeVirus;
     Interval timer = new Interval(2);
     public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>();
     public Seq<Queue<BuildPlan>> queues = new Seq<>(9);
-    public Seq<BuildPlan> sorted = new Seq<>(), invalid = new Seq<>();
+    public Seq<BuildPlan> sorted = new Seq<>();
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
@@ -49,8 +49,8 @@ public class    BuildPath extends Path {
             }
         }
         if (queues.isEmpty()) {
-            ui.chatfrag.addMessage("[scarlet]No valid options specified, defaulting to self." +
-                "\nValid options: All, self, broken, boulders, assist, unfinished, cleanup, networkassist", null);
+            player.sendMessage("[scarlet]No valid options specified, defaulting to self." +
+                "\nValid options: All, self, broken, boulders, assist, unfinished, cleanup, networkassist");
             queues.add(player.unit().plans);
         }
     }
@@ -73,7 +73,6 @@ public class    BuildPath extends Path {
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     public void follow() {
         if (timer.get(15)) {
-            if (timer.get(1, 600)) invalid.clear(); // Clear this every 10s just in case
             clearQueue(broken);
             clearQueue(boulders);
             clearQueue(assist);
@@ -96,9 +95,8 @@ public class    BuildPath extends Path {
             if(queues.contains(assist)) {
                 Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, unit -> {
                     if(unit.canBuild() && player.unit() != null && unit != player.unit() && unit.isBuilding()) {
-                        Queue<BuildPlan> buildPlans = assist;
                         for (BuildPlan plan : unit.plans) {
-                            buildPlans.add(plan);
+                            assist.add(plan);
                         }
                     }
                 });
@@ -106,7 +104,7 @@ public class    BuildPath extends Path {
             if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus)) {
                 for (Tile tile : world.tiles) {
                     if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build) {
-                        if (virusBlock(build.code, false)) {
+                        if (virusBlock(build, false)) {
                             virus.add(new BuildPlan(tile.x, tile.y)); // Partially delete the spammed processors, prioritizes ones that haven't been configured yet in the event that you get ratelimited
                         }
 
@@ -138,7 +136,7 @@ public class    BuildPath extends Path {
             sort:
             for (int i = 0; i < 2; i++) {
                 for (Queue queue : queues) {
-                    Queue<BuildPlan> plans = sortPlans(queue, all, !all);
+                    Queue<BuildPlan> plans = sortPlans(queue, all, false); // TODO: should large first always be false or should it stay as all?
                     if (plans.isEmpty()) continue;
                     /* TODO: This doesn't work lol
                     plans.forEach(plan -> Navigation.obstacles.forEach(obstacle -> {if(Mathf.dstm(obstacle.x, obstacle.y, plan.x, plan.y) <= obstacle.range){plans.remove(plan);player.unit().plans.remove(plan);}}));
@@ -173,7 +171,7 @@ public class    BuildPath extends Path {
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{
                 //discard invalid request
-                invalid.add(player.unit().plans.removeFirst());
+                player.unit().plans.removeFirst();
             }
         }
     }
@@ -206,15 +204,13 @@ public class    BuildPath extends Path {
         Queue<BuildPlan> out = new Queue<>();
         sorted.clear();
         sorted.addAll(plans);
-        sorted.sort(plan -> plan.dst(player));
-        if(!largeFirst)sorted.reverse();
+        sorted.sort(Structs.comps(Structs.comparingBool(plan -> !(plan.block == null || player.unit().shouldSkip(plan, core))), Structs.comparingFloat(plan -> plan.dst(player))));
+        if (!largeFirst) sorted.reverse();
         for (BuildPlan plan : sorted) { // The largest distance is at the start of the sequence by this point
             if (!validPlan(plan)) continue;
-//            if (invalid.contains(plan)) continue; TODO: Should I use this or the line above?
-            if (plan.block == null || player.unit().shouldSkip(plan, core)) {
-                if (includeAll)out.addLast(plan);
-            } else {
-                out.addFirst(plan);
+            if (includeAll || plan.block != null && !player.unit().shouldSkip(plan, core)) { // TODO: This is terrible and slow
+                out.addLast(plan);
+                if (out.size > 300) out.removeFirst();
             }
         }
         return out;
@@ -227,14 +223,15 @@ public class    BuildPath extends Path {
             Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));
     }
 
-    public static boolean virusBlock (String code, boolean checkEnd) {
+    public static boolean virusBlock (LogicBlock.LogicBuild block, boolean checkEnd) {
+        String code = block.code;
         if (checkEnd && code.startsWith("end")) return false;
         return code.contains("ucontrol build") && code.contains("ubind")
             && (((code.contains("@x") || code.contains("@shootX") || code.contains("@thisx")) && (code.contains("@y") || code.contains("@shootY") ||code.contains("@thisy")) || code.contains("@this") || code.contains("@controller"))); // Doesn't use a regex as those are expensive
     }
 
-    public static boolean virusBlock (String code) {
-        return virusBlock(code, true);
+    public static boolean virusBlock (LogicBlock.LogicBuild block) {
+        return virusBlock(block, true);
     }
 }
 

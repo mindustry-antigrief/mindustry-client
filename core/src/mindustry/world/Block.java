@@ -63,6 +63,8 @@ public class Block extends UnlockableContent{
     public @Nullable Object lastConfig;
     /** whether to save the last config and apply it to newly placed blocks */
     public boolean saveConfig = false;
+    /** whether to allow copying the config through middle click */
+    public boolean copyConfig = true;
     /** whether this block has a tile entity that updates */
     public boolean update;
     /** whether this block has health and can be destroyed */
@@ -271,10 +273,6 @@ public class Block extends UnlockableContent{
                     node.drawLaser(tile.team(), x * tilesize + offset, y * tilesize + offset, other.x, other.y, size, other.block.size);
 
                     Drawf.square(other.x, other.y, other.block.size * tilesize / 2f + 2f, Pal.place);
-
-                    PowerNode.insulators(other.tileX(), other.tileY(), tile.x, tile.y, cause -> {
-                        Drawf.square(cause.x, cause.y, cause.block.size * tilesize / 2f + 2f, Pal.plastanium);
-                    });
                 });
             }
         }

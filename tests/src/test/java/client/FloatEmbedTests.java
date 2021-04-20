@@ -1,19 +1,16 @@
 package client;
 
-import arc.math.Mathf;
-import arc.math.geom.Vec2;
-import com.github.blahblahbloopster.ClientVarsImpl;
-import mindustry.client.Client;
-import mindustry.client.utils.FloatEmbed;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import arc.math.*;
+import arc.math.geom.*;
+import mindustry.client.*;
+import mindustry.client.utils.*;
+import org.junit.jupiter.api.*;
 
 public class FloatEmbedTests {
 
     /** Tests the float embedding system. */
     @Test
     void testFloatEmbed() {
-        Client.vars = ClientVarsImpl.INSTANCE;
         byte[] temp = new byte[1];
         Mathf.rand.nextBytes(temp);
         byte item = temp[0];
@@ -25,16 +22,16 @@ public class FloatEmbedTests {
         Assertions.assertTrue(FloatEmbed.isEmbedded(embedded, item));
 
         Vec2 inputVector = new Vec2((float) (Mathf.rand.nextDouble() * 8000), (float) (Mathf.rand.nextDouble() * 8000));
-        Vec2 notAssisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, Client.vars.getFooUser()), FloatEmbed.embedInFloat(inputVector.y, Client.vars.getFooUser()));
-        Vec2 assisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, Client.vars.getFooUser()), FloatEmbed.embedInFloat(inputVector.y, Client.vars.getAssisting()));
+        Vec2 notAssisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, ClientVars.FOO_USER), FloatEmbed.embedInFloat(inputVector.y, ClientVars.FOO_USER));
+        Vec2 assisting = new Vec2(FloatEmbed.embedInFloat(inputVector.x, ClientVars.FOO_USER), FloatEmbed.embedInFloat(inputVector.y, ClientVars.ASSISTING));
 
         Assertions.assertTrue(notAssisting.dst(inputVector) < 1f);
         Assertions.assertTrue(assisting.dst(inputVector) < 1f);
 
-        Assertions.assertTrue(FloatEmbed.isEmbedded(notAssisting.x, Client.vars.getFooUser()));
-        Assertions.assertTrue(FloatEmbed.isEmbedded(assisting.x, Client.vars.getFooUser()));
+        Assertions.assertTrue(FloatEmbed.isEmbedded(notAssisting.x, ClientVars.FOO_USER));
+        Assertions.assertTrue(FloatEmbed.isEmbedded(assisting.x, ClientVars.FOO_USER));
 
-        Assertions.assertFalse(FloatEmbed.isEmbedded(notAssisting.y, Client.vars.getAssisting()));
-        Assertions.assertTrue(FloatEmbed.isEmbedded(assisting.y, Client.vars.getAssisting()));
+        Assertions.assertFalse(FloatEmbed.isEmbedded(notAssisting.y, ClientVars.ASSISTING));
+        Assertions.assertTrue(FloatEmbed.isEmbedded(assisting.y, ClientVars.ASSISTING));
     }
 }

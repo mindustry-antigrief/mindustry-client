@@ -3,6 +3,7 @@ package mindustry.input;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
+import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -18,6 +19,8 @@ import mindustry.ai.types.*;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
+import mindustry.client.ui.FindDialog;
+import mindustry.client.ui.MarkerDialog;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -60,72 +63,72 @@ public class DesktopInput extends InputHandler{
     public Tile prevSelected;
     private long lastShiftZ;
 
-    boolean showHint(){
-        return ui.hudfrag.shown && Core.settings.getBool("hints") && selectRequests.isEmpty();
-    }
-
     @Override
     public void buildUI(Group group){
         //various hints
         group.fill(t -> {
             t.bottom();
-            t.visible(this::showHint);
-            t.touchable = Touchable.disabled; // Don't consume clicks
+            t.visible(() -> ui.hudfrag.shown);
             t.table(Styles.black6, b -> {
-                StringBuilder str = new StringBuilder();
-                StringBuilder tmp = new StringBuilder();
+                StringBuilder str = new StringBuilder(), tmp = new StringBuilder();
+                Boolp showHint = () -> str.length() != 0 || lastSchematic != null && selectRequests.any();
                 b.defaults().left();
                 b.label(() -> {
-                    if(!showHint()) return str;
                     str.setLength(0);
-                    if(!isBuilding && !Core.settings.getBool("buildautopause") && !player.unit().isBuilding()){
-                        str.append("\n").append(Core.bundle.format("enablebuilding", Core.keybinds.get(Binding.pause_building).key.toString()));
-                    }else if(player.unit().isBuilding()){
-                        str.append("\n")
-                            .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
-                            .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
-                            .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
+                    if(Core.settings.getBool("hints")) {
+                        if(!isBuilding && !settings.getBool("buildautopause") && !player.unit().isBuilding()){
+                            str.append("\n").append(bundle.format("enablebuilding", keybinds.get(Binding.pause_building).key.toString()));
+                        }else if(player.unit().isBuilding()){
+                            str.append("\n")
+                                .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
+                                .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
+                                .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
+                        }
+                        if(player.unit().isBuilding() || ClientVars.dispatchingBuildPlans){
+                            str.append("\n").append(bundle.format(ClientVars.dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
+                        }
+                        if(UnitType.alpha == 0){
+                            str.append("\n").append(bundle.format("client.toggleunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
+                        }
+                        if(ClientVars.showingTurrets){
+                            str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
+                        }
+                        if(ClientVars.hidingBlocks){
+                            str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
+                        }
+                        if(Navigation.state == NavigationState.RECORDING){
+                            str.append("\n").append(bundle.format("client.waypoint", keybinds.get(Binding.place_waypoint).key.toString()));
+                        }else if(Navigation.state == NavigationState.FOLLOWING){
+                            str.append("\n").append(bundle.format("client.stoppath", keybinds.get(Binding.stop_following_path).key.toString()));
+                        }
+
+                        if(selectRequests.any()){ // Any selection
+                            str.append("\n").append(bundle.format("schematic.flip", keybinds.get(Binding.schematic_flip_x).key.toString(), keybinds.get(Binding.schematic_flip_y).key.toString()));
+                        }
                     }
-                    if(!player.dead() && !player.unit().spawnedByCore()){
-                        str.append("\n").append(bundle.format("respawn", keybinds.get(Binding.respawn).key.toString()));
+                    if(selectRequests.size > 1024){ // Any selection with more than 1024 blocks
+                        str.append("\n").append(bundle.format("client.largeschematic", keybinds.get(Binding.toggle_placement_modifiers).key.toString()));
                     }
-                    if(player.unit().isBuilding() || ClientVars.dispatchingBuildPlans){
-                        str.append("\n").append(bundle.format(ClientVars.dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
+
+                    t.color.a = Mathf.lerpDelta(t.color.a, Mathf.num(showHint.get()), .15f);
+                    if (t.color.a > .01f) {
+                        t.touchable = Touchable.childrenOnly;
+                    } else {
+                        t.touchable = Touchable.disabled;
+                        tmp.setLength(0); // Empty this so it doesnt look all wonky if hints are toggled off while playing
                     }
-                    if(UnitType.alpha == 0){
-                        str.append("\n").append(bundle.format("client.toggleunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
-                    }
-                    if(ClientVars.showingTurrets){
-                        str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
-                    }
-                    if(ClientVars.hidingBlocks){
-                        str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
-                    }
-                    if(Navigation.state == NavigationState.RECORDING){
-                        str.append("\n").append(bundle.format("client.waypoint", keybinds.get(Binding.place_waypoint).key.toString()));
-                    }else if(Navigation.state == NavigationState.FOLLOWING){
-                        str.append("\n").append(bundle.format("client.stoppath", keybinds.get(Binding.stop_following_path).key.toString()));
-                    }
-                    t.color.a = Mathf.lerpDelta(t.color.a, Mathf.num(showHint() && str.length() != 0), 0.15f);
                     return str.length() != 0 ? tmp.replace(0, tmp.length(), str.deleteCharAt(0).toString()) : tmp;
                 }).style(Styles.outlineLabel);
-            }).margin(10f);
-        });
 
-        //schematic controls
-        group.fill(t -> {
-            t.visible(() -> ui.hudfrag.shown && lastSchematic != null && !selectRequests.isEmpty());
-            t.bottom();
-            t.table(Styles.black6, b -> {
-                b.defaults().left();
-                b.label(() -> Core.bundle.format("schematic.flip",
-                    Core.keybinds.get(Binding.schematic_flip_x).key.toString(),
-                    Core.keybinds.get(Binding.schematic_flip_y).key.toString())).style(Styles.outlineLabel).visible(() -> Core.settings.getBool("hints"));
                 b.row();
-                b.table(a -> {
-                    a.button("@schematic.add", Icon.save, this::showSchematicSave).colspan(2).size(250f, 50f).disabled(f -> lastSchematic == null || lastSchematic.file != null);
-                });
-            }).margin(6f);
+                b.table().update(c -> { // This is the worst way possible to add/remove the schematic save button but it works ok
+                    if (!c.hasChildren() && lastSchematic != null && selectRequests.any()) {
+                        c.button("@schematic.add", Icon.save, this::showSchematicSave).grow().padTop(10).disabled(d -> lastSchematic == null || lastSchematic.file != null).get().getLabel().setWrap(false);
+                    } else if (c.hasChildren() && showHint.get() && (lastSchematic == null || selectRequests.isEmpty())) {
+                        c.clearChildren();
+                    }
+                }).growX();
+            }).margin(10f);
         });
     }
 
@@ -215,8 +218,11 @@ public class DesktopInput extends InputHandler{
                     Payload payload = ((Payloadc)player.unit()).hasPayload() ? ((Payloadc)player.unit()).payloads().peek() : null;
                     if(payload != null){
                         if(payload instanceof BuildPayload){
-                            drawRequest(cursorX, cursorY, ((BuildPayload)payload).block(), 0);
-                            if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, ((BuildPayload)payload).block(), 0)){
+                            Block block = ((BuildPayload)payload).block();
+                            boolean wasVisible = block.isVisible();
+                            if (!wasVisible) state.rules.revealedBlocks.add(block);
+                            drawRequest(cursorX, cursorY, block, 0);
+                            if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, block, 0)){
                                 if(Navigation.state == NavigationState.RECORDING){
                                     Navigation.addWaypointRecording(new PayloadDropoffWaypoint(cursorX, cursorY));
                                 }
@@ -225,6 +231,7 @@ public class DesktopInput extends InputHandler{
                                 Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
                                 mode = ((Payloadc)player.unit()).payloads().size > 1 ? payloadPlace : none; // Disable payloadplace mode if this is the only payload.
                             }
+                            if (!wasVisible) state.rules.revealedBlocks.remove(block);
                         }
                     }
                 }
@@ -286,7 +293,7 @@ public class DesktopInput extends InputHandler{
             if(selectRequests.any() == input.shift()) Navigation.navigateTo(input.mouseWorld()); // Z to nav to camera (SHIFT + Z when placing schem)
             else if (selectRequests.isEmpty()){ // SHIFT + Z to view lastSentPos, double tap to nav there, special case for logic viruses as well (does nothing when placing schem)
                 if(Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(ClientVars.lastSentPos.cpy().scl(tilesize));
-                else Spectate.spectate(ClientVars.lastSentPos.cpy().scl(tilesize));
+                else Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize));
                 lastShiftZ = Time.millis();
 
                 if(Time.timeSinceMillis(lastVirusWarnTime) < 3000 && lastVirusWarning != null && world.tile(lastVirusWarning.pos()).build == lastVirusWarning){ // Logic virus
@@ -306,7 +313,7 @@ public class DesktopInput extends InputHandler{
 
         if(input.keyDown(Binding.freecam_modifier) && (input.axis(Binding.move_x) != 0f || input.axis(Binding.move_y) != 0f) && scene.getKeyboardFocus() == null){
             panning = true;
-            Spectate.pos = null;
+            Spectate.INSTANCE.setPos(null);
             float speed = Time.delta;
             speed *= camera.width;
             speed /= 75f;
@@ -321,7 +328,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if (input.keyDown(Binding.find_modifier) && input.keyRelease(Binding.find)) {
-            Client.mapping.showFindDialog();
+            FindDialog.INSTANCE.show();
         }
 
 //        if((Math.abs(Core.input.axis(Binding.move_x)) > 0 || Math.abs(Core.input.axis(Binding.move_y)) > 0 || input.keyDown(Binding.mouse_move)) && (!scene.hasField())){
@@ -416,7 +423,7 @@ public class DesktopInput extends InputHandler{
                 Unit on = selectedUnit();
                 if(on != null){
                     if (input.keyDown(Binding.control)) Call.unitControl(player, on); // Ctrl + click: control unit
-                    else if (on.controller() instanceof LogicAI p && p.controller != null) Spectate.spectate(p.controller); // Shift + click logic unit: spectate processor
+                    else if (on.controller() instanceof LogicAI p && p.controller != null) Spectate.INSTANCE.spectate(p.controller); // Shift + click logic unit: spectate processor
                     shouldShoot = false;
                 }
             }
@@ -425,7 +432,7 @@ public class DesktopInput extends InputHandler{
         if(!player.dead() && !state.isPaused() && !(Core.scene.getKeyboardFocus() instanceof TextField)){
                 updateMovement(player.unit());
 
-            if(Core.input.keyDown(Binding.respawn) && !player.unit().spawnedByCore() && !scene.hasField()){
+            if(Core.input.keyTap(Binding.respawn) && !scene.hasField()){
                 Call.unitClear(player);
                 controlledType = null;
             }
@@ -447,6 +454,13 @@ public class DesktopInput extends InputHandler{
         if((!Core.scene.hasScroll() || Core.input.keyDown(Binding.diagonal_placement)) && !ui.chatfrag.shown() && Math.abs(Core.input.axisTap(Binding.zoom)) > 0
             && !Core.input.keyDown(Binding.rotateplaced) && (Core.input.keyDown(Binding.diagonal_placement) || ((!player.isBuilder() || !isPlacing() || !block.rotate) && selectRequests.isEmpty()))){
             renderer.scaleCamera(Core.input.axisTap(Binding.zoom));
+        }
+
+        if(Core.input.keyTap(Binding.select) && !Core.scene.hasMouse()){
+            Tile selected = world.tileWorld(input.mouseWorldX(), input.mouseWorldY());
+            if(selected != null){
+                Call.tileTap(player, selected);
+            }
         }
 
         if(player.dead()){
@@ -514,7 +528,7 @@ public class DesktopInput extends InputHandler{
 
         if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null && (cursor == null || cursor.build == null || !(cursor.build.block.rotate && cursor.build.block.quickRotate && cursor.build.interactable(player.team())))){
             panning = false;
-            Spectate.pos = null;
+            Spectate.INSTANCE.setPos(null);
         }
 
         if(!Core.scene.hasMouse()){
@@ -553,6 +567,8 @@ public class DesktopInput extends InputHandler{
         table.button(Icon.book, Styles.clearPartiali, () -> {
             ui.database.show();
         }).tooltip("@database");
+
+        table.button(Icon.map, Styles.clearPartiali, MarkerDialog.INSTANCE::show).tooltip("@database");
 
         table.button(Icon.tree, Styles.clearPartiali, () -> {
             ui.research.show();
@@ -663,16 +679,16 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Core.input.keyTap(Binding.select) && !Core.scene.hasMouse()){
-            if(selected != null){
-                Call.tileTap(player, selected);
-            }
-
             BuildPlan req = getRequest(cursorX, cursorY);
 
             if(Core.input.keyDown(Binding.break_block)){
                 mode = none;
-            }else if(!selectRequests.isEmpty()){
+            }else if(selectRequests.any()){
                 flushRequests(selectRequests);
+                if(selectRequests.size > 1024 && !Core.input.keyDown(Binding.toggle_placement_modifiers)) { // Deselect large schems
+                    selectRequests.clear();
+                    lastSchematic = null;
+                }
             }else if(isPlacing()){
                 selectX = cursorX;
                 selectY = cursorY;

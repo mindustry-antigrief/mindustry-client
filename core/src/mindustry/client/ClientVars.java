@@ -1,22 +1,28 @@
 package mindustry.client;
 
-import arc.math.geom.Vec2;
-import arc.struct.Queue;
+import arc.math.geom.*;
+import arc.struct.*;
 import arc.util.*;
-import mindustry.client.antigrief.ConfigRequest;
-import org.jetbrains.annotations.NotNull;
+import mindustry.client.antigrief.*;
+import org.jetbrains.annotations.*;
 
 public class ClientVars {
-
+    // Misc
     @NotNull public static ClientMode mode = ClientMode.normal;
+
+    // Config Queue
     @NotNull public static Queue<ConfigRequest> configs = new Queue<>();
-    public static boolean showingTurrets, hidingUnits, hidingBlocks, dispatchingBuildPlans;
-    public static long lastSyncTime;
-    @NotNull public static CommandHandler clientCommandHandler = new CommandHandler("!");
     @NotNull public static Ratekeeper configRateLimit = new Ratekeeper();
+
+    // Hotkeys
+    public static boolean showingTurrets, hidingUnits, hidingBlocks, dispatchingBuildPlans;
+
+    // Commands
+    @NotNull public static CommandHandler clientCommandHandler = new CommandHandler("!");
     @NotNull public static Vec2 lastSentPos = new Vec2();
-    @NotNull public static final String MESSAGE_BLOCK_PREFIX = "IN USE FOR CHAT AUTHENTICATION, do not use";
-    public static final byte FOO_USER = (byte) 0b10101010;
-    public static final byte ASSISTING = (byte) 0b01010101;
-    public static long lastFuelTime;
+    public static final String MESSAGE_BLOCK_PREFIX = "IN USE FOR CHAT AUTHENTICATION, do not use";
+    public static long lastSyncTime;
+
+    // Cursor Position
+    public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;
 }

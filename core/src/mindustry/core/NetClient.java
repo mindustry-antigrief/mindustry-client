@@ -174,7 +174,7 @@ public class NetClient implements ApplicationListener{
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, String sender, Player playersender){
         Color background = null;
-        if(Vars.ui != null && !(Time.timeSinceMillis(ClientVars.lastFuelTime) < 1000 && (message.startsWith("Tap") || message.startsWith("Coord") || message.startsWith("Vaults")))){
+        if(Vars.ui != null){
             if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
                 if (sender != null){
                     sender = colorizeName(playersender.id, Iconc.wrench + " " + sender); // Check if sender is null in case server formats message and sends without a sender
@@ -229,6 +229,12 @@ public class NetClient implements ApplicationListener{
 
         Events.fire(new PlayerChatEvent(player, message));
 
+        //log commands before they are handled
+        if(message.startsWith(netServer.clientCommands.getPrefix())){
+            //log with brackets
+            Log.info("<&fi@: @&fr>", "&lk" + player.name, "&lw" + message);
+        }
+
         //check if it's a command
         CommandResponse response = netServer.clientCommands.handleMessage(message, player);
         if(response.type == ResponseType.noCommand){ //no command to handle
@@ -240,7 +246,7 @@ public class NetClient implements ApplicationListener{
 
             //special case; graphical server needs to see its message
             if(!headless){
-                sendMessage(message, colorizeName(player.id(), player.name), player);
+                sendMessage(message, colorizeName(player.id, player.name), player);
             }
 
             //server console logging
@@ -250,8 +256,6 @@ public class NetClient implements ApplicationListener{
             //this is required so other clients get the correct name even if they don't know who's sending it yet
             Call.sendMessage(message, colorizeName(player.id(), player.name), player);
         }else{
-            //log command to console but with brackets
-            Log.info("<&fi@: @&fr>", "&lk" + player.name, "&lw" + message);
 
             //a command was sent, now get the output
             if(response.type != ResponseType.valid){
@@ -381,7 +385,7 @@ public class NetClient implements ApplicationListener{
         if(effect == null) return;
 
         if (x == -1f && y == 0f && rotation == 1f && color.equals(Color.clear) && effect.id == Fx.none.id) {  // Transmitted by plugin
-            Client.mapping.setPluginNetworking(true);
+            Main.INSTANCE.setPluginNetworking(true);
             Vars.net.send(new ClientNetworkPacket(new byte[]{1}), SendMode.udp);
         }
 
@@ -668,7 +672,7 @@ public class NetClient implements ApplicationListener{
 
             Unit unit = player.dead() ? Nulls.unit : player.unit();
             int uid = player.dead() ? -1 : unit.id;
-            Vec2 pos = Client.mapping.floatEmbed();
+            Vec2 pos = Main.INSTANCE.floatEmbed();
 
             Call.clientSnapshot(
             lastSent++,

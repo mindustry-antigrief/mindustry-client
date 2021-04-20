@@ -11,17 +11,17 @@ import arc.util.*;
 import mindustry.ai.*;
 import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.navigation.Navigation;
-import mindustry.client.navigation.TurretPathfindingEntity;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.entities.abilities.*;
 import mindustry.entities.units.*;
-import mindustry.game.EventType.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
+import mindustry.input.*;
 import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.ui.*;
@@ -30,12 +30,13 @@ import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.payloads.*;
 
 import static mindustry.Vars.*;
+import static mindustry.logic.GlobalConstants.*;
 
 @Component(base = true)
 abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, Itemsc, Rotc, Unitc, Weaponsc, Drawc, Boundedc, Syncc, Shieldc, Commanderc, Displayable, Senseable, Ranged, Minerc, Builderc{
 
     @Import boolean hovering, dead, disarmed;
-    @Import float x, y, rotation, elevation, maxHealth, drag, armor, hitSize, health, ammo, minFormationSpeed;
+    @Import float x, y, rotation, elevation, maxHealth, drag, armor, hitSize, health, ammo, minFormationSpeed, dragMultiplier;
     @Import Team team;
     @Import int id;
     @Import @Nullable Tile mineTile;
@@ -48,7 +49,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     transient Seq<Ability> abilities = new Seq<>(0);
     private transient float resupplyTime = Mathf.random(10f);
-    private transient boolean wasPlayer;
+    public transient boolean wasPlayer;
 
     private final transient ObjectMap<Weapon, TurretPathfindingEntity> pathfindingEntities = new ObjectMap<>();
 
@@ -144,9 +145,9 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             case mineY -> mining() ? mineTile.y : -1;
             case flag -> flag;
             case controlled -> !isValid() ? 0 :
-                    controller instanceof LogicAI ? GlobalConstants.ctrlProcessor :
-                    controller instanceof Player ? GlobalConstants.ctrlPlayer :
-                    controller instanceof FormationAI ? GlobalConstants.ctrlFormation :
+                    controller instanceof LogicAI ? ctrlProcessor :
+                    controller instanceof Player ? ctrlPlayer :
+                    controller instanceof FormationAI ? ctrlFormation :
                     0;
             case commanded -> controller instanceof FormationAI && isValid() ? 1 : 0;
             case payloadCount -> self() instanceof Payloadc pay ? pay.payloads().size : 0;
@@ -168,7 +169,6 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
                 pay.payloads().peek() instanceof BuildPayload p2 ? p2.block() : null) : null;
             default -> noSensed;
         };
-
     }
 
     @Override
@@ -188,6 +188,10 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     public boolean canShoot(){
         //cannot shoot while boosting
         return !disarmed && !(type.canBoost && isFlying());
+    }
+
+    public boolean isCounted(){
+        return type.isCounted;
     }
 
     @Override
@@ -349,7 +353,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             }
         }
 
-        drag = type.drag * (isGrounded() ? (floorOn().dragMultiplier) : 1f);
+        drag = type.drag * (isGrounded() ? (floorOn().dragMultiplier) : 1f) * dragMultiplier;
 
         //apply knockback based on spawns
         if(team != state.rules.waveTeam && state.hasSpawns() && (!net.client() || isLocal())){
@@ -521,6 +525,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     public void killed(){
         wasPlayer = isLocal();
+        if (wasPlayer) InputHandler.persistPlans(); // Restore plans after respawn
         health = 0;
         dead = true;
 

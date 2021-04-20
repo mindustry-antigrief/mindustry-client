@@ -2,7 +2,7 @@ package mindustry.desktop.steam;
 
 import arc.*;
 import arc.func.*;
-import arc.graphics.Color;
+import arc.graphics.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
@@ -20,8 +20,6 @@ import mindustry.net.Packets.*;
 
 import java.io.*;
 import java.nio.*;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.*;
 
 import static mindustry.Vars.*;

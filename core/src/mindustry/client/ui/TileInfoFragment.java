@@ -7,7 +7,6 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import mindustry.*;
-import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -29,13 +28,7 @@ public class TileInfoFragment extends Table {
         add(table);
         visible(() -> Core.settings.getBool("tilehud"));
         update(() -> {
-            if (!visible) {
-                return;
-            }
-            if (Vars.world == null) return;
-            int x = Vars.control.input.rawTileX();
-            int y = Vars.control.input.rawTileY();
-            Tile hovered = Vars.world.tile(x, y);
+            Tile hovered = Vars.control.input.cursorTile();
             if (hovered == null) {
                 img.setDrawable(Icon.none);
                 label.setText("");
@@ -48,7 +41,7 @@ public class TileInfoFragment extends Table {
 
             TextureRegion icon = hovered.block().icon(Cicon.xlarge);
             img.setDrawable(icon.found()? icon : hovered.floor().icon(Cicon.xlarge));
-            TileLog log = Client.getLog(x, y);
+            TileLog log = hovered.getLog();
             Seq<TileLogItem> logItems = new Seq<>(log.log);
             label.setText("");
             logItems.reverse();

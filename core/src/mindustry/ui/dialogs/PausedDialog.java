@@ -1,7 +1,8 @@
 package mindustry.ui.dialogs;
 
 import arc.*;
-import mindustry.client.Client;
+import mindustry.client.*;
+import mindustry.client.ui.*;
 import mindustry.gen.*;
 
 import static mindustry.Vars.*;
@@ -58,12 +59,12 @@ public class PausedDialog extends BaseDialog{
 
             cont.row();
 
-            cont.button("@client.changelog", Icon.edit, () -> Client.mapping.showChangelogDialog());
-            cont.button("@client.features", Icon.book, () -> Client.mapping.showFeaturesDialog());
+            cont.button("@client.changelog", Icon.edit, ChangelogDialog.INSTANCE::show);
+            cont.button("@client.features", Icon.book, FeaturesDialog.INSTANCE::show);
 
             cont.row();
 
-            cont.button("@client.keyshare", Icon.lock, () -> Client.mapping.shareKey());
+            cont.button("@client.keyshare", Icon.lock, () -> new KeyShareDialog(Main.messageCrypto).show());
             cont.button("@quit", Icon.exit, this::showQuitConfirm).update(s -> s.setText(control.saves.getCurrent() != null && control.saves.getCurrent().isAutosave() ? "@save.quit" : "@quit"));
 
 

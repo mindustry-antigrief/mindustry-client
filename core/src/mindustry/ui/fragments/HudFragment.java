@@ -16,13 +16,11 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
-import mindustry.client.ui.TileInfoFragment;
-import mindustry.client.ui.Toast;
-import mindustry.content.*;
 import mindustry.client.antigrief.*;
-import mindustry.client.navigation.*;
+import mindustry.client.ui.*;
+import mindustry.content.*;
 import mindustry.core.GameState.*;
-import mindustry.core.World;
+import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -32,7 +30,6 @@ import mindustry.input.*;
 import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.ui.*;
-import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
 
@@ -288,7 +285,7 @@ public class HudFragment extends Fragment{
         parent.fill(t -> {
             t.name = "coreitems";
             t.top().add(coreItems);
-            t.visible(() -> Core.settings.getBool("coreitems") && !mobile && !state.isPaused() && shown);
+            t.visible(() -> Core.settings.getBool("coreitems") && !state.isPaused() && shown);
 //            t.add(new TileInfoFragment()).top();
         });
 
@@ -347,7 +344,7 @@ public class HudFragment extends Fragment{
 
                 return coreAttackOpacity[0] > 0.01f;
             });
-            t.button("@coreattack", () -> Spectate.spectate(ClientVars.lastSentPos.cpy().scl(tilesize))).pad(2)
+            t.button("@coreattack", () -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize))).pad(2)
             .update(label -> label.getLabel().color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f))).get().getLabel().setWrap(false);
         });
 

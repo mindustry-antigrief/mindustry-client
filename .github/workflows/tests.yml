@@ -27,7 +27,9 @@ jobs:
       - name: Run Tests
         run: |
           echo "COMMIT=${GITHUB_SHA::8}" >> $GITHUB_ENV
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
+          export PATH=./tools:$PATH
+          chmod +x ./tools/antialias
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel -PfastAA
 
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch') }}
@@ -58,6 +60,13 @@ jobs:
           asset_path: desktop/build/libs/Mindustry.jar
           asset_name: desktop.jar
           asset_content_type: application/zip
+
+      - name: Upload Artifact (No release was made)
+        if: ${{ !(github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch')) }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: Desktop JAR (zipped)
+          path: desktop/build/libs/Mindustry.jar
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch') }}

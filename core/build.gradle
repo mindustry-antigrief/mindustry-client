@@ -1,4 +1,5 @@
 sourceSets.main.java.srcDirs = ["src/", "$buildDir/generated/sources/annotationProcessor/java/main"]
+sourceSets.main.kotlin.srcDirs = ["src/"]
 repositories{
     mavenCentral()
 }

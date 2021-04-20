@@ -320,6 +320,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
         client.checkPref("powersplitwarnings", true); // TODO: Add a minimum building requirement and a setting for it
         client.checkPref("viruswarnings", true);
+        client.checkPref("commandwarnings", true);
         client.checkPref("removecorenukes", false);
 
         client.category("chat");
@@ -353,6 +354,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("allowjoinany", false);
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
+        if (steam) client.checkPref("unlockallachievements", false);
         // End Client Settings
 
 
@@ -388,7 +390,7 @@ public class SettingsMenuDialog extends SettingsDialog{
             game.checkPref("buildautopause", false);
         }
 
-        game.checkPref("doubletapmine", settings.getBool("doubleclicktomine")); // TODO: Remove in a month or so
+        game.checkPref("doubletapmine", false);
 
         if(!ios){
             game.checkPref("modcrashdisable", true);
@@ -460,9 +462,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         graphics.checkPref("destroyedblocks", true);
         graphics.checkPref("blockstatus", false);
         graphics.checkPref("playerchat", true);
-        if(!mobile){
-            graphics.checkPref("coreitems", true);
-        }
+        graphics.checkPref("coreitems", !mobile);
         graphics.checkPref("minimap", !mobile);
         graphics.checkPref("smoothcamera", true);
         graphics.checkPref("position", false);

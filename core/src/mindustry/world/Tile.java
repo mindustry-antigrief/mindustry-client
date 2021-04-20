@@ -1,22 +1,21 @@
 package mindustry.world;
 
 import arc.func.*;
-import arc.math.*;
+import arc.math.Mathf;
 import arc.math.geom.*;
-import arc.math.geom.QuadTree.*;
-import arc.scene.ui.*;
-import arc.scene.ui.layout.*;
+import arc.math.geom.QuadTree.QuadTreeObject;
+import arc.scene.ui.Image;
+import arc.scene.ui.layout.Table;
 import arc.struct.*;
-import arc.util.*;
+import arc.util.Nullable;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.*;
 import mindustry.client.antigrief.*;
-import mindustry.content.*;
-import mindustry.game.*;
+import mindustry.content.Blocks;
+import mindustry.game.Team;
 import mindustry.gen.*;
-import mindustry.type.*;
-import mindustry.ui.*;
-import mindustry.world.blocks.environment.*;
+import mindustry.type.Item;
+import mindustry.ui.Displayable;
+import mindustry.world.blocks.environment.Floor;
 
 import static mindustry.Vars.*;
 
@@ -62,11 +61,11 @@ public class Tile implements Position, QuadTreeObject, Displayable{
     }
 
     public TileLog getLog(){
-        return Client.getLog(x, y);
+        return TileLogs.INSTANCE.get(x, y);
     }
 
     public void addToLog(TileLogItem item){
-        Client.getLog(x, y).addItem(item);
+        getLog().addItem(item);
     }
 
     public byte relativeTo(Tile tile){

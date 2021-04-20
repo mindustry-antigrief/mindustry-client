@@ -1,9 +1,26 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
-# Version 6.5.4
+# Version 6.6.1
+ * Patched a crash when hovering an invalid "build" (this only happens when people abuse admin anyways)
+ * Fixed invisible/sandbox blocks being impossible to place with payload place mode (\ key)
+ * Major improvements to navigation
+ * Fix for fire particles getting out of control, no longer spawns more particles at lower fps, the slider is still there if you want it
+ * Buildpath will only draw up to 300 plans at a time to prevent massive lag when using !builder broken on large maps
+ * Added a button to unlock all steam achievements (steam only)
+ * V to respawn at core even if already a core unit
+ * Build plans are kept when switching units (clicking core, pressing v, and death too!)
+ * Fixed an issue where weather could be impossible to enable
+ * Muted weather when disabled
+ * Added command center configuration warnings, toggleable with a setting
+ * Removed !fuel command as it's no longer needed
+ * Added !cc to quickly change the config of a command center
+ * Other various improvements
+
+# Version 6.6.0
  * Fixed an issue with not enough / too many particles appearing based on fps
  * Improved navigation when assume unstrict is toggled on
  * Added !fuel command with an optional interval in seconds to run /fuel on cn
+ * Added !/js command, runs js code on the server and the client (sends /js to the server, will not work if that command doesnt exist or you dont have permission)
  * Long names in the player list now wrap
  * Fixed an impossibly rare edge case where core items were formatted wrong if the team had exactly -2147483648 of them
  * Parallaxes now move the player again
@@ -12,7 +29,14 @@
  * Fixed bridge clicking and dragging not linking with nearby bridges
  * Added some additional icons to :emote: autocomplete 
  * Improved logic virus detection
- TODO: Finish me
+ * Larger schematics (>1024 blocks) are automatically deselected when placed, hold SHIFT to place multiple
+ * Reworked hints some more, added some new ones
+ * Fixed a bug where encrypted messages would appear more than once
+ * Changes to the encrypted message system to allow it to work through a plugin
+ * Fixed a crash with buildpath
+ * Lots of cleanup internally
+ * Probably more stuff I missed
+ * Updated to v126.2
 
 # Version 6.5.3
  * Changed icons for encrypted and verified messages

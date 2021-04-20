@@ -63,7 +63,7 @@ public class PlayerListFragment extends Fragment{
                 pane.row();
 
                 pane.table(menu -> {
-                    menu.defaults().growX().height(50f).fillY();
+                    menu.defaults().pad(5).growX().height(50f).fillY();
                     menu.name = "menu";
 
                     menu.button("@server.bans", ui.bans::show).disabled(b -> net.client()).get().getLabel().setWrap(false);
@@ -166,13 +166,13 @@ public class PlayerListFragment extends Fragment{
             }
             if (user != player) {
                 button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
-                        () -> Client.mapping.setAssistPath(user)).size(h / 2);
+                        () -> Navigation.follow(new AssistPath(user))).size(h / 2);
                 button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
                         () -> Navigation.follow(new UnAssistPath(user))).size(h / 2);
                 button.button(Icon.move, Styles.clearPartiali, // Goto
                         () -> Navigation.navigateTo(user)).size(h / 2);
                 button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
-                        () -> Spectate.spectate(user));
+                        () -> Spectate.INSTANCE.spectate(user));
             }
 
             content.add(button).padBottom(-6).width(600f).maxHeight(h + 14);
