@@ -1,6 +1,7 @@
 package mindustry.client.antigrief
 
-import mindustry.core.World
+import mindustry.*
+import mindustry.core.*
 
 object TileLogs {
     private var logs = emptyArray<TileLog>()
@@ -14,6 +15,7 @@ object TileLogs {
     }
 
     operator fun get(x: Int, y: Int): TileLog {
+        if (Vars.world?.width() != width || Vars.world?.height() != height) reset(Vars.world)
         return logs[(y * width) + x]
     }
 }
