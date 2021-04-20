@@ -320,6 +320,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
         client.checkPref("powersplitwarnings", true); // TODO: Add a minimum building requirement and a setting for it
         client.checkPref("viruswarnings", true);
+        client.checkPref("commandwarnings", true);
         client.checkPref("removecorenukes", false);
 
         client.category("chat");

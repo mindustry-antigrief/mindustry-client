@@ -7,7 +7,6 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
-import arc.scene.ui.layout.Scl;
 import arc.util.*;
 import arc.util.noise.*;
 import mindustry.annotations.Annotations.*;
@@ -95,7 +94,7 @@ public class Weather extends UnlockableContent{
             }
         }
 
-        if(!headless && sound != Sounds.none){
+        if(!headless && sound != Sounds.none && Core.settings.getInt("weatheropacity") > 0){
             float noise = soundVolOscMag > 0 ? (float)Math.abs(Noise.rawNoise(Time.time / soundVolOscScl)) * soundVolOscMag : 0;
             control.sound.loop(sound, Math.max((soundVol + noise) * state.opacity, soundVolMin));
         }
@@ -323,8 +322,7 @@ public class Weather extends UnlockableContent{
         @Override
         public void draw(){
             float alpha = Core.settings.getInt("weatheropacity") / 100f;
-            if (alpha == 0f) return;
-            if(renderer.weatherAlpha() > 0.0001f && renderer.drawWeather && Core.settings.getBool("showweather")){
+            if(renderer.weatherAlpha() > 0.0001f && alpha > 0 && renderer.drawWeather){
                 Draw.draw(Layer.weather, () -> {
                     weather.rand.setSeed(0);
                     Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier * alpha);

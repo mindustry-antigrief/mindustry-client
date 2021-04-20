@@ -5,9 +5,11 @@ import arc.math.*;
 import arc.util.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
-import mindustry.client.ui.ChangelogDialog;
+import mindustry.client.ui.*;
 import mindustry.client.utils.*;
+import mindustry.content.*;
 import mindustry.core.*;
+import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -110,7 +112,7 @@ public class Client {
             ui.unitPicker.findUnit(content.units().copy().sort(b -> BiasedLevenshtein.biasedLevenshtein(args[0], b.name)).first())
         );
 
-        ClientVars.clientCommandHandler.<Player>register("go","[x] [y]", "Navigates to (x, y) or the last coordinates posted to chat", (args, player) -> {
+        ClientVars.clientCommandHandler.<Player>register("go", "[x] [y]", "Navigates to (x, y) or the last coordinates posted to chat", (args, player) -> {
             try {
                 if (args.length == 2) ClientVars.lastSentPos.set(Float.parseFloat(args[0]), Float.parseFloat(args[1]));
                 Navigation.navigateTo(ClientVars.lastSentPos.cpy().scl(tilesize));
@@ -119,7 +121,7 @@ public class Client {
             }
         });
 
-        ClientVars.clientCommandHandler.<Player>register("lookat","[x] [y]", "Moves camera to (x, y) or the last coordinates posted to chat", (args, player) -> {
+        ClientVars.clientCommandHandler.<Player>register("lookat", "[x] [y]", "Moves camera to (x, y) or the last coordinates posted to chat", (args, player) -> {
             try {
                 DesktopInput.panning = true;
                 if (args.length == 2) ClientVars.lastSentPos.set(Float.parseFloat(args[0]), Float.parseFloat(args[1]));
@@ -157,7 +159,7 @@ public class Client {
             Call.sendChatMessage("¯\\_(ツ)_/¯ " + (args.length == 1 ? args[0] : ""))
         );
 
-        ClientVars.clientCommandHandler.<Player>register("login", "[name] [pw]", "Used for CN. [scarlet]Don't use this if you care at all about security.", (args, player) -> {
+        ClientVars.clientCommandHandler.<Player>register("login", "[name] [pw]", "Used for CN. [scarlet]Don't use this if you care at all about security.[]", (args, player) -> {
             if (args.length == 2) settings.put("cnpw", args[0] + " "  + args[1]);
             else Call.sendChatMessage("/login " + settings.getString("cnpw", ""));
         });
@@ -165,5 +167,28 @@ public class Client {
         ClientVars.clientCommandHandler.<Player>register("js", "<code...>", "Runs JS on the client.", (args, player) ->
             player.sendMessage("[accent]" + mods.getScripts().runConsole(args[0]))
         );
+
+        ClientVars.clientCommandHandler.<Player>register("/js", "<code...>", "Runs JS on the client as well as the server.", (args, player) -> {
+            player.sendMessage("[accent]" + mods.getScripts().runConsole(args[0]));
+            Call.sendChatMessage("/js " + args[0]);
+        });
+
+        ClientVars.clientCommandHandler.<Player>register("cc", "[setting]", "Configure your team's command center easily.", (args, player) -> {
+            if (args.length != 1 || !args[0].matches("(?i)^[ari].*")) {
+                player.sendMessage("[scarlet]Invalid setting specified, valid options are: Attack, Rally, Idle");
+                return;
+            }
+            for (Tile tile : world.tiles) {
+                if (tile == null || tile.build == null || tile.build.team != player.team() || tile.block() != Blocks.commandCenter) continue;
+                Call.tileConfig(player, tile.build, switch (args[0].toLowerCase().charAt(0)) {
+                    case 'a' -> UnitCommand.attack;
+                    case 'r' -> UnitCommand.rally;
+                    default -> UnitCommand.idle;
+                });
+                new Toast(3).add("Successfully set the command center to " + args[0] + ".");
+                return;
+            }
+            new Toast(3).add("No command center was found on your team, one is required for this to work.");
+        });
     }
 }

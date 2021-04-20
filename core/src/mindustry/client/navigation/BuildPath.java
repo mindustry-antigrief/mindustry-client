@@ -49,8 +49,8 @@ public class BuildPath extends Path {
             }
         }
         if (queues.isEmpty()) {
-            ui.chatfrag.addMessage("[scarlet]No valid options specified, defaulting to self." +
-                "\nValid options: All, self, broken, boulders, assist, unfinished, cleanup, networkassist", null);
+            player.sendMessage("[scarlet]No valid options specified, defaulting to self." +
+                "\nValid options: All, self, broken, boulders, assist, unfinished, cleanup, networkassist");
             queues.add(player.unit().plans);
         }
     }
@@ -136,7 +136,7 @@ public class BuildPath extends Path {
             sort:
             for (int i = 0; i < 2; i++) {
                 for (Queue queue : queues) {
-                    Queue<BuildPlan> plans = sortPlans(queue, all, all); // TODO: should large first always be false or should it stay as all?
+                    Queue<BuildPlan> plans = sortPlans(queue, all, false); // TODO: should large first always be false or should it stay as all?
                     if (plans.isEmpty()) continue;
                     /* TODO: This doesn't work lol
                     plans.forEach(plan -> Navigation.obstacles.forEach(obstacle -> {if(Mathf.dstm(obstacle.x, obstacle.y, plan.x, plan.y) <= obstacle.range){plans.remove(plan);player.unit().plans.remove(plan);}}));

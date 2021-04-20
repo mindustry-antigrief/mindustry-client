@@ -83,9 +83,6 @@ public class DesktopInput extends InputHandler{
                                 .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
                                 .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
                         }
-                        if(!player.dead() && !player.unit().spawnedByCore()){
-                            str.append("\n").append(bundle.format("respawn", keybinds.get(Binding.respawn).key.toString()));
-                        }
                         if(player.unit().isBuilding() || ClientVars.dispatchingBuildPlans){
                             str.append("\n").append(bundle.format(ClientVars.dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
                         }
@@ -433,7 +430,7 @@ public class DesktopInput extends InputHandler{
         if(!player.dead() && !state.isPaused() && !(Core.scene.getKeyboardFocus() instanceof TextField)){
                 updateMovement(player.unit());
 
-            if(Core.input.keyDown(Binding.respawn) && !player.unit().spawnedByCore() && !scene.hasField()){
+            if(Core.input.keyTap(Binding.respawn) && !scene.hasField()){
                 Call.unitClear(player);
                 controlledType = null;
             }
