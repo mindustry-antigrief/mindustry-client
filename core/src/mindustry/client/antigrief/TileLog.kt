@@ -1,12 +1,10 @@
-package com.github.blahblahbloopster.antigrief
+package mindustry.client.antigrief
 
 import arc.scene.Element
 import arc.scene.ui.Label
 import arc.scene.ui.layout.Table
-import com.github.blahblahbloopster.dialog
-import com.github.blahblahbloopster.label
-import com.github.blahblahbloopster.stripColors
-import mindustry.Vars
+import mindustry.client.utils.dialog
+import mindustry.client.utils.stripColors
 import mindustry.content.Blocks
 import mindustry.gen.Icon
 import mindustry.world.Block
@@ -35,16 +33,26 @@ abstract class TileLog(val position: IntRectangle, override val cause: Interacto
 
 class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterable<TileLog> {
     val logs = mutableListOf<TileLog>()
-    val lastIndex get() = logs.size + startingIndex
+    val range get() = startingIndex..startingIndex + logs.size
 
     override fun iterator(): Iterator<TileLog> {
         return logs.iterator()
+    }
+
+    operator fun get(index: Int): TileState {
+        val cpy = snapshot.clone()
+        for (diff in logs.subList(0, index - startingIndex)) {
+            diff.apply(cpy)
+        }
+
+        return cpy
     }
 }
 
 class TileRecord(val x: Int, val y: Int) {
     private val logs = mutableListOf<TileLogSequence>()
-    val size get() = logs.lastOrNull()?.lastIndex ?: 0
+    val size get() = logs.lastOrNull()?.range?.last ?: 0
+    var totalRange = 0 until 0
 
     fun add(log: TileLog, tile: Tile) {
         when {
@@ -53,42 +61,31 @@ class TileRecord(val x: Int, val y: Int) {
             }
 
             logs.last().logs.size > 100 -> {
-                logs.add(TileLogSequence(TileState(tile), logs.last().lastIndex))
-            }
-
-            else -> {
-                logs.last().logs.add(log)
+                logs.add(TileLogSequence(TileState(tile), logs.last().range.last))
             }
         }
+        logs.last().logs.add(log)
+        totalRange = 0..size
     }
 
     operator fun get(index: Int): TileState {
-        if (index >= size) throw IndexOutOfBoundsException("Index $index is out of bounds! (size: $size)")
+        if (index !in totalRange) throw IndexOutOfBoundsException("Index $index is out of bounds! (size: $size)")
         // Get the last sequence that encompases this index
-        val bestSequence = logs.lastOrNull { it.lastIndex <= index } ?: throw IndexOutOfBoundsException("Tile record is empty!")
-        // Make a copy so the base of the sequence isn't modified
-        val cpy = bestSequence.snapshot.clone()
-        // Apply diffs
-        for (diff in bestSequence.logs.subList(0, index - bestSequence.startingIndex)) {
-            diff.apply(cpy)
-        }
-
-        return cpy
+        val bestSequence = logs.singleOrNull { index in it.range } ?: throw IndexOutOfBoundsException("Tile record is empty!")
+        return bestSequence[index]
     }
 
     fun toElement(): Element {
         val table = Table()
-        table.label("Logs for ($x, $y):")
+        table.add("Logs for ($x, $y):")
 
         table.pane { t ->
             var i = 0
             for (sequence in logs) {
-                println("sequence: $sequence")
                 for (log in sequence) {
-                    println(log)
                     t.add(log.toElement())
-                    t.button(Icon.eye) {
-                        Vars.ui.dialog("Log") {
+                    t.button(Icon.eyeSmall) {
+                        dialog("Log") {
                             add(get(i).toElement())
                             addCloseButton()
                         }.show()

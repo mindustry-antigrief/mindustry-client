@@ -213,6 +213,19 @@ public class EventType{
         }
     }
 
+    /** Called just before a player configures any building. */
+    public static class ConfigEventBefore{
+        public final Building tile;
+        public final Player player;
+        public final Object value;
+
+        public ConfigEventBefore(Building tile, Player player, Object value){
+            this.tile = tile;
+            this.player = player;
+            this.value = value;
+        }
+    }
+
     /** Called when a player taps any tile. */
     public static class TapEvent{
         public final Player player;
@@ -308,6 +321,25 @@ public class EventType{
             this.team = team;
             this.unit = unit;
             this.breaking = breaking;
+        }
+    }
+
+    /**
+     * Called when block building begins by placing down the ConstructBlock.
+     */
+    public static class BlockBuildBeginEventBefore {
+        public final Tile tile;
+        public final Team team;
+        public final @Nullable Unit unit;
+        public final boolean breaking;
+        public final @Nullable Block newBlock;
+
+        public BlockBuildBeginEventBefore(Tile tile, Team team, Unit unit, boolean breaking, Block newBlock){
+            this.tile = tile;
+            this.team = team;
+            this.unit = unit;
+            this.breaking = breaking;
+            this.newBlock = newBlock;
         }
     }
 

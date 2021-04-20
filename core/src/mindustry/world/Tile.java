@@ -60,14 +60,6 @@ public class Tile implements Position, QuadTreeObject, Displayable{
         return Point2.pack(x, y);
     }
 
-    public TileLog getLog(){
-        return TileLogs.INSTANCE.get(x, y);
-    }
-
-    public void addToLog(TileLogItem item){
-        getLog().addItem(item);
-    }
-
     public byte relativeTo(Tile tile){
         return relativeTo(tile.x, tile.y);
     }

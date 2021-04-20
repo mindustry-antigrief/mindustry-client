@@ -1,4 +1,4 @@
-package com.github.blahblahbloopster.antigrief
+package mindustry.client.antigrief
 
 import mindustry.ai.types.LogicAI
 import mindustry.gen.Nulls

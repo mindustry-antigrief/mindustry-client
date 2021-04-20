@@ -1,18 +1,16 @@
-package com.github.blahblahbloopster
+package mindustry.client
 
 import arc.*
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
-import com.github.blahblahbloopster.antigrief.TileRecords
-import com.github.blahblahbloopster.communication.*
-import com.github.blahblahbloopster.crypto.*
-import com.github.blahblahbloopster.navigation.*
 import mindustry.*
-import mindustry.client.*
-import mindustry.client.Client.*
+import mindustry.client.antigrief.TileRecords
+import mindustry.client.communication.*
+import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
+import mindustry.client.utils.FloatEmbed
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.input.*
@@ -24,16 +22,14 @@ object Main : ApplicationListener {
     private var dispatchedBuildPlans = mutableListOf<BuildPlan>()
     private val buildPlanInterval = Interval(2)
 
-    init {
-        mapping = ClientMapping()
-    }
-
     /** Run on client load. */
     override fun init() {
         Crypto.initializeAlways()
         if (Core.app.isDesktop) {
             communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem, PluginCommunicationSystem)
             communicationSystem.init()
+
+            TileRecords.initialize()
 
             ClientVars.clientCommandHandler.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
                 val dest = args[0]
@@ -47,14 +43,12 @@ object Main : ApplicationListener {
                 }
                 Toast(3f).add("@client.invalidkey")
             }
-            TileRecords.initialize()
         } else {
             communicationSystem = SwitchableCommunicationSystem(DummyCommunicationSystem(mutableListOf()))
             communicationSystem.init()
         }
         communicationClient = Packets.CommunicationClient(communicationSystem)
         messageCrypto = MessageCrypto()
-        initializeCommunication(communicationSystem)
         messageCrypto.init(communicationClient)
         KeyFolder.initializeAlways()
 
@@ -118,13 +112,13 @@ object Main : ApplicationListener {
         return when {
             Navigation.currentlyFollowing is AssistPath && Core.settings.getBool("displayasuser") ->
                 Vec2(
-                        FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
-                        FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.ASSISTING)
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.ASSISTING)
                 )
             Core.settings.getBool("displayasuser") ->
                 Vec2(
-                        FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
-                        FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.FOO_USER)
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.FOO_USER)
                 )
             else -> Vec2(Vars.player.unit().aimX, Vars.player.unit().aimY)
         }

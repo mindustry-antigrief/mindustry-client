@@ -446,6 +446,7 @@ public class ItemBridge extends Block{
 
         @Override
         public Point2 config(){
+            if (tile == null) return null;  // this happened once somehow
             return Point2.unpack(link).sub(tile.x, tile.y);
         }
 

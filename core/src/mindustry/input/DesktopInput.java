@@ -17,6 +17,7 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.ai.types.*;
 import mindustry.client.*;
+import mindustry.client.antigrief.TileRecords;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.client.ui.FindDialog;
@@ -377,7 +378,7 @@ public class DesktopInput extends InputHandler{
 //                    dialog.addCloseButton();
 //
 //                    dialog.show();
-                    Client.mapping.showTileLogs(cursor);
+                    TileRecords.INSTANCE.show(cursor);
                     table.remove();
                 });
 

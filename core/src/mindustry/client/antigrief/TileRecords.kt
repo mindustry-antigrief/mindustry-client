@@ -1,9 +1,10 @@
-package com.github.blahblahbloopster.antigrief
+package mindustry.client.antigrief
 
 import arc.Events
 import arc.util.Time
 import mindustry.Vars
 import mindustry.client.ClientVars
+import mindustry.client.utils.dialog
 import mindustry.content.Blocks
 import mindustry.game.EventType
 import mindustry.world.Tile
@@ -18,41 +19,43 @@ object TileRecords {
             }
         }
 
-        Events.on(EventType.BlockBuildEventTile::class.java) {
-            if (it.newBlock == Blocks.air) {
-                println("New break log")
-                addLog(it.tile, TileBreakLog(it.tile, it.unit.toInteractor(), it.oldBlock))
+        Events.on(EventType.BlockBuildBeginEventBefore::class.java) {
+            if (it.newBlock == Blocks.air || it.newBlock == null) {
+                addLog(it.tile, TileBreakLog(it.tile, it.unit.toInteractor(), it.tile.block()))
             } else {
-                println("New build log")
-                addLog(it.tile, TilePlacedLog(it.tile, it.unit.toInteractor(), it.newBlock, it.config))
+                addLog(it.tile, TilePlacedLog(it.tile, it.unit.toInteractor(), it.newBlock, it.tile?.build?.config()))
             }
         }
 
-        Events.on(EventType.ConfigEvent::class.java) {
-            println("New config log")
+        Events.on(EventType.ConfigEventBefore::class.java) {
             addLog(it.tile.tile, ConfigureTileLog(it.tile.tile, it.player.toInteractor(), it.tile.block, it.tile.config()))
         }
 
         Events.on(EventType.BuildPayloadPickup::class.java) {
-            println("New pickup log")
             addLog(it.tile, BlockPayloadPickupLog(it.tile, it.unit.toInteractor(), it.building.block))
         }
 
         Events.on(EventType.BuildPayloadDrop::class.java) {
-            println("New dropoff log")
             addLog(it.tile, BlockPayloadDropLog(it.tile, it.unit.toInteractor(), it.building.block, it.building.config()))
         }
     }
 
-    fun getLogs(x: Int, y: Int): TileRecord? = records.getOrNull(x)?.getOrNull(y)
+    operator fun get(x: Int, y: Int): TileRecord? = records.getOrNull(x)?.getOrNull(y)
 
-    fun getLogs(tile: Tile): TileRecord? = getLogs(tile.x.toInt(), tile.y.toInt())
+    operator fun get(tile: Tile): TileRecord? = this[tile.x.toInt(), tile.y.toInt()]
 
     private fun addLog(tile: Tile, log: TileLog) {
-        val logs = getLogs(tile) ?: run {
+        val logs = this[tile] ?: run {
             println("Null logs")
             return
         }
         logs.add(log, tile)
+    }
+
+    fun show(tile: Tile) {
+        dialog("Logs") {
+            add(TileRecords[tile]?.toElement())
+            addCloseButton()
+        }.show()
     }
 }

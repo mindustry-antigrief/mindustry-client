@@ -41,15 +41,15 @@ public class TileInfoFragment extends Table {
 
             TextureRegion icon = hovered.block().icon(Cicon.xlarge);
             img.setDrawable(icon.found()? icon : hovered.floor().icon(Cicon.xlarge));
-            TileLog log = hovered.getLog();
-            Seq<TileLogItem> logItems = new Seq<>(log.log);
-            label.setText("");
-            logItems.reverse();
-            logItems.truncate(Math.min(3, logItems.size));
-            logItems.reverse();
-            for (TileLogItem item : logItems) {
-                label.setText(label.getText() + item.formatShort() + "\n");
-            }
+//            OldTileLog log = hovered.getLog();
+//            Seq<TileLogItem> logItems = new Seq<>(log.log);
+//            label.setText("");
+//            logItems.reverse();
+//            logItems.truncate(Math.min(3, logItems.size));
+//            logItems.reverse();
+//            for (TileLogItem item : logItems) {
+//                label.setText(label.getText() + item.formatShort() + "\n");
+//            }
         });
     }
 }

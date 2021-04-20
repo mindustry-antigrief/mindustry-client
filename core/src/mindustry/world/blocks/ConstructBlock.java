@@ -139,18 +139,11 @@ public class ConstructBlock extends Block{
             tile.build.playerPlaced(config);
         }
 
-        if (prev != null) {
-            for (var item : prev) {
-                Events.fire(new BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
-            }
-        }
-
         Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
 
         Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
 
         if(builder != null && tile.build != null){
-            tile.getLinkedTiles(t -> t.addToLog(new PlaceTileLog(builder, t, Instant.now().getEpochSecond(), "", block, tile.build.config())));
             if (Core.settings.getBool("viruswarnings") && builder.isPlayer() && config instanceof byte[] && tile.build instanceof LogicBlock.LogicBuild l && BuildPath.virusBlock(l)) {
                 ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", builder.getPlayer().name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
                 control.input.lastVirusWarning = l;

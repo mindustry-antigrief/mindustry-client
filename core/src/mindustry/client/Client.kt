@@ -13,7 +13,6 @@ import mindustry.Vars.world
 import mindustry.client.Main.setPluginNetworking
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.PowerInfo
-import mindustry.client.antigrief.TileLogs.reset
 import mindustry.client.navigation.BuildPath
 import mindustry.client.navigation.Markers
 import mindustry.client.navigation.Navigation
@@ -40,9 +39,6 @@ object Client {
 
         Events.on(WorldLoadEvent::class.java) {
             setPluginNetworking(false)
-            if (Time.timeSinceMillis(ClientVars.lastSyncTime) > 5000) {
-                reset(Vars.world)
-            }
             PowerInfo.initialize()
             Navigation.stopFollowing()
             Navigation.obstacles.clear()

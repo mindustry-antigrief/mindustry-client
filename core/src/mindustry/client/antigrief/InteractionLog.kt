@@ -1,4 +1,4 @@
-package com.github.blahblahbloopster.antigrief
+package mindustry.client.antigrief
 
 import java.time.Instant
 

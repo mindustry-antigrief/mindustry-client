@@ -1,11 +1,11 @@
-package com.github.blahblahbloopster.antigrief
+package mindustry.client.antigrief
 
 import arc.Core
 import arc.scene.Element
 import arc.scene.ui.layout.Table
-import com.github.blahblahbloopster.capLength
-import com.github.blahblahbloopster.label
-import com.github.blahblahbloopster.restrictToAscii
+import mindustry.client.utils.capLength
+import mindustry.client.utils.label
+import mindustry.client.utils.restrictToAscii
 import mindustry.gen.Icon
 import mindustry.type.Item
 import mindustry.type.Liquid

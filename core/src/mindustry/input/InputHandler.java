@@ -255,7 +255,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void pickedBuildPayload(Unit unit, Building build, boolean onGround){
         if(build != null && unit instanceof Payloadc pay){
             build.tile.getLinkedTiles(tile2 -> {
-                tile2.addToLog(new TileLogItem(unit, tile2, Instant.now().getEpochSecond(), "", "picked up", tile2.block()));
                 ConstructBlock.breakWarning(tile2, build.block, unit);
             });
 
@@ -298,12 +297,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Remote(called = Loc.server, targets = Loc.server)
     public static void payloadDropped(Unit unit, float x, float y){
         if(unit instanceof Payloadc pay){
-            if(pay.hasPayload()){
-                if(pay.payloads().peek() instanceof BuildPayload){
-                    Tile tile = world.tile((int)x / tilesize, (int)y / tilesize);
-                    tile.getLinkedTiles(tile2 -> tile2.addToLog(new TileLogItem(unit, tile2, Instant.now().getEpochSecond(), "", "dropped", ((BuildPayload)(pay.payloads().peek())).block())));
-                }
-            }
             float prevx = pay.x(), prevy = pay.y();
             pay.set(x, y);
             pay.dropLastPayload();
@@ -341,7 +334,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(player != null){
             build.lastAccessed = player.name;
-            build.tile.getLinkedTiles(t -> t.addToLog(new TileLogItem(player.unit(), t, Instant.now().getEpochSecond(), TileLogItem.toCardinalDirection(build.rotation + Mathf.sign(direction)), "rotated", build.block())));
             if(Navigation.currentlyFollowing instanceof UnAssistPath){
                 if(((UnAssistPath) Navigation.currentlyFollowing).assisting == player){
                     Time.run(2f, () -> {
@@ -367,11 +359,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         Object previous = build.config();
 
+        Events.fire(new ConfigEventBefore(build, player, value));
         build.configured(player == null || player.dead() ? null : player.unit(), value);
         Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
 
         if(player != null){
-            build.tile.getLinkedTiles(t -> t.addToLog(new ConfigTileLog(player.unit(), t, build.config(), previous, Instant.now().getEpochSecond(), "")));
             if(Navigation.currentlyFollowing instanceof UnAssistPath path){
                 if(path.assisting == player){
                     ClientVars.configs.add(new ConfigRequest(build.tileX(), build.tileY(), previous));
