@@ -11,17 +11,17 @@ import arc.util.*;
 import mindustry.ai.*;
 import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.navigation.Navigation;
-import mindustry.client.navigation.TurretPathfindingEntity;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.entities.abilities.*;
 import mindustry.entities.units.*;
-import mindustry.game.EventType.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
+import mindustry.input.*;
 import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.ui.*;
@@ -49,7 +49,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     transient Seq<Ability> abilities = new Seq<>(0);
     private transient float resupplyTime = Mathf.random(10f);
-    private transient boolean wasPlayer;
+    public transient boolean wasPlayer;
 
     private final transient ObjectMap<Weapon, TurretPathfindingEntity> pathfindingEntities = new ObjectMap<>();
 
@@ -525,6 +525,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     public void killed(){
         wasPlayer = isLocal();
+        if (wasPlayer) InputHandler.persistPlans(); // Restore plans after respawn
         health = 0;
         dead = true;
 

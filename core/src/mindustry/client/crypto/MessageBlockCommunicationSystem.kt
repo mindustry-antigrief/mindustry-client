@@ -48,7 +48,7 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
     override fun send(bytes: ByteArray) {
         for (tile in Vars.world.tiles) {
             val build = tile.build as? MessageBlock.MessageBuild ?: continue // If it isn't a message block with the prefix, continue
-            if (!build.message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)) continue
+            if (build.team != Vars.player.team() || !build.message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)) continue
 
             Call.tileConfig(Vars.player, build, ClientVars.MESSAGE_BLOCK_PREFIX + Base32768Coder.encode(bytes))
             return

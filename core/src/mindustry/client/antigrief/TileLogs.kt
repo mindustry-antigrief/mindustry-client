@@ -1,7 +1,7 @@
 package mindustry.client.antigrief
 
-import mindustry.Vars
-import mindustry.core.World
+import mindustry.*
+import mindustry.core.*
 
 object TileLogs {
     private var logs = emptyArray<TileLog>()

@@ -8,6 +8,8 @@ import arc.util.Log
 import arc.util.Strings
 import arc.util.Time
 import mindustry.Vars
+import mindustry.Vars.mods
+import mindustry.Vars.world
 import mindustry.client.Main.setPluginNetworking
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.PowerInfo
@@ -16,9 +18,12 @@ import mindustry.client.navigation.BuildPath
 import mindustry.client.navigation.Markers
 import mindustry.client.navigation.Navigation
 import mindustry.client.ui.ChangelogDialog
+import mindustry.client.ui.Toast
 import mindustry.client.utils.*
+import mindustry.content.Blocks
 import mindustry.core.NetClient
 import mindustry.core.World
+import mindustry.entities.units.UnitCommand
 import mindustry.game.EventType.ClientLoadEvent
 import mindustry.game.EventType.WorldLoadEvent
 import mindustry.gen.Call
@@ -235,7 +240,7 @@ object Client {
 
         register("js <code...>", "Runs JS on the client.") { args, player: Player ->
             player.sendMessage(
-                "[accent]" + Vars.mods.scripts.runConsole(
+                "[accent]" + mods.scripts.runConsole(
                     args[0]
                 )
             )
@@ -247,6 +252,29 @@ object Client {
             val y = if (args.size == 3) args[2].toIntOrNull() ?: player.tileY() else player.tileY()
             val color = Color.HSVtoRGB(Random.nextFloat() * 360, 75f, 75f)
             Markers.add(Markers.Marker(x, y, args[0], color))
+        }
+
+        register("/js <code...>", "Runs JS on the client as well as the server.") { args, player ->
+            player.sendMessage("[accent]" + mods.scripts.runConsole(args[0]))
+            Call.sendChatMessage("/js " + args[0])
+        }
+
+        register("cc [setting]", "Configure your team's command center easily.") { args, player ->
+            if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
+                player.sendMessage("[scarlet]Invalid setting specified, valid options are: Attack (a), Rally (r), Idle (i)")
+                return@register
+            }
+            for (tile in world.tiles) {
+                if (tile?.build == null || tile.build.team != player.team() || tile.block() != Blocks.commandCenter) continue
+                Call.tileConfig(player, tile.build, when (args[0].toLowerCase()[0]) {
+                    'a' -> UnitCommand.attack
+                    'r' -> UnitCommand.rally
+                    else -> UnitCommand.idle
+                })
+                Toast(3f).add("Successfully set the command center to " + args[0] + ".")
+                return@register
+            }
+            Toast(3f).add("No command center was found on your team, one is required for this to work.")
         }
     }
 

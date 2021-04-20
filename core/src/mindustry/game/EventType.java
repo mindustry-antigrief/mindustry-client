@@ -200,7 +200,7 @@ public class EventType{
         }
     }
 
-    /** Called when the player configures a specific building. */
+    /** Called when a player configures any building. */
     public static class ConfigEvent{
         public final Building tile;
         public final Player player;
