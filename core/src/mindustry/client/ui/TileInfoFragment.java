@@ -5,12 +5,14 @@ import arc.graphics.g2d.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
-import arc.struct.*;
 import mindustry.*;
 import mindustry.client.antigrief.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.world.*;
+
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TileInfoFragment extends Table {
 
@@ -27,6 +29,7 @@ public class TileInfoFragment extends Table {
         add(new Padding(5f, 1f));
         add(table);
         visible(() -> Core.settings.getBool("tilehud"));
+        AtomicInteger lastPos = new AtomicInteger();
         update(() -> {
             Tile hovered = Vars.control.input.cursorTile();
             if (hovered == null) {
@@ -37,19 +40,22 @@ public class TileInfoFragment extends Table {
                 img.setDrawable(hovered.floor().icon(Cicon.xlarge));
                 label.setText("");
                 return;
+            } else if (hovered.pos() == lastPos.get()) {
+                return;
             }
+            lastPos.set(hovered.pos());
 
             TextureRegion icon = hovered.block().icon(Cicon.xlarge);
             img.setDrawable(icon.found()? icon : hovered.floor().icon(Cicon.xlarge));
-//            OldTileLog log = hovered.getLog();
-//            Seq<TileLogItem> logItems = new Seq<>(log.log);
-//            label.setText("");
-//            logItems.reverse();
-//            logItems.truncate(Math.min(3, logItems.size));
-//            logItems.reverse();
-//            for (TileLogItem item : logItems) {
-//                label.setText(label.getText() + item.formatShort() + "\n");
-//            }
+            var record = TileRecords.INSTANCE.get(hovered);
+            if (record == null) return;
+            var logs = record.lastLogs(3);
+
+            var builder = new StringBuilder();
+            for (var item : logs) {
+                builder.append(item.toShortString()).append("\n");
+            }
+            label.setText(builder.toString());
         });
     }
 }

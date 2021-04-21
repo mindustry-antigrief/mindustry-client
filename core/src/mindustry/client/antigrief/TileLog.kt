@@ -12,6 +12,8 @@ import mindustry.content.Blocks
 import mindustry.world.Block
 import mindustry.world.Tile
 import java.time.Instant
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * x and y are the top left corner
@@ -61,6 +63,8 @@ abstract class TileLog(val position: IntRectangle, override val cause: Interacto
     open fun add(sequence: TileLogSequence) {
         sequence.logs.add(this)
     }
+
+    abstract fun toShortString(): String
 }
 
 class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterable<TileLog> {
@@ -104,6 +108,23 @@ class TileRecord(val x: Int, val y: Int) {
         // Get the last sequence that encompases this index
         val bestSequence = logs.singleOrNull { index in it.range } ?: throw IndexOutOfBoundsException("Tile record is empty!")
         return bestSequence[index]
+    }
+
+    fun lastLogs(count: Int): List<TileLog> {
+        val num = min(count, size)
+
+        val output = mutableListOf<TileLog>()
+        var logIndex = logs.indexOfLast { size - num in it.range }
+        for (i in size - num until size) {
+            output.add(logs[logIndex].logs[i])
+            if (i + 1 !in logs[logIndex].range) {
+                logIndex++
+                if (logIndex >= logs.size) {
+                    break
+                }
+            }
+        }
+        return output
     }
 
     fun toElement(): Element {
@@ -155,6 +176,8 @@ class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, var conf
             sequence.logs.add(this)
         }
     }
+
+    override fun toShortString() = "${cause.shortName.stripColors()} configured"
 }
 
 open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val configuration: Any?) : TileLog(tile, cause) {
@@ -166,12 +189,16 @@ open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val co
     override fun toElement(): Element {
         return Label("${cause.name.stripColors()} placed ${block.localizedName}")
     }
+
+    override fun toShortString() = "${cause.shortName.stripColors()} placed ${block.localizedName}"
 }
 
 class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, configuration: Any?) : TilePlacedLog(tile, cause, block, configuration) {
     override fun toElement(): Element {
         return Label("${cause.name.stripColors()} picked up ${block.localizedName}")
     }
+
+    override fun toShortString() = "${cause.shortName.stripColors()} picked up ${block.localizedName}"
 }
 
 open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause) {
@@ -183,16 +210,22 @@ open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileL
     override fun toElement(): Element {
         return Label("${cause.name.stripColors()} broke ${block.localizedName}")
     }
+
+    override fun toShortString() = "${cause.shortName.stripColors()} broke ${block.localizedName}"
 }
 
 class BlockPayloadPickupLog(tile: Tile, cause: Interactor, block: Block) : TileBreakLog(tile, cause, block) {
     override fun toElement(): Element {
         return Label("${cause.name.stripColors()} picked up ${block.localizedName}")
     }
+
+    override fun toShortString() = "${cause.shortName.stripColors()} picked up ${block.localizedName}"
 }
 
 class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteractor(), block) {
     override fun toElement(): Element {
         return Label("${block.localizedName} destroyed")
     }
+
+    override fun toShortString() = "${block.localizedName} destroyed"
 }

@@ -57,7 +57,7 @@ object TileRecords {
         }
     }
 
-    inline fun forArea(tile: Tile, size: Int = tile.block().size, block: (Tile) -> Unit) {
+    private inline fun forArea(tile: Tile, size: Int = tile.block().size, block: (Tile) -> Unit) {
         for (point in linkedArea(tile, size)) {
             if (point in Vars.world) {
                 block(Vars.world[point])
