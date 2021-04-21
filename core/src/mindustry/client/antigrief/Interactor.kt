@@ -21,6 +21,10 @@ class NullUnitInteractor : UnitInteractor(Nulls.unit) {
     override val name = "null unit"
 }
 
+class NoInteractor : Interactor {
+    override val name = ""
+}
+
 fun Player?.toInteractor(): Interactor {
     this ?: return NullUnitInteractor()
     return UnitInteractor(unit())

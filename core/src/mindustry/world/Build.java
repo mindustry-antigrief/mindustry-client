@@ -39,9 +39,7 @@ public class Build{
         Seq<Building> prevBuild = new Seq<>(1);
         if(tile.build != null) prevBuild.add(tile.build);
 
-        tile.getLinkedTiles(t -> {
-            Events.fire(new BlockBuildBeginEventBefore(tile, team, unit, true, null));
-        });
+        Events.fire(new BlockBuildBeginEventBefore(tile, team, unit, true, null));
 
         tile.setBlock(sub, team, rotation);
         var build = (ConstructBuild)tile.build;

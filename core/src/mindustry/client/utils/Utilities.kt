@@ -7,8 +7,10 @@ import arc.scene.ui.layout.Cell
 import arc.scene.ui.layout.Table
 import arc.util.Strings
 import arc.util.serialization.Base64Coder
+import mindustry.core.World
 import mindustry.ui.Styles
 import mindustry.ui.dialogs.BaseDialog
+import mindustry.world.Tile
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -127,3 +129,13 @@ fun String.replaceLast(deliminator: String, replacement: String): String {
 }
 
 fun String.removeLast(deliminator: String) = replaceLast(deliminator, "")
+
+data class Point2i(val x: Int, val y: Int)
+
+operator fun World.contains(tile: Point2i) = tile.x in 0 until width() && tile.y in 0 until height()
+
+/** Clamped */
+operator fun World.get(position: Point2i): Tile = tiles.getc(position.x, position.y)
+
+/** Clamped */
+operator fun World.get(x: Int, y: Int): Tile = tiles.getc(x, y)

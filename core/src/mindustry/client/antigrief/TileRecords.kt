@@ -4,7 +4,10 @@ import arc.Events
 import arc.util.Time
 import mindustry.Vars
 import mindustry.client.ClientVars
+import mindustry.client.antigrief.TileLog.Companion.linkedArea
+import mindustry.client.utils.contains
 import mindustry.client.utils.dialog
+import mindustry.client.utils.get
 import mindustry.content.Blocks
 import mindustry.game.EventType
 import mindustry.world.Tile
@@ -20,23 +23,45 @@ object TileRecords {
         }
 
         Events.on(EventType.BlockBuildBeginEventBefore::class.java) {
-            if (it.newBlock == Blocks.air || it.newBlock == null) {
-                addLog(it.tile, TileBreakLog(it.tile, it.unit.toInteractor(), it.tile.block()))
-            } else {
-                addLog(it.tile, TilePlacedLog(it.tile, it.unit.toInteractor(), it.newBlock, it.tile?.build?.config()))
+            forArea(it.tile, it.newBlock?.size ?: 1) { tile ->
+                if (it.newBlock == Blocks.air || it.newBlock == null) {
+                    addLog(tile, TileBreakLog(tile, it.unit.toInteractor(), tile.block()))
+                } else {
+                    addLog(tile, TilePlacedLog(tile, it.unit.toInteractor(), it.newBlock, tile.build?.config()))
+                }
             }
         }
 
         Events.on(EventType.ConfigEventBefore::class.java) {
-            addLog(it.tile.tile, ConfigureTileLog(it.tile.tile, it.player.toInteractor(), it.tile.block, it.tile.config()))
+            forArea(it.tile.tile) { tile ->
+                addLog(tile, ConfigureTileLog(tile, it.player.toInteractor(), tile.block(), it.value))
+            }
         }
 
         Events.on(EventType.BuildPayloadPickup::class.java) {
-            addLog(it.tile, BlockPayloadPickupLog(it.tile, it.unit.toInteractor(), it.building.block))
+            forArea(it.tile) { tile ->
+                addLog(tile, BlockPayloadPickupLog(tile, it.unit.toInteractor(), it.building.block))
+            }
         }
 
         Events.on(EventType.BuildPayloadDrop::class.java) {
-            addLog(it.tile, BlockPayloadDropLog(it.tile, it.unit.toInteractor(), it.building.block, it.building.config()))
+            forArea(it.tile, it.building.block.size) { tile ->
+                addLog(tile, BlockPayloadDropLog(tile, it.unit.toInteractor(), it.building.block, it.building.config()))
+            }
+        }
+
+        Events.on(EventType.BlockDestroyEvent::class.java) {
+            forArea(it.tile) { tile ->
+                addLog(tile, TileDestroyedLog(tile, tile.block()))
+            }
+        }
+    }
+
+    inline fun forArea(tile: Tile, size: Int = tile.block().size, block: (Tile) -> Unit) {
+        for (point in linkedArea(tile, size)) {
+            if (point in Vars.world) {
+                block(Vars.world[point])
+            }
         }
     }
 

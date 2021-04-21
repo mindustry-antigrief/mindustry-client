@@ -1,26 +1,54 @@
 package mindustry.client.antigrief
 
+import arc.Core
 import arc.scene.Element
 import arc.scene.ui.Label
 import arc.scene.ui.layout.Table
+import mindustry.Vars
+import mindustry.client.utils.Point2i
 import mindustry.client.utils.dialog
 import mindustry.client.utils.stripColors
 import mindustry.content.Blocks
-import mindustry.gen.Icon
 import mindustry.world.Block
 import mindustry.world.Tile
 import java.time.Instant
 
-/** x and y are the top left corner */
-data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int)
+/**
+ * x and y are the top left corner
+ * todo: put them on bottom left corner
+ */
+data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int) : Iterable<Point2i> {
+    private class IntRectIterator(val intrect: IntRectangle) : Iterator<Point2i> {
+        var index = 0
+        override fun hasNext() = index < intrect.width * intrect.height
+
+        override fun next(): Point2i {
+            val i = index++
+            return Point2i(intrect.x + (i % intrect.width), intrect.y - (i / intrect.width))
+        }
+    }
+
+    override fun iterator(): Iterator<Point2i> = IntRectIterator(this)
+}
 
 abstract class TileLog(val position: IntRectangle, override val cause: Interactor) : InteractionLog {
     override val time: Instant = Instant.now()
 
     companion object {
         fun Tile.linkedArea(): IntRectangle {
-            if (block().isMultiblock) return IntRectangle(x.toInt(), y.toInt(), 1, 1)
-            return IntRectangle(x - (block().size / 2), y - (block().size / 2), block().size, block().size)
+            return linkedArea(this, block()?.size ?: return IntRectangle(x.toInt(), y.toInt(), 1, 1))
+        }
+
+        fun linkedArea(tile: Tile, size: Int): IntRectangle {
+            if (size == 1) return IntRectangle(tile.x.toInt(), tile.y.toInt(), 1, 1)
+
+            val offsetx: Int = -(size - 1) / 2
+            val offsety: Int = -(size - 1) / 2
+
+            val worldx: Int = offsetx + tile.x
+            val worldy: Int = offsety + tile.y
+
+            return IntRectangle(worldx, worldy + size - 1, size, size)
         }
     }
 
@@ -29,6 +57,10 @@ abstract class TileLog(val position: IntRectangle, override val cause: Interacto
     abstract fun apply(previous: TileState)
 
     abstract fun toElement(): Element
+
+    open fun add(sequence: TileLogSequence) {
+        sequence.logs.add(this)
+    }
 }
 
 class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterable<TileLog> {
@@ -41,7 +73,7 @@ class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterabl
 
     operator fun get(index: Int): TileState {
         val cpy = snapshot.clone()
-        for (diff in logs.subList(0, index - startingIndex)) {
+        for (diff in logs.subList(0, (index + 1) - startingIndex)) {
             diff.apply(cpy)
         }
 
@@ -52,7 +84,7 @@ class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterabl
 class TileRecord(val x: Int, val y: Int) {
     private val logs = mutableListOf<TileLogSequence>()
     val size get() = logs.lastOrNull()?.range?.last ?: 0
-    var totalRange = 0 until 0
+    val totalRange get() = 0..size
 
     fun add(log: TileLog, tile: Tile) {
         when {
@@ -64,8 +96,7 @@ class TileRecord(val x: Int, val y: Int) {
                 logs.add(TileLogSequence(TileState(tile), logs.last().range.last))
             }
         }
-        logs.last().logs.add(log)
-        totalRange = 0..size
+        log.add(logs.last())
     }
 
     operator fun get(index: Int): TileState {
@@ -77,36 +108,52 @@ class TileRecord(val x: Int, val y: Int) {
 
     fun toElement(): Element {
         val table = Table()
-        table.add("Logs for ($x, $y):")
+        table.add("Logs for ($x, $y):").top()
+        table.row()
 
         table.pane { t ->
-            var i = 0
+            if (logs.isNotEmpty()) {
+                t.button("Initial State") {
+                    dialog("Log") {
+                        add(logs[0].snapshot.toElement())
+                        addCloseButton()
+                    }.show()
+                }.width(150f)
+                t.row()
+            }
             for (sequence in logs) {
-                for (log in sequence) {
-                    t.add(log.toElement())
-                    t.button(Icon.eyeSmall) {
+                for ((index, log) in sequence.withIndex()) {
+                    t.add(log.toElement()).left()
+                    t.row()
+                    t.button("State") {
                         dialog("Log") {
-                            add(get(i).toElement())
+                            add(get(index + sequence.startingIndex).toElement())
                             addCloseButton()
                         }.show()
-                    }
+                    }.width(100f)
                     t.row()
-                    i++
                 }
             }
-        }
+        }.grow()
 
         return table
     }
 }
 
-class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, val configuration: Any?) : TileLog(tile, cause) {
+class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, var configuration: Any?) : TileLog(tile, cause) {
     override fun apply(previous: TileState) {
         previous.configuration = configuration
     }
 
     override fun toElement(): Element {
         return Label("${cause.name.stripColors()} configured ${block.localizedName}")
+    }
+
+    override fun add(sequence: TileLogSequence) {
+        Core.app.post {
+            configuration = Vars.world.tile(position.x, position.y)?.build?.config()
+            sequence.logs.add(this)
+        }
     }
 }
 
@@ -141,5 +188,11 @@ open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileL
 class BlockPayloadPickupLog(tile: Tile, cause: Interactor, block: Block) : TileBreakLog(tile, cause, block) {
     override fun toElement(): Element {
         return Label("${cause.name.stripColors()} picked up ${block.localizedName}")
+    }
+}
+
+class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteractor(), block) {
+    override fun toElement(): Element {
+        return Label("${block.localizedName} destroyed")
     }
 }
