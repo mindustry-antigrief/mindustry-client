@@ -9,12 +9,14 @@ import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.*;
+import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.net.*;
+import mindustry.type.*;
 import mindustry.world.*;
 
 import static arc.Core.*;
@@ -175,7 +177,7 @@ public class Client {
 
         ClientVars.clientCommandHandler.<Player>register("cc", "[setting]", "Configure your team's command center easily.", (args, player) -> {
             if (args.length != 1 || !args[0].matches("(?i)^[ari].*")) {
-                player.sendMessage("[scarlet]Invalid setting specified, valid options are: Attack, Rally, Idle");
+                player.sendMessage("[scarlet]Invalid setting specified.\nValid options: Attack, rally, idle");
                 return;
             }
             for (Tile tile : world.tiles) {
@@ -185,10 +187,19 @@ public class Client {
                     case 'r' -> UnitCommand.rally;
                     default -> UnitCommand.idle;
                 });
-                new Toast(3).add("Successfully set the command center to " + args[0] + ".");
+                player.sendMessage("[accent]Successfully set the command center to " + args[0] + ".");
                 return;
             }
-            new Toast(3).add("No command center was found on your team, one is required for this to work.");
+            player.sendMessage("[scarlet]No command center was found on your team, one is required for this to work.");
         });
+
+        ClientVars.clientCommandHandler.<Player>register("count", "<unit-type>", "Counts how many of a certain unit are alive.", (args, player) -> {
+            UnitType unit = content.units().copy().sort(b -> BiasedLevenshtein.biasedLevenshtein(args[0], b.name)).first();
+            player.sendMessage(Strings.format("[accent]@: @/@", unit.localizedName, player.team().data().countType(unit), Units.getCap(player.team()))); // TODO: Make this check each unit to see if it is a player/formation unit, display that info
+        });
+
+        ClientVars.clientCommandHandler.<Player>register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.", (args, player) ->
+            Call.sendChatMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
+        );
     }
 }

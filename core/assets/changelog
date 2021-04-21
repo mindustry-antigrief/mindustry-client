@@ -1,5 +1,18 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 6.6.2
+ * Persistent plans can now be cancelled with Q
+ * Massively improved plan persistence, they will now appear instantly on respawn and should work better when swapping units super fast
+ * Blocks from the bottom right menu are no longer deselected on death
+ * Unit factories and reconstructors now show how long until construction is finished
+ * Command center notifications work with SHIFT + Z
+ * Changed the way the response from !cc is displayed
+ * Added !count <unit> to quickly find how many of a certain unit are alive
+ * Moved the client button on the title screen for people with small displays
+ * Made the key management and import menus not terrible to look at
+ * Added a !poli command, spell polys right please
+ * Reactor (and other block) warnings are now easier to click on
+
 # Version 6.6.1
  * Patched a crash when hovering an invalid "build" (this only happens when people abuse admin anyways)
  * Fixed invisible/sandbox blocks being impossible to place with payload place mode (\ key)

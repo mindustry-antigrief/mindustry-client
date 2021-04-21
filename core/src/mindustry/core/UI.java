@@ -563,6 +563,25 @@ public class UI implements ApplicationListener, Loadable{
         }
     }
 
+    public static String formatTime(float ticks){
+        int s = (int)(ticks / Time.toSeconds) % 60;
+        int m = (int)(ticks / Time.toMinutes) % 60;
+        int h = (int)(ticks / Time.toHours);
+        String out = (h == 0 ? "" : h + "h") + (m == 0 ? "" : m + "m") + (s == 0 ? "" : s + "s");
+        return out.isEmpty() ? "0s" : out;
+    }
+
+    public static String formatSeconds(int seconds){
+        return formatTime(seconds * Time.toSeconds);
+    }
+
+    public static String formatMinutes(float ticks){
+        int m = (int)(ticks / Time.toMinutes) % 60;
+        int h = (int)(ticks / Time.toHours);
+        String out = (h == 0 ? "" : h + "h") + (m == 0 ? "" : m + "m");
+        return out.isEmpty() ? "0s" : out;
+    }
+
     public static int roundAmount(int number){
         if(number >= 1_000_000_000){
             return Mathf.round(number, 100_000_000);

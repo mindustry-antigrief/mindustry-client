@@ -198,6 +198,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
     /** Clears the placement queue. */
     void clearBuilding(){
+        player.persistPlans.clear(); // Being stuck in a death loop or whatever should still allow you to cancel this
         plans.clear();
     }
 

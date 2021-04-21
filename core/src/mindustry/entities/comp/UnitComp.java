@@ -21,7 +21,6 @@ import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
-import mindustry.input.*;
 import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.ui.*;
@@ -525,7 +524,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     public void killed(){
         wasPlayer = isLocal();
-        if (wasPlayer) InputHandler.persistPlans(); // Restore plans after respawn
+        if (wasPlayer) player.persistPlans(); // Restore plans after respawn
         health = 0;
         dead = true;
 
