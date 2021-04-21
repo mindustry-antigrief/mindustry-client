@@ -43,6 +43,10 @@ public class Client {
             if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
         });
 
+        Events.on(EventType.PlayerJoin.class, event -> {
+            player.sendMessage("[scarlet]Hey idiot, " + event.player.name + "[scarlet] has joined!");
+        });
+
         Events.on(EventType.ClientLoadEvent.class, event -> {
             int changeHash = Core.files.internal("changelog").readString().hashCode(); // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
             if (settings.getInt("changeHash") != changeHash) ChangelogDialog.INSTANCE.show();
@@ -200,6 +204,10 @@ public class Client {
 
         ClientVars.clientCommandHandler.<Player>register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.", (args, player) ->
             Call.sendChatMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
+        );
+
+        ClientVars.clientCommandHandler.<Player>register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.", (args, player) ->
+            Call.sendChatMessage("\"In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
         );
     }
 }

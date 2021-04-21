@@ -11,6 +11,7 @@
  * Moved the client button on the title screen for people with small displays
  * Made the key management and import menus not terrible to look at
  * Added a !poli command, spell polys right please
+ * Added a !silicone command, its silicon not silicone you silly cone
  * Reactor (and other block) warnings are now easier to click on
 
 # Version 6.6.1
