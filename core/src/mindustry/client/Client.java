@@ -43,10 +43,6 @@ public class Client {
             if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5);
         });
 
-        Events.on(EventType.PlayerJoin.class, event -> {
-            player.sendMessage("[scarlet]Hey idiot, " + event.player.name + "[scarlet] has joined!");
-        });
-
         Events.on(EventType.ClientLoadEvent.class, event -> {
             int changeHash = Core.files.internal("changelog").readString().hashCode(); // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
             if (settings.getInt("changeHash") != changeHash) ChangelogDialog.INSTANCE.show();

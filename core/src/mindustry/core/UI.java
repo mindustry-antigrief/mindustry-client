@@ -564,7 +564,7 @@ public class UI implements ApplicationListener, Loadable{
     }
 
     public static String formatTime(float ticks){
-        int s = (int)(ticks / Time.toSeconds) % 60;
+        int s = Math.round(ticks / Time.toSeconds) % 60; // Round seconds so they dont display weird
         int m = (int)(ticks / Time.toMinutes) % 60;
         int h = (int)(ticks / Time.toHours);
         String out = (h == 0 ? "" : h + "h") + (m == 0 ? "" : m + "m") + (s == 0 ? "" : s + "s");
