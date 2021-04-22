@@ -7,6 +7,7 @@ import arc.util.*;
 import mindustry.ai.formations.*;
 import mindustry.client.*;
 import mindustry.client.navigation.waypoints.*;
+import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
@@ -23,8 +24,8 @@ public class BuildPath extends Path {
     Building core = player.core();
     private boolean show, activeVirus;
     Interval timer = new Interval(2);
-    public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>();
-    public Seq<Queue<BuildPlan>> queues = new Seq<>(9);
+    public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>(), drills = new Queue<>(), belts = new Queue<>();
+    public Seq<Queue<BuildPlan>> queues = new Seq<>(11);
     public Seq<BuildPlan> sorted = new Seq<>();
 
     @SuppressWarnings("unchecked")
@@ -36,21 +37,23 @@ public class BuildPath extends Path {
     public BuildPath(String args){
         for (String arg : args.split("\\s")) {
             switch (arg) {
-                case "all" -> queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist);
-                case "self" -> queues.add(player.unit().plans);
-                case "broken" -> queues.add(broken);
-                case "boulders" -> queues.add(boulders);
-                case "assist" -> queues.add(assist);
-                case "unfinished" -> queues.add(unfinished);
-                case "cleanup" -> queues.add(cleanup);
-                case "networkassist" -> queues.add(networkAssist);
+                case "all", "*" -> queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist);
+                case "self", "me" -> queues.add(player.unit().plans);
+                case "broken", "destroyed", "dead", "killed" -> queues.add(broken);
+                case "boulders", "rocks" -> queues.add(boulders);
+                case "assist", "help" -> queues.add(assist);
+                case "unfinished", "finish" -> queues.add(unfinished);
+                case "cleanup", "derelict", "clean" -> queues.add(cleanup);
+                case "networkassist", "na" -> queues.add(networkAssist);
                 case "virus" -> queues.add(virus); // Intentionally undocumented due to potential false positives
+                case "drills" -> queues.add(drills);
+                case "belts", "conveyors" -> queues.add(belts);
                 default -> ui.chatfrag.addMessage("[scarlet]Invalid option: " + arg, null);
             }
         }
         if (queues.isEmpty()) {
             player.sendMessage("[scarlet]No valid options specified, defaulting to self." +
-                "\nValid options: All, self, broken, boulders, assist, unfinished, cleanup, networkassist");
+                "\nValid options: All, self, broken, boulders, assist, unfinished, cleanup, networkassist, drills, conveyors");
             queues.add(player.unit().plans);
         }
     }
@@ -79,6 +82,8 @@ public class BuildPath extends Path {
             clearQueue(unfinished);
             clearQueue(cleanup);
             clearQueue(virus);
+            clearQueue(drills);
+            clearQueue(belts);
             for (BuildPlan plan : networkAssist) { // Don't clear network assist queue, instead remove finished plans
                 if (plan.isDone()) {
                     networkAssist.remove(plan);
@@ -101,12 +106,10 @@ public class BuildPath extends Path {
                     }
                 });
             }
-            if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus)) {
+            if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus) || queues.contains(drills) || queues.contains(belts)) {
                 for (Tile tile : world.tiles) {
-                    if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build) {
-                        if (virusBlock(build, false)) {
-                            virus.add(new BuildPlan(tile.x, tile.y)); // Partially delete the spammed processors, prioritizes ones that haven't been configured yet in the event that you get ratelimited
-                        }
+                    if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build && virusBlock(build, true)) { // Dont add configured processors
+                        virus.add(new BuildPlan(tile.x, tile.y));
 
                     } else if (queues.contains(boulders) && tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild build && build.previous instanceof Boulder) {
                         boulders.add(new BuildPlan(tile.x, tile.y));
@@ -118,14 +121,20 @@ public class BuildPath extends Path {
                         unfinished.add(build.wasConstructing ?
                                 new BuildPlan(tile.x, tile.y, tile.build.rotation, build.cblock, tile.build.config()) :
                                 new BuildPlan(tile.x, tile.y));
+
+                    } else if (queues.contains(drills) && tile.team() == player.team() && tile.block() == Blocks.mechanicalDrill && tile.isCenter()) {
+                        drills.add(new BuildPlan(tile.x, tile.y, 0, Blocks.pneumaticDrill));
+
+                    } else if (queues.contains(belts) && tile.team() == player.team() && tile.block() == Blocks.conveyor && tile.build != null) {
+                        belts.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, Blocks.titaniumConveyor));
                     }
                 }
             }
              if (queues.contains(virus)) {
                  activeVirus = !virus.isEmpty();
-                 if (!activeVirus) { // The virus has stopped spreading, start cleaning up
+                 if (!activeVirus) { // All processors broken or configured
                      for (Tile tile : world.tiles) {
-                         if (tile.team() == player.team() && (tile.build instanceof ConstructBlock.ConstructBuild cb && cb.cblock instanceof LogicBlock || tile.build instanceof LogicBlock.LogicBuild build && build.code.contains("print \"Logic grief auto removed by:\"\nprint \""))) {
+                         if (tile.team() == player.team() && (tile.build instanceof ConstructBlock.ConstructBuild cb && cb.cblock instanceof LogicBlock || tile.build instanceof LogicBlock.LogicBuild build && (build.code.contains("print \"Logic grief auto removed by:\"\nprint \"") || virusBlock(build, false)))) {
                              virus.add(new BuildPlan(tile.x, tile.y));
                          }
                      }

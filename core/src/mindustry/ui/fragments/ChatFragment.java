@@ -246,7 +246,7 @@ public class ChatFragment extends Table{
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
             Call.sendChatMessage(message);
             if (message.startsWith("/sync")) {
-
+                player.persistPlans();
                 ClientVars.lastSyncTime = Time.millis();
             }
             Events.fire(new EventType.SendChatMessageEvent(message));

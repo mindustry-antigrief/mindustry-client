@@ -442,6 +442,7 @@ public class NetClient implements ApplicationListener{
 
     @Remote
     public static void playerDisconnect(int playerid){
+        Events.fire(new PlayerLeave(Groups.player.getByID(playerid)));
         if(netClient != null){
             netClient.addRemovedEntity(playerid);
         }
@@ -487,6 +488,7 @@ public class NetClient implements ApplicationListener{
                 if(add){
                     entity.add();
                     netClient.addRemovedEntity(entity.id());
+                    if (entity instanceof Player p) Events.fire(new PlayerJoin(p));
                 }
             }
         }catch(IOException e){

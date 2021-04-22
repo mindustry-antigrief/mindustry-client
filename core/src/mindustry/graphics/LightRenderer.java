@@ -170,11 +170,11 @@ public class LightRenderer{
     }
 
     public boolean enabled(){
-        return state.rules.lighting && state.rules.ambientLight.a > 0.00001f;
+        return state.rules.lighting && Core.settings.getBool("lighting") && state.rules.ambientLight.a > 0.00001f;
     }
 
     public void draw(){
-        if(!(Vars.enableLight && Core.settings.getBool("lighting"))){
+        if(!Core.settings.getBool("lighting") || !Vars.enableLight){
             lights.clear();
             return;
         }

@@ -371,8 +371,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     ClientVars.configs.add(new ConfigRequest(build.tileX(), build.tileY(), previous));
                 }
             }
-            if (Core.settings.getBool("commandwarnings") && build instanceof CommandCenter.CommandBuild cmd) {
-                ui.chatfrag.addMessage(Strings.format("@ set command center at (@, @) to @", player.name, cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), null, Color.scarlet.cpy().mul(.75f));
+            if (Core.settings.getBool("commandwarnings") && build instanceof CommandCenter.CommandBuild cmd && build.team == player.team()) {
+                ui.chatfrag.addMessage(Strings.format("@ set command center at (@, @) to @", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), null, Color.scarlet.cpy().mul(.75f));
                 ClientVars.lastSentPos.set(build.tileX(), build.tileY());
             } else if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
                 if (value instanceof Integer val) {

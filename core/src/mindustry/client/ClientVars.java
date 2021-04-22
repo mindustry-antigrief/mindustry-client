@@ -21,7 +21,7 @@ public class ClientVars {
     @NotNull public static CommandHandler clientCommandHandler = new CommandHandler("!");
     @NotNull public static Vec2 lastSentPos = new Vec2();
     public static final String MESSAGE_BLOCK_PREFIX = "IN USE FOR CHAT AUTHENTICATION, do not use";
-    public static long lastSyncTime;
+    public static long lastSyncTime, lastJoinTime;
 
     // Cursor Position
     public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;

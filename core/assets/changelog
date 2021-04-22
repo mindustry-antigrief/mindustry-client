@@ -3,6 +3,11 @@
 # Version 6.6.2
  * Persistent plans can now be cancelled with Q
  * Massively improved plan persistence, they will now appear instantly on respawn and should work better when swapping units super fast
+ * Plans persist through /sync
+ * Added buildplan count to the info block on the top left
+ * Added !builder conveyors and !builder drills to auto upgrade all belts/drills from copper/mechanical to titanium/pneumatic
+ * Added better join messages, they will always be sent regardless of whether or not the server has them enabled (tries to avoid sending two if the server has them on)
+ * Added a bunch of aliases for buildpath option names
  * Blocks from the bottom right menu are no longer deselected on death
  * Unit factories and reconstructors now show how long until construction is finished
  * Command center notifications work with SHIFT + Z
@@ -13,6 +18,7 @@
  * Added a !poli command, spell polys right please
  * Added a !silicone command, its silicon not silicone you silly cone
  * Reactor (and other block) warnings are now easier to click on
+ * Minor code cleanup
 
 # Version 6.6.1
  * Patched a crash when hovering an invalid "build" (this only happens when people abuse admin anyways)

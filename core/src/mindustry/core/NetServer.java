@@ -535,8 +535,8 @@ public class NetServer implements ApplicationListener{
 
         if(!player.con.hasDisconnected){
             if(player.con.hasConnected){
-                Events.fire(new PlayerLeave(player));
                 if(Config.showConnectMessages.bool()) Call.sendMessage("[accent]" + player.name + "[accent] has disconnected.");
+                Events.fire(new PlayerLeave(player));
                 Call.playerDisconnect(player.id());
             }
 

@@ -202,7 +202,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
             if(!headless && isLocal()) {
                 if (!unit.canBuild()) control.input.block = null;
                 else if (!persistPlans.isEmpty()) {
-                    persistPlans.each(player.unit().plans::add);
+                    persistPlans.each(player.unit()::addBuild);
                     persistPlans.clear();
                 }
             }

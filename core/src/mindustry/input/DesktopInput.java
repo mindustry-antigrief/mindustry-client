@@ -35,6 +35,7 @@ import mindustry.world.blocks.payloads.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 import static mindustry.input.PlaceMode.*;
 
 public class DesktopInput extends InputHandler{
@@ -83,16 +84,16 @@ public class DesktopInput extends InputHandler{
                                 .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
                                 .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
                         }
-                        if(player.unit().isBuilding() || ClientVars.dispatchingBuildPlans){
-                            str.append("\n").append(bundle.format(ClientVars.dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
+                        if(player.unit().isBuilding() || dispatchingBuildPlans){
+                            str.append("\n").append(bundle.format(dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
                         }
                         if(UnitType.alpha == 0){
                             str.append("\n").append(bundle.format("client.toggleunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
                         }
-                        if(ClientVars.showingTurrets){
+                        if(showingTurrets){
                             str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
                         }
-                        if(ClientVars.hidingBlocks){
+                        if(hidingBlocks){
                             str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
                         }
                         if(Navigation.state == NavigationState.RECORDING){
@@ -252,7 +253,7 @@ public class DesktopInput extends InputHandler{
 
         // Holding o hides units, pressing shift + o inverts the state; holding o will now show them.
         if ((input.keyTap(Binding.invisible_units) || (input.keyRelease(Binding.invisible_units) && !input.shift())) && scene.getKeyboardFocus() == null) {
-            ClientVars.hidingUnits = !ClientVars.hidingUnits;
+            hidingUnits = !hidingUnits;
         }
 
         if(Navigation.state == NavigationState.RECORDING){
@@ -262,11 +263,11 @@ public class DesktopInput extends InputHandler{
         }
 
         if(input.keyTap(Binding.show_turret_ranges) && scene.getKeyboardFocus() == null){
-            ClientVars.showingTurrets = !ClientVars.showingTurrets;
+            showingTurrets = !showingTurrets;
         }
 
         if(input.keyTap(Binding.hide_blocks) && scene.getKeyboardFocus() == null){
-            ClientVars.hidingBlocks = !ClientVars.hidingBlocks;
+            hidingBlocks = !hidingBlocks;
         }
 
         if(input.keyTap(Binding.stop_following_path) && scene.getKeyboardFocus() == null){
@@ -291,8 +292,8 @@ public class DesktopInput extends InputHandler{
         if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null){
             if(selectRequests.any() == input.shift()) Navigation.navigateTo(input.mouseWorld()); // Z to nav to camera (SHIFT + Z when placing schem)
             else if (selectRequests.isEmpty()){ // SHIFT + Z to view lastSentPos, double tap to nav there, special case for logic viruses as well (does nothing when placing schem)
-                if(Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(ClientVars.lastSentPos.cpy().scl(tilesize));
-                else Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize));
+                if(Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(lastSentPos.cpy().scl(tilesize));
+                else Spectate.INSTANCE.spectate(lastSentPos.cpy().scl(tilesize));
                 lastShiftZ = Time.millis();
 
                 if(Time.timeSinceMillis(lastVirusWarnTime) < 3000 && lastVirusWarning != null && world.tile(lastVirusWarning.pos()).build == lastVirusWarning){ // Logic virus

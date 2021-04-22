@@ -326,6 +326,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.category("chat");
         client.checkPref("clearchatonleave", true);
         client.checkPref("logmsgstoconsole", true);
+        client.checkPref("clientjoinleave", true);
         client.checkPref("highlightcryptomsg", true);
         client.checkPref("highlightclientmsg", false);
         client.checkPref("displayasuser", false);
