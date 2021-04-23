@@ -17,6 +17,7 @@ import mindustry.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 
 public class LCanvas extends Table{
     public static final int maxJumpsDrawn = 100;
@@ -335,6 +336,30 @@ public class LCanvas extends Table{
 
                 t.add(st.name()).style(Styles.outlineLabel).color(color).padRight(8);
                 t.add().growX();
+
+                t.button(Icon.add, Styles.logici, () -> {
+                    BaseDialog dialog = new BaseDialog("@add");
+                    dialog.cont.pane(ta -> {
+                        ta.background(Tex.button);
+                        int i = 0;
+                        for(Prov<LStatement> prov : LogicIO.allStatements){
+                            LStatement example = prov.get();
+                            if(example instanceof LStatements.InvalidStatement || example.hidden()) continue;
+
+                            TextButton.TextButtonStyle style = new TextButton.TextButtonStyle(Styles.cleart);
+                            style.fontColor = example.color();
+                            style.font = Fonts.outline;
+
+                            ta.button(example.name(), style, () -> {
+                                statements.addChildAfter(st.elem, new StatementElem(prov.get()));
+                                dialog.hide();
+                            }).size(140f, 50f).self(c -> tooltip(c, "lst." + example.name()));
+                            if(++i % 2 == 0) ta.row();
+                        }
+                    });
+                    dialog.addCloseButton();
+                    dialog.show();
+                }).size(24f).padRight(6);
 
                 t.button(Icon.copy, Styles.logici, () -> {
                 }).size(24f).padRight(6).get().tapped(this::copy);

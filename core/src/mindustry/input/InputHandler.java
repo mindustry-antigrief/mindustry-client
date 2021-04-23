@@ -451,7 +451,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void unitClear(Player player){
         if (player == null) return;
         if (player.isLocal()) {
-            if (!player.dead() && player.unit().spawnedByCore) Call.unitControl(player, player.bestCore().unit()); // Bypass vanilla code which prevents you from respawning at core when already a core unit
+            if (!player.dead() && player.unit().spawnedByCore && Vars.net.client()) Call.unitControl(player, player.bestCore().unit()); // Bypass vanilla code which prevents you from respawning at core when already a core unit
             else player.persistPlans(); // Not a core unit, restore plans here rather than letting the unitControl method do that
         }
 

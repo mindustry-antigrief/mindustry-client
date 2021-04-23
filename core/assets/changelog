@@ -21,6 +21,7 @@
  * Moved the client button on the title screen upwards for people with small displays
  * Made the key management and import menus not terrible to look at
  * Reactor (and other block) warnings are now easier to click on
+ * Added a new + button to logic instructions, clicking it allows you to add a new instruction just below the existing one
  * Minor code cleanup
 
 # Version 6.6.1

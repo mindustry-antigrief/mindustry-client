@@ -78,7 +78,7 @@ public class DesktopInput extends InputHandler{
                     if(Core.settings.getBool("hints")) {
                         if(!isBuilding && !settings.getBool("buildautopause") && !player.unit().isBuilding()){
                             str.append("\n").append(bundle.format("enablebuilding", keybinds.get(Binding.pause_building).key.toString()));
-                        }else if(player.unit().isBuilding()){
+                        }else if(player.unit().isBuilding() || !player.persistPlans.isEmpty()){
                             str.append("\n")
                                 .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
                                 .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
@@ -429,7 +429,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!player.dead() && !state.isPaused() && !(Core.scene.getKeyboardFocus() instanceof TextField)){
-                updateMovement(player.unit());
+            updateMovement(player.unit());
 
             if(Core.input.keyTap(Binding.respawn) && !scene.hasField()){
                 Call.unitClear(player);

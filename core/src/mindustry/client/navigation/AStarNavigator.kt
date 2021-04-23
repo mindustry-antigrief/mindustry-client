@@ -4,7 +4,6 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import arc.util.async.*
-import kotlinx.coroutines.*
 import mindustry.Vars.*
 import mindustry.client.navigation.*
 import mindustry.core.*
@@ -50,7 +49,6 @@ object AStarNavigator : Navigator() {
     }
 
     private fun checkAndUpdateCost(current: Cell, t: Cell, cost: Double) {
-
         if (!closed.get(t.x, t.y) || cost < t.g) {
             closed.set(t.x, t.y)
             t.g = cost
@@ -70,7 +68,7 @@ object AStarNavigator : Navigator() {
         endX = endX.clamp(0, grid.size - 1)
         endY = endY.clamp(0, grid[0].size - 1)
 
-        var current: Cell?
+        var current: Cell
         while (!open.empty()) {
             current = open.poll() // Get a tile to explore
             if (current == grid[endX][endY]) { // Made it to the finish
@@ -90,7 +88,7 @@ object AStarNavigator : Navigator() {
                 checkAndUpdateCost(
                         current,
                         grid[x][y],
-                        current.g * (if (abs(x1) + abs(y1) == 1) 1.0 else 1.00001) + addedCosts[x][y] * if (abs(x1) + abs(y1) == 1) 1.0 else 1.414
+                        current.g * (if (abs(x1) + abs(y1) == 1) 1.0 else 1.0000001) + addedCosts[x][y] * if (abs(x1) + abs(y1) == 1) 1.0 else 1.414 // Tiebreaker is needed to draw correct path
                 )
             }
         }
@@ -145,26 +143,22 @@ object AStarNavigator : Navigator() {
             }
         }
 
-        runBlocking {
-            for (turret in obstacles) {
-                launch (Dispatchers.Default){
-                    val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
-                    val upperXBound = ((turret.x + turret.radius) / tilesize).toInt()
-                    val lowerYBound = ((turret.y - turret.radius) / tilesize).toInt()
-                    val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
-                    for (x in lowerXBound..upperXBound) {
-                        for (y in lowerYBound..upperYBound) {
-                            if (Structs.inBounds(x, y, tileWidth, tileHeight) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
-                                addedCosts[x][y] = 100
-        //                        closed.set(x, y) TODO: The line above will always find a path, this line will do nothing if there is no path, add a hotkey to toggle
-                            }
-                        }
+        for (turret in obstacles) {
+            val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
+            val upperXBound = ((turret.x + turret.radius) / tilesize).toInt()
+            val lowerYBound = ((turret.y - turret.radius) / tilesize).toInt()
+            val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
+            for (x in lowerXBound..upperXBound) {
+                for (y in lowerYBound..upperYBound) {
+                    if (Structs.inBounds(x, y, tileWidth, tileHeight) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
+                        addedCosts[x][y] += 100
+//                        closed.set(x, y) TODO: The line above will always find a path, this line will do nothing if there is no path, add a hotkey to toggle
                     }
                 }
             }
         }
 
-        Log.info(measureTimeMillis {aStarSearch()})
+        aStarSearch()
 
         return if (closed.get(endX, endY)) {
             val points = mutableListOf<Vec2>()
