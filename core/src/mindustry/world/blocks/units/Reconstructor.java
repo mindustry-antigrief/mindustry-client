@@ -8,6 +8,7 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.*;
 import mindustry.content.*;
+import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -47,7 +48,11 @@ public class Reconstructor extends UnitBlock{
     public void setBars(){
         super.setBars();
 
-        bars.add("progress", (ReconstructorBuild entity) -> new Bar("bar.progress", Pal.ammo, entity::fraction));
+        bars.add("progress", (ReconstructorBuild e) -> new Bar(
+            () -> Core.bundle.format("bar.progresstime", UI.formatTime(e.ticksRemaining())),
+            () -> Pal.ammo,
+            e::fraction
+        ));
         bars.add("units", (ReconstructorBuild e) ->
         new Bar(
             () -> e.unit() == null ? "[lightgray]" + Iconc.cancel :
@@ -101,6 +106,10 @@ public class Reconstructor extends UnitBlock{
 
         public float fraction(){
             return progress / constructTime;
+        }
+
+        public float ticksRemaining(){
+            return (constructTime - progress) / timeScale;
         }
 
         @Override

@@ -73,7 +73,9 @@ public class TractorBeamTurret extends BaseTurret{
 
         @Override
         public void remove() {
-            Navigation.obstacles.remove(pathfindingEntity);
+            synchronized (Navigation.obstacles) {
+                Navigation.obstacles.remove(pathfindingEntity);
+            }
             super.remove();
         }
 

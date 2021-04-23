@@ -26,7 +26,7 @@ public abstract class FormationPattern{
     /**
      * Returns true if the pattern can support the given number of slots
      * @param slotCount the number of slots
-     * @return {@code true} if this pattern can support the given number of slots; {@code false} othervwise.
+     * @return {@code true} if this pattern can support the given number of slots; {@code false} otherwise.
      */
     public boolean supportsSlots(int slotCount){
         return true;

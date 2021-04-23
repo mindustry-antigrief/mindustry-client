@@ -1,30 +1,32 @@
 package mindustry.entities.comp;
 
 import arc.*;
-import arc.graphics.Color;
+import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.math.Mathf;
-import arc.scene.ui.layout.Scl;
+import arc.math.*;
+import arc.scene.ui.layout.*;
+import arc.struct.*;
 import arc.util.*;
-import arc.util.pooling.Pools;
+import arc.util.pooling.*;
+import mindustry.ai.formations.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
-import mindustry.client.utils.FloatEmbed;
-import mindustry.content.UnitTypes;
-import mindustry.core.NetClient;
-import mindustry.entities.units.UnitController;
-import mindustry.game.EventType.UnitChangeEvent;
-import mindustry.game.Team;
+import mindustry.client.utils.*;
+import mindustry.content.*;
+import mindustry.core.*;
+import mindustry.entities.units.*;
+import mindustry.game.EventType.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.net.Administration.PlayerInfo;
-import mindustry.net.NetConnection;
-import mindustry.net.Packets.KickReason;
-import mindustry.type.UnitType;
+import mindustry.net.Administration.*;
+import mindustry.net.*;
+import mindustry.net.Packets.*;
+import mindustry.type.*;
 import mindustry.ui.*;
-import mindustry.world.Tile;
-import mindustry.world.blocks.storage.CoreBlock;
-import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
+import mindustry.world.*;
+import mindustry.world.blocks.storage.*;
+import mindustry.world.blocks.storage.CoreBlock.*;
 
 import static mindustry.Vars.*;
 
@@ -49,6 +51,9 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     //locale should not be synced.
     transient String locale = "en";
     transient float deathTimer;
+    transient Queue<BuildPlan> persistPlans = new Queue<>();
+    transient Timer.Task persistTask;
+    transient Formation formOnDeath;
     transient String lastText = "";
     transient float textFadeTime;
     transient boolean fooUser;
@@ -197,13 +202,26 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
                 unit.snapInterpolation();
             }
 
-            //reset selected block when switching units
-            if(!headless && isLocal()){
-                control.input.block = null;
+            if(!headless && isLocal()) {
+                if (!unit.canBuild()) control.input.block = null;
+                else if (!persistPlans.isEmpty()) {
+                    persistPlans.each(player.unit()::addBuild);
+                }
+                if (formOnDeath != null) {
+                    Call.unitCommand(player);
+                }
+                if (persistTask != null && persistTask.isScheduled()) persistTask.cancel();
+                persistTask = Timer.schedule(() -> { persistPlans.clear();formOnDeath=null; }, 3); // Clear with a delay because servers suck
             }
         }
 
         Events.fire(new UnitChangeEvent(self(), unit));
+    }
+
+    /** Somewhat scuffed way to persist buildplans when dying and swapping units. */
+    public void persistPlans() { // TODO: Should this be disabled while running BuildPath?
+        if (!persistPlans.isEmpty() || unit.plans.isEmpty()) return;
+        unit.plans.each(persistPlans::add);
     }
 
     boolean dead(){

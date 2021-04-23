@@ -11,7 +11,7 @@ import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
-import mindustry.Vars;
+import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.ui.*;
 import mindustry.core.*;
@@ -70,7 +70,7 @@ public class MenuFragment extends Fragment{
                             becontrol.showUpdateDialog();
                         }
                     });
-                }).size(200, 60).update(t -> t.getLabel().setText("Switch to " + (Core.settings.getString("updateurl").endsWith("-builds") ? "Stable" : "Unstable")));
+                }).size(200, 60).padRight(10).update(t -> t.getLabel().setText("Switch to " + (Core.settings.getString("updateurl").endsWith("-builds") ? "Stable" : "Unstable")));
 
                 c.bottom().right().button("@be.check", Icon.refresh, () -> {
                     ui.loadfrag.show();
@@ -183,12 +183,6 @@ public class MenuFragment extends Fragment{
                     new Buttoni("@customgame", Icon.terrain, () -> checkPlay(ui.custom::show)),
                     new Buttoni("@loadgame", Icon.download, () -> checkPlay(ui.load::show))
                 ),
-                new Buttoni("@editor", Icon.terrain, () -> checkPlay(ui.maps::show)), steam ? new Buttoni("@workshop", Icon.steam, platform::openWorkshop) : null,
-                new Buttoni("@mods", Icon.book, ui.mods::show),
-                //not enough space for this button
-                //new Buttoni("@schematics", Icon.paste, ui.schematics::show),
-                new Buttoni("@settings", Icon.settings, ui.settings::show),
-                new Buttoni("@about.button", Icon.info, ui.about::show),
                 new Buttoni("Client", Icon.wrench,
                     new Buttoni("Discord", Icon.discord, () -> { // Link to client discord
                         if (!Core.app.openURI(clientDiscord)) {
@@ -207,6 +201,12 @@ public class MenuFragment extends Fragment{
                     new Buttoni("@client.makekey", Icon.lock, () -> Vars.ui.showConfirm("Key Overwrite", "This will irreversibly overwrite your key.  Are you sure you want to do this?", () -> new KeyShareDialog(Main.messageCrypto).show())),
                     new Buttoni("@client.keyshare", Icon.lock, () -> new KeyShareDialog(Main.messageCrypto).show())
                 ), // End of client section
+                new Buttoni("@editor", Icon.terrain, () -> checkPlay(ui.maps::show)), steam ? new Buttoni("@workshop", Icon.steam, platform::openWorkshop) : null,
+                new Buttoni("@mods", Icon.book, ui.mods::show),
+                //not enough space for this button
+                //new Buttoni("@schematics", Icon.paste, ui.schematics::show),
+                new Buttoni("@settings", Icon.settings, ui.settings::show),
+                new Buttoni("@about.button", Icon.info, ui.about::show),
                 new Buttoni("@quit", Icon.exit, Core.app::exit)
             );
 

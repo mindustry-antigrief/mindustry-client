@@ -273,6 +273,9 @@ public class HudFragment extends Fragment{
                     info.label(() -> mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory");
                 }
                 info.row();
+                info.label(() -> "Plans: " + player.unit().plans.size).left() // Buildplan count
+                .style(Styles.outlineLabel).name("plans");
+                info.row();
                 info.label(() -> "Players: " + Groups.player.size() + (ui.join.lastHost != null ? "/" + ui.join.lastHost.playerLimit : "")).visible(net::active).left() // Player count
                 .style(Styles.outlineLabel).name("players");
                 info.row();

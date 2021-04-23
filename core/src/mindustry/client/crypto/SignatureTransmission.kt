@@ -1,11 +1,10 @@
 package mindustry.client.crypto
 
-import mindustry.client.communication.Transmission
-import mindustry.client.utils.buffer
-import mindustry.client.utils.remainingBytes
-import java.nio.ByteBuffer
-import java.time.Instant
-import kotlin.random.Random
+import mindustry.client.communication.*
+import mindustry.client.utils.*
+import java.nio.*
+import java.time.*
+import kotlin.random.*
 
 class SignatureTransmission : Transmission {
 
@@ -21,7 +20,7 @@ class SignatureTransmission : Transmission {
     constructor(input: ByteArray, id: Long) {
         val buf = input.buffer()
         this.id = id
-        this.time = Instant.ofEpochSecond(buf.long)
+        this.time = try { Instant.ofEpochSecond(buf.long) } catch (_: Exception) { Instant.ofEpochSecond(0) }
         this.signature = buf.remainingBytes()
     }
 

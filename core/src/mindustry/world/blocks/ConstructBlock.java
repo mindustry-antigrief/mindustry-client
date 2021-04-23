@@ -6,6 +6,7 @@ import arc.Graphics.Cursor.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.struct.*;
 import arc.util.Timer;
@@ -548,6 +549,7 @@ public class ConstructBlock extends Block{
                     toast.add(new Label(format));
                     toast.row();
                     toast.add(new Label(format2, monoLabel));
+                    toast.touchable = Touchable.enabled;
                     toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
                     ClientVars.lastSentPos.set(tileX(), tileY());
                 }

@@ -10,6 +10,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.*;
+import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -70,7 +71,10 @@ public class UnitFactory extends UnitBlock{
     @Override
     public void setBars(){
         super.setBars();
-        bars.add("progress", (UnitFactoryBuild e) -> new Bar("bar.progress", Pal.ammo, e::fraction));
+        bars.add("progress", (UnitFactoryBuild e) -> new Bar(
+            () -> Core.bundle.format("bar.progresstime", UI.formatTime(e.ticksRemaining())),
+            () -> Pal.ammo,
+            e::fraction));
 
         bars.add("units", (UnitFactoryBuild e) ->
         new Bar(
@@ -141,6 +145,10 @@ public class UnitFactory extends UnitBlock{
 
         public float fraction(){
             return currentPlan == -1 ? 0 : progress / plans.get(currentPlan).time;
+        }
+
+        public float ticksRemaining(){
+            return currentPlan == -1 ? 0 : (plans.get(currentPlan).time - progress) / timeScale;
         }
 
         @Override
