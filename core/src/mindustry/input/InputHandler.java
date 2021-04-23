@@ -449,15 +449,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(targets = Loc.both, called = Loc.both, forward = true)
     public static void unitClear(Player player){
-        if (player == null) return;
+        if (player == null || !player.dead() && player.unit().spawnedByCore && !player.isLocal()) return;
         if (player.isLocal()) {
-            if (!player.dead() && player.unit().spawnedByCore && Vars.net.client()) Call.unitControl(player, player.bestCore().unit()); // Bypass vanilla code which prevents you from respawning at core when already a core unit
-            else player.persistPlans(); // Not a core unit, restore plans here rather than letting the unitControl method do that
+            player.persistPlans();
+            Call.unitControl(player, player.bestCore().unit()); // Bypass vanilla code which prevents you from respawning at core when already a core unit
+        } else {
+            player.clearUnit();
+            player.deathTimer = Player.deathDelay + 1f; //for instant respawn
         }
-
         Fx.spawn.at(player);
-        player.clearUnit();
-        player.deathTimer = Player.deathDelay + 1f; //for instant respawn
     }
 
     @Remote(targets = Loc.both, called = Loc.server, forward = true)

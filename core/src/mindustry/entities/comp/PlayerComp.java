@@ -52,6 +52,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     transient String locale = "en";
     transient float deathTimer;
     transient Queue<BuildPlan> persistPlans = new Queue<>();
+    transient Timer.Task persistTask;
     transient Formation formOnDeath;
     transient String lastText = "";
     transient float textFadeTime;
@@ -205,12 +206,12 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
                 if (!unit.canBuild()) control.input.block = null;
                 else if (!persistPlans.isEmpty()) {
                     persistPlans.each(player.unit()::addBuild);
-                    persistPlans.clear();
                 }
                 if (formOnDeath != null) {
                     Call.unitCommand(player);
-                    formOnDeath = null;
                 }
+                if (persistTask != null && persistTask.isScheduled()) persistTask.cancel();
+                persistTask = Timer.schedule(() -> { persistPlans.clear();formOnDeath=null; }, 3); // Clear with a delay because servers suck
             }
         }
 
