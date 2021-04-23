@@ -3,10 +3,12 @@ package mindustry.client.utils
 import arc.scene.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
+import arc.util.Strings
 import arc.util.serialization.*
 import mindustry.core.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
+import mindustry.world.Tile
 import java.nio.*
 import java.time.*
 import java.time.temporal.*

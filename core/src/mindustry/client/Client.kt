@@ -317,6 +317,7 @@ object Client {
      * @param runner A lambda to run when the command is invoked.
      */
     fun register(format: String, description: String = "", runner: (args: Array<String>, player: Player) -> Unit) {
-        clientCommandHandler.register(format.substringBefore(' '), format.substringAfter(' '), description, runner)
+        val args = if (format.contains(' ')) format.substringAfter(' ') else ""
+        clientCommandHandler.register(format.substringBefore(' '), args, description, runner)
     }
 }

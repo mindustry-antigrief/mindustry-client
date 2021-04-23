@@ -49,7 +49,7 @@ class KeyShareDialog(private val messageCrypto: MessageCrypto) : BaseDialog("Key
             t.row()
 
             t.button("Import Key") {
-                importDialog = Vars.ui.dialog("Import Key") {
+                importDialog = dialog("Import Key") {
                     val nameInput = TextField("")
                     var name = ""
                     nameInput.maxLength = 30
