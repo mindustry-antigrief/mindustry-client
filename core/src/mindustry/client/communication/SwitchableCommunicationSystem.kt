@@ -1,7 +1,5 @@
 package mindustry.client.communication
 
-import mindustry.client.crypto.CommunicationSystem
-
 class SwitchableCommunicationSystem(val systems: List<CommunicationSystem>) : CommunicationSystem() {
 
     constructor(vararg communicationSystems: CommunicationSystem) : this(communicationSystems.toMutableList())

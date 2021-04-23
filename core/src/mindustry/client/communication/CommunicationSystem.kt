@@ -1,4 +1,4 @@
-package mindustry.client.crypto
+package mindustry.client.communication
 
 /** An interface for ways to transmit information between clients. */
 abstract class CommunicationSystem {

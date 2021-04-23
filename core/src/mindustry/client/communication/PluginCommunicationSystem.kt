@@ -1,6 +1,5 @@
 package mindustry.client.communication
 
-import mindustry.client.crypto.CommunicationSystem
 import mindustry.Vars
 import mindustry.net.Net
 import mindustry.net.Packets

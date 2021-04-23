@@ -1,6 +1,7 @@
 package client
 
 import arc.util.Reflect
+import mindustry.client.communication.DummyCommunicationSystem
 import mindustry.client.communication.Packets
 import mindustry.client.crypto.*
 import mindustry.client.crypto.Crypto.generateKeyQuad

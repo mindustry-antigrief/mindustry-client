@@ -4,6 +4,7 @@ import arc.*;
 import arc.func.*;
 import arc.scene.ui.TextButton.*;
 import arc.util.*;
+import mindustry.client.communication.MessageBlockCommunicationSystem;
 import mindustry.gen.*;
 import mindustry.logic.LStatements.*;
 import mindustry.ui.*;
@@ -56,6 +57,11 @@ public class LogicDialog extends BaseDialog{
             dialog.addCloseButton();
             dialog.show();
         }).name("edit");
+
+        buttons.button("Use for communication", () -> {
+            canvas.load(MessageBlockCommunicationSystem.LOGIC_PREFIX);
+            hide();
+        });
 
         buttons.button("@add", Icon.add, () -> {
             BaseDialog dialog = new BaseDialog("@add");
