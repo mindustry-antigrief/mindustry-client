@@ -22,6 +22,7 @@ public class ClientVars {
     @NotNull public static Vec2 lastSentPos = new Vec2();
     public static final String MESSAGE_BLOCK_PREFIX = "IN USE FOR CHAT AUTHENTICATION, do not use";
     public static long lastSyncTime, lastJoinTime;
+    public static boolean signMessages = true; // Whether or not to sign outbound messages (toggle green highlight)
 
     // Cursor Position
     public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;

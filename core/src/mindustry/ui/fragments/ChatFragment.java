@@ -245,11 +245,11 @@ public class ChatFragment extends Table{
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
             Call.sendChatMessage(message);
-            if (message.startsWith("/sync")) {
+            if (message.startsWith(netServer.clientCommands.getPrefix() + "sync")) { // /sync
                 player.persistPlans();
                 ClientVars.lastSyncTime = Time.millis();
             }
-            Events.fire(new EventType.SendChatMessageEvent(message));
+            if (!message.startsWith(netServer.clientCommands.getPrefix())) Events.fire(new EventType.SendChatMessageEvent(message)); // Only fire when not running any command
 
         }else{
 

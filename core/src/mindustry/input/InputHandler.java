@@ -1345,10 +1345,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         float strafePenalty = ground ? 1f : Mathf.lerp(1f, unit.type().strafePenalty, Angles.angleDist(unit.vel().angle(), unit.rotation()) / 180f);
         float baseSpeed = unit.type().speed;
 
-        //limit speed to minimum formation speed to preserve formation TODO: All units are commanders now, reflect that change
-        if(unit instanceof Commanderc && ((Commanderc)unit).isCommanding()){
+        //limit speed to minimum formation speed to preserve formation
+        if(unit.isCommanding()){
             //add a tiny multiplier to let units catch up just in case
-            baseSpeed = ((Commanderc)unit).minFormationSpeed() * 0.95f;
+            baseSpeed = unit.minFormationSpeed() * 0.95f;
         }
 
         float speed = baseSpeed * Mathf.lerp(1f, unit.type().canBoost ? unit.type().boostMultiplier : 1f, unit.elevation) * strafePenalty;

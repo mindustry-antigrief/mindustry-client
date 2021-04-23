@@ -21,10 +21,9 @@ public abstract class Navigator {
         start.clamp(0, 0, world.unitHeight(), world.unitWidth());
         end.clamp(0, 0, world.unitHeight(), world.unitWidth());
         Seq<Circle> realObstacles = new Seq<>(new Circle[0]);
+        float additionalRadius =  player.unit().formation == null ? player.unit().hitSize/2 : player.unit().formation().pattern.radius() + player.unit().formation.pattern.spacing/2;
         for (TurretPathfindingEntity turret : obstacles) {
-            if (turret.canHitPlayer && turret.canShoot) {
-                realObstacles.add(new Circle(turret.x, turret.y, (turret.radius + (player.unit().formation == null ? 0f : player.unit().formation.pattern.radius()) + 8)));
-            }
+            if (turret.canHitPlayer && turret.canShoot) realObstacles.add(new Circle(turret.x, turret.y, (turret.radius + additionalRadius)));
         }
 
         return findPath(start, end, realObstacles.toArray(), ((float) world.unitWidth()), ((float) world.unitHeight()));

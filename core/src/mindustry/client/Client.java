@@ -221,5 +221,10 @@ public class Client {
         clientCommandHandler.<Player>register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.", (args, player) ->
             Call.sendChatMessage("\"In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
         );
+
+        clientCommandHandler.<Player>register("togglesign", "Toggles the signing of messages on and off (whether or not your messages can be green for other players)", (args, player) -> {
+            signMessages = !signMessages;
+            player.sendMessage("Successfully toggled signing of messages " + (signMessages ? "on" : "off"));
+        });
     }
 }

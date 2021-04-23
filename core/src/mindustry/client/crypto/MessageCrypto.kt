@@ -6,13 +6,9 @@ import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
 import mindustry.client.*
-import mindustry.client.communication.Packets
-import mindustry.client.communication.Transmission
+import mindustry.client.communication.*
 import mindustry.client.ui.*
-import mindustry.client.utils.age
-import mindustry.client.utils.inflate
-import mindustry.client.utils.remainingBytes
-import mindustry.client.utils.toInstant
+import mindustry.client.utils.*
 import mindustry.core.*
 import mindustry.game.*
 import mindustry.gen.*
@@ -76,7 +72,7 @@ class MessageCrypto {
         } catch (ignored: Exception) {}
 
         Events.on(EventType.SendChatMessageEvent::class.java) { event ->
-            sign(event.message, keyQuad)
+            if (ClientVars.signMessages) sign(event.message, keyQuad)
         }
         Events.on(EventType.PlayerChatEventClient::class.java) { event ->
             player = PlayerTriple((event.player ?: return@on).id, Instant.now().epochSecond, event.message)

@@ -156,7 +156,9 @@ public class Turret extends ReloadTurret{
 
         @Override
         public void remove() {
-            Navigation.obstacles.remove(pathfindingEntity);
+            synchronized (Navigation.obstacles) {
+                Navigation.obstacles.remove(pathfindingEntity);
+            }
             super.remove();
         }
 

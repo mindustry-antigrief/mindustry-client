@@ -301,7 +301,9 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         team.data().updateCount(type, -1);
         controller.removed(self());
         for (Weapon weapon : type.weapons) {
-            Navigation.obstacles.remove(pathfindingEntities.get(weapon));
+            synchronized (Navigation.obstacles) {
+                Navigation.obstacles.remove(pathfindingEntities.get(weapon));
+            }
         }
     }
 
@@ -524,7 +526,10 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     public void killed(){
         wasPlayer = isLocal();
-        if (wasPlayer) player.persistPlans(); // Restore plans after respawn
+        if (wasPlayer) {
+            player.persistPlans(); // Restore plans after respawn
+            player.formOnDeath = player.unit().formation;
+        }
         health = 0;
         dead = true;
 

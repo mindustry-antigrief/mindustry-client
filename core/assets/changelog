@@ -4,19 +4,22 @@
  * Persistent plans can now be cancelled with Q
  * Massively improved plan persistence, they will now appear instantly on respawn and should work better when swapping units super fast
  * Plans persist through /sync
+ * Swapping to a unit who cant build and then back to one who can will cause your plans to reappear so you can pick up where you left off
+ * Navigation should work better with formations of large units
  * Added buildplan count to the info block on the top left
- * Added !builder conveyors and !builder drills to auto upgrade all belts/drills from copper/mechanical to titanium/pneumatic
+ * Added a bunch of aliases for !builder option names
+ * Added !builder conveyors and !builder drills to auto upgrade all belts/drills from copper/mechanical to their titanium/pneumatic variants
+ * Added a !poli command, spell polys right please
+ * Added a !silicone command, its silicon not silicone you silly cone
+ * Added a !togglesign command, its a simple command that toggles whether or not other players who have your key added see your messages with a green highlight
+ * Added !count <unit> to quickly find how many of a certain unit are alive
+ * Changed the way the response from !cc is displayed
  * Added better join messages, they will always be sent regardless of whether or not the server has them enabled (tries to avoid sending two if the server has them on)
- * Added a bunch of aliases for buildpath option names
  * Blocks from the bottom right menu are no longer deselected on death
  * Unit factories and reconstructors now show how long until construction is finished
  * Command center notifications work with SHIFT + Z
- * Changed the way the response from !cc is displayed
- * Added !count <unit> to quickly find how many of a certain unit are alive
- * Moved the client button on the title screen for people with small displays
+ * Moved the client button on the title screen upwards for people with small displays
  * Made the key management and import menus not terrible to look at
- * Added a !poli command, spell polys right please
- * Added a !silicone command, its silicon not silicone you silly cone
  * Reactor (and other block) warnings are now easier to click on
  * Minor code cleanup
 

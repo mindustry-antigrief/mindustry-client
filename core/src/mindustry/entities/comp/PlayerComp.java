@@ -8,6 +8,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
+import mindustry.ai.formations.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.utils.*;
@@ -51,6 +52,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     transient String locale = "en";
     transient float deathTimer;
     transient Queue<BuildPlan> persistPlans = new Queue<>();
+    transient Formation formOnDeath;
     transient String lastText = "";
     transient float textFadeTime;
     transient boolean fooUser;
@@ -204,6 +206,10 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
                 else if (!persistPlans.isEmpty()) {
                     persistPlans.each(player.unit()::addBuild);
                     persistPlans.clear();
+                }
+                if (formOnDeath != null) {
+                    Call.unitCommand(player);
+                    formOnDeath = null;
                 }
             }
         }
