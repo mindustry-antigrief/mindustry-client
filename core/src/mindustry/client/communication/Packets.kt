@@ -2,11 +2,9 @@ package mindustry.client.communication
 
 import arc.util.*
 import arc.util.Interval
-import mindustry.client.crypto.CommunicationSystem
 import mindustry.client.crypto.EncryptedMessageTransmission
 import mindustry.client.crypto.SignatureTransmission
 import mindustry.client.utils.*
-import java.io.*
 import java.nio.*
 import java.time.*
 import java.time.temporal.*

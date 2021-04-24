@@ -1,4 +1,4 @@
-package mindustry.client.crypto
+package mindustry.client.communication
 
 import java.util.*
 import java.util.function.Consumer

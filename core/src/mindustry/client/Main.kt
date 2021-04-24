@@ -13,7 +13,9 @@ import mindustry.client.ui.*
 import mindustry.client.utils.FloatEmbed
 import mindustry.entities.units.*
 import mindustry.game.*
+import mindustry.gen.Groups
 import mindustry.input.*
+import mindustry.world.blocks.logic.LogicBlock
 
 object Main : ApplicationListener {
     lateinit var communicationSystem: SwitchableCommunicationSystem
@@ -58,7 +60,11 @@ object Main : ApplicationListener {
             dispatchedBuildPlans.clear()
         }
         Events.on(EventType.ServerJoinEvent::class.java) {
-            communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
+//            if (Groups.build.contains { it is LogicBlock.LogicBuild && it.code.startsWith(ProcessorCommunicationSystem.PREFIX) }) {
+                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
+//            } else {
+//                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
+//            }
         }
 
         communicationClient.addListener { transmission, senderId ->

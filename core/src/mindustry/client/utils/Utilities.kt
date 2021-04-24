@@ -1,19 +1,28 @@
+@file:Suppress("UNUSED")
+
 package mindustry.client.utils
 
 import arc.scene.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import arc.util.Strings
-import arc.util.serialization.*
-import mindustry.core.*
-import mindustry.ui.*
-import mindustry.ui.dialogs.*
+import arc.util.serialization.Base64Coder
+import mindustry.client.crypto.Base32768Coder
+import mindustry.core.World
+import mindustry.ui.Styles
+import mindustry.ui.dialogs.BaseDialog
 import mindustry.world.Tile
-import java.nio.*
-import java.time.*
-import java.time.temporal.*
-import java.util.zip.*
-import kotlin.math.*
+import java.io.IOException
+import java.nio.ByteBuffer
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.time.temporal.Temporal
+import java.time.temporal.TemporalUnit
+import java.util.zip.DeflaterInputStream
+import java.util.zip.InflaterInputStream
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -58,6 +67,10 @@ fun String.base64(): ByteArray? = try { Base64Coder.decode(this) } catch (e: Ill
 fun Int.toBytes() = byteArrayOf((this shr 24).toByte(), (this shr 16).toByte(), (this shr 8).toByte(), (this).toByte())
 
 fun Long.toBytes() = byteArrayOf((this shr 56).toByte(), (this shr 48).toByte(), (this shr 40).toByte(), (this shr 32).toByte(), (this shr 24).toByte(), (this shr 16).toByte(), (this shr 8).toByte(), (this).toByte())
+
+fun ByteArray.base32678(): String = Base32768Coder.encode(this)
+
+fun String.base32678(): ByteArray? = try { Base32768Coder.decode(this) } catch (e: IOException) { null }
 
 fun Double.floor() = floor(this).toInt()
 
