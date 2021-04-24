@@ -42,13 +42,14 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
     private fun logicEvent(event: EventType.ConfigEvent) {
         event.tile ?: return
         event.value ?: return
+        event.player ?: return
         if (event.tile.block !is LogicBlock) return
         logicAvailable = true
 
         val message = LogicBlock.decompress(event.value as? ByteArray ?: return)
         if (!message.startsWith(LOGIC_PREFIX)) return
 
-        val id = if (event.player == null) -1 else event.player.id
+        val id = event.player.id
 
         val bytes: ByteArray
         try {
