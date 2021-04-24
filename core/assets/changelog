@@ -1,6 +1,8 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
-# Version 6.6.2
+# Version 7.0
+ * Completely redid tile logs (they now properly keep track of block replacements, configuration changes, and multiblock)
+ * Added a basic map marker system (!marker [x] [y] <name>, can also be accessed by a button next to core database and schematics)
  * Persistent plans can now be cancelled with Q
  * Massively improved plan persistence, they will now appear instantly on respawn and should work better when swapping units super fast
  * Plans persist through /sync
