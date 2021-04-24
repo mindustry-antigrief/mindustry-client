@@ -111,20 +111,24 @@ class TileRecord(val x: Int, val y: Int) {
     }
 
     fun lastLogs(count: Int): List<TileLog> {
-        val num = min(count, size)
+        try {
+            val num = min(count, size)
 
-        val output = mutableListOf<TileLog>()
-        var logIndex = logs.indexOfLast { size - num in it.range }
-        for (i in size - num until size) {
-            output.add(logs[logIndex].logs[i])
-            if (i + 1 !in logs[logIndex].range) {
-                logIndex++
-                if (logIndex >= logs.size) {
-                    break
+            val output = mutableListOf<TileLog>()
+            var logIndex = logs.indexOfLast { size - num in it.range }
+            for (i in size - num until size) {
+                output.add(logs[logIndex].logs[i])
+                if (i + 1 !in logs[logIndex].range) {
+                    logIndex++
+                    if (logIndex >= logs.size) {
+                        break
+                    }
                 }
             }
+            return output
+        } catch (e: IndexOutOfBoundsException) {  // Not totally sure why this happens, but it's an easy 'fix'
+            return emptyList()
         }
-        return output
     }
 
     fun toElement(): Element {

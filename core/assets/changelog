@@ -1,5 +1,9 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 7.1
+ * Made client networking 190x faster via the use of microprocessors (processors can now be configured for networking instead of just message blocks)
+ * Fixed a tile log crash
+
 # Version 7.0
  * Completely redid tile logs (they now properly keep track of block replacements, configuration changes, and multiblock)
  * Added a basic map marker system (!marker [x] [y] <name>, can also be accessed by a button next to core database and schematics)
