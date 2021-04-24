@@ -45,7 +45,7 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
         if (event.tile.block !is LogicBlock) return
         logicAvailable = true
 
-        val message = LogicBlock.decompress(event.value as ByteArray)
+        val message = LogicBlock.decompress(event.value as? ByteArray ?: return)
         if (!message.startsWith(LOGIC_PREFIX)) return
 
         val id = if (event.player == null) -1 else event.player.id
@@ -53,11 +53,12 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
         val bytes: ByteArray
         try {
             bytes = Base32768Coder.decode(
-                message.removePrefix(ClientVars.MESSAGE_BLOCK_PREFIX)
+                message.removePrefix(ClientVars.MESSAGE_BLOCK_PREFIX + "\n")
                     .split("\n").joinToString("") {
                         it.removePrefix("print \"").removeSuffix("\"")
                     }
-            )
+            ).run { sliceArray(0 until size - 1) }  // todo wtf
+
         } catch (exception: Exception) {
             return
         }
@@ -112,7 +113,7 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
 
     private fun sendLogic(bytes: ByteArray) {
         val processor = findProcessor() ?: throw IOException("No matching processor found!")
-        val value = bytes.base32678().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = LOGIC_PREFIX) { "print \"it\"" }
+        val value = bytes.plus(12).base32678().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = LOGIC_PREFIX + "\n") { "print \"$it\"" }.removeSuffix("\n")
         Call.tileConfig(Vars.player, processor, LogicBlock.compress(value, Seq()))
     }
 
