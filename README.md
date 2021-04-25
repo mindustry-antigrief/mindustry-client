@@ -1,3 +1,5 @@
+# You're probably looking for [the V6 client](https://github.com/mindustry-antigrief/mindustry-client-v6)
+
 ![Logo](core/assets-raw/sprites/ui/logo.png)
 
 ![Java CI](https://github.com/blahblahbloopster/mindustry-client/workflows/Java%20CI/badge.svg?branch=custom_client)
