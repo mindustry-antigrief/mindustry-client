@@ -122,10 +122,10 @@ public class BuildPath extends Path {
                                 new BuildPlan(tile.x, tile.y, tile.build.rotation, build.cblock, tile.build.config()) :
                                 new BuildPlan(tile.x, tile.y));
 
-                    } else if (queues.contains(drills) && tile.team() == player.team() && (tile.block() == Blocks.mechanicalDrill || tile.build instanceof ConstructBlock.ConstructBuild build && build.cblock == Blocks.mechanicalDrill) && tile.isCenter()) {
+                    } else if (queues.contains(drills) && tile.team() == player.team() && (tile.block() == Blocks.mechanicalDrill || tile.build instanceof ConstructBlock.ConstructBuild build && build.cblock == Blocks.pneumaticDrill) && tile.isCenter()) {
                         drills.add(new BuildPlan(tile.x, tile.y, 0, Blocks.pneumaticDrill));
 
-                    } else if (queues.contains(belts) && tile.team() == player.team() && (tile.block() == Blocks.conveyor || tile.build instanceof ConstructBlock.ConstructBuild build && build.cblock == Blocks.conveyor) && tile.build != null) {
+                    } else if (queues.contains(belts) && tile.team() == player.team() && (tile.block() == Blocks.conveyor || tile.build instanceof ConstructBlock.ConstructBuild build && build.cblock == Blocks.titaniumConveyor) && tile.build != null) {
                         belts.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, Blocks.titaniumConveyor));
                     }
                 }
@@ -213,8 +213,8 @@ public class BuildPath extends Path {
         Queue<BuildPlan> out = new Queue<>();
         sorted.clear();
         sorted.addAll(plans);
-        sorted.sort(Structs.comps(Structs.comparingBool(plan -> !(plan.block == null || player.unit().shouldSkip(plan, core))), Structs.comparingFloat(plan -> plan.dst(player))));
-        if (!largeFirst) sorted.reverse();
+        sorted.sort(Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, core)), Structs.comparingFloat(plan -> -plan.dst(player))));
+        if (largeFirst) sorted.reverse();
         for (BuildPlan plan : sorted) { // The largest distance is at the start of the sequence by this point
             if (!validPlan(plan)) continue;
             if (includeAll || plan.block != null && !player.unit().shouldSkip(plan, core)) { // TODO: This is terrible and slow

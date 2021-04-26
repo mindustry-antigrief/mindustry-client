@@ -29,7 +29,6 @@ public final class DiscordRPC {
 
     /** Call before sending any presence updates. */
     public static void connect(long clientId) throws Exception{
-        Log.info(clientId);
         DiscordRPC.clientId = clientId;
         String version = System.getProperty("java.version");
 
@@ -106,7 +105,6 @@ public final class DiscordRPC {
                 .put("args", Jval2.newObject()
                     .put("pid", pid)
                     .put("activity", presence == null ? null : presence.toJson())));
-        Log.info(presence.toJson());
     }
 
     /** Subscribes to all activity events. */
