@@ -1,26 +1,25 @@
 package mindustry.desktop;
 
 import arc.*;
-import arc.Files.FileType;
+import arc.Files.*;
 import arc.backend.sdl.*;
-import arc.backend.sdl.jni.SDL;
-import arc.files.Fi;
-import arc.func.Cons;
-import arc.math.Rand;
-import arc.struct.Seq;
+import arc.backend.sdl.jni.*;
+import arc.files.*;
+import arc.func.*;
+import arc.math.*;
+import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.Base64Coder;
-import club.minnced.discord.rpc.*;
-import com.codedisaster.steamworks.SteamAPI;
+import arc.util.serialization.*;
+import com.codedisaster.steamworks.*;
 import mindustry.*;
-import mindustry.client.Main;
-import mindustry.core.Version;
+import mindustry.client.*;
+import mindustry.core.*;
 import mindustry.desktop.steam.*;
 import mindustry.game.EventType.*;
-import mindustry.gen.Groups;
+import mindustry.gen.*;
 import mindustry.net.*;
-import mindustry.net.Net.NetProvider;
-import mindustry.type.Publishable;
+import mindustry.net.Net.*;
+import mindustry.type.*;
 
 import java.io.*;
 
@@ -69,16 +68,16 @@ public class DesktopLauncher extends ClientLauncher{
 
     @Override
     public void stopDiscord() {
-        DiscordRPC.INSTANCE.Discord_Shutdown();
+        DiscordRPC.close();
     }
 
     @Override
     public void startDiscord() {
         if(useDiscord){
             try{
-                DiscordRPC.INSTANCE.Discord_Initialize(discordID, null, true, "1127400");
+                DiscordRPC.connect(Long.parseLong(discordID));
                 Log.info("Initialized Discord rich presence.");
-                Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC.INSTANCE::Discord_Shutdown));
+                Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::close));
             }catch(Throwable t){
                 useDiscord = false;
                 Log.err("Failed to initialize discord. Enable debug logging for details.");
@@ -298,7 +297,7 @@ public class DesktopLauncher extends ClientLauncher{
         }
 
         if(useDiscord && Core.settings.getBool("discordrpc")){
-            DiscordRichPresence presence = new DiscordRichPresence();
+            DiscordRPC.RichPresence presence = new DiscordRPC.RichPresence();
 
             if(inGame){
                 presence.state = gameMode + gamePlayersSuffix;
@@ -314,8 +313,9 @@ public class DesktopLauncher extends ClientLauncher{
             presence.smallImageKey = "foo";
             presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
             presence.startTimestamp = beginTime/1000;
-
-            DiscordRPC.INSTANCE.Discord_UpdatePresence(presence);
+            presence.label1 = "Client Github";
+            presence.url1 = "https://github.com/mindustry-antigrief/mindustry-client-v6";
+            if (DiscordRPC.getStatus() == DiscordRPC.PipeStatus.connected) DiscordRPC.send(presence);
         }
 
         if(steam){

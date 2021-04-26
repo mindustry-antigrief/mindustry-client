@@ -5,6 +5,8 @@
  * Added timestamps to tile hud as well as the tile info menu
  * Added enemy spawns as pathfinding obstacles
  * Increased the number of items displayed on the tilehud to 7 to make it line up with the minimap
+ * Moved away from old discord presence library
+ * Added partial Russian support (thanks to thedimas3007)
 
 # Version 7.2.0
  * Fixed the unlock all achievements button
