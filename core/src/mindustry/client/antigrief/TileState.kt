@@ -1,21 +1,19 @@
 package mindustry.client.antigrief
 
-import arc.Core
-import arc.math.geom.Point2
-import arc.scene.Element
-import arc.scene.ui.layout.Table
-import mindustry.client.utils.capLength
-import mindustry.client.utils.label
-import mindustry.client.utils.restrictToAscii
-import mindustry.game.Team
-import mindustry.gen.Icon
-import mindustry.type.Item
-import mindustry.type.Liquid
-import mindustry.ui.Cicon
-import mindustry.world.Block
-import mindustry.world.Tile
-import java.time.Instant
-import kotlin.math.abs
+import arc.*
+import arc.math.geom.*
+import arc.scene.*
+import arc.scene.ui.layout.*
+import arc.util.*
+import mindustry.client.utils.*
+import mindustry.core.*
+import mindustry.game.*
+import mindustry.gen.*
+import mindustry.type.*
+import mindustry.ui.*
+import mindustry.world.*
+import java.time.*
+import kotlin.math.*
 
 class TileState {
     val x: Int
@@ -55,20 +53,19 @@ class TileState {
     fun toElement(): Element {
         val table = Table()
 
-        table.label(Instant.ofEpochSecond(time.toEpochMilli() / 1000).toString())  // ISO 8601 time/date formatting
+        table.label(Instant.ofEpochSecond(time.toEpochMilli() / 1000).toString() + " (" + UI.formatTime((Time.timeSinceMillis(time.toEpochMilli()) / 16.667).toFloat()) + ")")  // ISO 8601 time/date formatting
 
         table.row()
         table.add("Team: ${team.name}")
 
         table.row()
-
         if (block.isAir) {
             table.add("Empty")
         } else {
             table.image(block.icon(Cicon.medium))
         }
-        table.row()
 
+        table.row()
         table.label("Facing " + when (abs(rotation % 4)) {
             0 -> "north"
             1 -> "east"

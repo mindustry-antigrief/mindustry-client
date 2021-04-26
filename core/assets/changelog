@@ -1,5 +1,11 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 7.2.1
+ * Fixed dialogs being weird
+ * Added timestamps to tile hud as well as the tile info menu
+ * Added enemy spawns as pathfinding obstacles
+ * Increased the number of items displayed on the tilehud to 7 to make it line up with the minimap
+
 # Version 7.2.0
  * Fixed the unlock all achievements button
  * Fixed the mono font disable option not disabling it everywhere

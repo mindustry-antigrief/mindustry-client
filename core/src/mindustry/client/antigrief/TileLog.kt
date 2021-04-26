@@ -1,19 +1,17 @@
 package mindustry.client.antigrief
 
-import arc.Core
-import arc.scene.Element
-import arc.scene.ui.Label
-import arc.scene.ui.layout.Table
-import mindustry.Vars
-import mindustry.client.utils.Point2i
-import mindustry.client.utils.dialog
-import mindustry.client.utils.stripColors
-import mindustry.content.Blocks
-import mindustry.world.Block
-import mindustry.world.Tile
-import java.time.Instant
-import kotlin.math.max
-import kotlin.math.min
+import arc.*
+import arc.scene.*
+import arc.scene.ui.*
+import arc.scene.ui.layout.*
+import arc.util.*
+import mindustry.*
+import mindustry.client.utils.*
+import mindustry.content.*
+import mindustry.core.*
+import mindustry.world.*
+import java.time.*
+import kotlin.math.*
 
 /**
  * x and y are the top left corner
@@ -137,10 +135,10 @@ class TileRecord(val x: Int, val y: Int) {
         table.row()
 
         table.pane { t ->
-            if (logs.isNotEmpty()) {
+            if (logs.any()) {
                 t.button("Initial State") {
                     dialog("Log") {
-                        add(logs[0].snapshot.toElement())
+                        cont.add(logs[0].snapshot.toElement())
                         addCloseButton()
                     }.show()
                 }.width(150f)
@@ -148,11 +146,11 @@ class TileRecord(val x: Int, val y: Int) {
             }
             for (sequence in logs) {
                 for ((index, log) in sequence.withIndex()) {
-                    t.add(log.toElement()).left()
+                    t.add("" + log.toElement() + " (" + UI.formatTime((Time.timeSinceMillis(log.time.toEpochMilli()) / 16.667).toFloat()) + ")").left()
                     t.row()
                     t.button("State") {
                         dialog("Log") {
-                            add(get(index + sequence.startingIndex).toElement())
+                            cont.add(get(index + sequence.startingIndex).toElement())
                             addCloseButton()
                         }.show()
                     }.width(100f)

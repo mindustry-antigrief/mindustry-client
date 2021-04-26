@@ -21,7 +21,8 @@ public class ClientVars {
     @NotNull public static CommandHandler clientCommandHandler = new CommandHandler("!");
     @NotNull public static Vec2 lastSentPos = new Vec2();
     public static final String MESSAGE_BLOCK_PREFIX = "IN USE FOR CHAT AUTHENTICATION, do not use";
-    public static long lastSyncTime, lastJoinTime;
+    public static long lastJoinTime;
+    public static boolean syncing; // Whether we are in the process of reloading the world
     public static boolean signMessages = true; // Whether or not to sign outbound messages (toggle green highlight)
 
     // Cursor Position

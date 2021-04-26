@@ -2,6 +2,7 @@ package mindustry.client.navigation;
 
 import arc.math.geom.*;
 import arc.struct.*;
+import mindustry.world.*;
 
 import static mindustry.Vars.*;
 
@@ -23,7 +24,12 @@ public abstract class Navigator {
         Seq<Circle> realObstacles = new Seq<>(new Circle[0]);
         float additionalRadius =  player.unit().formation == null ? player.unit().hitSize/2 : player.unit().formation().pattern.radius() + player.unit().formation.pattern.spacing/2;
         for (TurretPathfindingEntity turret : obstacles) {
-            if (turret.canHitPlayer && turret.canShoot) realObstacles.add(new Circle(turret.x, turret.y, (turret.radius + additionalRadius)));
+            if (turret.canHitPlayer && turret.canShoot) realObstacles.add(new Circle(turret.x, turret.y, turret.radius + additionalRadius));
+        }
+        if (state.hasSpawns()) { // TODO: These should really be weighed less than turrets...
+            for (Tile spawn : spawner.getSpawns()) {
+                realObstacles.add(new Circle(spawn.worldx(), spawn.worldy(), state.rules.dropZoneRadius + additionalRadius));
+            }
         }
 
         return findPath(start, end, realObstacles.toArray(), ((float) world.unitWidth()), ((float) world.unitHeight()));

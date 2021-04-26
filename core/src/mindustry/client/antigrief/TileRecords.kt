@@ -1,7 +1,6 @@
 package mindustry.client.antigrief
 
 import arc.*
-import arc.util.*
 import mindustry.*
 import mindustry.client.*
 import mindustry.client.antigrief.TileLog.Companion.linkedArea
@@ -15,9 +14,8 @@ object TileRecords {
 
     fun initialize() {
         Events.on(EventType.WorldLoadEvent::class.java) {
-            if (Time.timeSinceMillis(ClientVars.lastSyncTime) > 5000) {
-                records = Array(Vars.world.width()) { x -> Array(Vars.world.height()) { y -> TileRecord(x, y) } }
-            }
+            if (!ClientVars.syncing) records = Array(Vars.world.width()) { x -> Array(Vars.world.height()) { y -> TileRecord(x, y) } }
+            ClientVars.syncing = false // TODO: This will break if the person returns to menu while loading
         }
 
         Events.on(EventType.BlockBuildBeginEventBefore::class.java) {
@@ -70,16 +68,13 @@ object TileRecords {
     operator fun get(tile: Tile): TileRecord? = this[tile.x.toInt(), tile.y.toInt()]
 
     private fun addLog(tile: Tile, log: TileLog) {
-        val logs = this[tile] ?: run {
-            println("Null logs")
-            return
-        }
+        val logs = this[tile] ?: return
         logs.add(log, tile)
     }
 
     fun show(tile: Tile) {
         dialog("Logs") {
-            add(TileRecords[tile]?.toElement())
+            cont.add(TileRecords[tile]?.toElement())
             addCloseButton()
         }.show()
     }

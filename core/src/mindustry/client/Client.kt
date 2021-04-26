@@ -288,7 +288,7 @@ object Client {
         register("networking", "Check the current status of the client networking system") { _, _ ->
             val build = MessageBlockCommunicationSystem.findProcessor() ?: MessageBlockCommunicationSystem.findMessage()
             if (build == null) player.sendMessage("[scarlet]No valid processor or message block found; communication system inactive.")
-            else player.sendMessage("[accent]${build.block.localizedName} at (${build.tileX()},${build.tileY()}) in use for communication.")
+            else player.sendMessage("[accent]${build.block.localizedName} at (${build.tileX()}, ${build.tileY()}) in use for communication.")
         }
 
         register("e <destination> <message...>", "Send an encrypted chat message") { args, _ ->

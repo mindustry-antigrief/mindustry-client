@@ -106,7 +106,7 @@ public class HudFragment extends Fragment{
                 ta.name = "minimap/position";
                 ta.add(new TileInfoFragment()).name("tilehud").top();
                 //minimap
-                ta.add(new Minimap()).name("minimap");
+                ta.add(new Minimap()).name("minimap").top();
             });
             t.row();
             //position

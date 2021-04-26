@@ -247,7 +247,7 @@ public class ChatFragment extends Table{
             Call.sendChatMessage(message);
             if (message.startsWith(netServer.clientCommands.getPrefix() + "sync")) { // /sync
                 player.persistPlans();
-                ClientVars.lastSyncTime = Time.millis();
+                ClientVars.syncing = true;
             }
             if (!message.startsWith(netServer.clientCommands.getPrefix())) Events.fire(new EventType.SendChatMessageEvent(message)); // Only fire when not running any command
 

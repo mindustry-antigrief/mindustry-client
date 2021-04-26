@@ -28,7 +28,7 @@ object MarkerDialog : BaseDialog("Markers") {
     }
 
     private fun updatePane() {
-        pane.clear()
+        pane.clearChildren()
 
         for (marker in Markers) {
             val table = Table()

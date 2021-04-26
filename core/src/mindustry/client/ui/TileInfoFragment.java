@@ -5,31 +5,29 @@ import arc.graphics.g2d.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
+import arc.util.*;
 import mindustry.*;
 import mindustry.client.antigrief.*;
+import mindustry.core.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.*;
 
 public class TileInfoFragment extends Table {
 
     public TileInfoFragment() {
-        NinePatchDrawable background = new NinePatchDrawable(Tex.buttonTransTop);
+        NinePatchDrawable background = new NinePatchDrawable(Tex.wavepane);
 
         setBackground(background);
         Image img = new Image();
-        add(new Padding(5f, 1f));
         add(img);
-        Table table = new Table();
         Label label = new Label("");
-        table.add(label);
-        add(new Padding(5f, 1f));
-        add(table);
+        add(label).height(126);
         visible(() -> Core.settings.getBool("tilehud"));
         AtomicInteger lastPos = new AtomicInteger();
+        var builder = new StringBuilder();
         update(() -> {
             Tile hovered = Vars.control.input.cursorTile();
             if (hovered == null) {
@@ -49,13 +47,13 @@ public class TileInfoFragment extends Table {
             img.setDrawable(icon.found()? icon : hovered.floor().icon(Cicon.xlarge));
             var record = TileRecords.INSTANCE.get(hovered);
             if (record == null) return;
-            var logs = record.lastLogs(3);
+            var logs = record.lastLogs(7);
 
-            var builder = new StringBuilder();
+            builder.setLength(0);
             for (var item : logs) {
-                builder.append(item.toShortString()).append("\n");
+                builder.append(item.toShortString()).append(" (").append(UI.formatMinutesFromMillis(Time.timeSinceMillis(item.getTime().toEpochMilli()))).append(")\n");
             }
-            label.setText(builder.toString());
+            label.setText(builder.length() == 0 ? "" : builder.substring(0, builder.length() - 1));
         });
     }
 }

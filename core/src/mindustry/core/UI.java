@@ -579,7 +579,11 @@ public class UI implements ApplicationListener, Loadable{
         int m = (int)(ticks / Time.toMinutes) % 60;
         int h = (int)(ticks / Time.toHours);
         String out = (h == 0 ? "" : h + "h") + (m == 0 ? "" : m + "m");
-        return out.isEmpty() ? "0s" : out;
+        return out.isEmpty() ? "0m" : out;
+    }
+
+    public static String formatMinutesFromMillis(long millis){
+        return formatMinutes(millis / 16.667f);
     }
 
     public static int roundAmount(int number){
