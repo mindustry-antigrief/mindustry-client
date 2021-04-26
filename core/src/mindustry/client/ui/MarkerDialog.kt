@@ -1,18 +1,15 @@
 package mindustry.client.ui
 
-import arc.graphics.Color
-import arc.scene.ui.Image
-import arc.scene.ui.TextField
-import arc.scene.ui.layout.Table
-import arc.util.Strings
+import arc.graphics.*
+import arc.scene.ui.*
+import arc.scene.ui.layout.*
+import arc.util.*
 import mindustry.Vars.ui
-import mindustry.client.navigation.Markers
-import mindustry.client.utils.dialog
-import mindustry.client.utils.row
-import mindustry.gen.Icon
-import mindustry.gen.Tex
-import mindustry.ui.dialogs.BaseDialog
-import kotlin.random.Random
+import mindustry.client.navigation.*
+import mindustry.client.utils.*
+import mindustry.gen.*
+import mindustry.ui.dialogs.*
+import kotlin.random.*
 
 object MarkerDialog : BaseDialog("Markers") {
     val pane = Table()
@@ -77,11 +74,14 @@ object MarkerDialog : BaseDialog("Markers") {
 
     class MarkerAddDialog : BaseDialog("Add Marker") {
         init {
-            val nameField = TextField("Name")
+            val nameField = TextField("")
+            nameField.messageText = "Name"
             cont.row(nameField)
 
-            val xField = cont.field("X") {}.valid(Strings::canParsePositiveInt).growX().get()
-            val yField = cont.field("Y") {}.valid(Strings::canParsePositiveInt).growX().get()
+            val xField = cont.field("") {}.valid(Strings::canParsePositiveInt).growX().get()
+            xField.messageText = "X"
+            val yField = cont.field("") {}.valid(Strings::canParsePositiveInt).growX().get()
+            yField.messageText = "Y"
 
             cont.row()
 

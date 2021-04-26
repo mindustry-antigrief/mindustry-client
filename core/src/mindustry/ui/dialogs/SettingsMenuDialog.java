@@ -346,7 +346,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("unitranges", false);
-        client.checkPref("disablemonofont", false); // Requires Restart
+        client.checkPref("disablemonofont", !Core.settings.getString("locale").equals("en")); // Requires Restart, disabled if not in english as it doesn't support some characters
         client.checkPref("drawhitboxes", false);
 
         client.category("misc");

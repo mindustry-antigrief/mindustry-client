@@ -66,6 +66,12 @@ public class SStats implements SteamUserStatsCallback{
     }
 
     void checkUpdate(){
+        if (Core.settings.getBool("unlockallachievements")) {
+            for (SAchievement a : SAchievement.all) {
+                a.complete();
+            }
+            Core.settings.remove("unlockallachievements");
+        }
         if(campaign()){
             SStat.maxUnitActive.max(Groups.unit.count(t -> t.team == player.team()));
 

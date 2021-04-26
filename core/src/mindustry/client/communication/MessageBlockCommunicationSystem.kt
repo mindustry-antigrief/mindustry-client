@@ -1,15 +1,15 @@
 package mindustry.client.communication
 
 import arc.*
-import arc.struct.Seq
+import arc.struct.*
 import mindustry.*
 import mindustry.client.*
-import mindustry.client.crypto.Base32768Coder
-import mindustry.client.utils.base32678
+import mindustry.client.crypto.*
+import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.game.*
 import mindustry.gen.*
-import mindustry.logic.LExecutor
+import mindustry.logic.*
 import mindustry.world.blocks.logic.*
 import java.io.*
 
@@ -27,15 +27,24 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
     private const val MAX_PRINT_LENGTH = 34
     const val LOGIC_PREFIX = "end\nprint \"client networking, do not edit/remove\""
 
-    private fun findProcessor(): LogicBlock.LogicBuild? {
+    fun findProcessor(): LogicBlock.LogicBuild? {
         for (build in Groups.build) {
             val b = build as? LogicBlock.LogicBuild ?: continue
-            if (b.code.startsWith(LOGIC_PREFIX)) {
+            if (b.team == Vars.player.team() && b.code.startsWith(LOGIC_PREFIX)) {
                 logicAvailable = true
                 return b
             }
         }
         logicAvailable = false
+        return null
+    }
+
+    fun findMessage(): MessageBlock.MessageBuild? {
+        for (tile in Vars.world.tiles) {
+            val build = tile.build as? MessageBlock.MessageBuild ?: continue
+            if (build.team != Vars.player.team() || !build.message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)) continue
+            return build
+        }
         return null
     }
 
@@ -102,18 +111,12 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
     }
 
     private fun sendMessageBlock(bytes: ByteArray) {
-        for (build in Groups.build) {
-            if (build !is MessageBlock.MessageBuild) continue
-            if (build.team != Vars.player.team() || !build.message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)) continue
-
-            Call.tileConfig(Vars.player, build, ClientVars.MESSAGE_BLOCK_PREFIX + Base32768Coder.encode(bytes))
-            return
-        }
-        throw IOException() // Throws an exception when no valid block is found
+        val message = findMessage() ?: throw IOException() // Throws an exception when no valid block is found
+        Call.tileConfig(Vars.player, message, ClientVars.MESSAGE_BLOCK_PREFIX + Base32768Coder.encode(bytes))
     }
 
     private fun sendLogic(bytes: ByteArray) {
-        val processor = findProcessor() ?: throw IOException("No matching processor found!")
+        val processor = findProcessor() ?: throw IOException("No matching processor found!") // Throws an exception when no valid block is found
         val value = bytes.plus(12).base32678().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = LOGIC_PREFIX + "\n") { "print \"$it\"" }.removeSuffix("\n")
         Call.tileConfig(Vars.player, processor, LogicBlock.compress(value, Seq()))
     }

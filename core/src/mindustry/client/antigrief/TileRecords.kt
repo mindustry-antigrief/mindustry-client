@@ -1,16 +1,14 @@
 package mindustry.client.antigrief
 
-import arc.Events
-import arc.util.Time
-import mindustry.Vars
-import mindustry.client.ClientVars
+import arc.*
+import arc.util.*
+import mindustry.*
+import mindustry.client.*
 import mindustry.client.antigrief.TileLog.Companion.linkedArea
-import mindustry.client.utils.contains
-import mindustry.client.utils.dialog
-import mindustry.client.utils.get
-import mindustry.content.Blocks
-import mindustry.game.EventType
-import mindustry.world.Tile
+import mindustry.client.utils.*
+import mindustry.content.*
+import mindustry.game.*
+import mindustry.world.*
 
 object TileRecords {
     private var records: Array<Array<TileRecord>> = arrayOf(arrayOf())
@@ -23,10 +21,12 @@ object TileRecords {
         }
 
         Events.on(EventType.BlockBuildBeginEventBefore::class.java) {
-            forArea(it.tile, it.newBlock?.size ?: 1) { tile ->
-                if (it.newBlock == Blocks.air || it.newBlock == null) {
+            if (it.newBlock == null || it.newBlock == Blocks.air) {
+                it.tile.getLinkedTiles { tile ->
                     addLog(tile, TileBreakLog(tile, it.unit.toInteractor(), tile.block()))
-                } else {
+                }
+            } else {
+                forArea(it.tile, it.newBlock.size) { tile ->
                     addLog(tile, TilePlacedLog(tile, it.unit.toInteractor(), it.newBlock, tile.build?.config()))
                 }
             }

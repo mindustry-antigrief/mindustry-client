@@ -570,15 +570,14 @@ public class DesktopInput extends InputHandler{
             ui.database.show();
         }).tooltip("@database");
 
-        table.button(Icon.map, Styles.clearPartiali, MarkerDialog.INSTANCE::show).tooltip("Map Markers");
-
-//        table.button(Icon.tree, Styles.clearPartiali, () -> {  // To make room
-//            ui.research.show();
-//        }).visible(() -> state.isCampaign()).tooltip("@research");
+        table.button(Icon.tree, Styles.clearPartiali, () -> {
+            ui.research.show();
+        }).visible(() -> state.isCampaign()).tooltip("@research");
 
         table.button(Icon.map, Styles.clearPartiali, () -> {
-            ui.planet.show();
-        }).visible(() -> state.isCampaign()).tooltip("@planetmap");
+            if (state.isCampaign() && !Vars.net.client()) ui.planet.show();
+            else MarkerDialog.INSTANCE.show();
+        }).tooltip(state.isCampaign() ? "@planetmap" : "Map Markers");
     }
 
     void pollInput(){

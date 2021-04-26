@@ -1,38 +1,30 @@
 package mindustry.client
 
-import arc.Core
-import arc.Events
-import arc.graphics.Color
-import arc.math.Mathf
-import arc.util.Log
-import arc.util.Strings
-import arc.util.Time
-import mindustry.Vars
+import arc.*
+import arc.graphics.*
+import arc.math.*
+import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
 import mindustry.client.Main.setPluginNetworking
 import mindustry.client.Spectate.spectate
-import mindustry.client.antigrief.PowerInfo
-import mindustry.client.navigation.BuildPath
-import mindustry.client.navigation.Markers
-import mindustry.client.navigation.Navigation
-import mindustry.client.ui.ChangelogDialog
-import mindustry.client.ui.Toast
+import mindustry.client.antigrief.*
+import mindustry.client.communication.*
+import mindustry.client.navigation.*
+import mindustry.client.ui.*
 import mindustry.client.utils.*
-import mindustry.content.Blocks
-import mindustry.core.NetClient
-import mindustry.core.World
-import mindustry.entities.Units
-import mindustry.entities.units.UnitCommand
-import mindustry.game.EventType
-import mindustry.game.EventType.ClientLoadEvent
-import mindustry.game.EventType.WorldLoadEvent
-import mindustry.gen.Call
-import mindustry.gen.Player
-import mindustry.input.DesktopInput
-import mindustry.net.Administration
-import mindustry.type.UnitType
-import kotlin.random.Random
+import mindustry.content.*
+import mindustry.core.*
+import mindustry.entities.*
+import mindustry.entities.units.*
+import mindustry.game.*
+import mindustry.game.EventType.*
+import mindustry.gen.*
+import mindustry.input.*
+import mindustry.net.*
+import mindustry.type.*
+import mindustry.ui.*
+import kotlin.random.*
 
 
 object Client {
@@ -41,6 +33,7 @@ object Client {
         registerCommands()
 
         Events.on(WorldLoadEvent::class.java) {
+            lastJoinTime = Time.millis();
             setPluginNetworking(false)
             PowerInfo.initialize()
             Navigation.stopFollowing()
@@ -56,13 +49,16 @@ object Client {
         }
 
         Events.on(ClientLoadEvent::class.java) {
-            val changeHash = Core.files.internal("changelog").readString()
-                .hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
+            val changeHash = Core.files.internal("changelog").readString().hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
             if (Core.settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
             Core.settings.put("changeHash", changeHash)
-            if (Core.settings.getBool("debug")) Log.level =
-                Log.LogLevel.debug // Set log level to debug if the setting is checked
+
+            if (Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug // Set log level to debug if the setting is checked
             if (Core.settings.getBool("discordrpc")) platform.startDiscord()
+            if (Core.settings.getBool("disablemonofont")) { // The mono font doesn't support many non ascii chars, some people dislike it
+                Fonts.mono = Fonts.def
+                Fonts.monoOutline = Fonts.outline
+            }
 
             Autocomplete.autocompleters.add(BlockEmotes())
             Autocomplete.autocompleters.add(PlayerCompletion())
@@ -73,24 +69,20 @@ object Client {
             Navigation.navigator.init()
         }
 
-        Events.on(EventType.PlayerJoin::class.java) { e ->
+        Events.on(PlayerJoin::class.java) { e ->
             if (e.player == null) return@on
 
             val message = "[accent]${e.player.name}[accent] has connected."
-            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !ui.chatfrag.messages.first().message.equals(
-                    message
-                )) && Time.timeSinceMillis(lastJoinTime) > 10000
-            ) player.sendMessage(message)
+            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !ui.chatfrag.messages.first().message.equals(message)) && Time.timeSinceMillis(lastJoinTime) > 10000)
+                player.sendMessage(message)
         }
 
-        Events.on(EventType.PlayerLeave::class.java) { e ->
+        Events.on(PlayerLeave::class.java) { e ->
             if (e.player == null) return@on
 
             val message = "[accent]${e.player.name}[accent] has disconnected."
-            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !ui.chatfrag.messages.first().message.equals(
-                    message
-                ))
-            ) player.sendMessage(message)
+            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !ui.chatfrag.messages.first().message.equals(message)))
+                player.sendMessage(message)
         }
     }
 
@@ -224,36 +216,28 @@ object Client {
             }
         }
 
-        // Not sure if the register function can handle this case
-        clientCommandHandler.register(
-            "", "[message...]", "Lets you start messages with an !"
-        ) { args, _: Player -> Call.sendChatMessage("!" + if (args.size == 1) args[0] else "") }
+        register(" [message...]", "Lets you start messages with an !") { args, _ ->
+            Call.sendChatMessage("!" + if (args.size == 1) args[0] else "")
+        }
 
         register("shrug [message...]", "Sends the shrug unicode emoji with an optional message") { args, _ ->
             Call.sendChatMessage("¯\\_(ツ)_/¯ " + if (args.size == 1) args[0] else "")
         }
 
         register("login [name] [pw]", "Used for CN. [scarlet]Don't use this if you care at all about security.") { args, _ ->
-            if (args.size == 2) Core.settings.put(
-                "cnpw",
-                args[0] + " " + args[1]
-            ) else Call.sendChatMessage("/login " + Core.settings.getString("cnpw", ""))
-        }
-
-        register("js <code...>", "Runs JS on the client.") { args, player: Player ->
-            player.sendMessage(
-                "[accent]" + mods.scripts.runConsole(
-                    args[0]
-                )
-            )
+            if (args.size == 2) Core.settings.put("cnpw", args[0] + " " + args[1])
+            else Call.sendChatMessage("/login " + Core.settings.getString("cnpw", ""))
         }
 
         register("marker <name> [x] [y]", "Adds a marker with <name> at x, y, or your current position if x and y are not specified.") { args, player ->
-            if (args.isEmpty()) return@register
             val x = if (args.size == 3) args[1].toIntOrNull() ?: player.tileX() else player.tileX()
             val y = if (args.size == 3) args[2].toIntOrNull() ?: player.tileY() else player.tileY()
             val color = Color.HSVtoRGB(Random.nextFloat() * 360, 75f, 75f)
             Markers.add(Markers.Marker(x, y, args[0], color))
+        }
+
+        register("js <code...>", "Runs JS on the client.") { args, player: Player ->
+            player.sendMessage("[accent]" + mods.scripts.runConsole(args[0]))
         }
 
         register("/js <code...>", "Runs JS on the client as well as the server.") { args, player ->
@@ -284,13 +268,8 @@ object Client {
                 BiasedLevenshtein.biasedLevenshtein(args[0], b.name)
             }.first()
 
-            player.sendMessage(Strings.format(
-                    "[accent]@: @/@",
-                    unit.localizedName,
-                    player.team().data().countType(unit),
-                    Units.getCap(player.team())
-                )
-            ) // TODO: Make this check each unit to see if it is a player/formation unit, display that info
+            // TODO: Make this check each unit to see if it is a player/formation unit, display that info
+            player.sendMessage(Strings.format("[accent]@: @/@", unit.localizedName, player.team().data().countType(unit), Units.getCap(player.team())))
         }
 
         register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
@@ -298,14 +277,28 @@ object Client {
         }
 
         register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
-            Call.sendChatMessage(
-                "\"In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!"
-            )
+            Call.sendChatMessage("\"In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
         }
 
         register("togglesign", "Toggles the signing of messages on and off (whether or not your messages can be green for other players)") { _, _ ->
             signMessages = !signMessages
             player.sendMessage("Successfully toggled signing of messages " + if (signMessages) "on" else "off")
+        }
+
+        register("networking", "Check the current status of the client networking system") { _, _ ->
+            val build = MessageBlockCommunicationSystem.findProcessor() ?: MessageBlockCommunicationSystem.findMessage()
+            if (build == null) player.sendMessage("[scarlet]No valid processor or message block found; communication system inactive.")
+            else player.sendMessage("[accent]${build.block.localizedName} at (${build.tileX()},${build.tileY()}) in use for communication.")
+        }
+
+        register("e <destination> <message...>", "Send an encrypted chat message") { args, _ ->
+            for (key in Main.messageCrypto.keys) {
+                if (key.name.equals(args[0], true)) {
+                    Main.messageCrypto.encrypt(args[1], key)
+                    return@register
+                }
+            }
+            Toast(3f).add("@client.invalidkey")
         }
     }
 

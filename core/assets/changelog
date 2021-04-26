@@ -1,6 +1,16 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
-# Version 7.1
+# Version 7.2.0
+ * Fixed the unlock all achievements button
+ * Fixed the mono font disable option not disabling it everywhere
+ * Fixed join messages spamming on world load
+ * Fixed the message block networking system not working at all
+ * Fixed break tile logs
+ * Disabled the mono font by default when the game is being run in a language other than english (some characters aren't in the font)
+ * Added a !networking command to check the status of client networking
+ * Removed the map markers button in the campaign to make room for the planet map button
+
+# Version 7.1.0
  * Made client networking 190x faster via the use of microprocessors (processors can now be configured for networking instead of just message blocks)
  * Fixed a tile log crash
 

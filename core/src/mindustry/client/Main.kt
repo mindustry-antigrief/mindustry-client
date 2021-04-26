@@ -4,25 +4,24 @@ import arc.*
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
+import arc.util.Interval
 import mindustry.*
-import mindustry.client.antigrief.TileRecords
+import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
-import mindustry.client.utils.FloatEmbed
+import mindustry.client.utils.*
 import mindustry.entities.units.*
 import mindustry.game.*
-import mindustry.gen.Groups
 import mindustry.input.*
-import mindustry.world.blocks.logic.LogicBlock
 
 object Main : ApplicationListener {
     lateinit var communicationSystem: SwitchableCommunicationSystem
     lateinit var messageCrypto: MessageCrypto
     lateinit var communicationClient: Packets.CommunicationClient
     private var dispatchedBuildPlans = mutableListOf<BuildPlan>()
-    private val buildPlanInterval = Interval(2)
+    private val buildPlanInterval = Interval()
 
     /** Run on client load. */
     override fun init() {
@@ -32,19 +31,6 @@ object Main : ApplicationListener {
             communicationSystem.init()
 
             TileRecords.initialize()
-
-            ClientVars.clientCommandHandler.register("e", "<destination> <message...>", "Send an encrypted chat message") { args ->
-                val dest = args[0]
-                val message = args[1]
-
-                for (key in messageCrypto.keys) {
-                    if (key.name.equals(dest, true)) {
-                        messageCrypto.encrypt(message, key)
-                        return@register
-                    }
-                }
-                Toast(3f).add("@client.invalidkey")
-            }
         } else {
             communicationSystem = SwitchableCommunicationSystem(DummyCommunicationSystem(mutableListOf()))
             communicationSystem.init()
@@ -130,7 +116,7 @@ object Main : ApplicationListener {
         }
     }
 
-    private fun sendBuildPlans(num: Int = 300) {
+    private fun sendBuildPlans(num: Int = 500) {
         val toSend = Vars.player.unit().plans.toList().takeLast(num).toTypedArray()
         if (toSend.isEmpty()) return
         communicationClient.send(BuildQueueTransmission(toSend), { Toast(3f).add(Core.bundle.format("client.sentplans", toSend.size)) }, { Toast(3f).add("@client.nomessageblock")})
