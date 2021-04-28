@@ -61,6 +61,13 @@ public class MendProjector extends Block{
         indexer.eachBlock(player.team(), x * tilesize + offset, y * tilesize + offset, range, other -> true, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
     }
 
+    @Override
+    public void setBars(){
+        super.setBars();
+
+        bars.add("charge", entity -> new Bar("bar.charge", Pal.heal, entity.charge / reload));
+    }
+
     public class MendBuild extends Building implements Ranged{
         float heat;
         float charge = Mathf.random(reload);
