@@ -70,7 +70,7 @@ public class MendProjector extends Block{
 
     public class MendBuild extends Building implements Ranged{
         float heat;
-        float charge = Mathf.random(reload);
+        public float charge = Mathf.random(reload);
         float phaseHeat;
         float smoothEfficiency;
 
