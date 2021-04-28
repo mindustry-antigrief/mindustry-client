@@ -160,7 +160,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         textFadeTime -= Time.delta / (60 * 5);
 
         fooUser = FloatEmbed.isEmbedded(mouseX, ClientVars.FOO_USER) && (FloatEmbed.isEmbedded(mouseY, ClientVars.ASSISTING) || FloatEmbed.isEmbedded(mouseY, ClientVars.FOO_USER));
-        assisting = FloatEmbed.isEmbedded(mouseX, ClientVars.FOO_USER) && FloatEmbed.isEmbedded(mouseY, ClientVars.ASSISTING);
+        assisting = (FloatEmbed.isEmbedded(mouseX, ClientVars.FOO_USER) || FloatEmbed.isEmbedded(mouseX, ClientVars.ASSISTING)) && FloatEmbed.isEmbedded(mouseY, ClientVars.ASSISTING);
     }
 
     @Override

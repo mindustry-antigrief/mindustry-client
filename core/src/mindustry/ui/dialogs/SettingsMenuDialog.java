@@ -342,11 +342,11 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
         client.sliderPref("effectscl", 100, 0, 100, 5, s -> s + "%");
-        client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%[lightgray] (after stack: " + s * settings.getInt("effectscl") / 100 + "%)[]");
+        client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%[lightgray] (" + Core.bundle.get("client.afterstack") + ": " + s * settings.getInt("effectscl") / 100 + "%)[]");
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
-        client.checkPref("unitranges", false);
         client.checkPref("disablemonofont", !Core.settings.getString("locale").equals("en")); // Requires Restart, disabled if not in english as it doesn't support some characters
+        client.checkPref("unitranges", false);
         client.checkPref("drawhitboxes", false);
 
         client.category("misc");
@@ -355,6 +355,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("allowjoinany", false);
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
+        client.checkPref("debugtext", false);
         if (steam) client.checkPref("unlockallachievements", false);
         // End Client Settings
 

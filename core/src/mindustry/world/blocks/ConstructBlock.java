@@ -22,8 +22,8 @@ import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
-import mindustry.game.EventType.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
@@ -36,7 +36,6 @@ import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.modules.*;
 
-import java.time.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
@@ -538,7 +537,7 @@ public class ConstructBlock extends Block{
                 }
 
                 if (warnBlocks.get(cblock).first == 101 || distance.get() <= warnBlocks.get(cblock).first) {
-                    String format = Strings.format("@ is building a @ at @, @ (@ block@ from core).", Strings.stripColors(lastBuilder.playerNonNull().name), cblock.localizedName, tileX(), tileY(), distance.get(), distance.get() == 1 ? "" : "s");
+                    String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.playerNonNull().name), cblock.localizedName, tileX(), tileY(), distance.get());
                     String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
                     if (toast == null || toast.parent == null) {
                         toast = new Toast(2f, 0f);

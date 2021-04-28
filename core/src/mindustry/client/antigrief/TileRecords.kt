@@ -8,6 +8,7 @@ import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.game.*
 import mindustry.world.*
+import mindustry.world.blocks.*
 
 object TileRecords {
     private var records: Array<Array<TileRecord>> = arrayOf(arrayOf())
@@ -50,7 +51,10 @@ object TileRecords {
 
         Events.on(EventType.BlockDestroyEvent::class.java) {
             forArea(it.tile) { tile ->
-                addLog(tile, TileDestroyedLog(tile, tile.block()))
+                addLog(tile, TileDestroyedLog(tile,
+                    if (tile.build is ConstructBlock.ConstructBuild) (tile.build as ConstructBlock.ConstructBuild).cblock ?:
+                    (tile.build as ConstructBlock.ConstructBuild).previous
+                    else tile.block()))
             }
         }
     }

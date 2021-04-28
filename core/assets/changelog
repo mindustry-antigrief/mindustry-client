@@ -1,9 +1,16 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
 # Version 7.2.2
- * Fixed a bug in buildpath that caused !builder belts and !builder drill to only partially upgrade each building
+ * Fixed an issue in buildpath where !builder belts and !builder drill would only partially upgrade each building
  * Minor buildpath speed improvements
  * Removed debug logging that shouldn't have been left in
+ * Fixed mono font disable option for real
+ * Added fallback discord presence for older java versions
+ * Added setting to find all non bundle strings
+ * Made some progress towards localization of the client, many of the strings are now in bundle and can be translated (its nowhere near done but its a start)
+ * Fixed an issue where formation units weren't being displayed as such in tile logs
+ * Fixed an issue in tile logs where a half built/broken block being destroyed would display something along the lines of "build1"
+ * Pressing escape will now close the player list if it is open
 
 # Version 7.2.1
  * Fixed dialogs being weird

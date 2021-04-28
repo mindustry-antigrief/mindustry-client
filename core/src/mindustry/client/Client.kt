@@ -55,10 +55,6 @@ object Client {
 
             if (Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug // Set log level to debug if the setting is checked
             if (Core.settings.getBool("discordrpc")) platform.startDiscord()
-            if (Core.settings.getBool("disablemonofont")) { // The mono font doesn't support many non ascii chars, some people dislike it
-                Fonts.mono = Fonts.def
-                Fonts.monoOutline = Fonts.outline
-            }
 
             Autocomplete.autocompleters.add(BlockEmotes())
             Autocomplete.autocompleters.add(PlayerCompletion())

@@ -11,6 +11,7 @@ import mindustry.gen.*;
 import mindustry.ui.*;
 
 public class MonospacedBar extends Bar {
+    Font font = Fonts.monoOutline();
 
     public MonospacedBar(String name, Color color, Floatp fraction){
         super(name, color, fraction);
@@ -53,7 +54,6 @@ public class MonospacedBar extends Bar {
 
         Draw.color();
 
-        Font font = Fonts.monoOutline;
         GlyphLayout lay = Pools.obtain(GlyphLayout.class, GlyphLayout::new);
         lay.setText(font, name);
 

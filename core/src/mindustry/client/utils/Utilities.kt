@@ -5,24 +5,19 @@ package mindustry.client.utils
 import arc.scene.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
-import arc.util.Strings
-import arc.util.serialization.Base64Coder
-import mindustry.client.crypto.Base32768Coder
-import mindustry.core.World
-import mindustry.ui.Styles
-import mindustry.ui.dialogs.BaseDialog
-import mindustry.world.Tile
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.time.temporal.Temporal
-import java.time.temporal.TemporalUnit
-import java.util.zip.DeflaterInputStream
-import java.util.zip.InflaterInputStream
-import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.floor
+import arc.util.*
+import arc.util.serialization.*
+import mindustry.client.crypto.*
+import mindustry.core.*
+import mindustry.ui.*
+import mindustry.ui.dialogs.*
+import mindustry.world.*
+import java.io.*
+import java.nio.*
+import java.time.*
+import java.time.temporal.*
+import java.util.zip.*
+import kotlin.math.*
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -59,6 +54,8 @@ fun <T : Element> Table.row(element: T): Cell<T> {
 inline fun dialog(name: String, style: Dialog.DialogStyle = Styles.defaultDialog, dialog: BaseDialog.() -> Unit): Dialog {
     return BaseDialog(name, style).apply(dialog)
 }
+
+fun Cell<TextButton>.wrap(value: Boolean) { get().label.setWrap(value) }
 
 fun ByteArray.base64(): String = Base64Coder.encode(this).concatToString()
 

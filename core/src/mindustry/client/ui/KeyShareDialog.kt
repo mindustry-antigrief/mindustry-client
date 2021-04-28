@@ -14,7 +14,7 @@ import mindustry.gen.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
 
-class KeyShareDialog(private val messageCrypto: MessageCrypto) : BaseDialog("Key Share") {
+class KeyShareDialog(private val messageCrypto: MessageCrypto) : BaseDialog("@client.keyshare") {
     private val keys = Table()
     private lateinit var importDialog: Dialog
 
@@ -48,31 +48,31 @@ class KeyShareDialog(private val messageCrypto: MessageCrypto) : BaseDialog("Key
 
             t.row()
 
-            t.button("Import Key") {
-                importDialog = dialog("Import Key") {
+            t.button("@client.importkey") {
+                importDialog = dialog("@client.importkey") {
                     val nameInput = TextField("")
                     var name = ""
                     nameInput.maxLength = 30
-                    nameInput.messageText = "Name"
+                    nameInput.messageText = "@client.name"
                     nameInput.setFilter { _, c -> c != ' '}
                     nameInput.setValidator { n -> n.length >= 2 && n !in messageCrypto.keys.map { it.name }.also { name = n } }
                     cont.row(nameInput).width(400f)
 
                     val keyInput = TextField("")
                     var key: PublicKeyPair? = null
-                    keyInput.messageText = "Key"
+                    keyInput.messageText = "@client.key"
                     keyInput.setValidator { k -> MessageCrypto.base64public(k).also { key = it }.let { it != null } }
                     cont.row(keyInput).width(400f)
 
                     cont.row().table{ ta ->
                         ta.defaults().width(194f).pad(3f)
-                        ta.button("Import") button2@{
+                        ta.button("@client.importkey") button2@{
                             messageCrypto.keys.add(KeyHolder(key!!, name, false, messageCrypto))
                             regenerate()
                             hide()
                         }.disabled { !keyInput.isValid || !nameInput.isValid }
 
-                        ta.button("Close") {
+                        ta.button("@close") {
                             hide()
                         }
                     }
@@ -82,7 +82,7 @@ class KeyShareDialog(private val messageCrypto: MessageCrypto) : BaseDialog("Key
 
             t.row()
 
-            t.button("Export Key") {
+            t.button("@client.exportkey") {
                 Main.messageCrypto.keyQuad
                 Core.app.clipboardText = Main.messageCrypto.base64public()
                 Toast(3f).add("@copied")
@@ -90,7 +90,7 @@ class KeyShareDialog(private val messageCrypto: MessageCrypto) : BaseDialog("Key
 
             t.row()
 
-            t.button("Close") {
+            t.button("@close") {
                 hide()
             }.growX().get().label.setWrap(false)
         }

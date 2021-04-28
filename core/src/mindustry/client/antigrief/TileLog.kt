@@ -2,7 +2,6 @@ package mindustry.client.antigrief
 
 import arc.*
 import arc.scene.*
-import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import arc.util.*
 import mindustry.*
@@ -56,7 +55,7 @@ abstract class TileLog(val position: IntRectangle, override val cause: Interacto
 
     abstract fun apply(previous: TileState)
 
-    abstract fun toElement(): Element
+    abstract override fun toString(): String
 
     open fun add(sequence: TileLogSequence) {
         sequence.logs.add(this)
@@ -86,7 +85,7 @@ class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterabl
 class TileRecord(val x: Int, val y: Int) {
     private val logs = mutableListOf<TileLogSequence>()
     val size get() = logs.lastOrNull()?.range?.last ?: 0
-    val totalRange get() = 0..size
+    private val totalRange get() = 0..size
 
     fun add(log: TileLog, tile: Tile) {
         when {
@@ -131,29 +130,29 @@ class TileRecord(val x: Int, val y: Int) {
 
     fun toElement(): Element {
         val table = Table()
-        table.add("Logs for ($x, $y):").top()
+        table.add(Core.bundle.format("client.logfor", x, y)).top()
         table.row()
 
         table.pane { t ->
             if (logs.any()) {
-                t.button("Initial State") {
-                    dialog("Log") {
+                t.button("@client.initialstate") {
+                    dialog("@client.log") {
                         cont.add(logs[0].snapshot.toElement())
                         addCloseButton()
                     }.show()
-                }.width(150f)
+                }.wrap(false)
                 t.row()
             }
             for (sequence in logs) {
                 for ((index, log) in sequence.withIndex()) {
-                    t.add("" + log.toElement() + " (" + UI.formatTime((Time.timeSinceMillis(log.time.toEpochMilli()) / 16.667).toFloat()) + ")").left()
+                    t.add(log.toString() + " (" + UI.formatTime((Time.timeSinceMillis(log.time.toEpochMilli()) / 16.667).toFloat()) + ")").left()
                     t.row()
-                    t.button("State") {
-                        dialog("Log") {
+                    t.button("@client.state") {
+                        dialog("@client.log") {
                             cont.add(get(index + sequence.startingIndex).toElement())
                             addCloseButton()
                         }.show()
-                    }.width(100f)
+                    }.wrap(false)
                     t.row()
                 }
             }
@@ -168,8 +167,8 @@ class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, var conf
         previous.configuration = configuration
     }
 
-    override fun toElement(): Element {
-        return Label("${cause.name.stripColors()} configured ${block.localizedName}")
+    override fun toString(): String {
+        return "${cause.name.stripColors()} ${Core.bundle.get("client.configured")} ${block.localizedName}"
     }
 
     override fun add(sequence: TileLogSequence) {
@@ -179,7 +178,7 @@ class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, var conf
         }
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors()} configured"
+    override fun toShortString() = "${cause.shortName.stripColors()} ${Core.bundle.get("client.configured")}"
 }
 
 open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val configuration: Any?) : TileLog(tile, cause) {
@@ -188,19 +187,19 @@ open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val co
         previous.configuration = configuration
     }
 
-    override fun toElement(): Element {
-        return Label("${cause.name.stripColors()} placed ${block.localizedName}")
+    override fun toString(): String {
+        return "${cause.name.stripColors()} ${Core.bundle.get("client.built")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors()} placed ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors()} ${Core.bundle.get("client.built")} ${block.localizedName}"
 }
 
 class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, configuration: Any?) : TilePlacedLog(tile, cause, block, configuration) {
-    override fun toElement(): Element {
-        return Label("${cause.name.stripColors()} picked up ${block.localizedName}")
+    override fun toString(): String {
+        return "${cause.name.stripColors()} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors()} picked up ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors()} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
 }
 
 open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause) {
@@ -209,25 +208,25 @@ open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileL
         previous.configuration = null
     }
 
-    override fun toElement(): Element {
-        return Label("${cause.name.stripColors()} broke ${block.localizedName}")
+    override fun toString(): String {
+        return "${cause.name.stripColors()} ${Core.bundle.get("client.broke")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors()} broke ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors()} ${Core.bundle.get("client.broke")} ${block.localizedName}"
 }
 
 class BlockPayloadPickupLog(tile: Tile, cause: Interactor, block: Block) : TileBreakLog(tile, cause, block) {
-    override fun toElement(): Element {
-        return Label("${cause.name.stripColors()} picked up ${block.localizedName}")
+    override fun toString(): String {
+        return "${cause.name.stripColors()} ${Core.bundle.get("client.pickedup")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors()} picked up ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors()} ${Core.bundle.get("client.pickedup")} ${block.localizedName}"
 }
 
 class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteractor(), block) {
-    override fun toElement(): Element {
-        return Label("${block.localizedName} destroyed")
+    override fun toString(): String {
+        return "${block.localizedName} ${Core.bundle.get("client.destroyed")}"
     }
 
-    override fun toShortString() = "${block.localizedName} destroyed"
+    override fun toShortString() = "${block.localizedName} ${Core.bundle.get("client.destroyed")}"
 }

@@ -70,7 +70,7 @@ public class MenuFragment extends Fragment{
                             becontrol.showUpdateDialog();
                         }
                     });
-                }).size(200, 60).padRight(10).update(t -> t.getLabel().setText("Switch to " + (Core.settings.getString("updateurl").endsWith("-builds") ? "Stable" : "Unstable")));
+                }).size(200, 60).padRight(10).update(t -> t.getLabel().setText(Core.settings.getString("updateurl").endsWith("-builds") ? "@client.switchunstable" : "@client.switchstable"));
 
                 c.bottom().right().button("@be.check", Icon.refresh, () -> {
                     ui.loadfrag.show();
@@ -183,7 +183,7 @@ public class MenuFragment extends Fragment{
                     new Buttoni("@customgame", Icon.terrain, () -> checkPlay(ui.custom::show)),
                     new Buttoni("@loadgame", Icon.download, () -> checkPlay(ui.load::show))
                 ),
-                new Buttoni("Client", Icon.wrench,
+                new Buttoni("@client", Icon.wrench,
                     new Buttoni("Discord", Icon.discord, () -> { // Link to client discord
                         if (!Core.app.openURI(clientDiscord)) {
                             ui.showErrorMessage("@linkfail");

@@ -15,7 +15,7 @@ import java.util.*;
  * Implementation based on https://github.com/jagrosh/DiscordIPC
  * This the only know implementation that is pure Java; on Linux/Mac, this uses Java 16's new Unix sockets.
  * */
-public final class DiscordRPC {
+public final class DiscordRPC2 {
     private static int pid;
     private static long clientId;
     private static Pipe pipe;
@@ -29,7 +29,7 @@ public final class DiscordRPC {
 
     /** Call before sending any presence updates. */
     public static void connect(long clientId) throws Exception{
-        DiscordRPC.clientId = clientId;
+        DiscordRPC2.clientId = clientId;
         String version = System.getProperty("java.version");
 
         int major = version.contains(".") ?
@@ -212,20 +212,15 @@ public final class DiscordRPC {
         public String matchSecret;
         public String joinSecret;
         public String spectateSecret;
-        public boolean instance;
         public String label1;
         public String url1;
         public String label2;
         public String url2;
-        
-        Jval2 buttons(){
-            Jval2 buttons = Jval2.newArray();
-            if (label1 != null && url1 != null) buttons.add(Jval2.newObject().put("label", label1).put("url", url1));
-            if (label2 != null && url2 != null) buttons.add(Jval2.newObject().put("label", label2).put("url", url2));
-            return buttons;
-        }
+        public boolean instance;
 
         public Jval2 toJson(){
+            boolean useButtons = joinSecret == null && matchSecret == null && spectateSecret == null;
+
             return Jval2.newObject()
                 .put("state", state)
                 .put("details", details)
@@ -237,15 +232,22 @@ public final class DiscordRPC {
                     .put("large_text", largeImageText)
                     .put("small_image", smallImageKey)
                     .put("small_text", smallImageText))
-                .put("buttons", joinSecret != null || matchSecret != null || spectateSecret != null ? null : buttons())
                 .put("party", partyId == null ? null : Jval2.newObject()
                     .put("id", partyId)
                     .put("size", Jval2.newArray().add(partySize).add(partyMax)))
-                .put("secrets", joinSecret == null && matchSecret == null && spectateSecret == null ? null : Jval2.newObject()
+                .put("secrets", useButtons ? null : Jval2.newObject()
                     .put("join", joinSecret)
                     .put("spectate", spectateSecret)
                     .put("match", matchSecret))
+                .put("buttons", useButtons ? buttons() : null)
                 .put("instance", instance);
+        }
+
+        Jval2 buttons(){
+            Jval2 buttons = Jval2.newArray();
+            if (label1 != null && url1 != null) buttons.add(Jval2.newObject().put("label", label1).put("url", url1));
+            if (label2 != null && url2 != null) buttons.add(Jval2.newObject().put("label", label2).put("url", url2));
+            return buttons;
         }
     }
 

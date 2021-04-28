@@ -429,6 +429,12 @@ public class Vars implements Loadable{
             if(locale.getDisplayName().equals("router")){
                 bundle.debug("router");
             }
+
+            if(settings.getBool("debugtext")){
+                for (String key : bundle.getKeys()) {
+                    bundle.getProperties().put(key, "@" + bundle.get(key) + "@");
+                }
+            }
         }
     }
 }

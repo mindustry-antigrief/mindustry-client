@@ -56,23 +56,23 @@ class TileState {
         table.label(Instant.ofEpochSecond(time.toEpochMilli() / 1000).toString() + " (" + UI.formatTime((Time.timeSinceMillis(time.toEpochMilli()) / 16.667).toFloat()) + ")")  // ISO 8601 time/date formatting
 
         table.row()
-        table.add("Team: ${team.name}")
+        table.add("${Core.bundle.get("client.team")}: ${team.name}")
 
         table.row()
         if (block.isAir) {
-            table.add("Empty")
+            table.add("@block.air.name")
         } else {
             table.image(block.icon(Cicon.medium))
         }
 
         table.row()
-        table.label("Facing " + when (abs(rotation % 4)) {
-            0 -> "north"
-            1 -> "east"
-            2 -> "south"
-            3 -> "west"
+        table.label(Core.bundle.get("client.facing") + ": " + Core.bundle.get("client." + when (abs(rotation % 4)) {
+            0 -> "up"
+            1 -> "right"
+            2 -> "down"
+            3 -> "left"
             else -> "unknown"
-        })
+        }))
         table.row()
 
         if (configuration != null && (configuration as? Array<*>)?.isNotEmpty() == true) {

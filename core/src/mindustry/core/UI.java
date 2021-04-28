@@ -91,8 +91,6 @@ public class UI implements ApplicationListener, Loadable{
     public void loadSync(){
         Fonts.outline.getData().markupEnabled = true;
         Fonts.def.getData().markupEnabled = true;
-        Fonts.mono.getData().markupEnabled = true;
-        Fonts.monoOutline.getData().markupEnabled = true;
         Fonts.def.setOwnsTexture(false);
 
         Core.assets.getAll(Font.class, new Seq<>()).each(font -> font.setUseIntegerPositions(true));

@@ -107,6 +107,11 @@ object Main : ApplicationListener {
                     FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
                     FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.ASSISTING)
                 )
+            Navigation.currentlyFollowing is AssistPath ->
+                Vec2(
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.ASSISTING),
+                    FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.ASSISTING)
+                )
             Core.settings.getBool("displayasuser") ->
                 Vec2(
                     FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),

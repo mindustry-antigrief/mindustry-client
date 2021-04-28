@@ -346,11 +346,11 @@ public class Styles{
             fontColor = Color.white;
         }};
         monoLabel = new LabelStyle(){{
-            font = Fonts.mono;
+            font = Fonts.mono();
             fontColor = Color.white;
         }};
         monoOutlineLabel = new LabelStyle(){{
-            font = Fonts.monoOutline;
+            font = Fonts.monoOutline();
             fontColor = Color.white;
         }};
         outlineLabel = new LabelStyle(){{

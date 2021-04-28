@@ -198,4 +198,8 @@ public class PlayerListFragment extends Fragment{
         }
     }
 
+    public boolean shown(){
+        return visible;
+    }
+
 }
