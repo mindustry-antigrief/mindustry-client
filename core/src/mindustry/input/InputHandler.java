@@ -45,7 +45,6 @@ import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.blocks.units.*;
 import mindustry.world.meta.*;
 
-import java.time.*;
 import java.util.*;
 
 import static arc.Core.*;
@@ -364,16 +363,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
             }
             if (Core.settings.getBool("commandwarnings") && build instanceof CommandCenter.CommandBuild cmd && build.team == player.team()) {
-                ui.chatfrag.addMessage(Strings.format("@ set command center at (@, @) to @", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), null, Color.scarlet.cpy().mul(.75f));
+                ui.chatfrag.addMessage(bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), null);
                 ClientVars.lastSentPos.set(build.tileX(), build.tileY());
             } else if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
                 if (value instanceof Integer val) {
                     if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) {
-                        String message = Strings.format("@ disconnected @ power @ at (@, @)", player.name, ++node.disconnections, node.disconnections == 1 ? "link" : "links", build.tileX(), build.tileY());
+                        String message = bundle.format("client.powerwarn", Strings.stripColors(player.name), ++node.disconnections, build.tileX(), build.tileY());
                         ClientVars.lastSentPos.set(build.tileX(), build.tileY());
                         if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
                             node.disconnections = 1;
-                            node.message = ui.chatfrag.addMessage(message, null, Color.scarlet.cpy().mul(.75f));
+                            node.message = ui.chatfrag.addMessage(message, null);
                         } else {
                             ui.chatfrag.doFade(2);
                             node.message.message = message;
@@ -383,11 +382,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 } else if (value instanceof Point2[]) {
                     //todo
                 }
-            } else if (Core.settings.getBool("viruswarnings") && value instanceof byte[] && build instanceof LogicBlock.LogicBuild l && BuildPath.virusBlock(l)) {
-                ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", player.name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
-                control.input.lastVirusWarning = l;
-                control.input.lastVirusWarnTime = Time.millis();
-                ClientVars.lastSentPos.set(l.tileX(), l.tileY());
             }
         }
     }
