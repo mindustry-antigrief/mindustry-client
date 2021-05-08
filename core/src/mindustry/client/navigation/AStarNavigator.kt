@@ -15,10 +15,9 @@ import kotlin.system.*
 // and modified
 
 object AStarNavigator : Navigator() {
-    private var grid: Array<Array<Cell>> = emptyArray()
+    private var grid: Array<Cell> = emptyArray()
+    private var gridSize = Pair(0, 0)
     private var open = PQueue<Cell>()
-    private lateinit var closed: GridBits
-    private var addedCosts: Array<IntArray> = emptyArray()
     private var startX = 0
     private var startY = 0
     private var endX = 0
@@ -37,6 +36,8 @@ object AStarNavigator : Navigator() {
         cons(1, -1)
     }
 
+    private fun cell(x: Int, y: Int) = grid[x + (y * tileWidth)]
+
     private fun Int.clamp(min: Int, max: Int) = coerceIn(min, max)
 
     override fun init() {}
@@ -49,8 +50,8 @@ object AStarNavigator : Navigator() {
     }
 
     private fun checkAndUpdateCost(current: Cell, t: Cell, cost: Double) {
-        if (!closed.get(t.x, t.y) || cost < t.g) {
-            closed.set(t.x, t.y)
+        if (!t.closed || cost < t.g) {
+            t.closed = true
             t.g = cost
             t.f = t.g + h(t)
             t.cameFrom = current
@@ -60,18 +61,18 @@ object AStarNavigator : Navigator() {
 
     private fun aStarSearch() {
         //add the start location to open list.
-        startX = startX.clamp(0, grid.size - 1)
-        startY = startY.clamp(0, grid[0].size - 1)
-        open.add(grid[startX][startY])
-        closed.set(startX, startY)
+        startX = startX.clamp(0, tileWidth - 1)
+        startY = startY.clamp(0, tileHeight - 1)
+        open.add(cell(startX, startY))
+        cell(startX, startY).closed = true
 
-        endX = endX.clamp(0, grid.size - 1)
-        endY = endY.clamp(0, grid[0].size - 1)
+        endX = endX.clamp(0, tileWidth - 1)
+        endY = endY.clamp(0, tileHeight - 1)
 
         var current: Cell
         while (!open.empty()) {
             current = open.poll() // Get a tile to explore
-            if (current == grid[endX][endY]) { // Made it to the finish
+            if (current == cell(endX, endY)) { // Made it to the finish
                 return
             }
 
@@ -87,8 +88,8 @@ object AStarNavigator : Navigator() {
                 // Add to the open list with calculated cost
                 checkAndUpdateCost(
                         current,
-                        grid[x][y],
-                        current.g * (if (abs(x1) + abs(y1) == 1) 1.0 else 1.0000001) + addedCosts[x][y] * if (abs(x1) + abs(y1) == 1) 1.0 else 1.414 // Tiebreaker is needed to draw correct path
+                        cell(x, y),
+                        current.g * (if (abs(x1) + abs(y1) == 1) 1.0 else 1.0000001) + cell(x, y).added * if (abs(x1) + abs(y1) == 1) 1.0 else 1.414 // Tiebreaker is needed to draw correct path
                 )
             }
         }
@@ -117,20 +118,9 @@ object AStarNavigator : Navigator() {
         endX = World.toTile(end.x)
         endY = World.toTile(end.y)
 
-        if (grid.size != tileWidth || grid.getOrNull(0)?.size != tileHeight) {
-            grid = Array(tileWidth) { x -> Array(tileHeight) { y -> Cell(x, y) } }
-        }
-
-        if (this::closed.isInitialized && closed.width() == tileWidth && closed.height() == tileHeight) {
-            closed.clear()
-        } else {
-            closed = GridBits(tileWidth, tileHeight)
-        }
-
-        if (addedCosts.size == tileWidth && addedCosts.getOrNull(0)?.size == tileHeight) {
-            addedCosts.forEach { it.fill(1) }
-        } else {
-            addedCosts = Array(tileWidth) { IntArray(tileHeight) { 1 } }
+        if (gridSize != Pair(tileWidth, tileHeight)) {
+            grid = Array(tileWidth * tileHeight) { index -> Cell(index % tileWidth, index / tileWidth) }
+            gridSize = Pair(tileWidth, tileHeight)
         }
 
         open.clear()
@@ -138,8 +128,10 @@ object AStarNavigator : Navigator() {
         // Reset all cells
         for (x in 0 until tileWidth) {
             for (y in 0 until tileHeight) {
-                grid[x][y].g = 0.0
-                grid[x][y].cameFrom = null
+                cell(x, y).g = 0.0
+                cell(x, y).cameFrom = null
+                cell(x, y).closed = false
+                cell(x, y).added = 1
             }
         }
 
@@ -151,7 +143,7 @@ object AStarNavigator : Navigator() {
             for (x in lowerXBound..upperXBound) {
                 for (y in lowerYBound..upperYBound) {
                     if (Structs.inBounds(x, y, tileWidth, tileHeight) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
-                        addedCosts[x][y] += 100
+                        cell(x, y).added += 100
 //                        closed.set(x, y) TODO: The line above will always find a path, this line will do nothing if there is no path, add a hotkey to toggle
                     }
                 }
@@ -160,10 +152,10 @@ object AStarNavigator : Navigator() {
 
         aStarSearch()
 
-        return if (closed.get(endX, endY)) {
+        return if (cell(endX, endY).closed) {
             val points = mutableListOf<Vec2>()
             //Trace back the path
-            var current: Cell? = grid[endX][endY]
+            var current: Cell? = cell(endX, endY)
             while (current?.cameFrom != null) {
                 points.add(Vec2(World.unconv(current.cameFrom!!.x.toFloat()), World.unconv(current.cameFrom!!.y.toFloat())))
                 current = current.cameFrom
@@ -181,6 +173,8 @@ object AStarNavigator : Navigator() {
         var g = 0.0 // cost so far
         var f = Double.POSITIVE_INFINITY // g + h, estimate of total cost
         var cameFrom: Cell? = null
+        var closed = false
+        var added = 1
 
         override fun toString(): String {
             return "[$x, $y]"
