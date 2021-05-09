@@ -344,6 +344,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.sliderPref("effectscl", 100, 0, 100, 5, s -> s + "%");
         client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%[lightgray] (" + Core.bundle.get("client.afterstack") + ": " + s * settings.getInt("effectscl") / 100 + "%)[]");
         client.checkPref("tilehud", true);
+        client.checkPref("coreitemhack", false);
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", !Core.settings.getString("locale").equals("en")); // Requires Restart, disabled if not in english as it doesn't support some characters
         client.checkPref("unitranges", false);

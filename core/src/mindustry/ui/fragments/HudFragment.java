@@ -38,9 +38,11 @@ public class HudFragment extends Fragment{
 
     public final PlacementFragment blockfrag = new PlacementFragment();
     public boolean shown = true;
+    public long startTime = 0;
 
     private ImageButton flip;
     private final CoreItemsDisplay coreItems = new CoreItemsDisplay();
+    private CoreItemHack coreItemHack = new CoreItemHack();
 
     private String hudText = "";
     private boolean showHudText;
@@ -89,6 +91,11 @@ public class HudFragment extends Fragment{
         Events.on(ResetEvent.class, e -> {
             coreItems.resetUsed();
             coreItems.clear();
+        });
+
+        Events.on(WorldLoadEvent.class,e->{
+            coreItemHack.updateTeamList();
+            startTime = Time.timeSinceMillis(0);
         });
 
         //paused table
@@ -294,6 +301,12 @@ public class HudFragment extends Fragment{
 //            t.add(new TileInfoFragment()).top();
         });
 
+        parent.fill(t -> {
+            t.name = "coreItemHack";
+            t.right().add(coreItemHack);
+            t.visible(() -> Core.settings.getBool("coreitemhack", false) && shown && player != null && player.team() != null
+            );
+        });
         //spawner warning
         parent.fill(t -> {
             t.name = "nearpoint";
