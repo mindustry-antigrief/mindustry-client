@@ -3,12 +3,20 @@ package mindustry.client
 import arc.*
 import arc.graphics.*
 import arc.math.*
+import arc.math.geom.Point2
+import arc.struct.IntSet
 import arc.util.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import mindustry.Vars
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
 import mindustry.client.Main.setPluginNetworking
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
+import mindustry.client.antigrief.TileLog.Companion.linkedArea
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
@@ -17,13 +25,14 @@ import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
 import mindustry.entities.units.*
-import mindustry.game.*
 import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.net.*
 import mindustry.type.*
-import mindustry.ui.*
+import mindustry.world.blocks.power.PowerDiode
+import mindustry.world.blocks.power.PowerGraph
+import mindustry.world.blocks.power.PowerNode
 import kotlin.random.*
 
 
@@ -295,6 +304,63 @@ object Client {
                 }
             }
             Toast(3f).add("@client.invalidkey")
+        }
+
+        fun find(positions: IntSet, graph: PowerGraph): kotlin.Pair<PowerNode.PowerNodeBuild, Building>? {
+            for (node in graph.all) {
+                val pn = node as? PowerNode.PowerNodeBuild ?: continue
+                circle(node.tileX(), node.tileY(), (node.block as PowerNode).laserRange) { x, y ->
+                    if (positions.contains(Point2.pack(x, y))) {
+                        if (!(pn.block as PowerNode).linkValid(pn, world.tile(x, y).build) || PowerNode.insulated(pn.tileX(), pn.tileY(), x, y)) return@circle
+                        return kotlin.Pair(node, world.tile(x, y).build)
+                    }
+                }
+            }
+            return null
+        }
+
+        register("fixpower", "Connects all power grids (unless they're dioded or insulated)") { args, _ ->
+            GlobalScope.launch {
+                val message = ui.chatfrag.addMessage("Connected 0 power grids...", "client")
+                val toConnect = mutableListOf<kotlin.Pair<PowerNode.PowerNodeBuild, Building>>()
+                val jobs = mutableListOf<Job>()
+                val alreadyConfigured = mutableListOf<kotlin.Pair<PowerNode.PowerNodeBuild, Building>>()
+                val connected = mutableListOf<kotlin.Pair<PowerGraph, PowerGraph>>()
+                var n = 0
+                var failed = 0
+                for (grid in PowerGraph.activeGraphs) {
+                    if (grid.team != player.team()) continue
+                    val positions = IntSet.with(*grid.all.toList().flatMap { it.tile.linkedArea().map { p -> Point2.pack(p.x, p.y) } }.toIntArray())
+                    for (connectTo in PowerGraph.activeGraphs.minus(grid)) {
+                        if (connectTo.team != player.team()) continue
+                        if (PowerDiode.connected.any { (it.first == connectTo && it.second == grid) || (it.first == grid && it.second == connectTo) }) continue
+                        if (connected.contains(kotlin.Pair(connectTo, grid)) || connected.contains(kotlin.Pair(grid, connectTo))) continue
+                        jobs.add(GlobalScope.launch {
+                            val output = find(positions, connectTo)
+                            if (output != null) {
+                                toConnect.add(output)
+                                connected.add(kotlin.Pair(connectTo, grid))
+                                message.message = "Connected ${n++} power grids..."
+                                message.format()
+                            } else {
+                                failed++
+                            }
+                        })
+                    }
+                }
+
+                jobs.joinAll()
+
+                for (item in toConnect) {
+                    if (alreadyConfigured.any { it == item || it == Pair(item.second as? PowerNode.PowerNodeBuild ?: return@any false, item.first as Building) }) {
+                        continue
+                    }
+                    alreadyConfigured.add(item)
+                    configs.add(ConfigRequest(item.first.tileX(), item.first.tileY(), item.second.pos()))
+                }
+                message.message = "Finished connecting ${n++} power grids ($failed could not be connected)"
+                message.format()
+            }
         }
     }
 

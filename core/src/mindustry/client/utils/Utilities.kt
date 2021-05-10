@@ -142,3 +142,23 @@ operator fun World.get(position: Point2i): Tile = tiles.getc(position.x, positio
 
 /** Clamped */
 operator fun World.get(x: Int, y: Int): Tile = tiles.getc(x, y)
+
+// x^2 + y^2 = r^2
+// x^2 + y^2 - r^2 = 0
+// x^2 - r^2 = -y^2
+inline fun circle(x: Int, y: Int, radius: Float, block: (x: Int, y: Int) -> Unit) {
+    val r2 = radius * radius
+//    for (x1 in (x - radius)..(x + radius)) {
+//        val n = r2 - sq(x1 - x)
+//        for (y1 in (y - n)..(y + n)) {
+//            block(x1, y1)
+//        }
+//    }
+    for (x1 in floor(x - radius).toInt()..ceil(x + radius).toInt()) {
+        for (y1 in floor(y - radius).toInt()..ceil(y + radius).toInt()) {
+            if (sq(x1 - x) + sq(y1 - y) < r2) block(x1, y1)
+        }
+    }
+}
+
+fun sq(inp: Int) = inp * inp

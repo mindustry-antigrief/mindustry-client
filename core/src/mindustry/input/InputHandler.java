@@ -438,7 +438,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if (player == null || !player.dead() && player.unit().spawnedByCore && !player.isLocal()) return;
         if (player.isLocal()) {
             player.persistPlans();
-            if (!player.dead() && player.unit().spawnedByCore && player.bestCore() != null) Call.unitControl(player, player.bestCore().unit()); // Bypass vanilla code which prevents you from respawning at core when already a core unit
+            if (player.unit() != null && !player.dead() && player.unit().spawnedByCore && player.bestCore() != null) Call.unitControl(player, player.bestCore().unit()); // Bypass vanilla code which prevents you from respawning at core when already a core unit
         }
         Fx.spawn.at(player);
         player.clearUnit();
