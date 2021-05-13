@@ -6,3 +6,7 @@ install:
   - ./gradlew clean desktop:dist
   - mkdir -p ~/.m2/repository/
   - cp desktop/build/libs/Mindustry.jar ~/.m2/repository/
+//i know little about this but im gonna try to add a thingy//
+  - ./gradlew clean android:dist
+  - cp android/build/libs/Mindustry.apk ~/.m2/repository/
+  //consider this a wip until i confirm this actually works, a.k.a. dont fucking merge until i know it works//
