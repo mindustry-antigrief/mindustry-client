@@ -348,6 +348,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("disablemonofont", !Core.settings.getString("locale").equals("en")); // Requires Restart, disabled if not in english as it doesn't support some characters
         client.checkPref("unitranges", false);
         client.checkPref("drawhitboxes", false);
+        client.checkPref("mobileui", false, i -> mobile = !mobile);
 
         client.category("misc");
         client.updatePref();
@@ -570,7 +571,7 @@ public class SettingsMenuDialog extends SettingsDialog{
                             becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
                             urlChanged = true;
                             settings.put(name, text);
-                        }).growX();
+                        }).growX().get().setMessageText("mindustry-antigrief/mindustry-client-v6");
                     }).left().fillX().padTop(3).height(32);
                     table.row();
                 }

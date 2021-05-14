@@ -18,11 +18,11 @@ import static mindustry.Vars.*;
 
 
 public class UnitPicker extends BaseDialog {
-    public UnitType found;
+    public UnitType type;
     Seq<UnitType> sorted = content.units().copy();
 
     public UnitPicker(){
-        super("Unit Picker");
+        super("@client.unitpicker");
 
         onResize(this::build);
         shown(this::build);
@@ -42,7 +42,7 @@ public class UnitPicker extends BaseDialog {
             labels.add(new Label(""));
         }
         TextField searchField = cont.field("", string -> {
-            sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshtein(string.toLowerCase(), b.name.toLowerCase()));
+            sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshteinInsensitive(string, b.localizedName));
             for (int i = 0; i < imgs.size; i++) {
                 Image region = new Image(sorted.get(i).icon(Cicon.large));
                 region.setSize(32);
@@ -58,36 +58,41 @@ public class UnitPicker extends BaseDialog {
         Core.app.post(searchField::requestKeyboard);
     }
 
-    public void findUnit(UnitType found) {
+    public void findUnit(UnitType type) {
         hide();
-        if (found == null) return;
+        if (type == null) return;
 
-        Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead && !(u.controller() instanceof FormationAI));
-        if (find == null) find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead); // Either no unit or unit is commanded, search for commanded units
+        Unit found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI || u.controller() instanceof LogicAI));
+        if (found == null) found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI)); // Include logic units
+        if (found == null) found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead); // Include formation units
 
         Toast t = new Toast(3);
-        if (find != null) {
-            Call.unitControl(player, find); // Switch to unit
-            t.add("Successfully switched units.");
-            this.found = null; // No need to check if the player has managed to take control as it is very unlikely that 2 players attempt this on the same unit at once.
+        if (found != null) {
+            Call.unitControl(player, found); // Switch to unit
+            t.add("@client.unitpicker.success");
+            this.type = null;
         } else {
-            t.add("No " + found + " was found, automatically switching to that unit when it spawns (set picked unit to alpha to cancel).");
-            this.found = found;
+            t.add(Core.bundle.format("client.unitpicker.notfound", type));
+            this.type = type;
         }
     }
 
     private void setup(){
         Events.on(EventType.UnitChangeEvent.class, event -> { // TODO: Test Player.lastReadUnit also get rid of this dumb ping prediction stuff
-            if (found == null) return;
+            if (type == null) return;
             if (!event.player.isLocal() && event.unit.team == player.team()) {
-                Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == found && !u.dead);
+                Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead);
                 if (find != null) {
                     Call.unitControl(player, find);
                     Timer.schedule(() -> {
                         if (find.isPlayer()) {
                             Toast t = new Toast(3);
-                            if (player.unit() == find) { found = null; t.add("Successfully switched units."); } // After we switch units successfully, stop listening for this unit
-                            else if (find.getPlayer() != null) { t.add("Failed to become " + found + ", " + find.getPlayer().name + " is already controlling it (likely using unit sniper).");} // TODO: make these responses a method in UnitPicker
+                            if (player.unit() == find) {
+                                type = null;
+                                t.add("@client.unitpicker.success");
+                            } else if (find.getPlayer() != null) {
+                                t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, find.getPlayer().name));
+                            }
                         }
                     }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
                 }
@@ -95,14 +100,18 @@ public class UnitPicker extends BaseDialog {
         });
 
         Events.on(EventType.UnitCreateEvent.class, event -> {
-            if (found == null) return;
-            if (!event.unit.dead && event.unit.type == found && event.unit.team == player.team() && !event.unit.isPlayer()) {
+            if (type == null) return;
+            if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 Call.unitControl(player, event.unit);
                 Timer.schedule(() -> {
                     if (event.unit.isPlayer()) {
                         Toast t = new Toast(3);
-                        if (player.unit() == event.unit) { found = null; t.add("Successfully switched units."); }  // After we switch units successfully, stop listening for this unit
-                        else if (event.unit.getPlayer() != null) { t.add("Failed to become " + found + ", " + event.unit.getPlayer().name + " is already controlling it (likely using unit sniper).");}
+                        if (player.unit() == event.unit) {
+                            type = null;
+                            t.add("@client.unitpicker.success");
+                        } else if (event.unit.getPlayer() != null) {
+                            t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
+                        }
                     }
                 }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
             }

@@ -1,6 +1,6 @@
 package mindustry.client.navigation;
 
-import arc.math.*;
+import arc.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
@@ -37,23 +37,22 @@ public class BuildPath extends Path {
     public BuildPath(String args){
         for (String arg : args.split("\\s")) {
             switch (arg) {
-                case "all", "*" -> queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist);
+                case "all", "*" -> queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist, drills, belts);
                 case "self", "me" -> queues.add(player.unit().plans);
-                case "broken", "destroyed", "dead", "killed" -> queues.add(broken);
+                case "broken", "destroyed", "dead", "killed", "rebuild" -> queues.add(broken);
                 case "boulders", "rocks" -> queues.add(boulders);
                 case "assist", "help" -> queues.add(assist);
                 case "unfinished", "finish" -> queues.add(unfinished);
                 case "cleanup", "derelict", "clean" -> queues.add(cleanup);
-                case "networkassist", "na" -> queues.add(networkAssist);
+                case "networkassist", "na", "network" -> queues.add(networkAssist);
                 case "virus" -> queues.add(virus); // Intentionally undocumented due to potential false positives
                 case "drills" -> queues.add(drills);
-                case "belts", "conveyors" -> queues.add(belts);
-                default -> ui.chatfrag.addMessage("[scarlet]Invalid option: " + arg, null);
+                case "belts", "conveyors", "conduits", "pipes" -> queues.add(belts);
+                default -> ui.chatfrag.addMessage(Core.bundle.format("client.path.builder.invalid", arg), null);
             }
         }
         if (queues.isEmpty()) {
-            player.sendMessage("[scarlet]No valid options specified, defaulting to self." +
-                "\nValid options: All, self, broken, boulders, assist, unfinished, cleanup, networkassist, drills, conveyors");
+            player.sendMessage(Core.bundle.format("client.path.builder.allinvalid", "All, self, broken, boulders, assist, unfinished, cleanup, networkassist, drills, conveyors"));
             queues.add(player.unit().plans);
         }
     }
@@ -64,8 +63,8 @@ public class BuildPath extends Path {
     @Override
     public boolean getShow() { return show; }
 
-    private void clearQueue(Queue<BuildPlan> queue) {
-        if (!queue.isEmpty() && queues.contains(queue)) {
+    public void clearQueue(Queue<BuildPlan> queue) {
+        if (!queue.isEmpty() && queues.contains(queue) && queue != networkAssist) {
             for (BuildPlan item : queue) {
                 player.unit().plans.remove(item);
             }
@@ -108,25 +107,26 @@ public class BuildPath extends Path {
             }
             if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus) || queues.contains(drills) || queues.contains(belts)) {
                 for (Tile tile : world.tiles) {
-                    if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build && virusBlock(build, true)) { // Dont add configured processors
+                    if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build && build.isVirus) { // Dont add configured processors
                         virus.add(new BuildPlan(tile.x, tile.y));
 
                     } else if (queues.contains(boulders) && tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild build && build.previous instanceof Boulder) {
                         boulders.add(new BuildPlan(tile.x, tile.y));
 
-                    } else if (queues.contains(cleanup) && (tile.build instanceof ConstructBlock.ConstructBuild build && build.activeDeconstruct && build.lastBuilder != null && build.lastBuilder == player.unit()) || (tile.team() == Team.derelict && tile.breakable() && tile.isCenter() && !(tile.block() instanceof Boulder))) {
+                    } else if (queues.contains(cleanup) && tile.isCenter() && (tile.build instanceof ConstructBlock.ConstructBuild build && !build.wasConstructing && build.lastBuilder != null && build.lastBuilder == player.unit()) || (tile.team() == Team.derelict && tile.breakable() && !(tile.block() instanceof Boulder))) {
                         cleanup.add(new BuildPlan(tile.x, tile.y));
 
                     } else if (queues.contains(unfinished) && tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild build && tile.isCenter()) {
                         unfinished.add(build.wasConstructing ?
-                                new BuildPlan(tile.x, tile.y, tile.build.rotation, build.cblock, tile.build.config()) :
-                                new BuildPlan(tile.x, tile.y));
+                            new BuildPlan(tile.x, tile.y, tile.build.rotation, build.cblock, tile.build.config()) :
+                            new BuildPlan(tile.x, tile.y));
 
-                    } else if (queues.contains(drills) && tile.team() == player.team() && (tile.block() == Blocks.mechanicalDrill || tile.build instanceof ConstructBlock.ConstructBuild build && build.cblock == Blocks.pneumaticDrill) && tile.isCenter()) {
-                        drills.add(new BuildPlan(tile.x, tile.y, 0, Blocks.pneumaticDrill));
+                    } else if ((queues.contains(belts) || queues.contains(drills)) && tile.team() == player.team() && tile.build != null && tile.isCenter()) {
+                        Block block = tile.build instanceof ConstructBlock.ConstructBuild b ? b.previous : tile.block();
 
-                    } else if (queues.contains(belts) && tile.team() == player.team() && (tile.block() == Blocks.conveyor || tile.build instanceof ConstructBlock.ConstructBuild build && build.cblock == Blocks.titaniumConveyor) && tile.build != null) {
-                        belts.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, Blocks.titaniumConveyor));
+                        if (queues.contains(belts) && block == Blocks.conveyor) belts.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, Blocks.titaniumConveyor));
+                        else if (queues.contains(belts) && block == Blocks.conduit) belts.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, Blocks.pulseConduit));
+                        else if (queues.contains(drills) && block == Blocks.mechanicalDrill) drills.add(new BuildPlan(tile.x, tile.y, 0, Blocks.pneumaticDrill));
                     }
                 }
             }
@@ -134,7 +134,7 @@ public class BuildPath extends Path {
                  activeVirus = !virus.isEmpty();
                  if (!activeVirus) { // All processors broken or configured
                      for (Tile tile : world.tiles) {
-                         if (tile.team() == player.team() && (tile.build instanceof ConstructBlock.ConstructBuild cb && cb.cblock instanceof LogicBlock || tile.build instanceof LogicBlock.LogicBuild build && (build.code.contains("print \"Logic grief auto removed by:\"\nprint \"") || virusBlock(build, false)))) {
+                         if (tile.team() == player.team() && (tile.build instanceof ConstructBlock.ConstructBuild cb && cb.cblock instanceof LogicBlock || tile.build instanceof LogicBlock.LogicBuild build && build.code.startsWith("print \"Logic grief auto removed by:\"\nprint \""))) {
                              virus.add(new BuildPlan(tile.x, tile.y));
                          }
                      }
@@ -145,13 +145,24 @@ public class BuildPath extends Path {
             sort:
             for (int i = 0; i < 2; i++) {
                 for (Queue queue : queues) {
-                    Queue<BuildPlan> plans = sortPlans(queue, all, false); // TODO: should large first always be false or should it stay as all?
-                    if (plans.isEmpty()) continue;
+                    PQueue<BuildPlan> plans = sortPlans(queue, all, false); // TODO: should large first always be false or should it stay as all?
+                    if (plans.empty()) continue;
                     /* TODO: This doesn't work lol
                     plans.forEach(plan -> Navigation.obstacles.forEach(obstacle -> {if(Mathf.dstm(obstacle.x, obstacle.y, plan.x, plan.y) <= obstacle.range){plans.remove(plan);player.unit().plans.remove(plan);}}));
                     if (plans.isEmpty()) continue; */
-                    plans.forEach(player.unit().plans::remove);
-                    plans.forEach(player.unit().plans::addFirst);
+                    i = 0;
+                    BuildPlan plan;
+                    Queue<BuildPlan> scuffed = new Queue<>(player.unit().plans.size);
+                    player.unit().plans.each(scuffed::add);
+                    while ((plan = plans.poll()) != null && i++ < 300) {
+                        player.unit().plans.remove(plan);
+                        player.unit().plans.addLast(plan);
+                    }
+                    while (!scuffed.isEmpty()) {
+                        plan = scuffed.removeLast();
+                        player.unit().plans.remove(plan);
+                        player.unit().plans.addFirst(plan);
+                    }
                     break sort;
                 }
                 all = true;
@@ -176,7 +187,7 @@ public class BuildPath extends Path {
                 //move toward the request
                 Formation formation = player.unit().formation;
                 float range = buildingRange - player.unit().hitSize()/2 - 32; // Range - 4 tiles
-                if (formation != null) range -= formation.pattern.spacing / (float)Math.sin(180f / formation.pattern.slots * Mathf.degRad);
+                if (formation != null) range -= formation.pattern.radius();
                 new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
             }else{
                 //discard invalid request
@@ -207,22 +218,14 @@ public class BuildPath extends Path {
     /** @param includeAll whether to include unaffordable plans (appended to end of affordable ones)
      @param largeFirst reverses the order of outputs, returning the furthest plans first
      @return {@link Queue<BuildPlan>} sorted by distance */
-    @Nullable
-    public Queue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll, boolean largeFirst) {
+    public PQueue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll, boolean largeFirst) {
         if (plans == null) return null;
-        Queue<BuildPlan> out = new Queue<>();
-        sorted.clear();
-        sorted.addAll(plans);
-        sorted.sort(Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, core)), Structs.comparingFloat(plan -> -plan.dst(player))));
-        if (largeFirst) sorted.reverse();
-        for (BuildPlan plan : sorted) { // The largest distance is at the start of the sequence by this point
-            if (!validPlan(plan)) continue;
-            if (includeAll || plan.block != null && !player.unit().shouldSkip(plan, core)) { // TODO: This is terrible and slow
-                out.addLast(plan);
-                if (out.size > 300) out.removeFirst();
-            }
-        }
-        return out;
+        PQueue<BuildPlan> s2 = new PQueue<>(plans.size, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, core)), Structs.comparingFloat(plan -> plan.dst(player))));
+        plans.each(plan -> {
+            if (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) s2.add(plan);
+        });
+        if (largeFirst) s2.comparator = s2.comparator.reversed();
+        return s2;
     }
 
     boolean validPlan (BuildPlan req) {
@@ -230,17 +233,6 @@ public class BuildPath extends Path {
             (req.breaking ?
             Build.validBreak(player.unit().team(), req.x, req.y) :
             Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));
-    }
-
-    public static boolean virusBlock (LogicBlock.LogicBuild block, boolean checkEnd) {
-        String code = block.code;
-        if (checkEnd && code.startsWith("end")) return false;
-        return code.contains("ucontrol build") && code.contains("ubind")
-            && (((code.contains("@x") || code.contains("@shootX") || code.contains("@thisx")) && (code.contains("@y") || code.contains("@shootY") ||code.contains("@thisy")) || code.contains("@this") || code.contains("@controller"))); // Doesn't use a regex as those are expensive
-    }
-
-    public static boolean virusBlock (LogicBlock.LogicBuild block) {
-        return virusBlock(block, true);
     }
 }
 

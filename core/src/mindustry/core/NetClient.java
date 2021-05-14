@@ -212,7 +212,6 @@ public class NetClient implements ApplicationListener{
         Matcher matcher = coordPattern.matcher(message);
         if (!matcher.find()) return message;
             try {
-                Log.info(Float.parseFloat(matcher.group(1)) + "   " + Float.parseFloat(matcher.group(2)));
                 ClientVars.lastSentPos.set(Float.parseFloat(matcher.group(1)), Float.parseFloat(matcher.group(2)));
             } catch (NumberFormatException ignored) {}
             return matcher.replaceFirst("[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
@@ -364,6 +363,7 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both)
     public static void infoMessage(String message){
         if(message == null) return;
+        if(message.contains("") && message.contains("") && message.contains("vote")) return; // .io is annoying
 
         ui.showText("", message);
     }

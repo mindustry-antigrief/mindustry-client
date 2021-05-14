@@ -162,3 +162,12 @@ inline fun circle(x: Int, y: Int, radius: Float, block: (x: Int, y: Int) -> Unit
 }
 
 fun sq(inp: Int) = inp * inp
+
+/** Flips the two values in a [kotlin.Pair] */
+fun <A, B> kotlin.Pair<A, B>.flip() = kotlin.Pair(second, first)
+
+/** Checks equality between two [kotlin.Pair] instances, ignores value order. */
+infix fun <A, B> kotlin.Pair<A, B>.eqFlip(other: kotlin.Pair<A, B>) = this == other || this.flip() == other
+
+/** Checks equality between a [kotlin.Pair] and two other values. */
+fun <A, B> kotlin.Pair<A, B>.eqFlip(a: A, b: B) = this.first == a && this.second == b || this.first == b && this.second == a

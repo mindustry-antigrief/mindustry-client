@@ -1,21 +1,20 @@
 package mindustry.world.blocks.power;
 
-import arc.Events;
+import arc.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.utils.Pair;
+import mindustry.client.utils.*;
 import mindustry.entities.units.*;
-import mindustry.game.EventType;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
-import org.jetbrains.annotations.Nullable;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 
 public class PowerDiode extends Block{
     public @Load("@-arrow") TextureRegion arrow;
@@ -50,7 +49,7 @@ public class PowerDiode extends Block{
         return (tile != null && tile.block.hasPower) ? tile.power.graph.getLastPowerStored() / tile.power.graph.getTotalBatteryCapacity() : 0f;
     }
 
-    public static List<Pair<PowerGraph, PowerGraph>> connected = new ArrayList<>();
+    public static List<Pair<Integer, Integer>> connected = new ArrayList<>();
 
     static {
         Events.on(EventType.WorldLoadEvent.class, event -> connected.clear());
@@ -58,7 +57,7 @@ public class PowerDiode extends Block{
 
     public class PowerDiodeBuild extends Building{
         public WindowedMean transferred = new WindowedMean(60);
-        private final Pair<PowerGraph, PowerGraph> entry = new Pair<>(null, null);
+        private final Pair<Integer, Integer> entry = new Pair<>(null, null);
         private boolean addedEntry = false;
 
         @Override
@@ -81,14 +80,18 @@ public class PowerDiode extends Block{
                 connected.add(entry);
             }
 
-            if(front() == null || back() == null || !back().block.hasPower || !front().block.hasPower || back().team != front().team) return;
+            if(front() == null || back() == null || !back().block.hasPower || !front().block.hasPower || back().team != front().team) {
+                entry.first = null;
+                entry.second = null;
+                return;
+            }
 
             PowerGraph backGraph = back().power.graph;
             PowerGraph frontGraph = front().power.graph;
             if(backGraph == frontGraph) return;
 
-            entry.first = backGraph;
-            entry.second = frontGraph;
+            entry.first = Math.min(frontGraph.getID(), backGraph.getID());
+            entry.second = Math.max(frontGraph.getID(), backGraph.getID());
         }
 
         @Override

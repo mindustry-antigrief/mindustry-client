@@ -16,7 +16,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.ui.*;
-import mindustry.ui.fragments.ChatFragment;
+import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
@@ -194,7 +194,7 @@ public class PowerNode extends PowerBlock{
         return Intersector.overlaps(Tmp.cr1.set(src.worldx() + offset, src.worldy() + offset, laserRange * tilesize), Tmp.r1.setSize(size * tilesize).setCenter(other.worldx() + offset, other.worldy() + offset));
     }
 
-    protected void getPotentialLinks(Tile tile, Team team, Cons<Building> others){
+    public void getPotentialLinks(Tile tile, Team team, Cons<Building> others){
         Boolf<Building> valid = other -> other != null && other.tile() != tile && other.power != null &&
             (other.block.outputsPower || other.block.consumesPower || other.block instanceof PowerNode) &&
             overlaps(tile.x * tilesize + offset, tile.y * tilesize + offset, other.tile(), laserRange * tilesize) && other.team == team &&

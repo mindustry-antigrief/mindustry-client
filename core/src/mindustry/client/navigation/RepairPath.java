@@ -2,6 +2,7 @@ package mindustry.client.navigation;
 
 import arc.math.geom.*;
 import mindustry.client.navigation.waypoints.*;
+import mindustry.entities.*;
 import mindustry.gen.*;
 
 import static mindustry.Vars.*;
@@ -22,7 +23,7 @@ public class RepairPath extends Path {
 
     @Override
     public void follow() {
-        Building build = Geometry.findClosest(player.x, player.y, indexer.getDamaged(player.team()));
+        Building build = Units.findDamagedTile(player.team(), player.x, player.y);
         if (build == null || player.unit() == null) return;
         player.shooting(player.unit().inRange(build));
         player.unit().aimLook(build);
@@ -36,7 +37,6 @@ public class RepairPath extends Path {
 
     @Override
     public void reset() {
-
     }
 
     @Override

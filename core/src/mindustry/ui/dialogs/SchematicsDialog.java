@@ -187,6 +187,8 @@ public class SchematicsDialog extends BaseDialog{
         info.show(schematic);
     }
 
+    Interval timer = new Interval();
+    String clipboard;
     public void showImport(){
         BaseDialog dialog = new BaseDialog("@editor.export");
         dialog.cont.pane(p -> {
@@ -198,7 +200,7 @@ public class SchematicsDialog extends BaseDialog{
                 t.button("@schematic.copy.import", Icon.copy, style, () -> {
                     dialog.hide();
                     try{
-                        Schematic s = Schematics.readBase64(Core.app.getClipboardText());
+                        Schematic s = Schematics.readBase64(clipboard);
                         s.removeSteamID();
                         schematics.add(s);
                         setup();
@@ -207,7 +209,13 @@ public class SchematicsDialog extends BaseDialog{
                     }catch(Throwable e){
                         ui.showException(e);
                     }
-                }).marginLeft(12f).disabled(b -> Core.app.getClipboardText() == null || !Core.app.getClipboardText().startsWith(schematicBaseStart));
+                }).marginLeft(12f).disabled(b -> {
+                    if (timer.get(6)) { // Update 10x a second
+                        clipboard = Core.app.getClipboardText();
+                        return clipboard == null || !clipboard.startsWith(schematicBaseStart);
+                    }
+                    return b.isDisabled();
+                });
                 t.row();
                 t.button("@schematic.importfile", Icon.download, style, () -> platform.showFileChooser(true, schematicExtension, file -> {
                     dialog.hide();

@@ -11,6 +11,7 @@ import arc.util.pooling.*;
 import mindustry.ai.formations.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
+import mindustry.client.navigation.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.*;
@@ -221,6 +222,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     /** Somewhat scuffed way to persist buildplans when dying and swapping units. */
     public void persistPlans() { // TODO: Should this be disabled while running BuildPath?
         if (!persistPlans.isEmpty() || unit.plans.isEmpty()) return;
+        if (Navigation.currentlyFollowing instanceof BuildPath path) path.queues.each(path::clearQueue);
         unit.plans.each(persistPlans::add);
     }
 

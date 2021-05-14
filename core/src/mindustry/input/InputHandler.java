@@ -327,8 +327,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(player != null){
             build.lastAccessed = player.name;
-            if(Navigation.currentlyFollowing instanceof UnAssistPath){
-                if(((UnAssistPath) Navigation.currentlyFollowing).assisting == player){
+            if(Navigation.currentlyFollowing instanceof UnAssistPath path){
+                if(path.assisting == player){
                     Time.run(2f, () -> {
                         if (player != null && build != null) {
                             Call.rotateBlock(Vars.player, build, !direction);

@@ -206,7 +206,7 @@ allprojects{
 
     tasks.withType(JavaCompile){
         targetCompatibility = 8
-        sourceCompatibility = 14
+        sourceCompatibility = 15
         options.encoding = "UTF-8"
         options.compilerArgs += ["-Xlint:deprecation", "-Xmaxerrs", "5000"]
         dependsOn clearCache

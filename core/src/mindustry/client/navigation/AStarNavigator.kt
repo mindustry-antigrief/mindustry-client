@@ -3,13 +3,9 @@ package mindustry.client.navigation
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
-import arc.util.async.*
-import mindustry.Vars.*
-import mindustry.client.navigation.*
+import mindustry.Vars.tilesize
 import mindustry.core.*
-import java.util.*
 import kotlin.math.*
-import kotlin.system.*
 
 // Taken from http://www.codebytes.in/2015/02/a-shortest-path-finding-algorithm.html
 // and modified

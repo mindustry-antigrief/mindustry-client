@@ -1,12 +1,14 @@
 package mindustry.logic;
 
 import arc.*;
+import arc.graphics.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.noise.*;
 import mindustry.*;
 import mindustry.ai.types.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -14,6 +16,7 @@ import mindustry.entities.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
+import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.logic.*;
@@ -461,6 +464,16 @@ public class LExecutor{
                             var conf = exec.obj(p5);
                             ai.plan.set(x, y, rot, block);
                             ai.plan.config = conf instanceof Content c ? c : conf instanceof Building b ? b : null;
+                            if (conf instanceof LogicBlock.LogicBuild) {
+                                LogicBlock.LogicBuild build = (LogicBlock.LogicBuild) exec.building(varThis);
+                                if (build != null && !build.isVirus) {
+                                    ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", player.name, build.tileX(), build.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
+                                    control.input.lastVirusWarning = build;
+                                    control.input.lastVirusWarnTime = Time.millis();
+                                    ClientVars.lastSentPos.set(build.tileX(), build.tileY());
+                                    build.isVirus = true;
+                                }
+                            }
 
                             unit.clearBuilding();
                             Tile tile = ai.plan.tile();

@@ -138,17 +138,17 @@ public class Units{
         return boolResult;
     }
 
-    /** Returns the neareset damaged tile. */
+    /** Returns the nearest damaged tile. */
     public static Building findDamagedTile(Team team, float x, float y){
         return Geometry.findClosest(x, y, indexer.getDamaged(team));
     }
 
-    /** Returns the neareset ally tile in a range. */
+    /** Returns the nearest ally tile in a range. */
     public static Building findAllyTile(Team team, float x, float y, float range, Boolf<Building> pred){
         return indexer.findTile(team, x, y, range, pred);
     }
 
-    /** Returns the neareset enemy tile in a range. */
+    /** Returns the nearest enemy tile in a range. */
     public static Building findEnemyTile(Team team, float x, float y, float range, Boolf<Building> pred){
         if(team == Team.derelict) return null;
 
