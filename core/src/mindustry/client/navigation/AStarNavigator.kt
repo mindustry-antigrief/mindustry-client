@@ -92,10 +92,14 @@ object AStarNavigator : Navigator() {
     }
 
 
-    override fun findPath(start: Vec2?, end: Vec2?, obstacles: Array<Circle>?, width: Float, height: Float): Array<Vec2>? {
-        start ?: return null
-        end ?: return null
-        obstacles ?: return null
+    override fun findPath(
+        start: Vec2,
+        end: Vec2,
+        obstacles: Array<Circle>,
+        width: Float,
+        height: Float,
+        blocked: (Int, Int) -> Boolean
+    ): Array<Vec2> {
 
         tileWidth = ceil(width / tilesize).toInt() + 1
         tileHeight = ceil(height / tilesize).toInt() + 1
@@ -126,7 +130,7 @@ object AStarNavigator : Navigator() {
             for (y in 0 until tileHeight) {
                 cell(x, y).g = 0.0
                 cell(x, y).cameFrom = null
-                cell(x, y).closed = false
+                cell(x, y).closed = blocked(x, y)
                 cell(x, y).added = 1
             }
         }
@@ -161,7 +165,7 @@ object AStarNavigator : Navigator() {
             //            System.out.println();
         } else {
 //            System.out.println("Time taken = " + (System.currentTimeMillis() - startTime) + " ms, no path found");
-            null
+            arrayOf()
         }
     }
 
