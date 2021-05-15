@@ -1,21 +1,20 @@
 package mindustry.world;
 
 import arc.func.*;
-import arc.math.Mathf;
+import arc.math.*;
 import arc.math.geom.*;
-import arc.math.geom.QuadTree.QuadTreeObject;
-import arc.scene.ui.Image;
-import arc.scene.ui.layout.Table;
+import arc.math.geom.QuadTree.*;
+import arc.scene.ui.*;
+import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.util.Nullable;
+import arc.util.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.antigrief.*;
-import mindustry.content.Blocks;
-import mindustry.game.Team;
+import mindustry.content.*;
+import mindustry.game.*;
 import mindustry.gen.*;
-import mindustry.type.Item;
-import mindustry.ui.Displayable;
-import mindustry.world.blocks.environment.Floor;
+import mindustry.type.*;
+import mindustry.ui.*;
+import mindustry.world.blocks.environment.*;
 
 import static mindustry.Vars.*;
 
@@ -630,6 +629,7 @@ public class Tile implements Position, QuadTreeObject, Displayable{
 
     @Remote(called = Loc.server)
     public static void setTile(Tile tile, Block block, Team team, int rotation){
+        if (tile == null) return;
         tile.setBlock(block, team, rotation);
     }
 

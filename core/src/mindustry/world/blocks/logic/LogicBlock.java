@@ -215,6 +215,7 @@ public class LogicBlock extends Block{
         public float accumulator = 0;
         public Seq<LogicLink> links = new Seq<>();
         public boolean checkedDuplicates = false;
+        public boolean isVirus = false;
 
         public void readCompressed(byte[] data, boolean relative){
             DataInputStream stream = new DataInputStream(new InflaterInputStream(new ByteArrayInputStream(data)));
@@ -316,6 +317,7 @@ public class LogicBlock extends Block{
         public void updateCode(String str, boolean keep, Cons<LAssembler> assemble){
             if(str != null){
                 code = str;
+                isVirus = false;
 
                 try{
                     //create assembler to store extra variables

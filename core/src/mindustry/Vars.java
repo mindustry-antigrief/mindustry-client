@@ -431,9 +431,14 @@ public class Vars implements Loadable{
             }
 
             if(settings.getBool("debugtext")){
-                for (String key : bundle.getKeys()) {
-                    bundle.getProperties().put(key, "@" + bundle.get(key) + "@");
-                }
+                I18NBundle b = bundle;
+                String wrap = "@";
+                do{
+                    for(String key : b.getKeys()){
+                        b.getProperties().put(key, wrap + bundle.get(key) + wrap);
+                    }
+                    wrap = "[accent]@[]";
+                } while((b = b.getParent()) != null);
             }
         }
     }

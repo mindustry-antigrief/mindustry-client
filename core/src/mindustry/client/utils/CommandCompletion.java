@@ -12,10 +12,10 @@ public class CommandCompletion implements Autocompleter {
     public void initialize() {
         String prefix = Reflect.get(Vars.netServer.clientCommands, "prefix");
         String finalPrefix = prefix;
-        commands.addAll(Vars.netServer.clientCommands.getCommandList().map(inp -> new CommandCompletable(inp.text, inp.text + inp.paramText, finalPrefix)));
+        commands.addAll(Vars.netServer.clientCommands.getCommandList().map(inp -> new CommandCompletable(inp.text, inp.text + " " + inp.paramText, finalPrefix)));
         prefix = Reflect.get(ClientVars.clientCommandHandler, "prefix");
         String finalPrefix1 = prefix;
-        commands.addAll(ClientVars.clientCommandHandler.getCommandList().map(inp -> new CommandCompletable(inp.text, inp.text + inp.paramText, finalPrefix1)));
+        commands.addAll(ClientVars.clientCommandHandler.getCommandList().map(inp -> new CommandCompletable(inp.text, inp.text + " " + inp.paramText, finalPrefix1)));
     }
 
     @Override
@@ -52,7 +52,7 @@ public class CommandCompletion implements Autocompleter {
             if (input.split("\\s").length > 1) return 0f;
             if (!input.startsWith(String.valueOf(command.charAt(0)))) return 0f;
 
-            float dst = BiasedLevenshtein.biasedLevenshtein(input, command);
+            float dst = BiasedLevenshtein.biasedLevenshteinInsensitive(input, command);
             dst *= -1;
             dst += command.length();
             dst /= command.length();

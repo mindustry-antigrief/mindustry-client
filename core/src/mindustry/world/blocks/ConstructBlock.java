@@ -3,7 +3,6 @@ package mindustry.world.blocks;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
-import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.scene.event.*;
@@ -26,11 +25,9 @@ import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
-import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.blocks.storage.*;
@@ -72,11 +69,11 @@ public class ConstructBlock extends Block{
     @Remote(called = Loc.server)
     public static void deconstructFinish(Tile tile, Block block, Unit builder){
         if(tile != null && builder != null && block != null){
-            if(Navigation.currentlyFollowing instanceof UnAssistPath){
-                if(((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()){
+            if(Navigation.currentlyFollowing instanceof UnAssistPath path){
+                if(path.assisting == builder.getPlayer()){
                     if(block.isVisible()) {
                         Log.debug("Build: " + tile.build.config() + " Block: " + tile.block().lastConfig);
-                        ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, block, tile.build.config()));
+                        path.toUndo.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, block, tile.build.config()));
                     }
                 }
             }
@@ -98,7 +95,7 @@ public class ConstructBlock extends Block{
         Seq<Block> warnBlocks = Seq.with(Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid); // All blocks that shouldn't be broken. Note: Untested with multiblocks, likely to behave in a strange manner.
 
         if (warnBlocks.contains(block) && Time.timeSinceMillis(tile.lastBreakWarn) > 10_000) { //TODO: Revise this, maybe do break warns per user?
-            Timer.schedule(() -> ui.chatfrag.addMessage(Strings.format("[accent]@ [scarlet]just removed/picked up a @ at (@, @)", Strings.stripColors(builder.getPlayer().name), block.localizedName, tile.x, tile.y), "Anti Grief"), 0, 0, 2);
+            Timer.schedule(() -> ui.chatfrag.addMessage(Core.bundle.format("client.breakwarn", Strings.stripColors(builder.getPlayer().name), block.localizedName, tile.x, tile.y), null), 0, 0, 2);
             tile.lastBreakWarn = Time.millis();
         }
     }
@@ -144,21 +141,15 @@ public class ConstructBlock extends Block{
         Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
 
         if(builder != null && tile.build != null){
-            if (Core.settings.getBool("viruswarnings") && builder.isPlayer() && config instanceof byte[] && tile.build instanceof LogicBlock.LogicBuild l && BuildPath.virusBlock(l)) {
-                ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", builder.getPlayer().name, l.tileX(), l.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));
-                control.input.lastVirusWarning = l;
-                control.input.lastVirusWarnTime = Time.millis();
-                ClientVars.lastSentPos.set(l.tileX(), l.tileY());
-            }
-            if(Navigation.currentlyFollowing instanceof UnAssistPath){
-                if (((UnAssistPath) Navigation.currentlyFollowing).assisting == builder.getPlayer()) {
+            if(Navigation.currentlyFollowing instanceof UnAssistPath path){
+                if (path.assisting == builder.getPlayer()) {
                     if(Navigation.currentlyFollowing != null) {
-                        for (BuildPlan p : ((UnAssistPath) Navigation.currentlyFollowing).toUndo) {
+                        for (BuildPlan p : path.toUndo) {
                             if (p.x == tile.x && p.y == tile.y) {
-                                ((UnAssistPath) Navigation.currentlyFollowing).toUndo.remove(p);
+                                path.toUndo.remove(p);
                             }
                         }
-                        ((UnAssistPath) Navigation.currentlyFollowing).toUndo.add(new BuildPlan(tile.x, tile.y));
+                        path.toUndo.add(new BuildPlan(tile.x, tile.y));
                         if (config != null) {
                             ClientVars.configs.add(new ConfigRequest(tile.x, tile.y, null));
                         }

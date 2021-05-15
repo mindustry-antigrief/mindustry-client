@@ -29,4 +29,8 @@ public class BiasedLevenshtein {
         }
         return output;
     }
+
+    public static float biasedLevenshteinInsensitive(String x, String y) {
+        return biasedLevenshtein(x.toLowerCase(), y.toLowerCase());
+    }
 }

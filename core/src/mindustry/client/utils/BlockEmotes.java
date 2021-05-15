@@ -59,7 +59,7 @@ public class BlockEmotes implements Autocompleter {
             Seq<String> items = new Seq<>(input.split(":"));
             if (items.size == 0) return 0f;
             String text = items.peek();
-            float dst = BiasedLevenshtein.biasedLevenshtein(text, name);
+            float dst = BiasedLevenshtein.biasedLevenshteinInsensitive(text, name);
             dst *= -1;
             dst += name.length();
             dst /= name.length();

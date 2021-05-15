@@ -1,20 +1,18 @@
 package mindustry.client.ui
 
-import arc.Core
-import arc.graphics.Color
-import arc.input.KeyCode
-import arc.math.geom.Geometry
-import arc.scene.ui.Image
-import arc.scene.ui.TextField
-import arc.scene.ui.layout.Table
-import mindustry.Vars
+import arc.*
+import arc.graphics.*
+import arc.input.*
+import arc.math.geom.*
+import arc.scene.ui.*
+import arc.scene.ui.layout.*
+import mindustry.*
 import mindustry.Vars.player
-import mindustry.client.ClientVars
-import mindustry.client.utils.BiasedLevenshtein
-import mindustry.ui.Cicon
-import mindustry.ui.dialogs.BaseDialog
-import mindustry.world.Block
-import mindustry.world.Tile
+import mindustry.client.*
+import mindustry.client.utils.*
+import mindustry.ui.*
+import mindustry.ui.dialogs.*
+import mindustry.world.*
 
 object FindDialog : BaseDialog("@find") {
     private val imageTable = Table()
@@ -23,7 +21,7 @@ object FindDialog : BaseDialog("@find") {
     private var guesses: List<Block> = emptyList()
 
     private fun updateGuesses() {
-        guesses = Vars.content.blocks().copy().toMutableList().sortedBy { BiasedLevenshtein.biasedLevenshtein(it.localizedName.toLowerCase(), inputField.text.toLowerCase()) }
+        guesses = Vars.content.blocks().copy().toMutableList().sortedBy { BiasedLevenshtein.biasedLevenshteinInsensitive(it.localizedName, inputField.text) }
     }
 
     init {

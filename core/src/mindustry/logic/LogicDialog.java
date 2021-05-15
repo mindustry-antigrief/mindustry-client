@@ -63,29 +63,8 @@ public class LogicDialog extends BaseDialog{
             hide();
         });
 
-        buttons.button("@add", Icon.add, () -> {
-            BaseDialog dialog = new BaseDialog("@add");
-            dialog.cont.pane(t -> {
-                t.background(Tex.button);
-                int i = 0;
-                for(Prov<LStatement> prov : LogicIO.allStatements){
-                    LStatement example = prov.get();
-                    if(example instanceof InvalidStatement || example.hidden()) continue;
-
-                    TextButtonStyle style = new TextButtonStyle(Styles.cleart);
-                    style.fontColor = example.color();
-                    style.font = Fonts.outline;
-
-                    t.button(example.name(), style, () -> {
-                        canvas.add(prov.get());
-                        dialog.hide();
-                    }).size(140f, 50f).self(c -> tooltip(c, "lst." + example.name()));
-                    if(++i % 2 == 0) t.row();
-                }
-            });
-            dialog.addCloseButton();
-            dialog.show();
-        }).disabled(t -> canvas.statements.getChildren().size >= LExecutor.maxInstructions);
+        buttons.button("@add", Icon.add, () -> addDialog(canvas.statements.getChildren().size))
+            .disabled(t -> canvas.statements.getChildren().size >= LExecutor.maxInstructions);
 
         add(canvas).grow().name("canvas");
 
@@ -114,5 +93,29 @@ public class LogicDialog extends BaseDialog{
         };
 
         show();
+    }
+
+    public void addDialog(int at) {
+        BaseDialog dialog = new BaseDialog("@add");
+        dialog.cont.pane(t -> {
+            t.background(Tex.button);
+            int i = 0;
+            for(Prov<LStatement> prov : LogicIO.allStatements){
+                LStatement example = prov.get();
+                if(example instanceof InvalidStatement || example.hidden()) continue;
+
+                TextButtonStyle style = new TextButtonStyle(Styles.cleart);
+                style.fontColor = example.color();
+                style.font = Fonts.outline;
+
+                t.button(example.name(), style, () -> {
+                    canvas.addAt(at, prov.get());
+                    dialog.hide();
+                }).size(140f, 50f).self(c -> tooltip(c, "lst." + example.name()));
+                if(++i % 2 == 0) t.row();
+            }
+        });
+        dialog.addCloseButton();
+        dialog.show();
     }
 }

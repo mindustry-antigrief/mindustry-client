@@ -3,7 +3,6 @@ package mindustry.client
 import arc.*
 import arc.math.geom.*
 import arc.struct.*
-import arc.util.*
 import arc.util.Interval
 import mindustry.*
 import mindustry.client.antigrief.*
@@ -81,7 +80,7 @@ object Main : ApplicationListener {
             ClientVars.dispatchingBuildPlans = !ClientVars.dispatchingBuildPlans
         }
 
-        if (ClientVars.dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(10 * 60f)) {
+        if (ClientVars.dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(5 * 60f)) {
             sendBuildPlans()
         }
     }

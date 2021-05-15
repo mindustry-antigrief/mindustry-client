@@ -6,7 +6,6 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.graphics.gl.*;
 import arc.math.*;
-import arc.math.geom.Rect;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.client.navigation.*;
