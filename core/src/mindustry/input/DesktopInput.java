@@ -848,7 +848,7 @@ public class DesktopInput extends InputHandler{
                 unit.lookAt(unit.prefRotation());
             }
 
-            if(omni){
+            if(omni || true){
                 unit.moveAt(movement);
             }else{
                 unit.moveAt(Tmp.v2.trns(unit.rotation, movement.len()));
