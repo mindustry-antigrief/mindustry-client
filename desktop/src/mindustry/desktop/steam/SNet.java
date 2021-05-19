@@ -175,6 +175,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
     @Override
     public void discoverServers(Cons<Host> callback, Runnable done){
         smat.addRequestLobbyListResultCountFilter(32);
+        if (Core.settings.getBool("steamGlobal")) smat.addRequestLobbyListDistanceFilter(LobbyDistanceFilter.Worldwide);
         smat.requestLobbyList();
         lobbyCallback = callback;
 
@@ -263,7 +264,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
         //check version
         if(version != Version.build){
             ui.loadfrag.hide();
-            ui.showInfo("[scarlet]" + (version > Version.build ? KickReason.clientOutdated : KickReason.serverOutdated).toString() + "\n[]" +
+            ui.showInfo("[scarlet]" + (version > Version.build ? KickReason.clientOutdated : KickReason.serverOutdated) + "\n[]" +
                 Core.bundle.format("server.versions", Version.build, version));
             smat.leaveLobby(steamIDLobby);
             return;

@@ -87,6 +87,7 @@ public enum Binding implements KeyBind{
     chat_autocomplete(KeyCode.tab),
     auto_build(KeyCode.semicolon),
     auto_repair(KeyCode.l),
+    auto_mine(KeyCode.k),
     toggle_strict_mode(KeyCode.f7),
     find_modifier(KeyCode.controlLeft),
     find(KeyCode.f),

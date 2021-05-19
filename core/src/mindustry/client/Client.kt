@@ -210,7 +210,7 @@ object Client {
 
         register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
             if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
-                player.sendMessage("@client.command.cc.invalid")
+                player.sendMessage(Core.bundle.get("client.command.cc.invalid"))
                 return@register
             }
             for (tile in world.tiles) {
@@ -223,7 +223,7 @@ object Client {
                 player.sendMessage(Core.bundle.format("client.command.cc.success", args[0]))
                 return@register
             }
-            player.sendMessage("@client.command.cc.notfound")
+            player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
         }
 
         register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->

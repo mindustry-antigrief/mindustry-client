@@ -18,6 +18,8 @@
  * Added a setting for mobile ui, I don't know why you would ever want this on pc but here you go
  * Added a bar to menders showing when they will mend again
  * Disabled stupid vote reminders on .io, they are annoying and do nothing beneficial for anyone
+ * Added a button to toggle between searching for lobbies by region and globally on steam
+ * Added MinePath, bound to K by default
  * Probably more stuff I forgot
 
 # Version 7.2.1

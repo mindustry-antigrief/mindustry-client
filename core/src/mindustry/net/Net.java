@@ -282,7 +282,7 @@ public class Net{
     }
 
     /**
-     * Pings a host in an new thread. If an error occured, failed() should be called with the exception.
+     * Pings a host in an new thread. If an error occurred, failed() should be called with the exception.
      */
     public void pingHost(String address, int port, Cons<Host> valid, Cons<Exception> failed){
         provider.pingHost(address, port, valid, failed);

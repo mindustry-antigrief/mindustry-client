@@ -13,7 +13,7 @@ import arc.util.Timer.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.core.*;
-import mindustry.game.EventType;
+import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -23,7 +23,6 @@ import mindustry.net.Packets.*;
 import mindustry.ui.*;
 
 import static mindustry.Vars.*;
-import static mindustry.Vars.port;
 
 public class JoinDialog extends BaseDialog{
     Seq<Server> servers = new Seq<>();
@@ -424,15 +423,25 @@ public class JoinDialog extends BaseDialog{
     }
 
     void finishLocalHosts(){
+
+        Table t = new Table(Tex.button);
+        Table ta = new Table();
+        if(steam){
+            ta.check(" " + Core.bundle.get("client.globalsearch"), Core.settings.getBool("steamGlobal"), b -> Core.settings.put("steamGlobal", b));
+            ta.row();
+        }
         if(totalHosts == 0){
             local.clear();
-            local.background(Tex.button);
-            local.add("@hosts.none").pad(10f);
-            local.add().growX();
-            local.button(Icon.refresh, this::refreshLocal).pad(-12f).padLeft(0).size(70f);
-        }else{
-            local.background(null);
+            ta.add("@hosts.none").pad(10f);
         }
+        if(ta.hasChildren()){
+            t.add(ta);
+            t.add().growX();
+            t.button(Icon.refresh, this::refreshLocal).pad(-12f).padLeft(0).width(70f).fillY();
+            local.row();
+            local.add(t).growX();
+        }
+        local.background(null);
     }
 
     void addLocalHost(Host host){
