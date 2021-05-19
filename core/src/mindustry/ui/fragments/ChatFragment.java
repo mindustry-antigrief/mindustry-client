@@ -249,7 +249,10 @@ public class ChatFragment extends Table{
                 player.persistPlans();
                 ClientVars.syncing = true;
             }
-            if (!message.startsWith(netServer.clientCommands.getPrefix())) Events.fire(new EventType.SendChatMessageEvent(message)); // Only fire when not running any command
+            if (!message.startsWith(netServer.clientCommands.getPrefix())) { // Only fire when not running any command
+                message = message.replaceFirst("^/[at] /", "/"); // Allow for /t /help to run /help rather than sending /help to team chat
+                Events.fire(new EventType.SendChatMessageEvent(message));
+            }
 
         }else{
 
