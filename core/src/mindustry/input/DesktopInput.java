@@ -284,6 +284,10 @@ public class DesktopInput extends InputHandler{
             Navigation.follow(new RepairPath());
         }
 
+        if(input.keyTap(Binding.auto_mine) && scene.getKeyboardFocus() == null){
+            Navigation.follow(new MinePath());
+        }
+
         if(input.keyTap(Binding.toggle_strict_mode) && scene.getKeyboardFocus() == null){
             settings.put("assumeunstrict", !settings.getBool("assumeunstrict"));
         }

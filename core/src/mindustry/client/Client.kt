@@ -105,7 +105,6 @@ object Client {
     }
 
     private fun registerCommands() {
-        Log.info(Core.bundle.get("client.command.help.description"))
         register("help [page]", Core.bundle.get("client.command.help.description")) { args, player ->
             if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
                 player.sendMessage("[scarlet]'page' must be a number.")
@@ -211,7 +210,7 @@ object Client {
 
         register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
             if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
-                player.sendMessage("@client.command.cc.invalid")
+                player.sendMessage(Core.bundle.get("client.command.cc.invalid"))
                 return@register
             }
             for (tile in world.tiles) {
@@ -224,7 +223,7 @@ object Client {
                 player.sendMessage(Core.bundle.format("client.command.cc.success", args[0]))
                 return@register
             }
-            player.sendMessage("@client.command.cc.notfound")
+            player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
         }
 
         register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
@@ -289,7 +288,7 @@ object Client {
     /** Registers a command.
      *
      * @param format The format of the command, basically name and parameters together. Example:
-     *      "help <page>"
+     *      "help [page]"
      * @param description The description of the command.
      * @param runner A lambda to run when the command is invoked.
      */

@@ -30,7 +30,7 @@ public class BuildPath extends Path {
 
     @SuppressWarnings("unchecked")
     public BuildPath(){
-        queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist); // Every queue except for cleanup and boulders is included by default
+        queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist, drills, belts); // Most queues included by default
     }
 
     @SuppressWarnings("unchecked")

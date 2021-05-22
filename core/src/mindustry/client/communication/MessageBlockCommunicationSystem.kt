@@ -83,7 +83,7 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
         event.value ?: return
         if (event.tile.block !is MessageBlock) return
 
-        val message = event.value as String
+        val message = event.value as? String ?: return // Some modded blocks use non strings
         if (!message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)) return
 
         val id = if (event.player == null) -1 else event.player.id
