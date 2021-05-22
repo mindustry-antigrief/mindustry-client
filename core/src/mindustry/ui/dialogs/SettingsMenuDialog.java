@@ -337,6 +337,7 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("blockreplace", true);
         client.checkPref("autoboost", false);
         client.checkPref("assumeunstrict", false);
+        client.checkPref("instantturn", true);
 
         client.category("graphics");
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
