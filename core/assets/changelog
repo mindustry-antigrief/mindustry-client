@@ -20,6 +20,7 @@
  * Disabled stupid vote reminders on .io, they are annoying and do nothing beneficial for anyone
  * Added a button to toggle between searching for lobbies by region and globally on steam
  * Added MinePath, bound to K by default
+ * Fixed a bug with logic virus detection
  * Probably more stuff I forgot
 
 # Version 7.2.1

@@ -104,22 +104,20 @@ public class Navigation {
         clientThread.taskQueue.post(() -> {
             synchronized (obstacles) {
                 Vec2[] points = navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacles.toArray(new TurretPathfindingEntity[0]));
-                if (points != null) {
-                    Seq<PositionWaypoint> waypoints = new Seq<>();
-                    for (Vec2 point : points) {
-                        waypoints.add(new PositionWaypoint(point.x, point.y));
-                    }
-                    waypoints.reverse();
+                Seq<PositionWaypoint> waypoints = new Seq<>();
+                for (Vec2 point : points) {
+                    waypoints.add(new PositionWaypoint(point.x, point.y));
+                }
+                waypoints.reverse();
 
-                    if (waypoints.any()) {
-                        while (waypoints.size > 1 && waypoints.min(wp -> wp.dst(player)) != waypoints.first()) waypoints.remove(0);
-                        if (waypoints.size > 1) waypoints.remove(0);
-                        if (waypoints.size > 1) waypoints.remove(0);
-                        if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
-                            follow(new WaypointPath<>(waypoints));
-                            targetPos = new Vec2(drawX, drawY);
-                            currentlyFollowing.setShow(true);
-                        }
+                if (waypoints.any()) {
+                    while (waypoints.size > 1 && waypoints.min(wp -> wp.dst(player)) != waypoints.first()) waypoints.remove(0);
+                    if (waypoints.size > 1) waypoints.remove(0);
+                    if (waypoints.size > 1) waypoints.remove(0);
+                    if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
+                        follow(new WaypointPath<>(waypoints));
+                        targetPos = new Vec2(drawX, drawY);
+                        currentlyFollowing.setShow(true);
                     }
                 }
             }

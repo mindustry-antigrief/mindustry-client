@@ -38,7 +38,7 @@ object AStarNavigator : Navigator() {
 
     override fun init() {}
 
-    /** Calculates the heuristic distance for this cell */
+    /** Calculates the distance heuristic for this cell */
     private fun h(cell: Cell): Double {
         val dx = abs(cell.x - endX)
         val dy = abs(cell.y - endY)
@@ -144,7 +144,7 @@ object AStarNavigator : Navigator() {
                 for (y in lowerYBound..upperYBound) {
                     if (Structs.inBounds(x, y, tileWidth, tileHeight) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
                         cell(x, y).added += 100
-//                        closed.set(x, y) TODO: The line above will always find a path, this line will do nothing if there is no path, add a hotkey to toggle
+//                        cell(x, y).closed = true // The line above will always find a path, this line will do nothing if there is no path, add a hotkey to toggle
                     }
                 }
             }

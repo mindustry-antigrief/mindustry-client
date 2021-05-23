@@ -27,9 +27,9 @@ open class UnitInteractor(unit: Unit?) : Interactor {
 }
 
 class NullUnitInteractor : UnitInteractor(Nulls.unit) {
-    override val name = "null unit"
+    override val name = "null unit" // FIXME: Dont use this when nodes are automatically configured
 
-    override val shortName = "null unit"
+    override val shortName = "null unit" // FIXME: Dont use this when nodes are automatically configured
 }
 
 class NoInteractor : Interactor {
