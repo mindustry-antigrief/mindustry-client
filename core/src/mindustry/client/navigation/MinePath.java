@@ -32,11 +32,11 @@ public class MinePath extends Path {
                 Call.transferInventory(player, core);
             } else {
                 if (player.unit().type.canBoost) player.boosting = true;
-                new PositionWaypoint(core.x, core.y, itemTransferRange - tilesize * 2, itemTransferRange - tilesize * 2).run();
+                new PositionWaypoint(core.x, core.y, itemTransferRange - tilesize * 3, itemTransferRange - tilesize * 3).run();
             }
 
         } else { // mine
-            Tile tile = indexer.findClosestOre(player.unit(), item);
+            Tile tile = indexer.findClosestOreButGood(player.x, player.y, item);
             player.unit().mineTile = tile;
             if (tile == null) return;
 

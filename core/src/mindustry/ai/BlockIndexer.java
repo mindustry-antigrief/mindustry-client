@@ -331,6 +331,25 @@ public class BlockIndexer{
         return findClosestOre(unit.x, unit.y, item);
     }
 
+    /** Its findClosestOre but it actually finds the closest ore... */
+    public Tile findClosestOreButGood(float xp, float yp, Item item){
+        Tile tile = Geometry.findClosest(xp, yp, getOrePositions(item));
+
+        if(tile == null) return null;
+
+        Seq<Tile> tiles = new Seq<>();
+        for(int x = Math.max(0, tile.x - quadrantSize / 2); x < tile.x + quadrantSize / 2 && x < world.width(); x++){
+            for(int y = Math.max(0, tile.y - quadrantSize / 2); y < tile.y + quadrantSize / 2 && y < world.height(); y++){
+                Tile res = world.tile(x, y);
+                if(res.block() == Blocks.air && res.drop() == item){
+                    tiles.add(res);
+                }
+            }
+        }
+
+        return tiles.any() ? Geometry.findClosest(xp, yp, tiles) : null;
+    }
+
     /** @return extra unit cap of a team. This is added onto the base value. */
     public int getExtraUnits(Team team){
         return unitCaps[team.id];
