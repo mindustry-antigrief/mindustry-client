@@ -22,16 +22,19 @@ public class MinePath extends Path {
 
     public MinePath (String args){
         for (String arg : args.split("\\s")) {
+            arg = arg.toLowerCase();
             boolean added = false;
             for (Item item : content.items().select(indexer::hasOre)) {
                 if (item.name.toLowerCase().equals(arg) || item.localizedName.toLowerCase().equals(arg)) {
                     items.add(item);
                     itemString.append(item.localizedName).append(", ");
                     added = true;
-                    break;
                 }
             }
-            if (!added) player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
+            if (!added) { // Item not matched
+                if (arg.equals("*") || arg.equals("all") || arg.equals("a")) items.addAll(content.items().select(indexer::hasOre)); // Add all items when the argument is "all" or similar
+                else player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
+            }
         }
         if (items.isEmpty()) {
             player.sendMessage(Core.bundle.get("client.path.miner.allinvalid"));
