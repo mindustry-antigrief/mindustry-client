@@ -1,6 +1,8 @@
 package mindustry.client.navigation;
 
+import arc.*;
 import arc.math.geom.*;
+import arc.struct.*;
 import arc.util.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.gen.*;
@@ -10,7 +12,35 @@ import mindustry.world.*;
 import static mindustry.Vars.*;
 
 public class MinePath extends Path {
+    Seq<Item> items = new Seq<>(16);
+    StringBuilder itemString = new StringBuilder();
     static Interval timer = new Interval();
+
+    public MinePath() {
+        items = player.team().data().mineItems;
+    }
+
+    public MinePath (String args){
+        for (String arg : args.split("\\s")) {
+            boolean added = false;
+            for (Item item : content.items().select(indexer::hasOre)) {
+                if (item.name.toLowerCase().equals(arg) || item.localizedName.toLowerCase().equals(arg)) {
+                    items.add(item);
+                    itemString.append(item.localizedName).append(", ");
+                    added = true;
+                    break;
+                }
+            }
+            if (!added) player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
+        }
+        if (items.isEmpty()) {
+            player.sendMessage(Core.bundle.get("client.path.miner.allinvalid"));
+            items = player.team().data().mineItems;
+        } else {
+            player.sendMessage(Core.bundle.format("client.path.miner.mining", itemString.substring(0, itemString.length() - 2))); // TODO: Terrible
+        }
+    }
+
     @Override
     public void setShow(boolean show) {
 
@@ -24,7 +54,7 @@ public class MinePath extends Path {
     @Override
     public void follow() {
         Building core = player.closestCore();
-        Item item = player.team().data().mineItems.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
+        Item item = items.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
         if (item == null) return;
 
         if (player.unit().maxAccepted(item) == 0) { // drop off

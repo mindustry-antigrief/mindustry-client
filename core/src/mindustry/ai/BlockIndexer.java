@@ -62,6 +62,7 @@ public class BlockIndexer{
         Events.on(WorldLoadEvent.class, event -> {
             scanOres.clear();
             scanOres.addAll(Item.getAllOres());
+            scanOres.add(Items.sand);
             damagedTiles = new ObjectSet[Team.all.length];
             flagMap = new TileArray[Team.all.length][BlockFlag.all.length];
             unitCaps = new int[Team.all.length];
