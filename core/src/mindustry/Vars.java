@@ -440,6 +440,22 @@ public class Vars implements Loadable{
                     wrap = "[accent]@[]";
                 } while((b = b.getParent()) != null);
             }
+
+            if(OS.hasProp("untranslated")){
+                Events.on(ClientLoadEvent.class, event -> {
+                    I18NBundle parent = bundle;
+                    while(parent.getParent() != null) parent = parent.getParent();
+
+                    Log.warn("BEGIN BUNDLE DIFF");
+                    for(String key : parent.getKeys()){
+                        if(!bundle.has(key)) Log.warn(bundle.getLocale().getDisplayName() + " is missing key: " + key);
+                    }
+                    for(String key : bundle.getKeys()){
+                        if(!parent.has(key)) Log.warn(bundle.getLocale().getDisplayName() + " has extra key : " + key);
+                    }
+                    Log.warn("END BUNDLE DIFF");
+                });
+            }
         }
     }
 }
