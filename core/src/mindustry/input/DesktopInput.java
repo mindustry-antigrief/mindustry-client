@@ -284,6 +284,10 @@ public class DesktopInput extends InputHandler{
             Navigation.follow(new RepairPath());
         }
 
+        if(input.keyTap(Binding.auto_mine) && scene.getKeyboardFocus() == null){
+            Navigation.follow(new MinePath());
+        }
+
         if(input.keyTap(Binding.toggle_strict_mode) && scene.getKeyboardFocus() == null){
             settings.put("assumeunstrict", !settings.getBool("assumeunstrict"));
         }
@@ -371,44 +375,37 @@ public class DesktopInput extends InputHandler{
                 } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.scarlet);}
 
                 table.row().fill();
-                table.button("View log", () -> { // Tile Logs
-//                    BaseDialog dialog = new BaseDialog("Logs");
-//                    ScrollPane pane = new ScrollPane(cursor.getLog().toTable());
-//                    pane.setFadeScrollBars(true);
-//                    dialog.cont.add(pane).center();
-//                    dialog.addCloseButton();
-//
-//                    dialog.show();
+                table.button("@client.log", () -> { // Tile Logs
                     TileRecords.INSTANCE.show(cursor);
                     table.remove();
                 });
 
                 table.row().fill();
-                table.button("Unit Picker", () -> {// Unit Picker / Sniper
+                table.button("@client.unitpicker", () -> {// Unit Picker / Sniper
                     ui.unitPicker.show();
                     table.remove();
                 });
 
                 table.row().fill();
-                table.button("Teleport to Cursor", () -> {
+                table.button("@client.teleport", () -> {
                     NetClient.setPosition(World.unconv(cursor.x), World.unconv(cursor.y));
                     table.remove();
                 });
 
                 table.row().fill();
-                table.button("Waypoints", () -> {
-                    BaseDialog dialog = new BaseDialog("Waypoints");
+                table.button("@client.path.waypoints", () -> {
+                    BaseDialog dialog = new BaseDialog("@client.path.waypoints");
                     dialog.addCloseButton();
                     dialog.cont.setWidth(200f);
-                    dialog.cont.add(new TextButton("Record path")).growX().get().clicked(() -> {Navigation.startRecording(); dialog.hide();});
+                    dialog.cont.add(new TextButton("@client.path.record")).growX().get().clicked(() -> {Navigation.startRecording(); dialog.hide();});
                     dialog.cont.row();
-                    dialog.cont.add(new TextButton("Stop recording path")).growX().get().clicked(() -> {Navigation.stopRecording(); dialog.hide();});
+                    dialog.cont.add(new TextButton("@client.path.stoprecording")).growX().get().clicked(() -> {Navigation.stopRecording(); dialog.hide();});
                     dialog.cont.row();
-                    dialog.cont.add(new TextButton("Follow recorded path")).growX().get().clicked(() -> {if (Navigation.recordedPath != null) {Navigation.recordedPath.reset(); Navigation.follow(Navigation.recordedPath); Navigation.recordedPath.setShow(true);} dialog.hide();});
+                    dialog.cont.add(new TextButton("@client.path.follow")).growX().get().clicked(() -> {if (Navigation.recordedPath != null) {Navigation.recordedPath.reset(); Navigation.follow(Navigation.recordedPath); Navigation.recordedPath.setShow(true);} dialog.hide();});
                     dialog.cont.row();
-                    dialog.cont.add(new TextButton("Follow recorded path\nand repeat")).growX().get().clicked(() -> {if (Navigation.recordedPath != null) {Navigation.recordedPath.reset(); Navigation.follow(Navigation.recordedPath, true); Navigation.recordedPath.setShow(true);} dialog.hide();});
+                    dialog.cont.add(new TextButton("@client.path.followrepeat")).growX().get().clicked(() -> {if (Navigation.recordedPath != null) {Navigation.recordedPath.reset(); Navigation.follow(Navigation.recordedPath, true); Navigation.recordedPath.setShow(true);} dialog.hide();});
                     dialog.cont.row();
-                    dialog.cont.add(new TextButton("Stop following path")).growX().get().clicked(() -> {Navigation.stopFollowing(); dialog.hide();});
+                    dialog.cont.add(new TextButton("@client.path.stopfollowing")).growX().get().clicked(() -> {Navigation.stopFollowing(); dialog.hide();});
                     dialog.show();
                 });
 
@@ -848,7 +845,7 @@ public class DesktopInput extends InputHandler{
                 unit.lookAt(unit.prefRotation());
             }
 
-            if(omni){
+            if(omni || true){
                 unit.moveAt(movement);
             }else{
                 unit.moveAt(Tmp.v2.trns(unit.rotation, movement.len()));
@@ -857,12 +854,12 @@ public class DesktopInput extends InputHandler{
                 }
             }
             unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
+
+            // if autoboost, invert the behavior of the boost key
+            player.boosting = (Core.settings.getBool("autoboost") != input.keyDown(Binding.boost)) && !movement.isZero();
         }
 
         unit.controlWeapons(true, player.shooting && !boosted);
-
-        // if autoboost, invert the behavior of the boost key
-        player.boosting = (Core.settings.getBool("autoboost") != input.keyDown(Binding.boost)) && !movement.isZero();
         player.mouseX = unit.aimX();
         player.mouseY = unit.aimY();
 

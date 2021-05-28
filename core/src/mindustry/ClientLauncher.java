@@ -78,7 +78,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
         Fonts.loadSystemCursors();
 
-        assets.load(new Vars());
+        assets.load(new Vars()).loaded = v -> Client.INSTANCE.initialize();
 
         Fonts.loadDefaultFont();
 
@@ -113,8 +113,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
         assets.loadRun("contentinit", ContentLoader.class, () -> content.init(), () -> content.load());
         assets.loadRun("baseparts", BaseRegistry.class, () -> {}, () -> bases.load());
-
-        Client.INSTANCE.initialize();
     }
 
     @Override

@@ -54,7 +54,7 @@ object TileRecords {
                 addLog(tile, TileDestroyedLog(tile,
                     if (tile.build is ConstructBlock.ConstructBuild) (tile.build as ConstructBlock.ConstructBuild).cblock ?:
                     (tile.build as ConstructBlock.ConstructBuild).previous
-                    else tile.block()))
+                    else tile.block() ?: Blocks.air))
             }
         }
     }

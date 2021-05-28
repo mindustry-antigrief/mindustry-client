@@ -109,7 +109,7 @@ public class Reconstructor extends UnitBlock{
         }
 
         public float ticksRemaining(){
-            return (constructTime - progress) / timeScale;
+            return (constructTime - progress) / timeScale / Vars.state.rules.unitBuildSpeedMultiplier;
         }
 
         @Override

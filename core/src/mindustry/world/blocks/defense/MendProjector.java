@@ -10,6 +10,7 @@ import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
+import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
 
@@ -61,6 +62,13 @@ public class MendProjector extends Block{
         indexer.eachBlock(player.team(), x * tilesize + offset, y * tilesize + offset, range, other -> true, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
     }
 
+    @Override
+    public void setBars(){
+        super.setBars();
+
+        bars.add("progress", (MendBuild entity) -> new Bar("bar.progress", Pal.heal, () -> entity.charge / reload));
+    }
+
     public class MendBuild extends Building implements Ranged{
         float heat;
         float charge = Mathf.random(reload);
@@ -88,7 +96,7 @@ public class MendProjector extends Block{
                 float realRange = range + phaseHeat * phaseRangeBoost;
                 charge = 0f;
 
-                indexer.eachBlock(this, realRange, other -> other.damaged(), other -> {
+                indexer.eachBlock(this, realRange, Building::damaged, other -> {
                     other.heal(other.maxHealth() * (healPercent + phaseHeat * phaseBoost) / 100f * efficiency());
                     Fx.healBlockFull.at(other.x, other.y, other.block.size, Tmp.c1.set(baseColor).lerp(phaseColor, phaseHeat));
                 });

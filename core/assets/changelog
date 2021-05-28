@@ -1,8 +1,8 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
-# Version 7.2.2
+# Version 7.3.0
  * Fixed an issue in buildpath where !builder belts and !builder drill would only partially upgrade each building
- * Minor buildpath speed improvements
+ * Reworks to buildpath, hopefully its faster?
  * Removed debug logging that shouldn't have been left in
  * Fixed mono font disable option for real
  * Added fallback discord presence for older java versions
@@ -10,7 +10,22 @@
  * Made some progress towards localization of the client, many of the strings are now in bundle and can be translated (its nowhere near done but its a start)
  * Fixed an issue where formation units weren't being displayed as such in tile logs
  * Fixed an issue in tile logs where a half built/broken block being destroyed would display something along the lines of "build1"
+ * Fixed an issue with the coordinate highlighter which allowed players to kick client users by typing very large numbers
+ * Fixed an issue with tile logs which caused disconnects (this only ever happened when admins used js to kick people on purpose but still)
  * Pressing escape will now close the player list if it is open
+ * Completely reworked virus warnings, they should now always trigger on real viruses and never trigger on non viruses
+ * Added a  indicator when placing a drill, it shows the drill speed when coolant is added
+ * Added !fixpower, connects grids together as well as buildings without power, doesn't connect across diodes or plastanium walls
+ * Added a setting for mobile ui, I don't know why you would ever want this on pc but here you go
+ * Added a bar to menders showing when they will mend again
+ * Disabled vote reminder pop-ups on .io, they are annoying and do nothing beneficial for anyone
+ * Added a button to toggle between searching for lobbies by region and globally on steam
+ * Added MinePath, bound to K by default (mines copper, lead, titanium and thorium by default)
+ * Added !miner command to start a MinePath with specific ores (!miner sand copper), mined based on core item count
+ * Navigation (Z) will now work with ground and naval units (it doesn't avoid slag though so be careful)
+ * Units controlled by the player turn instantly, toggleable in settings
+ * Fixed a bug with logic virus detection
+ * Probably more stuff I forgot
 
 # Version 7.2.1
  * Fixed dialogs being weird

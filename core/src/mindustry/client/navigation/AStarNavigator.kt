@@ -3,13 +3,9 @@ package mindustry.client.navigation
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
-import arc.util.async.*
-import mindustry.Vars.*
-import mindustry.client.navigation.*
+import mindustry.Vars.tilesize
 import mindustry.core.*
-import java.util.*
 import kotlin.math.*
-import kotlin.system.*
 
 // Taken from http://www.codebytes.in/2015/02/a-shortest-path-finding-algorithm.html
 // and modified
@@ -42,7 +38,7 @@ object AStarNavigator : Navigator() {
 
     override fun init() {}
 
-    /** Calculates the heuristic distance for this cell */
+    /** Calculates the distance heuristic for this cell */
     private fun h(cell: Cell): Double {
         val dx = abs(cell.x - endX)
         val dy = abs(cell.y - endY)
@@ -96,10 +92,14 @@ object AStarNavigator : Navigator() {
     }
 
 
-    override fun findPath(start: Vec2?, end: Vec2?, obstacles: Array<Circle>?, width: Float, height: Float): Array<Vec2>? {
-        start ?: return null
-        end ?: return null
-        obstacles ?: return null
+    override fun findPath(
+        start: Vec2,
+        end: Vec2,
+        obstacles: Array<Circle>,
+        width: Float,
+        height: Float,
+        blocked: (Int, Int) -> Boolean
+    ): Array<Vec2> {
 
         tileWidth = ceil(width / tilesize).toInt() + 1
         tileHeight = ceil(height / tilesize).toInt() + 1
@@ -130,7 +130,7 @@ object AStarNavigator : Navigator() {
             for (y in 0 until tileHeight) {
                 cell(x, y).g = 0.0
                 cell(x, y).cameFrom = null
-                cell(x, y).closed = false
+                cell(x, y).closed = blocked(x, y)
                 cell(x, y).added = 1
             }
         }
@@ -144,7 +144,7 @@ object AStarNavigator : Navigator() {
                 for (y in lowerYBound..upperYBound) {
                     if (Structs.inBounds(x, y, tileWidth, tileHeight) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
                         cell(x, y).added += 100
-//                        closed.set(x, y) TODO: The line above will always find a path, this line will do nothing if there is no path, add a hotkey to toggle
+//                        cell(x, y).closed = true // The line above will always find a path, this line will do nothing if there is no path, add a hotkey to toggle
                     }
                 }
             }
@@ -165,7 +165,7 @@ object AStarNavigator : Navigator() {
             //            System.out.println();
         } else {
 //            System.out.println("Time taken = " + (System.currentTimeMillis() - startTime) + " ms, no path found");
-            null
+            arrayOf()
         }
     }
 

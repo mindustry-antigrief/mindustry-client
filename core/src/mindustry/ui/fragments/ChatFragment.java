@@ -241,6 +241,9 @@ public class ChatFragment extends Table{
 
         history.insert(1, message);
 
+        // Allow sending commands in "/t" & "/a"; "/t /help" becomes "/help", "/a !go" becomes "!go"
+        message = message.replaceFirst("^/[at] ([/!])", "$1");
+
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
@@ -249,7 +252,9 @@ public class ChatFragment extends Table{
                 player.persistPlans();
                 ClientVars.syncing = true;
             }
-            if (!message.startsWith(netServer.clientCommands.getPrefix())) Events.fire(new EventType.SendChatMessageEvent(message)); // Only fire when not running any command
+            if (!message.startsWith(netServer.clientCommands.getPrefix())) { // Only fire when not running any command
+                Events.fire(new EventType.SendChatMessageEvent(message));
+            }
 
         }else{
 
