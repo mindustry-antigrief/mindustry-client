@@ -32,7 +32,10 @@ public class MinePath extends Path {
                 }
             }
             if (!added) { // Item not matched
-                if (arg.equals("*") || arg.equals("all") || arg.equals("a")) items.addAll(content.items().select(indexer::hasOre)); // Add all items when the argument is "all" or similar
+                if (arg.equals("*") || arg.equals("all") || arg.equals("a")) {
+                    items.addAll(content.items().select(indexer::hasOre)); // Add all items when the argument is "all" or similar
+                    itemString.append("Everything, ");
+                }
                 else player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
             }
         }
