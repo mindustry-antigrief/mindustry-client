@@ -41,7 +41,7 @@ public class BeControl{
     public BeControl(){
         Events.on(EventType.ClientLoadEvent.class, event -> {
             Timer.schedule(() -> {
-                if(!mobile && !Version.clientVersion.equals("v1.0.0, Jan. 1, 1970")){
+                if(!mobile && !Version.clientVersion.equals("v1.0.0, Jan. 1, 1970")){ // Don't auto update on manually cloned copies of the repo
                     checkUpdate(result -> {
                         if (result && checkUpdates) {
                             showUpdateDialog();

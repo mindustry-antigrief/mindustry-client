@@ -430,7 +430,7 @@ public class Vars implements Loadable{
                 bundle.debug("router");
             }
 
-            if(settings.getBool("debugtext")){
+            if(OS.hasProp("debugtext")){ // When -Ddebugtext is passed, wraps bundle strings in @, untranslated strings wrapped with [accent]@
                 I18NBundle b = bundle;
                 String wrap = "@";
                 do{
@@ -441,17 +441,21 @@ public class Vars implements Loadable{
                 } while((b = b.getParent()) != null);
             }
 
-            if(OS.hasProp("untranslated")){
+            if(OS.hasProp("untranslated")){ // When -Duntranslated is passed, logs all missing and extra keys in the current bundle on startup
                 Events.on(ClientLoadEvent.class, event -> {
                     I18NBundle parent = bundle;
                     while(parent.getParent() != null) parent = parent.getParent();
 
                     Log.warn("BEGIN BUNDLE DIFF");
                     for(String key : parent.getKeys()){
-                        if(!bundle.has(key)) Log.warn(bundle.getLocale().getDisplayName() + " is missing key: " + key);
+                        if(!bundle.getProperties().containsKey(key)){ // bundle.has() always returns true as it checks parents as well
+                            Log.warn(bundle.getLocale().getDisplayName() + " is missing key: " + key);
+                        }
                     }
                     for(String key : bundle.getKeys()){
-                        if(!parent.has(key)) Log.warn(bundle.getLocale().getDisplayName() + " has extra key : " + key);
+                        if(!parent.has(key)){
+                            Log.warn(bundle.getLocale().getDisplayName() + " has extra key : " + key);
+                        }
                     }
                     Log.warn("END BUNDLE DIFF");
                 });

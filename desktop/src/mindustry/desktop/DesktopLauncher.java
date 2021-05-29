@@ -320,7 +320,7 @@ public class DesktopLauncher extends ClientLauncher{
 
             presence2.largeImageKey = presence.largeImageKey = "logo";
             presence2.smallImageKey = presence.smallImageKey = "foo";
-            presence2.smallImageText = presence.largeImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
+            presence2.smallImageText = presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
             presence2.startTimestamp = presence.startTimestamp = beginTime/1000;
             presence2.label1 = "Client Github";
             presence2.url1 = "https://github.com/mindustry-antigrief/mindustry-client-v6";

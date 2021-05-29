@@ -357,7 +357,6 @@ public class SettingsMenuDialog extends SettingsDialog{
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("allowjoinany", false);
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
-        client.checkPref("debugtext", false);
         if (steam) client.checkPref("unlockallachievements", false);
         // End Client Settings
 
