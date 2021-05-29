@@ -1,8 +1,9 @@
 package mindustry.client
 
-import arc.Core
-import arc.math.geom.Position
-import mindustry.input.DesktopInput
+import arc.*
+import arc.math.geom.*
+import mindustry.*
+import mindustry.input.*
 
 object Spectate {
     var pos: Position? = null
@@ -13,7 +14,8 @@ object Spectate {
         }
     }
 
-    fun spectate(pos: Position?) {
+    fun spectate(pos: Position) {
+        if (pos.x < -Vars.finalWorldBounds || pos.y < -Vars.finalWorldBounds || pos.x > Vars.world.unitHeight() + Vars.finalWorldBounds || pos.y > Vars.world.unitHeight() + Vars.finalWorldBounds) return // Dont go to space
         DesktopInput.panning = true
         Spectate.pos = pos
     }

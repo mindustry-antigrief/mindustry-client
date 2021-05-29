@@ -25,6 +25,7 @@
  * Navigation (Z) will now work with ground and naval units (it doesn't avoid slag though so be careful)
  * Units controlled by the player turn instantly, toggleable in settings
  * Fixed a bug with logic virus detection
+ * Fixed a bug where spectating a very small or large position would break the game
  * Probably more stuff I forgot
 
 # Version 7.2.1
