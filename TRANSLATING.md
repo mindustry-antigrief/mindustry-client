@@ -28,8 +28,12 @@ Once you are done, press the *propose new file* button at the bottom, then 'crea
 #### Testing your translation bundle
 
 There are two ways to test the translation bundle:
-1) Assuming you have the PC version downloaded, download your bundle file, name it `bundle.properties`, then place it in the same folder as the Mindustry desktop executable and run it. *You should get a popup message in-game confirming that you have loaded an external translation.*
+1) Assuming you have the PC version downloaded, download your bundle file, name it `bundle.properties`, then place it in the same folder as the Mindustry desktop executable and run it.
+   - You should get a popup message in-game confirming that you have loaded an external translation.
+   - The two flags listed just below this will **not** work if you use this approach because I'm too lazy to implement that right now.
+
 2) For advanced users: simply download your fork of mindustry and compile/run the game.
+    - This method allows you to pass the flags `-Duntranslated` to print missing and extra bundle strings to the console and `-Ddebugtext` to wrap all bundle strings in `@` and untranslated ones in `[accent]@[]`. To do so run the jar with `java -Duntranslated -Ddebugtext -jar <file>`, note that this also works with strings from mods.
 
 #### Translating for stores (Steam, Google Play)
 
