@@ -1,12 +1,12 @@
 package mindustry.client.utils
 
-import java.time.Instant
-import java.time.temporal.ChronoUnit
+import java.time.*
+import java.time.temporal.*
 
 /** Facilitates running something at a fixed rate in a loop.
  * Example usage:
  * ```
- * val interval = Interval(100L)
+ * val interval = IntervalMs(100L)
  * while (true) {
  *     if (interval.get()) {
  *         // this block is run every 100 ms
@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit
  * ```
  * @param milliseconds The number of milliseconds to wait between calls to [get] returning true.
  */
-class Interval(private val milliseconds: Long) {
+class IntervalMs(private val milliseconds: Long) {
     private var lastInvoked = Instant.ofEpochSecond(0)
 
     /** Returns true if it has been [milliseconds] ms or more since last returning true. */
