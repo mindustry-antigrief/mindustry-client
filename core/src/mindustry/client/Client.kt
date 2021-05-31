@@ -71,14 +71,14 @@ object Client {
         Events.on(PlayerJoin::class.java) { e ->
             if (e.player == null) return@on
 
-            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !ui.chatfrag.messages.first().message.equals("[accent]${e.player.name}[accent] has connected.")) && Time.timeSinceMillis(lastJoinTime) > 10000)
+            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has connected.")) && Time.timeSinceMillis(lastJoinTime) > 10000)
                 player.sendMessage(Core.bundle.format("client.connected", e.player.name))
         }
 
         Events.on(PlayerLeave::class.java) { e ->
             if (e.player == null) return@on
 
-            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !ui.chatfrag.messages.first().message.equals("[accent]${e.player.name}[accent] has disconnected.")))
+            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
                 player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
         }
     }

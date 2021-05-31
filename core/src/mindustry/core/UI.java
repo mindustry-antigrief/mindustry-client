@@ -332,7 +332,7 @@ public class UI implements ApplicationListener, Loadable{
             if(state.isMenu()) table.remove();
         });
         table.actions(Actions.delay(duration), Actions.remove());
-        table.align(align).table(Styles.black3, t -> t.margin(4).add(info).style(Styles.outlineLabel)).pad(top, left, bottom, right);
+        table.align(align).table(Styles.black3, t -> t.margin(4).add(info).style(Styles.monoOutlineLabel)).pad(top, left, bottom, right);
         Core.scene.add(table);
     }
 
