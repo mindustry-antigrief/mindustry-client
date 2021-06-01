@@ -49,7 +49,7 @@ abstract class Navigator {
                 )
             }
         }
-        val flood = ui.join.lastHost?.modeName == "Flood"
+        val flood = ui.join.lastHost.modeName == "Flood"
         return findPath(
             start, end, realObstacles.toTypedArray(), world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->
