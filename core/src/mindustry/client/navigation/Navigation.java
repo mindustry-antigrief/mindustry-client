@@ -93,7 +93,7 @@ public class Navigation {
             return;
         }
         state = NavigationState.FOLLOWING;
-        if (obstacles.isEmpty() && !Vars.state.hasSpawns()) {
+        if (obstacles.isEmpty() && !Vars.state.hasSpawns() && ui.join.lastHost != null && (ui.join.lastHost.modeName == null || !ui.join.lastHost.modeName.equals("Flood"))) {
             follow(new WaypointPath<>(Seq.with(new PositionWaypoint(Mathf.clamp(drawX, 0, world.unitWidth()), Mathf.clamp(drawY, 0, world.unitHeight())))));
             currentlyFollowing.setShow(true);
             targetPos = new Vec2(drawX, drawY);

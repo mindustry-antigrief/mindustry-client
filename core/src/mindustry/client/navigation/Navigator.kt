@@ -1,7 +1,6 @@
 package mindustry.client.navigation
 
 import arc.math.geom.*
-import arc.util.*
 import mindustry.Vars.*
 import mindustry.game.*
 
@@ -50,7 +49,7 @@ abstract class Navigator {
                 )
             }
         }
-        val flood = ui.join.lastHost != null && (ui.join.lastHost.modeName == "Flood" || ui.join.lastHost.address == "95.216.66.105" && ui.join.lastHost.port == 4000 || Strings.stripColors(ui.join.lastHost.name.toLowerCase()).contains("flood")) // There's really no good way of detecting this
+        val flood = ui.join.lastHost?.modeName == "Flood"
         return findPath(
             start, end, realObstacles.toTypedArray(), world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->
