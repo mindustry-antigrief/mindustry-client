@@ -83,12 +83,20 @@ public class Fonts{
         largeIcons.clear();
         FreeTypeFontParameter param = fontParameter();
 
-        Core.assets.load("default", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> Fonts.def = (Font)f;
+        Core.assets.load("default", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> {
+            Fonts.def = (Font)f;
+            Fonts.def.setFixedWidthGlyphs("0123456789");
+        };
         Core.assets.load("mono", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = f -> {
-            (Fonts.mono = ((Font)f)).setFixedWidthGlyphs(param.characters);
+            StringBuilder chars = new StringBuilder();
+            for(int c = 0; c <= 255; c++) chars.append((char)c);
+            (Fonts.mono = ((Font)f)).setFixedWidthGlyphs(chars);
             mono.getData().markupEnabled = true;
         };
-        Core.assets.load("chat", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> Fonts.chat = (Font)f;
+        Core.assets.load("chat", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> {
+            Fonts.chat = (Font)f;
+            Fonts.chat.setFixedWidthGlyphs("0123456789");
+        };
         Core.assets.load("icon", Font.class, new FreeTypeFontLoaderParameter("fonts/icon.ttf", new FreeTypeFontParameter(){{
             size = 30;
             incremental = true;
@@ -205,9 +213,14 @@ public class Fonts{
             size = 18;
         }};
 
-        Core.assets.load("outline", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = t -> Fonts.outline = (Font)t;
+        Core.assets.load("outline", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = t -> {
+            Fonts.outline = (Font)t;
+            Fonts.outline.setFixedWidthGlyphs("0123456789");
+        };
         Core.assets.load("monoOutline", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = f -> {
-            (Fonts.monoOutline = ((Font)f)).setFixedWidthGlyphs(param.characters);
+            StringBuilder chars = new StringBuilder();
+            for(int c = 0; c <= 255; c++) chars.append((char)c);
+            (Fonts.monoOutline = ((Font)f)).setFixedWidthGlyphs(chars);
             monoOutline.getData().markupEnabled = true;
         };
         Core.assets.load("tech", Font.class, new FreeTypeFontLoaderParameter("fonts/tech.ttf", new FreeTypeFontParameter(){{

@@ -66,6 +66,8 @@ object Client {
             Autocomplete.initialize()
 
             Navigation.navigator.init()
+
+            Core.settings.getBoolOnce("client730") { Core.settings.put("disablemonofont", true) } // TODO: Remove later
         }
 
         Events.on(PlayerJoin::class.java) { e ->

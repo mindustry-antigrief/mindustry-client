@@ -4,7 +4,10 @@
  * Fixed an issue in buildpath where !builder belts and !builder drill would only partially upgrade each building
  * Reworks to buildpath, hopefully its faster?
  * Removed debug logging that shouldn't have been left in
- * Fixed mono font disable option for real
+ * Fixed monofont disable option for real
+ * Disabled monofont by default for everyone
+ * Merged the normal font with the monofont so that it displays characters that arent included in the font (they do look janky though)
+ * Made the numbers in the normal font monospaced, they dont look too different but are readable when they are changing a lot 0123456789
  * Added fallback discord presence for older java versions
  * Added setting to find all non bundle strings
  * Made some progress towards localization of the client, many of the strings are now in bundle and can be translated (its nowhere near done but its a start)
@@ -26,6 +29,7 @@
  * Units controlled by the player turn instantly, toggleable in settings
  * Fixed a bug with logic virus detection
  * Fixed a bug where spectating a very small or large position would break the game
+ * Navigation now navigates around blue tiles in the flood gamemode
  * Probably more stuff I forgot
 
 # Version 7.2.1

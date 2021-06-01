@@ -1,7 +1,9 @@
 package mindustry.client.navigation
 
 import arc.math.geom.*
+import arc.util.*
 import mindustry.Vars.*
+import mindustry.game.*
 
 /** An abstract class for a navigation algorithm, i.e. A*.  */
 abstract class Navigator {
@@ -48,8 +50,11 @@ abstract class Navigator {
                 )
             }
         }
+        val flood = ui.join.lastHost != null && (ui.join.lastHost.modeName == "Flood" || ui.join.lastHost.address == "95.216.66.105" && ui.join.lastHost.port == 4000 || Strings.stripColors(ui.join.lastHost.name.toLowerCase()).contains("flood")) // There's really no good way of detecting this
         return findPath(
             start, end, realObstacles.toTypedArray(), world.unitWidth().toFloat(), world.unitHeight().toFloat()
-        ) { x, y -> !(player.unit().type.canBoost || !(player.unit().solidity()?.solid(x, y) ?: false)) }
+        ) { x, y ->
+            flood && world.tiles.getc(x, y).team() == Team.blue || !player.unit().type.canBoost && player.unit().solidity()?.solid(x, y) ?: false
+        }
     }
 }
