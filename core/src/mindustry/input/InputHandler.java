@@ -80,6 +80,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Nullable
     public LogicBlock.LogicBuild lastVirusWarning, virusBuild;
     public long lastVirusWarnTime;
+    private static Interval timer = new Interval();
+    private static ChatFragment.ChatMessage commandWarning = null;
 
     public InputHandler(){
         Events.on(UnitDestroyEvent.class, e -> {
@@ -356,15 +358,21 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         build.configured(player == null || player.dead() ? null : player.unit(), value);
         Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
 
-        if(player != null){
+        if(player != null){ // TODO: Move all this client stuff into the ClientLogic class
             if(Navigation.currentlyFollowing instanceof UnAssistPath path){
                 if(path.assisting == player){
                     ClientVars.configs.add(new ConfigRequest(build.tileX(), build.tileY(), previous));
                 }
             }
             if (Core.settings.getBool("commandwarnings") && build instanceof CommandCenter.CommandBuild cmd && build.team == player.team()) {
-                ui.chatfrag.addMessage(bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), null);
+                if (commandWarning.message == null || timer.get(30)) {
+                    commandWarning = ui.chatfrag.addMessage(bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), null);
+                } else {
+                    commandWarning.message = bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized());
+                    commandWarning.format();
+                }
                 ClientVars.lastSentPos.set(build.tileX(), build.tileY());
+
             } else if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
                 if (value instanceof Integer val) {
                     if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) {
@@ -1102,9 +1110,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return Core.input.mouseWorld(getMouseX(), getMouseY()).sub(x, y).angle();
     }
 
-    public @Nullable Unit selectedUnit(){
+    public @Nullable Unit selectedUnit(boolean allowPlayers){
         if (ClientVars.hidingUnits) return null;
-        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f, Unitc::isAI);
+        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f, allowPlayers ? u -> true : Unitc::isAI);
         if(unit != null){
             unit.hitbox(Tmp.r1);
             Tmp.r1.grow(input.shift() ? tilesize * 6 : 6f ); // If shift is held, add 3 tiles of leeway, makes it easier to shift click units controlled by processors and such
@@ -1119,6 +1127,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         return null;
+    }
+
+    public @Nullable Unit selectedUnit() {
+        return selectedUnit(false);
     }
 
     public void remove(){

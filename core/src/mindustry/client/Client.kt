@@ -6,7 +6,6 @@ import arc.math.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
-import mindustry.client.Main.setPluginNetworking
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
@@ -17,7 +16,6 @@ import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
 import mindustry.entities.units.*
-import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.net.*
@@ -30,59 +28,7 @@ object Client {
 
     fun initialize() {
         registerCommands()
-
-        Events.on(ServerJoinEvent::class.java) { // Run when the player joins a server
-            setPluginNetworking(false)
-        }
-
-        Events.on(WorldLoadEvent::class.java) {
-            lastJoinTime = Time.millis()
-            PowerInfo.initialize()
-            Navigation.stopFollowing()
-            Navigation.obstacles.clear()
-            configs.clear()
-            ui.unitPicker.type = null
-            control.input.lastVirusWarning = null
-            dispatchingBuildPlans = false
-            hidingBlocks = false
-            hidingUnits = false
-            showingTurrets = false
-            if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
-        }
-
-        Events.on(ClientLoadEvent::class.java) {
-            val changeHash = Core.files.internal("changelog").readString().hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
-            if (Core.settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
-            Core.settings.put("changeHash", changeHash)
-
-            if (Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug // Set log level to debug if the setting is checked
-            if (Core.settings.getBool("discordrpc")) platform.startDiscord()
-            if (Core.settings.getBool("mobileui")) mobile = !mobile
-
-            Autocomplete.autocompleters.add(BlockEmotes())
-            Autocomplete.autocompleters.add(PlayerCompletion())
-            Autocomplete.autocompleters.add(CommandCompletion())
-
-            Autocomplete.initialize()
-
-            Navigation.navigator.init()
-
-            Core.settings.getBoolOnce("client730") { Core.settings.put("disablemonofont", true) } // TODO: Remove later
-        }
-
-        Events.on(PlayerJoin::class.java) { e ->
-            if (e.player == null) return@on
-
-            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has connected.")) && Time.timeSinceMillis(lastJoinTime) > 10000)
-                player.sendMessage(Core.bundle.format("client.connected", e.player.name))
-        }
-
-        Events.on(PlayerLeave::class.java) { e ->
-            if (e.player == null) return@on
-
-            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
-                player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
-        }
+        ClientLogic()
     }
 
     fun update() {

@@ -30,6 +30,7 @@
  * Fixed a bug with logic virus detection
  * Fixed a bug where spectating a very small or large position would break the game
  * Navigation now navigates around blue tiles in the flood gamemode
+ * Shift clicking a player in the world will assist them
  * Probably more stuff I forgot
 
 # Version 7.2.1
