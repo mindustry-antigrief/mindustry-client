@@ -429,10 +429,10 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(!player.dead() && !state.isPaused() && !(Core.scene.getKeyboardFocus() instanceof TextField)){
+        if(!player.dead() && !state.isPaused() && !scene.hasField()){
             updateMovement(player.unit());
 
-            if(Core.input.keyTap(Binding.respawn) && !scene.hasField()){
+            if(Core.input.keyTap(Binding.respawn)){
                 Call.unitClear(player);
                 controlledType = null;
             }
