@@ -4,6 +4,8 @@ import arc.*;
 import arc.Files.*;
 import arc.backend.sdl.*;
 import arc.backend.sdl.jni.*;
+import arc.discord.*;
+import arc.discord.DiscordRPC.*;
 import arc.files.*;
 import arc.func.*;
 import arc.math.*;
@@ -20,6 +22,7 @@ import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.net.Net.*;
+import mindustry.service.*;
 import mindustry.type.*;
 
 import java.io.*;
@@ -27,8 +30,8 @@ import java.io.*;
 import static mindustry.Vars.*;
 
 public class DesktopLauncher extends ClientLauncher{
-    public final static String discordID = "514551367759822855";
-    boolean useDiscord = OS.is64Bit && !OS.isARM && !OS.hasProp("nodiscord"), loadError = false;
+    public final static long discordID = 514551367759822855L;
+    boolean useDiscord = !OS.hasProp("nodiscord"), loadError = false;
     Throwable steamError;
     static SdlConfig config;
 
@@ -52,16 +55,20 @@ public class DesktopLauncher extends ClientLauncher{
             int finalAaSamples = aaSamples;
 
             Version.init();
-            config = new SdlConfig() {{
+            Vars.loadLogger();
+            new SdlApplication(new DesktopLauncher(arg), new SdlConfig() {{
                 title = Strings.format("Mindustry (v@) | Foo's Client (@)", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
                 maximized = true;
                 width = 900;
                 height = 700;
                 samples = finalAaSamples;
+                //enable gl3 with command-line argument
+                if(Structs.contains(arg, "-gl3")){
+                    gl30 = true;
+                }
                 setWindowIcon(FileType.internal, "icons/foo_64.png");
-            }};
-            Vars.loadLogger();
-            new SdlApplication(new DesktopLauncher(arg), config);
+            }});
+
         }catch(Throwable e){
             handleCrash(e);
         }
@@ -80,7 +87,7 @@ public class DesktopLauncher extends ClientLauncher{
             try{
                 try {
                     DiscordRPC2.connect(Long.parseLong(discordID));
-                    Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC2::close));
+                    Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::close));
                 } catch (Throwable t) {
                     DiscordRPC.INSTANCE.Discord_Initialize(discordID, null, true, "1127400");
                     Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC.INSTANCE::Discord_Shutdown));
@@ -159,6 +166,40 @@ public class DesktopLauncher extends ClientLauncher{
         SVars.workshop = new SWorkshop();
         SVars.user = new SUser();
         boolean[] isShutdown = {false};
+
+        service = new GameService(){
+
+            @Override
+            public boolean enabled(){
+                return true;
+            }
+
+            @Override
+            public void completeAchievement(String name){
+                SVars.stats.stats.setAchievement(name);
+                SVars.stats.stats.storeStats();
+            }
+
+            @Override
+            public boolean isAchieved(String name){
+                return SVars.stats.stats.isAchieved(name, false);
+            }
+
+            @Override
+            public int getStat(String name, int def){
+                return SVars.stats.stats.getStatI(name, def);
+            }
+
+            @Override
+            public void setStat(String name, int amount){
+                SVars.stats.stats.setStatI(name, amount);
+            }
+
+            @Override
+            public void storeStats(){
+                SVars.stats.onUpdate();
+            }
+        };
 
         Events.on(ClientLoadEvent.class, event -> {
             Core.settings.defaults("name", SVars.net.friends.getPersonaName());
@@ -284,7 +325,6 @@ public class DesktopLauncher extends ClientLauncher{
         String uiState = "";
 
         if(inGame){
-            //TODO implement nice name for sector
             gameMapWithWave = Strings.capitalize(Strings.stripColors(state.map.name()));
 
             if(state.rules.waves){
@@ -305,7 +345,7 @@ public class DesktopLauncher extends ClientLauncher{
         }
 
         if(useDiscord && Core.settings.getBool("discordrpc")){
-            DiscordRPC2.RichPresence presence2 = new DiscordRPC2.RichPresence();
+            DiscordRPC.RichPresence presence2 = new DiscordRPC2.RichPresence();
             DiscordRichPresence presence = new DiscordRichPresence();
 
             if(inGame){

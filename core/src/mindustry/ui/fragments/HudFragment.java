@@ -34,7 +34,7 @@ import mindustry.ui.*;
 import static mindustry.Vars.*;
 
 public class HudFragment extends Fragment{
-    private static final float dsize = 65f;
+    private static final float dsize = 65f, pauseHeight = 36f;
 
     public final PlacementFragment blockfrag = new PlacementFragment();
     public boolean shown = true;
@@ -65,7 +65,7 @@ public class HudFragment extends Fragment{
 
                         //increments at which to warn about incoming guardian
                         if(diff == 1 || diff == 2 || diff == 5 || diff == 10){
-                            showToast(Icon.warning, Core.bundle.format("wave.guardianwarn" + (diff == 1 ? ".one" : ""), diff));
+                            showToast(Icon.warning, group.type.emoji() + " " + Core.bundle.format("wave.guardianwarn" + (diff == 1 ? ".one" : ""), diff));
                         }
 
                         break outer;
@@ -95,7 +95,9 @@ public class HudFragment extends Fragment{
         parent.fill(t -> {
             t.name = "paused";
             t.top().visible(() -> state.isPaused() && shown).touchable = Touchable.disabled;
-            t.table(Styles.black5, top -> top.label(() -> state.gameOver && state.isCampaign() ? "@sector.curlost" : "@paused").style(Styles.outlineLabel).pad(8f)).growX();
+            t.table(Styles.black6, top -> top.label(() -> netServer.isWaitingForPlayers() ? "@waiting.players" : state.gameOver && state.isCampaign() ? "@sector.curlost" : "@paused")
+                .style(Styles.outlineLabel).pad(8f)).height(pauseHeight).growX();
+            //.padLeft(dsize * 5 + 4f) to prevent alpha overlap on left
         });
 
         //minimap + position
@@ -224,10 +226,7 @@ public class HudFragment extends Fragment{
                 s.row();
                 s.add(PowerInfo.getBars()).growX().colspan(s.getColumns());
 
-                // Boss bar display
-                s.row();
-                s.table(Tex.wavepane, t -> t.add(new Bar("boss.health", Pal.health, () -> state.boss() == null ? 0f : state.boss().healthf()).blink(Color.white)).grow()).grow().colspan(s.getColumns()).height(65).visible(() -> state.boss() != null).name("boss");
-            }).width(dsize * 6 + 4f);
+            addInfoTable(wavesMain.table().width(dsize * 6 + 4f);.left().get());
 
             editorMain.name = "editor";
 
@@ -261,6 +260,7 @@ public class HudFragment extends Fragment{
                 info.top().left().margin(4).visible(() -> Core.settings.getBool("fps") && shown);
                 IntFormat fps = new IntFormat("fps");
                 IntFormat ping = new IntFormat("ping");
+                IntFormat tps = new IntFormat("tps");
                 IntFormat mem = new IntFormat("memory");
                 IntFormat memnative = new IntFormat("memory2");
                 IntFormat players = new IntFormat("client.players");
@@ -268,88 +268,109 @@ public class HudFragment extends Fragment{
 
                 info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel).name("fps");
                 info.row();
+
                 if(android){
                     info.label(() -> memnative.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)(Core.app.getNativeHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory2");
                 }else{
                     info.label(() -> mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory");
                 }
                 info.row();
+
                 info.label(() -> plans.get(player.unit().plans.size)).left() // Buildplan count
                 .style(Styles.outlineLabel).name("plans");
                 info.row();
+
                 info.label(() -> players.get(Groups.player.size(),ui.join.lastHost == null ? 0 : ui.join.lastHost.playerLimit)).visible(net::active).left() // Player count
                 .style(Styles.outlineLabel).name("players");
                 info.row();
+
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left()
                 .style(Styles.outlineLabel).name("ping");
+                info.row();
+
+                info.label(() -> tps.get(state.serverTps == -1 ? 60 : state.serverTps)).visible(net::client).left().style(Styles.outlineLabel).name("tps");
             }).top().left();
         });
 
-        //core items
+        //core info
         parent.fill(t -> {
-            t.name = "coreitems";
-            t.top().add(coreItems);
-            t.visible(() -> Core.settings.getBool("coreitems") && !state.isPaused() && shown);
-//            t.add(new TileInfoFragment()).top();
+            t.top();
+
+            t.name = "coreinfo";
+
+            t.collapser(v -> v.add().height(pauseHeight), () -> state.isPaused()).row();
+
+            t.table(c -> {
+                //core items
+                c.top().collapser(coreItems, () -> Core.settings.getBool("coreitems") && shown).fillX().row();
+
+                float notifDuration = 240f;
+                float[] coreAttackTime = {0};
+
+                Events.run(Trigger.teamCoreDamage, () -> coreAttackTime[0] = notifDuration);
+
+                //'core is under attack' table
+                c.collapser(top -> top.background(Styles.black6).add("@coreattack").pad(8)
+                .update(label -> label.color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f))), true,
+                () -> {
+                    if(!shown || state.isPaused()) return false;
+                    if(state.isMenu() || !state.teams.get(player.team()).hasCore()){
+                        coreAttackTime[0] = 0f;
+                        return false;
+                    }
+
+                    return (coreAttackTime[0] -= Time.delta) > 0;
+                })
+                .touchable(Touchable.disabled)
+                .fillX().row();
+            }).row();
+
+            var bossb = new StringBuilder();
+            var bossText = Core.bundle.get("guardian");
+            int maxBosses = 6;
+
+            t.table(v -> v.margin(10f)
+            .add(new Bar(() -> {
+                bossb.setLength(0);
+                for(int i = 0; i < Math.min(state.teams.bosses.size, maxBosses); i++){
+                    bossb.append(state.teams.bosses.get(i).type.emoji());
+                }
+                if(state.teams.bosses.size > maxBosses){
+                    bossb.append("[accent]+[]");
+                }
+                bossb.append(" ");
+                bossb.append(bossText);
+                return bossb;
+            }, () -> Pal.health, () -> {
+                if(state.boss() == null) return 0f;
+                float max = 0f, val = 0f;
+                for(var boss : state.teams.bosses){
+                    max += boss.maxHealth;
+                    val += boss.health;
+                }
+                return max == 0f ? 0f : val / max;
+            }).blink(Color.white).outline(new Color(0, 0, 0, 0.6f), 7f)).grow())
+            .fillX().width(320f).height(60f).name("boss").visible(() -> state.rules.waves && state.boss() != null).padTop(7).row();
+
+            t.table(Styles.black3, p -> p.margin(4).label(() -> hudText).style(Styles.outlineLabel)).touchable(Touchable.disabled).with(p -> p.visible(() -> {
+                p.color.a = Mathf.lerpDelta(p.color.a, Mathf.num(showHudText), 0.2f);
+                if(state.isMenu()){
+                    p.color.a = 0f;
+                    showHudText = false;
+                }
+
+                return p.color.a >= 0.001f;
+            }));
         });
 
         //spawner warning
         parent.fill(t -> {
             t.name = "nearpoint";
             t.touchable = Touchable.disabled;
-            t.table(Styles.black, c -> c.add("@nearpoint")
+            t.table(Styles.black6, c -> c.add("@nearpoint")
             .update(l -> l.setColor(Tmp.c1.set(Color.white).lerp(Color.scarlet, Mathf.absin(Time.time, 10f, 1f))))
-            .get().setAlignment(Align.center, Align.center))
+            .labelAlign(Align.center, Align.center))
             .margin(6).update(u -> u.color.a = Mathf.lerpDelta(u.color.a, Mathf.num(spawner.playerNear()), 0.1f)).get().color.a = 0f;
-        });
-
-        parent.fill(t -> {
-            t.name = "waiting";
-            t.visible(() -> netServer.isWaitingForPlayers());
-            t.table(Tex.button, c -> c.add("@waiting.players"));
-        });
-
-        //'core is under attack' table
-        parent.fill(t -> {
-            t.name = "coreattack";
-            float notifDuration = 240f;
-            float[] coreAttackTime = {0};
-            float[] coreAttackOpacity = {0};
-
-            Events.on(TeamCoreDamage.class, event -> {
-                if (!t.visible && timer.get(30 * 60)) { // Do once every 30s max
-                    if (Core.settings.getBool("broadcastcoreattack")) {
-                        Call.sendChatMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
-                    } else {
-                        ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y), null);
-                    }
-                    ClientVars.lastSentPos.set(event.core.x, event.core.y);
-                }
-               coreAttackTime[0] = notifDuration;
-            });
-
-            Events.run(Trigger.teamCoreDamage, () -> coreAttackTime[0] = notifDuration); // Legacy event kept in case anuke does something with it
-
-            t.top().visible(() -> {
-                if(!shown) return false;
-                if(state.isMenu() || !state.teams.get(player.team()).hasCore()){
-                    coreAttackTime[0] = 0f;
-                    return false;
-                }
-
-                t.color.a = coreAttackOpacity[0];
-                if(coreAttackTime[0] > 0){
-                    coreAttackOpacity[0] = Mathf.lerpDelta(coreAttackOpacity[0], 1f, 0.1f);
-                }else{
-                    coreAttackOpacity[0] = Mathf.lerpDelta(coreAttackOpacity[0], 0f, 0.1f);
-                }
-
-                coreAttackTime[0] -= Time.delta;
-
-                return coreAttackOpacity[0] > 0.01f;
-            });
-            t.button("@coreattack", () -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize))).pad(2)
-            .update(label -> label.getLabel().color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f))).get().getLabel().setWrap(false);
         });
 
         //'saving' indicator
@@ -359,24 +380,9 @@ public class HudFragment extends Fragment{
             t.add("@saving").style(Styles.outlineLabel);
         });
 
-        parent.fill(p -> {
-            p.name = "hudtext";
-            p.top().table(Styles.black3, t -> t.margin(4).label(() -> hudText)
-            .style(Styles.outlineLabel)).padTop(10).visible(p.color.a >= 0.001f);
-            p.update(() -> {
-                p.color.a = Mathf.lerpDelta(p.color.a, Mathf.num(showHudText), 0.2f);
-                if(state.isMenu()){
-                    p.color.a = 0f;
-                    showHudText = false;
-                }
-            });
-            p.touchable = Touchable.disabled;
-        });
-
         //TODO DEBUG: rate table
         if(false)
             parent.fill(t -> {
-                t.name = "rates";
                 t.bottom().left();
                 t.table(Styles.black6, c -> {
                     Bits used = new Bits(content.items().size);
@@ -386,7 +392,7 @@ public class HudFragment extends Fragment{
 
                         for(Item item : content.items()){
                             if(state.rules.sector != null && state.rules.sector.info.getExport(item) >= 1){
-                                c.image(item.icon(Cicon.small));
+                                c.image(item.uiIcon);
                                 c.label(() -> (int)state.rules.sector.info.getExport(item) + " /s").color(Color.lightGray);
                                 c.row();
                             }
@@ -445,6 +451,10 @@ public class HudFragment extends Fragment{
     }
 
     public void showToast(Drawable icon, String text){
+        showToast(icon, -1, text);
+    }
+
+    public void showToast(Drawable icon, float size, String text){
         if(state.isMenu()) return;
 
         scheduleToast(() -> {
@@ -457,7 +467,8 @@ public class HudFragment extends Fragment{
                 }
             });
             table.margin(12);
-            table.image(icon).pad(3);
+            var cell = table.image(icon).pad(3);
+            if(size > 0) cell.size(size);
             table.add(text).wrap().width(280f).get().setAlignment(Align.center, Align.center);
             table.pack();
 
@@ -495,7 +506,7 @@ public class HudFragment extends Fragment{
                 Table in = new Table();
 
                 //create texture stack for displaying
-                Image image = new Image(content.icon(Cicon.xlarge));
+                Image image = new Image(content.uiIcon);
                 image.setScaling(Scaling.fit);
 
                 in.add(image).size(8 * 6).pad(2);
@@ -549,7 +560,7 @@ public class HudFragment extends Fragment{
             //if there's space, add it
             if(esize < cap){
 
-                Image image = new Image(content.icon(Cicon.medium));
+                Image image = new Image(content.uiIcon);
                 image.setScaling(Scaling.fit);
 
                 lastUnlockLayout.add(image);
@@ -732,7 +743,9 @@ public class HudFragment extends Fragment{
             t.margin(0);
             t.clicked(() -> {
                 if(!player.dead() && mobile){
+                    player.persistPlans();
                     Call.unitClear(player);
+                    control.input.recentRespawnTimer = 1f;
                     control.input.controlledType = null;
                 }
             });
@@ -790,6 +803,12 @@ public class HudFragment extends Fragment{
 
         table.row();
 
+        return table;
+    }
+
+    private void addInfoTable(Table table){
+        table.left();
+
         var count = new float[]{-1};
         table.table().update(t -> {
             if(player.unit() instanceof Payloadc payload){
@@ -802,8 +821,29 @@ public class HudFragment extends Fragment{
                 t.clear();
             }
         }).growX().visible(() -> player.unit() instanceof Payloadc p && p.payloadUsed() > 0).colspan(2);
+        table.row();
 
-        return table;
+        Bits statuses = new Bits();
+
+        table.table().update(t -> {
+            t.left();
+            Bits applied = player.unit().statusBits();
+            if(!statuses.equals(applied)){
+                t.clear();
+
+                if(applied != null){
+                    for(StatusEffect effect : content.statusEffects()){
+                        if(applied.get(effect.id) && !effect.isHidden()){
+                            t.image(effect.uiIcon).size(iconMed).get()
+                            .addListener(new Tooltip(l -> l.label(() ->
+                                effect.localizedName + " [lightgray]" + UI.formatTime(player.unit().getDuration(effect))).style(Styles.outlineLabel)));
+                        }
+                    }
+
+                    statuses.set(applied);
+                }
+            }
+        }).left();
     }
 
     private boolean canSkipWave(){

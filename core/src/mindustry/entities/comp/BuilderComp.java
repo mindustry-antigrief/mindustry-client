@@ -20,6 +20,7 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
+import mindustry.world.blocks.storage.CoreBlock.*;
 
 import java.util.*;
 
@@ -55,7 +56,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             buildAlpha = Mathf.lerpDelta(buildAlpha, activelyBuilding() ? 1f : 0f, 0.15f);
         }
 
-        if((!updateBuilding || !canBuild()) && (player == null || self() != player.unit())) return;
+        if(!updateBuilding || !canBuild()) return;
 
         float finalPlaceDst = state.rules.infiniteResources ? Float.MAX_VALUE : buildingRange;
         boolean infinite = state.rules.infiniteResources || team().rules().infiniteResources;
@@ -69,9 +70,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             }
         }
 
-        if(!updateBuilding || !canBuild()) return;
-
-        Building core = core();
+        var core = core();
 
         //nothing to build.
         if(buildPlan() == null) return;
@@ -111,7 +110,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
                 plans.removeFirst();
                 return;
             }
-        }else if((tile.team() != team && tile.team() != Team.derelict) || (!current.breaking && (cb.cblock != current.block || cb.tile != current.tile()))){
+        }else if((tile.team() != team && tile.team() != Team.derelict) || (!current.breaking && (cb.current != current.block || cb.tile != current.tile()))){
             plans.removeFirst();
             return;
         }

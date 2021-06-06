@@ -100,7 +100,7 @@ public class PlacementFragment extends Fragment{
 
         if(Core.input.keyTap(Binding.pick) && player.isBuilder()){ //mouse eyedropper select
             var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
-            Block tryRecipe = build == null ? null : build instanceof ConstructBuild c ? c.cblock : build.block;
+            Block tryRecipe = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
             Object tryConfig = build == null || !build.block.copyConfig ? null : build.config();
 
             for(BuildPlan req : player.unit().plans()){
@@ -226,7 +226,7 @@ public class PlacementFragment extends Fragment{
                             blockTable.row();
                         }
 
-                        ImageButton button = blockTable.button(new TextureRegionDrawable(block.icon(Cicon.medium)), Styles.selecti, () -> {
+                        ImageButton button = blockTable.button(new TextureRegionDrawable(block.uiIcon), Styles.selecti, () -> {
                             if(unlocked(block)){
                                 if(Core.input.keyDown(KeyCode.shiftLeft) && Fonts.getUnicode(block.name) != 0){
                                     Core.app.setClipboardText((char)Fonts.getUnicode(block.name) + "");
@@ -237,7 +237,7 @@ public class PlacementFragment extends Fragment{
                                 }
                             }
                         }).size(46f).group(group).name("block-" + block.name).get();
-                        button.resizeImage(Cicon.medium.size);
+                        button.resizeImage(iconMed);
 
                         button.update(() -> { //color unplacable things gray
                             Building core = player.core();
@@ -311,7 +311,7 @@ public class PlacementFragment extends Fragment{
                                 }
                                 final String keyComboFinal = keyCombo;
                                 header.left();
-                                header.add(new Image(displayBlock.icon(Cicon.medium))).size(8 * 4);
+                                header.add(new Image(displayBlock.uiIcon)).size(8 * 4);
                                 header.labelWrap(() -> !unlocked(displayBlock) ? Core.bundle.get("block.unknown") : displayBlock.localizedName + keyComboFinal)
                                 .left().width(190f).padLeft(5);
                                 header.add().growX();
@@ -330,7 +330,7 @@ public class PlacementFragment extends Fragment{
                                 for(ItemStack stack : displayBlock.requirements){
                                     req.table(line -> {
                                         line.left();
-                                        line.image(stack.item.icon(Cicon.small)).size(8 * 2);
+                                        line.image(stack.item.uiIcon).size(8 * 2);
                                         line.add(stack.item.localizedName).maxWidth(140f).fillX().color(Color.lightGray).padLeft(2).left().get().setEllipsis(true);
                                         line.labelWrap(() -> {
                                             Building core = player.core();
@@ -351,7 +351,7 @@ public class PlacementFragment extends Fragment{
                                 topTable.row();
                                 topTable.table(b -> {
                                     b.image(Icon.cancel).padRight(2).color(Color.scarlet);
-                                    b.add(!player.isBuilder() ? "@unit.nobuild" : "@banned").width(190f).wrap();
+                                    b.add(!player.isBuilder() ? "@unit.nobuild" : !displayBlock.supportsEnv(state.rules.environment) ? "@unsupported.environment" : "@banned").width(190f).wrap();
                                     b.left();
                                 }).padTop(2).left();
                             }
@@ -475,7 +475,7 @@ public class PlacementFragment extends Fragment{
             }
 
             //if the tile has a drop, display the drop
-            if(hoverTile.drop() != null){
+            if(hoverTile.drop() != null || hoverTile.wallDrop() != null){
                 return hoverTile;
             }
         }

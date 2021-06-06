@@ -5,7 +5,7 @@ import arc.util.io.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.type.UnitType;
+import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 
@@ -36,6 +36,16 @@ public class BuildPayload implements Payload{
     }
 
     @Override
+    public float x(){
+        return build.x;
+    }
+
+    @Override
+    public float y(){
+        return build.y;
+    }
+
+    @Override
     public float size(){
         return build.block.size * tilesize;
     }
@@ -57,11 +67,11 @@ public class BuildPayload implements Payload{
     public void draw(){
         Drawf.shadow(build.x, build.y, build.block.size * tilesize * 2f, UnitType.alpha);
         Draw.alpha(UnitType.alpha);
-        Draw.rect(build.block.icon(Cicon.full), build.x, build.y);
+        Draw.rect(build.block.fullIcon, build.x, build.y);
     }
 
     @Override
-    public TextureRegion icon(Cicon icon){
-        return block().icon(icon);
+    public TextureRegion icon(){
+        return block().fullIcon;
     }
 }

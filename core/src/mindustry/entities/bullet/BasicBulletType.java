@@ -44,6 +44,7 @@ public class BasicBulletType extends BulletType{
     @Override
     public void draw(Bullet b){
         if (UnitType.alpha == 0) return;
+        super.draw(b);
         float height = this.height * ((1f - shrinkY) + shrinkY * b.fout());
         float width = this.width * ((1f - shrinkX) + shrinkX * b.fout());
         float offset = -90 + (spin != 0 ? Mathf.randomSeed(b.id, 360f) + b.time * spin : 0f);

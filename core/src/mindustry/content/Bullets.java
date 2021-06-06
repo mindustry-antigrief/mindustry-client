@@ -9,8 +9,7 @@ import mindustry.entities.*;
 import mindustry.entities.bullet.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.io.*;
-import mindustry.type.UnitType;
+import mindustry.type.*;
 import mindustry.world.*;
 
 import static mindustry.Vars.*;
@@ -38,7 +37,7 @@ public class Bullets implements ContentList{
     waterShot, cryoShot, slagShot, oilShot, heavyWaterShot, heavyCryoShot, heavySlagShot, heavyOilShot,
 
     //environment, misc.
-    damageLightning, damageLightningGround, fireball, basicFlame, pyraFlame, driverBolt;
+    damageLightning, damageLightningGround, fireball, basicFlame, pyraFlame;
 
     @Override
     public void load(){
@@ -54,8 +53,7 @@ public class Bullets implements ContentList{
         }};
 
         //this is just a copy of the damage lightning bullet that doesn't damage air units
-        damageLightningGround = new BulletType(0.0001f, 0f){};
-        JsonIO.copy(damageLightning, damageLightningGround);
+        damageLightningGround = damageLightning.copy();
         damageLightningGround.collidesAir = false;
 
         artilleryDense = new ArtilleryBulletType(3f, 20, "shell"){{
@@ -263,7 +261,7 @@ public class Bullets implements ContentList{
             drag = -0.01f;
             splashDamageRadius = 30f;
             splashDamage = 30f * 1.5f;
-            ammoMultiplier = 4f;
+            ammoMultiplier = 5f;
             hitEffect = Fx.blastExplosion;
             despawnEffect = Fx.blastExplosion;
 
@@ -282,6 +280,7 @@ public class Bullets implements ContentList{
             splashDamageRadius = 20f;
             splashDamage = 20f * 1.5f;
             makeFire = true;
+            ammoMultiplier = 5f;
             hitEffect = Fx.blastExplosion;
             status = StatusEffects.burning;
         }};
@@ -292,9 +291,10 @@ public class Bullets implements ContentList{
             shrinkY = 0f;
             drag = -0.01f;
             splashDamageRadius = 25f;
-            splashDamage = 25f * 1.5f;
+            splashDamage = 25f * 1.4f;
             hitEffect = Fx.blastExplosion;
             despawnEffect = Fx.blastExplosion;
+            ammoMultiplier = 4f;
             lightningDamage = 10;
             lightning = 2;
             lightningLength = 10;
@@ -347,12 +347,14 @@ public class Bullets implements ContentList{
         }};
 
         standardDenseBig = new BasicBulletType(7f, 55, "bullet"){{
+            hitSize = 5;
             width = 15f;
             height = 21f;
             shootEffect = Fx.shootBig;
         }};
 
         standardThoriumBig = new BasicBulletType(8f, 80, "bullet"){{
+            hitSize = 5;
             width = 16f;
             height = 23f;
             shootEffect = Fx.shootBig;
@@ -362,6 +364,7 @@ public class Bullets implements ContentList{
         }};
 
         standardIncendiaryBig = new BasicBulletType(7f, 60, "bullet"){{
+            hitSize = 5;
             width = 16f;
             height = 21f;
             frontColor = Pal.lightishOrange;
@@ -508,7 +511,5 @@ public class Bullets implements ContentList{
             statusDuration = 60f * 4f;
             damage = 0.2f;
         }};
-
-        driverBolt = new MassDriverBolt();
     }
 }

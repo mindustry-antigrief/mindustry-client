@@ -15,9 +15,9 @@ import static mindustry.Vars.*;
 
 public class LogicAI extends AIController{
     /** Minimum delay between item transfers. */
-    public static final float transferDelay = 2 * Time.toSeconds;
+    public static final float transferDelay = 60f * 1.5f;
     /** Time after which the unit resets its controlled and reverts to a normal unit. */
-    public static final float logicControlTimeout = 10 * Time.toSeconds;
+    public static final float logicControlTimeout = 10f * 60f;
 
     public LUnitControl control = LUnitControl.idle;
     public float moveX, moveY, moveRad;
@@ -98,7 +98,7 @@ public class LogicAI extends AIController{
         }
 
         if(unit.type.canBoost && !unit.type.flying){
-            unit.elevation = Mathf.approachDelta(unit.elevation, Mathf.num(boost || unit.onSolid()), 0.08f);
+            unit.elevation = Mathf.approachDelta(unit.elevation, Mathf.num(boost || unit.onSolid() || (unit.isFlying() && !unit.canLand())), unit.type.riseSpeed);
         }
 
         //look where moving if there's nothing to aim at

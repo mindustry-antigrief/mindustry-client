@@ -9,6 +9,8 @@ import mindustry.graphics.*;
 import mindustry.world.meta.*;
 import mindustry.world.meta.values.*;
 
+import static mindustry.Vars.*;
+
 public class ContentInfoDialog extends BaseDialog{
 
     public ContentInfoDialog(){
@@ -27,9 +29,7 @@ public class ContentInfoDialog extends BaseDialog{
         content.checkStats();
 
         table.table(title1 -> {
-            var size = content.prefDatabaseIcon();
-
-            title1.image(content.icon(size)).size(size.size).scaling(Scaling.fit);
+            title1.image(content.uiIcon).size(iconXLarge).scaling(Scaling.fit);
             title1.add("[accent]" + content.localizedName).padLeft(5);
         });
 

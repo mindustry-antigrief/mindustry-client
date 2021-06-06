@@ -7,6 +7,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.util.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
@@ -20,7 +21,6 @@ import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
-import mindustry.world.blocks.*;
 import mindustry.world.blocks.units.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
@@ -38,6 +38,7 @@ public class CoreBlock extends StorageBlock{
     public int ammoAmount = 5;
     public float resupplyRate = 10f;
     public float resupplyRange = 60f;
+    public float captureInvicibility = 60f * 15f;
     public Item resupplyItem = Items.copper;
 
     public CoreBlock(String name){
@@ -47,7 +48,7 @@ public class CoreBlock extends StorageBlock{
         update = true;
         hasItems = true;
         priority = TargetPriority.core;
-        flags = EnumSet.of(BlockFlag.core, BlockFlag.unitModifier);
+        flags = EnumSet.of(BlockFlag.core);
         unitCapModifier = 10;
         loopSound = Sounds.respawning;
         loopSoundVolume = 1f;
@@ -55,6 +56,10 @@ public class CoreBlock extends StorageBlock{
         configurable = true;
         rebuildable = false;
         canOverdrive = false;
+
+        //support everything
+        envEnabled = Env.any;
+        drawDisabled = false;
         replaceable = false;
     }
 
@@ -98,6 +103,15 @@ public class CoreBlock extends StorageBlock{
             () -> Pal.items,
             () -> e.items.total() / ((float)e.storageCapacity * content.items().count(i -> i.unlockedNow()))
         ));
+    }
+
+    @Override
+    public void init(){
+        //assign to update clipSize internally
+        lightRadius = 30f + 20f * size;
+        emitLight = true;
+
+        super.init();
     }
 
     @Override
@@ -159,19 +173,29 @@ public class CoreBlock extends StorageBlock{
 
         if(!canPlaceOn(world.tile(x, y), player.team())){
 
-            drawPlaceText(Core.bundle.get((player.team().core() != null && player.team().core().items.has(requirements, state.rules.buildCostMultiplier)) || state.rules.infiniteResources ?
+            drawPlaceText(Core.bundle.get(
+                (player.team().core() != null && player.team().core().items.has(requirements, state.rules.buildCostMultiplier)) || state.rules.infiniteResources ?
                 "bar.corereq" :
                 "bar.noresources"
             ), x, y, valid);
-
         }
     }
 
-    public class CoreBuild extends Building implements ControlBlock{
+    public class CoreBuild extends Building{
         public int storageCapacity;
-        //note that this unit is never actually used for control; the possession handler makes the player respawn when this unit is controlled
-        public BlockUnitc unit = Nulls.blockUnit;
         public boolean noEffect = false;
+        public Team lastDamage = Team.derelict;
+        public float iframes = -1f;
+
+        @Override
+        public void damage(@Nullable Team source, float damage){
+            if(iframes > 0) return;
+
+            if(source != null && source != team){
+                lastDamage = source;
+            }
+            super.damage(source, damage);
+        }
 
         @Override
         public double sense(LAccess sensor){
@@ -180,22 +204,33 @@ public class CoreBlock extends StorageBlock{
         }
 
         @Override
-        public void created(){
-            unit = (BlockUnitc)UnitTypes.block.create(team);
-            unit.tile(this);
+        public boolean canControlSelect(Player player){
+            return true;
         }
 
         @Override
-        public Unit unit(){
-            return (Unit)unit;
+        public void onControlSelect(Player player){
+            Fx.spawn.at(player);
+            if(net.client()){
+                control.input.controlledType = null;
+            }
+
+            player.clearUnit();
+            player.deathTimer = Player.deathDelay + 1f;
+            requestSpawn(player);
         }
 
         public void requestSpawn(Player player){
+            //do not try to respawn in unsupported environments at all
+            if(!unitType.supportsEnv(state.rules.environment)) return;
+
             Call.playerSpawn(tile, player);
         }
 
         @Override
         public void updateTile(){
+
+            iframes -= Time.delta;
 
             //resupply nearby units
             if(items.has(resupplyItem) && timer(timerResupply, resupplyRate) && ResupplyPoint.resupply(this, resupplyRange, ammoAmount, resupplyItem.color)){
@@ -211,7 +246,13 @@ public class CoreBlock extends StorageBlock{
 
         @Override
         public void onDestroyed(){
-            super.onDestroyed();
+            if(state.rules.coreCapture){
+                //just create an explosion, no fire. this prevents immediate recapture
+                Damage.dynamicExplosion(x, y, 0, 0, 0, tilesize * block.size / 2f, state.rules.damageExplosions);
+                Fx.commandSend.at(x, y, 140f);
+            }else{
+                super.onDestroyed();
+            }
 
             //add a spawn to the map for future reference - waves should be disabled, so it shouldn't matter
             if(state.isCampaign() && team == state.rules.waveTeam && team.cores().size <= 1){
@@ -225,8 +266,17 @@ public class CoreBlock extends StorageBlock{
         }
 
         @Override
+        public void afterDestroyed(){
+            if(state.rules.coreCapture){
+                tile.setBlock(block, lastDamage);
+                //core is invincible for several seconds to prevent recapture
+                ((CoreBuild)tile.build).iframes = captureInvicibility;
+            }
+        }
+
+        @Override
         public void drawLight(){
-            Drawf.light(team, x, y, 30f + 20f * size, Pal.accent, 0.65f + Mathf.absin(20f, 0.1f));
+            Drawf.light(team, x, y, lightRadius, Pal.accent, 0.65f + Mathf.absin(20f, 0.1f));
         }
 
         @Override
@@ -241,6 +291,8 @@ public class CoreBlock extends StorageBlock{
 
         @Override
         public void onProximityUpdate(){
+            super.onProximityUpdate();
+
             for(Building other : state.teams.cores(team)){
                 if(other.tile() != tile){
                     this.items = other.items;

@@ -1,6 +1,7 @@
 package mindustry.entities.abilities;
 
-import arc.graphics.g2d.Draw;
+import arc.graphics.g2d.*;
+import arc.*;
 import arc.util.*;
 import mindustry.content.*;
 import mindustry.entities.*;
@@ -22,6 +23,11 @@ public class StatusFieldAbility extends Ability{
         this.reload = reload;
         this.range = range;
         this.effect = effect;
+    }
+
+    @Override
+    public String localized(){
+        return Core.bundle.format("ability.statusfield", effect.emoji());
     }
 
     @Override

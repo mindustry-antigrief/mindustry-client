@@ -48,7 +48,6 @@ public class TractorBeamTurret extends BaseTurret{
 
         //disabled due to version mismatch problems
         acceptCoolant = false;
-        expanded = true;
     }
 
     @Override
@@ -63,6 +62,13 @@ public class TractorBeamTurret extends BaseTurret{
         stats.add(Stat.targetsAir, targetAir);
         stats.add(Stat.targetsGround, targetGround);
         stats.add(Stat.damage, damage * 60f, StatUnit.perSecond);
+    }
+
+    @Override
+    public void init(){
+        super.init();
+
+        clipSize = Math.max(clipSize, (range + tilesize) * 2);
     }
 
     public class TractorBeamBuild extends BaseTurretBuild{

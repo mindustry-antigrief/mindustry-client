@@ -7,6 +7,7 @@ import arc.func.*;
 import arc.util.*;
 import arc.util.async.*;
 import arc.util.serialization.*;
+import mindustry.*;
 import mindustry.core.*;
 import mindustry.game.EventType;
 import mindustry.gen.*;
