@@ -15,6 +15,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.ui.*;
 import mindustry.content.*;
@@ -309,14 +310,25 @@ public class HudFragment extends Fragment{
                 float notifDuration = 240f;
                 float[] coreAttackTime = {0};
 
-                Events.run(Trigger.teamCoreDamage, () -> coreAttackTime[0] = notifDuration);
+                Events.on(TeamCoreDamage.class, event -> {
+                    if (timer.check(0, 30 * 60)) { // Prevent chat flooding
+                        if (Core.settings.getBool("broadcastcoreattack")) {
+                            Call.sendChatMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
+                        } else {
+                            ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y), null);
+                        }
+                    }
+                    timer.reset(0, 0); // Reset timer so that it sends 30s after the last core damage rather than every 30s FIXME: Better way to do this?
+                    coreAttackTime[0] = notifDuration;
+                    ClientVars.lastSentPos.set(event.core.x, event.core.y);
+                });
 
                 //'core is under attack' table
                 c.collapser(top -> top.background(Styles.black6).add("@coreattack").pad(8)
                 .update(label -> label.color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f))), true,
                 () -> {
                     if(!shown || state.isPaused()) return false;
-                    if(state.isMenu() || !state.teams.get(player.team()).hasCore()){
+                    if(state.isMenu() || !player.team().data().hasCore()){
                         coreAttackTime[0] = 0f;
                         return false;
                     }
@@ -324,7 +336,8 @@ public class HudFragment extends Fragment{
                     return (coreAttackTime[0] -= Time.delta) > 0;
                 })
                 .touchable(Touchable.disabled)
-                .fillX().row();
+                .fillX()
+                .get().clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
             }).row();
 
             var bossb = new StringBuilder();

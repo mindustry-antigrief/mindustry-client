@@ -2,7 +2,6 @@ package mindustry.client.ui;
 
 import arc.*;
 import arc.graphics.g2d.*;
-import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
@@ -17,11 +16,11 @@ import java.util.concurrent.atomic.*;
 public class TileInfoFragment extends Table {
 
     public TileInfoFragment() {
-        NinePatchDrawable background = new NinePatchDrawable(Tex.wavepane);
 
-        setBackground(background);
+        setBackground(Tex.wavepane);
+        marginRight(6);
         Image img = new Image();
-        add(img);
+        add(img).size(63).padRight(6);
         Label label = new Label("");
         add(label).height(126);
         visible(() -> Core.settings.getBool("tilehud"));
@@ -34,7 +33,7 @@ public class TileInfoFragment extends Table {
                 label.setText("");
                 return;
             } else if (hovered.block() == null) {
-                img.setDrawable(hovered.floor().uiIcon);
+                img.setDrawable(hovered.floor().fullIcon);
                 label.setText("");
                 return;
             } else if (hovered.pos() == lastPos.get()) {
@@ -42,8 +41,8 @@ public class TileInfoFragment extends Table {
             }
             lastPos.set(hovered.pos());
 
-            TextureRegion icon = hovered.block().uiIcon;
-            img.setDrawable(icon.found()? icon : hovered.floor().uiIcon);
+            TextureRegion icon = hovered.block().fullIcon;
+            img.setDrawable(icon.found() ? icon : hovered.floor().fullIcon);
             var record = TileRecords.INSTANCE.get(hovered);
             if (record == null) return;
             var logs = record.lastLogs(7);

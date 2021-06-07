@@ -337,6 +337,10 @@ public class GameService{
                 }
             }
         }
+        if (Core.settings.getBool("unlockallachievements")) {
+            for (Achievement a : Achievement.all) a.complete();
+            Core.settings.remove("unlockallachievements");
+        }
     }
 
     private void save(){

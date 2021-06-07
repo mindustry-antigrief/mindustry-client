@@ -11,12 +11,13 @@ import mindustry.game.*
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
- * TODO: Move the 9000 different bits of code throughout the client to here*/
+ * TODO: Move the 9000 different bits of code throughout the client to here */
 class ClientLogic {
     /** Create event listeners */
     init {
         Events.on(EventType.ServerJoinEvent::class.java) { // Run when the player joins a server
             Main.setPluginNetworking(false)
+            Spectate.pos = null
         }
 
         Events.on(EventType.WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
