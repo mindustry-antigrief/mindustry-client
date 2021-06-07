@@ -89,6 +89,8 @@ object Client {
             player.sendMessage(Strings.format("[accent]@: @/@", unit.localizedName, player.team().data().countType(unit), Units.getCap(player.team())))
         }
 
+        // FIXME: Add spawn command
+
         register("go [x] [y]", Core.bundle.get("client.command.go.description")) { args, player ->
             try {
                 if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
