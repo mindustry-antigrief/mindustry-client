@@ -61,13 +61,24 @@ jobs:
           asset_name: desktop.jar
           asset_content_type: application/zip
 
-      - name: Get Release (v7)
+      - name: Create Release (v7)
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/v7' }}
-        id: v7
-        uses: thebritican/fetch-latest-release@v2.0.0
+        id: create_release_v7
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          github_token: ${{ secrets.RELEASE_TOKEN }}
-          repo_path: 'mindustry-antigrief/mindustry-client-v6-builds'
+          body: |
+            Foo's Client Unstable ${{ github.run_number }} (${{ env.COMMIT }})
+            Steam installation instructions [here](../../../mindustry-client-v6#steam)
+            **Commit Message:**
+            *${{ github.event.head_commit.message }}*
+          commitish: main
+          tag_name: ${{ github.run_number }}
+          release_name: Unstable ${{ github.run_number }} (${{ env.COMMIT }})
+          repo: mindustry-client-v7-builds
+          draft: false
+          prerelease: false
 
       - name: Upload Release Asset (v7)
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/v7' }}
@@ -75,9 +86,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          upload_url: ${{ steps.v7.outputs.upload_url }}
+          upload_url: ${{ steps.create_release_v7.outputs.upload_url }}
           asset_path: desktop/build/libs/Mindustry.jar
-          asset_name: v7-testing.jar
+          asset_name: desktop.jar
           asset_content_type: application/zip
 
       - name: Upload Artifact (No release was made)
