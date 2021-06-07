@@ -4,8 +4,6 @@ import arc.*;
 import arc.Files.*;
 import arc.backend.sdl.*;
 import arc.backend.sdl.jni.*;
-import arc.discord.*;
-import arc.discord.DiscordRPC.*;
 import arc.files.*;
 import arc.func.*;
 import arc.math.*;
@@ -76,9 +74,9 @@ public class DesktopLauncher extends ClientLauncher{
 
     @Override
     public void stopDiscord() {
-        if (DiscordRPC2.getStatus() == DiscordRPC2.PipeStatus.uninitialized) DiscordRPC.INSTANCE.Discord_Shutdown();
-        else if (DiscordRPC2.getStatus() == DiscordRPC2.PipeStatus.connected) DiscordRPC2.close();
-        else DiscordRPC2.onReady = DiscordRPC2::close;
+        if (arc.discord.DiscordRPC.getStatus() == arc.discord.DiscordRPC.PipeStatus.uninitialized) DiscordRPC.INSTANCE.Discord_Shutdown();
+        else if (arc.discord.DiscordRPC.getStatus() == arc.discord.DiscordRPC.PipeStatus.connected) arc.discord.DiscordRPC.close();
+        else arc.discord.DiscordRPC.onReady = arc.discord.DiscordRPC::close;
     }
 
     @Override
@@ -86,10 +84,10 @@ public class DesktopLauncher extends ClientLauncher{
         if(useDiscord){
             try{
                 try {
-                    DiscordRPC2.connect(Long.parseLong(discordID));
-                    Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::close));
+                    arc.discord.DiscordRPC.connect(discordID);
+                    Runtime.getRuntime().addShutdownHook(new Thread(arc.discord.DiscordRPC::close));
                 } catch (Throwable t) {
-                    DiscordRPC.INSTANCE.Discord_Initialize(discordID, null, true, "1127400");
+                    DiscordRPC.INSTANCE.Discord_Initialize(String.valueOf(discordID), null, true, "1127400");
                     Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC.INSTANCE::Discord_Shutdown));
                 }
                 Log.info("Initialized Discord rich presence.");
@@ -345,7 +343,7 @@ public class DesktopLauncher extends ClientLauncher{
         }
 
         if(useDiscord && Core.settings.getBool("discordrpc")){
-            DiscordRPC.RichPresence presence2 = new DiscordRPC2.RichPresence();
+            arc.discord.DiscordRPC.RichPresence presence2 = new arc.discord.DiscordRPC.RichPresence();
             DiscordRichPresence presence = new DiscordRichPresence();
 
             if(inGame){
@@ -364,7 +362,7 @@ public class DesktopLauncher extends ClientLauncher{
             presence2.startTimestamp = presence.startTimestamp = beginTime/1000;
             presence2.label1 = "Client Github";
             presence2.url1 = "https://github.com/mindustry-antigrief/mindustry-client-v6";
-            if (DiscordRPC2.getStatus() == DiscordRPC2.PipeStatus.connected) DiscordRPC2.send(presence2);
+            if (arc.discord.DiscordRPC.getStatus() == arc.discord.DiscordRPC.PipeStatus.connected) arc.discord.DiscordRPC.send(presence2);
             else DiscordRPC.INSTANCE.Discord_UpdatePresence(presence);
         }
 

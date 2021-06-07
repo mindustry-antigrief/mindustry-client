@@ -7,7 +7,6 @@ import arc.util.*;
 import mindustry.ctype.*;
 import mindustry.graphics.*;
 import mindustry.world.meta.*;
-import mindustry.world.meta.values.*;
 
 import static mindustry.Vars.*;
 
@@ -71,11 +70,7 @@ public class ContentInfoDialog extends BaseDialog{
                     inset.add("[lightgray]" + stat.localized() + ":[] ").left();
                     Seq<StatValue> arr = map.get(stat);
                     for(StatValue value : arr){
-                        if (stat != Stat.buildCost && value instanceof ItemListValue v && map.containsKey(Stat.productionTime) && map.get(Stat.productionTime).first() instanceof NumberValue p) {
-                            v.display(inset, p.getValue());
-                        } else {
-                            value.display(inset);
-                        }
+                        value.display(inset); // TODO: Item production/consumption rate display in v7
                         inset.add().size(10f);
                     }
 

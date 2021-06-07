@@ -41,13 +41,13 @@ import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
 import mindustry.world.blocks.power.*;
-import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.blocks.units.*;
 import mindustry.world.meta.*;
 
 import java.util.*;
 
 import static arc.Core.*;
+import static mindustry.Vars.net;
 import static mindustry.Vars.*;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
@@ -832,7 +832,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        if (!Vars.net.client()) { // Client's can't see these in vanilla, editing them desyncs
+        if (!net.client()) { // Client's can't see these in vanilla, editing them desyncs
             for (BlockPlan req : player.team().data().blocks) {
                 Block block = content.block(req.block);
                 if (block.bounds(req.x, req.y, Tmp.r2).overlaps(Tmp.r1)) {
@@ -968,7 +968,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         //remove blocks to rebuild
         Iterator<BlockPlan> broken = state.teams.get(player.team()).blocks.iterator();
-        if (!Vars.net.client()) { // Clients can't see these in vanilla, editing them desyncs
+        if (!net.client()) { // Clients can't see these in vanilla, editing them desyncs
             while (broken.hasNext()) {
                 BlockPlan req = broken.next();
                 Block block = content.block(req.block);

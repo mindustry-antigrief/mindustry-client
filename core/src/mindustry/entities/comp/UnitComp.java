@@ -308,7 +308,9 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             Call.unitCapDeath(self());
             team.data().updateCount(type, -1);
         }
-        Events.fire(new EventType.UnitCreateEvent(self(), Nulls.building)); // Used for unit picker/sniper
+
+        // FIXME: What kind of building do i use lol
+        Events.fire(new EventType.UnitCreateEvent(self(), Building.create())); // Used for unit picker/sniper
     }
 
     @Override
@@ -546,8 +548,9 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         return isPlayer() ? (Player)controller : null;
     }
 
-    public Player playerNonNull(){
-        return isPlayer() ? (Player)controller : Nulls.player;
+    @Deprecated
+    public Player playerNonNull(){ // TODO: What do we do about this?
+        return isPlayer() ? (Player)controller : Player.create();
     }
 
     @Override

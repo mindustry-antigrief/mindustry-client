@@ -10,7 +10,6 @@ import mindustry.*
 import mindustry.Vars.player
 import mindustry.client.*
 import mindustry.client.utils.*
-import mindustry.ui.*
 import mindustry.ui.dialogs.*
 import mindustry.world.*
 
@@ -38,7 +37,7 @@ object FindDialog : BaseDialog("@find") {
             if (guesses.size >= images.size) {  // You can never be too careful
                 for (i in images.indices) {
                     val guess = guesses[i]
-                    images[i].setDrawable(guess.icon(Cicon.medium))
+                    images[i].setDrawable(guess.uiIcon)
                 }
             }
         }

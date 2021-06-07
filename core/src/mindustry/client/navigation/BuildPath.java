@@ -110,15 +110,15 @@ public class BuildPath extends Path {
                     if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build && build.isVirus) { // Dont add configured processors
                         virus.add(new BuildPlan(tile.x, tile.y));
 
-                    } else if (queues.contains(boulders) && tile.breakable() && tile.block() instanceof Boulder || tile.build instanceof ConstructBlock.ConstructBuild build && build.previous instanceof Boulder) {
+                    } else if (queues.contains(boulders) && tile.breakable() && tile.block() instanceof Prop || tile.build instanceof ConstructBlock.ConstructBuild build && build.previous instanceof Prop) {
                         boulders.add(new BuildPlan(tile.x, tile.y));
 
-                    } else if (queues.contains(cleanup) && tile.isCenter() && (tile.build instanceof ConstructBlock.ConstructBuild build && !build.wasConstructing && build.lastBuilder != null && build.lastBuilder == player.unit() || tile.team() == Team.derelict && tile.breakable() && !(tile.block() instanceof Boulder))) {
+                    } else if (queues.contains(cleanup) && tile.isCenter() && (tile.build instanceof ConstructBlock.ConstructBuild build && !build.wasConstructing && build.lastBuilder != null && build.lastBuilder == player.unit() || tile.team() == Team.derelict && tile.breakable() && !(tile.block() instanceof Prop))) {
                         cleanup.add(new BuildPlan(tile.x, tile.y));
 
                     } else if (queues.contains(unfinished) && tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild build && tile.isCenter()) {
                         unfinished.add(build.wasConstructing ?
-                            new BuildPlan(tile.x, tile.y, tile.build.rotation, build.cblock, tile.build.config()) :
+                            new BuildPlan(tile.x, tile.y, tile.build.rotation, build.current, tile.build.config()) :
                             new BuildPlan(tile.x, tile.y));
 
                     } else if ((queues.contains(belts) || queues.contains(drills)) && tile.team() == player.team() && tile.build != null && tile.isCenter()) {
@@ -134,7 +134,7 @@ public class BuildPath extends Path {
                  activeVirus = !virus.isEmpty();
                  if (!activeVirus) { // All processors broken or configured
                      for (Tile tile : world.tiles) {
-                         if (tile.team() == player.team() && (tile.build instanceof ConstructBlock.ConstructBuild cb && cb.cblock instanceof LogicBlock || tile.build instanceof LogicBlock.LogicBuild build && build.code.startsWith("print \"Logic grief auto removed by:\"\nprint \""))) {
+                         if (tile.team() == player.team() && (tile.build instanceof ConstructBlock.ConstructBuild cb && cb.current instanceof LogicBlock || tile.build instanceof LogicBlock.LogicBuild build && build.code.startsWith("print \"Logic grief auto removed by:\"\nprint \""))) {
                              virus.add(new BuildPlan(tile.x, tile.y));
                          }
                      }

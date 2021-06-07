@@ -52,7 +52,7 @@ object TileRecords {
         Events.on(EventType.BlockDestroyEvent::class.java) {
             forArea(it.tile) { tile ->
                 addLog(tile, TileDestroyedLog(tile,
-                    if (tile.build is ConstructBlock.ConstructBuild) (tile.build as ConstructBlock.ConstructBuild).cblock ?:
+                    if (tile.build is ConstructBlock.ConstructBuild) (tile.build as ConstructBlock.ConstructBuild).current ?:
                     (tile.build as ConstructBlock.ConstructBuild).previous
                     else tile.block() ?: Blocks.air))
             }

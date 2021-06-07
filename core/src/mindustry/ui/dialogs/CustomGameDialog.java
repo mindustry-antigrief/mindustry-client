@@ -36,21 +36,16 @@ public class CustomGameDialog extends BaseDialog{
         cont.table(s -> {
             s.left();
             s.image(Icon.zoom);
-            searchField = s.field(null, text -> build()).growX().get();
+            searchField = s.field(null, text -> setup()).growX().get();
         }).fillX().padBottom(4).row();
-        Time.runTask(2f, () -> {
-            Core.scene.setKeyboardFocus(searchField);
-            build();
-        });
+        Time.runTask(2f, () -> Core.scene.setKeyboardFocus(searchField));
 
         ScrollPane pane = new ScrollPane(maps);
         pane.setFadeScrollBars(false);
         pane.setScrollingDisabled(true, false);
 
         cont.add(pane);
-    }
 
-    void build() {
         maps.defaults().width(170).fillY().top().pad(4f);
         int maxwidth = Math.max((int)(Core.graphics.getWidth() / Scl.scl(210)), 1);
         float images = 146f;

@@ -11,7 +11,6 @@ import mindustry.entities.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
-import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
@@ -44,7 +43,7 @@ public class UnitPicker extends BaseDialog {
         TextField searchField = cont.field("", string -> {
             sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshteinInsensitive(string, b.localizedName));
             for (int i = 0; i < imgs.size; i++) {
-                Image region = new Image(sorted.get(i).icon(Cicon.large));
+                Image region = new Image(sorted.get(i).uiIcon);
                 region.setSize(32);
                 imgs.get(i).setDrawable(region.getDrawable());
                 labels.get(i).setText(sorted.get(i).localizedName);

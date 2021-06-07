@@ -576,7 +576,7 @@ public class DesktopInput extends InputHandler{
         table.button(Icon.map, Styles.clearPartiali, () -> {
             if (state.isCampaign() && !Vars.net.client()) ui.planet.show();
             else MarkerDialog.INSTANCE.show();
-        }).tooltip(() -> state.isCampaign() ? "@planetmap" : "Map Markers");
+        }).tooltip(state.isCampaign() ? "@planetmap" : "Map Markers"); // FIXME: Doesn't update
 
         table.button(Icon.tree, Styles.clearPartiali, () -> {
             ui.research.show();

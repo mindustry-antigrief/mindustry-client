@@ -17,7 +17,7 @@ public class MonospacedBar extends Bar {
         super(name, color, fraction);
     }
 
-    public MonospacedBar(Prov<String> name, Prov<Color> color, Floatp fraction){
+    public MonospacedBar(Prov<CharSequence> name, Prov<Color> color, Floatp fraction){
         super(name, color, fraction);
     }
 

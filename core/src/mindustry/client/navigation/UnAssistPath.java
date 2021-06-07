@@ -43,9 +43,9 @@ public class UnAssistPath extends Path {
                         Tile tile = Vars.world.tile(plan.x, plan.y);
                         if (tile.build instanceof ConstructBlock.ConstructBuild) {
                             ConstructBlock.ConstructBuild build = (ConstructBlock.ConstructBuild) tile.build;
-                            if (build.cblock.buildCost > 10) {
+                            if (build.current.buildCost > 10) {
                                 if (plan.breaking) {
-                                    toUndo.add(new BuildPlan(plan.x, plan.y, build.rotation, build.cblock, build.lastConfig));
+                                    toUndo.add(new BuildPlan(plan.x, plan.y, build.rotation, build.current, build.lastConfig));
                                 } else {
                                     toUndo.add(new BuildPlan(plan.x, plan.y));
                                 }

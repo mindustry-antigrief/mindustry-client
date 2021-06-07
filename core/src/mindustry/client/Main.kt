@@ -3,7 +3,7 @@ package mindustry.client
 import arc.*
 import arc.math.geom.*
 import arc.struct.*
-import arc.util.Interval
+import arc.util.*
 import mindustry.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
@@ -26,7 +26,7 @@ object Main : ApplicationListener {
     override fun init() {
         Crypto.initializeAlways()
         if (Core.app.isDesktop) {
-            communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem, PluginCommunicationSystem)
+            communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem)
             communicationSystem.init()
 
             TileRecords.initialize()
@@ -88,7 +88,7 @@ object Main : ApplicationListener {
     fun setPluginNetworking(enable: Boolean) {
         when {
             enable -> {
-                communicationSystem.activeCommunicationSystem = PluginCommunicationSystem
+                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem //TODO: Re-implement packet plugin
             }
             Core.app?.isDesktop == true -> {
                 communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem

@@ -107,6 +107,7 @@ public class ConstructBlock extends Block{
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild co ? co.prevBuild : null;
         Block prevBlock = tile.block();
+        Object prevConf = tile.build.config();
 
 
         if (block == null) {
@@ -151,7 +152,7 @@ public class ConstructBlock extends Block{
                         }
                         path.toUndo.add(new BuildPlan(tile.x, tile.y));
                         if (config != null) {
-                            ClientVars.configs.add(new ConfigRequest(tile.x, tile.y, prevBuild == null ? null : prevBuild.config()));
+                            ClientVars.configs.add(new ConfigRequest(tile.x, tile.y, prevConf));
                         }
                     }
                 }
@@ -535,7 +536,7 @@ public class ConstructBlock extends Block{
                 }
 
                 if (lastProgress == 0 && Core.settings.getBool("removecorenukes") && current instanceof NuclearReactor && !lastBuilder.isLocal() && distance.get() <= 20) { // Automatically remove reactors within 20 blocks of core
-                    Call.unitControl(player, ((CoreBuild)closestCore()).unit()); // TODO: v7
+                    Call.buildingControlSelect(player, closestCore());
                     Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tileX(), tileY())), net.client() ? netClient.getPing()/1000f+.3f : 0);
                 }
             }

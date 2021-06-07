@@ -72,7 +72,7 @@ public class MinePath extends Path {
             }
 
         } else { // mine
-            Tile tile = indexer.findClosestOreButGood(player.x, player.y, item);
+            Tile tile = indexer.findClosestOre(player.x, player.y, item);
             player.unit().mineTile = tile;
             if (tile == null) return;
 

@@ -1,26 +1,26 @@
 package mindustry.ui.fragments;
 
 import arc.*;
-import arc.Input.TextInput;
-import arc.func.Boolp;
-import arc.graphics.Color;
+import arc.Input.*;
+import arc.func.*;
+import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.math.Mathf;
-import arc.scene.Group;
+import arc.math.*;
+import arc.scene.*;
 import arc.scene.ui.*;
-import arc.scene.ui.Label.LabelStyle;
+import arc.scene.ui.Label.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.Vars;
+import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.utils.*;
-import mindustry.game.EventType;
-import mindustry.gen.Call;
-import mindustry.input.Binding;
-import mindustry.ui.Fonts;
+import mindustry.game.*;
+import mindustry.gen.*;
+import mindustry.input.*;
+import mindustry.ui.*;
 
-import java.util.Arrays;
+import java.util.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -268,7 +268,22 @@ public class ChatFragment extends Table{
                 }else if(response.type == CommandHandler.ResponseType.fewArguments){
                     text = "[scarlet]Too few arguments. Usage:[lightgray] " + response.command.text + "[gray] " + response.command.paramText;
                 }else{ //unknown command
-                    text = "[scarlet]Unknown command. Check [lightgray]!help[scarlet].";
+                    int minDst = 0;
+                    CommandHandler.Command closest = null;
+
+                    for(CommandHandler.Command command : netServer.clientCommands.getCommandList()){
+                        int dst = Strings.levenshtein(command.text, response.runCommand);
+                        if(dst < 3 && (closest == null || dst < minDst)){
+                            minDst = dst;
+                            closest = command;
+                        }
+                    }
+
+                    if(closest != null){
+                        text = "[scarlet]Unknown command. Did you mean \"[lightgray]" + closest.text + "[]\"?";
+                    }else{
+                        text = "[scarlet]Unknown command. Check [lightgray]/help[scarlet].";
+                    }
                 }
 
                 player.sendMessage(text);

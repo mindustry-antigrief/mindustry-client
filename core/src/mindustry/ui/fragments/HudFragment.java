@@ -15,7 +15,6 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.ui.*;
 import mindustry.content.*;
@@ -225,8 +224,9 @@ public class HudFragment extends Fragment{
                 // Power bar display
                 s.row();
                 s.add(PowerInfo.getBars()).growX().colspan(s.getColumns());
+                });
 
-            addInfoTable(wavesMain.table().width(dsize * 6 + 4f);.left().get());
+            addInfoTable(wavesMain.table().width(dsize * 6 + 4f).left().get());
 
             editorMain.name = "editor";
 

@@ -15,10 +15,10 @@ import mindustry.gen.*;
 public class Bar extends Element{
     protected static Rect scissor = new Rect();
 
-    private Floatp fraction;
-    private CharSequence name = "";
-    private float value, lastValue, blink, outlineRadius;
-    private Color blinkColor = new Color(), outlineColor = new Color();
+    protected Floatp fraction;
+    protected CharSequence name = "";
+    protected float value, lastValue, blink, outlineRadius;
+    protected Color blinkColor = new Color(), outlineColor = new Color();
 
     public Bar(String name, Color color, Floatp fraction){
         this.fraction = fraction;

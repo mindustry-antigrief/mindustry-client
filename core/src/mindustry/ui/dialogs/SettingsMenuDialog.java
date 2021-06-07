@@ -247,7 +247,7 @@ public class SettingsMenuDialog extends Dialog{
         });
 
         row();
-        ScrollPane pane = pane(prefs).grow().top();
+        ScrollPane pane = pane(prefs).grow().top().get();
         pane.setFadeScrollBars(true); // TODO: needed in v7?
         pane.setCancelTouchFocus(false);
         row();

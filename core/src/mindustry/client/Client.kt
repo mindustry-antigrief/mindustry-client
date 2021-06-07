@@ -195,10 +195,6 @@ object Client {
         }
 
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
-            if (Main.communicationSystem.activeCommunicationSystem == PluginCommunicationSystem) {
-                player.sendMessage("[accent]Using plugin communication system provided by the server.")
-                return@register
-            }
             val build = MessageBlockCommunicationSystem.findProcessor() ?: MessageBlockCommunicationSystem.findMessage()
             if (build == null) player.sendMessage("[scarlet]No valid processor or message block found; communication system inactive.")
             else player.sendMessage("[accent]${build.block.localizedName} at (${build.tileX()}, ${build.tileY()}) in use for communication.")
