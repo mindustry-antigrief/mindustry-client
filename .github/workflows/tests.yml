@@ -64,7 +64,7 @@ jobs:
       - name: Get Release (v7)
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/v7' }}
         id: v7
-        uses: thebritican/fetch-latest-release@v2
+        uses: thebritican/fetch-latest-release@v2.0.0
         with:
           github_token: ${{ secrets.RELEASE_TOKEN }}
           repo_path: 'mindustry-antigrief/mindustry-client-v6-builds'
