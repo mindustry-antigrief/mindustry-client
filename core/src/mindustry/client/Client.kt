@@ -214,6 +214,7 @@ object Client {
 
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
             val confirmed = args.any() && args[0] == "c" // Don't configure by default
+            val inProgress = !configs.isEmpty
             var n = 0
             val grids = mutableMapOf<Int, MutableSet<Int>>()
             for (grid in PowerGraph.activeGraphs.filter { g -> g.team == player.team() }) {
@@ -228,14 +229,15 @@ object Client {
                         if (l.add(grid.id) && t.add(link.power.graph.id)) {
                             l.addAll(t)
                             grids[link.power.graph.id] = l
-                            if (confirmed) configs.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
+                            if (confirmed && !inProgress) configs.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
                             n++
                         }
                     }
                 }
             }
             if (confirmed) {
-                player.sendMessage(Core.bundle.format("client.command.fixpower.success", n))
+                if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.")
+                else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n))
             } else {
                 player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, PowerGraph.activeGraphs.size))
             }

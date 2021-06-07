@@ -73,6 +73,14 @@ public class NuclearReactor extends PowerGenerator{
         bars.add("heat", (NuclearReactorBuild entity) -> new Bar("bar.heat", Pal.lightOrange, () -> entity.heat));
     }
 
+    @Override
+    public void drawPlace(int x, int y, int rotation, boolean valid) {
+        super.drawPlace(x, y, rotation, valid);
+        Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, explosionRadius * tilesize, Color.coral);
+        if (ui.join.lastHost != null && ui.join.lastHost.name.toLowerCase().contains("nydus")) // Only relevant on nydus
+            Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, explosionRadius / 2f * tilesize, Pal.lightishOrange);
+    }
+
     public class NuclearReactorBuild extends GeneratorBuild{
         public float heat;
 

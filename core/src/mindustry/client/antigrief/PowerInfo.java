@@ -8,7 +8,6 @@ import arc.struct.*;
 import mindustry.*;
 import mindustry.client.ui.*;
 import mindustry.core.*;
-import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.power.*;
@@ -30,8 +29,7 @@ public class PowerInfo {
         found = graphs.asArray().max(g -> g.all.size);
     }
 
-    public static Element getBars() {
-        Table power = new Table(Tex.wavepane).marginTop(6);
+    public static Element getBars(Table power) {
 
         Bar powerBar = new MonospacedBar(
                 () -> Core.bundle.format("bar.powerbalance", found != null ? (found.powerBalance.rawMean() >= 0 ? "+" : "") + UI.formatAmount((int)(found.powerBalance.rawMean() * 60)) : "+0"),
