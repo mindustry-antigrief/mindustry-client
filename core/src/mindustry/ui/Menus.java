@@ -66,6 +66,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoMessage(String message){
         if(message == null) return;
+        if(message.contains("") && message.contains("") && message.contains("vote")) return; // .io is annoying
 
         ui.showText("", message);
     }
