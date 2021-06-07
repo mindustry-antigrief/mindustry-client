@@ -354,11 +354,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             build.lastAccessed = player.name;
             if(Navigation.currentlyFollowing instanceof UnAssistPath path){
                 if(path.assisting == player){
-                    Time.run(2f, () -> {
-                        if (player != null && build != null) {
-                            Call.rotateBlock(Vars.player, build, !direction);
-                        }
-                    });
+                    Time.run(2f, () -> Call.rotateBlock(Vars.player, build, !direction));
                 }
             }
         }
@@ -436,6 +432,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         if(player.team() == build.team && build.canControlSelect(player)){
+            if (player.isLocal()) player.persistPlans();
             build.onControlSelect(player);
         }
     }
@@ -449,7 +446,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot control a unit.");
         }
 
-        player.persistPlans(); // Restore plans after swapping units
+        if (player.isLocal()) player.persistPlans(); // Restore plans after swapping units
 
         //TODO problem:
         //1. server send snapshot

@@ -10,7 +10,6 @@ import mindustry.*;
 import mindustry.client.antigrief.*;
 import mindustry.core.*;
 import mindustry.gen.*;
-import mindustry.ui.*;
 import mindustry.world.*;
 
 import java.util.concurrent.atomic.*;
@@ -35,7 +34,7 @@ public class TileInfoFragment extends Table {
                 label.setText("");
                 return;
             } else if (hovered.block() == null) {
-                img.setDrawable(hovered.floor().icon(Cicon.xlarge));
+                img.setDrawable(hovered.floor().uiIcon);
                 label.setText("");
                 return;
             } else if (hovered.pos() == lastPos.get()) {
@@ -43,8 +42,8 @@ public class TileInfoFragment extends Table {
             }
             lastPos.set(hovered.pos());
 
-            TextureRegion icon = hovered.block().icon(Cicon.xlarge);
-            img.setDrawable(icon.found()? icon : hovered.floor().icon(Cicon.xlarge));
+            TextureRegion icon = hovered.block().uiIcon;
+            img.setDrawable(icon.found()? icon : hovered.floor().uiIcon);
             var record = TileRecords.INSTANCE.get(hovered);
             if (record == null) return;
             var logs = record.lastLogs(7);

@@ -25,7 +25,6 @@ import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.ui.*;
-import mindustry.world.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
@@ -227,12 +226,12 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
                 if (!unit.canBuild()) control.input.block = null;
                 else if (!persistPlans.isEmpty()) {
                     persistPlans.each(player.unit()::addBuild);
+                    if (persistTask != null && persistTask.isScheduled()) persistTask.cancel();
+                    persistTask = Timer.schedule(persistPlans::clear, 3); // Clear with a delay because servers suck
                 }
-                if (formOnDeath != null) {
-                    Call.unitCommand(player);
-                }
-                if (persistTask != null && persistTask.isScheduled()) persistTask.cancel();
-                persistTask = Timer.schedule(() -> { persistPlans.clear();formOnDeath=null; }, 3); // Clear with a delay because servers suck
+//                if (formOnDeath != null) {
+//                    Call.unitCommand(player);
+//                }
             }
         }
 

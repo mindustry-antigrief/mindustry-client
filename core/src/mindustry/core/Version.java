@@ -25,6 +25,9 @@ public class Version{
     /** Custom client version string used for various things */
     public static String clientVersion = "v1.0.0, Jan. 1, 1970";
 
+    public static String path(){
+        return Version.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    }
     public static void init(){
         if(!enabled) return;
 
@@ -39,7 +42,7 @@ public class Version{
         number = Integer.parseInt(map.get("number", "4"));
         modifier = map.get("modifier");
         String filepath = Version.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        if (modifier.equals("release") && filepath.contains("/steamapps/common/Mindustry/")) modifier = "steam";
+        if (filepath.contains("/steamapps/common/Mindustry/")) modifier += " steam";
         if(map.get("build").contains(".")){
             String[] split = map.get("build").split("\\.");
             try{

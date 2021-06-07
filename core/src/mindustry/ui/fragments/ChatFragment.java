@@ -271,7 +271,7 @@ public class ChatFragment extends Table{
                     int minDst = 0;
                     CommandHandler.Command closest = null;
 
-                    for(CommandHandler.Command command : netServer.clientCommands.getCommandList()){
+                    for(CommandHandler.Command command : ClientVars.clientCommandHandler.getCommandList()){
                         int dst = Strings.levenshtein(command.text, response.runCommand);
                         if(dst < 3 && (closest == null || dst < minDst)){
                             minDst = dst;

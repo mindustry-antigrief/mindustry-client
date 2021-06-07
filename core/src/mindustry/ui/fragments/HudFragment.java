@@ -224,9 +224,9 @@ public class HudFragment extends Fragment{
                 // Power bar display
                 s.row();
                 s.add(PowerInfo.getBars()).growX().colspan(s.getColumns());
-                });
+                }).width(dsize * 6 + 4f);
 
-            addInfoTable(wavesMain.table().width(dsize * 6 + 4f).left().get());
+//            addInfoTable(wavesMain.table().width(dsize * 6 + 4f).left().get()); TODO: Make this look good like our custom one then remove the one above
 
             editorMain.name = "editor";
 

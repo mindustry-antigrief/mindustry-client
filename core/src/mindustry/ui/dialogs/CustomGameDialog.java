@@ -4,7 +4,6 @@ import arc.*;
 import arc.graphics.g2d.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
-import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.*;
@@ -17,7 +16,7 @@ import mindustry.ui.*;
 public class CustomGameDialog extends BaseDialog{
     private MapPlayDialog dialog = new MapPlayDialog();
     private TextField searchField;
-    private Table maps = new Table().marginBottom(55f).marginRight(-20f);
+    private Table maps = new Table().marginBottom(55f);
 
     public CustomGameDialog(){
         super("@customgame");
@@ -36,26 +35,24 @@ public class CustomGameDialog extends BaseDialog{
         cont.table(s -> {
             s.left();
             s.image(Icon.zoom);
-            searchField = s.field(null, text -> setup()).growX().get();
+            searchField = s.field(null, text -> build()).growX().get();
         }).fillX().padBottom(4).row();
-        Time.runTask(2f, () -> Core.scene.setKeyboardFocus(searchField));
+        Time.runTask(2f, () -> {
+            Core.scene.setKeyboardFocus(searchField);
+            build();
+        });
 
         ScrollPane pane = new ScrollPane(maps);
         pane.setFadeScrollBars(false);
         pane.setScrollingDisabled(true, false);
 
         cont.add(pane);
+    }
 
+    void build() {
         maps.defaults().width(170).fillY().top().pad(4f);
         int maxwidth = Math.max((int)(Core.graphics.getWidth() / Scl.scl(210)), 1);
         float images = 146f;
-
-        ImageButtonStyle style = new ImageButtonStyle(){{
-            up = Styles.none;
-            down = Styles.flatOver;
-            over = Styles.flatOver;
-            disabled = Styles.none;
-        }};
 
         int i = 0;
 
@@ -67,7 +64,7 @@ public class CustomGameDialog extends BaseDialog{
                 maps.row();
             }
 
-            ImageButton image = new ImageButton(new TextureRegion(map.safeTexture()), style);
+            ImageButton image = new ImageButton(new TextureRegion(map.safeTexture()), Styles.cleari);
             image.margin(5);
             image.top();
 
@@ -105,7 +102,5 @@ public class CustomGameDialog extends BaseDialog{
         if(Vars.maps.all().size == 0){
             maps.add("@maps.none").pad(50);
         }
-
-        cont.add(pane).grow();
     }
 }
