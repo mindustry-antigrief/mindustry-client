@@ -30,7 +30,6 @@ jobs:
           export PATH=./tools:$PATH
           chmod +x ./tools/antialias
           ./gradlew tools:pack test desktop:dist -PupdateUrl=${{ github.repository }}-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel -PfastAA
-
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch') }}
         id: create_release
@@ -61,38 +60,38 @@ jobs:
           asset_name: desktop.jar
           asset_content_type: application/zip
 
-#       - name: Create Release (v7)
-#         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/v7' }}
-#         id: create_release_v7
-#         uses: actions/create-release@v1
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-#         with:
-#           body: |
-#             Foo's Client Unstable ${{ github.run_number }} (${{ env.COMMIT }})
-#             Steam installation instructions [here](../../../mindustry-client-v6#steam)
-#             **Commit Message:**
-#             *${{ github.event.head_commit.message }}*
-#           commitish: main
-#           tag_name: ${{ github.run_number }}
-#           release_name: Unstable ${{ github.run_number }} (${{ env.COMMIT }})
-#           repo: mindustry-client-v7-builds
-#           draft: false
-#           prerelease: false
+      - name: Create Release (v7)
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/v7' }}
+        id: create_release_v7
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          body: |
+            Foo's Client Unstable ${{ github.run_number }} (${{ env.COMMIT }})
+            Steam installation instructions [here](../../../mindustry-client-v6#steam)
+            **Commit Message:**
+            *${{ github.event.head_commit.message }}*
+          commitish: main
+          tag_name: ${{ github.run_number }}
+          release_name: Unstable ${{ github.run_number }} (${{ env.COMMIT }})
+          repo: mindustry-client-v7-builds
+          draft: false
+          prerelease: false
 
-#       - name: Upload Release Asset (v7)
-#         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/v7' }}
-#         uses: actions/upload-release-asset@v1
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-#         with:
-#           upload_url: ${{ steps.create_release_v7.outputs.upload_url }}
-#           asset_path: desktop/build/libs/Mindustry.jar
-#           asset_name: desktop.jar
-#           asset_content_type: application/zip
+      - name: Upload Release Asset (v7)
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && github.ref == 'refs/heads/v7' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release_v7.outputs.upload_url }}
+          asset_path: desktop/build/libs/Mindustry.jar
+          asset_name: desktop.jar
+          asset_content_type: application/zip
 
       - name: Upload Artifact (No release was made)
-        if: ${{ !(github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch')) }}
+        if: ${{ !(github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.ref == 'refs/heads/v7' || github.event_name == 'workflow_dispatch')) }}
         uses: actions/upload-artifact@v2
         with:
           name: Desktop JAR (zipped)
