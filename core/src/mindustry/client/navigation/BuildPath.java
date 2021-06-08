@@ -47,7 +47,7 @@ public class BuildPath extends Path {
                 case "networkassist", "na", "network" -> queues.add(networkAssist);
                 case "virus" -> queues.add(virus); // Intentionally undocumented due to potential false positives
                 case "drills" -> queues.add(drills);
-                case "belts", "conveyors", "conduits", "pipes" -> queues.add(belts);
+                case "belts", "conveyors", "conduits", "pipes", "ducts", "tubes" -> queues.add(belts);
                 default -> ui.chatfrag.addMessage(Core.bundle.format("client.path.builder.invalid", arg), null);
             }
         }
