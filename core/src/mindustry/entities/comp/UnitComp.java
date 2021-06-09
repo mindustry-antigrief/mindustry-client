@@ -50,7 +50,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     transient float healTime;
     private transient float resupplyTime = Mathf.random(10f);
     private transient boolean wasPlayer;
-    private transient float lastHealth;
+    private transient boolean wasHealed;
     private final transient ObjectMap<Weapon, TurretPathfindingEntity> pathfindingEntities = new ObjectMap<>();
 
     public void moveAt(Vec2 vector){
@@ -334,6 +334,13 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     }
 
     @Override
+    public void heal(float amount){
+        if(health < maxHealth && amount > 0){
+            wasHealed = true;
+        }
+    }
+
+    @Override
     public void update(){
         if (hasWeapons()) {
             if (player != null && team != player.team()) {
@@ -355,11 +362,11 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
         type.update(self());
 
-        if(health > lastHealth && lastHealth > 0 && healTime <= -1f){
+        if(wasHealed && healTime <= -1f){
             healTime = 1f;
         }
         healTime -= Time.delta / 20f;
-        lastHealth = health;
+        wasHealed = false;
 
         //check if environment is unsupported
         if(!type.supportsEnv(state.rules.environment) && !dead){
@@ -549,7 +556,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     }
 
     @Deprecated
-    public Player playerNonNull(){ // TODO: What do we do about this?
+    public Player playerNonNull(){ // FIXME: What do we do about this?
         return isPlayer() ? (Player)controller : Player.create();
     }
 
