@@ -60,6 +60,7 @@ public class MinePath extends Path {
     @Override
     public void follow() {
         Building core = player.closestCore();
+        if (core == null) return;
         Item item = items.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
         if (item == null) return;
 
