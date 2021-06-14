@@ -138,6 +138,12 @@ public class ConstructBlock extends Block{
 
         Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
 
+        if (tile.build instanceof ConstructBuild b) { // FIXME: Does this even work?
+            for (var item : b.prevBuild != null ? b.prevBuild : new Seq<Building>()) {
+                Events.fire(new BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
+            }
+        }
+
         Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
 
         if(builder != null && tile.build != null){
@@ -185,20 +191,10 @@ public class ConstructBlock extends Block{
     }
 
     public static void constructed(Tile tile, Block block, Unit builder, byte rotation, Team team, Object config){
-        Block prev = tile.block();
-
-        if (tile.build instanceof ConstructBuild b) {
-            for (var item : b.prevBuild != null ? b.prevBuild : new Seq<Building>()) {
-                Events.fire(new EventType.BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
-            }
-        }
-
         Call.constructFinish(tile, block, builder, rotation, team, config);
         if(tile.build != null){
             tile.build.placed();
         }
-
-        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prev));
     }
 
     @Override
@@ -337,7 +333,9 @@ public class ConstructBlock extends Block{
 
             if(progress >= 1f || state.rules.infiniteResources){
                 if(lastBuilder == null) lastBuilder = builder;
-                constructed(tile, current, lastBuilder, (byte)rotation, builder.team, config);
+                if(!net.client()){
+                    constructed(tile, current, lastBuilder, (byte)rotation, builder.team, config);
+                }
             }
         }
 

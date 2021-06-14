@@ -52,7 +52,7 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
     exclude("META-INF/BC1024KE.SF", "META-INF/BC2048KE.SF")
 }
 
-if(!project.ext.hasSprites()){
+if(!project.ext.hasSprites() && System.getenv("JITPACK") != "true"){
     println "Scheduling sprite packing."
     run.dependsOn ":tools:pack"
     dist.dependsOn ":tools:pack"
