@@ -34,20 +34,11 @@ object Client {
     fun update() {
         Navigation.update()
         PowerInfo.update()
-        Spectate.update()
+        Spectate.update() // FIXME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
         if (!configs.isEmpty) {
             try {
                 if (configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) {
-                    val req = configs.removeLast()
-                    val tile = world.tile(req.x, req.y)
-                    if (tile != null) {
-//                            Object initial = tile.build.config();
-                        req.run()
-                        //                            Timer.schedule(() -> {
-//                                 if(tile.build != null && tile.build.config() == initial) configs.addLast(req); TODO: This can also cause loops
-//                                 if(tile.build != null && req.value != tile.build.config()) configs.addLast(req); TODO: This infinite loops if u config something twice, find a better way to do this
-//                            }, net.client() ? netClient.getPing()/1000f+.05f : .025f);
-                    }
+                    configs.removeLast().run()
                 }
             } catch (e: Exception) {
                 Log.err(e)
