@@ -59,7 +59,7 @@ public class LogicDialog extends BaseDialog{
         }).name("edit");
 
         buttons.button("Use for comms", () -> {
-            ui.showConfirm("Are you use you want to use this block for comms?", () -> {
+            ui.showConfirm("@confirm", "Are you use you want to use this block for comms?", () -> {
                 canvas.load(MessageBlockCommunicationSystem.LOGIC_PREFIX);
                 hide();
             });
