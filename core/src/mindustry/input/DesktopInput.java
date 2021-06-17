@@ -422,7 +422,7 @@ public class DesktopInput extends InputHandler{
                 Unit on = selectedUnit(true);
                 if(on != null){
                     if (input.keyDown(Binding.control) && on.isAI()) Call.unitControl(player, on); // Ctrl + click: control unit
-                    else if (input.shift() && on.isPlayer()) Navigation.follow(new AssistPath(on.playerNonNull())); // Shift + click player: quick assist
+                    else if (input.shift() && on.isPlayer() && on != player) Navigation.follow(new AssistPath(on.playerNonNull())); // Shift + click player: quick assist
                     else if (on.controller() instanceof LogicAI p && p.controller != null) Spectate.INSTANCE.spectate(p.controller); // Shift + click logic unit: spectate processor
                     shouldShoot = false;
                 }
