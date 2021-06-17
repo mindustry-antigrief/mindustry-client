@@ -10,9 +10,12 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
+import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
+import mindustry.world.blocks.storage.CoreBlock.*;
+
 import static mindustry.Vars.*;
 
 public class Build{
@@ -101,7 +104,7 @@ public class Build{
         tmp.clear();
 
         tile.getLinkedTilesAs(result, t -> {
-            ConstructBlock.breakWarning(t, t.block, unit); // This will totally break if warnBlocks contains a multiblock lol
+            ConstructBlock.breakWarning(t, t.block, unit);
             if(t.build != null && t.build.team == team && tmp.add(t.build.id)){
                 prevBuild.add(t.build);
             }
@@ -136,7 +139,23 @@ public class Build{
             return false;
         }
 
-        if(state.teams.eachEnemyCore(team, core -> Mathf.dst(x * tilesize + type.offset, y * tilesize + type.offset, core.x, core.y) < state.rules.enemyCoreBuildRadius + type.size * tilesize / 2f)){
+        //find closest core, if it doesn't match the team, placing is not legal
+        if(state.rules.polygonCoreProtection){
+            float mindst = Float.MAX_VALUE;
+            CoreBuild closest = null;
+            for(TeamData data : state.teams.active){
+                for(CoreBuild tile : data.cores){
+                    float dst = tile.dst2(x * tilesize + type.offset, y * tilesize + type.offset);
+                    if(dst < mindst){
+                        closest = tile;
+                        mindst = dst;
+                    }
+                }
+            }
+            if(closest != null && closest.team != team){
+                return false;
+            }
+        }else if(state.teams.eachEnemyCore(team, core -> Mathf.dst(x * tilesize + type.offset, y * tilesize + type.offset, core.x, core.y) < state.rules.enemyCoreBuildRadius + type.size * tilesize / 2f)){
             return false;
         }
 
