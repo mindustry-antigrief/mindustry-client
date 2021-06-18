@@ -47,7 +47,7 @@ object FindDialog : BaseDialog("@find") {
                 hide()
             } else if (it == KeyCode.enter) {
                 val block = guesses[0]
-                val closest = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE) {t -> t.block.id == block.id}
+                val closest = Units.findAllyTile(player.team(), player.x, player.y, 9999999f) {t -> t.block.id == block.id}
                 if (closest == null) {
                     Vars.ui.chatfrag.addMessage("No ${block.localizedName} was found", "client", Color.coral.cpy().mul(0.75f))
                 } else {

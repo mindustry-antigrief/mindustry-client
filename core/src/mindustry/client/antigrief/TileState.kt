@@ -10,7 +10,6 @@ import mindustry.core.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.type.*
-import mindustry.ui.*
 import mindustry.world.*
 import java.time.*
 import kotlin.math.*
@@ -62,7 +61,7 @@ class TileState {
         if (block.isAir) {
             table.add("@block.air.name")
         } else {
-            table.image(block.icon(Cicon.medium))
+            table.image(block.uiIcon)
         }
 
         table.row()
@@ -82,11 +81,11 @@ class TileState {
             @Suppress("UNCHECKED_CAST")
             when {
 
-                config is Item -> table.image(config.icon(Cicon.medium))
+                config is Item -> table.image(config.uiIcon)
 
-                config is Liquid -> table.image(config.icon(Cicon.medium))
+                config is Liquid -> table.image(config.uiIcon)
 
-                config is Block -> table.image(config.icon(Cicon.medium))
+                config is Block -> table.image(config.uiIcon)
 
                 config is Array<*> && config.getOrNull(0) is Point2 -> {
                     // shut up I promise it's an array of point2s
