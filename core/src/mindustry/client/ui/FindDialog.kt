@@ -51,7 +51,7 @@ object FindDialog : BaseDialog("@find") {
                 if (closest == null) {
                     Vars.ui.chatfrag.addMessage("No ${block.localizedName} was found", "client", Color.coral.cpy().mul(0.75f))
                 } else {
-                    ClientVars.lastSentPos.set(closest.x, closest.y)
+                    ClientVars.lastSentPos.set(closest.x / tilesize, closest.y / tilesize)
                     //TODO: Make the line below use toasts similar to UnitPicker.java
                     Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", "client", Color.coral.cpy().mul(0.75f))
                 }
