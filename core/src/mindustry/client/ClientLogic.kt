@@ -17,12 +17,12 @@ class ClientLogic {
     init {
         Events.on(EventType.ServerJoinEvent::class.java) { // Run when the player joins a server
             Main.setPluginNetworking(false)
+            Navigation.stopFollowing()
         }
 
         Events.on(EventType.WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
             ClientVars.lastJoinTime = Time.millis()
             PowerInfo.initialize()
-            Navigation.stopFollowing()
             Navigation.obstacles.clear()
             ClientVars.configs.clear()
             Vars.ui.unitPicker.type = null
