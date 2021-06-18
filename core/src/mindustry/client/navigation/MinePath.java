@@ -5,6 +5,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.navigation.waypoints.*;
+import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -34,6 +35,7 @@ public class MinePath extends Path {
             if (!added) { // Item not matched
                 if (arg.equals("*") || arg.equals("all") || arg.equals("a")) {
                     items.addAll(content.items().select(indexer::hasOre)); // Add all items when the argument is "all" or similar
+                    items.add(Items.sand); // Sand too, the player can mine it
                     itemString.append("Everything, ");
                 }
                 else player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
