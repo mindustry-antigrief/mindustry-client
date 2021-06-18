@@ -3,13 +3,14 @@ package mindustry.client.ui
 import arc.*
 import arc.graphics.*
 import arc.input.*
-import arc.math.geom.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import mindustry.*
 import mindustry.Vars.player
+import mindustry.Vars.tilesize
 import mindustry.client.*
 import mindustry.client.utils.*
+import mindustry.entities.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
 import mindustry.world.*
@@ -47,18 +48,12 @@ object FindDialog : BaseDialog("@find") {
             if (it == KeyCode.escape) {
                 hide()
             } else if (it == KeyCode.enter) {
-                val filtered = mutableListOf<Tile>()
                 val block = guesses[0]
-                Vars.world.tiles.eachTile { tile ->
-                    if (tile.isCenter && tile.block().id == block.id && tile.team() == player.team()) {
-                        filtered.add(tile)
-                    }
-                }
-                val closest = Geometry.findClosest(player.x, player.y, filtered)
+                val closest = Units.findAllyTile(player.team(), player.x, player.y, 9999999f) { t -> t.block.id == block.id}
                 if (closest == null) {
                     Vars.ui.chatfrag.addMessage("No ${block.localizedName} was found", "client", Color.coral.cpy().mul(0.75f))
                 } else {
-                    ClientVars.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
+                    ClientVars.lastSentPos.set(closest.x / tilesize, closest.y / tilesize)
                     //TODO: Make the line below use toasts similar to UnitPicker.java
                     Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", "client", Color.coral.cpy().mul(0.75f))
                 }
