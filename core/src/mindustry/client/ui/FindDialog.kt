@@ -6,8 +6,7 @@ import arc.input.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import mindustry.*
-import mindustry.Vars.player
-import mindustry.Vars.tilesize
+import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.utils.*
 import mindustry.entities.*
