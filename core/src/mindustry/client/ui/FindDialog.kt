@@ -6,7 +6,8 @@ import arc.input.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import mindustry.*
-import mindustry.Vars.*
+import mindustry.Vars.player
+import mindustry.Vars.tilesize
 import mindustry.client.*
 import mindustry.client.utils.*
 import mindustry.entities.*
@@ -43,16 +44,14 @@ object FindDialog : BaseDialog("@find") {
         }
 
         keyDown {
-            if (it == KeyCode.escape) {
-                hide()
-            } else if (it == KeyCode.enter) {
+            if (it == KeyCode.enter) {
                 val block = guesses[0]
-                val closest = Units.findAllyTile(player.team(), player.x, player.y, 9999999f) {t -> t.block.id == block.id}
+                val closest = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) {t -> t.block == block}
                 if (closest == null) {
                     Vars.ui.chatfrag.addMessage("No ${block.localizedName} was found", "client", Color.coral.cpy().mul(0.75f))
                 } else {
                     ClientVars.lastSentPos.set(closest.x / tilesize, closest.y / tilesize)
-                    //TODO: Make the line below use toasts similar to UnitPicker.java
+                    // FIXME: Make the line below use toasts similar to UnitPicker.java
                     Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", "client", Color.coral.cpy().mul(0.75f))
                 }
                 Core.app.post(this::hide)
@@ -61,7 +60,7 @@ object FindDialog : BaseDialog("@find") {
 
         setup()
         shown(this::setup)
-        addCloseButton()
+        addCloseListener()
     }
 
     private fun setup() {

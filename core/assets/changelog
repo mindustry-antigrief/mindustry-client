@@ -1,5 +1,10 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 8.0.0
+ * Updated to v7
+ * Many systems reworked/improved internally due to changes in the game's code
+ * Improved ctrl + f speed significantly
+
 # Version 7.3.0
  * Fixed an issue in buildpath where !builder belts and !builder drill would only partially upgrade each building
  * Reworks to buildpath, hopefully its faster?

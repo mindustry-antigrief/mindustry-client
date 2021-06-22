@@ -7,6 +7,7 @@ import arc.math.geom.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.*;
@@ -108,6 +109,7 @@ abstract class FireComp implements Timedc, Posc, Syncc, Drawc{
 
     @Override
     public void draw(){
+        if (ClientVars.hidingUnits || ClientVars.hidingBlocks) return;
         if(regions[0] == null){
             for(int i = 0; i < frames; i++){
                 regions[i] = Core.atlas.find("fire" + i);
