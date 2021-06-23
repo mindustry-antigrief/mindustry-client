@@ -26,7 +26,7 @@ object FindDialog : BaseDialog("@find") {
 
     init {
         for (img in images) {
-            imageTable.add(img)
+            imageTable.add(img).size(64f)
             imageTable.row()
         }
         cont.add(inputField)

@@ -297,7 +297,7 @@ public class BulletType extends Content implements Cloneable{
         }
     }
 
-    /** Called when the bullet reaches the end of its lifetime of is destroyed by something external. */
+    /** Called when the bullet reaches the end of its lifetime or is destroyed by something external. */
     public void despawned(Bullet b){
         if(despawnHit){
             hit(b);
@@ -335,7 +335,6 @@ public class BulletType extends Content implements Cloneable{
     }
 
     public void init(Bullet b){
-        if (b.type == Bullets.artilleryDense && b.tileOn().block() == Blocks.launchPad) b.remove(); // Nydus launchpads are annoying
 
         if(killShooter && b.owner() instanceof Healthc h){
             h.kill();
@@ -353,6 +352,8 @@ public class BulletType extends Content implements Cloneable{
             lightRadius = Math.max(18, hitSize * 5f);
         }
         drawSize = Math.max(drawSize, trailLength * speed * 2f);
+
+        if (b.type == Bullets.artilleryDense && b.tileOn().block() == Blocks.launchPad) b.remove(); // Nydus launchpads are annoying
     }
 
     public void update(Bullet b){
