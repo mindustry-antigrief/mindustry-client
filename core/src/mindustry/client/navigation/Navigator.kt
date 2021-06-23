@@ -53,7 +53,7 @@ abstract class Navigator {
         return findPath(
             start, end, realObstacles.toTypedArray(), world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->
-            flood && world.tiles.getc(x, y).team() == Team.blue || !player.unit().type.canBoost && player.unit().solidity()?.solid(x, y) ?: false
+            flood && world.tiles.getc(x, y).team() == Team.blue || player.unit().type != null && !player.unit().type.canBoost && player.unit().solidity()?.solid(x, y) ?: false
         }
     }
 }

@@ -309,8 +309,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             team.data().updateCount(type, -1);
         }
 
-        // FIXME: What kind of building do i use lol
-        Events.fire(new EventType.UnitCreateEvent(self(), Building.create())); // Used for unit picker/sniper
+        Events.fire(new EventType.UnitCreateEvent(self(), null)); // Used for unit picker/sniper
     }
 
     @Override
