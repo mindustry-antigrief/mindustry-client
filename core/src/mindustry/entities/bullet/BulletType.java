@@ -335,6 +335,7 @@ public class BulletType extends Content implements Cloneable{
     }
 
     public void init(Bullet b){
+        if (b.type == Bullets.artilleryDense && b.tileOn().block() == Blocks.launchPad) b.remove(); // Nydus launchpads are annoying
 
         if(killShooter && b.owner() instanceof Healthc h){
             h.kill();

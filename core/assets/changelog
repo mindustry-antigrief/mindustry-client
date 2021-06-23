@@ -4,6 +4,7 @@
  * Updated to v7
  * Many systems reworked/improved internally due to changes in the game's code
  * Improved ctrl + f speed significantly
+ * Made nydus launch pad bullets not render (janky but better than nothing, the packets are still sent so it wont help on the wifi side of things)
 
 # Version 7.3.0
  * Fixed an issue in buildpath where !builder belts and !builder drill would only partially upgrade each building
