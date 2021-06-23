@@ -25,9 +25,11 @@ object FindDialog : BaseDialog("@find") {
     }
 
     init {
+        var first = true
         for (img in images) {
-            imageTable.add(img).size(64f)
+            imageTable.add(img).size(64f).padBottom(if (first) 30f else 10f)
             imageTable.row()
+            first = false
         }
         cont.add(inputField)
         cont.row()

@@ -335,7 +335,6 @@ public class BulletType extends Content implements Cloneable{
     }
 
     public void init(Bullet b){
-
         if(killShooter && b.owner() instanceof Healthc h){
             h.kill();
         }
@@ -352,8 +351,6 @@ public class BulletType extends Content implements Cloneable{
             lightRadius = Math.max(18, hitSize * 5f);
         }
         drawSize = Math.max(drawSize, trailLength * speed * 2f);
-
-        if (b.type == Bullets.artilleryDense && b.tileOn().block() == Blocks.launchPad) b.remove(); // Nydus launchpads are annoying
     }
 
     public void update(Bullet b){
@@ -482,7 +479,8 @@ public class BulletType extends Content implements Cloneable{
 
     @Remote(called = Loc.server, unreliable = true)
     public static void createBullet(BulletType type, Team team, float x, float y, float angle, float damage, float velocityScl, float lifetimeScl){
-        if(type == null) return;
+        if (type == null) return;
+        if (type == Bullets.artilleryDense && world.tileWorld(x, y) != null && world.tileWorld(x, y).block() == Blocks.launchPad) return;
         type.create(null, team, x, y, angle, damage, velocityScl, lifetimeScl, null);
     }
 }
