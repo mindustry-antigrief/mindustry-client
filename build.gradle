@@ -36,10 +36,10 @@ allprojects{
     ext{
         versionNumber = '7'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
-        if(!project.hasProperty("versionModifier")) versionModifier = 'dev'
+        if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
         if(!project.hasProperty("buildversion")) buildversion = '0.0'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
-        if(!project.hasProperty("versionType")) versionType = 'bleeding-edge' // FIXME: 'official'
+        if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
         rhinoVersion = '55bf0dac1cfa7770672fd26112512c733ca9d5dc'
