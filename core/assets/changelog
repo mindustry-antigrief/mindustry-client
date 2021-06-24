@@ -1,5 +1,8 @@
 # Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
 
+# Version 7.4.0
+ * Fixed a problem with navigation that could cause it to not work correctly when playing the flood gamemode
+
 # Version 7.3.0
  * Fixed an issue in buildpath where !builder belts and !builder drill would only partially upgrade each building
  * Reworks to buildpath, hopefully its faster?

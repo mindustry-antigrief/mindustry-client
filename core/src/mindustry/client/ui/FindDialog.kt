@@ -6,7 +6,8 @@ import arc.input.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import mindustry.*
-import mindustry.Vars.*
+import mindustry.Vars.player
+import mindustry.Vars.tilesize
 import mindustry.client.*
 import mindustry.client.utils.*
 import mindustry.entities.*
@@ -54,7 +55,7 @@ object FindDialog : BaseDialog("@find") {
                 } else {
                     ClientVars.lastSentPos.set(closest.x / tilesize, closest.y / tilesize)
                     //TODO: Make the line below use toasts similar to UnitPicker.java
-                    Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", "client", Color.coral.cpy().mul(0.75f))
+                    Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.tileX()},${closest.tileY()} (!go to go there)", "client", Color.coral.cpy().mul(0.75f))
                 }
                 Core.app.post(this::hide)
             }
