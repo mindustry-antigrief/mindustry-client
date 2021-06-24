@@ -11,6 +11,7 @@ _[Trello Board](https://trello.com/b/aE2tcUwF/mindustry-40-plans)_
 _[Wiki](https://mindustrygame.github.io/wiki)_  
 _[Javadoc](https://mindustrygame.github.io/docs/)_
 
+## [Changelog](./core/assets/changelog)
 ## [Development/Unstable Builds](../../../mindustry-client-v6-builds)
 ### Running The Jar On Mac
 For whatever reason, MacOS refuses to be normal. Running the jar is slightly harder, open terminal and type `java -XstartOnFirstThread -jar <jar>` where `<jar>` is the path to the jar file (just click and drag the file in).
