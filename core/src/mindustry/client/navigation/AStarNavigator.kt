@@ -107,11 +107,6 @@ object AStarNavigator : Navigator() {
         start.clamp(0f, 0f, height, width)
         end.clamp(0f, 0f, height, width)
 
-
-        if (obstacles.isEmpty()) {
-            return arrayOf(end)
-        }
-
         //Reset
         startX = World.toTile(start.x)
         startY = World.toTile(start.y)
