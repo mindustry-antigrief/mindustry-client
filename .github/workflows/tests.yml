@@ -29,7 +29,7 @@ jobs:
           echo "COMMIT=${GITHUB_SHA::8}" >> $GITHUB_ENV
           export PATH=./tools:$PATH
           chmod +x ./tools/antialias
-          ./gradlew tools:pack desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client-v7-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel -PfastAA
+          ./gradlew tools:pack test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client-v7-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel -PfastAA
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-v6' && (github.ref == 'refs/heads/custom-client' || github.event_name == 'workflow_dispatch') }}
         id: create_release
