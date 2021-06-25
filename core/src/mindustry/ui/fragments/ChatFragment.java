@@ -282,7 +282,7 @@ public class ChatFragment extends Table{
                     if(closest != null){
                         text = "[scarlet]Unknown command. Did you mean \"[lightgray]" + closest.text + "[]\"?";
                     }else{
-                        text = "[scarlet]Unknown command. Check [lightgray]/help[scarlet].";
+                        text = "[scarlet]Unknown command. Check [lightgray]!help[scarlet].";
                     }
                 }
 
