@@ -233,6 +233,14 @@ object Client {
                 player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, PowerGraph.activeGraphs.size))
             }
         }
+
+        register("distance [distance]", "Sets the assist distance multiplier distance (default is 1.5)") { args, player ->
+            if (args.size != 1) player.sendMessage("[accent]The distance multiplier is ${Core.settings.getFloat("assistdistance", 1.5f)} (default is 1.5)")
+            else {
+                Core.settings.put("assistdistance", abs(Strings.parseFloat(args[0], 1.5f)))
+                player.sendMessage("[accent]The distance multiplier is now ${Core.settings.getFloat("assistdistance")} (default is 1.5)")
+            }
+        }
     }
 
     /** Registers a command.
