@@ -1,10 +1,11 @@
-# Foo and I are too lazy to update this most of the time, join the discord in the client tab on the main menu to stay up to date on new stuff.
+# Join the discord in the client tab on the main menu to stay up to date on new stuff.
 
-# Version 8.0.0
+# Version 8.0
  * Updated to v7
  * Many systems reworked/improved internally due to changes in the game's code
  * Improved ctrl + f speed significantly
  * Made nydus launch pad bullets not render (the servers till sends tons of packets so it still kills wifi but oh well)
+ * Fixed a problem with navigation that could cause it to not work correctly when playing the flood gamemode
 
 # Version 7.3.0
  * Fixed an issue in buildpath where !builder belts and !builder drill would only partially upgrade each building
