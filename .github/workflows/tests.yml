@@ -61,7 +61,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Create Release (v7)
-        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client-' && github.ref == 'refs/heads/v7' }}
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && github.ref == 'refs/heads/v7' }}
         id: create_release_v7
         uses: actions/create-release@v1
         env:
