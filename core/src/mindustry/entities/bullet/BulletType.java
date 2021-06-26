@@ -480,7 +480,7 @@ public class BulletType extends Content implements Cloneable{
     @Remote(called = Loc.server, unreliable = true)
     public static void createBullet(BulletType type, Team team, float x, float y, float angle, float damage, float velocityScl, float lifetimeScl){
         if (type == null) return;
-        if (ui.join.lastHost != null && ui.join.lastHost.name.toLowerCase().contains("nydus")
+        if (Core.settings.getBool("nyduspadpatch") && ui.join.lastHost != null && ui.join.lastHost.name.toLowerCase().contains("nydus")
             && world.tileWorld(x, y) != null && world.tileWorld(x, y).block() == Blocks.launchPad) return; // Nydus launchpads are annoying
         type.create(null, team, x, y, angle, damage, velocityScl, lifetimeScl, null);
     }

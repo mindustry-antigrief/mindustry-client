@@ -7,8 +7,6 @@ import arc.graphics.*;
 import arc.graphics.Texture.*;
 import arc.input.*;
 import arc.math.*;
-import arc.scene.*;
-import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
@@ -28,7 +26,6 @@ import mindustry.input.*;
 import mindustry.ui.*;
 
 import java.io.*;
-import java.lang.reflect.*;
 import java.util.zip.*;
 
 import static arc.Core.*;
@@ -347,6 +344,7 @@ public class SettingsMenuDialog extends Dialog{
         client.updatePref();
         client.checkPref("autoupdate", true);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
+        client.checkPref("nyduspadpatch", true);
         client.checkPref("allowjoinany", false);
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
         if (steam) client.checkPref("unlockallachievements", false);
