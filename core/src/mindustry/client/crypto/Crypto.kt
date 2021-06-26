@@ -1,21 +1,16 @@
 package mindustry.client.crypto
 
-import mindustry.client.Initializable
-import org.bouncycastle.crypto.agreement.X25519Agreement
-import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator
-import org.bouncycastle.crypto.generators.X25519KeyPairGenerator
+import mindustry.client.*
+import org.bouncycastle.crypto.agreement.*
+import org.bouncycastle.crypto.generators.*
 import org.bouncycastle.crypto.params.*
-import org.bouncycastle.crypto.signers.Ed25519Signer
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.math.ec.rfc8032.Ed25519
-import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
-import java.security.SecureRandom
-import java.security.Security
-import javax.crypto.Cipher
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
-import kotlin.random.Random
+import org.bouncycastle.crypto.signers.*
+import org.bouncycastle.jce.provider.*
+import org.bouncycastle.math.ec.rfc8032.*
+import java.security.*
+import javax.crypto.*
+import javax.crypto.spec.*
+import kotlin.random.*
 
 typealias XPublicKey = X25519PublicKeyParameters
 typealias XPrivateKey = X25519PrivateKeyParameters
@@ -34,7 +29,7 @@ object Crypto : Initializable {
     private lateinit var signatureEngine: Ed25519Signer
     private lateinit var aes: Cipher
     /** The secure random number generator. */
-    private val random = try { SecureRandom.getInstance("NativePRNGNonBlocking") } catch (e: NoSuchAlgorithmException) { SecureRandom.getInstance("WINDOWS-PRNG") }
+    private val random = SecureRandom.getInstanceStrong()
 
     /** Initializes cryptography stuff, must be called before usage. */
     override fun initializeAlways() {
