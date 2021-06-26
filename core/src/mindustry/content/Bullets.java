@@ -258,7 +258,6 @@ public class Bullets implements ContentList{
             width = 8f;
             height = 8f;
             shrinkY = 0f;
-            drag = -0.01f;
             splashDamageRadius = 30f;
             splashDamage = 30f * 1.5f;
             ammoMultiplier = 5f;
@@ -275,7 +274,6 @@ public class Bullets implements ContentList{
             width = 7f;
             height = 8f;
             shrinkY = 0f;
-            drag = -0.01f;
             homingPower = 0.08f;
             splashDamageRadius = 20f;
             splashDamage = 20f * 1.5f;
@@ -289,7 +287,6 @@ public class Bullets implements ContentList{
             width = 8f;
             height = 8f;
             shrinkY = 0f;
-            drag = -0.01f;
             splashDamageRadius = 25f;
             splashDamage = 25f * 1.4f;
             hitEffect = Fx.blastExplosion;
