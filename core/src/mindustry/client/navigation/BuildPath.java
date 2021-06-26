@@ -222,7 +222,7 @@ public class BuildPath extends Path {
         if (plans == null) return null;
         PQueue<BuildPlan> s2 = new PQueue<>(plans.size, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, core)), Structs.comparingFloat(plan -> plan.dst(player))));
         plans.each(plan -> {
-            if (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) s2.add(plan);
+            if ((includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
         });
         if (largeFirst) s2.comparator = s2.comparator.reversed();
         return s2;
