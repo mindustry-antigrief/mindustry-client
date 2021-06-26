@@ -831,12 +831,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        if (!net.client()) { // Client's can't see these in vanilla, editing them desyncs
-            for (BlockPlan req : player.team().data().blocks) {
-                Block block = content.block(req.block);
-                if (block.bounds(req.x, req.y, Tmp.r2).overlaps(Tmp.r1)) {
-                    drawSelected(req.x, req.y, content.block(req.block), Pal.remove);
-                }
+        for (BlockPlan req : player.team().data().blocks) {
+            Block block = content.block(req.block);
+            if (block.bounds(req.x, req.y, Tmp.r2).overlaps(Tmp.r1)) {
+                drawSelected(req.x, req.y, content.block(req.block), Pal.remove);
             }
         }
 
@@ -967,14 +965,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         //remove blocks to rebuild
         Iterator<BlockPlan> broken = player.team().data().blocks.iterator();
-        if (!net.client()) { // Clients can't see these in vanilla, editing them desyncs
-            while (broken.hasNext()) {
-                BlockPlan req = broken.next();
-                Block block = content.block(req.block);
-                if (block.bounds(req.x, req.y, Tmp.r2).overlaps(Tmp.r1)){
-                    removed.add(Point2.pack(req.x, req.y));
-                    broken.remove();
-                }
+        while (broken.hasNext()) {
+            BlockPlan req = broken.next();
+            Block block = content.block(req.block);
+            if (block.bounds(req.x, req.y, Tmp.r2).overlaps(Tmp.r1)){
+                removed.add(Point2.pack(req.x, req.y));
+                broken.remove();
             }
         }
 
