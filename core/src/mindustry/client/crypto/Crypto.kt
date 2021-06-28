@@ -34,7 +34,7 @@ object Crypto : Initializable {
     private lateinit var signatureEngine: Ed25519Signer
     private lateinit var aes: Cipher
     /** The secure random number generator. */
-    private val random = try { SecureRandom.getInstance("NativePRNGNonBlocking") } catch (e: NoSuchAlgorithmException) { SecureRandom.getInstance("WINDOWS-PRNG") }
+    private val random = SecureRandom.getInstanceStrong()
 
     /** Initializes cryptography stuff, must be called before usage. */
     override fun initializeAlways() {
