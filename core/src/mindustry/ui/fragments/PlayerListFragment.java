@@ -115,7 +115,15 @@ public class PlayerListFragment extends Fragment{
             table.name = user.name();
 
             button.add(table).size(h);
-            button.button(Core.input.shift() ? String.valueOf(user.id) : "[#" + user.color().toString().toUpperCase() + "]" + user.name() + (Core.settings.getBool("showuserid") ? " [accent](#" + user.id +")" : ""), Styles.nonetdef, () -> Core.app.setClipboardText(Core.input.shift() ? String.valueOf(user.id) : Strings.stripColors(user.name))).wrap().width(300f).growY().pad(10);
+            button.button(
+                Core.input.shift() ? String.valueOf(user.id) :
+                    Core.input.ctrl() ? "Groups.player.getByID(" + user.id + ")" :
+                    "[#" + user.color().toString().toUpperCase() + "]" + user.name() + (Core.settings.getBool("showuserid") ? " [accent](#" + user.id + ")" : ""),
+                Styles.nonetdef, () ->
+                Core.app.setClipboardText(Core.input.shift() ? String.valueOf(user.id) :
+                    Core.input.ctrl() ? "Groups.player.getByID(" + user.id + ")" :
+                    Strings.stripColors(user.name))
+            ).wrap().width(400).growY().pad(10);
             button.add().grow();
 
             if (user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
@@ -175,7 +183,7 @@ public class PlayerListFragment extends Fragment{
                         () -> Spectate.INSTANCE.spectate(user));
             }
 
-            content.add(button).padBottom(-6).width(600f).maxHeight(h + 14);
+            content.add(button).padBottom(-6).width(700).maxHeight(h + 14);
             content.row();
             content.image().height(4f).color(state.rules.pvp ? user.team().color : Pal.gray).growX();
             content.row();
