@@ -246,7 +246,8 @@ public class PlacementFragment extends Fragment{
                             button.setChecked(control.input.block == block);
 
                             if(!block.isPlaceable()){
-                                button.forEach(elem -> elem.setColor(Color.darkGray));
+                                if (Core.settings.getBool("hidebannedblocks")) button.remove();
+                                else button.forEach(elem -> elem.setColor(Color.darkGray));
                             }
                         });
 
