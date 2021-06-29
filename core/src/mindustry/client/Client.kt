@@ -174,14 +174,6 @@ object Client {
             player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
         }
 
-        register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
-            Call.sendChatMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
-        }
-
-        register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
-            Call.sendChatMessage("\"In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
-        }
-
         register("togglesign", Core.bundle.get("client.command.togglesign.description")) { _, player ->
             signMessages = !signMessages
             player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (signMessages) "on" else "off")))
