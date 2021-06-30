@@ -158,10 +158,10 @@ object Client {
 
         register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
             if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
-                player.sendMessage(Core.bundle.get("client.command.cc.invalid"))
+                player.sendMessage("${Core.bundle.get("client.command.cc.invalid")} It is currently set to: ${player.team().data().command.localized()}") // FIXME: Localize
                 return@register
             }
-            for (tile in world.tiles) {
+            for (tile in world.tiles) { // FIXME: Use block indexer to find block (use finddialog for reference)
                 if (tile?.build == null || tile.build.team != player.team() || tile.block() != Blocks.commandCenter) continue
                 Call.tileConfig(player, tile.build, when (args[0].toLowerCase()[0]) {
                     'a' -> UnitCommand.attack
