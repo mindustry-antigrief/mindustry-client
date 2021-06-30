@@ -426,7 +426,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             //move down
             elevation -= type.fallSpeed * Time.delta;
 
-            if(isGrounded()){
+            if(isGrounded() || health <= -maxHealth){
                 Call.unitDestroy(id);
             }
         }
@@ -566,7 +566,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             player.persistPlans(); // Restore plans after respawn
             player.formOnDeath = player.unit().formation;
         }
-        health = 0;
+        health = Math.min(health, 0);
         dead = true;
 
         //don't waste time when the unit is already on the ground, just destroy it
