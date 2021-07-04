@@ -2,6 +2,7 @@ package mindustry.client.navigation.waypoints;
 
 import arc.math.*;
 import arc.math.geom.*;
+import arc.util.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.world.*;
@@ -11,6 +12,7 @@ import static mindustry.Vars.*;
 public class ItemDropoffWaypoint extends Waypoint implements Position {
     public int destinationX, destinationY;
     private boolean done = false;
+    private static Interval dropTimer = new Interval();
 
     public ItemDropoffWaypoint(int destinationX, int destinationY) {
         this.destinationX = destinationX;
@@ -34,7 +36,7 @@ public class ItemDropoffWaypoint extends Waypoint implements Position {
 
     @Override
     public void run() {
-        if (Vars.player.within(destinationX * Vars.tilesize, destinationY * Vars.tilesize, Vars.itemTransferRange)) {
+        if (Vars.player.within(destinationX * Vars.tilesize, destinationY * Vars.tilesize, Vars.itemTransferRange) && dropTimer.get(30)) {
             Tile tile = Vars.world.tile(destinationX, destinationY);
             if (tile.build == null) {
                 return;

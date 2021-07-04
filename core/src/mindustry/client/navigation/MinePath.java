@@ -65,7 +65,7 @@ public class MinePath extends Path {
         if (item == null) return;
 
         if (player.unit().maxAccepted(item) == 0) { // drop off
-            if (player.within(core, itemTransferRange - tilesize) && timer.get(30)) {
+            if (player.within(core, itemTransferRange - tilesize * 2) && timer.get(30)) {
                 Call.transferInventory(player, core);
             } else {
                 if (player.unit().type.canBoost) player.boosting = true;

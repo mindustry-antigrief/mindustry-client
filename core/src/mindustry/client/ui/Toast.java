@@ -25,6 +25,7 @@ public class Toast extends Table {
         setFadeAfter(fadeAfter);
         container = Core.scene.table();
         container.top().add(this);
+        container.marginTop(Core.scene.find("coreinfo").getPrefHeight() / Scl.scl() / 2);
         setTranslation(0f, getPrefHeight());
         translateByAction = Actions.translateBy(0f, -getPrefHeight(), fadeDuration, Interp.fade);
         color.a = 0f;
