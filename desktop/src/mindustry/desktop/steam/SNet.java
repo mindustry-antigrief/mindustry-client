@@ -32,6 +32,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
     final PacketSerializer serializer = new PacketSerializer();
     final ByteBuffer writeBuffer = ByteBuffer.allocateDirect(16384);
     final ByteBuffer readBuffer = ByteBuffer.allocateDirect(16384);
+    final ByteBuffer readCopyBuffer = ByteBuffer.allocate(writeBuffer.capacity());
 
     final CopyOnWriteArrayList<SteamConnection> connections = new CopyOnWriteArrayList<>();
     final IntMap<SteamConnection> steamConnections = new IntMap<>(); //maps steam ID -> valid net connection
@@ -63,10 +64,15 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                 }
                 while((length = snet.isP2PPacketAvailable(0)) != 0){
                     try{
-                        readBuffer.position(0);
-                        snet.readP2PPacket(from, readBuffer, 0);
+                        readBuffer.position(0).limit(readBuffer.capacity());
+                        //lz4 chokes on direct buffers, so copy the bytes over
+                        int len = snet.readP2PPacket(from, readBuffer, 0);
+                        readBuffer.limit(len);
+                        readCopyBuffer.position(0);
+                        readCopyBuffer.put(readBuffer);
+                        readCopyBuffer.position(0);
                         int fromID = from.getAccountID();
-                        Object output = serializer.read(readBuffer);
+                        Object output = serializer.read(readCopyBuffer);
 
                         //it may be theoretically possible for this to be a framework message, if the packet is malicious or corrupted
                         if(!(output instanceof Packet)) return;
@@ -311,7 +317,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
     @Override
     public void onLobbyMatchList(int matches){
-        Log.info("found @ matches @", matches, lobbyDoneCallback);
+        Log.info("found @ matches", matches);
 
         if(lobbyDoneCallback != null){
             Seq<Host> hosts = new Seq<>();
