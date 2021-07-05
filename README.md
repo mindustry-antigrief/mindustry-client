@@ -1,3 +1,4 @@
+# Yes v7 builds exist, check em out, they are pretty stable. https://github.com/mindustry-antigrief/mindustry-client-v7-builds/releases
 This is my fork of mindustry v6.  It will have various quality of life and automation features when complete.
 ![Logo](core/assets-raw/sprites/ui/logo.png)
 
