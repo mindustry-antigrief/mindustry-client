@@ -20,6 +20,9 @@ public class MinePath extends Path {
         items = player.team().data().mineItems;
     }
 
+    public MinePath(Seq<Item> mineItems) {
+        items = mineItems;
+    }
     public MinePath (String args){
         for (String arg : args.split("\\s")) {
             arg = arg.toLowerCase();
@@ -63,6 +66,8 @@ public class MinePath extends Path {
         if (core == null) return;
         Item item = items.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
         if (item == null) return;
+
+        if (Core.settings.getInt("minepathcap") != 0 && core.items.get(item) > Core.settings.getInt("minepathcap")) Navigation.follow(new BuildPath(items)); // Start building when the core has over 1000 of everything.
 
         if (player.unit().maxAccepted(item) == 0) { // drop off
             if (player.within(core, itemTransferRange - tilesize * 2) && timer.get(30)) {

@@ -12,16 +12,15 @@ import arc.util.*;
 import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
-import mindustry.game.Team;
+import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
-import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.power.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
-import static mindustry.client.navigation.Navigation.obstacles;
+import static mindustry.client.navigation.Navigation.*;
 
 public class BlockRenderer{
     public static final int crackRegions = 8, maxCrackSize = 9;
@@ -344,7 +343,7 @@ public class BlockRenderer{
                         Draw.z(Layer.block);
                     }
 
-                    if(entity.team == player.team() && renderer.drawStatus && block.consumes.any()){
+                    if(renderer.drawStatus && block.consumes.any()){
                         entity.drawStatus();
                     }
                 }

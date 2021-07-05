@@ -13,6 +13,7 @@ import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.net.*;
+import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.environment.*;
@@ -27,14 +28,20 @@ public class BuildPath extends Path {
     public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>(), drills = new Queue<>(), belts = new Queue<>();
     public Seq<Queue<BuildPlan>> queues = new Seq<>(11);
     public Seq<BuildPlan> sorted = new Seq<>();
+    private Seq<Item> mineItems;
 
     @SuppressWarnings("unchecked")
-    public BuildPath(){
+    public BuildPath() {
         queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist, drills, belts); // Most queues included by default
     }
 
+    public BuildPath(Seq<Item> mineItems) {
+        this();
+        this.mineItems = mineItems;
+    }
+
     @SuppressWarnings("unchecked")
-    public BuildPath(String args){
+    public BuildPath(String args) {
         for (String arg : args.split("\\s")) {
             switch (arg) {
                 case "all", "*" -> queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist, drills, belts);
@@ -75,6 +82,10 @@ public class BuildPath extends Path {
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     public void follow() {
         if (timer.get(15)) {
+            if (Core.settings.getInt("minepathcap") != 0 && mineItems != null) {
+                Item item = mineItems.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
+                if (item != null && core.items.get(item) <= Core.settings.getInt("minepathcap")) Navigation.follow(new MinePath(mineItems));
+            }
             clearQueue(broken);
             clearQueue(boulders);
             clearQueue(assist);
