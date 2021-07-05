@@ -2,6 +2,10 @@
 
 # The client now officially supports v7, download the v7 client at https://kik.to/foo-v7
 
+# Version 7.3.2
+ * Added a button to switch to mindustry v7
+ * Did some other very minor changes
+
 # Version 7.3.1
  * Fixed a problem with navigation that could cause it to not work correctly when playing the flood gamemode
 
