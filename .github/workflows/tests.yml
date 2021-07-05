@@ -73,7 +73,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@4.0.0
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
-          repository-name: ${{ github.repository }}-builds
+          repository-name: ${{ github.repository }}-v6-builds
           branch: gh-pages # The branch the action should deploy to.
           folder: tests/build/reports/tests/test
           silent: true
