@@ -82,9 +82,9 @@ public class BuildPath extends Path {
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     public void follow() {
         if (timer.get(15)) {
-            if (Core.settings.getInt("minepathcap") != 0 && mineItems != null) {
+            if (mineItems != null) {
                 Item item = mineItems.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
-                if (item != null && core.items.get(item) <= Core.settings.getInt("minepathcap")) Navigation.follow(new MinePath(mineItems));
+                if (item != null && core.items.get(item) <= Core.settings.getInt("minepathcap") / 2) Navigation.follow(new MinePath(mineItems));
             }
             clearQueue(broken);
             clearQueue(boulders);
