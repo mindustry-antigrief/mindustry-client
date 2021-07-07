@@ -55,7 +55,7 @@ class ClientLogic {
 
             Core.settings.getBoolOnce("client730") { Core.settings.put("disablemonofont", true) } // TODO: Remove later
 
-            if (Vars.player.name == "buthed010203") { // People spam these and its annoying
+            if (Main.messageCrypto.base64public() == "wnnWJvq5c60ryrYndufA5i6JVZcHijLoCHMDsnHPVx76jmfThaX+pxnAAGID6l9jVbFefC6tq8SFsBE5mGU0LQ==") { // People spam these and its annoying
                 Client.register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
                     Call.sendChatMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
                 }
