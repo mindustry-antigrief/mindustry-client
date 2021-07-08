@@ -177,7 +177,7 @@ class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, var conf
         }
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16){"..."} else{}} ${Core.bundle.get("client.configured")}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16){"..."} else{""}} ${Core.bundle.get("client.configured")}"
 }
 
 open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val configuration: Any?) : TileLog(tile, cause) {
@@ -190,7 +190,7 @@ open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val co
         return "${cause.name.stripColors()} ${Core.bundle.get("client.built")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16){"..."} else{}} ${Core.bundle.get("client.built")} ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16){"..."} else{""}} ${Core.bundle.get("client.built")} ${block.localizedName}"
 }
 
 class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, configuration: Any?) : TilePlacedLog(tile, cause, block, configuration) {
@@ -198,7 +198,7 @@ class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, configura
         return "${cause.name.stripColors()} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16){"..."} else{}} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16){"..."} else{""}} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
 }
 
 open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause) {
@@ -211,7 +211,7 @@ open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileL
         return "${cause.name.stripColors()} ${Core.bundle.get("client.broke")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16){"..."} else{}} ${Core.bundle.get("client.broke")} ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16){"..."} else{""}} ${Core.bundle.get("client.broke")} ${block.localizedName}"
 }
 
 class BlockPayloadPickupLog(tile: Tile, cause: Interactor, block: Block) : TileBreakLog(tile, cause, block) {
@@ -219,7 +219,7 @@ class BlockPayloadPickupLog(tile: Tile, cause: Interactor, block: Block) : TileB
         return "${cause.name.stripColors()} ${Core.bundle.get("client.pickedup")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16){"..."} else{}} ${Core.bundle.get("client.pickedup")} ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16){"..."} else{""}} ${Core.bundle.get("client.pickedup")} ${block.localizedName}"
 }
 
 class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteractor(), block) {
