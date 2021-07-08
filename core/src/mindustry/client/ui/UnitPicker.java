@@ -45,13 +45,12 @@ public class UnitPicker extends BaseDialog {
             sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshteinInsensitive(string, b.localizedName));
             for (int i = 0; i < imgs.size; i++) {
                 Image region = new Image(sorted.get(i).icon(Cicon.large));
-                region.setSize(32);
                 imgs.get(i).setDrawable(region.getDrawable());
                 labels.get(i).setText(sorted.get(i).localizedName);
             }
         }).get();
         for(int i = 0; i < 10; i++){
-            cont.row().add(imgs.get(i));
+            cont.row().add(imgs.get(i)).size(64);
             cont.add(labels.get(i));
         }
 
