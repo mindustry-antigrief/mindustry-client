@@ -7,6 +7,7 @@ import mindustry.client.*
 import mindustry.client.crypto.*
 import mindustry.client.utils.*
 import mindustry.content.*
+import mindustry.entities.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.logic.*
@@ -27,25 +28,20 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
     private const val MAX_PRINT_LENGTH = 34
     const val LOGIC_PREFIX = "end\nprint \"client networking, do not edit/remove\""
 
-    fun findProcessor(): LogicBlock.LogicBuild? {
-        for (build in Groups.build) {
-            val b = build as? LogicBlock.LogicBuild ?: continue
-            if (b.team == Vars.player.team() && b.code.startsWith(LOGIC_PREFIX)) {
-                logicAvailable = true
-                return b
-            }
-        }
-        logicAvailable = false
-        return null
+    fun findProcessor(): LogicBlock.LogicBuild? { // FIXME: are these new implementations actually faster than the old ones? They sure are cleaner
+        val build = Units.findAllyTile(Vars.player.team(), Vars.player.x, Vars.player.y, Float.MAX_VALUE / 2) { tile ->
+            val build = tile as? LogicBlock.LogicBuild ?: return@findAllyTile false
+            build.code.startsWith(LOGIC_PREFIX)
+        } as? LogicBlock.LogicBuild
+        logicAvailable = build != null
+        return build
     }
 
     fun findMessage(): MessageBlock.MessageBuild? {
-        for (tile in Vars.world.tiles) {
-            val build = tile.build as? MessageBlock.MessageBuild ?: continue
-            if (build.team != Vars.player.team() || !build.message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)) continue
-            return build
-        }
-        return null
+        return Units.findAllyTile(Vars.player.team(), Vars.player.x, Vars.player.y, Float.MAX_VALUE / 2) { tile ->
+            val build = tile as? MessageBlock.MessageBuild ?: return@findAllyTile false
+            build.message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)
+        } as? MessageBlock.MessageBuild
     }
 
     private fun logicEvent(event: EventType.ConfigEvent) {

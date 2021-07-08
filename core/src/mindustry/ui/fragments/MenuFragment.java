@@ -73,7 +73,7 @@ public class MenuFragment extends Fragment{
                 }).size(200, 60).padRight(10);
 
                 c.button("", Icon.refresh, () -> {
-                    Core.settings.put("updateurl", (Core.settings.getString("updateurl") + "-v7-builds").replaceFirst("((-v6|-v7)?-builds){2}", ""));
+                    Core.settings.put("updateurl", (Core.settings.getString("updateurl") + "-v7-builds").replaceFirst("((-v6|-v7)?-builds) {2}", ""));
                     ui.loadfrag.show();
                     becontrol.checkUpdate(result -> {
                         ui.loadfrag.hide();
@@ -83,7 +83,7 @@ public class MenuFragment extends Fragment{
                             becontrol.showUpdateDialog();
                         }
                     });
-                }).size(200, 60).padRight(10).update(t -> t.getLabel().setText(Core.settings.getString("updateurl").endsWith("-builds") ? "@client.switchstable" : "@client.switchunstable"));
+                }).size(200, 60).padRight(10).update(t -> t.getLabel().setText(Core.settings.getString("updateurl").endsWith("-builds") ? "@client.switchstable" : "@client.switchunstable")).disabled(true); // FIXME: Re-enable when v7 releases
 
                 c.bottom().right().button("@be.check", Icon.refresh, () -> {
                     ui.loadfrag.show();
