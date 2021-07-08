@@ -82,11 +82,11 @@ public class World{
     }
 
     public int unitWidth(){
-        return width()*tilesize;
+        return width() * tilesize;
     }
 
     public int unitHeight(){
-        return height()*tilesize;
+        return height() * tilesize;
     }
 
     public Floor floor(int x, int y){

@@ -19,7 +19,10 @@ import mindustry.world.blocks.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.logic.*;
 
+import java.util.concurrent.atomic.*;
+
 import static mindustry.Vars.*;
+import static mindustry.client.navigation.Navigation.obstacles;
 
 public class BuildPath extends Path {
     Building core = player.core();
@@ -29,6 +32,7 @@ public class BuildPath extends Path {
     public Seq<Queue<BuildPlan>> queues = new Seq<>(11);
     public Seq<BuildPlan> sorted = new Seq<>();
     private Seq<Item> mineItems;
+    GridBits blocked = new GridBits(world.width(), world.height());
 
     @SuppressWarnings("unchecked")
     public BuildPath() {
@@ -85,6 +89,23 @@ public class BuildPath extends Path {
             if (mineItems != null) {
                 Item item = mineItems.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
                 if (item != null && core.items.get(item) <= Core.settings.getInt("minepathcap") / 2) Navigation.follow(new MinePath(mineItems));
+            }
+
+            if (timer.get(1, 300)) {
+                blocked.clear();
+                for (var turret : obstacles) {
+                    int lowerXBound = (int)(turret.x - turret.radius) / tilesize;
+                    int upperXBound = (int)(turret.x + turret.radius) / tilesize;
+                    int lowerYBound = (int)(turret.y - turret.radius) / tilesize;
+                    int upperYBound = (int)(turret.y + turret.radius) / tilesize;
+                    for (int x = lowerXBound ; x <= upperXBound; x++) {
+                        for (int y = lowerYBound ; y <= upperYBound; y++) {
+                            if (Structs.inBounds(x, y, world.width(), world.width()) && turret.contains(x * tilesize, y * tilesize)) {
+                                blocked.set(x, y);
+                            }
+                        }
+                    }
+                }
             }
             clearQueue(broken);
             clearQueue(boulders);
@@ -233,7 +254,11 @@ public class BuildPath extends Path {
         if (plans == null) return null;
         PQueue<BuildPlan> s2 = new PQueue<>(plans.size, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, core)), Structs.comparingFloat(plan -> plan.dst(player))));
         plans.each(plan -> {
-            if ((includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
+            AtomicBoolean dumb = new AtomicBoolean(false);
+            plan.tile().getLinkedTilesAs(plan.block, t -> {
+                if (blocked.get(t.x, t.y)) dumb.set(true);
+            });
+            if (!dumb.get() && (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
         });
         if (largeFirst) s2.comparator = s2.comparator.reversed();
         return s2;
