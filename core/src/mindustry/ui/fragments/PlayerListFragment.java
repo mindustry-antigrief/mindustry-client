@@ -115,7 +115,7 @@ public class PlayerListFragment extends Fragment{
             table.name = user.name();
 
             button.add(table).size(h);
-            button.button(
+            button.button( // This is by far the worst line of code I have ever written, its split so its not 500+ chars but still jesus
                 Core.input.shift() ? String.valueOf(user.id) :
                     Core.input.ctrl() ? "Groups.player.getByID(" + user.id + ")" :
                     "[#" + user.color().toString().toUpperCase() + "]" + user.name() + (Core.settings.getBool("showuserid") ? " [accent](#" + user.id + ")" : ""),

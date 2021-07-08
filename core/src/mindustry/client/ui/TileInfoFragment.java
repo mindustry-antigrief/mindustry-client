@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.*;
 public class TileInfoFragment extends Table {
 
     public TileInfoFragment() {
-
         setBackground(Tex.wavepane);
         marginRight(6);
         Image img = new Image();
@@ -48,10 +47,8 @@ public class TileInfoFragment extends Table {
             var logs = record.lastLogs(7);
 
             builder.setLength(0);
-            for (var item : logs) {
-                builder.append(item.toShortString()).append(" (").append(UI.formatMinutesFromMillis(Time.timeSinceMillis(item.getTime().toEpochMilli()))).append(")\n");
-            }
-            label.setText(builder.length() == 0 ? "" : builder.substring(0, builder.length() - 1));
+            for (var item : logs) builder.append(item.toShortString()).append(" (").append(UI.formatMinutesFromMillis(Time.timeSinceMillis(item.getTime().toEpochMilli()))).append(")\n");
+            label.setText(builder.length() == 0 ? "" : builder.substring(0, builder.length() - 1)); // This is awful
         });
     }
 }
