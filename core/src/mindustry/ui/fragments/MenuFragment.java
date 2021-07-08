@@ -73,7 +73,7 @@ public class MenuFragment extends Fragment{
                 }).size(200, 60).padRight(10);
 
                 c.button("", Icon.refresh, () -> {
-                    Core.settings.put("updateurl", (Core.settings.getString("updateurl") + "-builds").replaceFirst("(-builds){2}", ""));
+                    Core.settings.put("updateurl", (Core.settings.getString("updateurl") + "-v7-builds").replaceFirst("((-v7)?-builds){2}", ""));
                     ui.loadfrag.show();
                     becontrol.checkUpdate(result -> {
                         ui.loadfrag.hide();
