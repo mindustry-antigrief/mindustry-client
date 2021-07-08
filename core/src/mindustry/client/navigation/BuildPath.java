@@ -22,7 +22,6 @@ import mindustry.world.blocks.logic.*;
 import java.util.concurrent.atomic.*;
 
 import static mindustry.Vars.*;
-import static mindustry.client.navigation.Navigation.obstacles;
 
 public class BuildPath extends Path {
     Building core = player.core();
@@ -93,7 +92,7 @@ public class BuildPath extends Path {
 
             if (timer.get(1, 300)) {
                 blocked.clear();
-                for (var turret : obstacles) {
+                for (var turret : Navigation.obstacles) {
                     int lowerXBound = (int)(turret.x - turret.radius) / tilesize;
                     int upperXBound = (int)(turret.x + turret.radius) / tilesize;
                     int lowerYBound = (int)(turret.y - turret.radius) / tilesize;
