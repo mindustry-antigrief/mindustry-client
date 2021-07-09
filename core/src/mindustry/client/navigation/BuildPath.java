@@ -251,8 +251,8 @@ public class BuildPath extends Path {
     }
 
     /** @param includeAll whether to include unaffordable plans (appended to end of affordable ones)
-     @param largeFirst reverses the order of outputs, returning the furthest plans first
-     @return {@link Queue<BuildPlan>} sorted by distance */
+        @param largeFirst reverses the order of outputs, returning the furthest plans first
+        @return {@link Queue<BuildPlan>} sorted by distance */
     public PQueue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll, boolean largeFirst) {
         if (plans == null) return null;
         PQueue<BuildPlan> s2 = new PQueue<>(plans.size, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, core)), Structs.comparingFloat(plan -> plan.dst(player))));
@@ -261,7 +261,8 @@ public class BuildPath extends Path {
             plan.tile().getLinkedTilesAs(plan.block, t -> {
                 if (blocked.get(t.x, t.y)) dumb.set(true);
             });
-            if (!dumb.get() && (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
+            Log.info(radius);
+            if ((radius == 0 || plan.dst(player) < radius * tilesize) && !dumb.get() && (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
         });
         if (largeFirst) s2.comparator = s2.comparator.reversed();
         return s2;

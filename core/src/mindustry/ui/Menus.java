@@ -24,7 +24,9 @@ public class Menus{
     public static void menu(int menuId, String title, String message, String[][] options){
         if(title == null) title = "";
         if(options == null) options = new String[0][0];
+        if(message.contains("") && message.contains("") && message.contains("vote")) return; // .io is annoying
 
+        Log.debug("Displaying menu " + menuId + " with title: " + title);
         ui.showMenu(title, message, options, (option) -> Call.menuChoose(player, menuId, option));
     }
 

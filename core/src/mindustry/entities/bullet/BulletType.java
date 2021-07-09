@@ -481,7 +481,7 @@ public class BulletType extends Content implements Cloneable{
     public static void createBullet(BulletType type, Team team, float x, float y, float angle, float damage, float velocityScl, float lifetimeScl){
         if (type == null) return;
         if (Core.settings.getBool("nyduspadpatch") && ui.join.lastHost != null && ui.join.lastHost.name.toLowerCase().contains("nydus")
-            && world.tileWorld(x, y) != null && world.tileWorld(x, y).block() == Blocks.launchPad) return; // Nydus launchpads are annoying
+            && world.tileWorld(x, y) != null && world.tileWorld(x, y).block() == Blocks.launchPad) return; // Nydus is annoying
         type.create(null, team, x, y, angle, damage, velocityScl, lifetimeScl, null);
     }
 }
