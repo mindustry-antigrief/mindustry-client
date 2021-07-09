@@ -343,6 +343,7 @@ public class SettingsMenuDialog extends Dialog{
         client.category("misc");
         client.updatePref();
         client.sliderPref("minepathcap", 1000, 0, 5000, 100, s -> s == 0 ? "Unlimited" : String.valueOf(s));
+        client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.checkPref("autoupdate", true);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("nyduspadpatch", true);

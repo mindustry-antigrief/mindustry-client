@@ -32,7 +32,7 @@ public class BuildPath extends Path {
     public Seq<BuildPlan> sorted = new Seq<>();
     private Seq<Item> mineItems;
     GridBits blocked = new GridBits(world.width(), world.height());
-    int radius; // FIXME: Finish radius implementation
+    int radius = Core.settings.getInt("defaultbuildpathradius");
     Position origin = player;
 
     @SuppressWarnings("unchecked")
