@@ -38,7 +38,7 @@ abstract class Navigator {
                 )
             )
         }
-        if (state.hasSpawns()) { // TODO: These should really be weighed less than turrets...
+        if (state.hasSpawns()) { // FINISHME: These should really be weighed less than turrets...
             for (spawn in spawner.spawns) {
                 realObstacles.add(
                     Circle(

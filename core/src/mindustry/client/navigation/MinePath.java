@@ -46,7 +46,7 @@ public class MinePath extends Path {
             player.sendMessage(Core.bundle.get("client.path.miner.allinvalid"));
             items = player.team().data().mineItems;
         } else {
-            player.sendMessage(Core.bundle.format("client.path.miner.mining", itemString.substring(0, itemString.length() - 2))); // TODO: Terrible
+            player.sendMessage(Core.bundle.format("client.path.miner.mining", itemString.substring(0, itemString.length() - 2))); // FINISHME: Terrible
         }
     }
 
@@ -82,7 +82,7 @@ public class MinePath extends Path {
             player.unit().mineTile = tile;
             if (tile == null) return;
 
-            player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 2); // TODO: Distance based on formation radius rather than just moving super close
+            player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 2); // FINISHME: Distance based on formation radius rather than just moving super close
             new PositionWaypoint(tile.getX(), tile.getY(), tilesize, tilesize).run();
         }
     }

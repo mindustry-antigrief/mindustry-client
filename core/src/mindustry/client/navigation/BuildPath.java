@@ -181,11 +181,8 @@ public class BuildPath extends Path {
             sort:
             for (int i = 0; i < 2; i++) {
                 for (Queue queue : queues) {
-                    PQueue<BuildPlan> plans = sortPlans(queue, all, false); // TODO: should large first always be false or should it stay as all?
+                    PQueue<BuildPlan> plans = sortPlans(queue, all, false);
                     if (plans.empty()) continue;
-                    /* TODO: This doesn't work lol
-                    plans.forEach(plan -> Navigation.obstacles.forEach(obstacle -> {if(Mathf.dstm(obstacle.x, obstacle.y, plan.x, plan.y) <= obstacle.range){plans.remove(plan);player.unit().plans.remove(plan);}}));
-                    if (plans.isEmpty()) continue; */
                     i = 0;
                     BuildPlan plan;
                     Queue<BuildPlan> scuffed = new Queue<>(player.unit().plans.size);

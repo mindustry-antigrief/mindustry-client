@@ -88,7 +88,7 @@ object Main : ApplicationListener {
     fun setPluginNetworking(enable: Boolean) {
         when {
             enable -> {
-                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem //TODO: Re-implement packet plugin
+                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem //FINISHME: Re-implement packet plugin
             }
             Core.app?.isDesktop == true -> {
                 communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem

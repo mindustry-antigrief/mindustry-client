@@ -83,7 +83,7 @@ public class MenuFragment extends Fragment{
                             becontrol.showUpdateDialog();
                         }
                     });
-                }).size(200, 60).padRight(10).update(t -> t.getLabel().setText(Core.settings.getString("updateurl").endsWith("-builds") ? "@client.switchstable" : "@client.switchunstable")).disabled(true); // FIXME: Re-enable when v7 releases
+                }).size(200, 60).padRight(10).update(t -> t.getLabel().setText(Core.settings.getString("updateurl").endsWith("-builds") ? "@client.switchstable" : "@client.switchunstable")).disabled(true); // FINISHME: Re-enable when v7 releases
 
                 c.bottom().right().button("@be.check", Icon.refresh, () -> {
                     ui.loadfrag.show();

@@ -1,15 +1,14 @@
 package mindustry.client.crypto
 
 import mindustry.client.crypto.Base32768Coder.BITS
-import mindustry.client.utils.ceil
-import mindustry.client.utils.floor
-import java.io.IOException
-import java.math.BigInteger
+import mindustry.client.utils.*
+import java.io.*
+import java.math.*
 
 /** You've heard of base64, now get ready for... base32768.  Encodes 15 bits of data into each unicode character,
  * which so far has not caused any problems.  If it turns out to break stuff, the [BITS] constant can be changed
  * to a more sensible value.  Note that it is not just a base conversion, it also has a length prefix.
- * TODO: maybe move to arbitrary base?  It sucks that it can't be 16 bit just because it has to avoid a couple chars.
+ * FINISHME: maybe move to arbitrary base?  It sucks that it can't be 16 bit just because it has to avoid a couple chars.
  */
 object Base32768Coder {
     private const val BITS = 15

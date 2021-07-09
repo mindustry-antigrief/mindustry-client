@@ -44,7 +44,7 @@ public class WaypointPath<T extends Waypoint> extends Path {
 
     @Override
     public float progress() {
-        //TODO make this work better
+        //FINISHME make this work better
         if (waypoints == null || initial.isEmpty()) return 1f;
 
         return waypoints.size / (float)initial.size;

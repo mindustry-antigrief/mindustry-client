@@ -34,7 +34,7 @@ object Client {
     fun update() {
         Navigation.update()
         PowerInfo.update()
-        Spectate.update() // FIXME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
+        Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
         if (!configs.isEmpty) {
             try {
                 if (configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) {
@@ -76,11 +76,11 @@ object Client {
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
             val unit = content.units().copy().sort { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }.first()
-            // TODO: Make this check each unit to see if it is a player/formation unit, display that info
+            // FINISHME: Make this check each unit to see if it is a player/formation unit, display that info
             player.sendMessage(Strings.format("[accent]@: @/@", unit.localizedName, player.team().data().countType(unit), Units.getCap(player.team())))
         }
 
-        // FIXME: Add spawn command
+        // FINISHME: Add spawn command
 
         register("go [x] [y]", Core.bundle.get("client.command.go.description")) { args, player ->
             try {
@@ -120,11 +120,11 @@ object Client {
 
         register("builder [options...]", Core.bundle.get("client.command.builder.description")) { args, _: Player ->
             Navigation.follow(BuildPath(if (args.isEmpty()) "" else args[0]))
-        } // TODO: This is so scuffed lol
+        } // FINISHME: This is so scuffed lol
 
         register("miner [options...]", Core.bundle.get("client.command.miner.description")) { args, _: Player ->
             Navigation.follow(MinePath(if (args.isEmpty()) "" else args[0]))
-        } // TODO: This is so scuffed lol
+        } // FINISHME: This is so scuffed lol
 
         register(" [message...]", Core.bundle.get("client.command.!.description")) { args, _ ->
             Call.sendChatMessage("!" + if (args.size == 1) args[0] else "")
@@ -158,10 +158,10 @@ object Client {
 
         register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
             if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
-                player.sendMessage("${Core.bundle.get("client.command.cc.invalid")} It is currently set to: ${player.team().data().command.localized()}") // FIXME: Localize
+                player.sendMessage("${Core.bundle.get("client.command.cc.invalid")} It is currently set to: ${player.team().data().command.localized()}") // FINISHME: Localize
                 return@register
             }
-            for (tile in world.tiles) { // FIXME: Use block indexer to find block (use finddialog for reference)
+            for (tile in world.tiles) { // FINISHME: Use block indexer to find block (use finddialog for reference)
                 if (tile?.build == null || tile.build.team != player.team() || tile.block() != Blocks.commandCenter) continue
                 Call.tileConfig(player, tile.build, when (args[0].toLowerCase()[0]) {
                     'a' -> UnitCommand.attack

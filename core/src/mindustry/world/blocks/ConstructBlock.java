@@ -94,7 +94,7 @@ public class ConstructBlock extends Block{
 
         Seq<Block> warnBlocks = Seq.with(Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid); // All blocks that shouldn't be broken. Note: Untested with multiblocks, likely to behave in a strange manner.
 
-        if (warnBlocks.contains(block) && Time.timeSinceMillis(tile.lastBreakWarn) > 10_000) { //TODO: Revise this, maybe do break warns per user?
+        if (warnBlocks.contains(block) && Time.timeSinceMillis(tile.lastBreakWarn) > 10_000) { // FINISHME: Revise this, maybe do break warns per user?
             Timer.schedule(() -> ui.chatfrag.addMessage(Core.bundle.format("client.breakwarn", Strings.stripColors(builder.getPlayer().name), block.localizedName, tile.x, tile.y), null), 0, 0, 2);
             tile.lastBreakWarn = Time.millis();
         }
@@ -138,7 +138,7 @@ public class ConstructBlock extends Block{
 
         Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
 
-        if (tile.build instanceof ConstructBuild b) { // FIXME: Does this even work?
+        if (tile.build instanceof ConstructBuild b) { // FINISHME: Does this even work?
             for (var item : b.prevBuild != null ? b.prevBuild : new Seq<Building>()) {
                 Events.fire(new BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
             }
@@ -493,7 +493,7 @@ public class ConstructBlock extends Block{
             buildCost = current.buildCost * state.rules.buildCostMultiplier;
         }
 
-        public void blockWarning(Object config) { // TODO: Account for non player building stuff
+        public void blockWarning(Object config) { // FINISHME: Account for non player building stuff
             if (!wasConstructing || closestCore() == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
 
             Map<Block, Pair<Integer, Integer>> warnBlocks = new HashMap<>(); // Block, warndist, sounddist (0 = off, 101 = always)
@@ -504,7 +504,7 @@ public class ConstructBlock extends Block{
             warnBlocks.put(Blocks.sporePress, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")));
 
             if (warnBlocks.containsKey(current)) {
-                lastBuilder.drawBuildPlans(); // Draw their build plans TODO: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
+                lastBuilder.drawBuildPlans(); // Draw their build plans FINISHME: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
                 AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
                 closestCore().proximity.each(e -> e instanceof StorageBlock.StorageBuild, block -> block.tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get()))))); // This stupidity finds the smallest distance between vaults on the closest core and the block being built
                 closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get())))); // This stupidity checks the distance to the core as well just in case it ends up being shorter

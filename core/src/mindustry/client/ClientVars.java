@@ -8,7 +8,7 @@ import org.jetbrains.annotations.*;
 
 public class ClientVars {
     // Misc
-    @NotNull public static ClientMode mode = ClientMode.normal; // TODO: Unused
+    @NotNull public static ClientMode mode = ClientMode.normal; // FINISHME: Unused
 
     // Config Queue
     @NotNull public static Queue<ConfigRequest> configs = new Queue<>();

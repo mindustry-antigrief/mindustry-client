@@ -76,7 +76,7 @@ public class UnitPicker extends BaseDialog {
     }
 
     private void setup(){
-        Events.on(EventType.UnitChangeEvent.class, event -> { // TODO: Test Player.lastReadUnit also get rid of this dumb ping prediction stuff
+        Events.on(EventType.UnitChangeEvent.class, event -> { // FINISHME: Test Player.lastReadUnit also get rid of this dumb ping prediction stuff
             if (type == null) return;
             if (!event.player.isLocal() && event.unit.team == player.team()) {
                 Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead);

@@ -32,7 +32,7 @@ public class RepairPath extends Path {
         delay.reset(0, 0);
         player.shooting(player.unit().inRange(build));
         player.unit().aimLook(build);
-        new PositionWaypoint(build.x, build.y, 16, 16).run(); // TODO: Distance based on formation size?
+        new PositionWaypoint(build.x, build.y, 16, 16).run(); // FINISHME: Distance based on formation size?
     }
 
     @Override

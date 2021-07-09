@@ -28,7 +28,7 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
     private const val MAX_PRINT_LENGTH = 34
     const val LOGIC_PREFIX = "end\nprint \"client networking, do not edit/remove\""
 
-    fun findProcessor(): LogicBlock.LogicBuild? { // FIXME: are these new implementations actually faster than the old ones? They sure are cleaner
+    fun findProcessor(): LogicBlock.LogicBuild? { // FINISHME: are these new implementations actually faster than the old ones? They sure are cleaner
         val build = Units.findAllyTile(Vars.player.team(), Vars.player.x, Vars.player.y, Float.MAX_VALUE / 2) { tile ->
             val build = tile as? LogicBlock.LogicBuild ?: return@findAllyTile false
             build.code.startsWith(LOGIC_PREFIX)
@@ -63,7 +63,7 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
                     .split("\n").joinToString("") {
                         it.removePrefix("print \"").removeSuffix("\"")
                     }
-            ).run { sliceArray(0 until size - 1) }  // todo wtf
+            ).run { sliceArray(0 until size - 1) }  // FINISHME wtf
 
         } catch (exception: Exception) {
             return

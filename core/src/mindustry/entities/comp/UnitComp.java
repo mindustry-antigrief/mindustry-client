@@ -555,7 +555,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     }
 
     @Deprecated
-    public Player playerNonNull(){ // FIXME: What do we do about this?
+    public Player playerNonNull(){ // FINISHME: What do we do about this?
         return isPlayer() ? (Player)controller : Player.create();
     }
 

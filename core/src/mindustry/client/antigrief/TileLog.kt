@@ -12,8 +12,8 @@ import mindustry.world.*
 import java.time.*
 import kotlin.math.*
 
-// FIXME: Add rotate logs, why dont they exist yet anyways?
-// FIXME: The string truncation is done in the most retarded way imagineable
+// FINISHME: Add rotate logs, why dont they exist yet anyways?
+// FINISHME: The string truncation is done in the most retarded way imagineable
 data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int) : Iterable<Point2i> {
     private class IntRectIterator(val intrect: IntRectangle) : Iterator<Point2i> {
         var index = 0
@@ -105,7 +105,7 @@ class TileRecord(val x: Int, val y: Int) {
         return bestSequence[index]
     }
 
-    // FIXME: This breaks when there are over 100 logs on the tile.
+    // FINISHME: This breaks when there are over 100 logs on the tile.
     fun lastLogs(count: Int): List<TileLog> {
         try {
             val num = min(count, size)
