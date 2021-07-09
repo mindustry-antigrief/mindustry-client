@@ -33,6 +33,7 @@ public class BuildPath extends Path {
     private Seq<Item> mineItems;
     GridBits blocked = new GridBits(world.width(), world.height());
     int radius; // FIXME: Finish radius implementation
+    Position origin = player;
 
     @SuppressWarnings("unchecked")
     public BuildPath() {
@@ -262,7 +263,7 @@ public class BuildPath extends Path {
                 if (blocked.get(t.x, t.y)) dumb.set(true);
             });
             Log.info(radius);
-            if ((radius == 0 || plan.dst(player) < radius * tilesize) && !dumb.get() && (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
+            if ((radius == 0 || plan.dst(origin) < radius * tilesize) && !dumb.get() && (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
         });
         if (largeFirst) s2.comparator = s2.comparator.reversed();
         return s2;
