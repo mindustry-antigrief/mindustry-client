@@ -372,7 +372,7 @@ public class BlockRenderer{
             Core.camera.bounds(bounds);
             obstacles.forEach(t -> {
                 if (!t.canShoot || !(settings.getBool("unitranges") || t.turret) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius*2, t.radius*2)) return;
-                Drawf.dashCircle(t.x, t.y, t.radius, t.canHitPlayer ? t.team.color : Team.derelict.color);
+                Drawf.dashCircle(t.x, t.y, t.radius - tilesize, t.canHitPlayer ? t.team.color : Team.derelict.color);
             });
         }
     }

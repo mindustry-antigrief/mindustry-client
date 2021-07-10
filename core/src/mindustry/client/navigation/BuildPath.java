@@ -106,7 +106,7 @@ public class BuildPath extends Path {
                     int upperYBound = (int)(turret.y + turret.radius) / tilesize;
                     for (int x = lowerXBound ; x <= upperXBound; x++) {
                         for (int y = lowerYBound ; y <= upperYBound; y++) {
-                            if (Structs.inBounds(x, y, world.width(), world.width()) && turret.contains(x * tilesize, y * tilesize)) {
+                            if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {
                                 blocked.set(x, y);
                             }
                         }
@@ -261,7 +261,7 @@ public class BuildPath extends Path {
             plan.tile().getLinkedTilesAs(plan.block, t -> {
                 if (blocked.get(t.x, t.y)) dumb.set(true);
             });
-            if ((radius == 0 || plan.dst(origin) < radius * tilesize + tilesize * .5) && !dumb.get() && (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
+            if ((radius == 0 || plan.dst(origin) < radius * tilesize) && !dumb.get() && (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
         });
         if (largeFirst) s2.comparator = s2.comparator.reversed();
         return s2;

@@ -1,6 +1,7 @@
 package mindustry.client.navigation;
 
 import arc.math.geom.*;
+import mindustry.*;
 import mindustry.game.*;
 
 public class TurretPathfindingEntity extends Circle {
@@ -15,7 +16,7 @@ public class TurretPathfindingEntity extends Circle {
     }
 
     public TurretPathfindingEntity(float range, boolean turret) {
-        this.radius = range;
+        this.radius = range + Vars.tilesize;
         this.turret = turret;
     }
 

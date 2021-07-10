@@ -60,7 +60,7 @@ public class BaseTurret extends Block{
 
     public class BaseTurretBuild extends Building implements Ranged{
         public float rotation = 90;
-        protected TurretPathfindingEntity pathfindingEntity = new TurretPathfindingEntity(range,true);
+        protected TurretPathfindingEntity pathfindingEntity = new TurretPathfindingEntity(range, true);
 
         @Override
         public float range(){
