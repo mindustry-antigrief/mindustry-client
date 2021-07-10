@@ -31,6 +31,7 @@ public class BuildPath extends Path {
     public Seq<Queue<BuildPlan>> queues = new Seq<>(11);
     public Seq<BuildPlan> sorted = new Seq<>();
     private Seq<Item> mineItems;
+    private int cap;
     GridBits blocked = new GridBits(world.width(), world.height());
     int radius = Core.settings.getInt("defaultbuildpathradius");
     Position origin = player;
@@ -40,9 +41,10 @@ public class BuildPath extends Path {
         queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist, drills, belts); // Most queues included by default
     }
 
-    public BuildPath(Seq<Item> mineItems) {
+    public BuildPath(Seq<Item> mineItems, int cap) {
         this();
         this.mineItems = mineItems;
+        this.cap = cap;
     }
 
     @SuppressWarnings("unchecked")
@@ -92,7 +94,7 @@ public class BuildPath extends Path {
         if (timer.get(15)) {
             if (mineItems != null) {
                 Item item = mineItems.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
-                if (item != null && core.items.get(item) <= Core.settings.getInt("minepathcap") / 2) Navigation.follow(new MinePath(mineItems));
+                if (item != null && core.items.get(item) <= cap / 2) Navigation.follow(new MinePath(mineItems, cap));
             }
 
             if (timer.get(1, 300)) {

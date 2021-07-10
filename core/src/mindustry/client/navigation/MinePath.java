@@ -15,14 +15,17 @@ public class MinePath extends Path {
     Seq<Item> items = new Seq<>(16);
     StringBuilder itemString = new StringBuilder();
     static Interval timer = new Interval();
+    int cap = Core.settings.getInt("minepathcap");
 
     public MinePath() {
         items = player.team().data().mineItems;
     }
 
-    public MinePath(Seq<Item> mineItems) {
+    public MinePath(Seq<Item> mineItems, int cap) {
         items = mineItems;
+        this.cap = cap;
     }
+
     public MinePath (String args){
         for (String arg : args.split("\\s")) {
             arg = arg.toLowerCase();
@@ -38,7 +41,7 @@ public class MinePath extends Path {
                 if (arg.equals("*") || arg.equals("all") || arg.equals("a")) {
                     items.addAll(content.items().select(indexer::hasOre)); // Add all items when the argument is "all" or similar
                     itemString.append("Everything, ");
-                }
+                } else if (Strings.canParsePositiveInt(arg)) cap = Strings.parsePositiveInt(arg);
                 else player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
             }
         }
@@ -46,7 +49,7 @@ public class MinePath extends Path {
             player.sendMessage(Core.bundle.get("client.path.miner.allinvalid"));
             items = player.team().data().mineItems;
         } else {
-            player.sendMessage(Core.bundle.format("client.path.miner.mining", itemString.substring(0, itemString.length() - 2))); // FINISHME: Terrible
+            player.sendMessage(Core.bundle.format("client.path.miner.mining", itemString.substring(0, itemString.length() - 2), cap == 0 ? "infinite" : cap)); // FINISHME: Terrible
         }
     }
 
@@ -67,7 +70,7 @@ public class MinePath extends Path {
         Item item = items.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
         if (item == null) return;
 
-        if (Core.settings.getInt("minepathcap") != 0 && core.items.get(item) > Core.settings.getInt("minepathcap")) Navigation.follow(new BuildPath(items)); // Start building when the core has over 1000 of everything.
+        if (cap != 0 && core.items.get(item) > cap) Navigation.follow(new BuildPath(items, cap)); // Start building when the core has over 1000 of everything.
 
         if (player.unit().maxAccepted(item) == 0) { // drop off
             if (player.within(core, itemTransferRange - tilesize * 2) && timer.get(30)) {
