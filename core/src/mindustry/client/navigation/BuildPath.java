@@ -259,8 +259,7 @@ public class BuildPath extends Path {
             plan.tile().getLinkedTilesAs(plan.block, t -> {
                 if (blocked.get(t.x, t.y)) dumb.set(true);
             });
-            Log.info(radius);
-            if ((radius == 0 || plan.dst(origin) < radius * tilesize) && !dumb.get() && (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
+            if ((radius == 0 || plan.dst(origin) < radius * tilesize + tilesize * .5) && !dumb.get() && (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
         });
         if (largeFirst) s2.comparator = s2.comparator.reversed();
         return s2;
