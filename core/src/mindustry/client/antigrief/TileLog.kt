@@ -81,42 +81,43 @@ class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterabl
 }
 
 class TileRecord(val x: Int, val y: Int) {
-    private val logs = mutableListOf<TileLogSequence>()
-    val size get() = logs.lastOrNull()?.range?.last ?: 0
+    private val logs = lazy(LazyThreadSafetyMode.NONE) { mutableListOf<TileLogSequence>() }
+    val size get() = logs.value.lastOrNull()?.range?.last ?: 0
     private val totalRange get() = 0..size
 
     fun add(log: TileLog, tile: Tile) {
         when {
-            logs.isEmpty() -> {
-                logs.add(TileLogSequence(TileState(tile), 0))
+            logs.value.isEmpty() -> {
+                logs.value.add(TileLogSequence(TileState(tile), 0))
             }
 
-            logs.last().logs.size > 100 -> {
-                logs.add(TileLogSequence(TileState(tile), logs.last().range.last))
+            logs.value.last().logs.size > 100 -> {
+                logs.value.add(TileLogSequence(TileState(tile), logs.value.last().range.last))
             }
         }
-        log.add(logs.last())
+        log.add(logs.value.last())
     }
 
     operator fun get(index: Int): TileState {
         if (index !in totalRange) throw IndexOutOfBoundsException("Index $index is out of bounds! (size: $size)")
         // Get the last sequence that encompases this index
-        val bestSequence = logs.singleOrNull { index in it.range } ?: throw IndexOutOfBoundsException("Tile record is empty!")
+        val bestSequence = logs.value.singleOrNull { index in it.range } ?: throw IndexOutOfBoundsException("Tile record is empty!")
         return bestSequence[index]
     }
 
     // FINISHME: This breaks when there are over 100 logs on the tile.
+    val output = mutableListOf<TileLog>()
     fun lastLogs(count: Int): List<TileLog> {
         try {
-            val num = min(count, size)
+            output.clear()
+            val num = if (logs.isInitialized()) min(count, size) else return output
 
-            val output = mutableListOf<TileLog>()
-            var logIndex = logs.indexOfLast { size - num in it.range }
+            var logIndex = logs.value.indexOfLast { size - num in it.range }
             for (i in size - num until size) {
-                output.add(logs[logIndex].logs[i])
-                if (i + 1 !in logs[logIndex].range) {
+                output.add(logs.value[logIndex].logs[i])
+                if (i + 1 !in logs.value[logIndex].range) {
                     logIndex++
-                    if (logIndex >= logs.size) {
+                    if (logIndex >= logs.value.size) {
                         break
                     }
                 }
@@ -133,16 +134,16 @@ class TileRecord(val x: Int, val y: Int) {
         table.row()
 
         table.pane { t ->
-            if (logs.any()) {
+            if (logs.value.any()) {
                 t.button("@client.initialstate") {
                     dialog("@client.log") {
-                        cont.add(logs[0].snapshot.toElement())
+                        cont.add(logs.value[0].snapshot.toElement())
                         addCloseButton()
                     }.show()
                 }.wrap(false)
                 t.row()
             }
-            for (sequence in logs) {
+            for (sequence in logs.value) {
                 for ((index, log) in sequence.withIndex()) {
                     t.add(log.toString() + " (" + UI.formatTime((Time.timeSinceMillis(log.time.toEpochMilli()) / 16.667).toFloat()) + ")").left()
                     t.row()

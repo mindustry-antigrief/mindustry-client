@@ -16,7 +16,7 @@ object TileRecords {
     fun initialize() {
         Events.on(EventType.WorldLoadEvent::class.java) {
             if (!ClientVars.syncing) records = Array(Vars.world.width()) { x -> Array(Vars.world.height()) { y -> TileRecord(x, y) } }
-            ClientVars.syncing = false // FINISHME: This will break if the person returns to menu while loading
+            ClientVars.syncing = false
         }
 
         Events.on(EventType.BlockBuildBeginEventBefore::class.java) {
