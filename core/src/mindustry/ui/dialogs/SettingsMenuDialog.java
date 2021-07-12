@@ -350,7 +350,7 @@ public class SettingsMenuDialog extends Dialog{
         // End Client Settings
 
 
-        game.screenshakePref();
+        game.sliderPref("saveinterval", 60, 10, 5 * 120, 10, i -> Core.bundle.format("setting.seconds", i));
         if(mobile){
             game.checkPref("autotarget", true);
             game.checkPref("keyboard", false, val -> {
@@ -371,7 +371,6 @@ public class SettingsMenuDialog extends Dialog{
                 control.setInput(new MobileInput());
             }
         }*/
-        game.sliderPref("saveinterval", 60, 10, 5 * 120, 10, i -> Core.bundle.format("setting.seconds", i));
 
         if(!mobile){
             game.checkPref("crashreport", true);
@@ -410,6 +409,8 @@ public class SettingsMenuDialog extends Dialog{
             Core.settings.put("uiscalechanged", s != lastUiScale[0]);
             return s + "%";
         });
+
+        graphics.sliderPref("screenshake", 4, 0, 8, i -> (i / 4f) + "x");
         graphics.sliderPref("fpscap", 240, 15, 245, 5, s -> (s > 240 ? Core.bundle.get("setting.fpscap.none") : Core.bundle.format("setting.fpscap.text", s)));
         graphics.sliderPref("chatopacity", 100, 0, 100, 5, s -> s + "%");
         graphics.sliderPref("lasersopacity", 100, 0, 100, 5, s -> {
@@ -686,10 +687,6 @@ public class SettingsMenuDialog extends Dialog{
             rebuild();
         }
 
-        public void screenshakePref(){
-            sliderPref("screenshake", bundle.get("setting.screenshake.name", "Screen Shake"), 4, 0, 8, i -> (i / 4f) + "x");
-        }
-
         public SliderSetting sliderPref(String name, String title, int def, int min, int max, StringProcessor s){
             return sliderPref(name, title, def, min, max, 1, s);
         }
@@ -828,7 +825,7 @@ public class SettingsMenuDialog extends Dialog{
                 slider.change();
 
                 table.table(t -> {
-                    t.stack(slider, label).width(600).pad(5);
+                    t.stack(slider, label).width(Math.min(Core.graphics.getWidth() / 1.3f, 600)).pad(5);
                     t.add(value);
                 }).left().padTop(4).expandX();
                 table.row();
