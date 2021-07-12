@@ -1,15 +1,13 @@
 package mindustry.net;
 
 import arc.*;
-import arc.Net.*;
 import arc.files.*;
 import arc.func.*;
 import arc.util.*;
 import arc.util.async.*;
 import arc.util.serialization.*;
-import mindustry.*;
 import mindustry.core.*;
-import mindustry.game.EventType;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.io.*;
@@ -42,11 +40,9 @@ public class BeControl{
     public BeControl(){
         Events.on(EventType.ClientLoadEvent.class, event -> {
             Timer.schedule(() -> {
-                if(!mobile && !Version.clientVersion.equals("v1.0.0, Jan. 1, 1970")){ // Don't auto update on manually cloned copies of the repo
+                if(checkUpdates && !mobile && !Version.clientVersion.equals("v1.0.0, Jan. 1, 1970")){ // Don't auto update on manually cloned copies of the repo
                     checkUpdate(result -> {
-                        if (result && checkUpdates) {
-                            showUpdateDialog();
-                        }
+                        if (result) showUpdateDialog();
                     });
                 }
                 }, 1, updateInterval
@@ -69,26 +65,26 @@ public class BeControl{
 
     /** asynchronously checks for updates. */
     public void checkUpdate(Boolc done){
-        Core.net.httpGet("https://api.github.com/repos/" + Core.settings.getString("updateurl") + "/releases/latest", res -> {
-            if(res.getStatus() == HttpStatus.OK){
-                Jval val = Jval.read(res.getResultAsString());
-                String newBuild = val.getString("tag_name", "0");
-                if(!Version.clientVersion.startsWith(newBuild)){
-                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("desktop"));
-                    if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("mindustry"));
-                    if (asset == null) { Core.app.post(() -> done.get(false)); return; }
-                    String url = asset.getString("browser_download_url", "");
-                    updateAvailable = true;
-                    updateBuild = newBuild;
-                    updateUrl = url;
-                    Core.app.post(() -> done.get(true));
-                }else{
+        Http.get("https://api.github.com/repos/" + Core.settings.getString("updateurl") + "/releases/latest")
+        .error(e -> ui.loadfrag.hide())
+        .submit(res -> {
+            Jval val = Jval.read(res.getResultAsString());
+            String newBuild = val.getString("tag_name", "0");
+            if(!Version.clientVersion.startsWith(newBuild)){
+                Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("desktop"));
+                if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("mindustry"));
+                if (asset == null) {
                     Core.app.post(() -> done.get(false));
+                    return;
                 }
+                updateUrl = asset.getString("browser_download_url", "");
+                updateAvailable = true;
+                updateBuild = newBuild;
+                Core.app.post(() -> done.get(true));
             }else{
                 Core.app.post(() -> done.get(false));
             }
-        }, error -> {}); //ignore errors
+        });
     }
 
     /** @return whether a new update is available */

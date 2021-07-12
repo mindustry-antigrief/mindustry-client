@@ -7,6 +7,7 @@ import arc.graphics.*;
 import arc.graphics.Texture.*;
 import arc.input.*;
 import arc.math.*;
+import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
@@ -73,11 +74,6 @@ public class SettingsMenuDialog extends Dialog{
                 client.rebuild();
                 updateScrollFocus();
             }
-        });
-
-        released(() -> { // TODO: What does this do again?
-            if(scene.getKeyboardFocus() != this) return;
-            client.rebuild();
         });
 
         setFillParent(true);
@@ -567,13 +563,13 @@ public class SettingsMenuDialog extends Dialog{
                             });
                         }).update(u -> u.setChecked(becontrol.isUpdateAvailable() || urlChanged)).padRight(4);
                         Label label = new Label(title);
-                        t.add(label).minWidth(label.getPrefWidth() / Scl.scl(1.0F) + 50.0F);
+                        t.add(label).minWidth(label.getPrefWidth() / Scl.scl(1.0F) + 25.0F);
                         t.field(settings.getString(name), text -> {
                             becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
                             urlChanged = true;
                             settings.put(name, text);
-                        }).growX().get().setMessageText("mindustry-antigrief/mindustry-client-v6");
-                    }).left().fillX().padTop(3).height(32);
+                        }).width(450).get().setMessageText("mindustry-antigrief/mindustry-client");
+                    }).left().expandX().padTop(3).height(32).padBottom(3);
                     table.row();
                 }
             });
@@ -817,24 +813,24 @@ public class SettingsMenuDialog extends Dialog{
 
                 slider.setValue(settings.getInt(name));
 
-                Label label = new Label("");
+                Label label = new Label(title);
+                Label value = new Label("");
+                label.setStyle(Styles.outlineLabel);
+                label.touchable = Touchable.disabled;
+
                 slider.changed(() -> {
                     settings.put(name, (int)slider.getValue());
-                    label.setText(sp.get((int)slider.getValue()));
+                    value.setText(sp.get((int)slider.getValue()));
                 });
+
+                label.setWrap(true);
 
                 slider.change();
 
                 table.table(t -> {
-                    t.left().defaults().left();
-                    t.add(title + ":").padRight(30);
-                    if(Core.graphics.isPortrait()){
-                        t.row();
-                    }
-                    t.add(slider).width(180);
-                    t.add(label).padLeft(15);
-                }).left().padTop(3);
-
+                    t.stack(slider, label).width(600).pad(5);
+                    t.add(value);
+                }).left().padTop(4).expandX();
                 table.row();
             }
         }

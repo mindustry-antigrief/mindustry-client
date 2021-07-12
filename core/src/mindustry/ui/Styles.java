@@ -31,7 +31,7 @@ public class Styles{
     public static ImageButtonStyle defaulti, wavei, nodei, righti, emptyi, emptytogglei, settingtogglei, selecti, logici, geni, colori, accenti, cleari, clearFulli, clearPartiali, clearPartial2i, clearTogglei, clearTransi, clearToggleTransi, clearTogglePartiali;
     public static ScrollPaneStyle defaultPane, horizontalPane, smallPane, nonePane;
     public static KeybindDialog.KeybindDialogStyle defaultKeybindDialog;
-    public static SliderStyle defaultSlider, vSlider;
+    public static SliderStyle defaultSlider;
     public static LabelStyle defaultLabel, outlineLabel, techLabel, monoLabel, monoOutlineLabel;
     public static TextFieldStyle defaultField, nodeField, areaField, nodeArea;
     public static CheckBoxStyle defaultCheck;
@@ -39,6 +39,8 @@ public class Styles{
     public static TreeStyle defaultTree;
 
     public static void load(){
+        var whiteui = (TextureRegionDrawable)Tex.whiteui;
+
         black = whiteui.tint(0f, 0f, 0f, 1f);
         black9 = whiteui.tint(0f, 0f, 0f, 0.9f);
         black8 = whiteui.tint(0f, 0f, 0f, 0.8f);
@@ -333,16 +335,10 @@ public class Styles{
         }};
 
         defaultSlider = new SliderStyle(){{
-            background = slider;
+            background = sliderBack;
             knob = sliderKnob;
             knobOver = sliderKnobOver;
-            knobDown = sliderKnobDown;
-        }};
-        vSlider = new SliderStyle(){{
-            background = sliderVertical;
-            knob = sliderKnob;
-            knobOver = sliderKnobOver;
-            knobDown = sliderKnobDown;
+            knobDown = sliderKnobOver; // sliderKnobDown
         }};
 
         defaultLabel = new LabelStyle(){{
