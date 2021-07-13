@@ -9,6 +9,7 @@ import org.jetbrains.annotations.*;
 public class ClientVars {
     // Misc
     @NotNull public static ClientMode mode = ClientMode.normal; // FINISHME: Unused
+    public static boolean silentTrace = true; // Whether or not to display the traceinfo dialog when tracing a player
 
     // Config Queue
     @NotNull public static Queue<ConfigRequest> configs = new Queue<>();

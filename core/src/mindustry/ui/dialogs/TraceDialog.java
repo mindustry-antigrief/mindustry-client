@@ -4,6 +4,7 @@ import arc.*;
 import arc.scene.ui.layout.*;
 import mindustry.gen.*;
 import mindustry.net.Administration.*;
+import mindustry.ui.*;
 
 public class TraceDialog extends BaseDialog{
 
@@ -21,12 +22,12 @@ public class TraceDialog extends BaseDialog{
         table.margin(14);
         table.defaults().pad(1);
 
-        table.defaults().left();
-        table.add(Core.bundle.format("trace.playername", player.name));
+        table.defaults().left().expandX();
+        table.button(Core.bundle.format("trace.playername", player.name), Styles.nonetdef, () -> Core.app.setClipboardText(player.name)).wrapLabel(false);
         table.row();
-        table.add(Core.bundle.format("trace.ip", info.ip));
+        table.button(Core.bundle.format("trace.ip", info.ip), Styles.nonetdef, () -> Core.app.setClipboardText(info.ip)).wrapLabel(false);
         table.row();
-        table.add(Core.bundle.format("trace.id", info.uuid));
+        table.button(Core.bundle.format("trace.id", info.uuid), Styles.nonetdef, () -> Core.app.setClipboardText(info.uuid)).wrapLabel(false);
         table.row();
         table.add(Core.bundle.format("trace.modclient", info.modded));
         table.row();

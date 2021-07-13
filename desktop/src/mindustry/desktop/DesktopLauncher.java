@@ -32,26 +32,13 @@ public class DesktopLauncher extends ClientLauncher{
     public final static long discordID = 514551367759822855L;
     boolean useDiscord = !OS.hasProp("nodiscord"), loadError = false;
     Throwable steamError;
-    static SdlConfig config;
 
     public static void main(String[] arg){
         try{
-            int aaSamples = 0;
-            String env = System.getenv("aaSamples");
-            int idx = Seq.with(arg).indexOf("aaSamples");
-            if (env != null) {
-                if (Strings.canParsePositiveInt(env)) {
-                    aaSamples = Integer.parseInt(env);
-                    aaSamples = Math.min(aaSamples, 32);
-                }
-            }
-            if (idx >= 0) {
-                if (arg.length > idx + 1 && Strings.canParsePositiveInt(arg[idx + 1])) {
-                    aaSamples = Integer.parseInt(arg[idx + 1]);
-                    aaSamples = Math.min(aaSamples, 16);
-                }
-            }
-            int finalAaSamples = aaSamples;
+            int[] aaSamples = new int[1];
+
+            String env = OS.hasProp("aaSamples") ? OS.prop("aaSamples") : OS.hasEnv("aaSamples") ? OS.env("aaSamples") : "";
+            if (Strings.canParsePositiveInt(env)) aaSamples[0] = Math.min(Integer.parseInt(env), 32);
 
             Version.init();
             Vars.loadLogger();
@@ -60,7 +47,7 @@ public class DesktopLauncher extends ClientLauncher{
                 maximized = true;
                 width = 900;
                 height = 700;
-                samples = finalAaSamples;
+                samples = aaSamples[0];
                 //enable gl3 with command-line argument
                 if(Structs.contains(arg, "-gl3")){
                     gl30 = true;

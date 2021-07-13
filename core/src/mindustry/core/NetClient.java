@@ -324,7 +324,9 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.one)
     public static void traceInfo(Player player, TraceInfo info){
         if(player != null){
-            ui.traces.show(player, info);
+            if (!ClientVars.silentTrace) ui.traces.show(player, info);
+            ClientVars.silentTrace = true;
+            Client.INSTANCE.getLeaves().addInfo(player, info);
         }
     }
 

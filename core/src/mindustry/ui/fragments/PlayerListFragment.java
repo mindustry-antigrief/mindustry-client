@@ -159,7 +159,10 @@ public class PlayerListFragment extends Fragment{
                         .touchable(() -> net.client() ? Touchable.disabled : Touchable.enabled)
                         .checked(user.admin);
 
-                    t.button(Icon.zoom, Styles.clearPartiali, () -> Call.adminRequest(user, AdminAction.trace));
+                    t.button(Icon.zoom, Styles.clearPartiali, () -> {
+                        ClientVars.silentTrace = false;
+                        Call.adminRequest(user, AdminAction.trace);
+                    });
 
                 }).padRight(12).size(bs + 10f, bs);
             }else if(!user.isLocal() && !user.admin && net.client() && Groups.player.size() >= 3 && player.team() == user.team()){ //votekick
