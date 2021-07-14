@@ -35,7 +35,7 @@ class Moderation {
         // FINISHME: Integrate these with join/leave messages
         if (Time.timeSinceMillis(ClientVars.lastJoinTime) > 1000) {
             if (info.timesJoined > 10 && info.timesKicked < 3) Vars.player.sendMessage("[accent]${player.name}[accent] has joined ${info.timesJoined-1} times, they have been kicked ${info.timesKicked} times")
-            else Call.sendChatMessage("/a [scarlet][accent]${player.name}[scarlet] has joined ${info.timesJoined-1}times, they have been kicked ${info.timesKicked} times")
+            else Call.sendChatMessage("/a [scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times, they have been kicked ${info.timesKicked} times")
         }
 
         for (n in traces.size - 1 downTo 0) {
