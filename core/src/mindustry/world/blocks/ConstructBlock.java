@@ -532,7 +532,7 @@ public class ConstructBlock extends Block{
                     ClientVars.lastSentPos.set(tileX(), tileY());
                 }
 
-                if (lastProgress == 0 && Core.settings.getBool("removecorenukes") && current instanceof NuclearReactor && !lastBuilder.isLocal() && distance.get() <= 20) { // Automatically remove reactors within 20 blocks of core
+                if (lastProgress == 0 && Core.settings.getBool("removecorenukes") && state.rules.reactorExplosions && current instanceof NuclearReactor && !lastBuilder.isLocal() && distance.get() <= 20) { // Automatically remove reactors within 20 blocks of core
                     Call.buildingControlSelect(player, closestCore());
                     Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tileX(), tileY())), net.client() ? netClient.getPing()/1000f+.3f : 0);
                 }
