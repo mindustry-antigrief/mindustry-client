@@ -26,7 +26,7 @@ import kotlin.random.*
 
 object Client {
 
-    val leaves = LeaveLog()
+    val leaves = Moderation()
     fun initialize() {
         registerCommands()
         ClientLogic()

@@ -8,19 +8,18 @@ import mindustry.gen.*
 import mindustry.net.*
 import mindustry.ui.*
 
-// FINISHME: Heavily work in progress leave logs
-// FINISHME: Add a TraceInfo var to the player class
-class LeaveLog {
-    private val left = mutableListOf<Player>() // 100 last people to leave
+// FINISHME: Heavily work in progress mod logs
+class Moderation {
+    private val traces = mutableListOf<Player>() // 100 last people to leave
 
     init {
         Events.on(EventType.PlayerLeave::class.java) { e ->
             e.player ?: return@on
             e.player.trace ?: return@on
 
-            left.forEach { p -> if (p.trace.uuid == e.player.uuid()) left.remove(p) }
-            while (left.size >= 100) left.removeFirst() // Keep 100 latest leaves
-            left.add(e.player)
+            traces.forEach { p -> if (p.trace.uuid == e.player.uuid()) traces.remove(p) }
+            while (traces.size >= 100) traces.removeFirst() // Keep 100 latest leaves
+            traces.add(e.player)
         }
 
         Events.on(EventType.PlayerJoin::class.java) { e -> // Trace players when they join, also traces all players on join
@@ -31,11 +30,14 @@ class LeaveLog {
     }
 
     fun addInfo(player: Player, info: Administration.TraceInfo) {
+        // FINISHME: Integrate these with join/leave messages
+        if (info.timesJoined > 10 && info.timesKicked < 3) Vars.player.sendMessage("[accent]This is $player[accent]'s ${info.timesJoined-1} time joining, they have been kicked ${info.timesKicked} times")
+        else Call.sendChatMessage("/a [scarlet]This is $player[accent]'s ${info.timesJoined-1} time joining, they have been kicked ${info.timesKicked} times")
 
-        for (n in left.size - 1 downTo 0) {
-            val i = left[n]
+        for (n in traces.size - 1 downTo 0) {
+            val i = traces[n]
             if (i.trace.ip == info.uuid || i.trace.ip == info.ip) { // Update info
-                left.remove(i)
+                traces.remove(i)
                 if (i.trace.uuid != info.uuid) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed UUID: ${i.trace.uuid} -> ${info.uuid}")
                 if (i.trace.ip != info.ip) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed IP: ${i.trace.ip} -> ${info.ip}")
                 if (i.name != player.name) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed name, was previously: ${i.name}")
@@ -43,13 +45,12 @@ class LeaveLog {
         }
 
         player.trace = info
-        left.add(player)
     }
 
     fun leftList() {
         dialog("Leaves, newest first") {
-            for (i in left.size - 1 downTo 0) {
-                val player = left[i]
+            for (i in traces.size - 1 downTo 0) {
+                val player = traces[i]
                 cont.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace) }.wrapLabel(false)
                 cont.row()
             }

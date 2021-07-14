@@ -1,11 +1,9 @@
 package mindustry.ui;
 
-import arc.graphics.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.type.*;
-import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
 
@@ -26,13 +24,13 @@ public class LiquidDisplay extends Table{
             if(amount != 0){
                 Table t = new Table().left().bottom();
                 t.add(Strings.autoFixed(amount, 2)).style(Styles.outlineLabel);
+                if (perSecond) {
+                    t.row();
+                    t.add(Strings.autoFixed(amount, 2) + "/s", .5f).style(Styles.outlineLabel);
+                }
                 add(t);
             }
-        }}).size(iconMed).padRight(3  + (amount != 0 && Strings.autoFixed(amount, 2).length() > 2 ? 8 : 0));
-
-        if(perSecond){
-            add(StatUnit.perSecond.localized()).padLeft(2).padRight(5).color(Color.lightGray).style(Styles.outlineLabel);
-        }
+        }}).size(iconMed);
 
         add(liquid.localizedName);
     }
