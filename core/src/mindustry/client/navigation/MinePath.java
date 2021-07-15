@@ -78,7 +78,7 @@ public class MinePath extends Path {
                 Call.transferInventory(player, core);
             } else {
                 if (player.unit().type.canBoost) player.boosting = true;
-                new PositionWaypoint(core.x, core.y, itemTransferRange - tilesize * 3, itemTransferRange - tilesize * 3).run();
+                new PositionWaypoint(core.x, core.y, itemTransferRange - tilesize * 4, itemTransferRange - tilesize * 4).run();
             }
 
         } else { // mine

@@ -41,7 +41,6 @@ class Moderation {
         for (n in traces.size - 1 downTo 0) {
             val i = traces[n]
             if (i.trace.ip == info.uuid || i.trace.ip == info.ip) { // Update info
-                traces.remove(i)
                 if (i.trace.uuid != info.uuid) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed UUID: ${i.trace.uuid} -> ${info.uuid}")
                 if (i.trace.ip != info.ip) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed IP: ${i.trace.ip} -> ${info.ip}")
                 if (i.name != player.name) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed name, was previously: ${i.name}")

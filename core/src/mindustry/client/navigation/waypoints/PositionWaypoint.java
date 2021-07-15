@@ -5,6 +5,7 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
+import mindustry.client.navigation.*;
 
 import static mindustry.Vars.*;
 
@@ -57,7 +58,9 @@ public class PositionWaypoint extends Waypoint implements Position {
         if (!player.unit().isShooting || !player.unit().type.rotateShooting) player.unit().lookAt(vec.angle()); // Look towards waypoint when possible
     }
     @Override
-    public void run() { moveTo(this, distance, 8f); }
+    public void run() {
+        moveTo(this, distance, Navigation.currentlyFollowing instanceof WaypointPath ? 0 : 20);
+    }
 
     @Override
     public float getX() {

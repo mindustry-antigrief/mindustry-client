@@ -826,7 +826,7 @@ public class SettingsMenuDialog extends Dialog{
 
                 table.table(t -> {
                     t.stack(slider, label).width(Math.min(Core.graphics.getWidth() / 1.3f, 600)).pad(5);
-                    t.add(value);
+                    t.add(value).width(200);
                 }).left().padTop(4).expandX();
                 table.row();
             }

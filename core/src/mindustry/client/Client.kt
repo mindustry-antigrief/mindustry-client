@@ -3,13 +3,17 @@ package mindustry.client
 import arc.*
 import arc.graphics.*
 import arc.math.*
+import arc.math.geom.*
+import arc.struct.*
 import arc.util.*
+import mindustry.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
+import mindustry.client.navigation.Navigation.obstacles
 import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.content.*
@@ -235,8 +239,46 @@ object Client {
             }
         }
 
-        register("leaves", "experimental leave logging") { args, player ->
+        register("leaves", "WIP") { _, _ ->
             leaves.leftList()
+        }
+
+        register("begone", "begone") { _, player ->
+            val blocked = GridBits(world.width(), world.height())
+            val start = Vars.player.team().data().blocks.size
+            player.sendMessage("[accent]Processing $start plans")
+
+            for (turret in obstacles) {
+                if (!turret.turret) continue
+                val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
+                val upperXBound = ((turret.x + turret.radius) / tilesize).toInt()
+                val lowerYBound = ((turret.y - turret.radius) / tilesize).toInt()
+                val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
+                for (x in lowerXBound..upperXBound) {
+                    for (y in lowerYBound..upperYBound) {
+                        if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
+                            blocked.set(x, y)
+                        }
+                    }
+                }
+            }
+            do {
+                val plans = IntSeq()
+                var i = 0
+                for (plan in Vars.player.team().data().blocks) {
+                    var isBlocked = false
+                    world.tile(plan.x.toInt(), plan.y.toInt()).getLinkedTilesAs(content.block(plan.block.toInt())) { t ->
+                        if (blocked.get(t.x.toInt(), t.y.toInt())) isBlocked = true
+                    }
+                    if (!isBlocked) continue
+                    if (++i > 100) break
+
+                    plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
+                }
+                Call.deletePlans(player, plans.toArray());
+            } while (i > 100)
+
+            player.sendMessage("[accent]Removed ${start - Vars.player.team().data().blocks.size} plans, ${Vars.player.team().data().blocks.size} remain")
         }
     }
 
