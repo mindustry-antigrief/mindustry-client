@@ -15,6 +15,8 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.*;
+import mindustry.client.*;
+import mindustry.client.antigrief.*;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
 import mindustry.core.GameState.*;
@@ -35,7 +37,7 @@ import static mindustry.Vars.*;
 public class SettingsMenuDialog extends Dialog{
     /** Mods break if these are changed to BetterSettingsTable so instead we cast them into different vars and just use those. */
     public SettingsTable graphics = new BetterSettingsTable(), sound = new BetterSettingsTable(), game = new BetterSettingsTable(), main = new BetterSettingsTable();
-    public BetterSettingsTable realGraphics, realGame, realSound, realMain, client;
+    public BetterSettingsTable realGraphics, realGame, realSound, realMain, client, moderation;
 
     private Table prefs;
     private Table menu;
@@ -72,6 +74,7 @@ public class SettingsMenuDialog extends Dialog{
                 sound.rebuild();
                 game.rebuild();
                 client.rebuild();
+                moderation.rebuild();
                 updateScrollFocus();
             }
         });
@@ -93,6 +96,7 @@ public class SettingsMenuDialog extends Dialog{
         realSound = (BetterSettingsTable) sound;
         realMain = (BetterSettingsTable) main;
         client = new BetterSettingsTable();
+        moderation = new BetterSettingsTable();
 
         prefs = new Table();
         prefs.top();
@@ -506,6 +510,12 @@ public class SettingsMenuDialog extends Dialog{
         }
 
         graphics.checkPref("flow", true);
+
+
+        // Start Moderation Settings
+        moderation.checkPref("modenabled", true, b -> Client.INSTANCE.setLeaves(b ? new Moderation() : null));
+        moderation.sliderPref("leavecount", 100, 5, 1000, 10, String::valueOf);
+        // End Moderation Settings
     }
 
 
@@ -641,9 +651,9 @@ public class SettingsMenuDialog extends Dialog{
         prefs.add(menu);
     }
 
-    private void visible(int index){
+    public void visible(int index){
         prefs.clearChildren();
-        prefs.add(new Table[]{game, graphics, sound, client}[index]);
+        prefs.add(new Table[]{game, graphics, sound, client, moderation}[index]);
     }
 
     @Override

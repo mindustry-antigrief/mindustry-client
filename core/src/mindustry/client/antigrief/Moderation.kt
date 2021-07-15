@@ -20,7 +20,7 @@ class Moderation {
             e.player.trace ?: return@on
 
             traces.forEach { p -> if (p.trace.uuid == e.player.uuid()) traces.remove(p) }
-            while (traces.size >= 100) traces.removeFirst() // Keep 100 latest leaves
+            while (traces.size >= Core.settings.getInt("leavecount")) traces.removeFirst() // Keep 100 latest leaves
             traces.add(e.player)
         }
 

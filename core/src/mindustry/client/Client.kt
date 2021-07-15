@@ -30,7 +30,7 @@ import kotlin.random.*
 
 object Client {
 
-    val leaves = Moderation()
+    var leaves: Moderation? = Moderation()
     fun initialize() {
         registerCommands()
         ClientLogic()
@@ -231,7 +231,7 @@ object Client {
             }
         }
 
-        register("distance [distance]", "Sets the assist distance multiplier distance (default is 1.5)") { args, player ->
+        register("distance [distance]", "Sets the assist distance multiplier distance (default is 1.5)") { args, player -> // FINISHME: Bundle
             if (args.size != 1) player.sendMessage("[accent]The distance multiplier is ${Core.settings.getFloat("assistdistance", 1.5f)} (default is 1.5)")
             else {
                 Core.settings.put("assistdistance", abs(Strings.parseFloat(args[0], 1.5f)))
@@ -239,11 +239,19 @@ object Client {
             }
         }
 
-        register("leaves", "WIP") { _, _ ->
-            leaves.leftList()
+        register("admin [option]", "Access moderation commands and settings") { args, player -> // FINISHME: Bundle
+            val arg = if (args.isEmpty()) "" else args[0]
+            when (arg.toLowerCase()) {
+                "s", "settings" -> {
+                    ui.settings.show()
+                    ui.settings.visible(4)
+                }
+                "l", "leaves" -> if (leaves != null) leaves!!.leftList() else player.sendMessage("[scarlet]Leave logs are disabled")
+                else -> player.sendMessage("[scarlet]Invalid option specified, options are:\nSettings, Leaves")
+            }
         }
 
-        register("begone", "begone") { _, player ->
+        register("clearghosts", "Removes the ghosts of blocks which are in range of enemy turrets, useful to stop polys from building forever") { _, player -> // FINISHME: Bundle
             val blocked = GridBits(world.width(), world.height())
             val start = Vars.player.team().data().blocks.size
             player.sendMessage("[accent]Processing $start plans")
