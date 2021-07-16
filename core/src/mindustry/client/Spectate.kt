@@ -16,7 +16,7 @@ object Spectate {
 
     fun spectate(pos: Position) {
         if (pos.x < -Vars.finalWorldBounds || pos.y < -Vars.finalWorldBounds || pos.x > Vars.world.unitWidth() + Vars.finalWorldBounds || pos.y > Vars.world.unitHeight() + Vars.finalWorldBounds) return // Dont go to space
-        DesktopInput.panning = true
+        (Vars.control.input as? DesktopInput)?.panning = true
         Spectate.pos = pos
     }
 }

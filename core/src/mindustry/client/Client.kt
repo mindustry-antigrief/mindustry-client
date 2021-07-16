@@ -98,7 +98,7 @@ object Client {
 
         register("lookat [x] [y]", Core.bundle.get("client.command.lookat.description")) { args, player ->
             try {
-                DesktopInput.panning = true
+                (control.input as? DesktopInput)?.panning = true
                 if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
                 spectate(lastSentPos.cpy().scl(tilesize.toFloat()))
             } catch (e: Exception) {
