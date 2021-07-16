@@ -36,8 +36,7 @@ import static mindustry.Vars.*;
 
 public class SettingsMenuDialog extends Dialog{
     /** Mods break if these are changed to BetterSettingsTable so instead we cast them into different vars and just use those. */
-    public SettingsTable graphics = new BetterSettingsTable(), sound = new BetterSettingsTable(), game = new BetterSettingsTable(), main = new BetterSettingsTable();
-    public BetterSettingsTable realGraphics, realGame, realSound, realMain, client, moderation;
+    public SettingsTable graphics, sound, game, main, client, moderation;
 
     private Table prefs;
     private Table menu;
@@ -48,7 +47,7 @@ public class SettingsMenuDialog extends Dialog{
         super(bundle.get("settings", "Settings"));
         addCloseButton();
 
-        cont.add(main);
+        cont.add(main = new SettingsTable());
 
         hidden(() -> {
             Sounds.back.play();
@@ -91,12 +90,11 @@ public class SettingsMenuDialog extends Dialog{
         menu = new Table(Tex.button);
 
         // Casting avoids mod problems, no clue how or why
-        realGame = (BetterSettingsTable) game;
-        realGraphics = (BetterSettingsTable) graphics;
-        realSound = (BetterSettingsTable) sound;
-        realMain = (BetterSettingsTable) main;
-        client = new BetterSettingsTable();
-        moderation = new BetterSettingsTable();
+        game = new SettingsTable();
+        graphics = new SettingsTable();
+        sound = new SettingsTable();
+        client = new SettingsTable();
+        moderation = new SettingsTable();
 
         prefs = new Table();
         prefs.top();
@@ -518,75 +516,6 @@ public class SettingsMenuDialog extends Dialog{
         // End Moderation Settings
     }
 
-
-    /** Extends arc's {@link SettingsTable}, allows the addition of custom setting types without editing arc. */
-    public static class BetterSettingsTable extends SettingsTable{
-        /** Add a section/subcategory. */
-        public void category(String name){
-            pref(new Category(name));
-        }
-
-        /* TODO: Actually add this at some point, this sounds like a massive pain in the ass tho.
-        public void textPref(String name, String def){
-            settings.defaults(name, def);
-            pref(new TextPref(name));
-        } */
-
-        // Elements are actually added below
-        public static class Category extends Setting{
-            Category(String name){
-                this.name = name;
-                this.title = bundle.get("setting." + name + ".category");
-            }
-
-            @Override
-            public void add(SettingsTable table){
-                table.add("").row(); // Add a cell first as .row doesn't work if there are no cells in the current row.
-                table.add("[accent]" + title);
-                table.row();
-            }
-        }
-
-
-        /** Since the update pref takes half a page and implementing all this in a non static manner is a pain, I'm leaving it here for now. */
-        private void updatePref(){
-            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client");
-            if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
-            pref(new Setting() {
-                boolean urlChanged;
-
-                @Override
-                public void add(SettingsTable table) { // Update URL with update button TODO: Move this to TextPref when i decide im willing to spend 6 hours doing so
-                    name = "updateurl";
-                    title = bundle.get("setting." + name + ".name");
-
-                    table.table(t -> {
-                        t.button(Icon.refresh, Styles.settingtogglei, 32, () -> {
-                            ui.loadfrag.show();
-                            becontrol.checkUpdate(result -> {
-                                ui.loadfrag.hide();
-                                urlChanged = false;
-                                if(!result){
-                                    ui.showInfo("@be.noupdates");
-                                } else {
-                                    becontrol.showUpdateDialog();
-                                }
-                            });
-                        }).update(u -> u.setChecked(becontrol.isUpdateAvailable() || urlChanged)).padRight(4);
-                        Label label = new Label(title);
-                        t.add(label).minWidth(label.getPrefWidth() / Scl.scl(1.0F) + 25.0F);
-                        t.field(settings.getString(name), text -> {
-                            becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
-                            urlChanged = true;
-                            settings.put(name, text);
-                        }).width(450).get().setMessageText("mindustry-antigrief/mindustry-client");
-                    }).left().expandX().padTop(3).height(32).padBottom(3);
-                    table.row();
-                }
-            });
-        }
-    }
-
     public void exportData(Fi file) throws IOException{
         Seq<Fi> files = new Seq<>();
         files.add(Core.settings.getSettingsFile());
@@ -842,5 +771,69 @@ public class SettingsMenuDialog extends Dialog{
             }
         }
 
+        /** Add a section/subcategory. */
+        public void category(String name){
+            pref(new Category(name));
+        }
+
+        /* TODO: Actually add this at some point, this sounds like a massive pain in the ass tho.
+        public void textPref(String name, String def){
+            settings.defaults(name, def);
+            pref(new TextPref(name));
+        } */
+
+        // Elements are actually added below
+        public static class Category extends Setting{
+            Category(String name){
+                this.name = name;
+                this.title = bundle.get("setting." + name + ".category");
+            }
+
+            @Override
+            public void add(SettingsTable table){
+                table.add("").row(); // Add a cell first as .row doesn't work if there are no cells in the current row.
+                table.add("[accent]" + title);
+                table.row();
+            }
+        }
+
+
+        /** Since the update pref takes half a page and implementing all this in a non static manner is a pain, I'm leaving it here for now. */
+        private void updatePref(){
+            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client");
+            if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
+            pref(new Setting() {
+                boolean urlChanged;
+
+                @Override
+                public void add(SettingsTable table) { // Update URL with update button TODO: Move this to TextPref when i decide im willing to spend 6 hours doing so
+                    name = "updateurl";
+                    title = bundle.get("setting." + name + ".name");
+
+                    table.table(t -> {
+                        t.button(Icon.refresh, Styles.settingtogglei, 32, () -> {
+                            ui.loadfrag.show();
+                            becontrol.checkUpdate(result -> {
+                                ui.loadfrag.hide();
+                                urlChanged = false;
+                                if(!result){
+                                    ui.showInfo("@be.noupdates");
+                                } else {
+                                    becontrol.showUpdateDialog();
+                                }
+                            });
+                        }).update(u -> u.setChecked(becontrol.isUpdateAvailable() || urlChanged)).padRight(4);
+                        Label label = new Label(title);
+                        t.add(label).minWidth(label.getPrefWidth() / Scl.scl(1.0F) + 25.0F);
+                        t.field(settings.getString(name), text -> {
+                            becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
+                            urlChanged = true;
+                            settings.put(name, text);
+                        }).width(450).get().setMessageText("mindustry-antigrief/mindustry-client");
+                    }).left().expandX().padTop(3).height(32).padBottom(3);
+                    table.row();
+                }
+            });
+        }
     }
 }
