@@ -282,7 +282,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
         currentLobby = steamIDLobby;
         currentServer = smat.getLobbyOwner(steamIDLobby);
 
-        Log.info("Connect to owner @: @", currentServer.getAccountID(), friends.getFriendPersonaName(currentServer));
+        Log.info("Connect to owner @: @", currentServer.handle(), friends.getFriendPersonaName(currentServer));
 
         if(joinCallback != null){
             joinCallback.run();

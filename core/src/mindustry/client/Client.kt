@@ -251,10 +251,10 @@ object Client {
             }
         }
 
-        register("clearghosts", "Removes the ghosts of blocks which are in range of enemy turrets, useful to stop polys from building forever") { _, player -> // FINISHME: Bundle
+        register("clearghosts [c]", "Removes the ghosts of blocks which are in range of enemy turrets, useful to stop polys from building forever") { args, player -> // FINISHME: Bundle
+            val confirmed = args.any() && args[0] == "c" // Don't clear by default
             val blocked = GridBits(world.width(), world.height())
-            val start = Vars.player.team().data().blocks.size
-            player.sendMessage("[accent]Processing $start plans")
+            player.sendMessage("[accent]Processing ${Vars.player.team().data().blocks.size} plans")
 
             for (turret in obstacles) {
                 if (!turret.turret) continue
@@ -270,6 +270,7 @@ object Client {
                     }
                 }
             }
+            var n = 0
             do {
                 val plans = IntSeq()
                 var i = 0
@@ -283,10 +284,12 @@ object Client {
 
                     plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
                 }
-                Call.deletePlans(player, plans.toArray());
+                n += plans.size
+                if (confirmed) Call.deletePlans(player, plans.toArray())
             } while (i > 100)
 
-            player.sendMessage("[accent]Removed ${start - Vars.player.team().data().blocks.size} plans, ${Vars.player.team().data().blocks.size} remain")
+            if (confirmed) player.sendMessage("[accent]Removed $n plans, ${Vars.player.team().data().blocks.size} remain")
+            else player.sendMessage("[accent]Found $n block ghosts within turret range, running !clearghosts c will remove them. There are ${Vars.player.team().data().blocks.size} in total")
         }
     }
 

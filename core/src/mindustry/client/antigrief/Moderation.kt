@@ -12,7 +12,7 @@ import mindustry.ui.*
 
 // FINISHME: Heavily work in progress mod logs
 class Moderation {
-    private val traces = mutableListOf<Player>() // 100 last people to leave
+    private val traces = mutableListOf<Player>() // last people to leave
 
     init {
         Events.on(EventType.PlayerLeave::class.java) { e ->
