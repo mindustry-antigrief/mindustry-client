@@ -86,7 +86,7 @@ public class PlayerListFragment extends Fragment{
         players.clear();
         Groups.player.copy(players);
 
-        players.sort(Structs.comps(Structs.comparing(Player::team), Structs.comps(Structs.comparingBool(p -> !p.admin), Structs.comparingBool(p -> !p.fooUser))));
+        players.sort(Structs.comps(Structs.comparing(Player::team), Structs.comps(Structs.comparingBool(p -> !p.admin), Structs.comparingBool(p -> !(p.fooUser || p.isLocal())))));
         if(sField.getText().length() > 0) players.filter(p -> Strings.stripColors(p.name().toLowerCase()).contains(sField.getText().toLowerCase()));
 
         for(var user : players){
@@ -127,7 +127,7 @@ public class PlayerListFragment extends Fragment{
             button.add().grow();
 
             if (user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
-            if (user.fooUser && !user.isLocal()) button.image(Icon.wrench).padRight(7.5f);
+            if (user.fooUser || (user.isLocal() && Core.settings.getBool("displayasuser"))) button.image(Icon.wrench).padRight(7.5f);
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();
