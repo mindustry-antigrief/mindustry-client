@@ -478,7 +478,6 @@ public class JoinDialog extends BaseDialog{
     }
 
     public void connect(String ip, int port, Host host){
-        if(Core.settings.getBool("allowjoinany")) Version.build = host.version;
         if(player.name.trim().isEmpty()){
             ui.showInfo("@noname");
             return;
@@ -491,6 +490,10 @@ public class JoinDialog extends BaseDialog{
             netClient.disconnectQuietly();
         });
 
+        Host[] hostFinal = {host};
+        if(hostFinal[0] == null) net.pingHost(ip, port, h -> hostFinal[0] = h, e -> {});
+        if(Core.settings.getBool("allowjoinany")) Version.build = hostFinal[0].version;
+
         Time.runTask(2f, () -> {
             logic.reset();
             net.reset();
@@ -499,7 +502,7 @@ public class JoinDialog extends BaseDialog{
                 if(net.client()){
                     hide();
                     add.hide();
-                    lastHost = host;
+                    lastHost = hostFinal[0];
                 }
             });
             Events.fire(new EventType.ServerJoinEvent());
