@@ -34,7 +34,7 @@ import static arc.scene.actions.Actions.*;
 import static mindustry.Vars.*;
 
 public class UI implements ApplicationListener, Loadable{
-    private static String billions, millions, thousands;
+    public static String billions, millions, thousands;
 
     public static PixmapPacker packer;
 

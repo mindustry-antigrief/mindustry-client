@@ -8,7 +8,6 @@ import arc.util.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
-import arc.util.serialization.JsonWriter.*;
 import mindustry.*;
 import mindustry.core.*;
 import mindustry.gen.*;
@@ -18,7 +17,6 @@ import java.text.*;
 import java.util.*;
 
 import static arc.Core.*;
-import static mindustry.Vars.net;
 import static mindustry.Vars.*;
 
 public class CrashSender{
@@ -27,19 +25,18 @@ public class CrashSender{
         String report = "Ohno, the game has crashed. Report this at: " + clientDiscord + "\n\n";
         report += "Copy paste the report below when reporting:\n```java\n";
         return report
-            + "Version: " + Version.combined() + (Vars.headless ? " (Server)" : "") + "\n"
-            + "Source: " + settings.getString("updateurl") + "\n"
-            + "OS: " + System.getProperty("os.name") + " x" + (OS.is64Bit ? "64" : "32") + "\n"
-            + "Java Version: " + System.getProperty("java.version") + "\n"
-            + "Java Architecture: " + System.getProperty("sun.arch.data.model") + "\n"
-            + (mods == null ? "<no mod init>" : mods.list().size + " Mods" + (mods.list().isEmpty() ? "" : ": " + mods.list().toString(", ", mod -> mod.name + ":" + mod.meta.version)))
-            + "\n\n" + error +"```";
+        + "Version: " + Version.combined() + (Vars.headless ? " (Server)" : "") + "\n"
+        + "Source: " + settings.getString("updateurl") + "\n"
+        + "OS: " + OS.osName + " x" + (OS.osArchBits) + " (" + OS.osArch + ")\n"
+        + "Java Version: " + OS.javaVersion + "\n"
+        + (mods == null ? "<no mod init>" : mods.list().size + " Mods" + (mods.list().isEmpty() ? "" : ": " + mods.list().toString(", ", mod -> mod.name + ":" + mod.meta.version)))
+        + "\n\n" + error + "```";
     }
 
     public static void log(Throwable exception){
         try{
             Core.settings.getDataDirectory().child("crashes").child("crash_" + System.currentTimeMillis() + ".txt")
-                .writeString(createReport(Strings.neatError(exception)));
+            .writeString(createReport(Strings.neatError(exception)));
         }catch(Throwable ignored){
         }
     }
@@ -59,7 +56,7 @@ public class CrashSender{
             }catch(Throwable ignored){}
 
             //don't create crash logs for custom builds, as it's expected
-            if(Version.build == -1 || (System.getProperty("user.name").equals("anuke") && "release".equals(Version.modifier))){
+            if(Version.build == -1 || (OS.username.equals("anuke") && !"steam".equals(Version.modifier))){
                 ret();
             }
 
@@ -140,21 +137,22 @@ public class CrashSender{
             ex(() -> value.addChild("server", new JsonValue(fs)));
             ex(() -> value.addChild("players", new JsonValue(Groups.player.size())));
             ex(() -> value.addChild("state", new JsonValue(Vars.state.getState().name())));
-            ex(() -> value.addChild("os", new JsonValue(System.getProperty("os.name") + "x" + (OS.is64Bit ? "64" : "32"))));
+            ex(() -> value.addChild("os", new JsonValue(OS.osName + " x" + OS.osArchBits + " " + OS.osVersion)));
             ex(() -> value.addChild("trace", new JsonValue(parseException(exception))));
-            ex(() -> value.addChild("javaVersion", new JsonValue(System.getProperty("java.version"))));
-            ex(() -> value.addChild("javaArch", new JsonValue(System.getProperty("sun.arch.data.model"))));
+            ex(() -> value.addChild("javaVersion", new JsonValue(OS.javaVersion)));
+            ex(() -> value.addChild("javaArch", new JsonValue(OS.osArchBits)));
 
             Log.info("Sending crash report.");
 
             //post to crash report URL, exit code indicates send success
-            Http.post(Vars.crashReportURL, value.toJson(OutputType.json)).error(t -> {
-                Log.info("Crash report not sent.");
-                System.exit(-1);
-            }).block(r -> {
-                Log.info("Crash sent successfully.");
-                System.exit(1);
-            });
+            // Just kidding, dont do that because the client is at fault most of the time
+//            Http.post(Vars.crashReportURL, value.toJson(OutputType.json)).error(t -> {
+//                Log.info("Crash report not sent.");
+//                System.exit(-1);
+//            }).block(r -> {
+//                Log.info("Crash sent successfully.");
+//                System.exit(1);
+//            });
 
             ret();
         }catch(Throwable death){

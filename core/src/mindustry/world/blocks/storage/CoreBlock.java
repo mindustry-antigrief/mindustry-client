@@ -284,7 +284,7 @@ public class CoreBlock extends StorageBlock{
         @Override
         public void afterDestroyed(){
             if(state.rules.coreCapture){
-                tile.setBlock(block, lastDamage);
+                tile.setNet(block, lastDamage, 0);
                 //core is invincible for several seconds to prevent recapture
                 ((CoreBuild)tile.build).iframes = captureInvicibility;
             }

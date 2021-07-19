@@ -235,7 +235,6 @@ public class Blocks implements ContentList{
         magmarock = new Floor("magmarock"){{
             attributes.set(Attribute.heat, 0.75f);
             attributes.set(Attribute.water, -0.75f);
-            updateEffect = Fx.magmasmoke;
             blendGroup = basalt;
 
             emitLight = true;
@@ -369,6 +368,7 @@ public class Blocks implements ContentList{
 
         sporeCluster = new Prop("spore-cluster"){{
             variants = 3;
+            breakSound = Sounds.plantBreak;
         }};
 
         boulder = new Prop("boulder"){{
@@ -425,6 +425,9 @@ public class Blocks implements ContentList{
         darkPanel6 = new Floor("dark-panel-6", 0);
 
         darkMetal = new StaticWall("dark-metal");
+
+        Seq.with(metalFloor, metalFloorDamaged, metalFloor2, metalFloor3, metalFloor4, metalFloor5, darkPanel1, darkPanel2, darkPanel3, darkPanel4, darkPanel5, darkPanel6)
+        .each(b -> b.asFloor().wall = darkMetal);
 
         pebbles = new DoubleOverlayFloor("pebbles");
 
