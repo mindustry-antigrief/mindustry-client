@@ -491,8 +491,11 @@ public class JoinDialog extends BaseDialog{
         });
 
         Host[] hostFinal = {host};
-        if(hostFinal[0] == null) net.pingHost(ip, port, h -> hostFinal[0] = h, e -> {});
-        if(Core.settings.getBool("allowjoinany")) Version.build = hostFinal[0].version;
+
+        if(Core.settings.getBool("allowjoinany")) net.pingHost(ip, port, h -> {
+            hostFinal[0] = h;
+            Version.build = hostFinal[0].version;
+        }, e -> {});
 
         Time.runTask(2f, () -> {
             logic.reset();
