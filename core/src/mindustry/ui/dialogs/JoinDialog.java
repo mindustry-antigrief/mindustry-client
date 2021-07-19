@@ -478,6 +478,7 @@ public class JoinDialog extends BaseDialog{
     }
 
     public void connect(String ip, int port, Host host){
+        if(Core.settings.getBool("allowjoinany")) Version.build = host.version;
         if(player.name.trim().isEmpty()){
             ui.showInfo("@noname");
             return;

@@ -52,10 +52,12 @@ class Moderation {
 
     fun leftList() {
         dialog("Leaves, newest first") {
-            for (i in traces.size - 1 downTo 0) {
-                val player = traces[i]
-                cont.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace) }.wrapLabel(false)
-                cont.row()
+            cont.pane {
+                for (i in traces.size - 1 downTo 0) {
+                    val player = traces[i]
+                    it.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace) }.wrapLabel(false)
+                    it.row()
+                }
             }
             addCloseButton()
         }.show()
