@@ -16,28 +16,32 @@ _[Javadoc](https://mindustrygame.github.io/docs/)_
 ### Running The Jar On Mac
 For whatever reason, MacOS refuses to be normal. Running the jar is slightly harder, open terminal and type `java -XstartOnFirstThread -jar <jar>` where `<jar>` is the path to the jar file (just click and drag the file in).
 ## Steam
-* Windows easy installer, run this command in a CMD window [**as admin**](https://www.howtogeek.com/howto/windows-vista/run-a-command-as-administrator-from-the-windows-vista-run-box/) (replace the path if needed): `cd /d "C:\Program Files (x86)\Steam\steamapps\common\Mindustry" && del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe && curl -L -o jre\client.jar https://github.com/mindustry-antigrief/mindustry-client-v6/releases/latest/download/desktop.jar && echo Done!` then [set the game's launch options](https://support.steampowered.com/kb_article.php?ref=1040-JWMT-2947) to `/c java -jar "%cd%\jre\client.jar"`
-1. Installing the client on steam is rather easy, [download](../../releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
-2. Continue with the steps below for your operating system.
-
 ### Windows
-
-3. Move the file to the `jre` folder where the game is installed as seen [here](core/assets/steamInfo.png).
-4. Accept the file replacement prompt.
-5. Open the game, and it should work just fine.
+There are 3 methods to install the client on steam for windows.
+#### Single Command Installer
+Run this command in a CMD window [**as admin**](https://www.howtogeek.com/howto/windows-vista/run-a-command-as-administrator-from-the-windows-vista-run-box/) (replace the path if needed): `cd /d "C:\Program Files (x86)\Steam\steamapps\common\Mindustry" && del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe && curl -L -o jre\client.jar https://github.com/mindustry-antigrief/mindustry-client-v6/releases/latest/download/desktop.jar && echo Done!` then [set the game's launch options](https://support.steampowered.com/kb_article.php?ref=1040-JWMT-2947) to `/c java -jar "%cd%\jre\client.jar"`
+#### Semi Automated Install
+1. [Download](../../releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
+2. [Download](https://github.com/mindustry-antigrief/mindustry-client/blob/v7/steam_appid.txt) the `steam_appid.txt` file and place it in the same folder as the jar.
+3. Place the `desktop.jar` and `steam_appid.txt` in the same folder.
+4. Ensure steam is running and you are logged in, double click the jar and it should then open the client on steam.
+#### Manual Install
+1. [Download](../../releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
+1. Move the file to the `jre` folder where the game is installed as seen [here](core/assets/steamInfo.png).
+1. Accept the file replacement prompt.
+1. Open the game, and it should work just fine.
     1. If you don't want to do this every time the game updates, rename the new `desktop.jar` to `client.jar`, start a cmd window as **admin**, run `cd /d "C:\Program Files (x86)\Steam\steamapps\common\Mindustry" && ren jre\desktop.jar client.jar & del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe && echo Done!` (replace the path at the start if needed). Now, right click mindustry on steam, click properties then paste `/c java -jar "%cd%\jre\client.jar"` into the launch options (changing the steam path again if needed). You should no longer need to install the client every time the game updates.
 
 ### Mac OS
-
-3. Open the game install folder, right click the `Mindustry.app` file and click `Show Package Contents`.
-4. Navigate to the `Resources` folder `Contents > Resources`.
-5. Replace the `desktop.jar` with the one you just downloaded.
-6. Launching the game should now start the client.
+1. [Download](../../releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
+1. Open the game install folder, right click the `Mindustry.app` file and click `Show Package Contents`.
+1. Navigate to the `Resources` folder `Contents > Resources`.
+1. Replace the `desktop.jar` with the one you just downloaded.
+1. Launching the game should now start the client.
 - To uninstall the client, delete the `desktop.jar` file in `Resources` as well as the `Mindustry` file in the `MacOS` folder. Start the game, accept the error and start it again.
 
 ### Linux
-
-3. You are using linux, I'm sure you can figure this out yourself.
+1. You are using linux, I'm sure you can figure this out yourself.
 
 ## Contributing
 
