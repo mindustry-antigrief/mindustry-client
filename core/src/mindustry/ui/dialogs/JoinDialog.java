@@ -558,12 +558,16 @@ public class JoinDialog extends BaseDialog{
             Core.settings.remove("server-list");
         }
 
-        var url = becontrol.active() ? serverJsonBeURL : serverJsonURL;
-        Log.info("Fetching community servers at @", url);
+        loadCommunityServers(becontrol.active() ? serverJsonBeURL : serverJsonURL, true);
+    }
 
-        //get servers
+    private void loadCommunityServers(String url, boolean retryOnFail) {
+        Log.info("Fetching community servers at @", url);
         Http.get(url)
-        .error(t -> Log.err("Failed to fetch community servers", t))
+        .error(t -> {
+            Log.err("Failed to fetch community servers", t);
+            if (retryOnFail) loadCommunityServers(url, false); // Sometimes this just randomly times out the first time
+        })
         .submit(result -> {
             Jval val = Jval.read(result.getResultAsString());
             Seq<ServerGroup> servers = new Seq<>();

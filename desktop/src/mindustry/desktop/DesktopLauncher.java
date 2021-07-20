@@ -5,7 +5,7 @@ import arc.Files.*;
 import arc.backend.sdl.*;
 import arc.backend.sdl.jni.*;
 import arc.discord.*;
-import arc.discord.DiscordRPC.NoDiscordClientException;
+import arc.discord.DiscordRPC.*;
 import arc.files.*;
 import arc.func.*;
 import arc.math.*;
@@ -90,7 +90,7 @@ public class DesktopLauncher extends ClientLauncher{
     }
 
     public DesktopLauncher(String[] args){
-        boolean useSteam = Version.modifier.contains("steam");
+        boolean useSteam = Version.modifier.contains("steam") || new Fi("./steam_appid.txt").exists();
         testMobile = Seq.with(args).contains("-testMobile");
 
         add(Main.INSTANCE);
