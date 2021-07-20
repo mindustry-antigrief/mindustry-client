@@ -98,20 +98,22 @@ public class BuildPath extends Path {
             }
 
             if (timer.get(1, 300)) {
-                blocked.clear();
-                for (var turret : Navigation.obstacles) {
-                    int lowerXBound = (int)(turret.x - turret.radius) / tilesize;
-                    int upperXBound = (int)(turret.x + turret.radius) / tilesize;
-                    int lowerYBound = (int)(turret.y - turret.radius) / tilesize;
-                    int upperYBound = (int)(turret.y + turret.radius) / tilesize;
-                    for (int x = lowerXBound ; x <= upperXBound; x++) {
-                        for (int y = lowerYBound ; y <= upperYBound; y++) {
-                            if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {
-                                blocked.set(x, y);
+                clientThread.taskQueue.post(() -> {
+                    blocked.clear();
+                    for (var turret : Navigation.obstacles) {
+                        int lowerXBound = (int)(turret.x - turret.radius) / tilesize;
+                        int upperXBound = (int)(turret.x + turret.radius) / tilesize;
+                        int lowerYBound = (int)(turret.y - turret.radius) / tilesize;
+                        int upperYBound = (int)(turret.y + turret.radius) / tilesize;
+                        for (int x = lowerXBound ; x <= upperXBound; x++) {
+                            for (int y = lowerYBound ; y <= upperYBound; y++) {
+                                if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {
+                                    blocked.set(x, y);
+                                }
                             }
                         }
                     }
-                }
+                });
             }
             clearQueue(broken);
             clearQueue(boulders);
