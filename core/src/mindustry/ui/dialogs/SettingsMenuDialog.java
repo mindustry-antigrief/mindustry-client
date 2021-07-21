@@ -27,6 +27,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.ui.*;
+import mindustry.world.blocks.*;
 
 import java.io.*;
 import java.util.zip.*;
@@ -55,6 +56,7 @@ public class SettingsMenuDialog extends Dialog{
                 if(!wasPaused || Vars.net.active())
                     state.set(State.playing);
             }
+            ConstructBlock.updateWarnBlocks(); // FINISHME: Horrible
         });
 
         shown(() -> {

@@ -1,6 +1,7 @@
 package mindustry.client.navigation;
 
 import arc.*;
+import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
@@ -35,6 +36,11 @@ public class BuildPath extends Path {
     GridBits blocked = new GridBits(world.width(), world.height());
     int radius = Core.settings.getInt("defaultbuildpathradius");
     Position origin = player;
+    private static final ObjectMap<Block, Block> upgrades = ObjectMap.of(
+        Blocks.conveyor, Blocks.titaniumConveyor,
+        Blocks.conduit, Blocks.pulseConduit,
+        Blocks.mechanicalDrill, Blocks.pneumaticDrill
+    );
 
     @SuppressWarnings("unchecked")
     public BuildPath() {
@@ -164,9 +170,15 @@ public class BuildPath extends Path {
                     } else if ((queues.contains(belts) || queues.contains(drills)) && tile.team() == player.team() && tile.build != null && tile.isCenter()) {
                         Block block = tile.build instanceof ConstructBlock.ConstructBuild b ? b.previous : tile.block();
 
-                        if (queues.contains(belts) && block == Blocks.conveyor) belts.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, Blocks.titaniumConveyor));
-                        else if (queues.contains(belts) && block == Blocks.conduit) belts.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, Blocks.pulseConduit));
-                        else if (queues.contains(drills) && block == Blocks.mechanicalDrill) drills.add(new BuildPlan(tile.x, tile.y, 0, Blocks.pneumaticDrill));
+                        if (upgrades.containsKey(block)) {
+                            Block upgrade = upgrades.get(block);
+                            if (Structs.contains(upgrade.requirements, i -> !core.items.has(i.item, 100) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0 && !(tile.build instanceof ConstructBlock.ConstructBuild))) continue;
+                            if (block == Blocks.mechanicalDrill) {
+                                drills.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, upgrade));
+                            } else {
+                                belts.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, upgrade));
+                            }
+                        }
                     }
                 }
             }

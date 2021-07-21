@@ -48,6 +48,7 @@ public class ConstructBlock extends Block{
     private static int pitchSeq = 0;
     private static long lastPlayed;
     private static Toast toast = null;
+    private static final Seq<Block> breakWarnBlocks = Seq.with(Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid); // All blocks that shouldn't be broken. Note: Untested with multiblocks, likely to behave in a strange manner.
 
     public ConstructBlock(int size){
         super("build" + size);
@@ -93,9 +94,7 @@ public class ConstructBlock extends Block{
     public static void breakWarning(Tile tile, Block block, Unit builder){
         if (!Core.settings.getBool("breakwarnings") || !tile.isCenter() || state.rules.infiniteResources || builder == null || !builder.isPlayer()) return; // Don't warn in sandbox for obvious reasons.
 
-        Seq<Block> warnBlocks = Seq.with(Blocks.powerSource, Blocks.powerVoid, Blocks.itemSource, Blocks.itemVoid, Blocks.liquidSource, Blocks.liquidVoid); // All blocks that shouldn't be broken. Note: Untested with multiblocks, likely to behave in a strange manner.
-
-        if (warnBlocks.contains(block) && Time.timeSinceMillis(tile.lastBreakWarn) > 10_000) { // FINISHME: Revise this, maybe do break warns per user?
+        if (breakWarnBlocks.contains(block) && Time.timeSinceMillis(tile.lastBreakWarn) > 10_000) { // FINISHME: Revise this, maybe do break warns per user?
             Timer.schedule(() -> ui.chatfrag.addMessage(Core.bundle.format("client.breakwarn", Strings.stripColors(builder.getPlayer().name), block.localizedName, tile.x, tile.y), null), 0, 0, 2);
             tile.lastBreakWarn = Time.millis();
         }
@@ -203,6 +202,17 @@ public class ConstructBlock extends Block{
         return true;
     }
 
+    private static ObjectMap<Block, Pair<Integer, Integer>> warnBlocks;
+    static { Events.on(ClientLoadEvent.class, e -> updateWarnBlocks()); }
+    public static void updateWarnBlocks() {
+        warnBlocks = ObjectMap.of( // Block, Pair<warndist, sounddist> (0 = off, 101 = always)
+            Blocks.thoriumReactor, new Pair<>(Core.settings.getInt("reactorwarningdistance"), Core.settings.getInt("reactorsounddistance")),
+            Blocks.incinerator, new Pair<>(Core.settings.getInt("incineratorwarningdistance"), Core.settings.getInt("incineratorsounddistance")),
+            Blocks.melter, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")),
+            Blocks.oilExtractor, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")),
+            Blocks.sporePress, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance"))
+        );
+    }
     public class ConstructBuild extends Building{
         /** The recipe of the block that is being (de)constructed. Never null. */
         public Block current = Blocks.air;
@@ -496,13 +506,6 @@ public class ConstructBlock extends Block{
 
         public void blockWarning(Object config) { // FINISHME: Account for non player building stuff
             if (!wasConstructing || closestCore() == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
-
-            Map<Block, Pair<Integer, Integer>> warnBlocks = new HashMap<>(); // Block, warndist, sounddist (0 = off, 101 = always)
-            warnBlocks.put(Blocks.thoriumReactor, new Pair<>(Core.settings.getInt("reactorwarningdistance"), Core.settings.getInt("reactorsounddistance")));
-            warnBlocks.put(Blocks.incinerator, new Pair<>(Core.settings.getInt("incineratorwarningdistance"), Core.settings.getInt("incineratorsounddistance")));
-            warnBlocks.put(Blocks.melter, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")));
-            warnBlocks.put(Blocks.oilExtractor, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")));
-            warnBlocks.put(Blocks.sporePress, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")));
 
             if (warnBlocks.containsKey(current)) {
                 lastBuilder.drawBuildPlans(); // Draw their build plans FINISHME: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
