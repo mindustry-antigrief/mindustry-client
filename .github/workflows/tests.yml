@@ -26,7 +26,8 @@ jobs:
 
       - name: Run Tests
         run: |
-          echo "COMMIT=${GITHUB_SHA::8}" >> $GITHUB_ENV
+          echo "SLUG=${GITHUB_SHA::8}" >> $GITHUB_ENV
+          echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
           export PATH=./tools:$PATH
           chmod +x ./tools/antialias
           ./gradlew tools:pack test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client-v7-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel -PfastAA
@@ -38,7 +39,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           body: |
-            Foo's Client Unstable ${{ github.run_number }} (${{ env.COMMIT }})
+            Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/mindustry-antigrief/mindustry-client/commit/${{ env.COMMIT }})
             Steam installation instructions [here](../../../mindustry-client-v6#steam)
             **Commit Message:**
             *${{ github.event.head_commit.message }}*
