@@ -38,7 +38,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           body: |
-            Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/mindustry-antigrief/mindustry-client/commit/${{github.sha}})
+            Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/mindustry-antigrief/mindustry-client/commit/ ${{github.sha}} )
             Steam installation instructions [here](../../../mindustry-client-v6#steam)
             **Commit Message:**
             *${{ github.event.head_commit.message }}*
@@ -68,13 +68,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           body: |
-            Foo's Client Unstable ${{ github.run_number }} (${{ env.COMMIT }})
+            Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/mindustry-antigrief/mindustry-client/commit/ ${{github.sha}} )
             Steam installation instructions [here](../../../mindustry-client-v6#steam)
             **Commit Message:**
             *${{ github.event.head_commit.message }}*
           commitish: main
           tag_name: ${{ github.run_number }}
-          release_name: Unstable ${{ github.run_number }} (${{ env.COMMIT }})
+          release_name: Unstable ${{ github.run_number }} (${{ env.SLUG }})
           repo: mindustry-client-v7-builds
           draft: false
           prerelease: false
