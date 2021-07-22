@@ -148,7 +148,7 @@ public class UnitFactory extends UnitBlock{
         }
 
         public float ticksRemaining(){
-            return currentPlan == -1 ? 0 : (plans.get(currentPlan).time - progress) / timeScale / Vars.state.rules.unitBuildSpeedMultiplier;
+            return currentPlan == -1 ? 0 : (plans.get(currentPlan).time - progress) / efficiency() / timeScale / Vars.state.rules.unitBuildSpeedMultiplier;
         }
 
         @Override

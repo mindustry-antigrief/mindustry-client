@@ -3,6 +3,7 @@
 # Version 8.0
  * Updated to v7
  * Many systems reworked/improved internally due to changes in the game's code
+ * Numerous bug fixes
  * Improved ctrl + f speed significantly
  * Made nydus launch pad bullets not render (the servers till sends tons of packets so it still kills wifi but oh well)
  * Fixed a problem with navigation that could cause it to not work correctly when playing the flood gamemode
@@ -10,7 +11,11 @@
  * Ctrl clicking a name in the player list will copy a simple js script to get the player: Groups.player.getByID(id)
  * Added a setting to hide banned blocks from the block list.
  * The !cc command will now state current command center status when run without arguments
-
+ * Added !clearghosts to remove the plans of broken blocks that are within turret range
+ * Added !admin for moderation settings and information on players who have left since you joined
+ * Upgrades to the MinePath & BuildPath that allows you to automatically switch between them when the core has a specified number of items
+ * A radius option for the BuildPath that allows to only build/upgrade within x blocks of the spot where the command is run
+ * An item limit on BuildPath's drills and belts options, they will do nothing if the core has less than 100 of any of the needed items
 
 # Version 7.3.0
  * Fixed an issue in buildpath where !builder belts and !builder drill would only partially upgrade each building

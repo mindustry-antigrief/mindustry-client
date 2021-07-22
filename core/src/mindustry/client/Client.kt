@@ -16,7 +16,6 @@ import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.obstacles
 import mindustry.client.ui.*
 import mindustry.client.utils.*
-import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
 import mindustry.entities.units.*
@@ -24,6 +23,7 @@ import mindustry.gen.*
 import mindustry.input.*
 import mindustry.net.*
 import mindustry.world.blocks.power.*
+import mindustry.world.blocks.units.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -163,20 +163,19 @@ object Client {
 
         register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
             if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
-                player.sendMessage("${Core.bundle.get("client.command.cc.invalid")} It is currently set to: ${player.team().data().command.localized()}") // FINISHME: Localize
+                player.sendMessage(Core.bundle.format("client.command.cc.invalid", player.team().data().command.localized()))
                 return@register
             }
-            for (tile in world.tiles) { // FINISHME: Use block indexer to find block (use finddialog for reference)
-                if (tile?.build == null || tile.build.team != player.team() || tile.block() != Blocks.commandCenter) continue
-                Call.tileConfig(player, tile.build, when (args[0].toLowerCase()[0]) {
+
+            val cc = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) { t -> t is CommandCenter.CommandBuild }
+            if (cc != null) {
+                Call.tileConfig(player, cc, when (args[0].toLowerCase()[0]) {
                     'a' -> UnitCommand.attack
                     'r' -> UnitCommand.rally
                     else -> UnitCommand.idle
                 })
                 player.sendMessage(Core.bundle.format("client.command.cc.success", args[0]))
-                return@register
-            }
-            player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
+            } else player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
         }
 
         register("togglesign", Core.bundle.get("client.command.togglesign.description")) { _, player ->
@@ -225,7 +224,7 @@ object Client {
                     }
                 }
                 if (confirmed) {
-                    if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.")
+                    if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
                     else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n))
                 } else {
                     player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, PowerGraph.activeGraphs.size))

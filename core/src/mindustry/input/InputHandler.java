@@ -380,7 +380,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         build.configured(player == null || player.dead() ? null : player.unit(), value);
         Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
 
-        if(player != null){ // TODO: Move all this client stuff into the ClientLogic class
+        if(player != null){ // FINISHME: Move all this client stuff into the ClientLogic class
             if(Navigation.currentlyFollowing instanceof UnAssistPath path){
                 if(path.assisting == player){
                     ClientVars.configs.add(new ConfigRequest(build.tileX(), build.tileY(), previous));
