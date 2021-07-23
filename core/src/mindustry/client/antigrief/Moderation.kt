@@ -9,17 +9,18 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.net.*
 import mindustry.ui.*
+import java.util.*
 
 // FINISHME: Heavily work in progress mod logs
 class Moderation {
-    private val traces = mutableListOf<Player>() // last people to leave
+    private val traces = Collections.synchronizedList(mutableListOf<Player>()) // last people to leave
 
     init {
         Events.on(EventType.PlayerLeave::class.java) { e ->
             e.player ?: return@on
             e.player.trace ?: return@on
 
-            traces.forEach { p -> if (p.trace.uuid == e.player.uuid()) traces.remove(p) }
+            traces.forEach { p -> if (p.trace.uuid == e.player.trace.uuid || p.trace.ip == e.player.trace.ip) traces.remove(p) }
             while (traces.size >= Core.settings.getInt("leavecount")) traces.removeFirst() // Keep 100 latest leaves
             traces.add(e.player)
         }

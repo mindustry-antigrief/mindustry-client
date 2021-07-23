@@ -71,7 +71,7 @@ public class MinePath extends Path {
         Item item = items.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
         if (item == null) return;
 
-        if (core.items.get(item) >= core.storageCapacity || cap != 0 && core.items.get(item) > cap) Navigation.follow(new BuildPath(items, core.items.get(item) >= core.storageCapacity ? core.storageCapacity : cap)); // Start building when the core has over 1000 of everything.
+        if (core.items.get(item) >= core.storageCapacity || cap != 0 && core.items.get(item) > cap) Navigation.follow(new BuildPath(items, cap == 0 ? core.storageCapacity : cap)); // Start building when the core has over 1000 of everything.
 
         if (player.unit().maxAccepted(item) == 0) { // drop off
             if (player.within(core, itemTransferRange - tilesize * 2) && timer.get(30)) {

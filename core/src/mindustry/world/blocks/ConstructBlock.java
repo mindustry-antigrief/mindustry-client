@@ -520,7 +520,7 @@ public class ConstructBlock extends Block{
                 }
 
                 if (warnBlocks.get(current).first == 101 || distance.get() <= warnBlocks.get(current).first) {
-                    String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.playerNonNull().name), current.localizedName, tileX(), tileY(), distance.get());
+                    String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.playerNonNull().name), current.localizedName, tile.x, tile.y, distance.get());
                     String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
                     if (toast == null || toast.parent == null) {
                         toast = new Toast(2f, 0f);
@@ -533,12 +533,12 @@ public class ConstructBlock extends Block{
                     toast.add(new Label(format2, monoLabel));
                     toast.touchable = Touchable.enabled;
                     toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
-                    ClientVars.lastSentPos.set(tileX(), tileY());
+                    ClientVars.lastSentPos.set(tile.x, tile.y);
                 }
 
                 if (lastProgress == 0 && Core.settings.getBool("removecorenukes") && state.rules.reactorExplosions && current instanceof NuclearReactor && !lastBuilder.isLocal() && distance.get() <= 20) { // Automatically remove reactors within 20 blocks of core
                     Call.buildingControlSelect(player, closestCore());
-                    Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tileX(), tileY())), net.client() ? netClient.getPing()/1000f+.3f : 0);
+                    Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tile.x, tile.y)), net.client() ? netClient.getPing()/1000f+.3f : 0);
                 }
             }
             lastProgress = progress;
