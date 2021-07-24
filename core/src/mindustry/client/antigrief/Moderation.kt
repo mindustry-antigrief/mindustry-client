@@ -32,6 +32,7 @@ class Moderation {
         }
     }
 
+    @Synchronized
     fun addInfo(player: Player, info: Administration.TraceInfo) {
         // FINISHME: Integrate these with join/leave messages
         if (Time.timeSinceMillis(ClientVars.lastJoinTime) > 10000 && player.trace == null) {
@@ -59,7 +60,7 @@ class Moderation {
                     it.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace) }.wrapLabel(false)
                     it.row()
                 }
-            }
+            }.fillY()
             addCloseButton()
         }.show()
     }

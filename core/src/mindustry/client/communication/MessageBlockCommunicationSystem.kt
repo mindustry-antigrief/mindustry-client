@@ -13,6 +13,7 @@ import mindustry.gen.*
 import mindustry.logic.*
 import mindustry.world.blocks.logic.*
 import java.io.*
+import kotlin.math.*
 
 object MessageBlockCommunicationSystem : CommunicationSystem() {
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
@@ -21,7 +22,7 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
         return Vars.player.id
     }
     private var logicAvailable = false
-    override val MAX_LENGTH get() = if (logicAvailable) Base32768Coder.availableBytes((LExecutor.maxInstructions - 3) * MAX_PRINT_LENGTH) else
+    override val MAX_LENGTH get() = if (logicAvailable) Base32768Coder.availableBytes(min(4000, (LExecutor.maxInstructions - 3) * MAX_PRINT_LENGTH)) else
         Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - ClientVars.MESSAGE_BLOCK_PREFIX.length)
     override val RATE: Float = 30f // 500ms
 

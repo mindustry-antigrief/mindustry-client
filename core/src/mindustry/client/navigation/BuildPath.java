@@ -35,7 +35,7 @@ public class BuildPath extends Path {
     private int cap;
     GridBits blocked = new GridBits(world.width(), world.height());
     int radius = Core.settings.getInt("defaultbuildpathradius");
-    Position origin = player;
+    Vec2 origin = new Vec2(player.x, player.y);
     private static final ObjectMap<Block, Block> upgrades = ObjectMap.of(
         Blocks.conveyor, Blocks.titaniumConveyor,
         Blocks.conduit, Blocks.pulseConduit,
