@@ -9,11 +9,11 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.net.*
 import mindustry.ui.*
-import java.util.*
+import java.util.concurrent.*
 
 // FINISHME: Heavily work in progress mod logs
 class Moderation {
-    private val traces = Collections.synchronizedList(mutableListOf<Player>()) // last people to leave
+    private val traces = CopyOnWriteArrayList<Player>() // last people to leave
 
     init {
         Events.on(EventType.PlayerLeave::class.java) { e ->
@@ -32,7 +32,6 @@ class Moderation {
         }
     }
 
-    @Synchronized
     fun addInfo(player: Player, info: Administration.TraceInfo) {
         // FINISHME: Integrate these with join/leave messages
         if (Time.timeSinceMillis(ClientVars.lastJoinTime) > 10000 && player.trace == null) {
