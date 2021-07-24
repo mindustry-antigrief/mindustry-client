@@ -21,6 +21,7 @@ import mindustry.ui.*;
 import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class NuclearReactor extends PowerGenerator{
@@ -83,6 +84,7 @@ public class NuclearReactor extends PowerGenerator{
 
     @Override
     public void drawRequestConfigTop(BuildPlan req, Eachable<BuildPlan> list){
+        if (!settings.getBool("showreactors", true)) return;
         Drawf.dashCircle(req.drawx(), req.drawy(), explosionRadius * tilesize, Color.coral);
     }
 

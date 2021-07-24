@@ -16,6 +16,7 @@
  * Upgrades to the MinePath & BuildPath that allows you to automatically switch between them when the core has a specified number of items
  * A radius option for the BuildPath that allows to only build/upgrade within x blocks of the spot where the command is run
  * An item limit on BuildPath's drills and belts options, they will do nothing if the core has less than 100 of any of the needed items
+ * Reactors now show their range when being placed, press f9 to toggle this.
 
 # Version 7.3.0
  * Fixed an issue in buildpath where !builder belts and !builder drill would only partially upgrade each building

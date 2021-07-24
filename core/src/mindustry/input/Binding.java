@@ -83,6 +83,7 @@ public enum Binding implements KeyBind{
     show_turret_ranges(KeyCode.backtick),
     hide_blocks(KeyCode.i),
     invisible_units(KeyCode.o),
+    show_reactor_ranges(KeyCode.f9),
     toggle_placement_modifiers(KeyCode.shiftLeft),
     chat_autocomplete(KeyCode.tab),
     auto_build(KeyCode.semicolon),

@@ -251,15 +251,19 @@ public class DesktopInput extends InputHandler{
 
         conveyorPlaceNormal = input.keyDown(Binding.toggle_placement_modifiers);
 
-        // Holding o hides units, pressing shift + o inverts the state; holding o will now show them.
-        if ((input.keyTap(Binding.invisible_units) || (input.keyRelease(Binding.invisible_units) && !input.shift())) && scene.getKeyboardFocus() == null) {
-            hidingUnits = !hidingUnits;
-        }
-
         if(Navigation.state == NavigationState.RECORDING){
             if(input.keyTap(Binding.place_waypoint) && scene.getKeyboardFocus() == null){
                 Navigation.addWaypointRecording(new PositionWaypoint(player.x, player.y));
             }
+        }
+
+        // Holding o hides units, pressing shift + o inverts the state; holding o will now show them.
+        if((input.keyTap(Binding.invisible_units) || (input.keyRelease(Binding.invisible_units) && !input.shift())) && scene.getKeyboardFocus() == null){
+            hidingUnits = !hidingUnits;
+        }
+
+        if(input.keyTap(Binding.show_reactor_ranges)){
+            settings.put("showreactors", !settings.getBool("showreactors", true));
         }
 
         if(input.keyTap(Binding.show_turret_ranges) && scene.getKeyboardFocus() == null){

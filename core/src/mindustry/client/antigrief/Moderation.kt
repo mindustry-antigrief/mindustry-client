@@ -59,7 +59,7 @@ class Moderation {
                     it.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace) }.wrapLabel(false)
                     it.row()
                 }
-            }.fillY()
+            }.growY()
             addCloseButton()
         }.show()
     }
