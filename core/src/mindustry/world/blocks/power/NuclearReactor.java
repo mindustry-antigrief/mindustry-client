@@ -11,6 +11,7 @@ import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.entities.*;
+import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -78,6 +79,11 @@ public class NuclearReactor extends PowerGenerator{
     public void drawPlace(int x, int y, int rotation, boolean valid) {
         super.drawPlace(x, y, rotation, valid);
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, explosionRadius * tilesize, Color.coral);
+    }
+
+    @Override
+    public void drawRequestConfigTop(BuildPlan req, Eachable<BuildPlan> list){
+        Drawf.dashCircle(req.drawx(), req.drawy(), explosionRadius * tilesize, Color.coral);
     }
 
     public class NuclearReactorBuild extends GeneratorBuild{
