@@ -368,10 +368,10 @@ public class BlockRenderer{
         }
         if (ClientVars.showingTurrets) {
             Draw.z(Layer.space);
-            Rect bounds = new Rect();
-            Core.camera.bounds(bounds);
+            var bounds = camera.bounds(Tmp.r3).grow(tilesize);
+            boolean units = settings.getBool("unitranges");
             obstacles.forEach(t -> {
-                if (!t.canShoot || !(settings.getBool("unitranges") || t.turret) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius*2, t.radius*2)) return;
+                if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius*2, t.radius*2)) return;
                 Drawf.dashCircle(t.x, t.y, t.radius - tilesize, t.canHitPlayer ? t.team.color : Team.derelict.color);
             });
         }

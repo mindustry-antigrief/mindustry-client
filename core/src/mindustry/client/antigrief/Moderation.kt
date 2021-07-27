@@ -56,7 +56,7 @@ class Moderation {
             cont.pane {
                 for (i in traces.size - 1 downTo 0) {
                     val player = traces[i]
-                    it.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace) }.wrapLabel(false)
+                    it.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace) }.wrapLabel(false).minWidth(100f)
                     it.row()
                 }
             }.growY()

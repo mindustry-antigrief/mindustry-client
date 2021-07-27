@@ -28,7 +28,10 @@ data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int)
     override fun iterator(): Iterator<Point2i> = IntRectIterator(this)
 }
 
+var lastID: Long = 0
 abstract class TileLog(val position: IntRectangle, override val cause: Interactor) : InteractionLog {
+    val id: Long = lastID++
+
     override val time: Instant = Instant.now()
 
     companion object {
@@ -128,6 +131,14 @@ class TileRecord(val x: Int, val y: Int) {
         }
     }
 
+    fun oldestLog(sequence: TileLogSequence): TileLog? {
+        return if (sequence.logs.isNotEmpty()) sequence.logs[0] else null
+    }
+
+    fun oldestSequence(): TileLogSequence? {
+        return if (logs.isInitialized()) logs.value[0] else null
+    }
+
     fun toElement(): Element {
         val table = Table()
         table.add(Core.bundle.format("client.logfor", x, y)).top()
@@ -174,7 +185,7 @@ class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, var conf
     override fun add(sequence: TileLogSequence) {
         Core.app.post {
             configuration = Vars.world.tile(position.x, position.y)?.build?.config()
-            sequence.logs.add(this)
+            super.add(sequence)
         }
     }
 

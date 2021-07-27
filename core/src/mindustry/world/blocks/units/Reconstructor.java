@@ -115,7 +115,7 @@ public class Reconstructor extends UnitBlock{
         }
 
         public float ticksRemaining(){
-            return efficiency() == 0 ? 0 : (constructTime - progress) / efficiency() / timeScale / Vars.state.rules.unitBuildSpeedMultiplier;
+            return efficiency() <= 0.01 ? 0 : (constructTime - progress) / efficiency() / timeScale / Vars.state.rules.unitBuildSpeedMultiplier;
         }
 
         @Override

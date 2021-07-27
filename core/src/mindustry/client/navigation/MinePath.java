@@ -4,7 +4,6 @@ import arc.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.navigation.waypoints.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -46,7 +45,7 @@ public class MinePath extends Path {
                 else player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
             }
         }
-        if (items.isEmpty()) {
+        if (items.isEmpty() && cap == Core.settings.getInt("minepathcap")) { // FINISHME: This way of detecting a cap is jank
             player.sendMessage(Core.bundle.get("client.path.miner.allinvalid"));
             items = player.team().data().mineItems;
         } else {
@@ -78,7 +77,7 @@ public class MinePath extends Path {
                 Call.transferInventory(player, core);
             } else {
                 if (player.unit().type.canBoost) player.boosting = true;
-                new PositionWaypoint(core.x, core.y, itemTransferRange - tilesize * 4, itemTransferRange - tilesize * 4).run();
+                waypoint.set(core.x, core.y, itemTransferRange - tilesize * 4, itemTransferRange - tilesize * 4).run();
             }
 
         } else { // mine
@@ -87,7 +86,7 @@ public class MinePath extends Path {
             if (tile == null) return;
 
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 2); // FINISHME: Distance based on formation radius rather than just moving super close
-            new PositionWaypoint(tile.getX(), tile.getY(), tilesize, tilesize).run();
+            waypoint.set(tile.getX(), tile.getY(), tilesize, tilesize).run();
         }
     }
 

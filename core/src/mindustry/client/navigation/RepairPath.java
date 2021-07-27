@@ -2,7 +2,6 @@ package mindustry.client.navigation;
 
 import arc.math.geom.*;
 import arc.util.*;
-import mindustry.client.navigation.waypoints.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 
@@ -32,7 +31,7 @@ public class RepairPath extends Path {
         delay.reset(0, 0);
         player.shooting(player.unit().inRange(build));
         player.unit().aimLook(build);
-        new PositionWaypoint(build.x, build.y, 16, 16).run(); // FINISHME: Distance based on formation size?
+        waypoint.set(build.x, build.y, 16, 16).run(); // FINISHME: Distance based on formation size?
     }
 
     @Override

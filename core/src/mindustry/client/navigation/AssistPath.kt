@@ -2,9 +2,7 @@ package mindustry.client.navigation
 
 import arc.*
 import arc.math.geom.*
-import mindustry.Vars.*
-import mindustry.client.*
-import mindustry.client.navigation.waypoints.*
+import mindustry.Vars.player
 import mindustry.gen.*
 import kotlin.math.*
 
@@ -35,7 +33,7 @@ class AssistPath(private val assisting: Player?) : Path() {
                 player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY())
             }
         } catch (ignored: Exception) {}
-        PositionWaypoint(assisting.x, assisting.y, tolerance, tolerance).run()
+        waypoint.set(assisting.x, assisting.y, tolerance, tolerance).run()
 
 
         if (player.unit() is Minerc && assisting.unit() is Minerc) { // Code stolen from formationAi.java, matches player mine state to assisting

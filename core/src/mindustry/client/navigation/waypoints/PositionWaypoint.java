@@ -10,10 +10,13 @@ import mindustry.client.navigation.*;
 import static mindustry.Vars.*;
 
 public class PositionWaypoint extends Waypoint implements Position {
-    private final float drawX, drawY;
+    private float drawX, drawY;
     public float tolerance = 16f;
     public float distance = 0f;
     Vec2 vec = new Vec2();
+
+    public PositionWaypoint() {
+    }
 
     public PositionWaypoint(float drawX, float drawY) {
         this.drawX = drawX;
@@ -29,6 +32,18 @@ public class PositionWaypoint extends Waypoint implements Position {
         this(drawX, drawY);
         this.tolerance = tolerance;
         this.distance = distance;
+    }
+
+    public PositionWaypoint set(float drawX, float drawY){
+        return set(drawX, drawY, 16, 0);
+    }
+
+    public PositionWaypoint set(float drawX, float drawY, float tolerance, float distance){
+        this.drawX = drawX;
+        this.drawY = drawY;
+        this.tolerance = tolerance;
+        this.distance = distance;
+        return this;
     }
 
     @Override

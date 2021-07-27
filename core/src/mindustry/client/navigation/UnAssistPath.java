@@ -4,7 +4,6 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.client.navigation.waypoints.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.world.*;
@@ -54,15 +53,15 @@ public class UnAssistPath extends Path {
                     }
                 }
             }
-        } catch(Exception e){Log.info(e.getMessage());}
+        } catch(Exception e) { Log.info(e.getMessage()); }
 
-        new PositionWaypoint(assisting.x, assisting.y, 0f).run();
-        if (Vars.player.unit() instanceof Builderc) {
-            ((Builderc) Vars.player.unit()).clearBuilding();
+        waypoint.set(assisting.x, assisting.y, 0f, 0f).run();
+        if (Vars.player.unit() != null) {
+            Vars.player.unit().clearBuilding();
             IntSet contains = new IntSet();
             toUndo = toUndo.filter(plan -> {
                 int pos = Point2.pack(plan.x, plan.y);
-                if (contains.contains(pos)){
+                if (contains.contains(pos)) {
                     return false;
                 } else {
                     contains.add(pos);

@@ -77,6 +77,11 @@ object TileRecords {
 
     fun show(tile: Tile) {
         dialog("Logs") {
+            hidden {
+                for (i in 0..children.size) children[i] = null
+                this.remove()
+                this.clear()
+            }
             cont.add(TileRecords[tile]?.toElement())
             addCloseButton()
         }.show()

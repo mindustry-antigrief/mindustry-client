@@ -2,11 +2,13 @@ package mindustry.client.navigation;
 
 import arc.math.geom.*;
 import arc.struct.*;
+import mindustry.client.navigation.waypoints.*;
 
 /** A way of representing a path */
 public abstract class Path {
     private final Seq<Runnable> listeners = new Seq<>();
     public boolean repeat = false;
+    static PositionWaypoint waypoint = new PositionWaypoint(); // Use this for paths that require one point, dont allocate more than we need to
 
     public void init() {
     }

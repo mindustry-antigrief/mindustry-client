@@ -14,6 +14,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.pooling.*;
 import mindustry.*;
 import mindustry.ai.types.*;
 import mindustry.client.*;
@@ -213,12 +214,12 @@ public class DesktopInput extends InputHandler{
                     Draw.reset();
                 }
 
-            }else if(mode == payloadPlace){
-                if(player.unit() instanceof Payloadc){
-                    Payload payload = ((Payloadc)player.unit()).hasPayload() ? ((Payloadc)player.unit()).payloads().peek() : null;
+            }else if(mode == payloadPlace){ // FINISHME: Refactor
+                if(player.unit() instanceof Payloadc pay){
+                    Payload payload = pay.hasPayload() ? pay.payloads().peek() : null;
                     if(payload != null){
-                        if(payload instanceof BuildPayload){
-                            Block block = ((BuildPayload)payload).block();
+                        if(payload instanceof BuildPayload build){
+                            Block block = build.block();
                             boolean wasVisible = block.isVisible();
                             if (!wasVisible) state.rules.revealedBlocks.add(block);
                             drawRequest(cursorX, cursorY, block, 0);
@@ -229,7 +230,7 @@ public class DesktopInput extends InputHandler{
                                 Navigation.follow(new WaypointPath(new Seq<>(new Waypoint[]{new PositionWaypoint(player.x, player.y), new PayloadDropoffWaypoint(cursorX, cursorY)})));
                                 NavigationState previousState = Navigation.state;
                                 Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
-                                mode = ((Payloadc)player.unit()).payloads().size > 1 ? payloadPlace : none; // Disable payloadplace mode if this is the only payload.
+                                mode = pay.payloads().size > 1 ? payloadPlace : none; // Disable payloadplace mode if this is the only payload.
                             }
                             if (!wasVisible) state.rules.revealedBlocks.remove(block);
                         }
@@ -253,7 +254,7 @@ public class DesktopInput extends InputHandler{
 
         if(Navigation.state == NavigationState.RECORDING){
             if(input.keyTap(Binding.place_waypoint) && scene.getKeyboardFocus() == null){
-                Navigation.addWaypointRecording(new PositionWaypoint(player.x, player.y));
+                Navigation.addWaypointRecording(Pools.obtain(PositionWaypoint.class, PositionWaypoint::new).set(player.x, player.y));
             }
         }
 

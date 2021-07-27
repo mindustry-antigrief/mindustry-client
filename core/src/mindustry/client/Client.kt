@@ -293,6 +293,26 @@ object Client {
                 else player.sendMessage("[accent]Found $n (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
             }
         }
+
+        register("removelast [count]", "Horrible and inefficient command to remove the x oldest tile logs") { args, _ ->
+            clientThread.taskQueue.post {
+                val count = if (args.isEmpty()) 1 else args[0].toInt()
+                lateinit var record: TileRecord
+                lateinit var sequence: TileLogSequence
+                lateinit var log: TileLog
+                for (i in 1..count) {
+                    val logs = mutableMapOf<TileLogSequence, Long>()
+                    world.tiles.eachTile { t ->
+                        record = TileRecords[t] ?: return@eachTile
+                        sequence = record.oldestSequence() ?: return@eachTile
+                        log = record.oldestLog(sequence) ?: return@eachTile
+
+                        logs[sequence] = log.id
+                    }
+                    logs.minByOrNull { it.value }?.key?.logs?.removeAt(0) ?: return@post
+                }
+            }
+        }
     }
 
     /** Registers a command.

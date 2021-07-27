@@ -275,7 +275,7 @@ public class HudFragment extends Fragment{
                 if(android){
                     info.label(() -> memnative.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)(Core.app.getNativeHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory2");
                 }else{
-                    info.label(() -> mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory");
+                    info.label(() -> mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)((Runtime.getRuntime().maxMemory() - Core.app.getJavaHeap()) / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory");
                 }
                 info.row();
 

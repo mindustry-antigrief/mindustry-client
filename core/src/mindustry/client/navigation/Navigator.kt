@@ -2,6 +2,7 @@ package mindustry.client.navigation
 
 import arc.math.geom.*
 import mindustry.Vars.*
+import mindustry.client.navigation.waypoints.*
 import mindustry.game.*
 
 /** An abstract class for a navigation algorithm, i.e. A*.  */
@@ -20,9 +21,9 @@ abstract class Navigator {
         width: Float,
         height: Float,
         blocked: (Int, Int) -> Boolean
-    ): Array<Vec2>
+    ): Array<PositionWaypoint>
 
-    fun navigate(start: Vec2, end: Vec2, obstacles: Array<TurretPathfindingEntity>): Array<Vec2> {
+    fun navigate(start: Vec2, end: Vec2, obstacles: Array<TurretPathfindingEntity>): Array<PositionWaypoint> {
         start.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
         end.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
         val realObstacles = mutableListOf<Circle>()

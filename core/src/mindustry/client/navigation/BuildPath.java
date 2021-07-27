@@ -7,7 +7,6 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.formations.*;
 import mindustry.client.*;
-import mindustry.client.navigation.waypoints.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -237,7 +236,7 @@ public class BuildPath extends Path {
                 Formation formation = player.unit().formation;
                 float range = buildingRange - player.unit().hitSize()/2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.radius();
-                new PositionWaypoint(req.getX(), req.getY(), 0, range).run();
+                waypoint.set(req.getX(), req.getY(), 0, range).run();
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();
