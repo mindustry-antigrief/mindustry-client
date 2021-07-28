@@ -22,6 +22,7 @@ public class StorageBlock extends Block{
         destructible = true;
         group = BlockGroup.transportation;
         flags = EnumSet.of(BlockFlag.storage);
+        allowResupply = true;
     }
 
     @Override
@@ -81,6 +82,12 @@ public class StorageBlock extends Block{
         @Override
         public int getMaximumAccepted(Item item){
             return itemCapacity;
+        }
+
+        @Override
+        public int explosionItemCap(){
+            //when linked to a core, containers/vaults are made significantly less explosive.
+            return linkedCore != null ? Math.min(itemCapacity/60, 6) : itemCapacity;
         }
 
         @Override

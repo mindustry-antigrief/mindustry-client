@@ -343,15 +343,15 @@ public class Weather extends UnlockableContent{
         @Override
         public void draw(){
             float alpha = Core.settings.getInt("weatheropacity") / 100f;
-            if(renderer.weatherAlpha() > 0.0001f && alpha > 0 && renderer.drawWeather){
+            if(renderer.weatherAlpha > 0.0001f && alpha > 0 && renderer.drawWeather){
                 Draw.draw(Layer.weather, () -> {
-                    Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier * alpha);
+                    Draw.alpha(renderer.weatherAlpha * opacity * weather.opacityMultiplier * alpha);
                     weather.drawOver(self(), alpha);
                     Draw.reset();
                 });
 
                 Draw.draw(Layer.debris, () -> {
-                    Draw.alpha(renderer.weatherAlpha() * opacity * weather.opacityMultiplier * alpha);
+                    Draw.alpha(renderer.weatherAlpha * opacity * weather.opacityMultiplier * alpha);
                     weather.drawUnder(self(), alpha);
                     Draw.reset();
                 });

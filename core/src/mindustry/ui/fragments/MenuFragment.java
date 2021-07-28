@@ -151,7 +151,6 @@ public class MenuFragment extends Fragment{
                 table.add(tools);
 
                 table.add(mods);
-                //if(platform.canDonate()) table.add(donate);
                 if(!ios) table.add(exit);
             }).colspan(4);
         }else{
@@ -170,7 +169,6 @@ public class MenuFragment extends Fragment{
                 table.defaults().set(container.defaults());
 
                 table.add(mods);
-                //if(platform.canDonate()) table.add(donate);
                 if(!ios) table.add(exit);
             }).colspan(2);
         }

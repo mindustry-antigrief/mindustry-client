@@ -22,6 +22,7 @@ public class Units{
     private static float cdist;
     private static boolean boolResult;
     private static int intResult;
+    private static Building buildResult;
 
     @Remote(called = Loc.server)
     public static void unitCapDeath(Unit unit){
@@ -157,6 +158,26 @@ public class Units{
         return indexer.findEnemyTile(team, x, y, range, pred);
     }
 
+    /** @return the closest building of the provided team that matches the predicate. */
+    public static @Nullable Building closestBuilding(Team team, float wx, float wy, float range, Boolf<Building> pred){
+        buildResult = null;
+        cdist = 0f;
+
+        var buildings = team.data().buildings;
+        if(buildings == null) return null;
+        buildings.intersect(wx - range, wy - range, range*2f, range*2f, b -> {
+            if(pred.get(b)){
+                float dst = b.dst(wx, wy) - b.hitSize()/2f;
+                if(dst <= range && (buildResult == null || dst <= cdist)){
+                    cdist = dst;
+                    buildResult = b;
+                }
+            }
+        });
+
+        return buildResult;
+    }
+
     /** Iterates through all buildings in a range. */
     public static void nearbyBuildings(float x, float y, float range, Cons<Building> cons){
         indexer.allBuildings(x, y, range, cons);
@@ -184,7 +205,7 @@ public class Units{
         }
     }
 
-    /** Returns the closest target enemy. First, units are checked, then tile entities. */
+    /** Returns the closest target enemy. First, units are checked, then buildings. */
     public static Teamc bestTarget(Team team, float x, float y, float range, Boolf<Unit> unitPred, Boolf<Building> tilePred, Sortf sort){
         if(team == Team.derelict) return null;
 

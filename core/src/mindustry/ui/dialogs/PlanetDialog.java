@@ -32,6 +32,7 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.storage.*;
 
+import static arc.Core.*;
 import static mindustry.Vars.*;
 import static mindustry.graphics.g3d.PlanetRenderer.*;
 import static mindustry.ui.dialogs.PlanetDialog.Mode.*;
@@ -603,34 +604,33 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
         selectAlpha = Mathf.lerpDelta(selectAlpha, Mathf.num(planets.zoom < 1.9f), 0.1f);
     }
 
+    void displayItems(Table c, float scl, ObjectMap<Item, ExportStat> stats, String name){
+        Table t = new Table().left();
+
+        int i = 0;
+        for(var item : content.items()){
+            var stat = stats.get(item);
+            if(stat == null) continue;
+            int total = (int)(stat.mean * 60 * scl);
+            if(total > 1){
+                t.image(item.uiIcon).padRight(3);
+                t.add(UI.formatAmount(total) + " " + Core.bundle.get("unit.perminute")).color(Color.lightGray).padRight(3);
+                if(++i % 3 == 0){
+                    t.row();
+                }
+            }
+        }
+
+        if(t.getChildren().any()){
+            c.add(name).left().row();
+            c.add(t).padLeft(10f).left().row();
+        }
+    }
+
     void showStats(Sector sector){
         BaseDialog dialog = new BaseDialog(sector.name());
 
         dialog.cont.pane(c -> {
-            Cons2<ObjectMap<Item, ExportStat>, String> display = (stats, name) -> {
-                Table t = new Table().left();
-
-                float scl = sector.getProductionScale();
-
-                int[] i = {0};
-
-                stats.each((item, stat) -> {
-                    int total = (int)(stat.mean * 60 * scl);
-                    if(total > 1){
-                        t.image(item.uiIcon).padRight(3);
-                        t.add(UI.formatAmount(total) + " " + Core.bundle.get("unit.perminute")).color(Color.lightGray).padRight(3);
-                        if(++i[0] % 3 == 0){
-                            t.row();
-                        }
-                    }
-                });
-
-                if(t.getChildren().any()){
-                    c.add(name).left().row();
-                    c.add(t).padLeft(10f).left().row();
-                }
-            };
-
             c.defaults().padBottom(5);
 
             c.add(Core.bundle.get("sectors.time") + " [accent]" + sector.save.getPlayTime()).left().row();
@@ -653,10 +653,15 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
             }
 
             //production
-            display.get(sector.info.production, "@sectors.production");
+            displayItems(c, sector.getProductionScale(), sector.info.production, "@sectors.production");
 
             //export
-            display.get(sector.info.export, "@sectors.export");
+            displayItems(c, sector.getProductionScale(), sector.info.export, "@sectors.export");
+
+            //import
+            if(sector.hasBase()){
+                displayItems(c, 1f, sector.info.importStats(), "@sectors.import");
+            }
 
             ItemSeq items = sector.items();
 
@@ -735,7 +740,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
                                 updateSelected();
                             }).checked(sector.info.icon == null);
 
-                            int cols = (int)Math.min(20, Core.graphics.getWidth() / 52f);
+                            int cols = (int)Math.min(20, Core.graphics.getWidth() / Scl.scl(52f));
 
                             int i = 1;
                             for(var key : defaultIcons){
@@ -910,14 +915,37 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
                 CoreBlock block = from.info.bestCoreType instanceof CoreBlock b ? b : (CoreBlock)Blocks.coreShard;
 
                 loadouts.show(block, from, () -> {
+                    var schemCore = universe.getLastLoadout().findCore();
                     from.removeItems(universe.getLastLoadout().requirements());
                     from.removeItems(universe.getLaunchResources());
 
-                    launching = true;
-                    zoom = 0.5f;
+                    if(settings.getBool("skipcoreanimation")){
+                        //just... go there
+                        control.playSector(from, sector);
+                        //hide only after load screen is shown
+                        Time.runTask(8f, this::hide);
+                    }else{
+                        //hide immediately so launch sector is visible
+                        hide();
 
-                    ui.hudfrag.showLaunchDirect();
-                    Time.runTask(launchDuration, () -> control.playSector(from, sector));
+                        //allow planet dialog to finish hiding before actually launching
+                        Time.runTask(5f, () -> {
+                            Runnable doLaunch = () -> {
+                                renderer.showLaunch(schemCore);
+                                //run with less delay, as the loading animation is delayed by several frames
+                                Time.runTask(coreLandDuration - 8f, () -> control.playSector(from, sector));
+                            };
+
+                            //load launchFrom sector right before launching so animation is correct
+                            if(!from.isBeingPlayed()){
+                                //run *after* the loading animation is done
+                                Time.runTask(9f, doLaunch);
+                                control.playSector(from);
+                            }else{
+                                doLaunch.run();
+                            }
+                        });
+                    }
                 });
             }
         }else if(mode == select){

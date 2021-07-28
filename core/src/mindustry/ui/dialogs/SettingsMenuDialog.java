@@ -7,6 +7,8 @@ import arc.graphics.*;
 import arc.graphics.Texture.*;
 import arc.input.*;
 import arc.math.*;
+import arc.math.geom.*;
+import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.TextButton.*;
@@ -293,9 +295,9 @@ public class SettingsMenuDialog extends Dialog{
     }
 
     void addSettings(){
-        sound.sliderPref("musicvol", bundle.get("setting.musicvol.name", "Music Volume"), 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("sfxvol", bundle.get("setting.sfxvol.name", "SFX Volume"), 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("ambientvol", bundle.get("setting.ambientvol.name", "Ambient Volume"), 100, 0, 100, 1, i -> i + "%");
+        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> i + "%");
+        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> i + "%");
+        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> i + "%");
 
 
         // Client Settings, organized exactly the same as Bundle.properties: text first, sliders second, checked boxes third, unchecked boxes last
@@ -358,13 +360,15 @@ public class SettingsMenuDialog extends Dialog{
         game.sliderPref("saveinterval", 60, 10, 5 * 120, 10, i -> Core.bundle.format("setting.seconds", i));
         if(mobile){
             game.checkPref("autotarget", true);
-            game.checkPref("keyboard", false, val -> {
-                control.setInput(val ? new DesktopInput() : new MobileInput());
-                input.setUseKeyboard(val);
-            });
-            if(Core.settings.getBool("keyboard")){
-                control.setInput(new DesktopInput());
-                input.setUseKeyboard(true);
+            if(!ios){
+                game.checkPref("keyboard", false, val -> {
+                    control.setInput(val ? new DesktopInput() : new MobileInput());
+                    input.setUseKeyboard(val);
+                });
+                if(Core.settings.getBool("keyboard")){
+                    control.setInput(new DesktopInput());
+                    input.setUseKeyboard(true);
+                }
             }
         }
         //the issue with touchscreen support on desktop is that:
@@ -472,7 +476,7 @@ public class SettingsMenuDialog extends Dialog{
         graphics.checkPref("fps", false);
         graphics.checkPref("playerindicators", true);
         graphics.checkPref("indicators", true);
-        // graphics.checkPref("showweather", true); TODO: Move client weather alpha to this
+        // graphics.checkPref("showweather", true); FINISHME: Move client weather alpha to this
         graphics.checkPref("animatedwater", true);
 
         if(Shaders.shield != null){
@@ -506,11 +510,11 @@ public class SettingsMenuDialog extends Dialog{
             }
         }
 
+        graphics.checkPref("skipcoreanimation", false);
+
         if(!mobile){
             Core.settings.put("swapdiagonal", false);
         }
-
-        graphics.checkPref("flow", true);
 
 
         // Start Moderation Settings
@@ -629,52 +633,26 @@ public class SettingsMenuDialog extends Dialog{
             rebuild();
         }
 
-        public SliderSetting sliderPref(String name, String title, int def, int min, int max, StringProcessor s){
-            return sliderPref(name, title, def, min, max, 1, s);
-        }
-
-        public SliderSetting sliderPref(String name, String title, int def, int min, int max, int step, StringProcessor s){
-            SliderSetting res;
-            list.add(res = new SliderSetting(name, title, def, min, max, step, s));
-            settings.defaults(name, def);
-            rebuild();
-            return res;
-        }
-
         public SliderSetting sliderPref(String name, int def, int min, int max, StringProcessor s){
             return sliderPref(name, def, min, max, 1, s);
         }
 
         public SliderSetting sliderPref(String name, int def, int min, int max, int step, StringProcessor s){
             SliderSetting res;
-            list.add(res = new SliderSetting(name, bundle.get("setting." + name + ".name"), def, min, max, step, s));
+            list.add(res = new SliderSetting(name, def, min, max, step, s));
             settings.defaults(name, def);
             rebuild();
             return res;
         }
 
-        public void checkPref(String name, String title, boolean def){
-            list.add(new CheckSetting(name, title, def, null));
-            settings.defaults(name, def);
-            rebuild();
-        }
-
-        public void checkPref(String name, String title, boolean def, Boolc changed){
-            list.add(new CheckSetting(name, title, def, changed));
-            settings.defaults(name, def);
-            rebuild();
-        }
-
-        /** Localized title. */
         public void checkPref(String name, boolean def){
-            list.add(new CheckSetting(name, bundle.get("setting." + name + ".name"), def, null));
+            list.add(new CheckSetting(name, def, null));
             settings.defaults(name, def);
             rebuild();
         }
 
-        /** Localized title. */
         public void checkPref(String name, boolean def, Boolc changed){
-            list.add(new CheckSetting(name, bundle.get("setting." + name + ".name"), def, changed));
+            list.add(new CheckSetting(name, def, changed));
             settings.defaults(name, def);
             rebuild();
         }
@@ -698,17 +676,41 @@ public class SettingsMenuDialog extends Dialog{
         public abstract static class Setting{
             public String name;
             public String title;
+            public @Nullable String description;
+
+            Setting(String name){
+                this.name = name;
+                title = bundle.get("setting." + name + ".name");
+                description = bundle.getOrNull("setting." + name + ".description");
+            }
 
             public abstract void add(SettingsTable table);
+
+            public void addDesc(Element elem){
+                if(description == null) return;
+
+                elem.addListener(new Tooltip(t -> t.background(Styles.black8).margin(4f).add(description).color(Color.lightGray)){
+                    {
+                        allowMobile = true;
+                    }
+                    @Override
+                    protected void setContainerPosition(Element element, float x, float y){
+                        this.targetActor = element;
+                        Vec2 pos = element.localToStageCoordinates(Tmp.v1.set(0, 0));
+                        container.pack();
+                        container.setPosition(pos.x, pos.y, Align.topLeft);
+                        container.setOrigin(0, element.getHeight());
+                    }
+                });
+            }
         }
 
         public static class CheckSetting extends Setting{
             boolean def;
             Boolc changed;
 
-            CheckSetting(String name, String title, boolean def, Boolc changed){
-                this.name = name;
-                this.title = title;
+            CheckSetting(String name, boolean def, Boolc changed){
+                super(name);
                 this.def = def;
                 this.changed = changed;
             }
@@ -727,7 +729,7 @@ public class SettingsMenuDialog extends Dialog{
                 });
 
                 box.left();
-                table.add(box).left().padTop(3f);
+                addDesc(table.add(box).left().padTop(3f).get());
                 table.row();
             }
         }
@@ -736,9 +738,8 @@ public class SettingsMenuDialog extends Dialog{
             int def, min, max, step;
             StringProcessor sp;
 
-            SliderSetting(String name, String title, int def, int min, int max, int step, StringProcessor s){
-                this.name = name;
-                this.title = title;
+            SliderSetting(String name, int def, int min, int max, int step, StringProcessor s){
+                super(name);
                 this.def = def;
                 this.min = min;
                 this.max = max;
@@ -752,24 +753,21 @@ public class SettingsMenuDialog extends Dialog{
 
                 slider.setValue(settings.getInt(name));
 
-                Label label = new Label(title);
-                Label value = new Label("");
-                label.setStyle(Styles.outlineLabel);
-                label.touchable = Touchable.disabled;
+                Label value = new Label("", Styles.outlineLabel);
+                Table content = new Table();
+                content.add(title, Styles.outlineLabel).left().growX().wrap();
+                content.add(value).padLeft(10f).right();
+                content.margin(3f, 33f, 3f, 33f);
+                content.touchable = Touchable.disabled;
 
                 slider.changed(() -> {
                     settings.put(name, (int)slider.getValue());
                     value.setText(sp.get((int)slider.getValue()));
                 });
 
-                label.setWrap(true);
-
                 slider.change();
 
-                table.table(t -> {
-                    t.stack(slider, label).width(Math.min(Core.graphics.getWidth() / 1.3f, 600)).pad(5);
-                    t.add(value).width(200);
-                }).left().padTop(4).expandX();
+                addDesc(table.stack(slider, content).width(Math.min(Core.graphics.getWidth() / 1.2f, 460f)).left().padTop(4f).get());
                 table.row();
             }
         }
@@ -788,6 +786,7 @@ public class SettingsMenuDialog extends Dialog{
         // Elements are actually added below
         public static class Category extends Setting{
             Category(String name){
+                super(name);
                 this.name = name;
                 this.title = bundle.get("setting." + name + ".category");
             }
@@ -805,11 +804,11 @@ public class SettingsMenuDialog extends Dialog{
         private void updatePref(){
             settings.defaults("updateurl", "mindustry-antigrief/mindustry-client");
             if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
-            pref(new Setting() {
+            pref(new Setting("updateurl") {
                 boolean urlChanged;
 
                 @Override
-                public void add(SettingsTable table) { // Update URL with update button TODO: Move this to TextPref when i decide im willing to spend 6 hours doing so
+                public void add(SettingsTable table) { // Update URL with update button FINISHME: Move this to TextPref when i decide im willing to spend 6 hours doing so
                     name = "updateurl";
                     title = bundle.get("setting." + name + ".name");
 

@@ -16,6 +16,7 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.logic.LStatements.*;
 import mindustry.ui.*;
 
 public class LCanvas extends Table{
@@ -402,11 +403,20 @@ public class LCanvas extends Table{
         }
 
         public void copy(){
+            st.saveUI();
             LStatement copy = st.copy();
+
+            if(copy instanceof JumpStatement st && st.destIndex != -1){
+                int index = statements.getChildren().indexOf(this);
+                if(index != -1 && index < st.destIndex){
+                    st.destIndex ++;
+                }
+            }
+
             if(copy != null){
                 StatementElem s = new StatementElem(copy);
 
-                statements.addChildAfter(StatementElem.this,s);
+                statements.addChildAfter(StatementElem.this, s);
                 statements.layout();
                 copy.elem = s;
                 copy.setupUI();

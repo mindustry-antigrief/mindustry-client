@@ -249,7 +249,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         Unit unit = player.unit();
 
-        if(build != null && build.team == unit.team
+        if(build != null && state.teams.canInteract(unit.team, build.team)
         && unit.within(build, tilesize * build.block.size * 1.2f + tilesize * 5f)){
 
             //pick up block's payload
@@ -425,7 +425,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Events.fire(new TapEvent(player, tile));
     }
 
-    @Remote(targets = Loc.both, called = Loc.both, forward = true)
+    @Remote(targets = Loc.both, called = Loc.server, forward = true)
     public static void buildingControlSelect(Player player, Building build){
         if(player == null || build == null || player.dead()) return;
 
@@ -583,7 +583,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }else{
             Building build = world.buildWorld(pay.x(), pay.y());
 
-            if(build != null && build.team == unit.team){
+            if(build != null && state.teams.canInteract(unit.team, build.team)){
                 Call.requestBuildPayload(player, build);
                 if(Navigation.state == NavigationState.RECORDING){
                     Navigation.addWaypointRecording(new PayloadPickupWaypoint(build.tileX(), build.tileY()));

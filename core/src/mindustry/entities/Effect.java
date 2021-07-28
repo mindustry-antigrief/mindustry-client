@@ -143,27 +143,23 @@ public class Effect{
     }
 
     public static void create(Effect effect, float x, float y, float rotation, Color color, Object data){
-        if(headless || effect == Fx.none || ClientVars.hidingUnits || ClientVars.hidingBlocks) return;
-        if(Core.settings.getBool("effects") && (Core.settings.getInt("effectscl") == 100 || Mathf.chance(Core.settings.getInt("effectscl") / 100f))){
-            Rect view = Core.camera.bounds(Tmp.r1);
-            Rect pos = Tmp.r2.setSize(effect.clip).setCenter(x, y);
+        if(headless || effect == Fx.none || !Core.settings.getBool("effects")  || ClientVars.hidingUnits || ClientVars.hidingBlocks) return;
 
-            if(view.overlaps(pos)){
-                if(!effect.initialized){
-                    effect.initialized = true;
-                    effect.init();
-                }
-
-                EffectState entity = EffectState.create();
-                entity.effect = effect;
-                entity.rotation = rotation;
-                entity.data = data;
-                entity.lifetime = effect.lifetime;
-                entity.set(x, y);
-                entity.color.set(color.cpy().a(color.a * UnitType.alpha));
-                if(effect.followParent && data instanceof Posc d) entity.parent = d;
-                entity.add();
+        if(Core.camera.bounds(Tmp.r1).overlaps(Tmp.r2.setCentered(x, y, effect.clip))){
+            if(!effect.initialized){
+                effect.initialized = true;
+                effect.init();
             }
+
+            EffectState entity = EffectState.create();
+            entity.effect = effect;
+            entity.rotation = rotation;
+            entity.data = data;
+            entity.lifetime = effect.lifetime;
+            entity.set(x, y);
+            entity.color.set(color.cpy().a(color.a * UnitType.alpha));
+            if(effect.followParent && data instanceof Posc p) entity.parent = p;
+            entity.add();
         }
     }
 

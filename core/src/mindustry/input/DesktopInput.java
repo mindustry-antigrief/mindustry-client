@@ -345,7 +345,6 @@ public class DesktopInput extends InputHandler{
 //        }
 
 
-        //TODO awful UI state checking code
         if(((player.dead() || state.isPaused()) && !ui.chatfrag.shown()) && !scene.hasField() && !scene.hasDialog()){
             if(input.keyDown(Binding.mouse_move)){
                 panCam = true;
@@ -437,7 +436,7 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(!player.dead() && !state.isPaused() && !scene.hasField()){
+        if(!player.dead() && !state.isPaused() && !scene.hasField() && !renderer.isCutscene()){
             updateMovement(player.unit());
 
             if(Core.input.keyTap(Binding.respawn)){
