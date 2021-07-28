@@ -102,14 +102,15 @@ public class UnitPicker extends BaseDialog {
         Events.on(EventType.UnitCreateEvent.class, event -> {
             if (type == null) return;
             if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
+                type = null;
                 Call.unitControl(player, event.unit);
                 Timer.schedule(() -> {
                     if (event.unit.isPlayer()) {
                         Toast t = new Toast(3);
                         if (player.unit() == event.unit) {
-                            type = null;
                             t.add("@client.unitpicker.success");
                         } else if (event.unit.getPlayer() != null) {
+                            type = event.unit.type;
                             t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
                         }
                     }
