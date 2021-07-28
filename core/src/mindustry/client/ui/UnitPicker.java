@@ -6,7 +6,9 @@ import arc.scene.ui.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.types.*;
+import mindustry.client.*;
 import mindustry.client.utils.*;
+import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -113,6 +115,10 @@ public class UnitPicker extends BaseDialog {
                     }
                 }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
             }
+        });
+
+        Events.on(EventType.WorldLoadEvent.class, event -> {
+            if (!ClientVars.syncing) type = Core.settings.getBool("automega") ? UnitTypes.mega : null;
         });
     }
 }

@@ -351,6 +351,7 @@ public class SettingsMenuDialog extends Dialog{
         client.checkPref("allowjoinany", false);
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
         if (steam) client.checkPref("unlockallachievements", false);
+        client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         // End Client Settings
 
 

@@ -27,14 +27,13 @@ class ClientLogic {
             PowerInfo.initialize()
             Navigation.obstacles.clear()
             ClientVars.configs.clear()
-            if (!ClientVars.syncing) Vars.ui.unitPicker.type = null
             Vars.control.input.lastVirusWarning = null
             ClientVars.dispatchingBuildPlans = false
             ClientVars.hidingBlocks = false
             ClientVars.hidingUnits = false
             ClientVars.showingTurrets = false
             if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
-            Time.run(1f) { ClientVars.syncing = false }
+            Core.app.post { ClientVars.syncing = false } // Run this next frame so it can be used elsewhere safely
         }
 
         Events.on(EventType.ClientLoadEvent::class.java) { // Run when the client finishes loading
