@@ -436,7 +436,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(player.team() == build.team && build.canControlSelect(player)){
             if (player.isLocal()) player.persistPlans();
-            build.onControlSelect(player);
+            if (!net.client()) build.onControlSelect(player); // FINISHME: Does this work in 129?
         }
     }
 
@@ -1159,7 +1159,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public @Nullable Unit selectedUnit(boolean allowPlayers){
-        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f, allowPlayers ? u -> true : Unitc::isAI);
+        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f, allowPlayers ? u -> !u.isLocal() : Unitc::isAI);
         if(unit != null && !ClientVars.hidingUnits){
             unit.hitbox(Tmp.r1);
             Tmp.r1.grow(input.shift() ? tilesize * 6 : 6f ); // If shift is held, add 3 tiles of leeway, makes it easier to shift click units controlled by processors and such

@@ -17,10 +17,11 @@ import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
 
-
+// FINISHME: Refactor the event stuff, its horrible
 public class UnitPicker extends BaseDialog {
     public UnitType type;
     Seq<UnitType> sorted = content.units().copy();
+    Timer.Task task;
 
     public UnitPicker(){
         super("@client.unitpicker");
@@ -84,17 +85,19 @@ public class UnitPicker extends BaseDialog {
                 Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead);
                 if (find != null) {
                     Call.unitControl(player, find);
-                    Timer.schedule(() -> {
+                    task = Timer.schedule(() -> {
                         if (find.isPlayer()) {
                             Toast t = new Toast(3);
                             if (player.unit() == find) {
                                 type = null;
                                 t.add("@client.unitpicker.success");
+                                task.cancel();
                             } else if (find.getPlayer() != null) {
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, find.getPlayer().name));
-                            }
+                                task.cancel();
+                            } else Call.unitControl(player, find);
                         }
-                    }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
+                    }, net.client() ? netClient.getPing()/1000f : .025f, .1f, 10);
                 }
             }
         });
@@ -104,22 +107,27 @@ public class UnitPicker extends BaseDialog {
             if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 type = null;
                 Call.unitControl(player, event.unit);
-                Timer.schedule(() -> {
+                task = Timer.schedule(() -> {
                     if (event.unit.isPlayer()) {
                         Toast t = new Toast(3);
                         if (player.unit() == event.unit) {
                             t.add("@client.unitpicker.success");
+                            task.cancel();
                         } else if (event.unit.getPlayer() != null) {
                             type = event.unit.type;
                             t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
-                        }
+                            task.cancel();
+                        } else Call.unitControl(player, event.unit);
                     }
-                }, net.client() ? netClient.getPing()/1000f+.3f : .025f);
+                }, net.client() ? netClient.getPing()/1000f : .025f, .1f, 10);
             }
         });
 
         Events.on(EventType.WorldLoadEvent.class, event -> {
-            if (!ClientVars.syncing) type = Core.settings.getBool("automega") ? UnitTypes.mega : null;
+            if (!ClientVars.syncing) {
+                type = null;
+                Time.run(60, () -> findUnit(Core.settings.getBool("automega") && state.isGame() ? UnitTypes.mega : null));
+            }
         });
     }
 }
