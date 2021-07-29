@@ -26,7 +26,7 @@ class Moderation {
         }
 
         Events.on(EventType.PlayerJoin::class.java) { e -> // Trace players when they join, also traces all players on join
-            if (!Vars.player.admin || e.player == null || e.player == Vars.player || e.player.admin) return@on
+            if (!Vars.player.admin || e.player == null || e.player == Vars.player || e.player.admin || !Core.settings.getBool("modenabled")) return@on
 
             Call.adminRequest(e.player, Packets.AdminAction.trace)
         }
