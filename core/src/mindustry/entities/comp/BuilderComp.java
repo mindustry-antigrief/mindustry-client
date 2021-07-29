@@ -78,9 +78,10 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         if(plans.size > 1){
             int total = 0;
             BuildPlan req;
-            while((!within((req = buildPlan()).tile(), finalPlaceDst) || shouldSkip(req, core)) && ++total <= plans.size){
+            while((!within((req = buildPlan()).tile(), finalPlaceDst) || shouldSkip(req, core)) && total < plans.size){
                 plans.removeFirst();
                 plans.addLast(req);
+                total++;
             }
         }
 

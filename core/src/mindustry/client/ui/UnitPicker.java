@@ -95,8 +95,8 @@ public class UnitPicker extends BaseDialog {
                             } else if (find.getPlayer() != null) {
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, find.getPlayer().name));
                                 task.cancel();
-                            } else Call.unitControl(player, find);
-                        }
+                            }
+                        } else Call.unitControl(player, find);
                     }, net.client() ? netClient.getPing()/1000f : .025f, .1f, 10);
                 }
             }
@@ -117,9 +117,9 @@ public class UnitPicker extends BaseDialog {
                             type = event.unit.type;
                             t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
                             task.cancel();
-                        } else Call.unitControl(player, event.unit);
-                    }
-                }, net.client() ? netClient.getPing()/1000f+.3f : .025f, .1f, 10);
+                        }
+                    } else Call.unitControl(player, event.unit);
+                }, net.client() ? netClient.getPing()/1000f : .025f, .1f, 10);
             }
         });
 
