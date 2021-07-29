@@ -3,7 +3,7 @@ package mindustry.client.antigrief
 import arc.*
 import arc.util.*
 import mindustry.*
-import mindustry.client.*
+import mindustry.client.ClientVars.*
 import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.gen.*
@@ -28,13 +28,14 @@ class Moderation {
         Events.on(EventType.PlayerJoin::class.java) { e -> // Trace players when they join, also traces all players on join
             if (!Vars.player.admin || e.player == null || e.player == Vars.player || e.player.admin || !Core.settings.getBool("modenabled")) return@on
 
+            silentTrace++
             Call.adminRequest(e.player, Packets.AdminAction.trace)
         }
     }
 
     fun addInfo(player: Player, info: Administration.TraceInfo) {
         // FINISHME: Integrate these with join/leave messages
-        if (Time.timeSinceMillis(ClientVars.lastJoinTime) > 10000 && player.trace == null) {
+        if (Time.timeSinceMillis(lastJoinTime) > 10000 && player.trace == null) {
             if (info.timesJoined > 10 && info.timesKicked < 3) Vars.player.sendMessage("[accent]${player.name}[accent] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
             else Call.sendChatMessage("/a [scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
         }

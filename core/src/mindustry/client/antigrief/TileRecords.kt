@@ -49,6 +49,7 @@ object TileRecords {
         }
 
         Events.on(EventType.BlockDestroyEvent::class.java) {
+            if (it.tile.team() != Vars.player.team()) return@on // Couldn't care less about enemies, especially in flood
             forArea(it.tile) { tile ->
                 addLog(tile, TileDestroyedLog(tile,
                     if (tile.build is ConstructBlock.ConstructBuild) (tile.build as ConstructBlock.ConstructBuild).current ?:

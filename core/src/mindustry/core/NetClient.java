@@ -340,9 +340,11 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.one)
     public static void traceInfo(Player player, TraceInfo info){
         if(player != null){
-            if (!ClientVars.silentTrace) ui.traces.show(player, info);
-            else if (Core.settings.getBool("modenabled")) Client.INSTANCE.getLeaves().addInfo(player, info);
-            ClientVars.silentTrace = true;
+            if (ClientVars.silentTrace-- > 0) ui.traces.show(player, info);
+            else {
+                ClientVars.silentTrace++; // FINISHME: This is stupid
+                if (Core.settings.getBool("modenabled")) Client.INSTANCE.getLeaves().addInfo(player, info);
+            }
         }
     }
 

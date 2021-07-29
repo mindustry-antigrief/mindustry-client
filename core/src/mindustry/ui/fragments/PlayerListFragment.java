@@ -160,7 +160,6 @@ public class PlayerListFragment extends Fragment{
                         .checked(user.admin);
 
                     t.button(Icon.zoom, Styles.clearPartiali, () -> {
-                        ClientVars.silentTrace = false;
                         Call.adminRequest(user, AdminAction.trace);
                     });
 

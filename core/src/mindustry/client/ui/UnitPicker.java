@@ -119,7 +119,7 @@ public class UnitPicker extends BaseDialog {
                             task.cancel();
                         } else Call.unitControl(player, event.unit);
                     }
-                }, net.client() ? netClient.getPing()/1000f : .025f, .1f, 10);
+                }, net.client() ? netClient.getPing()/1000f+.3f : .025f, .1f, 10);
             }
         });
 
