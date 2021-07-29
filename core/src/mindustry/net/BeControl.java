@@ -66,7 +66,10 @@ public class BeControl{
     /** asynchronously checks for updates. */
     public void checkUpdate(Boolc done){
         Http.get("https://api.github.com/repos/" + Core.settings.getString("updateurl") + "/releases/latest")
-        .error(e -> ui.loadfrag.hide())
+        .error(e -> {
+            ui.loadfrag.hide();
+            Log.err(e);
+        })
         .submit(res -> {
             Jval val = Jval.read(res.getResultAsString());
             String newBuild = val.getString("tag_name", "0");
