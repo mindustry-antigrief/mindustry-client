@@ -39,7 +39,7 @@ jobs:
         with:
           body: |
             Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/mindustry-antigrief/mindustry-client/commit/${{ github.sha }})
-            Steam installation instructions [here](../../../mindustry-client-v6#steam)
+            Steam installation instructions [here](../../../mindustry-client#steam)
             **Commit Message:**
             *${{ github.event.head_commit.message }}*
           commitish: main
@@ -69,7 +69,7 @@ jobs:
         with:
           body: |
             Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/mindustry-antigrief/mindustry-client/commit/${{ github.sha }})
-            Steam installation instructions [here](../../../mindustry-client-v6#steam)
+            Steam installation instructions [here](../../../mindustry-client/tree/v7#steam)
             **Commit Message:**
             *${{ github.event.head_commit.message }}*
           commitish: main
