@@ -858,7 +858,10 @@ public class DesktopInput extends InputHandler{
             if(omni || true){
                 unit.moveAt(movement);
             }else{
+                unit.rotateMove(movement);
+
                 unit.moveAt(Tmp.v2.trns(unit.rotation, movement.len()));
+
                 //problem: actual unit rotation is controlled by velocity, but velocity is 1) unpredictable and 2) can be set to 0            if(!movement.isZero()){
                 if(!movement.isZero()){
                     unit.rotation = Angles.moveToward(unit.rotation,movement.angle(), unit.type.rotateSpeed * Math.max(Time.delta, 1));

@@ -6,11 +6,8 @@ import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
-import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
 import mindustry.*;
 import mindustry.core.*;
-import mindustry.gen.*;
 
 import java.io.*;
 import java.text.*;
@@ -123,6 +120,9 @@ public class CrashSender{
             }catch(Throwable ignored){
             }
 
+            //disabled until further notice.
+            /*
+
             JsonValue value = new JsonValue(ValueType.object);
 
             boolean fn = netActive, fs = netServer;
@@ -152,7 +152,7 @@ public class CrashSender{
 //            }).block(r -> {
 //                Log.info("Crash sent successfully.");
 //                System.exit(1);
-//            });
+//            });*/
 
             ret();
         }catch(Throwable death){

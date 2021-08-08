@@ -435,6 +435,12 @@ public class SettingsMenuDialog extends Dialog{
         if(!mobile){
             graphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
             graphics.checkPref("fullscreen", false, b -> {
+                if(b && settings.getBool("borderlesswindow")){
+                    Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
+                    settings.put("borderlesswindow", false);
+                    graphics.rebuild();
+                }
+
                 if(b){
                     Core.graphics.setFullscreenMode(Core.graphics.getDisplayMode());
                 }else{
@@ -442,15 +448,23 @@ public class SettingsMenuDialog extends Dialog{
                 }
             });
 
-            graphics.checkPref("borderlesswindow", false, b -> Core.graphics.setUndecorated(b));
+            graphics.checkPref("borderlesswindow", false, b -> {
+                if(b && settings.getBool("fullscreen")){
+                    Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
+                    settings.put("fullscreen", false);
+                    graphics.rebuild();
+                }
+                Core.graphics.setBorderless(b);
+            });
 
             Core.graphics.setVSync(Core.settings.getBool("vsync"));
+
             if(Core.settings.getBool("fullscreen")){
                 Core.app.post(() -> Core.graphics.setFullscreenMode(Core.graphics.getDisplayMode()));
             }
 
             if(Core.settings.getBool("borderlesswindow")){
-                Core.app.post(() -> Core.graphics.setUndecorated(true));
+                Core.app.post(() -> Core.graphics.setBorderless(true));
             }
         }else if(!ios){
             graphics.checkPref("landscape", false, b -> {
@@ -682,7 +696,8 @@ public class SettingsMenuDialog extends Dialog{
 
             Setting(String name){
                 this.name = name;
-                title = bundle.get("setting." + name + ".name");
+                String winkey = "setting." + name + ".name.windows";
+                title = OS.isWindows && bundle.has(winkey) ? bundle.get(winkey) : bundle.get("setting." + name + ".name");
                 description = bundle.getOrNull("setting." + name + ".description");
             }
 
