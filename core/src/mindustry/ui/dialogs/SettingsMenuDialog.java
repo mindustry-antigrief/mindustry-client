@@ -341,6 +341,8 @@ public class SettingsMenuDialog extends Dialog{
         client.checkPref("unitranges", false);
         client.checkPref("drawhitboxes", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);
+        client.checkPref("showreactors", false);
+        client.checkPref("showdomes", false);
 
         client.category("misc");
         client.updatePref();

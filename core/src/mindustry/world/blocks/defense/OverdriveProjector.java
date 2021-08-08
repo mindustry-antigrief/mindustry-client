@@ -8,6 +8,7 @@ import arc.math.geom.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
@@ -15,6 +16,7 @@ import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
 
+import static arc.Core.settings;
 import static mindustry.Vars.*;
 
 public class OverdriveProjector extends Block{
@@ -55,6 +57,13 @@ public class OverdriveProjector extends Block{
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, range, baseColor);
 
         indexer.eachBlock(player.team(), x * tilesize + offset, y * tilesize + offset, range, other -> other.block.canOverdrive, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
+    }
+
+    @Override
+    public void drawRequestConfigTop(BuildPlan req, Eachable<BuildPlan> list){
+        if (!settings.getBool("showdomes")) return;
+        Drawf.dashCircle(req.drawx(), req.drawy(), range, baseColor);
+        indexer.eachBlock(player.team(), req.drawx(), req.drawy(), range, other -> other.block.canOverdrive, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
     }
 
     @Override

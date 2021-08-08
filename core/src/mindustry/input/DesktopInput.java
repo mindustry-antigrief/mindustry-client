@@ -263,8 +263,9 @@ public class DesktopInput extends InputHandler{
             hidingUnits = !hidingUnits;
         }
 
-        if(input.keyTap(Binding.show_reactor_ranges)){
-            settings.put("showreactors", !settings.getBool("showreactors", true));
+        if(input.keyTap(Binding.show_reactor_and_dome_ranges)){
+            settings.put("showreactors", !settings.getBool("showreactors"));
+            settings.put("showdomes", !settings.getBool("showdomes"));
         }
 
         if(input.keyTap(Binding.show_turret_ranges) && scene.getKeyboardFocus() == null){

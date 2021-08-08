@@ -72,7 +72,7 @@ public class ImpactReactor extends PowerGenerator{
         if (ui.join.lastHost != null && ui.join.lastHost.modeName != null && ui.join.lastHost.modeName.equals("Flood")) {
             Drawf.dashCircle(req.drawx(), req.drawy(), 5 * tilesize, Color.orange);
         }
-        if (!settings.getBool("showreactors", true)) return;
+        if (!settings.getBool("showreactors")) return;
         Drawf.dashCircle(req.drawx(), req.drawy(), explosionRadius * tilesize, Color.coral);
     }
 
