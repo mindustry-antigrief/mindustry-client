@@ -244,9 +244,6 @@ public class JoinDialog extends BaseDialog{
         }else if(host.version > Version.build && Version.build != -1){
             versionString = Core.bundle.get("server.outdated.client") + "\n" +
             Core.bundle.format("server.version", host.version, "");
-        }else if(host.version == Version.build && Version.type.equals(host.versionType)){
-            //not important
-            versionString = "";
         }else{
             versionString = Core.bundle.format("server.version", host.version, host.versionType);
         }
