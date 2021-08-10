@@ -13,8 +13,7 @@ import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
-import mindustry.client.navigation.Navigation.obstacles
-import mindustry.client.ui.*
+import mindustry.client.navigation.Navigation.*
 import mindustry.client.utils.*
 import mindustry.core.*
 import mindustry.entities.*
@@ -76,11 +75,11 @@ object Client {
         }
 
         register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
-            ui.unitPicker.findUnit(content.units().copy().sort { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }.first())
+            ui.unitPicker.findUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
         }
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
-            val unit = content.units().copy().sort { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }.first()
+            val unit = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
             // FINISHME: Make this check each unit to see if it is a player/formation unit, display that info
             player.sendMessage(Strings.format("[accent]@: @/@", unit.localizedName, player.team().data().countType(unit), Units.getCap(player.team())))
         }

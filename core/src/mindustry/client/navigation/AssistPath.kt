@@ -2,11 +2,11 @@ package mindustry.client.navigation
 
 import arc.*
 import arc.math.geom.*
-import mindustry.Vars.player
+import mindustry.Vars.*
 import mindustry.gen.*
 import kotlin.math.*
 
-class AssistPath(private val assisting: Player?) : Path() {
+class AssistPath(public val assisting: Player?) : Path() {
     private var show: Boolean = true
 
     override fun reset() {}

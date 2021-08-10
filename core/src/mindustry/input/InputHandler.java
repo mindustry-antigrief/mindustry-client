@@ -224,6 +224,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 Events.fire(new DepositEvent(build, player, item, accepted));
             }
         });
+        if (Navigation.currentlyFollowing instanceof AssistPath path && path.getAssisting() != null && path.getAssisting() == player) {
+            Call.transferInventory(Vars.player, build);
+        }
     }
 
     @Remote(variants = Variant.one)

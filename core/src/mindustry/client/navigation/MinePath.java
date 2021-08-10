@@ -45,8 +45,8 @@ public class MinePath extends Path {
                 else player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
             }
         }
-        if (items.isEmpty() && cap == Core.settings.getInt("minepathcap")) { // FINISHME: This way of detecting a cap is jank
-            player.sendMessage(Core.bundle.get("client.path.miner.allinvalid"));
+        if (items.isEmpty()) {
+            if (cap == Core.settings.getInt("minepathcap")) player.sendMessage(Core.bundle.get("client.path.miner.allinvalid"));
             items = player.team().data().mineItems;
         } else {
             player.sendMessage(Core.bundle.format("client.path.miner.mining", itemString.substring(0, itemString.length() - 2), cap == 0 ? "infinite" : cap)); // FINISHME: Terrible
@@ -73,11 +73,11 @@ public class MinePath extends Path {
         if (core.items.get(item) >= core.storageCapacity || cap != 0 && core.items.get(item) > cap) Navigation.follow(new BuildPath(items, cap == 0 ? core.storageCapacity : cap)); // Start building when the core has over 1000 of everything.
 
         if (player.unit().maxAccepted(item) == 0) { // drop off
-            if (player.within(core, itemTransferRange - tilesize * 2) && timer.get(30)) {
+            if (player.within(core, itemTransferRange - tilesize * 10) && timer.get(30)) {
                 Call.transferInventory(player, core);
             } else {
                 if (player.unit().type.canBoost) player.boosting = true;
-                waypoint.set(core.x, core.y, itemTransferRange - tilesize * 4, itemTransferRange - tilesize * 4).run();
+                waypoint.set(core.x, core.y, itemTransferRange - tilesize * 15, itemTransferRange - tilesize * 15).run();
             }
 
         } else { // mine
