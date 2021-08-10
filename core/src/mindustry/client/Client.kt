@@ -178,25 +178,10 @@ object Client {
             } else player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
         }
 
-        register("togglesign", Core.bundle.get("client.command.togglesign.description")) { _, player ->
-            signMessages = !signMessages
-            player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (signMessages) "on" else "off")))
-        }
-
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
             val build = MessageBlockCommunicationSystem.findProcessor() ?: MessageBlockCommunicationSystem.findMessage()
             if (build == null) player.sendMessage("[scarlet]No valid processor or message block found; communication system inactive.")
             else player.sendMessage("[accent]${build.block.localizedName} at (${build.tileX()}, ${build.tileY()}) in use for communication.")
-        }
-
-        register("e <destination> <message...>", Core.bundle.get("client.command.e.description")) { args, _ ->
-            for (key in Main.messageCrypto.keys) {
-                if (key.name.equals(args[0], true)) {
-                    Main.messageCrypto.encrypt(args[1], key)
-                    return@register
-                }
-            }
-            Toast(3f).add("@client.invalidkey")
         }
 
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->

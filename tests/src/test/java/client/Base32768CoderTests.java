@@ -1,6 +1,6 @@
 package client;
 
-import mindustry.client.crypto.Base32768Coder;
+import mindustry.client.communication.Base32768Coder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;

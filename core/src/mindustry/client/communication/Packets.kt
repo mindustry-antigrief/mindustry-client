@@ -2,8 +2,6 @@ package mindustry.client.communication
 
 import arc.util.*
 import arc.util.Interval
-import mindustry.client.crypto.EncryptedMessageTransmission
-import mindustry.client.crypto.SignatureTransmission
 import mindustry.client.utils.*
 import java.nio.*
 import java.time.*
@@ -16,8 +14,8 @@ object Packets {
     /** The list of registered types of [Transmission].  Transmissions MUST be registered here before use. */
     private val registeredTransmissionTypes = listOf<RegisteredTransmission<*>>(
         RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),
-        RegisteredTransmission(SignatureTransmission::class, ::SignatureTransmission),
-        RegisteredTransmission(EncryptedMessageTransmission::class, ::EncryptedMessageTransmission),
+        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),  // Kept for compatibility, FIXME: remove
+        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),  // Kept for compatibility, FIXME: remove
         RegisteredTransmission(BuildQueueTransmission::class, ::BuildQueueTransmission)
     )
 

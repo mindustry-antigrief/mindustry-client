@@ -7,7 +7,7 @@ import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
-import mindustry.client.crypto.*
+import mindustry.client.communication.Base32768Coder
 import mindustry.core.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
