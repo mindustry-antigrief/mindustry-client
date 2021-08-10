@@ -178,11 +178,6 @@ object Client {
             } else player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
         }
 
-        register("togglesign", Core.bundle.get("client.command.togglesign.description")) { _, player ->
-            signMessages = !signMessages
-            player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (signMessages) "on" else "off")))
-        }
-
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
             val build = MessageBlockCommunicationSystem.findProcessor() ?: MessageBlockCommunicationSystem.findMessage()
             if (build == null) player.sendMessage("[scarlet]No valid processor or message block found; communication system inactive.")
