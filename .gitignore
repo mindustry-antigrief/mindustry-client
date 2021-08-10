@@ -168,5 +168,8 @@ arc-core/
 cache/
 
 client/build/
-
 core/annotations/
+
+# what even
+libsdl-arc64.so
+.temp/

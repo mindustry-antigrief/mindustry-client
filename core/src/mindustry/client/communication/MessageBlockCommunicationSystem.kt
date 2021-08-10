@@ -4,7 +4,6 @@ import arc.*
 import arc.struct.*
 import mindustry.*
 import mindustry.client.*
-import mindustry.client.crypto.*
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.entities.*

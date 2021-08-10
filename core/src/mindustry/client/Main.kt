@@ -7,7 +7,6 @@ import arc.util.*
 import mindustry.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
-import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
@@ -17,14 +16,12 @@ import mindustry.input.*
 
 object Main : ApplicationListener {
     lateinit var communicationSystem: SwitchableCommunicationSystem
-    lateinit var messageCrypto: MessageCrypto
     lateinit var communicationClient: Packets.CommunicationClient
     private var dispatchedBuildPlans = mutableListOf<BuildPlan>()
     private val buildPlanInterval = Interval()
 
     /** Run on client load. */
     override fun init() {
-        Crypto.initializeAlways()
         if (Core.app.isDesktop) {
             communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem)
             communicationSystem.init()
@@ -35,9 +32,6 @@ object Main : ApplicationListener {
             communicationSystem.init()
         }
         communicationClient = Packets.CommunicationClient(communicationSystem)
-        messageCrypto = MessageCrypto()
-        messageCrypto.init(communicationClient)
-        KeyFolder.initializeAlways()
 
         Navigation.navigator = AStarNavigator
 

@@ -4,7 +4,6 @@ import arc.Events
 import arc.struct.Seq
 import mindustry.Vars
 import mindustry.client.ClientVars
-import mindustry.client.crypto.Base32768Coder
 import mindustry.client.utils.base32678
 import mindustry.game.EventType
 import mindustry.gen.Call

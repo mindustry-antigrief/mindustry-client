@@ -1,6 +1,6 @@
-package mindustry.client.crypto
+package mindustry.client.communication
 
-import mindustry.client.crypto.Base32768Coder.BITS
+import mindustry.client.communication.Base32768Coder.BITS
 import mindustry.client.utils.*
 import java.io.*
 import java.math.*

@@ -189,16 +189,6 @@ object Client {
             else player.sendMessage("[accent]${build.block.localizedName} at (${build.tileX()}, ${build.tileY()}) in use for communication.")
         }
 
-        register("e <destination> <message...>", Core.bundle.get("client.command.e.description")) { args, _ ->
-            for (key in Main.messageCrypto.keys) {
-                if (key.name.equals(args[0], true)) {
-                    Main.messageCrypto.encrypt(args[1], key)
-                    return@register
-                }
-            }
-            Toast(3f).add("@client.invalidkey")
-        }
-
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
             clientThread.taskQueue.post {
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
