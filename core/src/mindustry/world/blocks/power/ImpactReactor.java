@@ -63,14 +63,14 @@ public class ImpactReactor extends PowerGenerator{
         super.drawPlace(x, y, rotation, valid);
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, explosionRadius * tilesize, Color.coral);
         if (ui.join.lastHost != null && ui.join.lastHost.modeName != null && ui.join.lastHost.modeName.equals("Flood")) {
-            Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, 5 * tilesize, Color.orange);
+            Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, 10 * tilesize, Color.orange);
         }
     }
 
     @Override
     public void drawRequestConfigTop(BuildPlan req, Eachable<BuildPlan> list){
         if (ui.join.lastHost != null && ui.join.lastHost.modeName != null && ui.join.lastHost.modeName.equals("Flood")) {
-            Drawf.dashCircle(req.drawx(), req.drawy(), 5 * tilesize, Color.orange);
+            Drawf.dashCircle(req.drawx(), req.drawy(), 10 * tilesize, Color.orange);
         }
         if (!settings.getBool("showreactors")) return;
         Drawf.dashCircle(req.drawx(), req.drawy(), explosionRadius * tilesize, Color.coral);
