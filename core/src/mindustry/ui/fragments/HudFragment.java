@@ -269,14 +269,14 @@ public class HudFragment extends Fragment{
                 IntFormat players = new IntFormat("client.players");
                 IntFormat plans = new IntFormat("client.plans");
 
-                info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel).name("fps");
-                info.row();
-
                 if(android){
                     info.label(() -> memnative.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)(Core.app.getNativeHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory2");
                 }else{
                     info.label(() -> mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)((Runtime.getRuntime().maxMemory() - Core.app.getJavaHeap()) / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory");
                 }
+                info.row();
+
+                info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel).name("fps");
                 info.row();
 
                 info.label(() -> plans.get(player.unit().plans.size)).left() // Buildplan count

@@ -3,24 +3,23 @@ package mindustry.ui.dialogs;
 import arc.*;
 import arc.func.*;
 import arc.graphics.*;
-import arc.graphics.Texture.TextureWrap;
+import arc.graphics.Texture.*;
 import arc.graphics.g2d.*;
-import arc.input.KeyCode;
-import arc.math.Mathf;
-import arc.scene.style.TextureRegionDrawable;
+import arc.input.*;
+import arc.math.*;
+import arc.scene.style.*;
 import arc.scene.ui.*;
-import arc.scene.ui.ImageButton.ImageButtonStyle;
-import arc.scene.ui.TextButton.TextButtonStyle;
+import arc.scene.ui.ImageButton.*;
+import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import arc.scene.utils.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.game.*;
 import mindustry.gen.*;
-import mindustry.graphics.Pal;
-import mindustry.input.Binding;
+import mindustry.graphics.*;
+import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 
@@ -30,6 +29,7 @@ import static mindustry.Vars.*;
 
 public class SchematicsDialog extends BaseDialog{
     private static final float tagh = 42f;
+    private static final Color red = Color.valueOf("dd5656");
     private SchematicInfoDialog info = new SchematicInfoDialog();
     private Schematic firstSchematic;
     private String search = "";
@@ -210,7 +210,7 @@ public class SchematicsDialog extends BaseDialog{
                         b.stack(new SchematicImage(s).setScaling(Scaling.fit), new Table(n -> {
                             n.top();
                             n.table(Styles.black3, c -> {
-                                Label label = c.add(s.name()).style(Styles.outlineLabel).color(Color.white).top().growX().maxWidth(200f - 8f).get();
+                                Label label = c.add(s.name()).style(Styles.outlineLabel).color(player.core().items.has(s.requirements()) ? Color.white : red).top().growX().maxWidth(200f - 8f).get();
                                 label.setEllipsis(true);
                                 label.setAlignment(Align.center);
                             }).growX().margin(1).pad(4).maxWidth(Scl.scl(200f - 8f)).padBottom(0);

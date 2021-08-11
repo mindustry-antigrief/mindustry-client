@@ -91,8 +91,8 @@ public class UnitPicker extends BaseDialog {
                             if (player.unit() == find) {
                                 type = null;
                                 t.add("@client.unitpicker.success");
-                                task.cancel();
-                            } else if (find.getPlayer() != null) {
+                                Timer.schedule(task::cancel, .15f);
+                            } else if (find.getPlayer() != null && !find.isLocal()) {
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, find.getPlayer().name));
                                 task.cancel();
                             }
@@ -102,7 +102,7 @@ public class UnitPicker extends BaseDialog {
             }
         });
 
-        Events.on(EventType.UnitCreateEvent.class, event -> {
+        Events.on(EventType.UnitCreateEvent.class, event -> { // FINISHME: Sometimes doesnt work?
             if (type == null) return;
             if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 type = null;
@@ -112,8 +112,8 @@ public class UnitPicker extends BaseDialog {
                         Toast t = new Toast(3);
                         if (player.unit() == event.unit) {
                             t.add("@client.unitpicker.success");
-                            task.cancel();
-                        } else if (event.unit.getPlayer() != null) {
+                            Timer.schedule(task::cancel, .15f);
+                        } else if (event.unit.getPlayer() != null && !event.unit.isLocal()) {
                             type = event.unit.type;
                             t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
                             task.cancel();

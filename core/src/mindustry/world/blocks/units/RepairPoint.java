@@ -8,6 +8,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.*;
@@ -101,7 +102,7 @@ public class RepairPoint extends Block{
                                 Vec2 lastEnd, Vec2 offset,
                                 Color laserColor, Color laserTopColor,
                                 TextureRegion laser, TextureRegion laserEnd, TextureRegion laserTop, TextureRegion laserTopEnd){
-        if(target != null){
+        if(target != null && !ClientVars.hidingUnits && !ClientVars.hidingBlocks){
             float
             originX = x + Angles.trnsx(rotation, length),
             originY = y + Angles.trnsy(rotation, length);
