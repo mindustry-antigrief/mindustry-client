@@ -5,6 +5,7 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.graphics.gl.*;
+import arc.input.*;
 import arc.math.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -202,6 +203,7 @@ public class MenuRenderer implements Disposable{
     }
 
     public void render(){
+        if (Core.input.keyTap(KeyCode.h)) flyerType = content.units().select(u -> (u.hitSize >= 20f || !u.flying) && u.region.found()).random();
         time += Time.delta;
         float scaling = Math.max(Scl.scl(4f), Math.max(Core.graphics.getWidth() / ((width - 1f) * tilesize), Core.graphics.getHeight() / ((height - 1f) * tilesize)));
         camera.position.set(width * tilesize / 2f, height * tilesize / 2f);
