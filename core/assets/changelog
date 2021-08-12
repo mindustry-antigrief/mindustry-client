@@ -18,6 +18,7 @@
  * An item limit on BuildPath's drills and belts options, they will do nothing if the core has less than 100 of any of the needed items
  * Reactors now show their range when being placed, press f9 to toggle this.
  * Removed encrypted and signed messages as they broke the server list and auto updater
+ * Added SHIFT + ` to show overdrive coverage
 
 # Version 7.3.0
  * Fixed an issue in buildpath where !builder belts and !builder drill would only partially upgrade each building

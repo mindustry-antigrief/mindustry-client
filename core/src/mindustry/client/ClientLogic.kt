@@ -3,6 +3,7 @@ package mindustry.client
 import arc.*
 import arc.util.*
 import mindustry.*
+import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
@@ -23,17 +24,18 @@ class ClientLogic {
         }
 
         Events.on(EventType.WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
-            ClientVars.lastJoinTime = Time.millis()
+            lastJoinTime = Time.millis()
             PowerInfo.initialize()
             Navigation.obstacles.clear()
-            ClientVars.configs.clear()
+            configs.clear()
             Vars.control.input.lastVirusWarning = null
-            ClientVars.dispatchingBuildPlans = false
-            ClientVars.hidingBlocks = false
-            ClientVars.hidingUnits = false
-            ClientVars.showingTurrets = false
+            dispatchingBuildPlans = false
+            hidingBlocks = false
+            hidingUnits = false
+            showingTurrets = false
             if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
-            Core.app.post { ClientVars.syncing = false } // Run this next frame so it can be used elsewhere safely
+            Core.app.post { syncing = false } // Run this next frame so it can be used elsewhere safely
+            overdrives.clear()
         }
 
         Events.on(EventType.ClientLoadEvent::class.java) { // Run when the client finishes loading
@@ -69,7 +71,7 @@ class ClientLogic {
         Events.on(EventType.PlayerJoin::class.java) { e -> // Run when a player joins the server
             if (e.player == null) return@on
 
-            if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has connected.")) && Time.timeSinceMillis(ClientVars.lastJoinTime) > 10000)
+            if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has connected.")) && Time.timeSinceMillis(lastJoinTime) > 10000)
                 Vars.player.sendMessage(Core.bundle.format("client.connected", e.player.name))
         }
 

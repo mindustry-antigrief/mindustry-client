@@ -366,13 +366,21 @@ public class BlockRenderer{
                 }
             }
         }
+
+        var bounds = camera.bounds(Tmp.r3).grow(tilesize);
         if (ClientVars.showingTurrets) {
             Draw.z(Layer.space);
-            var bounds = camera.bounds(Tmp.r3).grow(tilesize);
             boolean units = settings.getBool("unitranges");
             obstacles.forEach(t -> {
-                if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius*2, t.radius*2)) return;
+                if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) return;
                 Drawf.dashCircle(t.x, t.y, t.radius - tilesize, t.canHitPlayer ? t.team.color : Team.derelict.color);
+            });
+        }
+        if (ClientVars.showingOverdrives) {
+            Draw.z(Layer.space);
+            ClientVars.overdrives.forEach(b -> {
+                Log.info(b.x + " " + b.y + " " + b.realRange());
+                if (b.team == player.team() && bounds.overlaps(b.x - b.realRange(), b.y - b.realRange(), b.realRange()*2, b.realRange()*2)) b.drawSelect();
             });
         }
     }

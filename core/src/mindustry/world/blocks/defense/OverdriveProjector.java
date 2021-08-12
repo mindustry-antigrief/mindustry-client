@@ -8,6 +8,7 @@ import arc.math.geom.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -94,8 +95,24 @@ public class OverdriveProjector extends Block{
         float smoothEfficiency;
 
         @Override
+        public void add() {
+            super.add();
+            Core.app.post(() -> ClientVars.overdrives.add(this)); // This is cleared on the first frame after world load, add a frame later to bypass that
+        }
+
+        @Override
+        public void remove() {
+            super.remove();
+            ClientVars.overdrives.remove(this);
+        }
+
+        @Override
         public float range(){
             return range;
+        }
+
+        public float realRange() {
+            return range + phaseHeat * phaseRangeBoost;
         }
 
         @Override

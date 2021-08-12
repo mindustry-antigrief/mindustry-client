@@ -88,7 +88,6 @@ public class TractorBeamTurret extends BaseTurret{
 
         @Override
         public void updateTile(){
-
             if (player != null && player.unit() != null && team != player.team()) {
                 Navigation.obstacles.add(pathfindingEntity);
                 pathfindingEntity.canHitPlayer = player.unit().isFlying() ? targetAir : targetGround;

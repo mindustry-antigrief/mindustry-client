@@ -4,6 +4,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.antigrief.*;
+import mindustry.world.blocks.defense.*;
 import org.jetbrains.annotations.*;
 
 public class ClientVars {
@@ -16,7 +17,8 @@ public class ClientVars {
     @NotNull public static Ratekeeper configRateLimit = new Ratekeeper();
 
     // Hotkeys
-    public static boolean showingTurrets, hidingUnits, hidingBlocks, dispatchingBuildPlans;
+    public static boolean showingTurrets, hidingUnits, hidingBlocks, dispatchingBuildPlans, showingOverdrives;
+    @NotNull public static Seq<OverdriveProjector.OverdriveBuild> overdrives = new Seq<>(); // For whatever reason the stupid allBuildings method hates me so im just not using it
 
     // Commands
     @NotNull public static CommandHandler clientCommandHandler = new CommandHandler("!");
