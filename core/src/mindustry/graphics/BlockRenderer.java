@@ -379,8 +379,8 @@ public class BlockRenderer{
         if (ClientVars.showingOverdrives) {
             Draw.z(Layer.space);
             ClientVars.overdrives.forEach(b -> {
-                Log.info(b.x + " " + b.y + " " + b.realRange());
-                if (b.team == player.team() && bounds.overlaps(b.x - b.realRange(), b.y - b.realRange(), b.realRange()*2, b.realRange()*2)) b.drawSelect();
+                float range = b.realRange();
+                if (b.team == player.team() && bounds.overlaps(b.x - range, b.y - range, range, range)) b.drawSelect();
             });
         }
     }
