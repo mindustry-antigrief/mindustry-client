@@ -16,6 +16,7 @@ import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
+import mindustry.world.blocks.payloads.*;
 import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
@@ -74,7 +75,7 @@ public class Conveyor extends Block implements Autotiler{
     //stack conveyors should be bridged over, not replaced
     @Override
     public boolean canReplace(Block other){
-        return super.canReplace(other) && !(other instanceof StackConveyor);
+        return super.canReplace(other) && !(other instanceof StackConveyor) && !(other instanceof PayloadBlock);
     }
 
     @Override

@@ -20,6 +20,7 @@ import mindustry.entities.*
 import mindustry.entities.units.*
 import mindustry.gen.*
 import mindustry.input.*
+import mindustry.logic.*
 import mindustry.net.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
@@ -79,9 +80,31 @@ object Client {
         }
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
-            val unit = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
-            // FINISHME: Make this check each unit to see if it is a player/formation unit, display that info
-            player.sendMessage(Strings.format("[accent]@: @/@", unit.localizedName, player.team().data().countType(unit), Units.getCap(player.team())))
+            val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
+            val counts = IntSeq.with(0, 0, Units.getCap(player.team()), 0, 0, 0, 0, 0)
+
+            for (unit in player.team().data().units) {
+                if (unit.type != type) continue
+
+                when (unit.sense(LAccess.controlled).toInt()) {
+                    GlobalConstants.ctrlPlayer -> counts[5]++
+                    GlobalConstants.ctrlFormation -> counts[6]++
+                    GlobalConstants.ctrlProcessor -> counts[7]++
+                    else -> counts[1]++
+                }
+                counts[0]++
+                if (unit.flag != 0.0) counts[3]++
+                else counts[4]++
+            }
+
+            player.sendMessage("""
+                [accent]${type.localizedName}:
+                Total: ${counts[0]}
+                Free: ${counts[1]}
+                Cap: ${counts[2]}
+                Flagged(Unflagged): ${counts[3]}(${counts[4]})
+                Players(Formation): ${counts[5]}(${counts[6]})
+                Logic Controlled: ${counts[7]}""".trimIndent())
         }
 
         // FINISHME: Add spawn command

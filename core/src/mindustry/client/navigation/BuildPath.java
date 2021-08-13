@@ -41,13 +41,13 @@ public class BuildPath extends Path {
         Blocks.mechanicalDrill, Blocks.pneumaticDrill
     );
 
-    @SuppressWarnings("unchecked")
     public BuildPath() {
-        queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist, drills, belts); // Most queues included by default
+        this(null, 0);
     }
 
+    @SuppressWarnings("unchecked")
     public BuildPath(Seq<Item> mineItems, int cap) {
-        this();
+        queues.addAll(player.unit().plans, broken, assist, unfinished, networkAssist, drills, belts); // Most queues included by default
         this.mineItems = mineItems;
         this.cap = cap;
     }
@@ -73,6 +73,7 @@ public class BuildPath extends Path {
                 }
             }
         }
+
         if (queues.isEmpty()) {
             player.sendMessage(Core.bundle.format("client.path.builder.allinvalid", "All, self, broken, boulders, assist, unfinished, cleanup, networkassist, drills, conveyors"));
             queues.add(player.unit().plans);
