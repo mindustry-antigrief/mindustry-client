@@ -20,7 +20,7 @@ class Moderation {
             e.player ?: return@on
             e.player.trace ?: return@on
 
-            traces.forEach { p -> if (p.trace.uuid == e.player.trace.uuid || p.trace.ip == e.player.trace.ip) traces.remove(p) }
+//            traces.forEach { p -> if (p.trace.uuid == e.player.trace.uuid || p.trace.ip == e.player.trace.ip) traces.remove(p) } FINISHME: Remove dupe traces and add the relevant info to the new trace
             while (traces.size >= Core.settings.getInt("leavecount")) traces.removeFirst() // Keep 100 latest leaves
             traces.add(e.player)
         }

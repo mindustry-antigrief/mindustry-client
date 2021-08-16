@@ -41,7 +41,7 @@ public class MinePath extends Path {
                 if (arg.equals("*") || arg.equals("all") || arg.equals("a")) {
                     items.addAll(content.items().select(indexer::hasOre)); // Add all items when the argument is "all" or similar
                     itemString.append("Everything, ");
-                } else if (Strings.canParsePositiveInt(arg)) cap = Strings.parsePositiveInt(arg);
+                } else if (Strings.canParsePositiveInt(arg)) cap = Strings.canParsePositiveInt(arg) ? Strings.parsePositiveInt(arg) : 0;
                 else player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
             }
         }
