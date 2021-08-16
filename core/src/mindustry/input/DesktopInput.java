@@ -57,7 +57,7 @@ public class DesktopInput extends InputHandler{
     /** Whether player is currently deleting removal requests. */
     public boolean deleting = false, shouldShoot = false, panning = false;
     /** Mouse pan speed. */
-    public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 11f;
+    public float panScale = 0.005f, panSpeed = 4.5f, panBoostSpeed = 15f;
     /** Delta time between consecutive clicks. */
     public long selectMillis = 0;
     /** Previously selected tile. */
@@ -859,23 +859,17 @@ public class DesktopInput extends InputHandler{
                 unit.lookAt(unit.prefRotation());
             }
 
-            if(omni || true){
-                unit.moveAt(movement);
-            }else{
-                unit.rotateMove(movement);
+//        if(omni){
+            unit.moveAt(movement);
+//        }else{
+//            unit.rotateMove(movement);
+//        }
 
-                unit.moveAt(Tmp.v2.trns(unit.rotation, movement.len()));
+        unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
 
-                //problem: actual unit rotation is controlled by velocity, but velocity is 1) unpredictable and 2) can be set to 0            if(!movement.isZero()){
-                if(!movement.isZero()){
-                    unit.rotation = Angles.moveToward(unit.rotation,movement.angle(), unit.type.rotateSpeed * Math.max(Time.delta, 1));
-                }
-            }
-            unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
-
-            // if autoboost, invert the behavior of the boost key
-            player.boosting = (Core.settings.getBool("autoboost") != input.keyDown(Binding.boost));
-        }
+        // if autoboost, invert the behavior of the boost key
+        player.boosting = (Core.settings.getBool("autoboost") != input.keyDown(Binding.boost));
+    }
         unit.controlWeapons(true, player.shooting && !boosted);
 
         player.mouseX = unit.aimX();

@@ -37,7 +37,6 @@ public class Fonts{
 
     public static Font def;
     public static Font outline;
-    public static Font chat;
     public static Font icon;
     public static Font iconLarge;
     public static Font tech;
@@ -95,10 +94,6 @@ public class Fonts{
             (Fonts.mono = ((Font)f)).setFixedWidthGlyphs(chars);
             mono.getData().markupEnabled = true;
         };
-        Core.assets.load("chat", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> {
-            Fonts.chat = (Font)f;
-            Fonts.chat.setFixedWidthGlyphs("0123456789");
-        };
         Core.assets.load("icon", Font.class, new FreeTypeFontLoaderParameter("fonts/icon.ttf", new FreeTypeFontParameter(){{
             size = 30;
             incremental = true;
@@ -126,7 +121,7 @@ public class Fonts{
     }
 
     public static void loadContentIcons(){
-        Seq<Font> fonts = Seq.with(Fonts.chat, Fonts.def, Fonts.outline, Fonts.mono, Fonts.monoOutline);
+        Seq<Font> fonts = Seq.with(Fonts.def, Fonts.outline, Fonts.mono, Fonts.monoOutline);
         Texture uitex = Core.atlas.find("logo").texture;
         int size = (int)(Fonts.def.getData().lineHeight/Fonts.def.getData().scaleY);
 

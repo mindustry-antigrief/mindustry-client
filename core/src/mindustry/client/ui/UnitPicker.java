@@ -112,7 +112,7 @@ public class UnitPicker extends BaseDialog {
                         Toast t = new Toast(3);
                         if (player.unit() == event.unit) {
                             t.add("@client.unitpicker.success");
-                            Timer.schedule(task::cancel, .55f);
+                            Timer.schedule(task::cancel, .15f);
                         } else if (event.unit.getPlayer() != null && !event.unit.isLocal()) {
                             type = event.unit.type;
                             t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));

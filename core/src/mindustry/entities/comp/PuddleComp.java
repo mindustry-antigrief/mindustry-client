@@ -1,5 +1,6 @@
 package mindustry.entities.comp;
 
+import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -23,10 +24,25 @@ abstract class PuddleComp implements Posc, Puddlec, Drawc{
     private static final Rect rect = new Rect(), rect2 = new Rect();
     private static int seeds;
 
+    private static Puddle paramPuddle;
+    private static Cons<Unit> unitCons = unit -> {
+        if(unit.isGrounded() && !unit.hovering){
+            unit.hitbox(rect2);
+            if(rect.overlaps(rect2)){
+                unit.apply(paramPuddle.liquid.effect, 60 * 2);
+
+                if(unit.vel.len2() > 0.1f * 0.1f){
+                    Fx.ripple.at(unit.x, unit.y, unit.type.rippleScale, paramPuddle.liquid.color);
+                }
+            }
+        }
+    };
+
     @Import int id;
     @Import float x, y;
 
-    transient float accepting, updateTime, lastRipple;
+    transient private boolean mismatch = false;
+    transient float accepting, updateTime, lastRipple = Time.time + Mathf.random(40f);
     float amount;
     Tile tile;
     Liquid liquid;
@@ -60,24 +76,22 @@ abstract class PuddleComp implements Posc, Puddlec, Drawc{
 
         if(amount <= 0f){
             remove();
+            return;
+        }
+
+        if(Puddles.get(tile) != self()){
+            mismatch = true;
+            remove();
+            return;
         }
 
         //effects-only code
         if(amount >= maxLiquid / 2f && updateTime <= 0f){
-            Units.nearby(rect.setSize(Mathf.clamp(amount / (maxLiquid / 1.5f)) * 10f).setCenter(x, y), unit -> {
-                if(unit.isGrounded() && !unit.hovering){
-                    unit.hitbox(rect2);
-                    if(rect.overlaps(rect2)){
-                        unit.apply(liquid.effect, 60 * 2);
+            paramPuddle = self();
 
-                        if(unit.vel.len() > 0.1){
-                            Fx.ripple.at(unit.x, unit.y, unit.type.rippleScale, liquid.color);
-                        }
-                    }
-                }
-            });
+            Units.nearby(rect.setSize(Mathf.clamp(amount / (maxLiquid / 1.5f)) * 10f).setCenter(x, y), unitCons);
 
-            if(liquid.temperature > 0.7f && (tile.build != null) && Mathf.chance(0.5)){
+            if(liquid.temperature > 0.7f && tile.build != null && Mathf.chance(0.5)){
                 Fires.create(tile);
             }
 
@@ -120,7 +134,9 @@ abstract class PuddleComp implements Posc, Puddlec, Drawc{
 
     @Override
     public void remove(){
-        Puddles.remove(tile);
+        if(!mismatch){
+            Puddles.remove(tile);
+        }
     }
 
     @Override

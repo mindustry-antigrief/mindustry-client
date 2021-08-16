@@ -9,6 +9,7 @@ import arc.math.*;
 import arc.scene.*;
 import arc.scene.ui.*;
 import arc.scene.ui.Label.*;
+import arc.scene.ui.TextField.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
@@ -124,10 +125,9 @@ public class ChatFragment extends Table{
         fieldlabel.getStyle().font = font;
         fieldlabel.setStyle(fieldlabel.getStyle());
 
-        chatfield = new TextField("", new TextField.TextFieldStyle(scene.getStyle(TextField.TextFieldStyle.class)));
+        chatfield = new TextField("", new TextFieldStyle(scene.getStyle(TextFieldStyle.class)));
         chatfield.setMaxLength(Vars.maxTextLength);
         chatfield.getStyle().background = null;
-        chatfield.getStyle().font = Fonts.chat;
         chatfield.getStyle().fontColor = Color.white;
         chatfield.setStyle(chatfield.getStyle());
 

@@ -49,6 +49,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     static final float timeToSleep = 60f * 1, timeToUncontrol = 60f * 6;
     static final ObjectSet<Building> tmpTiles = new ObjectSet<>();
     static final Seq<Building> tempBuilds = new Seq<>();
+    static final BuildTeamChangeEvent teamChangeEvent = new BuildTeamChangeEvent();
     static int sleepingEntities = 0;
     
     @Import float x, y, health, maxHealth;
@@ -159,7 +160,8 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     }
 
     public final void readBase(Reads read){
-        health = read.f();
+        //cap health by block health in case of nerfs
+        health = Math.min(read.f(), block.health);
         byte rot = read.b();
         team = Team.get(read.b());
 
@@ -1259,9 +1261,11 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
     /** Changes this building's team in a safe manner. */
     public void changeTeam(Team next){
+        Team last = this.team;
         indexer.removeIndex(tile);
         this.team = next;
         indexer.addIndex(tile);
+        Events.fire(teamChangeEvent.set(last, self()));
     }
 
     public boolean canPickup(){
@@ -1375,10 +1379,12 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public void damage(float damage){
         if(dead()) return;
 
-        if(Mathf.zero(state.rules.blockHealthMultiplier)){
+        float dm = state.rules.blockHealth(team);
+
+        if(Mathf.zero(dm)){
             damage = health + 1;
         }else{
-            damage /= state.rules.blockHealthMultiplier;
+            damage /= dm;
         }
 
         Call.tileDamage(self(), health - handleDamage(damage));

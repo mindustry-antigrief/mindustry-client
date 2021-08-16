@@ -43,6 +43,8 @@ public class UnitType extends UnlockableContent{
 
     /** If true, the unit is always at elevation 1. */
     public boolean flying;
+    /** If `flying` and this is true, the unit can appear on the title screen */
+    public boolean onTitleScreen = true;
     /** Creates a new instance of this unit class. */
     public Prov<? extends Unit> constructor;
     /** The default AI controller to assign on creation. */
@@ -122,6 +124,7 @@ public class UnitType extends UnlockableContent{
     public boolean canHeal = false;
     /** If true, all weapons will attack the same target. */
     public boolean singleTarget = false;
+    public boolean forceMultiTarget = false;
 
     public ObjectSet<StatusEffect> immunities = new ObjectSet<>();
     public Sound deathSound = Sounds.bang;
@@ -235,6 +238,10 @@ public class UnitType extends UnlockableContent{
         return (envEnabled & env) != 0 && (envDisabled & env) == 0 && (envRequired == 0 || (envRequired & env) == envRequired);
     }
 
+    public boolean isBanned(){
+        return state.rules.bannedUnits.contains(this);
+    }
+
     @Override
     public void getDependencies(Cons<UnlockableContent> cons){
         //units require reconstructors being researched
@@ -317,10 +324,10 @@ public class UnitType extends UnlockableContent{
         }
 
         clipSize = Math.max(clipSize, lightRadius * 1.1f);
-        singleTarget = weapons.size <= 1;
+        singleTarget = weapons.size <= 1 && !forceMultiTarget;
 
         if(itemCapacity < 0){
-            itemCapacity = Math.max(Mathf.round((int)(hitSize * 4.3), 10), 10);
+            itemCapacity = Math.max(Mathf.round((int)(hitSize * 4f), 10), 10);
         }
 
         //assume slight range margin
@@ -568,8 +575,9 @@ public class UnitType extends UnlockableContent{
                 Draw.alpha(alpha);
                 a.draw(unit);
             }
-            Draw.reset();
         }
+
+        Draw.reset();
     }
 
     public <T extends Unit & Payloadc> void drawPayload(T unit){

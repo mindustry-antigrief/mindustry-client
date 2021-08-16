@@ -23,7 +23,7 @@ public class PlayerListFragment extends Fragment{
     public Table content = new Table().marginRight(13f).marginLeft(13f);
     private boolean visible = false;
     private final Interval timer = new Interval();
-    private TextField sField;
+    private TextField search;
     private final Seq<Player> players = new Seq<>();
 
     @Override
@@ -51,12 +51,9 @@ public class PlayerListFragment extends Fragment{
             cont.table(Tex.buttonTrans, pane -> {
                 pane.label(() -> Core.bundle.format("players" + (Groups.player.size() == 1 && (ui.join.lastHost == null || ui.join.lastHost.playerLimit <= 0) ? ".single" : ""), Groups.player.size() + (ui.join.lastHost != null && ui.join.lastHost.playerLimit > 0 ? " / " + ui.join.lastHost.playerLimit : "")));
                 pane.row();
-                sField = pane.field(null, text -> {
-                    rebuild();
-                }).grow().pad(8).get();
-                sField.name = "search";
-                sField.setMaxLength(maxNameLength);
-                sField.setMessageText(Core.bundle.format("players.search"));
+
+                search = pane.field(null, text -> rebuild()).grow().pad(8).name("search").maxTextLength(maxNameLength).get();
+                search.setMessageText(Core.bundle.get("players.search"));
 
                 pane.row();
                 pane.pane(content).grow().get().setScrollingDisabled(true, false);
@@ -87,7 +84,7 @@ public class PlayerListFragment extends Fragment{
         Groups.player.copy(players);
 
         players.sort(Structs.comps(Structs.comparing(Player::team), Structs.comps(Structs.comparingBool(p -> !p.admin), Structs.comparingBool(p -> !(p.fooUser || p.isLocal())))));
-        if(sField.getText().length() > 0) players.filter(p -> Strings.stripColors(p.name().toLowerCase()).contains(sField.getText().toLowerCase()));
+        if(search.getText().length() > 0) players.filter(p -> Strings.stripColors(p.name().toLowerCase()).contains(search.getText().toLowerCase()));
 
         for(var user : players){
             found = true;
@@ -204,7 +201,7 @@ public class PlayerListFragment extends Fragment{
             rebuild();
         }else{
             Core.scene.setKeyboardFocus(null);
-            sField.clearText();
+            search.clearText();
         }
     }
 

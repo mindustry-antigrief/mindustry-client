@@ -97,7 +97,7 @@ public class MenuFragment extends Fragment{
             });
         }
 
-        String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined();
+        String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H";
         parent.fill((x, y, w, h) -> {
             TextureRegion logo = Core.atlas.find("logo");
             float width = Core.graphics.getWidth(), height = Core.graphics.getHeight() - Core.scene.marginTop;

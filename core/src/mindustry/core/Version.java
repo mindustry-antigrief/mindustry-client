@@ -79,6 +79,6 @@ public class Version{
         if(build == -1){
             return "custom build";
         }
-        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + "\n(Client Version: " + (clientVersion.equals("v0.0.0") ? "Dev" : clientVersion) + ")\n[gray]Don't press H[]";
+        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + "\n(Client Version: " + (clientVersion.equals("v0.0.0") ? "Dev" : clientVersion) + ")";
     }
 }
