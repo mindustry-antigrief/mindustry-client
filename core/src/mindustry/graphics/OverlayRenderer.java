@@ -189,9 +189,10 @@ public class OverlayRenderer{
         Draw.color(Color.gray, Color.lightGray, Mathf.absin(Time.time, 8f, 1f));
 
         if(state.hasSpawns()){
+            Core.camera.bounds(Tmp.r1);
             for(Tile tile : spawner.getSpawns()){
-                if(tile.within(player.x, player.y, state.rules.dropZoneRadius + spawnerMargin) || input.isBreaking() || input.isPlacing() || input.selectRequests.any()){
-                    if (tile.within(player.x, player.y, state.rules.dropZoneRadius + spawnerMargin)) Draw.alpha(Mathf.clamp(1f - (player.dst(tile) - state.rules.dropZoneRadius) / spawnerMargin));
+                if(tile.within(player.x, player.y, state.rules.dropZoneRadius + spawnerMargin) || (input.isBreaking() || input.isPlacing() || input.selectRequests.any() && Tmp.r1.overlaps(tile.getX(), tile.getY(), state.rules.dropZoneRadius, state.rules.dropZoneRadius))){
+                    if(tile.within(player.x, player.y, state.rules.dropZoneRadius + spawnerMargin)) Draw.alpha(Mathf.clamp(1f - (player.dst(tile) - state.rules.dropZoneRadius) / spawnerMargin));
                     Lines.dashCircle(tile.worldx(), tile.worldy(), state.rules.dropZoneRadius);
                 }
             }

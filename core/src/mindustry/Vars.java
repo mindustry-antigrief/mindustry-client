@@ -238,6 +238,7 @@ public class Vars implements Loadable{
     public static NetClient netClient;
 
     public static Player player;
+    public static boolean drawCursors; // Client debug magic
 
     @Override
     public void loadAsync(){

@@ -7,6 +7,7 @@ import arc.graphics.g2d.*;
 import arc.graphics.gl.*;
 import arc.math.*;
 import arc.math.geom.*;
+import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.*;
@@ -15,6 +16,7 @@ import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
+import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.power.*;
 
@@ -382,6 +384,26 @@ public class BlockRenderer{
                 float range = b.realRange();
                 if (b.team == player.team() && bounds.overlaps(b.x - range, b.y - range, range, range)) b.drawSelect();
             });
+        }
+
+        if (drawCursors) {
+            Draw.z(Layer.space);
+            Draw.color(Color.red);
+            Draw.alpha(.3f);
+            boolean ints = Fonts.def.usesIntegerPositions();
+            Fonts.def.setUseIntegerPositions(false);
+            Fonts.def.getData().setScale(0.25f / Scl.scl(1f));
+            for (Player player : Groups.player) {
+                if (player.isLocal()) continue;
+
+                Fill.circle(player.mouseX, player.mouseY, tilesize);
+                Tmp.cr1.set(player.mouseX, player.mouseY, 10f * tilesize);
+                if (Tmp.cr1.contains(Core.input.mouseWorld())) {
+                    Fonts.def.draw("[#" + player.color + "]" + player.name, player.mouseX, player.mouseY, Align.center);
+                }
+            }
+            Fonts.def.getData().setScale(1f);
+            Fonts.def.setUseIntegerPositions(ints);
         }
     }
 
