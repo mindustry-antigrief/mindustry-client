@@ -192,7 +192,7 @@ public class OverlayRenderer{
             Core.camera.bounds(Tmp.r1);
             for(Tile tile : spawner.getSpawns()){
                 if(tile.within(player.x, player.y, state.rules.dropZoneRadius + spawnerMargin) || (input.isBreaking() || input.isPlacing() || input.selectRequests.any() && Tmp.r1.overlaps(tile.getX(), tile.getY(), state.rules.dropZoneRadius, state.rules.dropZoneRadius))){
-                    if(tile.within(player.x, player.y, state.rules.dropZoneRadius + spawnerMargin)) Draw.alpha(Mathf.clamp(1f - (player.dst(tile) - state.rules.dropZoneRadius) / spawnerMargin));
+                    Draw.alpha(input.isBreaking() || input.isPlacing() || input.selectRequests.any() ? 1 : Mathf.clamp(1f - (player.dst(tile) - state.rules.dropZoneRadius) / spawnerMargin));
                     Lines.dashCircle(tile.worldx(), tile.worldy(), state.rules.dropZoneRadius);
                 }
             }

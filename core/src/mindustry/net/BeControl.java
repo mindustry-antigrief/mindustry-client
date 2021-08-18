@@ -27,7 +27,7 @@ public class BeControl{
 
     private final AsyncExecutor executor = new AsyncExecutor(1);
     /** Whether or not to automatically display an update prompt on client load and every subsequent minute. */
-    private boolean checkUpdates = Core.settings.getBool("autoupdate");
+    public boolean checkUpdates = Core.settings.getBool("autoupdate");
     private boolean updateAvailable;
     private String updateUrl;
     private String updateBuild;

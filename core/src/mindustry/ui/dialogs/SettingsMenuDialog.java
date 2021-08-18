@@ -347,7 +347,7 @@ public class SettingsMenuDialog extends Dialog{
         client.updatePref();
         client.sliderPref("minepathcap", 0, 0, 5000, 100, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
-        client.checkPref("autoupdate", true);
+        client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("nyduspadpatch", true);
         client.checkPref("hidebannedblocks", false);

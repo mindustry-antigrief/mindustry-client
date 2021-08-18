@@ -21,7 +21,6 @@ import static mindustry.Vars.*;
 public class UnitPicker extends BaseDialog {
     public UnitType type;
     Seq<UnitType> sorted = content.units().copy();
-    Timer.Task task;
 
     public UnitPicker(){
         super("@client.unitpicker");
@@ -60,6 +59,9 @@ public class UnitPicker extends BaseDialog {
     }
 
     public void findUnit(UnitType type) {
+        findUnit(type, false);
+    }
+    public void findUnit(UnitType type, boolean silent) {
         hide();
         if (type == null) return;
 
@@ -67,13 +69,13 @@ public class UnitPicker extends BaseDialog {
         if (found == null) found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI)); // Include logic units
         if (found == null) found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead); // Include formation units
 
-        Toast t = new Toast(3);
+        Toast t = silent ? null : new Toast(3);
         if (found != null) {
             Call.unitControl(player, found); // Switch to unit
-            t.add("@client.unitpicker.success");
+            if (!silent) t.add("@client.unitpicker.success");
             this.type = null;
         } else {
-            t.add(Core.bundle.format("client.unitpicker.notfound", type));
+            if (!silent) t.add(Core.bundle.format("client.unitpicker.notfound", type));
             this.type = type;
         }
     }
@@ -85,19 +87,17 @@ public class UnitPicker extends BaseDialog {
                 Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead);
                 if (find != null) {
                     Call.unitControl(player, find);
-                    task = Timer.schedule(() -> {
+                    Timer.schedule(() -> {
                         if (find.isPlayer()) {
                             Toast t = new Toast(3);
-                            if (player.unit() == find) {
+                            if (event.unit.isLocal()) {
                                 type = null;
                                 t.add("@client.unitpicker.success");
-                                Timer.schedule(task::cancel, .15f);
                             } else if (find.getPlayer() != null && !find.isLocal()) {
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, find.getPlayer().name));
-                                task.cancel();
                             }
-                        } else Call.unitControl(player, find);
-                    }, net.client() ? netClient.getPing()/1000f : .025f, .1f, 10);
+                        }
+                    }, net.client() ? netClient.getPing()/1000f + .1f: 0);
                 }
             }
         });
@@ -107,19 +107,17 @@ public class UnitPicker extends BaseDialog {
             if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 type = null;
                 Call.unitControl(player, event.unit);
-                task = Timer.schedule(() -> {
+                Timer.schedule(() -> {
                     if (event.unit.isPlayer()) {
                         Toast t = new Toast(3);
-                        if (player.unit() == event.unit) {
+                        if (event.unit.isLocal()) {
                             t.add("@client.unitpicker.success");
-                            Timer.schedule(task::cancel, .15f);
                         } else if (event.unit.getPlayer() != null && !event.unit.isLocal()) {
                             type = event.unit.type;
                             t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
-                            task.cancel();
                         }
-                    } else Call.unitControl(player, event.unit);
-                }, net.client() ? netClient.getPing()/1000f : .025f, .1f, 10);
+                    } else Time.run(60, () -> findUnit(event.unit.type, true));
+                }, net.client() ? netClient.getPing()/1000f + .1f : 0);
             }
         });
 
