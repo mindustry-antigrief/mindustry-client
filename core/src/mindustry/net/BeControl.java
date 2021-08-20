@@ -133,11 +133,12 @@ public class BeControl{
                         ui.showException(e);
                     });
 
-                    dialog.cont.add(new Bar(() -> length[0] == 0 ? Core.bundle.get("be.updating") : (int)(progress[0] * length[0]) / 1024/ 1024 + "/" + length[0]/1024/1024 + " MB", () -> Pal.accent, () -> progress[0])).width(400f).height(70f);
+                    dialog.cont.add(new Bar(() -> length[0] == 0 ? Core.bundle.get("be.updating") : (int)(progress[0] * length[0])/1024/1024 + "/" + length[0]/1024/1024 + " MB", () -> Pal.accent, () -> progress[0])).width(400f).height(70f);
                     dialog.buttons.button("@cancel", Icon.cancel, () -> {
                         cancel[0] = true;
                         dialog.hide();
                     }).size(210f, 64f);
+                    dialog.buttons.button("@close", Icon.menu, () -> dialog.hide()).size(210f, 64f);
                     dialog.setFillParent(false);
                     dialog.show();
                 }catch(Exception e){
