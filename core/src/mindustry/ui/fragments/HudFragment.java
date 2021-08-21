@@ -345,6 +345,16 @@ public class HudFragment extends Fragment{
             var bossText = Core.bundle.get("guardian");
             int maxBosses = 6;
 
+            t.table(Styles.black3, p -> p.margin(4).label(() -> hudText).style(Styles.outlineLabel)).touchable(Touchable.disabled).with(p -> p.visible(() -> {
+                p.color.a = Mathf.lerpDelta(p.color.a, Mathf.num(showHudText), 0.2f);
+                if(state.isMenu()){
+                    p.color.a = 0f;
+                    showHudText = false;
+                }
+
+                return p.color.a >= 0.001f;
+            })).row();
+
             t.table(v -> v.margin(10f)
             .add(new Bar(() -> {
                 bossb.setLength(0);
