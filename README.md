@@ -46,10 +46,10 @@ See [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Building
 
-Bleeding-edge builds are generated automatically for every commit. You can see them [here](https://github.com/Anuken/MindustryBuilds/releases).
+Bleeding-edge builds are generated automatically for every commit. You can see them [here](https://github.com/mindustry-antigrief/mindustry-client-v6-builds/releases/latest).
 
 If you'd rather compile on your own, follow these instructions.
-First, make sure you have [JDK 14](https://adoptopenjdk.net/) installed. Open a terminal in the root directory, `cd` to the Mindustry folder and run the following commands:
+First, make sure you have [JDK 15](https://adoptopenjdk.net/)(will require digging into openjdk archive(at least until this uses jdk 16)) installed. Open a terminal in the root directory, `cd` to the Mindustry folder and run the following commands:
 
 ### Windows
 
@@ -73,7 +73,7 @@ Server builds are bundled with each released build (in Releases). If you'd rathe
 2. Set the `ANDROID_HOME` environment variable to point to your unzipped Android SDK directory.
 3. Run `gradlew android:assembleDebug` (or `./gradlew` if on linux/mac). This will create an unsigned APK in `android/build/outputs/apk`.
 
-To debug the application on a connected phone, run `gradlew android:installDebug android:run`.
+To debug the application on a connected phone, run `gradlew android:installDebug android:run`.(do note that android builds are nonfunctional at the moment)
 
 ### Troubleshooting
 
@@ -88,9 +88,7 @@ After building, the output .JAR file should be in `/desktop/build/libs/Mindustry
 
 ## Feature Requests
 
-Post feature requests and feedback [here](https://github.com/Anuken/Mindustry-Suggestions/issues/new/choose).
+Post feature requests in [discord](https://discord.gg/rdv3sBW)
 
 ## Downloads
-
-| [![](https://static.itch.io/images/badge.svg)](https://anuke.itch.io/mindustry)    |    [![](https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png)](https://play.google.com/store/apps/details?id=io.anuke.mindustry)   |    [![](https://fdroid.gitlab.io/artwork/badge/get-it-on.png)](https://f-droid.org/packages/io.anuke.mindustry)	| [![](https://flathub.org/assets/badges/flathub-badge-en.svg)](https://flathub.org/apps/details/com.github.Anuken.Mindustry)  
-|---	|---	|---	|---	|
+[here](https://github.com/mindustry-antigrief/mindustry-client/releases)  
