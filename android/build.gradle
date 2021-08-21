@@ -70,6 +70,7 @@ android{
         Properties props = loadVersionProps()
         Integer vcode = props['androidBuildCode']?.toInteger() ?: 1
         def versionNameResult = "$versionNumber-$versionType-${getBuildVersion().replace(" ", "-")}"
+        multiDexEnabled=true
 
         applicationId "io.anuke.mindustry"
         minSdkVersion 14
