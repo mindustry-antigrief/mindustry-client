@@ -73,7 +73,7 @@ Server builds are bundled with each released build (in Releases). If you'd rathe
 2. Set the `ANDROID_HOME` environment variable to point to your unzipped Android SDK directory.
 3. Run `gradlew android:assembleDebug` (or `./gradlew` if on linux/mac). This will create an unsigned APK in `android/build/outputs/apk`.
 
-To debug the application on a connected phone, run `gradlew android:installDebug android:run`.(do note that android builds are nonfunctional at the moment)
+To debug the application on a connected phone, run `gradlew android:installDebug android:run`.(do note that android builds are nonfunctional at the moment, and wont be functional anytime soon)
 
 ### Troubleshooting
 
