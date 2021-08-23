@@ -84,28 +84,25 @@ public class Fonts{
         largeIcons.clear();
         FreeTypeFontParameter param = fontParameter();
 
-        Core.assets.load("default", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> {
-            Fonts.def = (Font)f;
-            Fonts.def.setFixedWidthGlyphs("0123456789");
-        };
+        Core.assets.load("default", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> (Fonts.def = f).setFixedWidthGlyphs("0123456789");
         Core.assets.load("mono", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = f -> {
             StringBuilder chars = new StringBuilder();
             for(int c = 0; c <= 255; c++) chars.append((char)c);
-            (Fonts.mono = ((Font)f)).setFixedWidthGlyphs(chars);
+            (Fonts.mono = f).setFixedWidthGlyphs(chars);
             mono.getData().markupEnabled = true;
         };
         Core.assets.load("icon", Font.class, new FreeTypeFontLoaderParameter("fonts/icon.ttf", new FreeTypeFontParameter(){{
             size = 30;
             incremental = true;
             characters = "\0";
-        }})).loaded = f -> Fonts.icon = (Font)f;
+        }})).loaded = f -> Fonts.icon = f;
         Core.assets.load("iconLarge", Font.class, new FreeTypeFontLoaderParameter("fonts/icon.ttf", new FreeTypeFontParameter(){{
             size = 48;
             incremental = false;
             characters = "\0" + Iconc.all;
             borderWidth = 5f;
             borderColor = Color.darkGray;
-        }})).loaded = f -> Fonts.iconLarge = (Font)f;
+        }})).loaded = f -> Fonts.iconLarge = f;
     }
 
     public static TextureRegion getLargeIcon(String name){

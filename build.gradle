@@ -41,8 +41,8 @@ buildscript{
 }
 
 plugins{
-    id 'org.jetbrains.kotlin.jvm' version '1.4.32'
-    id "org.jetbrains.kotlin.kapt" version "1.4.32"
+    id "org.jetbrains.kotlin.jvm" version "1.5.21"
+    id "org.jetbrains.kotlin.kapt" version "1.5.21"
 }
 
 allprojects{
@@ -55,7 +55,7 @@ allprojects{
         versionNumber = '7'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
-        if(!project.hasProperty("buildversion")) buildversion = '130'
+        if(!project.hasProperty("buildversion")) buildversion = '130.1'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
@@ -394,7 +394,7 @@ project(":core"){
         if(localArc()) api arcModule(":extensions:packer")
 
         implementation group: 'com.beust', name: 'klaxon', version: '5.4'  // Yes, I'm aware arc has a json system, but I don't know how to use it.
-//        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3' Not used anywhere, commented to reduce jar size
+//        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.21' Not used anywhere, commented to reduce jar size
 
         annotationProcessor 'com.github.Anuken:jabel:34e4c172e65b3928cd9eabe1993654ea79c409cd'
         compileOnly project(":annotations")

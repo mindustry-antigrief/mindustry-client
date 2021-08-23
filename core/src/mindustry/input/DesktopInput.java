@@ -836,7 +836,7 @@ public class DesktopInput extends InputHandler{
     protected void updateMovement(Unit unit){ // Heavily modified to support navigation
         boolean omni = unit.type.omniMovement;
 
-        float speed = unit.realSpeed();
+        float speed = unit.speed();
         float xa = Core.input.axis(Binding.move_x);
         float ya = Core.input.axis(Binding.move_y);
         if(input.keyDown(Binding.freecam_modifier)){
@@ -859,17 +859,14 @@ public class DesktopInput extends InputHandler{
                 unit.lookAt(unit.prefRotation());
             }
 
-//        if(omni){
+    //        unit.movePref(movement); Client replaces this with the line below
             unit.moveAt(movement);
-//        }else{
-//            unit.rotateMove(movement);
-//        }
 
-        unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
+            unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
 
-        // if autoboost, invert the behavior of the boost key
-        player.boosting = (Core.settings.getBool("autoboost") != input.keyDown(Binding.boost));
-    }
+            // if autoboost, invert the behavior of the boost key
+            player.boosting = (Core.settings.getBool("autoboost") != input.keyDown(Binding.boost));
+        }
         unit.controlWeapons(true, player.shooting && !boosted);
 
         player.mouseX = unit.aimX();

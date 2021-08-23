@@ -191,7 +191,7 @@ object Client {
 
             val cc = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) { t -> t is CommandCenter.CommandBuild }
             if (cc != null) {
-                Call.tileConfig(player, cc, when (args[0].toLowerCase()[0]) {
+                Call.tileConfig(player, cc, when (args[0].lowercase()[0]) {
                     'a' -> UnitCommand.attack
                     'r' -> UnitCommand.rally
                     else -> UnitCommand.idle
@@ -249,7 +249,7 @@ object Client {
 
         register("admin [option]", "Access moderation commands and settings") { args, player -> // FINISHME: Bundle
             val arg = if (args.isEmpty()) "" else args[0]
-            when (arg.toLowerCase()) {
+            when (arg.lowercase()) {
                 "s", "settings" -> {
                     ui.settings.show()
                     ui.settings.visible(4)

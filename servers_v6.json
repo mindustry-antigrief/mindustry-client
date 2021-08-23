@@ -37,7 +37,7 @@
   },
   {
     "name": "mindustry.ddns.net",
-    "address": ["mindustry.ddns.net:1000", "mindustry.ddns.net:2000", "mindustry.ddns.net:3000", "mindustry.ddns.net:4000"]
+    "address": ["mindustry.ddns.net", "mindustry.ddns.net:1000", "mindustry.ddns.net:2000", "mindustry.ddns.net:3000", "mindustry.ddns.net:4000"]
   },
   {
     "name": "Surrealment",
@@ -106,5 +106,9 @@
   {
      "name": "Español",
     "address": ["168.119.36.188:41445"]
+  },
+  {
+     "name": "CreateDustry",
+    "address": ["144.76.120.74:18645"]
   }
 ]

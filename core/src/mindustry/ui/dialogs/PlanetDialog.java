@@ -537,7 +537,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
 
                 //sector notifications & search
                 c.top().right();
-                c.defaults().width(280f);
+                c.defaults().width(290f);
 
                 c.button(bundle.get("sectorlist") +
                     (attacked == 0 ? "" : "\n[red]⚠[lightgray] " + bundle.format("sectorlist.attacked", "[red]" + attacked + "[]")),
@@ -585,6 +585,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
                 for(Sector sec : all){
                     if(sec.hasBase() && (searchText.isEmpty() || sec.name().toLowerCase().contains(searchText.toLowerCase()))){
                         con.button(t -> {
+                            t.marginRight(10f);
                             t.left();
                             t.defaults().growX();
 
@@ -620,7 +621,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
             };
 
             readd[0].run();
-        }).grow().get().setScrollingDisabled(true, false);
+        }).grow().scrollX(false);
     }
 
     @Override
