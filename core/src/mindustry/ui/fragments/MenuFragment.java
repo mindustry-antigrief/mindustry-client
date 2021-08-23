@@ -208,12 +208,14 @@ public class MenuFragment extends Fragment{
                     new Buttoni("@client.changelog", Icon.edit, ChangelogDialog.INSTANCE::show),
                     new Buttoni("@client.features", Icon.list, FeaturesDialog.INSTANCE::show)
                 ), // End of client section
+                new Buttoni("@database.button", Icon.menu,
+                    new Buttoni("@schematics", Icon.paste, ui.schematics::show),
+                    new Buttoni("@database", Icon.book, ui.database::show),
+                    new Buttoni("@about.button", Icon.info, ui.about::show)
+                ),
                 new Buttoni("@editor", Icon.terrain, () -> checkPlay(ui.maps::show)), steam ? new Buttoni("@workshop", Icon.steam, platform::openWorkshop) : null,
                 new Buttoni("@mods", Icon.book, ui.mods::show),
-                //not enough space for this button
-                //new Buttoni("@schematics", Icon.paste, ui.schematics::show),
                 new Buttoni("@settings", Icon.settings, ui.settings::show),
-                new Buttoni("@about.button", Icon.info, ui.about::show),
                 new Buttoni("@quit", Icon.exit, Core.app::exit)
             );
 

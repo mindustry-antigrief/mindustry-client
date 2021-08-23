@@ -58,6 +58,7 @@ public class CoreBlock extends StorageBlock{
         envEnabled = Env.any;
         drawDisabled = false;
         replaceable = false;
+        rebuildable = false;
     }
 
     @Remote(called = Loc.server)

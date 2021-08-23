@@ -65,7 +65,7 @@ public class PositionWaypoint extends Waypoint implements Position {
             player.snapInterpolation();
         } else {
             float length = circleLength <= 0.001f ? 1f : Mathf.clamp((player.unit().dst(target) - circleLength) / smooth, -1f, 1f);
-            vec.setLength(player.unit().realSpeed() * length);
+            vec.setLength(player.unit().speed() * length);
             if (length < -0.5f) vec.rotate(180f);
             else if (length < 0) vec.setZero();
             player.unit().moveAt(vec);
