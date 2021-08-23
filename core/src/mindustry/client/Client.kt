@@ -318,6 +318,7 @@ object Client {
                     }
                     logs.minByOrNull { it.value }?.key?.logs?.removeAt(0) ?: return@post
                 }
+                player.sendMessage("done")
             }
         }
     }

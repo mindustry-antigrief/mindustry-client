@@ -203,7 +203,7 @@ public class MenuRenderer implements Disposable{
     }
 
     public void render(){
-        if (Core.input.keyTap(KeyCode.h)) flyerType = content.units().select(u -> (u.hitSize >= 20f || !u.flying) && u.region.found()).random();
+        if (Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null) flyerType = content.units().select(u -> (u.hitSize >= 20f || !u.flying) && u.region.found()).random();
         time += Time.delta;
         float scaling = Math.max(Scl.scl(4f), Math.max(Core.graphics.getWidth() / ((width - 1f) * tilesize), Core.graphics.getHeight() / ((height - 1f) * tilesize)));
         camera.position.set(width * tilesize / 2f, height * tilesize / 2f);
