@@ -128,7 +128,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     /** @return where the unit wants to look at. */
     public float prefRotation(){
-        if(activelyBuilding()){
+        if(activelyBuilding() && canBuild()){
             return angleTo(buildPlan());
         }else if(mineTile != null){
             return angleTo(mineTile);

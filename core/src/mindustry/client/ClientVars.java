@@ -17,7 +17,7 @@ public class ClientVars {
     @NotNull public static Ratekeeper configRateLimit = new Ratekeeper();
 
     // Hotkeys
-    public static boolean showingTurrets, hidingUnits, hidingBlocks, dispatchingBuildPlans, showingOverdrives;
+    public static boolean showingTurrets, hidingUnits, hidingAirUnits, hidingBlocks, dispatchingBuildPlans, showingOverdrives;
     @NotNull public static Seq<OverdriveProjector.OverdriveBuild> overdrives = new Seq<>(); // For whatever reason the stupid allBuildings method hates me so im just not using it
 
     // Commands

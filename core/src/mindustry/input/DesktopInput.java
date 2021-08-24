@@ -28,7 +28,6 @@ import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 import mindustry.world.*;
@@ -88,8 +87,9 @@ public class DesktopInput extends InputHandler{
                         if(player.unit().isBuilding() || dispatchingBuildPlans){
                             str.append("\n").append(bundle.format(dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
                         }
-                        if(UnitType.alpha == 0){
-                            str.append("\n").append(bundle.format("client.toggleunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
+                        if(hidingUnits || hidingAirUnits){
+                            str.append("\n").append(bundle.format("client.toggleunits", keybinds.get(Binding.invisible_units).key.toString()));
+                            str.append("\n").append(bundle.format("client.toggleairunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
                         }
                         if(showingTurrets){
                             str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
@@ -187,7 +187,7 @@ public class DesktopInput extends InputHandler{
 
         selectRequests.each(this::drawOverRequest);
 
-        if(player.isBuilder()){
+//        if(player.isBuilder()){
             //draw things that may be placed soon
             if(mode == placing && block != null){
                 for(int i = 0; i < lineRequests.size; i++){
@@ -240,7 +240,7 @@ public class DesktopInput extends InputHandler{
                     }
                 }
             }
-        }
+//        }
 
         Draw.reset();
     }
@@ -261,9 +261,9 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        // Holding o hides units, pressing shift + o inverts the state; holding o will now show them.
-        if((input.keyTap(Binding.invisible_units) || (input.keyRelease(Binding.invisible_units) && !input.shift())) && scene.getKeyboardFocus() == null){
-            hidingUnits = !hidingUnits;
+        if(input.keyTap(Binding.invisible_units) && scene.getKeyboardFocus() == null){
+            if (input.shift()) hidingAirUnits = !hidingAirUnits;
+            else hidingUnits = !hidingUnits;
         }
 
         if(input.keyTap(Binding.show_reactor_and_dome_ranges)){
@@ -497,7 +497,7 @@ public class DesktopInput extends InputHandler{
             player.shooting = false;
         }
 
-        if(isPlacing() && player.isBuilder()){
+        if(isPlacing() /*&& player.isBuilder()*/){
             cursorType = SystemCursor.hand;
             selectScale = Mathf.lerpDelta(selectScale, 1f, 0.2f);
         }else{
@@ -523,7 +523,7 @@ public class DesktopInput extends InputHandler{
                 cursorType = cursor.build.getCursor();
             }
 
-            if((isPlacing() && player.isBuilder()) || !selectRequests.isEmpty()){
+            if((isPlacing() /*&& player.isBuilder()*/) || !selectRequests.isEmpty()){
                 cursorType = SystemCursor.hand;
             }
 
@@ -729,7 +729,7 @@ public class DesktopInput extends InputHandler{
         }else if(Core.input.keyTap(Binding.deselect) && !selectRequests.isEmpty()){
             selectRequests.clear();
             lastSchematic = null;
-        }else if(Core.input.keyTap(Binding.break_block) && !Core.scene.hasMouse() && player.isBuilder()){
+        }else if(Core.input.keyTap(Binding.break_block) && !Core.scene.hasMouse() /*&& player.isBuilder()*/){
             //is recalculated because setting the mode to breaking removes potential multiblock cursor offset
             deleting = false;
             mode = breaking;

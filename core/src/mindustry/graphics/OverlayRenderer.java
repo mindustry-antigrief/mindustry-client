@@ -69,9 +69,9 @@ public class OverlayRenderer{
 
         if(player.dead()) return;
 
-        if(player.isBuilder()){
+//        if(player.isBuilder()){
             player.unit().drawBuildPlans();
-        }
+//        }
 
         input.drawBottom();
     }

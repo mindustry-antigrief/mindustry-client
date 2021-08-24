@@ -12,6 +12,8 @@ import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.entities.units.*
 import mindustry.game.*
+import mindustry.game.Teams.*
+import mindustry.gen.*
 import mindustry.input.*
 
 object Main : ApplicationListener {
@@ -74,8 +76,9 @@ object Main : ApplicationListener {
             ClientVars.dispatchingBuildPlans = !ClientVars.dispatchingBuildPlans
         }
 
-        if (ClientVars.dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(5 * 60f)) {
-            sendBuildPlans()
+        if (ClientVars.dispatchingBuildPlans) {
+            if (!Vars.net.client()) Vars.player.unit().plans.each { addBuildPlan(it) } // Player plans -> block ghosts in single player
+            if (!communicationClient.inUse && Groups.player.size() > 1 && buildPlanInterval.get(5 * 60f)) sendBuildPlans()
         }
     }
 
@@ -119,6 +122,24 @@ object Main : ApplicationListener {
         if (toSend.isEmpty()) return
         communicationClient.send(BuildQueueTransmission(toSend), { Toast(3f).add(Core.bundle.format("client.sentplans", toSend.size)) }, { Toast(3f).add("@client.nomessageblock")})
         dispatchedBuildPlans.addAll(toSend)
+    }
+
+    private fun addBuildPlan(plan: BuildPlan) {
+        if (plan.breaking) return
+        if (plan.isDone) {
+            Vars.player.unit().plans.remove(plan)
+            return
+        }
+
+        val data: TeamData = Vars.player.team().data()
+        for (i in 0 until data.blocks.size) {
+            val b = data.blocks[i]
+            if (b.x == plan.x.toShort() && b.y == plan.y.toShort()) {
+                data.blocks.removeIndex(i)
+                break
+            }
+        }
+        data.blocks.addFirst(BlockPlan(plan.x, plan.y, plan.rotation.toShort(), plan.block.id, plan.config))
     }
 
     /** Run when the object is disposed. */

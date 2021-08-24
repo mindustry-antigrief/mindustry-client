@@ -70,7 +70,7 @@ public class DatabaseDialog extends BaseDialog{
                 for(int i = 0; i < array.size; i++){
                     UnlockableContent unlock = (UnlockableContent)array.get(i);
 
-                    Image image = unlocked(unlock) ? new Image(unlock.uiIcon).setScaling(Scaling.fit) : new Image(Icon.lock, Pal.gray);
+                    Image image = unlocked(unlock) || state.isMenu() ? new Image(unlock.uiIcon).setScaling(Scaling.fit) : new Image(Icon.lock, Pal.gray);
 
                     //banned cross
                     if(state.isGame() && (unlock instanceof UnitType u && u.isBanned() || unlock instanceof Block b && state.rules.bannedBlocks.contains(b))){
@@ -84,12 +84,12 @@ public class DatabaseDialog extends BaseDialog{
 
                     ClickListener listener = new ClickListener();
                     image.addListener(listener);
-                    if(!mobile && unlocked(unlock)){
+                    if(!mobile && (unlocked(unlock) || state.isMenu())){
                         image.addListener(new HandCursorListener());
                         image.update(() -> image.color.lerp(!listener.isOver() ? Color.lightGray : Color.white, Mathf.clamp(0.4f * Time.delta)));
                     }
 
-                    if(unlocked(unlock)){
+                    if(unlocked(unlock) || state.isMenu()){
                         image.clicked(() -> {
                             if(Core.input.keyDown(KeyCode.shiftLeft) && Fonts.getUnicode(unlock.name) != 0){
                                 Core.app.setClipboardText((char)Fonts.getUnicode(unlock.name) + "");

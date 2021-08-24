@@ -231,8 +231,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
             }
 
             if(!headless && isLocal()) {
-                if (!unit.canBuild()) control.input.block = null;
-                else if (!persistPlans.isEmpty()) {
+                if (!persistPlans.isEmpty()) {
                     persistPlans.each(player.unit()::addBuild);
                     if (persistTask != null && persistTask.isScheduled()) persistTask.cancel();
                     persistTask = Timer.schedule(persistPlans::clear, 3); // Clear with a delay because servers suck

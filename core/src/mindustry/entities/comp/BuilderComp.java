@@ -92,7 +92,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         buildAlpha = 1f;
         if(current.breaking) lastSize = tile.block().size;
 
-        if(!within(tile, finalPlaceDst)) return;
+        if(!within(tile, finalPlaceDst) || !canBuild()) return;
 
         if(!(tile.build instanceof ConstructBuild cb)){
             if(!current.initialized && !current.breaking && Build.validPlace(current.block, team, current.x, current.y, current.rotation)){
@@ -209,7 +209,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
     /** Add another build requests to the queue, if it doesn't exist there yet. */
     void addBuild(BuildPlan place, boolean tail){
-        if(!canBuild()) return;
+//        if(!canBuild()) return;
 
         BuildPlan replace = null;
         for(BuildPlan request : plans){
@@ -249,7 +249,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
     }
 
     public void draw(){
-        boolean active = activelyBuilding();
+        boolean active = activelyBuilding() && canBuild();
         if(!active && lastActive == null) return;
 
         Draw.z(Layer.flyingUnit);
