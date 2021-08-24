@@ -81,54 +81,44 @@ class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterabl
 
         return cpy
     }
+
+    fun after(index: Int) = logs.slice((index - startingIndex).coerceIn(logs.indices) until logs.size)
 }
 
 class TileRecord(val x: Int, val y: Int) {
-    private val logs = lazy(LazyThreadSafetyMode.NONE) { mutableListOf<TileLogSequence>() }
-    val size get() = logs.value.lastOrNull()?.range?.last ?: 0
+    private var logs: MutableList<TileLogSequence>? = null
+    val size get() = logs?.lastOrNull()?.range?.last ?: 0
     private val totalRange get() = 0..size
 
     fun add(log: TileLog, tile: Tile) {
         when {
-            logs.value.isEmpty() -> {
-                logs.value.add(TileLogSequence(TileState(tile), 0))
+            logs == null -> {
+                logs = mutableListOf()
+                logs!!.add(TileLogSequence(TileState(tile), 0))
             }
 
-            logs.value.last().logs.size > 100 -> {
-                logs.value.add(TileLogSequence(TileState(tile), logs.value.last().range.last))
+            logs!!.last().logs.size > 100 -> {
+                logs!!.add(TileLogSequence(TileState(tile), logs!!.last().range.last))
             }
         }
-        log.add(logs.value.last())
+        log.add(logs!!.last())
     }
 
-    operator fun get(index: Int): TileState {
+    operator fun get(index: Int): TileState? {
         if (index !in totalRange) throw IndexOutOfBoundsException("Index $index is out of bounds! (size: $size)")
         // Get the last sequence that encompases this index
-        val bestSequence = logs.value.singleOrNull { index in it.range } ?: throw IndexOutOfBoundsException("Tile record is empty!")
-        return bestSequence[index]
+        val bestSequence = logs?.singleOrNull { index in it.range }
+        return bestSequence?.get(index)
     }
 
     // FINISHME: This breaks when there are over 100 logs on the tile.
-    val output = mutableListOf<TileLog>()
     fun lastLogs(count: Int): List<TileLog> {
-        try {
-            output.clear()
-            val num = if (logs.isInitialized()) min(count, size) else return output
-
-            var logIndex = logs.value.indexOfLast { size - num in it.range }
-            for (i in size - num until size) {
-                output.add(logs.value[logIndex].logs[i])
-                if (i + 1 !in logs.value[logIndex].range) {
-                    logIndex++
-                    if (logIndex >= logs.value.size) {
-                        break
-                    }
-                }
-            }
-            return output
-        } catch (e: IndexOutOfBoundsException) {  // Not totally sure why this happens, but it's an easy 'fix'
-            return emptyList()
+        val startingIndex = (size - count).coerceAtLeast(0)
+        val output = mutableListOf<TileLog>()
+        for (item in logs ?: return emptyList()) {
+            output.addAll(item.after(startingIndex))
         }
+        return output
     }
 
     fun oldestLog(sequence: TileLogSequence): TileLog? {
@@ -136,7 +126,7 @@ class TileRecord(val x: Int, val y: Int) {
     }
 
     fun oldestSequence(): TileLogSequence? {
-        return if (logs.isInitialized()) logs.value[0] else null
+        return logs?.getOrNull(0)  // should never be null but you never know
     }
 
     fun toElement(): Element {
@@ -145,22 +135,24 @@ class TileRecord(val x: Int, val y: Int) {
         table.row()
 
         table.pane { t ->
-            if (logs.value.any()) {
+            if (logs == null) return@pane
+
+            if (logs?.any() == true) {
                 t.button("@client.initialstate") {
                     dialog("@client.log") {
-                        cont.add(logs.value[0].snapshot.toElement())
+                        cont.add(logs!![0].snapshot.toElement())
                         addCloseButton()
                     }.show()
                 }.wrap(false)
                 t.row()
             }
-            for (sequence in logs.value) {
+            for (sequence in logs!!) {
                 for ((index, log) in sequence.withIndex()) {
                     t.add(log.toString() + " (" + UI.formatTime((Time.timeSinceMillis(log.time.toEpochMilli()) / 16.667).toFloat()) + ")").left()
                     t.row()
                     t.button("@client.state") {
                         dialog("@client.log") {
-                            cont.add(get(index + sequence.startingIndex).toElement())
+                            cont.add(get(index + sequence.startingIndex)?.toElement())
                             addCloseButton()
                         }.show()
                     }.wrap(false)
