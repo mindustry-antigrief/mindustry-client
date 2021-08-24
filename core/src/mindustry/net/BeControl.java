@@ -126,7 +126,9 @@ public class BeControl{
                             );
                             Core.app.exit();
                         }catch(IOException e){
-                            ui.showException(e);
+                            dialog.cont.clearChildren();
+                            dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
+                            dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
                         }
                     }, e -> {
                         dialog.hide();

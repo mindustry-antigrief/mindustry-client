@@ -112,7 +112,7 @@ object Client {
         register("go [x] [y]", Core.bundle.get("client.command.go.description")) { args, player ->
             try {
                 if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
-                Navigation.navigateTo(lastSentPos.cpy().scl(tilesize.toFloat()))
+                navigateTo(lastSentPos.cpy().scl(tilesize.toFloat()))
             } catch (e: Exception) {
                 player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "go"))
             }
