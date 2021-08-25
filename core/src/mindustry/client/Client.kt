@@ -141,10 +141,12 @@ object Client {
             Call.sendChatMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", player.tileX(), player.tileY()))
         }
 
-        register("cursor [message...]", Core.bundle.get("client.command.cursor.description")) { args, _ ->
+        register("cursora [message...]", Core.bundle.get("client.command.cursor.description")) { args, _ ->
             Call.sendChatMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
         }
-
+        register("cursor [message...]", Core.bundle.get("client.command.cursor.description")) { args, _ ->
+            Call.sendChatMessage(Strings.format("(@, @) @", control.input.rawTileX(), control.input.rawTileY(), if (args.isEmpty()) "" else args[0] + " "))
+        }
         register("builder [options...]", Core.bundle.get("client.command.builder.description")) { args, _: Player ->
             Navigation.follow(BuildPath(if (args.isEmpty()) "" else args[0]))
         } // FINISHME: This is so scuffed lol
@@ -159,6 +161,10 @@ object Client {
 
         register("shrug [message...]", Core.bundle.get("client.command.shrug.description")) { args, _ ->
             Call.sendChatMessage("¯\\_(ツ)_/¯ " + if (args.size == 1) args[0] else "")
+        }
+
+        register("shruga [message...]", Core.bundle.get("client.command.shrug.description")) { args, _ ->
+            Call.sendChatMessage((if (args.size == 1) args[0] else "") + " ¯\\_(ツ)_/¯")
         }
 
         register("login [name] [pw]", Core.bundle.get("client.command.login.description")) { args, _ ->
@@ -320,6 +326,9 @@ object Client {
                 }
                 player.sendMessage("done")
             }
+        }
+        register("cya", "sends cya in the chat (why)") {_, player ->
+            Call.sendChatMessage("cya\n[accent][#"+player.color+"][]"+player.name+" [accent]has disconnected.")
         }
     }
 
