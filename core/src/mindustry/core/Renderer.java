@@ -47,7 +47,7 @@ public class Renderer implements ApplicationListener{
     public boolean animateShields, drawWeather = true, drawStatus;
     public float weatherAlpha;
     /** minZoom = zooming out, maxZoom = zooming in */
-    public float minZoom = 0.01f, maxZoom = 12f;
+    public float minZoom = 0.01f, maxZoom = 40f;
     public Seq<EnvRenderer> envRenderers = new Seq<>();
     public TextureRegion[] bubbles = new TextureRegion[16], splashes = new TextureRegion[12];
 
@@ -290,7 +290,7 @@ public class Renderer implements ApplicationListener{
         if(Core.settings.getBool("drawhitboxes")) {
             for (Unit u : Groups.unit) {
                 if (!Core.camera.bounds(Tmp.r1).overlaps(u.x() - u.hitSize()/2f, u.y() - u.hitSize()/2f, u.hitSize(), u.hitSize())) continue;
-                Draw.color(u.team.color, .3f);
+                Draw.color(u.team.color, .2f);
                 Fill.rect(u.x, u.y, u.hitSize(), u.hitSize());
             }
         }
