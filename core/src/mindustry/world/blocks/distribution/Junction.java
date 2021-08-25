@@ -1,8 +1,11 @@
 package mindustry.world.blocks.distribution;
 
+import arc.graphics.g2d.Draw;
+import arc.math.geom.Vec2;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.gen.*;
+import mindustry.graphics.Layer;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
@@ -87,6 +90,33 @@ public class Junction extends Block{
         public void read(Reads read, byte revision){
             super.read(read, revision);
             buffer.read(read);
+        }
+
+        @Override
+        public void draw(){
+            super.draw();
+            Draw.z(Layer.power + 0.1f); // or layer.BlockOver or layer.Block + 0.1f? idk
+            Vec2 direction = new Vec2(0, -tilesize * 0.67f); // start from rot 3
+            Vec2 offset = new Vec2(tilesize / 3.1f, 0);
+            for(int i = 0; i < 4; i++){
+                direction.rotate90(1);
+                offset.rotate90(1);
+                if(buffer.indexes[i] == 0) continue;
+                for(int j = 0; j < buffer.indexes[i]; j++){ // from DirectionalItemBuffer.poll()
+                    long l = buffer.buffers[i][j];
+                    Item item = content.item(BufferItem.item(l));
+                    // to exit, Time.time > time + speed. Then currFrame (ie speed) = Time.time - time
+                    float time = Time.time - BufferItem.time(l);
+                    float progress = time / speed * timeScale;
+                    progress = Math.min(progress, 1f - (float)j / capacity); // (cap - j) * 1/cap
+                    if (progress < 0) continue;
+                    Vec2 displacement = new Vec2(direction).scl(-0.5f -0.5f/capacity + progress).add(offset); // -0.5/capacity: 1/capacity times half that distance
+                    Draw.rect(item.fullIcon,
+                            tile.x * tilesize + displacement.x,
+                            tile.y * tilesize + displacement.y,
+                            itemSize / 4f, itemSize / 4f);
+                }
+            }
         }
     }
 }
