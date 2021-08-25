@@ -27,9 +27,9 @@ import kotlin.random.Random
 
 val provider = JcaTlsCryptoProvider()
 
-fun certChainToTlsCert(cert: X509Certificate, chain: List<X509Certificate>, crypto: JcaTlsCrypto, certificateRequestContext: ByteArray?) = Certificate(certificateRequestContext, listOf(cert).plus(chain).map { CertificateEntry(JcaTlsCertificate(crypto, it), null) }.toTypedArray())
+private fun certChainToTlsCert(cert: X509Certificate, chain: List<X509Certificate>, crypto: JcaTlsCrypto, certificateRequestContext: ByteArray?) = Certificate(certificateRequestContext, listOf(cert).plus(chain).map { CertificateEntry(JcaTlsCertificate(crypto, it), null) }.toTypedArray())
 
-fun getAuth(expectedCert: X509Certificate, cert: X509Certificate, chain: List<X509Certificate>, crypto: JcaTlsCrypto, context: TlsContext, key: PrivateKey): TlsAuthentication = object : TlsAuthentication {
+private fun getAuth(expectedCert: X509Certificate, cert: X509Certificate, chain: List<X509Certificate>, crypto: JcaTlsCrypto, context: TlsContext, key: PrivateKey): TlsAuthentication = object : TlsAuthentication {
     override fun notifyServerCertificate(serverCertificate: TlsServerCertificate?) {
         val expected = expectedCert.encoded
 
@@ -128,52 +128,4 @@ fun TlsProtocol.pollOutput(): ByteArray {
     val arr = ByteArray(availableOutputBytes)
     readOutput(arr, 0, availableOutputBytes)
     return arr
-}
-
-fun main() {
-    val bc = BouncyCastleProvider()
-    Security.addProvider(bc)
-    Security.addProvider(BouncyCastleJsseProvider(bc))
-
-    provider.setProvider(bc)
-
-    val clientKey = genKey()
-    val clientCert = genCert(clientKey, null, "clientnamehere")
-
-    val serverKey = genKey()
-    val serverCert = genCert(serverKey, null, "servernamehere")
-
-    val clientProto = TlsClientProtocol()
-    val client = TlsClientImpl(clientCert, listOf(clientCert), serverCert, clientKey.private)
-
-    val serverProto = TlsServerProtocol()
-    val server = TlsServerImpl(serverCert, listOf(serverCert), clientCert, serverKey.private)
-
-    clientProto.connect(client)
-    serverProto.accept(server)
-
-    for (i in 0 until 1000) {
-        val up: Int
-        val down: Int
-        clientProto.offerInput(serverProto.pollOutput().apply { up = size })
-        serverProto.offerInput(clientProto.pollOutput().apply { down = size })
-
-        if (up + down != 0) {
-            println("$up up, $down down")
-        }
-
-        if (i == 100) {
-            println("handshaking done?")
-            val out = "Hello, world!".encodeToByteArray()
-            clientProto.writeApplicationData(out, 0, out.size)
-        }
-
-        if (i >= 100) {
-            val avail = serverProto.applicationDataAvailable()
-            if (avail == 0) continue
-            val arr = ByteArray(avail)
-            serverProto.readApplicationData(arr, 0, avail)
-            println("Got '${arr.decodeToString()}'")
-        }
-    }
 }
