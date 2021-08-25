@@ -24,6 +24,10 @@ import mindustry.logic.*
 import mindustry.net.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
+import org.bouncycastle.tls.TlsClientProtocol
+import java.security.Security
 import kotlin.math.*
 import kotlin.random.*
 
@@ -34,6 +38,14 @@ object Client {
     fun initialize() {
         registerCommands()
         ClientLogic()
+
+        val bc = BouncyCastleProvider()
+        // append bouncycastle to the list
+        val n = Security.getProviders().contentToString().length
+        Security.insertProviderAt(bc, n)
+        Security.insertProviderAt(BouncyCastleJsseProvider(bc), n + 1)
+        // FINISHME is this secure?  what exactly does this mean?  test without this every so often with new bouncycastle versions
+        System.setProperty("jdk.tls.namedGroups", "secp256r1")
     }
 
     fun update() {
