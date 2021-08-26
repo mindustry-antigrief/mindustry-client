@@ -1018,7 +1018,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         boolean consumed = false, showedInventory = false;
 
         //check if tapped block is configurable
-        if(build.block.configurable && build.interactable(player.team())){
+        if(build.block.configurable && (build.interactable(player.team()) || build.block instanceof LogicBlock)){
             consumed = true;
             if((!frag.config.isShown() && build.shouldShowConfigure(player)) //if the config fragment is hidden, show
             //alternatively, the current selected block can 'agree' to switch config tiles
