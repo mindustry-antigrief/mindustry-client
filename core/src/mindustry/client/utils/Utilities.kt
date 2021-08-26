@@ -171,3 +171,38 @@ infix fun <A, B> kotlin.Pair<A, B>.eqFlip(other: kotlin.Pair<A, B>) = this == ot
 
 /** Checks equality between a [kotlin.Pair] and two other values. */
 fun <A, B> kotlin.Pair<A, B>.eqFlip(a: A, b: B) = this.first == a && this.second == b || this.first == b && this.second == a
+
+fun <T> Iterable<T>.escape(escapement: T, vararg escape: T): List<T> {
+    val output = mutableListOf<T>()
+    for (item in this) {
+        if (item in escape || item == escapement) {
+            output.add(escapement)
+        }
+        output.add(item)
+    }
+    return output
+}
+
+fun <T> Iterable<T>.unescape(escapement: T, vararg escape: T): List<T> {
+    val output = mutableListOf<T>()
+    var previousWasEscapement = false
+    for (item in this) {
+        previousWasEscapement = when {
+            previousWasEscapement -> {
+                if (item in escape || item == escapement) {
+                    output.add(item)
+                }
+                false
+            }
+            item == escapement -> {
+                false
+            }
+            else -> {
+                output.add(item)
+                false
+            }
+        }
+    }
+
+    return output
+}

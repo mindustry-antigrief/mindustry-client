@@ -12,6 +12,7 @@ import mindustry.client.ClientVars.*
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
+import mindustry.client.crypto.provider
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.*
 import mindustry.client.utils.*
@@ -44,6 +45,7 @@ object Client {
         val n = Security.getProviders().contentToString().length
         Security.insertProviderAt(bc, n)
         Security.insertProviderAt(BouncyCastleJsseProvider(bc), n + 1)
+        provider.setProvider(bc)
         // FINISHME is this secure?  what exactly does this mean?  test without this every so often with new bouncycastle versions
         System.setProperty("jdk.tls.namedGroups", "secp256r1")
     }

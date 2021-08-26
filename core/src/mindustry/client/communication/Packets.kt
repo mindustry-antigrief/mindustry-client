@@ -14,9 +14,11 @@ object Packets {
     /** The list of registered types of [Transmission].  Transmissions MUST be registered here before use. */
     private val registeredTransmissionTypes = listOf<RegisteredTransmission<*>>(
         RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),
-        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),  // Kept for compatibility, FIXME: remove
-        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),  // Kept for compatibility, FIXME: remove
-        RegisteredTransmission(BuildQueueTransmission::class, ::BuildQueueTransmission)
+        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),  // Kept for compatibility, FINISHME: remove
+        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),  // Kept for compatibility, FINISHME: remove
+        RegisteredTransmission(BuildQueueTransmission::class, ::BuildQueueTransmission),
+        RegisteredTransmission(TLSDataTransmission::class, ::TLSDataTransmission),
+        RegisteredTransmission(TlsRequestTransmission::class, ::TlsRequestTransmission)
     )
 
     private data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (content: ByteArray, id: Long) -> T)

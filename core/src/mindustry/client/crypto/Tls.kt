@@ -5,9 +5,7 @@ import org.bouncycastle.asn1.x509.BasicConstraints
 import org.bouncycastle.asn1.x509.Extension
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec
-import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.bouncycastle.tls.*
 import org.bouncycastle.tls.Certificate
@@ -17,6 +15,7 @@ import org.bouncycastle.tls.crypto.impl.jcajce.JcaDefaultTlsCredentialedSigner
 import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCertificate
 import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCrypto
 import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCryptoProvider
+import java.io.Closeable
 import java.io.IOException
 import java.math.BigInteger
 import java.security.*
@@ -46,7 +45,55 @@ private fun getAuth(expectedCert: X509Certificate, cert: X509Certificate, chain:
     }
 }
 
-class TlsClientImpl(private val cert: X509Certificate, private val chain: List<X509Certificate>, private val expectedCert: X509Certificate, private val key: PrivateKey) : DefaultTlsClient(provider.create(SecureRandom.getInstanceStrong())) {
+abstract class TlsPeerHolder(protected val peer: InternalTlsPeer, protected val protocol: TlsProtocol) : Closeable {
+    val handshakeDone get() = peer.hanshakeDone
+    val isClosed get() = protocol.isClosed
+
+    abstract fun start()
+
+    fun read(): ByteArray = protocol.pollOutput()
+    fun write(bytes: ByteArray) { protocol.offerInput(bytes) }
+
+    fun readSecure(): ByteArray {
+        val arr = ByteArray(protocol.applicationDataAvailable())
+        protocol.readApplicationData(arr, 0, protocol.applicationDataAvailable())
+        return arr
+    }
+
+    fun writeSecure(bytes: ByteArray) { protocol.writeApplicationData(bytes, 0, bytes.size) }
+
+    override fun close() {
+        protocol.close()
+    }
+}
+
+class TlsClientHolder(cert: X509Certificate, chain: List<X509Certificate>, expectedCert: X509Certificate, key: PrivateKey) : TlsPeerHolder(TlsClientImpl(cert, chain, expectedCert, key), TlsClientProtocol()) {
+    override fun start() {
+        (protocol as TlsClientProtocol).connect(peer as TlsClientImpl)
+    }
+}
+
+class TlsServerHolder(cert: X509Certificate, chain: List<X509Certificate>, expectedCert: X509Certificate, key: PrivateKey) : TlsPeerHolder(TlsServerImpl(cert, chain, expectedCert, key), TlsServerProtocol()) {
+    override fun start() {
+        (protocol as TlsServerProtocol).accept(peer as TlsServerImpl)
+    }
+}
+
+interface InternalTlsPeer : TlsPeer {
+    var onHandshakeFinish: (() -> Unit)?
+    val hanshakeDone: Boolean
+}
+
+class TlsClientImpl(private val cert: X509Certificate, private val chain: List<X509Certificate>, private val expectedCert: X509Certificate, private val key: PrivateKey) : DefaultTlsClient(provider.create(SecureRandom.getInstanceStrong())), InternalTlsPeer {
+    override var onHandshakeFinish: (() -> Unit)? = null
+    override var hanshakeDone: Boolean = false
+        private set
+
+    override fun notifyHandshakeComplete() {
+        onHandshakeFinish?.invoke()
+        hanshakeDone = true
+    }
+
     override fun getAuthentication(): TlsAuthentication = getAuth(expectedCert, cert, chain, crypto as JcaTlsCrypto, context, key)
 
     override fun getProtocolVersions() = arrayOf(ProtocolVersion.TLSv13)
@@ -56,7 +103,16 @@ class TlsClientImpl(private val cert: X509Certificate, private val chain: List<X
     }
 }
 
-class TlsServerImpl(private val cert: X509Certificate, private val chain: List<X509Certificate>, private val expectedCert: X509Certificate, private val key: PrivateKey) : DefaultTlsServer(provider.create(SecureRandom.getInstanceStrong())) {
+class TlsServerImpl(private val cert: X509Certificate, private val chain: List<X509Certificate>, private val expectedCert: X509Certificate, private val key: PrivateKey) : DefaultTlsServer(provider.create(SecureRandom.getInstanceStrong())), InternalTlsPeer {
+    override var onHandshakeFinish: (() -> Unit)? = null
+    override var hanshakeDone: Boolean = false
+        private set
+
+    override fun notifyHandshakeComplete() {
+        onHandshakeFinish?.invoke()
+        hanshakeDone = true
+    }
+
     override fun getCertificateRequest(): CertificateRequest {
         val certificateAuthorities = Vector(mutableListOf(X500Name(expectedCert.subjectX500Principal.name)))
         val serverSigAlgs = Vector(mutableListOf(SignatureAndHashAlgorithm.ed448))
