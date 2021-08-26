@@ -56,7 +56,7 @@ allprojects{
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
         if(!project.hasProperty("buildversion")) buildversion = '130.1'
-        if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
+        if(!project.hasProperty("clientVersion")) clientVersion = 'v210826, Aug. 26, 2021'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
