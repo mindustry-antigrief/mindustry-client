@@ -1,10 +1,15 @@
-This is my fork of mindustry v6.  It will have various quality of life and automation features when complete.
+This is my v7 fork of buthed010203's fork of mindustry v6.  It will have various quality of life and automation features when complete.
 ![Logo](core/assets-raw/sprites/ui/logo.png)
 
 [![Release Update](../../workflows/Release%20Update/badge.svg)](https://mindustry-antigrief.github.io/mindustry-client)
 [![Tests (Unstable)](../../workflows/Java%20Tests/badge.svg?branch=v7)](https://mindustry-antigrief.github.io/mindustry-client-v7-builds)
 [![Discord](https://img.shields.io/discord/741710208501547161.svg?logo=discord&logoColor=white&logoWidth=20&labelColor=7289DA&label=Discord&color=17cf48)](https://discord.gg/yp9ZW7j)
 
+A sandbox tower defense game written in Java.
+
+_[Trello Board](https://trello.com/b/aE2tcUwF/mindustry-40-plans)_  
+_[Wiki](https://mindustrygame.github.io/wiki)_  
+_[Javadoc](https://mindustrygame.github.io/docs/)_
 # Installer
 Install `mindustry-antigrief/client-installer` through the mod browser in the vanilla game and allow the game to restart, upon restarting you will be prompted with an install popup, choose a version and it will install itself.
 
