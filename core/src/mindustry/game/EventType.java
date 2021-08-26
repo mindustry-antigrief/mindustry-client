@@ -650,5 +650,17 @@ public class EventType{
             this.message = message;
         }
     }
+
+    /** custom client events **/
+    public static class CommandBeforeAfterEvent {
+        public final Building tile;
+        public final UnitCommand command_bef, command_aft;
+
+        public CommandBeforeAfterEvent(Building tile, UnitCommand o, UnitCommand e) {
+            this.tile = tile;
+            this.command_bef = o;
+            this.command_aft = e;
+        }
+    }
 }
 

@@ -40,6 +40,7 @@ public class CommandCenter extends Block{
 
         config(UnitCommand.class, (CommandBuild build, UnitCommand command) -> {
             if(build.team.data().command != command){
+                Events.fire(new CommandBeforeAfterEvent(build, build.team.data().command, command));
                 build.team.data().command = command;
                 //do not spam effect
                 if(build.timer(timerEffect, 60f)){

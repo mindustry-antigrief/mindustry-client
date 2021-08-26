@@ -237,6 +237,8 @@ public class Vars implements Loadable{
     public static NetServer netServer;
     public static NetClient netClient;
 
+    public static CSHandler customScripts;
+
     public static Player player;
     public static boolean drawCursors; // Client debug magic
 
@@ -309,6 +311,8 @@ public class Vars implements Loadable{
 
         mods.load();
         maps.load();
+        customScripts = new CSHandler();
+
     }
 
     /** Checks if a launch failure occurred.
