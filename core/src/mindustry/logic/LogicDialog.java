@@ -16,8 +16,13 @@ import static mindustry.logic.LCanvas.*;
 public class LogicDialog extends BaseDialog{
     public LCanvas canvas;
     Cons<String> consumer = s -> {};
+    private boolean curr;
 
-    public LogicDialog(){
+    public void setConfigurable(boolean b){
+        curr = b;
+    }
+
+    public LogicDialog(){ // CUSTOM: Change back, edit and add actions here
         super("logic");
 
         clearChildren();
@@ -56,17 +61,17 @@ public class LogicDialog extends BaseDialog{
 
             dialog.addCloseButton();
             dialog.show();
-        }).name("edit");
+        }).name("edit").disabled(h -> !curr);
 
         buttons.button("Use for comms", () -> {
             ui.showConfirm("Are you use you want to use this block for comms?", () -> {
                 canvas.load(MessageBlockCommunicationSystem.LOGIC_PREFIX);
                 hide();
             });
-        });
+        }).disabled(h -> !curr);
 
         buttons.button("@add", Icon.add, () -> addDialog(canvas.statements.getChildren().size))
-            .disabled(t -> canvas.statements.getChildren().size >= LExecutor.maxInstructions);
+            .disabled(t -> !curr || canvas.statements.getChildren().size >= LExecutor.maxInstructions);
 
         add(canvas).grow().name("canvas");
 
