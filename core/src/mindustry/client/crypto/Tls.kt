@@ -32,7 +32,7 @@ private fun getAuth(expectedCert: X509Certificate, cert: X509Certificate, chain:
     override fun notifyServerCertificate(serverCertificate: TlsServerCertificate?) {
         val expected = expectedCert.encoded
 
-        if (serverCertificate?.certificate?.certificateEntryList?.none { it.certificate.encoded.contentEquals(expected) } == true) throw IOException(
+        if (serverCertificate?.certificate?.certificateEntryList?.last()?.certificate?.encoded?.contentEquals(expected) != true) throw IOException(
             "Certificate is incorrect!"
         )
     }
@@ -46,8 +46,12 @@ private fun getAuth(expectedCert: X509Certificate, cert: X509Certificate, chain:
 }
 
 abstract class TlsPeerHolder(protected val peer: InternalTlsPeer, protected val protocol: TlsProtocol) : Closeable {
+    abstract val expectedCert: X509Certificate
     val handshakeDone get() = peer.hanshakeDone
     val isClosed get() = protocol.isClosed
+    var onHandshakeFinish: (() -> Unit)?
+        get() = peer.onHandshakeFinish
+        set(value) { peer.onHandshakeFinish = value }
 
     abstract fun start()
 
@@ -60,20 +64,22 @@ abstract class TlsPeerHolder(protected val peer: InternalTlsPeer, protected val 
         return arr
     }
 
-    fun writeSecure(bytes: ByteArray) { protocol.writeApplicationData(bytes, 0, bytes.size) }
+    fun writeSecure(bytes: ByteArray) {
+        protocol.writeApplicationData(bytes, 0, bytes.size)
+    }
 
     override fun close() {
         protocol.close()
     }
 }
 
-class TlsClientHolder(cert: X509Certificate, chain: List<X509Certificate>, expectedCert: X509Certificate, key: PrivateKey) : TlsPeerHolder(TlsClientImpl(cert, chain, expectedCert, key), TlsClientProtocol()) {
+class TlsClientHolder(cert: X509Certificate, chain: List<X509Certificate>, override val expectedCert: X509Certificate, key: PrivateKey) : TlsPeerHolder(TlsClientImpl(cert, chain, expectedCert, key), TlsClientProtocol()) {
     override fun start() {
         (protocol as TlsClientProtocol).connect(peer as TlsClientImpl)
     }
 }
 
-class TlsServerHolder(cert: X509Certificate, chain: List<X509Certificate>, expectedCert: X509Certificate, key: PrivateKey) : TlsPeerHolder(TlsServerImpl(cert, chain, expectedCert, key), TlsServerProtocol()) {
+class TlsServerHolder(cert: X509Certificate, chain: List<X509Certificate>, override val expectedCert: X509Certificate, key: PrivateKey) : TlsPeerHolder(TlsServerImpl(cert, chain, expectedCert, key), TlsServerProtocol()) {
     override fun start() {
         (protocol as TlsServerProtocol).accept(peer as TlsServerImpl)
     }
@@ -137,9 +143,9 @@ class TlsServerImpl(private val cert: X509Certificate, private val chain: List<X
 
     override fun notifyClientCertificate(clientCertificate: Certificate?) {
         val expected = expectedCert.encoded
-        if (clientCertificate?.certificateEntryList?.none { it.certificate.encoded.contentEquals(expected) } == true) throw IOException(
-            "Certificate is incorrect!"
-        )
+
+        val lastEntry = clientCertificate?.certificateEntryList?.last()?.certificate
+        if (lastEntry?.encoded?.contentEquals(expected) != true) throw IOException("Certificate is incorrect!")
     }
 
     override fun getProtocolVersions() = arrayOf(ProtocolVersion.TLSv13)

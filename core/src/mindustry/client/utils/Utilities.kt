@@ -2,6 +2,7 @@
 
 package mindustry.client.utils
 
+import arc.Core
 import arc.scene.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
@@ -14,6 +15,7 @@ import mindustry.ui.dialogs.*
 import mindustry.world.*
 import java.io.*
 import java.nio.*
+import java.security.cert.X509Certificate
 import java.time.*
 import java.time.temporal.*
 import java.util.zip.*
@@ -206,3 +208,10 @@ fun <T> Iterable<T>.unescape(escapement: T, vararg escape: T): List<T> {
 
     return output
 }
+
+fun String.bundle(): String? = Core.bundle[removePrefix("@")]
+
+val X509Certificate.readableName: String
+    get() = subjectX500Principal.name.removePrefix("CN=")
+
+fun String.asciiNoSpaces() = filter { it in '0'..'9' || it in 'A'..'Z' || it in 'a'..'z' || it == '_' }

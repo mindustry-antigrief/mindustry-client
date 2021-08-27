@@ -63,6 +63,10 @@ public class PausedDialog extends BaseDialog{
 
             cont.row();
 
+            cont.button("@client.keyshare", Icon.lock, () -> new TLSKeyDialog().show());
+
+            cont.row();
+
             cont.button("@quit", Icon.exit, this::showQuitConfirm).colspan(2).width(dw * 2 + 10f).update(s -> s.setText(control.saves.getCurrent() != null && control.saves.getCurrent().isAutosave() ? "@save.quit" : "@quit"));
 
 

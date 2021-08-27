@@ -206,7 +206,8 @@ public class MenuFragment extends Fragment{
                         }
                     }),
                     new Buttoni("@client.changelog", Icon.edit, ChangelogDialog.INSTANCE::show),
-                    new Buttoni("@client.features", Icon.list, FeaturesDialog.INSTANCE::show)
+                    new Buttoni("@client.features", Icon.list, FeaturesDialog.INSTANCE::show),
+                    new Buttoni("@client.keyshare", Icon.lock, () -> new TLSKeyDialog().show())
                 ), // End of client section
                 new Buttoni("@database.button", Icon.menu,
                     new Buttoni("@schematics", Icon.paste, ui.schematics::show),

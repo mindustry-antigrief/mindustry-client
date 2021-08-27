@@ -34,20 +34,20 @@ class TlsTest {
 
     @Test
     fun testTls() {
-        val caKey = genKey()
-        val caCert = genCert(caKey, null, "ca")
+//        val caKey = genKey()
+//        val caCert = genCert(caKey, null, "ca")
 
         val clientKey = genKey()
-        val clientCert = genCert(clientKey, Pair(caCert, caKey.private), "clientnamehere")
+        val clientCert = genCert(clientKey, null, "clientnamehere")
 
         val serverKey = genKey()
         val serverCert = genCert(serverKey, null, "servernamehere")
 
         val clientProto = TlsClientProtocol()
-        val client = TlsClientImpl(clientCert, listOf(caCert), serverCert, clientKey.private)
+        val client = TlsClientImpl(clientCert, listOf(clientCert), serverCert, clientKey.private)
 
         val serverProto = TlsServerProtocol()
-        val server = TlsServerImpl(serverCert, listOf(serverCert), caCert, serverKey.private)
+        val server = TlsServerImpl(serverCert, listOf(serverCert), clientCert, serverKey.private)
 
         val handshakeDone = AtomicInteger()
 
@@ -86,11 +86,11 @@ class TlsTest {
     @Test
     fun testTlsComms() {
 
-        val caKey = genKey()
-        val caCert = genCert(caKey, null, "ca")
+//        val caKey = genKey()
+//        val caCert = genCert(caKey, null, "ca")
 
         val clientKey = genKey()
-        val clientCert = genCert(clientKey, Pair(caCert, caKey.private), "clientnamehere")
+        val clientCert = genCert(clientKey, null, "clientnamehere")
 
         val serverKey = genKey()
         val serverCert = genCert(serverKey, null, "servernamehere")
@@ -100,12 +100,12 @@ class TlsTest {
         val clientUnderlying = Packets.CommunicationClient(DummyCommunicationSystem(pool))
         val serverUnderlying = Packets.CommunicationClient(DummyCommunicationSystem(pool))
 
-        val clientPeer = TlsClientHolder(clientCert, listOf(caCert), serverCert, clientKey.private)
-        val clientComms = TlsCommunicationSystem(clientPeer, clientUnderlying, serverUnderlying.communicationSystem.id)
+        val clientPeer = TlsClientHolder(clientCert, listOf(clientCert), serverCert, clientKey.private)
+        val clientComms = TlsCommunicationSystem(clientPeer, clientUnderlying, clientCert)
         val clientSecured = Packets.CommunicationClient(clientComms)
 
-        val serverPeer = TlsServerHolder(serverCert, listOf(serverCert), caCert, serverKey.private)
-        val serverComms = TlsCommunicationSystem(serverPeer, serverUnderlying, clientUnderlying.communicationSystem.id)
+        val serverPeer = TlsServerHolder(serverCert, listOf(serverCert), clientCert, serverKey.private)
+        val serverComms = TlsCommunicationSystem(serverPeer, serverUnderlying, serverCert)
         val serverSecured = Packets.CommunicationClient(serverComms)
 
         var gotten: ByteArray? = null

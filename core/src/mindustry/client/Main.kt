@@ -7,24 +7,37 @@ import arc.util.*
 import mindustry.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
+import mindustry.client.crypto.KeyStorage
+import mindustry.client.crypto.TlsClientHolder
+import mindustry.client.crypto.TlsPeerHolder
+import mindustry.client.crypto.TlsServerHolder
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.entities.units.*
 import mindustry.game.*
+import mindustry.gen.Player
 import mindustry.input.*
+import java.security.cert.X509Certificate
+import java.util.Timer
+import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.concurrent.schedule
 
 object Main : ApplicationListener {
     lateinit var communicationSystem: SwitchableCommunicationSystem
     lateinit var communicationClient: Packets.CommunicationClient
     private var dispatchedBuildPlans = mutableListOf<BuildPlan>()
     private val buildPlanInterval = Interval()
+    val tlsPeers = CopyOnWriteArrayList<Pair<Packets.CommunicationClient, TlsCommunicationSystem>>()
+    lateinit var keyStorage: KeyStorage
 
     /** Run on client load. */
     override fun init() {
         if (Core.app.isDesktop) {
             communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem)
             communicationSystem.init()
+
+            keyStorage = KeyStorage(Core.settings.dataDirectory.file())
 
             TileRecords.initialize()
         } else {
@@ -39,11 +52,7 @@ object Main : ApplicationListener {
             dispatchedBuildPlans.clear()
         }
         Events.on(EventType.ServerJoinEvent::class.java) {
-//            if (Groups.build.contains { it is LogicBlock.LogicBuild && it.code.startsWith(ProcessorCommunicationSystem.PREFIX) }) {
                 communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
-//            } else {
-//                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
-//            }
         }
 
         communicationClient.addListener { transmission, senderId ->
@@ -62,6 +71,26 @@ object Main : ApplicationListener {
                         }
                     }
                 }
+
+                is TlsRequestTransmission -> {
+                    println("Got request")
+                    val cert = keyStorage.cert() ?: return@addListener
+                    if (transmission.destinationSN != cert.serialNumber) return@addListener
+
+                    val key = keyStorage.key() ?: return@addListener
+                    val chain = keyStorage.chain() ?: return@addListener
+                    val expected = keyStorage.findTrusted(transmission.sourceSN) ?: return@addListener
+
+                    val peer = TlsClientHolder(cert, chain, expected, key)
+                    val comms = TlsCommunicationSystem(peer, communicationClient, cert)
+                    val commsClient = Packets.CommunicationClient(comms)
+
+                    registerTlsListeners(commsClient, comms)
+
+                    tlsPeers.add(Pair(commsClient, comms))
+                }
+
+                // tls peers handle data transmissions internally
             }
         }
     }
@@ -77,6 +106,31 @@ object Main : ApplicationListener {
         if (ClientVars.dispatchingBuildPlans && !communicationClient.inUse && buildPlanInterval.get(5 * 60f)) {
             sendBuildPlans()
         }
+
+        for (peer in tlsPeers) {
+            if (peer.second.isClosed) tlsPeers.remove(peer.apply { println("Removing peer because it's closed") })
+            peer.second.update()
+            peer.first.update()
+        }
+    }
+
+    fun connectTls(dstCert: X509Certificate, onFinish: ((Packets.CommunicationClient) -> Unit)? = null) {
+        val cert = keyStorage.cert() ?: return
+        val key = keyStorage.key() ?: return
+        val chain = keyStorage.chain() ?: return
+
+        val peer = TlsServerHolder(cert, chain, dstCert, key)
+        val comms = TlsCommunicationSystem(peer, communicationClient, cert)
+
+        val commsClient = Packets.CommunicationClient(comms)
+        registerTlsListeners(commsClient, comms)
+
+        peer.onHandshakeFinish = {
+            onFinish?.invoke(commsClient)
+        }
+
+        communicationClient.send(TlsRequestTransmission(cert.serialNumber, dstCert.serialNumber))
+        Timer().schedule(500L) { tlsPeers.add(Pair(commsClient, comms)) }
     }
 
     fun setPluginNetworking(enable: Boolean) {
@@ -119,6 +173,19 @@ object Main : ApplicationListener {
         if (toSend.isEmpty()) return
         communicationClient.send(BuildQueueTransmission(toSend), { Toast(3f).add(Core.bundle.format("client.sentplans", toSend.size)) }, { Toast(3f).add("@client.nomessageblock")})
         dispatchedBuildPlans.addAll(toSend)
+    }
+
+    fun registerTlsListeners(commsClient: Packets.CommunicationClient, system: TlsCommunicationSystem) {
+        commsClient.addListener { transmission, _ ->
+            println("GOT SOMETHING OVER SECURED")
+            println(transmission)
+            when (transmission) {
+                is MessageTransmission -> {
+                    println("Got message! ${transmission.content}")
+                    Vars.ui.chatfrag.addMessage(transmission.content, system.peer.expectedCert.readableName)
+                }
+            }
+        }
     }
 
     /** Run when the object is disposed. */

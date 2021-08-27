@@ -1,26 +1,22 @@
 package mindustry.client.communication
 
+import mindustry.client.utils.bytes
 import mindustry.client.utils.remainingBytes
 import mindustry.client.utils.toBytes
+import java.math.BigInteger
 import java.nio.ByteBuffer
 import kotlin.random.Random
 
 class TLSDataTransmission : Transmission {
 
-    val destination: Int
+    val source: BigInteger
+    val destination: BigInteger
     val content: ByteArray
 
-    val isRequest get() = content.isEmpty()
-
-    constructor(destination: Int, content: ByteArray) {
+    constructor(source: BigInteger, destination: BigInteger, content: ByteArray) {
+        this.source = source
         this.destination = destination
         this.content = content
-        id = Random.nextLong()
-    }
-
-    constructor(destination: Int) {
-        this.destination = destination
-        content = byteArrayOf()
         id = Random.nextLong()
     }
 
@@ -29,9 +25,10 @@ class TLSDataTransmission : Transmission {
     constructor(input: ByteArray, id: Long) {
         this.id = id
         val buf = ByteBuffer.wrap(input)
-        destination = buf.int
+        source = BigInteger(buf.bytes(buf.int))
+        destination = BigInteger(buf.bytes(buf.int))
         content = buf.remainingBytes()
     }
 
-    override fun serialize() = destination.toBytes() + content
+    override fun serialize() = source.toByteArray().size.toBytes() + source.toByteArray() + destination.toByteArray().size.toBytes() + destination.toByteArray() + content
 }

@@ -7,11 +7,12 @@ import mindustry.client.crypto.TlsPeerHolder
 import mindustry.client.utils.escape
 import mindustry.client.utils.unescape
 import java.io.Closeable
+import java.security.cert.X509Certificate
 
 class TlsCommunicationSystem(
-    private val peer: TlsPeerHolder,
+    val peer: TlsPeerHolder,
     private val underlying: Packets.CommunicationClient,
-    val destination: Int
+    val cert: X509Certificate
 ) : CommunicationSystem(), Closeable {
 
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
@@ -23,10 +24,11 @@ class TlsCommunicationSystem(
 
     init {
         peer.start()
-        underlying.addListener { transmission, senderId ->
+        underlying.addListener { transmission, _ ->
             try {
-                if (transmission is TLSDataTransmission && transmission.destination == underlying.communicationSystem.id && senderId == destination) {
+                if (transmission is TLSDataTransmission && transmission.destination == cert.serialNumber && transmission.source == peer.expectedCert.serialNumber) {
                     peer.write(transmission.content)
+                    println("got ${transmission.content.size} bytes over insecure")
                 }
             } catch (e: Exception) {
                 close()
@@ -85,10 +87,14 @@ class TlsCommunicationSystem(
             }
 
             val read = peer.read()
-            if (read.isNotEmpty()) underlying.send(TLSDataTransmission(destination, read))
+            if (read.isNotEmpty()) {
+                underlying.send(TLSDataTransmission(cert.serialNumber, peer.expectedCert.serialNumber, read))
+                println("Sending ${read.size} bytes over insecure")
+            }
 
             val applicationIn = peer.readSecure()
             if (applicationIn.isNotEmpty()) {
+                println("Getting something over raw secure!  ${applicationIn.contentToString()}")
                 val output = mutableListOf<ByteArray>()
                 val current = ByteSeq(incoming)
 
@@ -98,9 +104,9 @@ class TlsCommunicationSystem(
                         lastWasEscape = true
                     } else if (!lastWasEscape && item in escapeChars) {
                         when (item) {
-                            KEEPALIVE -> keepaliveRecieveTimer = 0
-                            CLOSE -> { close(); return }
-                            DELIMINATOR -> { output.add(current.toArray()); current.clear() }
+                            KEEPALIVE -> { println("Got keepalive"); keepaliveRecieveTimer = 0 }
+                            CLOSE -> { close(); println("Got close"); return }
+                            DELIMINATOR -> { output.add(current.toArray()); println("Got deliminator"); current.clear() }
                         }
                         lastWasEscape = false
                     } else {
@@ -111,7 +117,7 @@ class TlsCommunicationSystem(
                 incoming.addAll(current)
 
                 for (fullTransmission in output) {
-                    listeners.forEach { it(fullTransmission, destination) }
+                    listeners.forEach { it(fullTransmission, if (id == 1) 0 else 1) }
                 }
             }
         } catch (e: Exception) {
@@ -124,8 +130,16 @@ class TlsCommunicationSystem(
         try {
             peer.writeSecure(byteArrayOf(CLOSE))
             val read = peer.read()
-            if (read.isNotEmpty()) underlying.send(TLSDataTransmission(destination, read))
+            if (read.isNotEmpty()) underlying.send(
+                TLSDataTransmission(
+                    cert.serialNumber,
+                    peer.expectedCert.serialNumber,
+                    read
+                )
+            )
             peer.close()
+        }catch (e: Exception) {
+            e.printStackTrace()
         } finally {
             isClosed = true
         }

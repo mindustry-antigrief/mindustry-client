@@ -28,7 +28,10 @@ import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
 import org.bouncycastle.tls.TlsClientProtocol
+import java.math.BigInteger
 import java.security.Security
+import java.util.Timer
+import kotlin.concurrent.schedule
 import kotlin.math.*
 import kotlin.random.*
 
@@ -333,6 +336,38 @@ object Client {
                     logs.minByOrNull { it.value }?.key?.logs?.removeAt(0) ?: return@post
                 }
                 player.sendMessage("done")
+            }
+        }
+
+        register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, player ->
+            val certname = args[0]
+            val msg = args[1]
+
+            val cert = Main.keyStorage.aliases().singleOrNull { it.second.equals(certname, true) }?.run { Main.keyStorage.findTrusted(BigInteger(first)) } ?: Main.keyStorage.trusted().singleOrNull { it.readableName.equals(certname, true) }
+
+            cert ?: run {
+                player.sendMessage("Couldn't find a certificate called or aliased to '$certname'")
+                return@register
+            }
+
+            val preexistingConnection = Main.tlsPeers.singleOrNull { it.second.peer.expectedCert.encoded.contentEquals(cert.encoded) }
+
+
+            if (preexistingConnection != null) {
+                if (preexistingConnection.second.peer.handshakeDone) {
+                    preexistingConnection.first.send(MessageTransmission(msg))
+                } else {
+                    player.sendMessage("Handshake is not completed!")
+                }
+            } else {
+                player.sendMessage("Sending TLS request...")
+                Main.connectTls(cert) {
+                    player.sendMessage("Connected!")
+                    Timer().schedule(100L) {
+                        ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, Color.green.cpy().mul(0.6f))
+                        it.send(MessageTransmission(msg))
+                    }
+                }
             }
         }
     }
