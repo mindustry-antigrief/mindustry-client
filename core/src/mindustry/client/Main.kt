@@ -112,7 +112,7 @@ object Main : ApplicationListener {
         }
     }
 
-    fun connectTls(dstCert: X509Certificate, onFinish: ((Packets.CommunicationClient) -> Unit)? = null, onError: ((Packets.CommunicationClient) -> Unit)? = null) {
+    fun connectTls(dstCert: X509Certificate, onFinish: ((Packets.CommunicationClient) -> Unit)? = null, onError: (() -> Unit)? = null) {
         val cert = keyStorage.cert() ?: return
         val key = keyStorage.key() ?: return
         val chain = keyStorage.chain() ?: return
