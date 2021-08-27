@@ -163,7 +163,7 @@ public class BuildPlan implements Position{
         if(breaking){
             return tile.block() == null || tile.block() == Blocks.air || tile.block() == tile.floor();  // covering all the bases
         }else{
-            return tile.block() == block;
+            return tile.block() == block && (tile.build == null || tile.build.rotation == rotation);
         }
     }
 
