@@ -24,6 +24,7 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
     }
 
     private fun regenerate() {
+        addCloseListener()
         keys.clear()
         keys.defaults().pad(5f).left()
         val store = Main.keyStorage
@@ -36,21 +37,23 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
 
             table.button(Icon.edit, Styles.darki, 16f) button2@ {
                 aliasDialog = dialog("@client.alias") {
+                    addCloseListener()
                     val aliasInput = TextField("")
                     aliasInput.setFilter { _, c -> c.isLetterOrDigit() }
                     aliasInput.messageText = "@client.noalias"
                     cont.row(aliasInput).width(400f)
 
-                    cont.row().table{ ta ->
+                    cont.row().table { ta ->
                         ta.defaults().width(194f).pad(3f)
                         ta.button("@ok"){
                             if (aliasInput.text.isBlank()) {
                                 store.removeAlias(cert)
                                 regenerate()
+                                hide()
                                 return@button
                             }
                             if ((store.trusted().any { it.readableName.equals(aliasInput.text, true) }) || store.aliases().any { it.second.equals(aliasInput.text, true) }) {
-                                Vars.ui.showInfoFade("@client.aliastaken")
+                                Toast(3f).label("@client.aliastaken")
                                 return@button
                             }
                             store.alias(cert, aliasInput.text)
@@ -116,6 +119,7 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
 
             t.button("@client.importkey") {
                 importDialog = dialog("@client.importkey") {
+                    addCloseListener()
                     val keyInput = TextField("")
                     keyInput.messageText = "@client.key"
                     keyInput.setValidator { k -> k.isNotEmpty() }
