@@ -343,7 +343,7 @@ object Client {
             val cert = Main.keyStorage.aliases().singleOrNull { it.second.equals(certname, true) }?.run { Main.keyStorage.findTrusted(BigInteger(first)) } ?: Main.keyStorage.trusted().singleOrNull { it.readableName.equals(certname, true) }
 
             cert ?: run {
-                player.sendMessage("Couldn't find a certificate called or aliased to '$certname'")
+                player.sendMessage("[accent]Couldn't find a certificate called or aliased to '$certname'")
                 return@register
             }
 
@@ -355,13 +355,14 @@ object Client {
                     preexistingConnection.first.send(MessageTransmission(msg))
                     ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, Color.green.cpy().mul(0.6f))
                 } else {
-                    player.sendMessage("Handshake is not completed!")
+                    player.sendMessage("[accent]Handshake is not completed!")
                 }
             } else {
-                player.sendMessage("Sending TLS request...")
+                player.sendMessage("[accent]Sending TLS request...")
                 Main.connectTls(cert) {
-                    player.sendMessage("Connected!")
-                    Timer.schedule({ // FINISHME: Why is this even delayed 100ms?
+                    player.sendMessage("[accent]Connected!")
+                    // delayed to make sure receiving end is ready
+                    Timer.schedule({
                         ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, Color.green.cpy().mul(0.6f))
                         it.send(MessageTransmission(msg))
                     }, .1F)
