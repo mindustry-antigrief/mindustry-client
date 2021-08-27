@@ -356,6 +356,7 @@ object Client {
             if (preexistingConnection != null) {
                 if (preexistingConnection.second.peer.handshakeDone) {
                     preexistingConnection.first.send(MessageTransmission(msg))
+                    ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, Color.green.cpy().mul(0.6f))
                 } else {
                     player.sendMessage("Handshake is not completed!")
                 }

@@ -28,7 +28,6 @@ class TlsCommunicationSystem(
             try {
                 if (transmission is TLSDataTransmission && transmission.destination == cert.serialNumber && transmission.source == peer.expectedCert.serialNumber) {
                     peer.write(transmission.content)
-                    println("got ${transmission.content.size} bytes over insecure")
                 }
             } catch (e: Exception) {
                 close()
@@ -89,12 +88,10 @@ class TlsCommunicationSystem(
             val read = peer.read()
             if (read.isNotEmpty()) {
                 underlying.send(TLSDataTransmission(cert.serialNumber, peer.expectedCert.serialNumber, read))
-                println("Sending ${read.size} bytes over insecure")
             }
 
             val applicationIn = peer.readSecure()
             if (applicationIn.isNotEmpty()) {
-                println("Getting something over raw secure!  ${applicationIn.contentToString()}")
                 val output = mutableListOf<ByteArray>()
                 val current = ByteSeq(incoming)
 
@@ -104,9 +101,9 @@ class TlsCommunicationSystem(
                         lastWasEscape = true
                     } else if (!lastWasEscape && item in escapeChars) {
                         when (item) {
-                            KEEPALIVE -> { println("Got keepalive"); keepaliveRecieveTimer = 0 }
-                            CLOSE -> { close(); println("Got close"); return }
-                            DELIMINATOR -> { output.add(current.toArray()); println("Got deliminator"); current.clear() }
+                            KEEPALIVE -> keepaliveRecieveTimer = 0
+                            CLOSE -> { close(); return }
+                            DELIMINATOR -> { output.add(current.toArray()); current.clear() }
                         }
                         lastWasEscape = false
                     } else {
@@ -139,7 +136,7 @@ class TlsCommunicationSystem(
             )
             peer.close()
         }catch (e: Exception) {
-            e.printStackTrace()
+            Log.debug(e.stackTraceToString())
         } finally {
             isClosed = true
         }

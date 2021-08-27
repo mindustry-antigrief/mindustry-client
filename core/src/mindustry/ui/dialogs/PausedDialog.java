@@ -63,7 +63,7 @@ public class PausedDialog extends BaseDialog{
 
             cont.row();
 
-            cont.button("@client.keyshare", Icon.lock, () -> new TLSKeyDialog().show());
+            cont.button("@client.keyshare", Icon.lock, () -> new TLSKeyDialog().show()).colspan(2).width(dw * 2 + 10f);
 
             cont.row();
 

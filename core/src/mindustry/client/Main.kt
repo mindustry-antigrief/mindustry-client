@@ -1,6 +1,7 @@
 package mindustry.client
 
 import arc.*
+import arc.graphics.Color
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
@@ -73,7 +74,6 @@ object Main : ApplicationListener {
                 }
 
                 is TlsRequestTransmission -> {
-                    println("Got request")
                     val cert = keyStorage.cert() ?: return@addListener
                     if (transmission.destinationSN != cert.serialNumber) return@addListener
 
@@ -108,7 +108,7 @@ object Main : ApplicationListener {
         }
 
         for (peer in tlsPeers) {
-            if (peer.second.isClosed) tlsPeers.remove(peer.apply { println("Removing peer because it's closed") })
+            if (peer.second.isClosed) tlsPeers.remove(peer)
             peer.second.update()
             peer.first.update()
         }
@@ -177,12 +177,9 @@ object Main : ApplicationListener {
 
     fun registerTlsListeners(commsClient: Packets.CommunicationClient, system: TlsCommunicationSystem) {
         commsClient.addListener { transmission, _ ->
-            println("GOT SOMETHING OVER SECURED")
-            println(transmission)
             when (transmission) {
                 is MessageTransmission -> {
-                    println("Got message! ${transmission.content}")
-                    Vars.ui.chatfrag.addMessage(transmission.content, system.peer.expectedCert.readableName)
+                    Vars.ui.chatfrag.addMessage(transmission.content, system.peer.expectedCert.readableName + "[] -> " + (keyStorage.cert()?.readableName ?: "you"), Color.green.cpy().mul(0.6f))
                 }
             }
         }
