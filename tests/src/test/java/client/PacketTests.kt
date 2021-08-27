@@ -35,8 +35,8 @@ class PacketTests {
             }
         }
 
-        client1.listeners.add(listener)
-        client2.listeners.add(listener)
+        client1.addListener(listener)
+        client2.addListener(listener)
 
         for (i in 0..150) {
             client1.update()
