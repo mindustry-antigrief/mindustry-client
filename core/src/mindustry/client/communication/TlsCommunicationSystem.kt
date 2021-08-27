@@ -137,6 +137,7 @@ class TlsCommunicationSystem(
             peer.close()
         }catch (e: Exception) {
             Log.debug(e.stackTraceToString())
+            isClosed = true
         } finally {
             isClosed = true
         }

@@ -130,11 +130,8 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                                 Vars.ui.showInfoFade("@client.keyprincipalspaces")  // spaces break the commands
                                 return@button2
                             }
-//                            if (cert.basicConstraints != -1) {  // don't allow it to be a CA cert
-//                                Vars.ui.showInfoFade("@client.evilcert")
-//                                return@button2
-//                            }
-                            Vars.ui.showConfirm("@client.importKey", cert.subjectX500Principal.name) {
+
+                            Vars.ui.showConfirm("@client.importkey", cert.readableName) {
                                 store.trust(cert)
                                 regenerate()
                             }
