@@ -23,7 +23,7 @@ import static mindustry.Vars.*;
 
 /** Handles control of bleeding edge builds. */
 public class BeControl{
-    private static final int updateInterval = 90; // Poll every 90s (40/hr), this leaves us with 20 requests per hour to spare.
+    private static final int updateInterval = 120; // Poll every 120s (30/hr), this leaves us with 30 requests per hour to spare.
 
     private final AsyncExecutor executor = new AsyncExecutor(1);
     /** Whether or not to automatically display an update prompt on client load and every subsequent minute. */
