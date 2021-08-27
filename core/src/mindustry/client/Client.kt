@@ -12,7 +12,7 @@ import mindustry.client.ClientVars.*
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
-import mindustry.client.crypto.provider
+import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.*
 import mindustry.client.utils.*
@@ -25,13 +25,10 @@ import mindustry.logic.*
 import mindustry.net.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
-import org.bouncycastle.tls.TlsClientProtocol
-import java.math.BigInteger
-import java.security.Security
-import java.util.Timer
-import kotlin.concurrent.schedule
+import org.bouncycastle.jce.provider.*
+import org.bouncycastle.jsse.provider.*
+import java.math.*
+import java.security.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -364,10 +361,10 @@ object Client {
                 player.sendMessage("Sending TLS request...")
                 Main.connectTls(cert) {
                     player.sendMessage("Connected!")
-                    Timer().schedule(100L) {
+                    Timer.schedule({ // FINISHME: Why is this even delayed 100ms?
                         ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, Color.green.cpy().mul(0.6f))
                         it.send(MessageTransmission(msg))
-                    }
+                    }, .1F)
                 }
             }
         }
