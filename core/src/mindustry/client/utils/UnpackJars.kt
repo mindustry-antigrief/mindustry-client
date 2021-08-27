@@ -12,7 +12,7 @@ class UnpackJars {
             println("Unloading $fi")
             val output = outputDir.resolve(fi)
             if (!output.exists()) {
-                val inp: InputStream = this::class.java.getResourceAsStream("/$fi")!!
+                val inp: InputStream = this::class.java.getResourceAsStream("/$fi") ?: return
                 output.writeBytes(inp.readBytes())
                 inp.close()
             }

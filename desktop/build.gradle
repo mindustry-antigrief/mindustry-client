@@ -10,7 +10,7 @@ def platforms = ["Linux64", "Windows64", "Windows32", "MacOS"]
 
 task run(dependsOn: classes, type: JavaExec){
     main = project.mainClassName
-    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.main.runtimeClasspath + files("../bouncycastle/bcprov-jdk15on.jar", "../bouncycastle/bcpkix-jdk15on.jar", "../bouncycastle/bctls-jdk15on.jar")
     standardInput = System.in
     workingDir = project.assetsDir
     ignoreExitValue = true
