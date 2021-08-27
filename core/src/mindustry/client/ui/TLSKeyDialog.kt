@@ -24,7 +24,6 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
     }
 
     private fun regenerate() {
-        addCloseListener()
         keys.clear()
         keys.defaults().pad(5f).left()
         val store = Main.keyStorage
@@ -74,6 +73,8 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
     }
 
     private fun build() {
+        addCloseListener()
+
         val store = Main.keyStorage
 
         if (store.cert() == null || store.key() == null || store.chain() == null) {
