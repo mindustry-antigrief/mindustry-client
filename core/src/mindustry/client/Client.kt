@@ -366,7 +366,7 @@ object Client {
                         ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, encrypted)
                         it.send(MessageTransmission(msg))
                     }, .1F)
-                }, { player.sendMessage("[accent]Make sure a processor/message block is set up for communication!") })
+                }, { player.sendMessage("[scarlet]Make sure a processor/message block is set up for communication!") })
             }
         }
     }
