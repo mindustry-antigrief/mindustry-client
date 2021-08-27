@@ -353,7 +353,7 @@ object Client {
             if (preexistingConnection != null) {
                 if (preexistingConnection.second.peer.handshakeDone) {
                     preexistingConnection.first.send(MessageTransmission(msg))
-                    ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, Color.green.cpy().mul(0.6f))
+                    ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, encrypted)
                 } else {
                     player.sendMessage("[accent]Handshake is not completed!")
                 }
@@ -363,7 +363,7 @@ object Client {
                     player.sendMessage("[accent]Connected!")
                     // delayed to make sure receiving end is ready
                     Timer.schedule({
-                        ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, Color.green.cpy().mul(0.6f))
+                        ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, encrypted)
                         it.send(MessageTransmission(msg))
                     }, .1F)
                 }
