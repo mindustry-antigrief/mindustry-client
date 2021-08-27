@@ -24,7 +24,6 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
     }
 
     private fun regenerate() {
-        addCloseListener()
         keys.clear()
         keys.defaults().pad(5f).left()
         val store = Main.keyStorage
@@ -74,6 +73,8 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
     }
 
     private fun build() {
+        addCloseListener()
+
         val store = Main.keyStorage
 
         if (store.cert() == null || store.key() == null || store.chain() == null) {
@@ -129,7 +130,8 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                         ta.defaults().width(194f).pad(3f)
                         ta.button("@client.importkey") button2@{
                             val factory = CertificateFactory.getInstance("X509")
-                            val cert = factory.generateCertificate(keyInput.text.base64()?.inputStream() ?: return@button2) as? X509Certificate ?: return@button2
+                            val stream = keyInput.text.replace(" ", "").base64()?.inputStream() ?: return@button2
+                            val cert = factory.generateCertificate(stream) as? X509Certificate ?: return@button2
                             if (cert.readableName.asciiNoSpaces() != cert.readableName) {
                                 Vars.ui.showInfoFade("@client.keyprincipalspaces")  // spaces break the commands
                                 return@button2
