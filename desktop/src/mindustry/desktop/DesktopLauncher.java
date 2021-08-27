@@ -16,6 +16,7 @@ import arc.util.serialization.*;
 import com.codedisaster.steamworks.*;
 import mindustry.*;
 import mindustry.client.*;
+import mindustry.client.utils.UnpackJars;
 import mindustry.core.*;
 import mindustry.desktop.steam.*;
 import mindustry.game.EventType.*;
@@ -24,9 +25,7 @@ import mindustry.net.*;
 import mindustry.net.Net.*;
 import mindustry.service.*;
 import mindustry.type.*;
-
 import java.io.*;
-
 import static mindustry.Vars.*;
 
 public class DesktopLauncher extends ClientLauncher{
@@ -36,6 +35,8 @@ public class DesktopLauncher extends ClientLauncher{
 
     public static void main(String[] arg){
         try{
+            new UnpackJars().unpack();
+
             int[] aaSamples = new int[1];
 
             String env = OS.hasProp("aaSamples") ? OS.prop("aaSamples") : OS.hasEnv("aaSamples") ? OS.env("aaSamples") : "";

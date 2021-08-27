@@ -40,6 +40,9 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
     from {configurations.runtimeClasspath.collect{
         it.isDirectory() ? it : zipTree(it)
     }}
+    from files("bouncycastle/bcprov-jdk15on.jar")
+    from files("bouncycastle/bcpkix-jdk15on.jar")
+    from files("bouncycastle/bctls-jdk15on.jar")
     from files(project.assetsDir)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
@@ -47,9 +50,8 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
 
     manifest{
         attributes 'Main-Class': project.mainClassName
+        attributes 'Class-Path': "bcprov-jdk15on.jar bcpkix-jdk15on.jar bctls-jdk15on.jar"
     }
-
-    exclude("META-INF/BC1024KE.SF", "META-INF/BC2048KE.SF", "META-INF/BC1024KE.DSA", "META-INF/BC2048KE.DSA")
 }
 
 if(!project.ext.hasSprites() && System.getenv("JITPACK") != "true"){
