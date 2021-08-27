@@ -118,6 +118,7 @@ class KeyStorage(val directory: File) {
 
     fun untrust(certificate: X509Certificate) {
         store.deleteEntry("trusted${certificate.serialNumber}")
+        removeAlias(certificate)
         save()
     }
 }
