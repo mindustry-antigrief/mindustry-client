@@ -1,17 +1,13 @@
 package mindustry.client
 
 import arc.*
-import arc.graphics.Color
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import mindustry.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
-import mindustry.client.crypto.KeyStorage
-import mindustry.client.crypto.TlsClientHolder
-import mindustry.client.crypto.TlsPeerHolder
-import mindustry.client.crypto.TlsServerHolder
+import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
@@ -19,16 +15,15 @@ import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.game.Teams.*
 import mindustry.gen.*
-import mindustry.gen.Player
 import mindustry.input.*
-import java.security.cert.X509Certificate
+import java.security.cert.*
 import java.util.Timer
-import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.concurrent.schedule
+import java.util.concurrent.*
+import kotlin.concurrent.*
 
 object Main : ApplicationListener {
-    lateinit var communicationSystem: SwitchableCommunicationSystem
-    lateinit var communicationClient: Packets.CommunicationClient
+    private lateinit var communicationSystem: SwitchableCommunicationSystem
+    private lateinit var communicationClient: Packets.CommunicationClient
     private var dispatchedBuildPlans = mutableListOf<BuildPlan>()
     private val buildPlanInterval = Interval()
     val tlsPeers = CopyOnWriteArrayList<Pair<Packets.CommunicationClient, TlsCommunicationSystem>>()
@@ -196,11 +191,11 @@ object Main : ApplicationListener {
         data.blocks.addFirst(BlockPlan(plan.x, plan.y, plan.rotation.toShort(), plan.block.id, plan.config))
     }
 
-    fun registerTlsListeners(commsClient: Packets.CommunicationClient, system: TlsCommunicationSystem) {
+    private fun registerTlsListeners(commsClient: Packets.CommunicationClient, system: TlsCommunicationSystem) {
         commsClient.addListener { transmission, _ ->
             when (transmission) {
                 is MessageTransmission -> {
-                    Vars.ui.chatfrag.addMessage(transmission.content, system.peer.expectedCert.readableName + "[] -> " + (keyStorage.cert()?.readableName ?: "you"), Color.green.cpy().mul(0.6f))
+                    Vars.ui.chatfrag.addMessage(transmission.content, system.peer.expectedCert.readableName + "[] -> " + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted)
                 }
             }
         }

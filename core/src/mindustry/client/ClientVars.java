@@ -1,5 +1,6 @@
 package mindustry.client;
 
+import arc.graphics.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
@@ -29,4 +30,7 @@ public class ClientVars {
 
     // Cursor Position
     public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;
+
+    // Networking
+    @NotNull public static Color encrypted = Color.valueOf("#2e3d75"), verified = Color.valueOf("#2c9e52"); // Encrypted = Blue, Verified = Green
 }
