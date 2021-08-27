@@ -359,14 +359,14 @@ object Client {
                 }
             } else {
                 player.sendMessage("[accent]Sending TLS request...")
-                Main.connectTls(cert) {
+                Main.connectTls(cert, {
                     player.sendMessage("[accent]Connected!")
                     // delayed to make sure receiving end is ready
                     Timer.schedule({
                         ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, Color.green.cpy().mul(0.6f))
                         it.send(MessageTransmission(msg))
                     }, .1F)
-                }
+                }, { player.sendMessage("[accent]Make sure a processor/message block is set up for communication!") })
             }
         }
     }

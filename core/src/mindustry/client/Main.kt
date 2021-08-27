@@ -117,7 +117,7 @@ object Main : ApplicationListener {
         }
     }
 
-    fun connectTls(dstCert: X509Certificate, onFinish: ((Packets.CommunicationClient) -> Unit)? = null) {
+    fun connectTls(dstCert: X509Certificate, onFinish: ((Packets.CommunicationClient) -> Unit)? = null, onError: ((Packets.CommunicationClient) -> Unit)? = null) {
         val cert = keyStorage.cert() ?: return
         val key = keyStorage.key() ?: return
         val chain = keyStorage.chain() ?: return
@@ -132,7 +132,7 @@ object Main : ApplicationListener {
             onFinish?.invoke(commsClient)
         }
 
-        communicationClient.send(TlsRequestTransmission(cert.serialNumber, dstCert.serialNumber))
+        communicationClient.send(TlsRequestTransmission(cert.serialNumber, dstCert.serialNumber), onError = onError)
         Timer().schedule(500L) { tlsPeers.add(Pair(commsClient, comms)) }
     }
 
