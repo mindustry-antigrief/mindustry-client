@@ -2,6 +2,7 @@
 
 package mindustry.client.utils
 
+import arc.Core
 import arc.scene.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
@@ -14,6 +15,7 @@ import mindustry.ui.dialogs.*
 import mindustry.world.*
 import java.io.*
 import java.nio.*
+import java.security.cert.X509Certificate
 import java.time.*
 import java.time.temporal.*
 import java.util.zip.*
@@ -171,3 +173,45 @@ infix fun <A, B> kotlin.Pair<A, B>.eqFlip(other: kotlin.Pair<A, B>) = this == ot
 
 /** Checks equality between a [kotlin.Pair] and two other values. */
 fun <A, B> kotlin.Pair<A, B>.eqFlip(a: A, b: B) = this.first == a && this.second == b || this.first == b && this.second == a
+
+fun <T> Iterable<T>.escape(escapement: T, vararg escape: T): List<T> {
+    val output = mutableListOf<T>()
+    for (item in this) {
+        if (item in escape || item == escapement) {
+            output.add(escapement)
+        }
+        output.add(item)
+    }
+    return output
+}
+
+fun <T> Iterable<T>.unescape(escapement: T, vararg escape: T): List<T> {
+    val output = mutableListOf<T>()
+    var previousWasEscapement = false
+    for (item in this) {
+        previousWasEscapement = when {
+            previousWasEscapement -> {
+                if (item in escape || item == escapement) {
+                    output.add(item)
+                }
+                false
+            }
+            item == escapement -> {
+                false
+            }
+            else -> {
+                output.add(item)
+                false
+            }
+        }
+    }
+
+    return output
+}
+
+fun String.bundle(): String? = Core.bundle[removePrefix("@")]
+
+val X509Certificate.readableName: String
+    get() = subjectX500Principal.name.removePrefix("CN=")
+
+fun String.asciiNoSpaces() = filter { it in '0'..'9' || it in 'A'..'Z' || it in 'a'..'z' || it == '_' }

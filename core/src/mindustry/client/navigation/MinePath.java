@@ -16,6 +16,7 @@ public class MinePath extends Path {
     StringBuilder itemString = new StringBuilder();
     static Interval timer = new Interval();
     int cap = Core.settings.getInt("minepathcap");
+    Item lastItem = null; // Last item mined
 
     public MinePath() {
         items = player.team().data().mineItems;
@@ -69,6 +70,9 @@ public class MinePath extends Path {
         if (core == null) return;
         Item item = items.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
         if (item == null) return;
+
+        if (lastItem != null && lastItem != item && core.items.get(lastItem) - core.items.get(item) < 100) item = lastItem; // Scuffed, don't switch mining until theres a 100 item difference, prevents constant switching of mine target
+        lastItem = item;
 
         if (core.items.get(item) >= core.storageCapacity || cap != 0 && core.items.get(item) > cap) Navigation.follow(new BuildPath(items, cap == 0 ? core.storageCapacity : cap)); // Start building when the core has over 1000 of everything.
 

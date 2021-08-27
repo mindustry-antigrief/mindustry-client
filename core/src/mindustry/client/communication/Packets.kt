@@ -8,15 +8,20 @@ import java.time.*
 import java.time.temporal.*
 import java.util.*
 import java.util.concurrent.*
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.reflect.*
 
 object Packets {
     /** The list of registered types of [Transmission].  Transmissions MUST be registered here before use. */
     private val registeredTransmissionTypes = listOf<RegisteredTransmission<*>>(
         RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),
-        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),  // Kept for compatibility, FIXME: remove
-        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),  // Kept for compatibility, FIXME: remove
-        RegisteredTransmission(BuildQueueTransmission::class, ::BuildQueueTransmission)
+        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),  // Kept for compatibility, FINISHME: remove
+        RegisteredTransmission(DummyTransmission::class, ::DummyTransmission),  // Kept for compatibility, FINISHME: remove
+        RegisteredTransmission(BuildQueueTransmission::class, ::BuildQueueTransmission),
+        RegisteredTransmission(TLSDataTransmission::class, ::TLSDataTransmission),
+        RegisteredTransmission(TlsRequestTransmission::class, ::TlsRequestTransmission),
+        RegisteredTransmission(MessageTransmission::class, ::MessageTransmission)
     )
 
     private data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (content: ByteArray, id: Long) -> T)
@@ -121,7 +126,8 @@ object Packets {
         /** A list of incoming connections.  Each transmission ID is mapped to a nullable list of bytearray segments. */
         private val incoming = ConcurrentHashMap<Long, IncomingTransmission>()
         /** A list of listeners to be run when a transmission is received. */
-        val listeners = mutableListOf<(transmission: Transmission, senderId: Int) -> Unit>()
+        private val listeners = CopyOnWriteArrayList<(transmission: Transmission, senderId: Int) -> Unit>()
+        val listenersLock = ReentrantLock()
 
         data class IncomingTransmission(val segments: MutableList<ByteArray?>, var expirationTime: Instant)
 
@@ -130,7 +136,9 @@ object Packets {
         }
 
         fun addListener(listener: (transmission: Transmission, senderId: Int) -> Unit) {
+            listenersLock.lock()
             listeners.add(listener)
+            listenersLock.unlock()
         }
 
         /** Updates sending.  Call once per tick. */
@@ -191,9 +199,11 @@ object Packets {
                     val inflated = array.inflate()  // Decompress the transmission
                     val transmission = registeredTransmissionTypes[header.transmissionType].constructor(inflated, header.transmissionId)  // Deserialize the transmission
 
+                    listenersLock.lock()
                     for (listener in listeners) {
                         listener(transmission, sender)
                     }
+                    listenersLock.unlock()
                 }
             } catch (e: Exception) { Log.err(e) }
         }

@@ -12,6 +12,7 @@ import mindustry.client.ClientVars.*
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
+import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.*
 import mindustry.client.utils.*
@@ -24,6 +25,10 @@ import mindustry.logic.*
 import mindustry.net.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
+import org.bouncycastle.jce.provider.*
+import org.bouncycastle.jsse.provider.*
+import java.math.*
+import java.security.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -34,6 +39,15 @@ object Client {
     fun initialize() {
         registerCommands()
         ClientLogic()
+
+        val bc = BouncyCastleProvider()
+        // append bouncycastle to the list
+        val n = Security.getProviders().contentToString().length
+        Security.insertProviderAt(bc, n)
+        Security.insertProviderAt(BouncyCastleJsseProvider(bc), n + 1)
+        provider.setProvider(bc)
+        // FINISHME is this secure?  what exactly does this mean?  test without this every so often with new bouncycastle versions
+        System.setProperty("jdk.tls.namedGroups", "secp256r1")
     }
 
     fun update() {
@@ -329,6 +343,40 @@ object Client {
         }
         register("cya", "sends cya in the chat (why)") {_, player ->
             Call.sendChatMessage("cya\n[accent][#"+player.color+"][]"+player.name+" [accent]has disconnected.")
+        }
+
+        register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, player ->
+            val certname = args[0]
+            val msg = args[1]
+
+            val cert = Main.keyStorage.aliases().singleOrNull { it.second.equals(certname, true) }?.run { Main.keyStorage.findTrusted(BigInteger(first)) } ?: Main.keyStorage.trusted().singleOrNull { it.readableName.equals(certname, true) }
+
+            cert ?: run {
+                player.sendMessage("[accent]Couldn't find a certificate called or aliased to '$certname'")
+                return@register
+            }
+
+            val preexistingConnection = Main.tlsPeers.singleOrNull { it.second.peer.expectedCert.encoded.contentEquals(cert.encoded) }
+
+
+            if (preexistingConnection != null) {
+                if (preexistingConnection.second.peer.handshakeDone) {
+                    preexistingConnection.first.send(MessageTransmission(msg))
+                    ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, encrypted)
+                } else {
+                    player.sendMessage("[accent]Handshake is not completed!")
+                }
+            } else {
+                player.sendMessage("[accent]Sending TLS request...")
+                Main.connectTls(cert, {
+                    player.sendMessage("[accent]Connected!")
+                    // delayed to make sure receiving end is ready
+                    Timer.schedule({
+                        ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, encrypted)
+                        it.send(MessageTransmission(msg))
+                    }, .1F)
+                }, { player.sendMessage("[scarlet]Make sure a processor/message block is set up for communication!") })
+            }
         }
     }
 

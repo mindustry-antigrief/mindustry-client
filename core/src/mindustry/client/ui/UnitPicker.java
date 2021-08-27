@@ -58,12 +58,12 @@ public class UnitPicker extends BaseDialog {
         Core.app.post(searchField::requestKeyboard);
     }
 
-    public void findUnit(UnitType type) {
-        findUnit(type, false);
+    public boolean findUnit(UnitType type) {
+        return findUnit(type, false);
     }
-    public void findUnit(UnitType type, boolean silent) {
+    public boolean findUnit(UnitType type, boolean silent) {
         hide();
-        if (type == null) return;
+        if (type == null) return false;
 
         Unit found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI || u.controller() instanceof LogicAI));
         if (found == null) found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI)); // Include logic units
@@ -78,6 +78,7 @@ public class UnitPicker extends BaseDialog {
             if (!silent) t.add(Core.bundle.format("client.unitpicker.notfound", type));
             this.type = type;
         }
+        return found != null;
     }
 
     private void setup(){
@@ -97,7 +98,7 @@ public class UnitPicker extends BaseDialog {
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, find.getPlayer().name));
                             }
                         }
-                    }, net.client() ? netClient.getPing()/1000f + .1f: 0);
+                    }, net.client() ? netClient.getPing()/1000f + .3f: 0);
                 }
             }
         });
@@ -106,7 +107,7 @@ public class UnitPicker extends BaseDialog {
             if (type == null) return;
             if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 type = null;
-                Call.unitControl(player, event.unit);
+                findUnit(event.unit.type, true);
                 Timer.schedule(() -> {
                     if (event.unit.isPlayer()) {
                         Toast t = new Toast(3);
@@ -117,7 +118,7 @@ public class UnitPicker extends BaseDialog {
                             t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
                         }
                     } else Time.run(60, () -> findUnit(event.unit.type, true));
-                }, net.client() ? netClient.getPing()/1000f + .1f : 0);
+                }, net.client() ? netClient.getPing()/1000f + .3f : 0);
             }
         });
 
