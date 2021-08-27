@@ -97,7 +97,7 @@ public class UnitPicker extends BaseDialog {
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, find.getPlayer().name));
                             }
                         }
-                    }, net.client() ? netClient.getPing()/1000f + .1f: 0);
+                    }, net.client() ? netClient.getPing()/1000f + .5f: 0);
                 }
             }
         });
@@ -117,7 +117,7 @@ public class UnitPicker extends BaseDialog {
                             t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
                         }
                     } else Time.run(60, () -> findUnit(event.unit.type, true));
-                }, net.client() ? netClient.getPing()/1000f + .1f : 0);
+                }, net.client() ? netClient.getPing()/1000f + .5f : 0);
             }
         });
 
