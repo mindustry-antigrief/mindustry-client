@@ -165,7 +165,7 @@ fun genKey(): KeyPair {
 fun genCert(kp: KeyPair, authority: Pair<X509Certificate, PrivateKey>?, name: String, isCa: Boolean = authority == null): X509Certificate {
     val subject = X500Principal("CN=$name")
 
-    val sn = BigInteger(Random.Default.nextBytes(32))
+    val sn = BigInteger(Random.Default.nextBytes(20))
 
     var calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
     calendar.add(Calendar.DATE, -7)

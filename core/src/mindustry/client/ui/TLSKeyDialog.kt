@@ -29,12 +29,12 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
         val store = Main.keyStorage
         for (cert in store.trusted()) {
             val table = Table()
-            table.button(Icon.cancel, Styles.emptyi, 16f) {
+            table.button(Icon.cancel, Styles.darki, 16f) {
                 store.untrust(cert)
                 regenerate()
             }.padRight(20f).tooltip("@save.delete")
 
-            table.button(Icon.edit, Styles.emptyi, 16f) button2@ {
+            table.button(Icon.edit, Styles.darki, 16f) button2@ {
                 aliasDialog = dialog("@client.alias") {
                     val aliasInput = TextField("")
                     aliasInput.setFilter { _, c -> c.isLetterOrDigit() }
@@ -74,29 +74,33 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
         val store = Main.keyStorage
 
         if (store.cert() == null || store.key() == null || store.chain() == null) {
-            Vars.ui.showTextInput(
-                "@client.certname.title",
-                "@client.certname.text",
-                Core.settings.getString("name", "")
-            ) { text ->
-                if (text.length < 2) {
-                    hide()
-                    return@showTextInput
+            hide()
+            Core.app.post {
+                Vars.ui.showTextInput(
+                    "@client.certname.title",
+                    "@client.certname.text",
+                    Core.settings.getString("name", "")
+                ) { text ->
+                    if (text.length < 2) {
+                        hide()
+                        return@showTextInput
+                    }
+                    if (text.asciiNoSpaces() != text) {
+                        hide()
+                        Vars.ui.showInfoFade("@client.keyprincipalspaces")
+                        return@showTextInput
+                    }
+
+                    val key = genKey()
+                    val cert = genCert(key, null, text)
+
+                    store.cert(cert)
+                    store.key(key, listOf(cert))
+
+                    build()
                 }
-                if (text.asciiNoSpaces() != text) {
-                    hide()
-                    Vars.ui.showInfoFade("@client.keyprincipalspaces")
-                    return@showTextInput
-                }
-
-                val key = genKey()
-                val cert = genCert(key, null, text)
-
-                store.cert(cert)
-                store.key(key, listOf(cert))
-
-                build()
             }
+            return
         }
 
         regenerate()
