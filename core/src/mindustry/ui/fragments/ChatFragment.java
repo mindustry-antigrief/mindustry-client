@@ -103,7 +103,7 @@ public class ChatFragment extends Table{
                     completion.clear();
                 }
 
-                if ("!r".equals(chatfield.getText())) {
+                if ("!r ".equals(chatfield.getText())) {
                     chatfield.setText("!e " + ClientVars.lastCertName + " ");
                     chatfield.setCursorPosition(chatfield.getText().length());
                 }
