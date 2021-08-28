@@ -5,7 +5,7 @@ import java.io.InputStream
 
 class UnpackJars {
     fun unpack() {
-        val jars = arrayOf("bcprov-jdk15on.jar", "bcpkix-jdk15on.jar", "bctls-jdk15on.jar")
+        val jars = arrayOf("bcprov-jdk15on.jar", "bcpkix-jdk15on.jar", "bctls-jdk15on.jar", "bcutil-jdk15on.jar")
         val outputDir = File(this::class.java.protectionDomain.codeSource.location.toURI().path).parentFile
 
         for (fi in jars) {
