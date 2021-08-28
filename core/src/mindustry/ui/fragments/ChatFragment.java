@@ -102,6 +102,11 @@ public class ChatFragment extends Table{
                 } else {
                     completion.clear();
                 }
+
+                if ("!r ".equals(chatfield.getText())) {
+                    chatfield.setText("!e " + ClientVars.lastCertName + " ");
+                    chatfield.setCursorPosition(chatfield.getText().length());
+                }
             }
         });
 
@@ -235,6 +240,7 @@ public class ChatFragment extends Table{
 
     private void sendMessage(){
         String message = chatfield.getText().trim();
+        // FINISHME: make it so you need to press enter twice to send a message starting with /e
         clearChatInput();
 
         if(message.isEmpty()) return;

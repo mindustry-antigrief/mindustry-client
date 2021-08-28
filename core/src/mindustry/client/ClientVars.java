@@ -33,4 +33,5 @@ public class ClientVars {
 
     // Networking
     @NotNull public static Color encrypted = Color.valueOf("#243266"), verified = Color.valueOf("#2c9e52"); // Encrypted = Blue, Verified = Green
+    @NotNull public static String lastCertName = "";
 }
