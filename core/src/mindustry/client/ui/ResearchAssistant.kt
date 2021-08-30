@@ -3,7 +3,6 @@ package mindustry.client.ui
 import arc.*
 import arc.scene.ui.layout.*
 import arc.struct.*
-import arc.util.*
 import mindustry.Vars.*
 import mindustry.content.TechTree.*
 import mindustry.game.*
@@ -11,7 +10,6 @@ import mindustry.game.*
 /** Handles various client behavior related to research in campaign */
 object ResearchAssistant: Table() {
     val queue: Seq<TechNode> = Seq()
-    val timer = Interval()
     var sectors = 0
 
     init {
