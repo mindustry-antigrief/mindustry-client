@@ -234,5 +234,11 @@ object Packets {
 
             outgoing.add(OutgoingTransmission(packets, onFinish, onError))
         }
+
+        fun removeListener(listener: (Transmission, Int) -> Unit) {
+            listenersLock.lock()
+            listeners.remove(listener)
+            listenersLock.unlock()
+        }
     }
 }

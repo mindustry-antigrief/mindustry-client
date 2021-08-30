@@ -172,7 +172,7 @@ public class BuildPath extends Path {
 
                         if (upgrades.containsKey(block)) {
                             Block upgrade = upgrades.get(block);
-                            if (Structs.contains(upgrade.requirements, i -> !core.items.has(i.item, 100) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0 && !(tile.build instanceof ConstructBlock.ConstructBuild))) continue;
+                            if (!upgrade.unlocked() || Structs.contains(upgrade.requirements, i -> !core.items.has(i.item, 100) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0 && !(tile.build instanceof ConstructBlock.ConstructBuild))) continue;
                             if (block == Blocks.mechanicalDrill) {
                                 drills.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, upgrade));
                             } else {

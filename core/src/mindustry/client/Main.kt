@@ -195,6 +195,7 @@ object Main : ApplicationListener {
         commsClient.addListener { transmission, _ ->
             when (transmission) {
                 is MessageTransmission -> {
+                    ClientVars.lastCertName = system.peer.expectedCert.readableName
                     Vars.ui.chatfrag.addMessage(transmission.content, system.peer.expectedCert.readableName + "[] -> " + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted)
                 }
             }

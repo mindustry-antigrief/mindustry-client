@@ -398,9 +398,11 @@ project(":core"){
 
         implementation group: 'com.beust', name: 'klaxon', version: '5.4'  // Yes, I'm aware arc has a json system, but I don't know how to use it.
 ////        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.21' Not used anywhere, commented to reduce jar size
-        implementation 'org.bouncycastle:bcprov-jdk15on:1.69'
-        implementation 'org.bouncycastle:bctls-jdk15on:1.69'
-        implementation 'org.bouncycastle:bcpkix-jdk15on:1.69'
+
+        compileOnly files("../bouncycastle/bcprov-jdk15on.jar")
+        compileOnly files("../bouncycastle/bcpkix-jdk15on.jar")
+        compileOnly files("../bouncycastle/bctls-jdk15on.jar")
+        compileOnly files("../bouncycastle/bcutil-jdk15on.jar")
 //        implementation 'org.bouncycastle:bcutil-jdk15on:1.69'
 
         annotationProcessor 'com.github.Anuken:jabel:34e4c172e65b3928cd9eabe1993654ea79c409cd'
