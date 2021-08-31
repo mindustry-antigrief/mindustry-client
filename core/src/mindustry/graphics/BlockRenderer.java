@@ -396,8 +396,8 @@ public class BlockRenderer{
             for (Player player : Groups.player) {
                 if (player.isLocal()) continue;
 
-                Fill.circle(player.mouseX, player.mouseY, tilesize);
-                Tmp.cr1.set(player.mouseX, player.mouseY, 10f * tilesize);
+                Fill.circle(player.mouseX, player.mouseY, tilesize * .5f);
+                Tmp.cr1.set(player.mouseX, player.mouseY, 20f * tilesize);
                 if (Tmp.cr1.contains(Core.input.mouseWorld())) {
                     Fonts.def.draw("[#" + player.color + "]" + player.name, player.mouseX, player.mouseY, Align.center);
                 }
