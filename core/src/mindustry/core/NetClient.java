@@ -9,6 +9,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.CommandHandler.*;
+import arc.util.Timer;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
