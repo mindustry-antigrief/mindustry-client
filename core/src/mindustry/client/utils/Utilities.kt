@@ -65,6 +65,8 @@ fun String.base64(): ByteArray? = try { Base64Coder.decode(this) } catch (e: Ill
 
 fun Int.toBytes() = byteArrayOf((this shr 24).toByte(), (this shr 16).toByte(), (this shr 8).toByte(), (this).toByte())
 
+fun Short.toBytes() = byteArrayOf((toInt() shr 8).toByte(), (this).toByte())
+
 fun Long.toBytes() = byteArrayOf((this shr 56).toByte(), (this shr 48).toByte(), (this shr 40).toByte(), (this shr 32).toByte(), (this shr 24).toByte(), (this shr 16).toByte(), (this shr 8).toByte(), (this).toByte())
 
 fun ByteArray.base32678(): String = Base32768Coder.encode(this)

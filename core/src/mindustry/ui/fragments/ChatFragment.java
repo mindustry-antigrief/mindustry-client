@@ -135,6 +135,7 @@ public class ChatFragment extends Table{
         chatfield.getStyle().background = null;
         chatfield.getStyle().fontColor = Color.white;
         chatfield.setStyle(chatfield.getStyle());
+        chatfield.setOnlyFontChars(false);
 
         bottom().left().marginBottom(offsety).marginLeft(offsetx * 2).add(fieldlabel).padBottom(6f);
 
@@ -253,7 +254,7 @@ public class ChatFragment extends Table{
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
-            Call.sendChatMessage(message);
+            Call.sendChatMessage(Main.INSTANCE.sign(message));
             if (message.startsWith(netServer.clientCommands.getPrefix() + "sync")) { // /sync
                 player.persistPlans();
                 ClientVars.syncing = true;

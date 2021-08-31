@@ -132,16 +132,19 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                         ta.button("@client.importkey") button2@{
                             val factory = CertificateFactory.getInstance("X509")
                             val stream = keyInput.text.replace(" ", "").base64()?.inputStream() ?: return@button2
-                            val cert = factory.generateCertificate(stream) as? X509Certificate ?: return@button2
-                            if (cert.readableName.asciiNoSpaces() != cert.readableName) {
-                                Vars.ui.showInfoFade("@client.keyprincipalspaces")  // spaces break the commands
-                                return@button2
-                            }
+                            try {
+                                val cert = factory.generateCertificate(stream) as? X509Certificate ?: return@button2
+                                if (cert.readableName.asciiNoSpaces() != cert.readableName) {
+                                    Vars.ui.showInfoFade("@client.keyprincipalspaces")  // spaces break the commands
+                                    return@button2
+                                }
 
-                            Vars.ui.showConfirm("@client.importkey", cert.readableName) {
-                                store.trust(cert)
-                                regenerate()
-                            }
+                                Vars.ui.showConfirm("@client.importkey", cert.readableName) {
+                                    store.trust(cert)
+                                    regenerate()
+                                }
+
+                            } catch (e: CertificateException) { return@button2 }
                             hide()
                         }.disabled { !keyInput.isValid }
 
