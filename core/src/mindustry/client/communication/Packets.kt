@@ -155,6 +155,7 @@ object Packets {
             }
             for (inc in incoming) {
                 if (inc.value.expirationTime.isBefore(Instant.now())) {
+                    Log.debug("Removing stale incoming message")
                     incoming.remove(inc.key)
                 }
             }

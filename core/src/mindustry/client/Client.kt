@@ -160,11 +160,11 @@ object Client {
         }
 
         register("builder [options...]", Core.bundle.get("client.command.builder.description")) { args, _: Player ->
-            Navigation.follow(BuildPath(if (args.isEmpty()) "" else args[0]))
+            follow(BuildPath(if (args.isEmpty()) "" else args[0]))
         } // FINISHME: This is so scuffed lol
 
         register("miner [options...]", Core.bundle.get("client.command.miner.description")) { args, _: Player ->
-            Navigation.follow(MinePath(if (args.isEmpty()) "" else args[0]))
+            follow(MinePath(if (args.isEmpty()) "" else args[0]))
         } // FINISHME: This is so scuffed lol
 
         register(" [message...]", Core.bundle.get("client.command.!.description")) { args, _ ->

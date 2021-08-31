@@ -6,40 +6,65 @@
  * List items have a * for each line
  * \n does linebreak
 */
-# This list is way out of date and is a work in progress, it is recommended to read through the changelog instead.
-
 # Default Keybinds
+ * alt click - display actions for a tile
+ * alt WASD - free camera movement
  * r - reset camera
- * y - place waypoint (only works while recording waypoints)
- * \ - hold to place block payload precisely
- * z - navigate to camera (experimental)
- * alt WASD - free camera movement, r to reset
- * alt click - open tile actions menu (contains logs)
- * hold shift to disable conveyor/conduit auto bridge
- * o - make all units invisible (including yourself)
- * shift o - toggle unit invisibility
- * ; - enable "build path", automatically moves to anything you place, rebuilds broken structures and assists teammates
- * ctrl f - find block
+ * hold \ - place block payload precisely
+ * z - navigate to cursor
+ * - - stop following path
+ * ` (the one under escape) - show enemy turret ranges
+ * i - toggle showing blocks
+ * o - toggle hiding units
+ * f9 - toggle showing reactor/dome ranges
+ * shift click - hold to disable modified junction replacement
+ * tab - chat autocomplete (:block/unit/liquid/item, @playername)
+ * ; - auto build (see !builder command section)
+ * k - auto mine (see !miner command section)
+ * f7 - toggle teleportation on z (only works on non-strict-mode servers)
+ * ' (apostrophe) - send build queue to other people running !builder networkassist
 
-# Top Navigation Menu
- * Start recording waypoints - begin a new path, press y to add a waypoint
- * Also records item transfers and payload actions
- * Finish recording waypoints - finalizes the path
- * Follow recorded path - replay the recorded path
- * Stop following path - stop following path (note: assist and auto navigation are also considered paths)
+# Commands
+ * If you're unfamiliar with mindustry command syntax, <name> indicates a required argument, and [name] an optional one
+ * !unit <unittype> - automatically switch to a given unit type
+ * !count <unittype> - count the number of units
+ * !go [x] [y] - go to the given x/y coordinates or to the last coordinates in chat
+ * !lookat [x] [y] - look at the given x/y coordinates or at the last coordinates in chat
+ * !tp [x] [y] - !go but try to teleport (only works without strict mode)
+ * !here [message...] - send the message in chat followed by your coordinates
+ * !cursor [message...] - send the message in chat followed by your cursor coordinates
+ * !builder [args...] - auto-build various things.  Options are: all, self, broken, boulders, assist, unfinished, cleanup, networkassist, virus, drills, and belts
+ * !miner [item...] - auto-mine provided items, or all.
+ * ! [message...] (note the space) - sends the given message in chat with an exclamation point at the start
+ * !shrug [message...] - send ¯\_(ツ)_/¯ in chat followed by the message
+ * !login [name] [pw] - auto login to CN servers, not secure
+ * !marker <name> [x] [y] - place a named marker on the map
+ * !js <code...> - run javascript code locally
+ * /js <code...> - run javascript both locally and on the server (if permitted)
+ * !cc [setting] - set a command center to the given value
+ * !networking - get the networking status (see networking section below)
+ * !fixpower [c] - connect power networks (doesn't connect dioded or plast walled networks)
+ * !distance [multiplier] - set the assist distance multiplier (1.5 by default)
+ * !admin [option] - open admin settings ('settings') or leave logs ('leaves')
+ * !clearghosts [c] - remove block ghosts in range of enemy turrets
+ * !e <certname> <message...> - send an encrypted message to someone, see secure chat section below
+ * !togglesign - toggle the sign outgoing message setting
+
+# Networking
+ * Some client features utilize a custom in-game networking protocol
+ * It sends messages over specially configured message blocks or microprocessors
+ * There are buttons in the configure UI to configure them for networking
+
+# Secure Chat
+ * The client has the capability to send other players secure, encrypted messages, as well as to verify the sender of normal ones
+ * To get started, first open the manage certificates dialog (esc -> manage certificates, or client -> manage certificates on the menu)
+ * If it's your first time opening the dialog, it will ask you for a username.  Set one (letters, numbers and underscore only)
+ * Export your certificate and send it outside of the game to the person you want to talk to and have them import it, and vise versa
+ * In-game, make sure networking is set up (see above), and do !e certname message here to send a secure message
+ * Their regular chat messages should also have a green background
 
 # Settings
- * Display lighting
- * Send reactor warnings
- * Play a sound on reactor warning (sound can only play after a 10s break in reactor building)
- * Discord rich presence toggle
- * Weather opacity slider
- * Various others
-
-# Misc Changes
- * Automatic conveyor/conduit bridging (genNAowl)
- * Autocomplete in chat for content icons (type : and then the first part of the name, use tab to complete)
- * Autocomplete in chat for player names (type @ and then start typing the name, press tab to complete)
+ * Most settings are self-explanatory so they are not included here
 
 # Credits
  * Game by anuke, client by foo and buthed010203
