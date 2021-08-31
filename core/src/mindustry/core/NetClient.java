@@ -202,7 +202,7 @@ public class NetClient implements ApplicationListener{
                 } else {
                     message = colorizeName(playersender.id, Iconc.wrench + " " + message);
                 }
-                if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.client;
+                if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
             message = processCoords(message);
