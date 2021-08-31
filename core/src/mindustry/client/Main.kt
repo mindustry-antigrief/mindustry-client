@@ -16,6 +16,7 @@ import mindustry.game.*
 import mindustry.game.Teams.*
 import mindustry.gen.*
 import mindustry.input.*
+import java.nio.file.Files
 import java.security.cert.*
 import java.util.Timer
 import java.util.concurrent.*
@@ -44,6 +45,7 @@ object Main : ApplicationListener {
 
             TileRecords.initialize()
         } else {
+            keyStorage = KeyStorage(Files.createTempDirectory("keystorage").toFile())
             communicationSystem = SwitchableCommunicationSystem(DummyCommunicationSystem(mutableListOf()))
             communicationSystem.init()
         }

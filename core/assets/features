@@ -14,8 +14,10 @@
  * z - navigate to cursor
  * - - stop following path
  * ` (the one under escape) - show enemy turret ranges
+ * shift ` - show overdrive ranges
  * i - toggle showing blocks
  * o - toggle hiding units
+ * shift o - toggle hiding air units
  * f9 - toggle showing reactor/dome ranges
  * shift click - hold to disable modified junction replacement
  * tab - chat autocomplete (:block/unit/liquid/item, @playername)

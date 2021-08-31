@@ -1,5 +1,6 @@
 package client
 
+import mindustry.client.Main
 import mindustry.client.crypto.KeyStorage
 import mindustry.client.crypto.Signatures
 import mindustry.client.crypto.genCert
@@ -23,6 +24,7 @@ class SignatureTest {
     fun initialize() {
         // finishme add a shared initialization thing so we don't get more than one bouncycastle provider registered when multiple tests are run
         Security.addProvider(BouncyCastleProvider())
+        Main.keyStorage = KeyStorage(Files.createTempDirectory("keystorage").toFile())
     }
 
     @Test

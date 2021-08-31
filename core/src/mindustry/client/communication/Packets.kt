@@ -205,6 +205,7 @@ object Packets {
                     for (listener in listeners) {
                         listener(transmission, sender)
                     }
+                    incoming.remove(header.transmissionId)
                     listenersLock.unlock()
                 }
             } catch (e: Exception) { Log.err(e) }
