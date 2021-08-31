@@ -32,6 +32,6 @@ public class ClientVars {
     public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;
 
     // Networking
-    @NotNull public static Color encrypted = Color.valueOf("#243266"), verified = Color.valueOf("#2c9e52"), invalid = Color.valueOf("#890800"), client = Color.coral.cpy().mul(0.6f); // Encrypted = Blue, Verified = Green
+    @NotNull public static Color encrypted = Color.valueOf("#243266"), verified = Color.valueOf("#2c9e52"), invalid = Color.valueOf("#890800"), user = Color.coral.cpy().mul(0.6f); // Encrypted = Blue, Verified = Green
     @NotNull public static String lastCertName = "";
 }
