@@ -181,8 +181,10 @@ public class ChatFragment extends Table{
             Color color = messages.get(i).backgroundColor;
             if (color == null) {
                 color = shadowColor;
+                color.a = shadowColor.a;
+            } else {
+                color.a = .8f;
             }
-            color.a = shadowColor.a;
 
             if(!shown && fadetime - i < 1f && fadetime - i >= 0f){
                 font.getCache().setAlphas((fadetime - i) * opacity);
