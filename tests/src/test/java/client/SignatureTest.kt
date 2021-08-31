@@ -56,6 +56,6 @@ class SignatureTest {
         val signatureTransmission = signatures.signatureTransmission(msg.encodeToByteArray(), 0, 5)!!
 
         val validity = signatures2.verifySignatureTransmission(msg.encodeToByteArray(), signatureTransmission)
-        Assertions.assertEquals(validity, Signatures.VerifyResult.VALID)
+        Assertions.assertEquals(validity.first, Signatures.VerifyResult.VALID)
     }
 }

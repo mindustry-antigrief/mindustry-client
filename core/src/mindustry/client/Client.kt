@@ -376,6 +376,12 @@ object Client {
                 }, { player.sendMessage("[scarlet]Make sure a processor/message block is set up for communication!") })
             }
         }
+
+        register("togglesign", "Toggles signing outgoing messages.") { args, player ->
+            val previous = Core.settings.getBool("signmessages")
+            Core.settings.put("signmessages", !previous)
+            player.sendMessage("Now ${if (previous) "not " else ""}signing messages")
+        }
     }
 
     /** Registers a command.

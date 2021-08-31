@@ -97,13 +97,28 @@ object Main : ApplicationListener {
                 is SignatureTransmission -> {
                     val ending = InvisibleCharCoder.encode(transmission.messageId.toBytes())
                     val msg = Vars.ui.chatfrag.messages.lastOrNull { it.message.endsWith(ending) } ?: return@addListener
-                    println(msg.formattedMessage + ": " + signatures.verifySignatureTransmission(msg.message.encodeToByteArray(), transmission))
+                    if (!Core.settings.getBool("highlightcryptomsg")) return@addListener
+                    val output = signatures.verifySignatureTransmission(msg.message.encodeToByteArray(), transmission)
+                    when (output.first) {
+                        Signatures.VerifyResult.VALID -> {
+                            msg.sender = output.second?.readableName
+                            msg.backgroundColor = ClientVars.verified
+                            msg.format()
+                        }
+                        Signatures.VerifyResult.INVALID -> {
+                            msg.sender = output.second?.readableName?.stripColors()?.plus("[scarlet] impersonator")
+                            msg.backgroundColor = ClientVars.invalid
+                            msg.format()
+                        }
+                        Signatures.VerifyResult.UNKNOWN_CERT -> {}
+                    }
                 }
             }
         }
     }
 
     fun sign(content: String): String {
+        if (!Core.settings.getBool("signmessages")) return content
         if (content.startsWith("/")) return content
         val msgId = Random.nextInt().toShort()
         val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
