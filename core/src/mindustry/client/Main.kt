@@ -103,11 +103,13 @@ object Main : ApplicationListener {
                         Signatures.VerifyResult.VALID -> {
                             msg.sender = output.second?.readableName
                             msg.backgroundColor = ClientVars.verified
+                            msg.prefix = "${Iconc.ok} "
                             msg.format()
                         }
                         Signatures.VerifyResult.INVALID -> {
                             msg.sender = output.second?.readableName?.stripColors()?.plus("[scarlet] impersonator")
                             msg.backgroundColor = ClientVars.invalid
+                            msg.prefix = "${Iconc.cancel} "
                             msg.format()
                         }
                         Signatures.VerifyResult.UNKNOWN_CERT -> {}
@@ -235,7 +237,7 @@ object Main : ApplicationListener {
             when (transmission) {
                 is MessageTransmission -> {
                     ClientVars.lastCertName = system.peer.expectedCert.readableName
-                    Vars.ui.chatfrag.addMessage(transmission.content, system.peer.expectedCert.readableName + "[] -> " + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted)
+                    Vars.ui.chatfrag.addMessage(transmission.content, system.peer.expectedCert.readableName + "[] -> " + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).prefix = "${Iconc.ok} "
                 }
             }
         }
