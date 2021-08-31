@@ -13,12 +13,12 @@ object ResearchAssistant: Table() {
     var sectors = 0
 
     init {
-        content.planets().each { p -> p.sectors.each { s -> if (s.hasSave() && s.hasBase()) sectors++ } } // Owned sector count
+        content.planets().each { p -> p.sectors.each { s -> if (s.hasBase()) sectors++ } } // Owned sector count
         drawQueue()
         Events.on(EventType.TurnEvent::class.java) {
             if (state.isCampaign) {
                 sectors = 0
-                content.planets().each { p -> p.sectors.each { s -> if (s.hasSave() && s.hasBase()) sectors++ } } // Owned sector count
+                content.planets().each { p -> p.sectors.each { s -> if (s.hasBase()) sectors++ } } // Owned sector count
 
                 for (node in queue) spend(node)
             }
@@ -51,31 +51,33 @@ object ResearchAssistant: Table() {
     }
 
     fun spend(node: TechNode) {
-        var complete = true
         val shine = BooleanArray(node.requirements.size)
         val usedShine = BooleanArray(content.items().size)
-        for (i in node.requirements.indices) {
-            val req = node.requirements[i]
-            val completed = node.finishedRequirements[i]
 
-            //amount actually taken from inventory
-            val used = (req.amount - completed.amount).coerceAtMost(ui.research.items.get(req.item) - sectors * 1000).coerceAtLeast(0)
-            println("$sectors $used")
-            ui.research.items.remove(req.item, used)
-            completed.amount += used
-            if (used > 0) {
-                shine[i] = true
-                usedShine[req.item.id.toInt()] = true
-            }
+        for (planet in content.planets()) {
+            for (sector in planet.sectors) {
+                if (!sector.hasBase()) continue
 
-            //disable completion if the completed amount has not reached requirements
-            if (completed.amount < req.amount) {
-                complete = false
+                for (i in node.requirements.indices) {
+                    val req = node.requirements[i]
+                    val completed = node.finishedRequirements[i]
+
+                    //amount actually taken from inventory
+                    val used = (req.amount - completed.amount).coerceAtMost(sector.items().get(req.item) - 1000).coerceAtLeast(0)
+                    ui.research.items.total -= used
+                    ui.research.items[req.item] -= used
+                    completed.amount += used
+                    if (used > 0) {
+                        shine[i] = true
+                        usedShine[req.item.id.toInt()] = true
+                    }
+                }
             }
         }
-        if (complete) {
-            ui.research.view.unlock(node)
-        }
+        //disable completion if not all requirements are met
+        var complete = true
+        node.requirements.forEachIndexed {i, _ ->  if (node.finishedRequirements[i].amount < node.requirements[i].amount) complete = false}
+        if (complete) ui.research.view.unlock(node)
         node.save()
 
         //??????

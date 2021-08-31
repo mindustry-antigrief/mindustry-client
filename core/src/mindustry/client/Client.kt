@@ -275,7 +275,8 @@ object Client {
 
         register("clearghosts [c]", "Removes the ghosts of blocks which are in range of enemy turrets, useful to stop polys from building forever") { args, player -> // FINISHME: Bundle
             clientThread.taskQueue.post {
-                val confirmed = args.any() && args[0] == "c" // Don't clear by default
+                val confirmed = args.any() && args[0].startsWith("c") // Don't clear by default
+                val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
                 val blocked = GridBits(world.width(), world.height())
 
                 for (turret in obstacles) {
@@ -301,7 +302,7 @@ object Client {
                         world.tile(plan.x.toInt(), plan.y.toInt()).getLinkedTilesAs(content.block(plan.block.toInt())) { t ->
                             if (blocked.get(t.x.toInt(), t.y.toInt())) isBlocked = true
                         }
-                        if (!isBlocked) continue
+                        if (!isBlocked && !all) continue
                         if (++i > 100) break
 
                         plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
@@ -377,10 +378,10 @@ object Client {
             }
         }
 
-        register("togglesign", "Toggles signing outgoing messages.") { args, player ->
+        register("togglesign", Core.bundle.get("client.command.togglesign.description")) { _, player ->
             val previous = Core.settings.getBool("signmessages")
             Core.settings.put("signmessages", !previous)
-            player.sendMessage("Now ${if (previous) "not " else ""}signing messages")
+            player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (previous) "off" else "on").lowercase()))
         }
     }
 

@@ -1,13 +1,12 @@
 package mindustry.client.crypto
 
-import mindustry.client.communication.SignatureTransmission
-import java.security.PrivateKey
-import java.security.PublicKey
-import java.security.Signature
-import java.security.cert.X509Certificate
-import java.time.Clock
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.math.abs
+import mindustry.client.*
+import mindustry.client.communication.*
+import java.security.*
+import java.security.cert.*
+import java.time.*
+import java.util.concurrent.atomic.*
+import kotlin.math.*
 
 class Signatures(private val store: KeyStorage, private val ntp: AtomicReference<Clock>) {
     companion object {
@@ -50,6 +49,8 @@ class Signatures(private val store: KeyStorage, private val ntp: AtomicReference
 
     fun verifySignatureTransmission(original: ByteArray, transmission: SignatureTransmission): Pair<VerifyResult, X509Certificate?> {
         val foundCert = store.findTrusted(transmission.sn) ?: return Pair(VerifyResult.UNKNOWN_CERT, null)
+        if (foundCert == Main.keyStorage.cert()) return Pair(VerifyResult.UNKNOWN_CERT, null)
+
         // the time is synchronized to NTP on both sides so this is fine
         if (abs(transmission.time - ntp.get().instant().toEpochMilli()) > 10_000) return Pair(VerifyResult.INVALID, foundCert)
         val signedValue = transmission.toSignable(original)
