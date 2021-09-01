@@ -3,6 +3,7 @@
 package mindustry.client.utils
 
 import arc.Core
+import arc.Events
 import arc.scene.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
@@ -20,6 +21,7 @@ import java.time.*
 import java.time.temporal.*
 import java.util.zip.*
 import kotlin.math.*
+import kotlin.reflect.KClass
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -217,3 +219,13 @@ val X509Certificate.readableName: String
     get() = subjectX500Principal.name.removePrefix("CN=")
 
 fun String.asciiNoSpaces() = filter { it in '0'..'9' || it in 'A'..'Z' || it in 'a'..'z' || it == '_' }
+
+fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) {
+    var i = 0
+    Events.on(event) {
+        lambda(it)
+        if (i++ >= repetitions) {
+            Events.remove(event, lambda)
+        }
+    }
+}

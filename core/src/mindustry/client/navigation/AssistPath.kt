@@ -9,7 +9,6 @@ import mindustry.gen.*
 
 class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
     constructor(assisting: Player?) : this(assisting, false)
-
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
 
