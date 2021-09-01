@@ -39,9 +39,14 @@ public class ChatFragment extends Table{
     private float offsetx = Scl.scl(4), offsety = Scl.scl(4), fontoffsetx = Scl.scl(2), chatspace = Scl.scl(50);
     private Color shadowColor = new Color(0, 0, 0, 0.5f);
     private float textspacing = Scl.scl(10);
-    private Seq<String> history = new Seq<>();
-    private int historyPos = 0;
+//    private Seq<String> history = new Seq<>();
+//    private int historyPos = 0;
     private int scrollPos = 0;
+    public Seq<Pair<Integer, String>> historySeq = new Seq<>(); // idk, initialize with one item inside HELP
+    public int historyNo = 0; // index pointing to string in historySeq (seq of messages the player has sent)
+    private int historyOffset = 0; // offset provided by iterating through own message history - points to this.messages
+    private int smallOffset = 0; // offset provided by the per-message shift
+    private int sinceLastMessage = 0; // total number of messages processed since the last message from the player
     private Fragment container = new Fragment(){
         @Override
         public void build(Group parent){
@@ -72,13 +77,32 @@ public class ChatFragment extends Table{
             }
 
             if(shown){
-                if(input.keyTap(Binding.chat_history_prev) && historyPos < history.size - 1){
-                    if(historyPos == 0) history.set(0, chatfield.getText());
-                    historyPos++;
+                if(input.keyTap(Binding.chat_history_prev) && (historyOffset + smallOffset < messages.size - 1)){
+                    if(historyOffset + smallOffset == 0) historySeq.set(0, new Pair<>(sinceLastMessage, chatfield.getText()));
+                    if(input.keyDown(Binding.chat_history_next_small)){
+                        smallOffset++;
+                        if(historyNo < historySeq.size - 1 && smallOffset >= historySeq.get(historyNo).first) {
+                            historyOffset += historySeq.get(historyNo++).first;
+                            smallOffset = 0;
+                        }
+                    } else if(historyNo < historySeq.size - 1){
+                        historyOffset += historySeq.get(historyNo++).first;
+                        smallOffset = 0;
+                    }
                     updateChat();
                 }
-                if(input.keyTap(Binding.chat_history_next) && historyPos > 0){
-                    historyPos--;
+                if(input.keyTap(Binding.chat_history_next) && historyOffset + smallOffset > 0){
+                    if(historyNo <= 1) historySeq.set(0, new Pair<>(sinceLastMessage, historySeq.get(0).second));
+                    if(input.keyDown(Binding.chat_history_next_small) /*&& historyOffset + smallOffset > 0*/){
+                        smallOffset--;
+                        if(historyNo > 0 && smallOffset < 0){
+                            smallOffset = 0;
+                            historyOffset -= historySeq.get(--historyNo).first;
+                        }
+                    } else if(historyNo > 0){
+                        if(smallOffset == 0) historyOffset -= historySeq.get(--historyNo).first;
+                        smallOffset = 0;
+                    }
                     updateChat();
                 }
                 if (input.keyTap(Binding.chat_autocomplete) && completion.any() && mode == ChatMode.normal) {
@@ -109,8 +133,7 @@ public class ChatFragment extends Table{
                 }
             }
         });
-
-        history.insert(0, "");
+        historySeq.insert(0, new Pair<>(0, ""));
         setup();
     }
 
@@ -121,8 +144,8 @@ public class ChatFragment extends Table{
     public void clearMessages(){
         if (!settings.getBool("clearchatonleave")) return;
         messages.clear();
-        history.clear();
-        history.insert(0, "");
+        historySeq.clear();
+        historySeq.insert(0, new Pair<>(0, ""));
     }
 
     private void setup(){
@@ -245,7 +268,7 @@ public class ChatFragment extends Table{
 
         if(message.isEmpty()) return;
 
-        history.insert(1, message);
+        historySeq.insert(1, new Pair<>(sinceLastMessage, message));
 
         // Allow sending commands in "/t" & "/a"; "/t /help" becomes "/help", "/a !go" becomes "!go"
         message = message.replaceFirst("^/[at] ([/!])", "$1");
@@ -295,6 +318,7 @@ public class ChatFragment extends Table{
                 player.sendMessage(text);
             }
         }
+        sinceLastMessage = 0;
     }
 
     public void toggle(){
@@ -334,7 +358,11 @@ public class ChatFragment extends Table{
     }
 
     public void updateChat(){
-        chatfield.setText(mode.normalizedPrefix() + history.get(historyPos));
+        Log.log(Log.LogLevel.debug, "history: [@ @], small: [@], since: [@], numHistory: [@], numMessages: [@]",
+                historyNo, historyOffset, smallOffset, sinceLastMessage, historySeq.size, messages.size);
+        chatfield.setText(mode.normalizedPrefix() + (smallOffset == 0?
+                historySeq.get(historyNo).second :
+                messages.get(historyOffset + smallOffset - 1).message)); // -1 as messages starts from 0; an offset of 1 indicates the 0th message
         updateCursor();
     }
 
@@ -355,8 +383,8 @@ public class ChatFragment extends Table{
     }
 
     public void clearChatInput(){
-        historyPos = 0;
-        history.set(0, "");
+        historyOffset = 0; historyNo = 0; smallOffset = 0;
+        historySeq.set(0, new Pair<>(0, ""));
         chatfield.setText(mode.normalizedPrefix());
         updateCursor();
     }
@@ -377,6 +405,8 @@ public class ChatFragment extends Table{
         if(sender == null && message == null) return null;
         ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy(), prefix);
         messages.insert(0, msg);
+        sinceLastMessage++;
+        if(historyNo > 0) historyOffset++;
 
         doFade(6); // fadetime was originally incremented by 2f, that works out to 6s
 

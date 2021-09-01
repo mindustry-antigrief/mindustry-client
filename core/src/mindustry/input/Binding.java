@@ -92,7 +92,9 @@ public enum Binding implements KeyBind{
     toggle_strict_mode(KeyCode.f7),
     find_modifier(KeyCode.controlLeft),
     find(KeyCode.f),
-    send_build_queue(KeyCode.apostrophe)
+    send_build_queue(KeyCode.apostrophe),
+
+    chat_history_next_small(KeyCode.controlLeft)
     ;
 
     private final KeybindValue defaultValue;
