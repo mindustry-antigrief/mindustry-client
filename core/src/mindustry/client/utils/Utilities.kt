@@ -3,6 +3,7 @@
 package mindustry.client.utils
 
 import arc.Core
+import arc.Events
 import arc.scene.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
@@ -20,6 +21,7 @@ import java.time.*
 import java.time.temporal.*
 import java.util.zip.*
 import kotlin.math.*
+import kotlin.reflect.KClass
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -64,6 +66,8 @@ fun ByteArray.base64(): String = Base64Coder.encode(this).concatToString()
 fun String.base64(): ByteArray? = try { Base64Coder.decode(this) } catch (e: IllegalArgumentException) { null }
 
 fun Int.toBytes() = byteArrayOf((this shr 24).toByte(), (this shr 16).toByte(), (this shr 8).toByte(), (this).toByte())
+
+fun Short.toBytes() = byteArrayOf((toInt() shr 8).toByte(), (this).toByte())
 
 fun Long.toBytes() = byteArrayOf((this shr 56).toByte(), (this shr 48).toByte(), (this shr 40).toByte(), (this shr 32).toByte(), (this shr 24).toByte(), (this shr 16).toByte(), (this shr 8).toByte(), (this).toByte())
 
@@ -215,3 +219,13 @@ val X509Certificate.readableName: String
     get() = subjectX500Principal.name.removePrefix("CN=")
 
 fun String.asciiNoSpaces() = filter { it in '0'..'9' || it in 'A'..'Z' || it in 'a'..'z' || it == '_' }
+
+fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) {
+    var i = 0
+    Events.on(event) {
+        lambda(it)
+        if (i++ >= repetitions) {
+            Events.remove(event, lambda)
+        }
+    }
+}

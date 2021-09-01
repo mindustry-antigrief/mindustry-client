@@ -404,6 +404,7 @@ project(":core"){
         compileOnly files("../bouncycastle/bctls-jdk15on.jar")
         compileOnly files("../bouncycastle/bcutil-jdk15on.jar")
 //        implementation 'org.bouncycastle:bcutil-jdk15on:1.69'
+        implementation 'commons-net:commons-net:3.8.0'
 
         annotationProcessor 'com.github.Anuken:jabel:34e4c172e65b3928cd9eabe1993654ea79c409cd'
         compileOnly project(":annotations")

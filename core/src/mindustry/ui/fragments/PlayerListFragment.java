@@ -40,11 +40,13 @@ public class PlayerListFragment extends Fragment{
                 }
 
                 if(visible && timer.get(5) && !Core.input.keyDown(KeyCode.mouseLeft)){
-                    rebuild();
-                    content.pack();
-                    content.act(Core.graphics.getDeltaTime());
-                    //hacky
-                    Core.scene.act(0f);
+                    if (!Groups.player.array.containsAll(players) || Groups.player.size() != players.size) {
+                        rebuild();
+                        content.pack();
+                        content.act(Core.graphics.getDeltaTime());
+                        //hacky
+                        Core.scene.act(0f);
+                    }
                 }
             });
 
@@ -124,7 +126,7 @@ public class PlayerListFragment extends Fragment{
             button.add().grow();
 
             if (user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
-            if (user.fooUser || (user.isLocal() && Core.settings.getBool("displayasuser"))) button.image(Icon.wrench).padRight(7.5f);
+            if (user.fooUser || (user.isLocal() && Core.settings.getBool("displayasuser"))) button.image(Icon.wrench).padRight(7.5f).tooltip("@client.clientuser");
 
             if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();
@@ -173,13 +175,13 @@ public class PlayerListFragment extends Fragment{
             }
             if (user != player) {
                 button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
-                        () -> Navigation.follow(new AssistPath(user))).size(h / 2);
+                        () -> Navigation.follow(new AssistPath(user))).size(h / 2).tooltip("@client.assist");
                 button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
-                        () -> Navigation.follow(new UnAssistPath(user))).size(h / 2);
+                        () -> Navigation.follow(new UnAssistPath(user))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.move, Styles.clearPartiali, // Goto
-                        () -> Navigation.navigateTo(user)).size(h / 2);
+                        () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
                 button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
-                        () -> Spectate.INSTANCE.spectate(user));
+                        () -> Spectate.INSTANCE.spectate(user)).tooltip("@client.spectate");
             }
 
             content.add(button).padBottom(-6).width(700).maxHeight(h + 14);

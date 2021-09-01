@@ -30,9 +30,10 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
         for (cert in store.trusted()) {
             val table = Table()
             table.button(Icon.cancel, Styles.darki, 16f) {
+                if (Main.keyStorage.builtInCerts.contains(cert)) return@button
                 store.untrust(cert)
                 regenerate()
-            }.padRight(20f).tooltip("@save.delete")
+            }.padRight(20f).tooltip(if (Main.keyStorage.builtInCerts.contains(cert)) "@client.cantdelete" else "@save.delete")
 
             table.button(Icon.edit, Styles.darki, 16f) button2@ {
                 aliasDialog = dialog("@client.alias") {
@@ -131,16 +132,19 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                         ta.button("@client.importkey") button2@{
                             val factory = CertificateFactory.getInstance("X509")
                             val stream = keyInput.text.replace(" ", "").base64()?.inputStream() ?: return@button2
-                            val cert = factory.generateCertificate(stream) as? X509Certificate ?: return@button2
-                            if (cert.readableName.asciiNoSpaces() != cert.readableName) {
-                                Vars.ui.showInfoFade("@client.keyprincipalspaces")  // spaces break the commands
-                                return@button2
-                            }
+                            try {
+                                val cert = factory.generateCertificate(stream) as? X509Certificate ?: return@button2
+                                if (cert.readableName.asciiNoSpaces() != cert.readableName) {
+                                    Vars.ui.showInfoFade("@client.keyprincipalspaces")  // spaces break the commands
+                                    return@button2
+                                }
 
-                            Vars.ui.showConfirm("@client.importkey", cert.readableName) {
-                                store.trust(cert)
-                                regenerate()
-                            }
+                                Vars.ui.showConfirm("@client.importkey", cert.readableName) {
+                                    store.trust(cert)
+                                    regenerate()
+                                }
+
+                            } catch (e: CertificateException) { return@button2 }
                             hide()
                         }.disabled { !keyInput.isValid }
 

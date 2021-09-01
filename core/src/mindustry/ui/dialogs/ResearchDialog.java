@@ -14,6 +14,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.client.ui.*;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
 import mindustry.core.*;
@@ -46,7 +47,7 @@ public class ResearchDialog extends BaseDialog{
 
         titleTable.remove();
         margin(0f).marginBottom(8);
-        cont.stack(view = new View(), itemDisplay = new ItemsDisplay()).grow();
+        cont.stack(view = new View(), itemDisplay = new ItemsDisplay(), ResearchAssistant.INSTANCE).grow();
 
         shouldPause = true;
 
@@ -318,8 +319,9 @@ public class ResearchDialog extends BaseDialog{
                                 }
                             });
                         }
-                    }else if(canSpend(node.node) && locked(node.node)){
-                        spend(node.node);
+                    }else if(locked(node.node)){
+                        if (Core.input.shift()) ResearchAssistant.INSTANCE.queue(node.node);
+                        else if (canSpend(node.node)) spend(node.node);
                     }
                 });
                 button.hovered(() -> {
@@ -392,7 +394,7 @@ public class ResearchDialog extends BaseDialog{
             return node.content.locked();
         }
 
-        void spend(TechNode node){
+        public void spend(TechNode node){
             boolean complete = true;
 
             boolean[] shine = new boolean[node.requirements.length];
@@ -430,7 +432,7 @@ public class ResearchDialog extends BaseDialog{
             itemDisplay.rebuild(items, usedShine);
         }
 
-        void unlock(TechNode node){
+        public void unlock(TechNode node){
             node.content.unlock();
 
             //unlock parent nodes in multiplayer.
@@ -447,6 +449,7 @@ public class ResearchDialog extends BaseDialog{
             Core.scene.act();
             Sounds.unlock.play();
             Events.fire(new ResearchEvent(node.content));
+            ResearchAssistant.INSTANCE.dequeue(node);
         }
 
         void rebuild(){
@@ -454,7 +457,7 @@ public class ResearchDialog extends BaseDialog{
         }
 
         //pass an array of stack indexes that should shine here
-        void rebuild(@Nullable boolean[] shine){
+        public void rebuild(@Nullable boolean[] shine){
             ImageButton button = hoverNode;
 
             infoTable.remove();

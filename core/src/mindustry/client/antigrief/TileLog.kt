@@ -82,7 +82,9 @@ class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterabl
         return cpy
     }
 
-    fun after(index: Int) = logs.slice((index - startingIndex).coerceIn(logs.indices) until logs.size)
+    fun after(index: Int): List<TileLog> {
+        return logs.slice((index - startingIndex).coerceIn(logs.indices.apply { if (isEmpty()) return emptyList() /*idk either*/ }) until logs.size)
+    }
 }
 
 class TileRecord(val x: Int, val y: Int) {

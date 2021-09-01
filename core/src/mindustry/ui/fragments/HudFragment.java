@@ -223,13 +223,15 @@ public class HudFragment extends Fragment{
                 }).growY().fillX().right().width(40f).name("skip");
 
                 // Power bar display
-                s.row();
-                s.table(Tex.wavepane, st -> {
-                    PowerInfo.getBars(st);
-                    st.row();
-                    addInfoTable(st);
-                }).marginTop(6).growX().colspan(s.getColumns());
             }).width(dsize * 6 + 4f);
+
+            wavesMain.row();
+
+            wavesMain.table(Tex.wavepane, st -> {
+                PowerInfo.getBars(st);
+                st.row();
+                addInfoTable(st);
+            }).marginTop(6).growX();
 
             editorMain.name = "editor";
 

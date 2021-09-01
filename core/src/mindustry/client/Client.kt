@@ -162,11 +162,11 @@ object Client {
             Call.sendChatMessage(Strings.format("(@, @) @", control.input.rawTileX(), control.input.rawTileY(), if (args.isEmpty()) "" else args[0] + " "))
         }
         register("builder [options...]", Core.bundle.get("client.command.builder.description")) { args, _: Player ->
-            Navigation.follow(BuildPath(if (args.isEmpty()) "" else args[0]))
+            follow(BuildPath(if (args.isEmpty()) "" else args[0]))
         } // FINISHME: This is so scuffed lol
 
         register("miner [options...]", Core.bundle.get("client.command.miner.description")) { args, _: Player ->
-            Navigation.follow(MinePath(if (args.isEmpty()) "" else args[0]))
+            follow(MinePath(if (args.isEmpty()) "" else args[0]))
         } // FINISHME: This is so scuffed lol
 
         register(" [message...]", Core.bundle.get("client.command.!.description")) { args, _ ->
@@ -281,7 +281,8 @@ object Client {
 
         register("clearghosts [c]", "Removes the ghosts of blocks which are in range of enemy turrets, useful to stop polys from building forever") { args, player -> // FINISHME: Bundle
             clientThread.taskQueue.post {
-                val confirmed = args.any() && args[0] == "c" // Don't clear by default
+                val confirmed = args.any() && args[0].startsWith("c") // Don't clear by default
+                val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
                 val blocked = GridBits(world.width(), world.height())
 
                 for (turret in obstacles) {
@@ -307,7 +308,7 @@ object Client {
                         world.tile(plan.x.toInt(), plan.y.toInt()).getLinkedTilesAs(content.block(plan.block.toInt())) { t ->
                             if (blocked.get(t.x.toInt(), t.y.toInt())) isBlocked = true
                         }
-                        if (!isBlocked) continue
+                        if (!isBlocked && !all) continue
                         if (++i > 100) break
 
                         plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
@@ -384,6 +385,12 @@ object Client {
                     }, .1F)
                 }, { player.sendMessage("[scarlet]Make sure a processor/message block is set up for communication!") })
             }
+        }
+
+        register("togglesign", Core.bundle.get("client.command.togglesign.description")) { _, player ->
+            val previous = Core.settings.getBool("signmessages")
+            Core.settings.put("signmessages", !previous)
+            player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (previous) "off" else "on").lowercase()))
         }
     }
 
