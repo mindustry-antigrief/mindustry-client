@@ -173,3 +173,4 @@ core/annotations/
 # what even
 libsdl-arc64.so
 .temp/
+*.properties
