@@ -2,12 +2,15 @@ package mindustry.client.navigation
 
 import arc.*
 import arc.math.geom.*
+import arc.struct.*
 import mindustry.Vars.*
+import mindustry.entities.units.*
 import mindustry.gen.*
 import kotlin.math.*
 
-class AssistPath(public val assisting: Player?) : Path() {
+class AssistPath(val assisting: Player?) : Path() {
     private var show: Boolean = true
+    private var plans = Seq<BuildPlan>()
 
     override fun reset() {}
 
@@ -57,8 +60,10 @@ class AssistPath(public val assisting: Player?) : Path() {
         }
 
         if (assisting.isBuilder && player.isBuilder) {
-            player.unit().clearBuilding()
             if (assisting.unit().activelyBuilding() && assisting.team() == player.team()) {
+                plans.forEach { player.unit().removeBuild(it.x, it.y, it.breaking) }
+                plans.clear()
+                plans.addAll(assisting.unit().plans())
                 assisting.unit().plans().forEach { player.unit().addBuild(it, false) }
             }
         }

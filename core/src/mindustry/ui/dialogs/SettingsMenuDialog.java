@@ -323,6 +323,8 @@ public class SettingsMenuDialog extends Dialog{
         client.checkPref("displayasuser", false);
         client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
         client.checkPref("showuserid", false);
+        client.checkPref("highlightcryptomsg", true);
+        client.checkPref("signmessages", true);
 
         client.category("controls");
         client.checkPref("blockreplace", true);

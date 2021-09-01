@@ -9,6 +9,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.CommandHandler.*;
+import arc.util.Timer;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
@@ -202,7 +203,7 @@ public class NetClient implements ApplicationListener{
                 } else {
                     message = colorizeName(playersender.id, Iconc.wrench + " " + message);
                 }
-                if (Core.settings.getBool("highlightclientmsg")) background = Color.coral.cpy().mul(0.75f);
+                if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
             message = processCoords(message);
