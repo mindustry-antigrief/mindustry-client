@@ -1,5 +1,6 @@
 package mindustry.world.blocks.distribution;
 
+import arc.Core;
 import arc.graphics.g2d.Draw;
 import arc.math.geom.Vec2;
 import arc.util.*;
@@ -16,6 +17,9 @@ public class Junction extends Block{
     public float speed = 26; //frames taken to go through this junction
     public int capacity = 6;
 
+    public static final Vec2 baseOffset = setBaseOffset(Core.settings.getInt("junctionview", 0));
+    public static boolean drawItems = false;
+
     public Junction(String name){
         super(name);
         update = true;
@@ -23,6 +27,14 @@ public class Junction extends Block{
         group = BlockGroup.transportation;
         unloadable = false;
         noUpdateDisabled = true;
+    }
+
+    public static Vec2 setBaseOffset(int mode){ // -1 left, 0 disable, 1 right
+        drawItems = mode == -1 || mode == 1;
+        float x = -tilesize / 3.1f * mode;
+        return baseOffset == null ? new Vec2(x, 0) : baseOffset.set(x, 0);
+        // for display on left, (0, tilesize / 3.1f) (given rot = 0);
+        // very sus way to initialise a final
     }
 
     @Override
@@ -95,9 +107,10 @@ public class Junction extends Block{
         @Override
         public void draw(){
             super.draw();
+            if(!drawItems) return;
             Draw.z(Layer.power + 0.1f); // or layer.BlockOver or layer.Block + 0.1f? idk
             Vec2 direction = new Vec2(0, -tilesize * 0.67f); // start from rot 3
-            Vec2 offset = new Vec2(tilesize / 3.1f, 0);
+            Vec2 offset = new Vec2(baseOffset);
             for(int i = 0; i < 4; i++){
                 direction.rotate90(1);
                 offset.rotate90(1);
@@ -107,9 +120,10 @@ public class Junction extends Block{
                     Item item = content.item(BufferItem.item(l));
                     // to exit, Time.time > time + speed. Then currFrame (ie speed) = Time.time - time
                     float time = Time.time - BufferItem.time(l);
+                    if(time < 0) time = Float.MAX_VALUE; // if joining a game later than when item was placed
                     float progress = time / speed * timeScale;
                     progress = Math.min(progress, 1f - (float)j / capacity); // (cap - j) * 1/cap
-                    if (progress < 0) continue;
+//                    if (progress < 0) continue;
                     Vec2 displacement = new Vec2(direction).scl(-0.5f -0.5f/capacity + progress).add(offset); // -0.5/capacity: 1/capacity times half that distance
                     Draw.rect(item.fullIcon,
                             tile.x * tilesize + displacement.x,
