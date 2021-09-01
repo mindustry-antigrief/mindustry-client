@@ -410,6 +410,7 @@ public class ChatFragment extends Table{
         messages.insert(0, msg);
         sinceLastMessage++;
         if(historyNo > 0) historyOffset++;
+        else smallOffset++;
 
         doFade(6); // fadetime was originally incremented by 2f, that works out to 6s
 
