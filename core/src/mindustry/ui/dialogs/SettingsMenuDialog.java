@@ -345,7 +345,10 @@ public class SettingsMenuDialog extends Dialog{
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
-        client.sliderPref("junctionview", 0, -1, 1, 1, Junction::setBaseOffset, s -> s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show");
+        client.sliderPref("junctionview", 0, -1, 1, 1, s -> {
+            Junction.setBaseOffset(s);
+            return s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show";
+        });
 
         client.category("misc");
         client.updatePref();
@@ -666,14 +669,6 @@ public class SettingsMenuDialog extends Dialog{
             return res;
         }
 
-        public SliderSetting sliderPref(String name, int def, int min, int max, int step, Intc i, StringProcessor s){
-            SliderSetting res;
-            list.add(res = new SliderSetting(name, def, min, max, step, i, s));
-            settings.defaults(name, def);
-            rebuild();
-            return res;
-        }
-
         public void checkPref(String name, boolean def){
             list.add(new CheckSetting(name, def, null));
             settings.defaults(name, def);
@@ -766,13 +761,7 @@ public class SettingsMenuDialog extends Dialog{
 
         public static class SliderSetting extends Setting{
             int def, min, max, step;
-            Intc changed;
             StringProcessor sp;
-
-            public SliderSetting(String name, int def, int min, int max, int step, Intc changed, StringProcessor s){
-                this(name, def, min, max, step, s);
-                this.changed = changed;
-            }
 
             public SliderSetting(String name, int def, int min, int max, int step, StringProcessor s){
                 super(name);
@@ -799,9 +788,6 @@ public class SettingsMenuDialog extends Dialog{
                 slider.changed(() -> {
                     settings.put(name, (int)slider.getValue());
                     value.setText(sp.get((int)slider.getValue()));
-                    if(changed != null){
-                        changed.get((int)slider.getValue());
-                    }
                 });
 
                 slider.change();

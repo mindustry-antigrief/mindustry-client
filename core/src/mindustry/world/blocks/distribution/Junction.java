@@ -17,7 +17,7 @@ public class Junction extends Block{
     public float speed = 26; //frames taken to go through this junction
     public int capacity = 6;
 
-    public static final Vec2 baseOffset = setBaseOffset(Core.settings.getInt("junctionview", 0));
+    public static final Vec2 baseOffset = setBaseOffset(Core.settings == null? 0 : Core.settings.getInt("junctionview", 0));
     public static boolean drawItems = false;
 
     public Junction(String name){
@@ -31,8 +31,8 @@ public class Junction extends Block{
 
     public static Vec2 setBaseOffset(int mode){ // -1 left, 0 disable, 1 right
         drawItems = mode == -1 || mode == 1;
-        float x = -tilesize / 3.1f * mode;
-        return baseOffset == null ? new Vec2(x, 0) : baseOffset.set(x, 0);
+        float y = -tilesize / 3.1f * mode;
+        return baseOffset == null ? new Vec2(0, y) : baseOffset.set(0, y);
         // for display on left, (0, tilesize / 3.1f) (given rot = 0);
         // very sus way to initialise a final
     }
@@ -109,12 +109,9 @@ public class Junction extends Block{
             super.draw();
             if(!drawItems) return;
             Draw.z(Layer.power + 0.1f); // or layer.BlockOver or layer.Block + 0.1f? idk
-            Vec2 direction = new Vec2(0, -tilesize * 0.67f); // start from rot 3
+            Vec2 direction = new Vec2(tilesize * 0.67f, 0); // start from rot 3
             Vec2 offset = new Vec2(baseOffset);
             for(int i = 0; i < 4; i++){
-                direction.rotate90(1);
-                offset.rotate90(1);
-                if(buffer.indexes[i] == 0) continue;
                 for(int j = 0; j < buffer.indexes[i]; j++){ // from DirectionalItemBuffer.poll()
                     long l = buffer.buffers[i][j];
                     Item item = content.item(BufferItem.item(l));
@@ -123,13 +120,14 @@ public class Junction extends Block{
                     if(time < 0) time = Float.MAX_VALUE; // if joining a game later than when item was placed
                     float progress = time / speed * timeScale;
                     progress = Math.min(progress, 1f - (float)j / capacity); // (cap - j) * 1/cap
-//                    if (progress < 0) continue;
                     Vec2 displacement = new Vec2(direction).scl(-0.5f -0.5f/capacity + progress).add(offset); // -0.5/capacity: 1/capacity times half that distance
                     Draw.rect(item.fullIcon,
                             tile.x * tilesize + displacement.x,
                             tile.y * tilesize + displacement.y,
                             itemSize / 4f, itemSize / 4f);
                 }
+                direction.rotate90(1);
+                offset.rotate90(1);
             }
         }
     }
