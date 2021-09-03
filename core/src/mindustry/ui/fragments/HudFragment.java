@@ -788,11 +788,10 @@ public class HudFragment extends Fragment{
         table.labelWrap(() -> {
             builder.setLength(0);
 
-            if(state.rules.attackMode){
+            if(!state.rules.waves && state.rules.attackMode){
                 int sum = Math.max(state.teams.present.sum(t -> t.team != player.team() ? t.cores.size : 0), 1);
                 builder.append(sum > 1 ? enemycsf.get(sum) : enemycf.get(sum));
-                if (!state.rules.waves) return builder;
-                else builder.append("\n");
+                return builder;
             }
 
             if(!state.rules.waves && state.isCampaign()){
@@ -809,6 +808,11 @@ public class HudFragment extends Fragment{
                 builder.append(wavef.get(state.wave));
             }
             builder.append("\n");
+
+            if(state.rules.attackMode){
+                int sum = Math.max(state.teams.present.sum(t -> t.team != player.team() ? t.cores.size : 0), 1);
+                builder.append(sum > 1 ? enemycsf.get(sum) : enemycf.get(sum)).append("\n");
+            }
 
             if(state.enemies > 0){
                 if(state.enemies == 1){
