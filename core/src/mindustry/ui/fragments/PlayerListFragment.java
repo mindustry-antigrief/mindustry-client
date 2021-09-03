@@ -39,14 +39,12 @@ public class PlayerListFragment extends Fragment{
                     return;
                 }
 
-                if(visible && timer.get(5) && !Core.input.keyDown(KeyCode.mouseLeft)){
-                    if (!Groups.player.array.containsAll(players) || Groups.player.size() != players.size) {
-                        rebuild();
-                        content.pack();
-                        content.act(Core.graphics.getDeltaTime());
-                        //hacky
-                        Core.scene.act(0f);
-                    }
+                if(visible && timer.get(5) && !Core.input.keyDown(KeyCode.mouseLeft) && !(Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof Image)){
+                    rebuild();
+                    content.pack();
+                    content.act(Core.graphics.getDeltaTime());
+                    //hacky
+                    Core.scene.act(0f);
                 }
             });
 
@@ -175,7 +173,7 @@ public class PlayerListFragment extends Fragment{
             }
             if (user != player) {
                 button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
-                        () -> Navigation.follow(new AssistPath(user))).size(h / 2).tooltip("@client.assist");
+                        () -> Navigation.follow(new AssistPath(user, Core.input.shift()))).size(h / 2).tooltip("@client.assist");
                 button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
                         () -> Navigation.follow(new UnAssistPath(user))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.move, Styles.clearPartiali, // Goto

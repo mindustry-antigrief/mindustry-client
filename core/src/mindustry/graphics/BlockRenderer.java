@@ -405,6 +405,10 @@ public class BlockRenderer{
             Fonts.def.getData().setScale(1f);
             Fonts.def.setUseIntegerPositions(ints);
         }
+        if (wasDrawingCursors != drawCursors) {
+            wasDrawingCursors = drawCursors;
+            settings.put("drawcursors", drawCursors);
+        }
     }
 
     static class BlockQuadtree extends QuadTree<Tile>{

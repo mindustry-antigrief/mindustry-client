@@ -9,7 +9,6 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.CommandHandler.*;
-import arc.util.Timer;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
@@ -169,6 +168,9 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both, unreliable = true)
     public static void sound(Sound sound, float volume, float pitch, float pan){
         if(sound == null) return;
+        if(ui.join.lastHost != null && ui.join.lastHost.name.toLowerCase().contains("tower")) {
+            ui.chatfrag.addMessage("prevented io earrape Volume: " + volume, "client", Color.red);
+        }
 
         sound.play(volume * Core.settings.getInt("sfxvol") / 100f, pitch, pan);
     }

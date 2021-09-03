@@ -70,7 +70,7 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
     }
 
     override fun progress(): Float {
-        return if (assisting == null) 1f else 0f
+        return if (assisting == null || !assisting.added) 1f else 0f
     }
 
     override fun next(): Position? {
