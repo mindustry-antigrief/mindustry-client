@@ -6,9 +6,9 @@ import arc.struct.*
 import mindustry.Vars.*
 import mindustry.entities.units.*
 import mindustry.gen.*
-import kotlin.math.*
 
-class AssistPath(val assisting: Player?) : Path() {
+class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
+    constructor(assisting: Player?) : this(assisting, false)
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
 
@@ -26,7 +26,7 @@ class AssistPath(val assisting: Player?) : Path() {
         assisting.unit() ?: return
         player.unit() ?: return
 
-        val tolerance = max(assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f), player.unit().hitSize * 1.5f)
+        val tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)
 
         try {
             player.shooting(assisting.unit().isShooting) // Match shoot state
@@ -36,7 +36,7 @@ class AssistPath(val assisting: Player?) : Path() {
                 player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY())
             }
         } catch (ignored: Exception) {}
-        waypoint.set(assisting.x, assisting.y, tolerance, tolerance).run()
+        waypoint.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y, tolerance, tolerance).run()
 
 
         if (player.unit() is Minerc && assisting.unit() is Minerc) { // Code stolen from formationAi.java, matches player mine state to assisting
@@ -70,7 +70,7 @@ class AssistPath(val assisting: Player?) : Path() {
     }
 
     override fun progress(): Float {
-        return if (assisting == null) 1f else 0f
+        return if (assisting == null || !assisting.added) 1f else 0f
     }
 
     override fun next(): Position? {

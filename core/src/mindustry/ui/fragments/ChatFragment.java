@@ -131,6 +131,7 @@ public class ChatFragment extends Table{
                     chatfield.setText("!e " + ClientVars.lastCertName + " ");
                     chatfield.setCursorPosition(chatfield.getText().length());
                 }
+                chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 2000 : maxTextLength); // Scuffed way to allow long js
             }
         });
         historySeq.insert(0, new Pair<>(0, ""));

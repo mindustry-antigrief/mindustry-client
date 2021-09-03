@@ -107,7 +107,6 @@ public class UnitPicker extends BaseDialog {
             if (type == null) return;
             if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 type = null;
-                findUnit(event.unit.type, true);
                 Timer.schedule(() -> {
                     if (event.unit.isPlayer()) {
                         Toast t = new Toast(3);

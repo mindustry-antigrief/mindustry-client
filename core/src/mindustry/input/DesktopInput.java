@@ -227,10 +227,8 @@ public class DesktopInput extends InputHandler{
                             if (!wasVisible) state.rules.revealedBlocks.add(block);
                             drawRequest(cursorX, cursorY, block, 0);
                             if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, block, 0)){
-                                if(Navigation.state == NavigationState.RECORDING){
-                                    Navigation.addWaypointRecording(new PayloadDropoffWaypoint(cursorX, cursorY));
-                                }
-                                Navigation.follow(new WaypointPath(new Seq<>(new Waypoint[]{new PositionWaypoint(player.x, player.y), new PayloadDropoffWaypoint(cursorX, cursorY)})));
+                                if (Navigation.state == NavigationState.RECORDING) Navigation.addWaypointRecording(new PayloadDropoffWaypoint(cursorX, cursorY));
+                                Navigation.follow(new WaypointPath<>(Seq.with(new PositionWaypoint(player.x, player.y), new PayloadDropoffWaypoint(cursorX, cursorY))));
                                 NavigationState previousState = Navigation.state;
                                 Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
                                 mode = pay.payloads().size > 1 ? payloadPlace : none; // Disable payloadplace mode if this is the only payload.
@@ -379,7 +377,7 @@ public class DesktopInput extends InputHandler{
                 table.defaults().height(itemHeight).padTop(5).fillX();
                 try {
                     table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().growX().fillY().padTop(-5);
-                } catch (Exception e) {ui.chatfrag.addMessage(e.getMessage(), "client", Color.scarlet);}
+                } catch (Exception e) { ui.chatfrag.addMessage(e.getMessage(), "client", Color.scarlet); }
 
                 table.row().fill();
                 table.button("@client.log", () -> { // Tile Logs
@@ -429,8 +427,9 @@ public class DesktopInput extends InputHandler{
                 Unit on = selectedUnit(true);
                 Unit on_any = selectedUnit(true, null);
                 var build = selectedControlBuild();
-                if(on != null || on_any != null) {
-                    if (on != null && input.keyDown(Binding.control) && on.isAI()) Call.unitControl(player, on); // Ctrl + click: control unit
+                if(on != null || on_any != null){
+                    if (on != null && input.ctrl() && on.isAI()) Call.unitControl(player, on); // Ctrl + click: control unit
+                    else if (on != null && input.ctrl() && on.isPlayer()) Navigation.follow(new AssistPath(on.playerNonNull(), true)); // Ctrl + click player: quick assist (cursor mode)
                     else if (on != null && input.shift() && on.isPlayer()) Navigation.follow(new AssistPath(on.playerNonNull())); // Shift + click player: quick assist
                     else if (on_any != null && on_any.controller() instanceof LogicAI p && p.controller != null) Spectate.INSTANCE.spectate(p.controller); // Shift + click logic unit: spectate processor
                     shouldShoot = false;

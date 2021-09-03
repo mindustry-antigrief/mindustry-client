@@ -16,9 +16,10 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
 import mindustry.ui.*;
+import mindustry.world.blocks.storage.*;
 import mindustry.world.meta.*;
 
-import static arc.Core.settings;
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class ImpactReactor extends PowerGenerator{
@@ -64,6 +65,7 @@ public class ImpactReactor extends PowerGenerator{
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, explosionRadius * tilesize, Color.coral);
         if (ui.join.lastHost != null && ui.join.lastHost.modeName != null && ui.join.lastHost.modeName.equals("Flood")) {
             Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, 10 * tilesize, Color.orange);
+            indexer.eachBlock(null, x * tilesize + offset, y * tilesize + offset, 10 * tilesize, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
         }
     }
 
@@ -71,6 +73,7 @@ public class ImpactReactor extends PowerGenerator{
     public void drawRequestConfigTop(BuildPlan req, Eachable<BuildPlan> list){
         if (ui.join.lastHost != null && ui.join.lastHost.modeName != null && ui.join.lastHost.modeName.equals("Flood")) {
             Drawf.dashCircle(req.drawx(), req.drawy(), 10 * tilesize, Color.orange);
+            indexer.eachBlock(null, req.drawx(), req.drawy(), 10 * tilesize, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
         }
         if (!settings.getBool("showreactors")) return;
         Drawf.dashCircle(req.drawx(), req.drawy(), explosionRadius * tilesize, Color.coral);
