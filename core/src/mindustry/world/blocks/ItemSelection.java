@@ -39,10 +39,9 @@ public class ItemSelection{
         Table cont = new Table();
         cont.defaults().size(40);
 
-        Runnable[] rebuild = {null};
         if(search != null) search.clearText();
 
-        rebuild[0] = () -> {
+        Runnable rebuild = () -> {
             group.clear();
             cont.clearChildren();
 
@@ -77,13 +76,13 @@ public class ItemSelection{
             }
         };
 
-        rebuild[0].run();
+        rebuild.run();
 
         Table main = new Table();
         if(rowCount > rows){
             main.table(s -> {
                 s.image(Icon.zoom).padRight(8);
-                search = s.field(null, text -> rebuild[0].run()).growX().get();
+                search = s.field(null, text -> rebuild.run()).growX().get();
                 search.setMessageText(Core.bundle.get("players.search"));
             }).fillX().padBottom(4).row();
         }

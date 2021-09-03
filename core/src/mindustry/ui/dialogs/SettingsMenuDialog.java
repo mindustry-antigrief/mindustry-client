@@ -318,12 +318,12 @@ public class SettingsMenuDialog extends Dialog{
         client.checkPref("clearchatonleave", true);
         client.checkPref("logmsgstoconsole", true);
         client.checkPref("clientjoinleave", true);
+        client.checkPref("signmessages", true);
+        client.checkPref("highlightcryptomsg", true);
         client.checkPref("highlightclientmsg", false);
         client.checkPref("displayasuser", false);
         client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
         client.checkPref("showuserid", false);
-        client.checkPref("highlightcryptomsg", true);
-        client.checkPref("signmessages", true);
 
         client.category("controls");
         client.checkPref("blockreplace", true);
@@ -339,6 +339,7 @@ public class SettingsMenuDialog extends Dialog{
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", true); // Requires Restart
+        client.checkPref("placementfragmentsearch", true);
         client.checkPref("unitranges", false);
         client.checkPref("drawhitboxes", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);
