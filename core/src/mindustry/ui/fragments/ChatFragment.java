@@ -88,6 +88,7 @@ public class ChatFragment extends Table{
                     updateCursor();
                 } else if (input.keyTap(Binding.chat_mode)) {
                     nextMode();
+                    scene.setKeyboardFocus(chatfield);
                 }
                 scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chat_scroll), 0, Math.max(0, messages.size - messagesShown));
                 if (Autocomplete.matches(chatfield.getText())) {
