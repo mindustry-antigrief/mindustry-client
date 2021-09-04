@@ -64,6 +64,7 @@ public class PlacementFragment extends Fragment{
         Binding.block_select_up,
         Binding.block_select_down
     };
+    TextField search;
 
     public PlacementFragment(){
         Events.on(WorldLoadEvent.class, event -> {
@@ -224,7 +225,7 @@ public class PlacementFragment extends Fragment{
                     ButtonGroup<ImageButton> group = new ButtonGroup<>();
                     group.setMinCheckCount(0);
 
-                    for(Block block : getUnlockedByCategory(currentCategory)){
+                    for(Block block : (search == null || getUnlockedBySearch(search.getText()).isEmpty() || search.getText().isEmpty()) ? getUnlockedByCategory(currentCategory) : getUnlockedBySearch(search.getText())){
                         if(!unlocked(block)) continue;
                         if(index++ % rowWidth == 0){
                             blockTable.row();
@@ -308,9 +309,9 @@ public class PlacementFragment extends Fragment{
                                     Seq<Block> blocks = getByCategory(currentCategory);
                                     for(int i = 0; i < blocks.size; i++){
                                         if(blocks.get(i) == displayBlock && (i + 1) / 10 - 1 < blockSelect.length){
-                                            keyCombo = Core.bundle.format("placement.blockselectkeys", Core.keybinds.get(blockSelect[currentCategory.ordinal()]).key.toString())
-                                                + (i < 10 ? "" : Core.keybinds.get(blockSelect[(i + 1) / 10 - 1]).key.toString() + ",")
-                                                + Core.keybinds.get(blockSelect[i % 10]).key.toString() + "]";
+                                            keyCombo = bundle.format("placement.blockselectkeys", keybinds.get(blockSelect[currentCategory.ordinal()]).key.toString())
+                                                + (i < 10 ? "" : keybinds.get(blockSelect[(i + 1) / 10 - 1]).key.toString() + ",")
+                                                + keybinds.get(blockSelect[i % 10]).key.toString() + "]";
                                             break;
                                         }
                                     }
@@ -318,7 +319,7 @@ public class PlacementFragment extends Fragment{
                                 final String keyComboFinal = keyCombo;
                                 header.left();
                                 header.add(new Image(displayBlock.uiIcon)).size(8 * 4);
-                                header.labelWrap(() -> !unlocked(displayBlock) ? Core.bundle.get("block.unknown") : displayBlock.localizedName + keyComboFinal)
+                                header.labelWrap(() -> !unlocked(displayBlock) ? bundle.get("block.unknown") : displayBlock.localizedName + keyComboFinal)
                                 .left().width(190f).padLeft(5);
                                 header.add().growX();
                                 if(unlocked(displayBlock)){
@@ -365,6 +366,14 @@ public class PlacementFragment extends Fragment{
                         }else if(hovered != null){
                             //show hovered item, whatever that may be
                             hovered.display(topTable);
+                        }
+
+                        topTable.row();
+                        if (Core.settings.getBool("placementfragmentsearch")) {
+                            topTable.table(s -> {
+                                s.image(Icon.zoom).size(32).padRight(8);
+                                search = s.field(null, text -> rebuildCategory.run()).growX().get();
+                            }).growX();
                         }
                     });
                 }).colspan(3).fillX().visible(this::hasInfoBox).touchable(Touchable.enabled);
@@ -441,6 +450,10 @@ public class PlacementFragment extends Fragment{
 
     Seq<Block> getUnlockedByCategory(Category cat){
         return returnArray2.selectFrom(content.blocks(), block -> block.category == cat && block.isVisible() && unlocked(block)).sort((b1, b2) -> Boolean.compare(!b1.isPlaceable(), !b2.isPlaceable()));
+    }
+
+    Seq<Block> getUnlockedBySearch(String txt){
+        return returnArray2.selectFrom(content.blocks(), block -> block.localizedName.toLowerCase().contains(txt.toLowerCase()) && block.isVisible() && unlocked(block)).sort((b1, b2) -> Boolean.compare(!b1.isPlaceable(), !b2.isPlaceable()));
     }
 
     Block getSelectedBlock(Category cat){

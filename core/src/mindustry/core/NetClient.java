@@ -168,6 +168,9 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both, unreliable = true)
     public static void sound(Sound sound, float volume, float pitch, float pan){
         if(sound == null) return;
+        if(ui.join.lastHost != null && ui.join.lastHost.name.toLowerCase().contains("tower")) {
+            ui.chatfrag.addMessage("prevented io earrape Volume: " + volume, "client", Color.red);
+        }
 
         sound.play(volume * Core.settings.getInt("sfxvol") / 100f, pitch, pan);
     }
@@ -202,7 +205,7 @@ public class NetClient implements ApplicationListener{
                 } else {
                     message = colorizeName(playersender.id, Iconc.wrench + " " + message);
                 }
-                if (Core.settings.getBool("highlightclientmsg")) background = Color.coral.cpy().mul(0.75f);
+                if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
             message = processCoords(message);

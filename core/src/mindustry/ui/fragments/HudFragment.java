@@ -223,13 +223,15 @@ public class HudFragment extends Fragment{
                 }).growY().fillX().right().width(40f).name("skip");
 
                 // Power bar display
-                s.row();
-                s.table(Tex.wavepane, st -> {
-                    PowerInfo.getBars(st);
-                    st.row();
-                    addInfoTable(st);
-                }).marginTop(6).growX().colspan(s.getColumns());
             }).width(dsize * 6 + 4f);
+
+            wavesMain.row();
+
+            wavesMain.table(Tex.wavepane, st -> {
+                PowerInfo.getBars(st);
+                st.row();
+                addInfoTable(st);
+            }).marginTop(6).growX();
 
             editorMain.name = "editor";
 
@@ -345,15 +347,15 @@ public class HudFragment extends Fragment{
             var bossText = Core.bundle.get("guardian");
             int maxBosses = 6;
 
-            t.table(Styles.black3, p -> p.margin(4).label(() -> hudText).style(Styles.outlineLabel)).touchable(Touchable.disabled).with(p -> p.visible(() -> {
-                p.color.a = Mathf.lerpDelta(p.color.a, Mathf.num(showHudText), 0.2f);
-                if(state.isMenu()){
-                    p.color.a = 0f;
-                    showHudText = false;
-                }
-
-                return p.color.a >= 0.001f;
-            })).row();
+//            t.table(Styles.black3, p -> p.margin(4).label(() -> hudText).style(Styles.outlineLabel)).touchable(Touchable.disabled).with(p -> p.visible(() -> { FINISHME: Remove if the one below is better
+//                p.color.a = Mathf.lerpDelta(p.color.a, Mathf.num(showHudText), 0.2f);
+//                if(state.isMenu()){
+//                    p.color.a = 0f;
+//                    showHudText = false;
+//                }
+//
+//                return p.color.a >= 0.001f;
+//            })).row();
 
             t.table(v -> v.margin(10f)
             .add(new Bar(() -> {
@@ -806,6 +808,11 @@ public class HudFragment extends Fragment{
                 builder.append(wavef.get(state.wave));
             }
             builder.append("\n");
+
+            if(state.rules.attackMode){
+                int sum = Math.max(state.teams.present.sum(t -> t.team != player.team() ? t.cores.size : 0), 1);
+                builder.append(sum > 1 ? enemycsf.get(sum) : enemycf.get(sum)).append("\n");
+            }
 
             if(state.enemies > 0){
                 if(state.enemies == 1){

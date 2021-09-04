@@ -21,7 +21,8 @@ object Packets {
         RegisteredTransmission(BuildQueueTransmission::class, ::BuildQueueTransmission),
         RegisteredTransmission(TLSDataTransmission::class, ::TLSDataTransmission),
         RegisteredTransmission(TlsRequestTransmission::class, ::TlsRequestTransmission),
-        RegisteredTransmission(MessageTransmission::class, ::MessageTransmission)
+        RegisteredTransmission(MessageTransmission::class, ::MessageTransmission),
+        RegisteredTransmission(SignatureTransmission::class, ::SignatureTransmission)
     )
 
     private data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (content: ByteArray, id: Long) -> T)
@@ -154,6 +155,7 @@ object Packets {
             }
             for (inc in incoming) {
                 if (inc.value.expirationTime.isBefore(Instant.now())) {
+                    Log.debug("Removing stale incoming message")
                     incoming.remove(inc.key)
                 }
             }
@@ -203,6 +205,7 @@ object Packets {
                     for (listener in listeners) {
                         listener(transmission, sender)
                     }
+                    incoming.remove(header.transmissionId)
                     listenersLock.unlock()
                 }
             } catch (e: Exception) { Log.err(e) }
@@ -233,6 +236,12 @@ object Packets {
             }
 
             outgoing.add(OutgoingTransmission(packets, onFinish, onError))
+        }
+
+        fun removeListener(listener: (Transmission, Int) -> Unit) {
+            listenersLock.lock()
+            listeners.remove(listener)
+            listenersLock.unlock()
         }
     }
 }

@@ -16,10 +16,12 @@ import mindustry.game.*
 import mindustry.game.Teams.*
 import mindustry.gen.*
 import mindustry.input.*
+import java.nio.file.Files
 import java.security.cert.*
 import java.util.Timer
 import java.util.concurrent.*
 import kotlin.concurrent.*
+import kotlin.random.Random
 
 object Main : ApplicationListener {
     private lateinit var communicationSystem: SwitchableCommunicationSystem
@@ -28,17 +30,22 @@ object Main : ApplicationListener {
     private val buildPlanInterval = Interval()
     val tlsPeers = CopyOnWriteArrayList<Pair<Packets.CommunicationClient, TlsCommunicationSystem>>()
     lateinit var keyStorage: KeyStorage
+    lateinit var signatures: Signatures
+    lateinit var ntp: NTP
 
     /** Run on client load. */
     override fun init() {
         if (Core.app.isDesktop) {
+            ntp = NTP()
             communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem)
             communicationSystem.init()
 
             keyStorage = KeyStorage(Core.settings.dataDirectory.file())
+            signatures = Signatures(keyStorage, ntp.clock)
 
             TileRecords.initialize()
         } else {
+            keyStorage = KeyStorage(Files.createTempDirectory("keystorage").toFile())
             communicationSystem = SwitchableCommunicationSystem(DummyCommunicationSystem(mutableListOf()))
             communicationSystem.init()
         }
@@ -88,8 +95,57 @@ object Main : ApplicationListener {
                 }
 
                 // tls peers handle data transmissions internally
+
+                is SignatureTransmission -> {
+                    var isValid = check(transmission)
+                    next(EventType.PlayerChatEventClient::class.java, repetitions = 3) {
+                        if (isValid) return@next
+                        isValid = check(transmission)
+                    }
+                }
             }
         }
+    }
+
+    /**
+     * returns if it's done or not, NOT if it's valid
+     */
+    private fun check(transmission: SignatureTransmission): Boolean {
+        val ending = InvisibleCharCoder.encode(transmission.messageId.toBytes())
+        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.message.endsWith(ending) } ?: return false
+        if (!Core.settings.getBool("highlightcryptomsg")) return true
+        val output = signatures.verifySignatureTransmission(msg.message.encodeToByteArray(), transmission)
+        when (output.first) {
+            Signatures.VerifyResult.VALID -> {
+                msg.sender = output.second?.readableName
+                msg.backgroundColor = ClientVars.verified
+                msg.prefix = "${Iconc.ok} "
+                msg.format()
+                return true
+            }
+            Signatures.VerifyResult.INVALID -> {
+                msg.sender = output.second?.readableName?.stripColors()?.plus("[scarlet] impersonator")
+                msg.backgroundColor = ClientVars.invalid
+                msg.prefix = "${Iconc.cancel} "
+                msg.format()
+                return true
+            }
+            Signatures.VerifyResult.UNKNOWN_CERT -> {
+                return true
+            }
+        }
+    }
+
+    fun sign(content: String): String {
+        if (!Core.settings.getBool("signmessages")) return content
+        if (content.startsWith("/")) return content
+        val msgId = Random.nextInt().toShort()
+        val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
+        communicationClient.send(signatures.signatureTransmission(
+            contentWithId.encodeToByteArray(),
+            communicationSystem.id,
+            msgId) ?: return content)
+        return contentWithId
     }
 
     /** Run once per frame. */
@@ -195,7 +251,8 @@ object Main : ApplicationListener {
         commsClient.addListener { transmission, _ ->
             when (transmission) {
                 is MessageTransmission -> {
-                    Vars.ui.chatfrag.addMessage(transmission.content, system.peer.expectedCert.readableName + "[] -> " + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted)
+                    ClientVars.lastCertName = system.peer.expectedCert.readableName
+                    Vars.ui.chatfrag.addMessage(transmission.content, system.peer.expectedCert.readableName + "[] -> " + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).prefix = "${Iconc.ok} "
                 }
             }
         }

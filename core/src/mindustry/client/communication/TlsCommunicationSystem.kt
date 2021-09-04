@@ -22,18 +22,20 @@ class TlsCommunicationSystem(
     private var keepaliveSendingTimer = 0
     private var keepaliveRecieveTimer = 0
 
+    private var listener = { transmission: Transmission, _: Int ->
+        try {
+            if (transmission is TLSDataTransmission && transmission.destination == cert.serialNumber && transmission.source == peer.expectedCert.serialNumber) {
+                peer.write(transmission.content)
+            }
+        } catch (e: Exception) {
+            close()
+            Log.debug("TLS receive exception!\n${e.stackTraceToString()}")
+        }
+    }
+
     init {
         peer.start()
-        underlying.addListener { transmission, _ ->
-            try {
-                if (transmission is TLSDataTransmission && transmission.destination == cert.serialNumber && transmission.source == peer.expectedCert.serialNumber) {
-                    peer.write(transmission.content)
-                }
-            } catch (e: Exception) {
-                close()
-                Log.debug("TLS receive exception!\n${e.stackTraceToString()}")
-            }
-        }
+        underlying.addListener(listener)
     }
 
     override val MAX_LENGTH
@@ -135,11 +137,10 @@ class TlsCommunicationSystem(
                 )
             )
             peer.close()
-        }catch (e: Exception) {
+        } catch (e: Exception) {
             Log.debug(e.stackTraceToString())
-            isClosed = true
-        } finally {
-            isClosed = true
         }
+        isClosed = true
+        underlying.removeListener(listener)
     }
 }

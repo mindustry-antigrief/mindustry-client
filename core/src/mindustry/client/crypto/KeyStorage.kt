@@ -1,22 +1,19 @@
 package mindustry.client.crypto
 
-import com.beust.klaxon.Klaxon
-import mindustry.client.utils.base64
-import mindustry.client.utils.readableName
-import java.io.File
-import java.math.BigInteger
-import java.security.KeyPair
-import java.security.KeyStore
-import java.security.PrivateKey
-import java.security.cert.CertificateFactory
-import java.security.cert.X509Certificate
+import com.beust.klaxon.*
+import mindustry.client.utils.*
+import java.io.*
+import java.math.*
+import java.security.*
+import java.security.cert.*
+import kotlin.Pair
 
-class KeyStorage(val directory: File) {
+open class KeyStorage(val directory: File) {
     private val store: KeyStore = KeyStore.getInstance("BKS")
     private val password = "password123".toCharArray() // FINISHME: probably don't bother fixing tbh
     private var aliases: Map<String, String> = emptyMap()
     private val klaxon = Klaxon()
-    private val builtInCerts: List<X509Certificate>
+    val builtInCerts: List<X509Certificate>
 
     init {
         val certs = listOf(
@@ -38,15 +35,15 @@ class KeyStorage(val directory: File) {
             } catch (e: Exception) {
                 e.printStackTrace()
                 file.copyTo(directory.resolve("keys.backup${System.currentTimeMillis()}"))
-                store.load(null)
-                for (cert in builtInCerts) {
-                    store.setCertificateEntry("trusted${cert.serialNumber}", cert)
-                }
                 save()
             }
         } else {
             store.load(null)
             save()
+        }
+
+        for (cert in builtInCerts) {
+            store.setCertificateEntry("trusted${cert.serialNumber}", cert)
         }
 
         if (aliasFile.exists()) {
