@@ -30,7 +30,7 @@ import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.*;
-import mindustry.world.blocks.distribution.Junction;
+import mindustry.world.blocks.distribution.*;
 
 import java.io.*;
 import java.util.zip.*;
@@ -337,6 +337,7 @@ public class SettingsMenuDialog extends Dialog{
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
         client.sliderPref("effectscl", 100, 0, 100, 5, s -> s + "%");
         client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%[lightgray] (" + Core.bundle.get("client.afterstack") + ": " + s * settings.getInt("effectscl") / 100 + "%)[]");
+        client.sliderPref("junctionview", 0, -1, 1, 1, s -> { Junction.setBaseOffset(s); return s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show"; });
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", true); // Requires Restart
@@ -346,10 +347,6 @@ public class SettingsMenuDialog extends Dialog{
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
-        client.sliderPref("junctionview", 0, -1, 1, 1, s -> {
-            Junction.setBaseOffset(s);
-            return s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show";
-        });
 
         client.category("misc");
         client.updatePref();

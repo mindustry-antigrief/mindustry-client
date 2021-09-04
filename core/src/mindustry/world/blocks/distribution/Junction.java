@@ -1,12 +1,12 @@
 package mindustry.world.blocks.distribution;
 
-import arc.Core;
-import arc.graphics.g2d.Draw;
-import arc.math.geom.Vec2;
+import arc.*;
+import arc.graphics.g2d.*;
+import arc.math.geom.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.gen.*;
-import mindustry.graphics.Layer;
+import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;

@@ -53,7 +53,7 @@ public class ItemSelection{
             for(T item : list){
                 if(!item.unlockedNow()) continue;
 
-                ImageButton button = cont.button(Tex.whiteui, Styles.clearToggleTransi, 36, () -> {
+                ImageButton button = cont.button(Tex.whiteui, Styles.clearToggleTransi, 24, () -> {
                     if(closeSelect) control.input.frag.config.hideConfig();
                 }).group(group).get();
                 button.changed(() -> consumer.get(button.isChecked() ? item : null));
@@ -81,10 +81,10 @@ public class ItemSelection{
         Table main = new Table();
         if(rowCount > rows){
             main.table(s -> {
-                s.image(Icon.zoom).padRight(8);
-                search = s.field(null, text -> rebuild.run()).growX().get();
+                s.image(Icon.zoom).right().padRight(8);
+                search = s.field(null, text -> rebuild.run()).left().growX().get();
                 search.setMessageText(Core.bundle.get("players.search"));
-            }).fillX().padBottom(4).row();
+            }).width(40 * columns).padBottom(4).row();
         }
 
         ScrollPane pane = new ScrollPane(cont, Styles.smallPane);
