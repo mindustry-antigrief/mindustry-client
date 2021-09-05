@@ -97,8 +97,7 @@ object Main : ApplicationListener {
                 // tls peers handle data transmissions internally
 
                 is SignatureTransmission -> {
-                    var isValid = false
-                    isValid = check(transmission)
+                    var isValid = check(transmission)
                     next(EventType.PlayerChatEventClient::class.java, repetitions = 3) {
                         if (isValid) return@next
                         isValid = check(transmission)

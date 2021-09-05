@@ -4,7 +4,8 @@ import arc.*;
 import arc.func.*;
 import arc.scene.ui.TextButton.*;
 import arc.util.*;
-import mindustry.client.communication.MessageBlockCommunicationSystem;
+import mindustry.client.communication.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.logic.LStatements.*;
 import mindustry.ui.*;
@@ -15,14 +16,10 @@ import static mindustry.logic.LCanvas.*;
 
 public class LogicDialog extends BaseDialog{
     public LCanvas canvas;
+    public Team team;
     Cons<String> consumer = s -> {};
-    private boolean curr;
 
-    public void setConfigurable(boolean b){
-        curr = b;
-    }
-
-    public LogicDialog(){ // CUSTOM: Change back, edit and add actions here
+    public LogicDialog(){
         super("logic");
 
         clearChildren();
@@ -61,17 +58,17 @@ public class LogicDialog extends BaseDialog{
 
             dialog.addCloseButton();
             dialog.show();
-        }).name("edit").disabled(h -> !curr);
+        }).name("edit").disabled(t -> team != player.team());
 
         buttons.button("Use for comms", () -> {
             ui.showConfirm("Are you use you want to use this block for comms?", () -> {
                 canvas.load(MessageBlockCommunicationSystem.LOGIC_PREFIX);
                 hide();
             });
-        }).disabled(h -> !curr);
+        }).disabled(t -> team != player.team());
 
         buttons.button("@add", Icon.add, () -> addDialog(canvas.statements.getChildren().size))
-            .disabled(t -> !curr || canvas.statements.getChildren().size >= LExecutor.maxInstructions);
+            .disabled(t -> team != player.team() || canvas.statements.getChildren().size >= LExecutor.maxInstructions);
 
         add(canvas).grow().name("canvas");
 
@@ -84,7 +81,8 @@ public class LogicDialog extends BaseDialog{
         onResize(() -> canvas.rebuild());
     }
 
-    public void show(String code, Cons<String> modified){
+    public void show(Team team, String code, Cons<String> modified){
+        this.team = team;
         canvas.statements.clearChildren();
         canvas.rebuild();
         try{
@@ -94,7 +92,7 @@ public class LogicDialog extends BaseDialog{
             canvas.load("");
         }
         this.consumer = result -> {
-            if(!result.equals(code)){
+            if(!result.equals(code) && team == player.team()){
                 modified.get(result);
             }
         };

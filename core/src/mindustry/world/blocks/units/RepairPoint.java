@@ -102,7 +102,7 @@ public class RepairPoint extends Block{
                                 Vec2 lastEnd, Vec2 offset,
                                 Color laserColor, Color laserTopColor,
                                 TextureRegion laser, TextureRegion laserEnd, TextureRegion laserTop, TextureRegion laserTopEnd){
-        if(target != null && !ClientVars.hidingUnits && !ClientVars.hidingBlocks){
+        if(target != null){
             float
             originX = x + Angles.trnsx(rotation, length),
             originY = y + Angles.trnsy(rotation, length);
@@ -120,7 +120,7 @@ public class RepairPoint extends Block{
             lastEnd.add(originX, originY);
         }
 
-        if(strength > 0.01f){
+        if(strength > 0.01f && !ClientVars.hidingUnits && !ClientVars.hidingBlocks){
             float
             originX = x + Angles.trnsx(rotation, length),
             originY = y + Angles.trnsy(rotation, length);
