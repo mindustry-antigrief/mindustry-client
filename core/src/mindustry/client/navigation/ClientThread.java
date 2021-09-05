@@ -5,6 +5,8 @@ import arc.util.*;
 import arc.util.async.*;
 import mindustry.game.*;
 
+import java.util.Arrays;
+
 import static mindustry.Vars.*;
 
 public class ClientThread implements Runnable {
@@ -21,7 +23,7 @@ public class ClientThread implements Runnable {
 
     /** Starts or restarts the thread. */
     private void start() {
-        stop();
+        if(thread != null && !thread.isInterrupted()) thread.interrupt();
         taskQueue.clear();
         thread = Threads.daemon(this);
     }
@@ -32,21 +34,22 @@ public class ClientThread implements Runnable {
             thread.interrupt();
             thread = null;
         }
+        if(state != null && state.isPlaying()) start();
     }
 
     @Override
     public void run() {
         while (true) {
             try {
-                if(state != null && state.isPlaying()) taskQueue.run();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
+                if (state != null && state.isPlaying()) taskQueue.run();
                 Thread.sleep(updateInterval);
             } catch (InterruptedException e) {
+                Log.log(Log.LogLevel.debug, Arrays.toString(e.getStackTrace()));
+                thread = null;
                 stop();
                 return;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
