@@ -147,7 +147,7 @@ public class UI implements ApplicationListener, Loadable{
         Core.scene.act();
         Core.scene.draw();
 
-        if(Core.input.keyTap(KeyCode.mouseLeft) && Core.scene.getKeyboardFocus() instanceof TextField){
+        if((Core.input.keyTap(KeyCode.mouseLeft) || Core.input.keyTap(KeyCode.mouseRight)) && Core.scene.getKeyboardFocus() instanceof TextField){ // Client adds right click listener
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if(!(e instanceof TextField)){
                 Core.scene.setKeyboardFocus(null);

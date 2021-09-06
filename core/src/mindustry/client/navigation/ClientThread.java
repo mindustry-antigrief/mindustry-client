@@ -1,6 +1,7 @@
 package mindustry.client.navigation;
 
 import arc.*;
+import arc.math.*;
 import arc.util.*;
 import arc.util.async.*;
 import mindustry.game.*;
@@ -37,13 +38,14 @@ public class ClientThread implements Runnable {
     @Override
     public void run() {
         while (true) {
+            long start = Time.millis();
             try {
                 if(state != null && state.isPlaying()) taskQueue.run();
             } catch (Exception e) {
                 e.printStackTrace();
             }
             try {
-                Thread.sleep(updateInterval);
+                Thread.sleep((long)Mathf.maxZero(updateInterval - Time.millis() + start)); // Only run every updateInterval millis
             } catch (InterruptedException e) {
                 stop();
                 return;
