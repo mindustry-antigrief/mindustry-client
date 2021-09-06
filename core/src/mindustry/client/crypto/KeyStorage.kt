@@ -77,7 +77,13 @@ open class KeyStorage(val directory: File) {
 
     fun key(): PrivateKey? {
 //        val public  = store.getKey("public",  password) as? PublicKey
-        return store.getKey("private", password) as? PrivateKey
+        return try {
+            store.getKey("private", password) as? PrivateKey
+        } catch (e: UnrecoverableKeyException) {
+            directory.resolve("keys").copyTo(directory.resolve("keys.backup${System.currentTimeMillis()}"))
+            store.load(null)
+            null
+        }
     }
 
     fun cert(): X509Certificate? {
