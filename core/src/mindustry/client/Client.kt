@@ -279,16 +279,18 @@ object Client {
                 val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
                 val blocked = GridBits(world.width(), world.height())
 
-                for (turret in obstacles) {
-                    if (!turret.turret) continue
-                    val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
-                    val upperXBound = ((turret.x + turret.radius) / tilesize).toInt()
-                    val lowerYBound = ((turret.y - turret.radius) / tilesize).toInt()
-                    val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
-                    for (x in lowerXBound..upperXBound) {
-                        for (y in lowerYBound..upperYBound) {
-                            if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
-                                blocked.set(x, y)
+                synchronized(obstacles) {
+                    for (turret in obstacles) {
+                        if (!turret.turret) continue
+                        val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
+                        val upperXBound = ((turret.x + turret.radius) / tilesize).toInt()
+                        val lowerYBound = ((turret.y - turret.radius) / tilesize).toInt()
+                        val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
+                        for (x in lowerXBound..upperXBound) {
+                            for (y in lowerYBound..upperYBound) {
+                                if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
+                                    blocked.set(x, y)
+                                }
                             }
                         }
                     }
