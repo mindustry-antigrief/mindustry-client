@@ -9,5 +9,7 @@ package mindustry.client.communication
 interface Transmission {
     var id: Long
 
+    val secureOnly: Boolean
+
     fun serialize(): ByteArray
 }

@@ -19,6 +19,8 @@ class TlsCommunicationSystem(
 
     override val id = if (peer is TlsClientHolder) 1 else 0
 
+    override val secure = true
+
     private var keepaliveSendingTimer = 0
     private var keepaliveRecieveTimer = 0
 

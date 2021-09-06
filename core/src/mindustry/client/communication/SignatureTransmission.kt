@@ -16,6 +16,8 @@ class SignatureTransmission : Transmission {
     val senderId: Int
     val messageId: Short
 
+    override val secureOnly = false
+
     constructor(signature: ByteArray, sn: BigInteger, time: Long, senderId: Int, messageId: Short) {
         this.signature = signature
         this.sn = sn

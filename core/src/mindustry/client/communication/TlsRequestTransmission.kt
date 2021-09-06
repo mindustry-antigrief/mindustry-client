@@ -13,6 +13,8 @@ class TlsRequestTransmission : Transmission {
     val destinationSN: BigInteger
     val isResponse get() = sourceSN == BigInteger.ZERO && destinationSN == BigInteger.ZERO
 
+    override val secureOnly = false
+
     constructor(source: BigInteger, destination: BigInteger) {
         this.sourceSN = source
         this.destinationSN = destination

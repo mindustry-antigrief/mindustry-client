@@ -254,6 +254,19 @@ object Main : ApplicationListener {
                     ClientVars.lastCertName = system.peer.expectedCert.readableName
                     Vars.ui.chatfrag.addMessage(transmission.content, "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).prefix = "${Iconc.ok} "
                 }
+
+                is CommandTransmission -> {
+                    transmission.type ?: return@addListener
+                    val encoded = system.peer.expectedCert.encoded
+                    if (transmission.type.builtinOnly) {
+                        if (keyStorage.builtInCerts.any { encoded.contentEquals(it.encoded) }) {
+                            transmission.type.lambda(transmission, system.peer.expectedCert)
+                        }
+                    } else {
+                        // the peer's certificate must be trusted if there's a connection with them so no check is needed
+                        transmission.type.lambda(transmission, system.peer.expectedCert)
+                    }
+                }
             }
         }
     }

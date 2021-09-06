@@ -11,6 +11,8 @@ abstract class CommunicationSystem {
     /** The time in 1/60s to wait between transmissions. */
     abstract val RATE: Float
 
+    open val secure: Boolean = false
+
     /** Initializes the system. */
     open fun init() {}
 
