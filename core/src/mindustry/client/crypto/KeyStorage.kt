@@ -64,6 +64,8 @@ open class KeyStorage(val directory: File) {
         save()
     }
 
+    fun aliasOrName(certificate: X509Certificate) = alias(certificate) ?: certificate.readableName
+
     fun removeAlias(certificate: X509Certificate) = alias(certificate, null)
 
     fun save() {
