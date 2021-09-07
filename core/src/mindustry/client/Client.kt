@@ -376,7 +376,7 @@ object Client {
         }
 
         if (cert == Main.keyStorage.cert()) {
-            player.sendMessage("[scarlet]Can't establish a connection to yoursef")
+            player.sendMessage("[scarlet]Can't establish a connection to yourself")
             return
         }
 
