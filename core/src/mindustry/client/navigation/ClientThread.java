@@ -37,15 +37,19 @@ public class ClientThread implements Runnable {
 
     @Override
     public void run() {
+        long[] start = new long[]{Time.millis()};
+        Timer.schedule(() -> {
+            if (Time.timeSinceMillis(start[0]) > 10000) start(); // Restarts on hang
+        }, 5, 5);
         while (true) {
-            long start = Time.millis();
+            start[0] = Time.millis();
             try {
                 if(state != null && state.isPlaying()) taskQueue.run();
             } catch (Exception e) {
                 e.printStackTrace();
             }
             try {
-                Thread.sleep((long)Mathf.maxZero(updateInterval - Time.millis() + start)); // Only run every updateInterval millis
+                Thread.sleep((long)Mathf.maxZero(updateInterval - Time.millis() + start[0])); // Only run every updateInterval millis
             } catch (InterruptedException e) {
                 stop();
                 return;
