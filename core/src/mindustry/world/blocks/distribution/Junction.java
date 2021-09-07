@@ -121,10 +121,7 @@ public class Junction extends Block{
                     float progress = time / speed * timeScale;
                     progress = Math.min(progress, 1f - (float)j / capacity); // (cap - j) * 1/cap
                     Vec2 displacement = new Vec2(direction).scl(-0.5f -0.5f/capacity + progress).add(offset); // -0.5/capacity: 1/capacity times half that distance
-                    Draw.rect(item.fullIcon,
-                            tile.x * tilesize + displacement.x,
-                            tile.y * tilesize + displacement.y,
-                            itemSize / 4f, itemSize / 4f);
+                    Draw.rect(item.fullIcon, tile.x * tilesize + displacement.x, tile.y * tilesize + displacement.y, itemSize / 4f, itemSize / 4f);
                 }
                 direction.rotate90(1);
                 offset.rotate90(1);

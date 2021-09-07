@@ -1,15 +1,13 @@
 package mindustry.client.communication
 
 import arc.util.*
-import arc.util.Interval
 import mindustry.client.utils.*
 import java.nio.*
 import java.time.*
 import java.time.temporal.*
 import java.util.*
 import java.util.concurrent.*
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import java.util.concurrent.locks.*
 import kotlin.reflect.*
 
 object Packets {
@@ -22,7 +20,8 @@ object Packets {
         RegisteredTransmission(TLSDataTransmission::class, ::TLSDataTransmission),
         RegisteredTransmission(TlsRequestTransmission::class, ::TlsRequestTransmission),
         RegisteredTransmission(MessageTransmission::class, ::MessageTransmission),
-        RegisteredTransmission(SignatureTransmission::class, ::SignatureTransmission)
+        RegisteredTransmission(SignatureTransmission::class, ::SignatureTransmission),
+        RegisteredTransmission(CommandTransmission::class, ::CommandTransmission)
     )
 
     private data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (content: ByteArray, id: Long) -> T)
@@ -221,6 +220,8 @@ object Packets {
          */
         fun send(transmission: Transmission, onFinish: (() -> Unit)? = null, onError: (() -> Unit)? = null) {
             val type = registeredTransmissionTypes.indexOfFirst { it.type == transmission::class }
+
+            if (transmission.secureOnly && !communicationSystem.secure) throw IllegalArgumentException("Communications system must be secure to send secure-only transmissions!")
 
             if (type == -1)
                 throw IllegalArgumentException("Transmission type \"${transmission::class.simpleName}\" is not enrolled!")

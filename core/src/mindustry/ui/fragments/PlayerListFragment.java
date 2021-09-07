@@ -120,7 +120,7 @@ public class PlayerListFragment extends Fragment{
                 Core.app.setClipboardText(Core.input.shift() ? String.valueOf(user.id) :
                     Core.input.ctrl() ? "Groups.player.getByID(" + user.id + ")" :
                     Strings.stripColors(user.name))
-            ).wrap().width(400).growY().pad(10).get().add().grow();
+            ).wrap().width(400).growY().pad(10);
 
             if (user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
             if (user.fooUser || (user.isLocal() && Core.settings.getBool("displayasuser"))) button.image(Icon.wrench).padRight(7.5f).tooltip("@client.clientuser");

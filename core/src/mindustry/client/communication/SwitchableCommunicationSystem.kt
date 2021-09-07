@@ -12,6 +12,9 @@ class SwitchableCommunicationSystem(val systems: List<CommunicationSystem>) : Co
     override val MAX_LENGTH get() = activeCommunicationSystem.MAX_LENGTH
     override val RATE get() = activeCommunicationSystem.RATE
 
+    override val secure: Boolean
+        get() = activeCommunicationSystem.secure
+
     override fun send(bytes: ByteArray) {
         activeCommunicationSystem.send(bytes)
     }

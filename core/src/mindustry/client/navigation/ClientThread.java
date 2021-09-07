@@ -1,11 +1,10 @@
 package mindustry.client.navigation;
 
 import arc.*;
+import arc.math.*;
 import arc.util.*;
 import arc.util.async.*;
 import mindustry.game.*;
-
-import java.util.Arrays;
 
 import static mindustry.Vars.*;
 
@@ -23,7 +22,7 @@ public class ClientThread implements Runnable {
 
     /** Starts or restarts the thread. */
     private void start() {
-        if(thread != null && !thread.isInterrupted()) thread.interrupt();
+        stop();
         taskQueue.clear();
         thread = Threads.daemon(this);
     }
@@ -34,22 +33,22 @@ public class ClientThread implements Runnable {
             thread.interrupt();
             thread = null;
         }
-        if(state != null && state.isPlaying()) start();
     }
 
     @Override
     public void run() {
         while (true) {
+            long start = Time.millis();
             try {
-                if (state != null && state.isPlaying()) taskQueue.run();
-                Thread.sleep(updateInterval);
-            } catch (InterruptedException e) {
-                Log.log(Log.LogLevel.debug, Arrays.toString(e.getStackTrace()));
-                thread = null;
-                stop();
-                return;
+                if(state != null && state.isPlaying()) taskQueue.run();
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+            try {
+                Thread.sleep((long)Mathf.maxZero(updateInterval - Time.millis() + start)); // Only run every updateInterval millis
+            } catch (InterruptedException e) {
+                stop();
+                return;
             }
         }
     }

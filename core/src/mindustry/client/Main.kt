@@ -117,14 +117,14 @@ object Main : ApplicationListener {
         val output = signatures.verifySignatureTransmission(msg.message.encodeToByteArray(), transmission)
         when (output.first) {
             Signatures.VerifyResult.VALID -> {
-                msg.sender = output.second?.readableName
+                msg.sender = output.second?.run { keyStorage.aliasOrName(this) }
                 msg.backgroundColor = ClientVars.verified
                 msg.prefix = "${Iconc.ok} "
                 msg.format()
                 return true
             }
             Signatures.VerifyResult.INVALID -> {
-                msg.sender = output.second?.readableName?.stripColors()?.plus("[scarlet] impersonator")
+                msg.sender = output.second?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator")
                 msg.backgroundColor = ClientVars.invalid
                 msg.prefix = "${Iconc.cancel} "
                 msg.format()
@@ -252,7 +252,20 @@ object Main : ApplicationListener {
             when (transmission) {
                 is MessageTransmission -> {
                     ClientVars.lastCertName = system.peer.expectedCert.readableName
-                    Vars.ui.chatfrag.addMessage(transmission.content, system.peer.expectedCert.readableName + "[] -> " + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).prefix = "${Iconc.ok} "
+                    Vars.ui.chatfrag.addMessage(transmission.content, "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).prefix = "${Iconc.ok} "
+                }
+
+                is CommandTransmission -> {
+                    transmission.type ?: return@addListener
+                    val encoded = system.peer.expectedCert.encoded
+                    if (transmission.type.builtinOnly) {
+                        if (keyStorage.builtInCerts.any { encoded.contentEquals(it.encoded) }) {
+                            transmission.type.lambda(transmission, system.peer.expectedCert)
+                        }
+                    } else {
+                        // the peer's certificate must be trusted if there's a connection with them so no check is needed
+                        transmission.type.lambda(transmission, system.peer.expectedCert)
+                    }
                 }
             }
         }

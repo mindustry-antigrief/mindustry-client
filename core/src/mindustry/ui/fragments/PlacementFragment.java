@@ -368,12 +368,13 @@ public class PlacementFragment extends Fragment{
                             hovered.display(topTable);
                         }
 
-                        topTable.row();
                         if (Core.settings.getBool("placementfragmentsearch")) {
+                            topTable.row();
                             topTable.table(s -> {
                                 s.image(Icon.zoom).size(32).padRight(8);
                                 search = s.field(null, text -> rebuildCategory.run()).growX().get();
-                            }).growX();
+                                search.setMessageText("@players.search");
+                            }).width(279.5f);
                         }
                     });
                 }).colspan(3).fillX().visible(this::hasInfoBox).touchable(Touchable.enabled);
@@ -466,7 +467,7 @@ public class PlacementFragment extends Fragment{
 
     boolean hasInfoBox(){
         hover = hovered();
-        return control.input.block != null || menuHoverBlock != null || hover != null;
+        return control.input.block != null || menuHoverBlock != null || hover != null || Core.settings.getBool("placementfragmentsearch");
     }
 
     /** Returns the thing being hovered over. */

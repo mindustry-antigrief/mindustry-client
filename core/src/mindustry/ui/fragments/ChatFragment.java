@@ -110,9 +110,10 @@ public class ChatFragment extends Table{
                     completionPos = Math.min(completionPos, completion.size);
                     chatfield.setText(completion.get(completionPos).getCompletion(chatfield.getText()) + " ");
                     updateCursor();
+                    scene.setKeyboardFocus(chatfield); // Prevents swapping to block search
                 } else if (input.keyTap(Binding.chat_mode)) {
                     nextMode();
-                    scene.setKeyboardFocus(chatfield);
+                    scene.setKeyboardFocus(chatfield); // Prevents swapping to block search
                 }
                 scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chat_scroll), 0, Math.max(0, messages.size - messagesShown));
                 if (Autocomplete.matches(chatfield.getText())) {
