@@ -342,6 +342,7 @@ public class SettingsMenuDialog extends Dialog{
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", true); // Requires Restart
         client.checkPref("placementfragmentsearch", true);
+        client.checkPref("drawwrecks", true);
         client.checkPref("unitranges", false);
         client.checkPref("drawhitboxes", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);
