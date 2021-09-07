@@ -30,7 +30,7 @@ import org.bouncycastle.jce.provider.*
 import org.bouncycastle.jsse.provider.*
 import java.math.*
 import java.security.*
-import java.security.cert.X509Certificate
+import java.security.cert.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -363,19 +363,6 @@ object Client {
 
             connectTls(certname) { comms, _ ->
                 comms.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH))
-            }
-        }
-        clientThread.taskQueue.post {
-            Thread.sleep(500L)
-            val encoded = Main.keyStorage.cert()?.encoded ?: return@post
-            if (Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
-                register("update <name>") { args, _ ->
-                    connectTls(args[0]) { comms, cert ->
-                        if (cert.encoded.run { Main.keyStorage.builtInCerts.none { it.encoded.contentEquals(this) } }) {
-                            comms.send(CommandTransmission(CommandTransmission.Commands.UPDATE))
-                        }
-                    }
-                }
             }
         }
     }

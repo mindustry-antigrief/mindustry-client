@@ -373,6 +373,7 @@ public class PlacementFragment extends Fragment{
                             topTable.table(s -> {
                                 s.image(Icon.zoom).size(32).padRight(8);
                                 search = s.field(null, text -> rebuildCategory.run()).growX().get();
+                                search.setMessageText("@players.search");
                             }).width(279.5f);
                         }
                     });
