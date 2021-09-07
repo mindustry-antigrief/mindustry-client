@@ -45,7 +45,6 @@ public class ClientThread implements Runnable {
                 e.printStackTrace();
             }
             try {
-                Thread.sleep(updateInterval);
                 Thread.sleep((long)Mathf.maxZero(updateInterval - Time.millis() + start)); // Only run every updateInterval millis
             } catch (InterruptedException e) {
                 stop();
