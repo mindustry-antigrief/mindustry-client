@@ -19,7 +19,9 @@ Install `mindustry-antigrief/client-installer` through the mod browser in the va
 For whatever reason, MacOS refuses to be normal. Running the jar is slightly harder, open terminal and type `java -XstartOnFirstThread -jar <jar>` where `<jar>` is the path to the jar file (just click and drag the file in).
 ## Steam
 ### Windows
-There are 2 methods to install the client on steam for windows.
+There are 3 methods to install the client on steam for windows.
+#### Automatic Installer
+Refer to [the installer section](https://github.com/mindustry-antigrief/mindustry-client/tree/v7#installer)
 #### Single Command Installer
 Run this command in a CMD window [**as admin**](https://www.howtogeek.com/howto/windows-vista/run-a-command-as-administrator-from-the-windows-vista-run-box/) (replace the path if needed): `cd /d "C:\Program Files (x86)\Steam\steamapps\common\Mindustry" && del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe && curl -L -o jre\client.jar https://github.com/mindustry-antigrief/mindustry-client/releases/latest/download/desktop.jar && echo Done!` then [set the game's launch options](https://support.steampowered.com/kb_article.php?ref=1040-JWMT-2947) to `/c java -jar "%cd%\jre\client.jar"`
 #### Semi Automated Install

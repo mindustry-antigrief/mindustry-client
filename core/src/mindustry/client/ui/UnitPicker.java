@@ -107,17 +107,19 @@ public class UnitPicker extends BaseDialog {
             if (type == null) return;
             if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 type = null;
-                Call.unitControl(player, event.unit);
                 Timer.schedule(() -> {
-                    if (event.unit.isPlayer()) {
-                        Toast t = new Toast(3);
-                        if (event.unit.isLocal()) {
-                            t.add("@client.unitpicker.success");
-                        } else if (event.unit.getPlayer() != null && !event.unit.isLocal()) {
-                            type = event.unit.type;
-                            t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
-                        }
-                    } else Time.run(60, () -> findUnit(event.unit.type, true));
+                    Call.unitControl(player, event.unit);
+                    Timer.schedule(() -> {
+                        if (event.unit.isPlayer()) {
+                            Toast t = new Toast(3);
+                            if (event.unit.isLocal()) {
+                                t.add("@client.unitpicker.success");
+                            } else if (event.unit.getPlayer() != null && !event.unit.isLocal()) {
+                                type = event.unit.type;
+                                t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
+                            }
+                        } else Time.run(60, () -> findUnit(event.unit.type, true));
+                    }, net.client() ? netClient.getPing()/1000f + .3f : 0);
                 }, net.client() ? netClient.getPing()/1000f + .3f : 0);
             }
         });
