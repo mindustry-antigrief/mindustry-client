@@ -134,6 +134,14 @@ importPackage(Packages.mindustry.world.consumers)
 importPackage(Packages.mindustry.world.draw)
 importPackage(Packages.mindustry.world.meta)
 importPackage(Packages.mindustry.world.modules)
+importPackage(Packages.mindustry.client)
+importPackage(Packages.mindustry.client.antigrief)
+importPackage(Packages.mindustry.client.communication)
+importPackage(Packages.mindustry.client.crypto)
+importPackage(Packages.mindustry.client.navigation)
+importPackage(Packages.mindustry.client.navigation.waypoints)
+importPackage(Packages.mindustry.client.ui)
+importPackage(Packages.mindustry.client.utils)
 const PlayerIpUnbanEvent = Packages.mindustry.game.EventType.PlayerIpUnbanEvent
 const PlayerIpBanEvent = Packages.mindustry.game.EventType.PlayerIpBanEvent
 const PlayerUnbanEvent = Packages.mindustry.game.EventType.PlayerUnbanEvent

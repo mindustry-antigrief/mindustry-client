@@ -5,6 +5,7 @@ import arc.util.*
 import mindustry.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
+import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
@@ -64,6 +65,17 @@ class ClientLogic {
 
                 Client.register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
                     Call.sendChatMessage("\"In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
+                }
+            }
+
+            val encoded = Main.keyStorage.cert()?.encoded
+            if (encoded != null && Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
+                Client.register("update <name>") { args, _ ->
+                    Client.connectTls(args[0]) { comms, cert ->
+                        if (cert.encoded.run { Main.keyStorage.builtInCerts.none { it.encoded.contentEquals(this) } }) {
+                            comms.send(CommandTransmission(CommandTransmission.Commands.UPDATE))
+                        }
+                    }
                 }
             }
         }

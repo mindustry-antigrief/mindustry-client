@@ -13,6 +13,8 @@ class TLSDataTransmission : Transmission {
     val destination: BigInteger
     val content: ByteArray
 
+    override val secureOnly = false
+
     constructor(source: BigInteger, destination: BigInteger, content: ByteArray) {
         this.source = source
         this.destination = destination

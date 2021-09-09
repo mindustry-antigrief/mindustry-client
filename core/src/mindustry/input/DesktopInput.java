@@ -427,8 +427,8 @@ public class DesktopInput extends InputHandler{
                 Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
                 if(on != null){
-                    if (input.ctrl() && on.isAI()) Call.unitControl(player, on); // Ctrl + click: control unit
-                    else if (input.ctrl() && on.isPlayer()) Navigation.follow(new AssistPath(on.playerNonNull(), true)); // Ctrl + click player: quick assist (cursor mode)
+                    if (input.keyDown(Binding.control) && on.isAI()) Call.unitControl(player, on); // Ctrl + click: control unit
+                    else if (input.keyDown(Binding.control) && on.isPlayer()) Navigation.follow(new AssistPath(on.playerNonNull(), true)); // Ctrl + click player: quick assist (cursor mode)
                     else if (input.shift() && on.isPlayer()) Navigation.follow(new AssistPath(on.playerNonNull())); // Shift + click player: quick assist
                     else if (on.controller() instanceof LogicAI p && p.controller != null) Spectate.INSTANCE.spectate(p.controller); // Shift + click logic unit: spectate processor
                     shouldShoot = false;

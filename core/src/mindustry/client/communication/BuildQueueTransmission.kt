@@ -12,6 +12,7 @@ import kotlin.random.Random
 class BuildQueueTransmission : Transmission {
     override var id = Random.nextLong()
     val plans: Array<BuildPlan>
+    override val secureOnly: Boolean = false
 
     constructor(plans: Array<BuildPlan>) {
         this.plans = plans

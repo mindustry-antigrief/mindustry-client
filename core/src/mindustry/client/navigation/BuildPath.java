@@ -65,8 +65,9 @@ public class BuildPath extends Path {
                 case "cleanup", "derelict", "clean" -> queues.add(cleanup);
                 case "networkassist", "na", "network" -> queues.add(networkAssist);
                 case "virus" -> queues.add(virus); // Intentionally undocumented due to potential false positives
-                case "drills", "mines", "mine", "drill" -> queues.add(drills);
-                case "belts", "conveyors", "conduits", "pipes", "ducts", "tubes" -> queues.add(belts);
+                case "drills", "mines", "mine", "drill", "d" -> queues.add(drills);
+                case "belts", "conveyors", "conduits", "pipes", "ducts", "tubes", "b" -> queues.add(belts);
+                case "upgrade", "upgrades", "u" -> queues.addAll(drills, belts);
                 default -> {
                     if (Strings.canParsePositiveInt(arg)) radius = Strings.parsePositiveInt(arg);
                     else ui.chatfrag.addMessage(Core.bundle.format("client.path.builder.invalid", arg), null);
@@ -106,15 +107,17 @@ public class BuildPath extends Path {
             if (timer.get(1, 300)) {
                 clientThread.taskQueue.post(() -> {
                     blocked.clear();
-                    for (var turret : Navigation.obstacles) {
-                        int lowerXBound = (int)(turret.x - turret.radius) / tilesize;
-                        int upperXBound = (int)(turret.x + turret.radius) / tilesize;
-                        int lowerYBound = (int)(turret.y - turret.radius) / tilesize;
-                        int upperYBound = (int)(turret.y + turret.radius) / tilesize;
-                        for (int x = lowerXBound ; x <= upperXBound; x++) {
-                            for (int y = lowerYBound ; y <= upperYBound; y++) {
-                                if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {
-                                    blocked.set(x, y);
+                    synchronized (Navigation.obstacles) {
+                        for (var turret : Navigation.obstacles) {
+                            int lowerXBound = (int)(turret.x - turret.radius) / tilesize;
+                            int upperXBound = (int)(turret.x + turret.radius) / tilesize;
+                            int lowerYBound = (int)(turret.y - turret.radius) / tilesize;
+                            int upperYBound = (int)(turret.y + turret.radius) / tilesize;
+                            for (int x = lowerXBound ; x <= upperXBound; x++) {
+                                for (int y = lowerYBound ; y <= upperYBound; y++) {
+                                    if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {
+                                        blocked.set(x, y);
+                                    }
                                 }
                             }
                         }

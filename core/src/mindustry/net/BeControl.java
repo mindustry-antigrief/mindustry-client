@@ -26,7 +26,7 @@ public class BeControl{
     private static final int updateInterval = 120; // Poll every 120s (30/hr), this leaves us with 30 requests per hour to spare.
 
     private final AsyncExecutor executor = new AsyncExecutor(1);
-    /** Whether or not to automatically display an update prompt on client load and every subsequent minute. */
+    /** Whether or not to automatically display an update prompt on client load and every couple of minutes. */
     public boolean checkUpdates = Core.settings.getBool("autoupdate");
     private boolean updateAvailable;
     private String updateUrl;
@@ -40,7 +40,7 @@ public class BeControl{
     public BeControl(){
         Events.on(EventType.ClientLoadEvent.class, event -> {
             Timer.schedule(() -> {
-                if(checkUpdates && !mobile && !Version.clientVersion.equals("v1.0.0, Jan. 1, 1970")){ // Don't auto update on manually cloned copies of the repo
+                if(checkUpdates && !mobile){ // Don't auto update on manually cloned copies of the repo
                     checkUpdate(result -> {
                         if (result) showUpdateDialog();
                     });
@@ -63,9 +63,14 @@ public class BeControl{
         });
     }
 
+
+    public void checkUpdate(Boolc done) {
+        checkUpdate(done, Core.settings.getString("updateurl"));
+    }
+
     /** asynchronously checks for updates. */
-    public void checkUpdate(Boolc done){
-        Http.get("https://api.github.com/repos/" + Core.settings.getString("updateurl") + "/releases/latest")
+    public void checkUpdate(Boolc done, String repo){
+        Http.get("https://api.github.com/repos/" + repo + "/releases/latest")
         .error(e -> {
             ui.loadfrag.hide();
             Log.err(e);
@@ -106,47 +111,9 @@ public class BeControl{
 
         if(!headless){
             checkUpdates = false;
-            ui.showCustomConfirm(Core.bundle.format("be.update", "") + " Current: " + Version.clientVersion + " New: " + updateBuild, "@be.update.confirm", "@ok", "@be.ignore", () -> {
-                try{
-                    boolean[] cancel = {false};
-                    float[] progress = {0};
-                    int[] length = {0};
-                    Fi file = bebuildDirectory.child("client-be-" + updateBuild + ".jar");
-                    Fi fileDest = OS.hasProp("becopy") ?
-                        Fi.get(OS.prop("becopy")) :
-                        Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-
-                    BaseDialog dialog = new BaseDialog("@be.updating");
-                    download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
-                        try{
-                            Log.info(file.absolutePath());
-                            Runtime.getRuntime().exec(OS.isMac ?
-                                new String[]{"java", "-XstartOnFirstThread", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                                new String[]{"java", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
-                            );
-                            Core.app.exit();
-                        }catch(IOException e){
-                            dialog.cont.clearChildren();
-                            dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
-                            dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
-                        }
-                    }, e -> {
-                        dialog.hide();
-                        ui.showException(e);
-                    });
-
-                    dialog.cont.add(new Bar(() -> length[0] == 0 ? Core.bundle.get("be.updating") : (int)(progress[0] * length[0])/1024/1024 + "/" + length[0]/1024/1024 + " MB", () -> Pal.accent, () -> progress[0])).width(400f).height(70f);
-                    dialog.buttons.button("@cancel", Icon.cancel, () -> {
-                        cancel[0] = true;
-                        dialog.hide();
-                    }).size(210f, 64f);
-                    dialog.buttons.button("@close", Icon.menu, () -> dialog.hide()).size(210f, 64f);
-                    dialog.setFillParent(false);
-                    dialog.show();
-                }catch(Exception e){
-                    ui.showException(e);
-                }
-            }, () -> checkUpdates = false);
+            ui.showCustomConfirm(
+                Core.bundle.format("be.update", "") + " Current: " + Version.clientVersion + " New: " + updateBuild, "@be.update.confirm", "@ok", "@be.ignore",
+                this::actuallyDownload, () -> checkUpdates = false);
         }else{
             Log.info("&lcCurrent: " + Version.clientVersion + " A new update is available: &lyBleeding Edge build @", updateBuild);
             if(Config.autoUpdate.bool()){
@@ -208,5 +175,57 @@ public class BeControl{
                 error.get(e);
             }
         });
+    }
+
+    public void actuallyDownload() {
+        actuallyDownload(null);
+    }
+
+    public void actuallyDownload(@Nullable String sender) {
+        if(!updateAvailable) return;
+        try{
+            boolean[] cancel = {false};
+            float[] progress = {0};
+            int[] length = {0};
+            Fi file = bebuildDirectory.child("client-be-" + updateBuild + ".jar");
+            Fi fileDest = OS.hasProp("becopy") ?
+                Fi.get(OS.prop("becopy")) :
+                Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+
+            BaseDialog dialog = new BaseDialog("@be.updating");
+            download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
+                try{
+                    Log.info(file.absolutePath());
+                    Runtime.getRuntime().exec(OS.isMac ?
+                        new String[]{"java", "-XstartOnFirstThread", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
+                        new String[]{"java", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
+                    );
+                    Core.app.exit();
+                }catch(IOException e){
+                    dialog.cont.clearChildren();
+                    dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
+                    dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
+                }
+            }, e -> {
+                dialog.hide();
+                ui.showException(e);
+            });
+
+            dialog.cont.add(new Bar(() -> length[0] == 0 ? Core.bundle.get("be.updating") : (int)(progress[0] * length[0])/1024/1024 + "/" + length[0]/1024/1024 + " MB", () -> Pal.accent, () -> progress[0])).width(400f).height(70f);
+            if (sender == null) {
+                dialog.buttons.button("@cancel", Icon.cancel, () -> {
+                    cancel[0] = true;
+                    dialog.hide();
+                }).size(210f, 64f);
+            } else {
+                dialog.cont.row();
+                dialog.cont.add("By royal decree of emperor [accent]" + sender + "[white] your client is being updated.");
+            }
+            dialog.buttons.button("@close", Icon.menu, dialog::hide).size(210f, 64f);
+            dialog.setFillParent(false);
+            dialog.show();
+        }catch(Exception e){
+            ui.showException(e);
+        }
     }
 }

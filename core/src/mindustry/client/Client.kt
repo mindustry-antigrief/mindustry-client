@@ -8,14 +8,18 @@ import arc.struct.*
 import arc.util.*
 import mindustry.*
 import mindustry.Vars.*
+import mindustry.Vars.state
+import mindustry.ai.*
 import mindustry.client.ClientVars.*
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
+import mindustry.client.communication.Packets
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.*
 import mindustry.client.utils.*
+import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
 import mindustry.entities.units.*
@@ -23,19 +27,23 @@ import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
+import mindustry.world.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
 import org.bouncycastle.jsse.provider.*
 import java.math.*
 import java.security.*
+import java.security.cert.*
 import kotlin.math.*
 import kotlin.random.*
 
 
 object Client {
-
+    val tiles = mutableListOf<Tile>()
+    val timer = Interval(2)
     var leaves: Moderation? = Moderation()
+
     fun initialize() {
         registerCommands()
         ClientLogic()
@@ -61,6 +69,16 @@ object Client {
                 }
             } catch (e: Exception) {
                 Log.err(e)
+            }
+        }
+
+        if (timer.get(0, 300F)) spawner.spawns.each { tiles.add(it) }
+        if (timer.get(1, 6F)) {
+            for (i in 0 until tiles.size) {
+                val t = tiles.removeFirst()
+                val target = pathfinder.getTargetTile(t, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
+                if (target != t) tiles.add(target)
+                Fx.breakProp.at(t.worldx(), t.worldy(), state.rules.waveTeam.color)
             }
         }
     }
@@ -279,16 +297,18 @@ object Client {
                 val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
                 val blocked = GridBits(world.width(), world.height())
 
-                for (turret in obstacles) {
-                    if (!turret.turret) continue
-                    val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
-                    val upperXBound = ((turret.x + turret.radius) / tilesize).toInt()
-                    val lowerYBound = ((turret.y - turret.radius) / tilesize).toInt()
-                    val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
-                    for (x in lowerXBound..upperXBound) {
-                        for (y in lowerYBound..upperYBound) {
-                            if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
-                                blocked.set(x, y)
+                synchronized(obstacles) {
+                    for (turret in obstacles) {
+                        if (!turret.turret) continue
+                        val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
+                        val upperXBound = ((turret.x + turret.radius) / tilesize).toInt()
+                        val lowerYBound = ((turret.y - turret.radius) / tilesize).toInt()
+                        val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
+                        for (x in lowerXBound..upperXBound) {
+                            for (y in lowerYBound..upperYBound) {
+                                if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
+                                    blocked.set(x, y)
+                                }
                             }
                         }
                     }
@@ -337,44 +357,14 @@ object Client {
             }
         }
 
-        register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, player ->
+        register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, _ ->
             val certname = args[0]
             val msg = args[1]
 
-            val cert = Main.keyStorage.aliases().singleOrNull { it.second.equals(certname, true) }?.run { Main.keyStorage.findTrusted(BigInteger(first)) } ?: Main.keyStorage.trusted().singleOrNull { it.readableName.equals(certname, true) }
-
-            cert ?: run {
-                player.sendMessage("[scarlet]Couldn't find a certificate called or aliased to '$certname'")
-                return@register
-            }
-
-            if (cert == Main.keyStorage.cert()) {
-                player.sendMessage("[scarlet]Can't establish a connection to yoursef")
-                return@register
-            }
-
-            val preexistingConnection = Main.tlsPeers.singleOrNull { it.second.peer.expectedCert.encoded.contentEquals(cert.encoded) }
-
-
-            if (preexistingConnection != null) {
-                if (preexistingConnection.second.peer.handshakeDone) {
-                    preexistingConnection.first.send(MessageTransmission(msg))
-                    ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, encrypted)
-                    lastCertName = cert.readableName
-                } else {
-                    player.sendMessage("[scarlet]Handshake is not completed!")
-                }
-            } else {
-                player.sendMessage("[accent]Sending TLS request...")
-                Main.connectTls(cert, {
-                    player.sendMessage("[accent]Connected!")
-                    // delayed to make sure receiving end is ready
-                    Timer.schedule({
-                        ui.chatfrag.addMessage(msg, (Main.keyStorage.cert()?.readableName ?: "you") + "[] -> " + cert.readableName, encrypted)
-                        lastCertName = cert.readableName
-                        it.send(MessageTransmission(msg))
-                    }, .1F)
-                }, { player.sendMessage("[scarlet]Make sure a processor/message block is set up for communication!") })
+            connectTls(certname) { comms, cert ->
+                comms.send(MessageTransmission(msg))
+                ui.chatfrag.addMessage(msg, "[coral]" + (Main.keyStorage.cert()?.readableName ?: "you") + "[white] -> [white]" + Main.keyStorage.aliasOrName(cert), encrypted)
+                lastCertName = cert.readableName
             }
         }
 
@@ -382,6 +372,45 @@ object Client {
             val previous = Core.settings.getBool("signmessages")
             Core.settings.put("signmessages", !previous)
             player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (previous) "off" else "on").lowercase()))
+        }
+
+        register("stoppathing <name>", "Stop someone from pathfinding.") { args, _ ->
+            val certname = args[0]
+
+            connectTls(certname) { comms, _ ->
+                comms.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH))
+            }
+        }
+    }
+
+    fun connectTls(certname: String, onFinish: (Packets.CommunicationClient, X509Certificate) -> Unit) {
+        val cert = Main.keyStorage.aliases().singleOrNull { it.second.equals(certname, true) }?.run { Main.keyStorage.findTrusted(BigInteger(first)) } ?: Main.keyStorage.trusted().singleOrNull { it.readableName.equals(certname, true) }
+
+        cert ?: run {
+            player.sendMessage("[scarlet]Couldn't find a certificate called or aliased to '$certname'")
+            return
+        }
+
+        if (cert == Main.keyStorage.cert()) {
+            player.sendMessage("[scarlet]Can't establish a connection to yourself")
+            return
+        }
+
+        val preexistingConnection = Main.tlsPeers.singleOrNull { it.second.peer.expectedCert.encoded.contentEquals(cert.encoded) }
+
+        if (preexistingConnection != null) {
+            if (preexistingConnection.second.peer.handshakeDone) {
+                onFinish(preexistingConnection.first, cert)
+            } else {
+                player.sendMessage("[scarlet]Handshake is not completed!")
+            }
+        } else {
+            player.sendMessage("[accent]Sending TLS request...")
+            Main.connectTls(cert, {
+                player.sendMessage("[accent]Connected!")
+                // delayed to make sure receiving end is ready
+                Timer.schedule({ onFinish(it, cert) }, .1F)
+            }, { player.sendMessage("[scarlet]Make sure a processor/message block is set up for communication!") })
         }
     }
 
