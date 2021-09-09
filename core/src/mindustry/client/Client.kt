@@ -8,6 +8,8 @@ import arc.struct.*
 import arc.util.*
 import mindustry.*
 import mindustry.Vars.*
+import mindustry.Vars.state
+import mindustry.ai.*
 import mindustry.client.ClientVars.*
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
@@ -17,6 +19,7 @@ import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.*
 import mindustry.client.utils.*
+import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
 import mindustry.entities.units.*
@@ -24,6 +27,7 @@ import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
+import mindustry.world.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
@@ -36,8 +40,10 @@ import kotlin.random.*
 
 
 object Client {
-
+    val tiles = mutableListOf<Tile>()
+    val timer = Interval(2)
     var leaves: Moderation? = Moderation()
+
     fun initialize() {
         registerCommands()
         ClientLogic()
@@ -63,6 +69,16 @@ object Client {
                 }
             } catch (e: Exception) {
                 Log.err(e)
+            }
+        }
+
+        if (timer.get(0, 300F)) spawner.spawns.each { tiles.add(it) }
+        if (timer.get(1, 6F)) {
+            for (i in 0 until tiles.size) {
+                val t = tiles.removeFirst()
+                val target = pathfinder.getTargetTile(t, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
+                if (target != t) tiles.add(target)
+                Fx.breakProp.at(t.worldx(), t.worldy(), state.rules.waveTeam.color)
             }
         }
     }
