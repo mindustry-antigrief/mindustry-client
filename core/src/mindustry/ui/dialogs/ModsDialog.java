@@ -1,7 +1,6 @@
 package mindustry.ui.dialogs;
 
 import arc.*;
-import arc.util.Http.*;
 import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;
@@ -14,11 +13,13 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.Http.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
+import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -98,6 +99,22 @@ public class ModsDialog extends BaseDialog{
             }
         });
 
+        // Client mod updater
+        Events.on(EventType.ClientLoadEvent.class, e -> {
+            Fi updateTimeFile = new Fi("lastUpdate");
+            if (false /*!updateTimeFile.exists() || Time.timeSinceMillis(Long.parseLong(updateTimeFile.readString())) > Time.toHours*/) {
+                Log.debug("Checking for mod updates");
+                updateTimeFile.writeString(String.valueOf(Time.millis()));
+                int[] i = {0};
+                for (Mods.LoadedMod mod : mods.mods) {
+                    if (mod.state != Mods.ModState.enabled) continue;
+                    if (++i[0] >= 30) continue; // Only make up to 30 api requests FINISHME: This might need to be halved actually? Doubt it tho
+
+                    githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
+                }
+                if (mods.requiresReload()/*FINISHME: Setting to enable will be int from 0-2, if set to 0=off, 1=background, 2=dialog, add dialog check here*/) reload();
+            } else Log.debug("Not updating mods, they were updated too recently");
+        });
     }
 
     void modError(Throwable error){
@@ -511,7 +528,7 @@ public class ModsDialog extends BaseDialog{
         return text;
     }
 
-    private void handleMod(String repo, HttpResponse result){
+    private void handleMod(String repo, HttpResponse result, String prevVersion){
         try{
             Fi file = tmpDirectory.child(repo.replace("/", "") + ".zip");
             long len = result.getContentLength();
@@ -519,8 +536,20 @@ public class ModsDialog extends BaseDialog{
 
             Streams.copyProgress(result.getResultAsStream(), file.write(false), len, 4096, cons);
 
-            var mod = mods.importMod(file);
-            mod.setRepo(repo);
+            if(file.list().length == 1 && file.list()[0].isDirectory()){
+                file = file.list()[0];
+            }
+
+            Fi metaf =
+                file.child("mod.json").exists() ? file.child("mod.json") :
+                file.child("mod.hjson").exists() ? file.child("mod.hjson") :
+                file.child("plugin.json").exists() ? file.child("plugin.json") :
+                file.child("plugin.hjson");
+
+            if (prevVersion == null || !metaf.exists() || !new Json().fromJson(ModMeta.class, Jval.read(metaf.readString()).toString(Jval.Jformat.plain)).version.equals(prevVersion)) {
+                var mod = mods.importMod(file);
+                mod.setRepo(repo);
+            }
             file.delete();
             Core.app.post(() -> {
 
@@ -540,13 +569,18 @@ public class ModsDialog extends BaseDialog{
         Core.app.post(() -> modError(t));
     }
 
+
     private void githubImportMod(String repo, boolean isJava){
+        githubImportMod(repo, isJava, null);
+    }
+
+    private void githubImportMod(String repo, boolean isJava, String prevVersion){
         modImportProgress = 0f;
         ui.loadfrag.show("@downloading");
         ui.loadfrag.setProgress(() -> modImportProgress);
 
         if(isJava){
-            githubImportJavaMod(repo);
+            githubImportJavaMod(repo, prevVersion);
         }else{
             Http.get(ghApi + "/repos/" + repo, res -> {
                 var json = Jval.read(res.getResultAsString());
@@ -556,15 +590,15 @@ public class ModsDialog extends BaseDialog{
                 //this is a crude heuristic for class mods; only required for direct github import
                 //TODO make a more reliable way to distinguish java mod repos
                 if(language.equals("Java") || language.equals("Kotlin")){
-                    githubImportJavaMod(repo);
+                    githubImportJavaMod(repo, prevVersion);
                 }else{
-                    githubImportBranch(mainBranch, repo);
+                    githubImportBranch(mainBranch, repo, prevVersion);
                 }
             }, this::importFail);
         }
     }
 
-    private void githubImportJavaMod(String repo){
+    private void githubImportJavaMod(String repo, String prevVersion){
         //grab latest release
         Http.get(ghApi + "/repos/" + repo + "/releases/latest", res -> {
             var json = Jval.read(res.getResultAsString());
@@ -578,21 +612,21 @@ public class ModsDialog extends BaseDialog{
                 //grab actual file
                 var url = asset.getString("browser_download_url");
 
-                Http.get(url, result -> handleMod(repo, result), this::importFail);
+                Http.get(url, result -> handleMod(repo, result, prevVersion), this::importFail);
             }else{
                 throw new ArcRuntimeException("No JAR file found in releases. Make sure you have a valid jar file in the mod's latest Github Release.");
             }
         }, this::importFail);
     }
 
-    private void githubImportBranch(String branch, String repo){
+    private void githubImportBranch(String branch, String repo, String prevVersion){
         Http.get(ghApi + "/repos/" + repo + "/zipball/" + branch, loc -> {
             if(loc.getHeader("Location") != null){
                 Http.get(loc.getHeader("Location"), result -> {
-                    handleMod(repo, result);
+                    handleMod(repo, result, prevVersion);
                 }, this::importFail);
             }else{
-                handleMod(repo, loc);
+                handleMod(repo, loc, prevVersion);
             }
          }, this::importFail);
     }

@@ -17,7 +17,7 @@ public class Junction extends Block{
     public float speed = 26; //frames taken to go through this junction
     public int capacity = 6;
 
-    public static final Vec2 baseOffset = setBaseOffset(Core.settings == null? 0 : Core.settings.getInt("junctionview", 0));
+    static Vec2 displacement = new Vec2(), direction = new Vec2(tilesize, 0), baseOffset = setBaseOffset(Core.settings == null ? 0 : Core.settings.getInt("junctionview", 0));
     public static boolean drawItems = false;
 
     public Junction(String name){
@@ -30,11 +30,10 @@ public class Junction extends Block{
     }
 
     public static Vec2 setBaseOffset(int mode){ // -1 left, 0 disable, 1 right
-        drawItems = mode == -1 || mode == 1;
+        drawItems = mode != 0;
         float y = -tilesize / 3.1f * mode;
-        return baseOffset == null ? new Vec2(0, y) : baseOffset.set(0, y);
+        return baseOffset = new Vec2(-tilesize/2f, y);
         // for display on left, (0, tilesize / 3.1f) (given rot = 0);
-        // very sus way to initialise a final
     }
 
     @Override
@@ -108,10 +107,8 @@ public class Junction extends Block{
         public void draw(){
             super.draw();
             if(!drawItems) return;
-            Draw.z(Layer.power + 0.1f); // or layer.BlockOver or layer.Block + 0.1f? idk
-            Vec2 direction = new Vec2(tilesize * 0.67f, 0); // start from rot 3
-            Vec2 offset = new Vec2(baseOffset);
-            for(int i = 0; i < 4; i++){
+            Draw.z(Layer.blockOver); // FINISHME: This is horribly unoptimized
+            for(int i = 0; i < 4; i++){ // Code from zxtej
                 for(int j = 0; j < buffer.indexes[i]; j++){ // from DirectionalItemBuffer.poll()
                     long l = buffer.buffers[i][j];
                     Item item = content.item(BufferItem.item(l));
@@ -119,12 +116,12 @@ public class Junction extends Block{
                     float time = Time.time - BufferItem.time(l);
                     if(time < 0) time = Float.MAX_VALUE; // if joining a game later than when item was placed
                     float progress = time / speed * timeScale;
-                    progress = Math.min(progress, 1f - (float)j / capacity); // (cap - j) * 1/cap
-                    Vec2 displacement = new Vec2(direction).scl(-0.5f -0.5f/capacity + progress).add(offset); // -0.5/capacity: 1/capacity times half that distance
+                    progress = Math.min(progress, progress > 1 ? 1f - (float)j / capacity : 1); // (cap - j) * 1/cap FINISHME: Fullness check instead?
+                    displacement.set(direction).scl(-0.5f/capacity + progress).add(baseOffset); // -0.5/capacity: 1/capacity times half that distance
                     Draw.rect(item.fullIcon, tile.x * tilesize + displacement.x, tile.y * tilesize + displacement.y, itemSize / 4f, itemSize / 4f);
                 }
                 direction.rotate90(1);
-                offset.rotate90(1);
+                baseOffset.rotate90(1);
             }
         }
     }
