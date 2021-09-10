@@ -30,6 +30,7 @@ jobs:
           export PATH=./tools:$PATH
           chmod +x ./tools/antialias
           ./gradlew tools:pack test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client-v7-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel -PfastAA
+
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v6' || github.event_name == 'workflow_dispatch') }}
         id: create_release
@@ -98,11 +99,11 @@ jobs:
           path: desktop/build/libs/Mindustry.jar
 
       - name: Upload Test Results To Pages
-        if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v6' || github.event_name == 'workflow_dispatch') }}
+        if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v7' || github.event_name == 'workflow_dispatch') }}
         uses: JamesIves/github-pages-deploy-action@4.0.0
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
-          repository-name: ${{ github.repository }}-builds
+          repository-name: ${{ github.repository }}-v7-builds
           branch: gh-pages # The branch the action should deploy to.
           folder: tests/build/reports/tests/test
           silent: true
