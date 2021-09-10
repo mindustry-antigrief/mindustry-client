@@ -338,6 +338,8 @@ public class SettingsMenuDialog extends Dialog{
         client.sliderPref("effectscl", 100, 0, 100, 5, s -> s + "%");
         client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%[lightgray] (" + Core.bundle.get("client.afterstack") + ": " + s * settings.getInt("effectscl") / 100 + "%)[]");
         client.sliderPref("junctionview", 0, -1, 1, 1, s -> { Junction.setBaseOffset(s); return s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show"; });
+        client.sliderPref("spawntime", 5, -1, 60, s -> { Client.INSTANCE.setSpawnTime(60 * s); return s == -1 ? "Solid Line" : s == 0 ? "Disabled" : String.valueOf(s); });
+        client.sliderPref("traveltime", 10, 0, 60, s -> { Client.INSTANCE.setTravelTime(60f/s); return s == 0 ? "Disabled" : String.valueOf(s); });
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", true); // Requires Restart

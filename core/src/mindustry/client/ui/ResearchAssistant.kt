@@ -42,9 +42,7 @@ object ResearchAssistant: Table() {
         top().right().clearChildren()
         add(if (queue.isEmpty) "Shift + Click to Queue Research" else "Research Queue:")
 
-        for (node in queue) {
-            button(node.content.emoji()) { dequeue(node) }.pad(5F)
-        }
+        for (node in queue) button(node.content.emoji()) { dequeue(node) }.pad(5F)
 
         row()
         add("Sectors Captured: $sectors").colspan(this.columns).right()

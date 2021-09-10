@@ -2,6 +2,7 @@ package mindustry.client
 
 import arc.*
 import arc.graphics.*
+import arc.graphics.g2d.*
 import arc.math.*
 import arc.math.geom.*
 import arc.struct.*
@@ -40,9 +41,11 @@ import kotlin.random.*
 
 
 object Client {
+    var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
     val timer = Interval(2)
-    var leaves: Moderation? = Moderation()
+    var spawnTime = 60f * Core.settings.getInt("spawntime")
+    var travelTime = Core.settings.getInt("traveltime").toFloat()
 
     fun initialize() {
         registerCommands()
@@ -62,6 +65,7 @@ object Client {
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
+
         if (!configs.isEmpty) {
             try {
                 if (configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) {
@@ -71,14 +75,32 @@ object Client {
                 Log.err(e)
             }
         }
+    }
 
-        if (timer.get(0, 300F)) spawner.spawns.each { tiles.add(it) }
-        if (timer.get(1, 6F)) {
+    fun draw() {
+        if (spawnTime < 0) { // FINISHME: Repetitive code, squash down
+            for (i in 0 until spawner.spawns.size) {
+                if (i >= tiles.size) tiles.add(spawner.spawns[i])
+                Lines.beginLine()
+                Draw.color(state.rules.waveTeam.color)
+                var target: Tile? = null
+                tiles[i] = spawner.spawns[i]
+                var core = state.teams.closestEnemyCore(spawner.spawns[i].worldx(), spawner.spawns[i].worldy(), state.rules.waveTeam)
+                Lines.line(tiles[i].worldx(), tiles[i].worldy(), core.x, core.y)
+                while (target != tiles[i]) {
+                    if (target != null) tiles[i] = target
+                    target = pathfinder.getTargetTile(tiles[i], pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
+                    Lines.linePoint(target)
+                }
+                Lines.endLine()
+            }
+        } else if (spawnTime != 0f && travelTime != 0f && timer.get(0, travelTime)) {
+            if (timer.get(1, spawnTime)) tiles.addAll(spawner.spawns)
             for (i in 0 until tiles.size) {
                 val t = tiles.removeFirst()
                 val target = pathfinder.getTargetTile(t, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
                 if (target != t) tiles.add(target)
-                Fx.breakProp.at(t.worldx(), t.worldy(), state.rules.waveTeam.color)
+                Fx.healBlock.at(t.worldx(), t.worldy(), 1f, state.rules.waveTeam.color)
             }
         }
     }

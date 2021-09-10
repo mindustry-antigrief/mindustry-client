@@ -25,6 +25,7 @@ class ClientLogic {
         }
 
         Events.on(EventType.WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
+            Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             lastJoinTime = Time.millis()
             PowerInfo.initialize()
             Navigation.obstacles.clear()
@@ -35,8 +36,8 @@ class ClientLogic {
             hidingUnits = false
             showingTurrets = false
             if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
-            Core.app.post { syncing = false } // Run this next frame so it can be used elsewhere safely
             overdrives.clear()
+            Client.tiles.clear()
         }
 
         Events.on(EventType.ClientLoadEvent::class.java) { // Run when the client finishes loading

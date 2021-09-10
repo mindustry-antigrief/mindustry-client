@@ -1844,7 +1844,7 @@ public class Fx{
     }),
 
     healBlock = new Effect(20, e -> {
-        color(Pal.heal);
+        color(e.color);
         stroke(2f * e.fout() + 0.5f);
         Lines.square(e.x, e.y, 1f + (e.fin() * e.rotation * tilesize / 2f - 1f));
     }),

@@ -11,9 +11,10 @@ import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.navigation.*;
 import arc.util.async.*;
 import mindustry.*;
+import mindustry.client.*;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -286,6 +287,7 @@ public class Renderer implements ApplicationListener{
 
         Draw.draw(Layer.plans, overlays::drawBottom);
         Navigation.draw();
+        Draw.draw(Layer.overlayUI, Client.INSTANCE::draw);
         Draw.z(Layer.space);
         if(Core.settings.getBool("drawhitboxes")) {
             for (Unit u : Groups.unit) {
