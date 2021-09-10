@@ -43,7 +43,7 @@ See [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Building
 
-Bleeding-edge builds are generated automatically for every commit. You can see them [here](https://github.com/mindustry-antigrief/mindustry-client-v7-builds/releases).
+Unstable builds are generated automatically for every commit. You can see them [here](https://github.com/mindustry-antigrief/mindustry-client-v7-builds/releases).
 
 If you'd rather compile on your own, follow these instructions.
 First, make sure you have [JDK 16](https://adoptopenjdk.net/archive.html?variant=openjdk16&jvmVariant=hotspot) installed. **Other JDK versions will not work.** Open a terminal in the Mindustry directory and run the following commands:
@@ -62,7 +62,7 @@ _Sprite Packing:_ `./gradlew tools:pack`
 
 ### Server
 
-Server builds are bundled with each released build (in Releases). If you'd rather compile on your own, replace 'desktop' with 'server', e.g. `gradlew server:dist`.
+The client doesn't work as a server beleive it or not.
 
 ### Troubleshooting
 
@@ -73,13 +73,8 @@ If the terminal returns `Permission denied` or `Command not found` on Mac/Linux,
 ---
 
 Gradle may take up to several minutes to download files. Be patient. <br>
-After building, the output .JAR file should be in `/desktop/build/libs/Mindustry.jar` for desktop builds, and in `/server/build/libs/server-release.jar` for server builds.
+After building, the output .JAR file should be in `/desktop/build/libs/Mindustry.jar`
 
 ## Feature Requests
 
-Post feature requests and feedback [here](https://github.com/Anuken/Mindustry-Suggestions/issues/new/choose).
-
-## Downloads
-
-| [![](https://static.itch.io/images/badge.svg)](https://anuke.itch.io/mindustry)    |    [![](https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png)](https://play.google.com/store/apps/details?id=io.anuke.mindustry)   |    [![](https://fdroid.gitlab.io/artwork/badge/get-it-on.png)](https://f-droid.org/packages/io.anuke.mindustry)	| [![](https://flathub.org/assets/badges/flathub-badge-en.svg)](https://flathub.org/apps/details/com.github.Anuken.Mindustry)  
-|---	|---	|---	|---	|
+Please post feature requests and bug reports in the [discord](https://discord.gg/yp9ZW7j)
