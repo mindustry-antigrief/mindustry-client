@@ -11,7 +11,6 @@ import mindustry.game.*
 object ResearchAssistant: Table() {
     val queue: Seq<TechNode> = Seq()
     var sectors = 0
-
     init {
         content.planets().each { p -> p.sectors.each { s -> if (s.hasBase()) sectors++ } } // Owned sector count
         drawQueue()
@@ -63,7 +62,8 @@ object ResearchAssistant: Table() {
                     //amount actually taken from inventory
                     val used = (req.amount - completed.amount).coerceAtMost(sector.items().get(req.item) - 1000).coerceAtLeast(0)
                     ui.research.items.total -= used
-                    ui.research.items[req.item] -= used
+                    ui.research.items.values[req.item.id.toInt()] -= used
+                    sector.removeItem(req.item, used)
                     completed.amount += used
                     if (used > 0) {
                         shine[i] = true
