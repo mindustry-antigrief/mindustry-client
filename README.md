@@ -62,7 +62,7 @@ _Sprite Packing:_ `./gradlew tools:pack`
 
 ### Server
 
-The client doesn't work as a server beleive it or not.
+The client doesn't work as a server believe it or not.
 
 ### Troubleshooting
 
