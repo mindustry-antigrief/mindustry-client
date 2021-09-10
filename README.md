@@ -1,4 +1,4 @@
-![Logo](core/assets-raw/sprites/ui/logo.png)
+![Logo](core/assets-raw/sprites/ui/foo.png)
 
 [![Release Update](../../workflows/Release%20Update/badge.svg)](https://mindustry-antigrief.github.io/mindustry-client)
 [![Tests (Unstable)](../../workflows/Java%20Tests/badge.svg?branch=v7)](https://mindustry-antigrief.github.io/mindustry-client-v7-builds)
