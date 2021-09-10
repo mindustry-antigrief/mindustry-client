@@ -39,7 +39,7 @@ public class PlacementFragment extends Fragment{
     ObjectMap<Category,Block> selectedBlocks = new ObjectMap<>();
     ObjectFloatMap<Category> scrollPositions = new ObjectFloatMap<>();
     Block menuHoverBlock;
-    Displayable hover;
+    Displayable hover, hovered;
     Object lastDisplayState;
     Team lastTeam;
     boolean wasHovered;
@@ -284,7 +284,7 @@ public class PlacementFragment extends Fragment{
                     top.add(new Table()).growX().update(topTable -> {
 
                         //find current hovered thing
-                        Displayable hovered = hover;
+                        if (hover != null) hovered = hover;
                         Block displayBlock = menuHoverBlock != null ? menuHoverBlock : control.input.block;
                         Object displayState = displayBlock != null ? displayBlock : hovered;
                         boolean isHovered = displayBlock == null; //use hovered thing if displayblock is null

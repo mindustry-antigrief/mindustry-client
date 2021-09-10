@@ -24,7 +24,7 @@ public class ClientThread implements Runnable {
     private void start() {
         stop();
         taskQueue.clear();
-        thread = Threads.daemon(this);
+        thread = Threads.daemon("Client Thread", this);
     }
 
     /** Stops the thread. */
