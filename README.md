@@ -1,4 +1,3 @@
-This is my fork of mindustry v6.  It will have various quality of life and automation features when complete.
 ![Logo](core/assets-raw/sprites/ui/logo.png)
 
 [![Release Update](../../workflows/Release%20Update/badge.svg)](https://mindustry-antigrief.github.io/mindustry-client)
@@ -9,7 +8,7 @@ This is my fork of mindustry v6.  It will have various quality of life and autom
 Install `mindustry-antigrief/client-installer` through the mod browser in the vanilla game and allow the game to restart, upon restarting you will be prompted with an install popup, choose a version and it will install itself.
 
 ## [Changelog](./core/assets/changelog)
-## [Development/Unstable Builds](../../../mindustry-client-v6-builds)
+## [Development/Unstable Builds](../../../mindustry-client-v7-builds)
 ### Running The Jar On Mac
 For whatever reason, MacOS refuses to be normal. Running the jar is slightly harder, open terminal and type `java -XstartOnFirstThread -jar <jar>` where `<jar>` is the path to the jar file (just click and drag the file in).
 ## Steam
@@ -18,9 +17,9 @@ There are 3 methods to install the client on steam for windows.
 #### Automatic Installer
 Refer to [the installer section](https://github.com/mindustry-antigrief/mindustry-client/tree/v7#installer)
 #### Single Command Installer
-Run this command in a CMD window [**as admin**](https://www.howtogeek.com/howto/windows-vista/run-a-command-as-administrator-from-the-windows-vista-run-box/) (replace the path if needed): `cd /d "C:\Program Files (x86)\Steam\steamapps\common\Mindustry" && del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe && curl -L -o jre\client.jar https://github.com/mindustry-antigrief/mindustry-client/releases/latest/download/desktop.jar && echo Done!` then [set the game's launch options](https://support.steampowered.com/kb_article.php?ref=1040-JWMT-2947) to `/c java -jar "%cd%\jre\client.jar"`
+Run this command in a CMD window [**as admin**](https://www.howtogeek.com/howto/windows-vista/run-a-command-as-administrator-from-the-windows-vista-run-box/) (replace the path if needed): `cd /d "C:\Program Files (x86)\Steam\steamapps\common\Mindustry" && del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe && curl -L -o jre\client.jar https://github.com/mindustry-antigrief/mindustry-client-v7-builds/releases/latest/download/desktop.jar && echo Done!` then [set the game's launch options](https://support.steampowered.com/kb_article.php?ref=1040-JWMT-2947) to `/c java -jar "%cd%\jre\client.jar"`
 #### Semi Automated Install
-1. [Download](../../releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
+1. [Download](../../../mindustry-client-v7-builds/releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
 2. [Download](https://github.com/mindustry-antigrief/mindustry-client/blob/v7/steam_appid.txt) the `steam_appid.txt` file and place it in the same folder as the jar.
 3. Place the `desktop.jar` and `steam_appid.txt` in the same folder.
 4. Ensure steam is running and you are logged in, double click the jar and it should then open the client on steam.
@@ -28,7 +27,7 @@ Run this command in a CMD window [**as admin**](https://www.howtogeek.com/howto/
 *Removed due to this no longer working correctly in v7, may rewrite later.*
 
 ### Mac OS
-1. [Download](../../releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
+1. [Download](../../../mindustry-client-v7-builds/releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
 1. Open the game install folder, right click the `Mindustry.app` file and click `Show Package Contents`.
 1. Navigate to the `Resources` folder `Contents > Resources`.
 1. Replace the `desktop.jar` with the one you just downloaded.
@@ -44,7 +43,7 @@ See [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Building
 
-Bleeding-edge builds are generated automatically for every commit. You can see them [here](https://github.com/Anuken/MindustryBuilds/releases).
+Bleeding-edge builds are generated automatically for every commit. You can see them [here](https://github.com/mindustry-antigrief/mindustry-client-v7-builds/releases).
 
 If you'd rather compile on your own, follow these instructions.
 First, make sure you have [JDK 16](https://adoptopenjdk.net/archive.html?variant=openjdk16&jvmVariant=hotspot) installed. **Other JDK versions will not work.** Open a terminal in the Mindustry directory and run the following commands:
@@ -64,14 +63,6 @@ _Sprite Packing:_ `./gradlew tools:pack`
 ### Server
 
 Server builds are bundled with each released build (in Releases). If you'd rather compile on your own, replace 'desktop' with 'server', e.g. `gradlew server:dist`.
-
-### Android
-
-1. Install the Android SDK [here.](https://developer.android.com/studio#command-tools) Make sure you're downloading the "Command line tools only", as Android Studio is not required.
-2. Set the `ANDROID_HOME` environment variable to point to your unzipped Android SDK directory.
-3. Run `gradlew android:assembleDebug` (or `./gradlew` if on linux/mac). This will create an unsigned APK in `android/build/outputs/apk`.
-
-To debug the application on a connected phone, run `gradlew android:installDebug android:run`.
 
 ### Troubleshooting
 
