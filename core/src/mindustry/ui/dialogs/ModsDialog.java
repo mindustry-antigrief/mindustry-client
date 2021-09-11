@@ -115,7 +115,7 @@ public class ModsDialog extends BaseDialog{
 
                     githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
                 }
-            } else Log.debug("Not updating mods, they were updated too recently");
+            } else Log.debug("Not updating mods, they were updated too recently or auto update is disabled.");
         });
     }
 
