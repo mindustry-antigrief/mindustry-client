@@ -535,10 +535,10 @@ public class ModsDialog extends BaseDialog{
 
         try{
             var sourceFile = tmpDirectory.child(repo.replace("/", "") + ".zip");
-            Fi zip = sourceFile.isDirectory() ? sourceFile : (rootZip = new ZipFi(sourceFile));
             long len = result.getContentLength();
             Floatc cons = len <= 0 ? f -> {} : p -> modImportProgress = p;
-            Streams.copyProgress(result.getResultAsStream(), zip.write(false), len, 4096, cons);
+            Streams.copyProgress(result.getResultAsStream(), sourceFile.write(false), len, 4096, cons);
+            Fi zip = sourceFile.isDirectory() ? sourceFile : (rootZip = new ZipFi(sourceFile));
 
             if(zip.list().length == 1 && zip.list()[0].isDirectory()){
                 zip = zip.list()[0];
