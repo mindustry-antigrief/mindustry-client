@@ -85,8 +85,6 @@ object Client {
                 Draw.color(state.rules.waveTeam.color)
                 var target: Tile? = null
                 tiles[i] = spawner.spawns[i]
-                var core = state.teams.closestEnemyCore(spawner.spawns[i].worldx(), spawner.spawns[i].worldy(), state.rules.waveTeam)
-                Lines.line(tiles[i].worldx(), tiles[i].worldy(), core.x, core.y)
                 while (target != tiles[i]) {
                     if (target != null) tiles[i] = target
                     target = pathfinder.getTargetTile(tiles[i], pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
