@@ -57,7 +57,10 @@ class ClientLogic {
 
             Navigation.navigator.init()
 
-            Core.settings.getBoolOnce("client730") { Core.settings.put("disablemonofont", true) } // FINISHME: Remove later
+            Core.settings.getBoolOnce("client9/11/21") {
+                Core.settings.remove("client730")
+                Core.settings.put("modautoupdate", 0)
+            } // FINISHME: Remove later
 
             if (OS.hasProp("policone")) { // People spam these and its annoying. add some argument to make these harder to find
                 Client.register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
