@@ -536,6 +536,9 @@ public class ModsDialog extends BaseDialog{
         try{
             var sourceFile = tmpDirectory.child(repo.replace("/", "") + ".zip");
             Fi zip = sourceFile.isDirectory() ? sourceFile : (rootZip = new ZipFi(sourceFile));
+            long len = result.getContentLength();
+            Floatc cons = len <= 0 ? f -> {} : p -> modImportProgress = p;
+            Streams.copyProgress(result.getResultAsStream(), zip.write(false), len, 4096, cons);
 
             if(zip.list().length == 1 && zip.list()[0].isDirectory()){
                 zip = zip.list()[0];
@@ -548,10 +551,6 @@ public class ModsDialog extends BaseDialog{
                 zip.child("plugin.hjson");
 
             if(!metaf.exists()) Log.warn("Mod @ doesn't have a '[mod/plugin].[h]json' file, skipping.", sourceFile);
-            long len = result.getContentLength();
-            Floatc cons = len <= 0 ? f -> {} : p -> modImportProgress = p;
-
-            Streams.copyProgress(result.getResultAsStream(), zip.write(false), len, 4096, cons);
 
             if (prevVersion == null || !new Json().fromJson(ModMeta.class, Jval.read(metaf.readString()).toString(Jval.Jformat.plain)).version.equals(prevVersion)) {
                 var mod = mods.importMod(zip);
