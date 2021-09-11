@@ -85,7 +85,7 @@ public class ModsDialog extends BaseDialog{
             buttons.button("@mods.openfolder", Icon.link, () -> Core.app.openFolder(modDirectory.absolutePath()));
         }
 
-        buttons.button("Update Active Mods", Icon.download, () -> mods.mods.each(m -> m.state == ModState.enabled, m -> githubImportMod(m.getRepo(), m.isJava())));
+        buttons.button("Update Active Mods", Icon.download, () -> mods.mods.each(m -> m.state == ModState.enabled, m -> githubImportMod(m.getRepo(), m.isJava(), m.meta.version)));
 
         shown(this::setup);
         onResize(this::setup);
@@ -109,7 +109,9 @@ public class ModsDialog extends BaseDialog{
             if (Core.settings.getInt("modautoupdate") != 0 && (!updateTimeFile.exists() || Time.timeSinceMillis(Long.parseLong(updateTimeFile.readString())) > Time.toHours)) {
                 Log.debug("Checking for mod updates");
                 updateTimeFile.writeString(String.valueOf(Time.millis()));
-                for (Mods.LoadedMod mod : mods.mods) {
+                var shuffled = mods.mods.copy();
+                shuffled.shuffle();
+                for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
                     if (mod.state != Mods.ModState.enabled) continue;
                     if (++expected >= 30) continue; // Only make up to 30 api requests
 
@@ -360,7 +362,7 @@ public class ModsDialog extends BaseDialog{
             boolean showImport = !mod.hasSteamID();
             dialog.buttons.button("@mods.github.open", Icon.link, () -> Core.app.openURI("https://github.com/" + mod.getRepo()));
             if(mobile && showImport) dialog.buttons.row();
-            if(showImport) dialog.buttons.button("@mods.browser.reinstall", Icon.download, () -> githubImportMod(mod.getRepo(), mod.isJava()));
+            if(showImport) dialog.buttons.button("@mods.browser.reinstall", Icon.download, () -> githubImportMod(mod.getRepo(), mod.isJava(),mod.meta.version));
         }
 
         dialog.cont.pane(desc -> {
