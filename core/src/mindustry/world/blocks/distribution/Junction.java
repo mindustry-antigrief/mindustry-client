@@ -107,16 +107,18 @@ public class Junction extends Block{
         public void draw(){
             super.draw();
             if(!drawItems) return;
-            Draw.z(Layer.blockOver); // FINISHME: This is horribly unoptimized
+            Draw.z(Layer.blockOver);
+            float firstProgress = 0;
             for(int i = 0; i < 4; i++){ // Code from zxtej
                 for(int j = 0; j < buffer.indexes[i]; j++){ // from DirectionalItemBuffer.poll()
                     long l = buffer.buffers[i][j];
                     Item item = content.item(BufferItem.item(l));
-                    // to exit, Time.time > time + speed. Then currFrame (ie speed) = Time.time - time
-                    float time = Time.time - BufferItem.time(l);
+                    float time = Time.time - BufferItem.time(l); // to exit, Time.time > time + speed. Then currFrame (ie speed) = Time.time - time
                     if(time < 0) time = Float.MAX_VALUE; // if joining a game later than when item was placed
                     float progress = time / speed * timeScale;
-                    progress = Math.min(progress, progress > 1 ? 1f - (float)j / capacity : 1); // (cap - j) * 1/cap FINISHME: Fullness check instead?
+                    if (j == 0) firstProgress = progress;
+
+                    progress = Math.min(progress+.15f, firstProgress >= 1 ? 1f - (float)j / capacity : 1); // (cap - j) * 1/cap
                     displacement.set(direction).scl(-0.5f/capacity + progress).add(baseOffset); // -0.5/capacity: 1/capacity times half that distance
                     Draw.rect(item.fullIcon, tile.x * tilesize + displacement.x, tile.y * tilesize + displacement.y, itemSize / 4f, itemSize / 4f);
                 }

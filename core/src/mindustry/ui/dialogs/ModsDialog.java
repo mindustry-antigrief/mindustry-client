@@ -111,7 +111,7 @@ public class ModsDialog extends BaseDialog{
                 updateTimeFile.writeString(String.valueOf(Time.millis()));
                 for (Mods.LoadedMod mod : mods.mods) {
                     if (mod.state != Mods.ModState.enabled) continue;
-                    if (++expected >= 30) continue; // Only make up to 30 api requests FINISHME: This might need to be halved actually? Doubt it tho
+                    if (++expected >= 30) continue; // Only make up to 30 api requests
 
                     githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
                 }
