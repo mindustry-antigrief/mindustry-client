@@ -78,7 +78,7 @@ object Client {
     }
 
     fun draw() {
-        if (spawnTime < 0) { // FINISHME: Repetitive code, squash down
+        if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
             for (i in 0 until spawner.spawns.size) {
                 if (i >= tiles.size) tiles.add(spawner.spawns[i])
                 Lines.beginLine()
@@ -92,7 +92,7 @@ object Client {
                 }
                 Lines.endLine()
             }
-        } else if (spawnTime != 0f && travelTime != 0f && timer.get(0, travelTime)) {
+        } else if (spawnTime != 0f && travelTime != 0f && spawner.spawns.size < 50 && timer.get(0, travelTime)) {
             if (timer.get(1, spawnTime)) tiles.addAll(spawner.spawns)
             for (i in 0 until tiles.size) {
                 val t = tiles.removeFirst()
