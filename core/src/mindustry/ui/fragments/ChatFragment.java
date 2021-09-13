@@ -249,7 +249,8 @@ public class ChatFragment extends Table{
         // FINISHME: make it so you need to press enter twice to send a message starting with /e
         clearChatInput();
 
-        if(message.isEmpty()) return;
+        //avoid sending prefix-empty messages
+        if(message.isEmpty() || (message.startsWith(mode.prefix) && message.substring(mode.prefix.length()).isEmpty())) return;
 
         history.insert(1, message);
 

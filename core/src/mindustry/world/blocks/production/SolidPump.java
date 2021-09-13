@@ -38,7 +38,7 @@ public class SolidPump extends Pump{
         drawPotentialLinks(x, y);
 
         if(attribute != null){
-            drawPlaceText(Core.bundle.formatFloat("bar.efficiency", Math.max(sumAttribute(attribute, x, y) / size / size + baseEfficiency, 0f) * 100 * percentSolid(x, y), 1), x, y, valid);
+            drawPlaceText(Core.bundle.format("bar.efficiency", Math.round(Math.max(sumAttribute(attribute, x, y) / size / size + baseEfficiency, 0f) * 100 * percentSolid(x, y))), x, y, valid);
         }
     }
 
@@ -69,6 +69,11 @@ public class SolidPump extends Pump{
     }
 
     @Override
+    public boolean outputsItems(){
+        return false;
+    }
+
+    @Override
     protected boolean canPump(Tile tile){
         return tile != null && !tile.floor().isLiquid;
     }
@@ -85,10 +90,16 @@ public class SolidPump extends Pump{
         public float validTiles;
         public float lastPump;
 
+
+        @Override
+        public void drawCracks(){}
+
         @Override
         public void draw(){
             Draw.rect(region, x, y);
-            Drawf.liquid(liquidRegion, x, y, liquids.total() / liquidCapacity, liquids.current().color);
+            super.drawCracks();
+
+            Drawf.liquid(liquidRegion, x, y, liquids.get(result) / liquidCapacity, result.color);
             Drawf.spinSprite(rotatorRegion, x, y, pumpTime * rotateSpeed);
             Draw.rect(topRegion, x, y);
         }
@@ -133,7 +144,7 @@ public class SolidPump extends Pump{
         }
 
         public float typeLiquid(){
-            return liquids.total();
+            return liquids.get(result);
         }
     }
 }

@@ -290,6 +290,7 @@ public class Turret extends ReloadTurret{
             }
 
             if(hasAmmo()){
+                if(Float.isNaN(reload)) rotation = 0;
 
                 if(timer(timerTarget, targetInterval)){
                     findTarget();
@@ -306,9 +307,7 @@ public class Turret extends ReloadTurret{
                     }else{ //default AI behavior
                         targetPosition(target);
 
-                        if(Float.isNaN(rotation)){
-                            rotation = 0;
-                        }
+                        if(Float.isNaN(rotation)) rotation = 0;
                     }
 
                     float targetRot = angleTo(targetPos);

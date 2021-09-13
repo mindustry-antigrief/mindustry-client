@@ -221,12 +221,11 @@ public class HudFragment extends Fragment{
                     else if(net.client() && player.admin) Call.adminRequest(player, AdminAction.wave);
                     else logic.skipWave();
                 }).growY().fillX().right().width(40f).name("skip");
-
-                // Power bar display
-            }).width(dsize * 6 + 4f);
+            }).width(dsize * 6 + 4f).name("statustable");
 
             wavesMain.row();
 
+            // Power bar display
             wavesMain.table(Tex.wavepane, st -> {
                 PowerInfo.getBars(st);
                 st.row();

@@ -116,7 +116,7 @@ public class Renderer implements ApplicationListener{
     public void update(){
         Color.white.set(1f, 1f, 1f, 1f);
 
-//        float dest = Mathf.round(targetscale, 0.5f);
+//        float dest = Mathf.clamp(Mathf.round(targetscale, 0.5f), minScale(), maxScale());
         float dest = targetscale;  // note: because the above line is commented out, there may be "jagged pixel scaling"
         camerascale = Mathf.lerpDelta(camerascale, dest, 0.1f);
         if(Mathf.equal(camerascale, dest, 0.001f)) camerascale = dest;
@@ -518,6 +518,8 @@ public class Renderer implements ApplicationListener{
 
     public void showLaunch(CoreBlock coreType){
         Vars.ui.hudfrag.showLaunch();
+        Vars.control.input.frag.config.hideConfig();
+        Vars.control.input.frag.inv.hide();
         launchCoreType = coreType;
         launching = true;
         landCore = player.team().core();

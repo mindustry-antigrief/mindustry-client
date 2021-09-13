@@ -514,12 +514,13 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
         if(!spawnedByCore){
             Damage.dynamicExplosion(x, y, flammability, explosiveness, power, bounds() / 2f, state.rules.damageExplosions, item().flammability > 1, team, type.deathExplosionEffect);
+        }else{
+            type.deathExplosionEffect.at(x, y, bounds() / 2f / 8f);
         }
 
         float shake = hitSize / 3f;
 
         if (Core.settings.getBool("drawwrecks")) Effect.scorch(x, y, (int)(hitSize / 5));
-        Fx.explosion.at(this);
         Effect.shake(shake, shake, this);
         type.deathSound.at(this);
 
@@ -531,7 +532,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
         //if this unit crash landed (was flying), damage stuff in a radius
         if(type.flying && !spawnedByCore){
-            Damage.damage(team,x, y, Mathf.pow(hitSize, 0.94f) * 1.25f, Mathf.pow(hitSize, 0.75f) * type.crashDamageMultiplier * 5f, true, false, true);
+            Damage.damage(team, x, y, Mathf.pow(hitSize, 0.94f) * 1.25f, Mathf.pow(hitSize, 0.75f) * type.crashDamageMultiplier * 5f, true, false, true);
         }
 
         if(!headless && Core.settings.getBool("drawwrecks")){

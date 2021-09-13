@@ -213,19 +213,19 @@ public class Fonts{
         }};
 
         Core.assets.load("outline", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = t -> {
-            Fonts.outline = (Font)t;
+            Fonts.outline = t;
             Fonts.outline.setFixedWidthGlyphs("0123456789");
         };
         Core.assets.load("monoOutline", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = f -> {
             StringBuilder chars = new StringBuilder();
             for(int c = 0; c <= 255; c++) chars.append((char)c);
-            (Fonts.monoOutline = ((Font)f)).setFixedWidthGlyphs(chars);
+            (Fonts.monoOutline = f).setFixedWidthGlyphs(chars);
             monoOutline.getData().markupEnabled = true;
         };
         Core.assets.load("tech", Font.class, new FreeTypeFontLoaderParameter("fonts/tech.ttf", new FreeTypeFontParameter(){{
             size = 18;
         }})).loaded = f -> {
-            Fonts.tech = (Font)f;
+            Fonts.tech = f;
             Fonts.tech.getData().down *= 1.5f;
         };
     }

@@ -85,7 +85,7 @@ public class ModsDialog extends BaseDialog{
             buttons.button("@mods.openfolder", Icon.link, () -> Core.app.openFolder(modDirectory.absolutePath()));
         }
 
-        buttons.button("Update Active Mods", Icon.download, () -> mods.mods.each(m -> m.state == ModState.enabled, m -> githubImportMod(m.getRepo(), m.isJava(), m.meta.version)));
+        buttons.button("Update Active Mods", Icon.download, () -> mods.mods.each(m -> m.state == ModState.enabled, m -> githubImportMod(m.getRepo(), m.isJava())));
 
         shown(this::setup);
         onResize(this::setup);
@@ -362,7 +362,7 @@ public class ModsDialog extends BaseDialog{
             boolean showImport = !mod.hasSteamID();
             dialog.buttons.button("@mods.github.open", Icon.link, () -> Core.app.openURI("https://github.com/" + mod.getRepo()));
             if(mobile && showImport) dialog.buttons.row();
-            if(showImport) dialog.buttons.button("@mods.browser.reinstall", Icon.download, () -> githubImportMod(mod.getRepo(), mod.isJava(),mod.meta.version));
+            if(showImport) dialog.buttons.button("@mods.browser.reinstall", Icon.download, () -> githubImportMod(mod.getRepo(), mod.isJava()));
         }
 
         dialog.cont.pane(desc -> {
@@ -391,7 +391,7 @@ public class ModsDialog extends BaseDialog{
         Seq<UnlockableContent> all = Seq.with(content.getContentMap()).<Content>flatten().select(c -> c.minfo.mod == mod && c instanceof UnlockableContent).as();
         if(all.any()){
             dialog.cont.row();
-            dialog.cont.button( "@mods.viewcontent", Icon.book, () -> {
+            dialog.cont.button("@mods.viewcontent", Icon.book, () -> {
                 BaseDialog d = new BaseDialog(mod.meta.displayName());
                 d.cont.pane(cs -> {
                     int i = 0;

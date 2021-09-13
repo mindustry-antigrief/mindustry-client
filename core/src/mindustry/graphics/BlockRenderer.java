@@ -155,7 +155,7 @@ public class BlockRenderer{
     public void checkChanges(){
         darkEvents.each(pos -> {
             var tile = world.tile(pos);
-            if(tile != null){
+            if(tile != null && tile.block().fillsTile){
                 tile.data = world.getWallDarkness(tile);
             }
         });
