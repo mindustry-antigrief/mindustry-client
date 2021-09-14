@@ -133,7 +133,7 @@ object Client {
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
             val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
-            val counts = IntSeq.with(0, 0, Units.getCap(player.team()), 0, 0, 0, 0, 0)
+            val counts = intArrayOf(0, 0, Units.getCap(player.team()), 0, 0, 0, 0, 0)
 
             for (unit in player.team().data().units) {
                 if (unit.type != type) continue

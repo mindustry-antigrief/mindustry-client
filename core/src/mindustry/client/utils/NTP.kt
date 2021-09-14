@@ -2,7 +2,6 @@ package mindustry.client.utils
 
 import arc.util.*
 import arc.util.Timer
-import arc.util.async.*
 import org.apache.commons.net.ntp.*
 import java.net.*
 import java.time.*
@@ -18,10 +17,14 @@ class NTP {
 
     init {
         try {
+            val thread = Thread("NTP-Thread")
+            thread.isDaemon = true
+            thread.start()
+
             address = InetAddress.getByName("pool.ntp.org")
             timeClient.defaultTimeout = 5000 // For whatever reason, sometimes it just fails
             Timer.schedule({
-                Threads.daemon {
+                thread.run{
                     try {
                         val time = fetchTime()
                         val baseClock = clock.get()
