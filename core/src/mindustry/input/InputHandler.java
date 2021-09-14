@@ -662,6 +662,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         drawSelected(x, y, block, Pal.remove);
     }
 
+    public void drawFreezing(BuildPlan request){
+        if(world.tile(request.x, request.y) == null) return;
+        drawSelected(request.x, request.y, request.block, Pal.freeze); // bypass check if plan overlaps with existing block
+    }
+
     public void useSchematic(Schematic schem){
         selectRequests.addAll(schematics.toRequests(schem, player.tileX(), player.tileY()));
     }
@@ -801,6 +806,35 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return selectRequests.find(test);
     }
 
+    protected void drawFreezeSelection(int x1, int y1, int x2, int y2, int maxLength){
+        NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
+
+        Tmp.r1.set(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+
+        Draw.color(Pal.freeze);
+        Lines.stroke(1f);
+
+        for(BuildPlan req: player.unit().plans()){
+            if(req.breaking) continue;
+            if(req.bounds(Tmp.r2).overlaps(Tmp.r1)){
+                drawFreezing(req);
+            }
+        }
+        for(BuildPlan req: selectRequests){
+            if(req.breaking) continue;
+            if(req.bounds(Tmp.r2).overlaps(Tmp.r1)){
+                drawFreezing(req);
+            }
+        }
+
+        Draw.reset();
+        Draw.color(Pal.freeze);
+        Draw.alpha(0.3f);
+        float x = (result.x2 + result.x) / 2;
+        float y = (result.y2 + result.y) / 2;
+        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
+    }
+
     protected void drawBreakSelection(int x1, int y1, int x2, int y2, int maxLength){
         NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
         NormalizeResult dresult = Placement.normalizeArea(x1, y1, x2, y2, rotation, false, maxLength);
@@ -881,6 +915,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 BuildPlan copy = req.copy();
                 req.block.onNewPlan(copy);
                 player.unit().addBuild(copy);
+            }
+            Iterator<BuildPlan> it = frozenPlans.iterator();
+            while(it.hasNext()){
+                BuildPlan frz = it.next();
+                if(req.block.bounds(req.x, req.y, Tmp.r1).overlaps(frz.block.bounds(frz.x, frz.y, Tmp.r2))){
+                    it.remove();
+                }
             }
         }
     }
@@ -980,6 +1021,64 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         //TODO array may be too large?
         if(removed.size > 0 && net.active()){
             Call.deletePlans(player, removed.toArray());
+        }
+    }
+
+    /** Freeze all schematics in a selection. */
+    protected void freezeSelection(int x1, int y1, int x2, int y2, int maxLength){
+        freezeSelection(x1, y1, x2, y2, false, maxLength);
+    }
+
+    /** Helper function with changing from the first Seq to the next. Used to be a BiPredicate but moved out **/
+    private boolean checkFreezeSelectionHasNext(BuildPlan frz, Iterator<BuildPlan> it){
+        boolean hasNext;
+        while((hasNext = it.hasNext()) && it.next() != frz) ; // skip to the next instance when it.next() == frz
+        if(hasNext) it.remove();
+        return hasNext;
+    }
+
+    protected void freezeSelection(int x1, int y1, int x2, int y2, boolean flush, int maxLength){
+        NormalizeResult result = Placement.normalizeArea(x1, y1, x2, y2, rotation, false, maxLength);
+
+        Seq<BuildPlan> tmpFrozenPlans = new Seq<>();
+        //remove build requests
+        Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
+
+        for(BuildPlan req : player.unit().plans()){
+            if(!req.breaking && req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
+        }
+
+        for(BuildPlan req : selectRequests){
+            if(!req.breaking && req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
+        }
+
+        Seq<BuildPlan> unfreeze = new Seq<>();
+        for(BuildPlan req : frozenPlans){
+            if(!req.breaking && req.bounds(Tmp.r2).overlaps(Tmp.r1)) unfreeze.add(req);
+        }
+
+        Iterator<BuildPlan> it1, it2;
+        if(unfreeze.size > tmpFrozenPlans.size){
+            it1 = frozenPlans.iterator();
+            for(BuildPlan frz : unfreeze){
+                while(it1.hasNext() && it1.next() != frz);
+                if(it1.hasNext()) it1.remove();
+            }
+            flushRequests(unfreeze);
+        }
+        else{
+            it1 = player.unit().plans().iterator();
+            it2 = selectRequests.iterator();
+            for (BuildPlan frz : tmpFrozenPlans) {
+                if(checkFreezeSelectionHasNext(frz, it1)) continue;
+                if(/*!itHasNext implied*/ it2 != null){
+                    it1 = it2;
+                    it2 = null; // swap it2 into it1, continue iterating through without changing frz
+                    if(checkFreezeSelectionHasNext(frz, it1)) continue;
+                }
+                break; // exit if there are no remaining items in the two Seq's to check.
+            }
+            frozenPlans.addAll(tmpFrozenPlans);
         }
     }
 

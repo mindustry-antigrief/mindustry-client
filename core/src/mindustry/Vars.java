@@ -15,6 +15,7 @@ import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.editor.*;
 import mindustry.entities.*;
+import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -241,6 +242,7 @@ public class Vars implements Loadable{
 
     public static Player player;
     public static boolean drawCursors, wasDrawingCursors; // Client debug magic
+    public static Seq<BuildPlan> frozenPlans = new Seq<>();
 
     @Override
     public void loadAsync(){

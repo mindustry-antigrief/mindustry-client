@@ -489,12 +489,16 @@ public class Block extends UnlockableContent{
     }
 
     public void drawPlan(BuildPlan req, Eachable<BuildPlan> list, boolean valid){
-        drawPlan(req, list, valid, 1f);
+        drawPlan(req, list, valid, 1f, false);
     }
 
     public void drawPlan(BuildPlan req, Eachable<BuildPlan> list, boolean valid, float alpha){
+        drawPlan(req, list, valid, alpha, false);
+    }
+
+    public void drawPlan(BuildPlan req, Eachable<BuildPlan> list, boolean valid, float alpha, boolean freeze){
         Draw.reset();
-        Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
+        Draw.mixcol(valid ? freeze ? Pal.freeze : Color.white : Pal.breakInvalid, (valid ? 0.24f : 0.4f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(alpha);
         float prevScale = Draw.scl;
         Draw.scl *= req.animScale;
