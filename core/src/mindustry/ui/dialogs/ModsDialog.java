@@ -1,7 +1,6 @@
 package mindustry.ui.dialogs;
 
 import arc.*;
-import arc.util.Http.*;
 import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;
@@ -14,11 +13,14 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.Http.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
+import mindustry.client.ui.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
+import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -28,9 +30,11 @@ import mindustry.mod.Mods.*;
 import mindustry.ui.*;
 
 import java.io.*;
+import java.net.*;
 import java.text.*;
 import java.util.*;
 
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class ModsDialog extends BaseDialog{
@@ -44,6 +48,7 @@ public class ModsDialog extends BaseDialog{
 
     private BaseDialog browser;
     private Table browserTable;
+    private int prompted, expected;
 
     public ModsDialog(){
         super("@mods");
@@ -98,6 +103,22 @@ public class ModsDialog extends BaseDialog{
             }
         });
 
+        // Client mod updater
+        Events.on(EventType.ClientLoadEvent.class, event -> {
+            Fi updateTimeFile = settings.getDataDirectory().child("lastUpdate");
+            if (Core.settings.getInt("modautoupdate") != 0 && (!updateTimeFile.exists() || Time.timeSinceMillis(Long.parseLong(updateTimeFile.readString())) > Time.toHours)) {
+                Log.debug("Checking for mod updates");
+                updateTimeFile.writeString(String.valueOf(Time.millis()));
+                var shuffled = mods.mods.copy();
+                shuffled.shuffle();
+                for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
+                    if (mod.state != Mods.ModState.enabled || mod.getRepo() == null) continue;
+                    if (++expected >= 30) continue; // Only make up to 30 api requests
+
+                    githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
+                }
+            } else Log.debug("Not updating mods, they were updated too recently or auto update is disabled.");
+        });
     }
 
     void modError(Throwable error){
@@ -370,7 +391,7 @@ public class ModsDialog extends BaseDialog{
         Seq<UnlockableContent> all = Seq.with(content.getContentMap()).<Content>flatten().select(c -> c.minfo.mod == mod && c instanceof UnlockableContent).as();
         if(all.any()){
             dialog.cont.row();
-            dialog.cont.button( "@mods.viewcontent", Icon.book, () -> {
+            dialog.cont.button("@mods.viewcontent", Icon.book, () -> {
                 BaseDialog d = new BaseDialog(mod.meta.displayName());
                 d.cont.pane(cs -> {
                     int i = 0;
@@ -511,17 +532,33 @@ public class ModsDialog extends BaseDialog{
         return text;
     }
 
-    private void handleMod(String repo, HttpResponse result){
+    private void handleMod(String repo, HttpResponse result, String prevVersion){
+        ZipFi rootZip = null;
+
         try{
-            Fi file = tmpDirectory.child(repo.replace("/", "") + ".zip");
+            var sourceFile = tmpDirectory.child(repo.replace("/", "") + ".zip");
             long len = result.getContentLength();
             Floatc cons = len <= 0 ? f -> {} : p -> modImportProgress = p;
+            Streams.copyProgress(result.getResultAsStream(), sourceFile.write(false), len, 4096, cons);
+            Fi zip = sourceFile.isDirectory() ? sourceFile : (rootZip = new ZipFi(sourceFile));
 
-            Streams.copyProgress(result.getResultAsStream(), file.write(false), len, 4096, cons);
+            if(zip.list().length == 1 && zip.list()[0].isDirectory()){
+                zip = zip.list()[0];
+            }
 
-            var mod = mods.importMod(file);
-            mod.setRepo(repo);
-            file.delete();
+            Fi metaf =
+                zip.child("mod.json").exists() ? zip.child("mod.json") :
+                zip.child("mod.hjson").exists() ? zip.child("mod.hjson") :
+                zip.child("plugin.json").exists() ? zip.child("plugin.json") :
+                zip.child("plugin.hjson");
+
+            if(!metaf.exists()) Log.warn("Mod @ doesn't have a '[mod/plugin].[h]json' file, skipping.", sourceFile);
+
+            if (prevVersion == null || !new Json().fromJson(ModMeta.class, Jval.read(metaf.readString()).toString(Jval.Jformat.plain)).version.equals(prevVersion)) {
+                var mod = mods.importMod(zip);
+                mod.setRepo(repo);
+            }
+            zip.delete();
             Core.app.post(() -> {
 
                 try{
@@ -532,7 +569,32 @@ public class ModsDialog extends BaseDialog{
                 }
             });
         }catch(Throwable e){
+            if(rootZip != null) rootZip.delete();
             modError(e);
+        }
+
+        if (++prompted == expected) {
+            if (mods.requiresReload()){
+                if (Core.settings.getInt("modautoupdate") == 2) {
+                    try{
+                        Fi file = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                        Runtime.getRuntime().exec(OS.isMac ?
+                            new String[]{"java", "-XstartOnFirstThread", "-jar", file.absolutePath()} :
+                            new String[]{"java", "-jar", file.absolutePath()}
+                        );
+                        Core.app.exit();
+                    }catch(IOException | URISyntaxException e){
+                        Core.app.post(() -> {
+                            BaseDialog dialog = new BaseDialog("Java Moment");
+                            dialog.cont.clearChildren();
+                            dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
+                            dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
+                        });
+                    }
+                    reload();
+                }
+                new Toast(5f).add("[accent]Mod updates found, they will be installed after restart.");
+            } else new Toast(5f).add("[accent]No mod updates found.");
         }
     }
 
@@ -540,13 +602,18 @@ public class ModsDialog extends BaseDialog{
         Core.app.post(() -> modError(t));
     }
 
+
     private void githubImportMod(String repo, boolean isJava){
+        githubImportMod(repo, isJava, null);
+    }
+
+    private void githubImportMod(String repo, boolean isJava, String prevVersion){
         modImportProgress = 0f;
-        ui.loadfrag.show("@downloading");
+        if (prevVersion == null) ui.loadfrag.show("@downloading");
         ui.loadfrag.setProgress(() -> modImportProgress);
 
         if(isJava){
-            githubImportJavaMod(repo);
+            githubImportJavaMod(repo, prevVersion);
         }else{
             Http.get(ghApi + "/repos/" + repo, res -> {
                 var json = Jval.read(res.getResultAsString());
@@ -556,15 +623,15 @@ public class ModsDialog extends BaseDialog{
                 //this is a crude heuristic for class mods; only required for direct github import
                 //TODO make a more reliable way to distinguish java mod repos
                 if(language.equals("Java") || language.equals("Kotlin")){
-                    githubImportJavaMod(repo);
+                    githubImportJavaMod(repo, prevVersion);
                 }else{
-                    githubImportBranch(mainBranch, repo);
+                    githubImportBranch(mainBranch, repo, prevVersion);
                 }
             }, this::importFail);
         }
     }
 
-    private void githubImportJavaMod(String repo){
+    private void githubImportJavaMod(String repo, String prevVersion){
         //grab latest release
         Http.get(ghApi + "/repos/" + repo + "/releases/latest", res -> {
             var json = Jval.read(res.getResultAsString());
@@ -578,21 +645,21 @@ public class ModsDialog extends BaseDialog{
                 //grab actual file
                 var url = asset.getString("browser_download_url");
 
-                Http.get(url, result -> handleMod(repo, result), this::importFail);
+                Http.get(url, result -> handleMod(repo, result, prevVersion), this::importFail);
             }else{
                 throw new ArcRuntimeException("No JAR file found in releases. Make sure you have a valid jar file in the mod's latest Github Release.");
             }
         }, this::importFail);
     }
 
-    private void githubImportBranch(String branch, String repo){
+    private void githubImportBranch(String branch, String repo, String prevVersion){
         Http.get(ghApi + "/repos/" + repo + "/zipball/" + branch, loc -> {
             if(loc.getHeader("Location") != null){
                 Http.get(loc.getHeader("Location"), result -> {
-                    handleMod(repo, result);
+                    handleMod(repo, result, prevVersion);
                 }, this::importFail);
             }else{
-                handleMod(repo, loc);
+                handleMod(repo, loc, prevVersion);
             }
          }, this::importFail);
     }

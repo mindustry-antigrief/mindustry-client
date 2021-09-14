@@ -1510,6 +1510,10 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             }
         }
 
+        if(cons != null){
+            cons.update();
+        }
+
         if(enabled || !block.noUpdateDisabled){
             updateTile();
         }
@@ -1520,10 +1524,6 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         if(liquids != null){
             liquids.update(updateFlow);
-        }
-
-        if(cons != null){
-            cons.update();
         }
 
         if(power != null){

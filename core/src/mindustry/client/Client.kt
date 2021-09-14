@@ -2,12 +2,15 @@ package mindustry.client
 
 import arc.*
 import arc.graphics.*
+import arc.graphics.g2d.*
 import arc.math.*
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import mindustry.*
 import mindustry.Vars.*
+import mindustry.Vars.state
+import mindustry.ai.*
 import mindustry.client.ClientVars.*
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
@@ -17,6 +20,7 @@ import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.*
 import mindustry.client.utils.*
+import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
 import mindustry.entities.units.*
@@ -24,6 +28,7 @@ import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
+import mindustry.world.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
@@ -36,8 +41,12 @@ import kotlin.random.*
 
 
 object Client {
-
     var leaves: Moderation? = Moderation()
+    val tiles = mutableListOf<Tile>()
+    val timer = Interval(2)
+    var spawnTime = 60f * Core.settings.getInt("spawntime")
+    var travelTime = Core.settings.getInt("traveltime").toFloat()
+
     fun initialize() {
         registerCommands()
         ClientLogic()
@@ -56,6 +65,7 @@ object Client {
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
+
         if (!configs.isEmpty) {
             try {
                 if (configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) {
@@ -63,6 +73,32 @@ object Client {
                 }
             } catch (e: Exception) {
                 Log.err(e)
+            }
+        }
+    }
+
+    fun draw() {
+        if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
+            for (i in 0 until spawner.spawns.size) {
+                if (i >= tiles.size) tiles.add(spawner.spawns[i])
+                Lines.beginLine()
+                Draw.color(state.rules.waveTeam.color)
+                var target: Tile? = null
+                tiles[i] = spawner.spawns[i]
+                while (target != tiles[i]) {
+                    if (target != null) tiles[i] = target
+                    target = pathfinder.getTargetTile(tiles[i], pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
+                    Lines.linePoint(target)
+                }
+                Lines.endLine()
+            }
+        } else if (spawnTime != 0f && travelTime != 0f && spawner.spawns.size < 50 && timer.get(0, travelTime)) {
+            if (timer.get(1, spawnTime)) tiles.addAll(spawner.spawns)
+            for (i in 0 until tiles.size) {
+                val t = tiles.removeFirst()
+                val target = pathfinder.getTargetTile(t, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
+                if (target != t) tiles.add(target)
+                Fx.healBlock.at(t.worldx(), t.worldy(), 1f, state.rules.waveTeam.color)
             }
         }
     }

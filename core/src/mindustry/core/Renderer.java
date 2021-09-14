@@ -11,9 +11,10 @@ import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.navigation.*;
 import arc.util.async.*;
 import mindustry.*;
+import mindustry.client.*;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -115,7 +116,7 @@ public class Renderer implements ApplicationListener{
     public void update(){
         Color.white.set(1f, 1f, 1f, 1f);
 
-//        float dest = Mathf.round(targetscale, 0.5f);
+//        float dest = Mathf.clamp(Mathf.round(targetscale, 0.5f), minScale(), maxScale());
         float dest = targetscale;  // note: because the above line is commented out, there may be "jagged pixel scaling"
         camerascale = Mathf.lerpDelta(camerascale, dest, 0.1f);
         if(Mathf.equal(camerascale, dest, 0.001f)) camerascale = dest;
@@ -286,6 +287,7 @@ public class Renderer implements ApplicationListener{
 
         Draw.draw(Layer.plans, overlays::drawBottom);
         Navigation.draw();
+        Draw.draw(Layer.overlayUI, Client.INSTANCE::draw);
         Draw.z(Layer.space);
         if(Core.settings.getBool("drawhitboxes")) {
             for (Unit u : Groups.unit) {
@@ -516,6 +518,8 @@ public class Renderer implements ApplicationListener{
 
     public void showLaunch(CoreBlock coreType){
         Vars.ui.hudfrag.showLaunch();
+        Vars.control.input.frag.config.hideConfig();
+        Vars.control.input.frag.inv.hide();
         launchCoreType = coreType;
         launching = true;
         landCore = player.team().core();

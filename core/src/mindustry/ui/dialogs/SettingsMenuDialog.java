@@ -238,8 +238,12 @@ public class SettingsMenuDialog extends Dialog{
                         platform.shareFile(logs);
                     }else{
                         platform.showFileChooser(false, "txt", file -> {
-                            file.writeString(getLogs());
-                            app.post(() -> ui.showInfo("@crash.exported"));
+                            try{
+                                file.writeBytes(getLogs().getBytes(Strings.utf8));
+                                app.post(() -> ui.showInfo("@crash.exported"));
+                            }catch(Throwable e){
+                                ui.showException(e);
+                            }
                         });
                     }
                 }
@@ -338,6 +342,8 @@ public class SettingsMenuDialog extends Dialog{
         client.sliderPref("effectscl", 100, 0, 100, 5, s -> s + "%");
         client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%[lightgray] (" + Core.bundle.get("client.afterstack") + ": " + s * settings.getInt("effectscl") / 100 + "%)[]");
         client.sliderPref("junctionview", 0, -1, 1, 1, s -> { Junction.setBaseOffset(s); return s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show"; });
+        client.sliderPref("spawntime", 5, -1, 60, s -> { Client.INSTANCE.setSpawnTime(60 * s); return s == -1 ? "Solid Line" : s == 0 ? "Disabled" : String.valueOf(s); });
+        client.sliderPref("traveltime", 10, 0, 60, s -> { Client.INSTANCE.setTravelTime(60f/s); return s == 0 ? "Disabled" : String.valueOf(s); });
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", true); // Requires Restart
@@ -353,6 +359,7 @@ public class SettingsMenuDialog extends Dialog{
         client.updatePref();
         client.sliderPref("minepathcap", 0, 0, 5000, 100, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
+        client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("nyduspadpatch", true);

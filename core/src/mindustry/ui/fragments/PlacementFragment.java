@@ -371,10 +371,10 @@ public class PlacementFragment extends Fragment{
                         if (Core.settings.getBool("placementfragmentsearch")) {
                             topTable.row();
                             topTable.table(s -> {
-                                s.image(Icon.zoom).size(32).padRight(8);
+                                s.image(Icon.zoom).size(32).padRight(8).left();
                                 search = s.field(null, text -> rebuildCategory.run()).growX().get();
                                 search.setMessageText("@players.search");
-                            }).width(279.5f);
+                            }).growX();
                         }
                     });
                 }).colspan(3).fillX().visible(this::hasInfoBox).touchable(Touchable.enabled);
@@ -476,7 +476,7 @@ public class PlacementFragment extends Fragment{
         Vec2 v = topTable.stageToLocalCoordinates(Core.input.mouse());
 
         //if the mouse intersects the table or the UI has the mouse, no hovering can occur
-        if(Core.scene.hasMouse() || topTable.hit(v.x, v.y, false) != null) return null;
+        if(Core.scene.hasMouse() || topTable.hit(v.x, v.y, false) != null) return hover;
 
         if (!ClientVars.hidingUnits) {
             //check for a unit

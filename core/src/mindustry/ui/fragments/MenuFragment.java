@@ -58,7 +58,6 @@ public class MenuFragment extends Fragment{
         }else{
             parent.fill(c -> {
                 c.bottom().right().button("Switch to v6", Icon.download, () -> {
-                    Core.settings.put("updateurl", ("mindustry-antigrief/mindustry-client-v6-builds"));
                     ui.loadfrag.show();
                     becontrol.checkUpdate(result -> {
                         ui.loadfrag.hide();
@@ -67,7 +66,7 @@ public class MenuFragment extends Fragment{
                         } else {
                             becontrol.showUpdateDialog();
                         }
-                    });
+                    }, "mindustry-antigrief/mindustry-client-v6-builds");
                 }).size(200, 60).padRight(10);
 
                 c.button("", Icon.refresh, () -> {

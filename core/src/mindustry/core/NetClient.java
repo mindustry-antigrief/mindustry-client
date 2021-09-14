@@ -169,7 +169,7 @@ public class NetClient implements ApplicationListener{
     public static void sound(Sound sound, float volume, float pitch, float pan){
         if(sound == null) return;
 
-        sound.play(volume * Core.settings.getInt("sfxvol") / 100f, pitch, pan);
+        sound.play(Mathf.clamp(volume, 0, 4f) * Core.settings.getInt("sfxvol") / 100f, pitch, pan);
     }
 
     @Remote(variants = Variant.both, unreliable = true)
@@ -179,7 +179,7 @@ public class NetClient implements ApplicationListener{
             ui.chatfrag.addMessage("prevented io earrape Volume: " + volume, "client", Color.red);
         }
 
-        sound.at(x, y, pitch, volume);
+        sound.at(x, y, pitch, Mathf.clamp(volume, 0, 4f));
     }
 
     @Remote(variants = Variant.both, unreliable = true)

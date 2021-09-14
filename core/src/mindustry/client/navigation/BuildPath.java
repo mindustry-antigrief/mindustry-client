@@ -65,8 +65,9 @@ public class BuildPath extends Path {
                 case "cleanup", "derelict", "clean" -> queues.add(cleanup);
                 case "networkassist", "na", "network" -> queues.add(networkAssist);
                 case "virus" -> queues.add(virus); // Intentionally undocumented due to potential false positives
-                case "drills", "mines", "mine", "drill" -> queues.add(drills);
-                case "belts", "conveyors", "conduits", "pipes", "ducts", "tubes" -> queues.add(belts);
+                case "drills", "mines", "mine", "drill", "d" -> queues.add(drills);
+                case "belts", "conveyors", "conduits", "pipes", "ducts", "tubes", "b" -> queues.add(belts);
+                case "upgrade", "upgrades", "u" -> queues.addAll(drills, belts);
                 default -> {
                     if (Strings.canParsePositiveInt(arg)) radius = Strings.parsePositiveInt(arg);
                     else ui.chatfrag.addMessage(Core.bundle.format("client.path.builder.invalid", arg), null);

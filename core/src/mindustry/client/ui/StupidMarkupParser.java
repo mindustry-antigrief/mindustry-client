@@ -10,7 +10,7 @@ import mindustry.ui.*;
 
 public class StupidMarkupParser {
     private static final LabelStyle headingStyle = new LabelStyle(Fonts.def, Pal.accent);
-    private static final Seq<Color> listColors = new Seq<>(new Color[]{Color.gray, Color.lightGray});
+    private static final Seq<Color> listColors = Seq.with(Color.gray, Color.lightGray);
 
     public static Table format(String input) {
         // remove block comments

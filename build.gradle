@@ -55,8 +55,8 @@ allprojects{
         versionNumber = '7'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
-        if(!project.hasProperty("buildversion")) buildversion = '130.1'
-        if(!project.hasProperty("clientVersion")) clientVersion = 'v210901, Sept. 01, 2021'
+        if(!project.hasProperty("buildversion")) buildversion = '131'
+        if(!project.hasProperty("clientVersion")) clientVersion = 'v140921, Sep 14 2021'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
@@ -228,10 +228,16 @@ allprojects{
         options.compilerArgs += ["-Xlint:deprecation", "-Xmaxerrs", "5000"]
         dependsOn clearCache
 
-        options.forkOptions.jvmArgs.addAll([
+        options.forkOptions.jvmArgs += [
+            '--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
             '--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
-            '--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED'
-        ])
+            '--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+            '--add-opens=java.base/sun.reflect.annotation=ALL-UNNAMED'
+        ]
     }
 }
 
