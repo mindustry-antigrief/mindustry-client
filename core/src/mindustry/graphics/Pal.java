@@ -72,6 +72,7 @@ public class Pal{
     gray = Color.valueOf("454545"),
     metalGrayDark = Color.valueOf("6e7080"),
     accentBack = Color.valueOf("d4816b"),
+    freeze = Color.valueOf("0018a8"),
     place = Color.valueOf("6335f8"),
     remove = Color.valueOf("e55454"),
     noplace = Color.valueOf("ffa697"),

@@ -142,12 +142,16 @@ public class DesktopInput extends InputHandler{
         int cursorX = tileX(Core.input.mouseX());
         int cursorY = tileY(Core.input.mouseY());
 
+        //draw freezing selection
+        if(mode == freezing){
+            drawFreezeSelection(selectX, selectY, cursorX, cursorY, Vars.maxSchematicSize);
+        }
         //draw break selection
         if(mode == breaking){
             drawBreakSelection(selectX, selectY, cursorX, cursorY, /*!Core.input.keyDown(Binding.schematic_select) ? maxLength :*/ Vars.maxSchematicSize);
         }
 
-        if(Core.input.keyDown(Binding.schematic_select) && !Core.scene.hasKeyboard() && mode != breaking){
+        if(Core.input.keyDown(Binding.schematic_select) && !Core.scene.hasKeyboard() && mode != breaking && mode != freezing){
             drawSelection(schemX, schemY, cursorX, cursorY, Vars.maxSchematicSize);
         }
 
@@ -732,7 +736,7 @@ public class DesktopInput extends InputHandler{
         }else if(Core.input.keyTap(Binding.break_block) && !Core.scene.hasMouse() /*&& player.isBuilder()*/){
             //is recalculated because setting the mode to breaking removes potential multiblock cursor offset
             deleting = false;
-            mode = breaking;
+            mode = Core.input.shift() ? freezing : breaking;
             selectX = tileX(Core.input.mouseX());
             selectY = tileY(Core.input.mouseY());
             schemX = rawCursorX;
@@ -757,6 +761,10 @@ public class DesktopInput extends InputHandler{
             overrideLineRotation = false;
         }
 
+        if(mode == breaking || mode == freezing){
+            mode = Core.input.shift() ?  freezing : breaking;
+        }
+
         if(Core.input.keyRelease(Binding.break_block) && Core.input.keyDown(Binding.schematic_select) && mode == breaking){
             lastSchematic = schematics.create(schemX, schemY, rawCursorX, rawCursorY);
             schemX = -1;
@@ -775,6 +783,8 @@ public class DesktopInput extends InputHandler{
                     useSchematic(lastSchematic);
                     lastSchematic = null;
                 }
+            }else if(mode == freezing){
+                freezeSelection(selectX, selectY, cursorX, cursorY, Vars.maxSchematicSize);
             }
             selectX = -1;
             selectY = -1;
