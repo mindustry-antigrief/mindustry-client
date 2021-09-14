@@ -382,7 +382,7 @@ public class BlockRenderer{
             Draw.z(Layer.space);
             ClientVars.overdrives.forEach(b -> {
                 float range = b.realRange();
-                if (b.team == player.team() && bounds.overlaps(b.x - range, b.y - range, range, range)) b.drawSelect();
+                if (b.team == player.team() && bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect();
             });
         }
 

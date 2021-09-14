@@ -112,7 +112,7 @@ public class ModsDialog extends BaseDialog{
                 var shuffled = mods.mods.copy();
                 shuffled.shuffle();
                 for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
-                    if (mod.state != Mods.ModState.enabled) continue;
+                    if (mod.state != Mods.ModState.enabled || mod.getRepo() == null) continue;
                     if (++expected >= 30) continue; // Only make up to 30 api requests
 
                     githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
