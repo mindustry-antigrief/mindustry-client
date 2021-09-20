@@ -19,6 +19,17 @@ public class WaypointPath<T extends Waypoint> extends Path {
         this.initial = waypoints.copy();
     }
 
+    @SafeVarargs
+    public WaypointPath(T... waypoints) {
+        this.waypoints = Seq.with(waypoints);
+        this.initial = Seq.with(waypoints);
+    }
+
+    @SafeVarargs
+    public static <T extends Waypoint> WaypointPath<T> with(T... waypoints) {
+        return new WaypointPath<>(waypoints);
+    }
+
     @Override
     public void setShow(boolean show) {
         this.show = show;

@@ -18,13 +18,13 @@ import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.logic.*;
+import mindustry.world.blocks.storage.*;
 
 import java.util.concurrent.atomic.*;
 
 import static mindustry.Vars.*;
 
 public class BuildPath extends Path {
-    Building core = player.core();
     private boolean show, activeVirus;
     Interval timer = new Interval(2);
     public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>(), drills = new Queue<>(), belts = new Queue<>();
@@ -98,7 +98,8 @@ public class BuildPath extends Path {
 
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     public void follow() {
-        if (timer.get(15)) {
+        var core = player.core();
+        if (timer.get(15) && core != null) {
             if (mineItems != null) {
                 Item item = mineItems.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
 
@@ -204,7 +205,7 @@ public class BuildPath extends Path {
             sort:
             for (int i = 0; i < 2; i++) {
                 for (Queue queue : queues) {
-                    PQueue<BuildPlan> plans = sortPlans(queue, all, false);
+                    PQueue<BuildPlan> plans = sortPlans(queue, all, false, core);
                     if (plans.empty()) continue;
                     i = 0;
                     BuildPlan plan;
@@ -274,7 +275,7 @@ public class BuildPath extends Path {
     /** @param includeAll whether to include unaffordable plans (appended to end of affordable ones)
         @param largeFirst reverses the order of outputs, returning the furthest plans first
         @return {@link Queue<BuildPlan>} sorted by distance */
-    public PQueue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll, boolean largeFirst) {
+    public PQueue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll, boolean largeFirst, CoreBlock.CoreBuild core) {
         if (plans == null) return null;
         PQueue<BuildPlan> s2 = new PQueue<>(plans.size, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, core)), Structs.comparingFloat(plan -> plan.dst(player))));
         plans.each(plan -> {

@@ -2,11 +2,13 @@ package mindustry.client
 
 import arc.*
 import arc.util.*
+import arc.util.pooling.*
 import mindustry.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
+import mindustry.client.navigation.waypoints.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.game.*
@@ -44,6 +46,8 @@ class ClientLogic {
             val changeHash = Core.files.internal("changelog").readString().hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
             if (Core.settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
             Core.settings.put("changeHash", changeHash)
+
+            Pools.get(PositionWaypoint::class.java, { PositionWaypoint() }, 100) // Initialize PositionWaypoint pool with max of 100 free objects
 
             if (Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug // Set log level to debug if the setting is checked
             if (Core.settings.getBool("discordrpc")) Vars.platform.startDiscord()

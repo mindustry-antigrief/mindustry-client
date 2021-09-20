@@ -35,9 +35,7 @@ public abstract class Path {
 
     public void onFinish() {
         listeners.forEach(Runnable::run);
-        if (repeat) {
-            reset();
-        }
+        if (repeat) reset();
     }
 
     public abstract void reset();

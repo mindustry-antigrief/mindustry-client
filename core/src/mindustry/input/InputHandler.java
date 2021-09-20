@@ -17,7 +17,6 @@ import mindustry.*;
 import mindustry.ai.formations.patterns.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
-import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.content.*;
@@ -47,7 +46,6 @@ import mindustry.world.meta.*;
 import java.util.*;
 
 import static arc.Core.*;
-import static mindustry.Vars.net;
 import static mindustry.Vars.*;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
@@ -356,16 +354,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot rotate a block.");
         }
 
-        if(player != null){
-            build.lastAccessed = player.name;
-            if(Navigation.currentlyFollowing instanceof UnAssistPath path){
-                if(path.assisting == player){
-                    Time.run(2f, () -> Call.rotateBlock(Vars.player, build, !direction));
-                }
-            }
-        }
+        int newRotation = Mathf.mod(build.rotation + Mathf.sign(direction), 4);
 
-        build.rotation = Mathf.mod(build.rotation + Mathf.sign(direction), 4);
+        Events.fire(new BlockRotateEvent(player, build, direction, build.rotation, newRotation));
+
+        build.rotation = newRotation;
         build.updateProximity();
         build.noSleep();
         Fx.rotateBlock.at(build.x, build.y, build.block.size);
@@ -384,11 +377,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
 
         if(player != null){ // FINISHME: Move all this client stuff into the ClientLogic class
-            if(Navigation.currentlyFollowing instanceof UnAssistPath path){
-                if(path.assisting == player){
-                    ClientVars.configs.add(new ConfigRequest(build.tileX(), build.tileY(), previous));
-                }
-            }
             if (Core.settings.getBool("commandwarnings") && build instanceof CommandCenter.CommandBuild cmd && build.team == player.team()) {
                 if (commandWarning == null || timer.get(300)) {
                     commandWarning = ui.chatfrag.addMessage(bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), null);

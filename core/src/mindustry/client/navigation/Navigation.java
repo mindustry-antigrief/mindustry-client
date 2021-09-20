@@ -5,7 +5,6 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.pooling.*;
 import mindustry.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.core.*;
@@ -92,9 +91,12 @@ public class Navigation {
             player.snapInterpolation();
             return;
         }
+
         state = NavigationState.FOLLOWING;
         if (obstacles.isEmpty() && !Vars.state.hasSpawns() && ui.join.lastHost != null && (ui.join.lastHost.modeName == null || !ui.join.lastHost.modeName.equals("Flood"))) {
-            follow(new WaypointPath<>(Seq.with(new PositionWaypoint(Mathf.clamp(drawX, 0, world.unitWidth()), Mathf.clamp(drawY, 0, world.unitHeight())))));
+            follow(WaypointPath.with(new PositionWaypoint(
+                Mathf.clamp(drawX, 0, world.unitWidth()),
+                Mathf.clamp(drawY, 0, world.unitHeight()))));
             currentlyFollowing.setShow(true);
             targetPos = new Vec2(drawX, drawY);
             return;
@@ -107,18 +109,14 @@ public class Navigation {
                 waypoints.reverse();
 
                 if (waypoints.any()) {
-                    while (waypoints.size > 1 && waypoints.min(wp -> wp.dst(player)) != waypoints.first()) Pools.free(waypoints.remove(0));
-                    if (waypoints.size > 1) Pools.free(waypoints.remove(0));
-                    if (waypoints.size > 1 && player.unit().isFlying()) Pools.free(waypoints.remove(0)); // Ground units cant properly turn corners if we remove 2 waypoints.
+                    while (waypoints.size > 1 && waypoints.min(wp -> wp.dst(player)) != waypoints.first()) waypoints.remove(0);
+                    if (waypoints.size > 1) waypoints.remove(0);
+                    if (waypoints.size > 1 && player.unit().isFlying()) waypoints.remove(0); // Ground units cant properly turn corners if we remove 2 waypoints.
                     if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
                         follow(new WaypointPath<>(waypoints));
                         targetPos = new Vec2(drawX, drawY);
                         currentlyFollowing.setShow(true);
-                        currentlyFollowing.addListener(() -> { // We don't need 1000 waypoints laying around in memory
-                            if (Pools.get(PositionWaypoint.class, PositionWaypoint::new).getFree() >= 100) Pools.get(PositionWaypoint.class, PositionWaypoint::new).clear();
-                        });
                     }
-                    Pools.freeAll(waypoints);
                 }
             }
         });
@@ -126,22 +124,20 @@ public class Navigation {
 
     public static void startRecording() {
         state = NavigationState.RECORDING;
-        if (recording != null) Pools.freeAll(recording);
         recording = new Seq<>();
     }
 
     public static void stopRecording() {
         if (recording == null) return;
+
         state = NavigationState.NONE;
         recordedPath = new WaypointPath<>(recording);
         recording = null;
     }
 
     public static void addWaypointRecording(Waypoint waypoint) {
-        if (state != NavigationState.RECORDING) {
-            Pools.free(waypoint);
-            return;
-        }
+        if (state != NavigationState.RECORDING) return;
+
         if (recording == null) recording = new Seq<>();
         recording.add(waypoint);
         recordedPath = new WaypointPath<>(recording); // FINISHME: Duplicated code?

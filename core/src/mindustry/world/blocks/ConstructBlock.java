@@ -13,16 +13,14 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
-import mindustry.client.antigrief.*;
-import mindustry.client.navigation.*;
 import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
-import mindustry.game.*;
 import mindustry.game.EventType.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
@@ -70,16 +68,6 @@ public class ConstructBlock extends Block{
 
     @Remote(called = Loc.server)
     public static void deconstructFinish(Tile tile, Block block, Unit builder){
-        if(tile != null && builder != null && block != null){
-            if(Navigation.currentlyFollowing instanceof UnAssistPath path){
-                if(path.assisting == builder.getPlayer()){
-                    if(block.isVisible()) {
-                        Log.debug("Build: " + tile.build.config() + " Block: " + tile.block().lastConfig);
-                        path.toUndo.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, block, tile.build.config()));
-                    }
-                }
-            }
-        }
         if (tile != null && block != null) {
             tile.getLinkedTiles(t -> Events.fire(new BlockBuildEventTile(t, tile.team(), builder, block, Blocks.air, tile.build == null? null : tile.build.config(), null)));
             Team team = tile.team();
@@ -110,7 +98,7 @@ public class ConstructBlock extends Block{
         Object prevConf = tile.build == null ? null : tile.build.config();
 
         if (block == null) {
-            Events.fire(new BlockBreakEvent(tile, team, builder, tile.block(), tile.build == null ? null : tile.build.config()));
+            Events.fire(new BlockBreakEvent(tile, team, builder, tile.block(), tile.build == null ? null : tile.build.config(), rotation));
         }
 
         tile.setBlock(block, team, rotation);
@@ -150,24 +138,6 @@ public class ConstructBlock extends Block{
         }
 
         Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
-
-        if(builder != null && tile.build != null){
-            if(Navigation.currentlyFollowing instanceof UnAssistPath path){
-                if (path.assisting == builder.getPlayer()) {
-                    if(Navigation.currentlyFollowing != null) {
-                        for (BuildPlan p : path.toUndo) {
-                            if (p.x == tile.x && p.y == tile.y) {
-                                path.toUndo.remove(p);
-                            }
-                        }
-                        path.toUndo.add(new BuildPlan(tile.x, tile.y));
-                        if (config != null) {
-                            ClientVars.configs.add(new ConfigRequest(tile.x, tile.y, prevConf));
-                        }
-                    }
-                }
-            }
-        }
         if(shouldPlay()) Sounds.place.at(tile, calcPitch(true));
     }
 

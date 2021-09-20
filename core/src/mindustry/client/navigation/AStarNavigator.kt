@@ -3,8 +3,7 @@ package mindustry.client.navigation
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
-import arc.util.pooling.*
-import mindustry.Vars.tilesize
+import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.core.*
 import kotlin.math.*
@@ -153,10 +152,10 @@ object AStarNavigator : Navigator() {
             val points = mutableListOf<PositionWaypoint>()
             //Trace back the path
             var current: Cell? = cell(endX, endY)
-            while (current?.cameFrom != null) {
-                points.add(Pools.obtain(PositionWaypoint::class.java) { PositionWaypoint() }.set(World.unconv(current.cameFrom!!.x.toFloat()), World.unconv(current.cameFrom!!.y.toFloat())))
-                current = current.cameFrom
-            }
+                while (current?.cameFrom != null) {
+                    points.add(PositionWaypoint(World.unconv(current.cameFrom!!.x.toFloat()), World.unconv(current.cameFrom!!.y.toFloat())))
+                    current = current.cameFrom
+                }
             //            System.out.println("Time taken = " + (System.currentTimeMillis() - startTime) + " ms");
             points.toTypedArray()
             //            System.out.println();
