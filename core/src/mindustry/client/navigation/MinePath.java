@@ -74,7 +74,10 @@ public class MinePath extends Path {
         if (lastItem != null && lastItem != item && core.items.get(lastItem) - core.items.get(item) < 100) item = lastItem; // Scuffed, don't switch mining until theres a 100 item difference, prevents constant switching of mine target
         lastItem = item;
 
-        if (core.items.get(item) >= core.storageCapacity || cap != 0 && core.items.get(item) > cap) Navigation.follow(new BuildPath(items, cap == 0 ? core.storageCapacity : cap)); // Start building when the core has over 1000 of everything.
+        if (core.items.get(item) >= core.storageCapacity || cap != 0 && core.items.get(item) > cap) {  // Auto switch to BuildPath when core is sufficiently full
+            player.sendMessage(Strings.format("[accent]Automatically switching to BuildPath as the core has @ items (this number can be changed in settings).", cap == 0 ? core.storageCapacity : cap));
+            Navigation.follow(new BuildPath(items, cap == 0 ? core.storageCapacity : cap));
+        }
 
         if (player.unit().maxAccepted(item) == 0) { // drop off
             if (player.within(core, itemTransferRange - tilesize * 10) && timer.get(30)) {

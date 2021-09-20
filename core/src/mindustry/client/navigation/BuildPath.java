@@ -101,7 +101,11 @@ public class BuildPath extends Path {
         if (timer.get(15)) {
             if (mineItems != null) {
                 Item item = mineItems.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
-                if (item != null && core.items.get(item) <= cap / 2) Navigation.follow(new MinePath(mineItems, cap));
+
+                if (item != null && core.items.get(item) <= cap / 2) { // Switch back to MinePath when core is low on items
+                    player.sendMessage("[accent]Automatically switching to back to MinePath as the core is low on items.");
+                    Navigation.follow(new MinePath(mineItems, cap));
+                }
             }
 
             if (timer.get(1, 300)) {

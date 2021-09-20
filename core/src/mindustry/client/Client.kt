@@ -356,7 +356,7 @@ object Client {
             }
         }
 
-        register("removelast [count]", "Horrible and inefficient command to remove the x oldest tile logs") { args, _ ->
+        register("removelast [count]", "Horrible and inefficient command to remove the x oldest tile logs") { args, _ -> // FINISHME: Bundle
             clientThread.taskQueue.post {
                 val count = if (args.isEmpty()) 1 else args[0].toInt()
                 lateinit var record: TileRecord
@@ -377,7 +377,7 @@ object Client {
             }
         }
 
-        register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, _ ->
+        register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, _ -> // FINISHME: Bundle
             val certname = args[0]
             val msg = args[1]
 
@@ -394,7 +394,7 @@ object Client {
             player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (previous) "off" else "on").lowercase()))
         }
 
-        register("stoppathing <name>", "Stop someone from pathfinding.") { args, _ ->
+        register("stoppathing <name>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
             val certname = args[0]
 
             connectTls(certname) { comms, _ ->
@@ -403,7 +403,7 @@ object Client {
         }
     }
 
-    fun connectTls(certname: String, onFinish: (Packets.CommunicationClient, X509Certificate) -> Unit) {
+    fun connectTls(certname: String, onFinish: (Packets.CommunicationClient, X509Certificate) -> Unit) { // FINISHME: Bundle
         val cert = Main.keyStorage.aliases().singleOrNull { it.second.equals(certname, true) }?.run { Main.keyStorage.findTrusted(BigInteger(first)) } ?: Main.keyStorage.trusted().singleOrNull { it.readableName.equals(certname, true) }
 
         cert ?: run {
