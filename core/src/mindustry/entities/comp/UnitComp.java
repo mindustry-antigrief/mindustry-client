@@ -370,6 +370,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
                     if (!pathfindingEntities.containsKey(weapon)) {
                         TurretPathfindingEntity ent = new TurretPathfindingEntity(Math.max(20f, weapon.bullet.range()), false); // Crawler range is 9.5, use a min of 20 to be safe
                         pathfindingEntities.put(weapon, ent);
+                        ent.targetGround = weapon.bullet.collidesGround;
                     }
                     TurretPathfindingEntity entity = pathfindingEntities.get(weapon);
                     if (hasEffect(StatusEffects.disarmed)) {

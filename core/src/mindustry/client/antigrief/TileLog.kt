@@ -1,6 +1,7 @@
 package mindustry.client.antigrief
 
 import arc.*
+import arc.math.geom.*
 import arc.scene.*
 import arc.scene.ui.layout.*
 import arc.util.*
@@ -14,18 +15,18 @@ import kotlin.math.*
 
 // FINISHME: Add rotate logs, why dont they exist yet anyways?
 // FINISHME: The string truncation is done in the most retarded way imagineable
-data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int) : Iterable<Point2i> {
-    private class IntRectIterator(val intrect: IntRectangle) : Iterator<Point2i> {
+data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int) : Iterable<Point2> {
+    private class IntRectIterator(val intrect: IntRectangle) : Iterator<Point2> {
         var index = 0
         override fun hasNext() = index < intrect.width * intrect.height
 
-        override fun next(): Point2i {
+        override fun next(): Point2 {
             val i = index++
-            return Point2i(intrect.x + (i % intrect.width), intrect.y - (i / intrect.width))
+            return Point2(intrect.x + (i % intrect.width), intrect.y - (i / intrect.width))
         }
     }
 
-    override fun iterator(): Iterator<Point2i> = IntRectIterator(this)
+    override fun iterator(): Iterator<Point2> = IntRectIterator(this)
 }
 
 var lastID: Long = 0

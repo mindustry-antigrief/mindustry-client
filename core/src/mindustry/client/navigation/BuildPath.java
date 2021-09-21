@@ -114,6 +114,7 @@ public class BuildPath extends Path {
                     blocked.clear();
                     synchronized (Navigation.obstacles) {
                         for (var turret : Navigation.obstacles) {
+                            if (!turret.canShoot || !turret.targetGround) continue;
                             int lowerXBound = (int)(turret.x - turret.radius) / tilesize;
                             int upperXBound = (int)(turret.x + turret.radius) / tilesize;
                             int lowerYBound = (int)(turret.y - turret.radius) / tilesize;
