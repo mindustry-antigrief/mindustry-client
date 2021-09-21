@@ -39,7 +39,7 @@ public class PlayerListFragment extends Fragment{
                     return;
                 }
 
-                if(visible && timer.get(5) && !Core.input.keyDown(KeyCode.mouseLeft) && !(Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof Image)){
+                if(visible && timer.get(5) && !Core.input.keyDown(KeyCode.mouseLeft) && !(Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof Image || Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof ImageButton)){
                     rebuild();
                     content.pack();
                     content.act(Core.graphics.getDeltaTime());

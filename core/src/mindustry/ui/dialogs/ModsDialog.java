@@ -106,7 +106,7 @@ public class ModsDialog extends BaseDialog{
         // Client mod updater
         Events.on(EventType.ClientLoadEvent.class, event -> {
             Fi updateTimeFile = settings.getDataDirectory().child("lastUpdate");
-            if (Core.settings.getInt("modautoupdate") != 0 && (!updateTimeFile.exists() || Time.timeSinceMillis(Long.parseLong(updateTimeFile.readString())) > Time.toHours)) {
+            if (Core.settings.getInt("modautoupdate") != 0 && (!updateTimeFile.exists() || Time.timeSinceMillis(Strings.parseLong(updateTimeFile.readString(), (long) Time.toHours + 1L)) > Time.toHours)) {
                 Log.debug("Checking for mod updates");
                 updateTimeFile.writeString(String.valueOf(Time.millis()));
                 var shuffled = mods.mods.copy();
