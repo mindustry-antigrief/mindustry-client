@@ -3,6 +3,7 @@ package mindustry.client.navigation
 import arc.math.geom.*
 import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
+import mindustry.client.utils.*
 import mindustry.game.*
 
 /** An abstract class for a navigation algorithm, i.e. A*.  */
@@ -50,7 +51,7 @@ abstract class Navigator {
                 )
             }
         }
-        val flood = ui.join.lastHost != null && (ui.join.lastHost.modeName ?: false) == "Flood"
+        val flood = flood()
         return findPath(
             start, end, realObstacles.toTypedArray(), world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->

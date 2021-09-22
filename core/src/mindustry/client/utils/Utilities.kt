@@ -9,6 +9,7 @@ import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
+import mindustry.*
 import mindustry.client.communication.*
 import mindustry.core.*
 import mindustry.ui.*
@@ -226,3 +227,12 @@ fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) {
         }
     }
 }
+
+/** Whether we are connected to a .io server */
+fun io() = Vars.net.client() && Vars.defaultServers.find{ it.name == "io" }?.addresses?.contains(Vars.ui.join.lastHost?.address) == true
+
+/** Whether the current gamemode is flood */
+fun flood() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Flood") || Vars.state.rules.modeName == "Flood"
+
+/** Whether the current gamemode is tower defense */
+fun defense() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Defense") || Vars.state.rules.modeName == "Defense"

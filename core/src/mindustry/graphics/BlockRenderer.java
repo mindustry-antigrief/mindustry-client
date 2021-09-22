@@ -13,7 +13,6 @@ import arc.util.*;
 import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
-import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -22,7 +21,6 @@ import mindustry.world.blocks.power.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
-import static mindustry.client.navigation.Navigation.*;
 
 public class BlockRenderer{
     public static final int crackRegions = 8, maxCrackSize = 9;
@@ -370,14 +368,14 @@ public class BlockRenderer{
         }
 
         var bounds = camera.bounds(Tmp.r3).grow(tilesize);
-        if (ClientVars.showingTurrets) {
-            Draw.z(Layer.space);
-            boolean units = settings.getBool("unitranges");
-            obstacles.forEach(t -> {
-                if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) return;
-                Drawf.dashCircle(t.x, t.y, t.radius - tilesize, t.canHitPlayer ? t.team.color : Team.derelict.color);
-            });
-        }
+//        if (ClientVars.showingTurrets) { FINISHME: Remove this lol
+//            Draw.z(Layer.space);
+//            boolean units = settings.getBool("unitranges");
+//            obstacles.forEach(t -> {
+//                if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) return;
+//                Drawf.dashCircle(t.x, t.y, t.radius - tilesize, t.canHitPlayer ? t.team.color : Team.derelict.color);
+//            });
+//        }
         if (ClientVars.showingOverdrives) {
             Draw.z(Layer.space);
             ClientVars.overdrives.forEach(b -> {

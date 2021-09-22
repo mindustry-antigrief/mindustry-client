@@ -14,6 +14,7 @@ import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
+import mindustry.client.utils.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -175,8 +176,7 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both, unreliable = true)
     public static void soundAt(Sound sound, float x, float y, float volume, float pitch){
         if(sound == null) return;
-        if(sound == Sounds.corexplode) ui.chatfrag.addMessage("prevented io earrape Volume: " + volume, "client", Color.red);
-        if(sound == Sounds.corexplode && ui.join.lastHost != null && (ui.join.lastHost.modeName == null || !ui.join.lastHost.modeName.equals("Defense"))) return;
+        if(sound == Sounds.corexplode && UtilitiesKt.io()) return;
 
         sound.at(x, y, pitch, Mathf.clamp(volume, 0, 4f));
     }

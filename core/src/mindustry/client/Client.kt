@@ -7,6 +7,7 @@ import arc.math.*
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
+import kotlinx.coroutines.*
 import mindustry.*
 import mindustry.Vars.*
 import mindustry.Vars.state
@@ -24,7 +25,9 @@ import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
 import mindustry.entities.units.*
+import mindustry.game.*
 import mindustry.gen.*
+import mindustry.graphics.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
@@ -99,6 +102,24 @@ object Client {
                 val target = pathfinder.getTargetTile(t, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
                 if (target != t) tiles.add(target)
                 Fx.healBlock.at(t.worldx(), t.worldy(), 1f, state.rules.waveTeam.color)
+            }
+        }
+
+        val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
+        if (showingTurrets) {
+            Draw.z(Layer.space)
+            val units = Core.settings.getBool("unitranges")
+            runBlocking {
+                for (t in obstacles) {
+                    if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
+                    launch {
+                        Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
+                    }
+                }
+                for (t in obstacles) {
+                    if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
+                    Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
+                }
             }
         }
     }

@@ -8,6 +8,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -63,7 +64,7 @@ public class ImpactReactor extends PowerGenerator{
     public void drawPlace(int x, int y, int rotation, boolean valid) {
         super.drawPlace(x, y, rotation, valid);
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, explosionRadius * tilesize, Color.coral);
-        if (ui.join.lastHost != null && ui.join.lastHost.modeName != null && ui.join.lastHost.modeName.equals("Flood")) {
+        if (UtilitiesKt.flood()) {
             Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, 10 * tilesize, Color.orange);
             indexer.eachBlock(null, x * tilesize + offset, y * tilesize + offset, 10 * tilesize, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
         }
@@ -71,7 +72,7 @@ public class ImpactReactor extends PowerGenerator{
 
     @Override
     public void drawRequestConfigTop(BuildPlan req, Eachable<BuildPlan> list){
-        if (ui.join.lastHost != null && ui.join.lastHost.modeName != null && ui.join.lastHost.modeName.equals("Flood")) {
+        if (UtilitiesKt.flood()) {
             Drawf.dashCircle(req.drawx(), req.drawy(), 10 * tilesize, Color.orange);
             indexer.eachBlock(null, req.drawx(), req.drawy(), 10 * tilesize, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
         }

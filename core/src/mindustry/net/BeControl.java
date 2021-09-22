@@ -196,9 +196,10 @@ public class BeControl{
             download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                 try{
                     Log.info(file.absolutePath());
+                    var javaExe = new Fi(OS.prop("java.home")).child("bin").child("java").absolutePath(); // Locates the java executable, needed for itch and steam installs
                     Runtime.getRuntime().exec(OS.isMac ?
-                        new String[]{"java", "-XstartOnFirstThread", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                        new String[]{"java", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
+                        new String[]{javaExe, "-XstartOnFirstThread", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
+                        new String[]{javaExe, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                     );
                     Core.app.exit();
                 }catch(IOException e){

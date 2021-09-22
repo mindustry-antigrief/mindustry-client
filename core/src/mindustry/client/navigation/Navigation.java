@@ -7,6 +7,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.navigation.waypoints.*;
+import mindustry.client.utils.*;
 import mindustry.core.*;
 
 import java.util.*;
@@ -93,7 +94,7 @@ public class Navigation {
         }
 
         state = NavigationState.FOLLOWING;
-        if (obstacles.isEmpty() && !Vars.state.hasSpawns() && ui.join.lastHost != null && (ui.join.lastHost.modeName == null || !ui.join.lastHost.modeName.equals("Flood"))) {
+        if (obstacles.isEmpty() && !Vars.state.hasSpawns() && !UtilitiesKt.flood() && player.unit().isFlying()) {
             follow(WaypointPath.with(new PositionWaypoint(
                 Mathf.clamp(drawX, 0, world.unitWidth()),
                 Mathf.clamp(drawY, 0, world.unitHeight()))));
