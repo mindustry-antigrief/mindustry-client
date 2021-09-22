@@ -80,6 +80,7 @@ object Client {
     }
 
     fun draw() {
+        // Spawn path
         if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
             for (i in 0 until spawner.spawns.size) {
                 if (i >= tiles.size) tiles.add(spawner.spawns[i])
@@ -104,6 +105,7 @@ object Client {
             }
         }
 
+        // Turret range
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
         if (showingTurrets) {
             Draw.z(Layer.space)
@@ -112,6 +114,11 @@ object Client {
                 if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
                 Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
             }
+        }
+
+        // Player controlled turret range
+        if (player.unit() is BlockUnitUnit) {
+            Drawf.dashCircle(player.x, player.y, player.unit().range(), player.team().color)
         }
     }
 

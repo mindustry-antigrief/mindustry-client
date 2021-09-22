@@ -403,7 +403,7 @@ project(":core"){
         if(localArc()) api arcModule(":extensions:packer")
 
         implementation group: 'com.beust', name: 'klaxon', version: '5.4'  // Yes, I'm aware arc has a json system, but I don't know how to use it.
-        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2'
+//        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2' Unused, removed to reduce jar size
 
         compileOnly files("../bouncycastle/bcprov-jdk15on.jar")
         compileOnly files("../bouncycastle/bcpkix-jdk15on.jar")
