@@ -31,6 +31,7 @@ import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
 import mindustry.world.*
+import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
@@ -117,7 +118,7 @@ object Client {
         }
 
         // Player controlled turret range
-        if (player.unit() is BlockUnitUnit) {
+        if ((player.unit() as? BlockUnitUnit)?.tile() is BaseTurret.BaseTurretBuild) {
             Drawf.dashCircle(player.x, player.y, player.unit().range(), player.team().color)
         }
     }
