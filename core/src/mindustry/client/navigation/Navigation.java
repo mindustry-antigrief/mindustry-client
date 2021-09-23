@@ -114,7 +114,8 @@ public class Navigation {
                     if (waypoints.size > 1) waypoints.remove(0);
                     if (waypoints.size > 1 && player.unit().isFlying()) waypoints.remove(0); // Ground units cant properly turn corners if we remove 2 waypoints.
                     if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
-                        follow(new WaypointPath<>(waypoints));
+                        if (currentlyFollowing instanceof WaypointPath p) p.set(waypoints);
+                        else follow(new WaypointPath<>(waypoints));
                         targetPos = new Vec2(drawX, drawY);
                         currentlyFollowing.setShow(true);
                     }

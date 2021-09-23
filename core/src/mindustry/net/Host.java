@@ -15,6 +15,7 @@ public class Host{
     public final Gamemode mode;
     public final @Nullable String modeName;
     public int ping, port = Vars.port;
+    public @Nullable String group;
 
     public Host(int ping, String name, String address, String mapname, int wave, int players, int version, String versionType, Gamemode mode, int playerLimit, String description, String modeName){
         this.ping = ping;

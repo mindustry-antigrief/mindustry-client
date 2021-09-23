@@ -10,8 +10,8 @@ import mindustry.graphics.*;
 
 /** A {@link Path} composed of {@link Waypoint} instances. */
 public class WaypointPath<T extends Waypoint> extends Path {
-    private final Seq<T> waypoints;
-    private final Seq<T> initial;
+    private Seq<T> waypoints;
+    private Seq<T> initial;
     private boolean show;
 
     public WaypointPath(Seq<T> waypoints) {
@@ -28,6 +28,12 @@ public class WaypointPath<T extends Waypoint> extends Path {
     @SafeVarargs
     public static <T extends Waypoint> WaypointPath<T> with(T... waypoints) {
         return new WaypointPath<>(waypoints);
+    }
+
+    public WaypointPath<T> set(Seq<T> waypoints) {
+        this.waypoints = waypoints;
+        this.initial = waypoints.copy();
+        return this;
     }
 
     @Override

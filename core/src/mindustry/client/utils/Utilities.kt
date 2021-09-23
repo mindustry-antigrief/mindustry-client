@@ -229,7 +229,7 @@ fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) {
 }
 
 /** Whether we are connected to a .io server */
-fun io() = Vars.net.client() && Vars.defaultServers.find{ it.name == "io" }?.addresses?.contains(Vars.ui.join.lastHost?.address) == true
+fun io() = Vars.net.client() && Vars.ui.join.commmunityHosts.contains { it.group == "io" && it.address == Vars.ui.join.lastHost?.address }
 
 /** Whether the current gamemode is flood */
 fun flood() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Flood") || Vars.state.rules.modeName == "Flood"
