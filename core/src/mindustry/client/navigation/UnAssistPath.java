@@ -117,6 +117,7 @@ public class UnAssistPath extends Path {
     @Override
     public void reset() {
         toUndo.clear();
+        toConfig.clear();
     }
 
     @Override

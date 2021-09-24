@@ -79,7 +79,7 @@ public class MinePath extends Path {
             Navigation.follow(new BuildPath(items, cap == 0 ? core.storageCapacity : cap));
         }
 
-        if (player.unit().maxAccepted(item) == 0) { // drop off
+        if (player.unit().maxAccepted(item) <= 1) { // drop off
             if (player.within(core, itemTransferRange - tilesize * 10) && timer.get(30)) {
                 Call.transferInventory(player, core);
             } else {
@@ -103,9 +103,7 @@ public class MinePath extends Path {
     }
 
     @Override
-    public void reset() {
-
-    }
+    public void reset() {}
 
     @Override
     public Position next() {

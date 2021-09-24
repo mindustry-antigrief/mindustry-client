@@ -3,6 +3,7 @@ package mindustry.client.navigation
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
+import arc.util.pooling.*
 import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.core.*
@@ -153,12 +154,11 @@ object AStarNavigator : Navigator() {
             //Trace back the path
             var current: Cell? = cell(endX, endY)
             while (current?.cameFrom != null) {
-                points.add(PositionWaypoint(World.unconv(current.cameFrom!!.x.toFloat()), World.unconv(current.cameFrom!!.y.toFloat())))
+                points.add(Pools.get(PositionWaypoint::class.java, { PositionWaypoint() }, 500).obtain().set(World.unconv(current.cameFrom!!.x.toFloat()), World.unconv(current.cameFrom!!.y.toFloat())))
                 current = current.cameFrom
             }
-            //            System.out.println("Time taken = " + (System.currentTimeMillis() - startTime) + " ms");
+            points.reverse()
             points.toTypedArray()
-            //            System.out.println();
         } else {
 //            System.out.println("Time taken = " + (System.currentTimeMillis() - startTime) + " ms, no path found");
             arrayOf()

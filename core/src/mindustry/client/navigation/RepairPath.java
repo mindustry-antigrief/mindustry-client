@@ -1,5 +1,6 @@
 package mindustry.client.navigation;
 
+import arc.math.*;
 import arc.math.geom.*;
 import arc.util.*;
 import mindustry.entities.*;
@@ -36,12 +37,11 @@ public class RepairPath extends Path {
 
     @Override
     public float progress() {
-        return Units.findDamagedTile(player.team(), player.x, player.y) == null ? 1 : 0;
+        return Mathf.num(Units.findDamagedTile(player.team(), player.x, player.y) == null);
     }
 
     @Override
-    public void reset() {
-    }
+    public void reset() {}
 
     @Override
     public Position next() {

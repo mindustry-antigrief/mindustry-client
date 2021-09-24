@@ -5,6 +5,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.pooling.*;
 import mindustry.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.client.utils.*;
@@ -55,10 +56,12 @@ public class Navigation {
     }
 
     public static void stopFollowing() {
-        if (currentlyFollowing != null) currentlyFollowing.onFinish();
+        var lastPath = currentlyFollowing;
+
         currentlyFollowing = null;
         state = NavigationState.NONE;
         targetPos = null;
+        if (lastPath != null) lastPath.onFinish();
     }
 
     public static boolean isFollowing() {
@@ -81,16 +84,16 @@ public class Navigation {
 //        Draw.color();
     }
 
-    public static void navigateTo(Position pos) {
-        if (pos == null) return; // Apparently this can happen somehow?
-        navigateTo(pos.getX(), pos.getY());
+    public static Path navigateTo(Position pos) {
+        if (pos == null) return null; // Apparently this can happen somehow?
+        return navigateTo(pos.getX(), pos.getY());
     }
 
-    public static void navigateTo(float drawX, float drawY) {
+    public static Path navigateTo(float drawX, float drawY) {
         if (Core.settings.getBool("assumeunstrict")) {
             NetClient.setPosition(Mathf.clamp(drawX, 0, world.unitWidth()), Mathf.clamp(drawY, 0, world.unitHeight())); // FINISHME: Detect whether or not the player is at their new destination, if not run with assumeunstrict off
             player.snapInterpolation();
-            return;
+            return null;
         }
 
         state = NavigationState.FOLLOWING;
@@ -100,28 +103,29 @@ public class Navigation {
                 Mathf.clamp(drawY, 0, world.unitHeight()))));
             currentlyFollowing.setShow(true);
             targetPos = new Vec2(drawX, drawY);
-            return;
+            return null;
         }
 
         targetPos = new Vec2(drawX, drawY);
         clientThread.taskQueue.post(() -> {
             synchronized (obstacles) {
                 waypoints = Seq.with(navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacles.toArray(new TurretPathfindingEntity[0])));
-                waypoints.reverse();
 
                 if (waypoints.any()) {
-                    while (waypoints.size > 1 && waypoints.min(wp -> wp.dst(player)) != waypoints.first()) waypoints.remove(0);
-                    if (waypoints.size > 1) waypoints.remove(0);
-                    if (waypoints.size > 1 && player.unit().isFlying()) waypoints.remove(0); // Ground units cant properly turn corners if we remove 2 waypoints.
+                    while (waypoints.size > 1 && waypoints.min(wp -> wp.dst(player)) != waypoints.first()) Pools.free(waypoints.remove(0));
+                    if (waypoints.size > 1) Pools.free(waypoints.remove(0));
+                    if (waypoints.size > 1 && player.unit().isFlying()) Pools.free(waypoints.remove(0)); // Ground units cant properly turn corners if we remove 2 waypoints.
                     if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
                         if (currentlyFollowing instanceof WaypointPath p) p.set(waypoints);
                         else follow(new WaypointPath<>(waypoints));
                         targetPos = new Vec2(drawX, drawY);
                         currentlyFollowing.setShow(true);
                     }
+                    Pools.freeAll(waypoints);
                 }
             }
         });
+        return currentlyFollowing;
     }
 
     public static void startRecording() {

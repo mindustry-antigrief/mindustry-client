@@ -312,7 +312,7 @@ public class UnitType extends UnlockableContent{
     @CallSuper
     @Override
     public void init(){
-        drawAllItems = Core.settings.getBool("drawallitems");
+        drawAllItems = Core.settings != null && Core.settings.getBool("drawallitems");
         if(constructor == null) throw new IllegalArgumentException("no constructor set up for unit '" + name + "'");
 
         Unit example = constructor.get();

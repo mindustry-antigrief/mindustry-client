@@ -17,8 +17,9 @@ public abstract class Path {
 
     public abstract boolean getShow();
 
-    public void addListener(Runnable listener) {
+    public <T extends Path> T addListener(Runnable listener) {
         listeners.add(listener);
+        return (T) this;
     }
 
     public abstract void follow();
@@ -26,7 +27,7 @@ public abstract class Path {
     public abstract float progress();
 
     public boolean isDone() {
-        boolean done = progress() >= 0.99;
+        boolean done = progress() >= 0.999f;
         if (done && repeat) {
             onFinish();
         }
