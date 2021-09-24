@@ -13,24 +13,17 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
 
-    init {
-        Events.on(EventType.DepositEvent::class.java) { deposit(it) }
-        Events.on(EventType.WithdrawEvent::class.java) { withdraw(it) }
-    }
-
-    override fun onFinish() {
-        Events.remove(EventType.DepositEvent::class.java) { deposit(it) }
-        Events.remove(EventType.WithdrawEvent::class.java) { withdraw(it) }
-    }
-
-    private fun deposit(it: EventType.DepositEvent) {
-        if (it.player != assisting) return
-        Call.transferInventory(player, it.tile)
-    }
-
-    private fun withdraw(it: EventType.WithdrawEvent) {
-        if (it.player != assisting) return
-        Call.requestItem(player, it.tile, it.item, it.amount)
+    companion object { // Events.remove is weird, so we just create the hooks once instead
+        init {
+            Events.on(EventType.DepositEvent::class.java) {
+                val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
+                if (it.player == assisting) Call.transferInventory(player, it.tile)
+            }
+            Events.on(EventType.WithdrawEvent::class.java) {
+                val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
+                if (it.player == assisting) Call.requestItem(player, it.tile, it.item, it.amount)
+            }
+        }
     }
 
     override fun reset() {}
