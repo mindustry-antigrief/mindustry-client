@@ -228,6 +228,10 @@ fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) {
     }
 }
 
+
+/** Whether we are connected to nydus */
+fun nydus() = Vars.net.client() && Vars.ui.join.lastHost.name.contains("nydus")
+
 /** Whether we are connected to a .io server */
 fun io() = Vars.net.client() && Vars.ui.join.commmunityHosts.contains { it.group == "io" && it.address == Vars.ui.join.lastHost?.address }
 

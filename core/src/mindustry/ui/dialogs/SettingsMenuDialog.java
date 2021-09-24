@@ -28,6 +28,7 @@ import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
+import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
@@ -349,6 +350,7 @@ public class SettingsMenuDialog extends Dialog{
         client.checkPref("disablemonofont", true); // Requires Restart
         client.checkPref("placementfragmentsearch", true);
         client.checkPref("drawwrecks", true);
+        client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
         client.checkPref("unitranges", false);
         client.checkPref("drawhitboxes", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);

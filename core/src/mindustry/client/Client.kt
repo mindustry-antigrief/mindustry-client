@@ -353,26 +353,25 @@ object Client {
                         }
                     }
                 }
-                var n = 0
-                do {
-                    val plans = IntSeq()
-                    var i = 0
-                    for (plan in Vars.player.team().data().blocks) {
-                        var isBlocked = false
-                        world.tile(plan.x.toInt(), plan.y.toInt()).getLinkedTilesAs(content.block(plan.block.toInt())) { t ->
-                            if (blocked.get(t.x.toInt(), t.y.toInt())) isBlocked = true
-                        }
-                        if (!isBlocked && !all) continue
-                        if (++i > 100) break
-
-                        plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
+                val plans = mutableListOf<Int>()
+                for (plan in Vars.player.team().data().blocks) {
+                    var isBlocked = false
+                    world.tile(plan.x.toInt(), plan.y.toInt()).getLinkedTilesAs(content.block(plan.block.toInt())) { t ->
+                        if (blocked.get(t.x.toInt(), t.y.toInt())) isBlocked = true
                     }
-                    n += plans.size
-                    if (confirmed) Call.deletePlans(player, plans.toArray())
-                } while (i > 100)
+                    if (!isBlocked && !all) continue
 
-                if (confirmed) player.sendMessage("[accent]Removed $n plans, ${Vars.player.team().data().blocks.size} remain")
-                else player.sendMessage("[accent]Found $n (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
+                    plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
+                }
+                val removedCount = plans.size
+                if (confirmed) {
+                    while (plans.any()) {
+                        val batch = plans.takeLast(100)
+                        plans.removeAll(batch)
+                        Call.deletePlans(player, batch.toIntArray())
+                    }
+                    player.sendMessage("[accent]Removed $removedCount plans, ${Vars.player.team().data().blocks.size} remain")
+                } else player.sendMessage("[accent]Found $removedCount (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
             }
         }
 

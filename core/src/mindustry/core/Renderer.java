@@ -287,8 +287,8 @@ public class Renderer implements ApplicationListener{
 
         Draw.draw(Layer.plans, overlays::drawBottom);
         Navigation.draw();
-        Draw.draw(Layer.overlayUI, Client.INSTANCE::draw);
         Draw.z(Layer.space);
+        Client.INSTANCE.draw();
         if(Core.settings.getBool("drawhitboxes")) {
             for (Unit u : Groups.unit) {
                 if (!Core.camera.bounds(Tmp.r1).overlaps(u.x() - u.hitSize()/2f, u.y() - u.hitSize()/2f, u.hitSize(), u.hitSize())) continue;

@@ -40,6 +40,7 @@ import static mindustry.Vars.*;
 public class UnitType extends UnlockableContent{
     public static final float shadowTX = -12, shadowTY = -13;
     private static final Vec2 legOffset = new Vec2();
+    public static boolean drawAllItems;
 
     /** If true, the unit is always at elevation 1. */
     public boolean flying;
@@ -87,6 +88,7 @@ public class UnitType extends UnlockableContent{
     public BlockFlag[] playerTargetFlags = {BlockFlag.core, null};
 
     public Color outlineColor = Pal.darkerMetal;
+    public Color accentCopy = Pal.accent.cpy();
     public int outlineRadius = 3;
     public boolean outlines = true;
 
@@ -310,6 +312,7 @@ public class UnitType extends UnlockableContent{
     @CallSuper
     @Override
     public void init(){
+        drawAllItems = Core.settings.getBool("drawallitems");
         if(constructor == null) throw new IllegalArgumentException("no constructor set up for unit '" + name + "'");
 
         Unit example = constructor.get();
@@ -662,11 +665,11 @@ public class UnitType extends UnlockableContent{
             unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY),
             (3f + Mathf.absin(Time.time, 5f, 1f)) * unit.itemTime);
 
-            if(unit.isLocal() && !renderer.pixelator.enabled()){
+            if((drawAllItems || unit.isLocal()) && !renderer.pixelator.enabled()){
                 Fonts.outline.draw(unit.stack.amount + "",
                 unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
                 unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY) - 3,
-                Pal.accent.cpy().a(alpha), 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
+                accentCopy.a(alpha), 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
                 );
             }
 
