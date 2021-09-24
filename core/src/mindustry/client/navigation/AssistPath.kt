@@ -5,12 +5,33 @@ import arc.math.geom.*
 import arc.struct.*
 import mindustry.Vars.*
 import mindustry.entities.units.*
+import mindustry.game.*
 import mindustry.gen.*
 
 class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
     constructor(assisting: Player?) : this(assisting, false)
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
+
+    init {
+        Events.on(EventType.DepositEvent::class.java) { deposit(it) }
+        Events.on(EventType.WithdrawEvent::class.java) { withdraw(it) }
+    }
+
+    override fun onFinish() {
+        Events.remove(EventType.DepositEvent::class.java) { deposit(it) }
+        Events.remove(EventType.WithdrawEvent::class.java) { withdraw(it) }
+    }
+
+    private fun deposit(it: EventType.DepositEvent) {
+        if (it.player != assisting) return
+        Call.transferInventory(player, it.tile)
+    }
+
+    private fun withdraw(it: EventType.WithdrawEvent) {
+        if (it.player != assisting) return
+        Call.requestItem(player, it.tile, it.item, it.amount)
+    }
 
     override fun reset() {}
 
@@ -49,7 +70,7 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
 
                 if (core != null && com.mineTile().drop() != null && player.unit().within(core, player.unit().type.range) && !player.unit().acceptsItem(com.mineTile().drop())) {
                     if (core.acceptStack(player.unit().stack.item, player.unit().stack.amount, player.unit()) > 0) {
-                        Call.transferItemTo(player.unit(), player.unit().stack.item, player.unit().stack.amount, player.unit().x, player.unit().y, core)
+                        Call.transferInventory(player, core)
 
                         player.unit().clearItem()
                     }
