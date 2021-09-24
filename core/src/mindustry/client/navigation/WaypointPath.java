@@ -56,12 +56,11 @@ public class WaypointPath<T extends Waypoint> extends Path {
         if (waypoints == null || waypoints.isEmpty()) return;
 
         while (waypoints.size > 1 && Core.settings.getBool("assumeunstrict")) waypoints.remove(0); // Only the last waypoint is needed when we are just teleporting there anyways.
-        Waypoint waypoint = waypoints.first();
-        waypoint.run();
-        if (waypoint.isDone()) {
-            waypoint.onFinish();
+        while (waypoints.size > 1 && waypoints.first().isDone()) {
+            waypoints.first().onFinish();
             waypoints.remove(0);
         }
+        waypoints.first().run();
     }
 
     @Override
@@ -88,16 +87,16 @@ public class WaypointPath<T extends Waypoint> extends Path {
     @Override
     public void draw() {
         if (show) {
-            Waypoint lastWaypoint = null;
+            Position lastWaypoint = null;
             for(Waypoint waypoint : waypoints){
-                if(waypoint instanceof Position){
+                if(waypoint instanceof Position wp){
                     if(lastWaypoint != null){
                         Draw.z(Layer.space);
                         Draw.color(Color.blue, 0.4f);
                         Lines.stroke(3f);
-                        Lines.line(((Position)lastWaypoint).getX(), ((Position)lastWaypoint).getY(), ((Position)waypoint).getX(), ((Position)waypoint).getY());
+                        Lines.line(lastWaypoint.getX(), lastWaypoint.getY(), wp.getX(), wp.getY());
                     }
-                    lastWaypoint = waypoint;
+                    lastWaypoint = wp;
                 }
                 waypoint.draw();
                 Draw.color();

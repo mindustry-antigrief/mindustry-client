@@ -31,6 +31,8 @@ class NTP {
                                 Duration.between(baseClock.instant(), time)
                                     .apply { Log.debug("Fetched time from NTP (clock was ${toMillis()} ms off)") })
                         )
+                    } catch (e: SocketTimeoutException) {
+                        Log.debug("NTP Timed out")
                     } catch (e: Exception) {
                         Log.debug("NTP error!\n" + e.stackTraceToString())
                     }

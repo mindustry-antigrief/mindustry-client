@@ -74,7 +74,11 @@ public class PositionWaypoint extends Waypoint implements Position {
     }
     @Override
     public void run() {
-        moveTo(this, distance, Navigation.currentlyFollowing instanceof WaypointPath ? 0 : 20);
+        run(Navigation.currentlyFollowing instanceof WaypointPath ? 0 : 20);
+    }
+
+    public void run(int smooth) {
+        moveTo(this, distance, smooth);
     }
 
     @Override
