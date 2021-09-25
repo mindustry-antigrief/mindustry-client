@@ -4,6 +4,7 @@ import arc.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.client.navigation.waypoints.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -17,6 +18,12 @@ public class MinePath extends Path {
     static Interval timer = new Interval();
     int cap = Core.settings.getInt("minepathcap");
     Item lastItem = null; // Last item mined
+    private static final WaypointPath<PositionWaypoint> waypoints = new WaypointPath<>();
+    private static final Vec2 v1 = new Vec2(), v2 = new Vec2(); // Temporary vectors
+
+    static {
+        waypoints.setShow(true);
+    }
 
     public MinePath() {
         items = player.team().data().mineItems;
@@ -84,7 +91,8 @@ public class MinePath extends Path {
                 Call.transferInventory(player, core);
             } else {
                 if (player.unit().type.canBoost) player.boosting = true;
-                waypoint.set(core.x, core.y, itemTransferRange - tilesize * 15, itemTransferRange - tilesize * 15).run();
+                if (clientThread.taskQueue.size() == 0 && !player.within(core, itemTransferRange - tilesize * 15))
+                    clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(core.x, core.y), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(core) > itemTransferRange - tilesize * 15)));
             }
 
         } else { // mine
@@ -93,8 +101,15 @@ public class MinePath extends Path {
             if (tile == null) return;
 
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 2); // FINISHME: Distance based on formation radius rather than just moving super close
-            waypoint.set(tile.getX(), tile.getY(), tilesize, tilesize).run();
+            if (clientThread.taskQueue.size() == 0 && !player.within(tile, tilesize * 3))
+                clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(tile.getX(), tile.getY()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(tile) > tilesize)));
         }
+        waypoints.follow();
+    }
+
+    @Override
+    public void draw() {
+        waypoints.draw();
     }
 
     @Override

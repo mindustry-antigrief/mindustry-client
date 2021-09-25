@@ -41,13 +41,13 @@ public class BuildPath extends Path {
         Blocks.conduit, Blocks.pulseConduit,
         Blocks.mechanicalDrill, Blocks.pneumaticDrill
     );
-    private static final WaypointPath<PositionWaypoint> dumb = new WaypointPath<>();
+    private static final WaypointPath<PositionWaypoint> waypoints = new WaypointPath<>();
     private BuildPlan req;
     private boolean valid;
     private static final Vec2 v1 = new Vec2(), v2 = new Vec2(); // Temporary vectors
 
     static {
-        dumb.setShow(true);
+        waypoints.setShow(true);
     }
 
     public BuildPath() {
@@ -254,12 +254,11 @@ public class BuildPath extends Path {
                 Formation formation = player.unit().formation;
                 float range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.radius();
-//                waypoint.set(req.getX(), req.getY(), 0, range).run();
                 if (clientThread.taskQueue.size() == 0) {
                     float finalRange = range;
-                    clientThread.taskQueue.post(() -> dumb.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(req) > finalRange)));
+                    clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(req) > finalRange)));
                 }
-                dumb.follow();
+                waypoints.follow();
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();
@@ -269,7 +268,7 @@ public class BuildPath extends Path {
 
     @Override
     public void draw() {
-        if (valid && player.unit().isBuilding()) dumb.draw();
+        if (valid && player.unit().isBuilding()) waypoints.draw();
     }
 
     @Override
