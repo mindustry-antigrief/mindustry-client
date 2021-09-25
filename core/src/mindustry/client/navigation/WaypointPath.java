@@ -56,7 +56,7 @@ public class WaypointPath<T extends Waypoint> extends Path {
         if (waypoints == null || waypoints.isEmpty()) return;
 
         while (waypoints.size > 1 && Core.settings.getBool("assumeunstrict")) waypoints.remove(0); // Only the last waypoint is needed when we are just teleporting there anyways.
-        while (waypoints.first().isDone()) {
+        while (waypoints.any() && waypoints.first().isDone()) {
             waypoints.first().onFinish();
             waypoints.remove(0);
         }
