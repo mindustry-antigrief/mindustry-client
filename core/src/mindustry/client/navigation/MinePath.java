@@ -81,7 +81,7 @@ public class MinePath extends Path {
         if (lastItem != null && lastItem != item && core.items.get(lastItem) - core.items.get(item) < 100) item = lastItem; // Scuffed, don't switch mining until theres a 100 item difference, prevents constant switching of mine target
         lastItem = item;
 
-        if (core.items.get(item) >= core.storageCapacity || cap != 0 && core.items.get(item) > cap) {  // Auto switch to BuildPath when core is sufficiently full
+        if (cap < core.storageCapacity && core.items.get(item) >= core.storageCapacity || cap != 0 && core.items.get(item) > cap) {  // Auto switch to BuildPath when core is sufficiently full
             player.sendMessage(Strings.format("[accent]Automatically switching to BuildPath as the core has @ items (this number can be changed in settings).", cap == 0 ? core.storageCapacity : cap));
             Navigation.follow(new BuildPath(items, cap == 0 ? core.storageCapacity : cap));
         }
@@ -100,9 +100,9 @@ public class MinePath extends Path {
             player.unit().mineTile = tile;
             if (tile == null) return;
 
-            player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 2); // FINISHME: Distance based on formation radius rather than just moving super close
+            player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 3); // FINISHME: Distance based on formation radius rather than just moving super close
             if (clientThread.taskQueue.size() == 0 && !player.within(tile, tilesize * 3))
-                clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(tile.getX(), tile.getY()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(tile) > tilesize)));
+                clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(tile.getX(), tile.getY()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(player) > tilesize)));
         }
         waypoints.follow();
     }
