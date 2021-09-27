@@ -4,7 +4,6 @@ import arc.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.navigation.waypoints.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -18,12 +17,6 @@ public class MinePath extends Path {
     static Interval timer = new Interval();
     int cap = Core.settings.getInt("minepathcap");
     Item lastItem = null; // Last item mined
-    private static final WaypointPath<PositionWaypoint> waypoints = new WaypointPath<>();
-    private static final Vec2 v1 = new Vec2(), v2 = new Vec2(); // Temporary vectors
-
-    static {
-        waypoints.setShow(true);
-    }
 
     public MinePath() {
         items = player.team().data().mineItems;

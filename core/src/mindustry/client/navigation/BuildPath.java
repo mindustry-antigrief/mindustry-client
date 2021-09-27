@@ -7,7 +7,6 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.formations.*;
 import mindustry.client.*;
-import mindustry.client.navigation.waypoints.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -41,14 +40,8 @@ public class BuildPath extends Path {
         Blocks.conduit, Blocks.pulseConduit,
         Blocks.mechanicalDrill, Blocks.pneumaticDrill
     );
-    private static final WaypointPath<PositionWaypoint> waypoints = new WaypointPath<>();
     private BuildPlan req;
     private boolean valid;
-    private static final Vec2 v1 = new Vec2(), v2 = new Vec2(); // Temporary vectors
-
-    static {
-        waypoints.setShow(true);
-    }
 
     public BuildPath() {
         this(null, 0);
