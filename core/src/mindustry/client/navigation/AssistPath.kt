@@ -42,14 +42,12 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
 
         val tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)
 
-        try {
-            player.shooting(assisting.unit().isShooting) // Match shoot state
-            player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()) // Match aim coordinates
+        player.shooting(assisting.unit().isShooting) // Match shoot state
+        player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()) // Match aim coordinates
 
-            if ((assisting.unit().isShooting && player.unit().type.rotateShooting)) { // Rotate to aim position if needed, otherwise face assisted player
-                player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY())
-            }
-        } catch (ignored: Exception) {}
+        if ((assisting.unit().isShooting && player.unit().type.rotateShooting)) { // Rotate to aim position if needed, otherwise face assisted player
+            player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY())
+        }
         waypoint.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y, tolerance, tolerance).run()
 
 
