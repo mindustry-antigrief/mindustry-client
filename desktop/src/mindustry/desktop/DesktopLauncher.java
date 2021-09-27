@@ -16,16 +16,19 @@ import arc.util.serialization.*;
 import com.codedisaster.steamworks.*;
 import mindustry.*;
 import mindustry.client.*;
-import mindustry.client.utils.UnpackJars;
+import mindustry.client.utils.*;
 import mindustry.core.*;
 import mindustry.desktop.steam.*;
+import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.net.Net.*;
 import mindustry.service.*;
 import mindustry.type.*;
+
 import java.io.*;
+
 import static mindustry.Vars.*;
 
 public class DesktopLauncher extends ClientLauncher{
@@ -44,8 +47,15 @@ public class DesktopLauncher extends ClientLauncher{
 
             Version.init();
             Vars.loadLogger();
+
+            Events.on(EventType.ClientLoadEvent.class, e -> {
+                if (Core.app.isDesktop()) {
+                    SDL.SDL_SetWindowTitle(((SdlApplication) Core.app).getWindow(), getWindowTitle());
+                }
+            });
+
             new SdlApplication(new DesktopLauncher(arg), new SdlConfig() {{
-                title = Strings.format("Mindustry (v@) | Foo's Client (@)", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
+                title = getWindowTitle();
                 maximized = true;
                 width = 900;
                 height = 700;
@@ -63,6 +73,16 @@ public class DesktopLauncher extends ClientLauncher{
         }catch(Throwable e){
             handleCrash(e);
         }
+    }
+
+    private static String getWindowTitle() {
+        var enabled = 0;
+        if (mods != null) {
+            for (var mod : mods.mods) {
+                if (mod.enabled()) enabled++;
+            }
+        }
+        return Strings.format("Mindustry (v@) | Foo's Client (@) | @/@ Mods Enabled", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, enabled, mods == null ? 0 : mods.mods.size);
     }
 
     @Override
