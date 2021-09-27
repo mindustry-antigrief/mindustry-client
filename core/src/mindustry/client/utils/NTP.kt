@@ -15,7 +15,7 @@ class NTP {
     /** A reference to a [Clock] that is synchronized every minute to an NTP pool. */
     val clock: AtomicReference<Clock> = AtomicReference(Clock.systemUTC())
 
-     init {
+    init {
         try {
             address = InetAddress.getByName("pool.ntp.org")
             timeClient.defaultTimeout = 5000 // For whatever reason, sometimes it just fails
@@ -31,6 +31,8 @@ class NTP {
                                 Duration.between(baseClock.instant(), time)
                                     .apply { Log.debug("Fetched time from NTP (clock was ${toMillis()} ms off)") })
                         )
+                    } catch (e: SocketTimeoutException) {
+                        Log.debug("NTP Timed out")
                     } catch (e: Exception) {
                         Log.debug("NTP error!\n" + e.stackTraceToString())
                     }
