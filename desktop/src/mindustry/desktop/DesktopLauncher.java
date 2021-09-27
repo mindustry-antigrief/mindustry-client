@@ -22,6 +22,7 @@ import mindustry.desktop.steam.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
+import mindustry.mod.*;
 import mindustry.net.*;
 import mindustry.net.Net.*;
 import mindustry.service.*;
@@ -54,6 +55,8 @@ public class DesktopLauncher extends ClientLauncher{
                 }
             });
 
+            Log.infoTag("AA Samples", "" + aaSamples[0]);
+
             new SdlApplication(new DesktopLauncher(arg), new SdlConfig() {{
                 title = getWindowTitle();
                 maximized = true;
@@ -76,9 +79,9 @@ public class DesktopLauncher extends ClientLauncher{
     }
 
     private static String getWindowTitle() {
-        var enabled = 0;
+        int enabled = 0;
         if (mods != null) {
-            for (var mod : mods.mods) {
+            for (Mods.LoadedMod mod : mods.mods) {
                 if (mod.enabled()) enabled++;
             }
         }
@@ -99,8 +102,8 @@ public class DesktopLauncher extends ClientLauncher{
                     DiscordRPC.connect(discordID);
                     Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::close));
                 }catch(NoDiscordClientException none){
-                    //don't log if no client is found
                     useDiscord = false;
+                    Log.debug("Not initializing Discord RPC - no discord instance open.");
                 }catch(Throwable t){
                     useDiscord = false;
                     Log.warn("Failed to initialize Discord RPC - you are likely using a JVM <16.");
@@ -371,8 +374,9 @@ public class DesktopLauncher extends ClientLauncher{
             presence.smallImageKey = "foo";
             presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
             presence.startTimestamp = beginTime/1000;
+//            presence.startTimestamp = Main.ntp.instant().getEpochSecond() - (long)state.tick/60; FINISHME: Use this instead of line above when 132 releases
             presence.label1 = "Client Github";
-            presence.url1 = "https://github.com/mindustry-antigrief/mindustry-client-v6";
+            presence.url1 = "https://github.com/mindustry-antigrief/mindustry-client";
             if (DiscordRPC.getStatus() == DiscordRPC.PipeStatus.connected) DiscordRPC.send(presence);
         }
 
