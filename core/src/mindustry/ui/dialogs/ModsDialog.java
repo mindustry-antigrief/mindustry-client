@@ -560,7 +560,6 @@ public class ModsDialog extends BaseDialog{
             }
             zip.delete();
             Core.app.post(() -> {
-
                 try{
                     setup();
                     ui.loadfrag.hide();
