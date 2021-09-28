@@ -40,6 +40,8 @@ public class BuildPath extends Path {
         Blocks.conduit, Blocks.pulseConduit,
         Blocks.mechanicalDrill, Blocks.pneumaticDrill
     );
+    private BuildPlan req;
+    private boolean valid;
 
     public BuildPath() {
         this(null, 0);
@@ -227,8 +229,6 @@ public class BuildPath extends Path {
             }
         }
 
-
-        BuildPlan req;
         while (activeVirus && !virus.isEmpty() && ClientVars.configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) { // Remove config from virus blocks if we arent hitting the config ratelimit
             req = sorted.clear().addAll(virus).max(plan -> plan.dst(player));
             virus.remove(req);
@@ -240,18 +240,28 @@ public class BuildPath extends Path {
 
         if (player.unit().isBuilding()) { // Approach request if building
             req = player.unit().buildPlan();
+            valid = validPlan(req);
 
-            if(validPlan(req)){
+            if(valid){
                 //move toward the request
                 Formation formation = player.unit().formation;
-                float range = buildingRange - player.unit().hitSize()/2 - 32; // Range - 4 tiles
+                float range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.radius();
-                waypoint.set(req.getX(), req.getY(), 0, range).run();
+                if (clientThread.taskQueue.size() == 0) {
+                    float finalRange = range;
+                    clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(req) > finalRange)));
+                }
+                waypoints.follow();
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();
             }
         }
+    }
+
+    @Override
+    public void draw() {
+        if (valid && player.unit().isBuilding()) waypoints.draw();
     }
 
     @Override

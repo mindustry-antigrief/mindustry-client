@@ -62,7 +62,7 @@ public class OverdriveProjector extends Block{
 
     @Override
     public void drawRequestConfigTop(BuildPlan req, Eachable<BuildPlan> list){
-        if (!settings.getBool("showdomes")) return;
+        if (!settings.getBool("showdomes") || !req.worldContext) return;
         Drawf.dashCircle(req.drawx(), req.drawy(), range, baseColor);
         indexer.eachBlock(player.team(), req.drawx(), req.drawy(), range, other -> other.block.canOverdrive, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
     }
