@@ -378,7 +378,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(player != null){ // FINISHME: Move all this client stuff into the ClientLogic class
             if (Core.settings.getBool("commandwarnings") && build instanceof CommandCenter.CommandBuild cmd && build.team == player.team()) {
-                if (commandWarning == null || timer.get(300)) {
+                if (commandWarning == null || !commandWarning.sender.equals(Strings.stripColors(player.name)) || timer.get(300)) {
                     commandWarning = ui.chatfrag.addMessage(bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), null);
                 } else {
                     commandWarning.message = bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized());

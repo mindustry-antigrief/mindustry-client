@@ -11,7 +11,9 @@ import static mindustry.Vars.*;
 
 public class PositionWaypoint extends Waypoint implements Position {
     private float drawX, drawY;
+    /** Waypoint is done when the player is this close to the waypoint */
     public float tolerance = 16f;
+    /** Stay this distance away from the waypoint */
     public float distance = 0f;
     Vec2 vec = new Vec2();
 
@@ -23,11 +25,14 @@ public class PositionWaypoint extends Waypoint implements Position {
         this.drawY = drawY;
     }
 
+    /** @param tolerance Waypoint is done when the player is this close to the waypoint */
     public PositionWaypoint(float drawX, float drawY, float tolerance) {
         this(drawX, drawY);
         this.tolerance = tolerance;
     }
 
+    /** @param tolerance Waypoint is done when the player is this close to the waypoint
+        @param distance Stay this distance away from the waypoint */
     public PositionWaypoint(float drawX, float drawY, float tolerance, float distance) {
         this(drawX, drawY);
         this.tolerance = tolerance;
@@ -38,6 +43,8 @@ public class PositionWaypoint extends Waypoint implements Position {
         return set(drawX, drawY, 16, 0);
     }
 
+    /** @param tolerance Waypoint is done when the player is this close to the waypoint
+        @param distance Stay this distance away from the waypoint */
     public PositionWaypoint set(float drawX, float drawY, float tolerance, float distance){
         this.drawX = drawX;
         this.drawY = drawY;

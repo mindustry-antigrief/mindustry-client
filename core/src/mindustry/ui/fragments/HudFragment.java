@@ -225,11 +225,11 @@ public class HudFragment extends Fragment{
 
             wavesMain.row();
 
-            // Power bar display
+            // Power bar + payload + status effects display
             wavesMain.table(Tex.wavepane, st -> {
                 PowerInfo.getBars(st);
                 st.row();
-                addInfoTable(st);
+                addInfoTable(st.fill());
             }).marginTop(6).growX();
 
             editorMain.name = "editor";
@@ -836,7 +836,9 @@ public class HudFragment extends Fragment{
         return table;
     }
 
+    /** Displays player payloads and status effects. */
     private void addInfoTable(Table table){
+        table.name = "infotable";
         table.left();
 
         var count = new float[]{-1};

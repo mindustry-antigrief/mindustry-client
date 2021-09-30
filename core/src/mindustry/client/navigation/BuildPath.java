@@ -247,11 +247,13 @@ public class BuildPath extends Path {
                 Formation formation = player.unit().formation;
                 float range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.radius();
-                if (clientThread.taskQueue.size() == 0) {
-                    float finalRange = range;
-                    clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(req) > finalRange)));
-                }
-                waypoints.follow();
+                if (Core.settings.getBool("pathnav")) { // Navigates on the client thread, this can cause frame drops so its optional
+                    if (clientThread.taskQueue.size() == 0) {
+                        float finalRange = range;
+                        clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(req) > finalRange)));
+                    }
+                    waypoints.follow();
+                } else waypoint.set(req.getX(), req.getY(), 0, range).run(0);
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();

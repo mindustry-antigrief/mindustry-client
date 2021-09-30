@@ -364,6 +364,7 @@ public class SettingsMenuDialog extends Dialog{
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
+        client.checkPref("pathnav", true);
         client.checkPref("nyduspadpatch", true);
         client.checkPref("hidebannedblocks", false);
         client.checkPref("allowjoinany", false);
@@ -835,7 +836,7 @@ public class SettingsMenuDialog extends Dialog{
 
         /** Since the update pref takes half a page and implementing all this in a non static manner is a pain, I'm leaving it here for now. */
         private void updatePref(){
-            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client");
+            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client-v7-builds");
             if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
             pref(new Setting("updateurl") {
                 boolean urlChanged;
