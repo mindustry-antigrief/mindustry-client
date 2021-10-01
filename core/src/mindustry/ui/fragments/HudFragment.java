@@ -229,7 +229,7 @@ public class HudFragment extends Fragment{
             wavesMain.table(Tex.wavepane, st -> {
                 PowerInfo.getBars(st);
                 st.row();
-                addInfoTable(st.fill());
+                addInfoTable(st.table().get());
             }).marginTop(6).growX();
 
             editorMain.name = "editor";
