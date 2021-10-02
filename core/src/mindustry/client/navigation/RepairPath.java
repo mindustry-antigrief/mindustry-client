@@ -13,6 +13,8 @@ public class RepairPath extends Path {
     Interval delay = new Interval();
     @Override
     public void init() {
+        super.init();
+
         addListener(() -> player.shooting(false));
     }
 

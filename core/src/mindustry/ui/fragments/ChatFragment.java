@@ -108,6 +108,9 @@ public class ChatFragment extends Table{
                 if ("!r ".equals(chatfield.getText())) {
                     chatfield.setText("!e " + ClientVars.lastCertName + " ");
                     chatfield.setCursorPosition(chatfield.getText().length());
+                } else if ("!b ".equals(chatfield.getText())) {
+                    chatfield.setText("!builder ");
+                    chatfield.setCursorPosition(chatfield.getText().length());
                 }
                 chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 2000 : maxTextLength); // Scuffed way to allow long js
             }
@@ -341,6 +344,7 @@ public class ChatFragment extends Table{
     }
 
     public void updateChat(){
+        chatfield.setMaxLength(history.get(historyPos).startsWith("!js ") ? 2000 : maxTextLength);
         chatfield.setText(mode.normalizedPrefix() + history.get(historyPos));
         updateCursor();
     }

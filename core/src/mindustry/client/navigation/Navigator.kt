@@ -31,14 +31,16 @@ abstract class Navigator {
         val additionalRadius =
             if (player.unit().formation == null) player.unit().hitSize / 2
             else player.unit().formation().pattern.radius() + player.unit().formation.pattern.spacing / 2
-        for (turret in obstacles) {
-            if (turret.canHitPlayer && turret.canShoot) realObstacles.add(
-                Circle(
-                    turret.x,
-                    turret.y,
-                    turret.radius + additionalRadius
+        if(state.map.name() != "The Maze") {
+            for (turret in obstacles) {
+                if (turret.canHitPlayer && turret.canShoot) realObstacles.add(
+                    Circle(
+                        turret.x,
+                        turret.y,
+                        turret.radius + additionalRadius
+                    )
                 )
-            )
+            }
         }
         if (state.hasSpawns()) { // FINISHME: These should really be weighed less than turrets...
             for (spawn in spawner.spawns) {

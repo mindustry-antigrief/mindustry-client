@@ -1,7 +1,6 @@
 package mindustry.client.utils
 
-import java.io.File
-import java.io.InputStream
+import java.io.*
 
 class UnpackJars {
     fun unpack() {
