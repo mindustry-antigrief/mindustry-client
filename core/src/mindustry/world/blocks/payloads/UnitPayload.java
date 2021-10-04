@@ -13,9 +13,7 @@ import mindustry.entities.EntityCollisions.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
-import mindustry.graphics.*;
-import mindustry.type.UnitType;
-import mindustry.ui.*;
+import mindustry.type.*;
 
 import static mindustry.Vars.*;
 

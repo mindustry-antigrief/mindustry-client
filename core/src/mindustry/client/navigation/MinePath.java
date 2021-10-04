@@ -31,7 +31,7 @@ public class MinePath extends Path {
         for (String arg : args.split("\\s")) {
             arg = arg.toLowerCase();
             boolean added = false;
-            for (Item item : content.items().select(indexer::hasOre)) {
+            for (Item item : content.items().select(indexer::hasOre)) { // FINISHME: Use items.toString()
                 if (item.name.toLowerCase().equals(arg) || item.localizedName.toLowerCase().equals(arg)) {
                     items.add(item);
                     itemString.append(item.localizedName).append(", ");
@@ -42,8 +42,11 @@ public class MinePath extends Path {
                 if (arg.equals("*") || arg.equals("all") || arg.equals("a")) {
                     items.addAll(content.items().select(indexer::hasOre)); // Add all items when the argument is "all" or similar
                     itemString.append("Everything, ");
-                } else if (Strings.canParsePositiveInt(arg)) cap = Strings.canParsePositiveInt(arg) ? Strings.parsePositiveInt(arg) : 0;
-                else player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
+                } else if (Strings.canParseInt(arg)) {
+                    cap = Strings.canParsePositiveInt(arg) ? Strings.parsePositiveInt(arg) : 0;
+                } else {
+                    player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
+                }
             }
         }
         if (items.isEmpty()) {

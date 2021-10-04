@@ -105,19 +105,21 @@ public class ModsDialog extends BaseDialog{
 
         // Client mod updater
         Events.on(EventType.ClientLoadEvent.class, event -> {
-            Fi updateTimeFile = settings.getDataDirectory().child("lastUpdate");
-            if (Core.settings.getInt("modautoupdate") != 0 && (!updateTimeFile.exists() || Time.timeSinceMillis(Strings.parseLong(updateTimeFile.readString(), (long) Time.toHours + 1L)) > Time.toHours)) {
-                Log.debug("Checking for mod updates");
-                updateTimeFile.writeString(String.valueOf(Time.millis()));
-                var shuffled = mods.mods.copy();
-                shuffled.shuffle();
-                for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
-                    if (mod.state != Mods.ModState.enabled || mod.getRepo() == null) continue;
-                    if (++expected >= 30) continue; // Only make up to 30 api requests
+            Time.run(60f, () -> {
+                Fi updateTimeFile = settings.getDataDirectory().child("lastUpdate");
+                if (Core.settings.getInt("modautoupdate") != 0 && (!updateTimeFile.exists() || Time.timeSinceMillis(Strings.parseLong(updateTimeFile.readString(), (long) Time.toHours + 1L)) > Time.toHours)) {
+                    Log.debug("Checking for mod updates");
+                    updateTimeFile.writeString(String.valueOf(Time.millis()));
+                    var shuffled = mods.mods.copy();
+                    shuffled.shuffle();
+                    for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
+                        if (mod.state != Mods.ModState.enabled || mod.getRepo() == null) continue;
+                        if (++expected >= 30) continue; // Only make up to 30 api requests
 
-                    githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
-                }
-            } else Log.debug("Not updating mods, they were updated too recently or auto update is disabled.");
+                        githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
+                    }
+                } else Log.debug("Not updating mods, they were updated too recently or auto update is disabled.");
+            });
         });
     }
 
