@@ -31,8 +31,10 @@ object TileRecords {
         }
 
         Events.on(EventType.ConfigEventBefore::class.java) {
-            forArea(it.tile.tile) { tile ->
-                addLog(tile, ConfigureTileLog(tile, it.player.toInteractor(), tile.block(), it.value))
+            if (!Vars.state.rules.editor) {
+                forArea(it.tile.tile) { tile ->
+                    addLog(tile, ConfigureTileLog(tile, it.player.toInteractor(), tile.block(), it.value))
+                }
             }
         }
 
