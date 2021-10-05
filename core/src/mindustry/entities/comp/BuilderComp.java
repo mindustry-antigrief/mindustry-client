@@ -236,6 +236,8 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
     }
 
     boolean activelyBuilding(){
+        if (!canBuild()) return false; // Foo's does weird things otherwise
+
         //not actively building when not near the build plan
         if(isBuilding()){
             if(!state.isEditor() && !within(buildPlan(), state.rules.infiniteResources ? Float.MAX_VALUE : buildingRange)){

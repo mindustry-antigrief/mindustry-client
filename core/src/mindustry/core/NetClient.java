@@ -618,7 +618,7 @@ public class NetClient implements ApplicationListener{
     void sync(){
         if(timer.get(0, playerSyncTime)){
             BuildPlan[] requests = null;
-            if(player.isBuilder()){
+            if(player.isBuilder() || player.unit().isBuilding()){
                 //limit to 10 to prevent buffer overflows
                 int usedRequests = Math.min(player.unit().plans().size, 10);
 
