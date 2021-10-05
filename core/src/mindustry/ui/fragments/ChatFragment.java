@@ -380,10 +380,6 @@ public class ChatFragment extends Table{
         return shown;
     }
 
-    public ChatMessage addMessage(String message, String sender, Color background){
-        return addMessage(message, sender, background, "");
-    }
-
     public ChatMessage addMessage(String message, String sender, Color background, String prefix){
         if(sender == null && message == null) return null;
         ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy(), prefix);
@@ -395,13 +391,17 @@ public class ChatFragment extends Table{
         return msg;
     }
 
-    public void doFade(float seconds){
-        fadetime += seconds/3; // Seconds/3 since this is scaled by 3 anyways fadetime -= Time.delta / 180f;
-        fadetime = Math.min(fadetime, messagesShown);
+    public ChatMessage addMessage(String message, String sender, Color background){
+        return addMessage(message, sender, background, "");
     }
 
     public ChatMessage addMessage(String message, String sender) {
         return addMessage(message, sender, null);
+    }
+
+    public void doFade(float seconds){
+        fadetime += seconds/3; // Seconds/3 since this is scaled by 3 anyways fadetime -= Time.delta / 180f;
+        fadetime = Math.min(fadetime, messagesShown);
     }
 
     public static class ChatMessage{

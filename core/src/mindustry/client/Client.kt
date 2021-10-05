@@ -282,9 +282,11 @@ object Client {
             clientThread.taskQueue.post {
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
                 val inProgress = !configs.isEmpty
+                val originalCount = PowerGraph.activeGraphs.select { it.team == player.team() }.size
                 var n = 0
                 val grids = mutableMapOf<Int, MutableSet<Int>>()
-                for (grid in PowerGraph.activeGraphs.filter { g -> g.team == player.team() }) {
+
+                for (grid in PowerGraph.activeGraphs.select { it.team == player.team() }) { // This is horrible but works somehow
                     for (nodeBuild in grid.all) {
                         val nodeBlock = nodeBuild.block as? PowerNode ?: continue
                         var links = nodeBuild.power.links.size
@@ -304,9 +306,9 @@ object Client {
                 }
                 if (confirmed) {
                     if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
-                    else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n))
+                    else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, originalCount - n))
                 } else {
-                    player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, PowerGraph.activeGraphs.size))
+                    player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, PowerGraph.activeGraphs.select { it.team == player.team() }))
                 }
             }
         }
