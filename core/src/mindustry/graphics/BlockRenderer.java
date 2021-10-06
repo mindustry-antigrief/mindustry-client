@@ -376,13 +376,6 @@ public class BlockRenderer{
 //                Drawf.dashCircle(t.x, t.y, t.radius - tilesize, t.canHitPlayer ? t.team.color : Team.derelict.color);
 //            });
 //        }
-        if (ClientVars.showingOverdrives) {
-            Draw.z(Layer.space);
-            ClientVars.overdrives.forEach(b -> {
-                float range = b.realRange();
-                if (b.team == player.team() && bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect();
-            });
-        }
 
         if (drawCursors) {
             Draw.z(Layer.space);

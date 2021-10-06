@@ -53,6 +53,8 @@ public class LExecutor{
     public IntSet linkIds = new IntSet();
     public Team team = Team.derelict;
 
+    public static boolean virusWarnings;
+
     public boolean initialized(){
         return instructions != null && vars != null && instructions.length > 0;
     }
@@ -464,7 +466,7 @@ public class LExecutor{
                             var conf = exec.obj(p5);
                             ai.plan.set(x, y, rot, block);
                             ai.plan.config = conf instanceof Content c ? c : conf instanceof Building b ? b : null;
-                            if (conf instanceof LogicBlock.LogicBuild) {
+                            if (virusWarnings && conf instanceof LogicBlock.LogicBuild) {
                                 LogicBlock.LogicBuild build = (LogicBlock.LogicBuild) exec.building(varThis);
                                 if (build != null && !build.isVirus) {
                                     ui.chatfrag.addMessage(Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", build.lastAccessed, build.tileX(), build.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name()), null, Color.scarlet.cpy().mul(.75f));

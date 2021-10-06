@@ -13,6 +13,7 @@ import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.gen.*
+import mindustry.logic.*
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
@@ -52,6 +53,7 @@ class ClientLogic {
             if (Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug // Set log level to debug if the setting is checked
             if (Core.settings.getBool("discordrpc")) Vars.platform.startDiscord()
             if (Core.settings.getBool("mobileui")) Vars.mobile = !Vars.mobile
+            if (Core.settings.getBool("viruswarnings")) LExecutor.virusWarnings = true;
 
             Autocomplete.autocompleters.add(BlockEmotes())
             Autocomplete.autocompleters.add(PlayerCompletion())

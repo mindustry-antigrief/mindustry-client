@@ -28,6 +28,7 @@ import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
+import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.*;
@@ -316,7 +317,7 @@ public class SettingsMenuDialog extends Dialog{
         client.sliderPref("slagsounddistance", 5, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
         client.checkPref("powersplitwarnings", true); // TODO: Add a minimum building requirement and a setting for it
-        client.checkPref("viruswarnings", true);
+        client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
         client.checkPref("commandwarnings", true);
         client.checkPref("removecorenukes", false);
 

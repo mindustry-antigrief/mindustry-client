@@ -121,6 +121,15 @@ object Client {
         if ((player.unit() as? BlockUnitUnit)?.tile() is BaseTurret.BaseTurretBuild) {
             Drawf.dashCircle(player.x, player.y, player.unit().range(), player.team().color)
         }
+
+        // Overdrive range
+        if (showingOverdrives) {
+            Draw.z(Layer.space)
+            overdrives.forEach { b ->
+                val range = b.realRange()
+                if (b.team === player.team() && bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect()
+            }
+        }
     }
 
     private fun registerCommands() {
