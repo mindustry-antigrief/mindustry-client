@@ -155,7 +155,7 @@ public class BuildPath extends Path {
 
             if(queues.contains(assist)) {
                 Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, unit -> {
-                    if(unit.canBuild() && player.unit() != null && unit != player.unit() && unit.isBuilding()) {
+                    if(player.unit() != null && unit != player.unit() && unit.isBuilding()) {
                         for (BuildPlan plan : unit.plans) {
                             assist.add(plan);
                         }

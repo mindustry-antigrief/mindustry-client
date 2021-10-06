@@ -197,7 +197,8 @@ public class BeControl{
                 try{
                     Log.info(file.absolutePath());
                     var javaExe = new Fi(OS.prop("java.home")).child("bin").child("java").absolutePath(); // Locates the java executable, needed for itch and steam installs
-                    javaExe = new Fi(javaExe).exists() ? javaExe : "java"; // Fallback to "java" command
+                    javaExe = new Fi(javaExe).exists() ? javaExe : Core.files.local("jre/bin/java").absolutePath(); // Fallback to packaged java
+                    javaExe = new Fi(javaExe).exists() ? javaExe : "java"; // Fallback to java command
                     Runtime.getRuntime().exec(OS.isMac ?
                         new String[]{javaExe, "-XstartOnFirstThread", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
                         new String[]{javaExe, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
