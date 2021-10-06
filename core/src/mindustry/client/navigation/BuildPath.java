@@ -16,6 +16,7 @@ import mindustry.net.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
+import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.storage.*;
@@ -27,8 +28,8 @@ import static mindustry.Vars.*;
 public class BuildPath extends Path {
     private boolean show, activeVirus;
     Interval timer = new Interval(2);
-    public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>(), drills = new Queue<>(), belts = new Queue<>();
-    public Seq<Queue<BuildPlan>> queues = new Seq<>(11);
+    public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>(), drills = new Queue<>(), belts = new Queue<>(), overdrives = new Queue<>();
+    public Seq<Queue<BuildPlan>> queues = new Seq<>();
     public Seq<BuildPlan> sorted = new Seq<>();
     private Seq<Item> mineItems;
     private int cap;
@@ -70,6 +71,7 @@ public class BuildPath extends Path {
                 case "drills", "mines", "mine", "drill", "d" -> queues.add(drills);
                 case "belts", "conveyors", "conduits", "pipes", "ducts", "tubes", "b" -> queues.add(belts);
                 case "upgrade", "upgrades", "u" -> queues.addAll(drills, belts);
+                case "overdrives", "od" -> queues.add(overdrives);
                 default -> {
                     if (Strings.canParsePositiveInt(arg)) radius = Strings.parsePositiveInt(arg);
                     else ui.chatfrag.addMessage(Core.bundle.format("client.path.builder.invalid", arg), null);
@@ -140,6 +142,7 @@ public class BuildPath extends Path {
             clearQueue(virus);
             clearQueue(drills);
             clearQueue(belts);
+            clearQueue(overdrives);
             for (BuildPlan plan : networkAssist) { // Don't clear network assist queue, instead remove finished plans
                 if (plan.isDone()) {
                     networkAssist.remove(plan);
@@ -161,6 +164,15 @@ public class BuildPath extends Path {
                         }
                     }
                 });
+            }
+            if(queues.contains(overdrives)) {
+                for (var overdrive : ClientVars.overdrives) {
+                    for (var other : ClientVars.overdrives) {
+                        if (((OverdriveProjector)overdrive.block).speedBoost > ((OverdriveProjector)other.block).speedBoost && Tmp.cr1.set(overdrive.x, overdrive.y, overdrive.realRange()).contains(Tmp.cr2.set(other.x, other.y, other.realRange()))) {
+                            overdrives.add(new BuildPlan(other.tileX(), other.tileY()));
+                        }
+                    }
+                }
             }
             if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus) || queues.contains(drills) || queues.contains(belts)) {
                 for (Tile tile : world.tiles) {
