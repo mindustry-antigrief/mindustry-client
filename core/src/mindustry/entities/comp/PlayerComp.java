@@ -248,7 +248,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     /** Somewhat scuffed way to persist buildplans when dying and swapping units. */
     public void persistPlans() { // FINISHME: Should this be disabled while running BuildPath?
         if (!persistPlans.isEmpty() || unit.plans.isEmpty()) return;
-        if (Navigation.currentlyFollowing instanceof BuildPath path) path.queues.each(path::clearQueue);
+        if (Navigation.currentlyFollowing instanceof BuildPath path) path.clearQueues();
         unit.plans.each(persistPlans::add);
     }
 

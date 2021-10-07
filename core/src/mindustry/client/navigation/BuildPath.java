@@ -91,12 +91,19 @@ public class BuildPath extends Path {
     @Override
     public boolean getShow() { return show; }
 
-    public void clearQueue(Queue<BuildPlan> queue) {
-        if (!queue.isEmpty() && queues.contains(queue) && queue != networkAssist) {
-            for (BuildPlan item : queue) {
-                player.unit().plans.remove(item);
+    public void clearQueues() {
+        for (var queue : queues) {
+            if (queue != networkAssist) {
+                for (BuildPlan item : queue) player.unit().plans.remove(item);
+                queue.clear();
+            } else {
+                for (var plan : queue) {
+                    if (plan.isDone()) {
+                        networkAssist.remove(plan);
+                        player.unit().plans.remove(plan);
+                    }
+                }
             }
-            queue.clear();
         }
     }
 
@@ -134,21 +141,8 @@ public class BuildPath extends Path {
                     }
                 });
             }
-            clearQueue(broken);
-            clearQueue(boulders);
-            clearQueue(assist);
-            clearQueue(unfinished);
-            clearQueue(cleanup);
-            clearQueue(virus);
-            clearQueue(drills);
-            clearQueue(belts);
-            clearQueue(overdrives);
-            for (BuildPlan plan : networkAssist) { // Don't clear network assist queue, instead remove finished plans
-                if (plan.isDone()) {
-                    networkAssist.remove(plan);
-                    player.unit().plans.remove(plan);
-                }
-            }
+
+            clearQueues();
 
             if(queues.contains(broken) && !player.unit().team.data().blocks.isEmpty()) {
                 for (Teams.BlockPlan block : player.unit().team.data().blocks) {
@@ -165,6 +159,7 @@ public class BuildPath extends Path {
                     }
                 });
             }
+
             if(queues.contains(overdrives)) {
                 for (var overdrive : ClientVars.overdrives) {
                     for (var other : ClientVars.overdrives) {
@@ -174,6 +169,7 @@ public class BuildPath extends Path {
                     }
                 }
             }
+
             if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus) || queues.contains(drills) || queues.contains(belts)) {
                 for (Tile tile : world.tiles) {
                     if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build && build.isVirus) { // Dont add configured processors
