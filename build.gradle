@@ -172,17 +172,17 @@ project(":desktop"){
     apply plugin: "java"
 
     dependencies{
-        compile project(":core")
+        implementation project(":core")
 
-        if(debugged()) compile project(":debug")
+        if(debugged()) implementation project(":debug")
 
-        compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-        compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+        implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
 
-        compile "com.github.Anuken:steamworks4j:$steamworksVersion"
+        implementation "com.github.Anuken:steamworks4j:$steamworksVersion"
 
-        compile arcModule("backends:backend-sdl")
-        compile 'com.github.MinnDevelopment:java-discord-rpc:v2.0.1'
+        implementation arcModule("backends:backend-sdl")
+        implementation 'com.github.MinnDevelopment:java-discord-rpc:v2.0.1'
     }
 }
 
@@ -208,15 +208,15 @@ project(":ios"){
     }
 
     dependencies{
-        compile project(":core")
+        implementation project(":core")
         compileOnly project(":annotations")
 
-        compile arcModule("backends:backend-robovm")
+        implementation arcModule("backends:backend-robovm")
 
-        compile "com.mobidevelop.robovm:robovm-rt:$roboVMVersion"
-        compile "com.mobidevelop.robovm:robovm-cocoatouch:$roboVMVersion"
-        compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
-        compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-ios"
+        implementation "com.mobidevelop.robovm:robovm-rt:$roboVMVersion"
+        implementation "com.mobidevelop.robovm:robovm-cocoatouch:$roboVMVersion"
+        implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
+        implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-ios"
     }
 }
 
@@ -275,17 +275,17 @@ project(":core"){
         compileJava.dependsOn(preGen)
         compileKotlin.dependsOn(preGen)
 
-        compile "org.lz4:lz4-java:1.4.1"
-        compile arcModule("arc-core")
-        compile arcModule("extensions:freetype")
-        compile arcModule("extensions:arcnet")
-        compile "org.mozilla:rhino:1.7.11"
-        if(localArc() && debugged()) compile arcModule("extensions:recorder")
+        implementation "org.lz4:lz4-java:1.4.1"
+        implementation arcModule("arc-core")
+        implementation arcModule("extensions:freetype")
+        implementation arcModule("extensions:arcnet")
+        implementation "org.mozilla:rhino:1.7.11"
+        if(localArc() && debugged()) implementation arcModule("extensions:recorder")
 
         compileOnly project(":annotations")
         annotationProcessor project(":annotations")
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-        compile 'org.whispersystems:curve25519-android:0.5.0'
+        implementation 'org.whispersystems:curve25519-android:0.5.0'
     }
 }
 
@@ -293,8 +293,8 @@ project(":server"){
     apply plugin: "java"
 
     dependencies{
-        compile project(":core")
-        compile arcModule("backends:backend-headless")
+        implementation project(":core")
+        implementation arcModule("backends:backend-headless")
     }
 }
 
@@ -306,7 +306,7 @@ project(":tests"){
         testImplementation "org.junit.jupiter:junit-jupiter-params:5.3.1"
         testImplementation "org.junit.jupiter:junit-jupiter-api:5.3.1"
         testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.3.1"
-        compile arcModule("backends:backend-headless")
+        implementation arcModule("backends:backend-headless")
     }
 
     test{
@@ -319,13 +319,13 @@ project(":tools"){
     apply plugin: "java"
 
     dependencies{
-        compile project(":core")
+        implementation project(":core")
 
-        compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-        compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
-        compile "org.reflections:reflections:0.9.12"
+        implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+        implementation "org.reflections:reflections:0.9.12"
 
-        compile arcModule("backends:backend-sdl")
+        implementation arcModule("backends:backend-sdl")
     }
 }
 
@@ -333,9 +333,9 @@ project(":annotations"){
     apply plugin: "java"
 
     dependencies{
-        compile 'com.squareup:javapoet:1.12.1'
-        compile "com.github.Anuken.Arc:arc-core:$arcHash"
-        compile files("${System.getProperty('java.home')}/../lib/tools.jar")
+        implementation 'com.squareup:javapoet:1.12.1'
+        implementation "com.github.Anuken.Arc:arc-core:$arcHash"
+        implementation files("${System.getProperty('java.home')}/../lib/tools.jar")
     }
 }
 
