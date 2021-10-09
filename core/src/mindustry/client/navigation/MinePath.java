@@ -13,7 +13,6 @@ import static mindustry.Vars.*;
 
 public class MinePath extends Path {
     Seq<Item> items = new Seq<>(16);
-    StringBuilder itemString = new StringBuilder();
     static Interval timer = new Interval();
     int cap = Core.settings.getInt("minepathcap");
     Item lastItem = null; // Last item mined
@@ -31,19 +30,17 @@ public class MinePath extends Path {
         for (String arg : args.split("\\s")) {
             arg = arg.toLowerCase();
             boolean added = false;
-            for (Item item : content.items().select(indexer::hasOre)) { // FINISHME: Use items.toString()
+            for (Item item : content.items().select(indexer::hasOre)) {
                 if (item.name.toLowerCase().equals(arg) || item.localizedName.toLowerCase().equals(arg)) {
                     items.add(item);
-                    itemString.append(item.localizedName).append(", ");
                     added = true;
                 }
             }
             if (!added) { // Item not matched
                 if (arg.equals("*") || arg.equals("all") || arg.equals("a")) {
                     items.addAll(content.items().select(indexer::hasOre)); // Add all items when the argument is "all" or similar
-                    itemString.append("Everything, ");
-                } else if (Strings.canParseInt(arg)) {
-                    cap = Strings.canParsePositiveInt(arg) ? Strings.parsePositiveInt(arg) : 0;
+                } else if (Strings.parseInt(arg) >= 0) {
+                    cap = Strings.parseInt(arg);
                 } else {
                     player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
                 }
@@ -53,7 +50,7 @@ public class MinePath extends Path {
             if (cap == Core.settings.getInt("minepathcap")) player.sendMessage(Core.bundle.get("client.path.miner.allinvalid"));
             items = player.team().data().mineItems;
         } else {
-            player.sendMessage(Core.bundle.format("client.path.miner.mining", itemString.substring(0, itemString.length() - 2), cap == 0 ? "infinite" : cap)); // FINISHME: Terrible
+            player.sendMessage(Core.bundle.format("client.path.miner.mining", items.toString(", "), cap == 0 ? "infinite" : cap));
         }
     }
 

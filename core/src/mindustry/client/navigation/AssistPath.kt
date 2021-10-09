@@ -50,7 +50,7 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
             player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY())
         }
 
-        if (v2.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y).dst(player) > tolerance + tilesize * 5) {
+        if (Core.settings.getBool("pathnav") && v2.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y).dst(player) > tolerance + tilesize * 5) {
             if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post { waypoints.set(Seq.with(*Navigation.navigator.navigate(v1.set(player.x, player.y), v2, Navigation.obstacles.toTypedArray()))) }
             waypoints.follow()
         } else {
