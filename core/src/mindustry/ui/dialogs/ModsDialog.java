@@ -579,9 +579,12 @@ public class ModsDialog extends BaseDialog{
                 if (Core.settings.getInt("modautoupdate") == 2) {
                     try{
                         Fi file = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                        var javaExe = new Fi(OS.prop("java.home")).child("bin").child("java").absolutePath(); // Locates the java executable, needed for itch and steam installs
+                        javaExe = new Fi(javaExe).exists() ? javaExe : Core.files.local("jre/bin/java").absolutePath(); // Fallback to packaged java
+                        javaExe = new Fi(javaExe).exists() ? javaExe : "java"; // Fallback to java command
                         Runtime.getRuntime().exec(OS.isMac ?
-                            new String[]{"java", "-XstartOnFirstThread", "-jar", file.absolutePath()} :
-                            new String[]{"java", "-jar", file.absolutePath()}
+                            new String[]{javaExe, "-XstartOnFirstThread", "-jar", file.absolutePath()} :
+                            new String[]{javaExe, "-jar", file.absolutePath()}
                         );
                         Core.app.exit();
                     }catch(IOException | URISyntaxException e){
