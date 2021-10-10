@@ -197,6 +197,7 @@ public class NetClient implements ApplicationListener{
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, String sender, Player playersender){
         Color background = null;
+        String original = message;
         if(Vars.ui != null){
             if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
                 if (sender != null){
@@ -217,7 +218,7 @@ public class NetClient implements ApplicationListener{
             playersender.textFadeTime(1f);
         }
 
-        Events.fire(new PlayerChatEventClient(playersender, message));
+        Events.fire(new PlayerChatEventClient(playersender, original));
     }
 
     //equivalent to above method but there's no sender and no console log
@@ -225,6 +226,7 @@ public class NetClient implements ApplicationListener{
     public static void sendMessage(String message){
         if(Vars.ui != null){
             Log.info(message);
+            Log.debug("Tell the owner of this server to send messages properly");
             message = processCoords(message);
             Vars.ui.chatfrag.addMessage(message, null);
         }
