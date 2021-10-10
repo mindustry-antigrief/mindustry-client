@@ -62,7 +62,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                         }
                     }
                 }
-                SUser
+
                 while((length = snet.isP2PPacketAvailable(0)) != 0){
                     try{
                         readBuffer.position(0).limit(readBuffer.capacity());
