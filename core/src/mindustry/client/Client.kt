@@ -317,7 +317,7 @@ object Client {
                     if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
                     else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, originalCount - n))
                 } else {
-                    player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, PowerGraph.activeGraphs.select { it.team == player.team() }))
+                    player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, originalCount))
                 }
             }
         }
