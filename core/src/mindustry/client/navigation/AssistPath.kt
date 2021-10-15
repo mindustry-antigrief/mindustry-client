@@ -36,24 +36,21 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
     override fun getShow() = show
 
     override fun follow() {
-        assisting?.unit() ?: return
         if (player?.dead() != false) return
+        assisting?.unit() ?: return // We don't care if they are dead
 
-        tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)
+        tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) // FINISHME: Factor in formations
 
         player.shooting(assisting.unit().isShooting) // Match shoot state
         player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()) // Match aim coordinates
 
-        if (assisting.unit().isShooting && player.unit().type.rotateShooting) { // Rotate to aim position if needed, otherwise face assisted player
+        if (assisting.unit().isShooting && player.unit().type.rotateShooting) // Rotate to aim position if needed, otherwise face assisted player
             player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY())
-        }
 
         if (Core.settings.getBool("pathnav") && v2.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y).dst(player) > tolerance + tilesize * 5) {
             if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post { waypoints.set(Seq.with(*Navigation.navigator.navigate(v1.set(player.x, player.y), v2, Navigation.obstacles.toTypedArray()))) }
             waypoints.follow()
-        } else {
-            waypoint.set(v2.x, v2.y, tolerance, tolerance).run()
-        }
+        } else waypoint.set(v2.x, v2.y, tolerance, tolerance).run()
 
         if (player.unit() is Minerc && assisting.unit() is Minerc) { // Code stolen from formationAi.java, matches player mine state to assisting
             val mine = player.unit() as Minerc

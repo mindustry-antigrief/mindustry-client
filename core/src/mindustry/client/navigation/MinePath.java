@@ -84,8 +84,8 @@ public class MinePath extends Path {
                 Call.transferInventory(player, core);
             } else {
                 if (player.unit().type.canBoost) player.boosting = true;
-                if (Core.settings.getBool("pathnav") && clientThread.taskQueue.size() == 0 && !player.within(core, itemTransferRange - tilesize * 15)) {
-                    clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(core.x, core.y), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(core) > itemTransferRange - tilesize * 15)));
+                if (Core.settings.getBool("pathnav") && !player.within(core, itemTransferRange - tilesize * 15)) {
+                    if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(core.x, core.y), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(core) > itemTransferRange - tilesize * 15)));
                     waypoints.follow();
                 } else waypoint.set(core.x, core.y, itemTransferRange - tilesize * 15, itemTransferRange - tilesize * 15).run();
             }
@@ -96,8 +96,8 @@ public class MinePath extends Path {
             if (tile == null) return;
 
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 2); // FINISHME: Distance based on formation radius rather than just moving super close
-            if (Core.settings.getBool("pathnav") && clientThread.taskQueue.size() == 0 && !player.within(tile, tilesize * 3)) {
-                clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(tile.getX(), tile.getY()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(player) > tilesize)));
+            if (Core.settings.getBool("pathnav") && !player.within(tile, tilesize * 3)) {
+                if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(tile.getX(), tile.getY()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(player) > tilesize)));
                 waypoints.follow();
             } else waypoint.set(tile.getX(), tile.getY(), tilesize, tilesize).run();
         }

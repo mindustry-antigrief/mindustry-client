@@ -43,6 +43,7 @@ public class BuildPath extends Path {
     );
     private BuildPlan req;
     private boolean valid;
+    private float range;
 
     public BuildPath() {
         this(null, 0);
@@ -254,13 +255,10 @@ public class BuildPath extends Path {
             if(valid){
                 //move toward the request
                 Formation formation = player.unit().formation;
-                float range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
-                if (formation != null) range -= formation.pattern.radius();
+                range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
+                if (formation != null) range -= formation.pattern.radius(); // Account for the player formation
                 if (Core.settings.getBool("pathnav")) { // Navigates on the client thread, this can cause frame drops so its optional
-                    if (clientThread.taskQueue.size() == 0) {
-                        float finalRange = range;
-                        clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(req) > finalRange)));
-                    }
+                    if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(req) > range)));
                     waypoints.follow();
                 } else waypoint.set(req.getX(), req.getY(), 0, range).run(0);
             }else{

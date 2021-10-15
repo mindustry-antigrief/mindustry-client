@@ -43,7 +43,7 @@ public class Navigation {
     public static void update() {
         if (timer.get(600)) obstacles.clear(); // Refresh all obstacles every 600s since sometimes they don't get removed properly for whatever reason FINISHME: Check if this happens because it still runs update even when dead, if so just the removal of the obstacle
 
-        if (targetPos != null && clientThread.taskQueue.size() == 0) { // must be navigating, FINISHME: dejank
+        if (targetPos != null && clientThread.taskQueue.size() == 0) { // Must be navigating FINISHME: dejank
             navigateTo(targetPos);
         }
 
