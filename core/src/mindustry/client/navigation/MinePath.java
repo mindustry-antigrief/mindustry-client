@@ -94,7 +94,7 @@ public class MinePath extends Path {
             player.unit().mineTile = tile;
             if (tile == null) return;
 
-            player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 3); // FINISHME: Distance based on formation radius rather than just moving super close
+            player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 2); // FINISHME: Distance based on formation radius rather than just moving super close
             if (Core.settings.getBool("pathnav") && clientThread.taskQueue.size() == 0 && !player.within(tile, tilesize * 3))
                 clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(tile.getX(), tile.getY()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(player) > tilesize)));
             else waypoint.set(tile.getX(), tile.getY(), tilesize, tilesize);
