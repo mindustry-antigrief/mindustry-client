@@ -40,13 +40,14 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
         player ?: return
         assisting.unit() ?: return
         player.unit() ?: return
+        player.unit().type ?: return // Type is nullable apparently
 
         tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)
 
         player.shooting(assisting.unit().isShooting) // Match shoot state
         player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()) // Match aim coordinates
 
-        if ((assisting.unit().isShooting && player.unit().type?.rotateShooting == true)) { // Rotate to aim position if needed, otherwise face assisted player
+        if ((assisting.unit().isShooting && player.unit().type.rotateShooting)) { // Rotate to aim position if needed, otherwise face assisted player
             player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY())
         }
 
