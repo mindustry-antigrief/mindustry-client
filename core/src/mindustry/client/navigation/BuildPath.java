@@ -93,6 +93,7 @@ public class BuildPath extends Path {
 
     public void clearQueues() {
         for (var queue : queues) {
+            if(queue == player.unit().plans) continue; // Don't clear our own buildplans lol
             if (queue != networkAssist) {
                 for (BuildPlan item : queue) player.unit().plans.remove(item);
                 queue.clear();
