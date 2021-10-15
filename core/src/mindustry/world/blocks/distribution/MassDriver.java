@@ -72,7 +72,7 @@ public class MassDriver extends Block{
         super.drawPlace(x, y, rotation, valid);
 
         Drawf.dashCircle(x * tilesize, y * tilesize, range, Pal.accent);
-        indexer.eachBlock(player.team(), x * tilesize + offset, y * tilesize + offset, range, other -> other.block == this, other -> Drawf.selected(other, Tmp.c1.set(Pal.accent).a(Mathf.absin(4f, 1f))));
+        indexer.eachBlock(player.team(), x * tilesize + offset, y * tilesize + offset, range, other -> other.block == this && other.dst(x * tilesize + offset, y * tilesize + offset) <= range, other -> Drawf.selected(other, Tmp.c1.set(Pal.accent).a(Mathf.absin(4f, 1f))));
 
         //check if a mass driver is selected while placing this driver
         if(!control.input.frag.config.isShown()) return;
@@ -234,7 +234,7 @@ public class MassDriver extends Block{
             Draw.color(Pal.accent);
             Lines.stroke(1f);
             Drawf.circles(x, y, (tile.block().size / 2f + 1) * tilesize + sin - 2f, Pal.accent);
-            if(!linkValid()) indexer.eachBlock(player.team(), x, y, range, other -> other.block == block && other != this, other -> Drawf.selected(other, Tmp.c1.set(Pal.accent).a(Mathf.absin(4f, 1f))));
+            if(!linkValid()) indexer.eachBlock(player.team(), x, y, range, other -> other.block == block && other != this && other.dst(tile) <= range, other -> Drawf.selected(other, Tmp.c1.set(Pal.accent).a(Mathf.absin(4f, 1f))));
 
             for(var shooter : waitingShooters){
                 Drawf.circles(shooter.x, shooter.y, (tile.block().size / 2f + 1) * tilesize + sin - 2f, Pal.place);
