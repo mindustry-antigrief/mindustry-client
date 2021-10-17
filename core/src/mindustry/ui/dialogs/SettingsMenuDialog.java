@@ -21,7 +21,6 @@ import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
-import mindustry.core.GameState.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -40,7 +39,7 @@ import java.util.zip.*;
 import static arc.Core.*;
 import static mindustry.Vars.*;
 
-public class SettingsMenuDialog extends Dialog{
+public class SettingsMenuDialog extends BaseDialog{
     /** Mods break if these are changed to BetterSettingsTable so instead we cast them into different vars and just use those. */
     public SettingsTable graphics, sound, game, main, client, moderation;
 
@@ -54,41 +53,23 @@ public class SettingsMenuDialog extends Dialog{
         addCloseButton();
 
         cont.add(main = new SettingsTable());
+        shouldPause = true;
 
-        hidden(() -> {
-            Sounds.back.play();
-            if(state.isGame()){
-                if(!wasPaused || Vars.net.active())
-                    state.set(State.playing);
-            }
-            ConstructBlock.updateWarnBlocks(); // FINISHME: Horrible
-        });
+        hidden(() -> ConstructBlock.updateWarnBlocks()); // FINISHME: Horrible
 
         shown(() -> {
             back();
-            if(state.isGame()){
-                wasPaused = state.is(State.paused);
-                state.set(State.paused);
-            }
-
             rebuildMenu();
         });
 
-        Events.on(ResizeEvent.class, event -> {
-            if(isShown() && Core.scene.getDialog() == this){
-                graphics.rebuild();
-                sound.rebuild();
-                game.rebuild();
-                client.rebuild();
-                moderation.rebuild();
-                updateScrollFocus();
-            }
+        onResize(() -> {
+            graphics.rebuild();
+            sound.rebuild();
+            game.rebuild();
+            client.rebuild();
+            moderation.rebuild();
+            updateScrollFocus();
         });
-
-        setFillParent(true);
-        title.setAlignment(Align.center);
-        titleTable.row();
-        titleTable.add(new Image()).growX().height(3f).pad(4f).get().setColor(Pal.accent);
 
         cont.clearChildren();
         cont.remove();

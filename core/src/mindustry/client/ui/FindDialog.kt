@@ -49,11 +49,11 @@ object FindDialog : BaseDialog("@find") {
                 val block = guesses[0]
                 val closest = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) { t -> t.block == block }
                 if (closest == null) {
-                    Vars.ui.chatfrag.addMessage("No ${block.localizedName} was found", "client", ClientVars.user)
+                    Vars.ui.chatfrag.addMessage("No ${block.localizedName} was found", ClientVars.user)
                 } else {
                     ClientVars.lastSentPos.set(closest.x / tilesize, closest.y / tilesize)
                     // FINISHME: Make the line below use toasts similar to UnitPicker.java
-                    Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", "client", ClientVars.user)
+                    Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", ClientVars.user)
                 }
                 Core.app.post(this::hide)
             }

@@ -37,6 +37,7 @@ public class MendProjector extends Block{
         hasItems = true;
         emitLight = true;
         lightRadius = 50f;
+        envEnabled |= Env.space;
     }
 
     @Override

@@ -41,7 +41,7 @@ public class Vars implements Loadable{
     public static boolean loadLocales = true;
     /** Whether the logger is loaded. */
     public static boolean loadedLogger = false, loadedFileLogger = false;
-    /** Whether to enable various experimental features (e.g. cliffs) */
+    /** Whether to enable various experimental features (e.g. spawn positions for spawn groups) */
     public static boolean experimental = true;
     /** Name of current Steam player. */
     public static String steamPlayerName = "";
@@ -135,6 +135,8 @@ public class Vars implements Loadable{
         Color.valueOf("4b5ef1"),
         Color.valueOf("2cabfe"),
     };
+    /** maximum TCP packet size */
+    public static final int maxTcpSize = 900;
     /** default server port */
     public static final int port = 6567;
     /** multicast discovery port.*/
@@ -384,7 +386,7 @@ public class Vars implements Loadable{
                 log.log(level, text);
 
                 try{
-                    writer.write("[" + Character.toUpperCase(level.name().charAt(0)) +"] " + Log.removeColors(text) + "\n");
+                    writer.write("[" + Character.toUpperCase(level.name().charAt(0)) + "] " + Log.removeColors(text) + "\n");
                     writer.flush();
                 }catch(IOException e){
                     e.printStackTrace();

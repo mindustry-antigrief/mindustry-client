@@ -44,6 +44,7 @@ public class OverdriveProjector extends Block{
         canOverdrive = false;
         emitLight = true;
         lightRadius = 50f;
+        envEnabled |= Env.space;
     }
 
     @Override

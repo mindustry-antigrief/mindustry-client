@@ -14,7 +14,6 @@ import mindustry.client.*;
 import mindustry.client.navigation.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
-import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -45,7 +44,6 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     boolean admin;
     String name = "frog";
     Color color = new Color();
-    //locale should not be synced.
     transient String locale = "en";
     transient float deathTimer;
     transient Queue<BuildPlan> persistPlans = new Queue<>();
@@ -53,6 +51,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     transient Formation formOnDeath;
     transient String lastText = "";
     transient float textFadeTime;
+
     transient private Unit lastReadUnit = Nulls.unit;
     transient private int wrongReadUnits;
     transient @Nullable Unit justSwitchFrom, justSwitchTo;
@@ -80,7 +79,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     public TextureRegion icon(){
         //display default icon for dead players
-        if(dead()) return core() == null ? UnitTypes.alpha.fullIcon : ((CoreBlock)core().block).unitType.fullIcon;
+        if(dead()) return core() == null ? UnitTypes.alpha.fullIcon : ((CoreBlock)bestCore().block).unitType.fullIcon;
 
         return unit.icon();
     }
@@ -344,10 +343,15 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         Draw.z(z);
     }
 
+    /** @return name with a markup color prefix */
+    String coloredName(){
+        return  "[#" + color.toString().toUpperCase() + "]" + name;
+    }
+
     void sendMessage(String text){
         if(isLocal()){
             if(ui != null){
-                ui.chatfrag.addMessage(text, null);
+                ui.chatfrag.addMessage(text);
             }
         }else{
             Call.sendMessage(con, text, null, null);
@@ -355,16 +359,16 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     }
 
     void sendMessage(String text, Player from){
-        sendMessage(text, from, NetClient.colorizeName(from.id(), from.name));
+        sendMessage(text, from, null);
     }
 
-    void sendMessage(String text, Player from, String fromName){
+    void sendMessage(String text, Player from, String unformatted){
         if(isLocal()){
             if(ui != null){
-                ui.chatfrag.addMessage(text, fromName);
+                ui.chatfrag.addMessage(text);
             }
         }else{
-            Call.sendMessage(con, text, fromName, from);
+            Call.sendMessage(con, text, unformatted, from);
         }
     }
 

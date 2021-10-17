@@ -221,6 +221,7 @@ public class LCanvas extends Table{
 
                 e.setSize(width, e.getPrefHeight());
                 e.setPosition(0, height - cy, Align.topLeft);
+                ((StatementElem)e).updateAddress(i);
 
                 cy += e.getPrefHeight() + space;
                 seq.add(e);
@@ -320,6 +321,8 @@ public class LCanvas extends Table{
 
     public class StatementElem extends Table{
         public LStatement st;
+        public int index;
+        Label addressLabel;
 
         public StatementElem(LStatement st){
             this.st = st;
@@ -337,11 +340,13 @@ public class LCanvas extends Table{
                 t.margin(6f);
                 t.touchable = Touchable.enabled;
 
-                t.add(st.name()).style(Styles.outlineLabel).color(color).padRight(8);
+                t.add(st.name()).style(Styles.outlineLabel).name("statement-name").color(color).padRight(8);
                 t.add().growX();
 
                 t.button(Icon.add, Styles.logici, () -> Vars.ui.logic.addDialog(statements.insertPosition + 1)).tooltip("Add Here")
                     .disabled(b -> canvas.statements.getChildren().size >= LExecutor.maxInstructions).size(24f).padRight(6);
+
+                addressLabel = t.add(index + "").style(Styles.outlineLabel).color(color).padRight(8).get();
 
                 t.button(Icon.copy, Styles.logici, () -> {
                 }).size(24f).padRight(6).get().tapped(this::copy);
@@ -405,6 +410,11 @@ public class LCanvas extends Table{
             }).pad(4).padTop(2).left().grow();
 
             marginBottom(7);
+        }
+
+        public void updateAddress(int index){
+            this.index = index;
+            addressLabel.setText(index + "");
         }
 
         public void copy(){

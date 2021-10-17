@@ -35,9 +35,11 @@ There are two ways to test the translation bundle:
 2) For advanced users: simply download your fork of mindustry and compile/run the game.
     - This method allows you to pass the flags `-Duntranslated` to print missing and extra bundle strings to the console and `-Ddebugtext` to wrap all bundle strings in `@` and untranslated ones in `[accent]@[]`. To do so run the jar with `java -Duntranslated -Ddebugtext -jar <file>`, note that this also works with strings from mods.
 
-#### Translating for stores (Steam, Google Play)
+#### Translating for stores (Steam, ~~Google Play~~)
 
-If you would like to translate the descriptions for Google Play or Steam, see the [Fastlane Metadata folder](https://github.com/Anuken/Mindustry/tree/master/fastlane/metadata) and submit a pull request for files there. On Google Play, you would create or edit the folder with the correct local code; for Steam, I have to update the translations manually, so just name the folder with the language name, and include the same files as the English folder does.
+NOTE: The Google Play description is in the process of being re-written, please do not translate it.
+
+If you would like to translate the descriptions for ~~Google Play~~ or Steam, see the [Fastlane Metadata folder](https://github.com/Anuken/Mindustry/tree/master/fastlane/metadata) and submit a pull request for files there. On Google Play, you would create or edit the folder with the correct local code; for Steam, I have to update the translations manually, so just name the folder with the language name, and include the same files as the English folder does.
 
 **And that's it.**  
 

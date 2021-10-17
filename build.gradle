@@ -13,28 +13,10 @@ buildscript{
         google()
         maven{ url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven{ url 'https://jitpack.io' }
-
-        //fake repository to download my patched robovm jar from
-        ivy{
-            url 'https://github.com/'
-
-            patternLayout {
-                artifact '/[organisation]/[module]/raw/a-single-jar-file/[revision].jar'
-            }
-
-            // This is required in Gradle 6.0+ as metadata file (ivy.xml)
-            // is mandatory. Docs linked below this code section
-            metadataSources { artifact() }
-        }
     }
 
     dependencies{
-        //use local, patched robovm gradle plugin until my PR for gradle 7.0 support is merged
-        //https://github.com/Anuken/robovm/raw/a-single-jar-file/robovm-gradle-plugin-2.3.14-SNAPSHOT.jar
-        classpath "Anuken:robovm:robovm-gradle-plugin-2.3.14-SNAPSHOT"
-        //needed for plugin above
-        classpath "com.mobidevelop.robovm:robovm-dist-compiler:2.3.13"
-
+        classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.14"
         classpath "com.github.Anuken.Arc:packer:$arcHash"
         classpath "com.github.Anuken.Arc:arc-core:$arcHash"
     }
@@ -55,7 +37,7 @@ allprojects{
         versionNumber = '7'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
-        if(!project.hasProperty("buildversion")) buildversion = '131'
+        if(!project.hasProperty("buildversion")) buildversion = '132'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
@@ -294,7 +276,7 @@ project(":ios"){
             props.load(new FileInputStream(vfile))
         }else{
             props['app.id'] = 'io.anuke.mindustry'
-            props['app.version'] = '6.0'
+            props['app.version'] = '7.0'
             props['app.mainclass'] = 'mindustry.IOSLauncher'
             props['app.executable'] = 'IOSLauncher'
             props['app.name'] = 'Mindustry'
@@ -412,7 +394,7 @@ project(":core"){
 //        implementation 'org.bouncycastle:bcutil-jdk15on:1.69'
         implementation 'commons-net:commons-net:3.8.0'
 
-        annotationProcessor 'com.github.Anuken:jabel:34e4c172e65b3928cd9eabe1993654ea79c409cd'
+        annotationProcessor 'com.github.Anuken:jabel:0.6.0'
         compileOnly project(":annotations")
         kapt project(":annotations")
     }

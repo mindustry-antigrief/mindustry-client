@@ -41,6 +41,16 @@ public class UnitPayload implements Payload{
     }
 
     @Override
+    public ItemStack[] requirements(){
+        return unit.type.getTotalRequirements();
+    }
+
+    @Override
+    public float buildTime(){
+        return unit.type.getBuildTime();
+    }
+
+    @Override
     public void write(Writes write){
         write.b(payloadUnit);
         write.b(unit.classId());
@@ -106,9 +116,18 @@ public class UnitPayload implements Payload{
         //prevents stacking
         unit.vel.add(Mathf.range(0.5f), Mathf.range(0.5f));
         unit.add();
+        unit.unloaded();
         Events.fire(new UnitUnloadEvent(unit));
 
         return true;
+    }
+
+    @Override
+    public void drawShadow(float alpha){
+        //TODO should not happen
+        if(unit.type == null) return;
+
+        unit.type.drawSoftShadow(unit, alpha);
     }
 
     @Override

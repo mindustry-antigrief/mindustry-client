@@ -182,6 +182,7 @@ public class ChatFragment extends Table{
             if(i - scrollPos == 0) theight -= textspacing + 1;
 
             font.getCache().clear();
+            font.getCache().setColor(Color.white);
             font.getCache().addText(messages.get(i).formattedMessage, fontoffsetx + offsetx, offsety + theight, textWidth, Align.bottomLeft, true);
 
             Color color = messages.get(i).backgroundColor;
@@ -380,9 +381,9 @@ public class ChatFragment extends Table{
         return shown;
     }
 
-    public ChatMessage addMessage(String message, String sender, Color background, String prefix){
+    public ChatMessage addMessage(String message, String sender, Color background, String prefix, String unformatted){
         if(sender == null && message == null) return null;
-        ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy(), prefix);
+        ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy(), prefix, unformatted);
         messages.insert(0, msg);
 
         doFade(6); // fadetime was originally incremented by 2f, that works out to 6s
@@ -391,12 +392,30 @@ public class ChatFragment extends Table{
         return msg;
     }
 
-    public ChatMessage addMessage(String message, String sender, Color background){
+    public ChatMessage addMessage(String message, String sender, Color background, String prefix){
+        return addMessage(message, sender, background, prefix, "");
+    }
+
+    public ChatMessage addMessage(String message, String sender, Color background){ // FINISHME: Remove this, merge sender with message
         return addMessage(message, sender, background, "");
     }
 
-    public ChatMessage addMessage(String message, String sender) {
+    public ChatMessage addMessage(String message, Color background, String unformatted){ // FINISHME: Refactor this
+        return addMessage(message, null, background, null);
+    }
+
+    public ChatMessage addMessage(String message, String sender){ // FINISHME: Useless?
         return addMessage(message, sender, null);
+    }
+
+    public ChatMessage addMessage(String message, Color background){ // FINISHME: Do a v132 cleanup of this whole mess
+        return addMessage(message, null, background);
+    }
+
+    /** returns void for mod compatibility reasons
+     *  DO NOT TOUCH RETURN TYPE, ARGS OR REMOVE THIS CONSTRUCTOR */
+    public void addMessage(String message){
+        addMessage(message, null, null, "");
     }
 
     public void doFade(float seconds){
@@ -404,12 +423,14 @@ public class ChatFragment extends Table{
         fadetime = Math.min(fadetime, messagesShown);
     }
 
+    // FINISHME: This was supposed to be removed in v132?
     public static class ChatMessage{
         public String sender;
         public String message;
         public String formattedMessage;
         public Color backgroundColor = null;
         public String prefix = "";
+        public String unformatted = "";
 
         public ChatMessage(String message, String sender){
             this.message = message;
@@ -428,6 +449,15 @@ public class ChatFragment extends Table{
             this.message = message;
             this.sender = sender;
             this.prefix = prefix;
+            backgroundColor = color;
+            format();
+        }
+
+        public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
+            this.message = message;
+            this.sender = sender;
+            this.prefix = prefix;
+            this.unformatted = unformatted;
             backgroundColor = color;
             format();
         }

@@ -134,7 +134,7 @@ public interface Platform{
         }else{
             ui.loadAnd(() -> {
                 try{
-                    Fi result = Core.files.local(name+ "." + extension);
+                    Fi result = Core.files.local(name + "." + extension);
                     writer.write(result);
                     platform.shareFile(result);
                 }catch(Throwable e){

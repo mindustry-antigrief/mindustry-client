@@ -540,7 +540,7 @@ public class JoinDialog extends BaseDialog{
         int version = host.version;
         if(Core.settings.getBool("allowjoinany")) Version.build = version;
         if(version != Version.build && Version.build != -1 && version != -1){
-            ui.showInfo("[scarlet]" + (version > Version.build ? KickReason.clientOutdated : KickReason.serverOutdated).toString() + "\n[]" +
+            ui.showInfo("[scarlet]" + (version > Version.build ? KickReason.clientOutdated : KickReason.serverOutdated) + "\n[]" +
                 Core.bundle.format("server.versions", Version.build, version));
         }else{
             connect(ip, port, host);

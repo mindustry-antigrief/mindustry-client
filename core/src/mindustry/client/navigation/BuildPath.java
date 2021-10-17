@@ -75,7 +75,7 @@ public class BuildPath extends Path {
                 case "overdrives", "od" -> queues.add(overdrives);
                 default -> {
                     if (Strings.parseInt(arg) > 0) radius = Strings.parseInt(arg);
-                    else ui.chatfrag.addMessage(Core.bundle.format("client.path.builder.invalid", arg), null);
+                    else ui.chatfrag.addMessage(Core.bundle.format("client.path.builder.invalid", arg));
                 }
             }
         }

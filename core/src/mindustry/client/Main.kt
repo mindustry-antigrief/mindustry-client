@@ -107,14 +107,16 @@ object Main : ApplicationListener {
         }
     }
 
-    /**
-     * returns if it's done or not, NOT if it's valid
-     */
+    /** @return if it's done or not, NOT if it's valid */
     private fun check(transmission: SignatureTransmission): Boolean {
+        return if (transmission.secureOnly) true // The parameter being unused is annoying
+        else true // FINISHME: Broken in v132
+
+        /*
         val ending = InvisibleCharCoder.encode(transmission.messageId.toBytes())
         val msg = Vars.ui.chatfrag.messages.lastOrNull { it.message.endsWith(ending) } ?: return false
         if (!Core.settings.getBool("highlightcryptomsg")) return true
-        val output = signatures.verifySignatureTransmission(msg.message.encodeToByteArray(), transmission)
+        val output = signatures.verifySignatureTransmission(msg.unformatted.encodeToByteArray(), transmission)
         when (output.first) {
             Signatures.VerifyResult.VALID -> {
                 msg.sender = output.second?.run { keyStorage.aliasOrName(this) }
@@ -134,6 +136,7 @@ object Main : ApplicationListener {
                 return true
             }
         }
+        */
     }
 
     fun sign(content: String): String {

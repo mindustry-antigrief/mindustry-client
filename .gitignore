@@ -167,6 +167,9 @@ annotations/src/main/resources/revisions
 arc-core/
 cache/
 
+# ignored due to frequent branch conflicts.
+core/assets/logicids.dat
+core/assets/icons/icons.properties
 client/build/
 core/annotations/
 
