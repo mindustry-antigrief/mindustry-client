@@ -135,7 +135,8 @@ public class UnitPayload implements Payload{
         //TODO should not happen
         if(unit.type == null) return;
 
-        unit.type.drawSoftShadow(unit);
+        unit.type.drawSoftShadow(unit, UnitType.alpha);
+        Draw.alpha(UnitType.alpha);
         Draw.rect(unit.type.fullIcon, unit.x, unit.y, unit.rotation - 90);
         unit.type.drawCell(unit);
 

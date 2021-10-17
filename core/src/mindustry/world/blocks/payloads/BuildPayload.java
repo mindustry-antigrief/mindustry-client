@@ -80,6 +80,7 @@ public class BuildPayload implements Payload{
     @Override
     public void draw(){
         drawShadow(UnitType.alpha);
+        Draw.alpha(UnitType.alpha);
         Draw.rect(build.block.fullIcon, build.x, build.y);
     }
 
