@@ -343,10 +343,10 @@ public class LCanvas extends Table{
                 t.add(st.name()).style(Styles.outlineLabel).name("statement-name").color(color).padRight(8);
                 t.add().growX();
 
+                addressLabel = t.add(index + "").style(Styles.outlineLabel).color(color).padRight(8).get();
+
                 t.button(Icon.add, Styles.logici, () -> Vars.ui.logic.addDialog(statements.insertPosition + 1)).tooltip("Add Here")
                     .disabled(b -> canvas.statements.getChildren().size >= LExecutor.maxInstructions).size(24f).padRight(6);
-
-                addressLabel = t.add(index + "").style(Styles.outlineLabel).color(color).padRight(8).get();
 
                 t.button(Icon.copy, Styles.logici, () -> {
                 }).size(24f).padRight(6).get().tapped(this::copy);

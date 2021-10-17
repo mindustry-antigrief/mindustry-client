@@ -160,7 +160,7 @@ public class BlockInventoryFragment extends Fragment{
                     @Override
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
                         if(!canPick.get() || tile == null || !tile.isValid() || tile.items == null || !tile.items.has(item)) return false;
-                        int amount = Math.min(input.shift() ? tile.items.get(lastItem) : 1, player.unit().maxAccepted(lastItem)); // Shift + click to take all
+                        int amount = Math.min(input.shift() ? tile.items.get(item) : 1, player.unit().maxAccepted(item)); // Shift + click to take all
                         if(amount > 0){
                             Call.requestItem(player, tile, item, amount);
                             lastItem = item;
