@@ -85,6 +85,12 @@ public class GameOverDialog extends BaseDialog{
                     hide();
                     logic.reset();
                 }).size(140f, 60f);
+                buttons.button("@continue", () -> {
+                    hide();
+                    state.ignoreGameOver = true;
+                    state.gameOver = false;
+                    state.set(State.paused);
+                }).size(140f, 60f);
             }
         }
     }

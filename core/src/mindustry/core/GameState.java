@@ -17,7 +17,7 @@ public class GameState{
     /** Wave countdown in ticks. */
     public float wavetime;
     /** Whether the game is in game over state. */
-    public boolean gameOver = false, serverPaused = false;
+    public boolean gameOver = false, serverPaused = false, ignoreGameOver = false; // ignore game over: silence gameover checks until the map is reloaded
     /** Server ticks/second. Only valid in multiplayer. */
     public int serverTps = -1;
     /** Map that is currently being played on. */
