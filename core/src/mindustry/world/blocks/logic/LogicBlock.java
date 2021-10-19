@@ -7,7 +7,6 @@ import arc.struct.Bits;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
-import mindustry.*;
 import mindustry.ai.types.*;
 import mindustry.core.*;
 import mindustry.gen.*;
@@ -41,6 +40,9 @@ public class LogicBlock extends Block{
         configurable = true;
         group = BlockGroup.logic;
         schematicPriority = 5;
+
+        //universal, no real requirements
+        envEnabled = Env.any;
 
         config(byte[].class, (LogicBuild build, byte[] data) -> build.readCompressed(data, true));
 
@@ -511,7 +513,7 @@ public class LogicBlock extends Block{
         @Override
         public void buildConfiguration(Table table){
             table.button(Icon.pencil, Styles.clearTransi, () -> {
-                Vars.ui.logic.show(team, code, code -> configure(compress(code, relativeConnections())));
+                ui.logic.show(team, code, executor, code -> configure(compress(code, relativeConnections())));
             }).size(40);
         }
 
@@ -522,7 +524,7 @@ public class LogicBlock extends Block{
                 return false;
             }
 
-            if (!this.interactable(Vars.player.team())) return false;
+            if (!this.interactable(player.team())) return false;
 
             if(validLink(other)){
                 configure(other.pos());

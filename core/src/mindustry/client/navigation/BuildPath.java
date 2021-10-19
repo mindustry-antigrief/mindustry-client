@@ -16,19 +16,20 @@ import mindustry.net.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
+import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.logic.*;
+import mindustry.world.blocks.storage.*;
 
 import java.util.concurrent.atomic.*;
 
 import static mindustry.Vars.*;
 
 public class BuildPath extends Path {
-    Building core = player.core();
     private boolean show, activeVirus;
     Interval timer = new Interval(2);
-    public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>(), drills = new Queue<>(), belts = new Queue<>();
-    public Seq<Queue<BuildPlan>> queues = new Seq<>(11);
+    public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>(), drills = new Queue<>(), belts = new Queue<>(), overdrives = new Queue<>();
+    public Seq<Queue<BuildPlan>> queues = new Seq<>();
     public Seq<BuildPlan> sorted = new Seq<>();
     private Seq<Item> mineItems;
     private int cap;
@@ -40,6 +41,9 @@ public class BuildPath extends Path {
         Blocks.conduit, Blocks.pulseConduit,
         Blocks.mechanicalDrill, Blocks.pneumaticDrill
     );
+    private BuildPlan req;
+    private boolean valid;
+    private float range;
 
     public BuildPath() {
         this(null, 0);
@@ -68,9 +72,10 @@ public class BuildPath extends Path {
                 case "drills", "mines", "mine", "drill", "d" -> queues.add(drills);
                 case "belts", "conveyors", "conduits", "pipes", "ducts", "tubes", "b" -> queues.add(belts);
                 case "upgrade", "upgrades", "u" -> queues.addAll(drills, belts);
+                case "overdrives", "od" -> queues.add(overdrives);
                 default -> {
-                    if (Strings.canParsePositiveInt(arg)) radius = Strings.parsePositiveInt(arg);
-                    else ui.chatfrag.addMessage(Core.bundle.format("client.path.builder.invalid", arg), null);
+                    if (Strings.parseInt(arg) > 0) radius = Strings.parseInt(arg);
+                    else ui.chatfrag.addMessage(Core.bundle.format("client.path.builder.invalid", arg));
                 }
             }
         }
@@ -87,21 +92,34 @@ public class BuildPath extends Path {
     @Override
     public boolean getShow() { return show; }
 
-    public void clearQueue(Queue<BuildPlan> queue) {
-        if (!queue.isEmpty() && queues.contains(queue) && queue != networkAssist) {
-            for (BuildPlan item : queue) {
-                player.unit().plans.remove(item);
+    public void clearQueues() {
+        for (var queue : queues) {
+            if(queue == player.unit().plans) continue; // Don't clear our own buildplans lol
+            if (queue != networkAssist) {
+                for (BuildPlan item : queue) player.unit().plans.remove(item);
+                queue.clear();
+            } else {
+                for (var plan : queue) {
+                    if (plan.isDone()) {
+                        networkAssist.remove(plan);
+                        player.unit().plans.remove(plan);
+                    }
+                }
             }
-            queue.clear();
         }
     }
 
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
     public void follow() {
-        if (timer.get(15)) {
+        var core = player.core();
+        if (timer.get(15) && core != null) {
             if (mineItems != null) {
                 Item item = mineItems.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
-                if (item != null && core.items.get(item) <= cap / 2) Navigation.follow(new MinePath(mineItems, cap));
+
+                if (item != null && core.items.get(item) <= cap / 2) { // Switch back to MinePath when core is low on items
+                    player.sendMessage("[accent]Automatically switching to back to MinePath as the core is low on items.");
+                    Navigation.follow(new MinePath(mineItems, cap));
+                }
             }
 
             if (timer.get(1, 300)) {
@@ -109,6 +127,7 @@ public class BuildPath extends Path {
                     blocked.clear();
                     synchronized (Navigation.obstacles) {
                         for (var turret : Navigation.obstacles) {
+                            if (!turret.canShoot || !turret.targetGround) continue;
                             int lowerXBound = (int)(turret.x - turret.radius) / tilesize;
                             int upperXBound = (int)(turret.x + turret.radius) / tilesize;
                             int lowerYBound = (int)(turret.y - turret.radius) / tilesize;
@@ -124,20 +143,8 @@ public class BuildPath extends Path {
                     }
                 });
             }
-            clearQueue(broken);
-            clearQueue(boulders);
-            clearQueue(assist);
-            clearQueue(unfinished);
-            clearQueue(cleanup);
-            clearQueue(virus);
-            clearQueue(drills);
-            clearQueue(belts);
-            for (BuildPlan plan : networkAssist) { // Don't clear network assist queue, instead remove finished plans
-                if (plan.isDone()) {
-                    networkAssist.remove(plan);
-                    player.unit().plans.remove(plan);
-                }
-            }
+
+            clearQueues();
 
             if(queues.contains(broken) && !player.unit().team.data().blocks.isEmpty()) {
                 for (Teams.BlockPlan block : player.unit().team.data().blocks) {
@@ -147,13 +154,24 @@ public class BuildPath extends Path {
 
             if(queues.contains(assist)) {
                 Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, unit -> {
-                    if(unit.canBuild() && player.unit() != null && unit != player.unit() && unit.isBuilding()) {
+                    if(player.unit() != null && unit != player.unit() && unit.isBuilding()) {
                         for (BuildPlan plan : unit.plans) {
                             assist.add(plan);
                         }
                     }
                 });
             }
+
+            if(queues.contains(overdrives)) {
+                for (var overdrive : ClientVars.overdrives) {
+                    for (var other : ClientVars.overdrives) {
+                        if (((OverdriveProjector)overdrive.block).speedBoost > ((OverdriveProjector)other.block).speedBoost && Tmp.cr1.set(overdrive.x, overdrive.y, overdrive.realRange()).contains(Tmp.cr2.set(other.x, other.y, other.realRange()))) {
+                            overdrives.add(new BuildPlan(other.tileX(), other.tileY()));
+                        }
+                    }
+                }
+            }
+
             if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus) || queues.contains(drills) || queues.contains(belts)) {
                 for (Tile tile : world.tiles) {
                     if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build && build.isVirus) { // Dont add configured processors
@@ -200,7 +218,7 @@ public class BuildPath extends Path {
             sort:
             for (int i = 0; i < 2; i++) {
                 for (Queue queue : queues) {
-                    PQueue<BuildPlan> plans = sortPlans(queue, all, false);
+                    PQueue<BuildPlan> plans = sortPlans(queue, all, false, core);
                     if (plans.empty()) continue;
                     i = 0;
                     BuildPlan plan;
@@ -221,8 +239,6 @@ public class BuildPath extends Path {
             }
         }
 
-
-        BuildPlan req;
         while (activeVirus && !virus.isEmpty() && ClientVars.configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) { // Remove config from virus blocks if we arent hitting the config ratelimit
             req = sorted.clear().addAll(virus).max(plan -> plan.dst(player));
             virus.remove(req);
@@ -234,18 +250,27 @@ public class BuildPath extends Path {
 
         if (player.unit().isBuilding()) { // Approach request if building
             req = player.unit().buildPlan();
+            valid = validPlan(req);
 
-            if(validPlan(req)){
+            if(valid){
                 //move toward the request
                 Formation formation = player.unit().formation;
-                float range = buildingRange - player.unit().hitSize()/2 - 32; // Range - 4 tiles
-                if (formation != null) range -= formation.pattern.radius();
-                waypoint.set(req.getX(), req.getY(), 0, range).run();
+                range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
+                if (formation != null) range -= formation.pattern.radius(); // Account for the player formation
+                if (Core.settings.getBool("pathnav")) { // Navigates on the client thread, this can cause frame drops so its optional
+                    if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(req) > range)));
+                    waypoints.follow();
+                } else waypoint.set(req.getX(), req.getY(), 0, range).run(0);
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();
             }
         }
+    }
+
+    @Override
+    public void draw() {
+        if (valid && player.unit().isBuilding()) waypoints.draw();
     }
 
     @Override
@@ -270,7 +295,7 @@ public class BuildPath extends Path {
     /** @param includeAll whether to include unaffordable plans (appended to end of affordable ones)
         @param largeFirst reverses the order of outputs, returning the furthest plans first
         @return {@link Queue<BuildPlan>} sorted by distance */
-    public PQueue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll, boolean largeFirst) {
+    public PQueue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll, boolean largeFirst, CoreBlock.CoreBuild core) {
         if (plans == null) return null;
         PQueue<BuildPlan> s2 = new PQueue<>(plans.size, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, core)), Structs.comparingFloat(plan -> plan.dst(player))));
         plans.each(plan -> {

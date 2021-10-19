@@ -67,6 +67,7 @@ public class Turret extends ReloadTurret{
     public boolean targetAir = true;
     public boolean targetGround = true;
     public boolean targetHealing = false;
+    public boolean playerControllable = true;
 
     //charging
     public float chargeTime = -1f;
@@ -156,6 +157,7 @@ public class Turret extends ReloadTurret{
         public void created(){
             unit = (BlockUnitc)UnitTypes.block.create(team);
             unit.tile(this);
+            pathfindingEntity.targetGround = targetGround;
         }
 
         @Override
@@ -164,6 +166,11 @@ public class Turret extends ReloadTurret{
                 Navigation.obstacles.remove(pathfindingEntity);
             }
             super.remove();
+        }
+
+        @Override
+        public boolean canControl(){
+            return playerControllable;
         }
 
         @Override
@@ -429,7 +436,7 @@ public class Turret extends ReloadTurret{
                     tr.trns(rotation, shootLength);
                     recoil = recoilAmount;
                     heat = 1f;
-                    bullet(type, rotation + Mathf.range(inaccuracy));
+                    bullet(type, rotation + Mathf.range(inaccuracy + type.inaccuracy));
                     effects();
                     charging = false;
                 });
@@ -437,13 +444,14 @@ public class Turret extends ReloadTurret{
                 //when burst spacing is enabled, use the burst pattern
             }else if(burstSpacing > 0.0001f){
                 for(int i = 0; i < shots; i++){
+                    int ii = i;
                     Time.run(burstSpacing * i, () -> {
                         if(!isValid() || !hasAmmo()) return;
 
                         recoil = recoilAmount;
 
                         tr.trns(rotation, shootLength, Mathf.range(xRand));
-                        bullet(type, rotation + Mathf.range(inaccuracy));
+                        bullet(type, rotation + Mathf.range(inaccuracy + type.inaccuracy) + (ii - (int)(shots / 2f)) * spread);
                         effects();
                         useAmmo();
                         recoil = recoilAmount;
@@ -458,7 +466,7 @@ public class Turret extends ReloadTurret{
                     float i = (shotCounter % shots) - (shots-1)/2f;
 
                     tr.trns(rotation - 90, spread * i + Mathf.range(xRand), shootLength);
-                    bullet(type, rotation + Mathf.range(inaccuracy));
+                    bullet(type, rotation + Mathf.range(inaccuracy + type.inaccuracy));
                 }else{
                     tr.trns(rotation, shootLength, Mathf.range(xRand));
 

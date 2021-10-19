@@ -57,11 +57,12 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                     for (int member = 0 ; member < smat.getNumLobbyMembers(currentLobby) ; member++) {
                         for (long idiot : alertIDs) {
                             if (SteamID.createFromNativeHandle(idiot).equals(smat.getLobbyMemberByIndex(currentLobby, member))) {
-                                ui.chatfrag.addMessage("A griefer is in this game: " + idiot, "Client", Color.scarlet);
+                                ui.chatfrag.addMessage("A griefer is in this game: " + idiot, Color.scarlet);
                             }
                         }
                     }
                 }
+
                 while((length = snet.isP2PPacketAvailable(0)) != 0){
                     try{
                         readBuffer.position(0).limit(readBuffer.capacity());

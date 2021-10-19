@@ -302,6 +302,7 @@ public class DesktopInput extends InputHandler{
             settings.put("assumeunstrict", !settings.getBool("assumeunstrict"));
         }
 
+        boolean locked = locked();
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
@@ -317,7 +318,7 @@ public class DesktopInput extends InputHandler{
                     lastVirusWarning = null;
 
                     virusBuild.configure(LogicBlock.compress("end\n" + virusBuild.code, virusBuild.relativeConnections())); // Disable the block while we look into it
-                    try{Vars.ui.logic.show(virusBuild.team, virusBuild.code, code -> virusBuild.configure(LogicBlock.compress(code, virusBuild.relativeConnections())));}catch(Exception ignored){} // Inspect the code
+                    try{Vars.ui.logic.show(virusBuild.team, virusBuild.code, virusBuild.executor, code -> virusBuild.configure(LogicBlock.compress(code, virusBuild.relativeConnections())));}catch(Exception ignored){} // Inspect the code
                 }
             }
         }
@@ -352,25 +353,27 @@ public class DesktopInput extends InputHandler{
 //        }
 
 
-        if(((player.dead() || state.isPaused()) && !ui.chatfrag.shown()) && !scene.hasField() && !scene.hasDialog()){
-            if(input.keyDown(Binding.mouse_move)){
-                panCam = true;
+        if(!locked){
+            if(((player.dead() || state.isPaused()) && !ui.chatfrag.shown()) && !scene.hasField() && !scene.hasDialog()){
+                if(input.keyDown(Binding.mouse_move)){
+                    panCam = true;
+                }
+
+                Core.camera.position.add(Tmp.v1.setZero().add(Core.input.axis(Binding.move_x), Core.input.axis(Binding.move_y)).nor().scl(camSpeed));
+            }else if(!player.dead() && !panning){
+                Core.camera.position.lerpDelta(player, Core.settings.getBool("smoothcamera") ? 0.08f : 1f);
             }
 
-            Core.camera.position.add(Tmp.v1.setZero().add(Core.input.axis(Binding.move_x), Core.input.axis(Binding.move_y)).nor().scl(camSpeed));
-        }else if(!player.dead() && !panning){
-            Core.camera.position.lerpDelta(player, Core.settings.getBool("smoothcamera") ? 0.08f : 1f);
+            if(panCam){
+                Core.camera.position.x += Mathf.clamp((Core.input.mouseX() - Core.graphics.getWidth() / 2f) * panScale, -1, 1) * camSpeed;
+                Core.camera.position.y += Mathf.clamp((Core.input.mouseY() - Core.graphics.getHeight() / 2f) * panScale, -1, 1) * camSpeed;
+            }
         }
 
-        if(panCam){
-            Core.camera.position.x += Mathf.clamp((Core.input.mouseX() - Core.graphics.getWidth() / 2f) * panScale, -1, 1) * camSpeed;
-            Core.camera.position.y += Mathf.clamp((Core.input.mouseY() - Core.graphics.getHeight() / 2f) * panScale, -1, 1) * camSpeed;
-        }
-
-        shouldShoot = !scene.hasMouse();
+        shouldShoot = !scene.hasMouse() && !locked;
         Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
-        if(!scene.hasMouse()){
+        if(!scene.hasMouse() && !locked){
             if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null){ // Tile actions / alt click menu
                 int itemHeight = 30;
                 Table table = new Table(Tex.buttonTrans);
@@ -381,7 +384,7 @@ public class DesktopInput extends InputHandler{
                 table.defaults().height(itemHeight).padTop(5).fillX();
                 try {
                     table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().growX().fillY().padTop(-5);
-                } catch (Exception e) { ui.chatfrag.addMessage(e.getMessage(), "client", Color.scarlet); }
+                } catch (Exception e) { ui.chatfrag.addMessage(e.getMessage(), Color.scarlet); }
 
                 table.row().fill();
                 table.button("@client.log", () -> { // Tile Logs
@@ -406,7 +409,8 @@ public class DesktopInput extends InputHandler{
                     BaseDialog dialog = new BaseDialog("@client.path.waypoints");
                     dialog.addCloseButton();
                     dialog.cont.setWidth(200f);
-                    dialog.cont.add(new TextButton("@client.path.record")).growX().get().clicked(() -> {Navigation.startRecording(); dialog.hide();});
+                    dialog.cont.add(new TextButton("@client.path.record")).growX().get().clicked(() -> {
+                        Navigation.startRecording(); dialog.hide();});
                     dialog.cont.row();
                     dialog.cont.add(new TextButton("@client.path.stoprecording")).growX().get().clicked(() -> {Navigation.stopRecording(); dialog.hide();});
                     dialog.cont.row();
@@ -445,7 +449,7 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(!player.dead() && !state.isPaused() && !scene.hasField() && !renderer.isCutscene()){
+        if(!player.dead() && !state.isPaused() && !scene.hasField() && !locked){
             updateMovement(player.unit());
 
             if(Core.input.keyTap(Binding.respawn)){
@@ -485,7 +489,7 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(player.dead()){
+        if(player.dead() || locked){
             cursorType = SystemCursor.arrow;
             return;
         }

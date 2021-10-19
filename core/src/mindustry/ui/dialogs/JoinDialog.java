@@ -26,7 +26,7 @@ import static mindustry.Vars.*;
 
 public class JoinDialog extends BaseDialog{
     //TODO unused
-    Seq<Host> commmunityHosts = new Seq<>();
+    public Seq<Host> commmunityHosts = new Seq<>();
     Seq<Server> servers = new Seq<>();
     Dialog add;
     Server renaming;
@@ -382,6 +382,7 @@ public class JoinDialog extends BaseDialog{
                 net.pingHost(resaddress, resport, res -> {
                     if(refreshes != cur) return;
                     res.port = resport;
+                    res.group = group.name;
 
                     commmunityHosts.add(res);
 
@@ -539,7 +540,7 @@ public class JoinDialog extends BaseDialog{
         int version = host.version;
         if(Core.settings.getBool("allowjoinany")) Version.build = version;
         if(version != Version.build && Version.build != -1 && version != -1){
-            ui.showInfo("[scarlet]" + (version > Version.build ? KickReason.clientOutdated : KickReason.serverOutdated).toString() + "\n[]" +
+            ui.showInfo("[scarlet]" + (version > Version.build ? KickReason.clientOutdated : KickReason.serverOutdated) + "\n[]" +
                 Core.bundle.format("server.versions", Version.build, version));
         }else{
             connect(ip, port, host);

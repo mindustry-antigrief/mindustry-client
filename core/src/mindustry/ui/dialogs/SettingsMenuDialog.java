@@ -21,13 +21,14 @@ import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
-import mindustry.core.GameState.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
+import mindustry.logic.*;
+import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
@@ -38,7 +39,7 @@ import java.util.zip.*;
 import static arc.Core.*;
 import static mindustry.Vars.*;
 
-public class SettingsMenuDialog extends Dialog{
+public class SettingsMenuDialog extends BaseDialog{
     /** Mods break if these are changed to BetterSettingsTable so instead we cast them into different vars and just use those. */
     public SettingsTable graphics, sound, game, main, client, moderation;
 
@@ -52,41 +53,23 @@ public class SettingsMenuDialog extends Dialog{
         addCloseButton();
 
         cont.add(main = new SettingsTable());
+        shouldPause = true;
 
-        hidden(() -> {
-            Sounds.back.play();
-            if(state.isGame()){
-                if(!wasPaused || Vars.net.active())
-                    state.set(State.playing);
-            }
-            ConstructBlock.updateWarnBlocks(); // FINISHME: Horrible
-        });
+        hidden(() -> ConstructBlock.updateWarnBlocks()); // FINISHME: Horrible
 
         shown(() -> {
             back();
-            if(state.isGame()){
-                wasPaused = state.is(State.paused);
-                state.set(State.paused);
-            }
-
             rebuildMenu();
         });
 
-        Events.on(ResizeEvent.class, event -> {
-            if(isShown() && Core.scene.getDialog() == this){
-                graphics.rebuild();
-                sound.rebuild();
-                game.rebuild();
-                client.rebuild();
-                moderation.rebuild();
-                updateScrollFocus();
-            }
+        onResize(() -> {
+            graphics.rebuild();
+            sound.rebuild();
+            game.rebuild();
+            client.rebuild();
+            moderation.rebuild();
+            updateScrollFocus();
         });
-
-        setFillParent(true);
-        title.setAlignment(Align.center);
-        titleTable.row();
-        titleTable.add(new Image()).growX().height(3f).pad(4f).get().setColor(Pal.accent);
 
         cont.clearChildren();
         cont.remove();
@@ -315,7 +298,7 @@ public class SettingsMenuDialog extends Dialog{
         client.sliderPref("slagsounddistance", 5, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
         client.checkPref("powersplitwarnings", true); // TODO: Add a minimum building requirement and a setting for it
-        client.checkPref("viruswarnings", true);
+        client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
         client.checkPref("commandwarnings", true);
         client.checkPref("removecorenukes", false);
 
@@ -349,6 +332,7 @@ public class SettingsMenuDialog extends Dialog{
         client.checkPref("disablemonofont", true); // Requires Restart
         client.checkPref("placementfragmentsearch", true);
         client.checkPref("drawwrecks", true);
+        client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
         client.checkPref("unitranges", false);
         client.checkPref("drawhitboxes", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);
@@ -362,6 +346,7 @@ public class SettingsMenuDialog extends Dialog{
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
+        client.checkPref("pathnav", true);
         client.checkPref("nyduspadpatch", true);
         client.checkPref("hidebannedblocks", false);
         client.checkPref("allowjoinany", false);
@@ -833,7 +818,7 @@ public class SettingsMenuDialog extends Dialog{
 
         /** Since the update pref takes half a page and implementing all this in a non static manner is a pain, I'm leaving it here for now. */
         private void updatePref(){
-            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client");
+            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client-v7-builds");
             if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
             pref(new Setting("updateurl") {
                 boolean urlChanged;

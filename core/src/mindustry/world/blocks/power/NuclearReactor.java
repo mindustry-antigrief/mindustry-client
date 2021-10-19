@@ -58,6 +58,7 @@ public class NuclearReactor extends PowerGenerator{
         rebuildable = false;
         flags = EnumSet.of(BlockFlag.reactor, BlockFlag.generator);
         schematicPriority = -5;
+        envEnabled = Env.any;
     }
 
     @Override
@@ -84,7 +85,7 @@ public class NuclearReactor extends PowerGenerator{
 
     @Override
     public void drawRequestConfigTop(BuildPlan req, Eachable<BuildPlan> list){
-        if (!settings.getBool("showreactors")) return;
+        if (!settings.getBool("showreactors") || !req.worldContext) return;
         Drawf.dashCircle(req.drawx(), req.drawy(), explosionRadius * tilesize, Color.coral);
     }
 

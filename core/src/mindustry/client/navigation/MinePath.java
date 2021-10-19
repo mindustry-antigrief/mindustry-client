@@ -13,7 +13,6 @@ import static mindustry.Vars.*;
 
 public class MinePath extends Path {
     Seq<Item> items = new Seq<>(16);
-    StringBuilder itemString = new StringBuilder();
     static Interval timer = new Interval();
     int cap = Core.settings.getInt("minepathcap");
     Item lastItem = null; // Last item mined
@@ -34,23 +33,24 @@ public class MinePath extends Path {
             for (Item item : content.items().select(indexer::hasOre)) {
                 if (item.name.toLowerCase().equals(arg) || item.localizedName.toLowerCase().equals(arg)) {
                     items.add(item);
-                    itemString.append(item.localizedName).append(", ");
                     added = true;
                 }
             }
             if (!added) { // Item not matched
                 if (arg.equals("*") || arg.equals("all") || arg.equals("a")) {
                     items.addAll(content.items().select(indexer::hasOre)); // Add all items when the argument is "all" or similar
-                    itemString.append("Everything, ");
-                } else if (Strings.canParsePositiveInt(arg)) cap = Strings.canParsePositiveInt(arg) ? Strings.parsePositiveInt(arg) : 0;
-                else player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
+                } else if (Strings.parseInt(arg) >= 0) {
+                    cap = Strings.parseInt(arg);
+                } else {
+                    player.sendMessage(Core.bundle.format("client.path.builder.invalid", arg));
+                }
             }
         }
         if (items.isEmpty()) {
             if (cap == Core.settings.getInt("minepathcap")) player.sendMessage(Core.bundle.get("client.path.miner.allinvalid"));
             items = player.team().data().mineItems;
         } else {
-            player.sendMessage(Core.bundle.format("client.path.miner.mining", itemString.substring(0, itemString.length() - 2), cap == 0 ? "infinite" : cap)); // FINISHME: Terrible
+            player.sendMessage(Core.bundle.format("client.path.miner.mining", items.toString(", "), cap == 0 ? "infinite" : cap));
         }
     }
 
@@ -74,14 +74,20 @@ public class MinePath extends Path {
         if (lastItem != null && lastItem != item && core.items.get(lastItem) - core.items.get(item) < 100) item = lastItem; // Scuffed, don't switch mining until theres a 100 item difference, prevents constant switching of mine target
         lastItem = item;
 
-        if (core.items.get(item) >= core.storageCapacity || cap != 0 && core.items.get(item) > cap) Navigation.follow(new BuildPath(items, cap == 0 ? core.storageCapacity : cap)); // Start building when the core has over 1000 of everything.
+        if (cap < core.storageCapacity && core.items.get(item) >= core.storageCapacity || cap != 0 && core.items.get(item) > cap) {  // Auto switch to BuildPath when core is sufficiently full
+            player.sendMessage(Strings.format("[accent]Automatically switching to BuildPath as the core has @ items (this number can be changed in settings).", cap == 0 ? core.storageCapacity : cap));
+            Navigation.follow(new BuildPath(items, cap == 0 ? core.storageCapacity : cap));
+        }
 
-        if (player.unit().maxAccepted(item) == 0) { // drop off
+        if (player.unit().maxAccepted(item) <= 1) { // drop off
             if (player.within(core, itemTransferRange - tilesize * 10) && timer.get(30)) {
                 Call.transferInventory(player, core);
             } else {
                 if (player.unit().type.canBoost) player.boosting = true;
-                waypoint.set(core.x, core.y, itemTransferRange - tilesize * 15, itemTransferRange - tilesize * 15).run();
+                if (Core.settings.getBool("pathnav") && !player.within(core, itemTransferRange - tilesize * 15)) {
+                    if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(core.x, core.y), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(core) > itemTransferRange - tilesize * 15)));
+                    waypoints.follow();
+                } else waypoint.set(core.x, core.y, itemTransferRange - tilesize * 15, itemTransferRange - tilesize * 15).run();
             }
 
         } else { // mine
@@ -90,8 +96,16 @@ public class MinePath extends Path {
             if (tile == null) return;
 
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 2); // FINISHME: Distance based on formation radius rather than just moving super close
-            waypoint.set(tile.getX(), tile.getY(), tilesize, tilesize).run();
+            if (Core.settings.getBool("pathnav") && !player.within(tile, tilesize * 3)) {
+                if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(tile.getX(), tile.getY()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(player) > tilesize)));
+                waypoints.follow();
+            } else waypoint.set(tile.getX(), tile.getY(), tilesize, tilesize).run();
         }
+    }
+
+    @Override
+    public void draw() {
+        waypoints.draw();
     }
 
     @Override
@@ -100,9 +114,7 @@ public class MinePath extends Path {
     }
 
     @Override
-    public void reset() {
-
-    }
+    public void reset() {}
 
     @Override
     public Position next() {

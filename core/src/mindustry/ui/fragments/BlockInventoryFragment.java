@@ -21,6 +21,7 @@ import mindustry.type.*;
 
 import java.util.*;
 
+import static arc.Core.input;
 import static mindustry.Vars.*;
 
 public class BlockInventoryFragment extends Fragment{
@@ -159,7 +160,7 @@ public class BlockInventoryFragment extends Fragment{
                     @Override
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
                         if(!canPick.get() || tile == null || !tile.isValid() || tile.items == null || !tile.items.has(item)) return false;
-                        int amount = Math.min(1, player.unit().maxAccepted(item));
+                        int amount = Math.min(input.shift() ? tile.items.get(item) : 1, player.unit().maxAccepted(item)); // Shift + click to take all
                         if(amount > 0){
                             Call.requestItem(player, tile, item, amount);
                             lastItem = item;
@@ -210,7 +211,7 @@ public class BlockInventoryFragment extends Fragment{
     }
 
     private void updateTablePosition(){
-        Vec2 v = Core.input.mouseScreen(tile.x + tile.block.size * tilesize / 2f, tile.y + tile.block.size * tilesize / 2f);
+        Vec2 v = input.mouseScreen(tile.x + tile.block.size * tilesize / 2f, tile.y + tile.block.size * tilesize / 2f);
         table.pack();
         table.setPosition(v.x, v.y, Align.topLeft);
     }

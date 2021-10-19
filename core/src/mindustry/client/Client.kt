@@ -24,11 +24,14 @@ import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
 import mindustry.entities.units.*
+import mindustry.game.*
 import mindustry.gen.*
+import mindustry.graphics.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
 import mindustry.world.*
+import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
@@ -78,6 +81,7 @@ object Client {
     }
 
     fun draw() {
+        // Spawn path
         if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
             for (i in 0 until spawner.spawns.size) {
                 if (i >= tiles.size) tiles.add(spawner.spawns[i])
@@ -99,6 +103,31 @@ object Client {
                 val target = pathfinder.getTargetTile(t, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
                 if (target != t) tiles.add(target)
                 Fx.healBlock.at(t.worldx(), t.worldy(), 1f, state.rules.waveTeam.color)
+            }
+        }
+
+        // Turret range
+        val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
+        if (showingTurrets) {
+            Draw.z(Layer.space)
+            val units = Core.settings.getBool("unitranges")
+            for (t in obstacles) {
+                if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
+                Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
+            }
+        }
+
+        // Player controlled turret range
+        if ((player.unit() as? BlockUnitUnit)?.tile() is BaseTurret.BaseTurretBuild) {
+            Drawf.dashCircle(player.x, player.y, player.unit().range(), player.team().color)
+        }
+
+        // Overdrive range
+        if (showingOverdrives) {
+            Draw.z(Layer.space)
+            overdrives.forEach { b ->
+                val range = b.realRange()
+                if (b.team === player.team() && bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect()
             }
         }
     }
@@ -133,7 +162,7 @@ object Client {
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
             val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
-            val counts = IntSeq.with(0, 0, Units.getCap(player.team()), 0, 0, 0, 0, 0)
+            val counts = intArrayOf(0, 0, Units.getCap(player.team()), 0, 0, 0, 0, 0)
 
             for (unit in player.team().data().units) {
                 if (unit.type != type) continue
@@ -268,9 +297,11 @@ object Client {
             clientThread.taskQueue.post {
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
                 val inProgress = !configs.isEmpty
+                val originalCount = PowerGraph.activeGraphs.select { it.team == player.team() }.size
                 var n = 0
                 val grids = mutableMapOf<Int, MutableSet<Int>>()
-                for (grid in PowerGraph.activeGraphs.filter { g -> g.team == player.team() }) {
+
+                for (grid in PowerGraph.activeGraphs.select { it.team == player.team() }) { // This is horrible but works somehow
                     for (nodeBuild in grid.all) {
                         val nodeBlock = nodeBuild.block as? PowerNode ?: continue
                         var links = nodeBuild.power.links.size
@@ -290,9 +321,9 @@ object Client {
                 }
                 if (confirmed) {
                     if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
-                    else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n))
+                    else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, originalCount - n))
                 } else {
-                    player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, PowerGraph.activeGraphs.size))
+                    player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, originalCount))
                 }
             }
         }
@@ -339,30 +370,29 @@ object Client {
                         }
                     }
                 }
-                var n = 0
-                do {
-                    val plans = IntSeq()
-                    var i = 0
-                    for (plan in Vars.player.team().data().blocks) {
-                        var isBlocked = false
-                        world.tile(plan.x.toInt(), plan.y.toInt()).getLinkedTilesAs(content.block(plan.block.toInt())) { t ->
-                            if (blocked.get(t.x.toInt(), t.y.toInt())) isBlocked = true
-                        }
-                        if (!isBlocked && !all) continue
-                        if (++i > 100) break
-
-                        plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
+                val plans = mutableListOf<Int>()
+                for (plan in Vars.player.team().data().blocks) {
+                    var isBlocked = false
+                    world.tile(plan.x.toInt(), plan.y.toInt()).getLinkedTilesAs(content.block(plan.block.toInt())) { t ->
+                        if (blocked.get(t.x.toInt(), t.y.toInt())) isBlocked = true
                     }
-                    n += plans.size
-                    if (confirmed) Call.deletePlans(player, plans.toArray())
-                } while (i > 100)
+                    if (!isBlocked && !all) continue
 
-                if (confirmed) player.sendMessage("[accent]Removed $n plans, ${Vars.player.team().data().blocks.size} remain")
-                else player.sendMessage("[accent]Found $n (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
+                    plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
+                }
+                val removedCount = plans.size
+                if (confirmed) {
+                    while (plans.any()) {
+                        val batch = plans.takeLast(100)
+                        plans.removeAll(batch)
+                        Call.deletePlans(player, batch.toIntArray())
+                    }
+                    player.sendMessage("[accent]Removed $removedCount plans, ${Vars.player.team().data().blocks.size} remain")
+                } else player.sendMessage("[accent]Found $removedCount (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
             }
         }
 
-        register("removelast [count]", "Horrible and inefficient command to remove the x oldest tile logs") { args, _ ->
+        register("removelast [count]", "Horrible and inefficient command to remove the x oldest tile logs") { args, _ -> // FINISHME: Bundle
             clientThread.taskQueue.post {
                 val count = if (args.isEmpty()) 1 else args[0].toInt()
                 lateinit var record: TileRecord
@@ -386,7 +416,7 @@ object Client {
             Call.sendChatMessage("cya\n[accent][#"+player.color+"][]"+player.name+" [accent]has disconnected.")
         }
 
-        register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, _ ->
+        register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, _ -> // FINISHME: Bundle
             val certname = args[0]
             val msg = args[1]
 
@@ -403,7 +433,7 @@ object Client {
             player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (previous) "off" else "on").lowercase()))
         }
 
-        register("stoppathing <name>", "Stop someone from pathfinding.") { args, _ ->
+        register("stoppathing <name>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
             val certname = args[0]
 
             connectTls(certname) { comms, _ ->
@@ -412,7 +442,7 @@ object Client {
         }
     }
 
-    fun connectTls(certname: String, onFinish: (Packets.CommunicationClient, X509Certificate) -> Unit) {
+    fun connectTls(certname: String, onFinish: (Packets.CommunicationClient, X509Certificate) -> Unit) { // FINISHME: Bundle
         val cert = Main.keyStorage.aliases().singleOrNull { it.second.equals(certname, true) }?.run { Main.keyStorage.findTrusted(BigInteger(first)) } ?: Main.keyStorage.trusted().singleOrNull { it.readableName.equals(certname, true) }
 
         cert ?: run {

@@ -2,26 +2,26 @@
 
 package mindustry.client.utils
 
-import arc.Core
-import arc.Events
+import arc.*
+import arc.math.geom.*
 import arc.scene.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
-import mindustry.client.communication.Base32768Coder
+import mindustry.*
+import mindustry.client.communication.*
 import mindustry.core.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
 import mindustry.world.*
 import java.io.*
 import java.nio.*
-import java.security.cert.X509Certificate
+import java.security.cert.*
 import java.time.*
 import java.time.temporal.*
 import java.util.zip.*
 import kotlin.math.*
-import kotlin.reflect.KClass
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -139,12 +139,10 @@ fun String.replaceLast(deliminator: String, replacement: String): String {
 
 fun String.removeLast(deliminator: String) = replaceLast(deliminator, "")
 
-data class Point2i(val x: Int, val y: Int)
-
-operator fun World.contains(tile: Point2i) = tile.x in 0 until width() && tile.y in 0 until height()
+operator fun World.contains(tile: Point2) = tile.x in 0 until width() && tile.y in 0 until height()
 
 /** Clamped */
-operator fun World.get(position: Point2i): Tile = tiles.getc(position.x, position.y)
+operator fun World.get(position: Point2): Tile = tiles.getc(position.x, position.y)
 
 /** Clamped */
 operator fun World.get(x: Int, y: Int): Tile = tiles.getc(x, y)
@@ -229,3 +227,16 @@ fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) {
         }
     }
 }
+
+
+/** Whether we are connected to nydus */
+fun nydus() = Vars.net.client() && Vars.ui.join.lastHost.name.contains("nydus")
+
+/** Whether we are connected to a .io server */
+fun io() = Vars.net.client() && Vars.ui.join.commmunityHosts.contains { it.group == "io" && it.address == Vars.ui.join.lastHost?.address }
+
+/** Whether the current gamemode is flood */
+fun flood() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Flood") || Vars.state.rules.modeName == "Flood"
+
+/** Whether the current gamemode is tower defense */
+fun defense() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Defense") || Vars.state.rules.modeName == "Defense"

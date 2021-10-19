@@ -47,6 +47,7 @@ class Signatures(private val store: KeyStorage, private val ntp: AtomicReference
         INVALID, VALID, UNKNOWN_CERT
     }
 
+    // FINISHME Broken in v132
     fun verifySignatureTransmission(original: ByteArray, transmission: SignatureTransmission): Pair<VerifyResult, X509Certificate?> {
         val foundCert = store.findTrusted(transmission.sn) ?: return Pair(VerifyResult.UNKNOWN_CERT, null)
         if (foundCert == Main.keyStorage.cert()) return Pair(VerifyResult.UNKNOWN_CERT, null)

@@ -105,19 +105,20 @@ public class ModsDialog extends BaseDialog{
 
         // Client mod updater
         Events.on(EventType.ClientLoadEvent.class, event -> {
-            Fi updateTimeFile = settings.getDataDirectory().child("lastUpdate");
-            if (Core.settings.getInt("modautoupdate") != 0 && (!updateTimeFile.exists() || Time.timeSinceMillis(Long.parseLong(updateTimeFile.readString())) > Time.toHours)) {
-                Log.debug("Checking for mod updates");
-                updateTimeFile.writeString(String.valueOf(Time.millis()));
-                var shuffled = mods.mods.copy();
-                shuffled.shuffle();
-                for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
-                    if (mod.state != Mods.ModState.enabled || mod.getRepo() == null) continue;
-                    if (++expected >= 30) continue; // Only make up to 30 api requests
+            Time.run(60f, () -> {
+                if (Core.settings.getInt("modautoupdate") != 0 && (Time.timeSinceMillis(settings.getLong("lastmodupdate", (long) Time.toHours + 1L)) > Time.toHours)) {
+                    Log.debug("Checking for mod updates");
+                    Core.settings.put("lastmodupdate", Time.millis());
+                    var shuffled = mods.mods.copy();
+                    shuffled.shuffle();
+                    for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
+                        if (mod.state != Mods.ModState.enabled || mod.getRepo() == null) continue;
+                        if (++expected >= 30) continue; // Only make up to 30 api requests
 
-                    githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
-                }
-            } else Log.debug("Not updating mods, they were updated too recently or auto update is disabled.");
+                        githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
+                    }
+                } else Log.debug("Not updating mods, they were updated too recently or auto update is disabled.");
+            });
         });
     }
 
@@ -404,7 +405,7 @@ public class ModsDialog extends BaseDialog{
 
                         }).tooltip(c.localizedName);
 
-                        if(++i % Math.min(Core.graphics.getWidth() / Scl.scl(110), 14) == 0) cs.row();
+                        if(++i % (int)Math.min(Core.graphics.getWidth() / Scl.scl(110), 14) == 0) cs.row();
                     }
                 }).grow();
                 d.addCloseButton();
@@ -560,7 +561,6 @@ public class ModsDialog extends BaseDialog{
             }
             zip.delete();
             Core.app.post(() -> {
-
                 try{
                     setup();
                     ui.loadfrag.hide();
@@ -579,8 +579,8 @@ public class ModsDialog extends BaseDialog{
                     try{
                         Fi file = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
                         Runtime.getRuntime().exec(OS.isMac ?
-                            new String[]{"java", "-XstartOnFirstThread", "-jar", file.absolutePath()} :
-                            new String[]{"java", "-jar", file.absolutePath()}
+                            new String[]{javaPath, "-XstartOnFirstThread", "-jar", file.absolutePath()} :
+                            new String[]{javaPath, "-jar", file.absolutePath()}
                         );
                         Core.app.exit();
                     }catch(IOException | URISyntaxException e){

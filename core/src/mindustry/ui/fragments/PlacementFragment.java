@@ -279,7 +279,7 @@ public class PlacementFragment extends Fragment{
                 };
 
                 //top table with hover info
-                frame.table(Tex.buttonEdge2,top -> {
+                frame.table(Tex.buttonEdge2, top -> {
                     topTable = top;
                     top.add(new Table()).growX().update(topTable -> {
 

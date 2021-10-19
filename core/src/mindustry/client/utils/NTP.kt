@@ -1,7 +1,6 @@
 package mindustry.client.utils
 
 import arc.util.*
-import arc.util.Timer
 import arc.util.async.*
 import org.apache.commons.net.ntp.*
 import java.net.*
@@ -20,8 +19,9 @@ class NTP {
         try {
             address = InetAddress.getByName("pool.ntp.org")
             timeClient.defaultTimeout = 5000 // For whatever reason, sometimes it just fails
-            Timer.schedule({
-                Threads.daemon {
+
+            Threads.daemon {
+                while (true) {
                     try {
                         val time = fetchTime()
                         val baseClock = clock.get()
@@ -31,13 +31,16 @@ class NTP {
                                 Duration.between(baseClock.instant(), time)
                                     .apply { Log.debug("Fetched time from NTP (clock was ${toMillis()} ms off)") })
                         )
+                    } catch (e: SocketTimeoutException) {
+                        Log.debug("NTP Timed out")
                     } catch (e: Exception) {
                         Log.debug("NTP error!\n" + e.stackTraceToString())
                     }
+                    Threads.sleep(60_000)
                 }
-            }, 1f, 60f)
+            }
         } catch (e: UnknownHostException) {
-            Log.info("Not initializing NTP, most likely because there is no internet.")
+            Log.warn("Not initializing NTP, most likely because there is no internet.")
         }
     }
 

@@ -2,15 +2,18 @@ package mindustry.client
 
 import arc.*
 import arc.util.*
+import arc.util.pooling.*
 import mindustry.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
+import mindustry.client.navigation.waypoints.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.gen.*
+import mindustry.logic.*
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
@@ -26,7 +29,10 @@ class ClientLogic {
 
         Events.on(EventType.WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
-            lastJoinTime = Time.millis()
+            if (!syncing) {
+                lastJoinTime = Time.millis()
+                Vars.player.persistPlans.clear() // FINISHME: Why is this even in the player class? It creates a queue for each player even tho only one is used...
+            }
             PowerInfo.initialize()
             Navigation.obstacles.clear()
             configs.clear()
@@ -45,9 +51,12 @@ class ClientLogic {
             if (Core.settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
             Core.settings.put("changeHash", changeHash)
 
+            Pools.get(PositionWaypoint::class.java, { PositionWaypoint() }, 100) // Initialize PositionWaypoint pool with max of 100 free objects
+
             if (Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug // Set log level to debug if the setting is checked
             if (Core.settings.getBool("discordrpc")) Vars.platform.startDiscord()
             if (Core.settings.getBool("mobileui")) Vars.mobile = !Vars.mobile
+            if (Core.settings.getBool("viruswarnings")) LExecutor.virusWarnings = true;
 
             Autocomplete.autocompleters.add(BlockEmotes())
             Autocomplete.autocompleters.add(PlayerCompletion())

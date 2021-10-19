@@ -5,18 +5,40 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.geom.*;
 import arc.struct.*;
+import arc.util.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.graphics.*;
 
 /** A {@link Path} composed of {@link Waypoint} instances. */
 public class WaypointPath<T extends Waypoint> extends Path {
-    private final Seq<T> waypoints;
-    private final Seq<T> initial;
+    private Seq<T> waypoints;
+    private @Nullable Seq<T> initial;
+    private int initialSize;
     private boolean show;
 
     public WaypointPath(Seq<T> waypoints) {
         this.waypoints = waypoints;
         this.initial = waypoints.copy();
+        this.initialSize = waypoints.size;
+    }
+
+    @SafeVarargs
+    public WaypointPath(T... waypoints) {
+        this.waypoints = Seq.with(waypoints);
+        this.initial = Seq.with(waypoints);
+        this.initialSize = waypoints.length;
+    }
+
+    @SafeVarargs
+    public static <T extends Waypoint> WaypointPath<T> with(T... waypoints) {
+        return new WaypointPath<>(waypoints);
+    }
+
+    public WaypointPath<T> set(Seq<T> waypoints) {
+        this.waypoints = waypoints;
+        if (repeat) this.initial = waypoints.copy(); // Don't bother if we aren't repeating
+        this.initialSize = waypoints.size;
+        return this;
     }
 
     @Override
@@ -34,20 +56,18 @@ public class WaypointPath<T extends Waypoint> extends Path {
         if (waypoints == null || waypoints.isEmpty()) return;
 
         while (waypoints.size > 1 && Core.settings.getBool("assumeunstrict")) waypoints.remove(0); // Only the last waypoint is needed when we are just teleporting there anyways.
-        Waypoint waypoint = waypoints.first();
-        waypoint.run();
-        if (waypoint.isDone()) {
-            waypoint.onFinish();
+        while (waypoints.any() && waypoints.first().isDone()) {
+            waypoints.first().onFinish();
             waypoints.remove(0);
         }
+        if (waypoints.any()) waypoints.first().run();
     }
 
     @Override
     public float progress() {
-        //FINISHME make this work better
-        if (waypoints == null || initial.isEmpty()) return 1f;
+        if (waypoints == null || initialSize == 0) return 1f;
 
-        return waypoints.size / (float)initial.size;
+        return waypoints.size / (float)initialSize;
     }
 
     @Override
@@ -67,16 +87,16 @@ public class WaypointPath<T extends Waypoint> extends Path {
     @Override
     public void draw() {
         if (show) {
-            Waypoint lastWaypoint = null;
+            Position lastWaypoint = null;
             for(Waypoint waypoint : waypoints){
-                if(waypoint instanceof Position){
+                if(waypoint instanceof Position wp){
                     if(lastWaypoint != null){
-                        Draw.z(Layer.space); // Draw it above everything else
+                        Draw.z(Layer.space);
                         Draw.color(Color.blue, 0.4f);
                         Lines.stroke(3f);
-                        Lines.line(((Position)lastWaypoint).getX(), ((Position)lastWaypoint).getY(), ((Position)waypoint).getX(), ((Position)waypoint).getY());
+                        Lines.line(lastWaypoint.getX(), lastWaypoint.getY(), wp.getX(), wp.getY());
                     }
-                    lastWaypoint = waypoint;
+                    lastWaypoint = wp;
                 }
                 waypoint.draw();
                 Draw.color();

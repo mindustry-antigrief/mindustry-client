@@ -39,14 +39,9 @@ public class ChatFragment extends Table{
     private float offsetx = Scl.scl(4), offsety = Scl.scl(4), fontoffsetx = Scl.scl(2), chatspace = Scl.scl(50);
     private Color shadowColor = new Color(0, 0, 0, 0.5f);
     private float textspacing = Scl.scl(10);
-//    private Seq<String> history = new Seq<>();
-//    private int historyPos = 0;
+    private Seq<String> history = new Seq<>();
+    private int historyPos = 0;
     private int scrollPos = 0;
-    public Seq<Pair<Integer, String>> historySeq = new Seq<>(); // idk, initialize with one item inside HELP
-    public int historyNo = 0; // index pointing to string in historySeq (seq of messages the player has sent)
-    private int historyOffset = 0; // offset provided by iterating through own message history - points to this.messages
-    private int smallOffset = 0; // offset provided by the per-message shift
-    private int sinceLastMessage = 0; // total number of messages processed since the last message from the player
     private Fragment container = new Fragment(){
         @Override
         public void build(Group parent){
@@ -77,32 +72,13 @@ public class ChatFragment extends Table{
             }
 
             if(shown){
-                if(input.keyTap(Binding.chat_history_prev) && (historyOffset + smallOffset < messages.size - 1)){
-                    if(historyOffset + smallOffset == 0) historySeq.set(0, new Pair<>(sinceLastMessage, chatfield.getText()));
-                    if(input.keyDown(Binding.chat_history_next_small)){
-                        smallOffset++;
-                        if(historyNo < historySeq.size - 1 && smallOffset >= historySeq.get(historyNo).first) {
-                            historyOffset += historySeq.get(historyNo++).first;
-                            smallOffset = 0;
-                        }
-                    } else if(historyNo < historySeq.size - 1){
-                        historyOffset += historySeq.get(historyNo++).first;
-                        smallOffset = 0;
-                    }
+                if(input.keyTap(Binding.chat_history_prev) && historyPos < history.size - 1){
+                    if(historyPos == 0) history.set(0, chatfield.getText());
+                    historyPos++;
                     updateChat();
                 }
-                if(input.keyTap(Binding.chat_history_next) && historyOffset + smallOffset > 0){
-                    if(historyNo <= 1) historySeq.set(0, new Pair<>(sinceLastMessage, historySeq.get(0).second));
-                    if(input.keyDown(Binding.chat_history_next_small) /*&& historyOffset + smallOffset > 0*/){
-                        smallOffset--;
-                        if(historyNo > 0 && smallOffset < 0){
-                            smallOffset = 0;
-                            historyOffset -= historySeq.get(--historyNo).first;
-                        }
-                    } else if(historyNo > 0){
-                        if(smallOffset == 0) historyOffset -= historySeq.get(--historyNo).first;
-                        smallOffset = 0;
-                    }
+                if(input.keyTap(Binding.chat_history_next) && historyPos > 0){
+                    historyPos--;
                     updateChat();
                 }
                 if (input.keyTap(Binding.chat_autocomplete) && completion.any() && mode == ChatMode.normal) {
@@ -132,11 +108,15 @@ public class ChatFragment extends Table{
                 if ("!r ".equals(chatfield.getText())) {
                     chatfield.setText("!e " + ClientVars.lastCertName + " ");
                     chatfield.setCursorPosition(chatfield.getText().length());
+                } else if ("!b ".equals(chatfield.getText())) {
+                    chatfield.setText("!builder ");
+                    chatfield.setCursorPosition(chatfield.getText().length());
                 }
                 chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 2000 : maxTextLength); // Scuffed way to allow long js
             }
         });
-        historySeq.insert(0, new Pair<>(0, ""));
+
+        history.insert(0, "");
         setup();
     }
 
@@ -147,8 +127,8 @@ public class ChatFragment extends Table{
     public void clearMessages(){
         if (!settings.getBool("clearchatonleave")) return;
         messages.clear();
-        historySeq.clear();
-        historySeq.insert(0, new Pair<>(0, ""));
+        history.clear();
+        history.insert(0, "");
     }
 
     private void setup(){
@@ -202,6 +182,7 @@ public class ChatFragment extends Table{
             if(i - scrollPos == 0) theight -= textspacing + 1;
 
             font.getCache().clear();
+            font.getCache().setColor(Color.white);
             font.getCache().addText(messages.get(i).formattedMessage, fontoffsetx + offsetx, offsety + theight, textWidth, Align.bottomLeft, true);
 
             Color color = messages.get(i).backgroundColor;
@@ -275,7 +256,7 @@ public class ChatFragment extends Table{
         //avoid sending prefix-empty messages
         if(message.isEmpty() || (message.startsWith(mode.prefix) && message.substring(mode.prefix.length()).isEmpty())) return;
 
-        historySeq.insert(1, new Pair<>(sinceLastMessage, message));
+        history.insert(1, message);
 
         // Allow sending commands in "/t" & "/a"; "/t /help" becomes "/help", "/a !go" becomes "!go"
         message = message.replaceFirst("^/[at] ([/!])", "$1");
@@ -325,7 +306,6 @@ public class ChatFragment extends Table{
                 player.sendMessage(text);
             }
         }
-        sinceLastMessage = 0;
     }
 
     public void toggle(){
@@ -365,11 +345,8 @@ public class ChatFragment extends Table{
     }
 
     public void updateChat(){
-        Log.log(Log.LogLevel.debug, "history: [@ @], small: [@], since: [@], numHistory: [@], numMessages: [@]",
-                historyNo, historyOffset, smallOffset, sinceLastMessage, historySeq.size, messages.size);
-        chatfield.setText(mode.normalizedPrefix() + (smallOffset == 0?
-                historySeq.get(historyNo).second :
-                messages.get(historyOffset + smallOffset - 1).message)); // -1 as messages starts from 0; an offset of 1 indicates the 0th message
+        chatfield.setMaxLength(history.get(historyPos).startsWith("!js ") ? 2000 : maxTextLength);
+        chatfield.setText(mode.normalizedPrefix() + history.get(historyPos));
         updateCursor();
     }
 
@@ -390,8 +367,8 @@ public class ChatFragment extends Table{
     }
 
     public void clearChatInput(){
-        historyOffset = 0; historyNo = 0; smallOffset = 0;
-        historySeq.set(0, new Pair<>(0, ""));
+        historyPos = 0;
+        history.set(0, "");
         chatfield.setText(mode.normalizedPrefix());
         updateCursor();
     }
@@ -404,17 +381,10 @@ public class ChatFragment extends Table{
         return shown;
     }
 
-    public ChatMessage addMessage(String message, String sender, Color background){
-        return addMessage(message, sender, background, "");
-    }
-
-    public ChatMessage addMessage(String message, String sender, Color background, String prefix){
+    public ChatMessage addMessage(String message, String sender, Color background, String prefix, String unformatted){
         if(sender == null && message == null) return null;
-        ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy(), prefix);
+        ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy(), prefix, unformatted);
         messages.insert(0, msg);
-        sinceLastMessage++;
-        if(historyNo > 0) historyOffset++;
-        else smallOffset++;
 
         doFade(6); // fadetime was originally incremented by 2f, that works out to 6s
 
@@ -422,21 +392,45 @@ public class ChatFragment extends Table{
         return msg;
     }
 
+    public ChatMessage addMessage(String message, String sender, Color background, String prefix){
+        return addMessage(message, sender, background, prefix, "");
+    }
+
+    public ChatMessage addMessage(String message, String sender, Color background){ // FINISHME: Remove this, merge sender with message
+        return addMessage(message, sender, background, "");
+    }
+
+    public ChatMessage addMessage(String message, Color background, String unformatted){ // FINISHME: Refactor this
+        return addMessage(message, null, background, null);
+    }
+
+    public ChatMessage addMessage(String message, String sender){ // FINISHME: Useless?
+        return addMessage(message, sender, null);
+    }
+
+    public ChatMessage addMessage(String message, Color background){ // FINISHME: Do a v132 cleanup of this whole mess
+        return addMessage(message, null, background);
+    }
+
+    /** returns void for mod compatibility reasons
+     *  DO NOT TOUCH RETURN TYPE, ARGS OR REMOVE THIS CONSTRUCTOR */
+    public void addMessage(String message){
+        addMessage(message, null, null, "");
+    }
+
     public void doFade(float seconds){
         fadetime += seconds/3; // Seconds/3 since this is scaled by 3 anyways fadetime -= Time.delta / 180f;
         fadetime = Math.min(fadetime, messagesShown);
     }
 
-    public ChatMessage addMessage(String message, String sender) {
-        return addMessage(message, sender, null);
-    }
-
+    // FINISHME: This was supposed to be removed in v132?
     public static class ChatMessage{
         public String sender;
         public String message;
         public String formattedMessage;
         public Color backgroundColor = null;
         public String prefix = "";
+        public String unformatted = "";
 
         public ChatMessage(String message, String sender){
             this.message = message;
@@ -455,6 +449,15 @@ public class ChatFragment extends Table{
             this.message = message;
             this.sender = sender;
             this.prefix = prefix;
+            backgroundColor = color;
+            format();
+        }
+
+        public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
+            this.message = message;
+            this.sender = sender;
+            this.prefix = prefix;
+            this.unformatted = unformatted;
             backgroundColor = color;
             format();
         }

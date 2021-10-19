@@ -8,6 +8,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -30,6 +31,7 @@ public class ImpactReactor extends PowerGenerator{
     public int explosionRadius = 23;
     public int explosionDamage = 1900;
     public Effect explodeEffect = Fx.impactReactorExplosion;
+    public int floodNullifierRange = 16 * tilesize;
 
     public Color plasma1 = Color.valueOf("ffd06b"), plasma2 = Color.valueOf("ff361b");
 
@@ -46,6 +48,7 @@ public class ImpactReactor extends PowerGenerator{
         flags = EnumSet.of(BlockFlag.reactor, BlockFlag.generator);
         lightRadius = 115f;
         emitLight = true;
+        envEnabled = Env.any;
     }
 
     @Override
@@ -63,17 +66,17 @@ public class ImpactReactor extends PowerGenerator{
     public void drawPlace(int x, int y, int rotation, boolean valid) {
         super.drawPlace(x, y, rotation, valid);
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, explosionRadius * tilesize, Color.coral);
-        if (ui.join.lastHost != null && ui.join.lastHost.modeName != null && ui.join.lastHost.modeName.equals("Flood")) {
-            Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, 10 * tilesize, Color.orange);
-            indexer.eachBlock(null, x * tilesize + offset, y * tilesize + offset, 10 * tilesize, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
+        if (UtilitiesKt.flood()) {
+            Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, floodNullifierRange, Color.orange);
+            indexer.eachBlock(null, x * tilesize + offset, y * tilesize + offset, floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
         }
     }
 
     @Override
     public void drawRequestConfigTop(BuildPlan req, Eachable<BuildPlan> list){
-        if (ui.join.lastHost != null && ui.join.lastHost.modeName != null && ui.join.lastHost.modeName.equals("Flood")) {
-            Drawf.dashCircle(req.drawx(), req.drawy(), 10 * tilesize, Color.orange);
-            indexer.eachBlock(null, req.drawx(), req.drawy(), 10 * tilesize, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
+        if (UtilitiesKt.flood()) {
+            Drawf.dashCircle(req.drawx(), req.drawy(), floodNullifierRange, Color.orange);
+            indexer.eachBlock(null, req.drawx(), req.drawy(), floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
         }
         if (!settings.getBool("showreactors")) return;
         Drawf.dashCircle(req.drawx(), req.drawy(), explosionRadius * tilesize, Color.coral);

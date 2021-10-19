@@ -202,7 +202,6 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
     /** Clears the placement queue. */
     void clearBuilding(){
-        if (isLocal()) player.persistPlans.clear(); // Being stuck in a death loop or whatever should still allow you to cancel this
         plans.clear();
     }
 
@@ -237,6 +236,8 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
     }
 
     boolean activelyBuilding(){
+        if (!canBuild()) return false; // Foo's does weird things otherwise
+
         //not actively building when not near the build plan
         if(isBuilding()){
             if(!state.isEditor() && !within(buildPlan(), state.rules.infiniteResources ? Float.MAX_VALUE : buildingRange)){

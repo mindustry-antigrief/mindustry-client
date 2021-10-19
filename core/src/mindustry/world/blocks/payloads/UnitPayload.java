@@ -13,9 +13,7 @@ import mindustry.entities.EntityCollisions.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
-import mindustry.graphics.*;
-import mindustry.type.UnitType;
-import mindustry.ui.*;
+import mindustry.type.*;
 
 import static mindustry.Vars.*;
 
@@ -40,6 +38,16 @@ public class UnitPayload implements Payload{
     public void showOverlay(TextureRegionDrawable icon){
         if(icon == null || headless) return;
         showOverlay(icon.getRegion());
+    }
+
+    @Override
+    public ItemStack[] requirements(){
+        return unit.type.getTotalRequirements();
+    }
+
+    @Override
+    public float buildTime(){
+        return unit.type.getBuildTime();
     }
 
     @Override
@@ -108,9 +116,18 @@ public class UnitPayload implements Payload{
         //prevents stacking
         unit.vel.add(Mathf.range(0.5f), Mathf.range(0.5f));
         unit.add();
+        unit.unloaded();
         Events.fire(new UnitUnloadEvent(unit));
 
         return true;
+    }
+
+    @Override
+    public void drawShadow(float alpha){
+        //TODO should not happen
+        if(unit.type == null) return;
+
+        unit.type.drawSoftShadow(unit, alpha);
     }
 
     @Override
@@ -118,7 +135,8 @@ public class UnitPayload implements Payload{
         //TODO should not happen
         if(unit.type == null) return;
 
-        unit.type.drawSoftShadow(unit);
+        unit.type.drawSoftShadow(unit, UnitType.alpha);
+        Draw.alpha(UnitType.alpha);
         Draw.rect(unit.type.fullIcon, unit.x, unit.y, unit.rotation - 90);
         unit.type.drawCell(unit);
 

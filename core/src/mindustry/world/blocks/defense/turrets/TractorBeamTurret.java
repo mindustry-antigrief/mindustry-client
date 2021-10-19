@@ -79,6 +79,11 @@ public class TractorBeamTurret extends BaseTurret{
         public float coolant = 1f;
 
         @Override
+        public void created() {
+            pathfindingEntity.targetGround = targetGround;
+        }
+
+        @Override
         public void remove() {
             synchronized (Navigation.obstacles) {
                 Navigation.obstacles.remove(pathfindingEntity);

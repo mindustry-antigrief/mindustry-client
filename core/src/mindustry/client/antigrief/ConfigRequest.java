@@ -7,19 +7,28 @@ import static mindustry.Vars.*;
 
 public class ConfigRequest {
     public final int x, y;
-    public final Object value;
+    public Object value;
+    public boolean isRotate;
 
-    public ConfigRequest(int x, int y, Object value) {
+    public ConfigRequest(int x, int y, Object value, boolean isRotate) {
         this.x = x;
         this.y = y;
         this.value = value;
+        this.isRotate = isRotate;
+    }
+
+    public ConfigRequest(int x, int y, Object value) {
+        this(x, y, value, false);
     }
 
     public void run() {
         if (world != null) {
             Tile tile = world.tile(x, y);
+
             if (tile == null) return;
-            Call.tileConfig(player, tile.build, value);
+
+            if (isRotate) Call.rotateBlock(player, tile.build, (boolean) value);
+            else Call.tileConfig(player, tile.build, value);
         }
     }
 }

@@ -4,6 +4,7 @@ import arc.graphics.g2d.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.logic.*;
 
 import static mindustry.Vars.*;
 
@@ -44,6 +45,12 @@ abstract class BlockUnitComp implements Unitc{
     @Replace
     public void damage(float v, boolean b){
         tile.damage(v, b);
+    }
+
+    @Replace
+    public float range() {
+        if (tile instanceof Ranged r) return r.range();
+        return type().maxRange;
     }
 
     @Replace

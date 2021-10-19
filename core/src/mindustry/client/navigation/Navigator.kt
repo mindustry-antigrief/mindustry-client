@@ -3,6 +3,7 @@ package mindustry.client.navigation
 import arc.math.geom.*
 import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
+import mindustry.client.utils.*
 import mindustry.game.*
 
 /** An abstract class for a navigation algorithm, i.e. A*.  */
@@ -30,14 +31,16 @@ abstract class Navigator {
         val additionalRadius =
             if (player.unit().formation == null) player.unit().hitSize / 2
             else player.unit().formation().pattern.radius() + player.unit().formation.pattern.spacing / 2
-        for (turret in obstacles) {
-            if (turret.canHitPlayer && turret.canShoot) realObstacles.add(
-                Circle(
-                    turret.x,
-                    turret.y,
-                    turret.radius + additionalRadius
+        if(state.map.name() != "The Maze") {
+            for (turret in obstacles) {
+                if (turret.canHitPlayer && turret.canShoot) realObstacles.add(
+                    Circle(
+                        turret.x,
+                        turret.y,
+                        turret.radius + additionalRadius
+                    )
                 )
-            )
+            }
         }
         if (state.hasSpawns()) { // FINISHME: These should really be weighed less than turrets...
             for (spawn in spawner.spawns) {
@@ -50,7 +53,7 @@ abstract class Navigator {
                 )
             }
         }
-        val flood = ui.join.lastHost != null && (ui.join.lastHost.modeName ?: false) == "Flood"
+        val flood = flood()
         return findPath(
             start, end, realObstacles.toTypedArray(), world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->

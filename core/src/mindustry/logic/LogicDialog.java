@@ -2,11 +2,18 @@ package mindustry.logic;
 
 import arc.*;
 import arc.func.*;
+import arc.graphics.*;
+import arc.scene.actions.*;
+import arc.scene.ui.*;
 import arc.scene.ui.TextButton.*;
 import arc.util.*;
 import mindustry.client.communication.*;
 import mindustry.game.*;
+import mindustry.core.GameState.*;
+import mindustry.ctype.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
+import mindustry.logic.LExecutor.*;
 import mindustry.logic.LStatements.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
@@ -18,6 +25,7 @@ public class LogicDialog extends BaseDialog{
     public LCanvas canvas;
     public Team team;
     Cons<String> consumer = s -> {};
+    @Nullable LExecutor executor;
 
     public LogicDialog(){
         super("logic");
@@ -60,12 +68,96 @@ public class LogicDialog extends BaseDialog{
             dialog.show();
         }).name("edit").disabled(t -> team != player.team());
 
-        buttons.button("Use for comms", () -> {
+        buttons.button("Use for comms", () -> { // FINISHME: Bundle
             ui.showConfirm("Are you use you want to use this block for comms?", () -> {
                 canvas.load(MessageBlockCommunicationSystem.LOGIC_PREFIX);
                 hide();
             });
         }).disabled(t -> team != player.team());
+
+        buttons.button("@variables", Icon.menu, () -> {
+            BaseDialog dialog = new BaseDialog("@variables");
+            dialog.hidden(() -> {
+                if(!wasPaused){
+                    state.set(State.paused);
+                }
+            });
+
+            dialog.shown(() -> {
+                if(!wasPaused){
+                    state.set(State.playing);
+                }
+            });
+
+            dialog.cont.pane(p -> {
+                p.margin(10f).marginRight(16f);
+                p.table(Tex.button, t -> {
+                    t.defaults().fillX().height(45f);
+                    for(var s : executor.vars){
+                        if(s.constant) continue;
+
+                        Color varColor = Pal.gray;
+                        float stub = 8f, mul = 0.5f, pad = 4;
+
+                        Color color =
+                            !s.isobj ? Pal.place :
+                            s.objval == null ? Color.darkGray :
+                            s.objval instanceof String ? Pal.ammo :
+                            s.objval instanceof Content ? Pal.logicOperations :
+                            s.objval instanceof Building ? Pal.logicBlocks :
+                            s.objval instanceof Unit ? Pal.logicUnits :
+                            s.objval instanceof Enum<?> ? Pal.logicIo :
+                            Color.white;
+
+                        String typeName =
+                            !s.isobj ? "number" :
+                            s.objval == null ? "null" :
+                            s.objval instanceof String ? "string" :
+                            s.objval instanceof Content ? "content" :
+                            s.objval instanceof Building ? "building" :
+                            s.objval instanceof Unit ? "unit" :
+                            s.objval instanceof Enum<?> ? "enum" :
+                            "unknown";
+
+                        t.add(new Image(Tex.whiteui, varColor.cpy().mul(mul))).width(stub);
+                        t.stack(new Image(Tex.whiteui, varColor), new Label(" " + s.name + " ", Styles.outlineLabel){{
+                            setColor(Pal.accent);
+                        }}).padRight(pad);
+
+                        t.add(new Image(Tex.whiteui, Pal.gray.cpy().mul(mul))).width(stub);
+                        t.table(Tex.pane, out -> {
+                            float period = 15f;
+                            float[] counter = {-1f};
+                            Label label = out.add("").style(Styles.outlineLabel).padLeft(4).padRight(4).width(140f).wrap().get();
+                            label.update(() -> {
+                                if(counter[0] < 0 || (counter[0] += Time.delta) >= period){
+                                    String text = s.isobj ? PrintI.toString(s.objval) : Math.abs(s.numval - (long)s.numval) < 0.00001 ? (long)s.numval + "" : s.numval + "";
+                                    if(!label.textEquals(text)){
+                                        label.setText(text);
+                                        if(counter[0] >= 0f){
+                                            label.actions(Actions.color(Pal.accent), Actions.color(Color.white, 0.2f));
+                                        }
+                                    }
+                                    counter[0] = 0f;
+                                }
+                            });
+                            label.act(1f);
+                        }).padRight(pad);
+
+                        //TODO type name does not update, is this important?
+                        t.add(new Image(Tex.whiteui, color.cpy().mul(mul))).width(stub);
+                        t.stack(new Image(Tex.whiteui, color), new Label(" " + typeName + " ", Styles.outlineLabel));
+
+                        t.row();
+
+                        t.add().growX().colspan(6).height(4).row();
+                    }
+                });
+            });
+
+            dialog.addCloseButton();
+            dialog.show();
+        }).name("variables").disabled(b -> executor == null || executor.vars.length == 0);
 
         buttons.button("@add", Icon.add, () -> addDialog(canvas.statements.getChildren().size))
             .disabled(t -> team != player.team() || canvas.statements.getChildren().size >= LExecutor.maxInstructions);
@@ -81,8 +173,9 @@ public class LogicDialog extends BaseDialog{
         onResize(() -> canvas.rebuild());
     }
 
-    public void show(Team team, String code, Cons<String> modified){
+    public void show(Team team, String code, LExecutor executor, Cons<String> modified){
         this.team = team;
+        this.executor = executor;
         canvas.statements.clearChildren();
         canvas.rebuild();
         try{
@@ -92,7 +185,7 @@ public class LogicDialog extends BaseDialog{
             canvas.load("");
         }
         this.consumer = result -> {
-            if(!result.equals(code) && team == player.team()){
+            if(!result.equals(code)){
                 modified.get(result);
             }
         };
@@ -113,14 +206,32 @@ public class LogicDialog extends BaseDialog{
                 style.fontColor = example.color();
                 style.font = Fonts.outline;
 
-                t.button(example.name(), style, () -> {
-                    canvas.addAt(at, prov.get());
-                    dialog.hide();
-                }).size(140f, 50f).self(c -> tooltip(c, "lst." + example.name()));
-                if(++i % 2 == 0) t.row();
+                    t.button(example.name(), style, () -> {
+                        canvas.addAt(at, prov.get());
+                        dialog.hide();
+                    }).size(140f, 50f).self(c -> tooltip(c, "lst." + example.name()));
+                    if(++i % 2 == 0) t.row();
+                }
+            });
+            dialog.addCloseButton();
+            dialog.show();
+        }
+
+    public void show(String code, Cons<String> modified){
+        canvas.statements.clearChildren();
+        canvas.rebuild();
+        try{
+            canvas.load(code);
+        }catch(Throwable t){
+            Log.err(t);
+            canvas.load("");
+        }
+        this.consumer = result -> {
+            if(!result.equals(code)){
+                modified.get(result);
             }
-        });
-        dialog.addCloseButton();
-        dialog.show();
+        };
+
+        show();
     }
 }

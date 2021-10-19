@@ -5,12 +5,27 @@ import arc.math.geom.*
 import arc.struct.*
 import mindustry.Vars.*
 import mindustry.entities.units.*
+import mindustry.game.*
 import mindustry.gen.*
 
 class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
     constructor(assisting: Player?) : this(assisting, false)
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
+    private var tolerance = 0F
+
+    companion object { // Events.remove is weird, so we just create the hooks once instead
+        init {
+            Events.on(EventType.DepositEvent::class.java) {
+                val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
+                if (it.player == assisting) Call.transferInventory(player, it.tile)
+            }
+            Events.on(EventType.WithdrawEvent::class.java) {
+                val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
+                if (it.player == assisting) Call.requestItem(player, it.tile, it.item, it.amount)
+            }
+        }
+    }
 
     override fun reset() {}
 
@@ -21,23 +36,21 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
     override fun getShow() = show
 
     override fun follow() {
-        assisting ?: return
-        player ?: return
-        assisting.unit() ?: return
-        player.unit() ?: return
+        if (player?.dead() != false) return
+        assisting?.unit() ?: return // We don't care if they are dead
 
-        val tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)
+        tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) // FINISHME: Factor in formations
 
-        try {
-            player.shooting(assisting.unit().isShooting) // Match shoot state
-            player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()) // Match aim coordinates
+        player.shooting(assisting.unit().isShooting) // Match shoot state
+        player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()) // Match aim coordinates
 
-            if ((assisting.unit().isShooting && player.unit().type.rotateShooting)) { // Rotate to aim position if needed, otherwise face assisted player
-                player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY())
-            }
-        } catch (ignored: Exception) {}
-        waypoint.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y, tolerance, tolerance).run()
+        if (assisting.unit().isShooting && player.unit().type.rotateShooting) // Rotate to aim position if needed, otherwise face assisted player
+            player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY())
 
+        if (Core.settings.getBool("pathnav") && v2.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y).dst(player) > tolerance + tilesize * 5) {
+            if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post { waypoints.set(Seq.with(*Navigation.navigator.navigate(v1.set(player.x, player.y), v2, Navigation.obstacles.toTypedArray()))) }
+            waypoints.follow()
+        } else waypoint.set(v2.x, v2.y, tolerance, tolerance).run()
 
         if (player.unit() is Minerc && assisting.unit() is Minerc) { // Code stolen from formationAi.java, matches player mine state to assisting
             val mine = player.unit() as Minerc
@@ -49,7 +62,7 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
 
                 if (core != null && com.mineTile().drop() != null && player.unit().within(core, player.unit().type.range) && !player.unit().acceptsItem(com.mineTile().drop())) {
                     if (core.acceptStack(player.unit().stack.item, player.unit().stack.amount, player.unit()) > 0) {
-                        Call.transferItemTo(player.unit(), player.unit().stack.item, player.unit().stack.amount, player.unit().x, player.unit().y, core)
+                        Call.transferInventory(player, core)
 
                         player.unit().clearItem()
                     }
@@ -67,6 +80,10 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
                 assisting.unit().plans().forEach { player.unit().addBuild(it, false) }
             }
         }
+    }
+
+    override fun draw() {
+        if (v2.dst(player) > tolerance + tilesize * 5) waypoints.draw()
     }
 
     override fun progress(): Float {

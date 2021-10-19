@@ -8,17 +8,22 @@ import mindustry.client.navigation.waypoints.*;
 public abstract class Path {
     private final Seq<Runnable> listeners = new Seq<>();
     public boolean repeat = false;
-    static PositionWaypoint waypoint = new PositionWaypoint(); // Use this for paths that require one point, dont allocate more than we need to
+    static final PositionWaypoint waypoint = new PositionWaypoint(); // Use this for paths that require one point, dont allocate more than we need to
+    static final Vec2 v1 = new Vec2(), v2 = new Vec2(); // Temporary vectors
+    static final WaypointPath<PositionWaypoint> waypoints = new WaypointPath<>(); // FINISHME: Use this in all paths
 
     public void init() {
+        waypoints.set(new Seq<>()); // Clear waypoints
+        waypoints.setShow(true);
     }
 
     public abstract void setShow(boolean show);
 
     public abstract boolean getShow();
 
-    public void addListener(Runnable listener) {
+    public <T extends Path> T addListener(Runnable listener) {
         listeners.add(listener);
+        return (T) this;
     }
 
     public abstract void follow();
@@ -26,7 +31,7 @@ public abstract class Path {
     public abstract float progress();
 
     public boolean isDone() {
-        boolean done = progress() >= 0.99;
+        boolean done = progress() >= 0.999f;
         if (done && repeat) {
             onFinish();
         }
@@ -35,9 +40,7 @@ public abstract class Path {
 
     public void onFinish() {
         listeners.forEach(Runnable::run);
-        if (repeat) {
-            reset();
-        }
+        if (repeat) reset();
     }
 
     public abstract void reset();

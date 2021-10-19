@@ -13,7 +13,6 @@ import arc.util.*;
 import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
-import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -22,7 +21,6 @@ import mindustry.world.blocks.power.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
-import static mindustry.client.navigation.Navigation.*;
 
 public class BlockRenderer{
     public static final int crackRegions = 8, maxCrackSize = 9;
@@ -122,8 +120,28 @@ public class BlockRenderer{
                 lastCamY = lastCamX = -99; //invalidate camera position so blocks get updated
             }
 
+            invalidateTile(event.tile);
             recordIndex(event.tile);
         });
+    }
+
+    public void invalidateTile(Tile tile){
+        int avgx = (int)(camera.position.x / tilesize);
+        int avgy = (int)(camera.position.y / tilesize);
+        int rangex = (int)(camera.width / tilesize / 2) + 3;
+        int rangey = (int)(camera.height / tilesize / 2) + 3;
+
+        if(Math.abs(avgx - tile.x) <= rangex && Math.abs(avgy - tile.y) <= rangey){
+            lastCamY = lastCamX = -99; //invalidate camera position so blocks get updated
+        }
+    }
+
+    public void removeFloorIndex(Tile tile){
+        if(indexFloor(tile)) floorTree.remove(tile);
+    }
+
+    public void addFloorIndex(Tile tile){
+        if(indexFloor(tile)) floorTree.insert(tile);
     }
 
     boolean indexBlock(Tile tile){
@@ -193,7 +211,7 @@ public class BlockRenderer{
     public void drawDestroyed(){
         if(!Core.settings.getBool("destroyedblocks")) return;
 
-        if(control.input.isPlacing() || control.input.isBreaking()){
+        if(control.input.isPlacing() || control.input.isBreaking() || control.input.selectRequests.any()){
             brokenFade = Mathf.lerpDelta(brokenFade, 1f, 0.1f);
         }else{
             brokenFade = Mathf.lerpDelta(brokenFade, 0f, 0.1f);
@@ -370,21 +388,14 @@ public class BlockRenderer{
         }
 
         var bounds = camera.bounds(Tmp.r3).grow(tilesize);
-        if (ClientVars.showingTurrets) {
-            Draw.z(Layer.space);
-            boolean units = settings.getBool("unitranges");
-            obstacles.forEach(t -> {
-                if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) return;
-                Drawf.dashCircle(t.x, t.y, t.radius - tilesize, t.canHitPlayer ? t.team.color : Team.derelict.color);
-            });
-        }
-        if (ClientVars.showingOverdrives) {
-            Draw.z(Layer.space);
-            ClientVars.overdrives.forEach(b -> {
-                float range = b.realRange();
-                if (b.team == player.team() && bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect();
-            });
-        }
+//        if (ClientVars.showingTurrets) { FINISHME: Remove this lol
+//            Draw.z(Layer.space);
+//            boolean units = settings.getBool("unitranges");
+//            obstacles.forEach(t -> {
+//                if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) return;
+//                Drawf.dashCircle(t.x, t.y, t.radius - tilesize, t.canHitPlayer ? t.team.color : Team.derelict.color);
+//            });
+//        }
 
         if (drawCursors) {
             Draw.z(Layer.space);

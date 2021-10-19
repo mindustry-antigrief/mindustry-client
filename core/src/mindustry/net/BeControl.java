@@ -197,8 +197,8 @@ public class BeControl{
                 try{
                     Log.info(file.absolutePath());
                     Runtime.getRuntime().exec(OS.isMac ?
-                        new String[]{"java", "-XstartOnFirstThread", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                        new String[]{"java", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
+                        new String[]{javaPath, "-XstartOnFirstThread", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
+                        new String[]{javaPath, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                     );
                     Core.app.exit();
                 }catch(IOException e){

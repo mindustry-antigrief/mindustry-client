@@ -6,7 +6,6 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
-import mindustry.ui.*;
 import mindustry.world.*;
 
 import static mindustry.Vars.*;
@@ -33,6 +32,16 @@ public class BuildPayload implements Payload{
     public void place(Tile tile, int rotation){
         tile.setBlock(build.block, build.team, rotation, () -> build);
         build.dropped();
+    }
+
+    @Override
+    public ItemStack[] requirements(){
+        return build.block.requirements;
+    }
+
+    @Override
+    public float buildTime(){
+        return build.block.buildCost;
     }
 
     @Override
@@ -64,8 +73,13 @@ public class BuildPayload implements Payload{
     }
 
     @Override
+    public void drawShadow(float alpha){
+        Drawf.shadow(build.x, build.y, build.block.size * tilesize * 2f, alpha);
+    }
+
+    @Override
     public void draw(){
-        Drawf.shadow(build.x, build.y, build.block.size * tilesize * 2f, UnitType.alpha);
+        drawShadow(UnitType.alpha);
         Draw.alpha(UnitType.alpha);
         Draw.rect(build.block.fullIcon, build.x, build.y);
     }

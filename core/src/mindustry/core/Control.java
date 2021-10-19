@@ -15,6 +15,7 @@ import mindustry.audio.*;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
 import mindustry.core.GameState.*;
+import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
 import mindustry.game.Objectives.*;
@@ -225,10 +226,10 @@ public class Control implements ApplicationListener, Loadable{
                     Effect.shake(5f, 5f, core);
                     core.thrusterTime = 1f;
 
-                    if(state.isCampaign() && Vars.showSectorLandInfo){
+                    if(state.isCampaign() && Vars.showSectorLandInfo && (state.rules.sector.preset == null || state.rules.sector.preset.showSectorLandInfo)){
                         ui.announce("[accent]" + state.rules.sector.name() + "\n" +
                         (state.rules.sector.info.resources.any() ? "[lightgray]" + bundle.get("sectors.resources") + "[white] " +
-                        state.rules.sector.info.resources.toString(" ", u -> u.emoji()) : ""), 5);
+                        state.rules.sector.info.resources.toString(" ", UnlockableContent::emoji) : ""), 5);
                     }
                 });
             }

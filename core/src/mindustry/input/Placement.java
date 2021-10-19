@@ -121,7 +121,8 @@ public class Placement{
         }
 
         Boolf<BuildPlan> placeable = plan -> (plan.placeable(player.team())) ||
-            (plan.tile() != null && (plan.tile().block() == plan.block || plan.tile().block().group == plan.block.group && !(plan.tile().block() instanceof StackConveyor))); //don't count the same block as inaccessible
+            (plan.tile() != null && (plan.tile().block() == plan.block || plan.tile().block().group == plan.block.group &&
+            !(plan.tile().block() instanceof StackConveyor) && !(plan.tile().block() instanceof PayloadConveyor)));
 
         var result = plans1.clear();
         var team = player.team();

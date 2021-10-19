@@ -16,6 +16,7 @@ public class MemoryBlock extends Block{
         solid = true;
         group = BlockGroup.logic;
         drawDisabled = false;
+        envEnabled = Env.any;
     }
 
     @Override

@@ -5,7 +5,7 @@ import mindustry.*;
 import mindustry.game.*;
 
 public class TurretPathfindingEntity extends Circle {
-    public boolean canHitPlayer, canShoot;
+    public boolean canHitPlayer, canShoot, targetGround;
     private static long nextId = 0;
     public long id;
     public Team team = Team.derelict;

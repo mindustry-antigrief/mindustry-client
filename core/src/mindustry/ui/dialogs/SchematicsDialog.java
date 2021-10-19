@@ -29,13 +29,12 @@ import static mindustry.Vars.*;
 
 public class SchematicsDialog extends BaseDialog{
     private static final float tagh = 42f;
-    private static final Color red = Color.valueOf("dd5656");
     private SchematicInfoDialog info = new SchematicInfoDialog();
     private Schematic firstSchematic;
     private String search = "";
     private TextField searchField;
     private Runnable rebuildPane = () -> {}, rebuildTags = () -> {};
-    private Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()-_=+{}|;:'\",<.>/?]");
+    private Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
     private Seq<String> tags, selectedTags = new Seq<>();
     private boolean checkedTags;
 
@@ -210,7 +209,8 @@ public class SchematicsDialog extends BaseDialog{
                         b.stack(new SchematicImage(s).setScaling(Scaling.fit), new Table(n -> {
                             n.top();
                             n.table(Styles.black3, c -> {
-                                Label label = c.add(s.name()).style(Styles.outlineLabel).color(player.core() != null && player.core().items.has(s.requirements()) ? Color.white : red).top().growX().maxWidth(200f - 8f).get();
+                                Label label = c.add(s.name()).style(Styles.outlineLabel).top().growX().maxWidth(200f - 8f)
+                                    .update(l -> l.setText((player.core() == null || !player.core().items.has(s.requirements()) ? "[#dd5656]" : "") + s.name())).get();
                                 label.setEllipsis(true);
                                 label.setAlignment(Align.center);
                             }).growX().margin(1).pad(4).maxWidth(Scl.scl(200f - 8f)).padBottom(0);
@@ -332,12 +332,6 @@ public class SchematicsDialog extends BaseDialog{
 
         dialog.addCloseButton();
         dialog.show();
-    }
-
-    public void focusSearchField(){
-        if(searchField == null) return;
-
-        Core.scene.setKeyboardFocus(searchField);
     }
 
 
@@ -635,8 +629,8 @@ public class SchematicsDialog extends BaseDialog{
     public Dialog show(){
         super.show();
 
-        if(Core.app.isDesktop()){
-            focusSearchField();
+        if(Core.app.isDesktop() && searchField != null){
+            Core.scene.setKeyboardFocus(searchField);
         }
 
         return this;

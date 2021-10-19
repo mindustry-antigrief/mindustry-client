@@ -33,6 +33,7 @@ public class EventType{
         socketConfigChanged,
         update,
         draw,
+        drawOver,
         preDraw,
         postDraw,
         uiDrawBegin,
@@ -57,6 +58,7 @@ public class EventType{
     public static class ResizeEvent{}
     public static class MapMakeEvent{}
     public static class MapPublishEvent{}
+    public static class SaveWriteEvent{}
     public static class SaveLoadEvent{}
     public static class ClientCreateEvent{}
     public static class ServerLoadEvent{}
@@ -77,6 +79,8 @@ public class EventType{
     public static class ContentInitEvent{}
     /** Called when the client game is first loaded. */
     public static class ClientLoadEvent{}
+    /** Called after SoundControl registers its music. */
+    public static class MusicRegisterEvent{}
     /** Called *after* all the modded files have been added into Vars.tree */
     public static class FileTreeInitEvent{}
     /** Called when a game begins and the world is loaded. */
@@ -469,13 +473,31 @@ public class EventType{
         public final @Nullable Unit unit;
         public final Block oldBlock;
         public final @Nullable Object oldConfig;
+        public final byte rotation;
 
-        public BlockBreakEvent(Tile tile, Team team, @Nullable Unit unit, Block oldBlock, @Nullable Object oldConfig) {
+        public BlockBreakEvent(Tile tile, Team team, @Nullable Unit unit, Block oldBlock, @Nullable Object oldConfig, byte rotation) {
             this.tile = tile;
             this.team = team;
             this.unit = unit;
             this.oldBlock = oldBlock;
             this.oldConfig = oldConfig;
+            this.rotation = rotation;
+        }
+    }
+
+    public static class BlockRotateEvent {
+        public final @Nullable Player player;
+        public final Building build;
+        public final boolean direction;
+        public final int oldRotation;
+        public final int newRotation;
+
+        public BlockRotateEvent(@Nullable Player player, Building build, boolean direction, int oldRotation, int newRotation) {
+            this.build = build;
+            this.player = player;
+            this.direction = direction;
+            this.oldRotation = oldRotation;
+            this.newRotation = newRotation;
         }
     }
 
@@ -613,7 +635,7 @@ public class EventType{
             this.player = player;
         }
     }
-    
+
     public static class PlayerBanEvent{
         @Nullable
         public final Player player;
@@ -624,7 +646,7 @@ public class EventType{
             this.uuid = uuid;
         }
     }
-    
+
     public static class PlayerUnbanEvent{
         @Nullable
         public final Player player;
@@ -635,7 +657,7 @@ public class EventType{
             this.uuid = uuid;
         }
     }
-    
+
     public static class PlayerIpBanEvent{
         public final String ip;
 
@@ -643,7 +665,7 @@ public class EventType{
             this.ip = ip;
         }
     }
-    
+
     public static class PlayerIpUnbanEvent{
         public final String ip;
 
@@ -672,4 +694,3 @@ public class EventType{
         }
     }
 }
-

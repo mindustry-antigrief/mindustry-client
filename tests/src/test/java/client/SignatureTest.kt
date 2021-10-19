@@ -1,22 +1,14 @@
 package client
 
-import mindustry.client.Main
-import mindustry.client.crypto.KeyStorage
-import mindustry.client.crypto.Signatures
-import mindustry.client.crypto.genCert
-import mindustry.client.crypto.genKey
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import java.nio.file.Files
-import java.security.Security
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.random.Random
+import mindustry.client.*
+import mindustry.client.crypto.*
+import org.bouncycastle.jce.provider.*
+import org.junit.jupiter.api.*
+import java.nio.file.*
+import java.security.*
+import java.time.*
+import java.util.concurrent.atomic.*
+import kotlin.random.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SignatureTest {

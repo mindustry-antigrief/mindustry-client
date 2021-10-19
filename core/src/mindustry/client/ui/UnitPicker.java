@@ -61,6 +61,7 @@ public class UnitPicker extends BaseDialog {
     public boolean findUnit(UnitType type) {
         return findUnit(type, false);
     }
+
     public boolean findUnit(UnitType type, boolean silent) {
         hide();
         if (type == null) return false;
@@ -103,7 +104,7 @@ public class UnitPicker extends BaseDialog {
             }
         });
 
-        Events.on(EventType.UnitCreateEvent.class, event -> { // FINISHME: Sometimes doesnt work?
+        Events.on(EventType.UnitUnloadEvent.class, event -> { // FINISHME: Run on all unit creations, test that it actually works
             if (type == null) return;
             if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 type = null;
