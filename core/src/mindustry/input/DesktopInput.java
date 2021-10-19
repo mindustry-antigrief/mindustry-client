@@ -626,7 +626,8 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Core.input.keyTap(Binding.clear_building)){
-            player.unit().clearBuilding();
+            if(!Core.input.shift()) player.unit().clearBuilding();
+            else Vars.frozenPlans.clear();
         }
 
         if(Core.input.keyTap(Binding.schematic_select) && !Core.scene.hasKeyboard() && mode != breaking){
@@ -643,8 +644,10 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Core.input.keyTap(Binding.clear_building) || isPlacing()){
-            lastSchematic = null;
-            selectRequests.clear();
+            if(!Core.input.shift()) {
+                lastSchematic = null;
+                selectRequests.clear();
+            }
         }
 
         if(Core.input.keyRelease(Binding.schematic_select) && !Core.scene.hasKeyboard() && selectX == -1 && selectY == -1 && schemX != -1 && schemY != -1){
