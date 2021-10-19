@@ -2,6 +2,7 @@ package mindustry.world.blocks.payloads;
 
 import arc.graphics.g2d.*;
 import arc.util.io.*;
+import mindustry.client.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -79,8 +80,9 @@ public class BuildPayload implements Payload{
 
     @Override
     public void draw(){
-        drawShadow(UnitType.alpha);
-        Draw.alpha(UnitType.alpha);
+        if(ClientVars.hidingUnits) return;
+
+        drawShadow(1f);
         Draw.rect(build.block.fullIcon, build.x, build.y);
     }
 
