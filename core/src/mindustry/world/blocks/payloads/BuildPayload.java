@@ -15,6 +15,7 @@ public class BuildPayload implements Payload{
 
     public BuildPayload(Block block, Team team){
         this.build = block.newBuilding().create(block, team);
+        this.build.tile = emptyTile;
     }
 
     public BuildPayload(Building build){
