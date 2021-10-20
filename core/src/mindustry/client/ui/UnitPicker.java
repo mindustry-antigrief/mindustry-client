@@ -100,8 +100,8 @@ public class UnitPicker extends BaseDialog {
                                 type = null;
                                 t.add("@client.unitpicker.success");
                             } else if (find.getPlayer() != null && !find.isLocal()) {
-                                t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, find.getPlayer().name));
-                                type = event.unit.type;
+                                t.add(Core.bundle.format("client.unitpicker.alreadyinuse", find.type, find.getPlayer().name));
+                                type = find.type;
                             } else t.add("[scarlet]This wasn't supposed to happen...");
                         }
                     }), net.client() ? netClient.getPing()/1000f + .3f: 0);
@@ -122,7 +122,7 @@ public class UnitPicker extends BaseDialog {
                                 t.add("@client.unitpicker.success");
                             } else if (event.unit.getPlayer() != null && !event.unit.isLocal()) {
                                 type = event.unit.type;
-                                t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
+                                t.add(Core.bundle.format("client.unitpicker.alreadyinuse", event.unit.type, event.unit.getPlayer().name));
                             }
                         } else Time.run(60, () -> findUnit(event.unit.type, true));
                     }), net.client() ? netClient.getPing()/1000f + .3f : 0);
