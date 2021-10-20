@@ -477,7 +477,7 @@ public class DesktopInput extends InputHandler{
         }
 
         //zoom camera
-        if((!Core.scene.hasScroll() || Core.input.keyDown(Binding.diagonal_placement)) && !ui.chatfrag.shown() && Math.abs(Core.input.axisTap(Binding.zoom)) > 0
+        if((!Core.scene.hasScroll() || Core.input.keyDown(Binding.diagonal_placement)) && !ui.chatfrag.shown() && !ui.scriptfrag.shown() && Math.abs(Core.input.axisTap(Binding.zoom)) > 0
             && !Core.input.keyDown(Binding.rotateplaced) && (Core.input.keyDown(Binding.diagonal_placement) || ((!player.isBuilder() || !isPlacing() || !block.rotate) && selectRequests.isEmpty()))){
             renderer.scaleCamera(Core.input.axisTap(Binding.zoom));
         }

@@ -566,6 +566,9 @@ public class Control implements ApplicationListener, Loadable{
             if(Core.input.keyTap(Binding.menu) && !ui.restart.isShown() && !ui.minimapfrag.shown()){
                 if(ui.chatfrag.shown()){
                     ui.chatfrag.hide();
+                }else if(ui.scriptfrag.shown() || ui.scriptfrag.open()){
+                    if(ui.scriptfrag.open()) ui.scriptfrag.hide();
+                    else ui.scriptfrag.setShown(false);
                 }else if(ui.listfrag.shown()){
                     ui.listfrag.toggle();
                 }else if(!ui.paused.isShown() && !scene.hasDialog()){

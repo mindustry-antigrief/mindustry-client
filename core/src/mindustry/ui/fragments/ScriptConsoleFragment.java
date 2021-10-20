@@ -46,8 +46,11 @@ public class ScriptConsoleFragment extends Table{
         visible(() -> {
             if(input.keyTap(Binding.console)  && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null) && !ui.chatfrag.shown()){
                 shown = !shown;
-                if(shown && !open && enableConsole){
+                if(shown && enableConsole) {
+                    open = false;
                     toggle();
+                } else if(!shown && enableConsole){
+                    hide();
                 }
                 clearChatInput();
             }
@@ -175,7 +178,7 @@ public class ScriptConsoleFragment extends Table{
 
         if(!open){
             scene.setKeyboardFocus(chatfield);
-            open = !open;
+            open = true;
             if(mobile){
                 TextInput input = new TextInput();
                 input.accepted = text -> {
@@ -191,7 +194,7 @@ public class ScriptConsoleFragment extends Table{
             }
         }else{
             scene.setKeyboardFocus(null);
-            open = !open;
+            open = false;
             scrollPos = 0;
             sendMessage();
         }
@@ -224,5 +227,9 @@ public class ScriptConsoleFragment extends Table{
 
     public void addMessage(String message){
         messages.insert(0, message);
+    }
+
+    public void setShown(boolean s){
+        shown = s;
     }
 }
