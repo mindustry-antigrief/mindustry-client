@@ -88,14 +88,15 @@ public class UnitPicker extends BaseDialog {
             if (!event.player.isLocal() && event.unit.team == player.team()) {
                 Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead);
                 if (find != null) {
+                    type = null;
                     Call.unitControl(player, find);
                     Timer.schedule(() -> {
                         if (find.isPlayer()) {
                             Toast t = new Toast(3);
                             if (event.unit.isLocal()) {
-                                type = null;
                                 t.add("@client.unitpicker.success");
                             } else if (find.getPlayer() != null && !find.isLocal()) {
+                                type = find.type();
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, find.getPlayer().name));
                             }
                         }
