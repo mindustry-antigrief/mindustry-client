@@ -8,6 +8,7 @@ import arc.scene.style.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.*;
+import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.entities.EntityCollisions.*;
 import mindustry.entities.*;
@@ -133,10 +134,9 @@ public class UnitPayload implements Payload{
     @Override
     public void draw(){
         //TODO should not happen
-        if(unit.type == null) return;
+        if(unit.type == null || ClientVars.hidingUnits) return;
 
-        unit.type.drawSoftShadow(unit, UnitType.alpha);
-        Draw.alpha(UnitType.alpha);
+        unit.type.drawSoftShadow(unit);
         Draw.rect(unit.type.fullIcon, unit.x, unit.y, unit.rotation - 90);
         unit.type.drawCell(unit);
 
@@ -144,7 +144,7 @@ public class UnitPayload implements Payload{
         if(overlayTime > 0){
             var region = overlayRegion == null ? Icon.warning.getRegion() : overlayRegion;
             Draw.color(Color.scarlet);
-            Draw.alpha(0.8f * Interp.exp5Out.apply(overlayTime) * UnitType.alpha);
+            Draw.alpha(0.8f * Interp.exp5Out.apply(overlayTime));
 
             float size = 8f;
             Draw.rect(region, unit.x, unit.y, size, size);

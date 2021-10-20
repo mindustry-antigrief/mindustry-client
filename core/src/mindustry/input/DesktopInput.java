@@ -437,7 +437,7 @@ public class DesktopInput extends InputHandler{
                     else if (on.controller() instanceof LogicAI p && p.controller != null) Spectate.INSTANCE.spectate(p.controller); // Shift + click logic unit: spectate processor
                     shouldShoot = false;
                     recentRespawnTimer = 1f;
-                }else if(build != null){
+                }else if(build != null && input.keyDown(Binding.control)){
                     Call.buildingControlSelect(player, build);
                     recentRespawnTimer = 1f;
                 }
