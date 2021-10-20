@@ -86,20 +86,25 @@ public class UnitPicker extends BaseDialog {
         Events.on(EventType.UnitChangeEvent.class, event -> { // FINISHME: Test Player.lastReadUnit also get rid of this dumb ping prediction stuff
             if (type == null) return;
             if (!event.player.isLocal() && event.unit.team == player.team()) {
-                Unit find = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead);
+                Unit f = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI || u.controller() instanceof LogicAI));
+                if (f == null) f = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI)); // Include logic units
+                if (f == null) f = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead); // Include formation units
+                Unit find = f;
                 if (find != null) {
+                    type = null;
                     Call.unitControl(player, find);
-                    Timer.schedule(() -> {
+                    Timer.schedule(() -> Core.app.post(() -> {
                         if (find.isPlayer()) {
                             Toast t = new Toast(3);
-                            if (event.unit.isLocal()) {
+                            if (find.isLocal()) {
                                 type = null;
                                 t.add("@client.unitpicker.success");
                             } else if (find.getPlayer() != null && !find.isLocal()) {
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, find.getPlayer().name));
-                            }
+                                type = event.unit.type;
+                            } else t.add("[scarlet]This wasn't supposed to happen...");
                         }
-                    }, net.client() ? netClient.getPing()/1000f + .3f: 0);
+                    }), net.client() ? netClient.getPing()/1000f + .3f: 0);
                 }
             }
         });
@@ -110,7 +115,7 @@ public class UnitPicker extends BaseDialog {
                 type = null;
                 Timer.schedule(() -> {
                     Call.unitControl(player, event.unit);
-                    Timer.schedule(() -> {
+                    Timer.schedule(() -> Core.app.post(() -> {
                         if (event.unit.isPlayer()) {
                             Toast t = new Toast(3);
                             if (event.unit.isLocal()) {
@@ -120,7 +125,7 @@ public class UnitPicker extends BaseDialog {
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", type, event.unit.getPlayer().name));
                             }
                         } else Time.run(60, () -> findUnit(event.unit.type, true));
-                    }, net.client() ? netClient.getPing()/1000f + .3f : 0);
+                    }), net.client() ? netClient.getPing()/1000f + .3f : 0);
                 }, net.client() ? netClient.getPing()/1000f + .3f : 0);
             }
         });
