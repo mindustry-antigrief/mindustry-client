@@ -39,8 +39,6 @@ public class DesktopLauncher extends ClientLauncher{
 
     public static void main(String[] arg){
         try{
-            new UnpackJars().unpack();
-
             int[] aaSamples = new int[1];
 
             String env = OS.hasProp("aaSamples") ? OS.prop("aaSamples") : OS.hasEnv("aaSamples") ? OS.env("aaSamples") : "";
@@ -55,6 +53,20 @@ public class DesktopLauncher extends ClientLauncher{
                 }
             });
 
+            if (OS.isMac && !Structs.contains(arg, "-firstThread")) { //restart with -XstartOnFirstThread on mac, doesn't work without it
+                Core.files = new SdlFiles(); //this is null otherwise
+                javaPath = // this is null otherwise
+                    new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
+                    Core.files.local("jre/bin/java").exists() ? Core.files.local("jre/bin/java").absolutePath() :
+                    "java";
+                Fi jar = Fi.get(DesktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                try {
+                    new ProcessBuilder(javaPath, "-XstartOnFirstThread", "-jar", jar.absolutePath(), "-firstThread").inheritIO().start().waitFor();
+                    return;
+                } catch (IOException ignored) {} //java command failed (couldnt find java install)
+            }
+
+            new UnpackJars().unpack();
             Log.infoTag("AA Samples", "" + aaSamples[0]);
 
             new SdlApplication(new DesktopLauncher(arg), new SdlConfig() {{

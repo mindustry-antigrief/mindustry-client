@@ -172,7 +172,7 @@ public class PlayerListFragment extends Fragment{
             }
             if (user != player) {
                 button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
-                        () -> Navigation.follow(new AssistPath(user, Core.input.shift()))).size(h / 2).tooltip("@client.assist");
+                        () -> Navigation.follow(new AssistPath(user, Core.input.shift(), Core.input.ctrl()))).size(h / 2).tooltip("@client.assist");
                 button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
                         () -> Navigation.follow(new UnAssistPath(user))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.move, Styles.clearPartiali, // Goto

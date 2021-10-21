@@ -370,7 +370,7 @@ public class DesktopInput extends InputHandler{
         Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
         if(!scene.hasMouse() && !locked){
-            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null){ // Tile actions / alt click menu
+            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && cursor != null && selectedUnit(true) == null){ // Tile actions / alt click menu
                 int itemHeight = 30;
                 Table table = new Table(Tex.buttonTrans);
                 table.setWidth(400);
@@ -432,8 +432,7 @@ public class DesktopInput extends InputHandler{
                 var build = selectedControlBuild();
                 if(on != null){
                     if (input.keyDown(Binding.control) && on.isAI()) Call.unitControl(player, on); // Ctrl + click: control unit
-                    else if (input.keyDown(Binding.control) && on.isPlayer()) Navigation.follow(new AssistPath(on.playerNonNull(), true)); // Ctrl + click player: quick assist (cursor mode)
-                    else if (input.shift() && on.isPlayer()) Navigation.follow(new AssistPath(on.playerNonNull())); // Shift + click player: quick assist
+                    else if ((input.keyDown(Binding.control) || input.shift()) && on.isPlayer()) Navigation.follow(new AssistPath(on.playerNonNull(), input.keyDown(Binding.control), input.alt())); // Shift + click player: quick assist (ctrl + click to follow cursor, shift/ctrl + alt + click to not follow)
                     else if (on.controller() instanceof LogicAI p && p.controller != null) Spectate.INSTANCE.spectate(p.controller); // Shift + click logic unit: spectate processor
                     shouldShoot = false;
                     recentRespawnTimer = 1f;
@@ -472,7 +471,7 @@ public class DesktopInput extends InputHandler{
         }
 
         //zoom camera
-        if((!Core.scene.hasScroll() || Core.input.keyDown(Binding.diagonal_placement)) && !ui.chatfrag.shown() && Math.abs(Core.input.axisTap(Binding.zoom)) > 0
+        if((!Core.scene.hasScroll() || Core.input.keyDown(Binding.diagonal_placement)) && !ui.chatfrag.shown() && !ui.scriptfrag.shown() && Math.abs(Core.input.axisTap(Binding.zoom)) > 0
             && !Core.input.keyDown(Binding.rotateplaced) && (Core.input.keyDown(Binding.diagonal_placement) || ((!player.isBuilder() || !isPlacing() || !block.rotate) && selectRequests.isEmpty()))){
             renderer.scaleCamera(Core.input.axisTap(Binding.zoom));
         }
@@ -868,7 +867,7 @@ public class DesktopInput extends InputHandler{
             unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
 
             // if autoboost, invert the behavior of the boost key
-            player.boosting = (Core.settings.getBool("autoboost") != input.keyDown(Binding.boost));
+            player.boosting = Core.settings.getBool("autoboost") ^ input.keyDown(Binding.boost);
         }
         unit.controlWeapons(true, player.shooting && !boosted);
 
