@@ -18,6 +18,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.LStatements.*;
 import mindustry.ui.*;
+import org.jetbrains.annotations.NotNull;
 
 public class LCanvas extends Table{
     public static final int maxJumpsDrawn = 100;
@@ -114,6 +115,7 @@ public class LCanvas extends Table{
             jumps.cullable = false;
         }).grow().get();
         pane.setFlickScroll(false);
+        recalculate();
 
         //load old scroll percent
         Core.app.post(() -> {
@@ -124,6 +126,44 @@ public class LCanvas extends Table{
         if(toLoad != null){
             load(toLoad);
         }
+    }
+    public Seq<JumpSegment> jumpSegmentSeq = new Seq<>();
+    public Seq<JumpHeight> jumpHeightSeq = new Seq<>();
+    public void recalculate(){
+        var temp = statements.seq.<StatementElem>as();
+        for(int i=0; i < temp.size; i++)
+            temp.get(i).index = i;
+        for(int i=0; i < temp.size; i++)
+            if(temp.get(i).st instanceof JumpStatement js)
+                js.saveUI();
+        JumpSegment.resetAll();
+        for(var s: temp){
+            if(s == dragging || !(s.st instanceof JumpStatement js)) continue;
+            if(js.destIndex == -1) continue; // empty jumps a
+            if(JumpSegment.isCreated(js.destIndex)) JumpSegment.allMap.get(js.destIndex).add(s.index);
+            else jumpSegmentSeq.add(new JumpSegment(js.destIndex, s.index));
+            JumpSegment.allMap.get(js.destIndex).add(js.destIndex);
+        }
+        jumpSegmentSeq.sort();
+        JumpSegment jtemp;
+        while(jumpSegmentSeq.size > 0 && (jtemp = jumpSegmentSeq.get(jumpSegmentSeq.size - 1)).span() == JumpSegment.MAX_SPAN){
+            JumpSegment.allMap.remove(jtemp.dest);
+            jumpSegmentSeq.remove(jumpSegmentSeq.size - 1);
+        }
+        jumpHeightSeq.forEach(JumpHeight::reset);
+        while(jumpHeightSeq.size <= JumpSegment.global_max) jumpHeightSeq.add(new JumpHeight());
+        jumpSegmentSeq.forEach(v -> {
+            long mask = Long.MAX_VALUE;
+            int maxHeight;
+            for(int i=v.min; i <= v.max; i++){
+                mask &= jumpHeightSeq.get(i).available_mask;
+            }
+            maxHeight = Mathf.round(Mathf.log(2, mask & -mask));
+            for(int i=v.min; i <= v.max; i++){
+                jumpHeightSeq.get(i).take(maxHeight);
+            }
+            v.height = maxHeight;
+        });
     }
 
     @Override
@@ -162,6 +202,7 @@ public class LCanvas extends Table{
         }
 
         this.statements.layout();
+        recalculate();
     }
 
     StatementElem checkHovered(){
@@ -191,6 +232,56 @@ public class LCanvas extends Table{
         }
     }
 
+    public class JumpHeight{
+        long available_mask = Long.MAX_VALUE;
+        public static int maxHeight = 0;
+
+        public void take(int loc){
+            available_mask ^= (1L << loc);
+            maxHeight = Math.max(maxHeight, loc);
+        }
+        public void reset(){
+            available_mask = Long.MAX_VALUE;
+            maxHeight = 0;
+        }
+    }
+    public class JumpSegment implements Comparable{
+        int min = 2147483646, max = -1, dest, height;
+        public static int global_max = 0;
+        public final static int MAX_SPAN = -2147483647;
+        public static IntMap<JumpSegment> allMap = new IntMap<>();
+
+        public JumpSegment(int dest, int loc){
+            this.dest = dest;
+            if(!allMap.containsKey(dest)) allMap.put(dest, this);
+            add(loc);
+        }
+        public void add(int loc){
+            min = loc < min ? loc : min;
+            max = loc > max ? loc : max;
+            global_max = loc > global_max ? loc : global_max;
+        }
+        public void reset(){
+            min = 2147483646;
+            max = -1;
+            height = 0;
+        }
+        public int span(){
+            return max - min;
+        }
+        public static boolean isCreated(int loc){
+            return allMap.containsKey(loc);
+        }
+        public static void resetAll(){
+            allMap.values().forEach(JumpSegment::reset);
+            global_max = 0;
+        }
+        @Override
+        public int compareTo(@NotNull Object o) {
+            if(!(o instanceof JumpSegment e)) return 0;
+            return e.span() - this.span(); // larger lengths go to the front
+        }
+    }
     public class DragLayout extends WidgetGroup{
         float space = Scl.scl(10f), prefWidth, prefHeight;
         Seq<Element> seq = new Seq<>();
@@ -360,6 +451,7 @@ public class LCanvas extends Table{
                     remove();
                     dragging = null;
                     statements.layout();
+                    recalculate();
                 }).size(24f);
 
                 t.addListener(new InputListener(){
@@ -391,11 +483,13 @@ public class LCanvas extends Table{
                         lasty = v.y;
 
                         statements.layout();
+                        recalculate();
                     }
 
                     @Override
                     public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button){
                         statements.finishLayout();
+                        recalculate();
                     }
                 });
             }).growX().height(38);
@@ -435,6 +529,7 @@ public class LCanvas extends Table{
                 statements.layout();
                 copy.elem = s;
                 copy.setupUI();
+                recalculate();
             }
         }
 
@@ -449,6 +544,7 @@ public class LCanvas extends Table{
             }
             for (var state : states) state.setupUI();
             statements.layout();
+            recalculate();
         }
 
         @Override
@@ -472,7 +568,7 @@ public class LCanvas extends Table{
         float mx, my;
         ClickListener listener;
 
-        public JumpCurve curve;
+        public JumpLine line;
 
         public JumpButton(Prov<StatementElem> getter, Cons<StatementElem> setter){
             super(Tex.logicNode, Styles.colori);
@@ -502,6 +598,7 @@ public class LCanvas extends Table{
                     StatementElem elem = canvas.hovered;
 
                     setter.get(elem); // Changed to allow jumping to self
+                    canvas.recalculate();
                     selecting = false;
                 }
             });
@@ -515,7 +612,7 @@ public class LCanvas extends Table{
                 getStyle().imageUpColor = this.color;
             });
 
-            curve = new JumpCurve(this);
+            line = new JumpLine(this);
         }
 
         @Override
@@ -523,17 +620,18 @@ public class LCanvas extends Table{
             super.setScene(stage);
 
             if(stage == null){
-                curve.remove();
+                line.remove();
             }else{
-                canvas.jumps.addChild(curve);
+                canvas.jumps.addChild(line);
             }
         }
     }
 
-    public static class JumpCurve extends Element{
+    public static class JumpLine extends Element{
         public JumpButton button;
+        int heightx;
 
-        public JumpCurve(JumpButton button){
+        public JumpLine(JumpButton button){
             this.button = button;
         }
 
@@ -553,6 +651,12 @@ public class LCanvas extends Table{
             if(canvas.jumpCount > maxJumpsDrawn && !button.selecting && !button.listener.isOver()){
                 return;
             }
+
+            if(button.to.get() == null || JumpSegment.allMap.get(button.to.get().index) == null ||
+                    (button.parent.parent != null) && button.parent.parent instanceof StatementElem se && se == canvas.dragging) // hack ://
+                heightx = JumpHeight.maxHeight + 2;
+            else
+                heightx = JumpSegment.allMap.get(button.to.get().index).height;
 
             Element hover = button.to.get() == null && button.selecting ? canvas.hovered : button.to.get();
             boolean draw = false;
@@ -577,7 +681,7 @@ public class LCanvas extends Table{
             r.y += offset;
 
             if(draw){
-                drawCurve(r.x + button.getWidth()/2f, r.y + button.getHeight()/2f, t.x, t.y);
+                drawLine(r.x + button.getWidth()/2f, r.y + button.getHeight()/2f, t.x, t.y);
 
                 float s = button.getWidth();
                 Draw.color(button.color);
@@ -586,33 +690,28 @@ public class LCanvas extends Table{
             }
         }
 
-        public void drawCurve(float x, float y, float x2, float y2){
-            Lines.stroke(4f, button.color);
+        public void drawLine(float x, float y, float x2, float y2){
+            float width = 3f;
+            Lines.stroke(width, button.color);
             Draw.alpha(parentAlpha);
 
-            float dist = 100f;
+            float len = heightx * (width * 3f) + 15f;
+            float maxX = Math.max(x, x2) + len;
+            Lines.beginLine();
+            Lines.linePoint(x, y);
+            Lines.linePoint(maxX, y);
+            Lines.linePoint(maxX, y2);
+            Lines.linePoint(x2, y2);
+            Lines.endLine();
 
-            //square jumps
-            if(false){
-                float len = Scl.scl(Mathf.randomSeed(hashCode(), 10, 50));
-
-                float maxX = Math.max(x, x2) + len;
-
-                Lines.beginLine();
-                Lines.linePoint(x, y);
-                Lines.linePoint(maxX, y);
-                Lines.linePoint(maxX, y2);
-                Lines.linePoint(x2, y2);
-                Lines.endLine();
-                return;
-            }
-
+            /*
             Lines.curve(
             x, y,
             x + dist, y,
             x2 + dist, y2,
             x2, y2,
             Math.max(18, (int)(Mathf.dst(x, y, x2, y2) / 6)));
+            */
         }
     }
 }
