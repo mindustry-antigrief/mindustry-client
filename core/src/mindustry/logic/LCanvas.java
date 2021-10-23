@@ -127,8 +127,9 @@ public class LCanvas extends Table{
             load(toLoad);
         }
     }
+    public int maxJumpHeight = 0;
     public Seq<JumpSegment> jumpSegmentSeq = new Seq<>();
-    public Seq<JumpHeight> jumpHeightSeq = new Seq<>();
+    public LongSeq jumpHeightSeq = new LongSeq();
     public void recalculate(){
         var temp = statements.seq.<StatementElem>as();
         for(int i=0; i < temp.size; i++)
@@ -148,19 +149,16 @@ public class LCanvas extends Table{
             JumpSegment.allMap.remove(jtemp.dest);
             jumpSegmentSeq.remove(jumpSegmentSeq.size - 1);
         }
-        jumpHeightSeq.forEach(JumpHeight::reset);
-        while(jumpHeightSeq.size <= JumpSegment.global_max) jumpHeightSeq.add(new JumpHeight());
+        maxJumpHeight = 0;
+        jumpHeightSeq.setSize(Math.max(statements.seq.size, jumpHeightSeq.size));
+        for(int i = 0; i < jumpHeightSeq.size; i++) jumpHeightSeq.set(i, Long.MAX_VALUE);
         jumpSegmentSeq.forEach(v -> {
             long mask = Long.MAX_VALUE;
             int maxHeight;
-            for(int i=v.min; i <= v.max; i++){
-                mask &= jumpHeightSeq.get(i).available_mask;
-            }
+            for(int i=v.min; i <= v.max; i++)  mask &= jumpHeightSeq.get(i);
             maxHeight = Mathf.round(Mathf.log(2, mask & -mask));
-            for(int i=v.min; i <= v.max; i++){
-                jumpHeightSeq.get(i).take(maxHeight);
-            }
-            v.height = maxHeight;
+            for(int i=v.min; i <= v.max; i++) jumpHeightSeq.set(i, jumpHeightSeq.get(i) ^ (1L << maxHeight));
+            maxJumpHeight = Math.max(maxJumpHeight, v.height = maxHeight);
         });
     }
 
@@ -230,20 +228,7 @@ public class LCanvas extends Table{
         }
     }
 
-    public class JumpHeight{
-        long available_mask = Long.MAX_VALUE;
-        public static int maxHeight = 0;
-
-        public void take(int loc){
-            available_mask ^= (1L << loc);
-            maxHeight = Math.max(maxHeight, loc);
-        }
-        public void reset(){
-            available_mask = Long.MAX_VALUE;
-            maxHeight = 0;
-        }
-    }
-    public class JumpSegment implements Comparable{
+    public static class JumpSegment implements Comparable<JumpSegment>{
         int min = 2147483646, max = -1, dest, height;
         public static int global_max = 0;
         public final static int MAX_SPAN = -2147483647;
@@ -275,9 +260,10 @@ public class LCanvas extends Table{
             global_max = 0;
         }
         @Override
-        public int compareTo(@NotNull Object o) {
-            if(!(o instanceof JumpSegment e)) return 0;
-            return e.span() - this.span(); // larger lengths go to the front
+        public int compareTo(@NotNull JumpSegment o) {
+            int s, os;
+            return (s = this.span()) == MAX_SPAN ? 1 : (os = o.span()) == MAX_SPAN ? -1 : os == s ? this.min - o.min : os - s;
+            //return e.span() - this.span(); // larger lengths go to the front, smaller min goes to the front also
         }
     }
     public class DragLayout extends WidgetGroup{
@@ -653,7 +639,7 @@ public class LCanvas extends Table{
 
             if(button.to.get() == null || JumpSegment.allMap.get(button.to.get().index) == null ||
                     (button.parent.parent != null) && button.parent.parent instanceof StatementElem se && se == canvas.dragging) // hack ://
-                heightx = JumpHeight.maxHeight + 2;
+                heightx = canvas.maxJumpHeight + 2;
             else
                 heightx = JumpSegment.allMap.get(button.to.get().index).height;
 
