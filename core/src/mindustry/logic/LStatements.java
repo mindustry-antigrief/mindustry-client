@@ -803,7 +803,7 @@ public class LStatements{
         @Override
         public void saveUI(){
             if(elem != null){
-                destIndex = dest == null ? -1 : dest.parent.getChildren().indexOf(dest);
+                destIndex = dest == null || dest.parent == null ? -1 : dest.parent.getChildren().indexOf(dest);
             }
         }
 

@@ -132,8 +132,6 @@ public class LCanvas extends Table{
     public void recalculate(){
         var temp = statements.seq.<StatementElem>as();
         for(int i=0; i < temp.size; i++)
-            temp.get(i).index = i;
-        for(int i=0; i < temp.size; i++)
             if(temp.get(i).st instanceof JumpStatement js)
                 js.saveUI();
         JumpSegment.resetAll();
@@ -471,6 +469,7 @@ public class LCanvas extends Table{
                         dragging = StatementElem.this;
                         toFront();
                         statements.layout();
+                        recalculate();
                         return true;
                     }
 
