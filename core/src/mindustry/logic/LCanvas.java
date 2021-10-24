@@ -323,6 +323,7 @@ public class LCanvas extends Table{
         public LStatement st;
         public int index;
         Label addressLabel;
+        private boolean isDeleting = false;
 
         public StatementElem(LStatement st){
             this.st = st;
@@ -374,6 +375,7 @@ public class LCanvas extends Table{
                             copy();
                             return false;
                         }
+                        if(isDeleting) return false;
 
                         Vec2 v = localToParentCoordinates(Tmp.v1.set(x, y));
                         lastx = v.x;
