@@ -426,7 +426,7 @@ public class LCanvas extends Table{
                         dragging = StatementElem.this;
                         toFront();
                         statements.layout();
-                        recalculate();
+                        dragging.jumpHeight = -1;
                         return true;
                     }
 
@@ -439,7 +439,6 @@ public class LCanvas extends Table{
                         lasty = v.y;
 
                         statements.layout();
-                        recalculate();
                     }
 
                     @Override
