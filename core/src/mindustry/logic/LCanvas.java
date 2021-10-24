@@ -144,9 +144,8 @@ public class LCanvas extends Table{
             js.dest.updateJumpsToHere(s.index);
         }
         tempseq.sort((o, e) -> {
-            int os, es;
-            return (os = o.jumpSpan()) == StatementElem.MAX_SPAN ? 1 :
-                    (es = e.jumpSpan()) == StatementElem.MAX_SPAN ? -1 : os == es ? o.minJump - e.minJump : es - os;
+            int os = o.jumpSpan(), es = e.jumpSpan();
+            return os == StatementElem.MAX_SPAN ? (es == os ? 0 : 1) : es == StatementElem.MAX_SPAN ? -1 : os == es ? o.minJump - e.minJump : es - os;
             // larger lengths go to the front, smaller min goes to the front also
         });
         maxJumpHeight = 0;
@@ -656,31 +655,22 @@ public class LCanvas extends Table{
             }
         }
 
-        float lineWidth = 3f, heightSpacing = 6f, idealCurveRadius = 10f;
+        float lineWidth = 3f, heightSpacing = 8f, idealCurveRadius = 8f;
         public void drawLine(float x, float y, float x2, float y2){
             float curveRadius = Math.min(idealCurveRadius, Math.abs((y2 - y) / 2));
             Lines.stroke(lineWidth, button.color);
             Draw.alpha(parentAlpha);
 
             float len = heightx * (lineWidth + heightSpacing) + curveRadius + 2f;
-            float maxX = Math.max(x, x2) + len + button.getWidth()*0.75f;
+            float maxX = Math.max(x, x2) + len + button.getWidth()*0.5f;
             int curveDirection = Mathf.sign(y2 - y);
             int isDownwards = Mathf.clamp(curveDirection, 0, 1);
-            /*
-            Lines.beginLine();
-            Lines.linePoint(x, y);
-            Lines.linePoint(maxX, y);
-            Lines.linePoint(maxX, y2);
-            Lines.linePoint(x2, y2);
-            Lines.endLine();
-             */
-            int segmentVertices = Lines.circleVertices(curveRadius) * 4; // just take this as the number of vertices in the quarter-circle for now..
+            int segmentVertices = Lines.circleVertices(curveRadius); // just take this as the number of vertices in the quarter-circle for now..
+
             Lines.line(x, y, maxX - curveRadius, y);
-            Lines.polySeg(segmentVertices*4, 0, segmentVertices, maxX - curveRadius, y + curveRadius * curveDirection, curveRadius,
-                    -isDownwards * 90 - 90); // invert isDownwards: 0 * 90 - 90 = -90, -1 * 90 - 90 = -180
+            polySeg(segmentVertices*4, 0, segmentVertices, maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, -isDownwards * 90);
             Lines.line(maxX, y + curveRadius * curveDirection, maxX, y2 - curveRadius * curveDirection);
-            Lines.polySeg(segmentVertices*4, 0, segmentVertices, maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius,
-                    isDownwards * 90 - 180); // invert aforementioned inversion: 0 * 90 - 180 = -180, 1 * 90 - 180 = -90
+            polySeg(segmentVertices*4, 0, segmentVertices, maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, isDownwards * 90 - 90);
             Lines.line(maxX - curveRadius, y2, x2, y2);
 
             /*
@@ -691,6 +681,21 @@ public class LCanvas extends Table{
             x2, y2,
             Math.max(18, (int)(Mathf.dst(x, y, x2, y2) / 6)));
             */
+        }
+        public static void polySeg(int sides, int from, int to, float x, float y, float radius, float angle){ // Line.polySeg but the proper implementation
+            float space = 360f / sides;
+            float hstep = Lines.getStroke() / 2f / Mathf.cosDeg(space/2f);
+            float r1 = radius - hstep, r2 = radius + hstep;
+
+            for(int i = from; i < to; i++){
+                float a = space * i + angle, cos = Mathf.cosDeg(a), sin = Mathf.sinDeg(a), cos2 = Mathf.cosDeg(a + space), sin2 = Mathf.sinDeg(a + space);
+                Fill.quad(
+                        x + r1*cos, y + r1*sin,
+                        x + r1*cos2, y + r1*sin2,
+                        x + r2*cos2, y + r2*sin2,
+                        x + r2*cos, y + r2*sin
+                );
+            }
         }
     }
 }
