@@ -130,7 +130,10 @@ public class LCanvas extends Table{
     public int maxJumpHeight = 0;
     public LongSeq jumpHeightSeq = new LongSeq();
     public Seq<StatementElem> tempseq = new Seq<>();
+    public IntSet locations_to_consider = new IntSet();
+    private final IntSet.IntSetIterator locations_to_consider_iterator = locations_to_consider.iterator();
     public void recalculate(){
+        locations_to_consider.clear();
         tempseq.set(statements.getChildren().as());
         for(var e : tempseq) {
             e.minJump = Integer.MAX_VALUE;
@@ -142,6 +145,8 @@ public class LCanvas extends Table{
             if(!(s.st instanceof JumpStatement js)) continue;
             if(js.destIndex == -1) continue; // empty jumps a
             js.dest.updateJumpsToHere(s.index);
+            locations_to_consider.add(js.destIndex);
+            locations_to_consider.add(s.index);
         }
         tempseq.sort((o, e) -> {
             int os = o.jumpSpan(), es = e.jumpSpan();
@@ -151,13 +156,17 @@ public class LCanvas extends Table{
         maxJumpHeight = 0;
         jumpHeightSeq.setSize(Math.max(statements.getChildren().size, jumpHeightSeq.size));
         for(int i = 0; i < jumpHeightSeq.size; i++) jumpHeightSeq.set(i, Long.MAX_VALUE);
-        tempseq.forEach(v -> { // O(n^2) :/
+        tempseq.forEach(v -> { // (better) O(n^2) :/
             if(v.jumpSpan() == StatementElem.MAX_SPAN) return;
             long mask = Long.MAX_VALUE;
-            int maxHeight;
-            for(int i=v.minJump; i <= v.maxJump; i++)  mask &= jumpHeightSeq.get(i);
+            int maxHeight, next;
+            locations_to_consider_iterator.reset();
+            while(locations_to_consider_iterator.hasNext && (next = locations_to_consider_iterator.next()) <= v.maxJump)
+                mask &= next < v.minJump ? Long.MAX_VALUE : jumpHeightSeq.get(next);
             maxHeight = Mathf.round(Mathf.log(2, mask & -mask));
-            for(int i=v.minJump; i <= v.maxJump; i++) jumpHeightSeq.set(i, jumpHeightSeq.get(i) ^ (1L << maxHeight));
+            locations_to_consider_iterator.reset();
+            while(locations_to_consider_iterator.hasNext && (next = locations_to_consider_iterator.next()) <= v.maxJump)
+                if(next >= v.minJump) jumpHeightSeq.set(next, jumpHeightSeq.get(next) ^ (1L << maxHeight));
             maxJumpHeight = Math.max(maxJumpHeight, v.jumpHeight = maxHeight);
         });
     }
