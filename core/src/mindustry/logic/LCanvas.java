@@ -405,7 +405,8 @@ public class LCanvas extends Table{
 
                 t.button(Icon.paste, Styles.logici, () -> {
                 }).size(24f).padRight(6).tooltip("Paste Here").get().tapped(() -> {
-                    this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n")));
+                    try{ this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n"))); }
+                    catch(Throwable e){Vars.ui.showException(e);};
                 });
 
                 var temp = t.button(Icon.cancel, Styles.logici, () -> {
