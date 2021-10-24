@@ -128,37 +128,38 @@ public class LCanvas extends Table{
         }
     }
     public int maxJumpHeight = 0;
-    public Seq<JumpSegment> jumpSegmentSeq = new Seq<>();
     public LongSeq jumpHeightSeq = new LongSeq();
+    public Seq<StatementElem> tempseq = new Seq<>();
     public void recalculate(){
-        var temp = statements.seq.<StatementElem>as();
-        for(int i=0; i < temp.size; i++)
-            if(temp.get(i).st instanceof JumpStatement js)
+        tempseq.set(statements.getChildren().as());
+        for(var e : tempseq) {
+            e.minJump = Integer.MAX_VALUE;
+            e.jumpHeight = e.maxJump = -1;
+            if(e.st instanceof JumpStatement js)
                 js.saveUI();
-        JumpSegment.resetAll();
-        for(var s: temp){
-            if(s == dragging || !(s.st instanceof JumpStatement js)) continue;
+        }
+        for(StatementElem s: tempseq){
+            if(!(s.st instanceof JumpStatement js)) continue;
             if(js.destIndex == -1) continue; // empty jumps a
-            if(JumpSegment.isCreated(js.destIndex)) JumpSegment.allMap.get(js.destIndex).add(s.index);
-            else jumpSegmentSeq.add(new JumpSegment(js.destIndex, s.index));
-            JumpSegment.allMap.get(js.destIndex).add(js.destIndex);
+            js.dest.updateJumpsToHere(s.index);
         }
-        jumpSegmentSeq.sort();
-        JumpSegment jtemp;
-        while(jumpSegmentSeq.size > 0 && (jtemp = jumpSegmentSeq.get(jumpSegmentSeq.size - 1)).span() == JumpSegment.MAX_SPAN){
-            JumpSegment.allMap.remove(jtemp.dest);
-            jumpSegmentSeq.remove(jumpSegmentSeq.size - 1);
-        }
+        tempseq.sort((o, e) -> {
+            int os, es;
+            return (os = o.jumpSpan()) == StatementElem.MAX_SPAN ? 1 :
+                    (es = e.jumpSpan()) == StatementElem.MAX_SPAN ? -1 : os == es ? o.minJump - e.minJump : es - os;
+            // larger lengths go to the front, smaller min goes to the front also
+        });
         maxJumpHeight = 0;
-        jumpHeightSeq.setSize(Math.max(statements.seq.size, jumpHeightSeq.size));
+        jumpHeightSeq.setSize(Math.max(statements.getChildren().size, jumpHeightSeq.size));
         for(int i = 0; i < jumpHeightSeq.size; i++) jumpHeightSeq.set(i, Long.MAX_VALUE);
-        jumpSegmentSeq.forEach(v -> {
+        tempseq.forEach(v -> { // O(n^2) :/
+            if(v.jumpSpan() == StatementElem.MAX_SPAN) return;
             long mask = Long.MAX_VALUE;
             int maxHeight;
-            for(int i=v.min; i <= v.max; i++)  mask &= jumpHeightSeq.get(i);
+            for(int i=v.minJump; i <= v.maxJump; i++)  mask &= jumpHeightSeq.get(i);
             maxHeight = Mathf.round(Mathf.log(2, mask & -mask));
-            for(int i=v.min; i <= v.max; i++) jumpHeightSeq.set(i, jumpHeightSeq.get(i) ^ (1L << maxHeight));
-            maxJumpHeight = Math.max(maxJumpHeight, v.height = maxHeight);
+            for(int i=v.minJump; i <= v.maxJump; i++) jumpHeightSeq.set(i, jumpHeightSeq.get(i) ^ (1L << maxHeight));
+            maxJumpHeight = Math.max(maxJumpHeight, v.jumpHeight = maxHeight);
         });
     }
 
@@ -228,44 +229,6 @@ public class LCanvas extends Table{
         }
     }
 
-    public static class JumpSegment implements Comparable<JumpSegment>{
-        int min = 2147483646, max = -1, dest, height;
-        public static int global_max = 0;
-        public final static int MAX_SPAN = -2147483647;
-        public static IntMap<JumpSegment> allMap = new IntMap<>();
-
-        public JumpSegment(int dest, int loc){
-            this.dest = dest;
-            if(!allMap.containsKey(dest)) allMap.put(dest, this);
-            add(loc);
-        }
-        public void add(int loc){
-            min = loc < min ? loc : min;
-            max = loc > max ? loc : max;
-            global_max = loc > global_max ? loc : global_max;
-        }
-        public void reset(){
-            min = 2147483646;
-            max = -1;
-            height = 0;
-        }
-        public int span(){
-            return max - min;
-        }
-        public static boolean isCreated(int loc){
-            return allMap.containsKey(loc);
-        }
-        public static void resetAll(){
-            allMap.values().forEach(JumpSegment::reset);
-            global_max = 0;
-        }
-        @Override
-        public int compareTo(@NotNull JumpSegment o) {
-            int s, os;
-            return (s = this.span()) == MAX_SPAN ? 1 : (os = o.span()) == MAX_SPAN ? -1 : os == s ? this.min - o.min : os - s;
-            //return e.span() - this.span(); // larger lengths go to the front, smaller min goes to the front also
-        }
-    }
     public class DragLayout extends WidgetGroup{
         float space = Scl.scl(10f), prefWidth, prefHeight;
         Seq<Element> seq = new Seq<>();
@@ -320,9 +283,12 @@ public class LCanvas extends Table{
 
                 float shiftAmount = dragging.getHeight() + space;
 
+                dragging.updateAddress(insertPosition);
+                StatementElem e;
                 //shift elements below insertion point down
                 for(int i = insertPosition; i < seq.size; i++){
                     seq.get(i).y -= shiftAmount;
+                    (e = (StatementElem) seq.get(i)).updateAddress(e.index + 1);
                 }
             }
 
@@ -398,6 +364,9 @@ public class LCanvas extends Table{
         public LStatement st;
         public int index;
         Label addressLabel;
+        public final static int MAX_SPAN = Integer.MIN_VALUE;
+        public int minJump = Integer.MAX_VALUE, maxJump = -1, jumpHeight = -1;
+        private boolean isDeleting = false;
 
         public StatementElem(LStatement st){
             this.st = st;
@@ -448,6 +417,7 @@ public class LCanvas extends Table{
                             copy();
                             return false;
                         }
+                        if(isDeleting) return false;
 
                         Vec2 v = localToParentCoordinates(Tmp.v1.set(x, y));
                         lastx = v.x;
@@ -489,6 +459,17 @@ public class LCanvas extends Table{
             }).pad(4).padTop(2).left().grow();
 
             marginBottom(7);
+        }
+
+        public void updateJumpsToHere(int loc){
+            minJump = Math.min(minJump, index);
+            maxJump = Math.max(maxJump, index);
+            minJump = Math.min(minJump, loc);
+            maxJump = Math.max(maxJump, loc);
+        }
+
+        public int jumpSpan(){
+            return maxJump - minJump;
         }
 
         public void updateAddress(int index){
@@ -637,11 +618,11 @@ public class LCanvas extends Table{
                 return;
             }
 
-            if(button.to.get() == null || JumpSegment.allMap.get(button.to.get().index) == null ||
-                    (button.parent.parent != null) && button.parent.parent instanceof StatementElem se && se == canvas.dragging) // hack ://
+            if(button.to.get() == null || button.to.get().jumpHeight == -1 ||
+                    (button.parent.parent != null && button.parent.parent instanceof StatementElem se && se == canvas.dragging))
                 heightx = canvas.maxJumpHeight + 2;
             else
-                heightx = JumpSegment.allMap.get(button.to.get().index).height;
+                heightx = button.to.get().jumpHeight;
 
             Element hover = button.to.get() == null && button.selecting ? canvas.hovered : button.to.get();
             boolean draw = false;
@@ -675,19 +656,32 @@ public class LCanvas extends Table{
             }
         }
 
+        float lineWidth = 3f, heightSpacing = 6f, idealCurveRadius = 10f;
         public void drawLine(float x, float y, float x2, float y2){
-            float width = 3f;
-            Lines.stroke(width, button.color);
+            float curveRadius = Math.min(idealCurveRadius, Math.abs((y2 - y) / 2));
+            Lines.stroke(lineWidth, button.color);
             Draw.alpha(parentAlpha);
 
-            float len = heightx * (width * 3f) + 15f;
-            float maxX = Math.max(x, x2) + len;
+            float len = heightx * (lineWidth + heightSpacing) + curveRadius + 2f;
+            float maxX = Math.max(x, x2) + len + button.getWidth()*0.75f;
+            int curveDirection = Mathf.sign(y2 - y);
+            int isDownwards = Mathf.clamp(curveDirection, 0, 1);
+            /*
             Lines.beginLine();
             Lines.linePoint(x, y);
             Lines.linePoint(maxX, y);
             Lines.linePoint(maxX, y2);
             Lines.linePoint(x2, y2);
             Lines.endLine();
+             */
+            int segmentVertices = Lines.circleVertices(curveRadius) * 4; // just take this as the number of vertices in the quarter-circle for now..
+            Lines.line(x, y, maxX - curveRadius, y);
+            Lines.polySeg(segmentVertices*4, 0, segmentVertices, maxX - curveRadius, y + curveRadius * curveDirection, curveRadius,
+                    -isDownwards * 90 - 90); // invert isDownwards: 0 * 90 - 90 = -90, -1 * 90 - 90 = -180
+            Lines.line(maxX, y + curveRadius * curveDirection, maxX, y2 - curveRadius * curveDirection);
+            Lines.polySeg(segmentVertices*4, 0, segmentVertices, maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius,
+                    isDownwards * 90 - 180); // invert aforementioned inversion: 0 * 90 - 180 = -180, 1 * 90 - 180 = -90
+            Lines.line(maxX - curveRadius, y2, x2, y2);
 
             /*
             Lines.curve(
