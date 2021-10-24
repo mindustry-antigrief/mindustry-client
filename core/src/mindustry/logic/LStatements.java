@@ -591,7 +591,7 @@ public class LStatements{
     @RegisterStatement("op")
     public static class OperationStatement extends LStatement{
         public LogicOp op = LogicOp.add;
-        public String dest = "result", a = "a", b = "b";
+        public String dest = "result", a = "0", b = "0";
 
         @Override
         public void build(Table table){
@@ -748,7 +748,7 @@ public class LStatements{
         public int destIndex;
 
         public ConditionOp op = ConditionOp.notEqual;
-        public String value = "x", compare = "false";
+        public String value = "0", compare = "0";
 
         @Override
         public void build(Table table){
