@@ -1,3 +1,5 @@
+# This is not meant to be usable in any form, it is a very early version of an Android port
+
 ![Logo](core/assets-raw/sprites/ui/foo.png)
 
 [![Release Update](../../workflows/Release%20Update/badge.svg)](https://mindustry-antigrief.github.io/mindustry-client)
