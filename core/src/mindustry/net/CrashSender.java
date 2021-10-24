@@ -1,5 +1,12 @@
 package mindustry.net;
 
+import static arc.Core.*;
+import static mindustry.Vars.*;
+
+import java.io.*;
+import java.text.*;
+import java.util.*;
+
 import arc.*;
 import arc.files.*;
 import arc.func.*;
@@ -8,16 +15,9 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.*;
 import mindustry.core.*;
-
-import java.io.*;
-import java.text.*;
-import java.util.*;
-
-import static arc.Core.*;
-import static mindustry.Vars.*;
+import mindustry.mod.*;
 
 public class CrashSender{
-
     public static String createReport(String error){
         String report = "Ohno, the game has crashed. Report this at: " + clientDiscord + "\n\n";
         report += "Copy paste the report below when reporting:\n```java\n";
@@ -26,7 +26,7 @@ public class CrashSender{
         + "Source: " + settings.getString("updateurl") + "\n"
         + "OS: " + OS.osName + " x" + (OS.osArchBits) + " (" + OS.osArch + ")\n"
         + "Java Version: " + OS.javaVersion + "\n"
-        + (mods == null ? "<no mod init>" : mods.list().size + " Mods" + (mods.list().isEmpty() ? "" : ": " + mods.list().toString(", ", mod -> mod.name + ":" + mod.meta.version)))
+        + (mods == null ? "<no mod init>" : mods.list().size + " Mods (" + mods.list().count(Mods.LoadedMod::enabled) + " Enabled)" + (mods.list().isEmpty() ? "" : ": " + mods.list().toString(", ", mod -> (mod.enabled() ? "(On)" : "(Off)") + mod.name + ":" + mod.meta.version)))
         + "\n\n" + error + "```";
     }
 

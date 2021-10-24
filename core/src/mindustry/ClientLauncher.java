@@ -105,6 +105,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         assets.load(mods);
         assets.loadRun("mergeUI", PixmapPacker.class, () -> {}, () -> Fonts.mergeFontAtlas(atlas));
 
+        add(Main.INSTANCE);
         add(logic = new Logic());
         add(control = new Control());
         add(renderer = new Renderer());

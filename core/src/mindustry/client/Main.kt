@@ -16,7 +16,9 @@ import mindustry.game.*
 import mindustry.game.Teams.*
 import mindustry.gen.*
 import mindustry.input.*
+import sun.security.jca.*
 import java.nio.file.Files
+import java.security.*
 import java.security.cert.*
 import java.util.Timer
 import java.util.concurrent.*
@@ -35,7 +37,7 @@ object Main : ApplicationListener {
 
     /** Run on client load. */
     override fun init() {
-        if (Core.app.isDesktop) {
+        if (!Core.app.isHeadless) {
             ntp = NTP()
             communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem)
             communicationSystem.init()

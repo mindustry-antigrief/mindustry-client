@@ -102,13 +102,13 @@ public class HudFragment extends Fragment{
 
         //minimap + position
         parent.fill(t -> {
-            t.visible(() -> Core.settings.getBool("minimap") && shown);
+            t.visible(() -> shown);
             t.table(ta -> {
                 //tile hud
                 ta.name = "minimap/position";
                 ta.add(new TileInfoFragment()).name("tilehud").top();
                 //minimap
-                ta.add(new Minimap()).name("minimap").top();
+                ta.add(new Minimap()).name("minimap").top().visible(Core.settings.getBool("minimap"));
             });
             t.row();
             //position

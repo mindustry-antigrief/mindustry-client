@@ -41,8 +41,7 @@ public class Version{
         type = map.get("type");
         number = Integer.parseInt(map.get("number", "4"));
         modifier = map.get("modifier");
-        String filepath = Version.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        if (filepath.contains("/steamapps/common/Mindustry/")) modifier += " steam";
+        if (Core.app.isDesktop() && Version.class.getProtectionDomain().getCodeSource().getLocation().getPath().contains("/steamapps/common/Mindustry/")) modifier += " steam";
         if(map.get("build").contains(".")){
             String[] split = map.get("build").split("\\.");
             try{

@@ -7,7 +7,7 @@ buildscript{
     }
 
     dependencies{
-        classpath 'com.android.tools.build:gradle:7.0.3'
+        classpath 'com.android.tools.build:gradle:7.1.0-alpha01'
     }
 }
 
@@ -29,7 +29,7 @@ task deploy(type: Copy){
 }
 
 android{
-    buildToolsVersion '30.0.3'
+    buildToolsVersion '30.0.2'
     compileSdkVersion 30
     sourceSets{
         main{
@@ -58,8 +58,9 @@ android{
         def versionNameResult = "$versionNumber-$versionType-${getBuildVersion().replace(" ", "-")}"
 
         applicationId "io.anuke.mindustry"
-        minSdkVersion 14
+        minSdkVersion 30
         targetSdkVersion 30
+        multiDexEnabled true
         
         versionName versionNameResult
         versionCode = (System.getenv("TRAVIS_BUILD_ID") != null ? System.getenv("TRAVIS_BUILD_ID").toInteger() : vcode)

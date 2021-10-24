@@ -55,6 +55,7 @@ object Client {
         ClientLogic()
 
         val bc = BouncyCastleProvider()
+        Security.removeProvider("BC")
         // append bouncycastle to the list
         val n = Security.getProviders().contentToString().length
         Security.insertProviderAt(bc, n)

@@ -273,6 +273,7 @@ public class Vars implements Loadable{
             locales = Seq.with(locales).and(new Locale("router")).toArray(Locale.class);
         }
 
+        Version.init();
         CacheLayer.init();
 
         dataDirectory = settings.getDataDirectory();
