@@ -18,7 +18,8 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.LStatements.*;
 import mindustry.ui.*;
-import org.jetbrains.annotations.NotNull;
+
+import java.util.Comparator;
 
 public class LCanvas extends Table{
     public static final int maxJumpsDrawn = 100;
@@ -128,47 +129,31 @@ public class LCanvas extends Table{
         }
     }
     public int maxJumpHeight = 0;
-    public LongSeq jumpHeightSeq = new LongSeq();
     public Seq<StatementElem> tempseq = new Seq<>();
-    public IntSet locations_to_consider = new IntSet();
-    private final IntSet.IntSetIterator locations_to_consider_iterator = locations_to_consider.iterator();
+    public PQueue<StatementElem> pq = new PQueue<>(12, Comparator.comparingInt(o -> o.maxJump));
+    public final Bits mask = new Bits(LExecutor.maxInstructions + 5);
+
     public void recalculate(){
-        locations_to_consider.clear();
         tempseq.set(statements.getChildren().as());
-        for(var e : tempseq) {
-            e.minJump = Integer.MAX_VALUE;
-            e.jumpHeight = e.maxJump = -1;
-            if(e.st instanceof JumpStatement js)
-                js.saveUI();
-        }
-        for(StatementElem s: tempseq){
-            if(!(s.st instanceof JumpStatement js)) continue;
-            if(js.destIndex == -1) continue; // empty jumps a
+        tempseq.forEach(t -> {t.resetJumpInfo(); if(t.st instanceof JumpStatement) t.st.saveUI();});
+        tempseq.forEach(s -> {
+            if(!(s.st instanceof JumpStatement js) || js.destIndex == -1) return;
             js.dest.updateJumpsToHere(s.index);
-            locations_to_consider.add(js.destIndex);
-            locations_to_consider.add(s.index);
+        });
+        tempseq.sort((o1, o2) -> o1.minJump == o2.minJump ? o2.jumpSpan() - o1.jumpSpan() : o1.minJump - o2.minJump);
+
+        int i = maxJumpHeight = 0, curr;
+        StatementElem temp;
+        mask.clear();
+        pq.clear();
+        while(i < tempseq.size && (curr = (temp = tempseq.get(i)).minJump) < Integer.MAX_VALUE){
+            if(pq.empty() || curr <= pq.peek().maxJump){
+                mask.set(temp.jumpHeight = mask.nextClearBit(0));
+                maxJumpHeight = Math.max(maxJumpHeight, temp.jumpHeight);
+                pq.add(temp);
+                i++;
+            }else mask.clear(pq.poll().jumpHeight);
         }
-        tempseq.sort((o, e) -> {
-            int os = o.jumpSpan(), es = e.jumpSpan();
-            return os == StatementElem.MAX_SPAN ? (es == os ? 0 : 1) : es == StatementElem.MAX_SPAN ? -1 : os == es ? o.minJump - e.minJump : es - os;
-            // larger lengths go to the front, smaller min goes to the front also
-        });
-        maxJumpHeight = 0;
-        jumpHeightSeq.setSize(Math.max(statements.getChildren().size, jumpHeightSeq.size));
-        for(int i = 0; i < jumpHeightSeq.size; i++) jumpHeightSeq.set(i, Long.MAX_VALUE);
-        tempseq.forEach(v -> { // (better) O(n^2) :/
-            if(v.jumpSpan() == StatementElem.MAX_SPAN) return;
-            long mask = Long.MAX_VALUE;
-            int maxHeight, next;
-            locations_to_consider_iterator.reset();
-            while(locations_to_consider_iterator.hasNext && (next = locations_to_consider_iterator.next()) <= v.maxJump)
-                mask &= next < v.minJump ? Long.MAX_VALUE : jumpHeightSeq.get(next);
-            maxHeight = Mathf.round(Mathf.log(2, mask & -mask));
-            locations_to_consider_iterator.reset();
-            while(locations_to_consider_iterator.hasNext && (next = locations_to_consider_iterator.next()) <= v.maxJump)
-                if(next >= v.minJump) jumpHeightSeq.set(next, jumpHeightSeq.get(next) ^ (1L << maxHeight));
-            maxJumpHeight = Math.max(maxJumpHeight, v.jumpHeight = maxHeight);
-        });
     }
 
     @Override
@@ -479,7 +464,13 @@ public class LCanvas extends Table{
         }
 
         public int jumpSpan(){
-            return maxJump - minJump;
+            int temp = maxJump - minJump;
+            return temp == MAX_SPAN ? -1 : temp;
+        }
+
+        public void resetJumpInfo(){
+            minJump = Integer.MAX_VALUE;
+            jumpHeight = maxJumpHeight = -1;
         }
 
         public void updateAddress(int index){
