@@ -399,12 +399,14 @@ public class LCanvas extends Table{
                     this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n")));
                 });
 
-                t.button(Icon.cancel, Styles.logici, () -> {
+                var temp = t.button(Icon.cancel, Styles.logici, () -> {
                     remove();
                     dragging = null;
                     statements.layout();
                     recalculate();
                 }).size(24f);
+                temp.get().tapped(() -> isDeleting = true);
+                temp.get().released(() -> isDeleting = false);
 
                 t.addListener(new InputListener(){
                     float lastx, lasty;
