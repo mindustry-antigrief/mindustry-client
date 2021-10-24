@@ -5,28 +5,26 @@ import arc.math.geom.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.gen.*;
-import mindustry.world.*;
 
 import static mindustry.Vars.*;
 
 public class ItemDropoffWaypoint extends Waypoint implements Position {
-    public int destinationX, destinationY;
+    public Posc pos;
     private boolean done = false;
     private static Interval dropTimer = new Interval();
 
-    public ItemDropoffWaypoint(int destinationX, int destinationY) {
-        this.destinationX = destinationX;
-        this.destinationY = destinationY;
+    public ItemDropoffWaypoint(Posc pos) {
+        this.pos = pos;
     }
 
     @Override
     public float getX() {
-        return destinationX * tilesize;
+        return pos.x();
     }
 
     @Override
     public float getY(){
-        return destinationY * tilesize;
+        return pos.y();
     }
 
     @Override
@@ -36,12 +34,10 @@ public class ItemDropoffWaypoint extends Waypoint implements Position {
 
     @Override
     public void run() {
-        if (Vars.player.within(destinationX * Vars.tilesize, destinationY * Vars.tilesize, Vars.itemTransferRange) && dropTimer.get(30)) {
-            Tile tile = Vars.world.tile(destinationX, destinationY);
-            if (tile.build == null) {
-                return;
-            }
-            Call.transferInventory(Vars.player, tile.build);
+        if (Vars.player.within(getX(), getY(), Vars.itemTransferRange - tilesize * 3) && dropTimer.get(30)) {
+            if (pos.tileOn().build == null) return;
+
+            Call.transferInventory(Vars.player, pos.tileOn().build);
             done = true;
         } else {
             float direction = player.angleTo(this);

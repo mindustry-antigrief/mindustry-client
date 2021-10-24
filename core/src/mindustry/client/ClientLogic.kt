@@ -29,10 +29,8 @@ class ClientLogic {
 
         Events.on(EventType.WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
-            if (!syncing) {
-                lastJoinTime = Time.millis()
-                Vars.player.persistPlans.clear() // FINISHME: Why is this even in the player class? It creates a queue for each player even tho only one is used...
-            }
+            if (!syncing) Vars.player.persistPlans.clear() // FINISHME: Why is this even in the player class? It creates a queue for each player even tho only one is used...
+            lastJoinTime = Time.millis()
             PowerInfo.initialize()
             Navigation.obstacles.clear()
             configs.clear()

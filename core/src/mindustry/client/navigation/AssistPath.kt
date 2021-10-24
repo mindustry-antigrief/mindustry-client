@@ -1,14 +1,18 @@
 package mindustry.client.navigation
 
 import arc.*
+import arc.math.*
 import arc.math.geom.*
 import arc.struct.*
+import arc.util.*
 import mindustry.Vars.*
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.gen.*
+import mindustry.input.*
 
-class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
+class AssistPath(val assisting: Player?, val cursor: Boolean, val dontFollow: Boolean) : Path() {
+    constructor(assisting: Player?, cursor: Boolean) : this(assisting, cursor, false)
     constructor(assisting: Player?) : this(assisting, false)
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
@@ -41,16 +45,7 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
 
         tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) // FINISHME: Factor in formations
 
-        player.shooting(assisting.unit().isShooting) // Match shoot state
-        player.unit().aim(assisting.unit().aimX(), assisting.unit().aimY()) // Match aim coordinates
-
-        if (assisting.unit().isShooting && player.unit().type.rotateShooting) // Rotate to aim position if needed, otherwise face assisted player
-            player.unit().lookAt(assisting.unit().aimX(), assisting.unit().aimY())
-
-        if (Core.settings.getBool("pathnav") && v2.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y).dst(player) > tolerance + tilesize * 5) {
-            if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post { waypoints.set(Seq.with(*Navigation.navigator.navigate(v1.set(player.x, player.y), v2, Navigation.obstacles.toTypedArray()))) }
-            waypoints.follow()
-        } else waypoint.set(v2.x, v2.y, tolerance, tolerance).run()
+        handleInput()
 
         if (player.unit() is Minerc && assisting.unit() is Minerc) { // Code stolen from formationAi.java, matches player mine state to assisting
             val mine = player.unit() as Minerc
@@ -79,6 +74,37 @@ class AssistPath(val assisting: Player?, val cursor: Boolean) : Path() {
                 plans.addAll(assisting.unit().plans())
                 assisting.unit().plans().forEach { player.unit().addBuild(it, false) }
             }
+        }
+    }
+
+    private fun handleInput() {
+        if (player?.dead() != false) return
+        assisting?.unit() ?: return // We don't care if they are dead
+
+        val unit = player.unit()
+        val shouldShoot =
+            assisting.unit().isShooting || // Target shooting
+            dontFollow && player.shooting // Player not following and shooting
+        val aimPos =
+            if (!dontFollow || assisting.unit().isShooting) Tmp.v1.set(assisting.unit().aimX, assisting.unit().aimY) // Following or shooting
+            else if (unit.type.faceTarget) Core.input.mouseWorld() else Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, player.unit().y) // Not following, not shooting
+        val lookPos =
+            if (assisting.unit().isShooting && unit.type.rotateShooting) player.angleTo(assisting.unit().aimX, assisting.unit().aimY) // Assisting is shooting and player has fixed weapons
+            else if (unit.type.omniMovement && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !(unit is Mechc && unit.isFlying()) && unit.type.rotateShooting) Angles.mouseAngle(unit.x, unit.y);
+            else player.unit().prefRotation() // Anything else
+
+        player.shooting(shouldShoot)
+        player.unit().isShooting()
+        unit.aim(aimPos)
+        unit.lookAt(lookPos)
+
+        if (!dontFollow) { // Following
+            if (Core.settings.getBool("pathnav") && v2.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y).dst(player) > tolerance + tilesize * 5) {
+                if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post { waypoints.set(Seq.with(*Navigation.navigator.navigate(v1.set(player.x, player.y), v2, Navigation.obstacles.toTypedArray()))) }
+                waypoints.follow()
+            } else waypoint.set(v2.x, v2.y, tolerance, tolerance).run()
+        } else { // Not following
+            player.unit().moveAt((control.input as? DesktopInput)?.movement ?: (control.input as MobileInput).movement)
         }
     }
 

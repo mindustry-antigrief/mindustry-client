@@ -18,10 +18,11 @@ import mindustry.core.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.type.*;
+import mindustry.world.blocks.payloads.*;
 
 import java.util.*;
 
-import static arc.Core.input;
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class BlockInventoryFragment extends Fragment{
@@ -49,8 +50,12 @@ public class BlockInventoryFragment extends Fragment{
 
     public void showFor(Building t){
         if(this.tile == t){
-            hide();
-            return;
+            if(t.getPayload() instanceof BuildPayload pay && pay.build.block().hasItems && pay.build.items.total() > 0){
+                t = pay.build;
+            }else{
+                hide();
+                return;
+            }
         }
         this.tile = t;
         if(tile == null || !tile.block.isAccessible() || tile.items.total() == 0)
@@ -82,7 +87,7 @@ public class BlockInventoryFragment extends Fragment{
         table.touchable = Touchable.enabled;
         table.update(() -> {
 
-            if(state.isMenu() || tile == null || !tile.isValid() || !tile.block.isAccessible() || emptyTime >= holdShrink){
+            if(state.isMenu() || tile == null || (!tile.isValid() && tile.tile != emptyTile) || !tile.block.isAccessible() || emptyTime >= holdShrink){
                 hide();
             }else{
                 if(tile.items.total() == 0){
@@ -149,7 +154,7 @@ public class BlockInventoryFragment extends Fragment{
                 l.enabled = canPick;
 
                 Element image = itemImage(item.uiIcon, () -> {
-                    if(tile == null || !tile.isValid()){
+                    if(tile == null || (!tile.isValid() && tile.tile != emptyTile)){
                         return "";
                     }
                     return round(tile.items.get(item));
@@ -159,7 +164,7 @@ public class BlockInventoryFragment extends Fragment{
                 image.addListener(new InputListener(){
                     @Override
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
-                        if(!canPick.get() || tile == null || !tile.isValid() || tile.items == null || !tile.items.has(item)) return false;
+                        if(!canPick.get() || tile == null || (!tile.isValid() && tile.tile != emptyTile) || tile.items == null || !tile.items.has(item)) return false;
                         int amount = Math.min(input.shift() ? tile.items.get(item) : 1, player.unit().maxAccepted(item)); // Shift + click to take all
                         if(amount > 0){
                             Call.requestItem(player, tile, item, amount);

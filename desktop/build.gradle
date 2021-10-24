@@ -17,6 +17,7 @@ task run(dependsOn: classes, type: JavaExec){
 
     if(System.getProperty("os.name").toLowerCase().contains("mac")){
         jvmArgs("-XstartOnFirstThread")
+        args("-firstThread")
     }
 
     jvmArgs += "-XX:+ShowCodeDetailsInExceptionMessages"
