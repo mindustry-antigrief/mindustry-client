@@ -87,7 +87,8 @@ public class GameOverDialog extends BaseDialog{
                 }).size(140f, 60f);
                 buttons.button("@continue", () -> {
                     hide();
-                    state.ignoreGameOver = true;
+                    state.rules.canGameOver = false;
+                    // is automatically set back to default value at Logic.reset by creation of new state (i think)
                     state.gameOver = false;
                     state.set(State.paused);
                 }).size(140f, 60f);

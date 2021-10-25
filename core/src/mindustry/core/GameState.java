@@ -19,7 +19,7 @@ public class GameState{
     /** Logic tick. */
     public double tick;
     /** Whether the game is in game over state. */
-    public boolean gameOver = false, serverPaused = false, ignoreGameOver = false; // ignore game over: silence gameover checks until the map is reloaded
+    public boolean gameOver = false, serverPaused = false;
     /** Server ticks/second. Only valid in multiplayer. */
     public int serverTps = -1;
     /** Map that is currently being played on. */

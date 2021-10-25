@@ -96,7 +96,6 @@ public class Logic implements ApplicationListener{
         });
 
         Events.on(WorldLoadEvent.class, e -> {
-            state.ignoreGameOver = false;
             //enable infinite ammo for wave team by default
             state.rules.waveTeam.rules().infiniteAmmo = true;
 
@@ -211,7 +210,6 @@ public class Logic implements ApplicationListener{
     }
 
     private void checkGameState(){
-        if(state.ignoreGameOver) return;
         //campaign maps do not have a 'win' state!
         if(state.isCampaign()){
             //gameover only when cores are dead
