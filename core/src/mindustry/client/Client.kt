@@ -83,15 +83,11 @@ object Client {
     fun draw() {
         // Spawn path
         if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
+            Draw.color(state.rules.waveTeam.color)
             for (i in 0 until spawner.spawns.size) {
-                if (i >= tiles.size) tiles.add(spawner.spawns[i])
+                var target: Tile? = spawner.spawns[i]
                 Lines.beginLine()
-                Draw.color(state.rules.waveTeam.color)
-                var target: Tile? = null
-                tiles[i] = spawner.spawns[i]
-                while (target != tiles[i]) {
-                    if (target != null) tiles[i] = target
-                    target = pathfinder.getTargetTile(tiles[i], pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
+                while(target != pathfinder.getTargetTile(target, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore)).also { target = it }) {
                     Lines.linePoint(target)
                 }
                 Lines.endLine()

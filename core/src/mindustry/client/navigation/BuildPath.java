@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.*;
 
 import static mindustry.Vars.*;
 
-public class BuildPath extends Path {
+public class BuildPath extends Path { // FINISHME: Dear god, this file does not belong on this planet, its so bad.
     private boolean show, activeVirus;
     Interval timer = new Interval(2);
     public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>(), drills = new Queue<>(), belts = new Queue<>(), overdrives = new Queue<>();
@@ -33,7 +33,7 @@ public class BuildPath extends Path {
     public Seq<BuildPlan> sorted = new Seq<>();
     private Seq<Item> mineItems;
     private int cap;
-    GridBits blocked = new GridBits(world.width(), world.height());
+    GridBits blocked = new GridBits(world.width(), world.height()), blockedPlayer = new GridBits(world.width(), world.height());
     int radius = Core.settings.getInt("defaultbuildpathradius");
     Vec2 origin = new Vec2(player.x, player.y);
     private static final ObjectMap<Block, Block> upgrades = ObjectMap.of(
@@ -44,6 +44,13 @@ public class BuildPath extends Path {
     private BuildPlan req;
     private boolean valid;
     private float range;
+
+    {
+        Events.on(EventType.WorldLoadEvent.class, e -> { // Account for changing world sizes
+            blocked = new GridBits(world.width(), world.height());
+            blockedPlayer = new GridBits(world.width(), world.height());
+        });
+    }
 
     public BuildPath() {
         this(null, 0);
@@ -125,9 +132,10 @@ public class BuildPath extends Path {
             if (timer.get(1, 300)) {
                 clientThread.taskQueue.post(() -> {
                     blocked.clear();
+                    blockedPlayer.clear();
                     synchronized (Navigation.obstacles) {
                         for (var turret : Navigation.obstacles) {
-                            if (!turret.canShoot || !turret.targetGround) continue;
+                            if (!turret.canShoot) continue;
                             int lowerXBound = (int)(turret.x - turret.radius) / tilesize;
                             int upperXBound = (int)(turret.x + turret.radius) / tilesize;
                             int lowerYBound = (int)(turret.y - turret.radius) / tilesize;
@@ -135,7 +143,8 @@ public class BuildPath extends Path {
                             for (int x = lowerXBound ; x <= upperXBound; x++) {
                                 for (int y = lowerYBound ; y <= upperYBound; y++) {
                                     if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {
-                                        blocked.set(x, y);
+                                        if (!turret.targetGround) blocked.set(x, y);
+                                        if (turret.canHitPlayer) blockedPlayer.set(x, y);
                                     }
                                 }
                             }
@@ -222,16 +231,9 @@ public class BuildPath extends Path {
                     if (plans.empty()) continue;
                     i = 0;
                     BuildPlan plan;
-                    Queue<BuildPlan> scuffed = new Queue<>(player.unit().plans.size);
-                    player.unit().plans.each(scuffed::add);
                     while ((plan = plans.poll()) != null && i++ < 300) {
                         player.unit().plans.remove(plan);
                         player.unit().plans.addLast(plan);
-                    }
-                    while (!scuffed.isEmpty()) {
-                        plan = scuffed.removeLast();
-                        player.unit().plans.remove(plan);
-                        player.unit().plans.addFirst(plan);
                     }
                     break sort;
                 }
@@ -258,13 +260,25 @@ public class BuildPath extends Path {
                 range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.radius(); // Account for the player formation
                 if (Core.settings.getBool("pathnav")) { // Navigates on the client thread, this can cause frame drops so its optional
-                    if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(req) > range)));
+                    if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(req) > range && wp.dst(player) > tilesize)));
                     waypoints.follow();
                 } else waypoint.set(req.getX(), req.getY(), 0, range).run(0);
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();
             }
+        } else if (blockedPlayer.get(player.tileX(), player.tileY())) { // Leave enemy turret range while not building
+            if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> { // FINISHME: This is totally not inefficient at all...
+                var safeTiles = new Seq<Tile>(){{
+                    world.tiles.eachTile(t -> {
+                        if (!blockedPlayer.get(t.x, t.y)) add(t);
+                    });
+                }};
+                var tile = Geometry.findClosest(player.x, player.y, safeTiles);
+                waypoint.set(tile.getX(), tile.getY(), 0, 0);
+            });
+            waypoint.run(0);
+            Log.info(Core.graphics.getFrameId());
         }
     }
 
@@ -309,7 +323,7 @@ public class BuildPath extends Path {
         return s2;
     }
 
-    boolean validPlan (BuildPlan req) {
+    boolean validPlan(BuildPlan req) {
         return (!activeVirus || virus.indexOf(req, true) == -1 || req.tile().block() instanceof LogicBlock) &&
             (req.breaking ?
             Build.validBreak(player.unit().team(), req.x, req.y) :

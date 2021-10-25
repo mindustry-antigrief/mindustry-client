@@ -19,6 +19,8 @@ import mindustry.graphics.*;
 import mindustry.logic.LStatements.*;
 import mindustry.ui.*;
 
+import static mindustry.Vars.ui;
+
 public class LCanvas extends Table{
     public static final int maxJumpsDrawn = 100;
     //ew static variables
@@ -353,14 +355,22 @@ public class LCanvas extends Table{
 
                 t.button(Icon.paste, Styles.logici, () -> {
                 }).size(24f).padRight(6).tooltip("Paste Here").get().tapped(() -> {
-                    this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n")));
+                    try {
+                        this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n")));
+                    } catch (Throwable e) {
+                        ui.showException(e);
+                    }
                 });
 
                 t.button(Icon.cancel, Styles.logici, () -> {
-                    remove();
-                    dragging = null;
-                    statements.layout();
-                }).size(24f);
+                }).size(24f).get().tapped(() -> {
+                    Core.app.post(() -> {
+                        Core.scene.cancelTouchFocus(this);
+                        remove();
+                        dragging = null;
+                        statements.layout();
+                    });
+                });
 
                 t.addListener(new InputListener(){
                     float lastx, lasty;
