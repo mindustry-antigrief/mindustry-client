@@ -27,6 +27,20 @@ plugins{
     id "org.jetbrains.kotlin.kapt" version "1.5.21"
 }
 
+def getCurrentGitBranch() { // https://gist.github.com/lordcodes/15b2a4aecbeff7c3238a70bfd20f0931
+    def gitBranch = "Unknown branch"
+    try {
+        def workingDir = new File("${project.projectDir}")
+        def result = 'git rev-parse --abbrev-ref HEAD'.execute(null, workingDir)
+        result.waitFor()
+        if (result.exitValue() == 0) {
+            gitBranch = result.text.trim()
+        }
+    } catch (e) {
+    }
+    return gitBranch
+}
+
 allprojects{
     apply plugin: 'maven-publish'
     
@@ -38,7 +52,7 @@ allprojects{
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
         if(!project.hasProperty("buildversion")) buildversion = '133'
-        if(!project.hasProperty("clientVersion")) clientVersion = 'v191021, Oct. 19, 2021'
+        if(!project.hasProperty("clientVersion")) clientVersion = getCurrentGitBranch() + ", " + new Date().format('MMM. dd, yyyy') // Oct. 26, 2021
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'

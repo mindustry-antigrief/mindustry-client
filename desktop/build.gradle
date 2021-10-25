@@ -48,12 +48,25 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
     from files(project.assetsDir)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-    archiveFileName = "${appName}.jar"
+    archiveFileName = "${appName}-${getCurrentGitBranch()}.jar"
 
     manifest{
         attributes 'Main-Class': project.mainClassName
         attributes 'Class-Path': "bcprov-jdk15on.jar bcpkix-jdk15on.jar bctls-jdk15on.jar bcutil-jdk15on.jar"
     }
+}
+def getCurrentGitBranch() { // https://gist.github.com/lordcodes/15b2a4aecbeff7c3238a70bfd20f0931
+    def gitBranch = "Unknown branch"
+    try {
+        def workingDir = new File("${project.projectDir}")
+        def result = 'git rev-parse --abbrev-ref HEAD'.execute(null, workingDir)
+        result.waitFor()
+        if (result.exitValue() == 0) {
+            gitBranch = result.text.trim()
+        }
+    } catch (e) {
+    }
+    return gitBranch
 }
 
 if(!project.ext.hasSprites() && System.getenv("JITPACK") != "true"){
