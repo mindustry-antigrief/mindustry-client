@@ -38,7 +38,7 @@ public class LogicDialog extends BaseDialog{
         addCloseListener();
 
         buttons.defaults().size(160f, 64f);
-        buttons.button("@back", Icon.left, this::hide).name("back");
+        buttons.button("@back", Icon.left, this::hide).name("back").update(b -> b.setText(Core.input.shift() ? "@research.discard" : "@back"));
 
         buttons.button("@edit", Icon.edit, () -> {
             BaseDialog dialog = new BaseDialog("@editor.export");
@@ -168,7 +168,7 @@ public class LogicDialog extends BaseDialog{
 
         add(buttons).growX().name("canvas");
 
-        hidden(() -> consumer.get(canvas.save()));
+        hidden(() -> { if (!Core.input.shift()) consumer.get(canvas.save()); });
 
         onResize(() -> canvas.rebuild());
     }
@@ -206,32 +206,14 @@ public class LogicDialog extends BaseDialog{
                 style.fontColor = example.color();
                 style.font = Fonts.outline;
 
-                    t.button(example.name(), style, () -> {
-                        canvas.addAt(at, prov.get());
-                        dialog.hide();
-                    }).size(140f, 50f).self(c -> tooltip(c, "lst." + example.name()));
-                    if(++i % 2 == 0) t.row();
-                }
-            });
-            dialog.addCloseButton();
-            dialog.show();
-        }
-
-    public void show(String code, Cons<String> modified){
-        canvas.statements.clearChildren();
-        canvas.rebuild();
-        try{
-            canvas.load(code);
-        }catch(Throwable t){
-            Log.err(t);
-            canvas.load("");
-        }
-        this.consumer = result -> {
-            if(!result.equals(code)){
-                modified.get(result);
+                t.button(example.name(), style, () -> {
+                    canvas.addAt(at, prov.get());
+                    dialog.hide();
+                }).size(140f, 50f).self(c -> tooltip(c, "lst." + example.name()));
+                if(++i % 2 == 0) t.row();
             }
-        };
-
-        show();
+        });
+        dialog.addCloseButton();
+        dialog.show();
     }
 }
