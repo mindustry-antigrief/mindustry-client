@@ -30,6 +30,7 @@ public class Fonts{
     private static final String mainFont = "fonts/font.woff";
     private static final ObjectSet<String> unscaled = ObjectSet.with("iconLarge");
     private static ObjectIntMap<String> unicodeIcons = new ObjectIntMap<>();
+    private static ObjectMap<Character, String> unicodeIconsInverse = new ObjectMap<>();
     public static ObjectMap<String, String> stringIcons = new ObjectMap<>();
     private static ObjectMap<String, TextureRegion> largeIcons = new ObjectMap<>();
     private static TextureRegion[] iconTable;
@@ -65,6 +66,10 @@ public class Fonts{
 
     public static boolean hasUnicodeStr(String content){
         return stringIcons.containsKey(content);
+    }
+
+    public static boolean charIsCustomCharacter(char c){
+        return unicodeIconsInverse.containsKey(c);
     }
 
     /** Called from a static context to make the cursor appear immediately upon startup.*/
@@ -136,6 +141,7 @@ public class Fonts{
                 }
 
                 unicodeIcons.put(nametex[0], ch);
+                unicodeIconsInverse.put((char)ch, nametex[0]);
                 stringIcons.put(nametex[0], ((char)ch) + "");
 
                 Glyph glyph = new Glyph();

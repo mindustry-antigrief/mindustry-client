@@ -23,6 +23,7 @@ import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 
+import java.util.Comparator;
 import java.util.regex.*;
 
 import static mindustry.Vars.*;
@@ -35,8 +36,18 @@ public class SchematicsDialog extends BaseDialog{
     private TextField searchField;
     private Runnable rebuildPane = () -> {}, rebuildTags = () -> {};
     private Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
-    private Seq<String> tags, selectedTags = new Seq<>();
+    private Seq<String> tags, tagsSort, selectedTags = new Seq<>();
     private boolean checkedTags;
+    private Comparator<String> tagsComp = (f, s) -> {
+        if(f.length() == 0 || s.length() == 0) return f.compareTo(s);
+        boolean ff = Fonts.charIsCustomCharacter(f.charAt(0)), sf = Fonts.charIsCustomCharacter(s.charAt(0));
+        if(ff && !sf) return -1;
+        if(!ff && sf) return 1;
+        ff = f.charAt(0) == '['; sf = s.charAt(0) == '[';
+        if(ff && !sf) return -1;
+        if(!ff && sf) return 1;
+        return f.compareTo(s);
+    };
 
     public SchematicsDialog(){
         super("@schematics");
@@ -80,11 +91,13 @@ public class SchematicsDialog extends BaseDialog{
             //tags (no scroll pane visible)
             in.pane(Styles.nonePane, t -> {
                 rebuildTags = () -> {
+                    tagsSort = new Seq<>(tags);
+                    tagsSort.sort(tagsComp);
                     t.clearChildren();
                     t.left();
 
                     t.defaults().pad(2).height(tagh);
-                    for(var tag : tags){
+                    for(var tag : tagsSort){
                         t.button(tag, Styles.togglet, () -> {
                             if(selectedTags.contains(tag)){
                                 selectedTags.remove(tag);
