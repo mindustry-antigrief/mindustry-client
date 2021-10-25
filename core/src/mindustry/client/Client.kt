@@ -78,6 +78,8 @@ object Client {
                 Log.err(e)
             }
         }
+
+        if (state?.rules?.editor == true) ui.editor.autoSave()
     }
 
     fun draw() {
