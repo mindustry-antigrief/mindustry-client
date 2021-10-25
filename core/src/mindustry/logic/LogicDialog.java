@@ -37,8 +37,13 @@ public class LogicDialog extends BaseDialog{
 
         addCloseListener();
 
-        buttons.defaults().size(160f, 64f);
+        buttons.defaults().size(144f, 64f);
         buttons.button("@back", Icon.left, this::hide).name("back");
+
+        buttons.button("Discard", Icon.trash, () -> { // i would write discard changes here, but that's too long
+            consumer = s -> {};
+            hide();
+        }).name("trash");
 
         buttons.button("@edit", Icon.edit, () -> {
             BaseDialog dialog = new BaseDialog("@editor.export");
