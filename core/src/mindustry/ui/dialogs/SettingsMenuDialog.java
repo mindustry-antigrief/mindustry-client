@@ -331,6 +331,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", true); // Requires Restart
         client.checkPref("placementfragmentsearch", true);
+        client.checkPref("junctionflowratedirection", false, s -> Junction.JunctionBuild.flowRateByDirection = s);
         client.checkPref("drawwrecks", true);
         client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
         client.checkPref("unitranges", false);
