@@ -7,6 +7,7 @@ import arc.scene.actions.*;
 import arc.scene.ui.*;
 import arc.scene.ui.TextButton.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.client.communication.*;
 import mindustry.game.*;
 import mindustry.core.GameState.*;
@@ -39,7 +40,7 @@ public class LogicDialog extends BaseDialog{
 
         buttons.defaults().size(144f, 64f);
         buttons.button("@back", Icon.left, () -> {
-            if(Core.input.shift()) consumer = s -> {};
+            if(this.team != Vars.player.team() || Core.input.shift()) consumer = s -> {};
             hide();
         }).name("back").update(t -> t.getLabel().setText(Core.input.shift() ? "Discard" : "@back"));
 
