@@ -5,14 +5,13 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.geom.*;
 import arc.struct.*;
-import arc.util.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.graphics.*;
 
 /** A {@link Path} composed of {@link Waypoint} instances. */
 public class WaypointPath<T extends Waypoint> extends Path {
     private Seq<T> waypoints;
-    private @Nullable Seq<T> initial;
+    private Seq<T> initial;
     private int initialSize;
     private boolean show;
 
@@ -29,16 +28,17 @@ public class WaypointPath<T extends Waypoint> extends Path {
         this.initialSize = waypoints.length;
     }
 
-    @SafeVarargs
-    public static <T extends Waypoint> WaypointPath<T> with(T... waypoints) {
-        return new WaypointPath<>(waypoints);
-    }
-
     public WaypointPath<T> set(Seq<T> waypoints) {
         this.waypoints = waypoints;
         if (repeat) this.initial = waypoints.copy(); // Don't bother if we aren't repeating
         this.initialSize = waypoints.size;
         return this;
+    }
+
+    public void add(T waypoint) {
+        this.waypoints.add(waypoint);
+        this.initial.add(waypoint);
+        this.initialSize++;
     }
 
     @Override

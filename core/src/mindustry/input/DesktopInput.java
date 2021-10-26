@@ -314,7 +314,7 @@ public class DesktopInput extends InputHandler{
                     lastVirusWarning = null;
 
                     virusBuild.configure(LogicBlock.compress("end\n" + virusBuild.code, virusBuild.relativeConnections())); // Disable the block while we look into it
-                    try{Vars.ui.logic.show(virusBuild.team, virusBuild.code, virusBuild.executor, code -> virusBuild.configure(LogicBlock.compress(code, virusBuild.relativeConnections())));}catch(Exception ignored){} // Inspect the code
+                    try{Vars.ui.logic.show(virusBuild.code, virusBuild.executor, code -> virusBuild.configure(LogicBlock.compress(code, virusBuild.relativeConnections())));}catch(Exception ignored){} // Inspect the code
                 }
             }
         }

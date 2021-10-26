@@ -19,8 +19,7 @@ public class Navigation {
     @Nullable public static Path currentlyFollowing = null;
     public static boolean isPaused = false;
     public static NavigationState state = NavigationState.NONE;
-    @Nullable public static Path recordedPath = null;
-    @Nullable public static Seq<Waypoint> recording;
+    @Nullable public static WaypointPath<Waypoint> recordedPath = null;
     public static final HashSet<TurretPathfindingEntity> obstacles = new HashSet<>();
     @Nullable private static Vec2 targetPos = null;
     public static Navigator navigator;
@@ -98,7 +97,7 @@ public class Navigation {
 
         state = NavigationState.FOLLOWING;
         if (obstacles.isEmpty() && !Vars.state.hasSpawns() && !UtilitiesKt.flood() && player.unit().isFlying()) {
-            follow(WaypointPath.with(new PositionWaypoint(
+            follow(new WaypointPath<>(new PositionWaypoint(
                 Mathf.clamp(drawX, 0, world.unitWidth()),
                 Mathf.clamp(drawY, 0, world.unitHeight()))));
             currentlyFollowing.setShow(true);
@@ -108,21 +107,19 @@ public class Navigation {
 
         targetPos = new Vec2(drawX, drawY);
         clientThread.taskQueue.post(() -> {
-            synchronized (obstacles) {
-                waypoints = Seq.with(navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), obstacles.toArray(new TurretPathfindingEntity[0])));
+            waypoints = Seq.with(navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), Navigation.obstacles));
 
-                if (waypoints.any()) {
-                    while (waypoints.size > 1 && waypoints.min(wp -> wp.dst(player)) != waypoints.first()) Pools.free(waypoints.remove(0));
-                    if (waypoints.size > 1) Pools.free(waypoints.remove(0));
-                    if (waypoints.size > 1 && player.unit().isFlying()) Pools.free(waypoints.remove(0)); // Ground units cant properly turn corners if we remove 2 waypoints.
-                    if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
-                        if (currentlyFollowing instanceof WaypointPath p) p.set(waypoints);
-                        else follow(new WaypointPath<>(waypoints));
-                        targetPos = new Vec2(drawX, drawY);
-                        currentlyFollowing.setShow(true);
-                    }
-                    Pools.freeAll(waypoints);
+            if (waypoints.any()) {
+                while (waypoints.size > 1 && waypoints.min(wp -> wp.dst(player)) != waypoints.first()) Pools.free(waypoints.remove(0));
+                if (waypoints.size > 1) Pools.free(waypoints.remove(0));
+                if (waypoints.size > 1 && player.unit().isFlying()) Pools.free(waypoints.remove(0)); // Ground units cant properly turn corners if we remove 2 waypoints.
+                if (targetPos != null && targetPos.x == drawX && targetPos.y == drawY) { // Don't create new path if stopFollowing has been run
+                    if (currentlyFollowing instanceof WaypointPath p) p.set(waypoints);
+                    else follow(new WaypointPath<>(waypoints));
+                    targetPos = new Vec2(drawX, drawY);
+                    currentlyFollowing.setShow(true);
                 }
+                Pools.freeAll(waypoints);
             }
         });
         return currentlyFollowing;
@@ -130,23 +127,16 @@ public class Navigation {
 
     public static void startRecording() {
         state = NavigationState.RECORDING;
-        recording = new Seq<>();
+        recordedPath = new WaypointPath<>();
     }
 
     public static void stopRecording() {
-        if (recording == null) return;
-
         state = NavigationState.NONE;
-        recordedPath = new WaypointPath<>(recording);
-        recording = null;
     }
 
     public static void addWaypointRecording(Waypoint waypoint) {
         if (state != NavigationState.RECORDING) return;
-
-        if (recording == null) recording = new Seq<>();
-        recording.add(waypoint);
-        recordedPath = new WaypointPath<>(recording); // FINISHME: Duplicated code?
+        recordedPath.add(waypoint);
         recordedPath.setShow(true);
     }
 }

@@ -8,7 +8,6 @@ import arc.scene.ui.*;
 import arc.scene.ui.TextButton.*;
 import arc.util.*;
 import mindustry.client.communication.*;
-import mindustry.game.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
@@ -23,7 +22,6 @@ import static mindustry.logic.LCanvas.*;
 
 public class LogicDialog extends BaseDialog{
     public LCanvas canvas;
-    public Team team;
     Cons<String> consumer = s -> {};
     @Nullable LExecutor executor;
 
@@ -66,14 +64,14 @@ public class LogicDialog extends BaseDialog{
 
             dialog.addCloseButton();
             dialog.show();
-        }).name("edit").disabled(t -> team != player.team());
+        }).name("edit").disabled(t -> executor.team != player.team());
 
         buttons.button("Use for comms", () -> { // FINISHME: Bundle
             ui.showConfirm("Are you use you want to use this block for comms?", () -> {
                 canvas.load(MessageBlockCommunicationSystem.LOGIC_PREFIX);
                 hide();
             });
-        }).disabled(t -> team != player.team());
+        }).disabled(t -> executor.team != player.team());
 
         buttons.button("@variables", Icon.menu, () -> {
             BaseDialog dialog = new BaseDialog("@variables");
@@ -160,7 +158,7 @@ public class LogicDialog extends BaseDialog{
         }).name("variables").disabled(b -> executor == null || executor.vars.length == 0);
 
         buttons.button("@add", Icon.add, () -> addDialog(canvas.statements.getChildren().size))
-            .disabled(t -> team != player.team() || canvas.statements.getChildren().size >= LExecutor.maxInstructions);
+            .disabled(t -> executor.team != player.team() || canvas.statements.getChildren().size >= LExecutor.maxInstructions);
 
         add(canvas).grow().name("canvas");
 
@@ -168,13 +166,14 @@ public class LogicDialog extends BaseDialog{
 
         add(buttons).growX().name("canvas");
 
-        hidden(() -> { if (!Core.input.shift()) consumer.get(canvas.save()); });
+        hidden(() -> {
+            if (!Core.input.shift() && executor.team == player.team()) consumer.get(canvas.save());
+        });
 
         onResize(() -> canvas.rebuild());
     }
 
-    public void show(Team team, String code, LExecutor executor, Cons<String> modified){
-        this.team = team;
+    public void show(String code, LExecutor executor, Cons<String> modified){
         this.executor = executor;
         canvas.statements.clearChildren();
         canvas.rebuild();

@@ -405,7 +405,7 @@ public class BlockRenderer{
             Fonts.def.setUseIntegerPositions(false);
             Fonts.def.getData().setScale(0.25f / Scl.scl(1f));
             for (Player player : Groups.player) {
-                if (player.isLocal()) continue;
+                if (player.isLocal() || player.assisting) continue;
 
                 Fill.circle(player.mouseX, player.mouseY, tilesize * .5f);
                 Tmp.cr1.set(player.mouseX, player.mouseY, 20f * tilesize);
