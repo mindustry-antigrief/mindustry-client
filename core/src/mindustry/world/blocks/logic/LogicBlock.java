@@ -128,7 +128,7 @@ public class LogicBlock extends Block{
 
             stream.read(); // Version
             int bytelen = stream.readInt();
-            if(bytelen > maxByteLen) throw new RuntimeException("Malformed logic data! Length: " + bytelen);
+            if(bytelen > maxByteLen) return "";
             byte[] bytes = new byte[bytelen];
             stream.readFully(bytes);
 
@@ -513,7 +513,7 @@ public class LogicBlock extends Block{
         @Override
         public void buildConfiguration(Table table){
             table.button(Icon.pencil, Styles.clearTransi, () -> {
-                ui.logic.show(team, code, executor, code -> configure(compress(code, relativeConnections())));
+                ui.logic.show(code, executor, code -> configure(compress(code, relativeConnections())));
             }).size(40);
         }
 

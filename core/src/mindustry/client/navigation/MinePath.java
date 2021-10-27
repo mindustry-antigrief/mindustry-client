@@ -85,19 +85,19 @@ public class MinePath extends Path {
             } else {
                 if (player.unit().type.canBoost) player.boosting = true;
                 if (Core.settings.getBool("pathnav") && !player.within(core, itemTransferRange - tilesize * 15)) {
-                    if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(core.x, core.y), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(core) > itemTransferRange - tilesize * 15)));
+                    if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(core.x, core.y), Navigation.obstacles)).filter(wp -> wp.dst(core) > itemTransferRange - tilesize * 15)));
                     waypoints.follow();
                 } else waypoint.set(core.x, core.y, itemTransferRange - tilesize * 15, itemTransferRange - tilesize * 15).run();
             }
 
         } else { // mine
-            Tile tile = indexer.findClosestOre(player.x, player.y, item);
+            Tile tile = indexer.findClosestOre(player.unit(), item); // FINISHME: Ignore blocked tiles
             player.unit().mineTile = tile;
             if (tile == null) return;
 
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 2); // FINISHME: Distance based on formation radius rather than just moving super close
             if (Core.settings.getBool("pathnav") && !player.within(tile, tilesize * 3)) {
-                if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(tile.getX(), tile.getY()), Navigation.obstacles.toArray(new TurretPathfindingEntity[0]))).filter(wp -> wp.dst(player) > tilesize)));
+                if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(tile.getX(), tile.getY()), Navigation.obstacles)).filter(wp -> wp.dst(player) > tilesize)));
                 waypoints.follow();
             } else waypoint.set(tile.getX(), tile.getY(), tilesize, tilesize).run();
         }

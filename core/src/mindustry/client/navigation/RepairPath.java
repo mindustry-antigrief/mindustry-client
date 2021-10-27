@@ -42,7 +42,7 @@ public class RepairPath extends Path {
         Formation formation = player.unit().formation;
         float range = formation == null ? 16f : formation.pattern.radius() + 16f;
         if (Core.settings.getBool("pathnav") && build.dst(player) > range + tilesize * 2) { // FINISHME: Distance based on formation size?
-            if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(build.x, build.y), Navigation.obstacles.toArray(new TurretPathfindingEntity[0])))));
+            if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(build.x, build.y), Navigation.obstacles))));
             waypoints.follow();
         } else waypoint.set(build.x, build.y, range, range).run();
     }

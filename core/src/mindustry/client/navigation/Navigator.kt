@@ -8,6 +8,7 @@ import mindustry.game.*
 
 /** An abstract class for a navigation algorithm, i.e. A*.  */
 abstract class Navigator {
+    private val realObstacles = mutableListOf<Circle>() // Avoids creating new lists every time navigate is called
     /** Called once upon client loading.  */
     abstract fun init()
 
@@ -24,22 +25,24 @@ abstract class Navigator {
         blocked: (Int, Int) -> Boolean
     ): Array<PositionWaypoint>
 
-    fun navigate(start: Vec2, end: Vec2, obstacles: Array<TurretPathfindingEntity>): Array<PositionWaypoint> {
+    fun navigate(start: Vec2, end: Vec2, obstacles: Iterable<TurretPathfindingEntity>): Array<PositionWaypoint> {
         start.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
         end.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
-        val realObstacles = mutableListOf<Circle>()
+        realObstacles.clear()
         val additionalRadius =
             if (player.unit().formation == null) player.unit().hitSize / 2
             else player.unit().formation().pattern.radius() + player.unit().formation.pattern.spacing / 2
         if(state.map.name() != "The Maze") {
-            for (turret in obstacles) {
-                if (turret.canHitPlayer && turret.canShoot) realObstacles.add(
-                    Circle(
-                        turret.x,
-                        turret.y,
-                        turret.radius + additionalRadius
+            synchronized(obstacles) {
+                for (turret in obstacles) {
+                    if (turret.canHitPlayer && turret.canShoot) realObstacles.add(
+                        Circle(
+                            turret.x,
+                            turret.y,
+                            turret.radius + additionalRadius
+                        )
                     )
-                )
+                }
             }
         }
         if (state.hasSpawns()) { // FINISHME: These should really be weighed less than turrets...

@@ -105,20 +105,18 @@ public class ModsDialog extends BaseDialog{
 
         // Client mod updater
         Events.on(EventType.ClientLoadEvent.class, event -> {
-            Time.run(60f, () -> {
-                if (Core.settings.getInt("modautoupdate") != 0 && (Time.timeSinceMillis(settings.getLong("lastmodupdate", (long) Time.toHours + 1L)) > Time.toHours)) {
-                    Log.debug("Checking for mod updates");
-                    Core.settings.put("lastmodupdate", Time.millis());
-                    var shuffled = mods.mods.copy();
-                    shuffled.shuffle();
-                    for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
-                        if (mod.state != Mods.ModState.enabled || mod.getRepo() == null) continue;
-                        if (++expected >= 30) continue; // Only make up to 30 api requests
+            if (mods.mods.contains(LoadedMod::enabled) && Core.settings.getInt("modautoupdate") != 0 && (Time.timeSinceMillis(settings.getLong("lastmodupdate", (long) Time.toHours + 1L)) > Time.toHours)) {
+                Log.debug("Checking for mod updates");
+                Core.settings.put("lastmodupdate", Time.millis());
+                var shuffled = mods.mods.copy();
+                shuffled.shuffle();
+                for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
+                    if (!mod.enabled() || mod.getRepo() == null) continue;
+                    if (++expected >= 30) continue; // Only make up to 30 api requests
 
-                        githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
-                    }
-                } else Log.debug("Not updating mods, they were updated too recently or auto update is disabled.");
-            });
+                    githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
+                }
+            } else Log.debug("Not updating mods, updated too recently / auto update is disabled / no enabled mods.");
         });
     }
 
@@ -574,27 +572,29 @@ public class ModsDialog extends BaseDialog{
         }
 
         if (++prompted == expected) {
-            if (mods.requiresReload()){
-                if (Core.settings.getInt("modautoupdate") == 2) {
-                    try{
-                        Fi file = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-                        Runtime.getRuntime().exec(OS.isMac ?
-                            new String[]{javaPath, "-XstartOnFirstThread", "-jar", file.absolutePath()} :
-                            new String[]{javaPath, "-jar", file.absolutePath()}
-                        );
-                        Core.app.exit();
-                    }catch(IOException | URISyntaxException e){
-                        Core.app.post(() -> {
-                            BaseDialog dialog = new BaseDialog("Java Moment");
-                            dialog.cont.clearChildren();
-                            dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
-                            dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
-                        });
+            Core.app.post(() -> { // THIS DOES NOT RUN ON THE MAIN THREAD OTHERWISE
+                if (mods.requiresReload()){
+                    if (Core.settings.getInt("modautoupdate") == 2) {
+                        try{
+                            Fi file = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                            Runtime.getRuntime().exec(OS.isMac ?
+                                new String[]{javaPath, "-XstartOnFirstThread", "-jar", file.absolutePath()} :
+                                new String[]{javaPath, "-jar", file.absolutePath()}
+                            );
+                            Core.app.exit();
+                        }catch(IOException | URISyntaxException e){
+                            Core.app.post(() -> {
+                                BaseDialog dialog = new BaseDialog("Java Moment");
+                                dialog.cont.clearChildren();
+                                dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
+                                dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
+                            });
+                        }
+                        reload();
                     }
-                    reload();
-                }
-                new Toast(5f).add("[accent]Mod updates found, they will be installed after restart.");
-            } else new Toast(5f).add("[accent]No mod updates found.");
+                    new Toast(5f).add("[accent]Mod updates found, they will be installed after restart.");
+                } else new Toast(5f).add("[accent]No mod updates found.");
+            });
         }
     }
 

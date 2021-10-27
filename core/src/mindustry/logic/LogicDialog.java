@@ -7,9 +7,7 @@ import arc.scene.actions.*;
 import arc.scene.ui.*;
 import arc.scene.ui.TextButton.*;
 import arc.util.*;
-import mindustry.Vars;
 import mindustry.client.communication.*;
-import mindustry.game.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
@@ -24,7 +22,6 @@ import static mindustry.logic.LCanvas.*;
 
 public class LogicDialog extends BaseDialog{
     public LCanvas canvas;
-    public Team team;
     Cons<String> consumer = s -> {};
     @Nullable LExecutor executor;
 
@@ -38,11 +35,8 @@ public class LogicDialog extends BaseDialog{
 
         addCloseListener();
 
-        buttons.defaults().size(144f, 64f);
-        buttons.button("@back", Icon.left, () -> {
-            if(this.team != Vars.player.team() || Core.input.shift()) consumer = s -> {};
-            hide();
-        }).name("back").update(t -> t.getLabel().setText(Core.input.shift() ? "Discard" : "@back"));
+        buttons.defaults().size(160f, 64f);
+        buttons.button("@back", Icon.left, this::hide).name("back").update(b -> b.setText(Core.input.shift() ? "@research.discard" : "@back"));
 
         buttons.button("@edit", Icon.edit, () -> {
             BaseDialog dialog = new BaseDialog("@editor.export");
@@ -70,14 +64,14 @@ public class LogicDialog extends BaseDialog{
 
             dialog.addCloseButton();
             dialog.show();
-        }).name("edit").disabled(t -> team != player.team());
+        }).name("edit").disabled(t -> executor.team != player.team());
 
         buttons.button("Use for comms", () -> { // FINISHME: Bundle
             ui.showConfirm("Are you use you want to use this block for comms?", () -> {
                 canvas.load(MessageBlockCommunicationSystem.LOGIC_PREFIX);
                 hide();
             });
-        }).disabled(t -> team != player.team());
+        }).disabled(t -> executor.team != player.team());
 
         buttons.button("@variables", Icon.menu, () -> {
             BaseDialog dialog = new BaseDialog("@variables");
@@ -164,7 +158,7 @@ public class LogicDialog extends BaseDialog{
         }).name("variables").disabled(b -> executor == null || executor.vars.length == 0);
 
         buttons.button("@add", Icon.add, () -> addDialog(canvas.statements.getChildren().size))
-            .disabled(t -> team != player.team() || canvas.statements.getChildren().size >= LExecutor.maxInstructions);
+            .disabled(t -> executor.team != player.team() || canvas.statements.getChildren().size >= LExecutor.maxInstructions);
 
         add(canvas).grow().name("canvas");
 
@@ -172,13 +166,14 @@ public class LogicDialog extends BaseDialog{
 
         add(buttons).growX().name("canvas");
 
-        hidden(() -> consumer.get(canvas.save()));
+        hidden(() -> {
+            if (!Core.input.shift() && executor.team == player.team()) consumer.get(canvas.save());
+        });
 
         onResize(() -> canvas.rebuild());
     }
 
-    public void show(Team team, String code, LExecutor executor, Cons<String> modified){
-        this.team = team;
+    public void show(String code, LExecutor executor, Cons<String> modified){
         this.executor = executor;
         canvas.statements.clearChildren();
         canvas.rebuild();
@@ -210,32 +205,14 @@ public class LogicDialog extends BaseDialog{
                 style.fontColor = example.color();
                 style.font = Fonts.outline;
 
-                    t.button(example.name(), style, () -> {
-                        canvas.addAt(at, prov.get());
-                        dialog.hide();
-                    }).size(140f, 50f).self(c -> tooltip(c, "lst." + example.name()));
-                    if(++i % 2 == 0) t.row();
-                }
-            });
-            dialog.addCloseButton();
-            dialog.show();
-        }
-
-    public void show(String code, Cons<String> modified){
-        canvas.statements.clearChildren();
-        canvas.rebuild();
-        try{
-            canvas.load(code);
-        }catch(Throwable t){
-            Log.err(t);
-            canvas.load("");
-        }
-        this.consumer = result -> {
-            if(!result.equals(code)){
-                modified.get(result);
+                t.button(example.name(), style, () -> {
+                    canvas.addAt(at, prov.get());
+                    dialog.hide();
+                }).size(140f, 50f).self(c -> tooltip(c, "lst." + example.name()));
+                if(++i % 2 == 0) t.row();
             }
-        };
-
-        show();
+        });
+        dialog.addCloseButton();
+        dialog.show();
     }
 }

@@ -1,8 +1,11 @@
 package mindustry.editor;
 
 import arc.*;
+import arc.scene.event.*;
 import arc.scene.ui.*;
+import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.util.*;
 import mindustry.*;
 import mindustry.game.*;
 import mindustry.io.*;
@@ -56,6 +59,36 @@ public class MapInfoDialog extends BaseDialog{
                 Core.settings.put("mapAuthor", text);
             }).size(400, 55f).maxTextLength(50).get();
             author.setMessageText("@unknown");
+
+            t.row();
+            t.add("@client.editor.mapautosave").padRight(8).left();
+            var s = new Slider(0, 10, 1, false); // FINISHME: This is a disaster, I should really just make a method for this...
+            s.setValue(Core.settings.getInt("mapautosave"));
+            var l = new Label("", Styles.outlineLabel);
+            var c = new Table().add(l).getTable();
+            c.margin(3f);
+            c.touchable = Touchable.disabled;
+            s.changed(() -> {
+                l.setText(((int)s.getValue()) == 0 ? "@off" : Integer.toString((int)s.getValue()));
+                Core.settings.put("mapautosave", (int)s.getValue());
+            });
+            s.change();
+            t.stack(s, c).width(400);
+
+            t.row();
+            t.add("@client.editor.mapautosavetime").padRight(8).left();
+            var s2 = new Slider(1, 60, 5, false);
+            s2.setValue((int)(Core.settings.getInt("mapautosavetime") / Time.toMinutes));
+            var l2 = new Label("", Styles.outlineLabel);
+            var c2 = new Table().add(l2).getTable();
+            c2.margin(3f);
+            c2.touchable = Touchable.disabled;
+            s2.changed(() -> {
+                l2.setText(Integer.toString((int)s2.getValue()));
+                Core.settings.put("mapautosavetime", (int)(s.getValue() * Time.toMinutes));
+            });
+            s2.change();
+            t.stack(s2, c2).width(400);
 
             t.row();
             t.add("@editor.rules").padRight(8).left();
