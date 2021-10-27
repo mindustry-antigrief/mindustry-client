@@ -88,7 +88,7 @@ public class Navigation {
         return navigateTo(pos.getX(), pos.getY());
     }
 
-    public static Path navigateTo(float drawX, float drawY) {
+    public static Path navigateTo(float drawX, float drawY) { // FINISHME: Return a list of waypoints instead
         if (Core.settings.getBool("assumeunstrict")) {
             NetClient.setPosition(Mathf.clamp(drawX, 0, world.unitWidth()), Mathf.clamp(drawY, 0, world.unitHeight())); // FINISHME: Detect whether or not the player is at their new destination, if not run with assumeunstrict off
             player.snapInterpolation();
@@ -105,7 +105,7 @@ public class Navigation {
             return null;
         }
 
-        targetPos = new Vec2(drawX, drawY);
+        targetPos = new Vec2(drawX, drawY); // FINISHME: Stop making new Vecs here...
         clientThread.taskQueue.post(() -> {
             waypoints = Seq.with(navigator.navigate(new Vec2(player.x, player.y), new Vec2(drawX, drawY), Navigation.obstacles));
 

@@ -37,7 +37,7 @@ allprojects{
         versionNumber = '7'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
-        if(!project.hasProperty("buildversion")) buildversion = '133'
+        if(!project.hasProperty("buildversion")) buildversion = '134'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
