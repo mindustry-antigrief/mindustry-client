@@ -25,7 +25,10 @@ public class MapsDialog extends BaseDialog{
     private Table mapTable = new Table();
     private TextField searchField;
 
-    private boolean showAll = Core.settings.getBool("editorShowAllMaps", true);
+    private boolean showBuiltIn = Core.settings.getBool("editorshowbuiltinmaps", true);
+    private boolean showCustom = Core.settings.getBool("editorshowcustommaps", true);
+    private boolean searchAuthor = Core.settings.getBool("editorsearchauthor", false);
+    private boolean searchDescription = Core.settings.getBool("editorsearchdescription", false);
 
     public MapsDialog(){
         super("@maps");
@@ -64,7 +67,7 @@ public class MapsDialog extends BaseDialog{
                     Events.fire(new MapMakeEvent());
                 });
 
-                if(Vars.maps.byName(text) != null){
+                if(maps.byName(text) != null){
                     ui.showErrorMessage("@editor.exists");
                 }else{
                     show.run();
@@ -75,7 +78,7 @@ public class MapsDialog extends BaseDialog{
         buttons.button("@editor.importmap", Icon.upload, () -> {
             platform.showFileChooser(true, mapExtension, file -> {
                 ui.loadAnd(() -> {
-                    Vars.maps.tryCatchMapError(() -> {
+                    maps.tryCatchMapError(() -> {
                         if(MapIO.isImage(file)){
                             ui.showErrorMessage("@editor.errorimage");
                             return;
@@ -87,7 +90,7 @@ public class MapsDialog extends BaseDialog{
                         String name = map.tags.get("name", () -> {
                             String result = "unknown";
                             int number = 0;
-                            while(Vars.maps.byName(result + number++) != null);
+                            while(maps.byName(result + number++) != null) ;
                             return result + number;
                         });
 
@@ -97,20 +100,20 @@ public class MapsDialog extends BaseDialog{
                             return;
                         }
 
-                        Map conflict = Vars.maps.all().find(m -> m.name().equals(name));
+                        Map conflict = maps.all().find(m -> m.name().equals(name));
 
                         if(conflict != null && !conflict.custom){
                             ui.showInfo(Core.bundle.format("editor.import.exists", name));
                         }else if(conflict != null){
                             ui.showConfirm("@confirm", Core.bundle.format("editor.overwrite.confirm", map.name()), () -> {
-                                Vars.maps.tryCatchMapError(() -> {
-                                    Vars.maps.removeMap(conflict);
-                                    Vars.maps.importMap(map.file);
+                                maps.tryCatchMapError(() -> {
+                                    maps.removeMap(conflict);
+                                    maps.importMap(map.file);
                                     setup();
                                 });
                             });
                         }else{
-                            Vars.maps.importMap(map.file);
+                            maps.importMap(map.file);
                             setup();
                         }
 
@@ -153,35 +156,43 @@ public class MapsDialog extends BaseDialog{
 
         int i = 0;
 
-        Seq<Map> mapList = showAll ? Vars.maps.all() : Vars.maps.customMaps();
-        for(Map map : mapList){
+        Seq<Map> mapList = showCustom ?
+            showBuiltIn ? maps.all() : maps.customMaps() :
+            showBuiltIn ? maps.defaultMaps() : null;
 
-            boolean invalid = false;
-            for(Gamemode mode : modes){
-                invalid |= !mode.valid(map);
+        if(mapList != null){
+            for(Map map : mapList){
+
+                boolean invalid = false;
+                for(Gamemode mode : modes){
+                    invalid |= !mode.valid(map);
+                }
+                if(invalid || (searchString != null
+                    && !Strings.stripColors(map.name()).toLowerCase().contains(searchString)
+                    && (!searchAuthor || !Strings.stripColors(map.author()).toLowerCase().contains(searchString))
+                    && (!searchDescription || !Strings.stripColors(map.description()).toLowerCase().contains(searchString)))){
+                    continue;
+                }
+
+                noMapsShown = false;
+
+                if(i % maxwidth == 0){
+                    mapTable.row();
+                }
+
+                TextButton button = mapTable.button("", Styles.cleart, () -> showMapInfo(map)).width(mapsize).pad(8).get();
+                button.clearChildren();
+                button.margin(9);
+                button.add(map.name()).width(mapsize - 18f).center().get().setEllipsis(true);
+                button.row();
+                button.image().growX().pad(4).color(Pal.gray);
+                button.row();
+                button.stack(new Image(map.safeTexture()).setScaling(Scaling.fit), new BorderImage(map.safeTexture()).setScaling(Scaling.fit)).size(mapsize - 20f);
+                button.row();
+                button.add(map.custom ? "@custom" : map.workshop ? "@workshop" : map.mod != null ? "[lightgray]" + map.mod.meta.displayName() : "@builtin").color(Color.gray).padTop(3);
+
+                i++;
             }
-            if(invalid || (searchString != null && !Strings.stripColors(map.name()).toLowerCase().contains(searchString))){
-                continue;
-            }
-
-            noMapsShown = false;
-
-            if(i % maxwidth == 0){
-                mapTable.row();
-            }
-
-            TextButton button = mapTable.button("", Styles.cleart, () -> showMapInfo(map)).width(mapsize).pad(8).get();
-            button.clearChildren();
-            button.margin(9);
-            button.add(map.name()).width(mapsize - 18f).center().get().setEllipsis(true);
-            button.row();
-            button.image().growX().pad(4).color(Pal.gray);
-            button.row();
-            button.stack(new Image(map.safeTexture()).setScaling(Scaling.fit), new BorderImage(map.safeTexture()).setScaling(Scaling.fit)).size(mapsize - 20f);
-            button.row();
-            button.add(map.custom ? "@custom" : map.workshop ? "@workshop" : map.mod != null ? "[lightgray]" + map.mod.meta.displayName() : "@builtin").color(Color.gray).padTop(3);
-
-            i++;
         }
 
         if(noMapsShown){
@@ -192,30 +203,57 @@ public class MapsDialog extends BaseDialog{
     void showMapFilters(){
         dialog = new BaseDialog("@editor.filters");
         dialog.addCloseButton();
-        dialog.setFillParent(false);
-        dialog.cont.table(Tex.button, t -> {
-            int i = 0;
-            for(Gamemode mode : Gamemode.all){
-                TextureRegionDrawable icon = Vars.ui.getIcon("mode" + Strings.capitalize(mode.name()));
-                if(Core.atlas.isFound(icon.getRegion())){
-                    t.button(mode.name(), icon, Styles.clearTogglet, () -> {
-                        if(modes.contains(mode)){
-                            modes.remove(mode);
-                        }else{
-                            modes.add(mode);
-                        }
-                        rebuildMaps();
-                    }).size(150f, 60f).marginLeft(6f).checked(modes.contains(mode));
-                    if(++i % 3 == 0) t.row();
+        dialog.cont.table(menu -> {
+            menu.add("@editor.filters.mode").width(150f).left();
+            menu.table(t -> {
+                for(Gamemode mode : Gamemode.all){
+                    TextureRegionDrawable icon = Vars.ui.getIcon("mode" + Strings.capitalize(mode.name()));
+                    if(Core.atlas.isFound(icon.getRegion())){
+                        t.button(icon, Styles.emptytogglei, () -> {
+                            if(modes.contains(mode)){
+                                modes.remove(mode);
+                            }else{
+                                modes.add(mode);
+                            }
+                            rebuildMaps();
+                        }).size(60f).checked(modes.contains(mode)).tooltip("@mode." + mode.name() + ".name");
+                    }
                 }
-            }
-            t.row();
-            t.button("@editor.showAll", Styles.clearTogglet, () -> {
-                showAll = !showAll;
-                Core.settings.put("editorShowAllMaps", showAll);
-                Core.settings.forceSave();
-                rebuildMaps();
-            }).checked(b -> showAll).colspan(3).growX().height(40f);
+            }).padBottom(10f);
+            menu.row();
+
+            menu.add("@editor.filters.type").width(150f).left();
+            menu.table(Tex.button, t -> {
+                t.button("@custom", Styles.clearTogglet, () -> {
+                    showCustom = !showCustom;
+                    Core.settings.put("editorshowcustommaps", showCustom);
+                    Core.settings.forceSave();
+                    rebuildMaps();
+                }).size(150f, 60f).checked(showCustom);
+                t.button("@builtin", Styles.clearTogglet, () -> {
+                    showBuiltIn = !showBuiltIn;
+                    Core.settings.put("editorshowbuiltinmaps", showBuiltIn);
+                    Core.settings.forceSave();
+                    rebuildMaps();
+                }).size(150f, 60f).checked(showBuiltIn);
+            }).padBottom(10f);
+            menu.row();
+
+            menu.add("@editor.filters.search").width(150f).left();
+            menu.table(Tex.button, t -> {
+                t.button("@editor.filters.author", Styles.clearTogglet, () -> {
+                    searchAuthor = !searchAuthor;
+                    Core.settings.put("editorsearchauthor", searchAuthor);
+                    Core.settings.forceSave();
+                    rebuildMaps();
+                }).size(150f, 60f).checked(searchAuthor);
+                t.button("@editor.filters.description", Styles.clearTogglet, () -> {
+                    searchDescription = !searchDescription;
+                    Core.settings.put("editorsearchdescription", searchDescription);
+                    Core.settings.forceSave();
+                    rebuildMaps();
+                }).size(150f, 60f).checked(searchDescription);
+            });
         });
 
         dialog.show();
@@ -275,7 +313,7 @@ public class MapsDialog extends BaseDialog{
                 platform.viewListing(map);
             }else{
                 ui.showConfirm("@confirm", Core.bundle.format("map.delete", map.name()), () -> {
-                    Vars.maps.removeMap(map);
+                    maps.removeMap(map);
                     dialog.hide();
                     setup();
                 });

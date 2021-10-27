@@ -297,6 +297,13 @@ public class PowerGraph{
         }
     }
 
+    public void clear(){
+        all.clear();
+        producers.clear();
+        consumers.clear();
+        batteries.clear();
+    }
+
     public void reflow(Building tile){
         queue.clear();
         queue.addLast(tile);

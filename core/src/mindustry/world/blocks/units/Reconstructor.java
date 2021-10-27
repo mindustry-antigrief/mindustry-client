@@ -240,7 +240,7 @@ public class Reconstructor extends UnitBlock{
 
         @Override
         public boolean shouldConsume(){
-            return constructing();
+            return constructing() && enabled;
         }
 
         public UnitType unit(){
