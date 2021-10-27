@@ -1,15 +1,21 @@
 package mindustry.world.blocks.distribution;
 
 import arc.*;
+import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.math.geom.*;
+import arc.scene.style.TextureRegionDrawable;
+import arc.scene.ui.layout.Table;
+import arc.struct.Bits;
 import arc.util.*;
 import arc.util.io.*;
+import mindustry.content.Items;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
+import mindustry.world.modules.ItemModule;
 
 import static mindustry.Vars.*;
 
@@ -43,6 +49,66 @@ public class Junction extends Block{
 
     public class JunctionBuild extends Building{
         public DirectionalItemBuffer buffer = new DirectionalItemBuffer(capacity);
+        public ItemModule items2 = new ItemModule();
+        public static boolean flowRateByDirection = Core.settings != null && Core.settings.getBool("junctionflowratedirection", false);
+        public final static TextureRegionDrawable[] directionIcons = {Icon.rightSmall, Icon.upSmall, Icon.leftSmall, Icon.downSmall};
+
+        @Override
+        public void update(){
+            boolean updateFlowTemp = updateFlow;
+            super.update();
+            items2.update(updateFlowTemp);
+        }
+
+        @Override
+        public void display(Table table) {
+            boolean tempDisplayFlow = block.displayFlow;
+            block.displayFlow = false;
+            super.display(table);
+            block.displayFlow = tempDisplayFlow;
+            if(net.active() && lastAccessed != null){
+                table.getChildren().remove(table.getRows() - 1);
+            }
+            if (displayFlow) {
+                String ps = " " + StatUnit.perSecond.localized();
+                if (items2 != null) {
+                    table.row();
+                    table.left();
+                    table.table((l)->{
+                        Bits current = new Bits();
+                        Runnable rebuild = ()->{
+                            l.clearChildren();
+                            l.left();
+                            int i_limit = flowRateByDirection ? 4 : content.items().size;
+                            for (int i=0; i < i_limit; i++) {
+                                Item item = content.items().get(i);
+                                if (items2.hasFlowItem(item)) {
+                                    if(flowRateByDirection) l.image(directionIcons[i]).padRight(3.0F);
+                                    else l.image(item.uiIcon).padRight(3.0F);
+                                    l.label(()->items2.getFlowRate(item) < 0 ? "..." : Strings.fixed(items2.getFlowRate(item), 1) + ps).color(Color.lightGray);
+                                    l.row();
+                                }
+                            }
+                        };
+                        rebuild.run();
+                        l.update(()->{
+                            for (Item item : content.items()) {
+                                if (items2.hasFlowItem(item) && !current.get(item.id)) {
+                                    current.set(item.id);
+                                    rebuild.run();
+                                }
+                            }
+                        });
+                    }).left();
+                }
+            }
+            if (net.active() && lastAccessed != null) {
+                table.getChildren().get(table.getRows() - 2).remove();
+                table.row();
+                table.add(Core.bundle.format("lastaccessed", lastAccessed)).growX().wrap().left();
+            }
+            table.marginBottom(-5);
+        }
 
         @Override
         public int acceptStack(Item item, int amount, Teamc source){
@@ -69,6 +135,7 @@ public class Junction extends Block{
                         }
 
                         dest.handleItem(this, item);
+                        items2.remove(flowRateByDirection ? content.item(i) : item, 1);
                         System.arraycopy(buffer.buffers[i], 1, buffer.buffers[i], 0, buffer.indexes[i] - 1);
                         buffer.indexes[i] --;
                     }
@@ -80,6 +147,7 @@ public class Junction extends Block{
         public void handleItem(Building source, Item item){
             int relative = source.relativeTo(tile);
             buffer.accept(relative, item);
+            items2.add(flowRateByDirection ? content.item(relative) : item, 1);
         }
 
         @Override
