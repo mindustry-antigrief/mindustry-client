@@ -17,8 +17,6 @@ public class Toast extends Table {
     private ToastState state = ToastState.FADING_IN;
     private long fadeAfter;
     private TranslateByAction translateByAction;
-    int placementID;
-    public static long numCurrentlyShown = Long.MAX_VALUE;
 
     /** @param fadeAfter begins fading after this many seconds
      * @param fadeDuration fades over this many seconds */
@@ -29,15 +27,7 @@ public class Toast extends Table {
         container.top().add(this);
         container.marginTop(Core.scene.find("coreinfo").getPrefHeight() / Scl.scl() / 2);
         setTranslation(0f, getPrefHeight());
-        if(numCurrentlyShown != Long.MIN_VALUE){ // the mask is 0-indexed but the actual placement coordinates are 1-indexed. Tragic.
-            placementID = Mathf.round(Mathf.log(2, numCurrentlyShown & -numCurrentlyShown)); // get the index to put the toast at
-            numCurrentlyShown ^= (1L << placementID++); // sets bit to 0 since slot no longer available. does this have to be thread safe?
-            translateByAction = Actions.translateBy(0f, -getPrefHeight() * placementID, fadeDuration, Interp.fade);
-        } else {
-            placementID = 0; // if all slots filled, just allocate it to 0
-            translateByAction = Actions.translateBy(0f, -getPrefHeight(), fadeDuration, Interp.fade);
-        }
-
+        translateByAction = Actions.translateBy(0f, -getPrefHeight(), fadeDuration, Interp.fade);
         color.a = 0f;
         addAction(Actions.sequence(Actions.parallel(translateByAction, Actions.fadeIn(fadeDuration, Interp.pow4)), Actions.run(() -> state = ToastState.NORMAL)));
         setOrigin(Align.bottom);
@@ -45,8 +35,7 @@ public class Toast extends Table {
             if (state == ToastState.NORMAL) {
                 if (Instant.now().toEpochMilli() >= lastReset + this.fadeAfter) {
                     state = ToastState.FADING_OUT;
-                    if(placementID > 0) numCurrentlyShown ^= (1L << --placementID); // set the bit to 1
-                    addAction(Actions.sequence(Actions.parallel(Actions.translateBy(0f, getPrefHeight() * (placementID + 1), fadeDuration, Interp.fade),
+                    addAction(Actions.sequence(Actions.parallel(Actions.translateBy(0f, getPrefHeight(), fadeDuration, Interp.fade),
                             Actions.fadeOut(fadeDuration, Interp.pow4)), Actions.remove()));
                 }
             }
