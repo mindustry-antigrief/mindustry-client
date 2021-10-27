@@ -5,6 +5,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.pooling.*;
 import mindustry.ai.formations.*;
 import mindustry.client.*;
 import mindustry.content.*;
@@ -19,7 +20,6 @@ import mindustry.world.blocks.*;
 import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.logic.*;
-import mindustry.world.blocks.storage.*;
 
 import java.util.concurrent.atomic.*;
 
@@ -30,12 +30,11 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     Interval timer = new Interval(2);
     public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>(), drills = new Queue<>(), belts = new Queue<>(), overdrives = new Queue<>();
     public Seq<Queue<BuildPlan>> queues = new Seq<>();
-    public Seq<BuildPlan> sorted = new Seq<>();
     private Seq<Item> mineItems;
     private int cap;
-    GridBits blocked = new GridBits(world.width(), world.height()), blockedPlayer = new GridBits(world.width(), world.height());
-    int radius = Core.settings.getInt("defaultbuildpathradius");
-    Vec2 origin = new Vec2(player.x, player.y);
+    private GridBits blocked = new GridBits(world.width(), world.height()), blockedPlayer = new GridBits(world.width(), world.height());
+    private int radius = Core.settings.getInt("defaultbuildpathradius");
+    private final Vec2 origin = new Vec2(player.x, player.y);
     private static final ObjectMap<Block, Block> upgrades = ObjectMap.of(
         Blocks.conveyor, Blocks.titaniumConveyor,
         Blocks.conduit, Blocks.pulseConduit,
@@ -44,12 +43,17 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     private BuildPlan req;
     private boolean valid;
     private float range;
+    private static final Pool<BuildPlan> pool = Pools.get(BuildPlan.class, BuildPlan::new, 300);
+    private final PQueue<BuildPlan> priority = new PQueue<>(300, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, player.core())), Structs.comparingFloat(plan -> plan.dst(player))));
+    private final AtomicBoolean isBlocked = new AtomicBoolean(false);
+    private final Seq<BuildPlan> freed = new Seq<>();
 
     {
         Events.on(EventType.WorldLoadEvent.class, e -> { // Account for changing world sizes
             blocked = new GridBits(world.width(), world.height());
             blockedPlayer = new GridBits(world.width(), world.height());
         });
+        addListener(pool::clear); // Remove the unneeded items on path end
     }
 
     public BuildPath() {
@@ -100,20 +104,19 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     public boolean getShow() { return show; }
 
     public void clearQueues() {
+        freed.clear();
         for (var queue : queues) {
-            if(queue == player.unit().plans) continue; // Don't clear our own buildplans lol
-            if (queue != networkAssist) {
-                for (BuildPlan item : queue) player.unit().plans.remove(item);
-                queue.clear();
-            } else {
-                for (var plan : queue) {
-                    if (plan.isDone()) {
-                        networkAssist.remove(plan);
-                        player.unit().plans.remove(plan);
-                    }
-                }
+            if (queue == player.unit().plans) continue; // Don't clear our own buildplans lol
+
+            for (var plan : queue) {
+                if (queue == networkAssist && !plan.isDone()) continue;
+
+                player.unit().plans.remove(plan);
+                if (!freed.contains(plan)) freed.add(plan);
             }
+            if (queue != networkAssist) queue.clear();
         }
+        pool.freeAll(freed);
     }
 
     @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
@@ -157,7 +160,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
 
             if(queues.contains(broken) && !player.unit().team.data().blocks.isEmpty()) {
                 for (Teams.BlockPlan block : player.unit().team.data().blocks) {
-                    broken.add(new BuildPlan(block.x, block.y, block.rotation, content.block(block.block), block.config));
+                    broken.add(pool.obtain().set(block.x, block.y, block.rotation, content.block(block.block), block.config));
                 }
             }
 
@@ -175,7 +178,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 for (var overdrive : ClientVars.overdrives) {
                     for (var other : ClientVars.overdrives) {
                         if (((OverdriveProjector)overdrive.block).speedBoost > ((OverdriveProjector)other.block).speedBoost && Tmp.cr1.set(overdrive.x, overdrive.y, overdrive.realRange()).contains(Tmp.cr2.set(other.x, other.y, other.realRange()))) {
-                            overdrives.add(new BuildPlan(other.tileX(), other.tileY()));
+                            overdrives.add(pool.obtain().set(other.tileX(), other.tileY()));
                         }
                     }
                 }
@@ -184,18 +187,18 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
             if(queues.contains(unfinished) || queues.contains(boulders) || queues.contains(cleanup) || queues.contains(virus) || queues.contains(drills) || queues.contains(belts)) {
                 for (Tile tile : world.tiles) {
                     if (queues.contains(virus) && tile.team() == player.team() && tile.build instanceof LogicBlock.LogicBuild build && build.isVirus) { // Dont add configured processors
-                        virus.add(new BuildPlan(tile.x, tile.y));
+                        virus.add(pool.obtain().set(tile.x, tile.y));
 
                     } else if (queues.contains(boulders) && tile.breakable() && tile.block() instanceof Prop || tile.build instanceof ConstructBlock.ConstructBuild build && build.previous instanceof Prop) {
-                        boulders.add(new BuildPlan(tile.x, tile.y));
+                        boulders.add(pool.obtain().set(tile.x, tile.y));
 
                     } else if (queues.contains(cleanup) && tile.isCenter() && (tile.build instanceof ConstructBlock.ConstructBuild build && !build.wasConstructing && build.lastBuilder != null && build.lastBuilder == player.unit() || tile.team() == Team.derelict && tile.breakable() && !(tile.block() instanceof Prop))) {
-                        cleanup.add(new BuildPlan(tile.x, tile.y));
+                        cleanup.add(pool.obtain().set(tile.x, tile.y));
 
                     } else if (queues.contains(unfinished) && tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild build && tile.isCenter()) {
                         unfinished.add(build.wasConstructing ?
-                            new BuildPlan(tile.x, tile.y, tile.build.rotation, build.current, tile.build.config()) :
-                            new BuildPlan(tile.x, tile.y));
+                            pool.obtain().set(tile.x, tile.y, tile.build.rotation, build.current, tile.build.config()) :
+                            pool.obtain().set(tile.x, tile.y));
 
                     } else if ((queues.contains(belts) || queues.contains(drills)) && tile.team() == player.team() && tile.build != null && tile.isCenter()) {
                         Block block = tile.build instanceof ConstructBlock.ConstructBuild b ? b.previous : tile.block();
@@ -204,9 +207,9 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                             Block upgrade = upgrades.get(block);
                             if ((state.isCampaign() && !upgrade.unlocked()) || Structs.contains(upgrade.requirements, i -> !core.items.has(i.item, 100) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0 && !(tile.build instanceof ConstructBlock.ConstructBuild))) continue;
                             if (block == Blocks.mechanicalDrill) {
-                                drills.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, upgrade));
+                                drills.add(pool.obtain().set(tile.x, tile.y, tile.build.rotation, upgrade));
                             } else {
-                                belts.add(new BuildPlan(tile.x, tile.y, tile.build.rotation, upgrade));
+                                belts.add(pool.obtain().set(tile.x, tile.y, tile.build.rotation, upgrade));
                             }
                         }
                     }
@@ -217,7 +220,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                  if (!activeVirus) { // All processors broken or configured
                      for (Tile tile : world.tiles) {
                          if (tile.team() == player.team() && (tile.build instanceof ConstructBlock.ConstructBuild cb && cb.current instanceof LogicBlock || tile.build instanceof LogicBlock.LogicBuild build && build.code.startsWith("print \"Logic grief auto removed by:\"\nprint \""))) {
-                             virus.add(new BuildPlan(tile.x, tile.y));
+                             virus.add(pool.obtain().set(tile.x, tile.y));
                          }
                      }
                  }
@@ -227,7 +230,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
             sort:
             for (int i = 0; i < 2; i++) {
                 for (Queue queue : queues) {
-                    PQueue<BuildPlan> plans = sortPlans(queue, all, false, core);
+                    PQueue<BuildPlan> plans = sortPlans(queue, all);
                     if (plans.empty()) continue;
                     i = 0;
                     BuildPlan plan;
@@ -241,8 +244,9 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
             }
         }
 
-        while (activeVirus && !virus.isEmpty() && ClientVars.configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) { // Remove config from virus blocks if we arent hitting the config ratelimit
-            req = sorted.clear().addAll(virus).max(plan -> plan.dst(player));
+        // Remove config from the furthest virus blocks until we hit the ratelimit
+        while (activeVirus && !virus.isEmpty() && ClientVars.configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) {
+            req = Geometry.findFurthest(player.x, player.y, virus);
             virus.remove(req);
             player.unit().plans.remove(req);
             if (req.build() instanceof LogicBlock.LogicBuild l) {
@@ -259,10 +263,11 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 Formation formation = player.unit().formation;
                 range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.radius(); // Account for the player formation
+                var finalReq = req.copy();
                 if (Core.settings.getBool("pathnav")) { // Navigates on the client thread, this can cause frame drops so its optional
-                    if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles)).filter(wp -> wp.dst(req) > range && wp.dst(player) > tilesize)));
+                    if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(finalReq.drawx(), finalReq.drawy()), Navigation.obstacles)).filter(wp -> wp.dst(finalReq) > range && wp.dst(player) > tilesize)));
                     waypoints.follow();
-                } else waypoint.set(req.getX(), req.getY(), 0, range).run(0);
+                } else waypoint.set(finalReq.getX(), finalReq.getY(), 0, range).run(0);
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();
@@ -307,20 +312,17 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     }
 
     /** @param includeAll whether to include unaffordable plans (appended to end of affordable ones)
-        @param largeFirst reverses the order of outputs, returning the furthest plans first
         @return {@link Queue<BuildPlan>} sorted by distance */
-    public PQueue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll, boolean largeFirst, CoreBlock.CoreBuild core) {
+    public PQueue<BuildPlan> sortPlans(Queue<BuildPlan> plans, boolean includeAll) {
         if (plans == null) return null;
-        PQueue<BuildPlan> s2 = new PQueue<>(plans.size, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, core)), Structs.comparingFloat(plan -> plan.dst(player))));
         plans.each(plan -> {
-            AtomicBoolean dumb = new AtomicBoolean(false);
+            isBlocked.set(false);
             plan.tile().getLinkedTilesAs(plan.block, t -> {
-                if (blocked.get(t.x, t.y)) dumb.set(true);
+                if (blocked.get(t.x, t.y)) isBlocked.set(true);
             });
-            if ((radius == 0 || plan.dst(origin) < radius * tilesize) && !dumb.get() && (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, core))) && validPlan(plan)) s2.add(plan);
+            if ((radius == 0 || plan.dst(origin) < radius * tilesize) && !isBlocked.get() && (includeAll || (plan.block != null && !player.unit().shouldSkip(plan, player.core()))) && validPlan(plan)) priority.add(plan);
         });
-        if (largeFirst) s2.comparator = s2.comparator.reversed();
-        return s2;
+        return priority;
     }
 
     boolean validPlan(BuildPlan req) {

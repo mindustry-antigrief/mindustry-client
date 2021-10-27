@@ -3,6 +3,7 @@ package mindustry.entities.units;
 import arc.func.*;
 import arc.math.geom.*;
 import arc.util.*;
+import arc.util.pooling.*;
 import mindustry.content.Blocks;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -11,7 +12,7 @@ import mindustry.world.*;
 import static mindustry.Vars.*;
 
 /** Class for storing build requests. Can be either a place or remove request. */
-public class BuildPlan implements Position{
+public class BuildPlan implements Position, Pool.Poolable {
     /** Position and rotation of this request. */
     public int x, y, rotation;
     /** Block being placed. If null, this is a breaking request.*/
@@ -30,6 +31,14 @@ public class BuildPlan implements Position{
 
     /** Visual scale. Used only for rendering.*/
     public float animScale = 0f;
+
+    @Override
+    public void reset() {
+        config = null;
+        progress = 0;
+        initialized = false;
+        stuck = false;
+    }
 
     /** This creates a build request. */
     public BuildPlan(int x, int y, int rotation, Block block){
@@ -139,6 +148,25 @@ public class BuildPlan implements Position{
         this.rotation = rotation;
         this.block = block;
         this.breaking = false;
+        return this;
+    }
+
+    public BuildPlan set(int x, int y, int rotation, Block block, Object config){
+        this.x = x;
+        this.y = y;
+        this.rotation = rotation;
+        this.block = block;
+        this.breaking = false;
+        this.config = config;
+        return this;
+    }
+
+    public BuildPlan set(int x, int y){
+        this.x = x;
+        this.y = y;
+        this.rotation = -1;
+        this.block = world.tile(x, y).block();
+        this.breaking = true;
         return this;
     }
 
