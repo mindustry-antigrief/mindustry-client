@@ -246,6 +246,11 @@ public class Drill extends Block{
         }
 
         @Override
+        public void pickedUp(){
+            dominantItem = null;
+        }
+
+        @Override
         public void onProximityUpdate(){
             super.onProximityUpdate();
 

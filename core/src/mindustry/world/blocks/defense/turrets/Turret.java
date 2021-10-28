@@ -12,6 +12,7 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.navigation.Navigation;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
@@ -150,15 +151,8 @@ public class Turret extends ReloadTurret{
         public boolean logicShooting = false;
         public @Nullable Posc target;
         public Vec2 targetPos = new Vec2();
-        public @Nullable BlockUnitc unit;
+        public BlockUnitc unit = (BlockUnitc)UnitTypes.block.create(team);
         public boolean wasShooting, charging;
-
-        @Override
-        public void created(){
-            unit = (BlockUnitc)UnitTypes.block.create(team);
-            unit.tile(this);
-            pathfindingEntity.targetGround = targetGround;
-        }
 
         @Override
         public void remove() {
@@ -175,7 +169,7 @@ public class Turret extends ReloadTurret{
 
         @Override
         public void control(LAccess type, double p1, double p2, double p3, double p4){
-            if(type == LAccess.shoot && (unit == null || !unit.isPlayer())){
+            if(type == LAccess.shoot && !unit.isPlayer()){
                 targetPos.set(World.unconv((float)p1), World.unconv((float)p2));
                 logicControlTime = logicControlCooldown;
                 logicShooting = !Mathf.zero(p3);
@@ -213,15 +207,14 @@ public class Turret extends ReloadTurret{
         }
 
         public boolean isShooting(){
-            return (isControlled() ? (unit != null && unit.isShooting()) : logicControlled() ? logicShooting : target != null);
+            return (isControlled() ? unit.isShooting() : logicControlled() ? logicShooting : target != null);
         }
 
         @Override
         public Unit unit(){
-            if(unit == null){
-                unit = (BlockUnitc)UnitTypes.block.create(team);
-                unit.tile(this);
-            }
+            //make sure stats are correct
+            unit.tile(this);
+            unit.team(team);
             return (Unit)unit;
         }
 
@@ -277,19 +270,17 @@ public class Turret extends ReloadTurret{
             recoil = Mathf.lerpDelta(recoil, 0f, restitution);
             heat = Mathf.lerpDelta(heat, 0f, cooldown);
 
-            if(unit != null){
-                unit.health(health);
-                unit.rotation(rotation);
-                unit.team(team);
-                unit.set(x, y);
-                if (player != null && player.unit() != null && team != player.team()) {
-                    Navigation.obstacles.add(pathfindingEntity);
-                    pathfindingEntity.canHitPlayer = player.unit().isFlying() ? targetAir : targetGround;
-                    pathfindingEntity.canShoot = cons.valid() && hasAmmo();
-                    pathfindingEntity.x = x;
-                    pathfindingEntity.y = y;
-                    pathfindingEntity.team = team;
-                }
+            unit.tile(this);
+            unit.rotation(rotation);
+            unit.team(team);
+            if (player != null && player.unit() != null && team != player.team()) {
+                Navigation.obstacles.add(pathfindingEntity);
+                pathfindingEntity.canHitPlayer = player.unit().isFlying() ? targetAir : targetGround;
+                pathfindingEntity.canShoot = cons.valid() && hasAmmo();
+                pathfindingEntity.x = x;
+                pathfindingEntity.y = y;
+                pathfindingEntity.team = team;
+                pathfindingEntity.targetGround = targetGround;
             }
 
             if(logicControlTime > 0){
@@ -356,7 +347,7 @@ public class Turret extends ReloadTurret{
             if(targetAir && !targetGround){
                 target = Units.bestEnemy(team, x, y, range, e -> !e.dead() && !e.isGrounded(), unitSort);
             }else{
-                target = Units.bestTarget(team, x, y, range, e -> !e.dead() && (e.isGrounded() || targetAir) && (!e.isGrounded() || targetGround), b -> true, unitSort);
+                target = Units.bestTarget(team, x, y, range, e -> !e.dead() && (e.isGrounded() || targetAir) && (!e.isGrounded() || targetGround), b -> targetGround, unitSort);
 
                 if(target == null && canHeal()){
                     target = Units.findAllyTile(team, x, y, range, b -> b.damaged() && b != this);
@@ -423,7 +414,7 @@ public class Turret extends ReloadTurret{
 
                 for(int i = 0; i < chargeEffects; i++){
                     Time.run(Mathf.random(chargeMaxDelay), () -> {
-                        if(!isValid()) return;
+                        if(dead) return;
                         tr.trns(rotation, shootLength);
                         chargeEffect.at(x + tr.x, y + tr.y, rotation);
                     });
@@ -432,7 +423,7 @@ public class Turret extends ReloadTurret{
                 charging = true;
 
                 Time.run(chargeTime, () -> {
-                    if(!isValid()) return;
+                    if(dead) return;
                     tr.trns(rotation, shootLength);
                     recoil = recoilAmount;
                     heat = 1f;
@@ -446,7 +437,7 @@ public class Turret extends ReloadTurret{
                 for(int i = 0; i < shots; i++){
                     int ii = i;
                     Time.run(burstSpacing * i, () -> {
-                        if(!isValid() || !hasAmmo()) return;
+                        if(dead || !hasAmmo()) return;
 
                         recoil = recoilAmount;
 
@@ -506,7 +497,7 @@ public class Turret extends ReloadTurret{
         }
 
         protected void ejectEffects(){
-            if(!isValid()) return;
+            if(dead) return;
 
             //alternate sides when using a double turret
             float scl = (shots == 2 && alternate && shotCounter % 2 == 1 ? -1f : 1f);

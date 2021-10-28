@@ -23,8 +23,8 @@ buildscript{
 }
 
 plugins{
-    id "org.jetbrains.kotlin.jvm" version "1.5.21"
-    id "org.jetbrains.kotlin.kapt" version "1.5.21"
+    id 'org.jetbrains.kotlin.jvm' version '1.6.0-RC'
+    id "org.jetbrains.kotlin.kapt" version "1.6.0-RC"
 }
 
 allprojects{
@@ -37,8 +37,8 @@ allprojects{
         versionNumber = '7'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
-        if(!project.hasProperty("buildversion")) buildversion = '133'
-        if(!project.hasProperty("clientVersion")) clientVersion = 'git branch --show-current'.execute().text.trim() + ", " + new Date().format('MMM. dd, yyyy') // Oct. 26, 2021
+        if(!project.hasProperty("buildversion")) buildversion = '134'
+        if(!project.hasProperty("clientVersion")) clientVersion = 'git branch --show-current'.execute().text.trim() + ", " + new Date().format('dd MMM yyyy, HHmm') // 28 Oct 2021, time
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
