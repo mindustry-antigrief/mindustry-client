@@ -167,7 +167,7 @@ public class LogicDialog extends BaseDialog{
         add(buttons).growX().name("canvas");
 
         hidden(() -> {
-            if (!Core.input.shift() && executor.team == player.team()) consumer.get(canvas.save());
+            if (!Core.input.shift() && (executor.team == player.team() || !net.client())) consumer.get(canvas.save());
         });
 
         onResize(() -> canvas.rebuild());
