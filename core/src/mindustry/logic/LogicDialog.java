@@ -64,14 +64,14 @@ public class LogicDialog extends BaseDialog{
 
             dialog.addCloseButton();
             dialog.show();
-        }).name("edit").disabled(t -> executor.team != player.team());
+        }).name("edit").disabled(t -> executor.team != player.team() && net.client());
 
         buttons.button("Use for comms", () -> { // FINISHME: Bundle
             ui.showConfirm("Are you use you want to use this block for comms?", () -> {
                 canvas.load(MessageBlockCommunicationSystem.LOGIC_PREFIX);
                 hide();
             });
-        }).disabled(t -> executor.team != player.team());
+        }).disabled(t -> executor.team != player.team() && net.client());
 
         buttons.button("@variables", Icon.menu, () -> {
             BaseDialog dialog = new BaseDialog("@variables");
@@ -158,7 +158,7 @@ public class LogicDialog extends BaseDialog{
         }).name("variables").disabled(b -> executor == null || executor.vars.length == 0);
 
         buttons.button("@add", Icon.add, () -> addDialog(canvas.statements.getChildren().size))
-            .disabled(t -> executor.team != player.team() || canvas.statements.getChildren().size >= LExecutor.maxInstructions);
+            .disabled(t -> (executor.team != player.team() && net.client()) || canvas.statements.getChildren().size >= LExecutor.maxInstructions);
 
         add(canvas).grow().name("canvas");
 
