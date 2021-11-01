@@ -156,9 +156,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 });
             }
 
-            Log.info("Before Clean: " + pool.getFree());
             clearQueues();
-            Log.info("After Clean: " + pool.getFree());
 
             if(queues.contains(broken) && !player.unit().team.data().blocks.isEmpty()) {
                 for (Teams.BlockPlan block : player.unit().team.data().blocks) {
@@ -245,8 +243,6 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 }
                 all = true;
             }
-
-            Log.info("Final: " + pool.getFree());
         }
 
         // Remove config from the furthest virus blocks until we hit the ratelimit
@@ -286,7 +282,6 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 waypoint.set(tile.getX(), tile.getY(), 0, 0);
             });
             waypoint.run(0);
-            Log.info(Core.graphics.getFrameId());
         }
     }
 
