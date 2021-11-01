@@ -1294,8 +1294,19 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         return true;
     }
 
+    /** Called right before this building is picked up. */
     public void pickedUp(){
 
+
+    }
+
+    /** Called right after this building is picked up. */
+    public void afterPickedUp(){
+        if(power != null){
+            power.graph = new PowerGraph();
+            power.links.clear();
+            power.status = 0f;
+        }
     }
 
     public void removeFromProximity(){
