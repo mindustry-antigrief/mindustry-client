@@ -10,7 +10,7 @@ import mindustry.graphics.*;
 
 /** A {@link Path} composed of {@link Waypoint} instances. */
 public class WaypointPath<T extends Waypoint> extends Path {
-    private Seq<T> waypoints;
+    public Seq<T> waypoints;
     private Seq<T> initial;
     private int initialSize;
     private boolean show;

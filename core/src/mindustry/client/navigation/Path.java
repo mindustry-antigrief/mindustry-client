@@ -21,9 +21,8 @@ public abstract class Path {
 
     public abstract boolean getShow();
 
-    public <T extends Path> T addListener(Runnable listener) {
+    public void addListener(Runnable listener) {
         listeners.add(listener);
-        return (T) this;
     }
 
     public abstract void follow();
