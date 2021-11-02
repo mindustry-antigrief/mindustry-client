@@ -1,8 +1,11 @@
 package mindustry.core;
 
 import arc.*;
+import arc.func.Cons;
 import arc.math.*;
+import arc.math.geom.Point2;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.annotations.Annotations.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
@@ -14,6 +17,7 @@ import mindustry.maps.*;
 import mindustry.type.*;
 import mindustry.type.Weather.*;
 import mindustry.world.*;
+import mindustry.world.blocks.logic.LogicBlock;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import java.util.*;
@@ -55,6 +59,8 @@ public class Logic implements ApplicationListener{
                 }
             }
         });
+
+        setProcessorBypassHack(Core.settings.getBool("prochack", false));
 
         //when loading a 'damaged' sector, propagate the damage
         Events.on(SaveLoadEvent.class, e -> {
@@ -180,6 +186,23 @@ public class Logic implements ApplicationListener{
                 entity.heal();
             }
         }
+    }
+
+    private final Cons<BlockBuildEndEvent> eventChange = event -> {
+        if(event.team != Vars.player.team()) return;
+        int coords = Point2.pack(event.tile.x, event.tile.y);
+        if(!processorConfigMap.containsKey(coords)) return;
+        if(event.breaking){
+            processorConfigMap.remove(coords);
+        }else if(event.tile.build instanceof LogicBlock.LogicBuild){
+            event.tile.build.configure(processorConfigMap.get(coords));
+            processorConfigMap.remove(coords);
+        }
+    };
+    public void setProcessorBypassHack(boolean add){
+        procHackBool = add;
+        if(add) Events.on(BlockBuildEndEvent.class, eventChange);
+        else Events.remove(BlockBuildEndEvent.class, eventChange);
     }
 
     public void reset(){
