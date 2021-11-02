@@ -629,7 +629,10 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Core.input.keyTap(Binding.clear_building)){
-            if(!Core.input.shift()) player.unit().clearBuilding();
+            if(!Core.input.shift()){
+                player.unit().clearBuilding();
+                processorConfigMap.clear();
+            }
             else Vars.frozenPlans.clear();
         }
 

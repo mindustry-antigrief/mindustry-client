@@ -98,6 +98,7 @@ public class Control implements ApplicationListener, Loadable{
 
         Events.on(ResetEvent.class, event -> {
             player.reset();
+            processorConfigMap.clear();
             frozenPlans.clear();
 
             hiscore = false;
