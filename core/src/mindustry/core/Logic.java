@@ -60,7 +60,7 @@ public class Logic implements ApplicationListener{
             }
         });
 
-        setProcessorBypassHack(Core.settings.getBool("prochack", false));
+        Events.on(ClientLoadEvent.class, e -> Core.app.post(() -> setProcessorBypassHack(Core.settings.getBool("prochack", false))));
 
         //when loading a 'damaged' sector, propagate the damage
         Events.on(SaveLoadEvent.class, e -> {
