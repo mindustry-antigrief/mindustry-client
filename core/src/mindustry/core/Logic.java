@@ -189,15 +189,13 @@ public class Logic implements ApplicationListener{
     }
 
     private final Cons<BlockBuildEndEvent> eventChange = event -> {
-        if(event.team != Vars.player.team()) return;
+        if(processorConfigMap.size == 0 || event.team != Vars.player.team()) return;
         int coords = Point2.pack(event.tile.x, event.tile.y);
         if(!processorConfigMap.containsKey(coords)) return;
-        if(event.breaking){
-            processorConfigMap.remove(coords);
-        }else if(event.tile.build instanceof LogicBlock.LogicBuild){
-            event.tile.build.configure(processorConfigMap.get(coords));
-            processorConfigMap.remove(coords);
+        if(event.tile.build instanceof LogicBlock.LogicBuild lb && lb.code.length() == 0 && lb.links.size == 0){
+            lb.configure(processorConfigMap.get(coords));
         }
+        processorConfigMap.remove(coords);
     };
     public void setProcessorBypassHack(boolean add){
         procHackBool = add;
