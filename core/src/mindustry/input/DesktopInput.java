@@ -680,8 +680,15 @@ public class DesktopInput extends InputHandler{
             float offset = ((sreq.block.size + 2) % 2) * tilesize / 2f;
             float x = Core.input.mouseWorld().x + offset;
             float y = Core.input.mouseWorld().y + offset;
-            sreq.x = (int)(x / tilesize);
-            sreq.y = (int)(y / tilesize);
+            if(sreq.block instanceof LogicBlock){
+                int oldPack = Point2.pack(sreq.x, sreq.y);
+                sreq.x = (int)(x / tilesize);
+                sreq.y = (int)(y / tilesize);
+                processorConfigMap.put(Point2.pack(sreq.x, sreq.y), processorConfigMap.remove(oldPack));
+            } else {
+                sreq.x = (int) (x / tilesize);
+                sreq.y = (int) (y / tilesize);
+            }
         }
 
         if(block == null || mode != placing){
