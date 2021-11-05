@@ -194,13 +194,13 @@ public class PlayerListFragment extends Fragment{
                 }).size(h/2);
             }
             if (user != player) {
-                button.button(Icon.copy, Styles.clearPartiali, // Assist/copy
+                button.button(Icon.copy, ustyle, // Assist/copy
                         () -> Navigation.follow(new AssistPath(user, Core.input.shift(), Core.input.ctrl()))).size(h / 2).tooltip("@client.assist");
-                button.button(Icon.cancel, Styles.clearPartiali, // Unassist/block
+                button.button(Icon.cancel, ustyle, // Unassist/block
                         () -> Navigation.follow(new UnAssistPath(user))).size(h / 2).tooltip("@client.unassist");
-                button.button(Icon.move, Styles.clearPartiali, // Goto
+                button.button(Icon.move, ustyle, // Goto
                         () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
-                button.button(Icon.zoom, Styles.clearPartiali, // Spectate/stalk
+                button.button(Icon.zoom, ustyle, // Spectate/stalk
                         () -> Spectate.INSTANCE.spectate(user)).tooltip("@client.spectate");
             }
 

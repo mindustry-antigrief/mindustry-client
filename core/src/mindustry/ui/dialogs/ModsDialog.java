@@ -49,6 +49,7 @@ public class ModsDialog extends BaseDialog{
     private BaseDialog browser;
     private Table browserTable;
     private int prompted, expected;
+    private boolean autoUpdating; // Whether mods are currently being auto updated
 
     public ModsDialog(){
         super("@mods");
@@ -106,13 +107,15 @@ public class ModsDialog extends BaseDialog{
         // Client mod updater
         Events.on(EventType.ClientLoadEvent.class, event -> {
             if (mods.mods.contains(LoadedMod::enabled) && Core.settings.getInt("modautoupdate") != 0 && (Time.timeSinceMillis(settings.getLong("lastmodupdate", (long) Time.toHours + 1L)) > Time.toHours)) {
+                autoUpdating = true;
                 Log.debug("Checking for mod updates");
                 Core.settings.put("lastmodupdate", Time.millis());
                 var shuffled = mods.mods.copy();
                 shuffled.shuffle();
                 for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
                     if (!mod.enabled() || mod.getRepo() == null) continue;
-                    if (++expected >= 30) continue; // Only make up to 30 api requests
+                    if (expected >= 30) continue; // Only make up to 30 api requests
+                    expected++;
 
                     githubImportMod(mod.getRepo(), mod.isJava(), mod.meta.version);
                 }
@@ -531,7 +534,7 @@ public class ModsDialog extends BaseDialog{
         return text;
     }
 
-    private void handleMod(String repo, HttpResponse result, String prevVersion){
+    private void handleMod(String repo, HttpResponse result, @Nullable String prevVersion){
         ZipFi rootZip = null;
 
         try{
@@ -573,6 +576,7 @@ public class ModsDialog extends BaseDialog{
 
         if (++prompted == expected) {
             Core.app.post(() -> { // THIS DOES NOT RUN ON THE MAIN THREAD OTHERWISE
+                autoUpdating = false;
                 if (mods.requiresReload()){
                     if (Core.settings.getInt("modautoupdate") == 2) {
                         try{
@@ -587,7 +591,7 @@ public class ModsDialog extends BaseDialog{
                                 BaseDialog dialog = new BaseDialog("Java Moment");
                                 dialog.cont.clearChildren();
                                 dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
-                                dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
+                                dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk17&jvmVariant=hotspot")).size(210f, 64f);
                             });
                         }
                         reload();
@@ -599,7 +603,7 @@ public class ModsDialog extends BaseDialog{
     }
 
     private void importFail(Throwable t){
-        Core.app.post(() -> modError(t));
+        if (!autoUpdating) Core.app.post(() -> modError(t));
     }
 
 
@@ -607,7 +611,7 @@ public class ModsDialog extends BaseDialog{
         githubImportMod(repo, isJava, null);
     }
 
-    private void githubImportMod(String repo, boolean isJava, String prevVersion){
+    private void githubImportMod(String repo, boolean isJava, @Nullable String prevVersion){
         modImportProgress = 0f;
         if (prevVersion == null) ui.loadfrag.show("@downloading");
         ui.loadfrag.setProgress(() -> modImportProgress);
@@ -631,7 +635,7 @@ public class ModsDialog extends BaseDialog{
         }
     }
 
-    private void githubImportJavaMod(String repo, String prevVersion){
+    private void githubImportJavaMod(String repo, @Nullable String prevVersion){
         //grab latest release
         Http.get(ghApi + "/repos/" + repo + "/releases/latest", res -> {
             var json = Jval.read(res.getResultAsString());
@@ -652,7 +656,7 @@ public class ModsDialog extends BaseDialog{
         }, this::importFail);
     }
 
-    private void githubImportBranch(String branch, String repo, String prevVersion){
+    private void githubImportBranch(String branch, String repo, @Nullable String prevVersion){
         Http.get(ghApi + "/repos/" + repo + "/zipball/" + branch, loc -> {
             if(loc.getHeader("Location") != null){
                 Http.get(loc.getHeader("Location"), result -> {

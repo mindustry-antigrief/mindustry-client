@@ -771,9 +771,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             });
 
             //flip rotation
-            if(x == (req.rotation % 2 == 0)){
-                req.rotation = Mathf.mod(req.rotation + 2, 4);
-            }
+            req.block.flipRotation(req, x);
         });
     }
 
@@ -1275,11 +1273,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public @Nullable Unit selectedUnit(boolean allowPlayers){
-        return selectedUnit(allowPlayers, player.team());
-    }
-
-    public @Nullable Unit selectedUnit(boolean allowPlayers, @Nullable Team team){
-        Unit unit = Units.closest(team, Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f, allowPlayers ? u -> !u.isLocal() : Unitc::isAI);
+        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f, allowPlayers ? u -> !u.isLocal() : Unitc::isAI);
         if(unit != null && !ClientVars.hidingUnits){
             unit.hitbox(Tmp.r1);
             Tmp.r1.grow(input.shift() ? tilesize * 6 : 6f ); // If shift is held, add 3 tiles of leeway, makes it easier to shift click units controlled by processors and such
@@ -1289,7 +1283,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         Building build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
-        if(build instanceof ControlBlock cont && cont.canControl() && build.team == team){
+        if(build instanceof ControlBlock cont && cont.canControl() && build.team == player.team() && cont.unit() != player.unit()){
             return cont.unit();
         }
 

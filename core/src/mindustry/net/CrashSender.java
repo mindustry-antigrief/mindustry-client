@@ -8,6 +8,7 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.*;
 import mindustry.core.*;
+import mindustry.mod.Mods.*;
 
 import java.io.*;
 import java.text.*;
@@ -26,8 +27,8 @@ public class CrashSender{
         + "Source: " + settings.getString("updateurl") + "\n"
         + "OS: " + OS.osName + " x" + (OS.osArchBits) + " (" + OS.osArch + ")\n"
         + "Java Version: " + OS.javaVersion + "\n"
-        + (mods == null ? "<no mod init>" : mods.list().size + " Mods" + (mods.list().isEmpty() ? "" : ": " + mods.list().toString(", ", mod -> mod.name + ":" + mod.meta.version)))
-        + "\n\n" + error + "```";
+        + (mods == null ? "<no mod init>" : "Mods: " + (!mods.list().contains(LoadedMod::shouldBeEnabled) ? "none (vanilla)" : mods.list().select(LoadedMod::shouldBeEnabled).toString(", ", mod -> mod.name + ":" + mod.meta.version)))
+        + "\n\n" + error;
     }
 
     public static void log(Throwable exception){

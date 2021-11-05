@@ -105,7 +105,7 @@ public class MinePath extends Path {
 
     @Override
     public void draw() {
-        waypoints.draw();
+        if (waypoints.waypoints.any() && waypoints.waypoints.first().dst(player) > tilesize * 3) waypoints.draw();
     }
 
     @Override
