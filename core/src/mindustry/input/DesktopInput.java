@@ -433,7 +433,7 @@ public class DesktopInput extends InputHandler{
             }
             if((input.keyDown(Binding.control) || input.shift()) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit(true);
-                Unit on_any = selectedUnit(true, null);
+                Unit on_any = selectedUnit(true);
                 var build = selectedControlBuild();
                 if(on != null || on_any != null){
                     if (on != null && input.keyDown(Binding.control) && on.isAI()) Call.unitControl(player, on); // Ctrl + click: control unit
