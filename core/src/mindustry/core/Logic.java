@@ -14,6 +14,7 @@ import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.maps.*;
+import mindustry.net.*;
 import mindustry.type.*;
 import mindustry.type.Weather.*;
 import mindustry.world.*;
@@ -23,6 +24,7 @@ import mindustry.world.blocks.storage.CoreBlock.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 /**
  * Logic module.
@@ -193,7 +195,22 @@ public class Logic implements ApplicationListener{
         int coords = Point2.pack(event.tile.x, event.tile.y);
         if(!processorConfigMap.containsKey(coords)) return;
         if(event.tile.build instanceof LogicBlock.LogicBuild lb && lb.code.length() == 0 && lb.links.size == 0){
-            lb.configure(processorConfigMap.get(coords));
+            if(!configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())){
+                Core.app.post(new Runnable() { //hmm. is bad.
+                    @Override
+                    public void run() {
+                        if(!configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())){
+                            Core.app.post(this);
+                            return;
+                        }
+                        if(world.tile(coords).build instanceof LogicBlock.LogicBuild lb2) lb2.configure(processorConfigMap.get(coords));
+                        processorConfigMap.remove(coords);
+                    }
+                });
+                return;
+            }
+            else lb.configure(processorConfigMap.get(coords));
+
         }
         processorConfigMap.remove(coords);
     };
