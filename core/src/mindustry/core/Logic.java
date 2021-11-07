@@ -196,9 +196,10 @@ public class Logic implements ApplicationListener{
         if(!processorConfigMap.containsKey(coords)) return;
         if(event.tile.build instanceof LogicBlock.LogicBuild lb && lb.code.length() == 0 && lb.links.size == 0){
             if(!configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())){
-                Core.app.post(new Runnable() { //hmm. is bad.
+                Core.app.post(new Runnable() { //hmm. is bad. remind me to create just one runnable to iterate through all or something
                     @Override
                     public void run() {
+                        if(!processorConfigMap.containsKey(coords)) return;
                         if(!configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())){
                             Core.app.post(this);
                             return;
