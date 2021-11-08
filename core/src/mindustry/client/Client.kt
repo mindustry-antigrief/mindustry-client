@@ -32,6 +32,7 @@ import mindustry.logic.*
 import mindustry.net.*
 import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
+import mindustry.world.blocks.logic.MessageBlock
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
@@ -438,8 +439,45 @@ object Client {
                 comms.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH))
             }
         }
+
+        register("replacemessage <from> <to> [useRegex=t]", "Replaces corresponding text in messages."){ args, _ ->
+            if(args[0].length < 3){
+                player.sendMessage("[scarlet]That might not be a good idea...")
+                return@register
+            }
+            val useRegex = args.size > 2 && args[2] == "t"
+            replaceMsg(args[0], useRegex, args[0], useRegex, args[1])
+        }
+
+        register("replacemsgif <matches> <from> <to> [useMatchRegex=t] [useFromRegex=t]", "Replaces corresponding text in messages, only if they match the text."){ args, _ ->
+            if(args[0].length < 3){
+                player.sendMessage("[scarlet]That might not be a good idea...")
+                return@register
+            }
+            replaceMsg(args[0], args.size > 3 && args[3] == "t", args[1], args.size > 4 && args[4] == "t", args[2])
+        }
     }
 
+    fun replaceMsg(match: String, matchRegex: Boolean, from: String, fromRegex: Boolean, to: String){
+        clientThread.taskQueue.post {
+            var matchReg = Regex("No. Something went wrong.")
+            var fromReg = Regex("No. Something went wrong.")
+            if(matchRegex) matchReg = match.toRegex()
+            if(fromRegex) fromReg = from.toRegex()
+            var num = 0
+            val seq = Seq<Building>()
+            player.team().data().buildings.getObjects(seq)
+            seq.each<MessageBlock.MessageBuild>({ it.team() == player.team() && it is MessageBlock.MessageBuild}, {
+                val msg = it.message.toString()
+                if((!matchRegex && !msg.contains(match)) || (matchRegex && !matchReg.matches(msg))) return@each
+                val msg2 = if(fromRegex) msg.replace(fromReg, to)
+                else msg.replace(from, to)
+                configs.add(ConfigRequest(it.tileX(), it.tileY(), msg2))
+                num++
+            })
+            player.sendMessage("[accent]Queued $num messages for editing");
+        }
+    }
     fun connectTls(certname: String, onFinish: (Packets.CommunicationClient, X509Certificate) -> Unit) { // FINISHME: Bundle
         val cert = Main.keyStorage.aliases().singleOrNull { it.second.equals(certname, true) }?.run { Main.keyStorage.findTrusted(BigInteger(first)) } ?: Main.keyStorage.trusted().singleOrNull { it.readableName.equals(certname, true) }
 
