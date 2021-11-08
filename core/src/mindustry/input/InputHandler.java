@@ -926,6 +926,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         for(BuildPlan req : requests){
             if(req.block != null && validPlace(req.x, req.y, req.block, req.rotation)){
                 BuildPlan copy = req.copy();
+                if(Vars.procHackBool && copy.block instanceof LogicBlock && copy.config != null){
+                    processorConfigMap.put(Point2.pack(copy.x, copy.y), copy.config);
+                    copy.config = null;
+                }
                 req.block.onNewPlan(copy);
                 player.unit().addBuild(copy);
             }
