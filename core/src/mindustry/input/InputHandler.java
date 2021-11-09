@@ -1009,6 +1009,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         while(it.hasNext()){
             BuildPlan req = it.next();
             if(!req.breaking && req.bounds(Tmp.r2).overlaps(Tmp.r1)){
+                processorConfigMap.remove(Point2.pack(req.x, req.y));
                 it.remove();
             }
         }
