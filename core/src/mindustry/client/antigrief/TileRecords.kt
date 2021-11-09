@@ -1,12 +1,16 @@
 package mindustry.client.antigrief
 
 import arc.*
+import arc.math.Mathf
+import arc.util.Log
 import mindustry.*
+import mindustry.ai.types.*
 import mindustry.client.*
 import mindustry.client.antigrief.TileLog.Companion.linkedArea
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.game.*
+import mindustry.gen.*
 import mindustry.world.*
 import mindustry.world.blocks.*
 
@@ -57,6 +61,17 @@ object TileRecords {
                     if (tile.build is ConstructBlock.ConstructBuild) (tile.build as ConstructBlock.ConstructBuild).current ?:
                     (tile.build as ConstructBlock.ConstructBuild).previous
                     else tile.block() ?: Blocks.air))
+            }
+        }
+
+        Events.on(EventType.UnitDestroyEvent::class.java) {
+            if(it.unit == null || it.unit.team() != Vars.player.team()) return@on
+            val controller = it.unit.controller()
+            Log.debug("e @", controller)
+            if(controller !is LogicAI && controller !is FormationAI && controller !is Player) return@on
+            Log.debug("g")
+            forArea(it.unit.tileOn(), Mathf.ceil(it.unit.type.hitSize / Vars.tilesize)) { tile ->
+                addLog(tile, UnitDestroyedLog(tile, it.unit.toInteractor(), it.unit))
             }
         }
     }
