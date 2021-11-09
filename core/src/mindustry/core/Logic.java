@@ -4,9 +4,11 @@ import arc.*;
 import arc.func.Cons;
 import arc.math.*;
 import arc.math.geom.Point2;
+import arc.struct.Queue;
 import arc.util.*;
 import mindustry.Vars;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigrief.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -190,24 +192,15 @@ public class Logic implements ApplicationListener{
         }
     }
 
+    public Queue<ConfigRequest> configs = new Queue<>();
+
     private final Cons<BlockBuildEndEvent> eventChange = event -> {
         if(processorConfigMap.size == 0 || event.team != Vars.player.team()) return;
         int coords = Point2.pack(event.tile.x, event.tile.y);
         if(!processorConfigMap.containsKey(coords)) return;
         if(event.tile.build instanceof LogicBlock.LogicBuild lb && lb.code.length() == 0 && lb.links.size == 0){
             if(!configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())){
-                Core.app.post(new Runnable() { //hmm. is bad. remind me to create just one runnable to iterate through all or something
-                    @Override
-                    public void run() {
-                        if(!processorConfigMap.containsKey(coords)) return;
-                        if(!configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())){
-                            Core.app.post(this);
-                            return;
-                        }
-                        if(world.tile(coords).build instanceof LogicBlock.LogicBuild lb2) lb2.configure(processorConfigMap.get(coords));
-                        processorConfigMap.remove(coords);
-                    }
-                });
+                configs.addLast(new ConfigRequestBlockType(event.tile.x, event.tile.y, processorConfigMap.remove(coords), world.tile(coords).build));
                 return;
             }
             else lb.configure(processorConfigMap.get(coords));
@@ -454,6 +447,10 @@ public class Logic implements ApplicationListener{
 
             if(!net.client() && !world.isInvalidMap() && !state.isEditor() && state.rules.canGameOver){
                 checkGameState();
+            }
+
+            if(!configs.isEmpty() && configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())){
+                configs.removeFirst().run();
             }
         }
     }
