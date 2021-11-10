@@ -263,10 +263,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 Formation formation = player.unit().formation;
                 range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.radius(); // Account for the player formation
-                if (Core.settings.getBool("pathnav") && !Core.settings.getBool("assumeunstrict")) { // Navigates on the client thread, this can cause frame drops so its optional
-                    if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(req.drawx(), req.drawy()), Navigation.obstacles)).filter(wp -> wp.dst(req) > range && wp.dst(player) > tilesize)));
-                    waypoints.follow();
-                } else waypoint.set(req.getX(), req.getY(), 0, range).run(5);
+                Path.goTo(req, range);
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();

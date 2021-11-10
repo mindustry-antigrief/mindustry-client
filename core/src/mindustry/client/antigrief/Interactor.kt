@@ -15,8 +15,8 @@ open class UnitInteractor(unit: Unit?) : Interactor {
         unit?.isPlayer == true -> "${unit.type.localizedName} controlled by ${unit.playerNonNull().name}"
         (unit?.controller() as? FormationAI)?.leader?.isPlayer == true -> "${unit.type.localizedName} controlled by ${(unit.controller() as FormationAI).leader.playerNonNull().name}"
         unit?.controller() is LogicAI -> {
-            val lcontrol = (unit.controller() as LogicAI).controller
-            "${unit.type.localizedName} logic-controlled by ${lcontrol.block().localizedName} (${lcontrol.tileX()}, ${lcontrol.tileY()}) accessed by ${lcontrol.lastAccessed}"
+            val lcontrol = (unit.controller() as? LogicAI)?.controller
+            "${unit.type.localizedName} logic-controlled by ${lcontrol?.block()?.localizedName} (${lcontrol?.tileX()}, ${lcontrol?.tileY()}) accessed by ${lcontrol?.lastAccessed}"
         }
         else -> unit?.type?.localizedName ?: "null unit"
     }

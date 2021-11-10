@@ -33,7 +33,7 @@ abstract class Navigator {
             if (player.unit().formation == null) player.unit().hitSize / 2
             else player.unit().formation().pattern.radius() + player.unit().formation.pattern.spacing / 2
         if(state.map.name() != "The Maze") {
-            synchronized(obstacles) {
+            synchronized (obstacles) {
                 for (turret in obstacles) {
                     if (turret.canHitPlayer && turret.canShoot) realObstacles.add(
                         Circle(

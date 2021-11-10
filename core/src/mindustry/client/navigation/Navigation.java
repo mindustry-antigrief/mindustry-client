@@ -20,7 +20,7 @@ public class Navigation {
     public static boolean isPaused = false;
     public static NavigationState state = NavigationState.NONE;
     @Nullable public static WaypointPath<Waypoint> recordedPath = null;
-    public static final HashSet<TurretPathfindingEntity> obstacles = new HashSet<>();
+    public static final Set<TurretPathfindingEntity> obstacles = Collections.synchronizedSet(new HashSet<>());
     @Nullable private static Vec2 targetPos = null;
     public static Navigator navigator;
     private static final Interval timer = new Interval();
@@ -77,8 +77,10 @@ public class Navigation {
         }
 
 //        Draw.color(Color.green, 0.2f);
-//        for (TurretPathfindingEntity turret : obstacles) {
-//            Fill.circle(turret.x, turret.y, turret.radius);
+//        synchronized (obstacles) {
+//            for (TurretPathfindingEntity turret : obstacles) {
+//                Fill.circle(turret.x, turret.y, turret.radius);
+//            }
 //        }
 //        Draw.color();
     }
