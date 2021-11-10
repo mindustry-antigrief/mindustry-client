@@ -238,14 +238,19 @@ class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteract
     override fun toShortString() = "${block.localizedName} ${Core.bundle.get("client.destroyed")}"
 }
 
-class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit) : TileLog(tile, cause) {
+class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val isPlayer : Boolean) : TileLog(tile, cause) {
     override fun apply(previous: TileState) {
         //pass
     }
 
     override fun toString(): String {
-        return "${cause.name.stripColors()} ${Core.bundle.get("client.destroyedunit")} ${unit.type?.localizedName ?: "null unit"}"
+        if(isPlayer) return "${cause.name.stripColors()} ${Core.bundle.get("client.playerunitdeath")} ${unit.type?.localizedName ?: "null unit"}"
+        return "${cause.name.stripColors()} ${Core.bundle.get("client.unitdeath")}"
+
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.destroyedunit")} ${unit.type?.localizedName ?: "null unit"}"
+    override fun toShortString() : String {
+        if(isPlayer) return "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.playerunitdeath")} ${unit.type?.localizedName ?: "null unit"}"
+        return "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.unitdeath")}"
+    }
 }

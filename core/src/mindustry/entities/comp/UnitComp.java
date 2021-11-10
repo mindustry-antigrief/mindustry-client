@@ -617,6 +617,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         health = Math.min(health, 0);
         dead = true;
 
+        Events.fire(new UnitDeadEvent(self()));
         //don't waste time when the unit is already on the ground, just destroy it
         if(!type.flying){
             destroy();

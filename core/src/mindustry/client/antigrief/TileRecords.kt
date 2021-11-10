@@ -64,14 +64,12 @@ object TileRecords {
             }
         }
 
-        Events.on(EventType.UnitDestroyEvent::class.java) {
+        Events.on(EventType.UnitDeadEvent::class.java) {
             if(it.unit == null || it.unit.team() != Vars.player.team()) return@on
             val controller = it.unit.controller()
-            Log.debug("e @", controller)
             if(controller !is LogicAI && controller !is FormationAI && controller !is Player) return@on
-            Log.debug("g")
             forArea(it.unit.tileOn(), Mathf.ceil(it.unit.type.hitSize / Vars.tilesize)) { tile ->
-                addLog(tile, UnitDestroyedLog(tile, it.unit.toInteractor(), it.unit))
+                addLog(tile, UnitDestroyedLog(tile, it.unit.toInteractor(), it.unit, controller is Player))
             }
         }
     }
