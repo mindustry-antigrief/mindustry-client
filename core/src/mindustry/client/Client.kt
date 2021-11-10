@@ -109,9 +109,11 @@ object Client {
         if (showingTurrets) {
             Draw.z(Layer.space)
             val units = Core.settings.getBool("unitranges")
-            for (t in obstacles) {
-                if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
-                Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
+            synchronized (obstacles) {
+                for (t in obstacles) {
+                    if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
+                    Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
+                }
             }
         }
 
@@ -346,7 +348,7 @@ object Client {
                 val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
                 val blocked = GridBits(world.width(), world.height())
 
-                synchronized(obstacles) {
+                synchronized (obstacles) {
                     for (turret in obstacles) {
                         if (!turret.turret) continue
                         val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()

@@ -10,7 +10,7 @@ import mindustry.graphics.*;
 
 /** A {@link Path} composed of {@link Waypoint} instances. */
 public class WaypointPath<T extends Waypoint> extends Path {
-    public Seq<T> waypoints;
+    public Seq<T> waypoints = new Seq<>();
     private Seq<T> initial;
     private int initialSize;
     private boolean show;
@@ -23,22 +23,50 @@ public class WaypointPath<T extends Waypoint> extends Path {
 
     @SafeVarargs
     public WaypointPath(T... waypoints) {
-        this.waypoints = Seq.with(waypoints);
+        this.waypoints.clear();
+        this.waypoints.addAll(waypoints);
         this.initial = Seq.with(waypoints);
         this.initialSize = waypoints.length;
     }
 
     public WaypointPath<T> set(Seq<T> waypoints) {
-        this.waypoints = waypoints;
-        if (repeat) this.initial = waypoints.copy(); // Don't bother if we aren't repeating
-        this.initialSize = waypoints.size;
-        return this;
+        synchronized (this) {
+            this.waypoints.set(waypoints);
+            if (repeat) initial.set(waypoints); // Don't bother if we aren't repeating
+            initialSize = waypoints.size;
+            return this;
+        }
     }
 
-    public void add(T waypoint) {
-        this.waypoints.add(waypoint);
-        this.initial.add(waypoint);
-        this.initialSize++;
+    public WaypointPath<T> set(T[] waypoints) {
+        synchronized (this) {
+            this.waypoints.clear(); // FINISHME: Replace with this.waypoints.set(waypoints) in v135
+            this.waypoints.addAll(waypoints);
+            if (repeat) { // Don't bother if we aren't repeating
+                initial.clear();
+                initial.addAll(waypoints);
+            }
+            initialSize = waypoints.length;
+            return this;
+        }
+    }
+
+    public WaypointPath<T> add(T waypoint) {
+        synchronized (this) {
+            waypoints.add(waypoint);
+            initial.add(waypoint);
+            initialSize++;
+            return this;
+        }
+    }
+
+    public WaypointPath<T> clear() {
+        synchronized (this) {
+            waypoints.clear();
+            initial.clear();
+            initialSize = 0;
+            return this;
+        }
     }
 
     @Override
@@ -55,12 +83,14 @@ public class WaypointPath<T extends Waypoint> extends Path {
     public void follow() {
         if (waypoints == null || waypoints.isEmpty()) return;
 
-        while (waypoints.size > 1 && Core.settings.getBool("assumeunstrict")) waypoints.remove(0); // Only the last waypoint is needed when we are just teleporting there anyways.
-        while (waypoints.any() && waypoints.first().isDone()) {
-            waypoints.first().onFinish();
-            waypoints.remove(0);
+        synchronized (this) {
+            while (waypoints.size > 1 && Core.settings.getBool("assumeunstrict")) waypoints.remove(0); // Only the last waypoint is needed when we are just teleporting there anyways.
+            while (waypoints.any() && waypoints.first().isDone()) {
+                waypoints.first().onFinish();
+                waypoints.remove(0);
+            }
+            if (waypoints.any()) waypoints.first().run();
         }
-        if (waypoints.any()) waypoints.first().run();
     }
 
     @Override
@@ -86,22 +116,24 @@ public class WaypointPath<T extends Waypoint> extends Path {
 
     @Override
     public void draw() {
-        if (show) {
-            Position lastWaypoint = null;
-            for(Waypoint waypoint : waypoints){
-                if(waypoint instanceof Position wp){
-                    if(lastWaypoint != null){
-                        Draw.z(Layer.space);
-                        Draw.color(Color.blue, 0.4f);
-                        Lines.stroke(3f);
-                        Lines.line(lastWaypoint.getX(), lastWaypoint.getY(), wp.getX(), wp.getY());
+        synchronized (this) {
+            if (show) {
+                Position lastWaypoint = null;
+                for (var waypoint : waypoints) {
+                    if (waypoint instanceof Position wp) {
+                        if (lastWaypoint != null) {
+                            Draw.z(Layer.space);
+                            Draw.color(Color.blue, 0.4f);
+                            Lines.stroke(3f);
+                            Lines.line(lastWaypoint.getX(), lastWaypoint.getY(), wp.getX(), wp.getY());
+                        }
+                        lastWaypoint = wp;
                     }
-                    lastWaypoint = wp;
+                    waypoint.draw();
+                    Draw.color();
                 }
-                waypoint.draw();
                 Draw.color();
             }
-            Draw.color();
         }
     }
 

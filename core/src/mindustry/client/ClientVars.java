@@ -10,7 +10,6 @@ import org.jetbrains.annotations.*;
 
 public class ClientVars {
     // Misc
-    @NotNull public static ClientMode mode = ClientMode.normal; // FINISHME: Unused
     public static short silentTrace; // How many traces to do silently (this is pretty 0head but shh)
 
     // Config Queue

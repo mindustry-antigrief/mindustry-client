@@ -388,14 +388,6 @@ public class BlockRenderer{
         }
 
         var bounds = camera.bounds(Tmp.r3).grow(tilesize);
-//        if (ClientVars.showingTurrets) { FINISHME: Remove this lol
-//            Draw.z(Layer.space);
-//            boolean units = settings.getBool("unitranges");
-//            obstacles.forEach(t -> {
-//                if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) return;
-//                Drawf.dashCircle(t.x, t.y, t.radius - tilesize, t.canHitPlayer ? t.team.color : Team.derelict.color);
-//            });
-//        }
 
         if (drawCursors) {
             Draw.z(Layer.space);

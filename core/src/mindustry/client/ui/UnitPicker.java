@@ -133,7 +133,7 @@ public class UnitPicker extends BaseDialog {
         Events.on(EventType.WorldLoadEvent.class, event -> {
             if (!ClientVars.syncing) {
                 type = null;
-                Time.run(60, () -> findUnit(Core.settings.getBool("automega") && state.isGame() ? UnitTypes.mega : null));
+                Time.run(60, () -> findUnit(Core.settings.getBool("automega") && state.isGame() && (player.unit().type == null || player.unit().type != UnitTypes.mega) ? UnitTypes.mega : null));
             }
         });
     }
