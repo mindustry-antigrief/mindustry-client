@@ -89,7 +89,7 @@ public class DesktopInput extends InputHandler{
                         }
                         if(hidingUnits || hidingAirUnits){
                             str.append("\n").append(bundle.format("client.toggleunits", keybinds.get(Binding.invisible_units).key.toString()));
-                            str.append("\n").append(bundle.format("client.toggleairunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
+                            str.append("\n").append(bundle.format("client.toggleairunits", keybinds.get(Binding.invisible_units).key.toString()));
                         }
                         if(showingTurrets){
                             str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));

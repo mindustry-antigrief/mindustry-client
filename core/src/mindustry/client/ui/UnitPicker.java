@@ -92,7 +92,7 @@ public class UnitPicker extends BaseDialog {
                 Unit find = f;
                 if (find != null) {
                     type = null;
-                    Call.unitControl(player, find);
+                    Core.app.post(() -> Call.unitControl(player, find));
                     Timer.schedule(() -> Core.app.post(() -> {
                         if (find.isPlayer()) {
                             Toast t = new Toast(3);
@@ -114,7 +114,7 @@ public class UnitPicker extends BaseDialog {
             if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
                 type = null;
                 Timer.schedule(() -> {
-                    Call.unitControl(player, event.unit);
+                    Core.app.post(() -> Call.unitControl(player, event.unit));
                     Timer.schedule(() -> Core.app.post(() -> {
                         if (event.unit.isPlayer()) {
                             Toast t = new Toast(3);
