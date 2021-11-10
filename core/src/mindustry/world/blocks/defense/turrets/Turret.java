@@ -11,15 +11,14 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.navigation.Navigation;
 import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.Units.*;
 import mindustry.entities.bullet.*;
-import mindustry.game.*;
 import mindustry.game.EventType.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
@@ -156,9 +155,7 @@ public class Turret extends ReloadTurret{
 
         @Override
         public void remove() {
-            synchronized (Navigation.obstacles) {
-                Navigation.obstacles.remove(pathfindingEntity);
-            }
+            Navigation.obstacles.remove(pathfindingEntity);
             super.remove();
         }
 
