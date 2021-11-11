@@ -13,8 +13,8 @@ interface Interactor {
 open class UnitInteractor(unit: Unit?) : Interactor {
     override val name = when {
         unit?.isPlayer == true -> "${unit.type.localizedName} controlled by ${unit.playerNonNull().name}"
-        (unit?.controller() as? FormationAI)?.leader?.isPlayer == true -> "${unit.type.localizedName} controlled by ${(unit.controller() as FormationAI).leader.playerNonNull().name}"
-        unit?.controller() is LogicAI -> "${unit.type.localizedName} logic-controlled by a processor accessed by ${(unit.controller() as LogicAI).controller.lastAccessed}"
+        (unit?.controller() as? FormationAI)?.leader?.isPlayer == true -> "${unit.type.localizedName} controlled by ${(unit.controller() as? FormationAI)?.leader?.playerNonNull()?.name}"
+        unit?.controller() is LogicAI -> "${unit.type.localizedName} logic-controlled by a processor accessed by ${(unit.controller() as? LogicAI)?.controller?.lastAccessed}"
         else -> unit?.type?.localizedName ?: "null unit"
     }
 
