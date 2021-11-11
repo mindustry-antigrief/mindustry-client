@@ -25,7 +25,7 @@ class Signatures(private val store: KeyStorage, private val ntp: AtomicReference
             }
         }
 
-        fun rawSign(byteArray: ByteArray, key: PrivateKey): ByteArray? {
+        fun rawSign(byteArray: ByteArray, key: PrivateKey): ByteArray {
             return synchronized(signature) {
                 signature.initSign(key)
                 signature.update(byteArray)
@@ -33,6 +33,10 @@ class Signatures(private val store: KeyStorage, private val ntp: AtomicReference
             }
         }
     }
+
+    fun sign(inp: ByteArray): ByteArray? = store.key()?.run { rawSign(inp, this) }
+
+    fun verify(original: ByteArray, signature: ByteArray, certSN: ByteArray) =
 
     fun signatureTransmission(original: ByteArray, commsId: Int, messageId: Short): SignatureTransmission? {
         val cert = store.cert() ?: return null

@@ -16,6 +16,7 @@ import mindustry.game.*
 import mindustry.game.Teams.*
 import mindustry.gen.*
 import mindustry.input.*
+import mindustry.ui.fragments.ChatFragment
 import java.nio.file.Files
 import java.security.cert.*
 import java.util.Timer
@@ -109,34 +110,38 @@ object Main : ApplicationListener {
 
     /** @return if it's done or not, NOT if it's valid */
     private fun check(transmission: SignatureTransmission): Boolean {
-        return if (transmission.secureOnly) true // The parameter being unused is annoying
-        else true // FINISHME: Broken in v132
-
-        /*
         val ending = InvisibleCharCoder.encode(transmission.messageId.toBytes())
-        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.message.endsWith(ending) } ?: return false
+
+        fun invalid(msg: ChatFragment.ChatMessage, cert: X509Certificate?) {
+            msg.sender = cert?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator") ?: "Verification failed"
+            msg.backgroundColor = ClientVars.invalid
+            msg.prefix = "${Iconc.cancel} "
+            msg.format()
+        }
+
+        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.unformatted.endsWith(ending) } ?: return false
+
+        if (!msg.message.endsWith(msg.unformatted)) { invalid(msg, null) }
+
         if (!Core.settings.getBool("highlightcryptomsg")) return true
         val output = signatures.verifySignatureTransmission(msg.unformatted.encodeToByteArray(), transmission)
-        when (output.first) {
+
+        return when (output.first) {
             Signatures.VerifyResult.VALID -> {
                 msg.sender = output.second?.run { keyStorage.aliasOrName(this) }
                 msg.backgroundColor = ClientVars.verified
                 msg.prefix = "${Iconc.ok} "
                 msg.format()
-                return true
+                true
             }
             Signatures.VerifyResult.INVALID -> {
-                msg.sender = output.second?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator")
-                msg.backgroundColor = ClientVars.invalid
-                msg.prefix = "${Iconc.cancel} "
-                msg.format()
-                return true
+                invalid(msg, output.second)
+                true
             }
             Signatures.VerifyResult.UNKNOWN_CERT -> {
-                return true
+                true
             }
         }
-        */
     }
 
     fun sign(content: String): String {

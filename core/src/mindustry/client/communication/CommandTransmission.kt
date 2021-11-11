@@ -3,14 +3,26 @@ package mindustry.client.communication
 import arc.util.*
 import mindustry.*
 import mindustry.client.*
+import mindustry.client.crypto.Signatures
 import mindustry.client.navigation.*
 import mindustry.client.utils.*
 import java.security.cert.*
 import kotlin.random.*
 
-class CommandTransmission(val type: Commands?) : Transmission {
+class CommandTransmission : Transmission {
 
-    override val secureOnly: Boolean = true
+    val type: Commands?
+    var certSN: ByteArray
+    var signature: ByteArray
+
+    constructor(type: Commands?, certSN: ByteArray, signature: ByteArray) {
+        this.type = type
+        this.certSN = certSN
+        this.signature = signature
+        this.id = Random.nextLong()
+    }
+
+    override val secureOnly: Boolean = false
 
     companion object {
         var lastStopTime : Long = 0
@@ -19,7 +31,7 @@ class CommandTransmission(val type: Commands?) : Transmission {
         STOP_PATH(false, { _, cert ->
             if (Navigation.currentlyFollowing != null && Time.timeSinceMillis(lastStopTime) > Time.toMinutes * 1 || Main.keyStorage.builtInCerts.contains(cert)) { // FINISHME: Scale time with number of requests or something?
                 lastStopTime = Time.millis()
-                var oldPath = Navigation.currentlyFollowing
+                val oldPath = Navigation.currentlyFollowing
                 Vars.ui.showCustomConfirm("Pathing Stopped",
                     "[accent]${Main.keyStorage.aliasOrName(cert)}[white] has stopped your pathing. Would you like to undo this and continue pathing?",
                     "Continue Pathing", "Stop Pathing", { Navigation.follow(oldPath) }, {})
@@ -32,11 +44,22 @@ class CommandTransmission(val type: Commands?) : Transmission {
         })
     }
 
-    override var id = Random.nextLong()
+    override var id: Long
 
-    constructor(input: ByteArray, id: Long) : this(Commands.values().getOrNull(input.buffer().int)) {
+    constructor(input: ByteArray, id: Long) {
+        val buf = input.buffer()
+        type = Commands.values().getOrNull(buf.int)
+        signature = buf.bytes(Signatures.SIGNATURE_LENGTH)
+        certSN = buf.remainingBytes()
         this.id = id
     }
 
-    override fun serialize() = type?.ordinal?.toBytes() ?: 0.toBytes()
+    override fun serialize() = (type?.ordinal ?: 0).toBytes() + signature + certSN
+
+    private fun toSignable() = (type?.ordinal ?: 0).toBytes() + certSN
+
+    fun sign() {
+        signature = Main.signatures.sign(toSignable()) ?: ByteArray(Signatures.SIGNATURE_LENGTH)
+        certSN = Main.keyStorage.cert()?.serialNumber?.toByteArray() ?: byteArrayOf()
+    }
 }
