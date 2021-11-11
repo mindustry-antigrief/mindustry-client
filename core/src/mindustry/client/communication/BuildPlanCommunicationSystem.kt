@@ -17,7 +17,7 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
     override val id get() = Vars.player.id
     override val MAX_LENGTH get() = 512
     override val RATE = 30f  // up to twice a second
-    private const val PREFIX = "end\nprint \"gwiogrwog\"\nprint \"%s\""
+    private const val PREFIX = "end\nprint \"gwiogrwog\"\nprint \"%s\"\n"
     private const val MAX_PRINT_LENGTH = 34
 
     private val lastGotten = mutableMapOf<Int, Int>()
@@ -29,27 +29,34 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
             lastGotten.clear()
         }
 
-        val re = PREFIX.replace("%s", "-?\\d+").toRegex()
+        val re = PREFIX.replace("%s", "-?\\d+").replace("\n", "\\n").toRegex()
         Timer.schedule({
             Core.app.post {  // don't do async for thread safety
+                val start = System.currentTimeMillis()
                 for (p in Groups.player) {
-                    val plan = p.unit()?.plans?.find { it.block == Blocks.microProcessor && (it.config as? String)?.run { re.matches(this) } == true }
+                    val plan = p.unit()?.plans?.find { it.block == Blocks.microProcessor && (it.config as? String)?.run { re.containsMatchIn(this) } == true }
                     plan ?: continue
                     if (lastGotten[p.id] == plan.config?.hashCode()) {
                         continue
                     }
                     lastGotten[p.id] = plan.config.hashCode()
-                    val config = re.replace(plan.config as String, "").lines().joinToString { it.removeSurrounding("print \"", "\"") }.base32678()
-                    config ?: return@post
-                    listeners.forEach { it(config, p.id) }
+                    val config = re.replace(plan.config as String, "").lines().joinToString("") { it.removeSurrounding("print \"", "\"") }
+                    val decoded = config.base32678()
+                    decoded ?: return@post
+                    listeners.forEach { it(decoded, p.id) }
+                }
+                val time = System.currentTimeMillis() - start
+                if (time > 100) {
+                    println("took $time ms")
                 }
             }
-        }, 0.25f, 0.25f)
+        }, 0.2f, 0.2f)
     }
 
     override fun send(bytes: ByteArray) {
         val location = findLocation() ?: return
-        val config = bytes.base32678().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = PREFIX.format(Random.nextLong())) { "print \"it\"" }
+        val based = bytes.base32678()
+        val config = based.chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = PREFIX.format(Random.nextLong())) { "print \"$it\"" }
         Vars.player.unit()?.addBuild(BuildPlan(location.x.toInt(), location.y.toInt(), 0, Blocks.microProcessor, config), false)
         val x = location.x.toInt()  // don't keep tiles around
         val y = location.y.toInt()
