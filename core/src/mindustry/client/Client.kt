@@ -426,11 +426,10 @@ object Client {
         }
 
         register("stoppathing <name>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
-            val certname = args[0]
-
-            connectTls(certname) { comms, _ ->
-                comms.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH))
-            }
+            val name = args[0]
+            val player = Groups.player.minByOrNull { Strings.levenshtein(it.name, name) } ?: return@register
+            Main.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH, Main.keyStorage.cert() ?: return@register, player))
+            // FINISHME: success message
         }
     }
 

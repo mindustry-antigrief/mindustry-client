@@ -77,11 +77,9 @@ class ClientLogic {
             val encoded = Main.keyStorage.cert()?.encoded
             if (encoded != null && Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
                 Client.register("update <name>") { args, _ ->
-                    Client.connectTls(args[0]) { comms, cert ->
-                        if (cert.encoded.run { Main.keyStorage.builtInCerts.none { it.encoded.contentEquals(this) } }) {
-                            comms.send(CommandTransmission(CommandTransmission.Commands.UPDATE))
-                        }
-                    }
+                    val name = args[0]
+                    val player = Groups.player.minByOrNull { Strings.levenshtein(it.name, name) } ?: return@register
+                    Main.send(CommandTransmission(CommandTransmission.Commands.UPDATE, Main.keyStorage.cert() ?: return@register, player))
                 }
             }
         }

@@ -16,6 +16,7 @@ import mindustry.game.*
 import mindustry.game.Teams.*
 import mindustry.gen.*
 import mindustry.input.*
+import mindustry.ui.fragments.ChatFragment
 import java.nio.file.Files
 import java.security.cert.*
 import java.util.Timer
@@ -103,40 +104,49 @@ object Main : ApplicationListener {
                         isValid = check(transmission)
                     }
                 }
+
+                is CommandTransmission -> {
+                    transmission.type ?: return@addListener
+                    if (transmission.verify()) transmission.type.lambda(transmission)
+                }
             }
         }
     }
 
     /** @return if it's done or not, NOT if it's valid */
     private fun check(transmission: SignatureTransmission): Boolean {
-        return if (transmission.secureOnly) true // The parameter being unused is annoying
-        else true // FINISHME: Broken in v132
-
-        /*
         val ending = InvisibleCharCoder.encode(transmission.messageId.toBytes())
-        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.message.endsWith(ending) } ?: return false
+
+        fun invalid(msg: ChatFragment.ChatMessage, cert: X509Certificate?) {
+            msg.sender = cert?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator") ?: "Verification failed"
+            msg.backgroundColor = ClientVars.invalid
+            msg.prefix = "${Iconc.cancel} "
+            msg.format()
+        }
+
+        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.unformatted.endsWith(ending) } ?: return false
+
+        if (!msg.message.endsWith(msg.unformatted)) { invalid(msg, null) }
+
         if (!Core.settings.getBool("highlightcryptomsg")) return true
         val output = signatures.verifySignatureTransmission(msg.unformatted.encodeToByteArray(), transmission)
-        when (output.first) {
+
+        return when (output.first) {
             Signatures.VerifyResult.VALID -> {
                 msg.sender = output.second?.run { keyStorage.aliasOrName(this) }
                 msg.backgroundColor = ClientVars.verified
                 msg.prefix = "${Iconc.ok} "
                 msg.format()
-                return true
+                true
             }
             Signatures.VerifyResult.INVALID -> {
-                msg.sender = output.second?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator")
-                msg.backgroundColor = ClientVars.invalid
-                msg.prefix = "${Iconc.cancel} "
-                msg.format()
-                return true
+                invalid(msg, output.second)
+                true
             }
             Signatures.VerifyResult.UNKNOWN_CERT -> {
-                return true
+                true
             }
         }
-        */
     }
 
     fun sign(content: String): String {
@@ -204,6 +214,10 @@ object Main : ApplicationListener {
         }
     }
 
+    fun send(transmission: Transmission) {
+        communicationClient.send(transmission)
+    }
+
     fun floatEmbed(): Vec2 {
         return when {
             Navigation.currentlyFollowing is AssistPath && Core.settings.getBool("displayasuser") ->
@@ -260,15 +274,7 @@ object Main : ApplicationListener {
 
                 is CommandTransmission -> {
                     transmission.type ?: return@addListener
-                    val encoded = system.peer.expectedCert.encoded
-                    if (transmission.type.builtinOnly) {
-                        if (keyStorage.builtInCerts.any { encoded.contentEquals(it.encoded) }) {
-                            transmission.type.lambda(transmission, system.peer.expectedCert)
-                        }
-                    } else {
-                        // the peer's certificate must be trusted if there's a connection with them so no check is needed
-                        transmission.type.lambda(transmission, system.peer.expectedCert)
-                    }
+                    if (transmission.verify()) transmission.type.lambda(transmission)
                 }
             }
         }
