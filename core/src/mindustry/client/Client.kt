@@ -83,6 +83,7 @@ object Client {
     }
 
     fun draw() {
+        Spectate.draw();
         // Spawn path
         if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
             Draw.color(state.rules.waveTeam.color)

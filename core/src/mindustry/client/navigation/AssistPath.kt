@@ -110,6 +110,8 @@ class AssistPath(val assisting: Player?, val cursor: Boolean, val dontFollow: Bo
 
     override fun draw() {
         if (v2.dst(player) > tolerance + tilesize * 5) waypoints.draw()
+
+        assisting?.unit()?.drawBuildPlans()
     }
 
     override fun progress(): Float {
