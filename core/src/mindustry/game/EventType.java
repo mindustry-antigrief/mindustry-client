@@ -610,7 +610,19 @@ public class EventType{
         }
     }
 
-    /** Called after connecting; when a player receives world data and is ready to play.*/
+    /**
+     * Called after player confirmed it has received world data and is ready to play.
+     * Note that if this is the first world receival, then player.con.hasConnected is false.
+     */
+    public static class PlayerConnectionConfirmed{
+        public final Player player;
+
+        public PlayerConnectionConfirmed(Player player){
+            this.player = player;
+        }
+    }
+
+    /** Called after connecting; when a player receives world data and is ready to play. Fired only once, after initial connection. */
     public static class PlayerJoin{
         public final Player player;
 
@@ -674,6 +686,17 @@ public class EventType{
         }
     }
 
+    public static class AdminRequestEvent{
+        public final Player player;
+        public final @Nullable Player other;
+        public final AdminAction action;
+
+        public AdminRequestEvent(Player player, Player other, AdminAction action){
+            this.player = player;
+            this.other = other;
+            this.action = action;
+        }
+    }
     public static class SendChatMessageEvent {
         public final String message;
 

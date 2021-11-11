@@ -145,8 +145,7 @@ public class UnitType extends UnlockableContent{
     public static float alpha = 1f; // FINISHME: Seriously, why the hell is this static? Shouldn't this be a variable tied to the unit?!?
 
     protected float buildTime = -1f;
-    protected @Nullable ItemStack[] cachedRequirements;
-    protected @Nullable ItemStack[] totalRequirements;
+    protected @Nullable ItemStack[] totalRequirements, cachedRequirements, firstRequirements;
 
     public UnitType(String name){
         super(name);
@@ -309,6 +308,12 @@ public class UnitType extends UnlockableContent{
         }
         if(inst instanceof Payloadc){
             stats.add(Stat.payloadCapacity, (payloadCapacity / (tilesize * tilesize)), StatUnit.blocksSquared);
+        }
+
+        var reqs = getFirstRequirements();
+
+        if(reqs != null){
+            stats.add(Stat.buildCost, StatValues.items(reqs));
         }
 
         if(weapons.any()){
@@ -550,6 +555,13 @@ public class UnitType extends UnlockableContent{
             }
         }
         return null;
+    }
+
+    public @Nullable ItemStack[] getFirstRequirements(){
+        if(firstRequirements == null){
+            firstRequirements = getRequirements(null, null);
+        }
+        return firstRequirements;
     }
 
     @Override

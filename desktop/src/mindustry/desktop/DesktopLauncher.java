@@ -55,15 +55,21 @@ public class DesktopLauncher extends ClientLauncher{
 
             if (OS.isMac && !Structs.contains(arg, "-firstThread")) { //restart with -XstartOnFirstThread on mac, doesn't work without it
                 Core.files = new SdlFiles(); //this is null otherwise
-                javaPath = // this is null otherwise
+                javaPath = //this is null otherwise
                     new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
                     Core.files.local("jre/bin/java").exists() ? Core.files.local("jre/bin/java").absolutePath() :
                     "java";
                 Fi jar = Fi.get(DesktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
                 try {
-                    new ProcessBuilder(javaPath, "-XstartOnFirstThread", "-jar", jar.absolutePath(), "-firstThread").inheritIO().start().waitFor();
+                    Seq<String> args = new Seq<String>(){{ //this is horrible but the args persist this way
+                        add(javaPath);
+                        System.getProperties().entrySet().forEach(it -> add("-D" + it));
+                        addAll("-XstartOnFirstThread", "-jar", jar.absolutePath(), "-firstThread");
+                    }};
+
+                    new ProcessBuilder(args.toArray(String.class)).inheritIO().start().waitFor();
                     return;
-                } catch (IOException ignored) {} //java command failed (couldnt find java install)
+                } catch (IOException ignored) {} //java command failed (couldn't find java install)
             }
 
             new UnpackJars().unpack();
@@ -124,7 +130,7 @@ public class DesktopLauncher extends ClientLauncher{
     }
 
     public DesktopLauncher(String[] args){
-        boolean useSteam = Version.modifier.contains("steam") || new Fi("./steam_appid.txt").exists();
+        boolean useSteam = (Version.modifier.contains("steam") || new Fi("./steam_appid.txt").exists()) && !OS.hasProp("nosteam");
         testMobile = Seq.with(args).contains("-testMobile");
 
         add(Main.INSTANCE);
@@ -379,7 +385,7 @@ public class DesktopLauncher extends ClientLauncher{
             presence.largeImageKey = "logo";
             presence.smallImageKey = "foo";
             presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
-            presence.startTimestamp = beginTime/1000;
+            presence.startTimestamp = state.tick == 0 ? beginTime/1000 : Time.millis() - (long)(state.tick * 16.666f);
 //            presence.startTimestamp = Main.ntp.instant().getEpochSecond() - (long)state.tick/60; FINISHME: Use this instead of line above when 132 releases
             presence.label1 = "Client Github";
             presence.url1 = "https://github.com/mindustry-antigrief/mindustry-client";

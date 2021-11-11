@@ -1,6 +1,7 @@
 package mindustry.world.blocks.payloads;
 
 import arc.graphics.g2d.*;
+import arc.math.*;
 import arc.util.io.*;
 import mindustry.client.*;
 import mindustry.game.*;
@@ -34,6 +35,14 @@ public class BuildPayload implements Payload{
     public void place(Tile tile, int rotation){
         tile.setBlock(build.block, build.team, rotation, () -> build);
         build.dropped();
+    }
+
+    @Override
+    public void update(boolean inUnit){
+        if(inUnit && !build.block.updateInUnits) return;
+
+        build.tile = emptyTile;
+        build.update();
     }
 
     @Override
@@ -84,7 +93,12 @@ public class BuildPayload implements Payload{
         if(ClientVars.hidingUnits) return;
 
         drawShadow(1f);
-        Draw.rect(build.block.fullIcon, build.x, build.y);
+        float prevZ = Draw.z();
+        Draw.zTransform(z -> z >= Layer.flyingUnitLow ? z : 0.0011f + Mathf.clamp(z, prevZ - 0.001f, prevZ + 0.9f));
+        build.tile = emptyTile;
+        build.payloadDraw();
+        Draw.zTransform();
+        Draw.z(prevZ);
     }
 
     @Override

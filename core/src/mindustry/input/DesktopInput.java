@@ -89,7 +89,7 @@ public class DesktopInput extends InputHandler{
                         }
                         if(hidingUnits || hidingAirUnits){
                             str.append("\n").append(bundle.format("client.toggleunits", keybinds.get(Binding.invisible_units).key.toString()));
-                            str.append("\n").append(bundle.format("client.toggleairunits", "SHIFT + " + keybinds.get(Binding.invisible_units).key.toString()));
+                            str.append("\n").append(bundle.format("client.toggleairunits", keybinds.get(Binding.invisible_units).key.toString()));
                         }
                         if(showingTurrets){
                             str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
@@ -314,7 +314,7 @@ public class DesktopInput extends InputHandler{
                     lastVirusWarning = null;
 
                     virusBuild.configure(LogicBlock.compress("end\n" + virusBuild.code, virusBuild.relativeConnections())); // Disable the block while we look into it
-                    try{Vars.ui.logic.show(virusBuild.team, virusBuild.code, virusBuild.executor, code -> virusBuild.configure(LogicBlock.compress(code, virusBuild.relativeConnections())));}catch(Exception ignored){} // Inspect the code
+                    try{Vars.ui.logic.show(virusBuild.code, virusBuild.executor, code -> virusBuild.configure(LogicBlock.compress(code, virusBuild.relativeConnections())));}catch(Exception ignored){} // Inspect the code
                 }
             }
         }

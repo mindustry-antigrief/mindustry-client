@@ -44,7 +44,9 @@ public class MapEditorDialog extends Dialog implements Disposable{
     private Rules lastSavedRules;
     private boolean saved = false; //currently never read
     private boolean shownWithMap = false;
-    private Seq<Block> blocksOut = new Seq<>();
+    private final Seq<Block> blocksOut = new Seq<>();
+    private final Interval autoSaveTimer = new Interval();
+    private int autoSaves = 0;
 
     public MapEditorDialog(){
         super("");
@@ -200,10 +202,13 @@ public class MapEditorDialog extends Dialog implements Disposable{
             if(Core.scene != null && Core.scene.getKeyboardFocus() == this){
                 doInput();
             }
+
+            autoSave();
         });
 
         shown(() -> {
-
+            autoSaves = 0;
+            autoSaveTimer.reset(0, 0);
             saved = true;
             if(!Core.settings.getBool("landscape")) platform.beginForceLandscape();
             editor.clearOp();
@@ -226,6 +231,12 @@ public class MapEditorDialog extends Dialog implements Disposable{
         });
 
         shown(this::build);
+    }
+
+    public void autoSave(){
+        if(autoSaveTimer.get(Core.settings.getInt("mapautosavetime")) && Core.settings.getInt("mapautosave") > 0 || autoSaveTimer.get(60) && Core.input.keyDown(KeyCode.y)) {
+            save(autoSaves++ % Core.settings.getInt("mapautosave"));
+        }
     }
 
     public void resumeEditing(){
@@ -271,6 +282,10 @@ public class MapEditorDialog extends Dialog implements Disposable{
     }
 
     public @Nullable Map save(){
+        return save(-1);
+    }
+
+    public @Nullable Map save(int autoSave){
         boolean isEditor = state.rules.editor;
         state.rules.editor = false;
         String name = editor.tags.get("name", "").trim();
@@ -282,7 +297,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
 
         Map returned = null;
 
-        if(name.isEmpty()){
+        if(name.isEmpty() && autoSave < 0){
             infoDialog.show();
             Core.app.post(() -> ui.showErrorMessage("@editor.save.noname"));
         }else{
@@ -290,8 +305,15 @@ public class MapEditorDialog extends Dialog implements Disposable{
             if(map != null && !map.custom){
                 handleSaveBuiltin(map);
             }else{
+                editor.tags.put("name", name.replaceFirst("(-autosave[0-9])?$", autoSave >= 0 ? "-autosave" + autoSave : "")); // Set appropriate autosave name
+                if (autoSave < 0) { // Not an autosave, delete autosaves
+                    for (int i = 0; i < 10; i++) {
+                        var m = maps.byName(editor.tags.get("name") + "-autosave" + i);
+                        if (m != null) maps.removeMap(m);
+                    }
+                }
                 returned = maps.saveMap(editor.tags);
-                ui.showInfoFade("@editor.saved");
+                ui.showInfoFade(autoSave >= 0 ? "@client.editor.autosaved" : "@editor.saved");
             }
         }
 

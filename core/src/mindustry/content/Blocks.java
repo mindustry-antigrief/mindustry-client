@@ -5,6 +5,7 @@ import arc.math.*;
 import arc.struct.*;
 import mindustry.*;
 import mindustry.ctype.*;
+import mindustry.entities.*;
 import mindustry.entities.bullet.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -901,7 +902,7 @@ public class Blocks implements ContentList{
         }};
 
         mendProjector = new MendProjector("mend-projector"){{
-            requirements(Category.effect, with(Items.lead, 100, Items.titanium, 25, Items.silicon, 40));
+            requirements(Category.effect, with(Items.lead, 100, Items.titanium, 25, Items.silicon, 40, Items.copper, 50));
             consumes.power(1.5f);
             size = 2;
             reload = 250f;
@@ -1346,7 +1347,7 @@ public class Blocks implements ContentList{
         }};
 
         waterExtractor = new SolidPump("water-extractor"){{
-            requirements(Category.production, with(Items.metaglass, 30, Items.graphite, 30, Items.lead, 30));
+            requirements(Category.production, with(Items.metaglass, 30, Items.graphite, 30, Items.lead, 30, Items.copper, 30));
             result = Liquids.water;
             pumpAmount = 0.11f;
             size = 2;
@@ -1645,7 +1646,7 @@ public class Blocks implements ContentList{
             shots = 4;
             burstSpacing = 5;
             inaccuracy = 10f;
-            range = 235f;
+            range = 240f;
             xRand = 6f;
             size = 2;
             health = 300 * size * size;
@@ -1839,7 +1840,7 @@ public class Blocks implements ContentList{
             size = 4;
             shootCone = 2f;
             shootSound = Sounds.railgun;
-            unitSort = (u, x, y) -> -u.maxHealth + Mathf.dst2(u.x, u.y, x, y) / 6400f;
+            unitSort = UnitSorts.strongest;
 
             coolantMultiplier = 0.4f;
 
@@ -2062,12 +2063,12 @@ public class Blocks implements ContentList{
         //region payloads
 
         payloadConveyor = new PayloadConveyor("payload-conveyor"){{
-            requirements(Category.units, with(Items.graphite, 10, Items.copper, 20));
+            requirements(Category.units, with(Items.graphite, 10, Items.lead, 10));
             canOverdrive = false;
         }};
 
         payloadRouter = new PayloadRouter("payload-router"){{
-            requirements(Category.units, with(Items.graphite, 15, Items.copper, 20));
+            requirements(Category.units, with(Items.graphite, 15, Items.lead, 15));
             canOverdrive = false;
         }};
 
@@ -2163,14 +2164,12 @@ public class Blocks implements ContentList{
             requirements(Category.units, BuildVisibility.sandboxOnly, with());
             size = 5;
             alwaysUnlocked = true;
-            group = BlockGroup.units;
         }};
 
         payloadVoid = new PayloadVoid("payload-void"){{
             requirements(Category.units, BuildVisibility.sandboxOnly, with());
             size = 5;
             alwaysUnlocked = true;
-            group = BlockGroup.units;
         }};
 
         //TODO move

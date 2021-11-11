@@ -78,20 +78,19 @@ object Client {
                 Log.err(e)
             }
         }
+
+        if (state?.rules?.editor == true) ui.editor.autoSave()
     }
 
     fun draw() {
+        Spectate.draw();
         // Spawn path
         if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
+            Draw.color(state.rules.waveTeam.color)
             for (i in 0 until spawner.spawns.size) {
-                if (i >= tiles.size) tiles.add(spawner.spawns[i])
+                var target: Tile? = spawner.spawns[i]
                 Lines.beginLine()
-                Draw.color(state.rules.waveTeam.color)
-                var target: Tile? = null
-                tiles[i] = spawner.spawns[i]
-                while (target != tiles[i]) {
-                    if (target != null) tiles[i] = target
-                    target = pathfinder.getTargetTile(tiles[i], pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
+                while(target != pathfinder.getTargetTile(target, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore)).also { target = it }) {
                     Lines.linePoint(target)
                 }
                 Lines.endLine()
@@ -111,9 +110,11 @@ object Client {
         if (showingTurrets) {
             Draw.z(Layer.space)
             val units = Core.settings.getBool("unitranges")
-            for (t in obstacles) {
-                if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
-                Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
+            synchronized (obstacles) {
+                for (t in obstacles) {
+                    if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
+                    Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
+                }
             }
         }
 
@@ -348,7 +349,7 @@ object Client {
                 val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
                 val blocked = GridBits(world.width(), world.height())
 
-                synchronized(obstacles) {
+                synchronized (obstacles) {
                     for (turret in obstacles) {
                         if (!turret.turret) continue
                         val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
