@@ -378,7 +378,7 @@ public class ResearchDialog extends BaseDialog{
             panY = ry - bounds.y - oy;
         }
 
-        boolean canSpend(TechNode node){
+        public boolean canSpend(TechNode node){
             if(!selectable(node)) return false;
 
             if(node.requirements.length == 0) return true;
