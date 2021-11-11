@@ -2,6 +2,7 @@ package mindustry.client.crypto
 
 import mindustry.client.*
 import mindustry.client.communication.*
+import java.math.BigInteger
 import java.security.*
 import java.security.cert.*
 import java.time.*
@@ -12,6 +13,7 @@ class Signatures(private val store: KeyStorage, private val ntp: AtomicReference
     companion object {
         private val signature = Signature.getInstance("ed448", "BC")
         const val SIGNATURE_LENGTH = 114
+        const val SIGNATURE_EXPIRY_SECONDS = 10
 
         fun rawVerify(original: ByteArray, signatureBytes: ByteArray, publicKey: PublicKey): Boolean {
             return synchronized(signature) {
@@ -36,7 +38,7 @@ class Signatures(private val store: KeyStorage, private val ntp: AtomicReference
 
     fun sign(inp: ByteArray): ByteArray? = store.key()?.run { rawSign(inp, this) }
 
-    fun verify(original: ByteArray, signature: ByteArray, certSN: ByteArray) =
+    fun verify(original: ByteArray, signature: ByteArray, certSN: ByteArray) = Main.keyStorage.findTrusted(BigInteger(certSN))?.run { (if (rawVerify(original, signature, this.publicKey)) VerifyResult.VALID else VerifyResult.INVALID) to this } ?: (VerifyResult.UNKNOWN_CERT to null)
 
     fun signatureTransmission(original: ByteArray, commsId: Int, messageId: Short): SignatureTransmission? {
         val cert = store.cert() ?: return null
@@ -57,7 +59,7 @@ class Signatures(private val store: KeyStorage, private val ntp: AtomicReference
         if (foundCert == Main.keyStorage.cert()) return Pair(VerifyResult.UNKNOWN_CERT, null)
 
         // the time is synchronized to NTP on both sides so this is fine
-        if (abs(transmission.time - ntp.get().instant().toEpochMilli()) > 10_000) return Pair(VerifyResult.INVALID, foundCert)
+        if (abs(transmission.time - ntp.get().instant().toEpochMilli()) > SIGNATURE_EXPIRY_SECONDS * 1000) return Pair(VerifyResult.INVALID, foundCert)
         val signedValue = transmission.toSignable(original)
         val valid = rawVerify(signedValue, transmission.signature, foundCert.publicKey)
         return Pair(if (valid) VerifyResult.VALID else VerifyResult.INVALID, foundCert)

@@ -104,6 +104,11 @@ object Main : ApplicationListener {
                         isValid = check(transmission)
                     }
                 }
+
+                is CommandTransmission -> {
+                    transmission.type ?: return@addListener
+                    if (transmission.verify()) transmission.type.lambda(transmission)
+                }
             }
         }
     }
@@ -209,6 +214,10 @@ object Main : ApplicationListener {
         }
     }
 
+    fun send(transmission: Transmission) {
+        communicationClient.send(transmission)
+    }
+
     fun floatEmbed(): Vec2 {
         return when {
             Navigation.currentlyFollowing is AssistPath && Core.settings.getBool("displayasuser") ->
@@ -265,15 +274,7 @@ object Main : ApplicationListener {
 
                 is CommandTransmission -> {
                     transmission.type ?: return@addListener
-                    val encoded = system.peer.expectedCert.encoded
-                    if (transmission.type.builtinOnly) {
-                        if (keyStorage.builtInCerts.any { encoded.contentEquals(it.encoded) }) {
-                            transmission.type.lambda(transmission, system.peer.expectedCert)
-                        }
-                    } else {
-                        // the peer's certificate must be trusted if there's a connection with them so no check is needed
-                        transmission.type.lambda(transmission, system.peer.expectedCert)
-                    }
+                    if (transmission.verify()) transmission.type.lambda(transmission)
                 }
             }
         }
