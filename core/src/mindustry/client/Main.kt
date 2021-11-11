@@ -38,7 +38,7 @@ object Main : ApplicationListener {
     override fun init() {
         if (Core.app.isDesktop) {
             ntp = NTP()
-            communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem)
+            communicationSystem = SwitchableCommunicationSystem(BuildPlanCommunicationSystem)
             communicationSystem.init()
 
             keyStorage = KeyStorage(Core.settings.dataDirectory.file())
@@ -58,7 +58,7 @@ object Main : ApplicationListener {
             dispatchedBuildPlans.clear()
         }
         Events.on(EventType.ServerJoinEvent::class.java) {
-                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
+                communicationSystem.activeCommunicationSystem = BuildPlanCommunicationSystem
         }
 
         communicationClient.addListener { transmission, senderId ->
@@ -203,10 +203,10 @@ object Main : ApplicationListener {
     fun setPluginNetworking(enable: Boolean) {
         when {
             enable -> {
-                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem //FINISHME: Re-implement packet plugin
+                communicationSystem.activeCommunicationSystem = BuildPlanCommunicationSystem //FINISHME: Re-implement packet plugin
             }
             Core.app?.isDesktop == true -> {
-                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
+                communicationSystem.activeCommunicationSystem = BuildPlanCommunicationSystem
             }
             else -> {
                 communicationSystem.activeCommunicationSystem = DummyCommunicationSystem(mutableListOf())
