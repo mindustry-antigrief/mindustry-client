@@ -6,6 +6,8 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
+import mindustry.client.Spectate
+import mindustry.client.communication.BuildPlanCommunicationSystem
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.gen.*
@@ -71,8 +73,11 @@ class AssistPath(val assisting: Player?, val cursor: Boolean, val dontFollow: Bo
             if (assisting.unit().activelyBuilding() && assisting.team() == player.team()) {
                 plans.forEach { player.unit().removeBuild(it.x, it.y, it.breaking) }
                 plans.clear()
-                plans.addAll(assisting.unit().plans())
-                assisting.unit().plans().forEach { player.unit().addBuild(it, false) }
+                for (plan in assisting.unit().plans) {
+                    if (BuildPlanCommunicationSystem.isNetworking(plan)) continue
+                    plans.add(plan)
+                    player.unit().addBuild(plan, false)
+                }
             }
         }
     }
@@ -111,7 +116,7 @@ class AssistPath(val assisting: Player?, val cursor: Boolean, val dontFollow: Bo
     override fun draw() {
         if (v2.dst(player) > tolerance + tilesize * 5) waypoints.draw()
 
-        assisting?.unit()?.drawBuildPlans()
+        if (Spectate.pos != assisting) assisting?.unit()?.drawBuildPlans()
     }
 
     override fun progress(): Float {
