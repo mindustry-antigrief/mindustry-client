@@ -112,6 +112,7 @@ public class UnitPicker extends BaseDialog {
         Events.on(EventType.UnitUnloadEvent.class, event -> { // FINISHME: Run on all unit creations, test that it actually works
             if (type == null) return;
             if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
+                Log.debug("Found suitable unit");
                 type = null;
                 Timer.schedule(() -> {
                     Core.app.post(() -> Call.unitControl(player, event.unit));
@@ -124,7 +125,10 @@ public class UnitPicker extends BaseDialog {
                                 type = event.unit.type;
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", event.unit.type, event.unit.getPlayer().name));
                             }
-                        } else Time.run(60, () -> findUnit(event.unit.type, true));
+                        } else {
+                            Log.info("This wasn't supposed to happen");
+                            Time.run(60, () -> findUnit(event.unit.type, true));
+                        }
                     }), net.client() ? netClient.getPing()/1000f + .3f : 0);
                 }, net.client() ? netClient.getPing()/1000f + .3f : 0);
             }
