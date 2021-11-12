@@ -20,8 +20,8 @@ object BlockCommunicationSystem : CommunicationSystem() {
         Vars.player ?: return -1
         return Vars.player.id
     }
-    private var logicAvailable = false
-    private var messagesAvailable = false
+    var logicAvailable = false
+    var messagesAvailable = false
     override val MAX_LENGTH get() = when {
         logicAvailable -> Base32768Coder.availableBytes(min(4000, (LExecutor.maxInstructions - 3) * MAX_PRINT_LENGTH))
         messagesAvailable -> Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - ClientVars.MESSAGE_BLOCK_PREFIX.length)
