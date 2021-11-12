@@ -20,10 +20,16 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
     private const val MAX_PRINT_LENGTH = 34
 
     private val lastGotten = mutableMapOf<Int, Int>()
+    private val corners get() = listOf(
+        Vars.world.tiles.get(0,                      0),
+        Vars.world.tiles.get(0,                      Vars.world.height() - 1),
+        Vars.world.tiles.get(Vars.world.width() - 1, 0),
+        Vars.world.tiles.get(Vars.world.width() - 1, Vars.world.height() - 1)
+    )
 
-    private fun findLocation() = /*Vars.world.tiles.firstOrNull { it.block() is StaticWall }*/ Vars.world.tile(0, 0)
+    private fun findLocation() = corners.maxByOrNull { Vars.player.dst(it) }!!
 
-    fun isNetworking(plan: BuildPlan) = plan.x == 0 && plan.y == 0 && plan.block == Blocks.microProcessor
+    fun isNetworking(plan: BuildPlan) = plan.block == Blocks.microProcessor && plan.tile() in corners
 
     init {
         Events.on(EventType.WorldLoadEvent::class.java) {
