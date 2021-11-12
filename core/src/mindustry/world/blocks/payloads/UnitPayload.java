@@ -24,6 +24,7 @@ public class UnitPayload implements Payload{
     public Unit unit;
     public float overlayTime = 0f;
     public @Nullable TextureRegion overlayRegion;
+    static Unit lastDump;
 
     public UnitPayload(Unit unit){
         this.unit = unit;
@@ -111,6 +112,11 @@ public class UnitPayload implements Payload{
             return false;
         }
 
+        if (lastDump == null || lastDump != unit) {
+            Events.fire(new UnitUnloadEvent(unit));
+            lastDump = unit;
+        }
+
         //no client dumping
         if(Vars.net.client()) return true;
 
@@ -118,7 +124,6 @@ public class UnitPayload implements Payload{
         unit.vel.add(Mathf.range(0.5f), Mathf.range(0.5f));
         unit.add();
         unit.unloaded();
-        Events.fire(new UnitUnloadEvent(unit));
 
         return true;
     }
