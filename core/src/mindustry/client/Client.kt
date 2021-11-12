@@ -284,9 +284,9 @@ object Client {
 
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
             player.sendMessage(when {
-                BlockCommunicationSystem.logicAvailable -> BlockCommunicationSystem.findProcessor()!!.run { "Using a logic block at (${this.x}, ${this.y})" }
-                BlockCommunicationSystem.messagesAvailable -> BlockCommunicationSystem.findMessage()!!.run { "Using a message block at (${this.x}, ${this.y})" }
-                else -> "Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)"
+                BlockCommunicationSystem.logicAvailable -> BlockCommunicationSystem.findProcessor()!!.run { "[accent]Using a logic block at (${this.x}, ${this.y})" }
+                BlockCommunicationSystem.messagesAvailable -> BlockCommunicationSystem.findMessage()!!.run { "[accent]Using a message block at (${this.x}, ${this.y})" }
+                else -> "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)"
             })
         }
 
