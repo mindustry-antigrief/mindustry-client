@@ -33,7 +33,7 @@ object BlockCommunicationSystem : CommunicationSystem() {
     const val LOGIC_PREFIX = "end\nprint \"client networking, do not edit/remove\""
 
     init {
-        BuildPlanCommunicationSystem  // make sure it adds the listeners
+        BuildPlanCommunicationSystem.addListener { input, sender -> listeners.forEach { it(input, sender) } }
     }
 
     fun findProcessor(): LogicBlock.LogicBuild? { // FINISHME: are these new implementations actually faster than the old ones? They sure are cleaner

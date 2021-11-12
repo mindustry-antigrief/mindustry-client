@@ -2,6 +2,7 @@ package mindustry.client.communication
 
 import arc.Core
 import arc.Events
+import arc.util.Log
 import arc.util.Timer
 import mindustry.Vars
 import mindustry.client.utils.base32678
