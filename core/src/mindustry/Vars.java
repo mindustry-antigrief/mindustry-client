@@ -246,6 +246,8 @@ public class Vars implements Loadable{
 
     public static Player player;
     public static boolean drawCursors, wasDrawingCursors; // Client debug magic
+    public static IntMap<Object> processorConfigMap = new IntMap<>();
+    public static boolean procHackBool = false;
 
     @Override
     public void loadAsync(){

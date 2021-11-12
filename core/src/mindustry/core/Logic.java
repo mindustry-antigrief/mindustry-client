@@ -1,9 +1,14 @@
 package mindustry.core;
 
 import arc.*;
+import arc.func.Cons;
 import arc.math.*;
+import arc.math.geom.Point2;
+import arc.struct.Queue;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigrief.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -11,14 +16,17 @@ import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.maps.*;
+import mindustry.net.*;
 import mindustry.type.*;
 import mindustry.type.Weather.*;
 import mindustry.world.*;
+import mindustry.world.blocks.logic.LogicBlock;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 /**
  * Logic module.
@@ -55,6 +63,8 @@ public class Logic implements ApplicationListener{
                 }
             }
         });
+
+        Events.on(ClientLoadEvent.class, e -> Core.app.post(() -> setProcessorBypassHack(Core.settings.getBool("prochack", false))));
 
         //when loading a 'damaged' sector, propagate the damage
         Events.on(SaveLoadEvent.class, e -> {
@@ -180,6 +190,28 @@ public class Logic implements ApplicationListener{
                 entity.heal();
             }
         }
+    }
+
+    public Queue<ConfigRequest> configs = new Queue<>();
+
+    private final Cons<BlockBuildEndEvent> eventChange = event -> {
+        if(processorConfigMap.size == 0 || event.team != Vars.player.team()) return;
+        int coords = Point2.pack(event.tile.x, event.tile.y);
+        if(!processorConfigMap.containsKey(coords)) return;
+        if(event.tile.build instanceof LogicBlock.LogicBuild lb && lb.code.length() == 0 && lb.links.size == 0){
+            if(!configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())){
+                configs.addLast(new ConfigRequestBlockType(event.tile.x, event.tile.y, processorConfigMap.remove(coords), world.tile(coords).build));
+                return;
+            }
+            else lb.configure(processorConfigMap.get(coords));
+
+        }
+        processorConfigMap.remove(coords);
+    };
+    public void setProcessorBypassHack(boolean add){
+        procHackBool = add;
+        if(add) Events.on(BlockBuildEndEvent.class, eventChange);
+        else Events.remove(BlockBuildEndEvent.class, eventChange);
     }
 
     public void reset(){
@@ -415,6 +447,10 @@ public class Logic implements ApplicationListener{
 
             if(!net.client() && !world.isInvalidMap() && !state.isEditor() && state.rules.canGameOver){
                 checkGameState();
+            }
+
+            if(!configs.isEmpty() && configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())){
+                configs.removeFirst().run();
             }
         }
     }

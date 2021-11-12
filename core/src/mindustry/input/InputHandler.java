@@ -892,6 +892,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         for(BuildPlan req : requests){
             if(req.block != null && validPlace(req.x, req.y, req.block, req.rotation)){
                 BuildPlan copy = req.copy();
+                if(Vars.procHackBool && copy.block instanceof LogicBlock && copy.config != null){
+                    processorConfigMap.put(Point2.pack(copy.x, copy.y), copy.config);
+                    copy.config = null;
+                }
                 req.block.onNewPlan(copy);
                 player.unit().addBuild(copy);
             }
@@ -972,6 +976,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         while(it.hasNext()){
             BuildPlan req = it.next();
             if(!req.breaking && req.bounds(Tmp.r2).overlaps(Tmp.r1)){
+                processorConfigMap.remove(Point2.pack(req.x, req.y));
                 it.remove();
             }
         }

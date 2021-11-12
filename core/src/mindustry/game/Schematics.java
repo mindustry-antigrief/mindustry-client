@@ -29,6 +29,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.legacy.*;
+import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.production.*;
 import mindustry.world.blocks.sandbox.*;
@@ -388,6 +389,9 @@ public class Schematics implements Loadable{
                 if(tile != null && !counted.contains(tile.pos()) && realBlock != null
                     && (realBlock.isVisible() || realBlock instanceof CoreBlock)){
                     Object config = tile instanceof ConstructBuild cons ? cons.lastConfig : tile.config();
+                    if(config == null && tile instanceof ConstructBuild cons && cons.current instanceof LogicBlock && processorConfigMap.containsKey(Point2.pack(cx, cy))){
+                        config = processorConfigMap.get(Point2.pack(cx, cy));
+                    }
 
                     tiles.add(new Stile(realBlock, tile.tileX() + offsetX, tile.tileY() + offsetY, config, (byte)tile.rotation));
                     counted.add(tile.pos());
