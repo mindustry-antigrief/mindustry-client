@@ -9,7 +9,6 @@ import mindustry.content.Blocks
 import mindustry.entities.units.BuildPlan
 import mindustry.game.EventType
 import mindustry.gen.Groups
-import mindustry.world.blocks.environment.StaticWall
 import kotlin.random.Random
 
 object BuildPlanCommunicationSystem : CommunicationSystem() {

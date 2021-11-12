@@ -283,7 +283,7 @@ object Client {
         }
 
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
-            val build = MessageBlockCommunicationSystem.findProcessor() ?: MessageBlockCommunicationSystem.findMessage()
+            val build = BlockCommunicationSystem.findProcessor() ?: BlockCommunicationSystem.findMessage()
             if (build == null) player.sendMessage("[scarlet]No valid processor or message block found; communication system inactive.")
             else player.sendMessage("[accent]${build.block.localizedName} at (${build.tileX()}, ${build.tileY()}) in use for communication.")
         }
