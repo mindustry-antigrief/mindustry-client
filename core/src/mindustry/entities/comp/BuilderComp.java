@@ -10,6 +10,7 @@ import arc.struct.Queue;
 import arc.util.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.communication.BuildPlanCommunicationSystem;
 import mindustry.content.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -20,6 +21,7 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
+import mindustry.world.blocks.environment.StaticWall;
 
 import java.util.*;
 
@@ -198,6 +200,14 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
     /** Return whether this builder's place queue contains items. */
     boolean isBuilding(){
         return plans.size != 0;
+    }
+
+    boolean isBuildingIgnoreNetworking() {
+        if (plans.size == 0) return false;
+        if (plans.size == 1) {
+            return !BuildPlanCommunicationSystem.INSTANCE.isNetworking(plans.first());
+        }
+        return true;
     }
 
     /** Clears the placement queue. */

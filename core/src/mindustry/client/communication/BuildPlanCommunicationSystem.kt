@@ -22,7 +22,9 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
 
     private val lastGotten = mutableMapOf<Int, Int>()
 
-    private fun findLocation() = Vars.world.tiles.firstOrNull { it.block() is StaticWall }
+    private fun findLocation() = /*Vars.world.tiles.firstOrNull { it.block() is StaticWall }*/ Vars.world.tile(0, 0)
+
+    fun isNetworking(plan: BuildPlan) = plan.x == 0 && plan.y == 0 && plan.block == Blocks.microProcessor
 
     init {
         Events.on(EventType.WorldLoadEvent::class.java) {
@@ -47,7 +49,7 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
                 }
                 val time = System.currentTimeMillis() - start
                 if (time > 100) {
-                    println("took $time ms")
+                    println("scanning players took $time ms, this is a problem")
                 }
             }
         }, 0.2f, 0.2f)

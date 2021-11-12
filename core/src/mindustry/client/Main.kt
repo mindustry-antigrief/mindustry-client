@@ -11,12 +11,14 @@ import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
+import mindustry.content.Blocks
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.game.Teams.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.ui.fragments.ChatFragment
+import mindustry.world.blocks.environment.StaticWall
 import java.nio.file.Files
 import java.security.cert.*
 import java.util.Timer
@@ -170,7 +172,7 @@ object Main : ApplicationListener {
         }
 
         if (ClientVars.dispatchingBuildPlans) {
-            if (!Vars.net.client()) Vars.player.unit().plans.each { addBuildPlan(it) } // Player plans -> block ghosts in single player
+            if (!Vars.net.client()) Vars.player.unit().plans.each { if (BuildPlanCommunicationSystem.isNetworking(it)) return@each; addBuildPlan(it) } // Player plans -> block ghosts in single player
             if (!communicationClient.inUse && Groups.player.size() > 1 && buildPlanInterval.get(5 * 60f)) sendBuildPlans()
         }
 
