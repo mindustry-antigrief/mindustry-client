@@ -126,7 +126,7 @@ public class UnitPicker extends BaseDialog {
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", event.unit.type, event.unit.getPlayer().name));
                             }
                         } else {
-                            Log.info("This wasn't supposed to happen");
+                            Log.debug("This wasn't supposed to happen");
                             Time.run(60, () -> findUnit(event.unit.type, true));
                         }
                     }), net.client() ? netClient.getPing()/1000f + .3f : 0);
