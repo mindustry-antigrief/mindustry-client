@@ -1,6 +1,8 @@
 package mindustry.client
 
 import arc.*
+import arc.func.*
+import arc.math.geom.*
 import arc.util.*
 import mindustry.*
 import mindustry.client.ClientVars.*
@@ -12,6 +14,8 @@ import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.logic.*
+import mindustry.net.*
+import mindustry.world.blocks.logic.LogicBlock.LogicBuild
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
@@ -29,7 +33,7 @@ class ClientLogic {
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             if (!syncing){
                 Vars.player.persistPlans.clear()
-                Vars.processorConfigMap.clear()
+                processorConfigMap.clear()
                 Vars.frozenPlans.clear()
             } // FINISHME: Why is this even in the player class? It creates a queue for each player even tho only one is used...
             lastJoinTime = Time.millis()
@@ -88,6 +92,7 @@ class ClientLogic {
                     }
                 }
             }
+            Core.app.post { setProcessorBypassHack(Core.settings.getBool("prochack", false)) }
         }
 
         Events.on(EventType.PlayerJoin::class.java) { e -> // Run when a player joins the server
@@ -103,5 +108,31 @@ class ClientLogic {
             if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
                 Vars.player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
         }
+    }
+
+    private val configureProcessor = Cons { event: EventType.BlockBuildEndEvent ->
+        if (processorConfigMap.size == 0 || event.team !== Vars.player.team()) return@Cons
+        val coords = Point2.pack(event.tile.x.toInt(), event.tile.y.toInt())
+        if (!processorConfigMap.containsKey(coords)) return@Cons
+        val lb = event.tile.build as? LogicBuild
+        if (lb != null && lb.code.isEmpty() && lb.links.isEmpty) {
+            if (!configRateLimit.allow(
+                    Administration.Config.interactRateWindow.num() * 1000L,
+                    Administration.Config.interactRateLimit.num()
+                )
+            ) {
+                configs.addLast(
+                    ConfigRequestBlockType(event.tile.x.toInt(), event.tile.y.toInt(), processorConfigMap.remove(coords), Vars.world.tile(coords).build)
+                )
+                return@Cons
+            } else lb.configure(processorConfigMap[coords])
+        }
+        processorConfigMap.remove(coords)
+    }
+
+    fun setProcessorBypassHack(add: Boolean) {
+        procHackBool = add
+        if (add) Events.on(EventType.BlockBuildEndEvent::class.java, configureProcessor
+        ) else Events.remove(EventType.BlockBuildEndEvent::class.java, configureProcessor)
     }
 }

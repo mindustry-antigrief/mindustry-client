@@ -64,8 +64,6 @@ public class Logic implements ApplicationListener{
             }
         });
 
-        Events.on(ClientLoadEvent.class, e -> Core.app.post(() -> setProcessorBypassHack(Core.settings.getBool("prochack", false))));
-
         //when loading a 'damaged' sector, propagate the damage
         Events.on(SaveLoadEvent.class, e -> {
             if(state.isCampaign()){
@@ -190,28 +188,6 @@ public class Logic implements ApplicationListener{
                 entity.heal();
             }
         }
-    }
-
-    public Queue<ConfigRequest> configs = new Queue<>();
-
-    private final Cons<BlockBuildEndEvent> eventChange = event -> {
-        if(processorConfigMap.size == 0 || event.team != Vars.player.team()) return;
-        int coords = Point2.pack(event.tile.x, event.tile.y);
-        if(!processorConfigMap.containsKey(coords)) return;
-        if(event.tile.build instanceof LogicBlock.LogicBuild lb && lb.code.length() == 0 && lb.links.size == 0){
-            if(!configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())){
-                configs.addLast(new ConfigRequestBlockType(event.tile.x, event.tile.y, processorConfigMap.remove(coords), world.tile(coords).build));
-                return;
-            }
-            else lb.configure(processorConfigMap.get(coords));
-
-        }
-        processorConfigMap.remove(coords);
-    };
-    public void setProcessorBypassHack(boolean add){
-        procHackBool = add;
-        if(add) Events.on(BlockBuildEndEvent.class, eventChange);
-        else Events.remove(BlockBuildEndEvent.class, eventChange);
     }
 
     public void reset(){
