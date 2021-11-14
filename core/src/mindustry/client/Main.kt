@@ -11,19 +11,18 @@ import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
-import mindustry.content.Blocks
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.game.Teams.*
 import mindustry.gen.*
 import mindustry.input.*
-import mindustry.ui.fragments.ChatFragment
-import mindustry.world.blocks.environment.StaticWall
+import mindustry.ui.fragments.*
 import java.nio.file.Files
 import java.security.cert.*
 import java.util.Timer
 import java.util.concurrent.*
 import kotlin.concurrent.*
+import kotlin.math.*
 import kotlin.random.Random
 
 object Main : ApplicationListener {
@@ -35,6 +34,7 @@ object Main : ApplicationListener {
     lateinit var keyStorage: KeyStorage
     lateinit var signatures: Signatures
     lateinit var ntp: NTP
+    private var planSendTime = 0L
 
     /** Run on client load. */
     override fun init() {
@@ -173,7 +173,7 @@ object Main : ApplicationListener {
 
         if (ClientVars.dispatchingBuildPlans) {
             if (!Vars.net.client()) Vars.player.unit().plans.each { if (BuildPlanCommunicationSystem.isNetworking(it)) return@each; addBuildPlan(it) } // Player plans -> block ghosts in single player
-            if (!communicationClient.inUse && Groups.player.size() > 1 && buildPlanInterval.get(5 * 60f)) sendBuildPlans()
+            if (!communicationClient.inUse && Groups.player.size() > 1 && buildPlanInterval.get(max(5 * 60f, planSendTime / 16.666f + 3 * 60))) sendBuildPlans()
         }
 
         for (peer in tlsPeers) {
@@ -242,9 +242,11 @@ object Main : ApplicationListener {
     }
 
     private fun sendBuildPlans(num: Int = 500) {
-        val toSend = Vars.player.unit().plans.toList().takeLast(num).toTypedArray()
+        var count = 0
+        val toSend = Vars.player.unit().plans.toList().takeLastWhile { !BuildPlanCommunicationSystem.isNetworking(it) && count++ < num }.toTypedArray()
         if (toSend.isEmpty()) return
-        communicationClient.send(BuildQueueTransmission(toSend), { Toast(3f).add(Core.bundle.format("client.sentplans", toSend.size)) }, { Toast(3f).add("@client.nomessageblock")})
+        val start = Time.millis()
+        communicationClient.send(BuildQueueTransmission(toSend), { planSendTime = Time.timeSinceMillis(start); Toast(3f).add(Core.bundle.format("client.sentplans", toSend.size)) }, { Toast(3f).add("@client.nomessageblock")})
         dispatchedBuildPlans.addAll(toSend)
     }
 
