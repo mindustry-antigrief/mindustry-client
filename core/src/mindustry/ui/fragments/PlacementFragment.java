@@ -12,6 +12,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.*;
+import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -105,6 +106,8 @@ public class PlacementFragment extends Fragment{
             var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
             Block tryRecipe = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
             Object tryConfig = build == null || !build.block.copyConfig ? null : build.config();
+            boolean wasShard = tryRecipe == Blocks.coreShard;
+            tryRecipe = wasShard ? Blocks.coreFoundation.isVisible() && Blocks.coreFoundation.unlocked() ? Blocks.coreFoundation : null : tryRecipe; // FINISHME: Use nucleus if affordable
 
             for(BuildPlan req : player.unit().plans()){
                 if(!req.breaking && req.block.bounds(req.x, req.y, Tmp.r1).contains(Core.input.mouseWorld())){
@@ -114,10 +117,10 @@ public class PlacementFragment extends Fragment{
                 }
             }
 
-            if(tryRecipe != null && tryRecipe.isVisible() && unlocked(tryRecipe)){
+            if(wasShard || (tryRecipe != null && tryRecipe.isVisible() && unlocked(tryRecipe))){
                 input.block = tryRecipe;
-                tryRecipe.lastConfig = tryConfig;
-                currentCategory = input.block.category;
+                if (tryRecipe != null) tryRecipe.lastConfig = tryConfig;
+                currentCategory = input.block == null ? Blocks.coreShard.category : input.block.category;
                 return true;
             }
         }
