@@ -265,7 +265,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 Formation formation = player.unit().formation;
                 range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.radius(); // Account for the player formation
-                Path.goTo(v1.set(req), range);
+                Path.goTo(req, range);
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();

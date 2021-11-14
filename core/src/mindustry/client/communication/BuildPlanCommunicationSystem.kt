@@ -61,13 +61,13 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
         val tile = findLocation()
         val plan = BuildPlan(tile.x.toInt(), tile.y.toInt(), 0, Blocks.microProcessor, config)
         // Stores build state. If the player is too close to the plan and is building, building is toggled off for a short time
-        val state = Vars.player.dst(plan) < Vars.buildingRange && Vars.control.input.isBuilding
-        if (state) Vars.control.input.isBuilding = false
+        val toggle = Vars.player.dst(plan) < Vars.buildingRange && Vars.control.input.isBuilding
+        if (toggle) Vars.control.input.isBuilding = false
         Vars.player.unit().addBuild(plan, false)
         Timer.schedule({
             Core.app.post { // make sure it doesn't do this while something else is iterating through the plans
                 Vars.player.unit().plans.remove(plan)
-                if (state) Vars.control.input.isBuilding = true
+                if (toggle && Vars.player.unit().plans.any()) Vars.control.input.isBuilding = true
             }
         }, 0.25f)
     }
