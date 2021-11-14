@@ -208,7 +208,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                         if (upgrades.containsKey(block)) {
                             Block upgrade = upgrades.get(block);
                             if ((state.isCampaign() && !upgrade.unlocked()) || Structs.contains(upgrade.requirements, i -> !core.items.has(i.item, 100) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0 && !(tile.build instanceof ConstructBlock.ConstructBuild))) continue;
-                            if (block == Blocks.mechanicalDrill) {
+                            if (block == Blocks.mechanicalDrill || (queues.contains(belts) && queues.contains(drills))) { // FINISHME: Just use a single queue for upgrades
                                 drills.add(pool.obtain().set(tile.x, tile.y, tile.build.rotation, upgrade));
                             } else {
                                 belts.add(pool.obtain().set(tile.x, tile.y, tile.build.rotation, upgrade));
@@ -265,7 +265,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 Formation formation = player.unit().formation;
                 range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.radius(); // Account for the player formation
-                Path.goTo(req, range);
+                Path.goTo(v1.set(req), range);
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();
