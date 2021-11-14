@@ -10,11 +10,13 @@ import arc.util.*;
 import arc.util.Log.*;
 import mindustry.ai.*;
 import mindustry.async.*;
+import mindustry.client.*;
 import mindustry.client.navigation.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.editor.*;
 import mindustry.entities.*;
+import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -168,7 +170,7 @@ public class Vars implements Loadable{
     public static boolean headless;
     /** whether steam is enabled for this game */
     public static boolean steam;
-    /** whether typing into the console is enabled - developers only */ // Hi, I'm buthed and I'm a "developer" -buthed010203 9/6/21
+    /** whether typing into the console is enabled - developers only */ // Hi, I'm buthed and I'm a "developer" -buthed010203 9/6/21 //wtf
     public static boolean enableConsole = true;
     /** whether to clear sector saves when landing */
     public static boolean clearSectors = false;
@@ -244,10 +246,9 @@ public class Vars implements Loadable{
     public static NetServer netServer;
     public static NetClient netClient;
 
+    public static ClientLogic clientLogic;
     public static Player player;
     public static boolean drawCursors, wasDrawingCursors; // Client debug magic
-    public static IntMap<Object> processorConfigMap = new IntMap<>();
-    public static boolean procHackBool = false;
 
     @Override
     public void loadAsync(){
