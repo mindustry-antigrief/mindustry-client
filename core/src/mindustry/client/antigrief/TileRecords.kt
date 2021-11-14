@@ -2,7 +2,6 @@ package mindustry.client.antigrief
 
 import arc.*
 import arc.math.Mathf
-import arc.util.Log
 import mindustry.*
 import mindustry.ai.types.*
 import mindustry.client.*
