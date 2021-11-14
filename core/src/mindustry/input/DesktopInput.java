@@ -76,15 +76,15 @@ public class DesktopInput extends InputHandler{
                 b.label(() -> {
                     str.setLength(0);
                     if(Core.settings.getBool("hints")) {
-                        if(!isBuilding && !settings.getBool("buildautopause") && !player.unit().isBuilding()){
+                        if(!isBuilding && !settings.getBool("buildautopause") && !player.unit().isBuildingIgnoreNetworking()){
                             str.append("\n").append(bundle.format("enablebuilding", keybinds.get(Binding.pause_building).key.toString()));
-                        }else if(player.unit().isBuilding() || !player.persistPlans.isEmpty()){
+                        }else if(player.unit().isBuildingIgnoreNetworking() || !player.persistPlans.isEmpty()){
                             str.append("\n")
                                 .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
                                 .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
                                 .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
                         }
-                        if(player.unit().isBuilding() || dispatchingBuildPlans){
+                        if(player.unit().isBuildingIgnoreNetworking() || dispatchingBuildPlans){
                             str.append("\n").append(bundle.format(dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
                         }
                         if(hidingUnits || hidingAirUnits){
@@ -602,7 +602,7 @@ public class DesktopInput extends InputHandler{
         int rawCursorX = World.toTile(Core.input.mouseWorld().x), rawCursorY = World.toTile(Core.input.mouseWorld().y);
 
         //automatically pause building if the current build queue is empty
-        if(Core.settings.getBool("buildautopause") && isBuilding && !player.unit().isBuilding()){
+        if(Core.settings.getBool("buildautopause") && isBuilding && !player.unit().isBuildingIgnoreNetworking()){
             isBuilding = false;
             buildWasAutoPaused = true;
         }

@@ -283,9 +283,11 @@ object Client {
         }
 
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
-            val build = MessageBlockCommunicationSystem.findProcessor() ?: MessageBlockCommunicationSystem.findMessage()
-            if (build == null) player.sendMessage("[scarlet]No valid processor or message block found; communication system inactive.")
-            else player.sendMessage("[accent]${build.block.localizedName} at (${build.tileX()}, ${build.tileY()}) in use for communication.")
+            player.sendMessage(when {
+                BlockCommunicationSystem.logicAvailable -> BlockCommunicationSystem.findProcessor()!!.run { "[accent]Using a logic block at (${this.x}, ${this.y})" }
+                BlockCommunicationSystem.messagesAvailable -> BlockCommunicationSystem.findMessage()!!.run { "[accent]Using a message block at (${this.x}, ${this.y})" }
+                else -> "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)"
+            })
         }
 
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->

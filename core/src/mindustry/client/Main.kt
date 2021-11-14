@@ -11,12 +11,14 @@ import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
+import mindustry.content.Blocks
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.game.Teams.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.ui.fragments.ChatFragment
+import mindustry.world.blocks.environment.StaticWall
 import java.nio.file.Files
 import java.security.cert.*
 import java.util.Timer
@@ -38,7 +40,7 @@ object Main : ApplicationListener {
     override fun init() {
         if (Core.app.isDesktop) {
             ntp = NTP()
-            communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem)
+            communicationSystem = SwitchableCommunicationSystem(BlockCommunicationSystem)
             communicationSystem.init()
 
             keyStorage = KeyStorage(Core.settings.dataDirectory.file())
@@ -58,7 +60,7 @@ object Main : ApplicationListener {
             dispatchedBuildPlans.clear()
         }
         Events.on(EventType.ServerJoinEvent::class.java) {
-                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
+                communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
         }
 
         communicationClient.addListener { transmission, senderId ->
@@ -170,7 +172,7 @@ object Main : ApplicationListener {
         }
 
         if (ClientVars.dispatchingBuildPlans) {
-            if (!Vars.net.client()) Vars.player.unit().plans.each { addBuildPlan(it) } // Player plans -> block ghosts in single player
+            if (!Vars.net.client()) Vars.player.unit().plans.each { if (BuildPlanCommunicationSystem.isNetworking(it)) return@each; addBuildPlan(it) } // Player plans -> block ghosts in single player
             if (!communicationClient.inUse && Groups.player.size() > 1 && buildPlanInterval.get(5 * 60f)) sendBuildPlans()
         }
 
@@ -203,10 +205,10 @@ object Main : ApplicationListener {
     fun setPluginNetworking(enable: Boolean) {
         when {
             enable -> {
-                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem //FINISHME: Re-implement packet plugin
+                communicationSystem.activeCommunicationSystem = BlockCommunicationSystem //FINISHME: Re-implement packet plugin
             }
             Core.app?.isDesktop == true -> {
-                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
+                communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
             }
             else -> {
                 communicationSystem.activeCommunicationSystem = DummyCommunicationSystem(mutableListOf())

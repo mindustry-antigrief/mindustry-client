@@ -14,19 +14,27 @@ import mindustry.world.blocks.logic.*
 import java.io.*
 import kotlin.math.*
 
-object MessageBlockCommunicationSystem : CommunicationSystem() {
+object BlockCommunicationSystem : CommunicationSystem() {
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
     override val id: Int get() = run {
         Vars.player ?: return -1
         return Vars.player.id
     }
-    private var logicAvailable = false
-    override val MAX_LENGTH get() = if (logicAvailable) Base32768Coder.availableBytes(min(4000, (LExecutor.maxInstructions - 3) * MAX_PRINT_LENGTH)) else
-        Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - ClientVars.MESSAGE_BLOCK_PREFIX.length)
+    var logicAvailable = false
+    var messagesAvailable = false
+    override val MAX_LENGTH get() = when {
+        logicAvailable -> Base32768Coder.availableBytes(min(4000, (LExecutor.maxInstructions - 3) * MAX_PRINT_LENGTH))
+        messagesAvailable -> Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - ClientVars.MESSAGE_BLOCK_PREFIX.length)
+        else -> 512
+    }
     override val RATE: Float = 30f // 500ms
 
     private const val MAX_PRINT_LENGTH = 34
     const val LOGIC_PREFIX = "end\nprint \"client networking, do not edit/remove\""
+
+    init {
+        BuildPlanCommunicationSystem.addListener { input, sender -> listeners.forEach { it(input, sender) } }
+    }
 
     fun findProcessor(): LogicBlock.LogicBuild? { // FINISHME: are these new implementations actually faster than the old ones? They sure are cleaner
         val build = Units.findAllyTile(Vars.player.team(), Vars.player.x, Vars.player.y, Float.MAX_VALUE / 2) { tile ->
@@ -38,10 +46,12 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
     }
 
     fun findMessage(): MessageBlock.MessageBuild? {
-        return Units.findAllyTile(Vars.player.team(), Vars.player.x, Vars.player.y, Float.MAX_VALUE / 2) { tile ->
+        val build = Units.findAllyTile(Vars.player.team(), Vars.player.x, Vars.player.y, Float.MAX_VALUE / 2) { tile ->
             val build = tile as? MessageBlock.MessageBuild ?: return@findAllyTile false
             build.message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)
         } as? MessageBlock.MessageBuild
+        messagesAvailable = build != null
+        return build
     }
 
     private fun logicEvent(event: EventType.ConfigEvent) {
@@ -49,10 +59,10 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
         event.value ?: return
         event.player ?: return
         if (event.tile.block !is LogicBlock) return
-        logicAvailable = true
 
         val message = LogicBlock.decompress(event.value as? ByteArray ?: return)
         if (!message.startsWith(LOGIC_PREFIX)) return
+        logicAvailable = true
 
         val id = event.player.id
 
@@ -81,6 +91,7 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
 
         val message = event.value as? String ?: return // Some modded blocks use non strings
         if (!message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)) return
+        messagesAvailable = true
 
         val id = if (event.player == null) -1 else event.player.id
 
@@ -121,7 +132,11 @@ object MessageBlockCommunicationSystem : CommunicationSystem() {
         try {
             sendLogic(bytes)
         } catch (e: IOException) {
-            sendMessageBlock(bytes)
+            try {
+                sendMessageBlock(bytes)
+            } catch (e: IOException) {
+                BuildPlanCommunicationSystem.send(bytes)
+            }
         }
     }
 }

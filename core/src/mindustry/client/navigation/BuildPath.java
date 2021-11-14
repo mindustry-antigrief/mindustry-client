@@ -8,6 +8,7 @@ import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.ai.formations.*;
 import mindustry.client.*;
+import mindustry.client.communication.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -168,6 +169,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, unit -> {
                     if(player.unit() != null && unit != player.unit() && unit.isBuilding()) {
                         for (BuildPlan plan : unit.plans) {
+                            if (BuildPlanCommunicationSystem.INSTANCE.isNetworking(plan)) continue;
                             assist.add(plan);
                         }
                     }
