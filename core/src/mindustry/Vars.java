@@ -16,7 +16,6 @@ import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.editor.*;
 import mindustry.entities.*;
-import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
