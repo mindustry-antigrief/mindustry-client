@@ -35,6 +35,7 @@ object Main : ApplicationListener {
     lateinit var signatures: Signatures
     lateinit var ntp: NTP
     private var planSendTime = 0L
+    private var isSendingPlans = false
 
     /** Run on client load. */
     override fun init() {
@@ -173,7 +174,7 @@ object Main : ApplicationListener {
 
         if (ClientVars.dispatchingBuildPlans) {
             if (!Vars.net.client()) Vars.player.unit().plans.each { if (BuildPlanCommunicationSystem.isNetworking(it)) return@each; addBuildPlan(it) } // Player plans -> block ghosts in single player
-            if (!communicationClient.inUse && Groups.player.size() > 1 && buildPlanInterval.get(max(5 * 60f, planSendTime / 16.666f + 3 * 60))) sendBuildPlans()
+            if (!isSendingPlans && !communicationClient.inUse && Groups.player.size() > 1 && buildPlanInterval.get(max(5 * 60f, planSendTime / 16.666f + 3 * 60))) sendBuildPlans()
         }
 
         for (peer in tlsPeers) {
@@ -245,8 +246,9 @@ object Main : ApplicationListener {
         var count = 0
         val toSend = Vars.player.unit().plans.toList().takeLastWhile { !BuildPlanCommunicationSystem.isNetworking(it) && count++ < num }.toTypedArray()
         if (toSend.isEmpty()) return
+        isSendingPlans = true
         val start = Time.millis()
-        communicationClient.send(BuildQueueTransmission(toSend), { planSendTime = Time.timeSinceMillis(start); Toast(3f).add(Core.bundle.format("client.sentplans", toSend.size)) }, { Toast(3f).add("@client.nomessageblock")})
+        communicationClient.send(BuildQueueTransmission(toSend), { isSendingPlans = false; planSendTime = Time.timeSinceMillis(start); Toast(3f).add(Core.bundle.format("client.sentplans", toSend.size)) }, { Toast(3f).add("@client.nomessageblock")})
         dispatchedBuildPlans.addAll(toSend)
     }
 
