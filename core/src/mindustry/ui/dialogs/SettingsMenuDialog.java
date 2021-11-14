@@ -16,7 +16,6 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
-import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.content.*;
@@ -353,6 +352,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
         if (steam) client.checkPref("unlockallachievements", false);
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
+        client.checkPref("processorconfigs", false);
         // End Client Settings
 
 

@@ -624,6 +624,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Core.input.keyTap(Binding.clear_building)){
+            processorConfigs.clear();
             player.unit().clearBuilding();
         }
 
@@ -669,6 +670,7 @@ public class DesktopInput extends InputHandler{
             float offset = ((sreq.block.size + 2) % 2) * tilesize / 2f;
             float x = Core.input.mouseWorld().x + offset;
             float y = Core.input.mouseWorld().y + offset;
+            if (sreq.block instanceof LogicBlock) processorConfigs.put(Point2.pack((int)(x/tilesize), (int)(y/tilesize)), processorConfigs.remove(sreq.tile().pos()));
             sreq.x = (int)(x / tilesize);
             sreq.y = (int)(y / tilesize);
         }

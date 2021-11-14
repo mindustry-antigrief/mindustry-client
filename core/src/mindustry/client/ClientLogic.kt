@@ -12,6 +12,7 @@ import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.logic.*
+import mindustry.world.blocks.logic.*
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
@@ -27,7 +28,10 @@ class ClientLogic {
 
         Events.on(EventType.WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
-            if (!syncing) Vars.player.persistPlans.clear() // FINISHME: Why is this even in the player class? It creates a queue for each player even tho only one is used...
+            if (!syncing) {
+                Vars.player.persistPlans.clear() // FINISHME: Why is this even in the player class? It creates a queue for each player even tho only one is used...
+                processorConfigs.clear()
+            }
             lastJoinTime = Time.millis()
             PowerInfo.initialize()
             Navigation.obstacles.clear()
@@ -96,6 +100,16 @@ class ClientLogic {
 
             if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
                 Vars.player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
+        }
+
+        Events.on(EventType.BlockBuildEndEvent::class.java) { e -> // Configure logic after construction
+            if (e.unit == null || e.team != Vars.player.team() || !Core.settings.getBool("processorconfigs")) return@on
+            val build = e.tile.build as? LogicBlock.LogicBuild ?: return@on
+            val packed = e.tile.pos()
+            Log.info("${e.tile.pos()} ${!processorConfigs.containsKey(packed)} ${build.code.any()} ${build.links.any()}\n${processorConfigs.get(packed)}")
+            if (!processorConfigs.containsKey(packed) || build.code.any() || build.links.any()) return@on
+
+            configs.add(ConfigRequest(e.tile.x.toInt(), e.tile.y.toInt(), processorConfigs.remove(packed)))
         }
     }
 }
