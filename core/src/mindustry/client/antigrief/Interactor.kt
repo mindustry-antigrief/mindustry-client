@@ -12,8 +12,8 @@ interface Interactor {
 
 open class UnitInteractor(unit: Unit?) : Interactor {
     override val name = when {
-        unit?.isPlayer == true -> "${unit.type.localizedName} controlled by ${unit.playerNonNull().name}"
-        (unit?.controller() as? FormationAI)?.leader?.isPlayer == true -> "${unit.type.localizedName} controlled by ${(unit.controller() as FormationAI).leader.playerNonNull().name}"
+        unit?.isPlayer == true -> "${unit.type.localizedName} controlled by ${unit.playerNonNull().coloredName()}"
+        (unit?.controller() as? FormationAI)?.leader?.isPlayer == true -> "${unit.type.localizedName} controlled by ${(unit.controller() as FormationAI).leader.playerNonNull().coloredName()}"
         unit?.controller() is LogicAI -> {
             val lcontrol = (unit.controller() as? LogicAI)?.controller
             "${unit.type.localizedName} logic-controlled by ${lcontrol?.block()?.localizedName} (${lcontrol?.tileX()}, ${lcontrol?.tileY()}) accessed by ${lcontrol?.lastAccessed}"
@@ -22,8 +22,8 @@ open class UnitInteractor(unit: Unit?) : Interactor {
     }
 
     override val shortName: String = when {
-        unit?.isPlayer == true -> unit.playerNonNull().name
-        (unit?.controller() as? FormationAI)?.leader?.isPlayer == true -> (unit.controller() as FormationAI).leader.playerNonNull().name
+        unit?.isPlayer == true -> unit.playerNonNull().coloredName()
+        (unit?.controller() as? FormationAI)?.leader?.isPlayer == true -> (unit.controller() as FormationAI).leader.playerNonNull().coloredName()
         unit?.controller() is LogicAI -> "logic-controlled ${unit.type.localizedName}"
         else -> unit?.type?.localizedName ?: "null unit"
     }
