@@ -2,7 +2,7 @@ package mindustry.client.crypto
 
 import mindustry.client.*
 import mindustry.client.communication.*
-import java.math.BigInteger
+import java.math.*
 import java.security.*
 import java.security.cert.*
 import java.time.*
@@ -45,7 +45,7 @@ class Signatures(private val store: KeyStorage, private val ntp: AtomicReference
         val key = store.key() ?: return null
         val time = ntp.get().instant().toEpochMilli()
         val baseTransmission = SignatureTransmission(ByteArray(SIGNATURE_LENGTH), cert.serialNumber, time, commsId, messageId)
-        val signature = rawSign(baseTransmission.toSignable(original), key) ?: return null
+        val signature = rawSign(baseTransmission.toSignable(original), key)
         return SignatureTransmission(signature, cert.serialNumber, time, commsId, messageId)
     }
 

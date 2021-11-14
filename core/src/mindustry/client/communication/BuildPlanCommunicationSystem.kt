@@ -60,14 +60,14 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
         val config = bytes.base32678().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = PREFIX.format(Random.nextLong())) { "print \"$it\"" }
         val tile = findLocation()
         val plan = BuildPlan(tile.x.toInt(), tile.y.toInt(), 0, Blocks.microProcessor, config)
-        // null unless the block is too close in which case we store the current build state, pause it and then re-enable it if needed later
-        val state = if (Vars.player.dst(plan) > Vars.buildingRange) null else Vars.control.input.isBuilding
-        if (state == true) Vars.control.input.isBuilding = false
+        // Stores build state. If the player is too close to the plan and is building, building is toggled off for a short time
+        val state = Vars.player.dst(plan) < Vars.buildingRange && Vars.control.input.isBuilding
+        if (state) Vars.control.input.isBuilding = false
         Vars.player.unit().addBuild(plan, false)
         Timer.schedule({
             Core.app.post { // make sure it doesn't do this while something else is iterating through the plans
                 Vars.player.unit().plans.remove(plan)
-                if (state == true) Vars.control.input.isBuilding = true
+                if (state) Vars.control.input.isBuilding = true
             }
         }, 0.25f)
     }
