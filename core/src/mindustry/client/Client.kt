@@ -32,6 +32,7 @@ import mindustry.logic.*
 import mindustry.net.*
 import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
+import mindustry.world.blocks.logic.LogicBlock
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
@@ -414,6 +415,30 @@ object Client {
             Call.sendChatMessage("cya\n[accent][#"+player.color+"][]"+player.name+" [accent]has disconnected.")
         }
 
+        register("attem83 [c]", "Fixes the bad flagging logic with attem >= 83") {args, player ->
+            clientThread.taskQueue.post {
+                val confirmed = args.any() && args[0] == "c" // Don't configure by default
+                var toFix = 0
+
+                val matcher = Core.bundle.get("client.attem-83").toRegex(RegexOption.MULTILINE)
+                val buildings : Seq<Building> = Seq()
+                player.team().data().buildings.getObjects(buildings)
+
+                buildings.each {
+                    val lb = (it as? LogicBlock.LogicBuild)?: return@each
+                    val matched = matcher.matchEntire(lb.code)?: return@each
+                    val range = matched.groups[matched.groups.size-1]!!.range
+                    val newCode : StringBuilder = StringBuilder(lb.code).replace(range.first, range.last, "jump -1")
+                    toFix++
+                    if(confirmed) configs.add(ConfigRequest(lb.tileX(), lb.tileY(), LogicBlock.compress(newCode.toString(), lb.relativeConnections())))
+                }
+                if (confirmed) {
+                    player.sendMessage("[accent]Successfully queued $toFix processors for fixing")
+                } else {
+                    player.sendMessage("[accent]Run [coral]!attem83 c[] to fix $toFix processors")
+                }
+            }
+        }
         register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, _ -> // FINISHME: Bundle
             val certname = args[0]
             val msg = args[1]
