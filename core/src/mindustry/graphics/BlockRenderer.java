@@ -6,13 +6,13 @@ import arc.graphics.Texture.*;
 import arc.graphics.g2d.*;
 import arc.graphics.gl.*;
 import arc.math.*;
-import arc.math.geom.Rect;
+import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
-import mindustry.game.Team;
+import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -20,8 +20,9 @@ import mindustry.world.*;
 import mindustry.world.blocks.power.*;
 
 import static arc.Core.*;
+import static mindustry.Vars.state;
 import static mindustry.Vars.*;
-import static mindustry.client.navigation.Navigation.obstacles;
+import static mindustry.client.navigation.Navigation.*;
 
 public class BlockRenderer{
     public static final int crackRegions = 8, maxCrackSize = 9;
@@ -303,14 +304,40 @@ public class BlockRenderer{
             }
         }
 
+
+        var bounds = camera.bounds(Tmp.r3).grow(tilesize);
+
+        if (drawCursors) {
+            Draw.z(Layer.space);
+            Draw.color(Color.red);
+            Draw.alpha(.3f);
+            boolean ints = Fonts.def.usesIntegerPositions();
+            Fonts.def.setUseIntegerPositions(false);
+            Fonts.def.getData().setScale(0.25f / Scl.scl(1f));
+            for (Player player : Groups.player) {
+                if (player.isLocal() || player.assisting) continue;
+
+                Fill.circle(player.mouseX, player.mouseY, tilesize * .5f);
+                if (input.mouseWorld().dst(player.mouseX, player.mouseY) < 20 * tilesize) {
+                    Fonts.def.draw("[#" + player.color + "]" + player.name, player.mouseX, player.mouseY, Align.center);
+                }
+            }
+            Fonts.def.getData().setScale(1f);
+            Fonts.def.setUseIntegerPositions(ints);
+        }
+
         if (ClientVars.showingTurrets) {
             Draw.z(Layer.space);
-            Rect bounds = new Rect();
             Core.camera.bounds(bounds);
             obstacles.forEach(t -> {
                 if (!t.canShoot || !(settings.getBool("unitranges") || t.turret) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius*2, t.radius*2)) return;
                 Drawf.dashCircle(t.x, t.y, t.radius, t.canHitPlayer ? t.team.color : Team.derelict.color);
             });
+        }
+
+        if (wasDrawingCursors != drawCursors) {
+            wasDrawingCursors = drawCursors;
+            settings.put("drawcursors", drawCursors);
         }
     }
 

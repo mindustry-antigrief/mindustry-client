@@ -221,6 +221,7 @@ public class Vars implements Loadable{
     public static NetClient netClient;
 
     public static Player player;
+    public static boolean drawCursors, wasDrawingCursors; // Client debug magic
 
     @Override
     public void loadAsync(){
@@ -279,6 +280,7 @@ public class Vars implements Loadable{
         clientThread = new ClientThread();
         bases = new BaseRegistry();
         constants = new GlobalConstants();
+        drawCursors = settings.getBool("drawcursors");
 
         state = new GameState();
 
