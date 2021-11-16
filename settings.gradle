@@ -21,7 +21,7 @@ if (new File(settingsDir, 'local.properties').exists()) {
 
 if (System.getenv("JITPACK") == "true") hasSdk = false
 
-if (hasSdk && false) {
+if (hasSdk) {
     include 'android'
 } else {
     println("No Android SDK found. Skipping Android module.")
