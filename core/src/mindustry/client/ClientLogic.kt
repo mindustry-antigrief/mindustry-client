@@ -57,14 +57,14 @@ class ClientLogic {
         Events.on(EventType.PlayerJoin::class.java) { e -> // Run when a player joins the server
             if (e.player == null) return@on
 
-            if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has connected.")) && Time.timeSinceMillis(ClientVars.lastJoinTime) > 10000)
+            if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).contains("${Strings.stripColors(e.player.name)}.*connected".toRegex())) && Time.timeSinceMillis(ClientVars.lastJoinTime) > 10000)
                 Vars.player.sendMessage(Core.bundle.format("client.connected", e.player.name))
         }
 
         Events.on(EventType.PlayerLeave::class.java) { e -> // Run when a player leaves the server
             if (e.player == null) return@on
 
-            if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
+            if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).contains("${Strings.stripColors(e.player.name)}.*disconnected".toRegex())))
                 Vars.player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
         }
     }
