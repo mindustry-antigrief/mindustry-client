@@ -322,7 +322,7 @@ public class HudFragment extends Fragment{
                     }
                     timer.reset(0, 0); // Reset timer so that it sends 30s after the last core damage rather than every 30s FINISHME: Better way to do this?
                     coreAttackTime[0] = notifDuration;
-                    ClientVars.lastSentPos.set(event.core.x, event.core.y);
+                    ClientVars.lastCorePos.set(event.core.x, event.core.y);
                 });
 
                 //'core is under attack' table
@@ -339,7 +339,7 @@ public class HudFragment extends Fragment{
                 })
                 .touchable(Touchable.disabled)
                 .fillX()
-                .get().clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
+                .get().clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastCorePos.cpy().scl(tilesize)));
             }).row();
 
             var bossb = new StringBuilder();

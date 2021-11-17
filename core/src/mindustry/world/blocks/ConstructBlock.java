@@ -508,8 +508,8 @@ public class ConstructBlock extends Block{
                     toast.row();
                     toast.add(new Label(format2, monoLabel));
                     toast.touchable = Touchable.enabled;
-                    toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
-                    ClientVars.lastSentPos.set(tile.x, tile.y);
+                    toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastCorePos.cpy().scl(tilesize)));
+                    ClientVars.lastCorePos.set(tile.x, tile.y);
                 }
 
                 if (lastProgress == 0 && Core.settings.getBool("removecorenukes") && state.rules.reactorExplosions && current instanceof NuclearReactor && !lastBuilder.isLocal() && distance.get() <= 20) { // Automatically remove reactors within 20 blocks of core

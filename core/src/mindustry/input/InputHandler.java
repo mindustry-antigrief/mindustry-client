@@ -387,13 +387,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     commandWarning.message = bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized());
                     commandWarning.format();
                 }
-                ClientVars.lastSentPos.set(build.tileX(), build.tileY());
+                lastCorePos.set(build.tileX(), build.tileY());
 
             } else if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
                 if (value instanceof Integer val) {
                     if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) {
                         String message = bundle.format("client.powerwarn", Strings.stripColors(player.name), ++node.disconnections, build.tileX(), build.tileY());
-                        ClientVars.lastSentPos.set(build.tileX(), build.tileY());
+                        lastCorePos.set(build.tileX(), build.tileY());
                         if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
                             node.disconnections = 1;
                             node.message = ui.chatfrag.addMessage(message, (Color)null);
