@@ -40,7 +40,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     transient @Nullable NetConnection con;
     @ReadOnly Team team = Team.sharded;
     @SyncLocal boolean typing, shooting, boosting;
-    @SyncLocal float mouseX, mouseY;
+    @SyncField(true) @SyncLocal float mouseX, mouseY;
     boolean admin;
     String name = "frog";
     Color color = new Color();
