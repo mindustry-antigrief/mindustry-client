@@ -4,7 +4,6 @@ import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
-import arc.math.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
@@ -21,7 +20,7 @@ import mindustry.net.Packets.*;
 import mindustry.ui.*;
 
 import static mindustry.Vars.*;
-import static mindustry.client.ClientVars.spectatingPos;
+import static mindustry.client.ClientVars.*;
 
 public class PlayerListFragment extends Fragment{
     public Table content = new Table().marginRight(13f).marginLeft(13f);
