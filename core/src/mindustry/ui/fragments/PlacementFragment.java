@@ -107,7 +107,10 @@ public class PlacementFragment extends Fragment{
             Block tryRecipe = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
             Object tryConfig = build == null || !build.block.copyConfig ? null : build.config();
             boolean wasShard = tryRecipe == Blocks.coreShard;
-            tryRecipe = wasShard ? Blocks.coreFoundation.isVisible() && Blocks.coreFoundation.unlocked() ? Blocks.coreFoundation : null : tryRecipe; // FINISHME: Use nucleus if affordable
+            if (wasShard) tryRecipe = // If shard was middle-clicked, selects the best affordable core
+                Blocks.coreNucleus.isVisible() && Blocks.coreNucleus.unlockedNow() && (state.rules.infiniteResources || build.items.has(Blocks.coreNucleus.requirements, state.rules.buildCostMultiplier)) ? Blocks.coreNucleus :
+                Blocks.coreFoundation.isVisible() && Blocks.coreFoundation.unlockedNow() ? Blocks.coreFoundation :
+                null;
 
             for(BuildPlan req : player.unit().plans()){
                 if(!req.breaking && req.block.bounds(req.x, req.y, Tmp.r1).contains(Core.input.mouseWorld())){

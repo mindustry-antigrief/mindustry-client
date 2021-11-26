@@ -8,7 +8,6 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ai.*;
-import mindustry.content.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.type.*;
@@ -234,8 +233,6 @@ public class Teams{
         public Queue<BlockPlan> blocks = new Queue<>();
         /** The current command for units to follow. */
         public UnitCommand command = UnitCommand.attack;
-        /** Target items to mine. */
-        public Seq<Item> mineItems = Seq.with(Items.copper, Items.lead, Items.titanium, Items.thorium);
 
         /** Quadtree for all buildings of this team. Null if not active. */
         @Nullable
