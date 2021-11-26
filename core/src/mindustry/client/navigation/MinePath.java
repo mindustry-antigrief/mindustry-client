@@ -18,7 +18,7 @@ public class MinePath extends Path {
     Item lastItem = null; // Last item mined
 
     public MinePath() {
-        items = player.team().data().mineItems;
+        items = player.unit().type.mineItems;
     }
 
     public MinePath(Seq<Item> mineItems, int cap) {
@@ -48,7 +48,7 @@ public class MinePath extends Path {
         }
         if (items.isEmpty()) {
             if (cap == Core.settings.getInt("minepathcap")) player.sendMessage(Core.bundle.get("client.path.miner.allinvalid"));
-            items = player.team().data().mineItems;
+            items = player.unit().type.mineItems;
         } else {
             player.sendMessage(Core.bundle.format("client.path.miner.mining", items.toString(", "), cap == 0 ? "infinite" : cap));
         }

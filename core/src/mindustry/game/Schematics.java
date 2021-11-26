@@ -15,6 +15,7 @@ import arc.util.io.Streams.*;
 import arc.util.pooling.*;
 import arc.util.serialization.*;
 import mindustry.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -41,7 +42,6 @@ import java.io.*;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
-import static mindustry.client.ClientVars.*;
 
 /** Handles schematics.*/
 public class Schematics implements Loadable{
@@ -389,10 +389,11 @@ public class Schematics implements Loadable{
 
                 if(tile != null && !counted.contains(tile.pos()) && realBlock != null
                     && (realBlock.isVisible() || realBlock instanceof CoreBlock)){
-                    Object config = tile instanceof ConstructBuild cons ? cons.lastConfig : tile.config();
-                    if(config == null && tile instanceof ConstructBuild cons && cons.current instanceof LogicBlock && processorConfigMap.containsKey(Point2.pack(cx, cy))){
-                        config = processorConfigMap.get(Point2.pack(cx, cy));
-                    }
+                    Object config = !(tile instanceof ConstructBuild cons) ?
+                        tile.config() :
+                        cons.lastConfig == null && realBlock instanceof LogicBlock && ClientVars.processorConfigs.containsKey(Point2.pack(cx, cy)) ?
+                            ClientVars.processorConfigs.get(Point2.pack(cx, cy)) :
+                            cons.lastConfig;
 
                     tiles.add(new Stile(realBlock, tile.tileX() + offsetX, tile.tileY() + offsetY, config, (byte)tile.rotation));
                     counted.add(tile.pos());

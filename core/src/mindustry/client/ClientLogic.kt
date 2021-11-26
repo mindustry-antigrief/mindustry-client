@@ -1,8 +1,6 @@
 package mindustry.client
 
 import arc.*
-import arc.func.*
-import arc.math.geom.*
 import arc.util.*
 import mindustry.*
 import mindustry.client.ClientVars.*
@@ -14,8 +12,7 @@ import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.logic.*
-import mindustry.net.*
-import mindustry.world.blocks.logic.LogicBlock.LogicBuild
+import mindustry.world.blocks.logic.*
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
@@ -33,7 +30,7 @@ class ClientLogic {
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             if (!syncing){
                 Vars.player.persistPlans.clear()
-                processorConfigMap.clear()
+                processorConfigs.clear()
                 Vars.frozenPlans.clear()
             } // FINISHME: Why is this even in the player class? It creates a queue for each player even tho only one is used...
             lastJoinTime = Time.millis()
@@ -85,14 +82,11 @@ class ClientLogic {
             val encoded = Main.keyStorage.cert()?.encoded
             if (encoded != null && Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
                 Client.register("update <name>") { args, _ ->
-                    Client.connectTls(args[0]) { comms, cert ->
-                        if (cert.encoded.run { Main.keyStorage.builtInCerts.none { it.encoded.contentEquals(this) } }) {
-                            comms.send(CommandTransmission(CommandTransmission.Commands.UPDATE))
-                        }
-                    }
+                    val name = args[0]
+                    val player = Groups.player.minByOrNull { Strings.levenshtein(it.name, name) } ?: return@register
+                    Main.send(CommandTransmission(CommandTransmission.Commands.UPDATE, Main.keyStorage.cert() ?: return@register, player))
                 }
             }
-            Core.app.post { setProcessorBypassHack(Core.settings.getBool("prochack", false)) }
         }
 
         Events.on(EventType.PlayerJoin::class.java) { e -> // Run when a player joins the server
@@ -108,31 +102,18 @@ class ClientLogic {
             if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
                 Vars.player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
         }
-    }
 
-    private val configureProcessor = Cons { event: EventType.BlockBuildEndEvent ->
-        if (processorConfigMap.size == 0 || event.team !== Vars.player.team()) return@Cons
-        val coords = Point2.pack(event.tile.x.toInt(), event.tile.y.toInt())
-        if (!processorConfigMap.containsKey(coords)) return@Cons
-        val lb = event.tile.build as? LogicBuild
-        if (lb != null && lb.code.isEmpty() && lb.links.isEmpty) {
-            if (!configRateLimit.allow(
-                    Administration.Config.interactRateWindow.num() * 1000L,
-                    Administration.Config.interactRateLimit.num()
-                )
-            ) {
-                configs.addLast(
-                    ConfigRequestBlockType(event.tile.x.toInt(), event.tile.y.toInt(), processorConfigMap.remove(coords), Vars.world.tile(coords).build)
-                )
-                return@Cons
-            } else lb.configure(processorConfigMap[coords])
+        Events.on(EventType.BlockBuildEndEvent::class.java) { e -> // Configure logic after construction
+            if (e.unit == null || e.team != Vars.player.team() || !Core.settings.getBool("processorconfigs")) return@on
+            val build = e.tile.build as? LogicBlock.LogicBuild ?: return@on
+            val packed = e.tile.pos()
+            if (!processorConfigs.containsKey(packed) return@on
+            if(build.code.any() || build.links.any()) {
+                processorConfigs.remove(packed)
+                return@on
+            }
+
+            configs.add(ConfigRequest(e.tile.x.toInt(), e.tile.y.toInt(), processorConfigs.remove(packed)))
         }
-        processorConfigMap.remove(coords)
-    }
-
-    fun setProcessorBypassHack(add: Boolean) {
-        procHackBool = add
-        if (add) Events.on(EventType.BlockBuildEndEvent::class.java, configureProcessor
-        ) else Events.remove(EventType.BlockBuildEndEvent::class.java, configureProcessor)
     }
 }

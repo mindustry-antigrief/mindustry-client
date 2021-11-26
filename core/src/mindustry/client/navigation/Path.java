@@ -67,11 +67,9 @@ public abstract class Path {
                         }
                     }
 
-                    if (filter.any()) {
-                        while (filter.size > 1 && filter.min(wp -> wp.dst(player)) != filter.first()) Pools.free(filter.remove(0));
-                        if (filter.size > 1 || filter.first().dst(player) < tilesize) Pools.free(filter.remove(0));
-                        if (filter.size > 1 && player.unit().isFlying()) Pools.free(filter.remove(0)); // Ground units can't properly turn corners if we remove 2 waypoints.
-                    }
+                    while (filter.size > 1 && filter.min(wp -> wp.dst(player)) != filter.first()) Pools.free(filter.remove(0));
+                    if (filter.size > 1 || filter.first().dst(player) < tilesize) Pools.free(filter.remove(0));
+                    if (filter.size > 1 && player.unit().isFlying()) Pools.free(filter.remove(0)); // Ground units can't properly turn corners if we remove 2 waypoints.
 
                     waypoints.set(filter);
                 });

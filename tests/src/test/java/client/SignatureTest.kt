@@ -24,7 +24,7 @@ class SignatureTest {
         val keyPair = genKey()
 
         val data = Random.nextBytes(123)
-        val signature = Signatures.rawSign(data, keyPair.private)!!
+        val signature = Signatures.rawSign(data, keyPair.private)
         Assertions.assertTrue(Signatures.rawVerify(data, signature, keyPair.public))
     }
 

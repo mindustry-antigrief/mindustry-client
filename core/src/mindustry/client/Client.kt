@@ -84,6 +84,7 @@ object Client {
     }
 
     fun draw() {
+        Spectate.draw();
         // Spawn path
         if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
             Draw.color(state.rules.waveTeam.color)
@@ -289,9 +290,11 @@ object Client {
         }
 
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
-            val build = MessageBlockCommunicationSystem.findProcessor() ?: MessageBlockCommunicationSystem.findMessage()
-            if (build == null) player.sendMessage("[scarlet]No valid processor or message block found; communication system inactive.")
-            else player.sendMessage("[accent]${build.block.localizedName} at (${build.tileX()}, ${build.tileY()}) in use for communication.")
+            player.sendMessage(when {
+                BlockCommunicationSystem.logicAvailable -> BlockCommunicationSystem.findProcessor()!!.run { "[accent]Using a logic block at (${this.x}, ${this.y})" }
+                BlockCommunicationSystem.messagesAvailable -> BlockCommunicationSystem.findMessage()!!.run { "[accent]Using a message block at (${this.x}, ${this.y})" }
+                else -> "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)"
+            })
         }
 
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
@@ -435,11 +438,10 @@ object Client {
         }
 
         register("stoppathing <name>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
-            val certname = args[0]
-
-            connectTls(certname) { comms, _ ->
-                comms.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH))
-            }
+            val name = args[0]
+            val player = Groups.player.minByOrNull { Strings.levenshtein(it.name, name) } ?: return@register
+            Main.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH, Main.keyStorage.cert() ?: return@register, player))
+            // FINISHME: success message
         }
 
         register("replacemessage <from> <to> [useRegex=t]", "Replaces corresponding text in messages."){ args, _ ->

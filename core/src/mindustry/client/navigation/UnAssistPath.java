@@ -19,7 +19,7 @@ public class UnAssistPath extends Path {
     public Seq<BuildPlan> toUndo = new Seq<>();
     public Seq<ConfigRequest> toConfig = new Seq<>();
 
-    {
+    { // FINISHME: Make this static as we cant even remove events and that may be a problem down the road
         // Remove placed blocks, place removed blocks
         Events.on(EventType.BlockBuildBeginEventBefore.class, e -> {
             if (e.unit == null || e.unit != target.unit() || e.tile == null || (e.breaking && !e.tile.block().isVisible())) return;
@@ -123,5 +123,11 @@ public class UnAssistPath extends Path {
     @Override
     public Position next() {
         return null;
+    }
+
+    @Override
+    public void draw() {
+        if (target == null) return;
+        target.unit().drawBuildPlans();
     }
 }

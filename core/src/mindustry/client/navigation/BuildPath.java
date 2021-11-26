@@ -8,6 +8,7 @@ import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.ai.formations.*;
 import mindustry.client.*;
+import mindustry.client.communication.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -168,6 +169,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 Units.nearby(player.unit().team, player.unit().x, player.unit().y, Float.MAX_VALUE, unit -> {
                     if(player.unit() != null && unit != player.unit() && unit.isBuilding()) {
                         for (BuildPlan plan : unit.plans) {
+                            if (BuildPlanCommunicationSystem.INSTANCE.isNetworking(plan)) continue;
                             assist.add(plan);
                         }
                     }
@@ -206,7 +208,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                         if (upgrades.containsKey(block)) {
                             Block upgrade = upgrades.get(block);
                             if ((state.isCampaign() && !upgrade.unlocked()) || Structs.contains(upgrade.requirements, i -> !core.items.has(i.item, 100) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0 && !(tile.build instanceof ConstructBlock.ConstructBuild))) continue;
-                            if (block == Blocks.mechanicalDrill) {
+                            if (block == Blocks.mechanicalDrill || (queues.contains(belts) && queues.contains(drills))) { // FINISHME: Just use a single queue for upgrades
                                 drills.add(pool.obtain().set(tile.x, tile.y, tile.build.rotation, upgrade));
                             } else {
                                 belts.add(pool.obtain().set(tile.x, tile.y, tile.build.rotation, upgrade));

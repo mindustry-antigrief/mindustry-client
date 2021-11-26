@@ -1,21 +1,13 @@
 [
   {
-    "name": "Mindustry Central",
-    "address": ["n2.mindustry.me:4019", "mindustry.me:2034", "mindustry.me:2035"]
-  },
-  {
     "name": "RCM",
     "address": ["185.104.248.61", "easyplay.su"]
-  },
-  {
-    "name": "SkaarjDustry",
-    "address": ["skaarjproject.duckdns.org"]
   },
   {
     "name": "{AA}",
     "address": ["aamindustry.play.ai", "aamindustry.play.ai:6571", "aamindustry.play.ai:6572", "aamindustry.play.ai:6573", "aamindustry.play.ai:6574"]
   },
-   {
+  {
     "name": "Atanner",
     "address": ["atannergaming.com:13000"]
   },
@@ -29,7 +21,7 @@
   },
   {
     "name": "Chaotic Neutral",
-    "address": ["Chaotic-Neutral.ddns.net:1111", "Chaotic-Neutral.ddns.net:2222", "Chaotic-Neutral.ddns.net:7777"]
+    "address": ["c-n.ddns.net:1111", "c-n.ddns.net:2222", "c-n.ddns.net:3333", "c-n.ddns.net:4444"]
   },
   {
     "name": "Ranked",
@@ -68,10 +60,6 @@
     "address": ["obvilion.ru", "obvilion.ru:7001", "obvilion.ru:7002", "obvilion.ru:7003"]
   },
   {
-    "name": "Mindustry PLAY",
-    "address": ["92.63.100.160"]
-  },
-  {
     "name": "Nydus",
     "address": ["v6.mindustry.nydus.app:6566"]
   },
@@ -108,8 +96,8 @@
     "address": ["usfr2.forcehost.net:25578"]
   },
   {
-    "name": "Español",
-    "address": ["168.119.36.188:41445"]
+    "name": "Mindustry Español",
+    "address": ["panel.mindustry.me:2011", "yeeth.mindustry.me:6573", "panel.mindustry.me:2000", "panel.mindustry.me:2026"]
   },
   {
     "name": "CreateDustry",
@@ -126,5 +114,13 @@
   {
     "name": "Conservatory",
     "address": ["143.198.71.232"]
-  }
+  },
+  {
+    "name": "Shard",
+    "address": ["shard.mcv.kr"]
+  },
+  {
+    "name": "OMNIDUSTRY",
+    "address": ["109.94.209.233"]
+  } 
 ]

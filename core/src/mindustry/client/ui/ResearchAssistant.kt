@@ -6,20 +6,27 @@ import arc.struct.*
 import mindustry.Vars.*
 import mindustry.content.TechTree.*
 import mindustry.game.*
+import mindustry.type.*
 
 /** Handles various client behavior related to research in campaign */
 object ResearchAssistant: Table() {
-    val queue: Seq<TechNode> = Seq()
-    var sectors = 0
+    private val queue = Seq<TechNode>()
+    private var sectors = content.planets().sum { it.sectors.count(Sector::hasBase) } // Owned sector count
+    private var autoResearch = false
+
     init {
-        content.planets().each { p -> p.sectors.each { s -> if (s.hasBase()) sectors++ } } // Owned sector count
         drawQueue()
         Events.on(EventType.TurnEvent::class.java) {
-            if (state.isCampaign) {
-                sectors = 0
-                content.planets().each { p -> p.sectors.each { s -> if (s.hasBase()) sectors++ } } // Owned sector count
+            if (state.isCampaign && !net.client()) {
+                sectors = content.planets().sum { it.sectors.count(Sector::hasBase) }
 
-                for (node in queue) spend(node)
+                queue.each { spend(it) }
+
+                // Run until no new nodes are unlocked
+                while (autoResearch && ui.research.nodes.any {
+                    if (it.visible && ui.research.view.canSpend(it.node)) spend(it.node)
+                    else false
+                }) {}
             }
         }
     }
@@ -39,15 +46,22 @@ object ResearchAssistant: Table() {
 
     private fun drawQueue() {
         top().right().clearChildren()
-        add(if (queue.isEmpty) "Shift + Click to Queue Research" else "Research Queue:")
+        defaults().right().top()
 
-        for (node in queue) button(node.content.emoji()) { dequeue(node) }.pad(5F)
+        check("Automatically Research Everything (Queue is Prioritized)", autoResearch) { autoResearch = it } // FINISHME: Bundle
 
         row()
-        add("Sectors Captured: $sectors").colspan(this.columns).right()
+        table {
+            it.add(if (queue.isEmpty) "Shift + Click to Queue Research" else "Research Queue:") // FINISHME: Bundle
+
+            for (node in queue) it.button(node.content.emoji()) { dequeue(node) }.pad(5F)
+        }
+
+        row()
+        add("Sectors Captured: $sectors").colspan(this.columns) // FINISHME: Bundle
     }
 
-    fun spend(node: TechNode) {
+    fun spend(node: TechNode): Boolean {
         val shine = BooleanArray(node.requirements.size)
         val usedShine = BooleanArray(content.items().size)
 
@@ -73,14 +87,14 @@ object ResearchAssistant: Table() {
             }
         }
         //disable completion if not all requirements are met
-        var complete = true
-        node.requirements.forEachIndexed {i, _ ->  if (node.finishedRequirements[i].amount < node.requirements[i].amount) complete = false}
-        if (complete) ui.research.view.unlock(node)
+        val completed = node.requirements.withIndex().all { node.finishedRequirements[it.index].amount >= it.value.amount }
+        if (completed) ui.research.view.unlock(node)
         node.save()
 
         //??????
         Core.scene.act()
         ui.research.view.rebuild(shine)
         ui.research.itemDisplay.rebuild(ui.research.items, usedShine)
+        return completed
     }
 }

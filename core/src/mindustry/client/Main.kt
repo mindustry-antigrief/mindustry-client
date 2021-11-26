@@ -16,11 +16,13 @@ import mindustry.game.*
 import mindustry.game.Teams.*
 import mindustry.gen.*
 import mindustry.input.*
+import mindustry.ui.fragments.*
 import java.nio.file.Files
 import java.security.cert.*
 import java.util.Timer
 import java.util.concurrent.*
 import kotlin.concurrent.*
+import kotlin.math.*
 import kotlin.random.Random
 
 object Main : ApplicationListener {
@@ -32,12 +34,14 @@ object Main : ApplicationListener {
     lateinit var keyStorage: KeyStorage
     lateinit var signatures: Signatures
     lateinit var ntp: NTP
+    private var planSendTime = 0L
+    private var isSendingPlans = false
 
     /** Run on client load. */
     override fun init() {
         if (Core.app.isDesktop) {
             ntp = NTP()
-            communicationSystem = SwitchableCommunicationSystem(MessageBlockCommunicationSystem)
+            communicationSystem = SwitchableCommunicationSystem(BlockCommunicationSystem)
             communicationSystem.init()
 
             keyStorage = KeyStorage(Core.settings.dataDirectory.file())
@@ -57,7 +61,7 @@ object Main : ApplicationListener {
             dispatchedBuildPlans.clear()
         }
         Events.on(EventType.ServerJoinEvent::class.java) {
-                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
+                communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
         }
 
         communicationClient.addListener { transmission, senderId ->
@@ -103,40 +107,49 @@ object Main : ApplicationListener {
                         isValid = check(transmission)
                     }
                 }
+
+                is CommandTransmission -> {
+                    transmission.type ?: return@addListener
+                    if (transmission.verify()) transmission.type.lambda(transmission)
+                }
             }
         }
     }
 
     /** @return if it's done or not, NOT if it's valid */
     private fun check(transmission: SignatureTransmission): Boolean {
-        return if (transmission.secureOnly) true // The parameter being unused is annoying
-        else true // FINISHME: Broken in v132
-
-        /*
         val ending = InvisibleCharCoder.encode(transmission.messageId.toBytes())
-        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.message.endsWith(ending) } ?: return false
+
+        fun invalid(msg: ChatFragment.ChatMessage, cert: X509Certificate?) {
+            msg.sender = cert?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator") ?: "Verification failed"
+            msg.backgroundColor = ClientVars.invalid
+            msg.prefix = "${Iconc.cancel} "
+            msg.format()
+        }
+
+        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.unformatted.endsWith(ending) } ?: return false
+
+        if (!msg.message.endsWith(msg.unformatted)) { invalid(msg, null) }
+
         if (!Core.settings.getBool("highlightcryptomsg")) return true
         val output = signatures.verifySignatureTransmission(msg.unformatted.encodeToByteArray(), transmission)
-        when (output.first) {
+
+        return when (output.first) {
             Signatures.VerifyResult.VALID -> {
                 msg.sender = output.second?.run { keyStorage.aliasOrName(this) }
                 msg.backgroundColor = ClientVars.verified
                 msg.prefix = "${Iconc.ok} "
                 msg.format()
-                return true
+                true
             }
             Signatures.VerifyResult.INVALID -> {
-                msg.sender = output.second?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator")
-                msg.backgroundColor = ClientVars.invalid
-                msg.prefix = "${Iconc.cancel} "
-                msg.format()
-                return true
+                invalid(msg, output.second)
+                true
             }
             Signatures.VerifyResult.UNKNOWN_CERT -> {
-                return true
+                true
             }
         }
-        */
     }
 
     fun sign(content: String): String {
@@ -160,8 +173,8 @@ object Main : ApplicationListener {
         }
 
         if (ClientVars.dispatchingBuildPlans) {
-            if (!Vars.net.client()) Vars.player.unit().plans.each { addBuildPlan(it) } // Player plans -> block ghosts in single player
-            if (!communicationClient.inUse && Groups.player.size() > 1 && buildPlanInterval.get(5 * 60f)) sendBuildPlans()
+            if (!Vars.net.client()) Vars.player.unit().plans.each { if (BuildPlanCommunicationSystem.isNetworking(it)) return@each; addBuildPlan(it) } // Player plans -> block ghosts in single player
+            if (!isSendingPlans && !communicationClient.inUse && Groups.player.size() > 1 && buildPlanInterval.get(max(5 * 60f, planSendTime / 16.666f + 3 * 60))) sendBuildPlans()
         }
 
         for (peer in tlsPeers) {
@@ -193,15 +206,19 @@ object Main : ApplicationListener {
     fun setPluginNetworking(enable: Boolean) {
         when {
             enable -> {
-                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem //FINISHME: Re-implement packet plugin
+                communicationSystem.activeCommunicationSystem = BlockCommunicationSystem //FINISHME: Re-implement packet plugin
             }
             Core.app?.isDesktop == true -> {
-                communicationSystem.activeCommunicationSystem = MessageBlockCommunicationSystem
+                communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
             }
             else -> {
                 communicationSystem.activeCommunicationSystem = DummyCommunicationSystem(mutableListOf())
             }
         }
+    }
+
+    fun send(transmission: Transmission) {
+        communicationClient.send(transmission)
     }
 
     fun floatEmbed(): Vec2 {
@@ -226,9 +243,12 @@ object Main : ApplicationListener {
     }
 
     private fun sendBuildPlans(num: Int = 500) {
-        val toSend = Vars.player.unit().plans.toList().takeLast(num).toTypedArray()
+        var count = 0
+        val toSend = Vars.player.unit().plans.toList().takeLastWhile { !BuildPlanCommunicationSystem.isNetworking(it) && count++ < num }.toTypedArray()
         if (toSend.isEmpty()) return
-        communicationClient.send(BuildQueueTransmission(toSend), { Toast(3f).add(Core.bundle.format("client.sentplans", toSend.size)) }, { Toast(3f).add("@client.nomessageblock")})
+        isSendingPlans = true
+        val start = Time.millis()
+        communicationClient.send(BuildQueueTransmission(toSend), { isSendingPlans = false; planSendTime = Time.timeSinceMillis(start); Toast(3f).add(Core.bundle.format("client.sentplans", toSend.size)) }, { Toast(3f).add("@client.nomessageblock")})
         dispatchedBuildPlans.addAll(toSend)
     }
 
@@ -260,15 +280,7 @@ object Main : ApplicationListener {
 
                 is CommandTransmission -> {
                     transmission.type ?: return@addListener
-                    val encoded = system.peer.expectedCert.encoded
-                    if (transmission.type.builtinOnly) {
-                        if (keyStorage.builtInCerts.any { encoded.contentEquals(it.encoded) }) {
-                            transmission.type.lambda(transmission, system.peer.expectedCert)
-                        }
-                    } else {
-                        // the peer's certificate must be trusted if there's a connection with them so no check is needed
-                        transmission.type.lambda(transmission, system.peer.expectedCert)
-                    }
+                    if (transmission.verify()) transmission.type.lambda(transmission)
                 }
             }
         }
