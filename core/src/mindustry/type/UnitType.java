@@ -90,6 +90,8 @@ public class UnitType extends UnlockableContent{
     public BlockFlag[] targetFlags = {null};
     /** targetFlags, as an override for "non-AI" teams. By default, units of this type will rush the core. */
     public BlockFlag[] playerTargetFlags = {BlockFlag.core, null};
+    /** Target items to mine. Used in MinerAI */
+    public Seq<Item> mineItems = Seq.with(Items.copper, Items.lead, Items.titanium, Items.thorium);
 
     public Color outlineColor = Pal.darkerMetal;
     public Color accentCopy = Pal.accent.cpy();
@@ -121,6 +123,8 @@ public class UnitType extends UnlockableContent{
     public boolean canDrown = true, naval = false;
     public float drownTimeMultiplier = 1f;
     public float engineOffset = 5f, engineSize = 2.5f;
+    public @Nullable Color engineColor = null;
+    public Color engineColorInner = Color.white;
     public float strafePenalty = 0.5f;
     public float hitSize = 6f;
     public float itemOffsetY = 3f;
@@ -774,14 +778,14 @@ public class UnitType extends UnlockableContent{
             trail.draw(unit.team.color.cpy().a(alpha), (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f) * scale) * trailScl);
         }
 
-        Draw.color(unit.team.color);
+        Draw.color(engineColor == null ? unit.team.color : engineColor);
         Draw.alpha(alpha);
         Fill.circle(
             unit.x + Angles.trnsx(unit.rotation + 180, offset),
             unit.y + Angles.trnsy(unit.rotation + 180, offset),
             (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f)) * scale
         );
-        Draw.color(Color.white);
+        Draw.color(engineColorInner);
         Draw.alpha(alpha);
         Fill.circle(
             unit.x + Angles.trnsx(unit.rotation + 180, offset - 1f),

@@ -182,6 +182,7 @@ public class LightRenderer{
     public void draw(){
         if(!Core.settings.getBool("lighting") || !Vars.enableLight){
             lights.clear();
+            circleIndex = 0;
             return;
         }
 
