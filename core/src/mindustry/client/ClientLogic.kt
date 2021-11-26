@@ -107,7 +107,7 @@ class ClientLogic {
             if (e.unit == null || e.team != Vars.player.team() || !Core.settings.getBool("processorconfigs")) return@on
             val build = e.tile.build as? LogicBlock.LogicBuild ?: return@on
             val packed = e.tile.pos()
-            if (!processorConfigs.containsKey(packed) return@on
+            if (!processorConfigs.containsKey(packed)) return@on
             if(build.code.any() || build.links.any()) {
                 processorConfigs.remove(packed)
                 return@on
