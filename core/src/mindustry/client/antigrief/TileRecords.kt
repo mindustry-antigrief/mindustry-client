@@ -5,7 +5,6 @@ import arc.math.Mathf
 import mindustry.*
 import mindustry.ai.types.*
 import mindustry.client.*
-import mindustry.client.antigrief.TileLog.Companion.linkedArea
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.game.*
@@ -27,35 +26,33 @@ object TileRecords {
                     addLog(tile, TileBreakLog(tile, it.unit.toInteractor(), tile.block()))
                 }
             } else {
-                forArea(it.tile, it.newBlock.size) { tile ->
+                it.tile.getLinkedTilesAs(it.newBlock) { tile ->
                     addLog(tile, TilePlacedLog(tile, it.unit.toInteractor(), it.newBlock, tile.build?.config()))
                 }
             }
         }
 
         Events.on(EventType.ConfigEventBefore::class.java) {
-            if (!Vars.state.rules.editor) {
-                forArea(it.tile.tile) { tile ->
-                    addLog(tile, ConfigureTileLog(tile, it.player.toInteractor(), tile.block(), it.value))
-                }
+            it.tile.tile.getLinkedTiles { tile ->
+                addLog(tile, ConfigureTileLog(tile, it.player.toInteractor(), tile.block(), it.value))
             }
         }
 
         Events.on(EventType.BuildPayloadPickup::class.java) {
-            forArea(it.tile) { tile ->
+            it.tile.getLinkedTiles { tile ->
                 addLog(tile, BlockPayloadPickupLog(tile, it.unit.toInteractor(), it.building.block))
             }
         }
 
         Events.on(EventType.BuildPayloadDrop::class.java) {
-            forArea(it.tile, it.building.block.size) { tile ->
+            it.tile.getLinkedTilesAs(it.building.block) { tile ->
                 addLog(tile, BlockPayloadDropLog(tile, it.unit.toInteractor(), it.building.block, it.building.config()))
             }
         }
 
         Events.on(EventType.BlockDestroyEvent::class.java) {
             if (it.tile.team() != Vars.player.team()) return@on // Couldn't care less about enemies, especially in flood
-            forArea(it.tile) { tile ->
+            it.tile.getLinkedTiles { tile ->
                 addLog(tile, TileDestroyedLog(tile,
                     if (tile.build is ConstructBlock.ConstructBuild) (tile.build as ConstructBlock.ConstructBuild).current ?:
                     (tile.build as ConstructBlock.ConstructBuild).previous
@@ -69,14 +66,6 @@ object TileRecords {
             if(controller !is LogicAI && controller !is FormationAI && controller !is Player) return@on
             forArea(it.unit.tileOn(), Mathf.ceil(it.unit.type.hitSize / Vars.tilesize)) { tile ->
                 addLog(tile, UnitDestroyedLog(tile, it.unit.toInteractor(), it.unit, controller is Player))
-            }
-        }
-    }
-
-    private inline fun forArea(tile: Tile, size: Int = tile.block().size, block: (Tile) -> Unit) {
-        for (point in linkedArea(tile, size)) {
-            if (point in Vars.world) {
-                block(Vars.world[point])
             }
         }
     }
