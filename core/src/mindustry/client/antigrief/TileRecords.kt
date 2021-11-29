@@ -64,8 +64,13 @@ object TileRecords {
             if(it.unit == null || it.unit.team() != Vars.player.team() || it.unit.tileOn() == null) return@on
             val controller = it.unit.controller()
             if(controller !is LogicAI && controller !is FormationAI && controller !is Player) return@on
-            forArea(it.unit.tileOn(), Mathf.ceil(it.unit.type.hitSize / Vars.tilesize)) { tile ->
-                addLog(tile, UnitDestroyedLog(tile, it.unit.toInteractor(), it.unit, controller is Player))
+
+            val threshold = it.unit.type.hitSize * it.unit.type.hitSize + 0.01f
+            for (point in TileLog.linkedArea(it.unit.tileOn(), Mathf.ceil(it.unit.type.hitSize / Vars.tilesize))) {
+                if (point in Vars.world && it.unit.within(Vars.world[point], threshold)) {
+                    val tile = Vars.world[point]
+                    addLog(tile, UnitDestroyedLog(tile, it.unit.toInteractor(), it.unit, controller is Player))
+                }
             }
         }
     }
