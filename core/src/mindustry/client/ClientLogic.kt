@@ -106,10 +106,10 @@ class ClientLogic {
             if (e.unit == null || e.team != Vars.player.team() || !Core.settings.getBool("processorconfigs")) return@on
             val build = e.tile.build as? LogicBlock.LogicBuild ?: return@on
             val packed = e.tile.pos()
-            Log.info("${e.tile.pos()} ${!processorConfigs.containsKey(packed)} ${build.code.any()} ${build.links.any()}\n${processorConfigs.get(packed)}")
-            if (!processorConfigs.containsKey(packed) || build.code.any() || build.links.any()) return@on
+            if (!processorConfigs.containsKey(packed)) return@on
 
-            configs.add(ConfigRequest(e.tile.x.toInt(), e.tile.y.toInt(), processorConfigs.remove(packed)))
+            if (build.code.any() || build.links.any()) processorConfigs.remove(packed) // Someone else built a processor with data
+            else configs.add(ConfigRequest(e.tile.x.toInt(), e.tile.y.toInt(), processorConfigs.remove(packed)))
         }
     }
 }

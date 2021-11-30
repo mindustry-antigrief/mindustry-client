@@ -42,7 +42,6 @@ import java.security.cert.*
 import kotlin.math.*
 import kotlin.random.*
 
-
 object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
@@ -284,9 +283,9 @@ object Client {
 
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
             player.sendMessage(when {
-                BlockCommunicationSystem.logicAvailable -> BlockCommunicationSystem.findProcessor()!!.run { "[accent]Using a logic block at (${this.x}, ${this.y})" }
-                BlockCommunicationSystem.messagesAvailable -> BlockCommunicationSystem.findMessage()!!.run { "[accent]Using a message block at (${this.x}, ${this.y})" }
-                else -> "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)"
+                BlockCommunicationSystem.logicAvailable -> BlockCommunicationSystem.findProcessor()!!.run { "[accent]Using a logic block at (${tileX()}, ${tileY()})" } // FINISHME: Bundle
+                BlockCommunicationSystem.messagesAvailable -> BlockCommunicationSystem.findMessage()!!.run { "[accent]Using a message block at (${tileX()}, ${tileY()})" } // FINISHME: Bundle
+                else -> "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)" // FINISHME: Bundle
             })
         }
 
