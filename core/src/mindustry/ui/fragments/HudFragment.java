@@ -321,7 +321,7 @@ public class HudFragment extends Fragment{
                             ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                         }
                     }
-                    lastWarn = 0; // Reset timer so that it sends 30s after the last core damage rather than every 30s FINISHME: Better way to do this?
+                    lastWarn = Time.millis(); // Reset timer so that it sends 30s after the last core damage rather than every 30s FINISHME: Better way to do this?
                     coreAttackTime[0] = notifDuration;
                     ClientVars.coreWarnPos.set(event.core.x, event.core.y);
                 });
