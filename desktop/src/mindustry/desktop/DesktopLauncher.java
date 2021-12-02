@@ -61,11 +61,9 @@ public class DesktopLauncher extends ClientLauncher{
                     "java";
                 Fi jar = Fi.get(DesktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
                 try {
-                    Seq<String> args = new Seq<String>(){{ //this is horrible but the args persist this way
-                        add(javaPath);
-                        System.getProperties().entrySet().forEach(it -> add("-D" + it));
-                        addAll("-XstartOnFirstThread", "-jar", jar.absolutePath(), "-firstThread");
-                    }};
+                    Seq<String> args = Seq.with(javaPath);
+                    args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
+                    args.addAll("-XstartOnFirstThread", "-jar", jar.absolutePath(), "-firstThread");
 
                     new ProcessBuilder(args.toArray(String.class)).inheritIO().start().waitFor();
                     return;
@@ -382,7 +380,7 @@ public class DesktopLauncher extends ClientLauncher{
                 presence.state = uiState;
             }
 
-            presence.largeImageKey = "logo";
+            presence.largeImageKey = "https://cdn.discordapp.com/avatars/244966266845134858/2914cc9a7567e0bea9032e5dcb4e33a3.png";
             presence.smallImageKey = "foo";
             presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
             presence.startTimestamp = state.tick == 0 ? beginTime/1000 : Time.millis() - (long)(state.tick * 16.666f);
