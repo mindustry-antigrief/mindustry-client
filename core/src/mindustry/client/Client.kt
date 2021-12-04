@@ -426,9 +426,9 @@ object Client {
             player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (previous) "off" else "on").lowercase()))
         }
 
-        register("stoppathing <name>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
-            val name = args[0]
-            val player = Groups.player.minByOrNull { Strings.levenshtein(it.name, name) } ?: return@register
+        register("stoppathing <name...>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
+            val name = args.joinToString(" ")
+            val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(it.name, name) }!!
             Main.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH, Main.keyStorage.cert() ?: return@register, player))
             // FINISHME: success message
         }

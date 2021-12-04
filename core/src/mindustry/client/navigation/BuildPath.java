@@ -147,7 +147,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                             for (int x = lowerXBound ; x <= upperXBound; x++) {
                                 for (int y = lowerYBound ; y <= upperYBound; y++) {
                                     if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {
-                                        if (!turret.targetGround) blocked.set(x, y);
+                                        if (turret.targetGround) blocked.set(x, y);
                                         if (turret.canHitPlayer) blockedPlayer.set(x, y);
                                     }
                                 }
