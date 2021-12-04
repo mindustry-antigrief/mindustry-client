@@ -283,7 +283,7 @@ object Client {
 
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
             player.sendMessage(
-                BlockCommunicationSystem.findProcessor()?.run { "[accent]Using a logic block at (${tileX()}, ${tileY()})" }  ?: // FINISHME: Bundle
+                BlockCommunicationSystem.findProcessor()?.run { "[accent]Using a logic block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
                 BlockCommunicationSystem.findMessage()?.run { "[accent]Using a message block at (${tileX()}, ${tileY()})" } ?:// FINISHME: Bundle
                 "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)" // FINISHME: Bundle
             )
@@ -426,9 +426,9 @@ object Client {
             player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (previous) "off" else "on").lowercase()))
         }
 
-        register("stoppathing <name...>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
+        register("stoppathing <name/id...>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
             val name = args.joinToString(" ")
-            val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(it.name, name) }!!
+            val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(Strings.stripColors(it.name), name) }!!
             Main.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH, Main.keyStorage.cert() ?: return@register, player))
             // FINISHME: success message
         }
