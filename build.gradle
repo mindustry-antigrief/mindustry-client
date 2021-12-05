@@ -206,7 +206,7 @@ allprojects{
 
     tasks.withType(JavaCompile){
         targetCompatibility = 8
-        sourceCompatibility = 15
+        sourceCompatibility = JavaVersion.VERSION_16
         options.encoding = "UTF-8"
         options.compilerArgs += ["-Xlint:deprecation", "-Xmaxerrs", "5000"]
         dependsOn clearCache
@@ -223,20 +223,13 @@ configure(project(":annotations")){
 //compile with java 8 compatibility for everything except the annotation project
 configure(subprojects - project(":annotations")){
     tasks.withType(JavaCompile){
-        if(JavaVersion.current() != JavaVersion.VERSION_1_8){
-            options.compilerArgs.addAll(['--release', '8', '--enable-preview'])
-        }
-
-        doFirst{
-            options.compilerArgs = options.compilerArgs.findAll{it != '--enable-preview' }
-        }
+        options.compilerArgs.addAll(['--release', '8'])
     }
 
     tasks.withType(Javadoc){
         options{
             addStringOption('Xdoclint:none', '-quiet')
-            addBooleanOption('-enable-preview', true)
-            addStringOption('-release', '14')
+            addStringOption('-release', '16')
         }
     }
 }
