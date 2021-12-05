@@ -18,6 +18,7 @@ import mindustry.entities.*
 import mindustry.entities.units.*
 import mindustry.gen.*
 import mindustry.input.*
+import mindustry.logic.*
 import mindustry.net.*
 import mindustry.world.blocks.power.*
 import kotlin.math.*
@@ -84,9 +85,31 @@ object Client {
         }
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
-            val unit = content.units().copy().sort { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }.first()
-            // TODO: Make this check each unit to see if it is a player/formation unit, display that info
-            player.sendMessage(Strings.format("[accent]@: @/@", unit.localizedName, player.team().data().countType(unit), Units.getCap(player.team())))
+            val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
+            val counts = intArrayOf(0, 0, Units.getCap(player.team()), 0, 0, 0, 0, 0)
+
+            for (unit in player.team().data().units) {
+                if (unit.type != type) continue
+
+                when (unit.sense(LAccess.controlled).toInt()) {
+                    GlobalConstants.ctrlPlayer -> counts[5]++
+                    GlobalConstants.ctrlFormation -> counts[6]++
+                    GlobalConstants.ctrlProcessor -> counts[7]++
+                    else -> counts[1]++
+                }
+                counts[0]++
+                if (unit.flag != 0.0) counts[3]++
+                else counts[4]++
+            }
+
+            player.sendMessage("""
+                [accent]${type.localizedName}:
+                Total: ${counts[0]}
+                Free: ${counts[1]}
+                Cap: ${counts[2]}
+                Flagged(Unflagged): ${counts[3]}(${counts[4]})
+                Players(Formation): ${counts[5]}(${counts[6]})
+                Logic Controlled: ${counts[7]}""".trimIndent())
         }
 
         register("go [x] [y]", Core.bundle.get("client.command.go.description")) { args, player ->
@@ -215,31 +238,45 @@ object Client {
         }
 
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
-            val confirmed = args.any() && args[0] == "c" // Don't configure by default
-            var n = 0
-            val grids = mutableMapOf<Int, MutableSet<Int>>()
-            for (grid in PowerGraph.activeGraphs.filter { g -> g.team == player.team() }) {
-                for (nodeBuild in grid.all) {
-                    val nodeBlock = nodeBuild.block as? PowerNode ?: continue
-                    var links = nodeBuild.power.links.size
-                    nodeBlock.getPotentialLinks(nodeBuild.tile, player.team()) { link ->
-                        if (PowerDiode.connected.any { it.first == min(grid.id, link.power.graph.id) && it.second == max(grid.id, link.power.graph.id) }) return@getPotentialLinks // Don't connect across diodes
-                        if (++links > nodeBlock.maxNodes) return@getPotentialLinks // Respect max links
-                        val t = grids.getOrPut(grid.id) { mutableSetOf(grid.id) }
-                        val l = grids.getOrDefault(link.power.graph.id, mutableSetOf())
-                        if (l.add(grid.id) && t.add(link.power.graph.id)) {
-                            l.addAll(t)
-                            grids[link.power.graph.id] = l
-                            if (confirmed) configs.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
-                            n++
+            clientThread.taskQueue.post {
+                val confirmed = args.any() && args[0] == "c" // Don't configure by default
+                val inProgress = !configs.isEmpty
+                val originalCount = PowerGraph.activeGraphs.select { it.team == player.team() }.size
+                var n = 0
+                val grids = mutableMapOf<Int, MutableSet<Int>>()
+
+                for (grid in PowerGraph.activeGraphs.select { it.team == player.team() }) { // This is horrible but works somehow
+                    for (nodeBuild in grid.all) {
+                        val nodeBlock = nodeBuild.block as? PowerNode ?: continue
+                        var links = nodeBuild.power.links.size
+                        nodeBlock.getPotentialLinks(nodeBuild.tile, player.team()) { link ->
+                            if (PowerDiode.connected.any { it.first == min(grid.id, link.power.graph.id) && it.second == max(grid.id, link.power.graph.id) }) return@getPotentialLinks // Don't connect across diodes
+                            if (++links > nodeBlock.maxNodes) return@getPotentialLinks // Respect max links
+                            val t = grids.getOrPut(grid.id) { mutableSetOf(grid.id) }
+                            val l = grids.getOrDefault(link.power.graph.id, mutableSetOf())
+                            if (l.add(grid.id) && t.add(link.power.graph.id)) {
+                                l.addAll(t)
+                                grids[link.power.graph.id] = l
+                                if (confirmed && !inProgress) configs.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
+                                n++
+                            }
                         }
                     }
                 }
+                if (confirmed) {
+                    if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
+                    else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, originalCount - n))
+                } else {
+                    player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, originalCount))
+                }
             }
-            if (confirmed) {
-                player.sendMessage(Core.bundle.format("client.command.fixpower.success", n))
-            } else {
-                player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, PowerGraph.activeGraphs.size))
+        }
+
+        register("distance [distance]", "Sets the assist distance multiplier distance (default is 1.5)") { args, player -> // FINISHME: Bundle
+            if (args.size != 1) player.sendMessage("[accent]The distance multiplier is ${Core.settings.getFloat("assistdistance", 1.5f)} (default is 1.5)")
+            else {
+                Core.settings.put("assistdistance", abs(Strings.parseFloat(args[0], 1.5f)))
+                player.sendMessage("[accent]The distance multiplier is now ${Core.settings.getFloat("assistdistance")} (default is 1.5)")
             }
         }
     }

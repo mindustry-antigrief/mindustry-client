@@ -1,10 +1,10 @@
 package mindustry.client.navigation
 
+import arc.*
 import arc.math.geom.*
 import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.gen.*
-import kotlin.math.*
 
 class AssistPath(private val assisting: Player?) : Path() {
     private var show: Boolean = true
@@ -23,7 +23,7 @@ class AssistPath(private val assisting: Player?) : Path() {
         assisting.unit() ?: return
         player.unit() ?: return
 
-        val tolerance = max(assisting.unit().hitSize * 1.5f, player.unit().hitSize * 1.5f)
+        val tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)
 
         try {
             player.shooting(assisting.unit().isShooting) // Match shoot state
