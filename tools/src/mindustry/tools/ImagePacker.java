@@ -195,9 +195,9 @@ public class ImagePacker{
     }
 
     static void generate(String name, Runnable run){
-        Time.mark();
+        long start = Time.millis();
         run.run();
-        Log.info("&ly[Generator]&lc Time to generate &lm@&lc: &lg@&lcms", name, Time.elapsed());
+        Log.info("&ly[Generator]&lc Time to generate &lm@&lc: &lg@&lcms", name, Time.timeSinceMillis(start));
     }
 
     static Pixmap get(String name){

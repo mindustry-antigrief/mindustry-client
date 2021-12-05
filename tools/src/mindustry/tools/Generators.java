@@ -32,9 +32,9 @@ public class Generators{
 
     public static void run(){
         ObjectMap<Block, Pixmap> gens = new ObjectMap<>();
+        ExecutorService bigExec = Threads.executor(OS.cores);
 
-        generate("splashes", () -> {
-
+        bigExec.execute(() -> generate("splashes", () -> {
             int frames = 12;
             int size = 32;
             for(int i = 0; i < frames; i++){
@@ -56,10 +56,9 @@ public class Generators{
 
                 pixmap.dispose();
             }
-        });
+        }));
 
-        generate("bubbles", () -> {
-
+        bigExec.execute(() -> generate("bubbles", () -> {
             int frames = 16;
             int size = 40;
             for(int i = 0; i < frames; i++){
@@ -83,9 +82,9 @@ public class Generators{
 
                 pixmap.dispose();
             }
-        });
+        }));
 
-        generate("cliffs", () -> {
+        bigExec.execute(() -> generate("cliffs", () -> {
             ExecutorService exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
             int size = 64;
             int dark = new Color(0.5f, 0.5f, 0.6f, 1f).mul(0.98f).rgba();
@@ -165,9 +164,9 @@ public class Generators{
             }
 
             Threads.await(exec);
-        });
+        }));
 
-        generate("cracks", () -> {
+        bigExec.execute(() -> generate("cracks", () -> {
             for(int size = 1; size <= BlockRenderer.maxCrackSize; size++){
                 int dim = size * 32;
                 int steps = BlockRenderer.crackRegions;
@@ -209,166 +208,168 @@ public class Generators{
                     Fi.get("cracks-" + size + "-" + i + ".png").writePng(output);
                 }
             }
-        });
+        }));
 
-        generate("block-icons", () -> {
-            Pixmap colors = new Pixmap(content.blocks().size, 1);
+        bigExec.execute(() -> {
+            generate("block-icons", () -> {
+                Pixmap colors = new Pixmap(content.blocks().size, 1);
 
-            for(Block block : content.blocks()){
-                if(block.isAir() || block instanceof ConstructBlock || block instanceof OreBlock || block instanceof LegacyBlock) continue;
+                for(Block block : content.blocks()){
+                    if(block.isAir() || block instanceof ConstructBlock || block instanceof OreBlock || block instanceof LegacyBlock) continue;
 
-                block.load();
-                block.loadIcon();
+                    block.load();
+                    block.loadIcon();
 
-                TextureRegion[] regions = block.getGeneratedIcons();
+                    TextureRegion[] regions = block.getGeneratedIcons();
 
-                if(block.variants > 0 || block instanceof Floor){
-                    for(TextureRegion region : block.variantRegions()){
+                    if(block.variants > 0 || block instanceof Floor){
+                        for(TextureRegion region : block.variantRegions()){
+                            GenRegion gen = (GenRegion)region;
+                            if(gen.path == null) continue;
+                            gen.path.copyTo(Fi.get("../editor/editor-" + gen.path.name()));
+                        }
+                    }
+
+                    for(TextureRegion region : block.makeIconRegions()){
                         GenRegion gen = (GenRegion)region;
-                        if(gen.path == null) continue;
-                        gen.path.copyTo(Fi.get("../editor/editor-" + gen.path.name()));
+                        save(get(region).outline(block.outlineColor, block.outlineRadius), gen.name + "-outline");
                     }
-                }
 
-                for(TextureRegion region : block.makeIconRegions()){
-                    GenRegion gen = (GenRegion)region;
-                    save(get(region).outline(block.outlineColor, block.outlineRadius), gen.name + "-outline");
-                }
+                    Pixmap shardTeamTop = null;
 
-                Pixmap shardTeamTop = null;
+                    if(block.teamRegion.found()){
+                        Pixmap teamr = get(block.teamRegion);
 
-                if(block.teamRegion.found()){
-                    Pixmap teamr = get(block.teamRegion);
+                        for(Team team : Team.all){
+                            if(team.hasPalette){
+                                Pixmap out = new Pixmap(teamr.width, teamr.height);
+                                teamr.each((x, y) -> {
+                                    int color = teamr.getRaw(x, y);
+                                    int index = color == 0xffffffff ? 0 : color == 0xdcc6c6ff ? 1 : color == 0x9d7f7fff ? 2 : -1;
+                                    out.setRaw(x, y, index == -1 ? teamr.getRaw(x, y) : team.palettei[index]);
+                                });
+                                save(out, block.name + "-team-" + team.name);
 
-                    for(Team team : Team.all){
-                        if(team.hasPalette){
-                            Pixmap out = new Pixmap(teamr.width, teamr.height);
-                            teamr.each((x, y) -> {
-                                int color = teamr.getRaw(x, y);
-                                int index = color == 0xffffffff ? 0 : color == 0xdcc6c6ff ? 1 : color == 0x9d7f7fff ? 2 : -1;
-                                out.setRaw(x, y, index == -1 ? teamr.getRaw(x, y) : team.palettei[index]);
-                            });
-                            save(out, block.name + "-team-" + team.name);
-
-                            if(team == Team.sharded){
-                                shardTeamTop = out;
+                                if(team == Team.sharded){
+                                    shardTeamTop = out;
+                                }
                             }
                         }
                     }
-                }
 
-                if(regions.length == 0){
-                    continue;
-                }
-
-                try{
-                    Pixmap last = null;
-                    if(block.outlineIcon){
-                        GenRegion region = (GenRegion)regions[block.outlinedIcon >= 0 ? block.outlinedIcon : regions.length -1];
-                        Pixmap base = get(region);
-                        Pixmap out = last = base.outline(block.outlineColor, block.outlineRadius);
-
-                        //do not run for legacy ones
-                        if(block.outlinedIcon >= 0){
-                            //prevents the regions above from being ignored/invisible/etc
-                            for(int i = block.outlinedIcon + 1; i < regions.length; i++){
-                                out.draw(get(regions[i]), true);
-                            }
-                        }
-
-                        region.path.delete();
-
-                        save(out, block.name);
-                    }
-
-                    if(!regions[0].found()){
+                    if(regions.length == 0){
                         continue;
                     }
 
-                    Pixmap image = get(regions[0]);
+                    try{
+                        Pixmap last = null;
+                        if(block.outlineIcon){
+                            GenRegion region = (GenRegion)regions[block.outlinedIcon >= 0 ? block.outlinedIcon : regions.length -1];
+                            Pixmap base = get(region);
+                            Pixmap out = last = base.outline(block.outlineColor, block.outlineRadius);
 
-                    int i = 0;
-                    for(TextureRegion region : regions){
-                        i++;
-                        if(i != regions.length || last == null){
-                            image.draw(get(region), true);
-                        }else{
-                            image.draw(last, true);
+                            //do not run for legacy ones
+                            if(block.outlinedIcon >= 0){
+                                //prevents the regions above from being ignored/invisible/etc
+                                for(int i = block.outlinedIcon + 1; i < regions.length; i++){
+                                    out.draw(get(regions[i]), true);
+                                }
+                            }
+
+                            region.path.delete();
+
+                            save(out, block.name);
                         }
 
-                        //draw shard (default team top) on top of first sprite
-                        if(region == block.teamRegions[Team.sharded.id] && shardTeamTop != null){
-                            image.draw(shardTeamTop, true);
+                        if(!regions[0].found()){
+                            continue;
                         }
-                    }
 
-                    if(!(regions.length == 1 && regions[0] == Core.atlas.find(block.name) && shardTeamTop == null)){
-                        save(image, "block-" + block.name + "-full");
-                    }
+                        Pixmap image = get(regions[0]);
 
-                    save(image, "../editor/" + block.name + "-icon-editor");
+                        int i = 0;
+                        for(TextureRegion region : regions){
+                            i++;
+                            if(i != regions.length || last == null){
+                                image.draw(get(region), true);
+                            }else{
+                                image.draw(last, true);
+                            }
 
-                    if(block.buildVisibility != BuildVisibility.hidden){
-                        saveScaled(image, block.name + "-icon-logic", logicIconSize);
-                    }
-                    saveScaled(image, "../ui/block-" + block.name + "-ui", Math.min(image.width, maxUiIcon));
-
-                    boolean hasEmpty = false;
-                    Color average = new Color(), c = new Color();
-                    float asum = 0f;
-                    for(int x = 0; x < image.width; x++){
-                        for(int y = 0; y < image.height; y++){
-                            Color color = c.set(image.get(x, y));
-                            average.r += color.r*color.a;
-                            average.g += color.g*color.a;
-                            average.b += color.b*color.a;
-                            asum += color.a;
-                            if(color.a < 0.9f){
-                                hasEmpty = true;
+                            //draw shard (default team top) on top of first sprite
+                            if(region == block.teamRegions[Team.sharded.id] && shardTeamTop != null){
+                                image.draw(shardTeamTop, true);
                             }
                         }
-                    }
 
-                    average.mul(1f / asum);
-
-                    if(block instanceof Floor){
-                        average.mul(0.77f);
-                    }else{
-                        average.mul(1.1f);
-                    }
-                    //encode square sprite in alpha channel
-                    average.a = hasEmpty ? 0.1f : 1f;
-                    colors.setRaw(block.id, 0, average.rgba());
-                }catch(NullPointerException e){
-                    Log.err("Block &ly'@'&lr has an null region!", block);
-                }
-            }
-
-            save(colors, "../../../assets/sprites/block_colors");
-        });
-
-        generate("shallows", () -> {
-            content.blocks().<ShallowLiquid>each(b -> b instanceof ShallowLiquid, floor -> {
-                Pixmap overlay = get(floor.liquidBase.region);
-                int index = 0;
-                for(TextureRegion region : floor.floorBase.variantRegions()){
-                    Pixmap res = get(region).copy();
-                    for(int x = 0; x < res.width; x++){
-                        for(int y = 0; y < res.height; y++){
-                            res.set(x, y, Pixmap.blend((overlay.getRaw(x, y) & 0xffffff00) | (int)(floor.liquidOpacity * 255), res.getRaw(x, y)));
+                        if(!(regions.length == 1 && regions[0] == Core.atlas.find(block.name) && shardTeamTop == null)){
+                            save(image, "block-" + block.name + "-full");
                         }
+
+                        save(image, "../editor/" + block.name + "-icon-editor");
+
+                        if(block.buildVisibility != BuildVisibility.hidden){
+                            saveScaled(image, block.name + "-icon-logic", logicIconSize);
+                        }
+                        saveScaled(image, "../ui/block-" + block.name + "-ui", Math.min(image.width, maxUiIcon));
+
+                        boolean hasEmpty = false;
+                        Color average = new Color(), c = new Color();
+                        float asum = 0f;
+                        for(int x = 0; x < image.width; x++){
+                            for(int y = 0; y < image.height; y++){
+                                Color color = c.set(image.get(x, y));
+                                average.r += color.r*color.a;
+                                average.g += color.g*color.a;
+                                average.b += color.b*color.a;
+                                asum += color.a;
+                                if(color.a < 0.9f){
+                                    hasEmpty = true;
+                                }
+                            }
+                        }
+
+                        average.mul(1f / asum);
+
+                        if(block instanceof Floor){
+                            average.mul(0.77f);
+                        }else{
+                            average.mul(1.1f);
+                        }
+                        //encode square sprite in alpha channel
+                        average.a = hasEmpty ? 0.1f : 1f;
+                        colors.setRaw(block.id, 0, average.rgba());
+                    }catch(NullPointerException e){
+                        Log.err("Block &ly'@'&lr has an null region!", block);
                     }
-
-                    String name = floor.name + "" + (++index);
-                    save(res, "../blocks/environment/" + name);
-                    save(res, "../editor/editor-" + name);
-
-                    gens.put(floor, res);
                 }
+
+                save(colors, "../../../assets/sprites/block_colors");
+            });
+
+            generate("shallows", () -> {
+                content.blocks().<ShallowLiquid>each(b -> b instanceof ShallowLiquid, floor -> {
+                    Pixmap overlay = get(floor.liquidBase.region);
+                    int index = 0;
+                    for(TextureRegion region : floor.floorBase.variantRegions()){
+                        Pixmap res = get(region).copy();
+                        for(int x = 0; x < res.width; x++){
+                            for(int y = 0; y < res.height; y++){
+                                res.set(x, y, Pixmap.blend((overlay.getRaw(x, y) & 0xffffff00) | (int)(floor.liquidOpacity * 255), res.getRaw(x, y)));
+                            }
+                        }
+
+                        String name = floor.name + "" + (++index);
+                        save(res, "../blocks/environment/" + name);
+                        save(res, "../editor/editor-" + name);
+
+                        gens.put(floor, res);
+                    }
+                });
             });
         });
 
-        generate("item-icons", () -> {
+        bigExec.execute(() -> generate("item-icons", () -> {
             for(UnlockableContent item : Seq.<UnlockableContent>withArrays(content.items(), content.liquids(), content.statusEffects())){
                 if(item instanceof StatusEffect && !has(item.getContentType().name() + "-" + item.name)){
                     continue;
@@ -390,9 +391,9 @@ public class Generators{
                 saveScaled(base, item.name + "-icon-logic", logicIconSize);
                 save(base, "../ui/" + item.getContentType().name() + "-" + item.name + "-ui");
             }
-        });
+        }));
 
-        generate("team-icons", () -> {
+        bigExec.execute(() -> generate("team-icons", () -> {
             for(Team team : Team.all){
                 if(has("team-" + team.name)){
                     int rgba = team == Team.derelict ? Color.valueOf("b7b8c9").rgba() : team.color.rgba();
@@ -403,9 +404,9 @@ public class Generators{
                     save(base.outline(Pal.gray, 3), "../ui/team-" + team.name);
                 }
             }
-        });
+        }));
 
-        generate("unit-icons", () -> content.units().each(type -> {
+        bigExec.execute(() -> generate("unit-icons", () -> content.units().each(type -> {
             if(type.isHidden()) return; //hidden units don't generate
 
             ObjectSet<String> outlined = new ObjectSet<>();
@@ -451,9 +452,9 @@ public class Generators{
                     weapon.load();
 
                     image.draw(weapon.flipSprite ? outline.get(get(weapon.region)).flipX() : outline.get(get(weapon.region)),
-                    (int)(weapon.x / Draw.scl + image.width / 2f - weapon.region.width / 2f),
-                    (int)(-weapon.y / Draw.scl + image.height / 2f - weapon.region.height / 2f),
-                    true
+                        (int)(weapon.x / Draw.scl + image.width / 2f - weapon.region.width / 2f),
+                        (int)(-weapon.y / Draw.scl + image.height / 2f - weapon.region.height / 2f),
+                        true
                     );
                 }
 
@@ -477,9 +478,9 @@ public class Generators{
                     }
 
                     image.draw(wepReg,
-                    (int)(weapon.x / Draw.scl + image.width / 2f - weapon.region.width / 2f),
-                    (int)(-weapon.y / Draw.scl + image.height / 2f - weapon.region.height / 2f),
-                    true);
+                        (int)(weapon.x / Draw.scl + image.width / 2f - weapon.region.width / 2f),
+                        (int)(-weapon.y / Draw.scl + image.height / 2f - weapon.region.height / 2f),
+                        true);
                 }
 
                 save(image, "unit-" + type.name + "-full");
@@ -528,9 +529,9 @@ public class Generators{
                 Log.err("WARNING: Skipping unit @: @", type.name, e.getMessage());
             }
 
-        }));
+        })));
 
-        generate("ore-icons", () -> {
+        bigExec.execute(() -> generate("ore-icons", () -> {
             content.blocks().<OreBlock>each(b -> b instanceof OreBlock, ore -> {
                 String prefix = ore instanceof WallOreBlock ? "wall-ore-" : "ore-";
                 Item item = ore.itemDrop;
@@ -560,9 +561,9 @@ public class Generators{
                     save(image, "../ui/block-" + ore.name + "-ui");
                 }
             });
-        });
+        }));
 
-        generate("edges", () -> {
+        bigExec.execute(() -> generate("edges", () -> {
             content.blocks().<Floor>each(b -> b instanceof Floor && !(b instanceof OverlayFloor), floor -> {
 
                 if(has(floor.name + "-edge") || floor.blendGroup != floor){
@@ -584,9 +585,9 @@ public class Generators{
 
                 }catch(Exception ignored){}
             });
-        });
+        }));
 
-        generate("scorches", () -> {
+        bigExec.execute(() -> generate("scorches", () -> {
             for(int size = 0; size < 10; size++){
                 for(int i = 0; i < 3; i++){
                     ScorchGenerator gen = new ScorchGenerator();
@@ -611,7 +612,9 @@ public class Generators{
                     median.dispose();
                 }
             }
-        });
+        }));
+
+        Threads.await(bigExec);
     }
 
     /** Generates a scorch pixmap based on parameters. Thread safe. */
