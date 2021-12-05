@@ -455,19 +455,19 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(targets = Loc.both, called = Loc.server, forward = true)
     public static void unitCommand(Player player){
-        if(player == null || player.dead() || !(player.unit() instanceof Commanderc commander)) return;
+        if(player == null || player.dead() || (player.unit() == null)) return;
 
         //make sure player is allowed to make the command
         if(Vars.net.server() && !netServer.admins.allowAction(player, ActionType.command, action -> {})){
             throw new ValidateException(player, "Player cannot command a unit.");
         }
 
-        if(commander.isCommanding()){
-            commander.clearCommand();
+        if(player.unit().isCommanding()){
+            player.unit().clearCommand();
         }else if(player.unit().type.commandLimit > 0){
 
             //TODO try out some other formations
-            commander.commandNearby(new CircleFormation());
+            player.unit().commandNearby(new CircleFormation());
             Fx.commandSend.at(player);
         }
 

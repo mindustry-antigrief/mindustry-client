@@ -44,6 +44,7 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
         it.isDirectory() ? it : zipTree(it)
     }}
     from files(project.assetsDir)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     archiveFileName = "${appName}.jar"
 
