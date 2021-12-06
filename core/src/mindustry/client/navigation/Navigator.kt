@@ -4,6 +4,7 @@ import arc.math.geom.*
 import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.client.utils.*
+import mindustry.content.*
 import mindustry.game.*
 
 /** An abstract class for a navigation algorithm, i.e. A*.  */
@@ -56,7 +57,7 @@ abstract class Navigator {
                 )
             }
         }
-        val flood = flood()
+        val flood = flood() && player.unit().type != UnitTypes.horizon
         return findPath(
             start, end, realObstacles.toTypedArray(), world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->

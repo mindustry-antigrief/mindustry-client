@@ -3,14 +3,14 @@ package mindustry.client.communication
 import arc.util.*
 import mindustry.*
 import mindustry.client.*
-import mindustry.client.crypto.Signatures
+import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.utils.*
-import mindustry.gen.Player
+import mindustry.gen.*
+import java.math.*
 import java.security.cert.*
+import java.time.*
 import kotlin.random.*
-import java.math.BigInteger
-import java.time.Instant
 
 class CommandTransmission : Transmission {
 
@@ -81,6 +81,7 @@ class CommandTransmission : Transmission {
     }
 
     fun verify(): Boolean {
+        if (destination != Vars.player.id) return false
         type ?: return false
         if (timestamp.age() > Signatures.SIGNATURE_EXPIRY_SECONDS) return false  // replay attacks are bad
         val res = Main.signatures.verify(toSignable(), signature, certSN)
