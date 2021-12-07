@@ -204,6 +204,7 @@ public class NetClient implements ApplicationListener{
             Log.info(message);
             message = processCoords(message);
             Vars.ui.chatfrag.addMessage(message, null);
+            if (ClientVars.autoExcavate && Strings.stripColors(message).endsWith("2 additional '/e y' votes required.")) Call.sendChatMessage("/e y");
         }
     }
 

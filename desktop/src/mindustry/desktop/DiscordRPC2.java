@@ -9,6 +9,7 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Simple class for handling Discord Rich Presence.
@@ -75,8 +76,8 @@ public final class DiscordRPC2 {
                                 case "ACTIVITY_JOIN_REQUEST":
                                     Jval2 u = data.get("user");
                                     onActivityJoinRequest.get(data.getString("secret", null),
-                                        new User(u.getString("username"), u.getString("discriminator"),
-                                            Long.parseLong(u.getString("id")), u.getString("avatar", null))
+                                    new User(u.getString("username"), u.getString("discriminator"),
+                                    Long.parseLong(u.getString("id")), u.getString("avatar", null))
                                     );
                                     break;
                             }
@@ -278,8 +279,8 @@ public final class DiscordRPC2 {
                     pipe.send(PacketOp.handshake, Jval2.newObject().put("v", version).put("client_id", Long.toString(clientId)));
                     pipe.status = PipeStatus.connected;
 
-                    //discard read packet
-                    pipe.read();
+                    //discard read packet, for some reason this fails to complete and blocks forever sometimes, so we need a future...
+                    new FutureTask<>(pipe::read).get(1, TimeUnit.SECONDS);
 
                     return pipe;
                 }catch(IOException ignored){
