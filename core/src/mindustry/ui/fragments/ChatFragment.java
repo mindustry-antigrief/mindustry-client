@@ -65,6 +65,21 @@ public class ChatFragment extends Table{
             return ui.hudfrag.shown;
         });
 
+        keyDown((c) -> {
+            if (Autocomplete.matches(chatfield.getText())) {
+                Seq<Autocompleteable> oldCompletion = completion.copy();
+                completion = Autocomplete.closest(chatfield.getText()).filter(item -> item.matches(chatfield.getText()) > 0.5f);
+                completion.reverse();
+                completion.truncate(4);
+                completion.reverse();
+                if (!Arrays.equals(completion.items, oldCompletion.items)) {
+                    completionPos = completion.size - 1;
+                }
+            } else {
+                completion.clear();
+            }
+        });
+
         update(() -> {
 
             if(input.keyTap(Binding.chat) && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null || ui.minimapfrag.shown()) && !ui.scriptfrag.shown()){
@@ -92,18 +107,6 @@ public class ChatFragment extends Table{
                     scene.setKeyboardFocus(chatfield); // Prevents swapping to block search
                 }
                 scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chat_scroll), 0, Math.max(0, messages.size - messagesShown));
-                if (Autocomplete.matches(chatfield.getText())) {
-                    Seq<Autocompleteable> oldCompletion = completion.copy();
-                    completion = Autocomplete.closest(chatfield.getText()).filter(item -> item.matches(chatfield.getText()) > 0.5f);
-                    completion.reverse();
-                    completion.truncate(4);
-                    completion.reverse();
-                    if (!Arrays.equals(completion.items, oldCompletion.items)) {
-                        completionPos = completion.size - 1;
-                    }
-                } else {
-                    completion.clear();
-                }
 
                 if ("!r ".equals(chatfield.getText())) {
                     chatfield.setText("!e " + ClientVars.lastCertName + " ");
