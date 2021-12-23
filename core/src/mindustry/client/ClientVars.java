@@ -1,5 +1,6 @@
 package mindustry.client;
 
+import arc.*;
 import arc.graphics.*;
 import arc.math.geom.*;
 import arc.struct.*;
@@ -12,6 +13,8 @@ public class ClientVars {
     // Misc
     public static short silentTrace; // How many traces to do silently (this is pretty 0head but shh)
     public static IntMap<Object> processorConfigs = new IntMap<>();
+    public static float spawnTime = 60f * Core.settings.getInt("spawntime");
+    public static float travelTime = Core.settings.getFloat("traveltime");
 
     // Config Queue
     @NotNull public static Queue<ConfigRequest> configs = new Queue<>();

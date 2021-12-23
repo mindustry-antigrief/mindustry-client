@@ -46,8 +46,6 @@ object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
     val timer = Interval(2)
-    var spawnTime = 60f * Core.settings.getInt("spawntime")
-    var travelTime = Core.settings.getInt("traveltime").toFloat()
 
     fun initialize() {
         registerCommands()
@@ -82,7 +80,7 @@ object Client {
     }
 
     fun draw() {
-        Spectate.draw();
+        Spectate.draw()
         // Spawn path
         if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
             Draw.color(state.rules.waveTeam.color)
