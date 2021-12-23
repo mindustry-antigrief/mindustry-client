@@ -115,7 +115,7 @@ public class ChatFragment extends Table{
                     chatfield.setText("!builder ");
                     chatfield.setCursorPosition(chatfield.getText().length());
                 }
-                chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 2000 : maxTextLength); // Scuffed way to allow long js
+                chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 0 : maxTextLength - 2 * Mathf.num(Core.settings.getBool("signmessages"))); // Scuffed way to allow long js
             }
         });
 
@@ -348,7 +348,7 @@ public class ChatFragment extends Table{
     }
 
     public void updateChat(){
-        chatfield.setMaxLength(history.get(historyPos).startsWith("!js ") ? 2000 : maxTextLength);
+        chatfield.setMaxLength(history.get(historyPos).startsWith("!js ") ? 0 : maxTextLength - 2 * Mathf.num(Core.settings.getBool("signmessages")));
         chatfield.setText(mode.normalizedPrefix() + history.get(historyPos));
         updateCursor();
     }
