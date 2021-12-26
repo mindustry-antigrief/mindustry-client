@@ -32,6 +32,8 @@ jobs:
 
       - name: Run Tests
         uses: gradle/gradle-build-action@v2
+        env:
+        PATH: ./tools:$PATH
         with:
           gradle-executable: gradlew
           arguments: tools:pack test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client-v7-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel -PfastAA
