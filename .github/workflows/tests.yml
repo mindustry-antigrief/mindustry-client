@@ -18,6 +18,9 @@ jobs:
         with:
           java-version: 16
 
+      - name: Setup gradle cache
+        uses: gradle/gradle-build-action@v2
+
       - name: Timestamp
         id: time
         uses: 1466587594/get-current-time@v2
