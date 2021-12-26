@@ -29,7 +29,7 @@ jobs:
           echo "COMMIT=${GITHUB_SHA::8}" >> $GITHUB_ENV
           export PATH=./tools:$PATH
           chmod +x ./tools/antialias
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }}-v6-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel -PfastAA
+          ./gradlew desktop:dist -PupdateUrl=${{ github.repository }}-v6-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel -PfastAA
 
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v6' || github.event_name == 'workflow_dispatch') }}
@@ -69,7 +69,7 @@ jobs:
           path: desktop/build/libs/Mindustry.jar
 
       - name: Upload Test Results To Pages
-        if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v6' || github.event_name == 'workflow_dispatch') }}
+        if: ${{ false && !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v6' || github.event_name == 'workflow_dispatch') }}
         uses: JamesIves/github-pages-deploy-action@4.0.0
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
