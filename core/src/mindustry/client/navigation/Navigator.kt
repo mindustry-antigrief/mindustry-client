@@ -14,7 +14,7 @@ import mindustry.gen.*
 abstract class Navigator {
     @JvmField
     val map = HashMap<Int, Vec2>()
-    private var lastWp = 0L
+    var lastWp = 0L
     private val realObstacles = mutableListOf<Circle>() // Avoids creating new lists every time navigate is called
 
     init {

@@ -624,6 +624,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Core.input.keyTap(Binding.clear_building)){
+            player.persistPlans.clear();
             processorConfigs.clear();
             player.unit().clearBuilding();
         }
