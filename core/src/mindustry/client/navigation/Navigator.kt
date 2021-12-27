@@ -1,15 +1,27 @@
 package mindustry.client.navigation
 
+import arc.*
 import arc.math.geom.*
+import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.game.*
+import mindustry.gen.*
 
 /** An abstract class for a navigation algorithm, i.e. A*.  */
 abstract class Navigator {
+    @JvmField
+    val map = HashMap<Int, Vec2>()
+    private var lastWp = 0L
     private val realObstacles = mutableListOf<Circle>() // Avoids creating new lists every time navigate is called
+
+    init {
+        Events.on(EventType.WorldLoadEvent::class.java) {
+            map.clear()
+        }
+    }
     /** Called once upon client loading.  */
     abstract fun init()
 
@@ -33,6 +45,7 @@ abstract class Navigator {
         val additionalRadius =
             if (player.unit().formation == null) player.unit().hitSize / 2
             else player.unit().formation().pattern.radius() + player.unit().formation.pattern.spacing / 2
+
         if(state.map.name() != "The Maze") {
             synchronized (obstacles) {
                 for (turret in obstacles) {
@@ -46,6 +59,7 @@ abstract class Navigator {
                 }
             }
         }
+
         if (state.hasSpawns()) { // FINISHME: These should really be weighed less than turrets...
             for (spawn in spawner.spawns) {
                 realObstacles.add(
@@ -57,6 +71,15 @@ abstract class Navigator {
                 )
             }
         }
+
+        if (map.size > 0 && Time.timeSinceMillis(lastWp) > 1000) {
+            val closestCore = map.minByOrNull { it.value.dst(end) }!!
+            if (player.dst(end) > closestCore.value.dst(end)) {
+                lastWp = Time.millis() // Try again in a second
+                Call.sendChatMessage("/wp ${closestCore.key}")
+            } else lastWp = Time.millis() - 900 // Try again in .1s
+        }
+
         val flood = flood() && player.unit().type != UnitTypes.horizon
         return findPath(
             start, end, realObstacles.toTypedArray(), world.unitWidth().toFloat(), world.unitHeight().toFloat()
