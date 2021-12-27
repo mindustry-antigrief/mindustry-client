@@ -40,7 +40,7 @@ class CommandTransmission : Transmission {
     enum class Commands(val builtinOnly: Boolean = false, val lambda: (CommandTransmission) -> Unit) {
         STOP_PATH(false, {
             val cert = Main.keyStorage.findTrusted(BigInteger(it.certSN))!!
-            if (Navigation.currentlyFollowing != null && Time.timeSinceMillis(lastStopTime) > Time.toMinutes * 1 || Main.keyStorage.builtInCerts.contains(cert)) { // FINISHME: Scale time with number of requests or something?
+            if (Navigation.currentlyFollowing != null && (Time.timeSinceMillis(lastStopTime) > Time.toMinutes * 1 || Main.keyStorage.builtInCerts.contains(cert))) { // FINISHME: Scale time with number of requests or something?
                 lastStopTime = Time.millis()
                 val oldPath = Navigation.currentlyFollowing
                 Vars.ui.showCustomConfirm("Pathing Stopped",

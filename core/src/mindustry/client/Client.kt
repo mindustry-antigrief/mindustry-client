@@ -46,8 +46,6 @@ object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
     val timer = Interval(2)
-    var spawnTime = 60f * Core.settings.getInt("spawntime")
-    var travelTime = Core.settings.getInt("traveltime").toFloat()
 
     fun initialize() {
         registerCommands()
@@ -82,7 +80,7 @@ object Client {
     }
 
     fun draw() {
-        Spectate.draw();
+        Spectate.draw()
         // Spawn path
         if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
             Draw.color(state.rules.waveTeam.color)
@@ -109,7 +107,7 @@ object Client {
         if (showingTurrets) {
             Draw.z(Layer.space)
             val units = Core.settings.getBool("unitranges")
-            synchronized (obstacles) {
+            synchronized(obstacles) {
                 for (t in obstacles) {
                     if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
                     Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
@@ -283,7 +281,7 @@ object Client {
 
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
             player.sendMessage(
-                BlockCommunicationSystem.findProcessor()?.run { "[accent]Using a logic block at (${tileX()}, ${tileY()})" }  ?: // FINISHME: Bundle
+                BlockCommunicationSystem.findProcessor()?.run { "[accent]Using a logic block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
                 BlockCommunicationSystem.findMessage()?.run { "[accent]Using a message block at (${tileX()}, ${tileY()})" } ?:// FINISHME: Bundle
                 "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)" // FINISHME: Bundle
             )
@@ -426,9 +424,9 @@ object Client {
             player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (previous) "off" else "on").lowercase()))
         }
 
-        register("stoppathing <name...>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
+        register("stoppathing <name/id...>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
             val name = args.joinToString(" ")
-            val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(it.name, name) }!!
+            val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(Strings.stripColors(it.name), name) }!!
             Main.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH, Main.keyStorage.cert() ?: return@register, player))
             // FINISHME: success message
         }

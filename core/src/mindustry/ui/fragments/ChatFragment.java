@@ -65,6 +65,21 @@ public class ChatFragment extends Table{
             return ui.hudfrag.shown;
         });
 
+        keyDown((c) -> {
+            if (Autocomplete.matches(chatfield.getText())) {
+                Seq<Autocompleteable> oldCompletion = completion.copy();
+                completion = Autocomplete.closest(chatfield.getText()).filter(item -> item.matches(chatfield.getText()) > 0.5f);
+                completion.reverse();
+                completion.truncate(4);
+                completion.reverse();
+                if (!Arrays.equals(completion.items, oldCompletion.items)) {
+                    completionPos = completion.size - 1;
+                }
+            } else {
+                completion.clear();
+            }
+        });
+
         update(() -> {
 
             if(input.keyTap(Binding.chat) && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null || ui.minimapfrag.shown()) && !ui.scriptfrag.shown()){
@@ -92,18 +107,6 @@ public class ChatFragment extends Table{
                     scene.setKeyboardFocus(chatfield); // Prevents swapping to block search
                 }
                 scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chat_scroll), 0, Math.max(0, messages.size - messagesShown));
-                if (Autocomplete.matches(chatfield.getText())) {
-                    Seq<Autocompleteable> oldCompletion = completion.copy();
-                    completion = Autocomplete.closest(chatfield.getText()).filter(item -> item.matches(chatfield.getText()) > 0.5f);
-                    completion.reverse();
-                    completion.truncate(4);
-                    completion.reverse();
-                    if (!Arrays.equals(completion.items, oldCompletion.items)) {
-                        completionPos = completion.size - 1;
-                    }
-                } else {
-                    completion.clear();
-                }
 
                 if ("!r ".equals(chatfield.getText())) {
                     chatfield.setText("!e " + ClientVars.lastCertName + " ");
@@ -112,7 +115,7 @@ public class ChatFragment extends Table{
                     chatfield.setText("!builder ");
                     chatfield.setCursorPosition(chatfield.getText().length());
                 }
-                chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 2000 : maxTextLength); // Scuffed way to allow long js
+                chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 0 : maxTextLength - 2 * Mathf.num(Core.settings.getBool("signmessages"))); // Scuffed way to allow long js
             }
         });
 
@@ -345,7 +348,7 @@ public class ChatFragment extends Table{
     }
 
     public void updateChat(){
-        chatfield.setMaxLength(history.get(historyPos).startsWith("!js ") ? 2000 : maxTextLength);
+        chatfield.setMaxLength(history.get(historyPos).startsWith("!js ") ? 0 : maxTextLength - 2 * Mathf.num(Core.settings.getBool("signmessages")));
         chatfield.setText(mode.normalizedPrefix() + history.get(historyPos));
         updateCursor();
     }

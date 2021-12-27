@@ -452,7 +452,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot control a unit.");
         }
 
-        if (player.isLocal()) player.persistPlans(); // Restore plans after swapping units
+        if (player.isLocal() && Time.timeSinceMillis(Navigation.navigator.getLastWp()) > 1000) player.persistPlans(); // Restore plans after swapping units, ignore cn /wp
 
         //clear player unit when they possess a core
         if(unit == null){ //just clear the unit (is this used?)
