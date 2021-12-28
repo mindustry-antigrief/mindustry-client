@@ -37,7 +37,7 @@ abstract class Navigator {
         obstacles: Seq<Circle>,
         width: Float,
         height: Float,
-        blocked: (Int, Int) -> Boolean
+        blocked: Int2P
     ): Array<PositionWaypoint>
 
     fun navigate(start: Vec2, end: Vec2, obstacles: Iterable<TurretPathfindingEntity>): Array<PositionWaypoint> {
@@ -92,5 +92,9 @@ abstract class Navigator {
         Pools.freeAll(realObstacles)
         realObstacles.clear()
         return ret
+    }
+
+    protected fun interface Int2P {
+        operator fun invoke(x: Int, y: Int) : Boolean
     }
 }
