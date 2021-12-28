@@ -17,6 +17,7 @@ abstract class Path {
         @JvmField val waypoints = WaypointPath<PositionWaypoint>() // FINISHME: Use this in all paths
         private val filter = Seq<PositionWaypoint>()
         private var job: Future<Array<PositionWaypoint>> = CompletableFuture.completedFuture(emptyArray())
+        private val targetPos = Vec2(-1F, -1F)
 
         @JvmOverloads @JvmStatic
         fun goTo(dest: Position, dist: Float = 0F, aStarDist: Float = 0F) = goTo(dest.x, dest.y, dist, aStarDist)
@@ -26,18 +27,24 @@ abstract class Path {
             if (Core.settings.getBool("pathnav") && !Core.settings.getBool("assumeunstrict") && (aStarDist == 0F || Vars.player.dst(destX, destY) > aStarDist)) {
                 if (job.isDone) {
                     Pools.freeAll(filter)
-                    filter.clear().addAll(*job.get()).each( { it.dst(destX, destY) < dist }, { wp: PositionWaypoint ->
-                        filter.remove(wp)
-                        Pools.free(wp)
-                    })
+                    filter.clear()
+                    if (targetPos.within(destX, destY, 1F)) { // Same destination
+                        filter.addAll(*job.get()).each( { it.dst(destX, destY) < dist }, { wp: PositionWaypoint ->
+                            filter.remove(wp)
+                            Pools.free(wp)
+                        })
 
-                    while (filter.size > 1 && filter.min { wp -> wp.dst(Vars.player) } != filter.first()) Pools.free(filter.remove(0))
-                    if (filter.size > 1 || (filter.any() && filter.first().dst(Vars.player) < Vars.tilesize)) Pools.free(filter.remove(0))
-                    if (filter.size > 1 && Vars.player.unit().isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
+                        while (filter.size > 1 && filter.min { wp -> wp.dst(Vars.player) } != filter.first()) Pools.free(filter.remove(0))
+                        if (filter.size > 1 || (filter.any() && filter.first().dst(Vars.player) < Vars.tilesize)) Pools.free(filter.remove(0))
+                        if (filter.size > 1 && Vars.player.unit().isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
+                        waypoints.set(filter)
+                    } else { // Different destination, this is needed to prevent issues when starting a path at the end of the last one
+                        waypoints.clear().add(waypoint.set(-1F, -1F))
+                    }
                     job = clientThread.submit { Navigation.navigator.navigate(v1.set(Vars.player), v2.set(destX, destY), Navigation.obstacles) }
-                    waypoints.set(filter)
+                    targetPos.set(destX, destY)
                 }
-            } else waypoints.clear().add(waypoint.set(destX, destY, 0F, dist)) // Not using navigation
+            } else waypoints.clear().add(waypoint.set(destX, destY, 16F, dist)) // Not using navigation
 
             waypoints.follow()
             return waypoints

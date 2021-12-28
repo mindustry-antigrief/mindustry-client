@@ -13,12 +13,12 @@ public class Navigation {
     public static NavigationState state = NavigationState.NONE;
     @Nullable public static WaypointPath<Waypoint> recordedPath = null;
     public static final Set<TurretPathfindingEntity> obstacles = Collections.synchronizedSet(new HashSet<>());
-    @Nullable private static final Vec2 targetPos = new Vec2(-1, -1);
+    private static final Vec2 targetPos = new Vec2(-1, -1);
     public static Navigator navigator;
     private static final Interval timer = new Interval();
 
     public static void follow(Path path, boolean repeat) {
-        stopFollowing(false);
+        stopFollowing(!(path instanceof WaypointPath));
         if (path == null) return;
         currentlyFollowing = path;
         currentlyFollowing.init();

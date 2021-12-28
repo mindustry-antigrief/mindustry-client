@@ -106,10 +106,10 @@ public class WaypointPath<T extends Waypoint> extends Path {
     public synchronized void draw() {
         if (show) {
             Position lastWaypoint = null;
+            Draw.z(Layer.space);
             for (var waypoint : waypoints) {
                 if (waypoint instanceof Position wp) {
                     if (lastWaypoint != null) {
-                        Draw.z(Layer.space);
                         Draw.color(Color.blue, 0.4f);
                         Lines.stroke(3f);
                         Lines.line(lastWaypoint.getX(), lastWaypoint.getY(), wp.getX(), wp.getY());
