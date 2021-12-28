@@ -3,6 +3,7 @@ package mindustry.client.navigation
 import arc.*
 import arc.math.geom.*
 import arc.struct.*
+import arc.util.*
 import arc.util.pooling.*
 import mindustry.*
 import mindustry.client.navigation.waypoints.*
@@ -28,17 +29,15 @@ abstract class Path {
                 if (job.isDone) {
                     Pools.freeAll(filter)
                     filter.clear()
-                    if (targetPos.within(destX, destY, 1F)) { // Same destination
-                        filter.addAll(*job.get()).each( { it.dst(destX, destY) < dist }, { wp: PositionWaypoint ->
-                            filter.remove(wp)
-                            Pools.free(wp)
-                        })
+                    if (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>)) { // Same destination
+                        filter.addAll(*job.get()).removeAll { (it.dst(destX, destY) < dist).apply { if (this) Pools.free(it) } }
 
                         while (filter.size > 1 && filter.min { wp -> wp.dst(Vars.player) } != filter.first()) Pools.free(filter.remove(0))
                         if (filter.size > 1 || (filter.any() && filter.first().dst(Vars.player) < Vars.tilesize)) Pools.free(filter.remove(0))
                         if (filter.size > 1 && Vars.player.unit().isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
                         waypoints.set(filter)
                     } else { // Different destination, this is needed to prevent issues when starting a path at the end of the last one
+                        Log.debug(targetPos.dst(destX, destY))
                         waypoints.clear().add(waypoint.set(-1F, -1F))
                     }
                     job = clientThread.submit { Navigation.navigator.navigate(v1.set(Vars.player), v2.set(destX, destY), Navigation.obstacles) }

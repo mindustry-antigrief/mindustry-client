@@ -64,7 +64,7 @@ public class Navigation {
     }
 
     public static void draw() {
-        if (currentlyFollowing != null) {
+        if (currentlyFollowing != null && !targetPos.within(-1, -1, 1)) {
             currentlyFollowing.draw();
         }
 
