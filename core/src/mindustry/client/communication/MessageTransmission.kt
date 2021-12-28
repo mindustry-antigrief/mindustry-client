@@ -1,6 +1,6 @@
 package mindustry.client.communication
 
-import kotlin.random.Random
+import kotlin.random.*
 
 class MessageTransmission(val content: String) : Transmission {
 

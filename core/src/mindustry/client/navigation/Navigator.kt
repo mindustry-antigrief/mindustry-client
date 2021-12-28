@@ -2,7 +2,9 @@ package mindustry.client.navigation
 
 import arc.*
 import arc.math.geom.*
+import arc.struct.*
 import arc.util.*
+import arc.util.pooling.*
 import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.client.utils.*
@@ -15,7 +17,7 @@ abstract class Navigator {
     @JvmField
     val map = HashMap<Int, Vec2>()
     var lastWp = 0L
-    private val realObstacles = mutableListOf<Circle>() // Avoids creating new lists every time navigate is called
+    private val realObstacles = Seq<Circle>() // Avoids creating new lists every time navigate is called
 
     init {
         Events.on(EventType.WorldLoadEvent::class.java) {
@@ -32,7 +34,7 @@ abstract class Navigator {
     protected abstract fun findPath(
         start: Vec2,
         end: Vec2,
-        obstacles: Array<Circle>,
+        obstacles: Seq<Circle>,
         width: Float,
         height: Float,
         blocked: (Int, Int) -> Boolean
@@ -41,7 +43,6 @@ abstract class Navigator {
     fun navigate(start: Vec2, end: Vec2, obstacles: Iterable<TurretPathfindingEntity>): Array<PositionWaypoint> {
         start.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
         end.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
-        realObstacles.clear()
         val additionalRadius =
             if (player.unit().formation == null) player.unit().hitSize / 2
             else player.unit().formation().pattern.radius() + player.unit().formation.pattern.spacing / 2
@@ -49,13 +50,15 @@ abstract class Navigator {
         if(state.map.name() != "The Maze") {
             synchronized (obstacles) {
                 for (turret in obstacles) {
-                    if (turret.canHitPlayer && turret.canShoot) realObstacles.add(
-                        Circle(
-                            turret.x,
-                            turret.y,
-                            turret.radius + additionalRadius
+                    if (turret.canHitPlayer && turret.canShoot) {
+                        realObstacles.add(
+                            Pools.obtain(Circle::class.java) { Circle() }.set(
+                                turret.x,
+                                turret.y,
+                                turret.radius + additionalRadius
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -63,7 +66,7 @@ abstract class Navigator {
         if (state.hasSpawns()) { // FINISHME: These should really be weighed less than turrets...
             for (spawn in spawner.spawns) {
                 realObstacles.add(
-                    Circle(
+                    Pools.obtain(Circle::class.java) { Circle() }.set(
                         spawn.worldx(),
                         spawn.worldy(),
                         state.rules.dropZoneRadius + additionalRadius
@@ -81,10 +84,13 @@ abstract class Navigator {
         }
 
         val flood = flood() && player.unit().type != UnitTypes.horizon
-        return findPath(
-            start, end, realObstacles.toTypedArray(), world.unitWidth().toFloat(), world.unitHeight().toFloat()
+        val ret = findPath(
+            start, end, realObstacles, world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->
             flood && world.tiles.getc(x, y).team() == Team.blue || player.unit().type != null && !player.unit().type.canBoost && player.unit().solidity()?.solid(x, y) ?: false
         }
+        Pools.freeAll(realObstacles)
+        realObstacles.clear()
+        return ret
     }
 }

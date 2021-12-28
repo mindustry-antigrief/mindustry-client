@@ -6,6 +6,7 @@ import arc.scene.ui.TextField.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.ui.dialogs.*;
+
 import static mindustry.Vars.*;
 
 public class MapResizeDialog extends BaseDialog{

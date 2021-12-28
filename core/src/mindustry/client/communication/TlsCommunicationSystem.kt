@@ -1,13 +1,11 @@
 package mindustry.client.communication
 
-import arc.struct.ByteSeq
-import arc.util.Log
-import mindustry.client.crypto.TlsClientHolder
-import mindustry.client.crypto.TlsPeerHolder
-import mindustry.client.utils.escape
-import mindustry.client.utils.unescape
-import java.io.Closeable
-import java.security.cert.X509Certificate
+import arc.struct.*
+import arc.util.*
+import mindustry.client.crypto.*
+import mindustry.client.utils.*
+import java.io.*
+import java.security.cert.*
 
 class TlsCommunicationSystem(
     val peer: TlsPeerHolder,

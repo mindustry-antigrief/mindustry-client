@@ -1,13 +1,10 @@
 package mindustry.client.communication
 
-import arc.util.io.Reads
-import arc.util.io.Writes
-import mindustry.entities.units.BuildPlan
-import mindustry.io.TypeIO
-import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import kotlin.random.Random
+import arc.util.io.*
+import mindustry.entities.units.*
+import mindustry.io.*
+import java.io.*
+import kotlin.random.*
 
 class BuildQueueTransmission : Transmission {
     override var id = Random.nextLong()

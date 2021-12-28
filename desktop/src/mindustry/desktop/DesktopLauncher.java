@@ -48,9 +48,7 @@ public class DesktopLauncher extends ClientLauncher{
             Vars.loadLogger();
 
             Events.on(EventType.ClientLoadEvent.class, e -> {
-                if (Core.app.isDesktop()) {
-                    SDL.SDL_SetWindowTitle(((SdlApplication) Core.app).getWindow(), getWindowTitle());
-                }
+                if (Core.app.isDesktop()) SDL.SDL_SetWindowTitle(((SdlApplication) Core.app).getWindow(), getWindowTitle());
             });
 
             if (OS.isMac && !Structs.contains(arg, "-firstThread")) { //restart with -XstartOnFirstThread on mac, doesn't work without it
@@ -277,9 +275,9 @@ public class DesktopLauncher extends ClientLauncher{
 
             dialog.get(() -> message(
                 total.contains("Couldn't create window") ? "A graphics initialization error has occured! Try to update your graphics drivers:\n" + finalMessage :
-                            "Your graphics card does not support the right OpenGL features.\n" +
-                                    "Try to update your graphics drivers. If this doesn't work, your computer may not support Mindustry.\n\n" +
-                                    "Full message: " + finalMessage));
+                    "Your graphics card does not support the right OpenGL features.\n" +
+                    "Try to update your graphics drivers. If this doesn't work, your computer may not support Mindustry.\n\n" +
+                    "Full message: " + finalMessage));
             badGPU = true;
         }
 

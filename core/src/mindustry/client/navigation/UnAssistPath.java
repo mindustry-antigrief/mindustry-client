@@ -79,7 +79,7 @@ public class UnAssistPath extends Path {
             }
         } catch(Exception e) { Log.err(e.getMessage()); }
 
-        waypoint.set(target.x, target.y, 0f, 0f).run();
+        waypoint.set(target.x, target.y, 0f, 0f).run(); // FINISHME: Navigation
 
         Vars.player.unit().clearBuilding();
         IntSet contains = new IntSet();

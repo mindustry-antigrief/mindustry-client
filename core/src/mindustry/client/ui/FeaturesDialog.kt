@@ -1,7 +1,6 @@
 package mindustry.client.ui
 
 import arc.*
-import mindustry.client.ui.*
 import mindustry.ui.dialogs.*
 
 object FeaturesDialog : BaseDialog("@client.features") {

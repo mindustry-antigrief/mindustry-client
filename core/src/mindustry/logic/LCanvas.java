@@ -19,7 +19,7 @@ import mindustry.graphics.*;
 import mindustry.logic.LStatements.*;
 import mindustry.ui.*;
 
-import static mindustry.Vars.ui;
+import static mindustry.Vars.*;
 
 public class LCanvas extends Table{
     public static final int maxJumpsDrawn = 100;

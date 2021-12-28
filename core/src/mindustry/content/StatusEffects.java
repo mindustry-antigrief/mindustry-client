@@ -4,11 +4,10 @@ import arc.*;
 import arc.graphics.*;
 import arc.math.*;
 import mindustry.ctype.*;
-import mindustry.game.*;
 import mindustry.game.EventType.*;
-import mindustry.type.*;
+import mindustry.game.*;
 import mindustry.graphics.*;
-
+import mindustry.type.*;
 
 import static mindustry.Vars.*;
 

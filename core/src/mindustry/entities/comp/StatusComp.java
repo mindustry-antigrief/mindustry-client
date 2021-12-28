@@ -1,7 +1,7 @@
 package mindustry.entities.comp;
 
 import arc.graphics.*;
-import arc.graphics.g2d.Draw;
+import arc.graphics.g2d.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;

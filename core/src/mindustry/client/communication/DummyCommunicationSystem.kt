@@ -1,7 +1,7 @@
 package mindustry.client.communication
 
 import java.util.*
-import java.util.function.Consumer
+import java.util.function.*
 
 /** A dummy [CommunicationSystem] for tests. */
 class DummyCommunicationSystem(private val pool: MutableList<DummyCommunicationSystem>) : CommunicationSystem() {

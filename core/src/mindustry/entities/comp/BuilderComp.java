@@ -10,7 +10,7 @@ import arc.struct.Queue;
 import arc.util.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.communication.BuildPlanCommunicationSystem;
+import mindustry.client.communication.*;
 import mindustry.content.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -21,7 +21,6 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
-import mindustry.world.blocks.environment.StaticWall;
 
 import java.util.*;
 

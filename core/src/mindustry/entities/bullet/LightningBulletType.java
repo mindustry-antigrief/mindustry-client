@@ -6,7 +6,7 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.type.UnitType;
+import mindustry.type.*;
 
 public class LightningBulletType extends BulletType{
     public Color lightningColor = Pal.lancerLaser;

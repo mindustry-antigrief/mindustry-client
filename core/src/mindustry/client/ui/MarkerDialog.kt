@@ -4,7 +4,7 @@ import arc.graphics.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import arc.util.*
-import mindustry.Vars.ui
+import mindustry.Vars.*
 import mindustry.client.navigation.*
 import mindustry.client.utils.*
 import mindustry.gen.*

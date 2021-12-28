@@ -1,7 +1,6 @@
 package mindustry.content;
 
 import arc.graphics.*;
-import arc.math.*;
 import arc.struct.*;
 import mindustry.*;
 import mindustry.ctype.*;

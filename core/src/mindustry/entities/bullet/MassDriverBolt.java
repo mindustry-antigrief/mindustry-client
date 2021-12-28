@@ -6,7 +6,7 @@ import arc.math.*;
 import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.type.UnitType;
+import mindustry.type.*;
 import mindustry.world.blocks.distribution.MassDriver.*;
 
 import static mindustry.Vars.*;

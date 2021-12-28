@@ -1,10 +1,10 @@
 package mindustry.entities.bullet;
 
 import arc.graphics.g2d.*;
-import mindustry.gen.*;
 import mindustry.content.*;
-import mindustry.type.UnitType;
+import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.*;
 
 public class LaserBoltBulletType extends BasicBulletType{
     public float width = 2f, height = 7f;

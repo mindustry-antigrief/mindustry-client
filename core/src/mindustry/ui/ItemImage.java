@@ -7,7 +7,7 @@ import arc.util.*;
 import mindustry.core.*;
 import mindustry.type.*;
 
-import static mindustry.Vars.iconMed;
+import static mindustry.Vars.*;
 
 public class ItemImage extends Stack{
 

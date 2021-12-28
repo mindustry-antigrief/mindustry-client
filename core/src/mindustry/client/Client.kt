@@ -36,6 +36,7 @@ import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
 import org.bouncycastle.jsse.provider.*
+import java.io.*
 import java.math.*
 import java.security.*
 import java.security.cert.*
@@ -191,6 +192,7 @@ object Client {
         register("go [x] [y]", Core.bundle.get("client.command.go.description")) { args, player ->
             try {
                 if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
+                else throw IOException()
                 navigateTo(lastSentPos.cpy().scl(tilesize.toFloat()))
             } catch (e: Exception) {
                 player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "go"))
@@ -288,7 +290,7 @@ object Client {
         }
 
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
-            clientThread.taskQueue.post {
+            clientThread.post {
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
                 val inProgress = !configs.isEmpty
                 val originalCount = PowerGraph.activeGraphs.select { it.team == player.team() }.size
@@ -343,7 +345,7 @@ object Client {
         }
 
         register("clearghosts [c]", "Removes the ghosts of blocks which are in range of enemy turrets, useful to stop polys from building forever") { args, player -> // FINISHME: Bundle
-            clientThread.taskQueue.post {
+            clientThread.post {
                 val confirmed = args.any() && args[0].startsWith("c") // Don't clear by default
                 val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
                 val blocked = GridBits(world.width(), world.height())
@@ -387,7 +389,7 @@ object Client {
         }
 
         register("removelast [count]", "Horrible and inefficient command to remove the x oldest tile logs") { args, _ -> // FINISHME: Bundle
-            clientThread.taskQueue.post {
+            clientThread.post {
                 val count = if (args.isEmpty()) 1 else args[0].toInt()
                 lateinit var record: TileRecord
                 lateinit var sequence: TileLogSequence

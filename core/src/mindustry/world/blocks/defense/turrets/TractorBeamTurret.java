@@ -7,7 +7,7 @@ import arc.math.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.navigation.Navigation;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;

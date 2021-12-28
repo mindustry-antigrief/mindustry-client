@@ -102,10 +102,11 @@ class AssistPath(val assisting: Player?, val cursor: Boolean = false, val noFoll
         unit.lookAt(lookPos)
 
         if (!noFollow) { // Following
-            if (Core.settings.getBool("pathnav") && v2.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y).dst(player) > tolerance + tilesize * 5) {
-                if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post { waypoints.set(Seq.with(*Navigation.navigator.navigate(v1.set(player.x, player.y), v2, Navigation.obstacles))) }
-                waypoints.follow()
-            } else waypoint.set(v2.x, v2.y, tolerance, tolerance).run()
+            goTo(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y, tolerance, tolerance + tilesize * 5)
+//            if (Core.settings.getBool("pathnav") && v2.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y).dst(player) > tolerance + tilesize * 5) {
+//                if (clientThread.taskQueue.size == 0) clientThread.post{ waypoints.set(Seq.with(*Navigation.navigator.navigate(v1.set(player.x, player.y), v2, Navigation.obstacles))) }
+//                waypoints.follow()
+//            } else waypoint.set(v2.x, v2.y, tolerance, tolerance).run()
         } else { // Not following
             player.unit().moveAt((control.input as? DesktopInput)?.movement ?: (control.input as MobileInput).movement)
         }

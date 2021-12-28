@@ -1,9 +1,7 @@
 package mindustry.client.navigation;
 
-import arc.*;
 import arc.math.*;
 import arc.math.geom.*;
-import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.formations.*;
 import mindustry.entities.*;
@@ -40,11 +38,8 @@ public class RepairPath extends Path {
         player.unit().aimLook(build);
 
         Formation formation = player.unit().formation;
-        float range = formation == null ? 16f : formation.pattern.radius() + 16f;
-        if (Core.settings.getBool("pathnav") && build.dst(player) > range + tilesize * 2) { // FINISHME: Distance based on formation size?
-            if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> waypoints.set(Seq.with(Navigation.navigator.navigate(v1.set(player.x, player.y), v2.set(build.x, build.y), Navigation.obstacles))));
-            waypoints.follow();
-        } else waypoint.set(build.x, build.y, range, range).run();
+        float range = formation == null ? 16f : formation.pattern.radius() + 16f; // FINISHME: Distance based on formation size
+        goTo(build, range, tilesize * 3);
     }
 
     @Override
@@ -58,5 +53,10 @@ public class RepairPath extends Path {
     @Override
     public Position next() {
         return null;
+    }
+
+    @Override
+    public synchronized void draw() {
+        waypoints.draw();
     }
 }

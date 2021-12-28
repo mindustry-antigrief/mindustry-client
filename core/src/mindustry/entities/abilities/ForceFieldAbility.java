@@ -11,7 +11,7 @@ import arc.util.*;
 import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.type.UnitType;
+import mindustry.type.*;
 import mindustry.ui.*;
 
 public class ForceFieldAbility extends Ability{
