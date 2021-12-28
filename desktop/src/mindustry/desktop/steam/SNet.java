@@ -211,6 +211,14 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
             smat.setLobbyMemberLimit(currentLobby, Core.settings.getInt("playerlimit"));
         }
     }
+    
+    void updateWave(){
+        if(currentLobby != null && net.server()){
+            smat.setLobbyData(currentLobby, "mapname", state.map.name());
+            smat.setLobbyData(currentLobby, "wave", state.wave + "");
+            smat.setLobbyData(currentLobby, "gamemode", state.rules.mode().name() + "");
+        }
+    }
 
     void updateWave() {
         if(currentLobby != null && net.server()) {
