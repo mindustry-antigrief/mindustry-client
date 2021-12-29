@@ -128,7 +128,10 @@ public class UnitPicker extends BaseDialog {
                         } else { // This happens sometimes, idk man FINISHME: Cleanup
                             Log.debug("This wasn't supposed to happen");
                             type = event.unit.type;
-                            Time.run(60, () -> findUnit(event.unit.type, true));
+                            Time.run(60, () -> {
+                                Log.info("Exists: " + event.unit.isAdded());
+                                findUnit(event.unit.type, true);
+                            });
                         }
                     }), net.client() ? netClient.getPing()/1000f + .3f : 0);
                 }, net.client() ? netClient.getPing()/1000f + .3f : 0);

@@ -23,7 +23,8 @@ public class Autocomplete {
     }
 
     @NotNull public static Seq<Autocompleteable> closest(String input) {
-        Seq<Autocompleteable> all = autocompleters.reduce(new Seq<>(), (a, b) -> a.closest(input).addAll(b));
-        return all.sort(item -> item.matches(input));
+        return autocompleters.flatMap(a -> a.closest(input)).sort(item -> item.matches(input));
+//        Seq<Autocompleteable> all = autocompleters.reduce(new Seq<>(), (a, b) -> a.closest(input).addAll(b));
+//        return all.sort(item -> item.matches(input));
     }
 }
