@@ -66,7 +66,7 @@ constructor(args: String) {
             player.unit().mineTile = tile
             if (tile == null) return
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 3F)
-            goTo(tile, tilesize * 3F) // FINISHME: Distance based on formation radius rather than just moving super close
+            if (player.dst(tile) > 2 * tilesize) goTo(tile, tilesize.toFloat()) // FINISHME: Distance based on formation radius rather than just moving super close
         }
     }
 
