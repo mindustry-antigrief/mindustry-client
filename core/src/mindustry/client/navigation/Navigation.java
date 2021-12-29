@@ -64,7 +64,7 @@ public class Navigation {
     }
 
     public static void draw() {
-        if (currentlyFollowing != null && (!(currentlyFollowing instanceof WaypointPath<?>) || !targetPos.within(-1, -1, 1))) {
+        if (currentlyFollowing != null && (!(currentlyFollowing instanceof WaypointPath) || !targetPos.within(-1, -1, 1))) {
             currentlyFollowing.draw();
         }
 

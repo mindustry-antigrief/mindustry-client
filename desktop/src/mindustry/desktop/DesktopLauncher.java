@@ -378,7 +378,7 @@ public class DesktopLauncher extends ClientLauncher{
                 presence.state = uiState;
             }
 
-            presence.largeImageKey = "https://cdn.discordapp.com/avatars/244966266845134858/2914cc9a7567e0bea9032e5dcb4e33a3.png";
+            presence.largeImageKey = "logo";
             presence.smallImageKey = "foo";
             presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
             presence.startTimestamp = state.tick == 0 ? beginTime/1000 : Time.millis() - (long)(state.tick * 16.666f);
