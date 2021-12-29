@@ -3,7 +3,6 @@ package mindustry.client.navigation
 import arc.*
 import arc.math.geom.*
 import arc.struct.*
-import arc.util.*
 import arc.util.pooling.*
 import mindustry.*
 import mindustry.client.navigation.waypoints.*
@@ -37,13 +36,12 @@ abstract class Path {
                         if (filter.size > 1 && Vars.player.unit().isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
                         waypoints.set(filter)
                     } else { // Different destination, this is needed to prevent issues when starting a path at the end of the last one
-                        Log.debug(targetPos.dst(destX, destY))
                         waypoints.clear().add(waypoint.set(-1F, -1F))
                     }
                     job = clientThread.submit { Navigation.navigator.navigate(v1.set(Vars.player), v2.set(destX, destY), Navigation.obstacles) }
-                    targetPos.set(destX, destY)
                 }
             } else waypoints.clear().add(waypoint.set(destX, destY, 16F, dist)) // Not using navigation
+            targetPos.set(destX, destY)
 
             waypoints.follow()
             return waypoints
