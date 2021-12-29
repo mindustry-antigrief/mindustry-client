@@ -113,7 +113,8 @@ class AssistPath(val assisting: Player?, val cursor: Boolean = false, val noFoll
     }
 
     override fun draw() {
-        if (player.dst(assisting ?: return) > tolerance + tilesize * 5) waypoints.draw()
+        assisting ?: return
+        if (player.dst(if (cursor) Tmp.v1.set(assisting.mouseX, assisting.mouseY) else assisting) > tolerance + tilesize * 5) waypoints.draw()
 
         if (Spectate.pos != assisting) assisting.unit().drawBuildPlans()
     }
