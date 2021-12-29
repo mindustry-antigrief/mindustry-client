@@ -23,6 +23,7 @@ object AStarNavigator : Navigator() {
     private var endY = 0
     private var tileWidth = 0
     private var tileHeight = 0
+    private val points = mutableListOf<PositionWaypoint>()
 
     private inline fun d8(cons: (x: Int, y: Int) -> Unit) {
         cons(1, 0)
@@ -101,7 +102,7 @@ object AStarNavigator : Navigator() {
         obstacles: Seq<Circle>,
         width: Float,
         height: Float,
-        blocked: (Int, Int) -> Boolean
+        blocked: Int2P
     ): Array<PositionWaypoint> {
 
         tileWidth = ceil(width / tilesize).toInt() + 1
@@ -141,8 +142,8 @@ object AStarNavigator : Navigator() {
 
         aStarSearch()
 
-        return if (cell(endX, endY).closed) {
-            val points = mutableListOf<PositionWaypoint>()
+        points.clear()
+        if (cell(endX, endY).closed) {
             //Trace back the path
             var current: Cell? = cell(endX, endY)
             while (current?.cameFrom != null) {
@@ -150,11 +151,8 @@ object AStarNavigator : Navigator() {
                 current = current.cameFrom
             }
             points.reverse()
-            points.toTypedArray()
-        } else {
-//            System.out.println("Time taken = " + (System.currentTimeMillis() - startTime) + " ms, no path found");
-            arrayOf()
         }
+        return points.toTypedArray()
     }
 
     class Cell(var x: Int, var y: Int) : Comparable<Cell> {

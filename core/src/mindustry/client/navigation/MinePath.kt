@@ -60,12 +60,13 @@ constructor(args: String) {
                 if (player.unit().type.canBoost) player.boosting = true
                 goTo(core, itemTransferRange - tilesize * 15)
             }
+
         } else { // mine
             val tile = indexer.findClosestOre(player.unit(), item) // FINISHME: Ignore blocked tiles
             player.unit().mineTile = tile
             if (tile == null) return
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 3F)
-            goTo(tile, aStarDist = tilesize * 3F) // FINISHME: Distance based on formation radius rather than just moving super close
+            if (player.dst(tile) > 2 * tilesize) goTo(tile, tilesize.toFloat()) // FINISHME: Distance based on formation radius rather than just moving super close
         }
     }
 
