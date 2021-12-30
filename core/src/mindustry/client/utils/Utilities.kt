@@ -258,3 +258,5 @@ val ByteBuffer.byteArray get() = bytes(int)
 fun ByteBuffer.putInstantSeconds(instant: Instant) { putLong(instant.epochSecond) }
 
 val ByteBuffer.instant get() = long.toInstant()
+
+val Boolean.int get() = if (this) 1 else 0
