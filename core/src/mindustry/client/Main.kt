@@ -27,7 +27,7 @@ import kotlin.random.Random
 
 object Main : ApplicationListener {
     private lateinit var communicationSystem: SwitchableCommunicationSystem
-    private lateinit var communicationClient: Packets.CommunicationClient
+    lateinit var communicationClient: Packets.CommunicationClient
     private var dispatchedBuildPlans = mutableListOf<BuildPlan>()
     private val buildPlanInterval = Interval()
     val tlsPeers = CopyOnWriteArrayList<Pair<Packets.CommunicationClient, TlsCommunicationSystem>>()
@@ -36,6 +36,24 @@ object Main : ApplicationListener {
     lateinit var ntp: NTP
     private var planSendTime = 0L
     private var isSendingPlans = false
+    private var clientAssistSend: ClientAssistManager? = null
+    var clientAssistReceive: ClientAssistManager? = null
+    var clientAssistQueue = object : AbstractMutableList<BuildPlan>() {
+        override fun add(index: Int, element: BuildPlan) { Vars.player.unit()?.addBuild(element) }
+
+        override fun removeAt(index: Int) = Vars.player.unit()?.plans?.removeIndex(index) ?: BuildPlan(0, 0)
+
+        override fun set(index: Int, element: BuildPlan): BuildPlan {
+            TODO("Not yet implemented")
+        }
+
+        override val size: Int
+            get() = Vars.player.unit()?.plans?.size ?: 0
+
+        override fun get(index: Int): BuildPlan {
+            return Vars.player.unit()?.plans?.get(index) ?: BuildPlan(0, 0)
+        }
+    }
 
     /** Run on client load. */
     override fun init() {
@@ -116,6 +134,16 @@ object Main : ApplicationListener {
                 is ClientMessageTransmission -> {
                     if (senderId != Vars.player.id) transmission.addToChatfrag()
                 }
+
+                is SignalingTransmission -> {
+                    if (transmission.destination != communicationSystem.id) return@addListener
+                    if (transmission.type == SignalingTransmission.Type.START) {
+                        clientAssistSend = ClientAssistManager(senderId, communicationClient, true)
+                    } else {
+                        if (clientAssistSend?.playerID == senderId) clientAssistSend?.received(transmission, clientAssistQueue)
+                        if (clientAssistReceive?.playerID == senderId) clientAssistReceive?.received(transmission, clientAssistQueue)
+                    }
+                }
             }
         }
     }
@@ -186,6 +214,9 @@ object Main : ApplicationListener {
             peer.second.update()
             peer.first.update()
         }
+
+        if (clientAssistReceive?.isDone == true) clientAssistReceive = null
+        if (clientAssistSend?.isDone == true) clientAssistSend = null
     }
 
     fun connectTls(dstCert: X509Certificate, onFinish: ((Packets.CommunicationClient) -> Unit)? = null, onError: (() -> Unit)? = null) {
