@@ -139,7 +139,7 @@ public class ChatFragment extends Table{
             var replacement = switch (chatfield.getText()) {
                 case "!r " -> "!e " + ClientVars.lastCertName + " ";
                 case "!b " -> "!builder ";
-                case "!cu " -> "!cursor ";
+                case "!cu ", "!cr " -> "!cursor ";
                 case "!h " -> "!here ";
                 default -> null;
             };
@@ -487,7 +487,8 @@ public class ChatFragment extends Table{
     private enum ChatMode{
         normal(""),
         team("/t"),
-        admin("/a", player::admin)
+        admin("/a", player::admin),
+        client("!c")
         ;
 
         public String prefix;

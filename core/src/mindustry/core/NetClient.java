@@ -11,9 +11,11 @@ import arc.util.*;
 import arc.util.CommandHandler.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
+import kotlin.text.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
+import mindustry.client.communication.*;
 import mindustry.client.utils.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
@@ -213,12 +215,16 @@ public class NetClient implements ApplicationListener{
             message = processCoords(message);
             if (playersender != null) {
                 var sender = playersender.coloredName();
-                var unformatted2 = unformatted == null ? kotlin.text.StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
+                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
                 Vars.ui.chatfrag.addMessage(message, sender, background, "", unformatted2);
             } else {
                 Vars.ui.chatfrag.addMessage(message, null, unformatted);
             }
-            if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.info("&fi@: @", "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)), "&lw" + Strings.stripColors(message)); // Make sure we are a client, if we are the server it does this already
+            if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
+                Log.info("&fi@: @",
+                    "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
+                    "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
+                );
         }
 
         //display raw unformatted text above player head
@@ -234,8 +240,8 @@ public class NetClient implements ApplicationListener{
     @Remote(called = Loc.server, targets = Loc.server)
     public static void sendMessage(String message){
         if(Vars.ui != null){
-            Log.info(message);
-            Log.debug("Tell the owner of this server to send messages properly");
+            if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.info(Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
+            if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
             message = processCoords(message);
             Vars.ui.chatfrag.addMessage(message);
         }
