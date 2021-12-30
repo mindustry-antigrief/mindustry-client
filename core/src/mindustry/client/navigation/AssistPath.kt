@@ -13,10 +13,18 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 
-class AssistPath(val assisting: Player?, val cursor: Boolean = false, val noFollow: Boolean = false) : Path() {
+class AssistPath(val assisting: Player, val cursor: Boolean = false, val noFollow: Boolean = false) : Path() {
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
     private var tolerance = 0F
+    private val clientMode = assisting.fooUser
+
+    init {
+        if (clientMode) {
+            Main.clientAssistReceive = ClientAssistManager(assisting.id, Main.communicationClient, false)
+            Main.send(SignalingTransmission(assisting.id, SignalingTransmission.Type.START))
+        }
+    }
 
     companion object { // Events.remove is weird, so we just create the hooks once instead
         init {
@@ -41,7 +49,7 @@ class AssistPath(val assisting: Player?, val cursor: Boolean = false, val noFoll
 
     override fun follow() {
         if (player?.dead() != false) return
-        assisting?.unit() ?: return // We don't care if they are dead
+        assisting.unit() ?: return // We don't care if they are dead
 
         tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) // FINISHME: Factor in formations
 
@@ -68,10 +76,10 @@ class AssistPath(val assisting: Player?, val cursor: Boolean = false, val noFoll
         }
 
         if (assisting.isBuilder && player.isBuilder) {
-            if (assisting.unit().activelyBuilding() && assisting.team() == player.team()) {
+            if (assisting.unit().activelyBuilding() /*FINISHME: does this apply for clients?*/ && assisting.team() == player.team()) {
                 plans.forEach { player.unit().removeBuild(it.x, it.y, it.breaking) }
                 plans.clear()
-                for (plan in assisting.unit().plans) {
+                for (plan in if (clientMode) Main.clientAssistQueue else assisting.unit().plans) {
                     if (BuildPlanCommunicationSystem.isNetworking(plan)) continue
                     plans.add(plan)
                     player.unit().addBuild(plan, false)
@@ -82,7 +90,7 @@ class AssistPath(val assisting: Player?, val cursor: Boolean = false, val noFoll
 
     private fun handleInput() {
         if (player?.dead() != false) return
-        assisting?.unit() ?: return // We don't care if they are dead
+        assisting.unit() ?: return // We don't care if they are dead
 
         val unit = player.unit()
         val shouldShoot =
@@ -93,7 +101,7 @@ class AssistPath(val assisting: Player?, val cursor: Boolean = false, val noFoll
             else if (unit.type.faceTarget) Core.input.mouseWorld() else Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, player.unit().y) // Not following, not shooting
         val lookPos =
             if (assisting.unit().isShooting && unit.type.rotateShooting) player.angleTo(assisting.unit().aimX, assisting.unit().aimY) // Assisting is shooting and player has fixed weapons
-            else if (unit.type.omniMovement && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !(unit is Mechc && unit.isFlying()) && unit.type.rotateShooting) Angles.mouseAngle(unit.x, unit.y);
+            else if (unit.type.omniMovement && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !(unit is Mechc && unit.isFlying()) && unit.type.rotateShooting) Angles.mouseAngle(unit.x, unit.y)
             else player.unit().prefRotation() // Anything else
 
         player.shooting(shouldShoot)
@@ -113,14 +121,14 @@ class AssistPath(val assisting: Player?, val cursor: Boolean = false, val noFoll
     }
 
     override fun draw() {
-        assisting ?: return
+        assisting
         if (player.dst(if (cursor) Tmp.v1.set(assisting.mouseX, assisting.mouseY) else assisting) > tolerance + tilesize * 5) waypoints.draw()
 
         if (Spectate.pos != assisting) assisting.unit().drawBuildPlans()
     }
 
     override fun progress(): Float {
-        return if (assisting == null || !assisting.added) 1f else 0f
+        return if (!assisting.added) 1f else 0f
     }
 
     override fun next(): Position? {
