@@ -139,7 +139,7 @@ public class ChatFragment extends Table{
             var replacement = switch (chatfield.getText()) {
                 case "!r " -> "!e " + ClientVars.lastCertName + " ";
                 case "!b " -> "!builder ";
-                case "!c " -> "!cursor ";
+                case "!cu " -> "!cursor ";
                 case "!h " -> "!here ";
                 default -> null;
             };
