@@ -21,7 +21,7 @@ class TlsRequestTransmission : Transmission {
 
     override var id: Long
 
-    constructor(input: ByteArray, id: Long) {
+    constructor(input: ByteArray, id: Long, senderID: Int) {
         this.id = id
         if (input.isEmpty()) {
             sourceSN = BigInteger.ZERO

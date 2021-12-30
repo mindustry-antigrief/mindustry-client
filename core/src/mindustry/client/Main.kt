@@ -112,6 +112,10 @@ object Main : ApplicationListener {
                     transmission.type ?: return@addListener
                     if (transmission.verify()) transmission.type.lambda(transmission)
                 }
+
+                is ClientMessageTransmission -> {
+                    if (senderId != Vars.player.id) transmission.addToChatfrag()
+                }
             }
         }
     }
