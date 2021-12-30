@@ -469,7 +469,7 @@ public class ChatFragment extends Table{
             if(sender == null){ //no sender, this is a server message?
                 formattedMessage = message == null ? "" : message;
             } else {
-                formattedMessage = prefix + "[coral][[" + sender + "[coral]]:[white] " + message;
+                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
             }
         }
     }
