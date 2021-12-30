@@ -211,7 +211,13 @@ public class NetClient implements ApplicationListener{
             }
 
             message = processCoords(message);
-            Vars.ui.chatfrag.addMessage(message, background, unformatted);
+            if (playersender != null) {
+                var sender = playersender.coloredName();
+                var unformatted2 = unformatted == null ? kotlin.text.StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
+                Vars.ui.chatfrag.addMessage(message, sender, background, "", unformatted2);
+            } else {
+                Vars.ui.chatfrag.addMessage(message, null, unformatted);
+            }
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.info("&fi@: @", "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)), "&lw" + Strings.stripColors(message)); // Make sure we are a client, if we are the server it does this already
         }
 

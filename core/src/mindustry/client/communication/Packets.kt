@@ -21,10 +21,11 @@ object Packets {
         RegisteredTransmission(TlsRequestTransmission::class, ::TlsRequestTransmission),
         RegisteredTransmission(MessageTransmission::class, ::MessageTransmission),
         RegisteredTransmission(SignatureTransmission::class, ::SignatureTransmission),
-        RegisteredTransmission(CommandTransmission::class, ::CommandTransmission)
+        RegisteredTransmission(CommandTransmission::class, ::CommandTransmission),
+        RegisteredTransmission(ClientMessageTransmission::class, ::ClientMessageTransmission)
     )
 
-    private data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (content: ByteArray, id: Long) -> T)
+    private data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (content: ByteArray, id: Long, senderID: Int) -> T)
 
     private class Header {
         /** The total number of packets that make up this transmission. */
@@ -198,7 +199,7 @@ object Packets {
                 if (!entry.segments.contains(null)) {
                     val array = entry.segments.reduceRight { a, b -> a!! + b!! }!!  // Collapse the list of packet contents to the full byte array
                     val inflated = array.inflate()  // Decompress the transmission
-                    val transmission = registeredTransmissionTypes[header.transmissionType].constructor(inflated, header.transmissionId)  // Deserialize the transmission
+                    val transmission = registeredTransmissionTypes[header.transmissionType].constructor(inflated, header.transmissionId, sender)  // Deserialize the transmission
 
                     listenersLock.lock()
                     for (listener in listeners) {

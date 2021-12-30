@@ -406,7 +406,7 @@ public class ChatFragment extends Table{
     }
 
     public ChatMessage addMessage(String message, String sender, Color background, String prefix){
-        return addMessage(message, sender, background, prefix, "");
+        return addMessage(message, sender, background, prefix, message);
     }
 
     public ChatMessage addMessage(String message, String sender, Color background){ // FINISHME: Remove this, merge sender with message
@@ -479,7 +479,7 @@ public class ChatFragment extends Table{
             if(sender == null){ //no sender, this is a server message?
                 formattedMessage = message == null ? "" : message;
             } else {
-                formattedMessage = prefix + "[coral][[" + sender + "[coral]]:[white] " + message;
+                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
             }
         }
     }

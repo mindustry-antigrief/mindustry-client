@@ -60,7 +60,7 @@ class CommandTransmission : Transmission {
 
     override var id: Long
 
-    constructor(input: ByteArray, id: Long) {
+    constructor(input: ByteArray, id: Long, senderID: Int) {
         val buf = input.buffer()
         type = Commands.values().getOrNull(buf.int)
         signature = buf.bytes(Signatures.SIGNATURE_LENGTH)

@@ -22,7 +22,7 @@ class TLSDataTransmission : Transmission {
 
     override var id: Long
 
-    constructor(input: ByteArray, id: Long) {
+    constructor(input: ByteArray, id: Long, senderID: Int) {
         this.id = id
         val buf = ByteBuffer.wrap(input)
         source = BigInteger(buf.bytes(buf.int))
