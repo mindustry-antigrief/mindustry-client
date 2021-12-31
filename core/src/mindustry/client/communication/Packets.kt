@@ -22,9 +22,7 @@ object Packets {
         RegisteredTransmission(MessageTransmission::class, ::MessageTransmission),
         RegisteredTransmission(SignatureTransmission::class, ::SignatureTransmission),
         RegisteredTransmission(CommandTransmission::class, ::CommandTransmission),
-        RegisteredTransmission(ClientMessageTransmission::class, ::ClientMessageTransmission),
-        RegisteredTransmission(AddRemove::class, ::AddRemove),
-        RegisteredTransmission(SignalingTransmission::class, ::SignalingTransmission)
+        RegisteredTransmission(ClientMessageTransmission::class, ::ClientMessageTransmission)
     )
 
     private data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (content: ByteArray, id: Long, senderID: Int) -> T)
