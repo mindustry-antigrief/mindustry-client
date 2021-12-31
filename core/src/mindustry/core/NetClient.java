@@ -204,7 +204,7 @@ public class NetClient implements ApplicationListener{
     }
 
     @Remote(targets = Loc.server, variants = Variant.both)
-    public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){ // FINISHME: 132
+    public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
         Color background = null;
         if(Vars.ui != null){
             if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
@@ -212,13 +212,14 @@ public class NetClient implements ApplicationListener{
                 if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
-            message = processCoords(message);
+            unformatted = processCoords(unformatted, true);
+            message = processCoords(message, unformatted != null);
             if (playersender != null) {
                 var sender = playersender.coloredName();
                 var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
                 Vars.ui.chatfrag.addMessage(message, sender, background, "", unformatted2);
             } else {
-                Vars.ui.chatfrag.addMessage(message, null, unformatted);
+                Vars.ui.chatfrag.addMessage(message, null, unformatted == null ? "" : unformatted);
             }
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
                 Log.info("&fi@: @",
@@ -242,19 +243,19 @@ public class NetClient implements ApplicationListener{
         if(Vars.ui != null){
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.info(Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
-            message = processCoords(message);
+            message = processCoords(message, true);
             Vars.ui.chatfrag.addMessage(message);
         }
     }
 
-    private static String processCoords(String message){
-        if (message == null) return "";
+    private static String processCoords(String message, boolean setLastPos){
+        if (message == null) return null;
         Matcher matcher = coordPattern.matcher(message);
         if (!matcher.find()) return message;
-            try {
-                ClientVars.lastSentPos.set(Float.parseFloat(matcher.group(1)), Float.parseFloat(matcher.group(2)));
-            } catch (NumberFormatException ignored) {}
-            return matcher.replaceFirst("[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
+        if (setLastPos) try {
+            ClientVars.lastSentPos.set(Float.parseFloat(matcher.group(1)), Float.parseFloat(matcher.group(2)));
+        } catch (NumberFormatException ignored) {}
+        return matcher.replaceFirst("[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
     }
 
     //called when a server receives a chat message from a player

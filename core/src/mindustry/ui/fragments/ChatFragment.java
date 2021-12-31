@@ -144,8 +144,10 @@ public class ChatFragment extends Table{
                 default -> null;
             };
             if (replacement != null) {
-                chatfield.setText(replacement);
-                Core.app.post(this::updateCursor); // .changed(...) is called in the middle of the typed char being processed, workaround is to update cursor on the next frame
+                app.post(() -> { // .changed(...) is called in the middle of the typed char being processed, workaround is to update cursor on the next frame
+                    chatfield.setText(replacement);
+                    updateCursor();
+                });
             }
 
             updateCompletion();
@@ -226,7 +228,7 @@ public class ChatFragment extends Table{
             fadetime -= Time.delta / 180f;
         }
 
-        if (completion.size > 0 && shown) {
+        if (completion.any() && shown) {
             float pos = Reflect.<FloatSeq>get(chatfield, "glyphPositions").peek();
             StringBuilder contents = new StringBuilder();
             int index = 0;
@@ -271,8 +273,10 @@ public class ChatFragment extends Table{
 
         history.insert(1, message);
 
-        // Allow sending commands in "/t" & "/a"; "/t /help" becomes "/help", "/a !go" becomes "!go"
-        message = message.replaceFirst("^/[at] ([/!])", "$1");
+        // Allow sending commands with chat modes; "/t /help" becomes "/help", "/a !go" becomes "!go"
+        for (ChatMode mode : ChatMode.all) {
+            message = message.replaceFirst("^" + mode.prefix + " ([/!])", "$1");
+        }
 
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
@@ -414,19 +418,19 @@ public class ChatFragment extends Table{
     }
 
     public ChatMessage addMessage(String message, Color background, String unformatted){ // FINISHME: Refactor this
-        return addMessage(message, null, background, null);
-    }
-
-    public ChatMessage addMessage(String message, String sender){ // FINISHME: Useless?
-        return addMessage(message, sender, null);
+        return addMessage(message, null, background, "", unformatted);
     }
 
     public ChatMessage addMessage(String message, Color background){ // FINISHME: Do a v132 cleanup of this whole mess
         return addMessage(message, null, background);
     }
 
-    /** returns void for mod compatibility reasons
-     *  DO NOT TOUCH RETURN TYPE, ARGS OR REMOVE THIS CONSTRUCTOR */
+    /** @deprecated Kept for mod compatibility */
+    @Deprecated
+    public void addMessage(String ignored, String message){
+        addMessage(message);
+    }
+
     public void addMessage(String message){
         addMessage(message, null, null, "");
     }
@@ -436,35 +440,15 @@ public class ChatFragment extends Table{
         fadetime = Math.min(fadetime, messagesShown);
     }
 
+
     // FINISHME: This was supposed to be removed in v132?
     public static class ChatMessage{
         public String sender;
         public String message;
         public String formattedMessage;
-        public Color backgroundColor = null;
-        public String prefix = "";
-        public String unformatted = "";
-
-        public ChatMessage(String message, String sender){
-            this.message = message;
-            this.sender = sender;
-            format();
-        }
-
-        public ChatMessage(String message, String sender, Color color){
-            this.message = message;
-            this.sender = sender;
-            backgroundColor = color;
-            format();
-        }
-
-        public ChatMessage(String message, String sender, Color color, String prefix){
-            this.message = message;
-            this.sender = sender;
-            this.prefix = prefix;
-            backgroundColor = color;
-            format();
-        }
+        public Color backgroundColor;
+        public String prefix;
+        public String unformatted;
 
         public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
             this.message = message;

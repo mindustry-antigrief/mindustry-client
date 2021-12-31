@@ -131,9 +131,9 @@ object Main : ApplicationListener {
             msg.format()
         }
 
-        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.unformatted.endsWith(ending) } ?: return false
+        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.unformatted?.endsWith(ending) == true } ?: return false
 
-        if (!msg.message.endsWith(msg.unformatted)) { invalid(msg, null); println("Does not end with unformatted!") }
+        if (!msg.message.endsWith(msg.unformatted)) { invalid(msg, null); Log.debug("Does not end with unformatted!") }
 
         if (!Core.settings.getBool("highlightcryptomsg")) return true
         val output = signatures.verifySignatureTransmission(msg.unformatted.encodeToByteArray(), transmission)
