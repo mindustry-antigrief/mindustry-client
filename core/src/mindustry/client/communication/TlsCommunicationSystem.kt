@@ -92,7 +92,7 @@ class TlsCommunicationSystem(
                 underlying.send(TLSDataTransmission(cert.serialNumber, peer.expectedCert.serialNumber, read))
             }
 
-            val applicationIn = peer.readSecure()
+            val applicationIn = peer.readSecure().unescape()
             if (applicationIn.isNotEmpty()) {
                 val output = mutableListOf<ByteArray>()
                 val current = ByteSeq(incoming)

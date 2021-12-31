@@ -1,6 +1,8 @@
 package mindustry.client
 
 import arc.*
+import arc.graphics.Pixmap
+import arc.graphics.Texture
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
@@ -16,7 +18,14 @@ import mindustry.game.*
 import mindustry.game.Teams.*
 import mindustry.gen.*
 import mindustry.input.*
+import mindustry.ui.dialogs.BaseDialog
 import mindustry.ui.fragments.*
+import java.awt.Image
+import java.awt.Toolkit
+import java.awt.datatransfer.DataFlavor
+import java.awt.image.BufferedImage
+import java.nio.ByteBuffer
+import java.nio.IntBuffer
 import java.nio.file.Files
 import java.security.cert.*
 import java.util.Timer

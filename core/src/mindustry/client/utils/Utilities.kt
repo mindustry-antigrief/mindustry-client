@@ -3,6 +3,7 @@
 package mindustry.client.utils
 
 import arc.*
+import arc.graphics.Pixmap
 import arc.math.geom.*
 import arc.scene.*
 import arc.scene.ui.*
@@ -16,6 +17,7 @@ import mindustry.ui.*
 import mindustry.ui.dialogs.*
 import mindustry.world.*
 import java.io.*
+import java.lang.Exception
 import java.nio.*
 import java.security.cert.*
 import java.time.*
@@ -199,7 +201,7 @@ fun <T> Iterable<T>.unescape(escapement: T, vararg escape: T): List<T> {
                 false
             }
             item == escapement -> {
-                false
+                true
             }
             else -> {
                 output.add(item)
@@ -260,3 +262,50 @@ fun ByteBuffer.putInstantSeconds(instant: Instant) { putLong(instant.epochSecond
 val ByteBuffer.instant get() = long.toInstant()
 
 val Boolean.int get() = if (this) 1 else 0
+
+fun pixmapFromClipboard(): Pixmap? {
+    try {
+        val tkClass = Class.forName("java.awt.Toolkit")
+        val tk = tkClass.getMethod("getDefaultToolkit").invoke(null)
+
+        val clipboard = tkClass.getMethod("getSystemClipboard").invoke(tk)
+        val clipboardClass = Class.forName("java.awt.datatransfer.Clipboard")
+
+        val content = clipboardClass.getMethod("getContents", java.lang.Object::class.java)
+            .invoke(clipboard, null)
+
+        val flavorClass = Class.forName("java.awt.datatransfer.DataFlavor")
+        val transferClass = Class.forName("java.awt.datatransfer.Transferable")
+        val img = transferClass.getMethod("getTransferData", flavorClass)
+            .invoke(content, flavorClass.getField("imageFlavor").get(null))
+
+        val width = img::class.java.getMethod("getWidth").invoke(img) as Int
+        val height = img::class.java.getMethod("getHeight").invoke(img) as Int
+
+        val array = IntArray(width * height)
+
+        img::class.java.getMethod(
+            "getRGB",
+            Int::class.java,
+            Int::class.java,
+            Int::class.java,
+            Int::class.java,
+            IntArray::class.java,
+            Int::class.java,
+            Int::class.java
+        ).invoke(img, 0, 0, width, height, array, 0, width)
+
+        val buffer = ByteBuffer.allocateDirect(4 * width * height)
+
+        for (item in array) {
+            buffer.put((item shr 16).toByte())
+            buffer.put((item shr 8).toByte())
+            buffer.put(item.toByte())
+            buffer.put((item shr 24).toByte())
+        }
+
+        return Pixmap(buffer, width, height)
+    } catch (e: Exception) {
+        return null
+    }
+}
