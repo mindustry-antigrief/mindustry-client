@@ -38,7 +38,7 @@ fun ByteBuffer.bytes(num: Int): ByteArray {
 }
 
 /** Converts a [Long] representing unix time in seconds to [Instant] */
-fun Long.toInstant(): Instant = Instant.ofEpochSecond(this)
+fun Long.toInstant(): Instant = try { Instant.ofEpochSecond(this) } catch (e: DateTimeException) { Instant.EPOCH }
 
 /** Seconds between this and [other].  If [other] happened after this, it will be positive. */
 fun Temporal.secondsBetween(other: Temporal) = timeSince(other, ChronoUnit.SECONDS)
@@ -243,3 +243,18 @@ fun flood() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Flood") 
 
 /** Whether the current gamemode is tower defense */
 fun defense() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Defense") || Vars.state.rules.modeName == "Defense"
+
+fun ByteBuffer.putString(string: String) { putByteArray(string.encodeToByteArray()) }
+
+val ByteBuffer.string get() = byteArray.decodeToString()
+
+fun ByteBuffer.putByteArray(bytes: ByteArray) {
+    putInt(bytes.size)
+    put(bytes)
+}
+
+val ByteBuffer.byteArray get() = bytes(int)
+
+fun ByteBuffer.putInstantSeconds(instant: Instant) { putLong(instant.epochSecond) }
+
+val ByteBuffer.instant get() = long.toInstant()

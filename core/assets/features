@@ -6,25 +6,25 @@
  * List items have a * for each line
  * \n does linebreak
 */
-# Default Keybinds
- * alt click - display actions for a tile
- * alt WASD - free camera movement
- * r - reset camera
- * hold \ - place block payload precisely
- * z - navigate to cursor
- * - - stop following path
- * ` (the one under escape) - show enemy turret ranges
- * shift ` - show overdrive ranges
- * i - toggle showing blocks
- * o - toggle hiding units
- * shift o - toggle hiding air units
- * f9 - toggle showing reactor/dome ranges
- * shift click - hold to disable modified junction replacement
- * tab - chat autocomplete (:block/unit/liquid/item, @playername)
- * ; - auto build (see !builder command section)
- * k - auto mine (see !miner command section)
- * f7 - toggle teleportation on z (only works on non-strict-mode servers)
- * ' (apostrophe) - send build queue to other people running !builder networkassist
+# Keybinds
+ * {tile_actions_menu_modifier} - display actions for a tile
+ * {freecam_modifier} movement keys - free camera movement
+ * {reset_camera} - reset camera
+ * hold {drop_payload} - place block payload precisely
+ * {navigate_to_camera} - navigate to cursor
+ * {stop_following_path} - stop following path
+ * {show_turret_ranges} - show enemy turret ranges
+ * shift {show_turret_ranges} - show overdrive ranges
+ * {hide_blocks} - toggle showing blocks
+ * {invisible_units} - toggle hiding units
+ * shift {invisible_units} - toggle hiding air units
+ * {show_reactor_and_dome_ranges} - toggle showing reactor/dome ranges
+ * {toggle_placement_modifiers} click - hold to disable modified junction replacement
+ * {chat_autocomplete} - chat autocomplete (:block/unit/liquid/item, @playername)
+ * {auto_build} - auto build (see !builder command section)
+ * {auto_mine} - auto mine (see !miner command section)
+ * {toggle_strict_mode} - toggle teleportation on z (only works on non-strict-mode servers)
+ * {send_build_queue} - send build queue to other people running !builder networkassist
 
 # Commands
  * If you're unfamiliar with mindustry command syntax, <name> indicates a required argument, and [name] an optional one
@@ -51,6 +51,7 @@
  * !clearghosts [c] - remove block ghosts in range of enemy turrets
  * !e <certname> <message...> - send an encrypted message to someone, see secure chat section below
  * !togglesign - toggle the sign outgoing message setting
+ * !c <message...> - send a message to other client users
 
 # Networking
  * Some client features utilize a custom in-game networking protocol

@@ -65,21 +65,6 @@ public class ChatFragment extends Table{
             return ui.hudfrag.shown;
         });
 
-        keyDown((c) -> {
-            if (Autocomplete.matches(chatfield.getText())) {
-                Seq<Autocompleteable> oldCompletion = completion.copy();
-                completion = Autocomplete.closest(chatfield.getText()).filter(item -> item.matches(chatfield.getText()) > 0.5f);
-                completion.reverse();
-                completion.truncate(4);
-                completion.reverse();
-                if (!Arrays.equals(completion.items, oldCompletion.items)) {
-                    completionPos = completion.size - 1;
-                }
-            } else {
-                completion.clear();
-            }
-        });
-
         update(() -> {
 
             if(input.keyTap(Binding.chat) && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null || ui.minimapfrag.shown()) && !ui.scriptfrag.shown()){
@@ -97,30 +82,34 @@ public class ChatFragment extends Table{
                     updateChat();
                 }
                 if (input.keyTap(Binding.chat_autocomplete) && completion.any() && mode == ChatMode.normal) {
-                    completionPos = Math.max(completionPos, 0);
-                    completionPos = Math.min(completionPos, completion.size);
+                    completionPos = Mathf.clamp(completionPos, 0, completion.size - 1);
                     chatfield.setText(completion.get(completionPos).getCompletion(chatfield.getText()) + " ");
                     updateCursor();
-                    scene.setKeyboardFocus(chatfield); // Prevents swapping to block search
                 } else if (input.keyTap(Binding.chat_mode)) {
                     nextMode();
-                    scene.setKeyboardFocus(chatfield); // Prevents swapping to block search
                 }
                 scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chat_scroll), 0, Math.max(0, messages.size - messagesShown));
-
-                if ("!r ".equals(chatfield.getText())) {
-                    chatfield.setText("!e " + ClientVars.lastCertName + " ");
-                    chatfield.setCursorPosition(chatfield.getText().length());
-                } else if ("!b ".equals(chatfield.getText())) {
-                    chatfield.setText("!builder ");
-                    chatfield.setCursorPosition(chatfield.getText().length());
-                }
-                chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 0 : maxTextLength - 2 * Mathf.num(Core.settings.getBool("signmessages"))); // Scuffed way to allow long js
             }
         });
 
         history.insert(0, "");
         setup();
+    }
+
+    // FINISHME: Why is this so complex???
+    void updateCompletion() {
+        if (Autocomplete.matches(chatfield.getText())) {
+            Seq<Autocompleteable> oldCompletion = completion.copy();
+            completion = Autocomplete.closest(chatfield.getText()).filter(item -> item.matches(chatfield.getText()) > 0.5f);
+            completion.reverse();
+            completion.truncate(4);
+            completion.reverse();
+            if (!Arrays.equals(completion.items, oldCompletion.items)) {
+                completionPos = completion.size - 1;
+            }
+        } else {
+            completion.clear();
+        }
     }
 
     public Fragment container(){
@@ -140,6 +129,29 @@ public class ChatFragment extends Table{
         fieldlabel.setStyle(fieldlabel.getStyle());
 
         chatfield = new TextField("", new TextFieldStyle(scene.getStyle(TextFieldStyle.class)));
+        chatfield.updateVisibility();
+        chatfield.setFocusTraversal(false);
+        chatfield.setProgrammaticChangeEvents(true);
+        chatfield.setFilter((f, c) -> c != '\t'); // Using .changed(...) and allowing tabs causes problems for tab completion and cursor position, .typed(...) doesn't do what I need
+        chatfield.changed(() -> {
+            chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 0 : maxTextLength - 2 * Mathf.num(Core.settings.getBool("signmessages"))); // Scuffed way to allow long js
+
+            var replacement = switch (chatfield.getText()) {
+                case "!r " -> "!e " + ClientVars.lastCertName + " ";
+                case "!b " -> "!builder ";
+                case "!cu ", "!cr " -> "!cursor ";
+                case "!h " -> "!here ";
+                default -> null;
+            };
+            if (replacement != null) {
+                app.post(() -> { // .changed(...) is called in the middle of the typed char being processed, workaround is to update cursor on the next frame
+                    chatfield.setText(replacement);
+                    updateCursor();
+                });
+            }
+
+            updateCompletion();
+        });
         chatfield.setMaxLength(Vars.maxTextLength);
         chatfield.getStyle().background = null;
         chatfield.getStyle().fontColor = Color.white;
@@ -216,7 +228,7 @@ public class ChatFragment extends Table{
             fadetime -= Time.delta / 180f;
         }
 
-        if (completion.size > 0 && shown) {
+        if (completion.any() && shown) {
             float pos = Reflect.<FloatSeq>get(chatfield, "glyphPositions").peek();
             StringBuilder contents = new StringBuilder();
             int index = 0;
@@ -261,8 +273,10 @@ public class ChatFragment extends Table{
 
         history.insert(1, message);
 
-        // Allow sending commands in "/t" & "/a"; "/t /help" becomes "/help", "/a !go" becomes "!go"
-        message = message.replaceFirst("^/[at] ([/!])", "$1");
+        // Allow sending commands with chat modes; "/t /help" becomes "/help", "/a !go" becomes "!go"
+        for (ChatMode mode : ChatMode.all) {
+            message = message.replaceFirst("^" + mode.prefix + " ([/!])", "$1");
+        }
 
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
@@ -396,7 +410,7 @@ public class ChatFragment extends Table{
     }
 
     public ChatMessage addMessage(String message, String sender, Color background, String prefix){
-        return addMessage(message, sender, background, prefix, "");
+        return addMessage(message, sender, background, prefix, message);
     }
 
     public ChatMessage addMessage(String message, String sender, Color background){ // FINISHME: Remove this, merge sender with message
@@ -404,19 +418,19 @@ public class ChatFragment extends Table{
     }
 
     public ChatMessage addMessage(String message, Color background, String unformatted){ // FINISHME: Refactor this
-        return addMessage(message, null, background, null);
-    }
-
-    public ChatMessage addMessage(String message, String sender){ // FINISHME: Useless?
-        return addMessage(message, sender, null);
+        return addMessage(message, null, background, "", unformatted);
     }
 
     public ChatMessage addMessage(String message, Color background){ // FINISHME: Do a v132 cleanup of this whole mess
         return addMessage(message, null, background);
     }
 
-    /** returns void for mod compatibility reasons
-     *  DO NOT TOUCH RETURN TYPE, ARGS OR REMOVE THIS CONSTRUCTOR */
+    /** @deprecated Kept for mod compatibility */
+    @Deprecated
+    public void addMessage(String ignored, String message){
+        addMessage(message);
+    }
+
     public void addMessage(String message){
         addMessage(message, null, null, "");
     }
@@ -426,35 +440,15 @@ public class ChatFragment extends Table{
         fadetime = Math.min(fadetime, messagesShown);
     }
 
+
     // FINISHME: This was supposed to be removed in v132?
     public static class ChatMessage{
         public String sender;
         public String message;
         public String formattedMessage;
-        public Color backgroundColor = null;
-        public String prefix = "";
-        public String unformatted = "";
-
-        public ChatMessage(String message, String sender){
-            this.message = message;
-            this.sender = sender;
-            format();
-        }
-
-        public ChatMessage(String message, String sender, Color color){
-            this.message = message;
-            this.sender = sender;
-            backgroundColor = color;
-            format();
-        }
-
-        public ChatMessage(String message, String sender, Color color, String prefix){
-            this.message = message;
-            this.sender = sender;
-            this.prefix = prefix;
-            backgroundColor = color;
-            format();
-        }
+        public Color backgroundColor;
+        public String prefix;
+        public String unformatted;
 
         public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
             this.message = message;
@@ -469,7 +463,7 @@ public class ChatFragment extends Table{
             if(sender == null){ //no sender, this is a server message?
                 formattedMessage = message == null ? "" : message;
             } else {
-                formattedMessage = prefix + "[coral][[" + sender + "[coral]]:[white] " + message;
+                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
             }
         }
     }
@@ -477,7 +471,8 @@ public class ChatFragment extends Table{
     private enum ChatMode{
         normal(""),
         team("/t"),
-        admin("/a", player::admin)
+        admin("/a", player::admin),
+        client("!c")
         ;
 
         public String prefix;

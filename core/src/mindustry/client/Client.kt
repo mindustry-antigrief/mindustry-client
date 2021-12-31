@@ -432,6 +432,10 @@ object Client {
             Main.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH, Main.keyStorage.cert() ?: return@register, player))
             // FINISHME: success message
         }
+
+        register("c <message...>", "Send a message to other client users.") { args, _ ->  // FINISHME: Bundle
+            Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
+        }
     }
 
     fun connectTls(certname: String, onFinish: (Packets.CommunicationClient, X509Certificate) -> Unit) { // FINISHME: Bundle

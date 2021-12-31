@@ -323,4 +323,3 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
             Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));
     }
 }
-

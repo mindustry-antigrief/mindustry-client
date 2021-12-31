@@ -112,6 +112,10 @@ object Main : ApplicationListener {
                     transmission.type ?: return@addListener
                     if (transmission.verify()) transmission.type.lambda(transmission)
                 }
+
+                is ClientMessageTransmission -> {
+                    if (senderId != Vars.player.id) transmission.addToChatfrag()
+                }
             }
         }
     }
@@ -127,9 +131,9 @@ object Main : ApplicationListener {
             msg.format()
         }
 
-        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.unformatted.endsWith(ending) } ?: return false
+        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.unformatted?.endsWith(ending) == true } ?: return false
 
-        if (!msg.message.endsWith(msg.unformatted)) { invalid(msg, null) }
+        if (!msg.message.endsWith(msg.unformatted)) { invalid(msg, null); Log.debug("Does not end with unformatted!") }
 
         if (!Core.settings.getBool("highlightcryptomsg")) return true
         val output = signatures.verifySignatureTransmission(msg.unformatted.encodeToByteArray(), transmission)

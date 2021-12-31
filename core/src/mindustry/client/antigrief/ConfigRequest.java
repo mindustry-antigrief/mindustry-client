@@ -1,6 +1,5 @@
 package mindustry.client.antigrief;
 
-import arc.util.*;
 import mindustry.gen.*;
 import mindustry.world.*;
 
@@ -23,7 +22,6 @@ public class ConfigRequest {
     }
 
     public void run() {
-        Log.info("world:" + world + "   tile:" + world.tile(x, y));
         if (world != null) {
             Tile tile = world.tile(x, y);
 

@@ -6,6 +6,7 @@ import arc.struct.*
 import arc.util.pooling.*
 import mindustry.*
 import mindustry.client.navigation.waypoints.*
+import mindustry.game.*
 import java.util.concurrent.*
 
 /** A way of representing a path */
@@ -18,6 +19,10 @@ abstract class Path {
         private val filter = Seq<PositionWaypoint>()
         private var job: Future<Array<PositionWaypoint>> = CompletableFuture.completedFuture(emptyArray())
         private val targetPos = Vec2(-1F, -1F)
+
+        init {
+            Events.on(EventType.WorldLoadEvent::class.java) { job = CompletableFuture.completedFuture(emptyArray()) }
+        }
 
         @JvmOverloads @JvmStatic
         fun goTo(dest: Position, dist: Float = 0F, aStarDist: Float = 0F) = goTo(dest.x, dest.y, dist, aStarDist)
