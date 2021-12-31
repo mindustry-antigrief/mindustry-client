@@ -22,6 +22,7 @@ import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.client.ui.*;
+import mindustry.client.utils.SingleItemList;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -33,6 +34,8 @@ import mindustry.ui.dialogs.*;
 import mindustry.world.*;
 import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
+
+import java.util.List;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -627,6 +630,7 @@ public class DesktopInput extends InputHandler{
             player.persistPlans.clear();
             processorConfigs.clear();
             player.unit().clearBuilding();
+            Main.INSTANCE.removePlans(Main.INSTANCE.getClientAssistQueue());
         }
 
         if(Core.input.keyTap(Binding.schematic_select) && !Core.scene.hasKeyboard() && mode != breaking){
@@ -748,6 +752,7 @@ public class DesktopInput extends InputHandler{
             BuildPlan req = getRequest(cursorX, cursorY);
             if(req != null && req.breaking){
                 player.unit().plans().remove(req);
+                Main.INSTANCE.removePlans(SingleItemList.lstOf(req));
             }
         }else{
             deleting = false;
@@ -789,6 +794,7 @@ public class DesktopInput extends InputHandler{
             if(sreq != null){
                 if(getRequest(sreq.x, sreq.y, sreq.block.size, sreq) != null){
                     player.unit().plans().remove(sreq, true);
+                    Main.INSTANCE.removePlans(SingleItemList.lstOf(sreq));
                 }
                 sreq = null;
             }

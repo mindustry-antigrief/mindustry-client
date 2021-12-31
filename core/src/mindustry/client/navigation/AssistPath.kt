@@ -23,6 +23,9 @@ class AssistPath(val assisting: Player, val cursor: Boolean = false, val noFollo
         if (clientMode) {
             Main.clientAssistReceive = ClientAssistManager(assisting.id, Main.communicationClient, false)
             Main.send(SignalingTransmission(assisting.id, SignalingTransmission.Type.START))
+            listeners.add {
+                Main.send(SignalingTransmission(assisting.id, SignalingTransmission.Type.STOP))
+            }
         }
     }
 
