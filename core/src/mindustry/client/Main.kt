@@ -321,6 +321,22 @@ object Main : ApplicationListener {
         }
     }
 
+    fun addPlans(plans: List<BuildPlan>) {
+        clientAssistSend?.plansAddedRemoved(plans, true, clientAssistQueue)
+    }
+
+    fun addPlans(plans: Seq<BuildPlan>) {
+        clientAssistSend?.plansAddedRemoved(plans.toList(), true, clientAssistQueue)
+    }
+
+    fun removePlans(plans: List<BuildPlan>) {
+        clientAssistSend?.plansAddedRemoved(plans, false, clientAssistQueue)
+    }
+
+    fun removePlans(plans: Seq<BuildPlan>) {
+        clientAssistSend?.plansAddedRemoved(plans.toList(), false, clientAssistQueue)
+    }
+
     /** Run when the object is disposed. */
     override fun dispose() {}
 }

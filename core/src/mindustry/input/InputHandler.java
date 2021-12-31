@@ -19,6 +19,7 @@ import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
+import mindustry.client.utils.SingleItemList;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
@@ -890,6 +891,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     protected void flushRequests(Seq<BuildPlan> requests){
         var configLogic = Core.settings.getBool("processorconfigs");
+        var added = new Seq<BuildPlan>();
         for(BuildPlan req : requests){
             if(req.block != null && validPlace(req.x, req.y, req.block, req.rotation)){
                 BuildPlan copy = req.copy();
@@ -899,8 +901,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
                 req.block.onNewPlan(copy);
                 player.unit().addBuild(copy);
+                added.add(copy);
             }
         }
+        Main.INSTANCE.addPlans(added);
     }
 
     protected void drawOverRequest(BuildPlan request){
@@ -965,14 +969,19 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         //remove build requests
         Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
 
+        var removed2 = new Seq<BuildPlan>();
+
         Iterator<BuildPlan> it = player.unit().plans().iterator();
         while(it.hasNext()){
             BuildPlan req = it.next();
             if(!req.breaking && req.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 ClientVars.processorConfigs.remove(req.tile().pos());
                 it.remove();
+                removed2.add(req);
             }
         }
+
+        Main.INSTANCE.removePlans(removed2);
 
         it = selectRequests.iterator();
         while(it.hasNext()){
@@ -1318,7 +1327,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public void breakBlock(int x, int y){
         Tile tile = world.tile(x, y);
         if(tile != null && tile.build != null) tile = tile.build.tile;
-        player.unit().addBuild(new BuildPlan(tile.x, tile.y));
+        var plan = new BuildPlan(tile.x, tile.y);
+        player.unit().addBuild(plan);
+        Main.INSTANCE.addPlans(SingleItemList.lstOf(plan));
     }
 
     public void drawArrow(Block block, int x, int y, int rotation){
