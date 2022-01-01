@@ -6,6 +6,7 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.math.geom.Vec2;
 import arc.scene.*;
 import arc.scene.ui.*;
 import arc.scene.ui.Label.*;
@@ -15,11 +16,14 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.*;
+import mindustry.client.ui.AttachmentDialog;
+import mindustry.client.ui.UploadDialog;
 import mindustry.client.utils.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.ui.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -32,6 +36,7 @@ public class ChatFragment extends Table{
     private float fadetime;
     private boolean shown = false;
     private TextField chatfield;
+    private TextButton upload;
     private Label fieldlabel = new Label(">");
     private ChatMode mode = ChatMode.normal;
     private Font font;
@@ -162,6 +167,10 @@ public class ChatFragment extends Table{
 
         add(chatfield).padBottom(offsety).padLeft(offsetx).growX().padRight(offsetx).height(28);
 
+        upload = new TextButton("upload"); // FINISHME: bundle
+        upload.clicked(UploadDialog.INSTANCE::show);
+        add(upload);
+
         if(Vars.mobile){
             marginBottom(105f);
             marginRight(240f);
@@ -189,16 +198,32 @@ public class ChatFragment extends Table{
         Draw.color(shadowColor);
         Draw.alpha(shadowColor.a * opacity);
 
+//        float blockFragX = ui.hudfrag.blockfrag.blockPane.localToStageCoordinates(Vec2.ZERO).x;
+//        Vec2.ZERO.setZero();
+        float blockFragX = textWidth;
+
         float theight = offsety + spacing + getMarginBottom() + scene.marginBottom;
         for(int i = scrollPos; i < messages.size && i < messagesShown + scrollPos && (i < fadetime || shown); i++){
+            ChatMessage msg = messages.get(i);
 
-            layout.setText(font, messages.get(i).formattedMessage, Color.white, textWidth, Align.bottomLeft, true);
+            layout.setText(font, msg.formattedMessage, Color.white, textWidth, Align.bottomLeft, true);
             theight += layout.height + textspacing;
             if(i - scrollPos == 0) theight -= textspacing + 1;
 
             font.getCache().clear();
             font.getCache().setColor(Color.white);
-            font.getCache().addText(messages.get(i).formattedMessage, fontoffsetx + offsetx, offsety + theight, textWidth, Align.bottomLeft, true);
+            font.getCache().addText(msg.formattedMessage, fontoffsetx + offsetx, offsety + theight, textWidth, Align.bottomLeft, true);
+
+            if (msg.attachments.size() != 0) {
+                Draw.color();
+                float x = blockFragX - 10f;
+                float y = offsety + theight - layout.height;
+                Icon.imageSmall.draw(x, y, layout.height, layout.height);
+                Tmp.r3.set(x, y, layout.height, layout.height);
+                if (Tmp.r3.contains(input.mouse()) && input.keyTap(Binding.select)) {
+                    new AttachmentDialog(msg.unformatted, msg.attachments);
+                }
+            }
 
             Color color = messages.get(i).backgroundColor;
             if (color == null) {
@@ -281,13 +306,14 @@ public class ChatFragment extends Table{
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
-            Call.sendChatMessage(Main.INSTANCE.sign(message));
+            String msg = Main.INSTANCE.sign(message);
+            Call.sendChatMessage(msg);
             if (message.startsWith(netServer.clientCommands.getPrefix() + "sync")) { // /sync
                 player.persistPlans();
                 ClientVars.syncing = true;
             }
             if (!message.startsWith(netServer.clientCommands.getPrefix())) { // Only fire when not running any command
-                Events.fire(new EventType.SendChatMessageEvent(message));
+                Events.fire(new EventType.SendChatMessageEvent(msg));
             }
 
         }else{
@@ -441,7 +467,6 @@ public class ChatFragment extends Table{
     }
 
 
-    // FINISHME: This was supposed to be removed in v132?
     public static class ChatMessage{
         public String sender;
         public String message;
@@ -449,6 +474,7 @@ public class ChatFragment extends Table{
         public Color backgroundColor;
         public String prefix;
         public String unformatted;
+        public List<Image> attachments = new ArrayList<>();
 
         public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
             this.message = message;

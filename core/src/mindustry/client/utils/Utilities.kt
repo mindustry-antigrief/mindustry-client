@@ -16,13 +16,21 @@ import mindustry.core.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
 import mindustry.world.*
+import java.awt.image.BufferedImage
 import java.io.*
-import java.lang.Exception
 import java.nio.*
 import java.security.cert.*
 import java.time.*
 import java.time.temporal.*
+import java.util.*
 import java.util.zip.*
+import javax.imageio.IIOImage
+import javax.imageio.ImageIO
+import javax.imageio.ImageTypeSpecifier
+import javax.imageio.ImageWriteParam
+import javax.imageio.metadata.IIOMetadata
+import javax.imageio.plugins.jpeg.JPEGImageWriteParam
+import javax.imageio.stream.MemoryCacheImageOutputStream
 import kotlin.math.*
 
 fun Table.label(text: String): Cell<Label> {
@@ -308,4 +316,87 @@ fun pixmapFromClipboard(): Pixmap? {
     } catch (e: Exception) {
         return null
     }
+}
+
+private val bytes = ByteArrayOutputStream()
+
+fun jpg(img: Pixmap): ByteArray? {
+    val imgIO = Class.forName("javax.imageio.ImageIO")
+    val writers = imgIO.getMethod("getImageWritersByFormatName", String::class.java).invoke(null, "jpeg") as Iterator<*>
+    val writer = writers.next()
+    val writerCls = Class.forName("javax.imageio.ImageWriter")
+//    val writer = ImageIO.getImageWritersByFormatName("jpeg").next()
+    bytes.reset()
+    val memCacheOutCls = Class.forName("javax.imageio.stream.MemoryCacheImageOutputStream")
+    val out = memCacheOutCls.getConstructor(OutputStream::class.java).newInstance(bytes)
+//    val out = MemoryCacheImageOutputStream(bytes)
+    writerCls.getMethod("setOutput", java.lang.Object::class.java).invoke(writer, out)
+//    writer.output = out
+
+    val bufImCls = Class.forName("java.awt.image.BufferedImage")
+//    val im = BufferedImage(img.width, img.height, BufferedImage.TYPE_INT_RGB)
+    val im = bufImCls.getConstructor(Int::class.java, Int::class.java, Int::class.java)
+        .newInstance(img.width, img.height, bufImCls.getField("TYPE_INT_RGB").get(null))
+
+    val imArray = IntArray(img.width * img.height)
+    for (x in 0 until img.width) {
+        for (y in 0 until img.height) {
+            val rgb = img[x, y]
+            imArray[x + (y * img.width)] = (rgb ushr 8) or (rgb shl (32 - 8))
+//            im.setRGB(x, y, (rgb ushr 8) or (rgb shl (32 - 8)))
+        }
+    }
+    bufImCls.getMethod("setRGB", Int::class.java, Int::class.java, Int::class.java, Int::class.java, IntArray::class.java, Int::class.java, Int::class.java)
+        .invoke(im, 0, 0, img.width, img.height, imArray, 0, img.width)
+//    im.setRGB(0, 0, img.width, img.height, imArray, 0, img.width)
+
+    val jpgParamCls = Class.forName("javax.imageio.plugins.jpeg.JPEGImageWriteParam")
+    val param = jpgParamCls.getConstructor(Locale::class.java).newInstance(Locale.US)
+//    val param = JPEGImageWriteParam(Locale.US).apply {
+//        compressionMode = ImageWriteParam.MODE_EXPLICIT
+//        compressionQuality = 0.5f
+//    }
+
+    jpgParamCls.getMethod("setCompressionMode", Int::class.java).invoke(param, Class.forName("javax.imageio.ImageWriteParam").getField("MODE_EXPLICIT").get(null))
+    jpgParamCls.getMethod("setCompressionQuality", Float::class.java).invoke(param, 0.5f)
+
+    val imgTypeSpec = Class.forName("javax.imageio.ImageTypeSpecifier")
+    val paramCls = Class.forName("javax.imageio.ImageWriteParam")
+
+    val defMetadata = writerCls.getMethod("getDefaultImageMetadata", imgTypeSpec, paramCls)
+
+    val renderedImg = Class.forName("java.awt.image.RenderedImage")
+    val spec = imgTypeSpec.getMethod("createFromRenderedImage", renderedImg).invoke(null, im)
+
+    val metadata = defMetadata.invoke(writer, spec, param)
+//    val metadata = writer.getDefaultImageMetadata(ImageTypeSpecifier.createFromRenderedImage(im), param)
+    val metadataCls = Class.forName("javax.imageio.metadata.IIOMetadata")
+    val iioimgCls = Class.forName("javax.imageio.IIOImage")
+
+    val iioimg = iioimgCls.getConstructor(renderedImg, List::class.java, metadataCls).newInstance(im, emptyList<Any>(), metadata)
+
+    writerCls.getMethod("write", metadataCls, iioimgCls, paramCls).invoke(writer, metadata, iioimg, param)
+//    writer.write(metadata, IIOImage(im, emptyList(), metadata), param)
+    writerCls.getMethod("dispose").invoke(writer)
+//    writer.dispose()
+    memCacheOutCls.getMethod("flush").invoke(out)
+//    out.flush()
+
+    return bytes.toByteArray()
+}
+
+fun decodeJPG(array: ByteArray, offset: Int, length: Int): Pixmap? {
+//    val inp = MemoryCacheImageInputStream(ByteArrayInputStream(array))
+    val imgIo = Class.forName("javax.imageio.ImageIO")
+    val img = ImageIO.read(array.inputStream(offset, length))
+    val pixmap = Pixmap(img.width, img.height)
+    val arr = IntArray(img.width * img.height)
+    img.getRGB(0, 0, img.width, img.height, arr, 0, img.width)
+    for (x in 0 until img.width) {
+        for (y in 0 until img.height) {
+            val color = img.getRGB(x, y)
+            pixmap[x, y] = (color shl 8) or (color ushr (32 - 8))
+        }
+    }
+    return pixmap
 }

@@ -23,11 +23,11 @@ object BlockCommunicationSystem : CommunicationSystem() {
     var logicAvailable = false
     var messagesAvailable = false
     override val MAX_LENGTH get() = when {
-        logicAvailable -> Base32768Coder.availableBytes(min(4000, (LExecutor.maxInstructions - 3) * MAX_PRINT_LENGTH))
+        logicAvailable -> Base32768Coder.availableBytes(3000)
         messagesAvailable -> Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - ClientVars.MESSAGE_BLOCK_PREFIX.length)
         else -> 512
     }
-    override val RATE: Float = 30f // 500ms
+    override val RATE: Float = 15f // 250ms
 
     private const val MAX_PRINT_LENGTH = 34
     const val LOGIC_PREFIX = "end\nprint \"client networking, do not edit/remove\""

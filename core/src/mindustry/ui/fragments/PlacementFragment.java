@@ -44,8 +44,8 @@ public class PlacementFragment extends Fragment{
     Object lastDisplayState;
     Team lastTeam;
     boolean wasHovered;
-    Table blockTable, toggler, topTable;
-    ScrollPane blockPane;
+    public Table blockTable, toggler, topTable;
+    public ScrollPane blockPane;
     boolean blockSelectEnd;
     int blockSelectSeq;
     long blockSelectSeqMillis;
