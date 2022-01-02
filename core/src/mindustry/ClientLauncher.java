@@ -9,8 +9,8 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.util.*;
 import arc.util.async.*;
-import mindustry.client.*;
 import mindustry.ai.*;
+import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -19,7 +19,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.maps.*;
 import mindustry.mod.*;
-import mindustry.net.Net;
+import mindustry.net.*;
 import mindustry.ui.*;
 
 import static arc.Core.*;

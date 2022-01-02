@@ -453,7 +453,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot control a unit.");
         }
 
-        if (player.isLocal()) player.persistPlans(); // Restore plans after swapping units
+        if (player.isLocal() && Time.timeSinceMillis(Navigation.navigator.getLastWp()) > 1000) player.persistPlans(); // Restore plans after swapping units, ignore cn /wp
 
         //clear player unit when they possess a core
         if(unit == null){ //just clear the unit (is this used?)
@@ -1397,6 +1397,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     public boolean validPlace(int x, int y, Block type, int rotation, BuildPlan ignore){
         //TODO with many requests, this is O(n * m), very laggy
+        var valid = Build.validPlace(type, player.team(), x, y, rotation);
+        if (!valid) return false; // The code above this is far faster than the code below, don't run it unless we really have to
         for(BuildPlan req : player.unit().plans()){
             if(req != ignore
                     && !req.breaking
@@ -1405,7 +1407,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 return false;
             }
         }
-        return Build.validPlace(type, player.team(), x, y, rotation);
+        return true;
     }
 
     public boolean validBreak(int x, int y){

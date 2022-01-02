@@ -3,7 +3,7 @@ package mindustry.entities.bullet;
 import arc.graphics.g2d.*;
 import mindustry.content.*;
 import mindustry.gen.*;
-import mindustry.type.UnitType;
+import mindustry.type.*;
 
 //TODO scale velocity depending on fslope()
 public class ArtilleryBulletType extends BasicBulletType{

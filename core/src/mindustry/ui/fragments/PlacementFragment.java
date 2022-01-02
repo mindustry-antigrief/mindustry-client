@@ -11,7 +11,9 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.client.*;
+import mindustry.client.ui.UploadDialog;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
@@ -44,8 +46,8 @@ public class PlacementFragment extends Fragment{
     Object lastDisplayState;
     Team lastTeam;
     boolean wasHovered;
-    Table blockTable, toggler, topTable;
-    ScrollPane blockPane;
+    public Table blockTable, toggler, topTable;
+    public ScrollPane blockPane;
     boolean blockSelectEnd;
     int blockSelectSeq;
     long blockSelectSeqMillis;
@@ -107,7 +109,7 @@ public class PlacementFragment extends Fragment{
             Block tryRecipe = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
             Object tryConfig = build == null || !build.block.copyConfig ? null : build.config();
             boolean wasShard = tryRecipe == Blocks.coreShard;
-            if (wasShard) tryRecipe = // If shard was middle-clicked, selects the best affordable core
+            if (wasShard || tryRecipe == Blocks.coreFoundation) tryRecipe = // If core was middle-clicked, selects the best affordable core
                 Blocks.coreNucleus.isVisible() && Blocks.coreNucleus.unlockedNow() && (state.rules.infiniteResources || build.items.has(Blocks.coreNucleus.requirements, state.rules.buildCostMultiplier)) ? Blocks.coreNucleus :
                 Blocks.coreFoundation.isVisible() && Blocks.coreFoundation.unlockedNow() ? Blocks.coreFoundation :
                 null;
@@ -216,6 +218,15 @@ public class PlacementFragment extends Fragment{
     @Override
     public void build(Group parent){
         parent.fill(full -> {
+            ui.chatfrag.upload = new ImageButton(Icon.upload);
+            ui.chatfrag.upload.clicked(UploadDialog.INSTANCE::show);
+            ui.chatfrag.upload.visible(() -> ui.chatfrag.chatfield.visible);
+            Table t = new Table();
+            t.add(ui.chatfrag.upload);
+            t.row();
+            t.add(" ").height(45);
+            full.add(t).bottom().right();
+
             toggler = full;
             full.bottom().right().visible(() -> ui.hudfrag.shown);
 

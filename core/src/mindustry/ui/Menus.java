@@ -4,6 +4,8 @@ import arc.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
+import mindustry.client.utils.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 
@@ -69,6 +71,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoMessage(String message){
         if(message == null) return;
+        if(UtilitiesKt.io() && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
 
         ui.showText("", message);
     }

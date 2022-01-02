@@ -10,6 +10,7 @@ import mindustry.ai.formations.*;
 import mindustry.client.*;
 import mindustry.client.communication.*;
 import mindustry.content.*;
+import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
@@ -134,24 +135,18 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
             }
 
             if (timer.get(1, 300)) {
-                clientThread.taskQueue.post(() -> {
+                clientThread.post(() -> {
                     blocked.clear();
                     blockedPlayer.clear();
                     synchronized (Navigation.obstacles) {
                         for (var turret : Navigation.obstacles) {
                             if (!turret.canShoot) continue;
-                            int lowerXBound = (int)(turret.x - turret.radius) / tilesize;
-                            int upperXBound = (int)(turret.x + turret.radius) / tilesize;
-                            int lowerYBound = (int)(turret.y - turret.radius) / tilesize;
-                            int upperYBound = (int)(turret.y + turret.radius) / tilesize;
-                            for (int x = lowerXBound ; x <= upperXBound; x++) {
-                                for (int y = lowerYBound ; y <= upperYBound; y++) {
-                                    if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {
-                                        if (!turret.targetGround) blocked.set(x, y);
-                                        if (turret.canHitPlayer) blockedPlayer.set(x, y);
-                                    }
+                            Geometry.circle(World.toTile(turret.x), World.toTile(turret.y), World.toTile(turret.radius), (x, y) -> {
+                                if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {
+                                    if (turret.targetGround) blocked.set(x, y);
+                                    if (turret.canHitPlayer) blockedPlayer.set(x, y);
                                 }
-                            }
+                            });
                         }
                     }
                 });
@@ -265,13 +260,13 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 Formation formation = player.unit().formation;
                 range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.radius(); // Account for the player formation
-                Path.goTo(req, range);
+                goTo(req, range);
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();
             }
         } else if (blockedPlayer.get(player.tileX(), player.tileY())) { // Leave enemy turret range while not building
-            if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post(() -> { // FINISHME: This is totally not inefficient at all...
+            if (clientThread.taskQueue.size() == 0) clientThread.post(() -> { // FINISHME: This is totally not inefficient at all...
                 var safeTiles = new Seq<Tile>(){{
                     world.tiles.eachTile(t -> {
                         if (!blockedPlayer.get(t.x, t.y)) add(t);
@@ -285,7 +280,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     }
 
     @Override
-    public void draw() {
+    public synchronized void draw() {
         if (valid && player.unit().isBuilding()) waypoints.draw();
     }
 
@@ -328,4 +323,3 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
             Build.validPlace(req.block, player.unit().team(), req.x, req.y, req.rotation));
     }
 }
-

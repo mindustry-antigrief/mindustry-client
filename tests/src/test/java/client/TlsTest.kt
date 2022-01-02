@@ -6,6 +6,8 @@ import mindustry.client.communication.DummyTransmission
 import mindustry.client.communication.Packets
 import mindustry.client.communication.TlsCommunicationSystem
 import mindustry.client.crypto.*
+import mindustry.client.utils.escape
+import mindustry.client.utils.unescape
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
 import org.bouncycastle.tls.TlsClientProtocol
@@ -81,6 +83,17 @@ class TlsTest {
         }
 
         Assertions.assertTrue(passed)
+    }
+
+    @Test
+    fun testEscape() {
+        val escape = '\\'
+        val toEscape = "+-"
+
+        val original = "aaa\\aaaa+aaa-aaa--++"
+        val escaped = original.toCharArray().toList().escape(escape, *toEscape.toCharArray().toTypedArray())
+        val unescaped = escaped.unescape(escape, *toEscape.toCharArray().toTypedArray()).joinToString("")
+        Assertions.assertTrue(original == unescaped)
     }
 
     @Test

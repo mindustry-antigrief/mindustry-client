@@ -6,16 +6,14 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
-import mindustry.client.Spectate
-import mindustry.client.communication.BuildPlanCommunicationSystem
+import mindustry.client.*
+import mindustry.client.communication.*
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 
-class AssistPath(val assisting: Player?, val cursor: Boolean, val dontFollow: Boolean) : Path() {
-    constructor(assisting: Player?, cursor: Boolean) : this(assisting, cursor, false)
-    constructor(assisting: Player?) : this(assisting, false)
+class AssistPath(val assisting: Player?, val cursor: Boolean = false, val noFollow: Boolean = false) : Path() {
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
     private var tolerance = 0F
@@ -89,9 +87,9 @@ class AssistPath(val assisting: Player?, val cursor: Boolean, val dontFollow: Bo
         val unit = player.unit()
         val shouldShoot =
             assisting.unit().isShooting || // Target shooting
-            dontFollow && player.shooting // Player not following and shooting
+            noFollow && player.shooting && Core.input.keyDown(Binding.select) // Player not following and shooting
         val aimPos =
-            if (!dontFollow || assisting.unit().isShooting) Tmp.v1.set(assisting.unit().aimX, assisting.unit().aimY) // Following or shooting
+            if (!noFollow || assisting.unit().isShooting) Tmp.v1.set(assisting.unit().aimX, assisting.unit().aimY) // Following or shooting
             else if (unit.type.faceTarget) Core.input.mouseWorld() else Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, player.unit().y) // Not following, not shooting
         val lookPos =
             if (assisting.unit().isShooting && unit.type.rotateShooting) player.angleTo(assisting.unit().aimX, assisting.unit().aimY) // Assisting is shooting and player has fixed weapons
@@ -103,20 +101,22 @@ class AssistPath(val assisting: Player?, val cursor: Boolean, val dontFollow: Bo
         unit.aim(aimPos)
         unit.lookAt(lookPos)
 
-        if (!dontFollow) { // Following
-            if (Core.settings.getBool("pathnav") && v2.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y).dst(player) > tolerance + tilesize * 5) {
-                if (clientThread.taskQueue.size() == 0) clientThread.taskQueue.post { waypoints.set(Seq.with(*Navigation.navigator.navigate(v1.set(player.x, player.y), v2, Navigation.obstacles))) }
-                waypoints.follow()
-            } else waypoint.set(v2.x, v2.y, tolerance, tolerance).run()
+        if (!noFollow) { // Following
+            goTo(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y, tolerance, tolerance + tilesize * 5)
+//            if (Core.settings.getBool("pathnav") && v2.set(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y).dst(player) > tolerance + tilesize * 5) {
+//                if (clientThread.taskQueue.size == 0) clientThread.post{ waypoints.set(Seq.with(*Navigation.navigator.navigate(v1.set(player.x, player.y), v2, Navigation.obstacles))) }
+//                waypoints.follow()
+//            } else waypoint.set(v2.x, v2.y, tolerance, tolerance).run()
         } else { // Not following
             player.unit().moveAt((control.input as? DesktopInput)?.movement ?: (control.input as MobileInput).movement)
         }
     }
 
     override fun draw() {
-        if (v2.dst(player) > tolerance + tilesize * 5) waypoints.draw()
+        assisting ?: return
+        if (player.dst(if (cursor) Tmp.v1.set(assisting.mouseX, assisting.mouseY) else assisting) > tolerance + tilesize * 5) waypoints.draw()
 
-        if (Spectate.pos != assisting) assisting?.unit()?.drawBuildPlans()
+        if (Spectate.pos != assisting) assisting.unit().drawBuildPlans()
     }
 
     override fun progress(): Float {

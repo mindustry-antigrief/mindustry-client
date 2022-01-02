@@ -1,11 +1,9 @@
 package mindustry.client.communication
 
-import mindustry.client.utils.bytes
-import mindustry.client.utils.remainingBytes
-import mindustry.client.utils.toBytes
-import java.math.BigInteger
-import java.nio.ByteBuffer
-import kotlin.random.Random
+import mindustry.client.utils.*
+import java.math.*
+import java.nio.*
+import kotlin.random.*
 
 class TlsRequestTransmission : Transmission {
 
@@ -23,7 +21,7 @@ class TlsRequestTransmission : Transmission {
 
     override var id: Long
 
-    constructor(input: ByteArray, id: Long) {
+    constructor(input: ByteArray, id: Long, senderID: Int) {
         this.id = id
         if (input.isEmpty()) {
             sourceSN = BigInteger.ZERO

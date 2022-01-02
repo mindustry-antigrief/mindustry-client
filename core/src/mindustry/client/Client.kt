@@ -17,6 +17,7 @@ import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.communication.Packets
 import mindustry.client.crypto.*
+import mindustry.client.graphics.RangeDrawer
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.*
 import mindustry.client.utils.*
@@ -37,19 +38,17 @@ import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
 import org.bouncycastle.jsse.provider.*
+import java.io.*
 import java.math.*
 import java.security.*
 import java.security.cert.*
 import kotlin.math.*
 import kotlin.random.*
 
-
 object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
     val timer = Interval(2)
-    var spawnTime = 60f * Core.settings.getInt("spawntime")
-    var travelTime = Core.settings.getInt("traveltime").toFloat()
 
     fun initialize() {
         registerCommands()
@@ -84,7 +83,7 @@ object Client {
     }
 
     fun draw() {
-        Spectate.draw();
+        Spectate.draw()
         // Spawn path
         if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
             Draw.color(state.rules.waveTeam.color)
@@ -111,11 +110,14 @@ object Client {
         if (showingTurrets) {
             Draw.z(Layer.space)
             val units = Core.settings.getBool("unitranges")
-            synchronized (obstacles) {
+            val circles = mutableListOf<kotlin.Pair<TurretPathfindingEntity, Color>>()
+            synchronized(obstacles) {
                 for (t in obstacles) {
                     if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
-                    Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
+//                    Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
+                    circles.add(t to if (t.canHitPlayer) t.team.color else Team.derelict.color)
                 }
+                RangeDrawer.draw(circles)
             }
         }
 
@@ -195,6 +197,7 @@ object Client {
         register("go [x] [y]", Core.bundle.get("client.command.go.description")) { args, player ->
             try {
                 if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
+                else throw IOException()
                 navigateTo(lastSentPos.cpy().scl(tilesize.toFloat()))
             } catch (e: Exception) {
                 player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "go"))
@@ -290,15 +293,15 @@ object Client {
         }
 
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
-            player.sendMessage(when {
-                BlockCommunicationSystem.logicAvailable -> BlockCommunicationSystem.findProcessor()!!.run { "[accent]Using a logic block at (${this.x}, ${this.y})" }
-                BlockCommunicationSystem.messagesAvailable -> BlockCommunicationSystem.findMessage()!!.run { "[accent]Using a message block at (${this.x}, ${this.y})" }
-                else -> "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)"
-            })
+            player.sendMessage(
+                BlockCommunicationSystem.findProcessor()?.run { "[accent]Using a logic block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
+                BlockCommunicationSystem.findMessage()?.run { "[accent]Using a message block at (${tileX()}, ${tileY()})" } ?:// FINISHME: Bundle
+                "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)" // FINISHME: Bundle
+            )
         }
 
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
-            clientThread.taskQueue.post {
+            clientThread.post {
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
                 val inProgress = !configs.isEmpty
                 val originalCount = PowerGraph.activeGraphs.select { it.team == player.team() }.size
@@ -353,7 +356,7 @@ object Client {
         }
 
         register("clearghosts [c]", "Removes the ghosts of blocks which are in range of enemy turrets, useful to stop polys from building forever") { args, player -> // FINISHME: Bundle
-            clientThread.taskQueue.post {
+            clientThread.post {
                 val confirmed = args.any() && args[0].startsWith("c") // Don't clear by default
                 val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
                 val blocked = GridBits(world.width(), world.height())
@@ -397,7 +400,7 @@ object Client {
         }
 
         register("removelast [count]", "Horrible and inefficient command to remove the x oldest tile logs") { args, _ -> // FINISHME: Bundle
-            clientThread.taskQueue.post {
+            clientThread.post {
                 val count = if (args.isEmpty()) 1 else args[0].toInt()
                 lateinit var record: TileRecord
                 lateinit var sequence: TileLogSequence
@@ -415,9 +418,6 @@ object Client {
                 }
                 player.sendMessage("done")
             }
-        }
-        register("cya", "sends cya in the chat (why)") {_, player ->
-            Call.sendChatMessage("cya\n[accent][#"+player.color+"][]"+player.name+" [accent]has disconnected.")
         }
 
         register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, _ -> // FINISHME: Bundle
@@ -437,9 +437,9 @@ object Client {
             player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (previous) "off" else "on").lowercase()))
         }
 
-        register("stoppathing <name>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
-            val name = args[0]
-            val player = Groups.player.minByOrNull { Strings.levenshtein(it.name, name) } ?: return@register
+        register("stoppathing <name/id...>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
+            val name = args.joinToString(" ")
+            val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(Strings.stripColors(it.name), name) }!!
             Main.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH, Main.keyStorage.cert() ?: return@register, player))
             // FINISHME: success message
         }
@@ -459,6 +459,10 @@ object Client {
                 return@register
             }
             replaceMsg(args[0], args.size > 3 && args[3] == "t", args[1], args.size > 4 && args[4] == "t", args[2])
+        }
+
+        register("c <message...>", "Send a message to other client users.") { args, _ ->  // FINISHME: Bundle
+            Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
         }
     }
 

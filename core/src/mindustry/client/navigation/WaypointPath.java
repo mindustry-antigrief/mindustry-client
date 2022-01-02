@@ -29,44 +29,32 @@ public class WaypointPath<T extends Waypoint> extends Path {
         this.initialSize = waypoints.length;
     }
 
-    public WaypointPath<T> set(Seq<T> waypoints) {
-        synchronized (this) {
-            this.waypoints.set(waypoints);
-            if (repeat) initial.set(waypoints); // Don't bother if we aren't repeating
-            initialSize = waypoints.size;
-            return this;
-        }
+    public synchronized WaypointPath<T> set(Seq<T> waypoints) {
+        this.waypoints.set(waypoints);
+        if (repeat) initial.set(waypoints); // Don't bother if we aren't repeating
+        initialSize = waypoints.size;
+        return this;
     }
 
-    public WaypointPath<T> set(T[] waypoints) {
-        synchronized (this) {
-            this.waypoints.clear(); // FINISHME: Replace with this.waypoints.set(waypoints) in v135
-            this.waypoints.addAll(waypoints);
-            if (repeat) { // Don't bother if we aren't repeating
-                initial.clear();
-                initial.addAll(waypoints);
-            }
-            initialSize = waypoints.length;
-            return this;
-        }
+    public synchronized WaypointPath<T> set(T[] waypoints) {
+        this.waypoints.set(waypoints);
+        if (repeat) initial.set(waypoints); // Don't bother if we aren't repeating
+        initialSize = waypoints.length;
+        return this;
     }
 
-    public WaypointPath<T> add(T waypoint) {
-        synchronized (this) {
-            waypoints.add(waypoint);
-            initial.add(waypoint);
-            initialSize++;
-            return this;
-        }
+    public synchronized WaypointPath<T> add(T waypoint) {
+        waypoints.add(waypoint);
+        initial.add(waypoint);
+        initialSize++;
+        return this;
     }
 
-    public WaypointPath<T> clear() {
-        synchronized (this) {
-            waypoints.clear();
-            initial.clear();
-            initialSize = 0;
-            return this;
-        }
+    public synchronized WaypointPath<T> clear() {
+        waypoints.clear();
+        initial.clear();
+        initialSize = 0;
+        return this;
     }
 
     @Override
@@ -80,7 +68,7 @@ public class WaypointPath<T extends Waypoint> extends Path {
     }
 
     @Override
-    public void follow() {
+    public synchronized void follow() {
         if (waypoints == null || waypoints.isEmpty()) return;
 
         synchronized (this) {
@@ -101,7 +89,7 @@ public class WaypointPath<T extends Waypoint> extends Path {
     }
 
     @Override
-    public boolean isDone() {
+    public synchronized boolean isDone() {
         if (waypoints == null) return true;
 
         if (waypoints.isEmpty() && repeat) onFinish();
@@ -115,25 +103,23 @@ public class WaypointPath<T extends Waypoint> extends Path {
     }
 
     @Override
-    public void draw() {
-        synchronized (this) {
-            if (show) {
-                Position lastWaypoint = null;
-                for (var waypoint : waypoints) {
-                    if (waypoint instanceof Position wp) {
-                        if (lastWaypoint != null) {
-                            Draw.z(Layer.space);
-                            Draw.color(Color.blue, 0.4f);
-                            Lines.stroke(3f);
-                            Lines.line(lastWaypoint.getX(), lastWaypoint.getY(), wp.getX(), wp.getY());
-                        }
-                        lastWaypoint = wp;
+    public synchronized void draw() {
+        if (show) {
+            Position lastWaypoint = null;
+            Draw.z(Layer.space);
+            for (var waypoint : waypoints) {
+                if (waypoint instanceof Position wp) {
+                    if (lastWaypoint != null) {
+                        Draw.color(Color.blue, 0.4f);
+                        Lines.stroke(3f);
+                        Lines.line(lastWaypoint.getX(), lastWaypoint.getY(), wp.getX(), wp.getY());
                     }
-                    waypoint.draw();
-                    Draw.color();
+                    lastWaypoint = wp;
                 }
+                waypoint.draw();
                 Draw.color();
             }
+            Draw.color();
         }
     }
 

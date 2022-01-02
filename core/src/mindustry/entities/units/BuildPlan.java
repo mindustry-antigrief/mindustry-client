@@ -4,7 +4,7 @@ import arc.func.*;
 import arc.math.geom.*;
 import arc.util.*;
 import arc.util.pooling.*;
-import mindustry.content.Blocks;
+import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.*;

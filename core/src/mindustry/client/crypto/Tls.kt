@@ -1,27 +1,21 @@
 package mindustry.client.crypto
 
-import org.bouncycastle.asn1.x500.X500Name
-import org.bouncycastle.asn1.x509.BasicConstraints
+import org.bouncycastle.asn1.x500.*
+import org.bouncycastle.asn1.x509.*
 import org.bouncycastle.asn1.x509.Extension
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
-import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
-import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
+import org.bouncycastle.cert.jcajce.*
+import org.bouncycastle.jce.spec.*
+import org.bouncycastle.operator.jcajce.*
 import org.bouncycastle.tls.*
 import org.bouncycastle.tls.Certificate
-import org.bouncycastle.tls.crypto.TlsCryptoParameters
-import org.bouncycastle.tls.crypto.TlsECConfig
-import org.bouncycastle.tls.crypto.impl.jcajce.JcaDefaultTlsCredentialedSigner
-import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCertificate
-import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCrypto
-import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCryptoProvider
-import java.io.Closeable
-import java.io.IOException
-import java.math.BigInteger
+import org.bouncycastle.tls.crypto.*
+import org.bouncycastle.tls.crypto.impl.jcajce.*
+import java.io.*
+import java.math.*
 import java.security.*
-import java.security.cert.X509Certificate
+import java.security.cert.*
 import java.util.*
-import javax.security.auth.x500.X500Principal
+import javax.security.auth.x500.*
 import kotlin.random.Random
 
 val provider = JcaTlsCryptoProvider()

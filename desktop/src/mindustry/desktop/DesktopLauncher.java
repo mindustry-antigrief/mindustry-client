@@ -48,9 +48,7 @@ public class DesktopLauncher extends ClientLauncher{
             Vars.loadLogger();
 
             Events.on(EventType.ClientLoadEvent.class, e -> {
-                if (Core.app.isDesktop()) {
-                    SDL.SDL_SetWindowTitle(((SdlApplication) Core.app).getWindow(), getWindowTitle());
-                }
+                if (Core.app.isDesktop()) SDL.SDL_SetWindowTitle(((SdlApplication) Core.app).getWindow(), getWindowTitle());
             });
 
             if (OS.isMac && !Structs.contains(arg, "-firstThread")) { //restart with -XstartOnFirstThread on mac, doesn't work without it
@@ -61,11 +59,9 @@ public class DesktopLauncher extends ClientLauncher{
                     "java";
                 Fi jar = Fi.get(DesktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
                 try {
-                    Seq<String> args = new Seq<String>(){{ //this is horrible but the args persist this way
-                        add(javaPath);
-                        System.getProperties().entrySet().forEach(it -> add("-D" + it));
-                        addAll("-XstartOnFirstThread", "-jar", jar.absolutePath(), "-firstThread");
-                    }};
+                    Seq<String> args = Seq.with(javaPath);
+                    args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
+                    args.addAll("-XstartOnFirstThread", "-jar", jar.absolutePath(), "-firstThread");
 
                     new ProcessBuilder(args.toArray(String.class)).inheritIO().start().waitFor();
                     return;
@@ -279,9 +275,9 @@ public class DesktopLauncher extends ClientLauncher{
 
             dialog.get(() -> message(
                 total.contains("Couldn't create window") ? "A graphics initialization error has occured! Try to update your graphics drivers:\n" + finalMessage :
-                            "Your graphics card does not support the right OpenGL features.\n" +
-                                    "Try to update your graphics drivers. If this doesn't work, your computer may not support Mindustry.\n\n" +
-                                    "Full message: " + finalMessage));
+                    "Your graphics card does not support the right OpenGL features.\n" +
+                    "Try to update your graphics drivers. If this doesn't work, your computer may not support Mindustry.\n\n" +
+                    "Full message: " + finalMessage));
             badGPU = true;
         }
 

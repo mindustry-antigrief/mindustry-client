@@ -10,8 +10,6 @@ import arc.util.*;
 import arc.util.Log.*;
 import mindustry.ai.*;
 import mindustry.async.*;
-import mindustry.client.*;
-import mindustry.client.navigation.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.editor.*;
@@ -237,7 +235,6 @@ public class Vars implements Loadable{
     public static WaveSpawner spawner;
     public static BlockIndexer indexer;
     public static Pathfinder pathfinder;
-    public static ClientThread clientThread;
 
     public static Control control;
     public static Logic logic;
@@ -248,7 +245,6 @@ public class Vars implements Loadable{
 
     public static CSHandler customScripts;
 
-    public static ClientLogic clientLogic;
     public static Player player;
     public static boolean drawCursors, wasDrawingCursors; // Client debug magic
     public static Seq<BuildPlan> frozenPlans = new Seq<>(); // remind me to shift this to Vars.player() maybe. or maybe not since unneeded space
@@ -308,7 +304,6 @@ public class Vars implements Loadable{
         spawner = new WaveSpawner();
         indexer = new BlockIndexer();
         pathfinder = new Pathfinder();
-        clientThread = new ClientThread();
         bases = new BaseRegistry();
         constants = new GlobalConstants();
         drawCursors = settings.getBool("drawcursors");

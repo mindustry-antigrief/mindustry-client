@@ -7,6 +7,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.async.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
@@ -141,7 +142,7 @@ public class Pathfinder implements Runnable{
     }
 
     /** Starts or restarts the pathfinding thread. */
-    private void start(){
+    public void start(){
         stop();
         thread = Threads.daemon("Pathfinder", this);
     }
@@ -158,7 +159,7 @@ public class Pathfinder implements Runnable{
     /** Update a tile in the internal pathfinding grid.
      * Causes a complete pathfinding recalculation. Main thread only. */
     public void updateTile(Tile tile){
-        if(net.client()) return;
+        if(net.client() && ClientVars.spawnTime == 0) return;
 
         int x = tile.x, y = tile.y;
 
@@ -189,7 +190,7 @@ public class Pathfinder implements Runnable{
     @Override
     public void run(){
         while(true){
-            if(net.client()) return;
+            if(net.client() && ClientVars.spawnTime == 0) return;
             try{
 
                 if(state.isPlaying()){
@@ -202,7 +203,7 @@ public class Pathfinder implements Runnable{
                 }
 
                 try{
-                    Thread.sleep(updateInterval);
+                    Thread.sleep(net.client() ? 500 : updateInterval);
                 }catch(InterruptedException e){
                     //stop looping when interrupted externally
                     return;

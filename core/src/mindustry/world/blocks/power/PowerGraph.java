@@ -4,9 +4,8 @@ import arc.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.Vars;
-import mindustry.client.utils.*;
-import mindustry.game.Team;
+import mindustry.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.consumers.*;
 

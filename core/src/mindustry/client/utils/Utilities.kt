@@ -2,26 +2,42 @@
 
 package mindustry.client.utils
 
-import arc.*
-import arc.math.geom.*
-import arc.scene.*
-import arc.scene.ui.*
-import arc.scene.ui.layout.*
-import arc.util.*
-import arc.util.serialization.*
-import mindustry.*
-import mindustry.client.communication.*
-import mindustry.core.*
-import mindustry.ui.*
-import mindustry.ui.dialogs.*
-import mindustry.world.*
-import java.io.*
-import java.nio.*
-import java.security.cert.*
-import java.time.*
-import java.time.temporal.*
-import java.util.zip.*
-import kotlin.math.*
+import arc.Core
+import arc.Events
+import arc.graphics.Pixmap
+import arc.graphics.PixmapIO
+import arc.math.geom.Point2
+import arc.scene.Element
+import arc.scene.ui.Dialog
+import arc.scene.ui.Label
+import arc.scene.ui.TextButton
+import arc.scene.ui.layout.Cell
+import arc.scene.ui.layout.Table
+import arc.util.Disposable
+import arc.util.Strings
+import arc.util.serialization.Base64Coder
+import mindustry.Vars
+import mindustry.client.communication.Base32768Coder
+import mindustry.core.World
+import mindustry.ui.Styles
+import mindustry.ui.dialogs.BaseDialog
+import mindustry.world.Tile
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.OutputStream
+import java.nio.ByteBuffer
+import java.security.cert.X509Certificate
+import java.time.DateTimeException
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.time.temporal.Temporal
+import java.time.temporal.TemporalUnit
+import java.util.*
+import java.util.zip.DeflaterInputStream
+import java.util.zip.InflaterInputStream
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -38,7 +54,7 @@ fun ByteBuffer.bytes(num: Int): ByteArray {
 }
 
 /** Converts a [Long] representing unix time in seconds to [Instant] */
-fun Long.toInstant(): Instant = Instant.ofEpochSecond(this)
+fun Long.toInstant(): Instant = try { Instant.ofEpochSecond(this) } catch (e: DateTimeException) { Instant.EPOCH }
 
 /** Seconds between this and [other].  If [other] happened after this, it will be positive. */
 fun Temporal.secondsBetween(other: Temporal) = timeSince(other, ChronoUnit.SECONDS)
@@ -199,7 +215,7 @@ fun <T> Iterable<T>.unescape(escapement: T, vararg escape: T): List<T> {
                 false
             }
             item == escapement -> {
-                false
+                true
             }
             else -> {
                 output.add(item)
@@ -232,6 +248,9 @@ fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) {
 /** Whether we are connected to nydus */
 fun nydus() = Vars.ui.join.lastHost != null && Vars.net.client() && Vars.ui.join.lastHost.name.contains("nydus")
 
+/** Whether we are connected to a cn server */
+fun cn() = Vars.net.client() && Vars.ui.join.commmunityHosts.contains { it.group == "Chaotic Neutral" && it.address == Vars.ui.join.lastHost?.address }
+
 /** Whether we are connected to a .io server */
 fun io() = Vars.net.client() && Vars.ui.join.commmunityHosts.contains { it.group == "io" && it.address == Vars.ui.join.lastHost?.address }
 
@@ -240,3 +259,148 @@ fun flood() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Flood") 
 
 /** Whether the current gamemode is tower defense */
 fun defense() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Defense") || Vars.state.rules.modeName == "Defense"
+
+fun ByteBuffer.putString(string: String) { putByteArray(string.encodeToByteArray()) }
+
+val ByteBuffer.string get() = byteArray.decodeToString()
+
+fun ByteBuffer.putByteArray(bytes: ByteArray) {
+    putInt(bytes.size)
+    put(bytes)
+}
+
+val ByteBuffer.byteArray get() = bytes(int)
+
+fun ByteBuffer.putInstantSeconds(instant: Instant) { putLong(instant.epochSecond) }
+
+val ByteBuffer.instant get() = long.toInstant()
+
+val Boolean.int get() = if (this) 1 else 0
+
+fun pixmapFromClipboard(): Pixmap? {
+    try {
+        val tkClass = Class.forName("java.awt.Toolkit")
+        val tk = tkClass.getMethod("getDefaultToolkit").invoke(null)
+
+        val clipboard = tkClass.getMethod("getSystemClipboard").invoke(tk)
+        val clipboardClass = Class.forName("java.awt.datatransfer.Clipboard")
+
+        val content = clipboardClass.getMethod("getContents", java.lang.Object::class.java)
+            .invoke(clipboard, null)
+
+        val flavorClass = Class.forName("java.awt.datatransfer.DataFlavor")
+        val transferClass = Class.forName("java.awt.datatransfer.Transferable")
+        val img = transferClass.getMethod("getTransferData", flavorClass)
+            .invoke(content, flavorClass.getField("imageFlavor").get(null))
+
+        val width = img::class.java.getMethod("getWidth").invoke(img) as Int
+        val height = img::class.java.getMethod("getHeight").invoke(img) as Int
+
+        val array = IntArray(width * height)
+
+        img::class.java.getMethod(
+            "getRGB",
+            Int::class.java,
+            Int::class.java,
+            Int::class.java,
+            Int::class.java,
+            IntArray::class.java,
+            Int::class.java,
+            Int::class.java
+        ).invoke(img, 0, 0, width, height, array, 0, width)
+
+        val buffer = ByteBuffer.allocateDirect(4 * width * height)
+
+        for (item in array) {
+            buffer.put((item shr 16).toByte())
+            buffer.put((item shr 8).toByte())
+            buffer.put(item.toByte())
+            buffer.put((item shr 24).toByte())
+        }
+
+        return Pixmap(buffer, width, height)
+    } catch (e: Exception) {
+        return null
+    }
+}
+
+inline fun <T : Disposable, V> T.use(lambda: T.() -> V): V {
+    val res = lambda()
+    dispose()
+    return res
+}
+
+private val bytes = ByteArrayOutputStream()
+
+fun compressImage(img: Pixmap): ByteArray {
+    try {
+        val imgIO = Class.forName("javax.imageio.ImageIO")
+        val writers =
+            imgIO.getMethod("getImageWritersByFormatName", String::class.java).invoke(null, "jpeg") as Iterator<*>
+        val writer = writers.next()
+        val writerCls = Class.forName("javax.imageio.ImageWriter")
+        bytes.reset()
+        val memCacheOutCls = Class.forName("javax.imageio.stream.MemoryCacheImageOutputStream")
+        val out = memCacheOutCls.getConstructor(OutputStream::class.java).newInstance(bytes)
+        writerCls.getMethod("setOutput", java.lang.Object::class.java).invoke(writer, out)
+
+        val bufImCls = Class.forName("java.awt.image.BufferedImage")
+        val im = bufImCls.getConstructor(Int::class.java, Int::class.java, Int::class.java)
+            .newInstance(img.width, img.height, bufImCls.getField("TYPE_INT_RGB").get(null))
+
+        val imArray = IntArray(img.width * img.height)
+        for (x in 0 until img.width) {
+            for (y in 0 until img.height) {
+                val rgb = img[x, y]
+                imArray[x + (y * img.width)] = (rgb ushr 8) or (rgb shl (32 - 8))
+            }
+        }
+        bufImCls.getMethod(
+            "setRGB",
+            Int::class.java,
+            Int::class.java,
+            Int::class.java,
+            Int::class.java,
+            IntArray::class.java,
+            Int::class.java,
+            Int::class.java
+        )
+            .invoke(im, 0, 0, img.width, img.height, imArray, 0, img.width)
+
+        val jpgParamCls = Class.forName("javax.imageio.plugins.jpeg.JPEGImageWriteParam")
+        val param = jpgParamCls.getConstructor(Locale::class.java).newInstance(Locale.US)
+
+        jpgParamCls.getMethod("setCompressionMode", Int::class.java)
+            .invoke(param, Class.forName("javax.imageio.ImageWriteParam").getField("MODE_EXPLICIT").get(null))
+        jpgParamCls.getMethod("setCompressionQuality", Float::class.java).invoke(param, 0.5f)
+
+        val imgTypeSpec = Class.forName("javax.imageio.ImageTypeSpecifier")
+        val paramCls = Class.forName("javax.imageio.ImageWriteParam")
+
+        val defMetadata = writerCls.getMethod("getDefaultImageMetadata", imgTypeSpec, paramCls)
+
+        val renderedImg = Class.forName("java.awt.image.RenderedImage")
+        val spec = imgTypeSpec.getMethod("createFromRenderedImage", renderedImg).invoke(null, im)
+
+        val metadata = defMetadata.invoke(writer, spec, param)
+        val metadataCls = Class.forName("javax.imageio.metadata.IIOMetadata")
+        val iioimgCls = Class.forName("javax.imageio.IIOImage")
+
+        val iioimg = iioimgCls.getConstructor(renderedImg, List::class.java, metadataCls)
+            .newInstance(im, emptyList<Any>(), metadata)
+
+        writerCls.getMethod("write", metadataCls, iioimgCls, paramCls).invoke(writer, metadata, iioimg, param)
+        writerCls.getMethod("dispose").invoke(writer)
+        memCacheOutCls.getMethod("flush").invoke(out)
+
+        return bytes.toByteArray()
+    } catch (e: ClassNotFoundException) {
+        bytes.reset()
+        PixmapIO.PngWriter().use { write(bytes, img) }
+        return bytes.toByteArray()
+    }
+}
+
+fun inflateImage(array: ByteArray, offset: Int, length: Int): Pixmap? {
+    return try { Pixmap(array, offset, length) } catch (e: Exception) { null }
+}

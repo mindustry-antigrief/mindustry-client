@@ -3,14 +3,14 @@ package mindustry.client.communication
 import arc.util.*
 import mindustry.*
 import mindustry.client.*
-import mindustry.client.crypto.Signatures
+import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.utils.*
-import mindustry.gen.Player
+import mindustry.gen.*
+import java.math.*
 import java.security.cert.*
+import java.time.*
 import kotlin.random.*
-import java.math.BigInteger
-import java.time.Instant
 
 class CommandTransmission : Transmission {
 
@@ -40,7 +40,7 @@ class CommandTransmission : Transmission {
     enum class Commands(val builtinOnly: Boolean = false, val lambda: (CommandTransmission) -> Unit) {
         STOP_PATH(false, {
             val cert = Main.keyStorage.findTrusted(BigInteger(it.certSN))!!
-            if (Navigation.currentlyFollowing != null && Time.timeSinceMillis(lastStopTime) > Time.toMinutes * 1 || Main.keyStorage.builtInCerts.contains(cert)) { // FINISHME: Scale time with number of requests or something?
+            if (Navigation.currentlyFollowing != null && (Time.timeSinceMillis(lastStopTime) > Time.toMinutes * 1 || Main.keyStorage.builtInCerts.contains(cert))) { // FINISHME: Scale time with number of requests or something?
                 lastStopTime = Time.millis()
                 val oldPath = Navigation.currentlyFollowing
                 Vars.ui.showCustomConfirm("Pathing Stopped",
@@ -60,7 +60,7 @@ class CommandTransmission : Transmission {
 
     override var id: Long
 
-    constructor(input: ByteArray, id: Long) {
+    constructor(input: ByteArray, id: Long, senderID: Int) {
         val buf = input.buffer()
         type = Commands.values().getOrNull(buf.int)
         signature = buf.bytes(Signatures.SIGNATURE_LENGTH)
@@ -81,6 +81,7 @@ class CommandTransmission : Transmission {
     }
 
     fun verify(): Boolean {
+        if (destination != Vars.player.id) return false
         type ?: return false
         if (timestamp.age() > Signatures.SIGNATURE_EXPIRY_SECONDS) return false  // replay attacks are bad
         val res = Main.signatures.verify(toSignable(), signature, certSN)

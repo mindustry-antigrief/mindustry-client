@@ -4,7 +4,6 @@ import arc.*
 import arc.input.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
-import mindustry.*
 import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.utils.*
@@ -19,7 +18,7 @@ object FindDialog : BaseDialog("@find") {
     private var guesses: List<Block> = emptyList()
 
     private fun updateGuesses() {
-        guesses = Vars.content.blocks().copy().toMutableList().sortedBy { BiasedLevenshtein.biasedLevenshteinInsensitive(it.localizedName, inputField.text) }
+        guesses = content.blocks().copy().toMutableList().sortedBy { BiasedLevenshtein.biasedLevenshteinInsensitive(it.localizedName, inputField.text) }
     }
 
     init {
@@ -49,11 +48,11 @@ object FindDialog : BaseDialog("@find") {
                 val block = guesses[0]
                 val closest = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) { t -> t.block == block }
                 if (closest == null) {
-                    Vars.ui.chatfrag.addMessage("No ${block.localizedName} was found", ClientVars.user)
+                    ui.chatfrag.addMessage("No ${block.localizedName} was found", ClientVars.user)
                 } else {
                     ClientVars.lastSentPos.set(closest.x / tilesize, closest.y / tilesize)
                     // FINISHME: Make the line below use toasts similar to UnitPicker.java
-                    Vars.ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x},${closest.y} (!go to go there)", ClientVars.user)
+                    ui.chatfrag.addMessage("Found ${block.localizedName} at ${closest.x / tilesize},${closest.y / tilesize} (!go to go there)", ClientVars.user)
                 }
                 Core.app.post(this::hide)
             }

@@ -8,7 +8,7 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.type.UnitType;
+import mindustry.type.*;
 
 public class ShrapnelBulletType extends BulletType{
     public float length = 100f;

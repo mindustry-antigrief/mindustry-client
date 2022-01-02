@@ -8,14 +8,14 @@ import arc.math.geom.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.navigation.Navigation;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.world.meta.*;
 
-import static mindustry.Vars.player;
+import static mindustry.Vars.*;
 
 public class PointDefenseTurret extends ReloadTurret{
     public final int timerTarget = timers++;

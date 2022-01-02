@@ -16,6 +16,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
+import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.content.*;
@@ -27,6 +28,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.logic.*;
+import mindustry.service.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.*;
@@ -324,8 +326,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("effectscl", 100, 0, 100, 5, s -> s + "%");
         client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%[lightgray] (" + Core.bundle.get("client.afterstack") + ": " + s * settings.getInt("effectscl") / 100 + "%)[]");
         client.sliderPref("junctionview", 0, -1, 1, 1, s -> { Junction.setBaseOffset(s); return s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show"; });
-        client.sliderPref("spawntime", 5, -1, 60, s -> { Client.INSTANCE.setSpawnTime(60 * s); return s == -1 ? "Solid Line" : s == 0 ? "Disabled" : String.valueOf(s); });
-        client.sliderPref("traveltime", 10, 0, 60, s -> { Client.INSTANCE.setTravelTime(60f/s); return s == 0 ? "Disabled" : String.valueOf(s); });
+        client.sliderPref("spawntime", 5, -1, 60, s -> { ClientVars.spawnTime = 60 * s; Vars.pathfinder.start(); return s == -1 ? "Solid Line" : s == 0 ? "Disabled" : String.valueOf(s); });
+        client.sliderPref("traveltime", 10, 0, 60, s -> { ClientVars.travelTime = 60f / s; return s == 0 ? "Disabled" : String.valueOf(s); });
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", true); // Requires Restart
@@ -351,7 +353,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("hidebannedblocks", false);
         client.checkPref("allowjoinany", false);
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
-        if (steam) client.checkPref("unlockallachievements", false);
+        if (steam) client.checkPref("unlockallachievements", false, i -> { for (var a : Achievement.all) a.complete(); Core.settings.remove("unlockallachievements"); });
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
         // End Client Settings

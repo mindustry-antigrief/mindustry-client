@@ -1,28 +1,43 @@
 package mindustry.client
 
-import arc.*
-import arc.math.geom.*
-import arc.struct.*
-import arc.util.*
-import mindustry.*
-import mindustry.client.antigrief.*
+import arc.ApplicationListener
+import arc.Core
+import arc.Events
+import arc.graphics.Texture
+import arc.math.geom.Point2
+import arc.math.geom.Vec2
+import arc.scene.ui.Image
+import arc.struct.IntSet
+import arc.util.Interval
+import arc.util.Log
+import arc.util.Time
+import mindustry.Vars
+import mindustry.client.antigrief.TileRecords
 import mindustry.client.communication.*
-import mindustry.client.crypto.*
-import mindustry.client.navigation.*
-import mindustry.client.ui.*
+import mindustry.client.crypto.KeyStorage
+import mindustry.client.crypto.Signatures
+import mindustry.client.crypto.TlsClientHolder
+import mindustry.client.crypto.TlsServerHolder
+import mindustry.client.navigation.AStarNavigator
+import mindustry.client.navigation.AssistPath
+import mindustry.client.navigation.BuildPath
+import mindustry.client.navigation.Navigation
+import mindustry.client.ui.Toast
 import mindustry.client.utils.*
-import mindustry.entities.units.*
-import mindustry.game.*
-import mindustry.game.Teams.*
-import mindustry.gen.*
-import mindustry.input.*
-import mindustry.ui.fragments.*
+import mindustry.entities.units.BuildPlan
+import mindustry.game.EventType
+import mindustry.game.Teams.BlockPlan
+import mindustry.game.Teams.TeamData
+import mindustry.gen.Groups
+import mindustry.gen.Iconc
+import mindustry.input.Binding
+import mindustry.ui.fragments.ChatFragment
 import java.nio.file.Files
-import java.security.cert.*
-import java.util.Timer
-import java.util.concurrent.*
-import kotlin.concurrent.*
-import kotlin.math.*
+import java.security.cert.X509Certificate
+import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.concurrent.schedule
+import kotlin.math.max
 import kotlin.random.Random
 
 object Main : ApplicationListener {
@@ -112,14 +127,26 @@ object Main : ApplicationListener {
                     transmission.type ?: return@addListener
                     if (transmission.verify()) transmission.type.lambda(transmission)
                 }
+
+                is ClientMessageTransmission -> {
+                    if (senderId != Vars.player.id) transmission.addToChatfrag()
+                }
+
+                is ImageTransmission -> {
+                    val msg = findMessage(transmission.message) ?: return@addListener
+                    msg.attachments.add(Image(Texture(transmission.image)))
+                }
             }
         }
     }
 
+    private fun findMessage(id: Short): ChatFragment.ChatMessage? {
+        val ending = InvisibleCharCoder.encode(id.toBytes())
+        return Vars.ui.chatfrag.messages.lastOrNull { it.unformatted?.endsWith(ending) == true }
+    }
+
     /** @return if it's done or not, NOT if it's valid */
     private fun check(transmission: SignatureTransmission): Boolean {
-        val ending = InvisibleCharCoder.encode(transmission.messageId.toBytes())
-
         fun invalid(msg: ChatFragment.ChatMessage, cert: X509Certificate?) {
             msg.sender = cert?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator") ?: "Verification failed"
             msg.backgroundColor = ClientVars.invalid
@@ -127,9 +154,9 @@ object Main : ApplicationListener {
             msg.format()
         }
 
-        val msg = Vars.ui.chatfrag.messages.lastOrNull { it.unformatted.endsWith(ending) } ?: return false
+        val msg = findMessage(transmission.messageId) ?: return false
 
-        if (!msg.message.endsWith(msg.unformatted)) { invalid(msg, null) }
+        if (!msg.message.endsWith(msg.unformatted)) { invalid(msg, null); Log.debug("Does not end with unformatted!") }
 
         if (!Core.settings.getBool("highlightcryptomsg")) return true
         val output = signatures.verifySignatureTransmission(msg.unformatted.encodeToByteArray(), transmission)
@@ -153,14 +180,17 @@ object Main : ApplicationListener {
     }
 
     fun sign(content: String): String {
-        if (!Core.settings.getBool("signmessages")) return content
+//        if (!Core.settings.getBool("signmessages")) return content  // ID is also needed for attachments now
         if (content.startsWith("/")) return content
+
         val msgId = Random.nextInt().toShort()
         val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
+
         communicationClient.send(signatures.signatureTransmission(
             contentWithId.encodeToByteArray(),
             communicationSystem.id,
-            msgId) ?: return content)
+            msgId) ?: return contentWithId)
+
         return contentWithId
     }
 
@@ -217,8 +247,8 @@ object Main : ApplicationListener {
         }
     }
 
-    fun send(transmission: Transmission) {
-        communicationClient.send(transmission)
+    fun send(transmission: Transmission, onFinish: (() -> Unit)? = null) {
+        communicationClient.send(transmission, onFinish)
     }
 
     fun floatEmbed(): Vec2 {

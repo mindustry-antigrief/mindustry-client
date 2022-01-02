@@ -1,6 +1,7 @@
 package mindustry.client.utils;
 
 import arc.struct.*;
+import org.jetbrains.annotations.NotNull;
 
 public class Autocomplete {
     public static Seq<Autocompleter> autocompleters = new Seq<>();
@@ -21,9 +22,9 @@ public class Autocomplete {
         return closest(input).peek().matches(input) > 0.5f;
     }
 
-    public static Seq<Autocompleteable> closest(String input) {
-        Seq<Autocompleteable> all = autocompleters.reduce(new Seq<>(), (a, b) -> a.closest(input).addAll(b));
-        if (all == null) return null;
-        return all.sort(item -> item.matches(input));
+    @NotNull public static Seq<Autocompleteable> closest(String input) {
+        return autocompleters.flatMap(a -> a.closest(input)).sort(item -> item.matches(input));
+//        Seq<Autocompleteable> all = autocompleters.reduce(new Seq<>(), (a, b) -> a.closest(input).addAll(b));
+//        return all.sort(item -> item.matches(input));
     }
 }

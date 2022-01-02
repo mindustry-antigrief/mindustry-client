@@ -1,13 +1,10 @@
 package mindustry.client.communication
 
-import arc.util.io.Reads
-import arc.util.io.Writes
-import mindustry.entities.units.BuildPlan
-import mindustry.io.TypeIO
-import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import kotlin.random.Random
+import arc.util.io.*
+import mindustry.entities.units.*
+import mindustry.io.*
+import java.io.*
+import kotlin.random.*
 
 class BuildQueueTransmission : Transmission {
     override var id = Random.nextLong()
@@ -18,7 +15,7 @@ class BuildQueueTransmission : Transmission {
         this.plans = plans
     }
 
-    constructor(input: ByteArray, id: Long) {
+    constructor(input: ByteArray, id: Long, senderID: Int) {
         this.id = id
         val reads = Reads.get(DataInputStream(input.inputStream()))
         plans = TypeIO.readRequests(reads) ?: throw IllegalArgumentException("Invalid request array!")

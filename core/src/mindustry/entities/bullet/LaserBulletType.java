@@ -8,7 +8,7 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.type.UnitType;
+import mindustry.type.*;
 
 public class LaserBulletType extends BulletType{
     public Color[] colors = {Pal.lancerLaser.cpy().mul(1f, 1f, 1f, 0.4f), Pal.lancerLaser, Color.white};

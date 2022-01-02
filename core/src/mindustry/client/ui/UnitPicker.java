@@ -125,9 +125,13 @@ public class UnitPicker extends BaseDialog {
                                 type = event.unit.type;
                                 t.add(Core.bundle.format("client.unitpicker.alreadyinuse", event.unit.type, event.unit.getPlayer().name));
                             }
-                        } else {
+                        } else { // This happens sometimes, idk man FINISHME: Cleanup
                             Log.debug("This wasn't supposed to happen");
-                            Time.run(60, () -> findUnit(event.unit.type, true));
+                            type = event.unit.type;
+                            Time.run(60, () -> {
+                                Log.info("Exists: " + event.unit.isAdded());
+                                findUnit(event.unit.type, true);
+                            });
                         }
                     }), net.client() ? netClient.getPing()/1000f + .3f : 0);
                 }, net.client() ? netClient.getPing()/1000f + .3f : 0);

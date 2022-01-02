@@ -17,6 +17,7 @@ import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.navigation.*;
 import mindustry.client.ui.*;
 import mindustry.content.*;
 import mindustry.core.GameState.*;
@@ -48,7 +49,7 @@ public class HudFragment extends Fragment{
     private Table lastUnlockTable;
     private Table lastUnlockLayout;
     private long lastToast;
-    private final Interval timer = new Interval();
+    private long lastWarn, lastWarnClick;
 
     @Override
     public void build(Group parent){
@@ -313,14 +314,14 @@ public class HudFragment extends Fragment{
                 float[] coreAttackTime = {0};
 
                 Events.on(TeamCoreDamage.class, event -> {
-                    if (timer.check(0, 30 * 60)) { // Prevent chat flooding
+                    if (Time.timeSinceMillis(lastWarn) > 30_000) { // Prevent chat flooding
                         if (Core.settings.getBool("broadcastcoreattack")) {
                             Call.sendChatMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                         } else {
                             ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                         }
                     }
-                    timer.reset(0, 0); // Reset timer so that it sends 30s after the last core damage rather than every 30s FINISHME: Better way to do this?
+                    lastWarn = Time.millis(); // Reset timer so that it sends 30s after the last core damage rather than every 30s FINISHME: Better way to do this?
                     coreAttackTime[0] = notifDuration;
                     ClientVars.lastCorePos.set(event.core.x, event.core.y);
                 });
@@ -339,7 +340,11 @@ public class HudFragment extends Fragment{
                 })
                 .touchable(Touchable.disabled)
                 .fillX()
-                .get().clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastCorePos.cpy().scl(tilesize)));
+                .get().clicked(() -> {
+                    if (Time.timeSinceMillis(lastWarnClick) < 400)  Navigation.navigateTo(ClientVars.lastCorePos.cpy().scl(tilesize));
+                    else Spectate.INSTANCE.spectate(ClientVars.lastCorePos.cpy().scl(tilesize));
+                    lastWarnClick = Time.millis();
+                });
             }).row();
 
             var bossb = new StringBuilder();

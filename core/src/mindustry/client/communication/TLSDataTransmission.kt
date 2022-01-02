@@ -1,11 +1,9 @@
 package mindustry.client.communication
 
-import mindustry.client.utils.bytes
-import mindustry.client.utils.remainingBytes
-import mindustry.client.utils.toBytes
-import java.math.BigInteger
-import java.nio.ByteBuffer
-import kotlin.random.Random
+import mindustry.client.utils.*
+import java.math.*
+import java.nio.*
+import kotlin.random.*
 
 class TLSDataTransmission : Transmission {
 
@@ -24,7 +22,7 @@ class TLSDataTransmission : Transmission {
 
     override var id: Long
 
-    constructor(input: ByteArray, id: Long) {
+    constructor(input: ByteArray, id: Long, senderID: Int) {
         this.id = id
         val buf = ByteBuffer.wrap(input)
         source = BigInteger(buf.bytes(buf.int))

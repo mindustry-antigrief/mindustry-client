@@ -81,9 +81,9 @@ class ClientLogic {
 
             val encoded = Main.keyStorage.cert()?.encoded
             if (encoded != null && Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
-                Client.register("update <name>") { args, _ ->
-                    val name = args[0]
-                    val player = Groups.player.minByOrNull { Strings.levenshtein(it.name, name) } ?: return@register
+                Client.register("update <name/id...>") { args, _ ->
+                    val name = args.joinToString(" ")
+                    val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(Strings.stripColors(it.name), name) }!!
                     Main.send(CommandTransmission(CommandTransmission.Commands.UPDATE, Main.keyStorage.cert() ?: return@register, player))
                 }
             }
@@ -108,12 +108,9 @@ class ClientLogic {
             val build = e.tile.build as? LogicBlock.LogicBuild ?: return@on
             val packed = e.tile.pos()
             if (!processorConfigs.containsKey(packed)) return@on
-            if(build.code.any() || build.links.any()) {
-                processorConfigs.remove(packed)
-                return@on
-            }
 
-            configs.add(ConfigRequest(e.tile.x.toInt(), e.tile.y.toInt(), processorConfigs.remove(packed)))
+            if (build.code.any() || build.links.any()) processorConfigs.remove(packed) // Someone else built a processor with data
+            else configs.add(ConfigRequest(e.tile.x.toInt(), e.tile.y.toInt(), processorConfigs.remove(packed)))
         }
     }
 }

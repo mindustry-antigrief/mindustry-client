@@ -1,7 +1,7 @@
 package mindustry.world.blocks.defense.turrets;
 
-import mindustry.client.navigation.TurretPathfindingEntity;
 import arc.struct.*;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;

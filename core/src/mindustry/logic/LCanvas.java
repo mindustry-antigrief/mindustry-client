@@ -19,6 +19,7 @@ import mindustry.graphics.*;
 import mindustry.logic.LStatements.*;
 import mindustry.ui.*;
 
+import static mindustry.Vars.*;
 import java.util.Comparator;
 
 public class LCanvas extends Table{
@@ -393,7 +394,7 @@ public class LCanvas extends Table{
                     try {
                         this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n")));
                     } catch (Throwable e) {
-                        Vars.ui.showException(e);
+                        ui.showException(e);
                     }
                 });
 
@@ -499,7 +500,6 @@ public class LCanvas extends Table{
                 statements.layout();
                 copy.elem = s;
                 copy.setupUI();
-                recalculate();
             }
         }
 

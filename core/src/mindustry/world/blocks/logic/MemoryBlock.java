@@ -1,7 +1,6 @@
 package mindustry.world.blocks.logic;
 
-import arc.scene.ui.layout.Table;
-import arc.struct.Seq;
+import arc.scene.ui.layout.*;
 import arc.util.io.*;
 import mindustry.gen.*;
 import mindustry.world.*;

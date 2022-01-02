@@ -13,8 +13,9 @@ import kotlin.math.*
 // and modified
 
 object AStarNavigator : Navigator() {
+    private val pool = Pools.get(PositionWaypoint::class.java) { PositionWaypoint() }
     private var grid: Array<Cell> = emptyArray()
-    private var gridSize = Pair(0, 0)
+    private var gridSize = Point2()
     private var open = PQueue<Cell>()
     private var startX = 0
     private var startY = 0
@@ -22,6 +23,7 @@ object AStarNavigator : Navigator() {
     private var endY = 0
     private var tileWidth = 0
     private var tileHeight = 0
+    private val points = mutableListOf<PositionWaypoint>()
 
     private inline fun d8(cons: (x: Int, y: Int) -> Unit) {
         cons(1, 0)
@@ -85,9 +87,9 @@ object AStarNavigator : Navigator() {
 
                 // Add to the open list with calculated cost
                 checkAndUpdateCost(
-                        current,
-                        cell(x, y),
-                        current.g * (if (abs(x1) + abs(y1) == 1) 1.0 else 1.0000001) + cell(x, y).added * if (abs(x1) + abs(y1) == 1) 1.0 else 1.414 // Tiebreaker is needed to draw correct path
+                    current,
+                    cell(x, y),
+                    current.g * (if (abs(x1) + abs(y1) == 1) 1.0 else 1.0000001) + cell(x, y).added * if (abs(x1) + abs(y1) == 1) 1.0 else 1.414 // Tiebreaker is needed to draw correct path
                 )
             }
         }
@@ -97,10 +99,10 @@ object AStarNavigator : Navigator() {
     override fun findPath(
         start: Vec2,
         end: Vec2,
-        obstacles: Array<Circle>,
+        obstacles: Seq<Circle>,
         width: Float,
         height: Float,
-        blocked: (Int, Int) -> Boolean
+        blocked: Int2P
     ): Array<PositionWaypoint> {
 
         tileWidth = ceil(width / tilesize).toInt() + 1
@@ -115,9 +117,9 @@ object AStarNavigator : Navigator() {
         endX = World.toTile(end.x)
         endY = World.toTile(end.y)
 
-        if (gridSize != Pair(tileWidth, tileHeight)) {
-            grid = Array(tileWidth * tileHeight) { index -> Cell(index % tileWidth, index / tileWidth) }
-            gridSize = Pair(tileWidth, tileHeight)
+        if (!gridSize.equals(tileWidth, tileHeight)) {
+            grid = Array(tileWidth * tileHeight) { Cell(it % tileWidth, it / tileWidth) }
+            gridSize.set(tileWidth, tileHeight)
         }
 
         open.clear()
@@ -133,36 +135,24 @@ object AStarNavigator : Navigator() {
         }
 
         for (turret in obstacles) {
-            val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
-            val upperXBound = ((turret.x + turret.radius) / tilesize).toInt()
-            val lowerYBound = ((turret.y - turret.radius) / tilesize).toInt()
-            val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
-            for (x in lowerXBound..upperXBound) {
-                for (y in lowerYBound..upperYBound) {
-                    if (Structs.inBounds(x, y, tileWidth, tileHeight) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
-                        cell(x, y).added += 100
-//                        cell(x, y).closed = true // The line above will always find a path, this line will do nothing if there is no path, add a hotkey to toggle
-                    }
-                }
+            Geometry.circle(World.toTile(turret.x), World.toTile(turret.y), World.toTile(turret.radius)) { x, y ->
+                if (Structs.inBounds(x, y, tileWidth, tileHeight)) cell(x, y).added += 100
             }
         }
 
         aStarSearch()
 
-        return if (cell(endX, endY).closed) {
-            val points = mutableListOf<PositionWaypoint>()
+        points.clear()
+        if (cell(endX, endY).closed) {
             //Trace back the path
             var current: Cell? = cell(endX, endY)
             while (current?.cameFrom != null) {
-                points.add(Pools.get(PositionWaypoint::class.java, { PositionWaypoint() }, 500).obtain().set(World.unconv(current.cameFrom!!.x.toFloat()), World.unconv(current.cameFrom!!.y.toFloat())))
+                points.add(pool.obtain().set(World.unconv(current.cameFrom!!.x.toFloat()), World.unconv(current.cameFrom!!.y.toFloat())))
                 current = current.cameFrom
             }
             points.reverse()
-            points.toTypedArray()
-        } else {
-//            System.out.println("Time taken = " + (System.currentTimeMillis() - startTime) + " ms, no path found");
-            arrayOf()
         }
+        return points.toTypedArray()
     }
 
     class Cell(var x: Int, var y: Int) : Comparable<Cell> {
