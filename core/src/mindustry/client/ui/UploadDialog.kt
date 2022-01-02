@@ -108,17 +108,20 @@ object UploadDialog : BaseDialog("@client.uploadtitle") {
             var doneCount = 0
             val len = images.size
             val imgs = images.toList()
-            if (!BlockCommunicationSystem.logicAvailable) Vars.ui.chatfrag.addMessage(Core.bundle["client.placelogic"])
-            clientThread.post {
-                for (image in imgs) {
-                    if (image.width * image.height > (1920 * 1080)) {
-                        Vars.ui.chatfrag.addMessage(Core.bundle["client.imagetoobig"])
-                        continue
-                    }
+            if (!BlockCommunicationSystem.logicAvailable) {
+                Vars.ui.chatfrag.addMessage(Core.bundle["client.placelogic"])
+            } else {
+                clientThread.post {
+                    for (image in imgs) {
+                        if (image.width * image.height > (1920 * 1080)) {
+                            Vars.ui.chatfrag.addMessage(Core.bundle["client.imagetoobig"])
+                            continue
+                        }
 
-                    Main.send(ImageTransmission(id, image)) {
-                        doneCount++
-                        if (doneCount == len) Vars.ui.showInfoFade(Core.bundle["client.finisheduploading"])
+                        Main.send(ImageTransmission(id, image)) {
+                            doneCount++
+                            if (doneCount == len) Vars.ui.showInfoFade(Core.bundle["client.finisheduploading"])
+                        }
                     }
                 }
             }

@@ -34,6 +34,13 @@ object BlockCommunicationSystem : CommunicationSystem() {
 
     init {
         BuildPlanCommunicationSystem.addListener { input, sender -> listeners.forEach { it(input, sender) } }
+
+        Events.on(EventType.WorldLoadEvent::class.java) {
+            Core.app.post {
+                findMessage()
+                findProcessor()
+            }
+        }
     }
 
     fun findProcessor(): LogicBlock.LogicBuild? { // FINISHME: are these new implementations actually faster than the old ones? They sure are cleaner
