@@ -467,7 +467,7 @@ object Client {
     }
 
     fun replaceMsg(match: String, matchRegex: Boolean, from: String, fromRegex: Boolean, to: String){
-        clientThread.taskQueue.post {
+        clientThread.post {
             var matchReg = Regex("No. Something went wrong.")
             var fromReg = Regex("No. Something went wrong.")
             if(matchRegex) matchReg = match.toRegex()
