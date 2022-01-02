@@ -56,7 +56,7 @@ class TlsCommunicationSystem(
         private val escapeChars = arrayOf(KEEPALIVE, CLOSE, DELIMINATOR)
 
         private fun ByteArray.escape() = toList().escape(ESCAPEMENT, *escapeChars).toByteArray()
-        private fun ByteArray.unescape() = toList().unescape(ESCAPEMENT, *escapeChars).toByteArray()
+//        private fun ByteArray.unescape() = toList().unescape(ESCAPEMENT, *escapeChars).toByteArray()
     }
 
     private val incoming = ByteSeq()
@@ -92,7 +92,7 @@ class TlsCommunicationSystem(
                 underlying.send(TLSDataTransmission(cert.serialNumber, peer.expectedCert.serialNumber, read))
             }
 
-            val applicationIn = peer.readSecure().unescape()
+            val applicationIn = peer.readSecure()
             if (applicationIn.isNotEmpty()) {
                 val output = mutableListOf<ByteArray>()
                 val current = ByteSeq(incoming)
