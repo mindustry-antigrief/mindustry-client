@@ -233,7 +233,7 @@ object Client {
             Call.sendChatMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
         }
         register("cursor [message...]", Core.bundle.get("client.command.cursor.description")) { args, _ ->
-            Call.sendChatMessage(Strings.format("(@, @) @", control.input.rawTileX(), control.input.rawTileY(), if (args.isEmpty()) "" else args[0] + " "))
+            Call.sendChatMessage(Strings.format("(@, @)@", control.input.rawTileX(), control.input.rawTileY(), if (args.isEmpty()) "" else " " + args[0]))
         }
         register("builder [options...]", Core.bundle.get("client.command.builder.description")) { args, _: Player ->
             follow(BuildPath(if (args.isEmpty()) "" else args[0]))
