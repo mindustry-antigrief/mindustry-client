@@ -130,6 +130,6 @@ object RangeDrawer {
                 Draw.rect(t.second, c.first.x, c.first.y, (c.first.radius - tilesize) * 2, (c.first.radius - tilesize) * 2)
             }
         }
-        Draw.color()
+        Draw.reset()
     }
 }
