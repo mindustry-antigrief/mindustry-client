@@ -29,6 +29,7 @@ import java.util.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class ChatFragment extends Table{
     private static final int messagesShown = 10;
@@ -297,6 +298,32 @@ public class ChatFragment extends Table{
         for (ChatMode mode : ChatMode.all) {
             message = message.replaceFirst("^" + mode.prefix + " ([/!])", "$1");
         }
+
+        StringBuilder messageBuild = new StringBuilder(message);
+
+        for (var entry : containsCommandHandler.entries()){ // s l o w
+            String prefix = entry.key;
+            int pos = -1;
+            while (true) {
+                pos = messageBuild.indexOf(prefix, pos + 1);
+                if(pos == -1 || pos == messageBuild.length() - 1) break;
+                String tmp = messageBuild.substring(pos + 1);
+                if(tmp.startsWith(prefix)){ // double prefix - escaped
+                    messageBuild.deleteCharAt(pos);
+                    continue;
+                }
+                for(var pair : entry.value){
+                    String cmd = pair.first;
+                    if(tmp.startsWith(cmd)){
+                        String replace = pair.second.get();
+                        messageBuild.replace(pos, pos + cmd.length() + 1, replace);
+                        pos += replace.length() - 1;
+                        break;
+                    }
+                }
+            }
+        }
+        message = messageBuild.toString();
 
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);

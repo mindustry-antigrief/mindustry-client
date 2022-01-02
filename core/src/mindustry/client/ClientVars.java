@@ -1,11 +1,13 @@
 package mindustry.client;
 
 import arc.*;
+import arc.func.*;
 import arc.graphics.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.utils.*;
 import mindustry.world.blocks.defense.*;
 import org.jetbrains.annotations.*;
 
@@ -26,6 +28,7 @@ public class ClientVars {
 
     // Commands
     @NotNull public static CommandHandler clientCommandHandler = new CommandHandler("!");
+    @NotNull public static final ObjectMap<String, Seq<Pair<String, Prov<String>>>> containsCommandHandler = new ObjectMap<>(); // Currently a naive implementation which just replaces all occurrences
     @NotNull public static Vec2 lastSentPos = new Vec2(), lastCorePos = new Vec2(), spectatingPos = new Vec2();
     public static final String MESSAGE_BLOCK_PREFIX = "IN USE FOR CHAT AUTHENTICATION, do not use";
     public static long lastJoinTime; // Last time we connected to a server

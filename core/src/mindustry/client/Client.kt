@@ -1,6 +1,7 @@
 package mindustry.client
 
 import arc.*
+import arc.func.Prov
 import arc.graphics.*
 import arc.graphics.g2d.*
 import arc.math.*
@@ -490,6 +491,14 @@ object Client {
         register("c <message...>", "Send a message to other client users.") { args, _ ->  // FINISHME: Bundle
             Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
         }
+
+        registerReplace("%", "c") {
+            Strings.format("(@, @)", control.input.rawTileX(), control.input.rawTileY())
+        }
+
+        registerReplace("%", "cursor") {
+            Strings.format("(@, @)", control.input.rawTileX(), control.input.rawTileY())
+        }
     }
 
     fun replaceMsg(match: String, matchRegex: Boolean, from: String, fromRegex: Boolean, to: String){
@@ -553,5 +562,12 @@ object Client {
     fun register(format: String, description: String = "", runner: (args: Array<String>, player: Player) -> Unit) {
         val args = if (format.contains(' ')) format.substringAfter(' ') else ""
         clientCommandHandler.register(format.substringBefore(' '), args, description, runner)
+    }
+
+    fun registerReplace(symbol: String = "%", cmd: String, runner: Prov<String>) {
+        if(symbol.length != 1) throw IllegalArgumentException("Bad symbol in replace command")
+        val seq = containsCommandHandler.get(symbol) { Seq() }
+        seq.add(Pair(cmd, runner))
+        seq.sort(Structs.comparingInt{ -it.first.length })
     }
 }
