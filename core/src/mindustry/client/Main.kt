@@ -133,11 +133,8 @@ object Main : ApplicationListener {
                 }
 
                 is ImageTransmission -> {
-                    println("Got image transmission!")
                     val msg = findMessage(transmission.message) ?: return@addListener
-                    println("Found message")
                     msg.attachments.add(Image(Texture(transmission.image)))
-                    println("Added attachment")
                 }
             }
         }
@@ -187,7 +184,6 @@ object Main : ApplicationListener {
         if (content.startsWith("/")) return content
 
         val msgId = Random.nextInt().toShort()
-        println(msgId)
         val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
 
         communicationClient.send(signatures.signatureTransmission(

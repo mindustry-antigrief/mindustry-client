@@ -11,7 +11,9 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.client.*;
+import mindustry.client.ui.UploadDialog;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
@@ -216,6 +218,15 @@ public class PlacementFragment extends Fragment{
     @Override
     public void build(Group parent){
         parent.fill(full -> {
+            ui.chatfrag.upload = new ImageButton(Icon.upload);
+            ui.chatfrag.upload.clicked(UploadDialog.INSTANCE::show);
+            ui.chatfrag.upload.visible(() -> ui.chatfrag.chatfield.visible);
+            Table t = new Table();
+            t.add(ui.chatfrag.upload);
+            t.row();
+            t.add(" ").height(45);
+            full.add(t).bottom().right();
+
             toggler = full;
             full.bottom().right().visible(() -> ui.hudfrag.shown);
 

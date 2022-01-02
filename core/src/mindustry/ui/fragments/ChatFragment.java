@@ -35,8 +35,8 @@ public class ChatFragment extends Table{
     public Seq<ChatMessage> messages = new Seq<>();
     private float fadetime;
     private boolean shown = false;
-    private TextField chatfield;
-    private TextButton upload;
+    public TextField chatfield;
+    public ImageButton upload;
     private Label fieldlabel = new Label(">");
     private ChatMode mode = ChatMode.normal;
     private Font font;
@@ -167,10 +167,6 @@ public class ChatFragment extends Table{
 
         add(chatfield).padBottom(offsety).padLeft(offsetx).growX().padRight(offsetx).height(28);
 
-        upload = new TextButton("upload"); // FINISHME: bundle
-        upload.clicked(UploadDialog.INSTANCE::show);
-        add(upload);
-
         if(Vars.mobile){
             marginBottom(105f);
             marginRight(240f);
@@ -200,7 +196,6 @@ public class ChatFragment extends Table{
 
 //        float blockFragX = ui.hudfrag.blockfrag.blockPane.localToStageCoordinates(Vec2.ZERO).x;
 //        Vec2.ZERO.setZero();
-        float blockFragX = textWidth;
 
         float theight = offsety + spacing + getMarginBottom() + scene.marginBottom;
         for(int i = scrollPos; i < messages.size && i < messagesShown + scrollPos && (i < fadetime || shown); i++){
@@ -238,7 +233,7 @@ public class ChatFragment extends Table{
 
             if (msg.attachments.size() != 0) {
                 Draw.color();
-                float x = blockFragX - 10f;
+                float x = textWidth - 10f;
                 float y = offsety + theight - layout.height;
                 Icon.imageSmall.draw(x, y, layout.height, layout.height);
                 Tmp.r3.set(x, y, layout.height, layout.height);
@@ -377,6 +372,7 @@ public class ChatFragment extends Table{
                 shown = false;
                 scrollPos = 0;
                 sendMessage();
+                UploadDialog.INSTANCE.clearImages();
             });
         }
     }
@@ -384,6 +380,7 @@ public class ChatFragment extends Table{
     public void hide(){
         scene.setKeyboardFocus(null);
         shown = false;
+        UploadDialog.INSTANCE.clearImages();
         clearChatInput();
     }
 

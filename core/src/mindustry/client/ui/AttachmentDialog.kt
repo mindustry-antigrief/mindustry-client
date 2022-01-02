@@ -5,12 +5,13 @@ import mindustry.client.utils.row
 import mindustry.ui.dialogs.BaseDialog
 
 // FINISHME: sender
-class AttachmentDialog(message: String, attachments: List<Image>) : BaseDialog("attachments") {
+class AttachmentDialog(message: String, attachments: List<Image>) : BaseDialog("@client.attachments") {
     init {
         addCloseButton()
-        add(message).center()
+        cont.add(message).center()
+        cont.row()
         cont.pane {
-            for (item in attachments) row(item).grow()
+            for (item in attachments) it.row(item).grow()
         }
         show()
     }
