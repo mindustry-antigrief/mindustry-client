@@ -18,10 +18,10 @@ import kotlin.math.min
 
 object RangeDrawer {
     private val vector = Vec2()
-    private var mapping: MutableMap<Team, MutableMap<Float, Pair<FrameBuffer, TextureRegion>?>> = mutableMapOf()
+    private var mapping: MutableMap<Color, MutableMap<Float, Pair<FrameBuffer, TextureRegion>?>> = mutableMapOf()
     private var prev = 0f
 
-    fun draw(ranges: List<TurretPathfindingEntity>) {
+    fun draw(ranges: List<Pair<TurretPathfindingEntity, Color>>) {
         val scl = 4  // for whatever reason, drawing with one pixel per pixel doesn't look good (I think my pixel calculations are off)
 
         // the same as the normal version but sides can be calculated outside of the function so that they don't change with scale
@@ -39,10 +39,10 @@ object RangeDrawer {
         }
 
         // find the full set of team range combinations needed to draw the frame
-        val unique1 = mutableMapOf<Team, MutableSet<Float>>()
+        val unique1 = mutableMapOf<Color, MutableSet<Float>>()
 
         for (item in ranges) {
-            unique1.getOrPut(item.team) { mutableSetOf() }.add(item.radius - tilesize)
+            unique1.getOrPut(item.second) { mutableSetOf() }.add(item.first.radius - tilesize)
         }
         val unique = unique1.flatMap { item -> item.value.map { item.key to it } }
 
@@ -94,7 +94,7 @@ object RangeDrawer {
                 // same as Drawf.dashCircle() but with the thicknesses scaled and the sides fixed
                 Lines.stroke(converted1 * 3, Pal.gray)
                 dashCircle(convertedRadius, convertedRadius, convertedRadius, sides)
-                Lines.stroke(converted1, unique[it].first.color)
+                Lines.stroke(converted1, unique[it].first)
                 dashCircle(convertedRadius, convertedRadius, convertedRadius, sides)
 
                 Draw.reset()
@@ -120,14 +120,14 @@ object RangeDrawer {
 
         for (c in ranges) {
             // grab the needed TextureRegion, may be null
-            val t = mapping[c.team]?.get(c.radius - tilesize)
-            val color = c.team.color
+            val t = mapping[c.second]?.get(c.first.radius - tilesize)
+            val color = c.second
             if (t == null) {
                 // if it's either not found or it decided not to do it for performance, draw the regular way
-                Drawf.dashCircle(c.x, c.y, c.radius - tilesize, color)
+                Drawf.dashCircle(c.first.x, c.first.y, c.first.radius - tilesize, color)
             } else {
                 // blit it
-                Draw.rect(t.second, c.x, c.y, (c.radius - tilesize) * 2, (c.radius - tilesize) * 2)
+                Draw.rect(t.second, c.first.x, c.first.y, (c.first.radius - tilesize) * 2, (c.first.radius - tilesize) * 2)
             }
         }
         Draw.color()
