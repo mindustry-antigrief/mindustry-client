@@ -104,7 +104,8 @@ object UploadDialog : BaseDialog("@client.uploadtitle") {
 
         Events.on(EventType.SendChatMessageEvent::class.java) {
             val id = InvisibleCharCoder.decode(it.message.takeLast(2)).run { (get(0).toUByte().toUInt() shl 8) or get(1).toUByte().toUInt() }.toShort()
-            if (images.isNotEmpty()) Vars.ui.showInfoFade(Core.bundle.format("client.uploadingimages", images.size))
+            if (images.isEmpty()) return@on
+            Vars.ui.showInfoFade(Core.bundle.format("client.uploadingimages", images.size))
             var doneCount = 0
             val len = images.size
             val imgs = images.toList()
