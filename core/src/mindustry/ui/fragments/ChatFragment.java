@@ -214,17 +214,6 @@ public class ChatFragment extends Table{
             font.getCache().setColor(Color.white);
             font.getCache().addText(msg.formattedMessage, fontoffsetx + offsetx, offsety + theight, textWidth, Align.bottomLeft, true);
 
-            if (msg.attachments.size() != 0) {
-                Draw.color();
-                float x = blockFragX - 10f;
-                float y = offsety + theight - layout.height;
-                Icon.imageSmall.draw(x, y, layout.height, layout.height);
-                Tmp.r3.set(x, y, layout.height, layout.height);
-                if (Tmp.r3.contains(input.mouse()) && input.keyTap(Binding.select)) {
-                    new AttachmentDialog(msg.unformatted, msg.attachments);
-                }
-            }
-
             Color color = messages.get(i).backgroundColor;
             if (color == null) {
                 color = shadowColor;
@@ -246,6 +235,17 @@ public class ChatFragment extends Table{
             Draw.alpha(opacity * shadowColor.a);
 
             font.getCache().draw();
+
+            if (msg.attachments.size() != 0) {
+                Draw.color();
+                float x = blockFragX - 10f;
+                float y = offsety + theight - layout.height;
+                Icon.imageSmall.draw(x, y, layout.height, layout.height);
+                Tmp.r3.set(x, y, layout.height, layout.height);
+                if (Tmp.r3.contains(input.mouse()) && input.keyTap(Binding.select)) {
+                    new AttachmentDialog(msg.unformatted, msg.attachments);
+                }
+            }
         }
 
 

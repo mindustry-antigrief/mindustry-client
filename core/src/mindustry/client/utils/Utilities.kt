@@ -2,36 +2,41 @@
 
 package mindustry.client.utils
 
-import arc.*
+import arc.Core
+import arc.Events
 import arc.graphics.Pixmap
-import arc.math.geom.*
-import arc.scene.*
-import arc.scene.ui.*
-import arc.scene.ui.layout.*
-import arc.util.*
-import arc.util.serialization.*
-import mindustry.*
-import mindustry.client.communication.*
-import mindustry.core.*
-import mindustry.ui.*
-import mindustry.ui.dialogs.*
-import mindustry.world.*
-import java.awt.image.BufferedImage
-import java.io.*
-import java.nio.*
-import java.security.cert.*
-import java.time.*
-import java.time.temporal.*
+import arc.math.geom.Point2
+import arc.scene.Element
+import arc.scene.ui.Dialog
+import arc.scene.ui.Label
+import arc.scene.ui.TextButton
+import arc.scene.ui.layout.Cell
+import arc.scene.ui.layout.Table
+import arc.util.Strings
+import arc.util.serialization.Base64Coder
+import mindustry.Vars
+import mindustry.client.communication.Base32768Coder
+import mindustry.core.World
+import mindustry.ui.Styles
+import mindustry.ui.dialogs.BaseDialog
+import mindustry.world.Tile
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.nio.ByteBuffer
+import java.security.cert.X509Certificate
+import java.time.DateTimeException
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.time.temporal.Temporal
+import java.time.temporal.TemporalUnit
 import java.util.*
-import java.util.zip.*
-import javax.imageio.IIOImage
-import javax.imageio.ImageIO
-import javax.imageio.ImageTypeSpecifier
-import javax.imageio.ImageWriteParam
-import javax.imageio.metadata.IIOMetadata
-import javax.imageio.plugins.jpeg.JPEGImageWriteParam
-import javax.imageio.stream.MemoryCacheImageOutputStream
-import kotlin.math.*
+import java.util.zip.DeflaterInputStream
+import java.util.zip.InflaterInputStream
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -386,17 +391,24 @@ fun jpg(img: Pixmap): ByteArray? {
 }
 
 fun decodeJPG(array: ByteArray, offset: Int, length: Int): Pixmap? {
-//    val inp = MemoryCacheImageInputStream(ByteArrayInputStream(array))
-    val imgIo = Class.forName("javax.imageio.ImageIO")
-    val img = ImageIO.read(array.inputStream(offset, length))
-    val pixmap = Pixmap(img.width, img.height)
-    val arr = IntArray(img.width * img.height)
-    img.getRGB(0, 0, img.width, img.height, arr, 0, img.width)
-    for (x in 0 until img.width) {
-        for (y in 0 until img.height) {
-            val color = img.getRGB(x, y)
-            pixmap[x, y] = (color shl 8) or (color ushr (32 - 8))
-        }
-    }
-    return pixmap
+//    val imgIo = Class.forName("javax.imageio.ImageIO")
+//    val img = imgIo.getMethod("read", InputStream::class.java).invoke(null, array.inputStream(offset, length))
+//
+//    val bufImg = Class.forName("java.awt.image.BufferedImage")
+//
+//    val width = bufImg.getMethod("getWidth").invoke(img) as Int
+//    val height = bufImg.getMethod("getHeight").invoke(img) as Int
+//
+//    val pixmap = Pixmap(width, height)
+//    val arr = IntArray(width * height)
+//    bufImg.getMethod("getRGB", Int::class.java, Int::class.java, Int::class.java, Int::class.java, IntArray::class.java, Int::class.java, Int::class.java)
+//        .invoke(img, 0, 0, width, height, arr, 0, width)
+//    for (x in 0 until width) {
+//        for (y in 0 until height) {
+//            val color = arr[x + (y * width)]
+//            pixmap[x, y] = (color shl 8) or (color ushr (32 - 8))
+//        }
+//    }
+//    return pixmap
+    return Pixmap(array, offset, length)
 }
