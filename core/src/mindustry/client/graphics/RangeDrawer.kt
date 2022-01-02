@@ -8,6 +8,7 @@ import arc.graphics.g2d.TextureRegion
 import arc.graphics.gl.FrameBuffer
 import arc.math.geom.Vec2
 import arc.util.Tmp
+import mindustry.Vars.tilesize
 import mindustry.client.navigation.TurretPathfindingEntity
 import mindustry.client.utils.ceil
 import mindustry.game.Team
@@ -41,7 +42,7 @@ object RangeDrawer {
         val unique1 = mutableMapOf<Team, MutableSet<Float>>()
 
         for (item in ranges) {
-            unique1.getOrPut(item.team) { mutableSetOf() }.add(item.radius)
+            unique1.getOrPut(item.team) { mutableSetOf() }.add(item.radius - tilesize)
         }
         val unique = unique1.flatMap { item -> item.value.map { item.key to it } }
 
@@ -119,14 +120,14 @@ object RangeDrawer {
 
         for (c in ranges) {
             // grab the needed TextureRegion, may be null
-            val t = mapping[c.team]?.get(c.radius)
+            val t = mapping[c.team]?.get(c.radius - tilesize)
             val color = c.team.color
             if (t == null) {
                 // if it's either not found or it decided not to do it for performance, draw the regular way
-                Drawf.dashCircle(c.x, c.y, c.radius, color)
+                Drawf.dashCircle(c.x, c.y, c.radius - tilesize, color)
             } else {
                 // blit it
-                Draw.rect(t.second, c.x, c.y, c.radius * 2, c.radius * 2)
+                Draw.rect(t.second, c.x, c.y, (c.radius - tilesize) * 2, (c.radius - tilesize) * 2)
             }
         }
         Draw.color()
