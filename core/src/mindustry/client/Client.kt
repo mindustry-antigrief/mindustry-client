@@ -415,7 +415,7 @@ object Client {
         }
 
         register("attem83 [c]", "Fixes the bad flagging logic with attem >= 83") {args, player ->
-            clientThread.taskQueue.post {
+            clientThread.post {
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
                 var toFix = 0
 
