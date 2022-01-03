@@ -1,5 +1,6 @@
 package mindustry.client.navigation;
 
+import arc.*;
 import arc.math.geom.*;
 import arc.util.*;
 import mindustry.*;
@@ -35,7 +36,8 @@ public class Navigation {
 
         if (!targetPos.within(-1, -1, 1)) { // Must be navigating
             var path = Path.goTo(targetPos);
-            if (!targetPos.within(-1, -1, 1)) follow(path); // Make sure we still want to navigate
+            if (Core.settings.getBool("assumeunstrict")) targetPos.set(-1, -1);
+            else if (!targetPos.within(-1, -1, 1)) follow(path); // Make sure we still want to navigate
         }
 
         if (currentlyFollowing != null && !isPaused && !Vars.state.isPaused()) {

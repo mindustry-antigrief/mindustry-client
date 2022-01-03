@@ -17,7 +17,7 @@ import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.communication.Packets
 import mindustry.client.crypto.*
-import mindustry.client.graphics.RangeDrawer
+import mindustry.client.graphics.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.*
 import mindustry.client.utils.*
@@ -33,6 +33,7 @@ import mindustry.logic.*
 import mindustry.net.*
 import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
+import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
@@ -127,10 +128,9 @@ object Client {
 
         // Overdrive range
         if (showingOverdrives) {
-            Draw.z(Layer.space)
             overdrives.forEach { b ->
                 val range = b.realRange()
-                if (b.team === player.team() && bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect()
+                if (b.team == player.team() && bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect()
             }
         }
     }
@@ -149,14 +149,14 @@ object Client {
                 player.sendMessage("[scarlet]'page' must be a number between[orange] 1[] and[orange] $pages[scarlet].")
                 return@register
             }
-            val result = StringBuilder()
-            result.append(Strings.format("[orange]-- Client Commands Page[lightgray] @[gray]/[lightgray]@[orange] --\n\n", page + 1, pages))
-            for (i in commandsPerPage * page until (commandsPerPage * (page + 1)).coerceAtMost(clientCommandHandler.commandList.size)) {
-                val command = clientCommandHandler.commandList[i]
-                result.append("[orange] !").append(command.text).append("[white] ").append(command.paramText)
-                    .append("[lightgray] - ").append(command.description).append("\n")
+            val result = buildString {
+                append(Strings.format("[orange]-- Client Commands Page[lightgray] @[gray]/[lightgray]@[orange] --\n\n", page + 1, pages))
+                for (i in commandsPerPage * page until (commandsPerPage * (page + 1)).coerceAtMost(clientCommandHandler.commandList.size)) {
+                    val command = clientCommandHandler.commandList[i]
+                    append("[orange] !").append(command.text).append("[white] ").append(command.paramText).append("[lightgray] - ").append(command.description).append("\n")
+                }
             }
-            player.sendMessage(result.toString())
+            player.sendMessage(result)
         }
 
         register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
@@ -328,6 +328,45 @@ object Client {
             }
         }
 
+        register("fixcode [c]", "Disables problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
+            clientThread.post {
+                val confirmed = args.any() && args[0] == "c" // Don't configure by default
+                val inProgress = !configs.isEmpty
+                val regex = Regex("ubind @?[a-zA-Z0-9-]+\\nsensor flag @unit @flag\\n(op add attem attem 1\\njump [0-9]+ greaterThanEq attem 83\\n)jump [0-9]+ notEqual key flag\\n(set attem 0\\n?)")
+                val jumpFixer = Regex("^jump ([0-9]+)(.*)", RegexOption.MULTILINE)
+                var n = 0
+
+                Groups.build.each( { it.team == player.team() } ) { lb ->
+                    if (lb !is LogicBlock.LogicBuild) return@each
+                    val match = regex.find(lb.code) ?: return@each
+                    val linesBefore = lb.code.take(match.range.first).count { it == '\n' }
+                    val done = @OptIn(ExperimentalStdlibApi::class) buildList {
+                        lb.code.lines().forEach {
+                            val jump = jumpFixer.find(it) // If this line is a jump, adjust it FINISHME: Don't use a regex here, contains matching this is relatively simple...
+                            if (jump == null) {
+                                add(it)
+                            } else {
+                                val dest = Strings.parseInt(jump.groups[1]!!.value)
+                                add(if (dest > linesBefore) "jump ${dest - 3}${jump.groups[2]!!.value}" else it) // We delete 3 lines above the destination, adjust accordingly
+                            }
+                        }
+                    }.toMutableList().joinToString("\n").run { // Finally, we can remove all the attem garbage, imagine being able to remove multiple ranges...
+                        val groups = regex.find(this)!!.groups // This sucks, we have to regex match again after changing the numbers
+                        removeRange(groups[1]!!.range).removeRange(groups[2]!!.range.first - groups[1]!!.range.count(), groups[2]!!.range.last - groups[1]!!.range.count() + 1)
+                    }
+
+                    if (confirmed && !inProgress) configs.add(ConfigRequest(lb.tileX(), lb.tileY(), LogicBlock.compress(done, lb.relativeConnections())))
+                    n++
+                }
+                if (confirmed) {
+                    if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n processors to reconfigure.") // FINISHME: Bundle
+                    else player.sendMessage("[accent]Successfully reconfigured $n processors")
+                } else {
+                    player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure $n processors")
+                }
+            }
+        }
+
         register("distance [distance]", "Sets the assist distance multiplier distance (default is 1.5)") { args, player -> // FINISHME: Bundle
             if (args.size != 1) player.sendMessage("[accent]The distance multiplier is ${Core.settings.getFloat("assistdistance", 1.5f)} (default is 1.5)")
             else {
@@ -389,27 +428,6 @@ object Client {
                     }
                     player.sendMessage("[accent]Removed $removedCount plans, ${Vars.player.team().data().blocks.size} remain")
                 } else player.sendMessage("[accent]Found $removedCount (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
-            }
-        }
-
-        register("removelast [count]", "Horrible and inefficient command to remove the x oldest tile logs") { args, _ -> // FINISHME: Bundle
-            clientThread.post {
-                val count = if (args.isEmpty()) 1 else args[0].toInt()
-                lateinit var record: TileRecord
-                lateinit var sequence: TileLogSequence
-                lateinit var log: TileLog
-                for (i in 1..count) {
-                    val logs = mutableMapOf<TileLogSequence, Long>()
-                    world.tiles.eachTile { t ->
-                        record = TileRecords[t] ?: return@eachTile
-                        sequence = record.oldestSequence() ?: return@eachTile
-                        log = record.oldestLog(sequence) ?: return@eachTile
-
-                        logs[sequence] = log.id
-                    }
-                    logs.minByOrNull { it.value }?.key?.logs?.removeAt(0) ?: return@post
-                }
-                player.sendMessage("done")
             }
         }
 
