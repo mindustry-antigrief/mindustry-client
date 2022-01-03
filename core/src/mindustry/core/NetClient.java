@@ -42,7 +42,7 @@ public class NetClient implements ApplicationListener{
     private static final float dataTimeout = 60 * 30; // Give up after 30s (vanilla is 20s)
     private static final float playerSyncTime = 5;
     private static final Reads dataReads = new Reads(null);
-    private static final Pattern coordPattern = Pattern.compile("\\S*?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\S*"); // This regex is a mess, it captures the coords into $1 and $2 while $0 contains all surrounding text as well. https://regex101.com is the superior regex tester
+    private static final Pattern coordPattern = Pattern.compile("\\(?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\)?"); // This regex is a mess. https://regex101.com is the superior regex tester
 
     private long ping;
     private Interval timer = new Interval(5);
@@ -251,11 +251,20 @@ public class NetClient implements ApplicationListener{
     private static String processCoords(String message, boolean setLastPos){
         if (message == null) return null;
         Matcher matcher = coordPattern.matcher(message);
-        if (!matcher.find()) return message;
+        String group1, group2;
+        StringBuffer result = new StringBuffer();
+        //message = matcher.replaceAll(mr -> "[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); since java 9 fml
+        if(!matcher.find()) return message;
+        do{
+            matcher.appendReplacement(result,"[scarlet]" + Strings.stripColors(matcher.group()) + "[]");
+            group1 = matcher.group(1);
+            group2 = matcher.group(2);
+        } while (matcher.find());
+        matcher.appendTail(result);
         if (setLastPos) try {
-            ClientVars.lastSentPos.set(Float.parseFloat(matcher.group(1)), Float.parseFloat(matcher.group(2)));
+            ClientVars.lastSentPos.set(Float.parseFloat(group1), Float.parseFloat(group2));
         } catch (NumberFormatException ignored) {}
-        return matcher.replaceFirst("[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
+        return result.toString();
     }
 
     //called when a server receives a chat message from a player
