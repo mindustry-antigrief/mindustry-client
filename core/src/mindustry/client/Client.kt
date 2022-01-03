@@ -492,13 +492,19 @@ object Client {
             Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
         }
 
-        registerReplace("%", "c") {
+        registerReplace("%", "c", "cursor") {
             Strings.format("(@, @)", control.input.rawTileX(), control.input.rawTileY())
         }
 
-        registerReplace("%", "cursor") {
-            Strings.format("(@, @)", control.input.rawTileX(), control.input.rawTileY())
+        registerReplace("%", "s", "shrug") {
+            "¯\\_(ツ)_/¯"
         }
+
+        registerReplace("%", "h", "here") {
+            Strings.format("(@, @)", player.tileX(), player.tileY())
+        }
+
+        //TOOD: add various % for gamerules
     }
 
     fun replaceMsg(match: String, matchRegex: Boolean, from: String, fromRegex: Boolean, to: String){
@@ -564,6 +570,9 @@ object Client {
         clientCommandHandler.register(format.substringBefore(' '), args, description, runner)
     }
 
+    fun registerReplace(symbol: String = "%", vararg cmds: String, runner: Prov<String>) {
+        cmds.forEach { registerReplace(symbol, it, runner) }
+    }
     fun registerReplace(symbol: String = "%", cmd: String, runner: Prov<String>) {
         if(symbol.length != 1) throw IllegalArgumentException("Bad symbol in replace command")
         val seq = containsCommandHandler.get(symbol) { Seq() }
