@@ -332,31 +332,14 @@ object Client {
             clientThread.post {
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
                 val inProgress = !configs.isEmpty
-                val regex = Regex("ubind @?[a-zA-Z0-9-]+\\nsensor flag @unit @flag\\n(op add attem attem 1\\njump [0-9]+ greaterThanEq attem 83\\n)jump [0-9]+ notEqual key flag\\n(set attem 0\\n?)")
-                val jumpFixer = Regex("^jump ([0-9]+)(.*)", RegexOption.MULTILINE)
-                var n = 0
+                val n = ProcessorPatcher.countProcessors()
 
-                Groups.build.each( { it.team == player.team() } ) { lb ->
-                    if (lb !is LogicBlock.LogicBuild) return@each
-                    val match = regex.find(lb.code) ?: return@each
-                    val linesBefore = lb.code.take(match.range.first).count { it == '\n' }
-                    val done = @OptIn(ExperimentalStdlibApi::class) buildList {
-                        lb.code.lines().forEach {
-                            val jump = jumpFixer.find(it) // If this line is a jump, adjust it FINISHME: Don't use a regex here, contains matching this is relatively simple...
-                            if (jump == null) {
-                                add(it)
-                            } else {
-                                val dest = Strings.parseInt(jump.groups[1]!!.value)
-                                add(if (dest > linesBefore) "jump ${dest - 3}${jump.groups[2]!!.value}" else it) // We delete 3 lines above the destination, adjust accordingly
-                            }
-                        }
-                    }.toMutableList().joinToString("\n").run { // Finally, we can remove all the attem garbage, imagine being able to remove multiple ranges...
-                        val groups = regex.find(this)!!.groups // This sucks, we have to regex match again after changing the numbers
-                        removeRange(groups[1]!!.range).removeRange(groups[2]!!.range.first - groups[1]!!.range.count(), groups[2]!!.range.last - groups[1]!!.range.count() + 1)
+                if (confirmed && !inProgress) {
+                    Groups.build.each({ it.team == player.team() }) { build ->
+                        if (build !is LogicBlock.LogicBuild) return@each
+                        val patched = ProcessorPatcher.patch(build.code)
+                        if (patched != build.code) configs.add(ConfigRequest(build.tileX(), build.tileY(), LogicBlock.compress(patched, build.relativeConnections())))
                     }
-
-                    if (confirmed && !inProgress) configs.add(ConfigRequest(lb.tileX(), lb.tileY(), LogicBlock.compress(done, lb.relativeConnections())))
-                    n++
                 }
                 if (confirmed) {
                     if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n processors to reconfigure.") // FINISHME: Bundle
