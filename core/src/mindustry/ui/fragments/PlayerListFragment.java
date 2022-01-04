@@ -201,7 +201,7 @@ public class PlayerListFragment extends Fragment{
                 button.button(Icon.move, ustyle, // Goto
                         () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
                 button.button(Icon.zoom, ustyle, // Spectate/stalk
-                        () -> Spectate.INSTANCE.spectate(user)).tooltip("@client.spectate");
+                        () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).tooltip("@client.spectate");
             }
 
             content.add(button).padBottom(-6).width(700).maxHeight(h + 14);
