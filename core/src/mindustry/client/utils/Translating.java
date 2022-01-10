@@ -1,7 +1,5 @@
 package mindustry.client.utils;
 
-import java.io.*;
-
 import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
@@ -16,12 +14,12 @@ import mindustry.io.*;
  * @author Weathercold
  */
 public class Translating{
-    public static Seq<String> servers = Seq.with(
-        //"libretranslate.com", requires API key :(
-        "translate.argosopentech.com",
-        "translate.api.skitzen.com",
-        "trans.zillyhuhn.com",
-        "translate.mentality.rip" //sus link
+    public static volatile ObjectMap<String, Boolean> servers = ObjectMap.of(
+        //"libretranslate.com", false, requires API key :(
+        "translate.argosopentech.com", false,
+        "translate.api.skitzen.com", false,
+        "trans.zillyhuhn.com", false,
+        "translate.mentality.rip", false //sus link
     );
 
     //Might break certain mods idk
@@ -88,29 +86,38 @@ public class Translating{
     }
 
     private static void buildSend(String api, String content, Cons<String> success) {
+        String server = servers.findKey(false, false);
+        if (server == null) {
+            Log.warn("Rate limit reached on all servers. Aborting translation.");
+            return;
+        }
         ConsT<HttpResponse, Exception> successWrap = res -> {
             String cont = res.getResultAsString();
-            Log.debug("Response from @:[]\n@", servers.first(), cont.replace("\n", ""));
+            Log.debug("Response from @:\n@", server, cont.replace("\n", ""));
             success.get(cont);
         };
-        HttpRequest request = Http.post("https://" + servers.first() + api)
+        HttpRequest request = Http.post("https://" + server + api)
                                   .header("Content-Type", "application/json")
                                   .content(content);
+
         request.error(e -> {
-            if (e instanceof HttpStatusException && servers.size >= 2) {
-                HttpStatusException hse = (HttpStatusException)e;
-                Log.warn("Response from @ indicates error (@ @), retrying with @:[]\n@",
-                         servers.remove(0) + api, hse.status.code, hse.status, servers.first(), hse.response.getResultAsString().replace("\n", ""));
-                request.url("https://" + servers.first() + api).submit(successWrap);
-            }
-            else if (e instanceof HttpStatusException) {
-                HttpStatusException hse = (HttpStatusException)e;
-                Log.err("Response from @ indicates error (@ @), disabling translation for this session:[]\n@",
-                        servers.first() + api, hse.status.code, hse.status, hse.response.getResultAsString().replace("\n", ""));
-                ClientVars.enableTranslation = false;
-            }
-            else {
-                Log.err("An unknown error occurred, disabling translation for this session[]", e);
+            if (e instanceof HttpStatusException) {
+                HttpStatusException hse = (HttpStatusException) e;
+                if (hse.status == HttpStatus.UNKNOWN_STATUS) { // wtf rate limit is not a status code
+                    servers.put(server, true);
+                    Timer.schedule(() -> servers.put(server, false), 60f);
+                    Log.warn("Rate limit reached with @, retrying...", server + api);
+                } else {
+                    if (servers.size >= 2) {
+                        Log.warn("Response from @ indicates error, retrying...\n@", servers.remove(server) + api, hse);
+                    } else {
+                        Log.err("Response from @ indicates error, disabling translation for this session.\n@", server + api, hse);
+                        return;
+                    }
+                }
+                buildSend(api, content, success);
+            } else {
+                Log.err("An unknown error occurred, disabling translation for this session", e);
                 ClientVars.enableTranslation = false;
             }
         }).submit(successWrap);
