@@ -25,13 +25,13 @@ public class Translating{
     );
 
     //Might break certain mods idk
-    static{JsonIO.json.setOutputType(OutputType.json);}
+    static {JsonIO.json.setOutputType(OutputType.json);}
 
     /** Get the language of the specified text, then run success if no errors occurred.
      * @param success The callback to run if no errors occurred.
     */
-    public static void detect(String text, Cons<String> success){
-        if (text == null){
+    public static void detect(String text, Cons<String> success) {
+        if (text == null) {
             Log.err(new NullPointerException("Detect text cannot be null."));
             return;
         }
@@ -46,7 +46,7 @@ public class Translating{
     /** Retrieve an array of supported languages, then run success if no errors occurred.
      * @param success The callback to run if no errors occurred.
      */
-    public static void languages(Cons<Seq<String>> success){
+    public static void languages(Cons<Seq<String>> success) {
         buildSend(
             "/languages",
             "", //no body
@@ -60,7 +60,7 @@ public class Translating{
     }
 
     /** detect() + translate() */
-    public static void translate(String text, String target, Cons<String> success){
+    public static void translate(String text, String target, Cons<String> success) {
         detect(text, source -> translate(text, source, target, success));
     }
 
@@ -69,12 +69,12 @@ public class Translating{
      * @param target Language code of the target language.
      * @param success The callback to run if no errors occurred.
      */
-    public static void translate(String text, String source, String target, Cons<String> success){
-        if (text == null || source == null || target == null){
+    public static void translate(String text, String source, String target, Cons<String> success) {
+        if (text == null || source == null || target == null) {
             Log.err(new NullPointerException("Translate arguments cannot be null."));
             return;
         }
-        if (source == target){success.get(text); return;}
+        if (source == target) {success.get(text); return;}
 
         buildSend(
             "/translate",
@@ -87,7 +87,7 @@ public class Translating{
         );
     }
 
-    private static void buildSend(String api, String content, Cons<String> success){
+    private static void buildSend(String api, String content, Cons<String> success) {
         ConsT<HttpResponse, Exception> successWrap = res -> {
             String cont = res.getResultAsString();
             Log.debug("Response from @:[]\n@", servers.first(), cont.replace("\n", ""));
@@ -97,19 +97,19 @@ public class Translating{
                                   .header("Content-Type", "application/json")
                                   .content(content);
         request.error(e -> {
-            if (e instanceof HttpStatusException && servers.size >= 2){
+            if (e instanceof HttpStatusException && servers.size >= 2) {
                 HttpStatusException hse = (HttpStatusException)e;
                 Log.warn("Response from @ indicates error (@ @), retrying with @:[]\n@",
                          servers.remove(0) + api, hse.status.code, hse.status, servers.first(), hse.response.getResultAsString().replace("\n", ""));
                 request.url("https://" + servers.first() + api).submit(successWrap);
             }
-            else if (e instanceof HttpStatusException){
+            else if (e instanceof HttpStatusException) {
                 HttpStatusException hse = (HttpStatusException)e;
                 Log.err("Response from @ indicates error (@ @), disabling translation for this session:[]\n@",
                         servers.first() + api, hse.status.code, hse.status, hse.response.getResultAsString().replace("\n", ""));
                 ClientVars.enableTranslation = false;
             }
-            else{
+            else {
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 e.printStackTrace(pw);

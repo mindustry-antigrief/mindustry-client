@@ -46,7 +46,7 @@ public class ClientVars {
     public static String targetLang = Locale.getDefault().getLanguage(); // Language to translate messages to
     public static boolean enableTranslation = Core.settings.getBool("enabletranslation", true);
 
-    static{
+    static {
         Translating.languages(langs -> {
             targetLang = langs.contains(targetLang) ? targetLang : "en";
         });
