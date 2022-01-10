@@ -6,7 +6,11 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.utils.*;
 import mindustry.world.blocks.defense.*;
+
+import java.util.Locale;
+
 import org.jetbrains.annotations.*;
 
 public class ClientVars {
@@ -37,4 +41,14 @@ public class ClientVars {
     // Networking
     @NotNull public static Color encrypted = Color.valueOf("#243266"), verified = Color.valueOf("#2c9e52"), invalid = Color.valueOf("#890800"), user = Color.coral.cpy().mul(0.6f); // Encrypted = Blue, Verified = Green
     @NotNull public static String lastCertName = "";
+
+    // Translating
+    public static String targetLang = Locale.getDefault().getLanguage(); // Language to translate messages to
+    public static boolean enableTranslation = Core.settings.getBool("enabletranslation", true);
+
+    static{
+        Translating.languages(langs -> {
+            targetLang = langs.contains(targetLang) ? targetLang : "en";
+        });
+    }
 }

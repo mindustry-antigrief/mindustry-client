@@ -306,6 +306,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.category("chat");
         client.checkPref("clearchatonleave", true);
         client.checkPref("logmsgstoconsole", true);
+        client.checkPref("enabletranslation", true);
         client.checkPref("clientjoinleave", true);
         client.checkPref("signmessages", true);
         client.checkPref("highlightcryptomsg", true);
