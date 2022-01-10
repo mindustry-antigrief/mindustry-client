@@ -110,10 +110,7 @@ public class Translating{
                 ClientVars.enableTranslation = false;
             }
             else {
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                e.printStackTrace(pw);
-                Log.err("An unknown error occurred, disabling translation for this session:[]\n" + sw);
+                Log.err("An unknown error occurred, disabling translation for this session[]", e);
                 ClientVars.enableTranslation = false;
             }
         }).submit(successWrap);
