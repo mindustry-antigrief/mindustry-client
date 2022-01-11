@@ -37,6 +37,7 @@ import java.util.regex.*;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class NetClient implements ApplicationListener{
     private static final float dataTimeout = 60 * 30; // Give up after 30s (vanilla is 20s)
@@ -205,6 +206,7 @@ public class NetClient implements ApplicationListener{
 
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
+        Log.info("sendMessage msg, unf, plr"); // TODO
         Color background = null;
         if(Vars.ui != null){
             if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
@@ -214,18 +216,26 @@ public class NetClient implements ApplicationListener{
 
             unformatted = processCoords(unformatted, true);
             message = processCoords(message, unformatted != null);
+            String unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
             if (playersender != null) {
-                var sender = playersender.coloredName();
-                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
+                String sender = playersender.coloredName();
                 Vars.ui.chatfrag.addMessage(message, sender, background, "", unformatted2);
             } else {
-                Vars.ui.chatfrag.addMessage(message, null, unformatted == null ? "" : unformatted);
+                Vars.ui.chatfrag.addMessage(message, null, unformatted2);
             }
+
+            String unformatted3 = Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted2));
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
                 Log.info("&fi@: @",
                     "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
-                    "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
+                    "&lw" + unformatted3
                 );
+
+            if (enableTranslation && net.active() && playersender != null && playersender != player)
+                Translating.translate(unformatted3, targetLang, translation -> {
+                    if (!translation.equals(unformatted3))
+                        Vars.ui.chatfrag.addMessage(translation, "Translation", Color.sky);
+                });
         }
 
         //display raw unformatted text above player head
@@ -240,6 +250,7 @@ public class NetClient implements ApplicationListener{
     //equivalent to above method but there's no sender and no console log
     @Remote(called = Loc.server, targets = Loc.server)
     public static void sendMessage(String message){
+        Log.info("sendMessage msg"); // TODO
         if(Vars.ui != null){
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.info(Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
@@ -261,6 +272,7 @@ public class NetClient implements ApplicationListener{
     //called when a server receives a chat message from a player
     @Remote(called = Loc.server, targets = Loc.client)
     public static void sendChatMessage(Player player, String message){
+        Log.info("sendChatMessage plr msg"); // TODO
 
         //do not receive chat messages from clients that are too young or not registered
         if(net.server() && player != null && player.con != null && (Time.timeSinceMillis(player.con.connectTime) < 500 || !player.con.hasConnected || !player.isAdded())) return;
