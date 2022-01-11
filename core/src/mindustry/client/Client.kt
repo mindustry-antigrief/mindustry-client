@@ -238,8 +238,8 @@ object Client {
             Call.sendChatMessage("!" + if (args.size == 1) args[0] else "")
         }
 
-        register("tl [lang] [message...]", Core.bundle.get("client.command.tl.description")) r@ { args, player ->
-            if (args.size == 0) return@r
+        register("tl [lang] [message...]", Core.bundle.get("client.command.tl.description")) { args, _ ->
+            if (args.size == 0) return@register
             val msg = if (args.size == 1) args[0]
                       else if (args[0].length != 2) args[0] + " " + args[1]
                       else args[1]
