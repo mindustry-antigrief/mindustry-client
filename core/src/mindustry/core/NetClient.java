@@ -230,7 +230,7 @@ public class NetClient implements ApplicationListener{
                     "&lw" + unformatted3
                 );
 
-            if (enableTranslation && net.active() && playersender != null && playersender != player)
+            if (enableTranslation && playersender != null && playersender != player)
                 Translating.translate(unformatted3, targetLang, translation -> {
                     if (!translation.equals(unformatted3))
                         Vars.ui.chatfrag.addMessage(translation, "Translation", Color.sky);

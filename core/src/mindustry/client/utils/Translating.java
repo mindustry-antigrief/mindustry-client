@@ -16,10 +16,10 @@ import mindustry.io.*;
 public class Translating{
     public static volatile ObjectMap<String, Boolean> servers = ObjectMap.of(
         //"libretranslate.com", false, requires API key :(
-        "translate.argosopentech.com", false,
-        "translate.api.skitzen.com", false,
-        "trans.zillyhuhn.com", false,
-        "translate.mentality.rip", false //sus link
+            "translate.api.skitzen.com", false,
+            "translate.mentality.rip", false, //sus link
+            "translate.argosopentech.com", false,
+            "trans.zillyhuhn.com", false
     );
 
     //Might break certain mods idk

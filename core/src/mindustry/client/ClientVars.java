@@ -44,10 +44,12 @@ public class ClientVars {
 
     // Translating
     public static String targetLang = Locale.getDefault().getLanguage(); // Language to translate messages to
+    public static Seq<String> supportedLangs; // Languages supported by LibreTranslate
     public static boolean enableTranslation = Core.settings.getBool("enabletranslation", true);
 
     static {
         Translating.languages(langs -> {
+            supportedLangs = langs;
             targetLang = langs.contains(targetLang) ? targetLang : "en";
         });
     }
