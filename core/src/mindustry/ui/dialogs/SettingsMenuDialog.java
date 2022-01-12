@@ -39,6 +39,7 @@ import java.util.zip.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class SettingsMenuDialog extends BaseDialog{
     /** Mods break if these are changed to BetterSettingsTable so instead we cast them into different vars and just use those. */
@@ -306,7 +307,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.category("chat");
         client.checkPref("clearchatonleave", true);
         client.checkPref("logmsgstoconsole", true);
-        client.checkPref("enabletranslation", true);
+        client.checkPref("enabletranslation", true, i -> enableTranslation = i);
         client.checkPref("clientjoinleave", true);
         client.checkPref("signmessages", true);
         client.checkPref("highlightcryptomsg", true);

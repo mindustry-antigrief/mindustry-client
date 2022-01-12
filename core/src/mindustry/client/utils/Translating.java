@@ -16,10 +16,10 @@ import mindustry.io.*;
 public class Translating{
     public static volatile ObjectMap<String, Boolean> servers = ObjectMap.of(
         //"libretranslate.com", false, requires API key :(
-            "translate.api.skitzen.com", false,
-            "translate.mentality.rip", false, //sus link
-            "translate.argosopentech.com", false,
-            "trans.zillyhuhn.com", false
+        "translate.api.skitzen.com", false,
+        "translate.mentality.rip", false, //sus link
+        "translate.argosopentech.com", false,
+        "trans.zillyhuhn.com", false
     );
 
     //Might break certain mods idk
@@ -36,7 +36,7 @@ public class Translating{
 
         buildSend(
             "/detect",
-            "{\"q\":\"" + text + "\"}",
+            StringMap.of("q", text),
             res -> success.get(JsonIO.json.fromJson(StringMap[].class, res)[0].get("language"))
         );
     }
@@ -47,7 +47,7 @@ public class Translating{
     public static void languages(Cons<Seq<String>> success) {
         buildSend(
             "/languages",
-            "", //no body
+            null, //no body
             res -> {
                 StringMap[] langs = JsonIO.json.fromJson(StringMap[].class, res);
                 Seq<String> codes = new Seq<>(langs.length);
@@ -76,16 +76,16 @@ public class Translating{
 
         buildSend(
             "/translate",
-            JsonIO.json.toJson(StringMap.of(
+            StringMap.of(
                 "q", text,
                 "source", source,
                 "target", target
-            ), StringMap.class, String.class),
+            ),
             res -> success.get(JsonIO.json.fromJson(StringMap.class, res).get("translatedText"))
         );
     }
 
-    private static void buildSend(String api, String content, Cons<String> success) {
+    private static void buildSend(String api, @Nullable StringMap body, Cons<String> success) {
         String server = servers.findKey(false, false);
         if (server == null) {
             Log.warn("Rate limit reached on all servers. Aborting translation.");
@@ -98,7 +98,7 @@ public class Translating{
         };
         HttpRequest request = Http.post("https://" + server + api)
                                   .header("Content-Type", "application/json")
-                                  .content(content);
+                                  .content(JsonIO.json.toJson(body, StringMap.class, String.class));
 
         request.error(e -> {
             if (e instanceof HttpStatusException) {
@@ -108,18 +108,18 @@ public class Translating{
                         Log.info("Rate limit reached with @, retrying...", server + api);
                         servers.put(server, true);
                         Timer.schedule(() -> servers.put(server, false), 60f);
-                        buildSend(api, content, success);
+                        buildSend(api, body, success);
                         break;
                     case BAD_REQUEST:
-                        Log.warn("Bad request, aborting translation.\n@", content);
+                        Log.warn("Bad request, aborting translation.\n@", body);
                         break;
                     default:
                         if (servers.size >= 2) {
                             Log.warn("HTTP Response indicates error, retrying...\n@", hse);
                             servers.remove(server);
-                            buildSend(api, content, success);
+                            buildSend(api, body, success);
                         } else {
-                            Log.err("HTTP Response indicates error, disabling translation for this session.\n@", hse);
+                            Log.err("HTTP Response indicates error, disabling translation for this session", hse);
                             ClientVars.enableTranslation = false;
                         }
                 }

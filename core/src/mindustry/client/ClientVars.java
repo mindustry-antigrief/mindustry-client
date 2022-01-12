@@ -7,6 +7,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.utils.*;
+import mindustry.game.EventType.*;
 import mindustry.world.blocks.defense.*;
 
 import java.util.Locale;
@@ -48,9 +49,9 @@ public class ClientVars {
     public static boolean enableTranslation = Core.settings.getBool("enabletranslation", true);
 
     static {
-        Translating.languages(langs -> {
+        Events.on(ClientLoadEvent.class, e -> Translating.languages(langs -> {
             supportedLangs = langs;
             targetLang = langs.contains(targetLang) ? targetLang : "en";
-        });
+        }));
     }
 }

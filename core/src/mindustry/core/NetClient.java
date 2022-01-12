@@ -216,6 +216,8 @@ public class NetClient implements ApplicationListener{
             unformatted = processCoords(unformatted, true);
             message = processCoords(message, unformatted != null);
             String unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
+            String unformatted3 = Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted2));
+
             if (playersender != null) {
                 String sender = playersender.coloredName();
                 Vars.ui.chatfrag.addMessage(message, sender, background, "", unformatted2);
@@ -223,7 +225,6 @@ public class NetClient implements ApplicationListener{
                 Vars.ui.chatfrag.addMessage(message, null, unformatted2);
             }
 
-            String unformatted3 = Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted2));
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
                 Log.info("&fi@: @",
                     "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
@@ -233,7 +234,7 @@ public class NetClient implements ApplicationListener{
             if (enableTranslation && playersender != null && playersender != player)
                 Translating.translate(unformatted3, targetLang, translation -> {
                     if (!translation.equals(unformatted3))
-                        Vars.ui.chatfrag.addMessage(translation, "Translation", Color.sky);
+                        Vars.ui.chatfrag.addMessage(translation, Core.bundle.get("translation"), Color.sky);
                 });
         }
 
