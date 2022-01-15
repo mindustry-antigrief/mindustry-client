@@ -328,7 +328,7 @@ public class Renderer implements ApplicationListener{
         if(Core.settings.getBool("drawhitboxes")) {
             for (Unit u : Groups.unit) {
                 if (!Core.camera.bounds(Tmp.r1).overlaps(u.x() - u.hitSize()/2f, u.y() - u.hitSize()/2f, u.hitSize(), u.hitSize())) continue;
-                Draw.color(u.team.color, .3f);
+                Draw.color(u.team.color, settings.getInt("hitboxopacity") / 100f);
                 Fill.rect(u.x, u.y, u.hitSize(), u.hitSize());
             }
         }

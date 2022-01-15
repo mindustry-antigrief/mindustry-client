@@ -336,6 +336,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
         client.checkPref("unitranges", false);
         client.checkPref("drawhitboxes", false);
+        client.sliderPref("hitboxopacity", 30, 0, 100, 5, s -> s + "%");
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
