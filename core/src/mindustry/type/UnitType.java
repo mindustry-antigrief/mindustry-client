@@ -609,11 +609,6 @@ public class UnitType extends UnlockableContent{
         if (alpha == 0) return; // Don't bother drawing what we can't see.
         float z = unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
 
-        if (hitboxAlpha > 0) { // Draw hitboxes if enabled
-            Draw.color(unit.team.color, alpha);
-            Fill.rect(unit.x, unit.y, hitSize, hitSize);
-        }
-
         if(unit.controller().isBeingControlled(player.unit())){
             drawControl(unit);
         }
@@ -686,6 +681,12 @@ public class UnitType extends UnlockableContent{
                 Draw.alpha(alpha);
                 a.draw(unit);
             }
+        }
+
+        if (hitboxAlpha > 0) { // Draw hitboxes if enabled
+            Draw.z(z + 1f);
+            Draw.color(unit.team.color, hitboxAlpha);
+            Fill.rect(unit.x, unit.y, hitSize, hitSize);
         }
 
         Draw.reset();
