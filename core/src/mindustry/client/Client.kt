@@ -134,16 +134,6 @@ object Client {
                 if (b.team == player.team() && bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect()
             }
         }
-
-        // Unit hitboxes
-        if (Core.settings.getBool("drawhitboxes")) {
-            val alpha = Core.settings.getInt("hitboxopacity") / 100f
-            for (u in Groups.unit) {
-                if (!Core.camera.bounds(Tmp.r1).overlaps(u.x() - u.hitSize() / 2f, u.y() - u.hitSize() / 2f, u.hitSize(), u.hitSize())) continue
-                Draw.color(u.team.color, alpha)
-                Fill.rect(u.x, u.y, u.hitSize(), u.hitSize())
-            }
-        }
     }
 
     private fun registerCommands() {
