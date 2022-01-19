@@ -433,7 +433,7 @@ public class SettingsMenuDialog extends BaseDialog{
             return s + "%";
         });
         graphics.sliderPref("bridgeopacity", 100, 0, 100, 5, s -> s + "%");
-        graphics.sliderPref("opacityofformationunit", 20, 0, 100, 5, s -> s + "%");
+        graphics.sliderPref("opacityofformationunit", 20, 0, 100, 5, s -> { UnitType.formationAlpha = s / 100f; return s + "%"; });
 
         if(!mobile){
             graphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));

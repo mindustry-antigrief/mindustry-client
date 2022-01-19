@@ -41,6 +41,7 @@ public class UnitType extends UnlockableContent{
     public static final float shadowTX = -12, shadowTY = -13;
     private static final Vec2 legOffset = new Vec2();
     public static boolean drawAllItems;
+    public static float formationAlpha;
 
     /** If true, the unit is always at elevation 1. */
     public boolean flying;
@@ -329,6 +330,7 @@ public class UnitType extends UnlockableContent{
     @Override
     public void init(){
         drawAllItems = Core.settings != null && Core.settings.getBool("drawallitems");
+        formationAlpha = Core.settings != null ? Core.settings.getInt("opacityofformationunit") / 100f : .3f;
         if(constructor == null) throw new IllegalArgumentException("no constructor set up for unit '" + name + "'");
 
         Unit example = constructor.get();
@@ -599,7 +601,7 @@ public class UnitType extends UnlockableContent{
 
     public void draw(Unit unit){
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
-        alpha = ClientVars.hidingUnits || ClientVars.hidingAirUnits && unit.isFlying() ? 0 : (unit.controller() instanceof FormationAI || unit.playerNonNull().assisting && !unit.isLocal()) ? Core.settings.getInt("opacityofformationunit") / 100f : 1;
+        alpha = ClientVars.hidingUnits || ClientVars.hidingAirUnits && unit.isFlying() ? 0 : (unit.controller() instanceof FormationAI || unit.playerNonNull().assisting && !unit.isLocal()) ? formationAlpha : 1;
         if (alpha == 0) return; // Don't bother drawing what we can't see.
         float z = unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
 
