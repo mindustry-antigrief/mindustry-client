@@ -329,6 +329,7 @@ public class UnitType extends UnlockableContent{
     @CallSuper
     @Override
     public void init(){
+        if (Core.settings.get("hitboxopacity", null) instanceof Float) Core.settings.put("hitboxopacity", 30); // FINISHME: I did a dumb, remove on v7 release
         if (formationAlpha == -1) { // Only set these once.
             drawAllItems = Core.settings != null && Core.settings.getBool("drawallitems");
             formationAlpha = Core.settings != null ? Core.settings.getInt("formationopacity") / 100f : .3f;

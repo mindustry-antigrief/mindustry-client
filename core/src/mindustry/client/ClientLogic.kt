@@ -68,7 +68,7 @@ class ClientLogic {
 
             // Hitbox setting was changed, this updates it. FINISHME: Remove a while after v7 release.
             if (Core.settings.getBool("drawhitboxes") && Core.settings.getInt("hitboxopacity") == 0) { // Old setting was enabled and new opacity hasn't been set yet
-                Core.settings.put("hitboxopacity", .3f)
+                Core.settings.put("hitboxopacity", 30)
                 UnitType.hitboxAlpha = Core.settings.getInt("hitboxopacity") / 100f
             }
             Core.settings.remove("drawhitboxes") // Don't need this old setting anymore
