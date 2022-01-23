@@ -150,7 +150,7 @@ object Main : ApplicationListener {
         fun invalid(msg: ChatFragment.ChatMessage, cert: X509Certificate?) {
             msg.sender = cert?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator") ?: "Verification failed"
             msg.backgroundColor = ClientVars.invalid
-            msg.prefix = "${Iconc.cancel} "
+            msg.prefix = "${Iconc.cancel} ${msg.prefix} "
             msg.format()
         }
 
@@ -165,7 +165,7 @@ object Main : ApplicationListener {
             Signatures.VerifyResult.VALID -> {
                 msg.sender = output.second?.run { keyStorage.aliasOrName(this) }
                 msg.backgroundColor = ClientVars.verified
-                msg.prefix = "${Iconc.ok} "
+                msg.prefix = "${Iconc.ok} ${msg.prefix} "
                 msg.format()
                 true
             }
@@ -305,7 +305,7 @@ object Main : ApplicationListener {
             when (transmission) {
                 is MessageTransmission -> {
                     ClientVars.lastCertName = system.peer.expectedCert.readableName
-                    Vars.ui.chatfrag.addMessage(transmission.content, "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).prefix = "${Iconc.ok} "
+                    Vars.ui.chatfrag.addMessage(transmission.content, "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).run{ prefix = "${Iconc.ok} $prefix " }
                 }
 
                 is CommandTransmission -> {

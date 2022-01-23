@@ -24,6 +24,7 @@ import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
+import mindustry.graphics.Pal;
 import mindustry.logic.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
@@ -207,17 +208,25 @@ public class NetClient implements ApplicationListener{
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
         Color background = null;
         if(Vars.ui != null){
+            var prefix = "";
+
             if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
-                message = Iconc.wrench + " " + message;
+                prefix = Iconc.wrench + " ";
                 if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
             unformatted = processCoords(unformatted, true);
             message = processCoords(message, unformatted != null);
             if (playersender != null) {
+                if (message.startsWith("[#" + playersender.team().color.toString() + "]<T>")) {
+                    prefix += "[#" + playersender.team().color.toString() + "]<T> ";
+                }
+                if (message.startsWith("[#" + Pal.adminChat.toString() + "]<A>")) {
+                    prefix += "[#" + Pal.adminChat.toString() + "]<A> ";
+                }
                 var sender = playersender.coloredName();
                 var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
-                Vars.ui.chatfrag.addMessage(message, sender, background, "", unformatted2);
+                ui.chatfrag.addMessage(message, sender, background, prefix, unformatted2);
             } else {
                 Vars.ui.chatfrag.addMessage(message, null, unformatted == null ? "" : unformatted);
             }
