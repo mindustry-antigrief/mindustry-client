@@ -129,13 +129,13 @@ public class UnitPicker extends BaseDialog {
                             Log.debug("This wasn't supposed to happen");
                             type = event.unit.type;
                             Time.run(60, () -> {
-                                Log.info("Exists: " + event.unit.isAdded());
+                                Log.debug("Exists: " + event.unit.isAdded());
                                 findUnit(event.unit.type, true);
                             });
                         }
                     }), net.client() ? netClient.getPing()/1000f + .3f : 0);
                 }, net.client() ? netClient.getPing()/1000f + .3f : 0);
-            }
+            } else if (event.unit.type == type && event.unit.team == player.team()) Log.debug("How is the unit dead wtf...");
         });
 
         Events.on(EventType.WorldLoadEvent.class, event -> {

@@ -39,7 +39,7 @@ object clientThread : Runnable {
                 val task = taskQueue.take()
                 if (Vars.state?.isPlaying == true) task.run() // Do nothing if not in game
             } catch (e: Exception) {
-                e.printStackTrace()
+                if (e !is InterruptedException) e.printStackTrace()
             }
         }
     }

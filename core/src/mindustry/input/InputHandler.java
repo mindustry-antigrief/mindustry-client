@@ -13,7 +13,6 @@ import arc.scene.event.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.*;
 import mindustry.ai.formations.patterns.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
@@ -224,9 +223,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 Events.fire(new DepositEvent(build, player, item, accepted));
             }
         });
-        if (Navigation.currentlyFollowing instanceof AssistPath path && path.getAssisting() != null && path.getAssisting() == player) {
-            Call.transferInventory(Vars.player, build);
-        }
     }
 
     @Remote(variants = Variant.one)
