@@ -329,7 +329,7 @@ public class UnitType extends UnlockableContent{
     @CallSuper
     @Override
     public void init(){
-        if (Core.settings.get("hitboxopacity", null) instanceof Float) Core.settings.put("hitboxopacity", 30); // FINISHME: I did a dumb, remove on v7 release
+        if (Core.settings != null && Core.settings.get("hitboxopacity", null) instanceof Float) Core.settings.put("hitboxopacity", 30); // FINISHME: I did a dumb, remove on v7 release
         if (formationAlpha == -1) { // Only set these once.
             drawAllItems = Core.settings != null && Core.settings.getBool("drawallitems");
             formationAlpha = Core.settings != null ? Core.settings.getInt("formationopacity") / 100f : .3f;
@@ -606,7 +606,10 @@ public class UnitType extends UnlockableContent{
 
     public void draw(Unit unit){
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
-        alpha = ClientVars.hidingUnits || ClientVars.hidingAirUnits && unit.isFlying() ? 0 : (unit.controller() instanceof FormationAI || unit.playerNonNull().assisting && !unit.isLocal()) ? formationAlpha : 1;
+        alpha =
+            ClientVars.hidingUnits || ClientVars.hidingAirUnits && unit.isFlying() ? 0 :
+            (unit.controller() instanceof FormationAI || unit.controller() instanceof Player p && p.assisting && !unit.isLocal()) ? formationAlpha :
+            1;
         if (alpha == 0) return; // Don't bother drawing what we can't see.
         float z = unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
 
