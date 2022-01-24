@@ -192,7 +192,7 @@ object Main : ApplicationListener {
         val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
 
         communicationClient.send(signatures.signatureTransmission(
-            contentWithId.encodeToByteArray(),
+            contentWithId.replace("^/[t|a] ".toRegex(), "").encodeToByteArray(),
             communicationSystem.id,
             msgId) ?: return contentWithId)
 
