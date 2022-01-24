@@ -1,11 +1,10 @@
 package mindustry.client.communication
 
-import arc.graphics.Pixmap
-import arc.util.Log
-import mindustry.client.utils.inflateImage
-import mindustry.client.utils.compressImage
-import java.nio.ByteBuffer
-import kotlin.random.Random
+import arc.graphics.*
+import arc.util.*
+import mindustry.client.utils.*
+import java.nio.*
+import kotlin.random.*
 
 class ImageTransmission : Transmission {
     override var id = Random.nextLong()
@@ -18,6 +17,7 @@ class ImageTransmission : Transmission {
         this.image = image
     }
 
+    @Suppress("UNUSED_PARAMETER")
     constructor(b: ByteArray, id: Long, senderID: Int) {
         val metadata = ByteBuffer.wrap(b)
         message = metadata.short

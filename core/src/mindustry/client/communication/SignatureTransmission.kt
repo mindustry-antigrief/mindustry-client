@@ -26,7 +26,7 @@ class SignatureTransmission : Transmission {
 
     override var id: Long
 
-    constructor(input: ByteArray, id: Long, senderID: Int) {
+    constructor(input: ByteArray, id: Long, @Suppress("UNUSED_PARAMETER") senderID: Int) {
         this.id = id
         val buf = input.buffer()
         signature = buf.bytes(Signatures.SIGNATURE_LENGTH)
