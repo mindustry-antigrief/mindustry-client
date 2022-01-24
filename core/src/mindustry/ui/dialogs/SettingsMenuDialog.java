@@ -310,7 +310,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("signmessages", true);
         client.checkPref("highlightcryptomsg", true);
         client.checkPref("highlightclientmsg", false);
-        client.checkPref("displayasuser", false);
+        client.checkPref("displayasuser", true);
         client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
         client.checkPref("showuserid", false);
 
