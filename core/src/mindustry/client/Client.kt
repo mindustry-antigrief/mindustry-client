@@ -32,6 +32,7 @@ import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
 import mindustry.world.*
+import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
@@ -48,7 +49,7 @@ import kotlin.random.*
 object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
-    val timer = Interval(2)
+    val timer = Interval(3)
 
     fun initialize() {
         registerCommands()
@@ -71,7 +72,7 @@ object Client {
 
         if (!configs.isEmpty) {
             try {
-                if (configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) {
+                if (configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L + 1000, Administration.Config.interactRateLimit.num() - 1)) {
                     configs.removeLast().run()
                 }
             } catch (e: Exception) {
@@ -334,19 +335,26 @@ object Client {
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
                 val inProgress = !configs.isEmpty
                 val n = ProcessorPatcher.countProcessors()
+                val total = Groups.build.count { it.team == Vars.player.team() && it is LogicBlock.LogicBuild }
 
                 if (confirmed && !inProgress) {
+                    val current = mutableListOf<LogicBlock.LogicBuild>()
+                    Log.info("Patching!")
                     Groups.build.each({ it.team == player.team() }) { build ->
                         if (build !is LogicBlock.LogicBuild) return@each
                         val patched = ProcessorPatcher.patch(build.code)
-                        if (patched != build.code) configs.add(ConfigRequest(build.tileX(), build.tileY(), LogicBlock.compress(patched, build.relativeConnections())))
+                        if (patched != build.code) {
+                            current.add(build)
+                            Log.info("${build.tileX()} ${build.tileY()}")
+                            configs.add(ConfigRequest(build.tileX(), build.tileY(), LogicBlock.compress(patched, build.relativeConnections())))
+                        }
                     }
                 }
                 if (confirmed) {
                     if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n processors to reconfigure.") // FINISHME: Bundle
-                    else player.sendMessage("[accent]Successfully reconfigured $n processors")
+                    else player.sendMessage("[accent]Successfully reconfigured $n/$total processors")
                 } else {
-                    player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure $n processors")
+                    player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure $n/$total processors")
                 }
             }
         }
@@ -442,6 +450,16 @@ object Client {
         register("c <message...>", "Send a message to other client users.") { args, _ ->  // FINISHME: Bundle
             Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
         }
+
+        register("mapinfo", "Lists various useful map info.") { _, player ->
+            player.sendMessage("""[accent]
+                Name: ${state.map.name()}[accent] (by: ${state.map.author()}[accent])
+                Build Speed: ${state.rules.buildSpeedMultiplier}
+                Build Cost: ${state.rules.buildCostMultiplier}
+                Core Capture: ${state.rules.coreCapture}
+                Core Incinerates: ${state.rules.coreIncinerates}
+            """.trimIndent())
+        }
     }
 
     private fun connectTls(certname: String, onFinish: (Packets.CommunicationClient, X509Certificate) -> Unit) { // FINISHME: Bundle
@@ -485,5 +503,45 @@ object Client {
     fun register(format: String, description: String = "", runner: (args: Array<String>, player: Player) -> Unit) {
         val args = if (format.contains(' ')) format.substringAfter(' ') else ""
         clientCommandHandler.register(format.substringBefore(' '), args, description, runner)
+    }
+
+    var target: Teamc? = null
+    fun autoShoot() {
+        if (!Core.settings.getBool("autotarget") || state.isMenu || state.isEditor) return
+        if (((player.unit() as? BlockUnitUnit)?.tile() as? ControlBlock)?.shouldAutoTarget() == false) return
+        val unit = player.unit()
+        if (unit.activelyBuilding()) return
+        val type = unit?.type ?: return
+        val targetBuild = target as? Building
+        val validHealTarget = player.unit().type.canHeal && targetBuild?.isValid == true && target?.team() == unit.team && targetBuild.damaged() && target?.within(unit, type.range) == true;
+
+        if (target != null && Units.invalidateTarget(target, unit, type.range) && !validHealTarget) { // Invalidate target
+            val desktopInput = control.input as? DesktopInput
+            player.shooting = Core.input.keyDown(Binding.select) && !Core.scene.hasMouse() && (desktopInput == null || desktopInput.mode == PlaceMode.none)
+            target = null
+        }
+
+        if (target == null || timer.get(2, 6f)) { // Acquire target
+            target = Units.closestEnemy(unit.team, unit.x, unit.y, unit.range()) { u -> u.checkTarget(unit.type.targetAir, unit.type.targetGround) }
+            if (unit.type.canHeal && target == null) {
+                target = Units.findDamagedTile(player.team(), player.x, player.y)
+                if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() else 0f)) target = null
+            }
+        }
+
+        if (target != null) { // Shoot at target
+            val intercept = Predict.intercept(unit, target, if (type.hasWeapons()) type.weapons.first().bullet.speed else 0f)
+            val boosting = unit is Mechc && unit.isFlying()
+
+            player.mouseX = intercept.x
+            player.mouseY = intercept.y
+            player.shooting = !boosting
+
+            if (type.omniMovement && player.shooting && type.hasWeapons() && type.faceTarget && !boosting && type.rotateShooting) { // Rotate towards enemy
+                unit.lookAt(unit.angleTo(player.mouseX, player.mouseY))
+            }
+
+            unit.aim(player.mouseX, player.mouseY)
+        }
     }
 }

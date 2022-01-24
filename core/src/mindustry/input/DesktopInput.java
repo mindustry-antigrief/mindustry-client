@@ -870,8 +870,9 @@ public class DesktopInput extends InputHandler{
 
             unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
 
-            // if autoboost, invert the behavior of the boost key
-            player.boosting = Core.settings.getBool("autoboost") ^ input.keyDown(Binding.boost);
+            player.boosting = Core.settings.getBool("autoboost") ^ input.keyDown(Binding.boost); // If auto-boost, invert the behavior of the boost key
+
+            Client.INSTANCE.autoShoot();
         }
         unit.controlWeapons(true, player.shooting && !boosted);
 

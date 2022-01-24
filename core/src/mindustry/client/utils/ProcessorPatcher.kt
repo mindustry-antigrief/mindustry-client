@@ -11,9 +11,7 @@ object ProcessorPatcher {
 
     private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
-    fun countProcessors() = Groups.build.count { it.team == player.team() && (it as? LogicBuild)?.code?.needFix() == true }
-
-    private fun String.needFix() = contains(attemMatcher)
+    fun countProcessors() = Groups.build.count { it.team == player.team() && it is LogicBuild && attemMatcher.find(it.code) != null }
 
     fun patch(code: String): String {
         val result = attemMatcher.find(code) ?: return code
