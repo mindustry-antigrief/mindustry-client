@@ -308,6 +308,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("logmsgstoconsole", true);
         client.checkPref("clientjoinleave", true);
         client.checkPref("signmessages", true);
+        client.checkPref("verifymessages", true);
         client.checkPref("highlightcryptomsg", true);
         client.checkPref("highlightclientmsg", false);
         client.checkPref("displayasuser", true);
