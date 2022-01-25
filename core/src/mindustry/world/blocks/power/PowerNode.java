@@ -21,8 +21,6 @@ import mindustry.world.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
 
-import java.util.concurrent.atomic.*;
-
 import static mindustry.Vars.*;
 
 public class PowerNode extends PowerBlock{
@@ -372,9 +370,6 @@ public class PowerNode extends PowerBlock{
                 });
                 super.placed();
             }
-            AtomicReference<Building> mald = new AtomicReference();
-            getPotentialLinks(tile, team, mald::set);
-            if (mald.get() != null) this.configure(new Point2[]{Point2.unpack(mald.get().pos())});
         }
 
         @Override
