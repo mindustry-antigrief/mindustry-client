@@ -13,6 +13,7 @@ import arc.scene.event.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
 import mindustry.ai.formations.patterns.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
@@ -366,7 +367,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void tileConfig(@Nullable Player player, Building build, @Nullable Object value){
         if(build == null) return;
         if(net.server() && (!Units.canInteract(player, build) ||
-                !netServer.admins.allowAction(player, ActionType.configure, build.tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");
+            !netServer.admins.allowAction(player, ActionType.configure, build.tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");
 
         Object previous = build.config();
 
@@ -374,7 +375,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         build.configured(player == null || player.dead() ? null : player.unit(), value);
         Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
 
-        if(player != null){ // FINISHME: Move all this client stuff into the ClientLogic class
+        if (player != null && Vars.player != player) { // FINISHME: Move all this client stuff into the ClientLogic class
             if (Core.settings.getBool("commandwarnings") && build instanceof CommandCenter.CommandBuild cmd && build.team == player.team()) {
                 if (commandWarning == null || timer.get(300)) {
                     commandWarning = ui.chatfrag.addMessage(bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), (Color)null);
@@ -399,7 +400,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                         }
                     }
                 } else if (value instanceof Point2[]) {
-                    // TODO: handle this
+                    // FINISHME: handle this
                 }
             }
         }
@@ -556,7 +557,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         if(controlledType != null && player.dead()){
-            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead /* TODO: Make this a thing that actually works? && (!(u.controller() instanceof FormationAI f) || f.isBeingControlled(player.lastReadUnit)) */);
+            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead /* FINISHME: Make this a thing that actually works? && (!(u.controller() instanceof FormationAI f) || f.isBeingControlled(player.lastReadUnit)) */);
 
             if(unit != null){
                 //only trying controlling once a second to prevent packet spam

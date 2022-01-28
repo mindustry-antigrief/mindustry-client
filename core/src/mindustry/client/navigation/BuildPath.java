@@ -198,11 +198,6 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                     } else if (queues.contains(cleanup) && tile.isCenter() && (tile.build instanceof ConstructBlock.ConstructBuild build && !build.wasConstructing && build.lastBuilder != null && build.lastBuilder == player.unit() || tile.team() == Team.derelict && tile.breakable() && !(tile.block() instanceof Prop))) {
                         cleanup.add(pool.obtain().set(tile.x, tile.y));
 
-                    } else if (queues.contains(unfinished) && tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild build && tile.isCenter()) {
-                        unfinished.add(build.wasConstructing ?
-                            pool.obtain().set(tile.x, tile.y, tile.build.rotation, build.current, tile.build.config()) :
-                            pool.obtain().set(tile.x, tile.y));
-
                     } else if ((queues.contains(belts) || queues.contains(drills)) && tile.team() == player.team() && tile.build != null && tile.isCenter()) {
                         Block block = tile.build instanceof ConstructBlock.ConstructBuild b ? b.previous : tile.block();
 
@@ -215,6 +210,11 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                                 belts.add(pool.obtain().set(tile.x, tile.y, tile.build.rotation, upgrade));
                             }
                         }
+
+                    } else if (queues.contains(unfinished) && tile.team() == player.team() && tile.build instanceof ConstructBlock.ConstructBuild build && tile.isCenter()) {
+                        unfinished.add(build.wasConstructing ?
+                            pool.obtain().set(tile.x, tile.y, tile.build.rotation, build.current, tile.build.config()) :
+                            pool.obtain().set(tile.x, tile.y));
                     }
                 }
             }
@@ -266,7 +266,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 Formation formation = player.unit().formation;
                 range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
                 if (formation != null) range -= formation.pattern.radius(); // Account for the player formation
-                goTo(req, range);
+                goTo(req.tile(), range); // Cannot go directly to req as it is pooled so the build changes.
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();

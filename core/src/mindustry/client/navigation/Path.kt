@@ -25,7 +25,10 @@ abstract class Path {
         }
 
         @JvmOverloads @JvmStatic
-        fun goTo(dest: Position, dist: Float = 0F, aStarDist: Float = 0F) = goTo(dest.x, dest.y, dist, aStarDist)
+        fun goTo(dest: Position?, dist: Float = 0F, aStarDist: Float = 0F): WaypointPath<PositionWaypoint> {
+            if (dest != null) goTo(dest.x, dest.y, dist, aStarDist)
+            return waypoints
+        }
 
         @JvmOverloads @JvmStatic @Synchronized
         fun goTo(destX: Float, destY: Float, dist: Float = 0F, aStarDist: Float = 0F): WaypointPath<PositionWaypoint> {

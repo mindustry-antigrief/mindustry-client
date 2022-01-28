@@ -190,7 +190,9 @@ object Client {
                 Cap: ${counts[2]}
                 Flagged(Unflagged): ${counts[3]}(${counts[4]})
                 Players(Formation): ${counts[5]}(${counts[6]})
-                Logic Controlled: ${counts[7]}""".trimIndent())
+                Logic Controlled: ${counts[7]}
+                """.trimIndent()
+            )
         }
 
         // FINISHME: Add spawn command
@@ -249,8 +251,8 @@ object Client {
         }
 
         register("login [name] [pw]", Core.bundle.get("client.command.login.description")) { args, _ ->
-            if (args.size == 2) Core.settings.put("cnpw", args[0] + " " + args[1])
-            else Call.sendChatMessage("/login " + Core.settings.getString("cnpw", ""))
+            if (args.size == 2) Core.settings.put("cnpw", "${args[0]} ${args[1]}")
+            else Call.sendChatMessage("/login ${Core.settings.getString("cnpw", "")}")
         }
 
         register("marker <name> [x] [y]", Core.bundle.get("client.command.marker.description")) { args, player ->
@@ -262,12 +264,12 @@ object Client {
         }
 
         register("js <code...>", Core.bundle.get("client.command.js.description")) { args, player: Player ->
-            player.sendMessage("[accent]" + mods.scripts.runConsole(args[0]))
+            player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
         }
 
         register("/js <code...>", Core.bundle.get("client.command.serverjs.description")) { args, player ->
-            player.sendMessage("[accent]" + mods.scripts.runConsole(args[0]))
-            Call.sendChatMessage("/js " + args[0])
+            player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
+            Call.sendChatMessage("/js ${args[0]}")
         }
 
         register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
