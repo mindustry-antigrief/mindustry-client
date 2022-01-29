@@ -865,8 +865,17 @@ public class DesktopInput extends InputHandler{
                 unit.lookAt(unit.prefRotation());
             }
 
-    //        unit.movePref(movement); Client replaces this with the line below
-            unit.moveAt(movement);
+    //        unit.movePref(movement); Client replaces this with the statement below
+            if (input.ctrl()) {  // FINISHME binding
+                movement.setLength((unit.type.speed / 5) * Time.delta);
+                unit.set(
+                        unit.x + movement.x,
+                        unit.y + movement.y
+                );
+                unit.vel.setZero();
+            } else {
+                unit.moveAt(movement);
+            }
 
             unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
 
