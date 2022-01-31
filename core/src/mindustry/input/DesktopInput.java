@@ -431,11 +431,17 @@ public class DesktopInput extends InputHandler{
                 Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
                 if(on != null){
-                    if (input.keyDown(Binding.control) && on.isAI()) Call.unitControl(player, on); // Ctrl + click: control unit
-                    else if ((input.keyDown(Binding.control) || input.shift()) && on.isPlayer()) Navigation.follow(new AssistPath(on.playerNonNull(), input.keyDown(Binding.control), input.alt())); // Shift + click player: quick assist (ctrl + click to follow cursor, shift/ctrl + alt + click to not follow)
-                    else if (on.controller() instanceof LogicAI p && p.controller != null) Spectate.INSTANCE.spectate(p.controller); // Shift + click logic unit: spectate processor
-                    shouldShoot = false;
-                    recentRespawnTimer = 1f;
+                    if (input.keyDown(Binding.control) && on.isAI()) { // Ctrl + click: control unit
+                        Call.unitControl(player, on);
+                        shouldShoot = false;
+                        recentRespawnTimer = 1f;
+                    } else if ((input.keyDown(Binding.control) || input.shift()) && on.isPlayer()) { // Shift + click player: quick assist (ctrl + click to follow cursor, shift/ctrl + alt + click to not follow)
+                        Navigation.follow(new AssistPath(on.playerNonNull(), input.keyDown(Binding.control), input.alt()));
+                        shouldShoot = false;
+                    } else if (on.controller() instanceof LogicAI ai && ai.controller != null && (!player.unit().type.canBoost || player.boosting)) { // Shift + click logic unit: spectate processor
+                        Spectate.INSTANCE.spectate(ai.controller);
+                        shouldShoot = false;
+                    }
                 }else if(build != null && input.keyDown(Binding.control)){
                     Call.buildingControlSelect(player, build);
                     recentRespawnTimer = 1f;
@@ -865,7 +871,7 @@ public class DesktopInput extends InputHandler{
                 unit.lookAt(unit.prefRotation());
             }
 
-    //        unit.movePref(movement); Client replaces this with the statement below
+    //        unit.movePref(movement); Client replaces this with the block below
             if (input.ctrl()) {  // FINISHME binding
                 movement.setLength((unit.type.speed / 5) * Time.delta);
                 unit.set(
@@ -879,7 +885,7 @@ public class DesktopInput extends InputHandler{
 
             unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
 
-            player.boosting = Core.settings.getBool("autoboost") ^ input.keyDown(Binding.boost); // If auto-boost, invert the behavior of the boost key
+            player.boosting = unit.type.canBoost && Core.settings.getBool("autoboost") ^ input.keyDown(Binding.boost); // If auto-boost, invert the behavior of the boost key
 
             Client.INSTANCE.autoShoot();
         }
