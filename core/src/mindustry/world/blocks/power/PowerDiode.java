@@ -1,11 +1,10 @@
 package mindustry.world.blocks.power;
 
-import arc.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.utils.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -13,8 +12,6 @@ import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
-
-import java.util.*;
 
 public class PowerDiode extends Block{
     public @Load("@-arrow") TextureRegion arrow;
@@ -50,49 +47,28 @@ public class PowerDiode extends Block{
         return (tile != null && tile.block.hasPower) ? tile.power.graph.getLastPowerStored() / tile.power.graph.getTotalBatteryCapacity() : 0f;
     }
 
-    public static List<Pair<Integer, Integer>> connected = new ArrayList<>();
+    /** Returns a set of int pairs, pairs are stored as minID, maxID. */
+    public static @Nullable Seq<int[]> connections(Team team) {
+        var out = new Seq<int[]>();
+        var seq = new Seq<Building>();
+        team.data().buildings.getObjects(seq);
+        seq.each(b -> b instanceof PowerDiodeBuild && b.tile != null && b.front() != null && b.back() != null && b.back().block.hasPower && b.front().block.hasPower && b.back().team == b.front().team, b -> {
+            PowerGraph backGraph = b.back().power.graph;
+            PowerGraph frontGraph = b.front().power.graph;
+            if (backGraph == frontGraph) return;
 
-    static {
-        Events.on(EventType.WorldLoadEvent.class, event -> connected.clear());
+            out.add(new int[]{Math.min(frontGraph.getID(), backGraph.getID()), Math.max(frontGraph.getID(), backGraph.getID())});
+        });
+        return out;
     }
 
     public class PowerDiodeBuild extends Building{
         public WindowedMean transferred = new WindowedMean(60);
-        private final Pair<Integer, Integer> entry = new Pair<>(null, null);
-        private boolean addedEntry = false;
-
-        @Override
-        public void remove() {
-            super.remove();
-            connected.remove(entry);
-        }
 
         @Override
         public void draw(){
             Draw.rect(region, x, y, 0);
             Draw.rect(arrow, x, y, rotate ? rotdeg() : 0);
-        }
-
-        @Override
-        public void update() {
-            super.update();
-            if (!addedEntry) {
-                addedEntry = true;
-                connected.add(entry);
-            }
-
-            if(front() == null || back() == null || !back().block.hasPower || !front().block.hasPower || back().team != front().team) {
-                entry.first = null;
-                entry.second = null;
-                return;
-            }
-
-            PowerGraph backGraph = back().power.graph;
-            PowerGraph frontGraph = front().power.graph;
-            if(backGraph == frontGraph) return;
-
-            entry.first = Math.min(frontGraph.getID(), backGraph.getID());
-            entry.second = Math.max(frontGraph.getID(), backGraph.getID());
         }
 
         @Override

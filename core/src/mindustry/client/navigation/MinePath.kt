@@ -18,27 +18,27 @@ class MinePath : Path {
         items = player.unit().type.mineItems
     }
 
-    constructor(mineItems: Seq<Item>, cap: Int) {
+    constructor(mineItems: Seq<Item>, cap: Int = Core.settings.getInt("minepathcap")) {
         items = mineItems
         this.cap = cap
     }
 
-constructor(args: String) {
-    val split = args.split("\\s".toRegex())
-    for (a in split) {
-        content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.run(items::add) ?:
-        if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
-        else if (Strings.parseInt(a) > 0) cap = a.toInt()
-        else player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
-    }
+    constructor(args: String) {
+        val split = args.split("\\s".toRegex())
+        for (a in split) {
+            content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.run(items::add) ?:
+            if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
+            else if (Strings.parseInt(a) > 0) cap = a.toInt()
+            else player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
+        }
 
-    if (items.isEmpty) {
-        if (split.none { Strings.parseInt(it) > 0 }) player.sendMessage("client.path.miner.allinvalid".bundle())
-        items = player.unit().type.mineItems
-    } else {
-        player.sendMessage(Core.bundle.format("client.path.miner.mining", items.joinToString(), if (cap == 0) "infinite" else cap))
+        if (items.isEmpty) {
+            if (split.none { Strings.parseInt(it) > 0 }) player.sendMessage("client.path.miner.allinvalid".bundle())
+            items = player.unit().type.mineItems
+        } else {
+            player.sendMessage(Core.bundle.format("client.path.miner.mining", items.joinToString(), if (cap == 0) "infinite" else cap))
+        }
     }
-}
 
     override fun setShow(show: Boolean) = Unit
     override fun getShow() = false

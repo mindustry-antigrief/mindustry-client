@@ -10,7 +10,6 @@ import mindustry.Vars.*
 import mindustry.client.navigation.*
 import mindustry.client.utils.*
 import mindustry.graphics.*
-import kotlin.Pair
 import kotlin.collections.set
 import kotlin.math.*
 

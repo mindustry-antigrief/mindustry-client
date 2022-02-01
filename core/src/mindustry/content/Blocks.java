@@ -3,6 +3,7 @@ package mindustry.content;
 import arc.graphics.*;
 import arc.struct.*;
 import mindustry.*;
+import mindustry.client.navigation.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.entities.bullet.*;

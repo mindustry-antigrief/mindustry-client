@@ -2,42 +2,28 @@
 
 package mindustry.client.utils
 
-import arc.Core
-import arc.Events
-import arc.graphics.Pixmap
-import arc.graphics.PixmapIO
-import arc.math.geom.Point2
-import arc.scene.Element
-import arc.scene.ui.Dialog
-import arc.scene.ui.Label
-import arc.scene.ui.TextButton
-import arc.scene.ui.layout.Cell
-import arc.scene.ui.layout.Table
-import arc.util.Disposable
-import arc.util.Strings
-import arc.util.serialization.Base64Coder
-import mindustry.Vars
-import mindustry.client.communication.Base32768Coder
-import mindustry.core.World
-import mindustry.ui.Styles
-import mindustry.ui.dialogs.BaseDialog
-import mindustry.world.Tile
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.io.OutputStream
-import java.nio.ByteBuffer
-import java.security.cert.X509Certificate
-import java.time.DateTimeException
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.time.temporal.Temporal
-import java.time.temporal.TemporalUnit
+import arc.*
+import arc.graphics.*
+import arc.math.geom.*
+import arc.scene.*
+import arc.scene.ui.*
+import arc.scene.ui.layout.*
+import arc.util.*
+import arc.util.serialization.*
+import mindustry.*
+import mindustry.client.communication.*
+import mindustry.core.*
+import mindustry.ui.*
+import mindustry.ui.dialogs.*
+import mindustry.world.*
+import java.io.*
+import java.nio.*
+import java.security.cert.*
+import java.time.*
+import java.time.temporal.*
 import java.util.*
-import java.util.zip.DeflaterInputStream
-import java.util.zip.InflaterInputStream
-import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.floor
+import java.util.zip.*
+import kotlin.math.*
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -183,14 +169,14 @@ inline fun circle(x: Int, y: Int, radius: Float, block: (x: Int, y: Int) -> Unit
 
 fun sq(inp: Int) = inp * inp
 
-/** Flips the two values in a [kotlin.Pair] */
-fun <A, B> kotlin.Pair<A, B>.flip() = kotlin.Pair(second, first)
+/** Flips the two values in a [Pair] */
+fun <A, B> Pair<A, B>.flip() = Pair(second, first)
 
-/** Checks equality between two [kotlin.Pair] instances, ignores value order. */
-infix fun <A, B> kotlin.Pair<A, B>.eqFlip(other: kotlin.Pair<A, B>) = this == other || this.flip() == other
+/** Checks equality between two [Pair] instances, ignores value order. */
+infix fun <A, B> Pair<A, B>.eqFlip(other: Pair<A, B>) = this == other || this.flip() == other
 
-/** Checks equality between a [kotlin.Pair] and two other values. */
-fun <A, B> kotlin.Pair<A, B>.eqFlip(a: A, b: B) = this.first == a && this.second == b || this.first == b && this.second == a
+/** Checks equality between a [Pair] and two other values. */
+fun <A, B> Pair<A, B>.eqFlip(a: A, b: B) = this.first == a && this.second == b || this.first == b && this.second == a
 
 fun <T> Iterable<T>.escape(escapement: T, vararg escape: T): List<T> {
     val output = mutableListOf<T>()
@@ -324,11 +310,7 @@ fun pixmapFromClipboard(): Pixmap? {
     }
 }
 
-inline fun <T : Disposable, V> T.use(lambda: T.() -> V): V {
-    val res = lambda()
-    dispose()
-    return res
-}
+inline fun <T : Disposable, V> T.use(lambda: T.() -> V) = lambda().also { this.dispose() }
 
 private val bytes = ByteArrayOutputStream()
 

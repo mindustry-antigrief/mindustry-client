@@ -1,43 +1,30 @@
 package mindustry.client
 
-import arc.ApplicationListener
-import arc.Core
-import arc.Events
-import arc.graphics.Texture
-import arc.math.geom.Point2
-import arc.math.geom.Vec2
-import arc.scene.ui.Image
-import arc.struct.IntSet
-import arc.util.Interval
-import arc.util.Log
-import arc.util.Time
-import mindustry.Vars
-import mindustry.client.antigrief.TileRecords
+import arc.*
+import arc.graphics.*
+import arc.math.geom.*
+import arc.scene.ui.*
+import arc.struct.*
+import arc.util.*
+import mindustry.*
+import mindustry.client.antigrief.*
 import mindustry.client.communication.*
-import mindustry.client.crypto.KeyStorage
-import mindustry.client.crypto.Signatures
-import mindustry.client.crypto.TlsClientHolder
-import mindustry.client.crypto.TlsServerHolder
-import mindustry.client.navigation.AStarNavigator
-import mindustry.client.navigation.AssistPath
-import mindustry.client.navigation.BuildPath
-import mindustry.client.navigation.Navigation
-import mindustry.client.ui.Toast
+import mindustry.client.crypto.*
+import mindustry.client.navigation.*
+import mindustry.client.ui.*
 import mindustry.client.utils.*
-import mindustry.entities.units.BuildPlan
-import mindustry.game.EventType
-import mindustry.game.Teams.BlockPlan
-import mindustry.game.Teams.TeamData
-import mindustry.gen.Groups
-import mindustry.gen.Iconc
-import mindustry.input.Binding
-import mindustry.ui.fragments.ChatFragment
+import mindustry.entities.units.*
+import mindustry.game.*
+import mindustry.game.Teams.*
+import mindustry.gen.*
+import mindustry.input.*
+import mindustry.ui.fragments.*
 import java.nio.file.Files
-import java.security.cert.X509Certificate
-import java.util.*
-import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.concurrent.schedule
-import kotlin.math.max
+import java.security.cert.*
+import java.util.Timer
+import java.util.concurrent.*
+import kotlin.concurrent.*
+import kotlin.math.*
 import kotlin.random.Random
 
 object Main : ApplicationListener {
@@ -81,7 +68,7 @@ object Main : ApplicationListener {
             dispatchedBuildPlans.clear()
         }
         Events.on(EventType.ServerJoinEvent::class.java) {
-                communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
+            communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
         }
 
         communicationClient.addListener { transmission, senderId ->

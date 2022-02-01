@@ -9,6 +9,8 @@ import mindustry.client.antigrief.*;
 import mindustry.world.blocks.defense.*;
 import org.jetbrains.annotations.*;
 
+import java.util.concurrent.*;
+
 public class ClientVars {
     // Misc
     public static short silentTrace; // How many traces to do silently (this is pretty 0head but shh)
@@ -17,7 +19,7 @@ public class ClientVars {
     public static float travelTime = Core.settings.getInt("traveltime");
 
     // Config Queue
-    @NotNull public static Queue<ConfigRequest> configs = new Queue<>();
+    @NotNull public static LinkedBlockingDeque<ConfigRequest> configs = new LinkedBlockingDeque<>(); // Need thread safety
     @NotNull public static Ratekeeper configRateLimit = new Ratekeeper();
 
     // Hotkeys

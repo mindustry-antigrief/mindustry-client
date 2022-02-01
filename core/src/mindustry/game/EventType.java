@@ -584,9 +584,23 @@ public class EventType{
         public final Player player;
         public final Unit unit;
 
+        /** @param unit is the player's new unit. */
         public UnitChangeEvent(Player player, Unit unit){
             this.player = player;
             this.unit = unit;
+        }
+    }
+
+    /** UnitChangeEvent can't be changed without breaking compatibility (I think), this class adds the unit swapped from. */
+    public static class UnitChangeEventClient{
+        public final Player player;
+        public final Unit newUnit;
+        public final Unit oldUnit;
+
+        public UnitChangeEventClient(Player player, Unit newUnit, Unit oldUnit){
+            this.player = player;
+            this.newUnit = newUnit;
+            this.oldUnit = oldUnit;
         }
     }
 

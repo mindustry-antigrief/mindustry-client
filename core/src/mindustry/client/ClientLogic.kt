@@ -9,6 +9,7 @@ import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
+import mindustry.content.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.logic.*
@@ -115,6 +116,10 @@ class ClientLogic {
 
             if (build.code.any() || build.links.any()) processorConfigs.remove(packed) // Someone else built a processor with data
             else configs.add(ConfigRequest(e.tile.x.toInt(), e.tile.y.toInt(), processorConfigs.remove(packed)))
+        }
+
+        Events.on(EventType.GameOverEvent::class.java) {
+            if (Vars.net.client()) Navigation.follow(MinePath(UnitTypes.gamma.mineItems)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
         }
     }
 }

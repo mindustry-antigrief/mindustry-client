@@ -6,7 +6,6 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
-import arc.math.geom.Vec2;
 import arc.scene.*;
 import arc.scene.ui.*;
 import arc.scene.ui.Label.*;
@@ -16,14 +15,12 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.*;
-import mindustry.client.ui.AttachmentDialog;
-import mindustry.client.ui.UploadDialog;
+import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.ui.*;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -386,7 +383,7 @@ public class ChatFragment extends Table{
 
     public void updateChat(){
         chatfield.setMaxLength(history.get(historyPos).startsWith("!js ") ? 0 : maxTextLength - 2 * Mathf.num(Core.settings.getBool("signmessages")));
-        chatfield.setText(mode.normalizedPrefix() + history.get(historyPos));
+        chatfield.setText(mode.normalizedPrefix() + history.get(historyPos).replaceFirst("^" + mode.normalizedPrefix() + "{2}", mode.normalizedPrefix())); // Replace double prefix with single.
         updateCursor();
     }
 

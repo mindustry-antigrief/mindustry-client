@@ -45,11 +45,13 @@ import java.security.*
 import java.security.cert.*
 import kotlin.math.*
 import kotlin.random.*
+import kotlin.time.*
 
 object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
     val timer = Interval(3)
+    private val circles = mutableListOf<Pair<TurretPathfindingEntity, Color>>()
 
     fun initialize() {
         registerCommands()
@@ -70,7 +72,7 @@ object Client {
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
 
-        if (!configs.isEmpty) {
+        if (!configs.isEmpty()) {
             try {
                 if (configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L + 1000, Administration.Config.interactRateLimit.num() - 1)) {
                     configs.removeLast().run()
@@ -83,6 +85,7 @@ object Client {
         if (state?.rules?.editor == true) ui.editor.autoSave()
     }
 
+    @OptIn(ExperimentalTime::class)
     fun draw() {
         Spectate.draw()
 
@@ -112,15 +115,14 @@ object Client {
         if (showingTurrets) {
             Draw.z(Layer.space)
             val units = Core.settings.getBool("unitranges")
-            val circles = mutableListOf<kotlin.Pair<TurretPathfindingEntity, Color>>()
+            circles.clear()
             synchronized(obstacles) {
                 for (t in obstacles) {
                     if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
-//                    Drawf.dashCircle(t.x, t.y, t.radius - tilesize, if (t.canHitPlayer) t.team.color else Team.derelict.color)
                     circles.add(t to if (t.canHitPlayer) t.team.color else Team.derelict.color)
                 }
-                RangeDrawer.draw(circles)
             }
+            Log.debug("Drawing ranges took ${measureTime { RangeDrawer.draw(circles) }}")
         }
 
         // Player controlled turret range
@@ -162,7 +164,7 @@ object Client {
         }
 
         register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
-            ui.unitPicker.findUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
+            ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
         }
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
@@ -298,25 +300,28 @@ object Client {
         }
 
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
+            val diodeLinks = PowerDiode.connections(player.team()) // Must be run on the main thread
+            val grids = PowerGraph.activeGraphs.select { it.team == player.team() }.associateWith { it.all.copy() }
             clientThread.post {
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
-                val inProgress = !configs.isEmpty
-                val originalCount = PowerGraph.activeGraphs.select { it.team == player.team() }.size
+                val inProgress = !configs.isEmpty()
                 var n = 0
-                val grids = mutableMapOf<Int, MutableSet<Int>>()
+                val newLinks = mutableMapOf<Int, MutableSet<Int>>()
 
-                for (grid in PowerGraph.activeGraphs.select { it.team == player.team() }) { // This is horrible but works somehow
-                    for (nodeBuild in grid.all) {
+                for ((grid, buildings) in grids) { // This is horrible but works somehow
+                    for (nodeBuild in buildings) {
                         val nodeBlock = nodeBuild.block as? PowerNode ?: continue
                         var links = nodeBuild.power.links.size
                         nodeBlock.getPotentialLinks(nodeBuild.tile, player.team()) { link ->
-                            if (PowerDiode.connected.any { it.first == min(grid.id, link.power.graph.id) && it.second == max(grid.id, link.power.graph.id) }) return@getPotentialLinks // Don't connect across diodes
+                            val min = min(grid.id, link.power.graph.id)
+                            val max = max(grid.id, link.power.graph.id)
+                            if (diodeLinks.any { it[0] == min && it[1] == max }) return@getPotentialLinks // Don't connect across diodes
                             if (++links > nodeBlock.maxNodes) return@getPotentialLinks // Respect max links
-                            val t = grids.getOrPut(grid.id) { mutableSetOf(grid.id) }
-                            val l = grids.getOrDefault(link.power.graph.id, mutableSetOf())
+                            val t = newLinks.getOrPut(grid.id) { mutableSetOf(grid.id) }
+                            val l = newLinks.getOrDefault(link.power.graph.id, mutableSetOf())
                             if (l.add(grid.id) && t.add(link.power.graph.id)) {
                                 l.addAll(t)
-                                grids[link.power.graph.id] = l
+                                newLinks[link.power.graph.id] = l
                                 if (confirmed && !inProgress) configs.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
                                 n++
                             }
@@ -325,38 +330,38 @@ object Client {
                 }
                 if (confirmed) {
                     if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
-                    else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, originalCount - n))
+                    else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, grids.size - n))
                 } else {
-                    player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, originalCount))
+                    player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, grids.size))
                 }
             }
         }
 
         register("fixcode [c]", "Disables problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
+            val builds = Seq<Building>()
+            Vars.player.team().data().buildings.getObjects(builds) // Must be done on the main thread
             clientThread.post {
+                builds.removeAll { it !is LogicBlock.LogicBuild }
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
-                val inProgress = !configs.isEmpty
-                val n = ProcessorPatcher.countProcessors()
-                val total = Groups.build.count { it.team == Vars.player.team() && it is LogicBlock.LogicBuild }
+                val inProgress = !configs.isEmpty()
+                var n = 0
 
                 if (confirmed && !inProgress) {
-                    val current = mutableListOf<LogicBlock.LogicBuild>()
-                    Log.info("Patching!")
-                    Groups.build.each({ it.team == player.team() }) { build ->
-                        if (build !is LogicBlock.LogicBuild) return@each
+                    Log.debug("Patching!")
+                    (builds as Seq<LogicBlock.LogicBuild>).each { build ->
                         val patched = ProcessorPatcher.patch(build.code)
                         if (patched != build.code) {
-                            current.add(build)
-                            Log.info("${build.tileX()} ${build.tileY()}")
+                            Log.debug("${build.tileX()} ${build.tileY()}")
                             configs.add(ConfigRequest(build.tileX(), build.tileY(), LogicBlock.compress(patched, build.relativeConnections())))
+                            n++
                         }
                     }
                 }
                 if (confirmed) {
-                    if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n processors to reconfigure.") // FINISHME: Bundle
-                    else player.sendMessage("[accent]Successfully reconfigured $n/$total processors")
+                    if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
+                    else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
                 } else {
-                    player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure $n/$total processors")
+                    player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
                 }
             }
         }
@@ -454,10 +459,11 @@ object Client {
         }
 
         register("mapinfo", "Lists various useful map info.") { _, player ->
-            player.sendMessage("""[accent]
-                Name: ${state.map.name()}[accent] (by: ${state.map.author()}[accent])
-                Build Speed: ${state.rules.buildSpeedMultiplier}
-                Build Cost: ${state.rules.buildCostMultiplier}
+            player.sendMessage("""
+                [accent]Name: ${state.map.name()}[accent] (by: ${state.map.author()}[accent])
+                Map Time: ${UI.formatTime(state.tick.toFloat())}
+                Build Speed: ${state.rules.buildSpeedMultiplier}x
+                Build Cost: ${state.rules.buildCostMultiplier}x
                 Core Capture: ${state.rules.coreCapture}
                 Core Incinerates: ${state.rules.coreIncinerates}
             """.trimIndent())
@@ -515,11 +521,11 @@ object Client {
         if (unit.activelyBuilding()) return
         val type = unit?.type ?: return
         val targetBuild = target as? Building
-        val validHealTarget = player.unit().type.canHeal && targetBuild?.isValid == true && target?.team() == unit.team && targetBuild.damaged() && target?.within(unit, type.range) == true;
+        val validHealTarget = player.unit().type.canHeal && targetBuild?.isValid == true && target?.team() == unit.team && targetBuild.damaged() && target?.within(unit, unit.range()) == true
 
-        if (target != null && Units.invalidateTarget(target, unit, type.range) && !validHealTarget) { // Invalidate target
+        if (target != null && Units.invalidateTarget(target, unit, unit.range()) && !validHealTarget) { // Invalidate target
             val desktopInput = control.input as? DesktopInput
-            player.shooting = Core.input.keyDown(Binding.select) && !Core.scene.hasMouse() && (desktopInput == null || desktopInput.mode == PlaceMode.none)
+            player.shooting = Core.input.keyDown(Binding.select) && !Core.scene.hasMouse() && (desktopInput == null || desktopInput.shouldShoot)
             target = null
         }
 
@@ -528,6 +534,9 @@ object Client {
             if (unit.type.canHeal && target == null) {
                 target = Units.findDamagedTile(player.team(), player.x, player.y)
                 if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() else 0f)) target = null
+            }
+            if (target == null && flood()) { // Shoot buildings in flood because why not.
+                target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { type.targetGround }
             }
         }
 

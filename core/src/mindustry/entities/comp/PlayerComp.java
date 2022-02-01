@@ -214,6 +214,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
         if(unit == null) throw new IllegalArgumentException("Unit cannot be null. Use clearUnit() instead.");
         if(this.unit == unit) return;
+        var oldUnit = this.unit; // Unit we are swapping from
 
         if(this.unit != Nulls.unit){
             //un-control the old unit
@@ -241,7 +242,8 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
             }
         }
 
-        Events.fire(new UnitChangeEvent(self(), unit));
+        Events.fire(new UnitChangeEvent(self(), unit)); // Kept for vanilla compatibility
+        Events.fire(new UnitChangeEventClient(self(), unit, oldUnit)); // Client needs the old unit.
     }
 
     /** Somewhat scuffed way to persist buildplans when dying and swapping units. */

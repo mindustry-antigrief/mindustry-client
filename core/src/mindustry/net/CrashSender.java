@@ -28,7 +28,7 @@ public class CrashSender{
         + "OS: " + OS.osName + " x" + (OS.osArchBits) + " (" + OS.osArch + ")\n"
         + "Java Version: " + OS.javaVersion + "\n"
         + (mods == null ? "<no mod init>" : "Mods: " + (!mods.list().contains(LoadedMod::shouldBeEnabled) ? "none (vanilla)" : mods.list().select(LoadedMod::shouldBeEnabled).toString(", ", mod -> mod.name + ":" + mod.meta.version)))
-        + "\n\n" + error;
+        + "\n\n" + error + "```";
     }
 
     public static void log(Throwable exception){

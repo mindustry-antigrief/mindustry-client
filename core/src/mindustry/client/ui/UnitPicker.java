@@ -28,7 +28,7 @@ public class UnitPicker extends BaseDialog {
         onResize(this::build);
         shown(this::build);
         setup();
-        keyDown(KeyCode.enter, () -> findUnit(sorted.first()));
+        keyDown(KeyCode.enter, () -> pickUnit(sorted.first()));
     }
 
     void build(){
@@ -58,90 +58,81 @@ public class UnitPicker extends BaseDialog {
         Core.app.post(searchField::requestKeyboard);
     }
 
-    public boolean findUnit(UnitType type) {
-        return findUnit(type, false);
-    }
-
-    public boolean findUnit(UnitType type, boolean silent) {
+    public boolean pickUnit(UnitType type) {
         hide();
         if (type == null) return false;
+        var found = findUnit(type);
 
-        Unit found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI || u.controller() instanceof LogicAI));
-        if (found == null) found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI)); // Include logic units
-        if (found == null) found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead); // Include formation units
-
-        Toast t = silent ? null : new Toast(3);
+        Toast t = new Toast(3);
         if (found != null) {
             Call.unitControl(player, found); // Switch to unit
-            if (!silent) t.add("@client.unitpicker.success");
+            t.add("@client.unitpicker.success");
             this.type = null;
         } else {
-            if (!silent) t.add(Core.bundle.format("client.unitpicker.notfound", type));
+            t.add(Core.bundle.format("client.unitpicker.notfound", type));
             this.type = type;
         }
         return found != null;
     }
 
+    public Unit findUnit(UnitType type) {
+        Unit found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI || u.controller() instanceof LogicAI));
+        if (found == null) found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI)); // Include logic units
+        if (found == null) found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead); // Include formation units
+
+        return found;
+    }
+
     private void setup(){
-        Events.on(EventType.UnitChangeEvent.class, event -> { // FINISHME: Test Player.lastReadUnit also get rid of this dumb ping prediction stuff
-            if (type == null) return;
-            if (!event.player.isLocal() && event.unit.team == player.team()) {
-                Unit f = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI || u.controller() instanceof LogicAI));
-                if (f == null) f = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof FormationAI)); // Include logic units
-                if (f == null) f = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead); // Include formation units
-                Unit find = f;
-                if (find != null) {
-                    type = null;
-                    Core.app.post(() -> Call.unitControl(player, find));
-                    Timer.schedule(() -> Core.app.post(() -> {
-                        if (find.isPlayer()) {
-                            Toast t = new Toast(3);
-                            if (find.isLocal()) {
-                                type = null;
-                                t.add("@client.unitpicker.success");
-                            } else if (find.getPlayer() != null && !find.isLocal()) {
-                                t.add(Core.bundle.format("client.unitpicker.alreadyinuse", find.type, find.getPlayer().name));
-                                type = find.type;
-                            } else t.add("[scarlet]This wasn't supposed to happen...");
-                        }
-                    }), net.client() ? netClient.getPing()/1000f + .3f: 0);
-                }
-            }
+        Events.on(EventType.UnitChangeEventClient.class, event -> {
+            if (type == null || event.oldUnit.dead || event.oldUnit.type != type || event.oldUnit.team != player.team() || event.player.isLocal()) return;
+            type = null;
+            Timer.schedule(() -> Core.app.post(() -> {
+                Call.unitControl(player, event.oldUnit);
+                Timer.schedule(() -> Core.app.post(() -> { // Delay by a frame + ping so the unit is actually unloaded in time.
+                    if (event.oldUnit.isPlayer()) {
+                        Toast t = new Toast(3);
+                        if (event.oldUnit.isLocal()) {
+                            type = null;
+                            t.add("@client.unitpicker.success");
+                        } else if (event.oldUnit.getPlayer() != null && !event.oldUnit.isLocal()) {
+                            t.add(Core.bundle.format("client.unitpicker.alreadyinuse", event.oldUnit.type, event.oldUnit.getPlayer().name));
+                            type = event.oldUnit.type;
+                        } else t.add("[scarlet]This wasn't supposed to happen...");
+                    }
+                }), net.client() ? netClient.getPing()/1000f + .3f: 0);
+            }), net.client() ? netClient.getPing()/1000f + .3f: 0);
         });
 
-        Events.on(EventType.UnitUnloadEvent.class, event -> { // FINISHME: Run on all unit creations, test that it actually works
-            if (type == null) return;
-            if (!event.unit.dead && event.unit.type == type && event.unit.team == player.team() && !event.unit.isPlayer()) {
-                Log.debug("Found suitable unit");
+        Events.on(EventType.UnitUnloadEvent.class, event -> {
+            if (type == null || event.unit.type != type || event.unit.team != player.team()) return;
+            var temp = type;
+            type = null;
+            Timer.schedule(() -> Core.app.post(() -> { // Delay by a frame + ping so the unit is actually unloaded in time.
+                var found = findUnit(temp);
+                if (found == null) return;
                 type = null;
-                Timer.schedule(() -> {
-                    Core.app.post(() -> Call.unitControl(player, event.unit));
-                    Timer.schedule(() -> Core.app.post(() -> {
-                        if (event.unit.isPlayer()) {
-                            Toast t = new Toast(3);
-                            if (event.unit.isLocal()) {
-                                t.add("@client.unitpicker.success");
-                            } else if (event.unit.getPlayer() != null && !event.unit.isLocal()) {
-                                type = event.unit.type;
-                                t.add(Core.bundle.format("client.unitpicker.alreadyinuse", event.unit.type, event.unit.getPlayer().name));
-                            }
-                        } else { // This happens sometimes, idk man FINISHME: Cleanup
-                            Log.debug("This wasn't supposed to happen");
-                            type = event.unit.type;
-                            Time.run(60, () -> {
-                                Log.debug("Exists: " + event.unit.isAdded());
-                                findUnit(event.unit.type, true);
-                            });
+                Call.unitControl(player, found);
+                Timer.schedule(() -> Core.app.post(() -> {
+                    if (found.isPlayer()) {
+                        Toast t = new Toast(3);
+                        if (found.isLocal()) {
+                            t.add("@client.unitpicker.success");
+                        } else if (found.getPlayer() != null && !found.isLocal()) {
+                            type = found.type;
+                            t.add(Core.bundle.format("client.unitpicker.alreadyinuse", found.type, found.getPlayer().name));
                         }
-                    }), net.client() ? netClient.getPing()/1000f + .3f : 0);
-                }, net.client() ? netClient.getPing()/1000f + .3f : 0);
-            } else if (event.unit.type == type && event.unit.team == player.team()) Log.debug("How is the unit dead wtf...");
+                    } else { // This happens sometimes, idk man FINISHME: Cleanup
+                        type = event.unit.type;
+                    }
+                }), net.client() ? netClient.getPing() / 1000f + .3f : 0);
+            }), net.client() ? netClient.getPing()/1000f + .3f: 0);
         });
 
         Events.on(EventType.WorldLoadEvent.class, event -> {
             if (!ClientVars.syncing) {
                 type = null;
-                Time.run(60, () -> findUnit(Core.settings.getBool("automega") && state.isGame() && (player.unit().type == null || player.unit().type != UnitTypes.mega) ? UnitTypes.mega : null));
+                Time.run(60, () -> pickUnit(Core.settings.getBool("automega") && state.isGame() && (player.unit().type == null || player.unit().type != UnitTypes.mega) ? UnitTypes.mega : null));
             }
         });
     }

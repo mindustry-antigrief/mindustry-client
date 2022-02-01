@@ -298,6 +298,12 @@ public class DesktopInput extends InputHandler{
             settings.put("assumeunstrict", !settings.getBool("assumeunstrict"));
         }
 
+        if(input.keyTap(Binding.toggle_auto_target) && scene.getKeyboardFocus() == null && selectRequests.isEmpty()){
+            player.shooting = false;
+            settings.put("autotarget", !settings.getBool("autotarget"));
+            new Toast(1).add(bundle.get("setting.autotarget.name") + ": " + bundle.get((settings.getBool("autotarget") ? "mod.enabled" : "mod.disabled")));
+        }
+
         boolean locked = locked();
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
@@ -366,7 +372,7 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        shouldShoot = !scene.hasMouse() && !locked;
+        shouldShoot = !locked;
         Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
         if(!scene.hasMouse() && !locked){
@@ -887,7 +893,7 @@ public class DesktopInput extends InputHandler{
 
             player.boosting = unit.type.canBoost && Core.settings.getBool("autoboost") ^ input.keyDown(Binding.boost); // If auto-boost, invert the behavior of the boost key
 
-            Client.INSTANCE.autoShoot();
+            if (!Core.input.keyDown(Binding.select) && shouldShoot) Client.INSTANCE.autoShoot();
         }
         unit.controlWeapons(true, player.shooting && !boosted);
 

@@ -1,28 +1,19 @@
 package mindustry.client.ui
 
-import arc.ApplicationListener
-import arc.Core
-import arc.Events
-import arc.files.Fi
-import arc.graphics.Pixmap
-import arc.graphics.Texture
-import arc.graphics.g2d.TextureRegion
-import arc.input.KeyCode
-import arc.scene.ui.Image
-import arc.scene.ui.ImageButton
-import arc.scene.ui.TextButton
-import arc.scene.ui.layout.Table
-import mindustry.Vars
-import mindustry.client.Main
-import mindustry.client.communication.BlockCommunicationSystem
-import mindustry.client.communication.ImageTransmission
-import mindustry.client.communication.InvisibleCharCoder
-import mindustry.client.navigation.clientThread
-import mindustry.client.utils.pixmapFromClipboard
-import mindustry.client.utils.row
-import mindustry.game.EventType
-import mindustry.gen.Icon
-import mindustry.ui.dialogs.BaseDialog
+import arc.*
+import arc.files.*
+import arc.graphics.*
+import arc.input.*
+import arc.scene.ui.*
+import arc.scene.ui.layout.*
+import mindustry.*
+import mindustry.client.*
+import mindustry.client.communication.*
+import mindustry.client.navigation.*
+import mindustry.client.utils.*
+import mindustry.game.*
+import mindustry.gen.*
+import mindustry.ui.dialogs.*
 
 object UploadDialog : BaseDialog("@client.uploadtitle") {
     private val pane: Table
@@ -90,7 +81,7 @@ object UploadDialog : BaseDialog("@client.uploadtitle") {
 
         pane = Table()
 
-        cont.pane(pane)
+        cont.pane(pane).grow()
 
         buttons.add(TextButton("@client.uploadtitle").apply {
             clicked {
