@@ -11,8 +11,8 @@ class AttachmentDialog(message: String, attachments: List<Image>) : BaseDialog("
         cont.add(message).center()
         cont.row()
         cont.pane {
-            for (item in attachments) it.row(item).grow()
-        }.grow()
+            for (item in attachments) it.row(item)
+        }.fill()
         show()
     }
 }

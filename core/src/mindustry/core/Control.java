@@ -12,6 +12,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.audio.*;
+import mindustry.client.ui.*;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
 import mindustry.core.GameState.*;
@@ -562,7 +563,7 @@ public class Control implements ApplicationListener, Loadable{
                 state.set(state.is(State.playing) ? State.paused : State.playing);
             }
 
-            if(Core.input.keyTap(Binding.menu) && !ui.restart.isShown() && !ui.minimapfrag.shown()){
+            if(Core.input.keyTap(Binding.menu) && !ui.restart.isShown() && !ui.minimapfrag.shown() && !UploadDialog.INSTANCE.isShown()){
                 if(ui.chatfrag.shown()){
                     ui.chatfrag.hide();
                 }else if(ui.listfrag.shown()){

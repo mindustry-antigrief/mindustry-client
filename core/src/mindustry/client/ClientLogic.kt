@@ -119,6 +119,7 @@ class ClientLogic {
         }
 
         Events.on(EventType.GameOverEvent::class.java) {
+            Log.info("egg ${Vars.net.client()}")
             if (Vars.net.client()) Navigation.follow(MinePath(UnitTypes.gamma.mineItems)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
         }
     }

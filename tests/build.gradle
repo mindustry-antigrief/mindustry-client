@@ -4,7 +4,6 @@ sourceSets.test.resources.srcDirs = ["src/test/resources"]
 sourceSets.test.java.srcDirs = ["src/test/java"]
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.21"
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.69'
     implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.69'
     implementation group: 'org.bouncycastle', name: 'bctls-jdk15on', version: '1.69'

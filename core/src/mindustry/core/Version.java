@@ -20,9 +20,9 @@ public class Version{
     public static int revision = 0;
     /** Whether version loading is enabled. */
     public static boolean enabled = true;
-    /** Custom client update url used for... updating */
+    /** Foo's update url used for... updating */
     public static String updateUrl = "";
-    /** Custom client version string used for various things */
+    /** Foo's version string */
     public static String clientVersion = "v1.0.0, Jan. 1, 1970";
 
     public static String path(){

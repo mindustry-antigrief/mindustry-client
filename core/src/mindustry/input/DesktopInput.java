@@ -309,7 +309,7 @@ public class DesktopInput extends InputHandler{
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
         if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null){
-            if(selectRequests.any() == input.shift()) Navigation.navigateTo(input.mouseWorld()); // Z to nav to camera (SHIFT + Z when placing schem)
+            if(selectRequests.any() == input.shift()) Navigation.navigateTo(input.mouseWorld()); // Z to nav to cursor (SHIFT + Z when placing schem)
             else if (selectRequests.isEmpty()){ // SHIFT + Z to view lastSentPos, double tap to nav there, special case for logic viruses as well (does nothing when placing schem)
                 if (Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(lastSentPos.cpy().scl(tilesize));
                 else Spectate.INSTANCE.spectate(lastSentPos.cpy().scl(tilesize));
@@ -458,7 +458,7 @@ public class DesktopInput extends InputHandler{
         if(!player.dead() && !state.isPaused() && !scene.hasField() && !locked){
             updateMovement(player.unit());
 
-            if(Core.input.keyTap(Binding.respawn)){
+            if(Core.input.keyTap(Binding.respawn) && !scene.hasDialog()){
                 controlledType = null;
                 recentRespawnTimer = 1f;
                 Call.unitClear(player);

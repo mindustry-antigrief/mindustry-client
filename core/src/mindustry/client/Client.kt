@@ -31,7 +31,7 @@ import mindustry.graphics.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
-import mindustry.type.Category
+import mindustry.type.*
 import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
@@ -46,7 +46,6 @@ import java.security.*
 import java.security.cert.*
 import kotlin.math.*
 import kotlin.random.*
-import kotlin.time.*
 
 object Client {
     var leaves: Moderation? = Moderation()
@@ -86,7 +85,6 @@ object Client {
         if (state?.rules?.editor == true) ui.editor.autoSave()
     }
 
-    @OptIn(ExperimentalTime::class)
     fun draw() {
         Spectate.draw()
 
@@ -123,7 +121,7 @@ object Client {
                     circles.add(t to if (t.canHitPlayer) t.team.color else Team.derelict.color)
                 }
             }
-            Log.debug("Drawing ranges took ${measureTime { RangeDrawer.draw(circles) }}")
+            RangeDrawer.draw(circles)
         }
 
         // Player controlled turret range
@@ -303,12 +301,11 @@ object Client {
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
             val diodeLinks = PowerDiode.connections(player.team()) // Must be run on the main thread
             val grids = PowerGraph.activeGraphs.select { it.team == player.team() }.associateWith { it.all.copy() }
+            val confirmed = args.any() && args[0] == "c" // Don't configure by default
+            val inProgress = !configs.isEmpty()
+            var n = 0
+            val newLinks = mutableMapOf<Int, MutableSet<Int>>()
             clientThread.post {
-                val confirmed = args.any() && args[0] == "c" // Don't configure by default
-                val inProgress = !configs.isEmpty()
-                var n = 0
-                val newLinks = mutableMapOf<Int, MutableSet<Int>>()
-
                 for ((grid, buildings) in grids) { // This is horrible but works somehow
                     for (nodeBuild in buildings) {
                         val nodeBlock = nodeBuild.block as? PowerNode ?: continue
@@ -329,15 +326,18 @@ object Client {
                         }
                     }
                 }
-                if (confirmed) {
-                    if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
-                    else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, grids.size - n))
-                } else {
-                    player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, grids.size))
+                Core.app.post {
+                    if (confirmed) {
+                        if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
+                        else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, grids.size - n))
+                    } else {
+                        player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, grids.size))
+                    }
                 }
             }
         }
 
+        @Suppress("unchecked_cast")
         register("fixcode [c]", "Disables problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
             val builds = Seq<Building>()
             Vars.player.team().data().buildings.getObjects(builds) // Must be done on the main thread
@@ -358,11 +358,13 @@ object Client {
                         }
                     }
                 }
-                if (confirmed) {
-                    if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
-                    else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
-                } else {
-                    player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
+                Core.app.post {
+                    if (confirmed) {
+                        if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
+                        else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
+                    } else {
+                        player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
+                    }
                 }
             }
         }
@@ -420,14 +422,16 @@ object Client {
                     plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
                 }
                 val removedCount = plans.size
-                if (confirmed) {
-                    while (plans.any()) {
-                        val batch = plans.takeLast(100)
-                        plans.removeAll(batch)
-                        Call.deletePlans(player, batch.toIntArray())
-                    }
-                    player.sendMessage("[accent]Removed $removedCount plans, ${Vars.player.team().data().blocks.size} remain")
-                } else player.sendMessage("[accent]Found $removedCount (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
+                Core.app.post {
+                    if (confirmed) {
+                        while (plans.any()) {
+                            val batch = plans.takeLast(100)
+                            plans.removeAll(batch)
+                            Call.deletePlans(player, batch.toIntArray())
+                        }
+                        player.sendMessage("[accent]Removed $removedCount plans, ${Vars.player.team().data().blocks.size} remain")
+                    } else player.sendMessage("[accent]Found $removedCount (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
+                }
             }
         }
 
@@ -544,7 +548,7 @@ object Client {
                 if (target == null) {
                     target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { it.block.category == Category.distribution }
                     if (target == null) {
-                        target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { true }
+                        target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { !it.block.hasPower || it.power.graph.getPowerBalance() > -1e12f }
                     }
                 }
             }

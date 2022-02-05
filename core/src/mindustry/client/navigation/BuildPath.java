@@ -121,7 +121,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
         freed.clear();
     }
 
-    @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
+    @Override @SuppressWarnings({"unchecked", "rawtypes"}) // Java sucks so warnings must be suppressed
     public void follow() {
         var core = player.core();
         if (timer.get(15) && core != null) {
