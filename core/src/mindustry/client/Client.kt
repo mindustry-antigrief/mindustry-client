@@ -31,6 +31,7 @@ import mindustry.graphics.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
+import mindustry.type.Category
 import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
@@ -537,6 +538,15 @@ object Client {
             }
             if (target == null && flood()) { // Shoot buildings in flood because why not.
                 target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { type.targetGround }
+            } else if (target == null && !flood() && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
+                // FINISHME: kinda slow
+                target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { it.block is PowerNode && it.power.graph.getPowerBalance() > -1e12f }
+                if (target == null) {
+                    target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { it.block.category == Category.distribution }
+                    if (target == null) {
+                        target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { true }
+                    }
+                }
             }
         }
 
