@@ -11,8 +11,10 @@ import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
+import mindustry.client.*
 import mindustry.client.communication.*
 import mindustry.core.*
+import mindustry.gen.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
 import mindustry.world.*
@@ -386,3 +388,6 @@ fun compressImage(img: Pixmap): ByteArray {
 fun inflateImage(array: ByteArray, offset: Int, length: Int): Pixmap? {
     return try { Pixmap(array, offset, length) } catch (e: Exception) { null }
 }
+
+/** Send a signed message to chat. */
+fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))

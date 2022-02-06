@@ -228,11 +228,11 @@ object Client {
         }
 
         register("here [message...]", Core.bundle.get("client.command.here.description")) { args, player ->
-            Call.sendChatMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", player.tileX(), player.tileY()))
+            sendMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", player.tileX(), player.tileY()))
         }
 
         register("cursor [message...]", Core.bundle.get("client.command.cursor.description")) { args, _ ->
-            Call.sendChatMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
+            sendMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
         }
 
         register("builder [options...]", Core.bundle.get("client.command.builder.description")) { args, _: Player ->
@@ -244,16 +244,16 @@ object Client {
         } // FINISHME: This is so scuffed lol
 
         register(" [message...]", Core.bundle.get("client.command.!.description")) { args, _ ->
-            Call.sendChatMessage("!" + if (args.size == 1) args[0] else "")
+            sendMessage("!" + if (args.size == 1) args[0] else "")
         }
 
         register("shrug [message...]", Core.bundle.get("client.command.shrug.description")) { args, _ ->
-            Call.sendChatMessage("¯\\_(ツ)_/¯ " + if (args.size == 1) args[0] else "")
+            sendMessage("¯\\_(ツ)_/¯ " + if (args.size == 1) args[0] else "")
         }
 
         register("login [name] [pw]", Core.bundle.get("client.command.login.description")) { args, _ ->
             if (args.size == 2) Core.settings.put("cnpw", "${args[0]} ${args[1]}")
-            else Call.sendChatMessage("/login ${Core.settings.getString("cnpw", "")}")
+            else sendMessage("/login ${Core.settings.getString("cnpw", "")}")
         }
 
         register("marker <name> [x] [y]", Core.bundle.get("client.command.marker.description")) { args, player ->
@@ -270,7 +270,7 @@ object Client {
 
         register("/js <code...>", Core.bundle.get("client.command.serverjs.description")) { args, player ->
             player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
-            Call.sendChatMessage("/js ${args[0]}")
+            sendMessage("/js ${args[0]}")
         }
 
         register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->

@@ -145,6 +145,8 @@ public class ChatFragment extends Table{
                 case "!r " -> "!e " + ClientVars.lastCertName + " ";
                 case "!b " -> "!builder ";
                 case "!cu ", "!cr " -> "!cursor ";
+                case "!u " -> "!unit ";
+                case "!!" -> "! !";
                 case "!h " -> "!here ";
                 default -> null;
             };

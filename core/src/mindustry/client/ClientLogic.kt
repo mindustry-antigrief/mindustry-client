@@ -76,11 +76,11 @@ class ClientLogic {
 
             if (OS.hasProp("policone")) { // People spam these and its annoying. add some argument to make these harder to find
                 Client.register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
-                    Call.sendChatMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
+                    sendMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
                 }
 
                 Client.register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
-                    Call.sendChatMessage("\"In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
+                    sendMessage("\"In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
                 }
             }
 
@@ -118,8 +118,7 @@ class ClientLogic {
             else configs.add(ConfigRequest(e.tile.x.toInt(), e.tile.y.toInt(), processorConfigs.remove(packed)))
         }
 
-        Events.on(EventType.GameOverEvent::class.java) {
-            Log.info("egg ${Vars.net.client()}")
+        Events.on(EventType.GameOverEventClient::class.java) {
             if (Vars.net.client()) Navigation.follow(MinePath(UnitTypes.gamma.mineItems)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
         }
     }

@@ -1,6 +1,5 @@
 package mindustry.client.navigation;
 
-import arc.*;
 import arc.math.geom.*;
 import arc.util.*;
 import mindustry.*;
@@ -14,12 +13,11 @@ public class Navigation {
     public static NavigationState state = NavigationState.NONE;
     @Nullable public static WaypointPath<Waypoint> recordedPath = null;
     public static final Set<TurretPathfindingEntity> obstacles = Collections.synchronizedSet(new HashSet<>());
-    private static final Vec2 targetPos = new Vec2(-1, -1);
     public static Navigator navigator;
     private static final Interval timer = new Interval();
 
     public static void follow(Path path, boolean repeat) {
-        stopFollowing(!(path instanceof WaypointPath));
+        stopFollowing();
         if (path == null) return;
         currentlyFollowing = path;
         currentlyFollowing.init();
@@ -34,12 +32,6 @@ public class Navigation {
     public static void update() {
         if (timer.get(600)) obstacles.clear(); // Refresh all obstacles every 600s since sometimes they don't get removed properly for whatever reason FINISHME: Check if this happens because it still runs update even when dead, if so just the removal of the obstacle
 
-        if (!targetPos.within(-1, -1, 1)) { // Must be navigating
-            var path = Path.goTo(targetPos);
-            if (Core.settings.getBool("assumeunstrict")) targetPos.set(-1, -1);
-            else if (!targetPos.within(-1, -1, 1)) follow(path); // Make sure we still want to navigate
-        }
-
         if (currentlyFollowing != null && !isPaused && !Vars.state.isPaused()) {
             currentlyFollowing.follow();
             if (currentlyFollowing != null && currentlyFollowing.isDone()) {
@@ -48,17 +40,12 @@ public class Navigation {
         }
     }
 
-    public static void stopFollowing(boolean removeTarget) {
+    public static void stopFollowing() {
         var lastPath = currentlyFollowing;
 
         currentlyFollowing = null;
         state = NavigationState.NONE;
-        if (removeTarget) targetPos.set(-1, -1);
         if (lastPath != null) lastPath.onFinish();
-    }
-
-    public static void stopFollowing() {
-        stopFollowing(true);
     }
 
     public static boolean isFollowing() {
@@ -66,7 +53,7 @@ public class Navigation {
     }
 
     public static void draw() {
-        if (currentlyFollowing != null && (!(currentlyFollowing instanceof WaypointPath) || !targetPos.within(-1, -1, 1))) {
+        if (currentlyFollowing != null) {
             currentlyFollowing.draw();
         }
 
@@ -75,14 +62,19 @@ public class Navigation {
         }
     }
 
-    public static Path navigateTo(Position pos) {
-        if (pos == null) return Path.waypoints; // Apparently this can happen somehow?
-        return navigateTo(pos.getX(), pos.getY());
+    public static void navigateTo(Position pos) {
+        if (pos != null) navigateTo(pos.getX(), pos.getY());
     }
 
-    public static Path navigateTo(float drawX, float drawY) {
-        targetPos.set(drawX, drawY);
-        return Path.waypoints;
+    public static void navigateTo(float drawX, float drawY) {
+        Path.goTo(drawX, drawY, 0, 0, p -> clientThread.post(() -> { Navigation.follow(p);navigateToInternal(drawX, drawY); }));
+    }
+
+    private static void navigateToInternal(float drawX, float drawY) {
+        Path.goTo(drawX, drawY, 0, 0, p -> {
+            if (currentlyFollowing != p) return;
+            clientThread.post(() -> navigateToInternal(drawX, drawY));
+        });
     }
 
     public static void startRecording() {
