@@ -107,7 +107,7 @@ public enum EditorTool{
                 return;
             }
 
-            //mode 0 or 1, fill everything with the floor/tile or replace it
+            //mode 0 or -1, fill everything with the floor/tile or replace it
             if(mode == 0 || mode == -1){
                 //can't fill parts or multiblocks
                 if(tile.block().isMultiblock()){
