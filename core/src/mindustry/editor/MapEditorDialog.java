@@ -16,11 +16,13 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.core.GameState.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.*;
 import mindustry.io.*;
 import mindustry.maps.*;
 import mindustry.ui.*;
@@ -619,7 +621,8 @@ public class MapEditorDialog extends Dialog implements Disposable{
             //alt mode select
             for(int i = 0; i < view.getTool().altModes.length; i++){
                 if(i + 1 < KeyCode.numbers.length && Core.input.keyTap(KeyCode.numbers[i + 1])){
-                    view.getTool().mode = i;
+                    if (view.getTool().mode == i) view.getTool().mode = -1;
+                    else view.getTool().mode = i;
                 }
             }
         }else{
@@ -683,6 +686,11 @@ public class MapEditorDialog extends Dialog implements Disposable{
 
             if(Core.input.keyTap(KeyCode.g)){
                 view.setGrid(!view.isGrid());
+            }
+
+            if (Core.input.keyTap(Binding.hide_blocks)) { // Ctrl + I: Toggle block visibility
+                ClientVars.hidingBlocks = !ClientVars.hidingBlocks;
+                editor.renderer.updateAll();
             }
         }
     }
