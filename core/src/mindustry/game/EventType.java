@@ -291,6 +291,15 @@ public class EventType{
         }
     }
 
+    /** Literally just GameOverEvent but only fired when connected as a client. */
+    public static class GameOverEventClient{
+        public final Team winner;
+
+        public GameOverEventClient(Team winner){
+            this.winner = winner;
+        }
+    }
+
     /**
      * Called *before* a tile has changed.
      * WARNING! This event is special: its instance is reused! Do not cache or use with a timer.

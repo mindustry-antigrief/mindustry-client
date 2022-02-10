@@ -11,8 +11,10 @@ import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
+import mindustry.client.*
 import mindustry.client.communication.*
 import mindustry.core.*
+import mindustry.gen.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
 import mindustry.world.*
@@ -398,3 +400,6 @@ inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
         }
     }
 }
+
+/** Send a signed message to chat. */
+fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))

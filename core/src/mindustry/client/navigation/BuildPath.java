@@ -23,6 +23,7 @@ import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.logic.*;
 
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
 import static mindustry.Vars.*;
@@ -49,6 +50,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     private final PQueue<BuildPlan> priority = new PQueue<>(300, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, player.core())), Structs.comparingFloat(plan -> plan.dst(player))));
     private final AtomicBoolean isBlocked = new AtomicBoolean(false);
     private final Seq<BuildPlan> freed = new Seq<>();
+    private CompletableFuture<Void> job = null;
 
     {
         Events.on(EventType.WorldLoadEvent.class, e -> { // Account for changing world sizes
@@ -121,7 +123,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
         freed.clear();
     }
 
-    @Override @SuppressWarnings("unchecked rawtypes") // Java sucks so warnings must be suppressed
+    @Override @SuppressWarnings({"unchecked", "rawtypes"}) // Java sucks so warnings must be suppressed
     public void follow() {
         var core = player.core();
         if (timer.get(15) && core != null) {
@@ -272,15 +274,17 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 player.unit().plans.removeFirst();
             }
         } else if (blockedPlayer.get(player.tileX(), player.tileY())) { // Leave enemy turret range while not building
-            if (clientThread.taskQueue.size() == 0) clientThread.post(() -> { // FINISHME: This is totally not inefficient at all...
-                var safeTiles = new Seq<Tile>(){{
-                    world.tiles.eachTile(t -> {
-                        if (!blockedPlayer.get(t.x, t.y)) add(t);
-                    });
-                }};
-                var tile = Geometry.findClosest(player.x, player.y, safeTiles);
-                waypoint.set(tile.getX(), tile.getY(), 0, 0);
-            });
+            if (job.isDone()) {
+                job = clientThread.post(() -> { // FINISHME: This is totally not inefficient at all...
+                    var safeTiles = new Seq<Tile>() {{
+                        world.tiles.eachTile(t -> {
+                            if (!blockedPlayer.get(t.x, t.y)) add(t);
+                        });
+                    }};
+                    var tile = Geometry.findClosest(player.x, player.y, safeTiles);
+                    waypoint.set(tile.getX(), tile.getY(), 0, 0);
+                });
+            }
             waypoint.run(0);
         }
     }

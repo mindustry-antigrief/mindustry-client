@@ -292,6 +292,7 @@ public class Logic implements ApplicationListener{
 
     @Remote(called = Loc.both)
     public static void updateGameOver(Team winner){
+        if (net.client()) Events.fire(new GameOverEventClient(winner));
         state.gameOver = true;
     }
 
@@ -300,6 +301,8 @@ public class Logic implements ApplicationListener{
         state.stats.wavesLasted = state.wave;
         ui.restart.show(winner);
         netClient.setQuiet();
+        Log.info("hhh");
+//        if (net.client()) Events.fire(new GameOverEvent(winner));
     }
 
     //called when the remote server researches something

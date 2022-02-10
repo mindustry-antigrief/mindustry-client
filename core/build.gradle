@@ -3,6 +3,3 @@ sourceSets.main.kotlin.srcDirs = ["src/"]
 repositories{
     mavenCentral()
 }
-dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.5.21'
-}
