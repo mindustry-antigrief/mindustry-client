@@ -54,7 +54,10 @@ abstract class Path {
                         path
                     }
                 }
-            } else waypoints.clear().add(waypoint.set(destX, destY, 16F, dist)) // Not using navigation
+            } else { // Not navigating
+                waypoints.clear().add(waypoint.set(destX, destY, 16F, dist))
+                cons?.get(waypoints)
+            }
             targetPos.set(destX, destY)
 
             waypoints.follow()
