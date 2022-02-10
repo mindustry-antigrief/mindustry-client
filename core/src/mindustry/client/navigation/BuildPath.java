@@ -274,7 +274,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 player.unit().plans.removeFirst();
             }
         } else if (blockedPlayer.get(player.tileX(), player.tileY())) { // Leave enemy turret range while not building
-            if (job = null || job.isDone()) {
+            if (job == null || job.isDone()) {
                 job = clientThread.post(() -> { // FINISHME: This is totally not inefficient at all...
                     var safeTiles = new Seq<Tile>() {{
                         world.tiles.eachTile(t -> {
