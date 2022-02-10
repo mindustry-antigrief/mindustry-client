@@ -123,7 +123,8 @@ object Client {
                     circles.add(t to if (t.canHitPlayer) t.team.color else Team.derelict.color)
                 }
             }
-            Log.debug("Drawing ranges took ${measureTime { RangeDrawer.draw(circles) }}")
+            RangeDrawer.draw(circles)
+//            Log.debug("Drawing ranges took ${measureTime {  }}")
         }
 
         // Player controlled turret range
@@ -538,15 +539,67 @@ object Client {
             }
             if (target == null && flood()) { // Shoot buildings in flood because why not.
                 target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { type.targetGround }
-            } else if (target == null && !flood() && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
-                // FINISHME: kinda slow
-                target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { it.block is PowerNode && it.power.graph.getPowerBalance() > -1e12f }
-                if (target == null) {
-                    target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { it.block.category == Category.distribution }
-                    if (target == null) {
-                        target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { true }
+            }
+            if (!flood() && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
+                val amount = unit.range() * 2 + 1
+                var closestPos: Teamc? = null
+                var closestScore = Float.POSITIVE_INFINITY
+
+                circle(player.tileX(), player.tileY(), unit.range()) { tile ->
+                    tile ?: return@circle
+                    if (!tile.team().isEnemy(player.team())) return@circle
+                    val block = tile.block()
+                    val scoreMul = when {
+                        // general logistics
+                        block == Blocks.powerSource -> 0f
+                        block == Blocks.itemSource -> 1f
+                        // do NOT shoot power voided networks
+                        (tile.build?.power?.graph?.getPowerBalance() ?: 0f) <= -1e12f -> Float.POSITIVE_INFINITY
+                        // otherwise nodes are good to shoot
+                        block is PowerNode -> 2f
+
+                        block == Blocks.liquidSource -> 3f  // lower priority because things generally don't need liquid to run
+
+                        // likely to be touching a turret or something
+                        block == Blocks.router -> 4f
+                        block == Blocks.overflowGate -> 4f
+                        block == Blocks.underflowGate -> 4f
+                        block == Blocks.sorter -> 4f
+                        block == Blocks.invertedSorter -> 4f
+
+                        block == Blocks.liquidRouter -> 5f
+
+                        // I can't help myself, boom boom
+                        (block == Blocks.container || block == Blocks.vault) &&
+                                tile.build.items.sum { item, amount -> (item.explosiveness * 2f + item.flammability) * amount } > 50 -> 0f
+
+                        block == Blocks.mendProjector -> 6f
+                        block == Blocks.forceProjector -> 6f
+                        block is PointDefenseTurret -> 6f
+
+                        block is BaseTurret -> 7f
+
+                        block != Blocks.air -> 9f
+                        else -> 10f
+                    }
+                    var score = (tile.x.toInt() - player.tileX()).toFloat() + (tile.y.toInt() - player.tileY())
+                    score += scoreMul * amount
+
+                    if (score < closestScore) {
+                        closestPos = tile.build
+                        closestScore = score
                     }
                 }
+
+                target = closestPos
+
+//                target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { it.block is PowerNode && it.power.graph.getPowerBalance() > -1e12f }
+//                if (target == null) {
+//                    target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { it.block.category == Category.distribution }
+//                    if (target == null) {
+//                        target = Units.findEnemyTile(player.team(), player.x, player.y, unit.range()) { true }
+//                    }
+//                }
             }
         }
 

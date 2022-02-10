@@ -18,8 +18,8 @@ object RangeDrawer {
     private var mapping: MutableMap<Color, MutableMap<Float, Pair<FrameBuffer, TextureRegion>?>> = mutableMapOf()
     private var prev = 0f
 
-    fun draw(ranges: List<Pair<TurretPathfindingEntity, Color>>) {
-        val scl = 4  // for whatever reason, drawing with one pixel per pixel doesn't look good (I think my pixel calculations are off)
+    fun draw(ranges: MutableList<Pair<TurretPathfindingEntity, Color>>) {
+        val scl = 3  // for whatever reason, drawing with one pixel per pixel doesn't look good (I think my pixel calculations are off)
 
         // the same as the normal version but sides can be calculated outside the function so that they don't change with scale
         fun dashCircle(x: Float, y: Float, radius: Float, sides: Int) {
@@ -112,6 +112,8 @@ object RangeDrawer {
             mapping = HashMap()
             unique.zip(cache) { a, b -> mapping.getOrPut(a.first, ::HashMap)[a.second] = if (b != null) Pair(b, TextureRegion(b.texture)) else null }
         }
+
+        ranges.sortBy { it.first.radius }
 
         for (c in ranges) {
             // grab the needed TextureRegion, may be null

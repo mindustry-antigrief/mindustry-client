@@ -386,3 +386,15 @@ fun compressImage(img: Pixmap): ByteArray {
 fun inflateImage(array: ByteArray, offset: Int, length: Int): Pixmap? {
     return try { Pixmap(array, offset, length) } catch (e: Exception) { null }
 }
+
+inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
+    // x^2 + y^2 = r^2
+    // x = sqrt(r^2 - y^2)
+    val r2 = radius * radius
+    for (ty in (y - radius).floor()..(y + radius).ceil()) {
+        val diff = sqrt(r2 - (ty * ty)).ceil()
+        for (tx in (x - diff)..(x + diff)) {
+            cons(Vars.world.tiles[tx, ty])
+        }
+    }
+}
