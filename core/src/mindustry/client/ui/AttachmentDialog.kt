@@ -10,8 +10,10 @@ class AttachmentDialog(message: String, attachments: List<Image>) : BaseDialog("
         addCloseButton()
         cont.add(message).center()
         cont.row()
-        cont.pane {
-            for (item in attachments) it.row(item)
+        cont.pane { pane ->
+            attachments.forEach {
+                pane.row(it)
+            }
         }.fill()
         show()
     }

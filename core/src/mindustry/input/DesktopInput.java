@@ -878,7 +878,7 @@ public class DesktopInput extends InputHandler{
             }
 
     //        unit.movePref(movement); Client replaces this with the block below
-            if (input.ctrl()) {  // FINISHME binding
+            if (input.ctrl()) { // FINISHME binding
                 movement.setLength((unit.type.speed / 5) * Time.delta);
                 unit.set(
                         unit.x + movement.x,

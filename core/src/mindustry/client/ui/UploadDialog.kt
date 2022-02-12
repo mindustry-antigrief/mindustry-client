@@ -1,11 +1,11 @@
 package mindustry.client.ui
 
 import arc.*
-import arc.files.*
 import arc.graphics.*
 import arc.input.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
+import arc.util.*
 import mindustry.*
 import mindustry.client.*
 import mindustry.client.communication.*
@@ -37,28 +37,10 @@ object UploadDialog : BaseDialog("@client.uploadtitle") {
             }, "png", "jpg", "jpeg")
         }
 
-
-        Core.app.addListener(object : ApplicationListener {
-            override fun fileDropped(file: Fi?) {
-                if (!Vars.state.isGame) return
-                file ?: return
-                try {
-                    if (!isShown) show()
-                    clientThread.post {
-                        val pixmap = Pixmap(file)
-                        Core.app.post {
-                            addImage(pixmap)
-                        }
-                    }
-                } catch (e: Exception) {
-                    return
-                }
-            }
-        })
-
         keyDown {
-            if (Core.input.ctrl() && it == KeyCode.v) {
-                clientThread.post {
+            if (Core.input.ctrl() && it == KeyCode.v) { // For some reason, it seems that interacting with the clipboard breaks sdl on Mac
+                if (OS.isMac) Vars.ui.showInfoToast("Image pasting does not work on mac.", 3f)
+                else clientThread.post {
                     val pixmap = pixmapFromClipboard() ?: return@post
                     Core.app.post {
                         addImage(pixmap)
@@ -113,16 +95,6 @@ object UploadDialog : BaseDialog("@client.uploadtitle") {
         cont.clearChildren()
         cont.pane { pane ->
             images.forEach {
-//                pane.stack(
-//                    Image(Texture(it)),
-//                    Table { t ->
-//                        t.setFillParent(true)
-//                        t.button(Icon.cancel.tint(Color.red), Styles.emptyi) {
-//                            images.remove(it)
-//                            updateImages()
-//                        }.top().left()
-//                    }
-//                ).row()
                 pane.stack(
                     Image(Texture(it)),
                     Table { t ->

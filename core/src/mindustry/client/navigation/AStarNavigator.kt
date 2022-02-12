@@ -38,8 +38,6 @@ object AStarNavigator : Navigator() {
 
     private fun cell(x: Int, y: Int) = grid[x + (y * tileWidth)]
 
-    private fun Int.clamp(min: Int, max: Int) = coerceIn(min, max)
-
     override fun init() {}
 
     /** Calculates the distance heuristic for this cell */
@@ -61,13 +59,8 @@ object AStarNavigator : Navigator() {
 
     private fun aStarSearch() {
         //add the start location to open list.
-        startX = startX.clamp(0, tileWidth - 1)
-        startY = startY.clamp(0, tileHeight - 1)
         open.add(cell(startX, startY))
         cell(startX, startY).closed = true
-
-        endX = endX.clamp(0, tileWidth - 1)
-        endY = endY.clamp(0, tileHeight - 1)
 
         var current: Cell
         while (!open.empty()) {
@@ -112,10 +105,10 @@ object AStarNavigator : Navigator() {
         end.clamp(0f, 0f, height, width)
 
         //Reset
-        startX = World.toTile(start.x)
-        startY = World.toTile(start.y)
-        endX = World.toTile(end.x)
-        endY = World.toTile(end.y)
+        startX = World.toTile(start.x).coerceIn(0, tileWidth - 1)
+        startY = World.toTile(start.y).coerceIn(0, tileHeight - 1)
+        endX = World.toTile(end.x).coerceIn(0, tileWidth - 1)
+        endY = World.toTile(end.y).coerceIn(0, tileHeight - 1)
 
         if (!gridSize.equals(tileWidth, tileHeight)) {
             grid = Array(tileWidth * tileHeight) { Cell(it % tileWidth, it / tileWidth) }

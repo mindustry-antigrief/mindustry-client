@@ -1,5 +1,6 @@
 package mindustry.client.navigation;
 
+import arc.*;
 import arc.math.geom.*;
 import arc.util.*;
 import mindustry.*;
@@ -53,7 +54,7 @@ public class Navigation {
     }
 
     public static void draw() {
-        if (currentlyFollowing != null) {
+        if (currentlyFollowing != null && Core.settings.getBool("drawpath")) {
             currentlyFollowing.draw();
         }
 
@@ -67,7 +68,12 @@ public class Navigation {
     }
 
     public static void navigateTo(float drawX, float drawY) {
-        Path.goTo(drawX, drawY, 0, 0, p -> clientThread.post(() -> { Navigation.follow(p);navigateToInternal(drawX, drawY); }));
+        Path.goTo(drawX, drawY, 0, 0, p -> {
+            Core.app.post(() -> {
+                follow(p);
+                if (Core.settings.getBool("pathnav")) navigateToInternal(drawX, drawY);
+            });
+        });
     }
 
     private static void navigateToInternal(float drawX, float drawY) {
