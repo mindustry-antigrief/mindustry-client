@@ -31,7 +31,6 @@ import mindustry.graphics.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
-import mindustry.type.*
 import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
@@ -545,7 +544,6 @@ object Client {
             }
             if (!flood() && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
                 val amount = unit.range() * 2 + 1
-                var closestPos: Teamc? = null
                 var closestScore = Float.POSITIVE_INFINITY
 
                 circle(player.tileX(), player.tileY(), unit.range()) { tile ->
@@ -554,11 +552,11 @@ object Client {
                     val block = tile.block()
                     val scoreMul = when {
                         // general logistics
-                        block == Blocks.powerSource -> 0f
                         block == Blocks.itemSource -> 1f
                         // do NOT shoot power voided networks
                         (tile.build?.power?.graph?.getPowerBalance() ?: 0f) <= -1e12f -> Float.POSITIVE_INFINITY
                         // otherwise nodes are good to shoot
+                        block == Blocks.powerSource -> 0f
                         block is PowerNode -> 2f
 
                         block == Blocks.liquidSource -> 3f  // lower priority because things generally don't need liquid to run
@@ -589,7 +587,7 @@ object Client {
                     score += scoreMul * amount
 
                     if (score < closestScore) {
-                        closestPos = tile.build
+                        target = tile.build
                         closestScore = score
                     }
                 }
