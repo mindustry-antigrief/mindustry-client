@@ -22,7 +22,6 @@ import mindustry.ui.*;
 import static mindustry.Vars.*;
 
 public class LCanvas extends Table{
-    public static final int maxJumpsDrawn = 100;
     //ew static variables
     static LCanvas canvas;
 
@@ -558,12 +557,6 @@ public class LCanvas extends Table{
 
         @Override
         public void draw(){
-            canvas.jumpCount ++;
-
-            if(canvas.jumpCount > maxJumpsDrawn && !button.selecting && !button.listener.isOver()){
-                return;
-            }
-
             Element hover = button.to.get() == null && button.selecting ? canvas.hovered : button.to.get();
             boolean draw = false;
             Vec2 t = Tmp.v1, r = Tmp.v2;

@@ -1,6 +1,5 @@
 package mindustry.world.blocks;
 
-import arc.*;
 import arc.func.*;
 import arc.math.*;
 import arc.scene.style.*;
@@ -67,7 +66,7 @@ public class ItemSelection{
             for(T item : list){
                 if(!item.unlockedNow()) continue;
 
-                ImageButton button = cont.button(Tex.whiteui, Styles.clearTogglePartiali, Mathf.clamp(item.selectionSize, 0f, 40f), () -> {
+                ImageButton button = cont.button(Tex.whiteui, Styles.clearToggleTransi, Mathf.clamp(item.selectionSize, 0f, 40f), () -> {
                     if(closeSelect) control.input.frag.config.hideConfig();
                 }).tooltip(item.localizedName).group(group).get();
                 button.changed(() -> consumer.get(button.isChecked() ? item : null));
