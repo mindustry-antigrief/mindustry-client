@@ -263,7 +263,7 @@ public class NetClient implements ApplicationListener{
         if (!matcher.find()) return message;
         if (setLastPos) try {
             ClientVars.lastSentPos.set(Float.parseFloat(matcher.group(1)), Float.parseFloat(matcher.group(2)));
-        } catch (NumberFormatException ignored) {}
+        } catch (Exception ignored) {}
         return matcher.replaceFirst("[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
     }
 
