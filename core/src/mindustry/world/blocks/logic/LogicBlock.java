@@ -8,6 +8,8 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.ai.types.*;
+import mindustry.client.*;
+import mindustry.client.antigrief.*;
 import mindustry.core.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -512,9 +514,9 @@ public class LogicBlock extends Block{
 
         @Override
         public void buildConfiguration(Table table){
-            table.button(Icon.pencil, Styles.clearTransi, () -> {
-                ui.logic.show(code, executor, code -> configure(compress(code, relativeConnections())));
-            }).size(40);
+            table.button(Icon.pencil, Styles.clearTransi, () ->
+                ui.logic.show(code, executor, code -> configure(compress(code, relativeConnections())))
+            ).size(40);
         }
 
         @Override

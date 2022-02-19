@@ -75,12 +75,21 @@ abstract class Navigator {
             }
         }
 
-        if (map.size > 0 && Time.timeSinceMillis(lastWp) > 1000) {
-            val closestCore = map.minByOrNull { it.value.dst(end) }!!
-            if (player.dst(end) > closestCore.value.dst(end)) {
-                lastWp = Time.millis() // Try again in a second
-                Call.sendChatMessage("/wp ${closestCore.key}")
-            } else lastWp = Time.millis() - 900 // Try again in .1s
+        if (Time.timeSinceMillis(lastWp) > 1000) {
+            if (map.size > 0) { // CN auto core tp is different as a plugin allows for some magic...
+                val closestCore = map.minByOrNull { it.value.dst(end) }!!
+                if (player.dst(end) > closestCore.value.dst(end)) {
+                    lastWp = Time.millis() // Try again in a second
+                    Call.sendChatMessage("/wp ${closestCore.key}")
+                }
+            } else if (player.unit().spawnedByCore && !player.unit().isCommanding && player.unit().stack.amount == 0) { // Everything that isn't CN
+                val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst(end) }))
+                if (player.dst(end) > bestCore.dst(end)) {
+                    lastWp = Time.millis() // Try again in a second
+                    Call.buildingControlSelect(player, bestCore)
+                }
+            }
+            if (Time.timeSinceMillis(lastWp) > 1000) lastWp = Time.millis() - 900 // Didn't tp, try again in .1s
         }
 
         val flood = flood() && player.unit().type != UnitTypes.horizon

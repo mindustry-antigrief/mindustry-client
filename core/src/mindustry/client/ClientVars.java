@@ -5,7 +5,6 @@ import arc.graphics.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.antigrief.*;
 import mindustry.world.blocks.defense.*;
 import org.jetbrains.annotations.*;
 
@@ -19,7 +18,7 @@ public class ClientVars {
     public static float travelTime = Core.settings.getInt("traveltime");
 
     // Config Queue
-    @NotNull public static LinkedBlockingDeque<ConfigRequest> configs = new LinkedBlockingDeque<>(); // Need thread safety
+    @NotNull public static LinkedBlockingDeque<Runnable> configs = new LinkedBlockingDeque<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
     @NotNull public static Ratekeeper configRateLimit = new Ratekeeper();
 
     // Hotkeys

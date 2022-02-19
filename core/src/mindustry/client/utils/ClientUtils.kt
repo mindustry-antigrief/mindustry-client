@@ -403,3 +403,14 @@ inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
 
 /** Send a signed message to chat. */
 fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))
+
+
+//inline fun <T> Seq<out T>.forEach(consumer: (T?) -> Unit) {
+//    for (i in 0 until size) consumer(items[i])
+//}
+//
+//inline fun <T> Seq<out T>.forEach(pred: (T?) -> Boolean, consumer: (T?) -> Unit) {
+//    for (i in 0 until size) {
+//        if (pred(items[i])) consumer(items[i])
+//    }
+//}

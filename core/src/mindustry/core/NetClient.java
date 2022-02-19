@@ -180,7 +180,7 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both, unreliable = true)
     public static void soundAt(Sound sound, float x, float y, float volume, float pitch){
         if(sound == null) return;
-        if(sound == Sounds.corexplode && UtilitiesKt.io()) return;
+        if(sound == Sounds.corexplode && ClientUtilsKt.io()) return;
 
         sound.at(x, y, pitch, Mathf.clamp(volume, 0, 4f));
     }

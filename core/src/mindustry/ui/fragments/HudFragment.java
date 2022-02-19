@@ -24,6 +24,7 @@ import mindustry.content.*;
 import mindustry.core.GameState.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
+import mindustry.entities.abilities.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -317,7 +318,7 @@ public class HudFragment extends Fragment{
                 Events.on(TeamCoreDamage.class, event -> {
                     if (Time.timeSinceMillis(lastWarn) > 30_000) { // Prevent chat flooding
                         if (Core.settings.getBool("broadcastcoreattack")) {
-                            UtilitiesKt.sendMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
+                            ClientUtilsKt.sendMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                         } else {
                             ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                         }
@@ -684,6 +685,7 @@ public class HudFragment extends Fragment{
             public final Floatp amount;
             public final boolean flip;
             public final Boolp flash;
+            public float lineWidth = 1; // Width as a frac, 0-1
 
             float last, blink, value;
 
@@ -691,6 +693,15 @@ public class HudFragment extends Fragment{
                 this.amount = amount;
                 this.flip = flip;
                 this.flash = flash;
+
+                setColor(Pal.health);
+            }
+
+            public SideBar(Floatp amount, Boolp flash, boolean flip, float lineWidth){
+                this.amount = amount;
+                this.flip = flip;
+                this.flash = flash;
+                this.lineWidth = lineWidth;
 
                 setColor(Pal.health);
             }
@@ -733,18 +744,18 @@ public class HudFragment extends Fragment{
                 float bo = -(1f - f1) * (width - stroke);
 
                 Fill.quad(
-                x, y,
+                x + stroke * (1f - lineWidth), y,
                 x + stroke, y,
                 x + width + bo, y + bh * f1,
-                x + width - stroke + bo, y + bh * f1
+                x + width - stroke * lineWidth + bo, y + bh * f1
                 );
 
                 if(f2 > 0){
                     float bx = x + (width - stroke) * (1f - f2);
                     Fill.quad(
                     x + width, y + bh,
-                    x + width - stroke, y + bh,
-                    bx, y + height * fract,
+                    x + width - stroke * lineWidth, y + bh,
+                    bx + stroke * (1f - lineWidth), y + height * fract,
                     bx + stroke, y + height * fract
                     );
                 }
@@ -769,7 +780,7 @@ public class HudFragment extends Fragment{
             }
         },
         new Table(t -> {
-            float bw = 40f;
+            float bw = 40f; // Bar width
             float pad = -20;
             t.margin(0);
             t.clicked(() -> {
@@ -781,7 +792,15 @@ public class HudFragment extends Fragment{
                 }
             });
 
-            t.add(new SideBar(() -> player.unit().healthf(), () -> true, true)).width(bw).growY().padRight(pad);
+            float[] maxShield = {0};
+            t.stack(
+                new Table(tt -> tt.add(new SideBar(() -> player.unit().healthf(), () -> true, true)).width(bw).growY().padRight(pad)), // Health
+                new Table(tt -> tt.add(new SideBar(() -> player.unit().shield / maxShield[0], () -> true, true, 1/4f)).width(bw).growY().padRight(pad).color(Pal.accent).visible(() -> { // Ammo
+                    var ff = player.unit().abilities.find(a -> a instanceof ForceFieldAbility); // FINISHME: Probably creates a lot of garbage
+                    maxShield[0] = ff == null ? 0f : ((ForceFieldAbility)ff).max;
+                    return maxShield[0] > 0;
+                }))
+            ).fillY();
             t.image(() -> player.icon()).scaling(Scaling.bounded).grow().maxWidth(54f);
             t.add(new SideBar(() -> player.dead() ? 0f : player.displayAmmo() ? player.unit().ammof() : player.unit().healthf(), () -> !player.displayAmmo(), false)).width(bw).growY().padLeft(pad).update(b -> {
                 b.color.set(player.displayAmmo() ? player.dead() || player.unit() instanceof BlockUnitc ? Pal.ammo : player.unit().type.ammoType.color() : Pal.health);

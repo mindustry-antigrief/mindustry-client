@@ -278,7 +278,7 @@ object Client {
                 return@register
             }
 
-            val cc = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) { t -> t is CommandCenter.CommandBuild }
+            val cc = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) { it is CommandCenter.CommandBuild }
             if (cc != null) {
                 Call.tileConfig(player, cc, when (args[0].lowercase()[0]) {
                     'a' -> UnitCommand.attack
@@ -299,35 +299,37 @@ object Client {
 
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
             val diodeLinks = PowerDiode.connections(player.team()) // Must be run on the main thread
-            val grids = PowerGraph.activeGraphs.select { it.team == player.team() }.associateWith { it.all.copy() }
+            val grids = PowerGraph.activeGraphs.select { it.team == player.team() }.associate { it.id to it.all.copy() }
             val confirmed = args.any() && args[0] == "c" // Don't configure by default
             val inProgress = !configs.isEmpty()
             var n = 0
-            val newLinks = mutableMapOf<Int, MutableSet<Int>>()
+            val newLinks = IntMap<IntSet>()
+            val tmp = mutableListOf<ConfigRequest>()
             clientThread.post {
                 for ((grid, buildings) in grids) { // This is horrible but works somehow
                     for (nodeBuild in buildings) {
                         val nodeBlock = nodeBuild.block as? PowerNode ?: continue
                         var links = nodeBuild.power.links.size
                         nodeBlock.getPotentialLinks(nodeBuild.tile, player.team()) { link ->
-                            val min = min(grid.id, link.power.graph.id)
-                            val max = max(grid.id, link.power.graph.id)
+                            val min = min(grid, link.power.graph.id)
+                            val max = max(grid, link.power.graph.id)
                             if (diodeLinks.any { it[0] == min && it[1] == max }) return@getPotentialLinks // Don't connect across diodes
                             if (++links > nodeBlock.maxNodes) return@getPotentialLinks // Respect max links
-                            val t = newLinks.getOrPut(grid.id) { mutableSetOf(grid.id) }
-                            val l = newLinks.getOrDefault(link.power.graph.id, mutableSetOf())
-                            if (l.add(grid.id) && t.add(link.power.graph.id)) {
+                            val t = newLinks.get(grid) { IntSet.with(grid) }
+                            val l = newLinks.get(link.power.graph.id, IntSet())
+                            if (l.add(grid) && t.add(link.power.graph.id)) {
                                 l.addAll(t)
-                                newLinks[link.power.graph.id] = l
-                                if (confirmed && !inProgress) configs.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
+                                newLinks.put(link.power.graph.id, l)
+                                if (confirmed && !inProgress) tmp.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
                                 n++
                             }
                         }
                     }
                 }
                 Core.app.post {
+                    configs.addAll(tmp)
                     if (confirmed) {
-                        if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
+                        if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
                         else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, grids.size - n))
                     } else {
                         player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, grids.size))
@@ -466,7 +468,7 @@ object Client {
             player.sendMessage("""
                 [accent]Name: ${state.map.name()}[accent] (by: ${state.map.author()}[accent])
                 Map Time: ${UI.formatTime(state.tick.toFloat())}
-                Build Speed: ${state.rules.buildSpeedMultiplier}x
+                Build Speed (Unit Factories): ${state.rules.buildSpeedMultiplier}x (${state.rules.unitBuildSpeedMultiplier}x)
                 Build Cost: ${state.rules.buildCostMultiplier}x
                 Core Capture: ${state.rules.coreCapture}
                 Core Incinerates: ${state.rules.coreIncinerates}

@@ -146,7 +146,7 @@ public class ArcNetProvider implements NetProvider{
 
     @Override
     public void connectClient(String ip, int port, Runnable success){
-        Threads.daemon(() -> {
+        Threads.daemon("connectClient", () -> {
             try{
                 //just in case
                 client.stop();

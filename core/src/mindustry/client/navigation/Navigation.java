@@ -68,18 +68,17 @@ public class Navigation {
     }
 
     public static void navigateTo(float drawX, float drawY) {
-        Path.goTo(drawX, drawY, 0, 0, p -> {
-            Core.app.post(() -> {
-                follow(p);
-                if (Core.settings.getBool("pathnav")) navigateToInternal(drawX, drawY);
-            });
-        });
+        Path.goTo(drawX, drawY, 0, 0, p -> Core.app.post(() -> {
+            if (Core.settings.getBool("assumeunstrict")) return;
+            follow(p);
+            navigateToInternal(drawX, drawY);
+        }));
     }
 
     private static void navigateToInternal(float drawX, float drawY) {
         Path.goTo(drawX, drawY, 0, 0, p -> {
             if (currentlyFollowing != p) return;
-            clientThread.post(() -> navigateToInternal(drawX, drawY));
+            if (Core.settings.getBool("pathnav")) clientThread.post(() -> navigateToInternal(drawX, drawY));
         });
     }
 

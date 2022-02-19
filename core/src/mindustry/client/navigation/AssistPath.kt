@@ -13,7 +13,7 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 
-class AssistPath(private val assisting: Player?, private val cursor: Boolean = false, private val noFollow: Boolean = false) : Path() {
+class AssistPath(val assisting: Player?, private val cursor: Boolean = false, private val noFollow: Boolean = false) : Path() {
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
     private var tolerance = 0F

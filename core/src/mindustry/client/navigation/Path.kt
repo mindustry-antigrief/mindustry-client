@@ -35,6 +35,7 @@ abstract class Path {
         fun goTo(destX: Float, destY: Float, dist: Float = 0F, aStarDist: Float = 0F, cons: Cons<WaypointPath<PositionWaypoint>>? = null): WaypointPath<PositionWaypoint> {
             if (Core.settings.getBool("pathnav") && !Core.settings.getBool("assumeunstrict") && (aStarDist == 0F || Vars.player.dst(destX, destY) > aStarDist)) {
                 if (!targetPos.within(destX, destY, 1f)) job.cancel(true)
+                targetPos.set(destX, destY)
                 if (job.isDone) {
                     job = clientThread.submit {
                         val path = Navigation.navigator.navigate(v1.set(Vars.player), v2.set(destX, destY), Navigation.obstacles)
@@ -58,7 +59,6 @@ abstract class Path {
                 waypoints.set(waypoint.set(destX, destY, 16F, dist))
                 cons?.get(waypoints)
             }
-            targetPos.set(destX, destY)
 
             waypoints.follow()
             return waypoints

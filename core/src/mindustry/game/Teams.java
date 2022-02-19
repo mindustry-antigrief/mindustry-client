@@ -129,11 +129,12 @@ public class Teams{
         unit.team.data().updateCount(unit.type, 1);
 
         if(unit instanceof Payloadc payloadc){
-            payloadc.payloads().each(p -> {
-                if(p instanceof UnitPayload payload){
+            var payloads = payloadc.payloads();
+            for(int i = 0; i < payloads.size; i++){
+                if(payloads.get(i) instanceof UnitPayload payload){
                     count(payload.unit);
                 }
-            });
+            }
         }
     }
 
@@ -166,7 +167,7 @@ public class Teams{
         }
 
         //update presence flag.
-        Groups.build.each(b -> b.team.data().presentFlag = true);
+        for(Building b : Groups.build) b.team.data().presentFlag = true;
 
         for(Unit unit : Groups.unit){
             if(unit.type == null) continue;

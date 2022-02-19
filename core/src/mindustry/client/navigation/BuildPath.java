@@ -8,14 +8,13 @@ import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.ai.formations.*;
 import mindustry.client.*;
+import mindustry.client.antigrief.*;
 import mindustry.client.communication.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
-import mindustry.gen.*;
-import mindustry.net.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
@@ -251,12 +250,12 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
         }
 
         // Remove config from the furthest virus blocks until we hit the ratelimit
-        while (activeVirus && !virus.isEmpty() && ClientVars.configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) {
+        if (activeVirus && !virus.isEmpty()) {
             req = Geometry.findFurthest(player.x, player.y, virus);
             virus.remove(req);
             player.unit().plans.remove(req);
             if (req.build() instanceof LogicBlock.LogicBuild l) {
-                Call.tileConfig(player, req.build(), LogicBlock.compress(String.format("print \"Logic grief auto removed by:\"\nprint \"%.34s\"", Strings.stripColors(player.name)), l.relativeConnections()));
+                ClientVars.configs.add(new ConfigRequest(l, LogicBlock.compress(Strings.format("print \"Logic grief auto removed by:\"\nprint \"@\"", Strings.stripColors(player.name)), l.relativeConnections())));
             }
         }
 
