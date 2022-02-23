@@ -392,10 +392,16 @@ fun inflateImage(array: ByteArray, offset: Int, length: Int): Pixmap? {
 inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
     // x^2 + y^2 = r^2
     // x = sqrt(r^2 - y^2)
-    val r2 = radius * radius
-    for (ty in (y - radius).floor()..(y + radius).ceil()) {
-        val diff = sqrt(r2 - (ty * ty)).ceil()
+    val tr = radius / Vars.tilesize
+    val r2 = tr * tr
+    val h = 0 until Vars.world.height()
+    val w = 0 until Vars.world.width()
+    for (yo in -tr.floor()..tr.ceil()) {
+        val ty = yo + y
+        if (ty !in h) continue
+        val diff = sqrt(r2 - (yo * yo)).ceil()
         for (tx in (x - diff)..(x + diff)) {
+            if (tx !in w) continue
             cons(Vars.world.tiles[tx, ty])
         }
     }
