@@ -8,7 +8,7 @@ import mindustry.io.TypeIO
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class SyncedBuildQueue(comms: Packets.CommunicationClient, id: Long) : SyncedQueue<BuildPlan>(Syncer(serializer, deserializer, comms, id)) {
+class SyncedBuildQueue(comms: Packets.CommunicationClient, id: Long, mode: Syncer.Mode) : SyncedQueue<BuildPlan>(Syncer(serializer, deserializer, comms, id, mode)) {
     companion object {
         private val serializer = { plan: BuildPlan, out: DataOutputStream ->
             TypeIO.writeRequest(Writes(out), plan)

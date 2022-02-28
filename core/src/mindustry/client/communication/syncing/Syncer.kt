@@ -15,14 +15,19 @@ import kotlin.random.Random
  * Keeps [list] synced between two instances.  Use [added] and [removed] to add or remove items.  The two instances must
  * be instantiated with the same [id] for it to work!
  */
-class Syncer<T>(private val serializer: (T, DataOutputStream) -> Unit, private val deserializer: (DataInputStream) -> T?, private val comms: Packets.CommunicationClient, private val id: Long = Random.nextLong()) {
+class Syncer<T>(private val serializer: (T, DataOutputStream) -> Unit, private val deserializer: (DataInputStream) -> T?, private val comms: Packets.CommunicationClient, private val id: Long = Random.nextLong(), private val mode: Mode) {
     private val internalList = mutableListOf<T>()
     val list: List<T> = internalList  // outside the class, appears as an immutable list
     var isDesynced = false
 
     private val queued = mutableListOf<SyncerT<T>>()
 
+    enum class Mode {
+        READ_ONLY, WRITE_ONLY, BOTH
+    }
+
     fun added(items: List<Pair<T, Int>>) {
+        if (mode == Mode.READ_ONLY) throw UnsupportedOperationException()
         items.forEach { internalList.add(it.second, it.first) }
         val hash = crc(internalList)
 
@@ -36,6 +41,7 @@ class Syncer<T>(private val serializer: (T, DataOutputStream) -> Unit, private v
     }
 
     fun clear() {
+        if (mode == Mode.READ_ONLY) throw UnsupportedOperationException()
         internalList.clear()
         val hash = crc(internalList)
 
@@ -43,6 +49,7 @@ class Syncer<T>(private val serializer: (T, DataOutputStream) -> Unit, private v
     }
 
     fun removed(indices: List<Int>) {
+        if (mode == Mode.READ_ONLY) throw UnsupportedOperationException()
         indices.forEach { internalList.removeAt(it) }
         val hash = crc(internalList)
 
@@ -58,7 +65,6 @@ class Syncer<T>(private val serializer: (T, DataOutputStream) -> Unit, private v
     fun update() {
         if (isDesynced) queued.removeAll { it !is SyncerT.RequestT<T> }
         for (item in queued) {
-            println("Sending $item...")
             comms.send(SyncerTransmission(id, item, serializer as (Any?, DataOutputStream) -> Unit))
         }
         queued.clear()
@@ -75,6 +81,7 @@ class Syncer<T>(private val serializer: (T, DataOutputStream) -> Unit, private v
                 queued.add(SyncerT.AddT(internalList.zip(internalList.indices).toMutableList(), true, crc(internalList)))
                 return@addListener
             }
+            if (mode == Mode.WRITE_ONLY) return@addListener
 
             if (isDesynced && (syncT as? SyncerT.AddT)?.clear == true) {
                 isDesynced = false
@@ -84,11 +91,8 @@ class Syncer<T>(private val serializer: (T, DataOutputStream) -> Unit, private v
 
             val hash = crc(internalList)
             if (hash != syncT.hash) {
-                println("Desynced, requesting...")
                 isDesynced = true
                 queued.add(SyncerT.RequestT())
-            } else {
-                println("Successfully applied '$syncT'")
             }
         }
     }
