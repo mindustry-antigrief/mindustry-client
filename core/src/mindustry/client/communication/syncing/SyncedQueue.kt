@@ -6,7 +6,7 @@ import arc.struct.Queue
 import java.util.*
 import java.util.function.Consumer
 
-class SyncedQueue<T>(val syncer: Syncer<T>) : Queue<T>() {
+open class SyncedQueue<T>(val syncer: Syncer<T>) : Queue<T>() {
     private fun updateSize() {
         size = syncer.list.size
     }
