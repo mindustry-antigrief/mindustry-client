@@ -1,32 +1,24 @@
 sourceSets.main.java.srcDirs = ["src/"]
 
-
-
-import arc.files.Fi
-import arc.files.ZipFi
-import arc.func.Func2
-import arc.graphics.Color
-import arc.graphics.Pixmap
-import arc.packer.TexturePacker
+import arc.files.*
+import arc.func.*
+import arc.graphics.*
+import arc.packer.*
 import arc.struct.*
-import arc.util.Http
-import arc.util.Log
-import arc.util.OS
-import arc.util.async.Threads
-import arc.util.io.PropertiesUtils
-import arc.util.io.Streams
+import arc.util.*
+import arc.util.async.*
+import arc.util.io.*
 
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.*
+import java.util.stream.*
 
 def genFolder = "../core/assets-raw/sprites_out/generated/"
-def doAntialias = !project.hasProperty("disableAntialias")
+boolean doAntialias = !project.hasProperty("disableAntialias")
 def colorMap = new IntMap<List<Color>>(), colorIndexMap = new IntIntMap()
 //on my machine, I have a native Nim AA implementation that is ~10x faster
 //it's not compiled for other platforms so they don't get it
-def useFastAA = project.hasProperty("fastAA") || System.getProperty("user.name") == "anuke"
-def isM1 = System.getProperty("os.arch") == "aarch64"
+boolean useFastAA = project.hasProperty("fastAA") || System.getProperty("user.name") == "anuke"
+boolean isM1 = System.getProperty("os.arch") == "aarch64"
 
 def transformColors = { List<List<String>> list ->
     list.each{ colors ->
@@ -48,7 +40,8 @@ transformColors([["a387ea", "8a73c6", "5c5e9f"], ["6e7080", "989aa4", "b0bac0"],
                  ["de9458", "f8c266", "ffe18f"], ["feb380", "ea8878", "bc5452"], ["d4816b", "eab678", "ffd37f"],
                  ["ffffff", "dcc6c6", "9d7f7f"], ["df7646", "b23a4d", "752249"], ["3c3837", "515151", "646567"]])
 
-def antialias = { File file ->
+@groovy.transform.CompileStatic
+void antialias(File file, boolean doAntialias, boolean useFastAA, boolean isM1){
     if(!doAntialias) return
 
     if(useFastAA){
@@ -176,7 +169,7 @@ task antialiasImages(){
     doLast{
         for(def img : project.getProperty("images").split(",")){
             println(project.getProperty("startdir") + "/" + img)
-            antialias(new File(project.getProperty("startdir") + "/" + img))
+            antialias(new File(project.getProperty("startdir") + "/" + img), doAntialias, useFastAA, isM1)
         }
     }
 }
@@ -191,7 +184,6 @@ task tileImages(){
 }
 
 task pack(dependsOn: [classes, configurations.runtimeClasspath]){
-
     doLast{
         //cleanup old sprites
         delete{
@@ -222,24 +214,35 @@ task pack(dependsOn: [classes, configurations.runtimeClasspath]){
         }
 
         ExecutorService executor = Executors.newFixedThreadPool(OS.cores)
-        long ms = System.currentTimeMillis()
+        Time.mark()
 
-        def counter = new AtomicInteger()
-        def images = fileTree(dir: new File(rootDir, 'core/assets-raw/sprites_out/').absolutePath, include: "**/*.png").files.size()
+//        def counter = new AtomicInteger()
+//        def images = fileTree(dir: new File(rootDir, 'core/assets-raw/sprites_out/').absolutePath, include: "**/*.png").files.size()
         //antialias everything except UI elements
-        fileTree(dir: new File(rootDir, 'core/assets-raw/sprites_out/').absolutePath, include: "**/*.png").visit{ file ->
-            if(file.isDirectory() || (file.toString().replace("\\", "/").contains("/ui/") && file.toString().startsWith("icon-")) || file.toString().contains(".9.png")) return
+        if (doAntialias && useFastAA) { // Micro optimization is fun
+            def i = 0
+            def print = "./antialias${isM1 ? "M1" : ""} "
+            fileTree(dir: new File(rootDir, 'core/assets-raw/sprites_out/').absolutePath, include: "**/*.png").getFiles().parallelStream()
+            .filter { file -> !(file.isDirectory() || (file.toString().replace("\\", "/").contains("/ui/") && file.toString().startsWith("icon-")) || file.toString().contains(".9.png")) }
+            .collect(Collectors.groupingByConcurrent(fi -> i++ % OS.cores)).values()
+            .forEach { files ->
+                executor.execute(() -> (print + Seq.with(files).toString(" ", File::getAbsolutePath)).execute().waitFor())
+            }
+        } else if (doAntialias) {
+            fileTree(dir: new File(rootDir, 'core/assets-raw/sprites_out/').absolutePath, include: "**/*.png").visit{ file ->
+                if(file.isDirectory() || (file.toString().replace("\\", "/").contains("/ui/") && file.toString().startsWith("icon-")) || file.toString().contains(".9.png")) return
 
-            executor.execute {
-                antialias(file.file)
-//                print("\rAntialiasing (${counter.incrementAndGet()}/$images)")
-//                System.out.flush()
+                executor.execute {
+                    antialias(file.file)
+//                    print("\rAntialiasing (${counter.incrementAndGet()}/$images)")
+//                    System.out.flush()
+                }
             }
         }
 
         Threads.await(executor)
 
-        println "Seconds taken for AA: ${(System.currentTimeMillis() - ms) / 1000f}"
+        println("Time taken for AA: ${Time.elapsed()}ms")
 
         println("\n\nPacking normal 4096 sprites...\n\n")
 
@@ -302,9 +305,9 @@ task fontgen(dependsOn: classes, type: JavaExec){
         //TODO this is broken
 
         Log.info(OS.exec("fontforge", "-script",
-            Fi.get("core/assets-raw/fontgen/merge.pe").absolutePath(),
-            Fi.get("core/assets/fonts/font.woff").absolutePath(),
-            Fi.get("core/assets-raw/fontgen/out/font.woff").absolutePath())
+                Fi.get("core/assets-raw/fontgen/merge.pe").absolutePath(),
+                Fi.get("core/assets/fonts/font.woff").absolutePath(),
+                Fi.get("core/assets-raw/fontgen/out/font.woff").absolutePath())
         );
 
         Log.info("Done.");

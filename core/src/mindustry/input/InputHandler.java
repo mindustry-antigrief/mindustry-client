@@ -517,12 +517,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return inputLocks.contains(Boolp::get);
     }
 
+    Eachable<BuildPlan> dumb = cons -> {
+        for(BuildPlan request : player.unit().plans()) cons.get(request);
+        for(BuildPlan request : selectRequests) cons.get(request);
+        for(BuildPlan request : lineRequests) cons.get(request);
+    };
     public Eachable<BuildPlan> allRequests(){
-        return cons -> {
-            for(BuildPlan request : player.unit().plans()) cons.get(request);
-            for(BuildPlan request : selectRequests) cons.get(request);
-            for(BuildPlan request : lineRequests) cons.get(request);
-        };
+        return dumb;
     }
 
     public boolean isUsingSchematic(){
@@ -888,6 +889,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     protected void flushRequests(Seq<BuildPlan> requests){
         var configLogic = Core.settings.getBool("processorconfigs");
+        var temp = new BuildPlan[requests.size];
+        var added = 0;
         for(BuildPlan req : requests){
             if(req.block != null && validPlace(req.x, req.y, req.block, req.rotation)){
                 BuildPlan copy = req.copy();
@@ -896,14 +899,14 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     ClientVars.processorConfigs.put(req.tile().pos(), req.config);
                 }
                 req.block.onNewPlan(copy);
-                player.unit().addBuild(copy);
+                temp[added++] = copy;
             }
         }
+
+        while(added-- > 0) player.unit().addBuild(temp[added]);
     }
 
-    protected void drawOverRequest(BuildPlan request){
-        boolean valid = validPlace(request.x, request.y, request.block, request.rotation);
-
+    protected void drawOverRequest(BuildPlan request, boolean valid){
         Draw.reset();
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(1f);
@@ -914,8 +917,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Draw.reset();
     }
 
-    protected void drawRequest(BuildPlan request){
-        request.block.drawPlan(request, allRequests(), validPlace(request.x, request.y, request.block, request.rotation));
+    protected void drawRequest(BuildPlan request, boolean valid){
+        request.block.drawPlan(request, allRequests(), valid);
     }
 
     /** Draws a placement icon for a specific block. */
@@ -1294,14 +1297,40 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return validPlace(x, y, type, rotation, null);
     }
 
+    private long lastFrame;
+    private QuadTreeMk2<BuildPlan> tree = new QuadTreeMk2<>(new Rect(0, 0, 0, 0));
+    private Seq<BuildPlan> seq = new Seq<>();
     public boolean validPlace(int x, int y, Block type, int rotation, BuildPlan ignore){
-        //TODO with many requests, this is O(n * m), very laggy
-        var valid = Build.validPlace(type, player.team(), x, y, rotation);
-        if (!valid) return false; // The code above this is far faster than the code below, don't run it unless we really have to
-        for(BuildPlan req : player.unit().plans()){
+        if(lastFrame != graphics.getFrameId()){
+            lastFrame = graphics.getFrameId();
+            if (world.unitWidth() != tree.bounds.width || world.unitHeight() != tree.bounds.height) tree = new QuadTreeMk2<>(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
+            tree.clear();
+            for (int i = 0; i < player.unit().plans().size; i++) tree.insert(player.unit().plans.get(i));
+        }
+//        //TODO with many requests, this is O(n * m), very laggy
+//        if (!Build.validPlace(type, player.team(), x, y, rotation, true)) return false; // The code above this is far faster than the code below, don't run it unless we really have to
+//        for (int i = 0; i < player.unit().plans().size; i++) {
+//            BuildPlan req = player.unit().plans.get(i);
+//
+//            if(req != ignore
+//                    && !req.breaking
+//                    && x < req.x + req.block.size && x + type.size > req.x && y < req.y + req.block.size && y + type.size > req.y
+//                    && !(type.canReplace(req.block) && x == req.x && y == req.y)){
+//                return false;
+//            }
+//        }
+//        return true;
+
+        if (!Build.validPlace(type, player.team(), x, y, rotation, true)) return false;
+        seq.clear();
+        tree.intersect(type.bounds(x, y, Tmp.r2), seq);
+
+        for (int i = 0; i < seq.size; i++) {
+            BuildPlan req = seq.get(i);
+
             if(req != ignore
                     && !req.breaking
-                    && req.block.bounds(req.x, req.y, Tmp.r1).overlaps(type.bounds(x, y, Tmp.r2))
+                    && req.block.bounds(req.x, req.y, Tmp.r1).overlaps(Tmp.r2)
                     && !(type.canReplace(req.block) && Tmp.r1.equals(Tmp.r2))){
                 return false;
             }

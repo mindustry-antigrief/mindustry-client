@@ -5,6 +5,7 @@ import arc.func.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.client.*;
 import mindustry.gen.*;
 
 import java.util.*;
@@ -21,7 +22,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
     private final Rect viewport = new Rect();
     private final Rect intersectRect = new Rect();
     private IntMap<T> map;
-    private QuadTree tree;
+    private QuadTreeMk2 tree;
     private boolean clearing;
 
     private int index;
@@ -34,7 +35,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
         array = new Seq<>(false, 32, type);
 
         if(spatial){
-            tree = new QuadTree<>(new Rect(0, 0, 0, 0));
+            tree = new QuadTreeMk2<>(new Rect(0, 0, 0, 0));
         }
 
         if(mapping){
@@ -124,7 +125,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
         return intersectArray;
     }
 
-    public QuadTree tree(){
+    public QuadTreeMk2 tree(){
         if(tree == null) throw new RuntimeException("This group does not support quadtrees! Enable quadtrees when creating it.");
         return tree;
     }
@@ -132,7 +133,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
     /** Resizes the internal quadtree, if it is enabled.*/
     public void resize(float x, float y, float w, float h){
         if(tree != null){
-            tree = new QuadTree<>(new Rect(x, y, w, h));
+            tree = new QuadTreeMk2<>(new Rect(x, y, w, h));
         }
     }
 

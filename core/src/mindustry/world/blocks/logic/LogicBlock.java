@@ -517,6 +517,14 @@ public class LogicBlock extends Block{
             table.button(Icon.pencil, Styles.clearTransi, () ->
                 ui.logic.show(code, executor, code -> configure(compress(code, relativeConnections())))
             ).size(40);
+
+            table.button(Icon.refresh, Styles.clearTransi, () -> {
+                var original = code;
+                ClientVars.configs.add(() -> { // Cursed, enqueues a config now, when that one is run it enqueues a second config.
+                    new ConfigRequest(this, compress("end\n" + code, relativeConnections())).run();
+                    Timer.schedule(() -> ClientVars.configs.add(new ConfigRequest(this, LogicBlock.compress(original, relativeConnections()))), net.client() ? netClient.getPing()/1000f : 0);
+                });
+            }).size(40).tooltip("Restart code execution").disabled(b -> !ClientVars.configs.isEmpty());
         }
 
         @Override

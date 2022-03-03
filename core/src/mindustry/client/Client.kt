@@ -66,7 +66,14 @@ object Client {
         System.setProperty("jdk.tls.namedGroups", "secp256r1")
     }
 
+    var dumb = false
     fun update() {
+        if (dumb) {
+            world.tiles.eachTile { t ->
+                if (t.block() == Blocks.air || t.block() == Blocks.copperWall) t.setBlock(if (Mathf.randomBoolean()) Blocks.copperWall else Blocks.air)
+            }
+            dumb = false
+        }
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
@@ -520,19 +527,21 @@ object Client {
     }
 
     var target: Teamc? = null
+    var hadTarget = false
     fun autoShoot() {
         if (!Core.settings.getBool("autotarget") || state.isMenu || state.isEditor) return
-        if (((player.unit() as? BlockUnitUnit)?.tile() as? ControlBlock)?.shouldAutoTarget() == false) return
         val unit = player.unit()
+        if (((unit as? BlockUnitUnit)?.tile() as? ControlBlock)?.shouldAutoTarget() == false) return
         if (unit.activelyBuilding()) return
-        val type = unit?.type ?: return
+        val type = unit.type ?: return
         val targetBuild = target as? Building
         val validHealTarget = player.unit().type.canHeal && targetBuild?.isValid == true && target?.team() == unit.team && targetBuild.damaged() && target?.within(unit, unit.range()) == true
 
-        if (target != null && Units.invalidateTarget(target, unit, unit.range()) && !validHealTarget) { // Invalidate target
+        if ((hadTarget && target == null || target != null && Units.invalidateTarget(target, unit, unit.range())) && !validHealTarget) { // Invalidate target
             val desktopInput = control.input as? DesktopInput
             player.shooting = Core.input.keyDown(Binding.select) && !Core.scene.hasMouse() && (desktopInput == null || desktopInput.shouldShoot)
             target = null
+            hadTarget = false
         }
 
         if (target == null || timer.get(2, 6f)) { // Acquire target
@@ -554,12 +563,12 @@ object Client {
                     val block = tile.block()
                     val scoreMul = when {
                         // general logistics
-                        block == Blocks.itemSource -> 1f
+                        block == Blocks.itemSource -> 2f
                         // do NOT shoot power voided networks
                         (tile.build?.power?.graph?.getPowerBalance() ?: 0f) <= -1e12f -> Float.POSITIVE_INFINITY
                         // otherwise nodes are good to shoot
                         block == Blocks.powerSource -> 0f
-                        block is PowerNode -> 2f
+                        block is PowerNode -> if (tile.build.power.status < .9) 2f else 1f
 
                         block == Blocks.liquidSource -> 3f  // lower priority because things generally don't need liquid to run
 
@@ -572,9 +581,9 @@ object Client {
 
                         block == Blocks.liquidRouter -> 5f
 
-                        // I can't help myself, boom boom
-                        (block == Blocks.container || block == Blocks.vault) &&
-                                tile.build.items.sum { item, amount -> (item.explosiveness * 2f + item.flammability) * amount } > 50 -> 0f
+                        // I can't help myself, boom boom ... this was a bad plan
+//                        (block == Blocks.container || block == Blocks.vault) &&
+//                                tile.build.items.sum { item, amount -> (item.explosiveness * 2f + item.flammability) * amount } > 50 -> 0f
 
                         block == Blocks.mendProjector -> 6f
                         block == Blocks.forceProjector -> 6f
@@ -609,6 +618,7 @@ object Client {
             }
 
             unit.aim(player.mouseX, player.mouseY)
+            hadTarget = true
         }
     }
 }

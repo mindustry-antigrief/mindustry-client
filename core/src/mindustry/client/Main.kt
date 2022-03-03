@@ -243,24 +243,26 @@ object Main : ApplicationListener {
         communicationClient.send(transmission, onFinish)
     }
 
+    /** Uses [Tmp.v1], do not cache returned vec or call this function on non-main thread. */
     fun floatEmbed(): Vec2 {
+        val show = Core.settings.getBool("displayasuser")
         return when {
-            Navigation.currentlyFollowing is AssistPath && Core.settings.getBool("displayasuser") ->
-                Vec2(
+            Navigation.currentlyFollowing is AssistPath && show ->
+                Tmp.v1.set(
                     FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
                     FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.ASSISTING)
                 )
             Navigation.currentlyFollowing is AssistPath ->
-                Vec2(
+                Tmp.v1.set(
                     FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.ASSISTING),
                     FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.ASSISTING)
                 )
-            Core.settings.getBool("displayasuser") ->
-                Vec2(
+            show ->
+                Tmp.v1.set(
                     FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
                     FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.FOO_USER)
                 )
-            else -> Vec2(Vars.player.unit().aimX, Vars.player.unit().aimY)
+            else -> Tmp.v1.set(Vars.player.unit().aimX, Vars.player.unit().aimY)
         }
     }
 

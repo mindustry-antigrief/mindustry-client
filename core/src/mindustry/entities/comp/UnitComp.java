@@ -345,9 +345,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         team.data().updateCount(type, -1);
         controller.removed(self());
         for (Weapon weapon : type.weapons) {
-            synchronized (Navigation.obstacles) {
-                Navigation.obstacles.remove(pathfindingEntities.get(weapon));
-            }
+            Navigation.obstacles.remove(pathfindingEntities.get(weapon));
         }
     }
 
@@ -379,9 +377,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
                     }
                     TurretPathfindingEntity entity = pathfindingEntities.get(weapon);
                     if (hasEffect(StatusEffects.disarmed)) {
-                        synchronized (Navigation.obstacles) {
-                            Navigation.obstacles.remove(entity);
-                        }
+                        Navigation.obstacles.remove(entity);
                     } else Navigation.obstacles.add(entity);
                     entity.x = x;
                     entity.y = y;

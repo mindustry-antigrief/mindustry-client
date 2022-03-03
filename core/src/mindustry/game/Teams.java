@@ -8,6 +8,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ai.*;
+import mindustry.client.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.type.*;
@@ -237,7 +238,7 @@ public class Teams{
 
         /** Quadtree for all buildings of this team. Null if not active. */
         @Nullable
-        public QuadTree<Building> buildings;
+        public QuadTreeMk2<Building> buildings;
         /** Current unit cap. Do not modify externally. */
         public int unitCap;
         /** Total unit count. */
@@ -247,7 +248,7 @@ public class Teams{
         public int[] typeCounts;
         /** Quadtree for units of this team. Do not access directly. */
         @Nullable
-        public QuadTree<Unit> tree;
+        public QuadTreeMk2<Unit> tree;
         /** Units of this team. Updated each frame. */
         public Seq<Unit> units = new Seq<>();
         /** Units of this team by type. Updated each frame. */
@@ -302,8 +303,8 @@ public class Teams{
             typeCounts[type.id] = Math.max(amount + typeCounts[type.id], 0);
         }
 
-        public QuadTree<Unit> tree(){
-            if(tree == null) tree = new QuadTree<>(Vars.world.getQuadBounds(new Rect()));
+        public QuadTreeMk2<Unit> tree(){
+            if(tree == null) tree = new QuadTreeMk2<>(Vars.world.getQuadBounds(new Rect()));
             return tree;
         }
 

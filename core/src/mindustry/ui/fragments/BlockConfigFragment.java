@@ -6,13 +6,9 @@ import arc.scene.*;
 import arc.scene.actions.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
-import mindustry.client.*;
-import mindustry.client.antigrief.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
-import mindustry.ui.*;
-import mindustry.world.blocks.logic.*;
 
 import static mindustry.Vars.*;
 
@@ -59,15 +55,6 @@ public class BlockConfigFragment extends Fragment{
             table.visible = true;
             table.clear();
             tile.buildConfiguration(table);
-            if (tile instanceof LogicBlock.LogicBuild lb) { // Cant put this directly in the logicBuild class as LDB overrides and breaks it then...
-                table.button(Icon.refresh, Styles.clearTransi, () -> {
-                    var original = lb.code;
-                    ClientVars.configs.add(() -> { // Cursed, enqueues a config now, when that one is run it enqueues a second config.
-                        new ConfigRequest(lb, LogicBlock.compress("end\n" + lb.code, lb.relativeConnections())).run();
-                        Timer.schedule(() -> ClientVars.configs.add(new ConfigRequest(lb, LogicBlock.compress(original, lb.relativeConnections()))), net.client() ? netClient.getPing()/1000f : 0);
-                    });
-                }).size(40).tooltip("Restart code execution");
-            }
             table.pack();
             table.setTransform(true);
             table.actions(Actions.scaleTo(0f, 1f), Actions.visible(true),

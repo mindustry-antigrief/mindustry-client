@@ -420,7 +420,7 @@ public class EventType{
         public final @Nullable Unit unit;
         public final boolean breaking;
         public final @Nullable Object config;
-        public final @Nullable Block previous;
+        public final Block previous;
 
         public BlockBuildEndEvent(Tile tile, @Nullable Unit unit, Team team, boolean breaking, @Nullable Object config, Block previous){
             this.tile = tile;

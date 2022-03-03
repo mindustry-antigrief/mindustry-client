@@ -190,9 +190,6 @@ allprojects{
         maven{ url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven{ url "https://oss.sonatype.org/content/repositories/releases/" }
         maven{ url 'https://jitpack.io' }
-        flatDir {
-            dirs "/home/max/Documents/mindustry6.0/Mindustry/bc/"
-        }
     }
 
     task clearCache{

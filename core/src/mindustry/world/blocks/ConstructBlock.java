@@ -71,9 +71,9 @@ public class ConstructBlock extends Block{
         if (tile != null && block != null) {
             tile.getLinkedTiles(t -> Events.fire(new BlockBuildEventTile(t, tile.team(), builder, block, Blocks.air, tile.build == null ? null : tile.build.config(), null)));
             Team team = tile.team();
-            block.breakEffect.at(tile.drawx(), tile.drawy(), block.size, block.mapColor);
             Events.fire(new BlockBuildEndEvent(tile, builder, team, true, tile.build == null ? null : tile.build.config(), tile.block()));
             tile.remove();
+            block.breakEffect.at(tile.drawx(), tile.drawy(), block.size, block.mapColor);
             if (shouldPlay()) block.breakSound.at(tile, block.breakPitchChange ? calcPitch(false) : 1f);
         }
     }

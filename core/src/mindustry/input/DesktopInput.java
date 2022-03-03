@@ -110,9 +110,6 @@ public class DesktopInput extends InputHandler{
                             str.append("\n").append(bundle.format("schematic.flip", keybinds.get(Binding.schematic_flip_x).key.toString(), keybinds.get(Binding.schematic_flip_y).key.toString()));
                         }
                     }
-                    if(selectRequests.size > 1024){ // Any selection with more than 1024 blocks
-                        str.append("\n").append(bundle.format("client.largeschematic", keybinds.get(Binding.toggle_placement_modifiers).key.toString()));
-                    }
 
                     t.color.a = Mathf.lerpDelta(t.color.a, Mathf.num(showHint.get()), .15f);
                     if (t.color.a > .01f) {
@@ -180,12 +177,13 @@ public class DesktopInput extends InputHandler{
         }
 
         //draw schematic requests
-        selectRequests.each(req -> {
+        for (int i = 0; i < selectRequests.size; i++) {
+            var req = selectRequests.get(i);
+            boolean valid = validPlace(req.x, req.y, req.block, req.rotation);
             req.animScale = 1f;
-            drawRequest(req);
-        });
-
-        selectRequests.each(this::drawOverRequest);
+            drawRequest(req, valid);
+            drawOverRequest(req, valid);
+        }
 
 //        if(player.isBuilder()){
             //draw things that may be placed soon
@@ -193,12 +191,13 @@ public class DesktopInput extends InputHandler{
                 for(int i = 0; i < lineRequests.size; i++){
                     BuildPlan req = lineRequests.get(i);
                     if(req.block == null) continue;
+                    boolean valid = validPlace(req.x, req.y, req.block, req.rotation);
                     if(i == lineRequests.size - 1 && req.block.rotate){
-                        drawArrow(block, req.x, req.y, req.rotation);
+                        drawArrow(block, req.x, req.y, req.rotation, valid);
                     }
-                    drawRequest(req);
+                    drawRequest(req, valid);
+                    drawOverRequest(req, valid);
                 }
-                lineRequests.each(this::drawOverRequest);
             }else if(isPlacing()){
                 if(block.rotate && block.drawArrow){
                     drawArrow(block, cursorX, cursorY, rotation);
@@ -714,10 +713,6 @@ public class DesktopInput extends InputHandler{
                 mode = none;
             }else if(selectRequests.any()){
                 flushRequests(selectRequests);
-                if(selectRequests.size > 1024 && !Core.input.keyDown(Binding.toggle_placement_modifiers)) { // Deselect large schems
-                    selectRequests.clear();
-                    lastSchematic = null;
-                }
             }else if(isPlacing()){
                 selectX = cursorX;
                 selectY = cursorY;
@@ -885,7 +880,7 @@ public class DesktopInput extends InputHandler{
             player.boosting = unit.type.canBoost && Core.settings.getBool("autoboost") ^ input.keyDown(Binding.boost); // If auto-boost, invert the behavior of the boost key
 
             if (!Core.input.keyDown(Binding.select) && shouldShoot) Client.INSTANCE.autoShoot();
-        }
+        } else if (Navigation.currentlyFollowing instanceof MinePath mp && mp.getNewGame() && !movement.isZero()) Navigation.stopFollowing(); // Stop automatic mining on player move
         unit.controlWeapons(true, player.shooting && !boosted);
 
         player.mouseX = unit.aimX();

@@ -6,6 +6,7 @@ import arc.math.geom.QuadTree.*;
 import arc.struct.*;
 import mindustry.*;
 import mindustry.async.PhysicsProcess.PhysicsWorld.*;
+import mindustry.client.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 
@@ -125,7 +126,7 @@ public class PhysicsProcess implements AsyncProcess{
         //how much to soften movement by
         private static final float scl = 1.25f;
 
-        private final QuadTree<PhysicsBody>[] trees = new QuadTree[layers];
+        private final QuadTreeMk2<PhysicsBody>[] trees = new QuadTreeMk2[layers];
         private final Seq<PhysicsBody> bodies = new Seq<>(false, 16, PhysicsBody.class);
         private final Seq<PhysicsBody> seq = new Seq<>(PhysicsBody.class);
         private final Rect rect = new Rect();
@@ -133,7 +134,7 @@ public class PhysicsProcess implements AsyncProcess{
 
         public PhysicsWorld(Rect bounds){
             for(int i = 0; i < layers; i++){
-                trees[i] = new QuadTree<>(new Rect(bounds));
+                trees[i] = new QuadTreeMk2<>(new Rect(bounds));
             }
         }
 

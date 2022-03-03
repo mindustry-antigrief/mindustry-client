@@ -37,7 +37,7 @@ public class CommandCompletion implements Autocompleter {
         return commands.sort(item -> item.matches(input)).map(item -> item);
     }
 
-    private class CommandCompletable implements Autocompleteable {
+    private static class CommandCompletable implements Autocompleteable {
         private final String command;
         private final String usage;
 

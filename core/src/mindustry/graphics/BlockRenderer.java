@@ -287,7 +287,7 @@ public class BlockRenderer{
         var bounds = camera.bounds(Tmp.r3).grow(tilesize);
 
         //draw floor lights
-        floorTree.intersect(bounds, tile -> lightview.add(tile));
+        floorTree.intersect(bounds, lightview::add);
 
         blockTree.intersect(bounds, tile -> {
             if(tile.build == null || procLinks.add(tile.build.id)){
@@ -413,7 +413,7 @@ public class BlockRenderer{
         }
     }
 
-    static class BlockQuadtree extends QuadTree<Tile>{
+    static class BlockQuadtree extends QuadTreeMk2<Tile>{
 
         public BlockQuadtree(Rect bounds){
             super(bounds);
@@ -431,7 +431,7 @@ public class BlockRenderer{
         }
     }
 
-    static class FloorQuadtree extends QuadTree<Tile>{
+    static class FloorQuadtree extends QuadTreeMk2<Tile>{
 
         public FloorQuadtree(Rect bounds){
             super(bounds);
@@ -448,5 +448,4 @@ public class BlockRenderer{
             return new FloorQuadtree(rect);
         }
     }
-
 }

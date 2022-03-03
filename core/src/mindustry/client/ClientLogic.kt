@@ -119,7 +119,7 @@ class ClientLogic {
         }
 
         Events.on(EventType.GameOverEventClient::class.java) {
-            if (Vars.net.client()) Navigation.follow(MinePath(UnitTypes.gamma.mineItems)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
+            if (!Navigation.isFollowing()) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
         }
     }
 }

@@ -141,7 +141,7 @@ public class ChatFragment extends Table{
         chatfield.changed(() -> {
             chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 0 : maxTextLength - 2 * Mathf.num(Core.settings.getBool("signmessages"))); // Scuffed way to allow long js
 
-            var replacement = switch (chatfield.getText()) {
+            var replacement = switch (chatfield.getText().replaceFirst("^" + mode.normalizedPrefix(), "")) {
                 case "!r " -> "!e " + ClientVars.lastCertName + " ";
                 case "!b " -> "!builder ";
                 case "!cu ", "!cr " -> "!cursor ";
@@ -152,7 +152,7 @@ public class ChatFragment extends Table{
             };
             if (replacement != null) {
                 app.post(() -> { // .changed(...) is called in the middle of the typed char being processed, workaround is to update cursor on the next frame
-                    chatfield.setText(replacement);
+                    chatfield.setText((chatfield.getText().startsWith(mode.normalizedPrefix()) ? mode.normalizedPrefix() : "") + replacement);
                     updateCursor();
                 });
             }
