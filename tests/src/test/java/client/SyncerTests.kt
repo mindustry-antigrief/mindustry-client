@@ -1,12 +1,10 @@
 package client
 
-import arc.util.Reflect
-import mindustry.client.communication.DummyCommunicationSystem
-import mindustry.client.communication.Packets
-import mindustry.client.communication.syncing.Syncer
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import java.io.DataInputStream
+import arc.util.*
+import mindustry.client.communication.*
+import mindustry.client.communication.syncing.*
+import org.junit.jupiter.api.*
+import java.io.*
 
 class SyncerTests {
 
@@ -20,8 +18,8 @@ class SyncerTests {
         val a = Packets.CommunicationClient(aComms)
         val b = Packets.CommunicationClient(bComms)
 
-        val aSync = Syncer({ i, d -> d.writeInt(i) }, DataInputStream::readInt, a, 12L)
-        val bSync = Syncer({ i, d -> d.writeInt(i) }, DataInputStream::readInt, b, 12L)
+        val aSync = Syncer({ i, d -> d.writeInt(i) }, DataInputStream::readInt, a, 12L, Syncer.Mode.BOTH)
+        val bSync = Syncer({ i, d -> d.writeInt(i) }, DataInputStream::readInt, b, 12L, Syncer.Mode.BOTH)
 
         aSync.added(listOf(Pair(123, 0)))
 

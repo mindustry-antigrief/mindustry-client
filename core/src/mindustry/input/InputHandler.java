@@ -1301,25 +1301,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     private QuadTreeMk2<BuildPlan> tree = new QuadTreeMk2<>(new Rect(0, 0, 0, 0));
     private Seq<BuildPlan> seq = new Seq<>();
     public boolean validPlace(int x, int y, Block type, int rotation, BuildPlan ignore){
-        if(lastFrame != graphics.getFrameId()){
+        if(lastFrame != graphics.getFrameId()) {
             lastFrame = graphics.getFrameId();
-            if (world.unitWidth() != tree.bounds.width || world.unitHeight() != tree.bounds.height) tree = new QuadTreeMk2<>(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
+            if (world.unitWidth() != tree.bounds.width || world.unitHeight() != tree.bounds.height)
+                tree = new QuadTreeMk2<>(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
             tree.clear();
             for (int i = 0; i < player.unit().plans().size; i++) tree.insert(player.unit().plans.get(i));
         }
-//        //TODO with many requests, this is O(n * m), very laggy
-//        if (!Build.validPlace(type, player.team(), x, y, rotation, true)) return false; // The code above this is far faster than the code below, don't run it unless we really have to
-//        for (int i = 0; i < player.unit().plans().size; i++) {
-//            BuildPlan req = player.unit().plans.get(i);
-//
-//            if(req != ignore
-//                    && !req.breaking
-//                    && x < req.x + req.block.size && x + type.size > req.x && y < req.y + req.block.size && y + type.size > req.y
-//                    && !(type.canReplace(req.block) && x == req.x && y == req.y)){
-//                return false;
-//            }
-//        }
-//        return true;
 
         if (!Build.validPlace(type, player.team(), x, y, rotation, true)) return false;
         seq.clear();

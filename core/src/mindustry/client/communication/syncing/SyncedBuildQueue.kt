@@ -1,12 +1,10 @@
 package mindustry.client.communication.syncing
 
-import arc.util.io.Reads
-import arc.util.io.Writes
-import mindustry.client.communication.Packets
-import mindustry.entities.units.BuildPlan
-import mindustry.io.TypeIO
-import java.io.DataInputStream
-import java.io.DataOutputStream
+import arc.util.io.*
+import mindustry.client.communication.*
+import mindustry.entities.units.*
+import mindustry.io.*
+import java.io.*
 
 class SyncedBuildQueue(comms: Packets.CommunicationClient, id: Long, mode: Syncer.Mode) : SyncedQueue<BuildPlan>(Syncer(serializer, deserializer, comms, id, mode)) {
     companion object {

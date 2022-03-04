@@ -1,11 +1,11 @@
 package mindustry.client.communication.syncing
 
-import arc.func.Boolf
-import arc.func.Cons
+import arc.func.*
 import arc.struct.Queue
 import java.util.*
-import java.util.function.Consumer
+import java.util.function.*
 
+@Suppress("UNCHECKED_CAST")
 open class SyncedQueue<T>(val syncer: Syncer<T>) : Queue<T>() {
     private fun updateSize() {
         size = syncer.list.size

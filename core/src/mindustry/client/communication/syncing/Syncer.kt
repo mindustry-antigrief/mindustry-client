@@ -1,20 +1,16 @@
 package mindustry.client.communication.syncing
 
-import mindustry.client.communication.Packets
-import mindustry.client.communication.Transmission
-import mindustry.client.utils.buffer
-import mindustry.client.utils.remainingBytes
-import mindustry.client.utils.toBytes
-import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import java.util.zip.CRC32
-import kotlin.random.Random
+import mindustry.client.communication.*
+import mindustry.client.utils.*
+import java.io.*
+import java.util.zip.*
+import kotlin.random.*
 
 /**
  * Keeps [list] synced between two instances.  Use [added] and [removed] to add or remove items.  The two instances must
  * be instantiated with the same [id] for it to work!
  */
+@Suppress("UNCHECKED_CAST")
 class Syncer<T>(private val serializer: (T, DataOutputStream) -> Unit, private val deserializer: (DataInputStream) -> T?, private val comms: Packets.CommunicationClient, private val id: Long = Random.nextLong(), private val mode: Mode) {
     private val internalList = mutableListOf<T>()
     val list: List<T> = internalList  // outside the class, appears as an immutable list
@@ -128,7 +124,7 @@ class Syncer<T>(private val serializer: (T, DataOutputStream) -> Unit, private v
 
         override fun serialize() = syncID.toBytes() + content
 
-        fun <T> deserialize(serializer: (T, DataOutputStream) -> Unit, deserializer: (DataInputStream) -> T?): SyncerT<T>? {
+        fun <T> deserialize(@Suppress("UNUSED_PARAMETER") serializer: (T, DataOutputStream) -> Unit, deserializer: (DataInputStream) -> T?): SyncerT<T>? {
             val inp = DataInputStream(content.inputStream())
             val typeByte = inp.readByte().toInt()
             val hash = inp.readInt()

@@ -479,6 +479,7 @@ object Client {
                 Build Cost: ${state.rules.buildCostMultiplier}x
                 Core Capture: ${state.rules.coreCapture}
                 Core Incinerates: ${state.rules.coreIncinerates}
+                Core Unit Cap: ${state.rules.unitCapVariable}
             """.trimIndent())
         }
     }

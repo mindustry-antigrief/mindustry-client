@@ -221,7 +221,7 @@ task pack(dependsOn: [classes, configurations.runtimeClasspath]){
         //antialias everything except UI elements
         if (doAntialias && useFastAA) { // Micro optimization is fun
             def i = 0
-            def print = "./antialias${isM1 ? "M1" : ""} "
+            def print = new File(projectDir, "antialias${isM1 ? "M1" : ""} ").absolutePath
             fileTree(dir: new File(rootDir, 'core/assets-raw/sprites_out/').absolutePath, include: "**/*.png").getFiles().parallelStream()
             .filter { file -> !(file.isDirectory() || (file.toString().replace("\\", "/").contains("/ui/") && file.toString().startsWith("icon-")) || file.toString().contains(".9.png")) }
             .collect(Collectors.groupingByConcurrent(fi -> i++ % OS.cores)).values()
