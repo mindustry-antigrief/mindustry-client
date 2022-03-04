@@ -476,10 +476,10 @@ object Client {
                 [accent]Name: ${state.map.name()}[accent] (by: ${state.map.author()}[accent])
                 Map Time: ${UI.formatTime(state.tick.toFloat())}
                 Build Speed (Unit Factories): ${state.rules.buildSpeedMultiplier}x (${state.rules.unitBuildSpeedMultiplier}x)
-                Build Cost: ${state.rules.buildCostMultiplier}x
+                Build Cost (Refund): ${state.rules.buildCostMultiplier}x (${state.rules.deconstructRefundMultiplier}x)
                 Core Capture: ${state.rules.coreCapture}
                 Core Incinerates: ${state.rules.coreIncinerates}
-                Core Unit Cap: ${state.rules.unitCapVariable}
+                Core Modifies Unit Cap: ${state.rules.unitCapVariable}
             """.trimIndent())
         }
     }
