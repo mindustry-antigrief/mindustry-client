@@ -53,11 +53,7 @@ fun Temporal.timeSince(other: Temporal, unit: TemporalUnit) = unit.between(this,
 fun Temporal.age(unit: TemporalUnit = ChronoUnit.SECONDS) = abs(this.timeSince(Instant.now(), unit))
 
 /** Adds an element to the table followed by a row. */
-fun <T : Element> Table.row(element: T): Cell<T> {
-    val out = add(element)
-    row()
-    return out
-}
+fun <T : Element> Table.row(element: T): Cell<T> = add(element).also { row() }
 
 inline fun dialog(name: String, style: Dialog.DialogStyle = Styles.defaultDialog, dialog: BaseDialog.() -> Unit): Dialog {
     return BaseDialog(name, style).apply(dialog)
