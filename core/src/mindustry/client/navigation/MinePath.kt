@@ -69,7 +69,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
     }
 
     override fun draw() {
-        if ((waypoints.waypoints.peek()?.dst(player) ?: 0F) > tilesize * 3) waypoints.draw()
+        if ((waypoints.waypoints.lastOrNull()?.dst(player) ?: 0F) > tilesize * 3) waypoints.draw()
     }
 
     override fun progress() = 0F
