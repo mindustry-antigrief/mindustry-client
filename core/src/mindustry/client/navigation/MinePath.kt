@@ -48,7 +48,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
         lastItem = item
         if (cap < core.storageCapacity && core.items[item] >= core.storageCapacity || cap != 0 && core.items[item] > cap) {  // Auto switch to BuildPath when core is sufficiently full
             player.sendMessage(Strings.format("[accent]Automatically switching to BuildPath as the core has @ items (this number can be changed in settings).", if (cap == 0) core.storageCapacity else cap))
-            Navigation.follow(BuildPath(items, if (cap == 0) core.storageCapacity else cap))
+            Navigation.follow(BuildPath(items, cap))
         }
 
         if (player.unit().maxAccepted(item) <= 1) { // drop off

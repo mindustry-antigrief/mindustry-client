@@ -32,7 +32,7 @@ public class PayloadPickupWaypoint extends Waypoint implements Position {
     }
 
     @Override
-    public void run() {
+    public PayloadPickupWaypoint run() {
         if (Vars.player.within(getX(), getY(), 1f)) {
             Call.requestBuildPayload(Vars.player, world.tile(tileX, tileY).build);
             done = true;
@@ -44,6 +44,7 @@ public class PayloadPickupWaypoint extends Waypoint implements Position {
             y = Mathf.clamp(y / 10, -1f, 1f);
             control.input.updateMovementCustom(player.unit(), x, y, direction);
         }
+        return this;
     }
 
     @Override

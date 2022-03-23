@@ -15,6 +15,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ai.formations.patterns.*;
+import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
@@ -426,8 +427,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         if(player.team() == build.team && build.canControlSelect(player.unit())){
-            if (player.isLocal()) player.persistPlans();
-            if (!net.client()) build.onControlSelect(player.unit()); // The net.client check prevents this from randomly breaking persistPlans on servers
+            build.onControlSelect(player.unit());
         }
     }
 
@@ -450,7 +450,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot control a unit.");
         }
 
-        if (player.isLocal() && Time.timeSinceMillis(Navigation.navigator.getLastWp()) > 1000) player.persistPlans(); // Restore plans after swapping units, ignore cn /wp
 
         //clear player unit when they possess a core
         if(unit == null){ //just clear the unit (is this used?)
@@ -480,7 +479,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void unitClear(Player player){
         if(player == null) return;
 
-        if(player.isLocal()) player.persistPlans();
         //problem: this gets called on both ends. it shouldn't be.
         Fx.spawn.at(player);
         player.clearUnit();
@@ -559,7 +557,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         if(controlledType != null && player.dead()){
-            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead /* FINISHME: Make this a thing that actually works? && (!(u.controller() instanceof FormationAI f) || f.isBeingControlled(player.lastReadUnit)) */);
+            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead && (!(u.controller() instanceof FormationAI f) || f.leader == player.unitOnDeath));
 
             if(unit != null){
                 //only trying controlling once a second to prevent packet spam
@@ -1321,22 +1319,29 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     private long lastFrame;
     private QuadTreeMk2<BuildPlan> tree = new QuadTreeMk2<>(new Rect(0, 0, 0, 0));
-    private final Seq<BuildPlan> seq = new Seq<>();
+    public final Seq<BuildPlan> planSeq = new Seq<>();
+
+    /** Cursed method to put the player's plans in a quadtree for non-slow overlap checks. */
+    public QuadTreeMk2<BuildPlan> planTree() {
+        if(lastFrame == graphics.getFrameId()) return tree;
+        lastFrame = graphics.getFrameId();
+
+        tree.clear();
+        if (world.unitWidth() != tree.bounds.width || world.unitHeight() != tree.bounds.height)
+            tree = new QuadTreeMk2<>(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
+        for (int i = 0; i < player.unit().plans().size; i++)
+            tree.insert(player.unit().plans.get(i));
+
+        return tree;
+    }
+
     public boolean validPlace(int x, int y, Block type, int rotation, BuildPlan ignore){
-        if(lastFrame != graphics.getFrameId()) {
-            lastFrame = graphics.getFrameId();
-            if (world.unitWidth() != tree.bounds.width || world.unitHeight() != tree.bounds.height)
-                tree = new QuadTreeMk2<>(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
-            tree.clear();
-            for (int i = 0; i < player.unit().plans().size; i++) tree.insert(player.unit().plans.get(i));
-        }
-
         if (!Build.validPlace(type, player.team(), x, y, rotation, true)) return false;
-        seq.clear();
-        tree.intersect(type.bounds(x, y, Tmp.r2), seq);
 
-        for (int i = 0; i < seq.size; i++) {
-            BuildPlan req = seq.get(i);
+        planSeq.clear();
+        planTree().intersect(type.bounds(x, y, Tmp.r2), planSeq);
+        for (int i = 0; i < planSeq.size; i++) {
+            BuildPlan req = planSeq.get(i);
 
             if(req != ignore
                     && !req.breaking
@@ -1503,25 +1508,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         player.boosting = !movement.isZero();
         player.mouseX = unit.aimX();
         player.mouseY = unit.aimY();
-
-        //update payload input
-//        if(unit instanceof Payloadc){
-//
-//            if(Core.input.keyTap(Binding.pickupCargo)){
-//                tryPickupPayload();
-//            }
-//
-//            if(Core.input.keyTap(Binding.dropCargo)){
-//                tryDropPayload();
-//            }
-//        }
-
-        //update commander input
-//        if(unit instanceof Commanderc){
-//            if(Core.input.keyTap(Binding.command)){
-//                Call.unitCommand(player);
-//            }
-//        }
     }
 
     static class PlaceLine{

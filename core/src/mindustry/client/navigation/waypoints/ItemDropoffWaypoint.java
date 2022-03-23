@@ -33,9 +33,9 @@ public class ItemDropoffWaypoint extends Waypoint implements Position {
     }
 
     @Override
-    public void run() {
+    public ItemDropoffWaypoint run() {
         if (Vars.player.within(getX(), getY(), Vars.itemTransferRange - tilesize * 3) && dropTimer.get(30)) {
-            if (pos.tileOn().build == null) return;
+            if (pos.tileOn().build == null) return this;
 
             Call.transferInventory(Vars.player, pos.tileOn().build);
             done = true;
@@ -47,6 +47,7 @@ public class ItemDropoffWaypoint extends Waypoint implements Position {
             y = Mathf.clamp(y / 10, -1f, 1f);
             control.input.updateMovementCustom(player.unit(), x, y, direction);
         }
+        return this;
     }
 
     @Override

@@ -607,8 +607,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     public void killed(){
         wasPlayer = isLocal();
         if (wasPlayer) {
-            player.persistPlans(); // Restore plans after respawn
-            player.formOnDeath = player.unit().formation;
+            player.unitOnDeath = player.unit();
         }
         health = Math.min(health, 0);
         dead = true;

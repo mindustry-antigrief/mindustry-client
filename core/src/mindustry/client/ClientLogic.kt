@@ -23,7 +23,6 @@ class ClientLogic {
     /** Create event listeners */
     init {
         Events.on(EventType.ServerJoinEvent::class.java) { // Run when the player joins a server
-            Main.setPluginNetworking(false)
             Navigation.stopFollowing()
             Spectate.pos = null
         }
@@ -31,7 +30,7 @@ class ClientLogic {
         Events.on(EventType.WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             if (!syncing) {
-                Vars.player.persistPlans.clear() // FINISHME: Why is this even in the player class? It creates a queue for each player even tho only one is used...
+                Player.persistPlans.clear()
                 processorConfigs.clear()
             }
             lastJoinTime = Time.millis()
@@ -119,7 +118,7 @@ class ClientLogic {
         }
 
         Events.on(EventType.GameOverEventClient::class.java) {
-            if (!Navigation.isFollowing()) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
+            if (!Navigation.isFollowing() || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
         }
     }
 }

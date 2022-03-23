@@ -31,6 +31,9 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
 
     /** Visual scale. Used only for rendering.*/
     public float animScale = 0f;
+    
+    /** Cache */
+    public boolean valid;
 
     @Override
     public void reset() {

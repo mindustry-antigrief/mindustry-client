@@ -309,7 +309,6 @@ public class ChatFragment extends Table{
             String msg = Main.INSTANCE.sign(message);
             Call.sendChatMessage(msg);
             if (message.startsWith(netServer.clientCommands.getPrefix() + "sync")) { // /sync
-                player.persistPlans();
                 ClientVars.syncing = true;
             }
             if (!message.startsWith(netServer.clientCommands.getPrefix())) { // Only fire when not running any command

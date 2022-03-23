@@ -511,8 +511,8 @@ public class JoinDialog extends BaseDialog{
                     add.hide();
                     lastHost = hostFinal[0];
                 }
+                Core.app.post(() -> Events.fire(new EventType.ServerJoinEvent()));
             });
-            Events.fire(new EventType.ServerJoinEvent());
         });
     }
 

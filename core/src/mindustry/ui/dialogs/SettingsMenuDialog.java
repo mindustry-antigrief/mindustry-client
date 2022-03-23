@@ -347,6 +347,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("minepathcap", 0, 0, 5000, 100, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
+        client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("pathnav", true);
@@ -676,6 +677,30 @@ public class SettingsMenuDialog extends BaseDialog{
             rebuild();
         }
 
+        public void textPref(String name, String def){
+            list.add(new TextSetting(name, def, null));
+            settings.defaults(name, def);
+            rebuild();
+        }
+
+        public void textPref(String name, String def, Cons<String> changed){
+            list.add(new TextSetting(name, def, changed));
+            settings.defaults(name, def);
+            rebuild();
+        }
+
+        public void areaTextPref(String name, String def){
+            list.add(new AreaTextSetting(name, def, null));
+            settings.defaults(name, def);
+            rebuild();
+        }
+
+        public void areaTextPref(String name, String def, Cons<String> changed){
+            list.add(new AreaTextSetting(name, def, changed));
+            settings.defaults(name, def);
+            rebuild();
+        }
+
         public void rebuild(){
             clearChildren();
 
@@ -797,12 +822,6 @@ public class SettingsMenuDialog extends BaseDialog{
             pref(new Category(name));
         }
 
-        /* TODO: Actually add this at some point, this sounds like a massive pain in the ass tho.
-        public void textPref(String name, String def){
-            settings.defaults(name, def);
-            pref(new TextPref(name));
-        } */
-
         // Elements are actually added below
         public static class Category extends Setting{
             Category(String name){
@@ -819,8 +838,6 @@ public class SettingsMenuDialog extends BaseDialog{
             }
         }
 
-
-        /** Since the update pref takes half a page and implementing all this in a non static manner is a pain, I'm leaving it here for now. */
         private void updatePref(){
             settings.defaults("updateurl", "mindustry-antigrief/mindustry-client-v7-builds");
             if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
@@ -856,6 +873,58 @@ public class SettingsMenuDialog extends BaseDialog{
                     table.row();
                 }
             });
+        }
+
+        public static class TextSetting extends Setting{
+            String def;
+            Cons<String> changed;
+
+            public TextSetting(String name, String def, Cons<String> changed){
+                super(name);
+                this.def = def;
+                this.changed = changed;
+            }
+
+            @Override
+            public void add(SettingsTable table){
+                TextField field = new TextField(settings.getString(name));
+                field.setMessageText(def);
+                field.typed(c -> {
+                    settings.put(name, field.getText());
+                    if(changed != null){
+                        changed.get(field.getText());
+                    }
+                });
+
+                Table prefTable = table.table().left().padTop(3f).get();
+                prefTable.label(() -> title);
+                prefTable.add(field).width(450);
+                addDesc(prefTable);
+                table.row();
+            }
+        }
+
+        public static class AreaTextSetting extends TextSetting{
+            public AreaTextSetting(String name, String def, Cons<String> changed){
+                super(name, def, changed);
+            }
+
+            @Override
+            public void add(SettingsTable table){
+                TextArea area = new TextArea(settings.getString(name));
+                area.setPrefRows(5);
+
+                area.typed(c -> {
+                    settings.put(name, area.getText());
+                    if(changed != null){
+                        changed.get(area.getText());
+                    }
+                });
+
+                addDesc(table.label(() -> title).left().padTop(3f).get());
+                table.row().add(area).left();
+                table.row();
+            }
         }
     }
 }

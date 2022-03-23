@@ -20,6 +20,8 @@ abstract class Path {
         private val filter = Seq<PositionWaypoint>()
         private var job: CompletableFuture<Array<PositionWaypoint>> = CompletableFuture.completedFuture(emptyArray())
         private val targetPos = Vec2(-1F, -1F)
+        val listeners = Seq<Runnable>()
+        @JvmField var repeat = false
 
         init {
             Events.on(EventType.WorldLoadEvent::class.java) { job = CompletableFuture.completedFuture(emptyArray()) }
@@ -56,7 +58,7 @@ abstract class Path {
                     }
                 }
             } else { // Not navigating
-                waypoints.set(waypoint.set(destX, destY, 16F, dist))
+                waypoints.set(waypoint.set(destX, destY, 16F, dist).run())
                 cons?.get(waypoints)
             }
 
@@ -64,8 +66,6 @@ abstract class Path {
             return waypoints
         }
     }
-    val listeners = Seq<Runnable>()
-    @JvmField var repeat = false
 
     open fun init() {
         waypoints.setShow(true)
