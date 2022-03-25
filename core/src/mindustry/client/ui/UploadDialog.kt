@@ -56,7 +56,7 @@ object UploadDialog : BaseDialog("@client.uploadtitle") {
             var doneCount = 0
             val len = images.size
             val imgs = images.filterNot { img -> img.width * img.height > 1920 * 1080 }
-            if (!BlockCommunicationSystem.logicAvailable) {
+            if (!BlockCommunicationSystem.logicAvailable && ClientVars.pluginVersion == -1) {
                 Vars.ui.chatfrag.addMessage(Core.bundle["client.placelogic"])
             } else {
                 if (imgs.size != len) Vars.ui.chatfrag.addMessage(Core.bundle["client.imagetoobig"]) // Any of the images was removed for being too large.

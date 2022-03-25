@@ -8,7 +8,9 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
@@ -203,10 +205,14 @@ public class PowerNode extends PowerBlock{
     }
 
     public void getPotentialLinks(Tile tile, Team team, Cons<Building> others){
+        getPotentialLinks(tile, team, others, true);
+    }
+
+    public void getPotentialLinks(Tile tile, Team team, Cons<Building> others, boolean skipExisting){
         Boolf<Building> valid = other -> other != null && other.tile() != tile && other.power != null &&
             (other.block.outputsPower || other.block.consumesPower || other.block instanceof PowerNode) &&
             overlaps(tile.x * tilesize + offset, tile.y * tilesize + offset, other.tile(), laserRange * tilesize) && other.team == team &&
-            !graphs.contains(other.power.graph) &&
+            !(skipExisting && graphs.contains(other.power.graph)) &&
             !PowerNode.insulated(tile, other.tile) &&
             !(other instanceof PowerNodeBuild obuild && obuild.power.links.size >= ((PowerNode)obuild.block).maxNodes) &&
             !Structs.contains(Edges.getEdges(size), p -> { //do not link to adjacent buildings
@@ -359,6 +365,7 @@ public class PowerNode extends PowerBlock{
         /** This is used for power split notifications. */
         public ChatFragment.ChatMessage message = null;
         public int disconnections = 0;
+        public byte configQueued;
 
         @Override
         public void placed(){
@@ -390,20 +397,54 @@ public class PowerNode extends PowerBlock{
                 return false;
             }
 
-            if(this == other){
-                if(other.power.links.size == 0){
+            deselect();
+            if (configQueued == 2) return false;
+
+            if(this == other){ // Double tap
+                if(other.power.links.size == 0 && configQueued == 0){ // Find and add possible links
+                    configQueued = 1;
                     int[] total = {0};
                     getPotentialLinks(tile, team, link -> {
                         if(!insulated(this, link) && total[0]++ < maxNodes){
-                            configure(link.pos());
+                            ClientVars.configs.add(() -> { // FINISHME: V7 release fixes multi point configs, use those instead
+                                if (configQueued == 1) Call.tileConfig(Vars.player, this, link.pos());
+                            });
                         }
                     });
-                }else{
-                    for (int link = power.links.size - 1; link >= 0; link--) {
-                        configure(power.links.get(link));
+                }else if(configQueued == 0){ // Clear all links
+                    configQueued = 1;
+                    for(int link = power.links.size - 1; link >= 0; link--) {
+                        var pos = power.links.get(link);
+                        ClientVars.configs.add(() -> { // FINISHME: V7 release fixes multi point configs, use those instead
+                            if (configQueued == 1) Call.tileConfig(Vars.player, this, pos);
+                        });
                     }
+                } else { // Already configuring, this is likely a quadruple click, find best links.
+                    configQueued = 2;
+                    int[] total = {0};
+                    var others = new Seq<Building>();
+                    getPotentialLinks(tile, team, link -> {
+                        if(!insulated(this, link) && total[0]++ < maxNodes) others.add(link);
+                    }, false);
+
+                    for(int link = power.links.size - 1; link >= 0; link--) {
+                        var pos = power.links.get(link);
+                        if (!others.contains(l -> l.pos() == pos)) { // Existing link not optimal, unlink it
+                            ClientVars.configs.add(() -> { // FINISHME: V7 release fixes multi point configs, use those instead
+                                Call.tileConfig(Vars.player, this, pos);
+                            });
+                        }
+                    }
+
+                    graphs.clear();
+                    others.each(l -> graphs.add(l.power.graph) && !linked(l), l -> { // Add new optimal links, skip existing optimal ones
+                        ClientVars.configs.add(() -> { // FINISHME: V7 release fixes multi point configs, use those instead
+                            Call.tileConfig(Vars.player, this, l.pos());
+                        });
+                    });
                 }
-                deselect();
+
+                ClientVars.configs.add(() -> configQueued--); // Unset the configQueued var *after* all "normal" configs are made
                 return false;
             }
 

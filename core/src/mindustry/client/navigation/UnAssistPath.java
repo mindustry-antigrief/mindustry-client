@@ -10,14 +10,12 @@ import mindustry.client.antigrief.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
-import mindustry.net.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 
 public class UnAssistPath extends Path {
     public Player target;
     public Seq<BuildPlan> toUndo = new Seq<>();
-    public Seq<ConfigRequest> toConfig = new Seq<>();
 
     { // FINISHME: Make this static as we cant even remove events and that may be a problem down the road
         // Remove placed blocks, place removed blocks
@@ -32,14 +30,14 @@ public class UnAssistPath extends Path {
         Events.on(EventType.ConfigEventBefore.class, e -> {
             if (e.player != target || e.tile == null) return;
 
-            toConfig.add(new ConfigRequest(e.tile.tileX(), e.tile.tileY(), e.tile.config()));
+            ClientVars.configs.add(new ConfigRequest(e.tile.tileX(), e.tile.tileY(), e.tile.config()));
         });
 
         // Undo block rotates
         Events.on(EventType.BlockRotateEvent.class, e -> {
             if (e.player == null || e.player != target || e.build == null) return;
 
-            toConfig.add(new ConfigRequest(e.build.tileX(), e.build.tileY(), !e.direction, true));
+            ClientVars.configs.add(new ConfigRequest(e.build.tileX(), e.build.tileY(), !e.direction, true));
         });
     }
     public UnAssistPath(Player target) {
@@ -99,14 +97,6 @@ public class UnAssistPath extends Path {
                 else Vars.player.unit().addBuild(it);
             }
         }
-
-        if (toConfig.any() && ClientVars.configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())) {
-            try {
-                toConfig.remove(0).run();
-            } catch (Exception e) {
-                Log.err(e);
-            }
-        }
     }
 
     @Override
@@ -117,7 +107,6 @@ public class UnAssistPath extends Path {
     @Override
     public void reset() {
         toUndo.clear();
-        toConfig.clear();
     }
 
     @Override

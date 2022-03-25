@@ -18,8 +18,8 @@ public class ClientVars {
     public static float travelTime = Core.settings.getInt("traveltime");
 
     // Config Queue
-    @NotNull public static LinkedBlockingDeque<Runnable> configs = new LinkedBlockingDeque<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
-    @NotNull public static Ratekeeper configRateLimit = new Ratekeeper();
+    @NotNull public static LinkedBlockingQueue<Runnable> configs = new LinkedBlockingQueue<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
+    public static int ratelimitRemaining = -1; // Number of configs that can be made safely before ratelimit reset
 
     // Hotkeys
     public static boolean showingTurrets, hidingUnits, hidingAirUnits, hidingBlocks, dispatchingBuildPlans, showingOverdrives;
@@ -32,10 +32,8 @@ public class ClientVars {
     public static long lastJoinTime; // Last time we connected to a server
     public static boolean syncing; // Whether we are in the process of reloading the world
 
-    // Cursor Position
-    public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;
-
     // Networking
+    public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;
     @NotNull public static Color encrypted = Color.valueOf("#243266"), verified = Color.valueOf("#2c9e52"), invalid = Color.valueOf("#890800"), user = Color.coral.cpy().mul(0.6f); // Encrypted = Blue, Verified = Green
     @NotNull public static String lastCertName = "";
     public static int pluginVersion;

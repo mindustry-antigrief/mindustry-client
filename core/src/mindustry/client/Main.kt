@@ -72,13 +72,15 @@ object Main : ApplicationListener {
             dispatchedBuildPlans.clear()
         }
 
-        Events.on(EventType.ServerJoinEventAfter::class.java) {
+        Events.on(EventType.ServerJoinEvent::class.java) {
             communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
             setPluginNetworking(false)
             Call.serverPacketReliable("fooCheck", "") // Request version info FINISHME: The server should just send this info on join
+            Log.info("Calling")
         }
 
         Vars.netClient.addPacketHandler("fooCheck") { version ->
+            Log.debug("Server using client plugin version $version")
             if (!Strings.canParseInt(version)) return@addPacketHandler
 
             ClientVars.pluginVersion = Strings.parseInt(version)

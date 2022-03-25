@@ -49,7 +49,7 @@ import kotlin.random.*
 object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
-    val timer = Interval(3)
+    val timer = Interval(4)
     private val circles = mutableListOf<Pair<TurretPathfindingEntity, Color>>()
 
     fun initialize() {
@@ -66,22 +66,18 @@ object Client {
         System.setProperty("jdk.tls.namedGroups", "secp256r1")
     }
 
-    var dumb = false
     fun update() {
-        if (dumb) {
-            world.tiles.eachTile { t ->
-                if (t.block() == Blocks.air || t.block() == Blocks.copperWall) t.setBlock(if (Mathf.randomBoolean()) Blocks.copperWall else Blocks.air)
-            }
-            dumb = false
-        }
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
 
         if (!configs.isEmpty()) {
             try {
-                if (configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L + 1000, Administration.Config.interactRateLimit.num() - 1)) {
-                    configs.removeLast().run()
+                if (timer.get(3, (Administration.Config.interactRateWindow.num() + 1) * 60F)) { // Reset ratelimit, extra second to account for server lag
+                    ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1
+                }
+                if (ratelimitRemaining > 0 || !net.client()) { // Run the config NOTE: Counter decremented in InputHandler and not here so that manual configs don't cause issues
+                    configs.poll().run()
                 }
             } catch (e: Exception) {
                 Log.err(e)
@@ -298,8 +294,9 @@ object Client {
 
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
             player.sendMessage(
+                if (pluginVersion != -1) "[accent]Using plugin communication" else // FINISHME: Bundle
                 BlockCommunicationSystem.findProcessor()?.run { "[accent]Using a logic block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
-                BlockCommunicationSystem.findMessage()?.run { "[accent]Using a message block at (${tileX()}, ${tileY()})" } ?:// FINISHME: Bundle
+                BlockCommunicationSystem.findMessage()?.run { "[accent]Using a message block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
                 "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)" // FINISHME: Bundle
             )
         }
@@ -368,7 +365,7 @@ object Client {
                 }
                 Core.app.post {
                     if (confirmed) {
-                        if (inProgress) player.sendMessage("The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
+                        if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
                         else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
                     } else {
                         player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
@@ -449,7 +446,7 @@ object Client {
 
             connectTls(certname) { comms, cert ->
                 comms.send(MessageTransmission(msg))
-                ui.chatfrag.addMessage(msg, "[coral]" + (Main.keyStorage.cert()?.readableName ?: "you") + "[white] -> [white]" + Main.keyStorage.aliasOrName(cert), encrypted)
+                ui.chatfrag.addMessage(msg, "[coral]${Main.keyStorage.cert()?.readableName ?: "you"} [white]-> ${Main.keyStorage.aliasOrName(cert)}", encrypted)
                 lastCertName = cert.readableName
             }
         }
@@ -472,15 +469,17 @@ object Client {
         }
 
         register("mapinfo", "Lists various useful map info.") { _, player ->
-            player.sendMessage("""
-                [accent]Name: ${state.map.name()}[accent] (by: ${state.map.author()}[accent])
-                Map Time: ${UI.formatTime(state.tick.toFloat())}
-                Build Speed (Unit Factories): ${state.rules.buildSpeedMultiplier}x (${state.rules.unitBuildSpeedMultiplier}x)
-                Build Cost (Refund): ${state.rules.buildCostMultiplier}x (${state.rules.deconstructRefundMultiplier}x)
-                Core Capture: ${state.rules.coreCapture}
-                Core Incinerates: ${state.rules.coreIncinerates}
-                Core Modifies Unit Cap: ${state.rules.unitCapVariable}
-            """.trimIndent())
+            player.sendMessage(with(state) {
+                """
+                [accent]Name: ${map.name()}[accent] (by: ${map.author()}[accent])
+                Map Time: ${UI.formatTime(tick.toFloat())}
+                Build Speed (Unit Factories): ${rules.buildSpeedMultiplier}x (${rules.unitBuildSpeedMultiplier}x)
+                Build Cost (Refund): ${rules.buildCostMultiplier}x (${rules.deconstructRefundMultiplier}x)
+                Core Capture: ${rules.coreCapture}
+                Core Incinerates: ${rules.coreIncinerates}
+                Core Modifies Unit Cap: ${rules.unitCapVariable}
+                """.trimIndent()
+            })
         }
     }
 

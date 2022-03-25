@@ -2,6 +2,7 @@ package mindustry.client.communication
 
 import arc.util.*
 import mindustry.*
+import mindustry.client.utils.*
 import mindustry.gen.*
 
 object PluginCommunicationSystem : CommunicationSystem() {
@@ -11,14 +12,15 @@ object PluginCommunicationSystem : CommunicationSystem() {
     override val RATE = 15f // 250ms
 
     override fun send(bytes: ByteArray) {
-        Call.serverPacketReliable("fooTransmission", Base32768Coder.encode(bytes))
+        Call.serverPacketReliable("fooTransmission", bytes.base64())
     }
 
     override fun init() {
         Vars.netClient.addPacketHandler("fooTransmission") { data ->
             val sender = Strings.parseInt(data.substringBefore(' '))
-            if (sender == Vars.player.id || !Groups.player.contains { it.id == sender }) return@addPacketHandler
-            val input = Base32768Coder.decode(data.substringAfter(' '))
+            if (!Groups.player.contains { it.id == sender }) return@addPacketHandler
+            val input = data.substringAfter(' ').base64() ?: return@addPacketHandler
+            Vars.player.locale
             listeners.forEach {
                 it(input, sender)
             }
