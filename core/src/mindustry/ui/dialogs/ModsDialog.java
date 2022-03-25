@@ -1,6 +1,8 @@
 package mindustry.ui.dialogs;
 
 import arc.*;
+import arc.backend.sdl.*;
+import arc.backend.sdl.jni.*;
 import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;
@@ -353,11 +355,15 @@ public class ModsDialog extends BaseDialog{
 
             try{
                 Fi jar = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-                Runtime.getRuntime().exec(OS.isMac ?
-                    new String[]{javaPath, "-XstartOnFirstThread", "-jar", jar.absolutePath()} :
-                    new String[]{javaPath, "-jar", jar.absolutePath()}
-                );
-            }catch(IOException ignored){} // If we can't find java, just close the game
+                Seq<String> args = Seq.with(javaPath);
+                args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
+                if(OS.isMac) args.add("-XstartOnFirstThread");
+                args.addAll("-jar", jar.absolutePath(), "-firstThread");
+
+                var process = new ProcessBuilder(args.toArray(String.class)).inheritIO().start();
+                if(Core.app instanceof SdlApplication app) SDL.SDL_DestroyWindow(app.getWindow());
+                process.waitFor();
+            }catch(Exception ignored){} // If we can't find java, just close the game
             Core.app.exit();
         });
     }
