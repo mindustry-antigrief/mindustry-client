@@ -65,10 +65,14 @@ object Main : ApplicationListener {
         Navigation.navigator = AStarNavigator
 
         Events.on(EventType.WorldLoadEvent::class.java) {
+            if (!Vars.net.client()) { // This is so scuffed but shh
+                setPluginNetworking(false)
+                Call.serverPacketReliable("fooCheck", "")
+            }
             dispatchedBuildPlans.clear()
         }
 
-        Events.on(EventType.ServerJoinEvent::class.java) {
+        Events.on(EventType.ServerJoinEventAfter::class.java) {
             communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
             setPluginNetworking(false)
             Call.serverPacketReliable("fooCheck", "") // Request version info FINISHME: The server should just send this info on join

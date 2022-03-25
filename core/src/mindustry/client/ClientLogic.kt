@@ -22,7 +22,7 @@ import mindustry.world.blocks.logic.*
 class ClientLogic {
     /** Create event listeners */
     init {
-        Events.on(EventType.ServerJoinEvent::class.java) { // Run when the player joins a server
+        Events.on(EventType.ServerJoinEvent::class.java) { // Run just before the player joins a server
             Navigation.stopFollowing()
             Spectate.pos = null
         }
