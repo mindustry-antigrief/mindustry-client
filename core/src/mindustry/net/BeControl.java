@@ -1,8 +1,11 @@
 package mindustry.net;
 
 import arc.*;
+import arc.backend.sdl.*;
+import arc.backend.sdl.jni.*;
 import arc.files.*;
 import arc.func.*;
+import arc.struct.*;
 import arc.util.*;
 import arc.util.async.*;
 import arc.util.serialization.*;
@@ -196,12 +199,16 @@ public class BeControl{
             download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                 try{
                     Log.info(file.absolutePath());
-                    Runtime.getRuntime().exec(OS.isMac ?
-                        new String[]{javaPath, "-XstartOnFirstThread", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                        new String[]{javaPath, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
-                    );
-                    Core.app.exit();
-                }catch(IOException e){
+
+                    Seq<String> args = Seq.with(javaPath);
+                    args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
+                    if(OS.isMac) args.add("-XstartOnFirstThread");
+                    args.addAll("-Dberestart", "-Dbecopy=", fileDest.absolutePath(), "-jar", file.absolutePath(), "-firstThread");
+
+                    var process = new ProcessBuilder(args.toArray(String.class)).inheritIO().start();
+                    if(Core.app instanceof SdlApplication app) SDL.SDL_DestroyWindow(app.getWindow());
+                    process.waitFor();
+                }catch(Exception e){
                     dialog.cont.clearChildren();
                     dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
                     dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);

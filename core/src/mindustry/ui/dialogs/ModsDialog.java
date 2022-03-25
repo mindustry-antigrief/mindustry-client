@@ -1,6 +1,8 @@
 package mindustry.ui.dialogs;
 
 import arc.*;
+import arc.backend.sdl.*;
+import arc.backend.sdl.jni.*;
 import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;
@@ -348,7 +350,22 @@ public class ModsDialog extends BaseDialog{
     }
 
     private void reload(){
-        ui.showInfoOnHidden("@mods.reloadexit", () -> Core.app.exit());
+        ui.showInfoOnHidden("@mods.reloadexit", () -> {
+            Log.info("Exiting to reload mods.");
+
+            try{
+                Fi jar = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                Seq<String> args = Seq.with(javaPath);
+                args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
+                if(OS.isMac) args.add("-XstartOnFirstThread");
+                args.addAll("-jar", jar.absolutePath(), "-firstThread");
+
+                var process = new ProcessBuilder(args.toArray(String.class)).inheritIO().start();
+                if(Core.app instanceof SdlApplication app) SDL.SDL_DestroyWindow(app.getWindow());
+                process.waitFor();
+            }catch(Exception ignored){} // If we can't find java, just close the game
+            Core.app.exit();
+        });
     }
 
     private void showMod(LoadedMod mod){
