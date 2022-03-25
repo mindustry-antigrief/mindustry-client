@@ -352,10 +352,10 @@ public class ModsDialog extends BaseDialog{
             Log.info("Exiting to reload mods.");
 
             try{
-                Log.info(file.absolutePath());
+                Fi jar = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
                 Runtime.getRuntime().exec(OS.isMac ?
-                    new String[]{javaPath, "-XstartOnFirstThread", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                    new String[]{javaPath, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
+                    new String[]{javaPath, "-XstartOnFirstThread", "-jar", jar.absolutePath()} :
+                    new String[]{javaPath, "-jar", jar.absolutePath()}
                 );
             }catch(IOException ignored){} // If we can't find java, just close the game
             Core.app.exit();
