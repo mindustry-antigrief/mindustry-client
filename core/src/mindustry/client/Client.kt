@@ -389,7 +389,7 @@ object Client {
                     ui.settings.show()
                     ui.settings.visible(4)
                 }
-                "l", "leaves" -> if (leaves != null) leaves!!.leftList() else player.sendMessage("[scarlet]Leave logs are disabled")
+                "l", "leaves" -> leaves?.leftList() ?: player.sendMessage("[scarlet]Leave logs are disabled")
                 else -> player.sendMessage("[scarlet]Invalid option specified, options are:\nSettings, Leaves")
             }
         }
