@@ -200,8 +200,6 @@ allprojects{
         }
     }
 
-    compileKotlin.kotlinOptions.jvmTarget = "1.8"
-
     tasks.withType(JavaCompile){
         targetCompatibility = JavaVersion.VERSION_1_8
         sourceCompatibility = JavaVersion.VERSION_16

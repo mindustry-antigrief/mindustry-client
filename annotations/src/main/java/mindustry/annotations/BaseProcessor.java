@@ -123,29 +123,31 @@ public abstract class BaseProcessor extends AbstractProcessor{
     }
 
     public static void write(TypeSpec.Builder builder, Seq<String> imports) throws Exception{
+        builder.superinterfaces.sort(Structs.comparing(t -> t.toString()));
+        builder.methodSpecs.sort(Structs.comparing(m -> m.toString()));
+        builder.fieldSpecs.sort(Structs.comparing(f -> f.name));
+
         JavaFile file = JavaFile.builder(packageName, builder.build()).skipJavaLangImports(true).build();
 
+        String out = file.toString();
         if(imports != null){
-            String rawSource = file.toString();
+            imports = imports.map(m -> Seq.with(m.split("\n")).sort().toString("\n"));
+            imports.sort();
             Seq<String> result = new Seq<>();
-            for(String s : rawSource.split("\n", -1)){
+            for(String s : out.split("\n", -1)){
                 result.add(s);
-                if (s.startsWith("package ")){
+                if(s.startsWith("package ")){
                     result.add("");
-                    for (String i : imports){
-                        result.add(i);
-                    }
+                    result.addAll(imports);
                 }
             }
 
-            String out = result.toString("\n");
-            JavaFileObject object = filer.createSourceFile(file.packageName + "." + file.typeSpec.name, file.typeSpec.originatingElements.toArray(new Element[0]));
-            OutputStream stream = object.openOutputStream();
-            stream.write(out.getBytes());
-            stream.close();
-        }else{
-            file.writeTo(filer);
+            out = result.toString("\n");
         }
+        JavaFileObject object = filer.createSourceFile(file.packageName + "." + file.typeSpec.name, file.typeSpec.originatingElements.toArray(new Element[0]));
+        Writer writer = object.openWriter();
+        writer.write(out);
+        writer.close();
     }
 
     public Seq<Selement> elements(Class<? extends Annotation> type){
