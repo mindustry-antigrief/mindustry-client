@@ -732,7 +732,6 @@ public class EntityProcess extends BaseProcessor{
 
             //implement each definition
             for(EntityDefinition def : definitions){
-
                 ObjectSet<String> methodNames = def.components.flatMap(type -> type.methods().map(Smethod::simpleString)).<String>as().asSet();
 
                 //add base class extension if it exists
@@ -813,7 +812,7 @@ public class EntityProcess extends BaseProcessor{
             //store nulls
             TypeSpec.Builder nullsBuilder = TypeSpec.classBuilder("Nulls").addModifiers(Modifier.PUBLIC).addModifiers(Modifier.FINAL);
             //TODO should be dynamic
-            ObjectSet<String> nullList = ObjectSet.with("unit");
+            ObjectSet<String> nullList = ObjectSet.with("unit", "player");
 
             //create mock types of all components
             for(Stype interf : allInterfaces){

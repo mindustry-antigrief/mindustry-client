@@ -13,6 +13,8 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import kotlin.text.*;
 import mindustry.*;
+import mindustry.ai.formations.*;
+import mindustry.ai.formations.patterns.*;
 import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
@@ -574,6 +576,14 @@ public class NetClient implements ApplicationListener{
         Core.app.post(Call::connectConfirm);
         Time.runTask(40f, platform::updateRPC);
         Core.app.post(ui.loadfrag::hide);
+        Core.app.post(() -> { // We already command on sync, the player's formation var isn't set correctly, so we have to set it here as well.
+            var units = Groups.unit.array.select(it -> it.controller().isBeingControlled(Vars.player.unit()));
+            if (units.any()) {
+                var formation = new Formation(new Vec3(Vars.player.x, Vars.player.y, Vars.player.unit().rotation), new CircleFormation());
+                Vars.player.unit().formation = formation;
+                formation.addMembers(units.map(it -> (FormationAI)it.controller()));
+            }
+        });
     }
 
     private void reset(){

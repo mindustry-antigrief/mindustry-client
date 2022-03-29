@@ -12,7 +12,7 @@ import java.util.concurrent.*;
 
 public class ClientVars {
     // Misc
-    public static short silentTrace; // How many traces to do silently (this is pretty 0head but shh)
+    public static byte silentTrace; // How many traces to do silently (this is pretty 0head but shh)
     public static IntMap<Object> processorConfigs = new IntMap<>();
     public static float spawnTime = 60f * Core.settings.getInt("spawntime");
     public static float travelTime = Core.settings.getInt("traveltime");
@@ -23,7 +23,7 @@ public class ClientVars {
 
     // Hotkeys
     public static boolean showingTurrets, hidingUnits, hidingAirUnits, hidingBlocks, dispatchingBuildPlans, showingOverdrives;
-    @NotNull public static Seq<OverdriveProjector.OverdriveBuild> overdrives = new Seq<>(); // For whatever reason the stupid allBuildings method hates me so im just not using it
+    @NotNull public static Seq<OverdriveProjector.OverdriveBuild> overdrives = new Seq<>(); // For whatever reason the stupid allBuildings method hates me so im just not using it FINISHME: Replace this by just expanding block clipsize and drawing a circle in the draw method rather than using this
 
     // Commands
     @NotNull public static CommandHandler clientCommandHandler = new CommandHandler("!");
