@@ -50,11 +50,16 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     private final Seq<BuildPlan> freed = new Seq<>();
     private CompletableFuture<Void> job = null;
 
-    {
+    static {
         Events.on(EventType.WorldLoadEvent.class, e -> { // Account for changing world sizes
-            blocked = new GridBits(world.width(), world.height());
-            blockedPlayer = new GridBits(world.width(), world.height());
+            if (Navigation.currentlyFollowing instanceof BuildPath bp) {
+                bp.blocked = new GridBits(world.width(), world.height());
+                bp.blockedPlayer = new GridBits(world.width(), world.height());
+            }
         });
+    }
+
+    {
         addListener(pool::clear); // Remove the unneeded items on path end
     }
 
@@ -83,7 +88,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
             switch (arg.toLowerCase()) {
                 case "all", "*" -> queues.addAll(broken, assist, unfinished, networkAssist, drills, belts);
                 case "self", "me" -> self = true;
-                case "broken", "destroyed", "dead", "killed", "rebuild" -> queues.add(broken);
+                case "broken", "destroyed", "dead", "killed", "rebuild", "b", "br" -> queues.add(broken);
                 case "boulders", "rocks" -> queues.add(boulders);
                 case "assist", "help" -> queues.add(assist);
                 case "unfinished", "finish" -> queues.add(unfinished);
@@ -91,7 +96,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                 case "networkassist", "na", "network" -> queues.add(networkAssist);
                 case "virus" -> queues.add(virus); // Intentionally undocumented due to potential false positives
                 case "drills", "mines", "mine", "drill", "d" -> queues.add(drills);
-                case "belts", "conveyors", "conduits", "pipes", "ducts", "tubes", "b" -> queues.add(belts);
+                case "belts", "conveyors", "conduits", "pipes", "ducts", "tubes", "be" -> queues.add(belts);
                 case "upgrade", "upgrades", "u" -> queues.addAll(drills, belts);
                 case "overdrives", "od" -> queues.add(overdrives);
                 default -> {

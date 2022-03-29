@@ -17,29 +17,30 @@ public class UnAssistPath extends Path {
     public Player target;
     public Seq<BuildPlan> toUndo = new Seq<>();
 
-    { // FINISHME: Make this static as we cant even remove events and that may be a problem down the road
+    static {
         // Remove placed blocks, place removed blocks
         Events.on(EventType.BlockBuildBeginEventBefore.class, e -> {
-            if (e.unit == null || e.unit != target.unit() || e.tile == null || (e.breaking && !e.tile.block().isVisible())) return;
+            if (e.tile == null || !(Navigation.currentlyFollowing instanceof UnAssistPath p) || e.unit != p.target.unit() || (e.breaking && !e.tile.block().isVisible())) return;
 
-            if (e.breaking) toUndo.add(new BuildPlan(e.tile.x, e.tile.y, e.tile.build == null ? 0 : e.tile.build.rotation, e.tile.block(), e.tile.build == null ? null : e.tile.build.config()));
-            else toUndo.add(new BuildPlan(e.tile.x, e.tile.y));
+            if (e.breaking) p.toUndo.add(new BuildPlan(e.tile.x, e.tile.y, e.tile.build == null ? 0 : e.tile.build.rotation, e.tile.block(), e.tile.build == null ? null : e.tile.build.config()));
+            else p.toUndo.add(new BuildPlan(e.tile.x, e.tile.y));
         });
 
         // Undo configs
         Events.on(EventType.ConfigEventBefore.class, e -> {
-            if (e.player != target || e.tile == null) return;
+            if (e.tile == null || !(Navigation.currentlyFollowing instanceof UnAssistPath p) || e.player != p.target) return;
 
-            ClientVars.configs.add(new ConfigRequest(e.tile.tileX(), e.tile.tileY(), e.tile.config()));
+            ClientVars.configs.add(new ConfigRequest(e.tile, e.tile.config()));
         });
 
         // Undo block rotates
         Events.on(EventType.BlockRotateEvent.class, e -> {
-            if (e.player == null || e.player != target || e.build == null) return;
+            if (e.build == null || !(Navigation.currentlyFollowing instanceof UnAssistPath p) || e.player != p.target) return;
 
-            ClientVars.configs.add(new ConfigRequest(e.build.tileX(), e.build.tileY(), !e.direction, true));
+            ClientVars.configs.add(new ConfigRequest(e.build, !e.direction, true));
         });
     }
+
     public UnAssistPath(Player target) {
         this.target = target;
     }

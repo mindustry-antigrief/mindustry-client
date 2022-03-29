@@ -29,6 +29,7 @@ import mindustry.service.*;
 import mindustry.type.*;
 
 import java.io.*;
+import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
 
@@ -112,16 +113,20 @@ public class DesktopLauncher extends ClientLauncher{
     public void startDiscord() {
         if(useDiscord){
             try{
-                DiscordRPC.connect(discordID);
-                Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::close));
-                Log.info("Initialized Discord rich presence.");
-            }catch(NoDiscordClientException none){
-                useDiscord = false;
-                Log.debug("Not initializing Discord RPC - no discord instance open.");
-            }catch(Throwable t){
-                useDiscord = false;
-                Log.warn("Failed to initialize Discord RPC - you are likely using a JVM <16.");
-            }
+                new FutureTask<Void>(() -> {
+                    try{
+                        DiscordRPC.connect(discordID);
+                        Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::close));
+                        Log.info("Initialized Discord rich presence.");
+                    }catch(NoDiscordClientException none){
+                        useDiscord = false;
+                        Log.debug("Not initializing Discord RPC - no discord instance open.");
+                    }catch(Throwable t){
+                        useDiscord = false;
+                        Log.warn("Failed to initialize Discord RPC - you are likely using a JVM <16.");
+                    }
+                }, null).get(500, TimeUnit.MILLISECONDS);
+            } catch (ExecutionException | InterruptedException | TimeoutException ignored) {}
         }
     }
 

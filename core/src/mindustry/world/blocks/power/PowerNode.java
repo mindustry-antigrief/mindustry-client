@@ -8,9 +8,9 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
+import mindustry.client.antigrief.*;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
@@ -363,21 +363,39 @@ public class PowerNode extends PowerBlock{
     public class PowerNodeBuild extends Building{
 
         /** This is used for power split notifications. */
-        public ChatFragment.ChatMessage message = null;
+        public @Nullable ChatFragment.ChatMessage message;
         public int disconnections = 0;
-        public byte configQueued;
 
         @Override
         public void placed(){
-            if(!net.client()) {
-                getPotentialLinks(tile, team, other -> {
-                    if(!power.links.contains(other.pos())){
-                        configureAny(other.pos());
-                    }
-                });
-                super.placed();
-            }
+            if(net.client() || power.links.size > 0) return;
+
+            getPotentialLinks(tile, team, other -> {
+                if(!power.links.contains(other.pos())){
+                    configureAny(other.pos());
+                }
+            });
+
+            super.placed();
         }
+
+//        @Override
+//        public void playerPlaced(Object config) { FINISHME: Make this work, maybe an IntObjectMap with Entry<pos, Seq<linkPos>>
+//            super.playerPlaced(config);
+//
+//            if(net.client() && config instanceof Point2[] t){ // Fix incorrect power node linking in schems
+//                var current = new Seq<Point2>();
+//                getPotentialLinks(tile, team, other -> { // The server hasn't sent us the links yet, emulate how it would look if it had
+//                    if(!power.links.contains(other.pos())) current.add(new Point2(other.tile.x, other.tile.y).sub(tile.x, tile.y));
+//                });
+//
+//                Log.info(Arrays.toString(t) + " | " + current);
+//                current.each(l -> !Structs.contains(t, l), l -> { // Remove extra links.
+//                    ClientVars.configs.add(new ConfigRequest(this, l.add(tile.x, tile.y).pack()));
+//                    Log.info(tileX() + ", " + tileY() + " | " + l.x + tile.x + ", " + l.y + tile.y);
+//                });
+//            }
+//        }
 
         @Override
         public void dropped(){
@@ -397,54 +415,21 @@ public class PowerNode extends PowerBlock{
                 return false;
             }
 
-            deselect();
-            if (configQueued == 2) return false;
-
             if(this == other){ // Double tap
-                if(other.power.links.size == 0 && configQueued == 0){ // Find and add possible links
-                    configQueued = 1;
+                if(other.power.links.size == 0 ^ Core.input.shift()){ // Find and add possible links (shift to toggle modes)
                     int[] total = {0};
                     getPotentialLinks(tile, team, link -> {
                         if(!insulated(this, link) && total[0]++ < maxNodes){
-                            ClientVars.configs.add(() -> { // FINISHME: V7 release fixes multi point configs, use those instead
-                                if (configQueued == 1) Call.tileConfig(Vars.player, this, link.pos());
-                            });
+                            ClientVars.configs.add(new ConfigRequest(this, link.pos())); // FINISHME: V7 release fixes multi point configs, use those instead
                         }
                     });
-                }else if(configQueued == 0){ // Clear all links
-                    configQueued = 1;
-                    for(int link = power.links.size - 1; link >= 0; link--) {
+                }else{ // Clear all links
+                    for(int link = power.links.size - 1; link >= 0; link--){
                         var pos = power.links.get(link);
-                        ClientVars.configs.add(() -> { // FINISHME: V7 release fixes multi point configs, use those instead
-                            if (configQueued == 1) Call.tileConfig(Vars.player, this, pos);
-                        });
+                        ClientVars.configs.add(new ConfigRequest(this, pos)); // FINISHME: V7 release fixes multi point configs, use those instead
                     }
-                } else { // Already configuring, this is likely a quadruple click, find best links.
-                    configQueued = 2;
-                    int[] total = {0};
-                    var others = new Seq<Building>();
-                    getPotentialLinks(tile, team, link -> {
-                        if(!insulated(this, link) && total[0]++ < maxNodes) others.add(link);
-                    }, false);
-
-                    for(int link = power.links.size - 1; link >= 0; link--) {
-                        var pos = power.links.get(link);
-                        if (!others.contains(l -> l.pos() == pos)) { // Existing link not optimal, unlink it
-                            ClientVars.configs.add(() -> { // FINISHME: V7 release fixes multi point configs, use those instead
-                                Call.tileConfig(Vars.player, this, pos);
-                            });
-                        }
-                    }
-
-                    graphs.clear();
-                    others.each(l -> graphs.add(l.power.graph) && !linked(l), l -> { // Add new optimal links, skip existing optimal ones
-                        ClientVars.configs.add(() -> { // FINISHME: V7 release fixes multi point configs, use those instead
-                            Call.tileConfig(Vars.player, this, l.pos());
-                        });
-                    });
                 }
-
-                ClientVars.configs.add(() -> configQueued--); // Unset the configQueued var *after* all "normal" configs are made
+                deselect();
                 return false;
             }
 

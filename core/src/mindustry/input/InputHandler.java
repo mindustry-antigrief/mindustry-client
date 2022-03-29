@@ -923,7 +923,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        while (added-- > 0) player.unit().addBuild(temp[added]);
+        for (int i = 0; i < added; i++) player.unit().addBuild(temp[i]);
     }
 
     protected void drawOverRequest(BuildPlan request, boolean valid){
@@ -1272,7 +1272,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public boolean canShoot(){
-        return block == null && !onConfigurable() && !isDroppingItem() && !player.unit().activelyBuilding() &&
+        return !onConfigurable() && !isDroppingItem() && !player.unit().activelyBuilding() &&
             !(player.unit() instanceof Mechc && player.unit().isFlying()) && !player.unit().mining();
     }
 

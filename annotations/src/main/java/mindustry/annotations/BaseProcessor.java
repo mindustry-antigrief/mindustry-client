@@ -141,7 +141,6 @@ public abstract class BaseProcessor extends AbstractProcessor{
                     result.addAll(imports);
                 }
             }
-
             out = result.toString("\n");
         }
         JavaFileObject object = filer.createSourceFile(file.packageName + "." + file.typeSpec.name, file.typeSpec.originatingElements.toArray(new Element[0]));
