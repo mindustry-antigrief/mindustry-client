@@ -318,9 +318,9 @@ public class ChatFragment extends Table{
                     continue;
                 }
                 for(var pair : entry.value){
-                    String cmd = pair.first;
+                    String cmd = pair.getFirst();
                     if(tmp.startsWith(cmd)){
-                        String replace = pair.second.get();
+                        String replace = pair.getSecond().get();
                         messageBuild.replace(pos, pos + cmd.length() + 1, replace);
                         pos += replace.length() - 1;
                         break;

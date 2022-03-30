@@ -427,10 +427,6 @@ public class Logic implements ApplicationListener{
             if(!net.client() && !world.isInvalidMap() && !state.isEditor() && state.rules.canGameOver){
                 checkGameState();
             }
-
-            if(!configs.isEmpty() && configRateLimit.allow(Administration.Config.interactRateWindow.num() * 1000L, Administration.Config.interactRateLimit.num())){
-                configs.removeFirst().run();
-            }
         }
     }
 
