@@ -20,7 +20,7 @@ class NTP {
             address = InetAddress.getByName("pool.ntp.org")
             timeClient.defaultTimeout = 5000 // For whatever reason, sometimes it just fails
 
-            Threads.daemon {
+            Threads.daemon("NTP") {
                 while (true) {
                     try {
                         val time = fetchTime()

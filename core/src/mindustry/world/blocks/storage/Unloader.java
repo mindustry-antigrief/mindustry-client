@@ -13,6 +13,8 @@ import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.meta.*;
 
+import java.util.*;
+
 import static mindustry.Vars.*;
 
 public class Unloader extends Block{
@@ -68,6 +70,17 @@ public class Unloader extends Block{
         }
 
         public int[] lastUsed;
+
+        protected Comparator<ContainerStat> comparator = Structs.comps(
+            Structs.comps(
+                Structs.comparingBool(e -> e.building.block.highUnloadPriority && !e.canLoad),
+                Structs.comparingBool(e -> e.canUnload && !e.canLoad)
+            ),
+            Structs.comps(
+                Structs.comparingFloat(e -> e.loadFactor),
+                Structs.comparingInt(e -> -lastUsed[e.index])
+            )
+        );
 
         @Override
         public void updateTile(){
@@ -143,18 +156,7 @@ public class Unloader extends Block{
                 }
 
                 //sort so it gives full priority to blocks that can give but not receive (stackConveyors and Storage), and then by load, and then by last use
-                possibleBlocks.sort(
-                    Structs.comps(
-                        Structs.comps(
-                            Structs.comparingBool(e -> e.building.block.highUnloadPriority && !e.canLoad),
-                            Structs.comparingBool(e -> e.canUnload && !e.canLoad)
-                        ),
-                        Structs.comps(
-                            Structs.comparingFloat(e -> e.loadFactor),
-                            Structs.comparingInt(e -> -lastUsed[e.index])
-                        )
-                    )
-                );
+                possibleBlocks.sort(comparator);
 
                 ContainerStat dumpingFrom = null;
                 ContainerStat dumpingTo = null;
@@ -215,7 +217,7 @@ public class Unloader extends Block{
 
         @Override
         public void buildConfiguration(Table table){
-            ItemSelection.buildTable(Unloader.this, table, content.items(), () -> sortItem, this::configure);
+            ItemSelection.buildTable(Unloader.this, table, content.items(), () -> sortItem, this::configure, selectionRows, selectionColumns);
         }
 
         @Override

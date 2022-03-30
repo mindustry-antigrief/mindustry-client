@@ -8,7 +8,7 @@ ext.getServerFolder = {
 }
 
 task run(dependsOn: classes, type: JavaExec){
-    main = project.mainClassName
+    mainClass = project.mainClassName
     classpath = sourceSets.main.runtimeClasspath
     standardInput = System.in
     workingDir = project.assetsDir
@@ -22,7 +22,7 @@ task run(dependsOn: classes, type: JavaExec){
 }
 
 task debug(dependsOn: classes, type: JavaExec){
-    main = project.mainClassName
+    mainClass = project.mainClassName
     classpath = sourceSets.main.runtimeClasspath
     standardInput = System.in
     workingDir = project.assetsDir
@@ -49,6 +49,7 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
     manifest{
         attributes 'Main-Class': project.mainClassName
     }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 task dzip(type: Zip){

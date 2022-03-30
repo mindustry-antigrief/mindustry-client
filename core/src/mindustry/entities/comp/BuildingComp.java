@@ -421,7 +421,6 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         if(unit.isPlayer()){
             unit.getPlayer().clearUnit();
-            if(unit.isLocal()) unit.getPlayer().persistPlans();
         }
 
         unit.remove();

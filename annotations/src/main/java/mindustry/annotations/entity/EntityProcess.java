@@ -409,7 +409,7 @@ public class EntityProcess extends BaseProcessor{
                         err("Type " + type + " has multiple components implementing non-void method " + entry.key + ".");
                     }
 
-                    entry.value.sort(Structs.comps(Structs.comparingFloat(m -> m.has(MethodPriority.class) ? m.annotation(MethodPriority.class).value() : 0), Structs.comparing(Selement::name)));
+                    entry.value.sort(Structs.comps(Structs.comparingFloat(m -> m.has(MethodPriority.class) ? m.annotation(MethodPriority.class).value() : 0), Structs.comparing(s -> s.up().getSimpleName().toString())));
 
                     //representative method
                     Smethod first = entry.value.first();
@@ -545,6 +545,7 @@ public class EntityProcess extends BaseProcessor{
                     builder.addSuperinterface(Poolable.class);
                     //implement reset()
                     MethodSpec.Builder resetBuilder = MethodSpec.methodBuilder("reset").addModifiers(Modifier.PUBLIC);
+                    allFieldSpecs.sortComparing(s -> s.name);
                     for(FieldSpec spec : allFieldSpecs){
                         @Nullable Svar variable = specVariables.get(spec);
                         if(variable != null && variable.isAny(Modifier.STATIC, Modifier.FINAL)) continue;
@@ -731,7 +732,6 @@ public class EntityProcess extends BaseProcessor{
 
             //implement each definition
             for(EntityDefinition def : definitions){
-
                 ObjectSet<String> methodNames = def.components.flatMap(type -> type.methods().map(Smethod::simpleString)).<String>as().asSet();
 
                 //add base class extension if it exists
@@ -812,7 +812,7 @@ public class EntityProcess extends BaseProcessor{
             //store nulls
             TypeSpec.Builder nullsBuilder = TypeSpec.classBuilder("Nulls").addModifiers(Modifier.PUBLIC).addModifiers(Modifier.FINAL);
             //TODO should be dynamic
-            ObjectSet<String> nullList = ObjectSet.with("unit");
+            ObjectSet<String> nullList = ObjectSet.with("unit", "player");
 
             //create mock types of all components
             for(Stype interf : allInterfaces){

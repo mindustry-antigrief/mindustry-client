@@ -6,39 +6,37 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.utils.*
+import mindustry.game.*
 import mindustry.gen.*
 import mindustry.type.*
 
-class MinePath : Path {
-    var items = Seq<Item>()
-    var cap = Core.settings.getInt("minepathcap")
+class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().type.mineItems, var cap: Int = Core.settings.getInt("minepathcap"), val newGame: Boolean = false) : Path() {
     private var lastItem: Item? = null // Last item mined
+    private var timer = Interval()
 
-    constructor() {
-        items = player.unit().type.mineItems
+    companion object {
+        init {
+            Events.on(EventType.WorldLoadEvent::class.java) {
+                (Navigation.currentlyFollowing as? MinePath)?.lastItem = null // Reset on world load to prevent stupidity
+            }
+        }
     }
+    constructor(args: String) : this(Seq()) {
+        val split = args.split("\\s".toRegex())
+        for (a in split) {
+            content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.run(items::add) ?:
+            if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
+            else if (Strings.canParseInt(a)) cap = a.toInt().coerceAtLeast(0) // Specified cap, <= 0 results in infinite cap
+            else player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
+        }
 
-    constructor(mineItems: Seq<Item>, cap: Int) {
-        items = mineItems
-        this.cap = cap
+        if (items.isEmpty) {
+            items = player.unit().type.mineItems
+            if (split.none { Strings.parseInt(it) > 0 }) player.sendMessage("client.path.miner.allinvalid".bundle())
+        } else {
+            player.sendMessage(Core.bundle.format("client.path.miner.mining", items.joinToString(), if (cap == 0) "∞" else cap))
+        }
     }
-
-constructor(args: String) {
-    val split = args.split("\\s".toRegex())
-    for (a in split) {
-        content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.run(items::add) ?:
-        if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
-        else if (Strings.parseInt(a) > 0) cap = a.toInt()
-        else player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
-    }
-
-    if (items.isEmpty) {
-        if (split.none { Strings.parseInt(it) > 0 }) player.sendMessage("client.path.miner.allinvalid".bundle())
-        items = player.unit().type.mineItems
-    } else {
-        player.sendMessage(Core.bundle.format("client.path.miner.mining", items.joinToString(), if (cap == 0) "infinite" else cap))
-    }
-}
 
     override fun setShow(show: Boolean) = Unit
     override fun getShow() = false
@@ -46,11 +44,11 @@ constructor(args: String) {
     override fun follow() {
         val core = player.closestCore() ?: return
         var item = items.min({ indexer.hasOre(it) && player.unit().canMine(it) }) { core.items[it].toFloat() } ?: return
-        if (lastItem != null && core.items[lastItem] - core.items[item] < 100) item = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
+        if (lastItem != null && player.unit().canMine(lastItem) && core.items[lastItem] - core.items[item] < 100) item = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
         lastItem = item
-        if (cap < core.storageCapacity && core.items[item] >= core.storageCapacity || cap != 0 && core.items[item] > cap) {  // Auto switch to BuildPath when core is sufficiently full
+        if (!newGame && cap < core.storageCapacity && core.items[item] >= core.storageCapacity || cap != 0 && core.items[item] > cap) {  // Auto switch to BuildPath when core is sufficiently full
             player.sendMessage(Strings.format("[accent]Automatically switching to BuildPath as the core has @ items (this number can be changed in settings).", if (cap == 0) core.storageCapacity else cap))
-            Navigation.follow(BuildPath(items, if (cap == 0) core.storageCapacity else cap))
+            Navigation.follow(BuildPath(items, cap))
         }
 
         if (player.unit().maxAccepted(item) <= 1) { // drop off
@@ -71,7 +69,7 @@ constructor(args: String) {
     }
 
     override fun draw() {
-        if (waypoints.waypoints.any() && waypoints.waypoints.peek().dst(player) > tilesize * 3) waypoints.draw()
+        if ((waypoints.waypoints.lastOrNull()?.dst(player) ?: 0F) > tilesize * 3) waypoints.draw()
     }
 
     override fun progress() = 0F
@@ -79,8 +77,4 @@ constructor(args: String) {
     override fun reset() = Unit
 
     override operator fun next(): Position? = null
-
-    companion object {
-        var timer = Interval()
-    }
 }

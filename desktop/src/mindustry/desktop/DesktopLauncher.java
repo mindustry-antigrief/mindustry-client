@@ -29,6 +29,7 @@ import mindustry.service.*;
 import mindustry.type.*;
 
 import java.io.*;
+import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
 
@@ -112,16 +113,20 @@ public class DesktopLauncher extends ClientLauncher{
     public void startDiscord() {
         if(useDiscord){
             try{
-                DiscordRPC.connect(discordID);
-                Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::close));
-                Log.info("Initialized Discord rich presence.");
-            }catch(NoDiscordClientException none){
-                useDiscord = false;
-                Log.debug("Not initializing Discord RPC - no discord instance open.");
-            }catch(Throwable t){
-                useDiscord = false;
-                Log.warn("Failed to initialize Discord RPC - you are likely using a JVM <16.");
-            }
+                new FutureTask<Void>(() -> {
+                    try{
+                        DiscordRPC.connect(discordID);
+                        Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::close));
+                        Log.info("Initialized Discord rich presence.");
+                    }catch(NoDiscordClientException none){
+                        useDiscord = false;
+                        Log.debug("Not initializing Discord RPC - no discord instance open.");
+                    }catch(Throwable t){
+                        useDiscord = false;
+                        Log.warn("Failed to initialize Discord RPC - you are likely using a JVM <16.");
+                    }
+                }, null).get(500, TimeUnit.MILLISECONDS);
+            } catch (ExecutionException | InterruptedException | TimeoutException ignored) {}
         }
     }
 
@@ -381,8 +386,7 @@ public class DesktopLauncher extends ClientLauncher{
             presence.largeImageKey = "logo";
             presence.smallImageKey = "foo";
             presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
-            presence.startTimestamp = state.tick == 0 ? beginTime/1000 : Time.millis() - (long)(state.tick * 16.666f);
-//            presence.startTimestamp = Main.ntp.instant().getEpochSecond() - (long)state.tick/60; FINISHME: Use this instead of line above when 132 releases
+            presence.startTimestamp = state.tick == 0 ? beginTime/1000 : Time.timeSinceMillis((long)(state.tick * 16.666));
             presence.label1 = "Client Github";
             presence.url1 = "https://github.com/mindustry-antigrief/mindustry-client";
             if (DiscordRPC.getStatus() == DiscordRPC.PipeStatus.connected) DiscordRPC.send(presence);

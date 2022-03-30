@@ -1,8 +1,8 @@
 package mindustry.client.ui
 
-import arc.scene.ui.Image
-import mindustry.client.utils.row
-import mindustry.ui.dialogs.BaseDialog
+import arc.scene.ui.*
+import mindustry.client.utils.*
+import mindustry.ui.dialogs.*
 
 // FINISHME: sender
 class AttachmentDialog(message: String, attachments: List<Image>) : BaseDialog("@client.attachments") {
@@ -10,9 +10,11 @@ class AttachmentDialog(message: String, attachments: List<Image>) : BaseDialog("
         addCloseButton()
         cont.add(message).center()
         cont.row()
-        cont.pane {
-            for (item in attachments) it.row(item).grow()
-        }
+        cont.pane { pane ->
+            attachments.forEach {
+                pane.row(it)
+            }
+        }.fill()
         show()
     }
 }

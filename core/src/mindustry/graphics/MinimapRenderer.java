@@ -27,6 +27,7 @@ public class MinimapRenderer{
     private TextureRegion region;
     private Rect rect = new Rect();
     private float zoom = 4;
+    private IntSet updates = new IntSet();
 
     public MinimapRenderer(){
         Events.on(WorldLoadEvent.class, event -> {
@@ -137,6 +138,22 @@ public class MinimapRenderer{
     public @Nullable TextureRegion getRegion(){
         if(texture == null) return null;
 
+        // Draw updates once per frame.
+        if (updates.size > 0) {
+            var it = updates.iterator();
+            while(it.hasNext){
+                int t = it.next(), x = Point2.x(t), y = Point2.y(t);
+
+                int color = colorFor(world.tile(x, y));
+                pixmap.set(x, pixmap.height - 1 - y, color);
+
+                if(updates.size < 10) Pixmaps.drawPixel(texture, x, pixmap.height - 1 - y, color);
+            }
+
+            if(updates.size >= 10) texture.draw(pixmap);
+            updates.clear();
+        }
+
         float sz = Mathf.clamp(baseSize * zoom, baseSize, Math.min(world.width(), world.height()));
         float dx = (Core.camera.position.x / tilesize);
         float dy = (Core.camera.position.y / tilesize);
@@ -159,18 +176,7 @@ public class MinimapRenderer{
     public void update(Tile tile){
         if(world.isGenerating() || !state.isGame()) return;
 
-        if(tile.build != null && tile.isCenter()){
-            tile.getLinkedTiles(other -> {
-                if(!other.isCenter()){
-                    update(other);
-                }
-            });
-        }
-
-        int color = colorFor(tile);
-        pixmap.set(tile.x, pixmap.height - 1 - tile.y, color);
-
-        Pixmaps.drawPixel(texture, tile.x, pixmap.height - 1 - tile.y, color);
+        tile.getLinkedTiles(t -> updates.add(t.pos())); // Queue update, more efficient when setting multiple tiles
     }
 
     public void updateUnitArray(){

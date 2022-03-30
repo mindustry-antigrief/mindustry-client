@@ -345,9 +345,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         team.data().updateCount(type, -1);
         controller.removed(self());
         for (Weapon weapon : type.weapons) {
-            synchronized (Navigation.obstacles) {
-                Navigation.obstacles.remove(pathfindingEntities.get(weapon));
-            }
+            Navigation.obstacles.remove(pathfindingEntities.get(weapon));
         }
     }
 
@@ -379,9 +377,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
                     }
                     TurretPathfindingEntity entity = pathfindingEntities.get(weapon);
                     if (hasEffect(StatusEffects.disarmed)) {
-                        synchronized (Navigation.obstacles) {
-                            Navigation.obstacles.remove(entity);
-                        }
+                        Navigation.obstacles.remove(entity);
                     } else Navigation.obstacles.add(entity);
                     entity.x = x;
                     entity.y = y;
@@ -603,16 +599,16 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     }
 
     @Deprecated
-    public Player playerNonNull(){ // FINISHME: What do we do about this?
-        return isPlayer() ? (Player)controller : Player.create();
+    public Player playerNonNull(){
+        if (!isPlayer()) throw new RuntimeException("ono");
+        return isPlayer() ? (Player)controller : Nulls.player;
     }
 
     @Override
     public void killed(){
         wasPlayer = isLocal();
         if (wasPlayer) {
-            player.persistPlans(); // Restore plans after respawn
-            player.formOnDeath = player.unit().formation;
+            player.unitOnDeath = player.unit();
         }
         health = Math.min(health, 0);
         dead = true;

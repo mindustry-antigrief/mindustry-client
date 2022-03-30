@@ -23,10 +23,8 @@ object ResearchAssistant: Table() {
                 queue.each { spend(it) }
 
                 // Run until no new nodes are unlocked
-                while (autoResearch && ui.research.nodes.any {
-                    if (it.visible && ui.research.view.canSpend(it.node)) spend(it.node)
-                    else false
-                }) {}
+                var any = autoResearch
+                while (any) any = ui.research.nodes.any { it.visible && ui.research.view.canSpend(it.node) && spend(it.node) }
             }
         }
     }

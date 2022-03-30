@@ -6,6 +6,7 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.graphics.*;
@@ -106,7 +107,7 @@ public class MapRenderer implements Disposable{
         int idxDecal = (wx % chunkSize) + (wy % chunkSize) * chunkSize + chunkSize * chunkSize;
         boolean center = tile.isCenter();
 
-        if(wall != Blocks.air && wall.synthetic()){
+        if(wall != Blocks.air && wall.synthetic() && !ClientVars.hidingBlocks){
             region = !wall.editorIcon().found() || !center ? clearEditor : wall.editorIcon();
 
             float width = region.width * Draw.scl, height = region.height * Draw.scl;
@@ -124,7 +125,7 @@ public class MapRenderer implements Disposable{
 
         float offsetX = -(wall.size / 3) * tilesize, offsetY = -(wall.size / 3) * tilesize;
 
-        if((wall.update || wall.destructible) && center){
+        if((wall.update || wall.destructible) && center && !ClientVars.hidingBlocks){
             mesh.setColor(team.color);
             region = Core.atlas.find("block-border-editor");
         }else if(!wall.synthetic() && wall != Blocks.air && center){

@@ -325,13 +325,6 @@ public class Renderer implements ApplicationListener{
 
         Draw.z(Layer.space);
         Client.INSTANCE.draw();
-        if(Core.settings.getBool("drawhitboxes")) {
-            for (Unit u : Groups.unit) {
-                if (!Core.camera.bounds(Tmp.r1).overlaps(u.x() - u.hitSize()/2f, u.y() - u.hitSize()/2f, u.hitSize(), u.hitSize())) continue;
-                Draw.color(u.team.color, .2f);
-                Fill.rect(u.x, u.y, u.hitSize(), u.hitSize());
-            }
-        }
         Draw.color();
 
         Draw.reset();

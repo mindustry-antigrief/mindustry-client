@@ -6,7 +6,6 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
-import arc.math.geom.Vec2;
 import arc.scene.*;
 import arc.scene.ui.*;
 import arc.scene.ui.Label.*;
@@ -16,14 +15,13 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.*;
-import mindustry.client.ui.AttachmentDialog;
-import mindustry.client.ui.UploadDialog;
+import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.ui.*;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -33,11 +31,11 @@ import static mindustry.client.ClientVars.*;
 
 public class ChatFragment extends Table{
     private static final int messagesShown = 10;
+    private static final ImageButton.ImageButtonStyle uploadStyle = new ImageButton.ImageButtonStyle(Styles.emptyi);
     public Seq<ChatMessage> messages = new Seq<>();
     private float fadetime;
     private boolean shown = false;
     public TextField chatfield;
-    public ImageButton upload;
     private Label fieldlabel = new Label(">");
     private ChatMode mode = ChatMode.normal;
     private Font font;
@@ -79,7 +77,7 @@ public class ChatFragment extends Table{
 
             if(shown){
                 if(input.keyTap(Binding.chat_history_prev) && historyPos < history.size - 1){
-                    if(historyPos == 0) history.set(0, chatfield.getText());
+                    if(historyPos == 0) history.set(0, chatfield.getText().replaceFirst("^" + mode.normalizedPrefix(), ""));
                     historyPos++;
                     updateChat();
                 }
@@ -130,6 +128,8 @@ public class ChatFragment extends Table{
     }
 
     private void setup(){
+        uploadStyle.imageCheckedColor = Pal.accent;
+
         fieldlabel.setStyle(new LabelStyle(fieldlabel.getStyle()));
         fieldlabel.getStyle().font = font;
         fieldlabel.setStyle(fieldlabel.getStyle());
@@ -142,16 +142,18 @@ public class ChatFragment extends Table{
         chatfield.changed(() -> {
             chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 0 : maxTextLength - 2 * Mathf.num(Core.settings.getBool("signmessages"))); // Scuffed way to allow long js
 
-            var replacement = switch (chatfield.getText()) {
+            var replacement = switch (chatfield.getText().replaceFirst("^" + mode.normalizedPrefix(), "")) {
                 case "!r " -> "!e " + ClientVars.lastCertName + " ";
                 case "!b " -> "!builder ";
                 case "!cu ", "!cr " -> "!cursor ";
+                case "!u " -> "!unit ";
+                case "!!" -> "! !";
                 case "!h " -> "!here ";
                 default -> null;
             };
             if (replacement != null) {
                 app.post(() -> { // .changed(...) is called in the middle of the typed char being processed, workaround is to update cursor on the next frame
-                    chatfield.setText(replacement);
+                    chatfield.setText((chatfield.getText().startsWith(mode.normalizedPrefix()) ? mode.normalizedPrefix() : "") + replacement);
                     updateCursor();
                 });
             }
@@ -164,7 +166,9 @@ public class ChatFragment extends Table{
         chatfield.setStyle(chatfield.getStyle());
         chatfield.setOnlyFontChars(false);
 
-        bottom().left().marginBottom(offsety).marginLeft(offsetx * 2).add(fieldlabel).padBottom(6f);
+        bottom().left().marginBottom(offsety).marginLeft(offsetx * 2);
+        button(Icon.uploadSmall, uploadStyle, UploadDialog.INSTANCE::show).padRight(5f).tooltip("Upload Images").visible(() -> shown).checked(h -> UploadDialog.INSTANCE.hasImage()); // FINISHME: Bundle
+        add(fieldlabel).padBottom(6f);
 
         add(chatfield).padBottom(offsety).padLeft(offsetx).growX().padRight(offsetx).height(28);
 
@@ -234,6 +238,7 @@ public class ChatFragment extends Table{
 
             if (msg.attachments.size() != 0) {
                 Draw.color();
+                if (!shown) Draw.alpha(Mathf.clamp(fadetime - i, 0, 1) * opacity);
                 float x = textWidth - 10f;
                 float y = offsety + theight - layout.height;
                 Icon.imageSmall.draw(x, y, layout.height, layout.height);
@@ -250,7 +255,7 @@ public class ChatFragment extends Table{
         }
 
         if (completion.any() && shown) {
-            float pos = Reflect.<FloatSeq>get(chatfield, "glyphPositions").peek();
+            float pos = Reflect.<FloatSeq>get(chatfield, "glyphPositions").peek() + chatfield.x;
             StringBuilder contents = new StringBuilder();
             int index = 0;
             for (Autocompleteable auto : completion) {
@@ -275,9 +280,9 @@ public class ChatFragment extends Table{
 //            float height = font.getCache().getLayouts().sumf(item -> item.height);
             float height = font.getData().lineHeight * completion.size;
 //            System.out.println(height);
-            font.getCache().addText(contents.toString(), pos + offsetx + 17f, 10f + height);
+            font.getCache().addText(contents.toString(), pos, 10f + height);
             Draw.color(shadowColor);
-            Fill.crect(pos + offsetx + 17f, 10f + font.getData().lineHeight, font.getCache().getLayouts().max(item -> item.width).width, height - font.getData().lineHeight);
+            Fill.crect(pos, 10f + font.getData().lineHeight, font.getCache().getLayouts().max(item -> item.width).width, height - font.getData().lineHeight);
             Draw.color();
             font.getCache().draw();
         }
@@ -292,7 +297,7 @@ public class ChatFragment extends Table{
         //avoid sending prefix-empty messages
         if(message.isEmpty() || (message.startsWith(mode.prefix) && message.substring(mode.prefix.length()).isEmpty())) return;
 
-        history.insert(1, message);
+        history.insert(1, message.replaceFirst("^" + mode.normalizedPrefix(), ""));
 
         // Allow sending commands with chat modes; "/t /help" becomes "/help", "/a !go" becomes "!go"
         for (ChatMode mode : ChatMode.all) {
@@ -331,7 +336,6 @@ public class ChatFragment extends Table{
             String msg = Main.INSTANCE.sign(message);
             Call.sendChatMessage(msg);
             if (message.startsWith(netServer.clientCommands.getPrefix() + "sync")) { // /sync
-                player.persistPlans();
                 ClientVars.syncing = true;
             }
             if (!message.startsWith(netServer.clientCommands.getPrefix())) { // Only fire when not running any command

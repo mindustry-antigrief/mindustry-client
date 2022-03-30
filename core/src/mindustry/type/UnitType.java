@@ -41,6 +41,7 @@ public class UnitType extends UnlockableContent{
     public static final float shadowTX = -12, shadowTY = -13;
     private static final Vec2 legOffset = new Vec2();
     public static boolean drawAllItems;
+    public static float formationAlpha = -1, hitboxAlpha;
 
     /** If true, the unit is always at elevation 1. */
     public boolean flying;
@@ -328,7 +329,13 @@ public class UnitType extends UnlockableContent{
     @CallSuper
     @Override
     public void init(){
-        drawAllItems = Core.settings != null && Core.settings.getBool("drawallitems");
+        if (Core.settings != null && Core.settings.get("hitboxopacity", null) instanceof Float) Core.settings.put("hitboxopacity", 30); // FINISHME: I did a dumb, remove on v7 release
+        if (formationAlpha == -1) { // Only set these once.
+            drawAllItems = Core.settings != null && Core.settings.getBool("drawallitems");
+            formationAlpha = Core.settings != null ? Core.settings.getInt("formationopacity") / 100f : .3f;
+            hitboxAlpha = Core.settings != null ? Core.settings.getInt("hitboxopacity") / 100f : .3f;
+        }
+
         if(constructor == null) throw new IllegalArgumentException("no constructor set up for unit '" + name + "'");
 
         Unit example = constructor.get();
@@ -599,7 +606,10 @@ public class UnitType extends UnlockableContent{
 
     public void draw(Unit unit){
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
-        alpha = ClientVars.hidingUnits || ClientVars.hidingAirUnits && unit.isFlying() ? 0 : (unit.controller() instanceof FormationAI || unit.playerNonNull().assisting && !unit.isLocal()) ? .3f : 1;
+        alpha =
+            ClientVars.hidingUnits || ClientVars.hidingAirUnits && unit.isFlying() ? 0 :
+            (unit.controller() instanceof FormationAI || unit.controller() instanceof Player p && p.assisting && !unit.isLocal()) ? formationAlpha :
+            1;
         if (alpha == 0) return; // Don't bother drawing what we can't see.
         float z = unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
 
@@ -675,6 +685,12 @@ public class UnitType extends UnlockableContent{
                 Draw.alpha(alpha);
                 a.draw(unit);
             }
+        }
+
+        if (hitboxAlpha > 0) { // Draw hitboxes if enabled
+            Draw.z(z + 1f);
+            Draw.color(unit.team.color, hitboxAlpha);
+            Fill.rect(unit.x, unit.y, hitSize, hitSize);
         }
 
         Draw.reset();

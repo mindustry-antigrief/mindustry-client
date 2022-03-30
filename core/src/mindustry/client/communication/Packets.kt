@@ -1,6 +1,7 @@
 package mindustry.client.communication
 
 import arc.util.*
+import mindustry.client.communication.syncing.Syncer.*
 import mindustry.client.utils.*
 import java.nio.*
 import java.time.*
@@ -8,6 +9,7 @@ import java.time.temporal.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.locks.*
+import kotlin.concurrent.*
 import kotlin.reflect.*
 
 object Packets {
@@ -23,7 +25,8 @@ object Packets {
         RegisteredTransmission(SignatureTransmission::class, ::SignatureTransmission),
         RegisteredTransmission(CommandTransmission::class, ::CommandTransmission),
         RegisteredTransmission(ClientMessageTransmission::class, ::ClientMessageTransmission),
-        RegisteredTransmission(ImageTransmission::class, ::ImageTransmission)
+        RegisteredTransmission(ImageTransmission::class, ::ImageTransmission),
+        RegisteredTransmission(SyncerTransmission::class, ::SyncerTransmission)
     )
 
     private data class RegisteredTransmission<T : Transmission>(val type: KClass<T>, val constructor: (content: ByteArray, id: Long, senderID: Int) -> T)
@@ -138,9 +141,9 @@ object Packets {
         }
 
         fun addListener(listener: (transmission: Transmission, senderId: Int) -> Unit) {
-            listenersLock.lock()
-            listeners.add(listener)
-            listenersLock.unlock()
+            listenersLock.withLock {
+                listeners.add(listener)
+            }
         }
 
         /** Updates sending.  Call once per tick. */

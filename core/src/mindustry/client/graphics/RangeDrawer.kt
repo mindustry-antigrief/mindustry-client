@@ -1,30 +1,27 @@
 package mindustry.client.graphics
 
-import arc.Core
-import arc.graphics.Color
-import arc.graphics.g2d.Draw
-import arc.graphics.g2d.Lines
-import arc.graphics.g2d.TextureRegion
-import arc.graphics.gl.FrameBuffer
-import arc.math.geom.Vec2
-import arc.util.Tmp
-import mindustry.Vars.tilesize
-import mindustry.client.navigation.TurretPathfindingEntity
-import mindustry.client.utils.ceil
-import mindustry.game.Team
-import mindustry.graphics.Drawf
-import mindustry.graphics.Pal
-import kotlin.math.min
+import arc.*
+import arc.graphics.*
+import arc.graphics.g2d.*
+import arc.graphics.gl.*
+import arc.math.geom.*
+import arc.util.*
+import mindustry.Vars.*
+import mindustry.client.navigation.*
+import mindustry.client.utils.*
+import mindustry.graphics.*
+import kotlin.collections.set
+import kotlin.math.*
 
 object RangeDrawer {
     private val vector = Vec2()
     private var mapping: MutableMap<Color, MutableMap<Float, Pair<FrameBuffer, TextureRegion>?>> = mutableMapOf()
     private var prev = 0f
 
-    fun draw(ranges: List<Pair<TurretPathfindingEntity, Color>>) {
-        val scl = 4  // for whatever reason, drawing with one pixel per pixel doesn't look good (I think my pixel calculations are off)
+    fun draw(ranges: MutableList<Pair<TurretPathfindingEntity, Color>>) {
+        val scl = 3  // for whatever reason, drawing with one pixel per pixel doesn't look good (I think my pixel calculations are off)
 
-        // the same as the normal version but sides can be calculated outside of the function so that they don't change with scale
+        // the same as the normal version but sides can be calculated outside the function so that they don't change with scale
         fun dashCircle(x: Float, y: Float, radius: Float, sides: Int) {
             vector.set(0f, 0f)
 
@@ -113,10 +110,10 @@ object RangeDrawer {
 
             // convert it to the performant format used to cache and draw it, converting the item to a TextureRegion for rendering
             mapping = HashMap()
-            for ((a, b) in unique.zip(cache)) {
-                mapping.getOrPut(a.first) { HashMap() }[a.second] = if (b != null) Pair(b, TextureRegion(b.texture)) else null
-            }
+            unique.zip(cache) { a, b -> mapping.getOrPut(a.first, ::HashMap)[a.second] = if (b != null) Pair(b, TextureRegion(b.texture)) else null }
         }
+
+        ranges.sortBy { it.first.radius }
 
         for (c in ranges) {
             // grab the needed TextureRegion, may be null

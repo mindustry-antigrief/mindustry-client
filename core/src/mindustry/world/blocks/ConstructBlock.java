@@ -14,13 +14,13 @@ import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.ui.*;
-import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
+import mindustry.gen.Unit;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
@@ -71,9 +71,9 @@ public class ConstructBlock extends Block{
         if (tile != null && block != null) {
             tile.getLinkedTiles(t -> Events.fire(new BlockBuildEventTile(t, tile.team(), builder, block, Blocks.air, tile.build == null ? null : tile.build.config(), null)));
             Team team = tile.team();
-            block.breakEffect.at(tile.drawx(), tile.drawy(), block.size, block.mapColor);
             Events.fire(new BlockBuildEndEvent(tile, builder, team, true, tile.build == null ? null : tile.build.config(), tile.block()));
             tile.remove();
+            block.breakEffect.at(tile.drawx(), tile.drawy(), block.size, block.mapColor);
             if (shouldPlay()) block.breakSound.at(tile, block.breakPitchChange ? calcPitch(false) : 1f);
         }
     }
@@ -177,15 +177,26 @@ public class ConstructBlock extends Block{
         return true;
     }
 
-    private static ObjectMap<Block, Pair<Integer, Integer>> warnBlocks;
+    private static Seq<WarnBlock> warnBlocks;
+    private static class WarnBlock {
+        final Block block;
+        final int warnDistance;
+        final int soundDistance;
+
+        private WarnBlock(Block block, int warnDistance, int soundDistance) {
+            this.block = block;
+            this.warnDistance = warnDistance;
+            this.soundDistance = soundDistance;
+        }
+    }
     static { Events.on(ClientLoadEvent.class, e -> updateWarnBlocks()); }
     public static void updateWarnBlocks() {
-        warnBlocks = ObjectMap.of( // Block, Pair<warndist, sounddist> (0 = off, 101 = always)
-            Blocks.thoriumReactor, new Pair<>(Core.settings.getInt("reactorwarningdistance"), Core.settings.getInt("reactorsounddistance")),
-            Blocks.incinerator, new Pair<>(Core.settings.getInt("incineratorwarningdistance"), Core.settings.getInt("incineratorsounddistance")),
-            Blocks.melter, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")),
-            Blocks.oilExtractor, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")),
-            Blocks.sporePress, new Pair<>(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance"))
+        warnBlocks = Seq.with(
+            new WarnBlock(Blocks.thoriumReactor, Core.settings.getInt("reactorwarningdistance"), Core.settings.getInt("reactorsounddistance")),
+            new WarnBlock(Blocks.incinerator, Core.settings.getInt("incineratorwarningdistance"), Core.settings.getInt("incineratorsounddistance")),
+            new WarnBlock(Blocks.melter, Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")),
+            new WarnBlock(Blocks.oilExtractor, Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")),
+            new WarnBlock(Blocks.sporePress, Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance"))
         );
     }
     public class ConstructBuild extends Building{
@@ -482,20 +493,20 @@ public class ConstructBlock extends Block{
 
         public void blockWarning(Object config) { // FINISHME: Account for non player building stuff
             if (!wasConstructing || closestCore() == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
-
-            if (warnBlocks.containsKey(current)) {
+            var wb = warnBlocks.find(b -> b.block == current);
+            if (wb != null) {
                 lastBuilder.drawBuildPlans(); // Draw their build plans FINISHME: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
                 AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
                 closestCore().proximity.each(e -> e instanceof StorageBlock.StorageBuild, block -> block.tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get()))))); // This stupidity finds the smallest distance between vaults on the closest core and the block being built
                 closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get())))); // This stupidity checks the distance to the core as well just in case it ends up being shorter
 
                 // Play warning sound (only played when no reactor has been built for 10s)
-                if (warnBlocks.get(current).second == 101 || distance.get() <= warnBlocks.get(current).second) {
+                if (wb.soundDistance == 101 || distance.get() <= wb.soundDistance) {
                     if (Time.timeSinceMillis(lastWarn) > 10 * 1000) Sounds.corexplode.play(.5f * (float)Core.settings.getInt("sfxvol") / 100.0F);
                     lastWarn = Time.millis();
                 }
 
-                if (warnBlocks.get(current).first == 101 || distance.get() <= warnBlocks.get(current).first) {
+                if (wb.warnDistance == 101 || distance.get() <= wb.warnDistance) {
                     String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.playerNonNull().name), current.localizedName, tile.x, tile.y, distance.get());
                     String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
                     if (toast == null || toast.parent == null) {

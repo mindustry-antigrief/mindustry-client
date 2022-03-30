@@ -9,6 +9,8 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
+import mindustry.client.antigrief.*;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
@@ -203,10 +205,14 @@ public class PowerNode extends PowerBlock{
     }
 
     public void getPotentialLinks(Tile tile, Team team, Cons<Building> others){
+        getPotentialLinks(tile, team, others, true);
+    }
+
+    public void getPotentialLinks(Tile tile, Team team, Cons<Building> others, boolean skipExisting){
         Boolf<Building> valid = other -> other != null && other.tile() != tile && other.power != null &&
             (other.block.outputsPower || other.block.consumesPower || other.block instanceof PowerNode) &&
             overlaps(tile.x * tilesize + offset, tile.y * tilesize + offset, other.tile(), laserRange * tilesize) && other.team == team &&
-            !graphs.contains(other.power.graph) &&
+            !(skipExisting && graphs.contains(other.power.graph)) &&
             !PowerNode.insulated(tile, other.tile) &&
             !(other instanceof PowerNodeBuild obuild && obuild.power.links.size >= ((PowerNode)obuild.block).maxNodes) &&
             !Structs.contains(Edges.getEdges(size), p -> { //do not link to adjacent buildings
@@ -357,12 +363,12 @@ public class PowerNode extends PowerBlock{
     public class PowerNodeBuild extends Building{
 
         /** This is used for power split notifications. */
-        public ChatFragment.ChatMessage message = null;
+        public @Nullable ChatFragment.ChatMessage message;
         public int disconnections = 0;
 
         @Override
         public void placed(){
-            if(net.client()) return;
+            if(net.client() || power.links.size > 0) return;
 
             getPotentialLinks(tile, team, other -> {
                 if(!power.links.contains(other.pos())){
@@ -372,6 +378,24 @@ public class PowerNode extends PowerBlock{
 
             super.placed();
         }
+
+//        @Override
+//        public void playerPlaced(Object config) { FINISHME: Make this work, maybe an IntObjectMap with Entry<pos, Seq<linkPos>>
+//            super.playerPlaced(config);
+//
+//            if(net.client() && config instanceof Point2[] t){ // Fix incorrect power node linking in schems
+//                var current = new Seq<Point2>();
+//                getPotentialLinks(tile, team, other -> { // The server hasn't sent us the links yet, emulate how it would look if it had
+//                    if(!power.links.contains(other.pos())) current.add(new Point2(other.tile.x, other.tile.y).sub(tile.x, tile.y));
+//                });
+//
+//                Log.info(Arrays.toString(t) + " | " + current);
+//                current.each(l -> !Structs.contains(t, l), l -> { // Remove extra links.
+//                    ClientVars.configs.add(new ConfigRequest(this, l.add(tile.x, tile.y).pack()));
+//                    Log.info(tileX() + ", " + tileY() + " | " + l.x + tile.x + ", " + l.y + tile.y);
+//                });
+//            }
+//        }
 
         @Override
         public void dropped(){
@@ -391,17 +415,18 @@ public class PowerNode extends PowerBlock{
                 return false;
             }
 
-            if(this == other){
-                if(other.power.links.size == 0){
+            if(this == other){ // Double tap
+                if(other.power.links.size == 0 ^ Core.input.shift()){ // Find and add possible links (shift to toggle modes)
                     int[] total = {0};
                     getPotentialLinks(tile, team, link -> {
                         if(!insulated(this, link) && total[0]++ < maxNodes){
-                            configure(link.pos());
+                            ClientVars.configs.add(new ConfigRequest(this, link.pos())); // FINISHME: V7 release fixes multi point configs, use those instead
                         }
                     });
-                }else{
-                    for (int link = power.links.size - 1; link >= 0; link--) {
-                        configure(power.links.get(link));
+                }else{ // Clear all links
+                    for(int link = power.links.size - 1; link >= 0; link--){
+                        var pos = power.links.get(link);
+                        ClientVars.configs.add(new ConfigRequest(this, pos)); // FINISHME: V7 release fixes multi point configs, use those instead
                     }
                 }
                 deselect();

@@ -14,7 +14,6 @@ import mindustry.ui.dialogs.*
 import java.security.cert.*
 
 class TLSKeyDialog : BaseDialog("@client.keyshare") {
-
     private val keys = Table()
     private lateinit var importDialog: Dialog
     private lateinit var aliasDialog: Dialog

@@ -4,6 +4,7 @@ import arc.func.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.world.*;
@@ -119,7 +120,7 @@ public class EntityCollisions{
 
     @SuppressWarnings("unchecked")
     public <T extends Hitboxc> void updatePhysics(EntityGroup<T> group){
-        QuadTree tree = group.tree();
+        QuadTreeMk2 tree = group.tree();
         tree.clear();
 
         group.each(s -> {

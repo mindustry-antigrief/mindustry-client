@@ -15,6 +15,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ai.formations.patterns.*;
+import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
@@ -225,9 +226,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 Events.fire(new DepositEvent(build, player, item, accepted));
             }
         });
-        if (Navigation.currentlyFollowing instanceof AssistPath path && path.getAssisting() != null && path.getAssisting() == player) {
-            Call.transferInventory(Vars.player, build);
-        }
     }
 
     @Remote(variants = Variant.one)
@@ -371,7 +369,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void tileConfig(@Nullable Player player, Building build, @Nullable Object value){
         if(build == null) return;
         if(net.server() && (!Units.canInteract(player, build) ||
-                !netServer.admins.allowAction(player, ActionType.configure, build.tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");
+            !netServer.admins.allowAction(player, ActionType.configure, build.tile, action -> action.config = value))) throw new ValidateException(player, "Player cannot configure a tile.");
+        else if(net.client() && player != null && Vars.player == player) ClientVars.ratelimitRemaining--; // Prevent the config queue from exceeding the rate limit if we also config stuff manually. Not quite ideal as manual configs will still exceed the limit but oh well.
 
         Object previous = build.config();
 
@@ -379,7 +378,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         build.configured(player == null || player.dead() ? null : player.unit(), value);
         Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
 
-        if(player != null){ // FINISHME: Move all this client stuff into the ClientLogic class
+        if (player != null && Vars.player != player) { // FINISHME: Move all this client stuff into the ClientLogic class
             if (Core.settings.getBool("commandwarnings") && build instanceof CommandCenter.CommandBuild cmd && build.team == player.team()) {
                 if (commandWarning == null || timer.get(300)) {
                     commandWarning = ui.chatfrag.addMessage(bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), (Color)null);
@@ -404,7 +403,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                         }
                     }
                 } else if (value instanceof Point2[]) {
-                    // TODO: handle this
+                    // FINISHME: handle this
                 }
             }
         }
@@ -429,8 +428,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         if(player.team() == build.team && build.canControlSelect(player.unit())){
-            if (player.isLocal()) player.persistPlans();
-            if (!net.client()) build.onControlSelect(player.unit()); // The net.client check prevents this from randomly breaking persistPlans on servers
+            build.onControlSelect(player.unit());
         }
     }
 
@@ -453,7 +451,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot control a unit.");
         }
 
-        if (player.isLocal() && Time.timeSinceMillis(Navigation.navigator.getLastWp()) > 1000) player.persistPlans(); // Restore plans after swapping units, ignore cn /wp
 
         //clear player unit when they possess a core
         if(unit == null){ //just clear the unit (is this used?)
@@ -483,7 +480,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void unitClear(Player player){
         if(player == null) return;
 
-        if(player.isLocal()) player.persistPlans();
         //problem: this gets called on both ends. it shouldn't be.
         Fx.spawn.at(player);
         player.clearUnit();
@@ -520,12 +516,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return inputLocks.contains(Boolp::get);
     }
 
+    Eachable<BuildPlan> dumb = cons -> {
+        for(BuildPlan request : player.unit().plans()) cons.get(request);
+        for(BuildPlan request : selectRequests) cons.get(request);
+        for(BuildPlan request : lineRequests) cons.get(request);
+    };
     public Eachable<BuildPlan> allRequests(){
-        return cons -> {
-            for(BuildPlan request : player.unit().plans()) cons.get(request);
-            for(BuildPlan request : selectRequests) cons.get(request);
-            for(BuildPlan request : lineRequests) cons.get(request);
-        };
+        return dumb;
     }
 
     public boolean isUsingSchematic(){
@@ -561,7 +558,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         if(controlledType != null && player.dead()){
-            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead /* TODO: Make this a thing that actually works? && (!(u.controller() instanceof FormationAI f) || f.isBeingControlled(player.lastReadUnit)) */);
+            Unit unit = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == controlledType && !u.dead && (!(u.controller() instanceof FormationAI f) || f.leader == player.unitOnDeath));
 
             if(unit != null){
                 //only trying controlling once a second to prevent packet spam
@@ -923,17 +920,41 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
+    private final Seq<Tile> tempTiles = new Seq<>(4);
     protected void flushRequests(Seq<BuildPlan> requests){
         var configLogic = Core.settings.getBool("processorconfigs");
+        var temp = new BuildPlan[requests.size];
+        var added = 0;
         for(BuildPlan req : requests){
-            if(req.block != null && validPlace(req.x, req.y, req.block, req.rotation)){
+            if (req.block == null) continue;
+
+            if (req.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps
+                    && req.tile().getLinkedTilesAs(req.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
+                var first = tempTiles.first();
+                var replaced = false;
+                if (tempTiles.contains(t -> !t.adjacentTo(first) && t != first && t.floor().liquidDrop == Liquids.water)) { // Can use mechanical pumps (covers all outputs)
+                    for (var t : tempTiles) {
+                        var plan = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
+                        if (validPlace(t.x, t.y, plan.block, 0)) {
+                            player.unit().addBuild(plan);
+                            replaced = true;
+                        }
+                    }
+                } else if (validPlace(first.x, first.y, Blocks.rotaryPump, 0)) { // Mechanical pumps can't cover everything, use rotary pump instead
+                    player.unit().addBuild(new BuildPlan(req.x, req.y, 0, Blocks.rotaryPump));
+                    replaced = true;
+                }
+                if (replaced) continue; // Swapped water extractor for pump, don't place it
+            }
+
+            if(validPlace(req.x, req.y, req.block, req.rotation)){
                 BuildPlan copy = req.copy();
                 if (configLogic && req.block instanceof LogicBlock && req.config != null) {
                     copy.config = null;
                     ClientVars.processorConfigs.put(req.tile().pos(), req.config);
                 }
                 req.block.onNewPlan(copy);
-                player.unit().addBuild(copy);
+                temp[added++] = copy;
             }
             Iterator<BuildPlan> it = frozenPlans.iterator();
             while(it.hasNext()){
@@ -943,11 +964,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
             }
         }
+
+        for (int i = 0; i < added; i++) player.unit().addBuild(temp[i]);
     }
 
-    protected void drawOverRequest(BuildPlan request){
-        boolean valid = validPlace(request.x, request.y, request.block, request.rotation);
-
+    protected void drawOverRequest(BuildPlan request, boolean valid){
         Draw.reset();
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(1f);
@@ -958,8 +979,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Draw.reset();
     }
 
-    protected void drawRequest(BuildPlan request){
-        request.block.drawPlan(request, allRequests(), validPlace(request.x, request.y, request.block, request.rotation));
+    protected void drawRequest(BuildPlan request, boolean valid){
+        request.block.drawPlan(request, allRequests(), valid);
     }
 
     /** Draws a placement icon for a specific block. */
@@ -1350,7 +1371,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public boolean canShoot(){
-        return block == null && !onConfigurable() && !isDroppingItem() && !player.unit().activelyBuilding() &&
+        return !onConfigurable() && !isDroppingItem() && !player.unit().activelyBuilding() &&
             !(player.unit() instanceof Mechc && player.unit().isFlying()) && !player.unit().mining();
     }
 
@@ -1395,14 +1416,35 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return validPlace(x, y, type, rotation, null);
     }
 
+    private long lastFrame;
+    private QuadTreeMk2<BuildPlan> tree = new QuadTreeMk2<>(new Rect(0, 0, 0, 0));
+    public final Seq<BuildPlan> planSeq = new Seq<>();
+
+    /** Cursed method to put the player's plans in a quadtree for non-slow overlap checks. */
+    public QuadTreeMk2<BuildPlan> planTree() {
+        if(lastFrame == graphics.getFrameId()) return tree;
+        lastFrame = graphics.getFrameId();
+
+        tree.clear();
+        if (world.unitWidth() != tree.bounds.width || world.unitHeight() != tree.bounds.height)
+            tree = new QuadTreeMk2<>(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
+        for (int i = 0; i < player.unit().plans().size; i++)
+            tree.insert(player.unit().plans.get(i));
+
+        return tree;
+    }
+
     public boolean validPlace(int x, int y, Block type, int rotation, BuildPlan ignore){
-        //TODO with many requests, this is O(n * m), very laggy
-        var valid = Build.validPlace(type, player.team(), x, y, rotation);
-        if (!valid) return false; // The code above this is far faster than the code below, don't run it unless we really have to
-        for(BuildPlan req : player.unit().plans()){
+        if (!Build.validPlace(type, player.team(), x, y, rotation, true)) return false;
+
+        planSeq.clear();
+        planTree().intersect(type.bounds(x, y, Tmp.r2), planSeq);
+        for (int i = 0; i < planSeq.size; i++) {
+            BuildPlan req = planSeq.get(i);
+
             if(req != ignore
                     && !req.breaking
-                    && req.block.bounds(req.x, req.y, Tmp.r1).overlaps(type.bounds(x, y, Tmp.r2))
+                    && req.block.bounds(req.x, req.y, Tmp.r1).overlaps(Tmp.r2)
                     && !(type.canReplace(req.block) && Tmp.r1.equals(Tmp.r2))){
                 return false;
             }
@@ -1565,25 +1607,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         player.boosting = !movement.isZero();
         player.mouseX = unit.aimX();
         player.mouseY = unit.aimY();
-
-        //update payload input
-//        if(unit instanceof Payloadc){
-//
-//            if(Core.input.keyTap(Binding.pickupCargo)){
-//                tryPickupPayload();
-//            }
-//
-//            if(Core.input.keyTap(Binding.dropCargo)){
-//                tryDropPayload();
-//            }
-//        }
-
-        //update commander input
-//        if(unit instanceof Commanderc){
-//            if(Core.input.keyTap(Binding.command)){
-//                Call.unitCommand(player);
-//            }
-//        }
     }
 
     static class PlaceLine{

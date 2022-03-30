@@ -86,60 +86,64 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             }
         }
 
-        BuildPlan current = buildPlan();
-        Tile tile = current.tile();
+        boolean massPlace = infinite && !net.client();
+        int placed = 0;
+        do{
+            BuildPlan current = buildPlan();
+            Tile tile = current.tile();
 
-        lastActive = current;
-        buildAlpha = 1f;
-        if(current.breaking) lastSize = tile.block().size;
+            lastActive = current;
+            buildAlpha = 1f;
+            if(current.breaking) lastSize = tile.block().size;
 
-        if(!within(tile, finalPlaceDst) || !canBuild()) return;
+            if(!within(tile, finalPlaceDst) || !canBuild()) return;
 
-        if(!headless){
-            Vars.control.sound.loop(Sounds.build, tile, 0.51f);
-        }
+            if(!headless){
+                Vars.control.sound.loop(Sounds.build, tile, 0.51f);
+            }
 
-        if(!(tile.build instanceof ConstructBuild cb)){
-            if(!current.initialized && !current.breaking && Build.validPlace(current.block, team, current.x, current.y, current.rotation)){
-                boolean hasAll = infinite || current.isRotation(team) || !Structs.contains(current.block.requirements, i -> core != null && !core.items.has(i.item, Math.min(Mathf.round(i.amount * state.rules.buildCostMultiplier), 1)));
+            if(!(tile.build instanceof ConstructBuild cb)){
+                if(!current.initialized && !current.breaking && Build.validPlace(current.block, team, current.x, current.y, current.rotation)){
+                    boolean hasAll = infinite || current.isRotation(team) || !Structs.contains(current.block.requirements, i -> core != null && !core.items.has(i.item, Math.min(Mathf.round(i.amount * state.rules.buildCostMultiplier), 1)));
 
-                if(hasAll){
-                    Call.beginPlace(self(), current.block, team, current.x, current.y, current.rotation);
+                    if(hasAll){
+                        Call.beginPlace(self(), current.block, team, current.x, current.y, current.rotation);
+                    }else{
+                        current.stuck = true;
+                    }
+                }else if(!current.initialized && current.breaking && Build.validBreak(team, current.x, current.y)){
+                    Call.beginBreak(self(), team, current.x, current.y);
                 }else{
-                    current.stuck = true;
+                    plans.removeFirst();
+                    return;
                 }
-            }else if(!current.initialized && current.breaking && Build.validBreak(team, current.x, current.y)){
-                Call.beginBreak(self(), team, current.x, current.y);
-            }else{
+            }else if((tile.team() != team && tile.team() != Team.derelict) || (!current.breaking && (cb.current != current.block || cb.tile != current.tile()))){
                 plans.removeFirst();
                 return;
             }
-        }else if((tile.team() != team && tile.team() != Team.derelict) || (!current.breaking && (cb.current != current.block || cb.tile != current.tile()))){
-            plans.removeFirst();
-            return;
-        }
 
-        if(tile.build instanceof ConstructBuild && !current.initialized){
-            Core.app.post(() -> Events.fire(new BuildSelectEvent(tile, team, self(), current.breaking)));
-            current.initialized = true;
-        }
+            if(tile.build instanceof ConstructBuild && !current.initialized){
+                Core.app.post(() -> Events.fire(new BuildSelectEvent(tile, team, self(), current.breaking)));
+                current.initialized = true;
+            }
 
-        //if there is no core to build with or no build entity, stop building!
-        if((core == null && !infinite) || !(tile.build instanceof ConstructBuild entity)){
-            return;
-        }
+            //if there is no core to build with or no build entity, stop building!
+            if((core == null && !infinite) || !(tile.build instanceof ConstructBuild entity)){
+                continue;
+            }
 
-        float bs = 1f / entity.buildCost * Time.delta * type.buildSpeed * buildSpeedMultiplier * state.rules.buildSpeed(team);
+            float bs = 1f / entity.buildCost * Time.delta * type.buildSpeed * buildSpeedMultiplier * state.rules.buildSpeed(team);
 
-        //otherwise, update it.
-        if(current.breaking){
-            entity.deconstruct(self(), core, bs);
-        }else{
-            entity.construct(self(), core, bs, current.config);
-        }
+            //otherwise, update it.
+            if(current.breaking){
+                entity.deconstruct(self(), core, bs);
+            }else{
+                entity.construct(self(), core, bs, current.config);
+            }
 
-        current.stuck = Mathf.equal(current.progress, entity.progress);
-        current.progress = entity.progress;
+            current.stuck = Mathf.equal(current.progress, entity.progress);
+            current.progress = entity.progress;
+        }while(massPlace && plans.removeFirst() != null && plans.size > 0 && placed++ < 1000);
     }
 
     /** Draw all current build plans. Does not draw the beam effect, only the positions. */
@@ -224,7 +228,8 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 //        if(!canBuild()) return;
 
         BuildPlan replace = null;
-        for(BuildPlan request : plans){
+        for(int i = 0; i < plans.size; i++){
+            var request = plans.get(i);
             if(request.x == place.x && request.y == place.y){
                 replace = request;
                 break;
@@ -305,8 +310,8 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         Vec2 close = Geometry.findClosest(x, y, vecs);
 
         float x1 = vecs[0].x, y1 = vecs[0].y,
-        x2 = close.x, y2 = close.y,
-        x3 = vecs[1].x, y3 = vecs[1].y;
+            x2 = close.x, y2 = close.y,
+            x3 = vecs[1].x, y3 = vecs[1].y;
 
         Draw.z(Layer.buildBeam);
 

@@ -3,6 +3,7 @@ package mindustry.net;
 import arc.*;
 import arc.files.*;
 import arc.func.*;
+import arc.struct.*;
 import arc.util.*;
 import arc.util.async.*;
 import arc.util.serialization.*;
@@ -40,11 +41,11 @@ public class BeControl{
     public BeControl(){
         Events.on(EventType.ClientLoadEvent.class, event -> {
             Timer.schedule(() -> {
-                if(checkUpdates && !mobile){ // Don't auto update on manually cloned copies of the repo
-                    checkUpdate(result -> {
-                        if (result) showUpdateDialog();
-                    });
-                }
+                    if(checkUpdates && !mobile){ // Don't auto update on manually cloned copies of the repo
+                        checkUpdate(result -> {
+                            if (result) showUpdateDialog();
+                        });
+                    }
                 }, 1, updateInterval
             );
 
@@ -71,28 +72,28 @@ public class BeControl{
     /** asynchronously checks for updates. */
     public void checkUpdate(Boolc done, String repo){
         Http.get("https://api.github.com/repos/" + repo + "/releases/latest")
-        .error(e -> {
-            ui.loadfrag.hide();
-            Log.err(e);
-        })
-        .submit(res -> {
-            Jval val = Jval.read(res.getResultAsString());
-            String newBuild = val.getString("tag_name", "0");
-            if(!Version.clientVersion.startsWith(newBuild)){
-                Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("desktop"));
-                if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("mindustry"));
-                if (asset == null) {
+            .error(e -> {
+                ui.loadfrag.hide();
+                Log.err(e);
+            })
+            .submit(res -> {
+                Jval val = Jval.read(res.getResultAsString());
+                String newBuild = val.getString("tag_name", "0");
+                if(!Version.clientVersion.startsWith(newBuild)){
+                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("desktop"));
+                    if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("mindustry"));
+                    if (asset == null) {
+                        Core.app.post(() -> done.get(false));
+                        return;
+                    }
+                    updateUrl = asset.getString("browser_download_url", "");
+                    updateAvailable = true;
+                    updateBuild = newBuild;
+                    Core.app.post(() -> done.get(true));
+                }else{
                     Core.app.post(() -> done.get(false));
-                    return;
                 }
-                updateUrl = asset.getString("browser_download_url", "");
-                updateAvailable = true;
-                updateBuild = newBuild;
-                Core.app.post(() -> done.get(true));
-            }else{
-                Core.app.post(() -> done.get(false));
-            }
-        });
+            });
     }
 
     /** @return whether a new update is available */
@@ -125,24 +126,24 @@ public class BeControl{
                     Fi dest = source.sibling("server-be-" + updateBuild + ".jar");
 
                     download(updateUrl, dest,
-                    len -> Core.app.post(() -> Log.info("&ly| Size: @ MB.", Strings.fixed((float)len / 1024 / 1024, 2))),
-                    progress -> {},
-                    () -> false,
-                    () -> Core.app.post(() -> {
-                        Log.info("&lcSaving...");
-                        SaveIO.save(saveDirectory.child("autosavebe." + saveExtension));
-                        Log.info("&lcAutosaved.");
+                        len -> Core.app.post(() -> Log.info("&ly| Size: @ MB.", Strings.fixed((float)len / 1024 / 1024, 2))),
+                        progress -> {},
+                        () -> false,
+                        () -> Core.app.post(() -> {
+                            Log.info("&lcSaving...");
+                            SaveIO.save(saveDirectory.child("autosavebe." + saveExtension));
+                            Log.info("&lcAutosaved.");
 
-                        netServer.kickAll(KickReason.serverRestarting);
-                        Threads.sleep(32);
+                            netServer.kickAll(KickReason.serverRestarting);
+                            Threads.sleep(32);
 
-                        Log.info("&lcVersion downloaded, exiting. Note that if you are not using a auto-restart script, the server will not restart automatically.");
-                        //replace old file with new
-                        dest.copyTo(source);
-                        dest.delete();
-                        System.exit(2); //this will cause a restart if using the script
-                    }),
-                    Throwable::printStackTrace);
+                            Log.info("&lcVersion downloaded, exiting. Note that if you are not using a auto-restart script, the server will not restart automatically.");
+                            //replace old file with new
+                            dest.copyTo(source);
+                            dest.delete();
+                            System.exit(2); //this will cause a restart if using the script
+                        }),
+                        Throwable::printStackTrace);
                 }catch(Exception e){
                     e.printStackTrace();
                 }
@@ -196,10 +197,11 @@ public class BeControl{
             download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                 try{
                     Log.info(file.absolutePath());
-                    Runtime.getRuntime().exec(OS.isMac ?
-                        new String[]{javaPath, "-XstartOnFirstThread", "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                        new String[]{javaPath, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
-                    );
+                    Seq<String> args = Seq.with(javaPath);
+                    args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
+                    if(OS.isMac) args.add("-XstartOnFirstThread");
+                    args.addAll("-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath(), "-firstThread");
+                    Runtime.getRuntime().exec(args.toArray());
                     Core.app.exit();
                 }catch(IOException e){
                     dialog.cont.clearChildren();

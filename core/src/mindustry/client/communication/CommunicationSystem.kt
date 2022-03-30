@@ -8,7 +8,7 @@ abstract class CommunicationSystem {
     abstract val id: Int
     /** The maximum number of bytes that can be sent at once. */
     abstract val MAX_LENGTH: Int
-    /** The time in 1/60s to wait between transmissions. */
+    /** Ticks (1/60s) to wait between transmissions. */
     abstract val RATE: Float
 
     open val secure: Boolean = false

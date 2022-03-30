@@ -1,20 +1,17 @@
 package mindustry.client.communication
 
-import arc.graphics.Color
-import mindustry.Vars
-import mindustry.client.ClientVars
-import mindustry.client.Main
-import mindustry.client.crypto.Signatures
+import arc.graphics.*
+import mindustry.*
+import mindustry.client.*
+import mindustry.client.crypto.*
 import mindustry.client.crypto.Signatures.VerifyResult.*
 import mindustry.client.utils.*
-import mindustry.gen.Groups
-import mindustry.gen.Iconc
-import java.math.BigInteger
-import java.nio.ByteBuffer
-import java.security.cert.X509Certificate
-import java.time.Instant
-import kotlin.Pair
-import kotlin.random.Random
+import mindustry.gen.*
+import java.math.*
+import java.nio.*
+import java.security.cert.*
+import java.time.*
+import kotlin.random.*
 
 class ClientMessageTransmission : Transmission {
 
@@ -93,7 +90,7 @@ class ClientMessageTransmission : Transmission {
             INVALID -> ClientVars.invalid
             UNKNOWN_CERT -> Color.darkGray
         }
-        val prefix = "(${Iconc.wrench}) ${when (validity) { VALID -> Iconc.ok; INVALID -> Iconc.cancel; UNKNOWN_CERT -> "" }} "
+        val prefix = "[accent]<[white]F[]>[] ${when (validity) { VALID -> Iconc.ok; INVALID -> Iconc.cancel; UNKNOWN_CERT -> "" }} ".replace("  ", " ") // No double spaces. Cursed
 
         Vars.ui.chatfrag.addMessage(message, sender, background, prefix)
     }

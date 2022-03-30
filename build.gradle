@@ -23,8 +23,8 @@ buildscript{
 }
 
 plugins{
-    id 'org.jetbrains.kotlin.jvm' version '1.6.0-RC'
-    id "org.jetbrains.kotlin.kapt" version "1.6.0-RC"
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+    id "org.jetbrains.kotlin.kapt" version "1.6.10"
 }
 
 allprojects{
@@ -190,9 +190,6 @@ allprojects{
         maven{ url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven{ url "https://oss.sonatype.org/content/repositories/releases/" }
         maven{ url 'https://jitpack.io' }
-        flatDir {
-            dirs "/home/max/Documents/mindustry6.0/Mindustry/bc/"
-        }
     }
 
     task clearCache{
@@ -204,7 +201,7 @@ allprojects{
     }
 
     tasks.withType(JavaCompile){
-        targetCompatibility = 8
+        targetCompatibility = JavaVersion.VERSION_1_8
         sourceCompatibility = JavaVersion.VERSION_16
         options.encoding = "UTF-8"
         options.compilerArgs += ["-Xlint:deprecation", "-Xmaxerrs", "5000"]
@@ -305,12 +302,12 @@ project(":core"){
     apply plugin: "kotlin"
     apply plugin: "kotlin-kapt"
 
-    kapt{
-        javacOptions{
-            option("-source", "16")
-            option("-target", "1.8")
-        }
-    }
+//    kapt{
+//        javacOptions{
+//            option("-source", "16")
+//            option("-target", "1.8")
+//        }
+//    }
 
     compileJava.options.fork = true
 
@@ -384,14 +381,15 @@ project(":core"){
         if(localArc() && debugged()) api arcModule("extensions:recorder")
         if(localArc()) api arcModule(":extensions:packer")
 
-        implementation group: 'com.beust', name: 'klaxon', version: '5.4'  // Yes, I'm aware arc has a json system, but I don't know how to use it.
-//        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2' Unused, removed to reduce jar size
+        implementation "com.beust:klaxon:5.4" // Yes, I'm aware arc has a json system, but I don't know how to use it.
+        implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.10"
+//        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0" Unused, removed to reduce jar size
 
         compileOnly files("../bouncycastle/bcprov-jdk15on.jar")
         compileOnly files("../bouncycastle/bcpkix-jdk15on.jar")
         compileOnly files("../bouncycastle/bctls-jdk15on.jar")
         compileOnly files("../bouncycastle/bcutil-jdk15on.jar")
-//        implementation 'org.bouncycastle:bcutil-jdk15on:1.69'
+        compileOnly arcModule("backends:backend-sdl")
         implementation 'commons-net:commons-net:3.8.0'
 
         annotationProcessor 'com.github.Anuken:jabel:0.6.0'
@@ -441,6 +439,7 @@ project(":tests"){
 
     dependencies{
         testImplementation project(":core")
+        testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.6.10"
         testImplementation "org.junit.jupiter:junit-jupiter-params:5.7.1"
         testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.1"
         testImplementation arcModule("backends:backend-headless")

@@ -36,12 +36,10 @@ public class ItemPickupWaypoint extends Waypoint implements Position {
     }
 
     @Override
-    public void run() {
+    public ItemPickupWaypoint run() {
         if (Vars.player.within(sourceX * Vars.tilesize, sourceY * Vars.tilesize, Vars.itemTransferRange)) {
             Tile tile = Vars.world.tile(sourceX, sourceY);
-            if (tile.build == null) {
-                return;
-            }
+            if (tile.build == null) return this;
             Call.requestItem(Vars.player, tile.build, items.item, items.amount);
             done = true;
         } else {
@@ -52,6 +50,7 @@ public class ItemPickupWaypoint extends Waypoint implements Position {
             y = Mathf.clamp(y / 10, -1f, 1f);
             control.input.updateMovementCustom(player.unit(), x, y, direction);
         }
+        return this;
     }
 
     @Override

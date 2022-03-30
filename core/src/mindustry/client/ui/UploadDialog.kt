@@ -1,160 +1,110 @@
 package mindustry.client.ui
 
-import arc.ApplicationListener
-import arc.Core
-import arc.Events
-import arc.files.Fi
-import arc.graphics.Pixmap
-import arc.graphics.Texture
-import arc.graphics.g2d.TextureRegion
-import arc.input.KeyCode
-import arc.scene.ui.Image
-import arc.scene.ui.ImageButton
-import arc.scene.ui.TextButton
-import arc.scene.ui.layout.Table
-import mindustry.Vars
-import mindustry.client.Main
-import mindustry.client.communication.BlockCommunicationSystem
-import mindustry.client.communication.ImageTransmission
-import mindustry.client.communication.InvisibleCharCoder
-import mindustry.client.navigation.clientThread
-import mindustry.client.utils.pixmapFromClipboard
-import mindustry.client.utils.row
-import mindustry.game.EventType
-import mindustry.gen.Icon
-import mindustry.ui.dialogs.BaseDialog
+import arc.*
+import arc.graphics.*
+import arc.input.*
+import arc.scene.ui.*
+import arc.scene.ui.layout.*
+import arc.util.*
+import mindustry.*
+import mindustry.client.*
+import mindustry.client.communication.*
+import mindustry.client.navigation.*
+import mindustry.client.utils.*
+import mindustry.game.*
+import mindustry.gen.*
+import mindustry.ui.*
+import mindustry.ui.dialogs.*
 
 object UploadDialog : BaseDialog("@client.uploadtitle") {
-    private val pane: Table
     private val images = mutableListOf<Pixmap>()
-    private val intermImages = mutableListOf<Pixmap>()
 
     init {
-        buttons.defaults().size(210f, 64f)
-        buttons.button("@cancel", Icon.cancel) {
-            this.hide()
-            images.clear()
-            intermImages.clear()
-        }.size(210f, 64f)
-
-        closeOnBack {
-            images.clear()
-            images.addAll(intermImages)
-            intermImages.clear()
-        }
-
-        Core.app.addListener(object : ApplicationListener {
-            override fun fileDropped(file: Fi?) {
-                if (!Vars.state.isGame) return
-                file ?: return
-                try {
-                    if (!isShown) show()
-                    clientThread.post {
-                        val pixmap = Pixmap(file)
-                        Core.app.post {
-                            imageAdded(pixmap)
-                        }
-                    }
-                } catch (e: Exception) {
-                    return
-                }
-            }
-        })
-
-        cont.add(ImageButton(Icon.upload)).center().get().clicked {
+        addCloseButton()
+        buttons.button("@clear", Icon.trash, ::clearImages)
+        buttons.button("@add", Icon.upload) {
             Vars.platform.showMultiFileChooser({
                 try {
                     clientThread.post {
                         val pixmap = Pixmap(it)
                         Core.app.post {
-                            imageAdded(pixmap)
+                            addImage(pixmap)
                         }
                     }
                 } catch (e: Exception) {
-                    Vars.ui.showInfoFade(Core.bundle["client.failedtoloadimage"])
+                    Vars.ui.showInfoToast(Core.bundle["client.failedtoloadimage"], 3f)
                 }
-            },"png", "jpg", "jpeg")
+            }, "png", "jpg", "jpeg")
         }
-        cont.row()
 
-        keyDown(KeyCode.v) {  // FINISHME: global, not just when dialog open
-            if (Core.input.ctrl()) {
-                clientThread.post {
+        keyDown {
+            if (Core.input.ctrl() && it == KeyCode.v) { // For some reason, it seems that interacting with the clipboard breaks sdl on Mac
+                if (OS.isMac) Vars.ui.showInfoToast("Image pasting does not work on mac.", 3f)
+                else clientThread.post {
                     val pixmap = pixmapFromClipboard() ?: return@post
                     Core.app.post {
-                        imageAdded(pixmap)
+                        addImage(pixmap)
                     }
                 }
             }
         }
 
-        pane = Table()
-
-        cont.pane(pane)
-
-        buttons.add(TextButton("@client.uploadtitle").apply {
-            clicked {
-                images.clear()
-                images.addAll(intermImages)
-                intermImages.clear()
-                hide()
-                pane.clear()
-            }
-        })
-
         Events.on(EventType.SendChatMessageEvent::class.java) {
-            val id = InvisibleCharCoder.decode(it.message.takeLast(2)).run { (get(0).toUByte().toUInt() shl 8) or get(1).toUByte().toUInt() }.toShort()
             if (images.isEmpty()) return@on
-            Vars.ui.showInfoFade(Core.bundle.format("client.uploadingimages", images.size))
+            val id = InvisibleCharCoder.decode(it.message.takeLast(2)).run { (get(0).toUByte().toUInt() shl 8) or get(1).toUByte().toUInt() }.toShort()
+            Vars.ui.showInfoToast(Core.bundle.format("client.uploadingimages", images.size), 3f)
             var doneCount = 0
             val len = images.size
-            val imgs = images.toList()
-            if (!BlockCommunicationSystem.logicAvailable) {
+            val imgs = images.filterNot { img -> img.width * img.height > 1920 * 1080 }
+            if (!BlockCommunicationSystem.logicAvailable && ClientVars.pluginVersion == -1) {
                 Vars.ui.chatfrag.addMessage(Core.bundle["client.placelogic"])
             } else {
+                if (imgs.size != len) Vars.ui.chatfrag.addMessage(Core.bundle["client.imagetoobig"]) // Any of the images was removed for being too large.
                 clientThread.post {
                     for (image in imgs) {
-                        if (image.width * image.height > (1920 * 1080)) {
-                            Vars.ui.chatfrag.addMessage(Core.bundle["client.imagetoobig"])
-                            continue
-                        }
-
                         Main.send(ImageTransmission(id, image)) {
                             doneCount++
-                            if (doneCount == len) Vars.ui.showInfoFade(Core.bundle["client.finisheduploading"])
+                            if (doneCount == imgs.size) Core.app.post { Vars.ui.showInfoToast(Core.bundle["client.finisheduploading"], 3f) } // Thread safety doesn't exist
                         }
                     }
                 }
             }
             images.clear()
-            pane.clear()
+            updateImages()
         }
 
         Events.on(EventType.WorldLoadEvent::class.java) {
             images.clear()
-            intermImages.clear()
+            updateImages()
         }
     }
 
     fun clearImages() {
-        intermImages.clear()
         images.clear()
+        updateImages()
     }
 
-    private fun imageAdded(image: Pixmap) {
-        val t = Table()
-        t.add(Image(Texture(image)))
-        t.add(ImageButton(Icon.cancel)).top().right().get().clicked {
-            intermImages.remove(image)
-            pane.removeChild(t)
-        }
-        pane.row(t)
-        intermImages.add(image)
+    fun hasImage() = images.any()
+
+    private fun addImage(image: Pixmap) {
+        images.add(image)
+        updateImages()
     }
 
-//    override fun show(): Dialog {
-//        pane.clear()
-//        images.clear()
-//        return super.show()
-//    }
+    private fun updateImages() {
+        cont.clearChildren()
+        cont.pane { pane ->
+            images.forEach {
+                pane.stack(
+                    Image(Texture(it)),
+                    Table { t ->
+                        t.button(Icon.cancel.tint(Color.red), Styles.emptyi) {
+                            images.remove(it)
+                            updateImages()
+                        }.expand().top().left().pad(10f)
+                    }
+                ).row()
+            }
+        }.fill()
+    }
 }

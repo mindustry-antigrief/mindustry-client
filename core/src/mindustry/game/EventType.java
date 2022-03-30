@@ -85,6 +85,7 @@ public class EventType{
     public static class FileTreeInitEvent{}
     /** Called when a game begins and the world is loaded. */
     public static class WorldLoadEvent{}
+    /** Called just after joining a server */
     public static class ServerJoinEvent{}
 
     /** Called when a sector is destroyed by waves when you're not there. */
@@ -291,6 +292,15 @@ public class EventType{
         }
     }
 
+    /** Literally just GameOverEvent but only fired when connected as a client. */
+    public static class GameOverEventClient{
+        public final Team winner;
+
+        public GameOverEventClient(Team winner){
+            this.winner = winner;
+        }
+    }
+
     /**
      * Called *before* a tile has changed.
      * WARNING! This event is special: its instance is reused! Do not cache or use with a timer.
@@ -411,7 +421,7 @@ public class EventType{
         public final @Nullable Unit unit;
         public final boolean breaking;
         public final @Nullable Object config;
-        public final @Nullable Block previous;
+        public final Block previous;
 
         public BlockBuildEndEvent(Tile tile, @Nullable Unit unit, Team team, boolean breaking, @Nullable Object config, Block previous){
             this.tile = tile;
@@ -592,9 +602,23 @@ public class EventType{
         public final Player player;
         public final Unit unit;
 
+        /** @param unit is the player's new unit. */
         public UnitChangeEvent(Player player, Unit unit){
             this.player = player;
             this.unit = unit;
+        }
+    }
+
+    /** UnitChangeEvent can't be changed without breaking compatibility (I think), this class adds the unit swapped from. */
+    public static class UnitChangeEventClient{
+        public final Player player;
+        public final Unit newUnit;
+        public final Unit oldUnit;
+
+        public UnitChangeEventClient(Player player, Unit newUnit, Unit oldUnit){
+            this.player = player;
+            this.newUnit = newUnit;
+            this.oldUnit = oldUnit;
         }
     }
 

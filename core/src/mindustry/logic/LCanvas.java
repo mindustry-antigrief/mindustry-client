@@ -23,7 +23,6 @@ import static mindustry.Vars.*;
 import java.util.Comparator;
 
 public class LCanvas extends Table{
-    public static final int maxJumpsDrawn = 100;
     //ew static variables
     static LCanvas canvas;
 
@@ -31,6 +30,7 @@ public class LCanvas extends Table{
     public ScrollPane pane;
     public Group jumps;
     StatementElem dragging;
+    static boolean jumping;
     StatementElem hovered;
     float targetWidth;
     int jumpCount = 0;
@@ -212,8 +212,7 @@ public class LCanvas extends Table{
         super.act(delta);
 
         hovered = checkHovered();
-
-        if(Core.input.isTouched()){
+        if(Core.input.isTouched() && (dragging != null || jumping)){
             float y = Core.input.mouseY();
             float dst = Math.min(y - this.y, Core.graphics.getHeight() - y);
             if(dst < Scl.scl(100f)){ //scroll margin
@@ -538,7 +537,7 @@ public class LCanvas extends Table{
         float mx, my;
         ClickListener listener;
 
-        public JumpLine line;
+        public JumpCurve curve;
 
         public JumpButton(Prov<StatementElem> getter, Cons<StatementElem> setter){
             super(Tex.logicNode, Styles.colori);
@@ -550,6 +549,7 @@ public class LCanvas extends Table{
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode code){
                     selecting = true;
+                    jumping = true;
                     setter.get(null);
                     mx = x;
                     my = y;
@@ -570,6 +570,7 @@ public class LCanvas extends Table{
                     setter.get(elem); // Changed to allow jumping to self
                     canvas.recalculate();
                     selecting = false;
+                    jumping = false;
                 }
             });
 
@@ -582,7 +583,7 @@ public class LCanvas extends Table{
                 getStyle().imageUpColor = this.color;
             });
 
-            line = new JumpLine(this);
+            curve = new JumpCurve(this);
         }
 
         @Override
@@ -590,18 +591,18 @@ public class LCanvas extends Table{
             super.setScene(stage);
 
             if(stage == null){
-                line.remove();
+                curve.remove();
             }else{
-                canvas.jumps.addChild(line);
+                canvas.jumps.addChild(curve);
             }
         }
     }
 
-    public static class JumpLine extends Element{
+    public static class JumpCurve extends Element{
         public JumpButton button;
         int heightx;
 
-        public JumpLine(JumpButton button){
+        public JumpCurve(JumpButton button){
             this.button = button;
         }
 
@@ -618,9 +619,9 @@ public class LCanvas extends Table{
         public void draw(){
             canvas.jumpCount ++;
 
-            if(canvas.jumpCount > maxJumpsDrawn && !button.selecting && !button.listener.isOver()){
-                return;
-            }
+            //if(canvas.jumpCount > maxJumpsDrawn=100 && !button.selecting && !button.listener.isOver()){
+            //return;
+            //}
 
             if(button.to.get() == null || button.to.get().jumpHeight == -1 ||
                     (button.parent.parent != null && button.parent.parent instanceof StatementElem se && se == canvas.dragging))
@@ -651,7 +652,7 @@ public class LCanvas extends Table{
             r.y += offset;
 
             if(draw){
-                drawLine(r.x + button.getWidth()/2f, r.y + button.getHeight()/2f, t.x, t.y);
+                drawCurve(r.x + button.getWidth()/2f, r.y + button.getHeight()/2f, t.x, t.y);
 
                 float s = button.getWidth();
                 Draw.color(button.color);
@@ -661,7 +662,7 @@ public class LCanvas extends Table{
         }
 
         float lineWidth = 3f, heightSpacing = 8f, idealCurveRadius = 8f;
-        public void drawLine(float x, float y, float x2, float y2){
+        public void drawCurve(float x, float y, float x2, float y2){
             float curveRadius = Math.min(idealCurveRadius, Math.abs((y2 - y) / 2));
             Lines.stroke(lineWidth, button.color);
             Draw.alpha(parentAlpha);

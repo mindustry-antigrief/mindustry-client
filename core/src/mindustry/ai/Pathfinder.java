@@ -144,6 +144,7 @@ public class Pathfinder implements Runnable{
     /** Starts or restarts the pathfinding thread. */
     public void start(){
         stop();
+        if (net.client() && ClientVars.spawnTime == 0) return;
         thread = Threads.daemon("Pathfinder", this);
     }
 

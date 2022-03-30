@@ -24,7 +24,7 @@ public class LoadRegionProcessor extends BaseProcessor{
             .addParameter(tname("mindustry.ctype.MappableContent"), "content")
             .addModifiers(Modifier.STATIC, Modifier.PUBLIC);
 
-        ObjectMap<Stype, Seq<Svar>> fieldMap = new ObjectMap<>();
+        OrderedMap<Stype, Seq<Svar>> fieldMap = new OrderedMap<>();
 
         for(Svar field : fields(Load.class)){
             if(!field.is(Modifier.PUBLIC)){

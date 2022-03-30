@@ -80,12 +80,13 @@ public class PositionWaypoint extends Waypoint implements Position {
         if (!player.unit().isShooting || !player.unit().type.rotateShooting) player.unit().lookAt(vec.angle()); // Look towards waypoint when possible
     }
     @Override
-    public void run() {
-        run(Navigation.currentlyFollowing instanceof WaypointPath ? 0 : 20);
+    public PositionWaypoint run() {
+        return run(Navigation.currentlyFollowing instanceof WaypointPath ? 0 : 20);
     }
 
-    public void run(int smooth) {
+    public PositionWaypoint run(int smooth) {
         moveTo(this, distance, smooth);
+        return this;
     }
 
     @Override

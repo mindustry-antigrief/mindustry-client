@@ -316,6 +316,7 @@ public class UI implements ApplicationListener, Loadable{
         Table table = new Table();
         table.touchable = Touchable.disabled;
         table.setFillParent(true);
+        table.marginTop(Core.scene.find("coreinfo").getPrefHeight() / Scl.scl() / 2);
         table.actions(Actions.fadeOut(7f, Interp.fade), Actions.remove());
         table.top().add(info).style(Styles.outlineLabel).padTop(10);
         Core.scene.add(table);
@@ -324,8 +325,9 @@ public class UI implements ApplicationListener, Loadable{
     /** Shows a fading label at the top of the screen. */
     public void showInfoToast(String info, float duration){
         Table table = new Table();
-        table.setFillParent(true);
         table.touchable = Touchable.disabled;
+        table.setFillParent(true);
+        table.marginTop(Core.scene.find("coreinfo").getPrefHeight() / Scl.scl() / 2);
         table.update(() -> {
             if(state.isMenu()) table.remove();
         });
@@ -349,7 +351,7 @@ public class UI implements ApplicationListener, Loadable{
 
     /** Shows a label in the world. This label is behind everything. Does not fade. */
     public void showLabel(String info, float duration, float worldx, float worldy){
-        if (UtilitiesKt.cn() && info.startsWith("Core #") && Vars.world.buildWorld(worldx, worldy) instanceof CoreBlock.CoreBuild) Navigation.navigator.map.put(Strings.parseInt(info.replace("Core #", "")), new Vec2(worldx, worldy));
+        if (ClientUtilsKt.cn() && info.startsWith("Core #") && Vars.world.buildWorld(worldx, worldy) instanceof CoreBlock.CoreBuild) Navigation.navigator.map.put(Strings.parseInt(info.replace("Core #", "")), new Vec2(worldx, worldy));
         var table = new Table(Styles.black3).margin(4);
         table.touchable = Touchable.disabled;
         table.update(() -> {
@@ -606,7 +608,7 @@ public class UI implements ApplicationListener, Loadable{
     }
 
     public static String formatTime(float ticks){
-        int s = (int)(ticks / Time.toSeconds) % 60; // Round seconds so they dont display weird
+        int s = (int)(ticks / Time.toSeconds) % 60; // Round seconds so they don't display weird
         int m = (int)(ticks / Time.toMinutes) % 60;
         int h = (int)(ticks / Time.toHours);
         String out = (h == 0 ? "" : h + "h") + (m == 0 ? "" : m + "m") + (s == 0 ? "" : s + "s");

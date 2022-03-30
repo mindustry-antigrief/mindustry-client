@@ -9,10 +9,7 @@ import mindustry.content.*
 import mindustry.entities.*
 import mindustry.game.*
 import mindustry.gen.*
-import mindustry.logic.*
 import mindustry.world.blocks.logic.*
-import java.io.*
-import kotlin.math.*
 
 object BlockCommunicationSystem : CommunicationSystem() {
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
@@ -21,10 +18,10 @@ object BlockCommunicationSystem : CommunicationSystem() {
         return Vars.player.id
     }
     var logicAvailable = false
-    var messagesAvailable = false
+    private var messageAvailable = false
     override val MAX_LENGTH get() = when {
         logicAvailable -> Base32768Coder.availableBytes(3000)
-        messagesAvailable -> Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - ClientVars.MESSAGE_BLOCK_PREFIX.length)
+        messageAvailable -> Base32768Coder.availableBytes((Blocks.message as MessageBlock).maxTextLength - ClientVars.MESSAGE_BLOCK_PREFIX.length)
         else -> 512
     }
     override val RATE: Float = 15f // 250ms
@@ -57,7 +54,7 @@ object BlockCommunicationSystem : CommunicationSystem() {
             val build = tile as? MessageBlock.MessageBuild ?: return@findAllyTile false
             build.message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)
         } as? MessageBlock.MessageBuild
-        messagesAvailable = build != null
+        messageAvailable = build != null
         return build
     }
 
@@ -87,7 +84,7 @@ object BlockCommunicationSystem : CommunicationSystem() {
         }
 
         listeners.forEach {
-            it.invoke(bytes, id)
+            it(bytes, id)
         }
     }
 
@@ -98,7 +95,7 @@ object BlockCommunicationSystem : CommunicationSystem() {
 
         val message = event.value as? String ?: return // Some modded blocks use non strings
         if (!message.startsWith(ClientVars.MESSAGE_BLOCK_PREFIX)) return
-        messagesAvailable = true
+        messageAvailable = true
 
         val id = if (event.player == null) -1 else event.player.id
 
@@ -110,7 +107,7 @@ object BlockCommunicationSystem : CommunicationSystem() {
         }
 
         listeners.forEach {
-            it.invoke(bytes, id)
+            it(bytes, id)
         }
     }
 
@@ -124,26 +121,20 @@ object BlockCommunicationSystem : CommunicationSystem() {
         }
     }
 
-    private fun sendMessageBlock(bytes: ByteArray) {
-        val message = findMessage() ?: throw IOException() // Throws an exception when no valid block is found
+    private fun sendMessageBlock(bytes: ByteArray): Boolean {
+        val message = findMessage() ?: return false // No valid message was found
         Call.tileConfig(Vars.player, message, ClientVars.MESSAGE_BLOCK_PREFIX + Base32768Coder.encode(bytes))
+        return true
     }
 
-    private fun sendLogic(bytes: ByteArray) {
-        val processor = findProcessor() ?: throw IOException("No matching processor found!") // Throws an exception when no valid block is found
+    private fun sendLogic(bytes: ByteArray): Boolean {
+        val processor = findProcessor() ?: return false // No valid processor was found
         val value = bytes.plus(12).base32678().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = LOGIC_PREFIX + "\n") { "print \"$it\"" }.removeSuffix("\n")
         Call.tileConfig(Vars.player, processor, LogicBlock.compress(value, Seq()))
+        return true
     }
 
     override fun send(bytes: ByteArray) {
-        try {
-            sendLogic(bytes)
-        } catch (e: IOException) {
-            try {
-                sendMessageBlock(bytes)
-            } catch (e: IOException) {
-                BuildPlanCommunicationSystem.send(bytes)
-            }
-        }
+        if (!sendLogic(bytes) && !sendMessageBlock(bytes)) BuildPlanCommunicationSystem.send(bytes) // Order: Logic > Message > BuildPlan
     }
 }

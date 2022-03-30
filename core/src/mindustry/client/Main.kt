@@ -1,43 +1,30 @@
 package mindustry.client
 
-import arc.ApplicationListener
-import arc.Core
-import arc.Events
-import arc.graphics.Texture
-import arc.math.geom.Point2
-import arc.math.geom.Vec2
-import arc.scene.ui.Image
-import arc.struct.IntSet
-import arc.util.Interval
-import arc.util.Log
-import arc.util.Time
-import mindustry.Vars
-import mindustry.client.antigrief.TileRecords
+import arc.*
+import arc.graphics.*
+import arc.math.geom.*
+import arc.scene.ui.*
+import arc.struct.*
+import arc.util.*
+import mindustry.*
+import mindustry.client.antigrief.*
 import mindustry.client.communication.*
-import mindustry.client.crypto.KeyStorage
-import mindustry.client.crypto.Signatures
-import mindustry.client.crypto.TlsClientHolder
-import mindustry.client.crypto.TlsServerHolder
-import mindustry.client.navigation.AStarNavigator
-import mindustry.client.navigation.AssistPath
-import mindustry.client.navigation.BuildPath
-import mindustry.client.navigation.Navigation
-import mindustry.client.ui.Toast
+import mindustry.client.crypto.*
+import mindustry.client.navigation.*
+import mindustry.client.ui.*
 import mindustry.client.utils.*
-import mindustry.entities.units.BuildPlan
-import mindustry.game.EventType
-import mindustry.game.Teams.BlockPlan
-import mindustry.game.Teams.TeamData
-import mindustry.gen.Groups
-import mindustry.gen.Iconc
-import mindustry.input.Binding
-import mindustry.ui.fragments.ChatFragment
+import mindustry.entities.units.*
+import mindustry.game.*
+import mindustry.game.Teams.*
+import mindustry.gen.*
+import mindustry.input.*
+import mindustry.ui.fragments.*
 import java.nio.file.Files
-import java.security.cert.X509Certificate
-import java.util.*
-import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.concurrent.schedule
-import kotlin.math.max
+import java.security.cert.*
+import java.util.Timer
+import java.util.concurrent.*
+import kotlin.concurrent.*
+import kotlin.math.*
 import kotlin.random.Random
 
 object Main : ApplicationListener {
@@ -56,7 +43,7 @@ object Main : ApplicationListener {
     override fun init() {
         if (Core.app.isDesktop) {
             ntp = NTP()
-            communicationSystem = SwitchableCommunicationSystem(BlockCommunicationSystem)
+            communicationSystem = SwitchableCommunicationSystem(BlockCommunicationSystem, PluginCommunicationSystem)
             communicationSystem.init()
 
             keyStorage = KeyStorage(Core.settings.dataDirectory.file())
@@ -68,15 +55,35 @@ object Main : ApplicationListener {
             communicationSystem = SwitchableCommunicationSystem(DummyCommunicationSystem(mutableListOf()))
             communicationSystem.init()
         }
+
+        Core.settings.getBoolOnce("displaydef") {
+            Core.settings.put("displayasuser", true)
+        }
+
         communicationClient = Packets.CommunicationClient(communicationSystem)
 
         Navigation.navigator = AStarNavigator
 
         Events.on(EventType.WorldLoadEvent::class.java) {
+            if (!Vars.net.client()) { // This is so scuffed but shh
+                setPluginNetworking(false)
+                Call.serverPacketReliable("fooCheck", "")
+            }
             dispatchedBuildPlans.clear()
         }
+
         Events.on(EventType.ServerJoinEvent::class.java) {
-                communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
+            communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
+            setPluginNetworking(false)
+            Call.serverPacketReliable("fooCheck", "") // Request version info FINISHME: The server should just send this info on join
+        }
+
+        Vars.netClient.addPacketHandler("fooCheck") { version ->
+            Log.debug("Server using client plugin version $version")
+            if (!Strings.canParseInt(version)) return@addPacketHandler
+
+            ClientVars.pluginVersion = Strings.parseInt(version)
+            setPluginNetworking(true)
         }
 
         communicationClient.addListener { transmission, senderId ->
@@ -150,7 +157,7 @@ object Main : ApplicationListener {
         fun invalid(msg: ChatFragment.ChatMessage, cert: X509Certificate?) {
             msg.sender = cert?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator") ?: "Verification failed"
             msg.backgroundColor = ClientVars.invalid
-            msg.prefix = "${Iconc.cancel} "
+            msg.prefix = "${Iconc.cancel} ${msg.prefix} "
             msg.format()
         }
 
@@ -165,7 +172,7 @@ object Main : ApplicationListener {
             Signatures.VerifyResult.VALID -> {
                 msg.sender = output.second?.run { keyStorage.aliasOrName(this) }
                 msg.backgroundColor = ClientVars.verified
-                msg.prefix = "${Iconc.ok} "
+                msg.prefix = "${Iconc.ok} ${msg.prefix} "
                 msg.format()
                 true
             }
@@ -181,13 +188,13 @@ object Main : ApplicationListener {
 
     fun sign(content: String): String {
 //        if (!Core.settings.getBool("signmessages")) return content  // ID is also needed for attachments now
-        if (content.startsWith("/")) return content
+        if (content.startsWith("/") && !(content.startsWith("/t ") || content.startsWith("/a "))) return content
 
         val msgId = Random.nextInt().toShort()
         val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
 
         communicationClient.send(signatures.signatureTransmission(
-            contentWithId.encodeToByteArray(),
+            contentWithId.replace("^/[t|a] ".toRegex(), "").encodeToByteArray(),
             communicationSystem.id,
             msgId) ?: return contentWithId)
 
@@ -234,9 +241,10 @@ object Main : ApplicationListener {
     }
 
     fun setPluginNetworking(enable: Boolean) {
+        if (!enable) ClientVars.pluginVersion = -1
         when {
             enable -> {
-                communicationSystem.activeCommunicationSystem = BlockCommunicationSystem //FINISHME: Re-implement packet plugin
+                communicationSystem.activeCommunicationSystem = PluginCommunicationSystem
             }
             Core.app?.isDesktop == true -> {
                 communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
@@ -251,24 +259,26 @@ object Main : ApplicationListener {
         communicationClient.send(transmission, onFinish)
     }
 
+    /** Uses [Tmp.v1], do not cache returned vec or call this function on non-main thread. */
     fun floatEmbed(): Vec2 {
+        val show = Core.settings.getBool("displayasuser")
         return when {
-            Navigation.currentlyFollowing is AssistPath && Core.settings.getBool("displayasuser") ->
-                Vec2(
+            Navigation.currentlyFollowing is AssistPath && show ->
+                Tmp.v1.set(
                     FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
                     FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.ASSISTING)
                 )
             Navigation.currentlyFollowing is AssistPath ->
-                Vec2(
+                Tmp.v1.set(
                     FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.ASSISTING),
                     FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.ASSISTING)
                 )
-            Core.settings.getBool("displayasuser") ->
-                Vec2(
+            show ->
+                Tmp.v1.set(
                     FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
                     FloatEmbed.embedInFloat(Vars.player.unit().aimY, ClientVars.FOO_USER)
                 )
-            else -> Vec2(Vars.player.unit().aimX, Vars.player.unit().aimY)
+            else -> Tmp.v1.set(Vars.player.unit().aimX, Vars.player.unit().aimY)
         }
     }
 
@@ -305,7 +315,7 @@ object Main : ApplicationListener {
             when (transmission) {
                 is MessageTransmission -> {
                     ClientVars.lastCertName = system.peer.expectedCert.readableName
-                    Vars.ui.chatfrag.addMessage(transmission.content, "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).prefix = "${Iconc.ok} "
+                    Vars.ui.chatfrag.addMessage(transmission.content, "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).run{ prefix = "${Iconc.ok} $prefix " }
                 }
 
                 is CommandTransmission -> {

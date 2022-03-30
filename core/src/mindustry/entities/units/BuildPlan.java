@@ -12,7 +12,7 @@ import mindustry.world.*;
 import static mindustry.Vars.*;
 
 /** Class for storing build requests. Can be either a place or remove request. */
-public class BuildPlan implements Position, Pool.Poolable {
+public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObject {
     /** Position and rotation of this request. */
     public int x, y, rotation;
     /** Block being placed. If null, this is a breaking request.*/
@@ -31,6 +31,9 @@ public class BuildPlan implements Position, Pool.Poolable {
 
     /** Visual scale. Used only for rendering.*/
     public float animScale = 0f;
+    
+    /** Cache */
+    public boolean valid;
 
     @Override
     public void reset() {
@@ -217,5 +220,10 @@ public class BuildPlan implements Position, Pool.Poolable {
         ", initialized=" + initialized +
         ", config=" + config +
         '}';
+    }
+
+    @Override
+    public void hitbox(Rect out) {
+        bounds(out);
     }
 }
