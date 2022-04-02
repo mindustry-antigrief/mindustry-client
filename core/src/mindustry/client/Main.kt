@@ -136,7 +136,7 @@ object Main : ApplicationListener {
                 }
 
                 is ClientMessageTransmission -> {
-                    if (senderId != Vars.player.id) transmission.addToChatfrag()
+                    if (senderId != Vars.player.id) transmission.addToChatfrag(true)
                 }
 
                 is ImageTransmission -> {

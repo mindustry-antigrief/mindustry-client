@@ -262,7 +262,7 @@ public class NetClient implements ApplicationListener{
         }
     }
 
-    private static String processCoords(String message, boolean setLastPos){
+    public static String processCoords(String message, boolean setLastPos){
         if (message == null) return null;
         Matcher matcher = coordPattern.matcher(message);
         String group1, group2;

@@ -677,7 +677,7 @@ object Client {
         }
 
         register("c <message...>", "Send a message to other client users.") { args, _ ->  // FINISHME: Bundle
-            Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
+            Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag(true) })
         }
 
         register("mapinfo", "Lists various useful map info.") { _, player ->
