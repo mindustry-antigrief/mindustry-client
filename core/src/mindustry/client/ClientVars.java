@@ -24,7 +24,7 @@ public class ClientVars {
     public static int ratelimitRemaining = -1; // Number of configs that can be made safely before ratelimit reset
 
     // Hotkeys
-    public static boolean showingTurrets, hidingUnits, hidingAirUnits, hidingBlocks, dispatchingBuildPlans, showingOverdrives;
+    public static boolean showingTurrets, hidingUnits, hidingAirUnits, hidingBlocks, dispatchingBuildPlans, showingOverdrives, showingInvTurrets;
     @NotNull public static Seq<OverdriveProjector.OverdriveBuild> overdrives = new Seq<>(); // For whatever reason the stupid allBuildings method hates me so im just not using it FINISHME: Replace this by just expanding block clipsize and drawing a circle in the draw method rather than using this
 
     // Commands

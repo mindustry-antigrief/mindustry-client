@@ -125,7 +125,7 @@ object Client {
 
         // Turret range
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
-        if (showingTurrets) {
+        if (showingTurrets || showingInvTurrets) {
             Draw.z(Layer.space)
             val units = Core.settings.getBool("unitranges")
             circles.clear()
@@ -138,7 +138,8 @@ object Client {
                             t.radius * 2
                         )
                     ) continue
-                    circles.add(t to if (t.canHitPlayer) t.team.color else Team.derelict.color)
+                    val valid = t.canHitPlayer
+                    circles.add(t to if (valid && showingTurrets || !valid && showingInvTurrets) t.team.color else Team.derelict.color)
                 }
             }
             RangeDrawer.draw(circles)

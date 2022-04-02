@@ -94,6 +94,9 @@ public class DesktopInput extends InputHandler{
                         if(showingTurrets){
                             str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
                         }
+                        if(showingInvTurrets){
+                            str.append("\n").append(bundle.format("client.toggleinvturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
+                        }
                         if(showingOverdrives){
                             str.append("\n").append(bundle.format("client.toggleoverdrives", keybinds.get(Binding.show_turret_ranges).key.toString()));
                         }
@@ -280,7 +283,8 @@ public class DesktopInput extends InputHandler{
         }
 
         if(input.keyTap(Binding.show_turret_ranges) && scene.getKeyboardFocus() == null){
-            if (input.shift()) showingOverdrives = !showingOverdrives;
+            if (input.ctrl()) showingOverdrives = !showingOverdrives;
+            else if (input.shift()) showingInvTurrets = !showingInvTurrets;
             else showingTurrets = !showingTurrets;
         }
 
