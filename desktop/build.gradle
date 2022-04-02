@@ -16,8 +16,8 @@ task run(dependsOn: classes, type: JavaExec){
     ignoreExitValue = true
 
     if(System.getProperty("os.name").toLowerCase().contains("mac")){
-        jvmArgs("-XstartOnFirstThread")
-        args("-firstThread")
+        jvmArgs += "-XstartOnFirstThread"
+        args += "-firstThread"
     }
 
     jvmArgs += "-XX:+ShowCodeDetailsInExceptionMessages"

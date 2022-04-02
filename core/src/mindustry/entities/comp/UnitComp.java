@@ -599,16 +599,16 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     }
 
     @Deprecated
-    public Player playerNonNull(){ // FINISHME: What do we do about this?
-        return isPlayer() ? (Player)controller : Player.create();
+    public Player playerNonNull(){
+        if (!isPlayer()) throw new RuntimeException("ono");
+        return isPlayer() ? (Player)controller : Nulls.player;
     }
 
     @Override
     public void killed(){
         wasPlayer = isLocal();
         if (wasPlayer) {
-            player.persistPlans(); // Restore plans after respawn
-            player.formOnDeath = player.unit().formation;
+            player.unitOnDeath = player.unit();
         }
         health = Math.min(health, 0);
         dead = true;

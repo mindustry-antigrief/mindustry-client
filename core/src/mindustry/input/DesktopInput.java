@@ -78,7 +78,7 @@ public class DesktopInput extends InputHandler{
                     if(Core.settings.getBool("hints")) {
                         if(!isBuilding && !settings.getBool("buildautopause") && !player.unit().isBuildingIgnoreNetworking()){
                             str.append("\n").append(bundle.format("enablebuilding", keybinds.get(Binding.pause_building).key.toString()));
-                        }else if(player.unit().isBuildingIgnoreNetworking() || !player.persistPlans.isEmpty()){
+                        }else if(player.unit().isBuildingIgnoreNetworking() || !Player.persistPlans.isEmpty()){
                             str.append("\n")
                                 .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
                                 .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
@@ -179,24 +179,31 @@ public class DesktopInput extends InputHandler{
         //draw schematic requests
         for (int i = 0; i < selectRequests.size; i++) {
             var req = selectRequests.get(i);
-            boolean valid = validPlace(req.x, req.y, req.block, req.rotation);
+            req.valid = validPlace(req.x, req.y, req.block, req.rotation);
             req.animScale = 1f;
-            drawRequest(req, valid);
-            drawOverRequest(req, valid);
+            drawRequest(req, req.valid);
+        }
+
+        for (int i = 0; i < selectRequests.size; i++) {
+            var req = selectRequests.get(i);
+            drawOverRequest(req, req.valid);
         }
 
 //        if(player.isBuilder()){
             //draw things that may be placed soon
             if(mode == placing && block != null){
                 for(int i = 0; i < lineRequests.size; i++){
-                    BuildPlan req = lineRequests.get(i);
+                    var req = lineRequests.get(i);
                     if(req.block == null) continue;
-                    boolean valid = validPlace(req.x, req.y, req.block, req.rotation);
+                    req.valid = validPlace(req.x, req.y, req.block, req.rotation);
                     if(i == lineRequests.size - 1 && req.block.rotate){
-                        drawArrow(block, req.x, req.y, req.rotation, valid);
+                        drawArrow(block, req.x, req.y, req.rotation, req.valid);
                     }
-                    drawRequest(req, valid);
-                    drawOverRequest(req, valid);
+                    drawRequest(req, req.valid);
+                }
+                for(int i = 0; i < lineRequests.size; i++){
+                    var req = lineRequests.get(i);
+                    drawOverRequest(req, req.valid);
                 }
             }else if(isPlacing()){
                 if(block.rotate && block.drawArrow){
@@ -635,7 +642,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Core.input.keyTap(Binding.clear_building)){
-            player.persistPlans.clear();
+            Player.persistPlans.clear();
             processorConfigs.clear();
             player.unit().clearBuilding();
         }

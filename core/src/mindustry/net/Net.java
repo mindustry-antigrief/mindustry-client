@@ -6,6 +6,7 @@ import arc.net.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.async.*;
+import mindustry.client.*;
 import mindustry.gen.*;
 import mindustry.net.Packets.*;
 import mindustry.net.Streamable.*;
@@ -198,6 +199,8 @@ public class Net{
     public void disconnect(){
         if(active && !server){
             Log.info("Disconnecting.");
+            ClientVars.syncing = false; // Never syncing when not connected
+            ui.join.lastHost = null; // Not needed unless connected
         }
         provider.disconnectClient();
         server = false;

@@ -46,9 +46,9 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
         var item = items.min({ indexer.hasOre(it) && player.unit().canMine(it) }) { core.items[it].toFloat() } ?: return
         if (lastItem != null && player.unit().canMine(lastItem) && core.items[lastItem] - core.items[item] < 100) item = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
         lastItem = item
-        if (cap < core.storageCapacity && core.items[item] >= core.storageCapacity || cap != 0 && core.items[item] > cap) {  // Auto switch to BuildPath when core is sufficiently full
+        if (!newGame && cap < core.storageCapacity && core.items[item] >= core.storageCapacity || cap != 0 && core.items[item] > cap) {  // Auto switch to BuildPath when core is sufficiently full
             player.sendMessage(Strings.format("[accent]Automatically switching to BuildPath as the core has @ items (this number can be changed in settings).", if (cap == 0) core.storageCapacity else cap))
-            Navigation.follow(BuildPath(items, if (cap == 0) core.storageCapacity else cap))
+            Navigation.follow(BuildPath(items, cap))
         }
 
         if (player.unit().maxAccepted(item) <= 1) { // drop off
@@ -69,7 +69,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
     }
 
     override fun draw() {
-        if (waypoints.waypoints.any() && waypoints.waypoints.peek().dst(player) > tilesize * 3) waypoints.draw()
+        if ((waypoints.waypoints.lastOrNull()?.dst(player) ?: 0F) > tilesize * 3) waypoints.draw()
     }
 
     override fun progress() = 0F

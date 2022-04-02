@@ -496,10 +496,12 @@ public class JoinDialog extends BaseDialog{
 
         Host[] hostFinal = {host};
 
-        if(Core.settings.getBool("allowjoinany")) net.pingHost(ip, port, h -> {
-            hostFinal[0] = h;
-            Version.build = hostFinal[0].version;
-        }, e -> {});
+        if(Core.settings.getBool("allowjoinany")) {
+            net.pingHost(ip, port, h -> {
+                hostFinal[0] = h;
+                Version.build = hostFinal[0].version;
+            }, e -> {});
+        }
 
         Time.runTask(2f, () -> {
             logic.reset();
@@ -511,8 +513,8 @@ public class JoinDialog extends BaseDialog{
                     add.hide();
                     lastHost = hostFinal[0];
                 }
+                Core.app.post(() -> Events.fire(new EventType.ServerJoinEvent()));
             });
-            Events.fire(new EventType.ServerJoinEvent());
         });
     }
 

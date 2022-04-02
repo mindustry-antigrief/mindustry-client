@@ -32,7 +32,7 @@ public class PayloadDropoffWaypoint extends Waypoint implements Position {
     }
 
     @Override
-    public void run() {
+    public PayloadDropoffWaypoint run() {
         if (Vars.player.within(getX(), getY(), 8f)) {
             Call.requestDropPayload(Vars.player, tileX * tilesize, tileY * tilesize);
             done = true;
@@ -44,6 +44,7 @@ public class PayloadDropoffWaypoint extends Waypoint implements Position {
             y = Mathf.clamp(y / 10, -1f, 1f);
             control.input.updateMovementCustom(player.unit(), x, y, direction);
         }
+        return this;
     }
 
     @Override

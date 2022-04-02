@@ -1,8 +1,7 @@
 package mindustry.client.communication
 
 import arc.util.*
-import mindustry.client.communication.syncing.Syncer
-import mindustry.client.communication.syncing.Syncer.SyncerTransmission
+import mindustry.client.communication.syncing.Syncer.*
 import mindustry.client.utils.*
 import java.nio.*
 import java.time.*
@@ -10,6 +9,7 @@ import java.time.temporal.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.locks.*
+import kotlin.concurrent.*
 import kotlin.reflect.*
 
 object Packets {
@@ -141,9 +141,9 @@ object Packets {
         }
 
         fun addListener(listener: (transmission: Transmission, senderId: Int) -> Unit) {
-            listenersLock.lock()
-            listeners.add(listener)
-            listenersLock.unlock()
+            listenersLock.withLock {
+                listeners.add(listener)
+            }
         }
 
         /** Updates sending.  Call once per tick. */

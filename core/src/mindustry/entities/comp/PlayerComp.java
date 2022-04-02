@@ -8,7 +8,6 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
-import mindustry.ai.formations.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
@@ -33,6 +32,7 @@ import static mindustry.Vars.*;
 @Component(base = true)
 abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Drawc{
     static final float deathDelay = 60f;
+    static final Queue<BuildPlan> persistPlans = new Queue<>(1);
 
     @Import float x, y;
 
@@ -46,9 +46,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     Color color = new Color();
     transient String locale = "en";
     transient float deathTimer;
-    transient Queue<BuildPlan> persistPlans = new Queue<>();
-    transient Timer.Task persistTask;
-    transient Formation formOnDeath;
+    transient @Nullable Unit unitOnDeath;
     transient String lastText = "";
     transient float textFadeTime;
 
@@ -217,40 +215,33 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         var oldUnit = this.unit; // Unit we are swapping from
 
         if(this.unit != Nulls.unit){
-            //un-control the old unit
-            this.unit.controller(this.unit.type.createController());
+            this.unit.controller(this.unit.type.createController()); //un-control the old unit
+            if(!headless && isLocal()) { // Plan persistence is client side only
+                if(Navigation.currentlyFollowing instanceof BuildPath bp) bp.clearQueues();
+                persistPlans.clear(); // Don't want to stack multiple sets of plans...
+                persistPlans.ensureCapacity(this.unit.plans.size);
+                this.unit.plans.each(persistPlans::add);
+            }
         }
         this.unit = unit;
         if(unit != Nulls.unit){
             unit.team(team);
             unit.controller(this);
 
-            //this player just became remote, snap the interpolation so it doesn't go wild
+            //this player just became remote, snap the interpolation, so it doesn't go wild
             if(unit.isRemote()){
                 unit.snapInterpolation();
             }
 
-            if(!headless && isLocal()) {
-                if (!persistPlans.isEmpty()) {
-                    persistPlans.each(player.unit()::addBuild);
-                    if (persistTask != null && persistTask.isScheduled()) persistTask.cancel();
-                    persistTask = Timer.schedule(persistPlans::clear, 3); // Clear with a delay because servers suck
-                }
-//                if (formOnDeath != null) {
-//                    Call.unitCommand(player);
-//                }
+            if(!headless && isLocal() && !persistPlans.isEmpty()){ // Persist plans through unit swaps
+                persistPlans.each(unit::addBuild);
+                persistPlans.clear();
+                Reflect.invoke(persistPlans, "resize", new Object[]{1}, int.class); // Don't want an array hanging around in memory, replace it with a 1 element arr
             }
         }
 
         Events.fire(new UnitChangeEvent(self(), unit)); // Kept for vanilla compatibility
         Events.fire(new UnitChangeEventClient(self(), unit, oldUnit)); // Client needs the old unit.
-    }
-
-    /** Somewhat scuffed way to persist buildplans when dying and swapping units. */
-    public void persistPlans() { // FINISHME: Should this be disabled while running BuildPath?
-        if (!persistPlans.isEmpty() || unit.plans.isEmpty()) return;
-        if (Navigation.currentlyFollowing instanceof BuildPath path) path.clearQueues();
-        unit.plans.each(persistPlans::add);
     }
 
     boolean dead(){

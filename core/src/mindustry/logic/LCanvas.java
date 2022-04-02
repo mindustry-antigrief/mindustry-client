@@ -29,6 +29,7 @@ public class LCanvas extends Table{
     public ScrollPane pane;
     public Group jumps;
     StatementElem dragging;
+    static boolean jumping;
     StatementElem hovered;
     float targetWidth;
     int jumpCount = 0;
@@ -181,8 +182,7 @@ public class LCanvas extends Table{
         super.act(delta);
 
         hovered = checkHovered();
-
-        if(Core.input.isTouched()){
+        if(Core.input.isTouched() && (dragging != null || jumping)){
             float y = Core.input.mouseY();
             float dst = Math.min(y - this.y, Core.graphics.getHeight() - y);
             if(dst < Scl.scl(100f)){ //scroll margin
@@ -493,6 +493,7 @@ public class LCanvas extends Table{
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode code){
                     selecting = true;
+                    jumping = true;
                     setter.get(null);
                     mx = x;
                     my = y;
@@ -512,6 +513,7 @@ public class LCanvas extends Table{
 
                     setter.get(elem); // Changed to allow jumping to self
                     selecting = false;
+                    jumping = false;
                 }
             });
 

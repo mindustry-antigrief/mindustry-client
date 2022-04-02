@@ -13,6 +13,9 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import kotlin.text.*;
 import mindustry.*;
+import mindustry.ai.formations.*;
+import mindustry.ai.formations.patterns.*;
+import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.communication.*;
@@ -208,6 +211,7 @@ public class NetClient implements ApplicationListener{
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
         Color background = null;
+        var original = unformatted; // Cursed and horrible
         if(Vars.ui != null){
             var prefix = "";
 
@@ -232,7 +236,7 @@ public class NetClient implements ApplicationListener{
                 Vars.ui.chatfrag.addMessage(message, null, unformatted == null ? "" : unformatted);
             }
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
-                Log.info("&fi@: @",
+                Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
                     "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
                     "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
                 );
@@ -244,14 +248,14 @@ public class NetClient implements ApplicationListener{
             playersender.textFadeTime(1f);
         }
 
-        Events.fire(new PlayerChatEventClient(playersender, unformatted));
+        Events.fire(new PlayerChatEventClient(playersender, original));
     }
 
     //equivalent to above method but there's no sender and no console log
     @Remote(called = Loc.server, targets = Loc.server)
     public static void sendMessage(String message){
         if(Vars.ui != null){
-            if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.info(Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
+            if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
             message = processCoords(message, true);
             Vars.ui.chatfrag.addMessage(message);
@@ -384,6 +388,7 @@ public class NetClient implements ApplicationListener{
 
     @Remote(variants = Variant.both)
     public static void worldDataBegin(){
+        if (ClientVars.syncing && Groups.unit.contains(u -> u.controller() instanceof FormationAI ai && ai.leader == player.unit())) Call.unitCommand(player);
         Groups.clear();
         netClient.removed.clear();
         logic.reset();
@@ -571,6 +576,14 @@ public class NetClient implements ApplicationListener{
         Core.app.post(Call::connectConfirm);
         Time.runTask(40f, platform::updateRPC);
         Core.app.post(ui.loadfrag::hide);
+        Core.app.post(() -> { // We already command on sync, the player's formation var isn't set correctly, so we have to set it here as well.
+            var units = Groups.unit.array.select(it -> it.controller().isBeingControlled(Vars.player.unit()));
+            if (units.any()) {
+                var formation = new Formation(new Vec3(Vars.player.x, Vars.player.y, Vars.player.unit().rotation), new CircleFormation());
+                Vars.player.unit().formation = formation;
+                formation.addMembers(units.map(it -> (FormationAI)it.controller()));
+            }
+        });
     }
 
     private void reset(){

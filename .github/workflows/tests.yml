@@ -18,7 +18,9 @@ jobs:
         with:
           java-version: 16
           distribution: temurin
-          cache: gradle
+
+      - name: Setup Gradle Caching
+        uses: gradle/gradle-build-action@v2
 
       - name: Timestamp
         id: time

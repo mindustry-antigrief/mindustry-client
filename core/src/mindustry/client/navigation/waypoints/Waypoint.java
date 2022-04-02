@@ -9,7 +9,7 @@ public abstract class Waypoint {
     public abstract boolean isDone();
 
     /** This is run each iteration of the navigation following loop. */
-    public abstract void run();
+    public abstract Waypoint run();
 
     /** Draws the waypoint. */
     public abstract void draw();

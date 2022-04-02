@@ -49,6 +49,7 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
     manifest{
         attributes 'Main-Class': project.mainClassName
     }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 task dzip(type: Zip){

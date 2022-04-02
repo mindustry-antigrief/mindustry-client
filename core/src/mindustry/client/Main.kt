@@ -43,7 +43,7 @@ object Main : ApplicationListener {
     override fun init() {
         if (Core.app.isDesktop) {
             ntp = NTP()
-            communicationSystem = SwitchableCommunicationSystem(BlockCommunicationSystem)
+            communicationSystem = SwitchableCommunicationSystem(BlockCommunicationSystem, PluginCommunicationSystem)
             communicationSystem.init()
 
             keyStorage = KeyStorage(Core.settings.dataDirectory.file())
@@ -65,10 +65,25 @@ object Main : ApplicationListener {
         Navigation.navigator = AStarNavigator
 
         Events.on(EventType.WorldLoadEvent::class.java) {
+            if (!Vars.net.client()) { // This is so scuffed but shh
+                setPluginNetworking(false)
+                Call.serverPacketReliable("fooCheck", "")
+            }
             dispatchedBuildPlans.clear()
         }
+
         Events.on(EventType.ServerJoinEvent::class.java) {
             communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
+            setPluginNetworking(false)
+            Call.serverPacketReliable("fooCheck", "") // Request version info FINISHME: The server should just send this info on join
+        }
+
+        Vars.netClient.addPacketHandler("fooCheck") { version ->
+            Log.debug("Server using client plugin version $version")
+            if (!Strings.canParseInt(version)) return@addPacketHandler
+
+            ClientVars.pluginVersion = Strings.parseInt(version)
+            setPluginNetworking(true)
         }
 
         communicationClient.addListener { transmission, senderId ->
@@ -226,9 +241,10 @@ object Main : ApplicationListener {
     }
 
     fun setPluginNetworking(enable: Boolean) {
+        if (!enable) ClientVars.pluginVersion = -1
         when {
             enable -> {
-                communicationSystem.activeCommunicationSystem = BlockCommunicationSystem //FINISHME: Re-implement packet plugin
+                communicationSystem.activeCommunicationSystem = PluginCommunicationSystem
             }
             Core.app?.isDesktop == true -> {
                 communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
