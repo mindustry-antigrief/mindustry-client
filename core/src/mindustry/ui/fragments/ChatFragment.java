@@ -85,7 +85,7 @@ public class ChatFragment extends Table{
                     historyPos--;
                     updateChat();
                 }
-                if (input.keyTap(Binding.chat_autocomplete) && completion.any() && mode == ChatMode.normal) {
+                if (input.keyTap(Binding.chat_autocomplete) && completion.any() /*&& mode == ChatMode.normal*/) {
                     completionPos = Mathf.clamp(completionPos, 0, completion.size - 1);
                     chatfield.setText(completion.get(completionPos).getCompletion(chatfield.getText()) + " ");
                     updateCursor();
