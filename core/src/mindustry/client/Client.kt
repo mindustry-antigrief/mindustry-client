@@ -230,11 +230,11 @@ object Client {
         }
 
         register("here [message...]", Core.bundle.get("client.command.here.description")) { args, player ->
-            sendMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", player.tileX(), player.tileY()))
+            sendMessage(Strings.format("@[#3141FF](@, @)", if (args.isEmpty()) "" else args[0] + " ", player.tileX(), player.tileY()))
         }
 
         register("cursor [message...]", Core.bundle.get("client.command.cursor.description")) { args, _ ->
-            sendMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
+            sendMessage(Strings.format("@[#3141FF](@, @)", if (args.isEmpty()) "" else args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
         }
 
         register("builder [options...]", Core.bundle.get("client.command.builder.description")) { args, _: Player ->
@@ -268,6 +268,11 @@ object Client {
 
         register("js <code...>", Core.bundle.get("client.command.js.description")) { args, player: Player ->
             player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
+        }
+
+
+        register("blank", "Sends nothing.") { args, player: Player ->
+            sendMessage("\u200B")
         }
 
         register("/js <code...>", Core.bundle.get("client.command.serverjs.description")) { args, player ->
