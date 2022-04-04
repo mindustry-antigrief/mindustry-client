@@ -29,6 +29,7 @@ public class MenuRenderer implements Disposable{
     private CacheBatch batch;
     private float time = 0f;
     private float flyerRot = 45f;
+    private float unitRotation = 0f;
     private int flyers = Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
     private UnitType flyerType = content.units().select(u -> !u.isHidden() && u.hitSize <= 20f && u.flying && u.onTitleScreen && u.region.found()).random();
 
@@ -209,6 +210,10 @@ public class MenuRenderer implements Disposable{
         camera.position.set(width * tilesize / 2f, height * tilesize / 2f);
         camera.resize(Core.graphics.getWidth() / scaling,
         Core.graphics.getHeight() / scaling);
+        unitRotation += 3f;
+        if(unitRotation > 360f){
+            unitRotation = 0f;
+        }
 
         mat.set(Draw.proj());
         Draw.flush();
@@ -242,7 +247,7 @@ public class MenuRenderer implements Disposable{
         float size = Math.max(icon.width, icon.height) * Draw.scl * 1.6f;
 
         flyers((x, y) -> {
-            Draw.rect(icon, x - 12f, y - 13f, flyerRot - 90);
+            Draw.rect(icon, x - 12f, y - 13f, unitRotation);
         });
 
         flyers((x, y) -> {
@@ -262,7 +267,7 @@ public class MenuRenderer implements Disposable{
             (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f)) / 2f);
             Draw.color();
 
-            Draw.rect(icon, x, y, flyerRot - 90);
+            Draw.rect(icon, x, y, unitRotation);
         });
     }
 
