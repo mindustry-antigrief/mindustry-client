@@ -25,7 +25,17 @@ import java.time.*
 import java.time.temporal.*
 import java.util.*
 import java.util.zip.*
+import kotlin.contracts.*
 import kotlin.math.*
+
+/** Performs the given [block] with each element as its receiver. */
+@OptIn(ExperimentalContracts::class)
+inline fun <T, R>Iterable<T>.withEach(block: T.() -> R) {
+    contract {
+        callsInPlace(block, InvocationKind.UNKNOWN)
+    }
+    forEach { it.block() }
+}
 
 fun Table.label(text: String): Cell<Label> {
     return add(Label(text))
@@ -218,7 +228,7 @@ val X509Certificate.readableName: String
 
 fun String.asciiNoSpaces() = filter { it in '0'..'9' || it in 'A'..'Z' || it in 'a'..'z' || it == '_' }
 
-fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) {
+fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) { // FINISHME: Events.remove is fake news; doesn't ever work. This wouldn't even work if .remove did
     var i = 0
     Events.on(event) {
         lambda(it)
@@ -228,15 +238,14 @@ fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) {
     }
 }
 
-
 /** Whether we are connected to nydus */
 fun nydus() = Vars.ui.join.lastHost != null && Vars.net.client() && Vars.ui.join.lastHost.name.contains("nydus")
 
 /** Whether we are connected to a cn server */
-fun cn() = Vars.net.client() && Vars.ui.join.commmunityHosts.contains { it.group == "Chaotic Neutral" && it.address == Vars.ui.join.lastHost?.address }
+fun cn() = Vars.net.client() && Vars.ui.join.communityHosts.contains { it.group == "Chaotic Neutral" && it.address == Vars.ui.join.lastHost?.address }
 
 /** Whether we are connected to a .io server */
-fun io() = Vars.net.client() && Vars.ui.join.commmunityHosts.contains { it.group == "io" && it.address == Vars.ui.join.lastHost?.address }
+fun io() = Vars.net.client() && Vars.ui.join.communityHosts.contains { it.group == "io" && it.address == Vars.ui.join.lastHost?.address }
 
 /** Whether the current gamemode is flood */
 fun flood() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Flood") || Vars.state.rules.modeName == "Flood"
@@ -258,8 +267,6 @@ val ByteBuffer.byteArray get() = bytes(int)
 fun ByteBuffer.putInstantSeconds(instant: Instant) { putLong(instant.epochSecond) }
 
 val ByteBuffer.instant get() = long.toInstant()
-
-val Boolean.int get() = if (this) 1 else 0
 
 fun pixmapFromClipboard(): Pixmap? {
     try {

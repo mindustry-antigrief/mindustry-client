@@ -4,7 +4,6 @@ import arc.*;
 import arc.scene.ui.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.core.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 
@@ -81,12 +80,6 @@ public class HostDialog extends BaseDialog{
                             platform.updateLobby();
                         });
                     }));
-
-                    if(Version.modifier.contains("beta") || Version.modifier.contains("alpha")){
-                        Core.settings.put("publichost", false);
-                        platform.updateLobby();
-                        Core.settings.getBoolOnce("betapublic", () -> ui.showInfo("@public.beta"));
-                    }
                 }
 
 

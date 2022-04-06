@@ -888,20 +888,21 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     private final Seq<Tile> tempTiles = new Seq<>(4);
     protected void flushRequests(Seq<BuildPlan> requests){
         var configLogic = Core.settings.getBool("processorconfigs");
-        var temp = new BuildPlan[requests.size];
+        var temp = new BuildPlan[requests.size + requests.count(req -> req.block == Blocks.waterExtractor) * 3];
         var added = 0;
         for(BuildPlan req : requests){
             if (req.block == null) continue;
 
-            if (req.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps
-                    && req.tile().getLinkedTilesAs(req.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
+            if (req.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed
+                    && req.tile() != null && req.tile().getLinkedTilesAs(req.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
                 var first = tempTiles.first();
                 var replaced = false;
                 if (tempTiles.contains(t -> !t.adjacentTo(first) && t != first && t.floor().liquidDrop == Liquids.water)) { // Can use mechanical pumps (covers all outputs)
                     for (var t : tempTiles) {
                         var plan = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
                         if (validPlace(t.x, t.y, plan.block, 0)) {
-                            player.unit().addBuild(plan);
+                            req.block.onNewPlan(req);
+                            temp[added++] = req;
                             replaced = true;
                         }
                     }

@@ -34,6 +34,7 @@ import mindustry.net.*
 import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
+import mindustry.world.blocks.defense.turrets.BaseTurret.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
@@ -170,32 +171,35 @@ object Client {
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
             val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
-            val counts = intArrayOf(0, 0, Units.getCap(player.team()), 0, 0, 0, 0, 0)
+            val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var formation = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
 
-            for (unit in player.team().data().units) {
-                if (unit.type != type) continue
-
-                when (unit.sense(LAccess.controlled).toInt()) {
-                    GlobalConstants.ctrlPlayer -> counts[5]++
-                    GlobalConstants.ctrlFormation -> counts[6]++
-                    GlobalConstants.ctrlProcessor -> counts[7]++
-                    else -> counts[1]++
+            (player.team().data().unitCache(type) ?: Seq.with()).withEach {
+                total++
+                val ctrl = sense(LAccess.controlled).toInt()
+                if (flag == 0.0) unflagged++
+                else {
+                    flagged++
+                    if (ctrl == 0) freeFlagged++
                 }
-                counts[0]++
-                if (unit.flag != 0.0) counts[3]++
-                else counts[4]++
+                when (ctrl) {
+                    GlobalConstants.ctrlPlayer -> players++
+                    GlobalConstants.ctrlFormation -> formation++
+                    GlobalConstants.ctrlProcessor -> {
+                        if (flag != 0.0) logicFlagged++
+                        logic++
+                    }
+                    else -> free++
+                }
             }
 
             player.sendMessage("""
-                [accent]${type.localizedName}:
-                Total: ${counts[0]}
-                Free: ${counts[1]}
-                Cap: ${counts[2]}
-                Flagged(Unflagged): ${counts[3]}(${counts[4]})
-                Players(Formation): ${counts[5]}(${counts[6]})
-                Logic Controlled: ${counts[7]}
-                """.trimIndent()
-            )
+            [accent]${type.localizedName}:
+            Total(Cap): $total($cap)
+            Free(Free Flagged): $free($freeFlagged)
+            Flagged(Unflagged): $flagged($unflagged)
+            Players(Formation): $players($formation)
+            Logic(Logic Flagged): $logic($logicFlagged)
+            """.trimIndent())
         }
 
         // FINISHME: Add spawn command
@@ -309,7 +313,7 @@ object Client {
             var n = 0
             val newLinks = IntMap<IntSet>()
             val tmp = mutableListOf<ConfigRequest>()
-            clientThread.post {
+//            clientThread.post {
                 for ((grid, buildings) in grids) { // This is horrible but works somehow
                     for (nodeBuild in buildings) {
                         val nodeBlock = nodeBuild.block as? PowerNode ?: continue
@@ -330,7 +334,7 @@ object Client {
                         }
                     }
                 }
-                Core.app.post {
+//                Core.app.post {
                     configs.addAll(tmp)
                     if (confirmed) {
                         if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
@@ -338,8 +342,8 @@ object Client {
                     } else {
                         player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, grids.size))
                     }
-                }
-            }
+//                }
+//            }
         }
 
         @Suppress("unchecked_cast")
@@ -562,14 +566,13 @@ object Client {
                     if (!tile.team().isEnemy(player.team())) return@circle
                     val block = tile.block()
                     val scoreMul = when {
-                        // general logistics
-                        block == Blocks.itemSource -> 2f
                         // do NOT shoot power voided networks
                         (tile.build?.power?.graph?.getPowerBalance() ?: 0f) <= -1e12f -> Float.POSITIVE_INFINITY
                         // otherwise nodes are good to shoot
                         block == Blocks.powerSource -> 0f
                         block is PowerNode -> if (tile.build.power.status < .9) 2f else 1f
 
+                        block == Blocks.itemSource -> 2f
                         block == Blocks.liquidSource -> 3f  // lower priority because things generally don't need liquid to run
 
                         // likely to be touching a turret or something
@@ -581,10 +584,6 @@ object Client {
 
                         block == Blocks.liquidRouter -> 5f
 
-                        // I can't help myself, boom boom ... this was a bad plan
-//                        (block == Blocks.container || block == Blocks.vault) &&
-//                                tile.build.items.sum { item, amount -> (item.explosiveness * 2f + item.flammability) * amount } > 50 -> 0f
-
                         block == Blocks.mendProjector -> 6f
                         block == Blocks.forceProjector -> 6f
                         block is PointDefenseTurret -> 6f
@@ -594,8 +593,9 @@ object Client {
                         block != Blocks.air -> 9f
                         else -> 10f
                     }
-                    var score = (tile.x.toInt() - player.tileX()).toFloat() + (tile.y.toInt() - player.tileY())
-                    score += scoreMul * amount
+
+                    var score = Astar.manhattan.cost(tile.x.toInt(), tile.y.toInt(), player.tileX(), player.tileY())
+                    score += scoreMul * amount * if (tile.build?.proximity?.contains { it is BaseTurretBuild } == true) 1F else 1.1F
 
                     if (score < closestScore) {
                         target = tile.build

@@ -246,20 +246,21 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
 
             boolean all = false;
             sort:
-            for (int i = 0; i < 2; i++) {
-                for (Queue queue : queues) {
-                    sortPlans(queue, all);
-                    if (priority.empty()) continue;
-                    i = 0;
-                    BuildPlan plan;
-                    while ((plan = priority.poll()) != null && i++ < 300) {
-                        player.unit().plans.remove(plan);
-                        player.unit().plans.addLast(plan);
+            if (player.unit().plans.isEmpty()) {
+                for (int i = 0; i < 2; i++) {
+                    for (Queue queue : queues) {
+                        sortPlans(queue, all);
+                        if (priority.empty()) continue;
+                        i = 0;
+                        BuildPlan plan;
+                        while ((plan = priority.poll()) != null && i++ < 300) {
+                            player.unit().addBuild(plan);
+                        }
+                        priority.clear();
+                        break sort;
                     }
-                    priority.clear();
-                    break sort;
+                    all = true;
                 }
-                all = true;
             }
         }
 

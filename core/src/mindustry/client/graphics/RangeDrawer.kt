@@ -17,6 +17,7 @@ object RangeDrawer {
     private val vector = Vec2()
     private var mapping: MutableMap<Color, MutableMap<Float, Pair<FrameBuffer, TextureRegion>?>> = mutableMapOf()
     private var prev = 0f
+    private val batch = CacheBatch(SpriteCache())
 
     fun draw(ranges: MutableList<Pair<TurretPathfindingEntity, Color>>) {
         val scl = 3  // for whatever reason, drawing with one pixel per pixel doesn't look good (I think my pixel calculations are off)
@@ -25,8 +26,7 @@ object RangeDrawer {
         fun dashCircle(x: Float, y: Float, radius: Float, sides: Int) {
             vector.set(0f, 0f)
 
-            for (i in 0 until sides) {
-                if (i % 2 == 0) continue
+            for (i in 1 until sides step 2) {
                 vector.set(radius, 0f).setAngle(360f / sides * i + 90)
                 val x1 = vector.x
                 val y1 = vector.y

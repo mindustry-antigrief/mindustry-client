@@ -26,6 +26,7 @@ import mindustry.maps.*;
 import mindustry.mod.*;
 import mindustry.net.*;
 import mindustry.service.*;
+import mindustry.type.*;
 import mindustry.world.*;
 
 import java.io.*;
@@ -351,7 +352,7 @@ public class Vars implements Loadable{
         String[] tags = {"[green][D][]", "[royal][I][]", "[yellow][W][]", "[scarlet][E][]", ""};
         String[] stags = {"&lc&fb[D]", "&lb&fb[I]", "&ly&fb[W]", "&lr&fb[E]", ""};
 
-        Seq<String> logBuffer = new Seq<>();
+        LinkedList<String> logBuffer = new LinkedList<>();
         Log.logger = (level, text) -> {
             String result = text;
             String rawText = Log.format(stags[level.ordinal()] + "&fr " + text);
@@ -372,7 +373,9 @@ public class Vars implements Loadable{
             }
         };
 
-        Events.on(ClientLoadEvent.class, e -> logBuffer.each(ui.scriptfrag::addMessage));
+        Events.on(ClientLoadEvent.class, e -> {
+            while(!logBuffer.isEmpty()) ui.scriptfrag.addMessage(logBuffer.removeFirst()); // Saves like 1 byte
+        });
 
         loadedLogger = true;
     }
@@ -417,6 +420,11 @@ public class Vars implements Loadable{
         keybinds.setDefaults(Binding.values());
         settings.setAutosave(false);
         settings.load();
+        Core.app.post(() -> { // Set settings vars
+            UnitType.drawAllItems = settings.getBool("drawallitems");
+            UnitType.formationAlpha = settings.getInt("formationopacity") / 100f;
+            UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f;
+        });
 
         Scl.setProduct(settings.getInt("uiscale", 100) / 100f);
 
