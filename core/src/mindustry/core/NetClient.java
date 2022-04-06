@@ -576,6 +576,7 @@ public class NetClient implements ApplicationListener{
         Core.app.post(Call::connectConfirm);
         Time.runTask(40f, platform::updateRPC);
         Core.app.post(ui.loadfrag::hide);
+        Core.app.post(() -> Events.fire(new EventType.ServerJoinEvent()));
         Core.app.post(() -> { // We already command on sync, the player's formation var isn't set correctly, so we have to set it here as well.
             var units = Groups.unit.array.select(it -> it.controller().isBeingControlled(Vars.player.unit()));
             if (units.any()) {

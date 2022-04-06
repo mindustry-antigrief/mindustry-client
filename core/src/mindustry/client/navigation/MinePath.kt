@@ -24,10 +24,10 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
     constructor(args: String) : this(Seq()) {
         val split = args.split("\\s".toRegex())
         for (a in split) {
-            content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.run(items::add) ?:
             if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
             else if (Strings.canParseInt(a)) cap = a.toInt().coerceAtLeast(0) // Specified cap, <= 0 results in infinite cap
-            else player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
+            else content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.apply(items::add) ?:
+            player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
         }
 
         if (items.isEmpty) {

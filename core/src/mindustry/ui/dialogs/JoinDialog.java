@@ -13,7 +13,6 @@ import arc.util.Timer.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.core.*;
-import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -26,7 +25,7 @@ import static mindustry.Vars.*;
 
 public class JoinDialog extends BaseDialog{
     //TODO unused
-    public Seq<Host> commmunityHosts = new Seq<>();
+    public Seq<Host> communityHosts = new Seq<>();
     Seq<Server> servers = new Seq<>();
     Dialog add;
     Server renaming;
@@ -362,7 +361,7 @@ public class JoinDialog extends BaseDialog{
     }
 
     void refreshCommunity(){
-        commmunityHosts.clear();
+        communityHosts.clear();
         int cur = refreshes;
 
         global.clear();
@@ -385,7 +384,7 @@ public class JoinDialog extends BaseDialog{
                     res.port = resport;
                     res.group = group.name;
 
-                    commmunityHosts.add(res);
+                    communityHosts.add(res);
 
                     //add header
                     if(groupTable[0] == null){
@@ -513,7 +512,6 @@ public class JoinDialog extends BaseDialog{
                     add.hide();
                     lastHost = hostFinal[0];
                 }
-                Core.app.post(() -> Events.fire(new EventType.ServerJoinEvent()));
             });
         });
     }

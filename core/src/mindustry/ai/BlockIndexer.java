@@ -187,7 +187,9 @@ public class BlockIndexer{
             return damagedTiles[team.id] = new Seq<>(false);
         }
 
-        return damagedTiles[team.id];
+        var seq = damagedTiles[team.id];
+        seq.each(b -> b.wasDamaged && !b.damaged(), seq::remove);
+        return seq;
     }
 
     /** Get all allied blocks with a flag. */
