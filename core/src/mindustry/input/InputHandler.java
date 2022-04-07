@@ -1141,7 +1141,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             });
 
             block.handlePlacementLine(lineRequests);
-        }
+        } else if(block instanceof ItemBridge && Core.input.shift()) block.handlePlacementLine(lineRequests);
     }
 
     protected void updateLine(int x1, int y1){
