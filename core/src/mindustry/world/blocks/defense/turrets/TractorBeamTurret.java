@@ -81,6 +81,7 @@ public class TractorBeamTurret extends BaseTurret{
         @Override
         public void created() {
             pathfindingEntity.targetGround = targetGround;
+            pathfindingEntity.targetAir = targetAir;
         }
 
         @Override

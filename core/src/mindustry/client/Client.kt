@@ -129,7 +129,10 @@ object Client {
             Draw.z(Layer.space)
             val units = Core.settings.getBool("unitranges")
             circles.clear()
+            val playerFlying = player.unit().isFlying
             synchronized(obstacles) {
+                var valid : Boolean
+                var validInv : Boolean
                 for (t in obstacles) {
                     if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(
                             t.x - t.radius,
@@ -138,8 +141,16 @@ object Client {
                             t.radius * 2
                         )
                     ) continue
-                    val valid = t.canHitPlayer
-                    circles.add(t to if (valid && showingTurrets || !valid && showingInvTurrets) t.team.color else Team.derelict.color)
+                    if (playerFlying){
+                        valid = t.targetAir
+                        validInv = t.targetGround
+                    } else {
+                        valid = t.targetGround
+                        validInv = t.targetAir
+                    }
+                    //valid = if (playerFlying) t.targetAir else t.targetGround
+                    //validInv = if (playerFlying) t.targetGround else t.targetAir
+                    circles.add(t to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) t.team.color else Team.derelict.color)
                 }
             }
             RangeDrawer.draw(circles)

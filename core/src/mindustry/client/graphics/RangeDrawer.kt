@@ -19,7 +19,7 @@ object RangeDrawer {
     private var prev = 0f
 
     fun draw(ranges: MutableList<Pair<TurretPathfindingEntity, Color>>) {
-        val scl = 3  // for whatever reason, drawing with one pixel per pixel doesn't look good (I think my pixel calculations are off)
+        val scl = 2  // for whatever reason, drawing with one pixel per pixel doesn't look good (I think my pixel calculations are off)
 
         // the same as the normal version but sides can be calculated outside the function so that they don't change with scale
         fun dashCircle(x: Float, y: Float, radius: Float, sides: Int) {

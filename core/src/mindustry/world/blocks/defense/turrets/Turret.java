@@ -278,6 +278,7 @@ public class Turret extends ReloadTurret{
                 pathfindingEntity.y = y;
                 pathfindingEntity.team = team;
                 pathfindingEntity.targetGround = targetGround;
+                pathfindingEntity.targetAir = targetAir;
             }
 
             if(logicControlTime > 0){
