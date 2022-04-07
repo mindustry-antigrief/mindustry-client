@@ -2,6 +2,7 @@ package mindustry.client.antigrief
 
 import arc.*
 import arc.math.Mathf
+import arc.util.Time
 import mindustry.*
 import mindustry.ai.types.*
 import mindustry.client.*
@@ -11,13 +12,21 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.world.*
 import mindustry.world.blocks.*
+import kotlin.math.abs
 
 object TileRecords {
     private var records: Array<Array<TileRecord>> = arrayOf(arrayOf())
 
     fun initialize() {
         Events.on(EventType.WorldLoadEvent::class.java) {
-            if (!ClientVars.syncing) records = Array(Vars.world.width()) { x -> Array(Vars.world.height()) { y -> TileRecord(x, y) } }
+            val startTime = Time.globalTime / 60.0 - Vars.state.tick / 60.0
+            var sameMap = abs(ClientVars.lastServerStartTime - startTime) < 10 // if start time of map is within 10s of the previous start time
+            sameMap = sameMap && records.isNotEmpty() && Vars.state.map.name() == ClientVars.lastServerName &&
+                    Vars.world.width() == records.size && Vars.world.height() == records[0].size
+
+            ClientVars.lastServerStartTime = startTime
+            ClientVars.lastServerName = Vars.state.map.name()
+            if (!ClientVars.syncing && !sameMap) records = Array(Vars.world.width()) { x -> Array(Vars.world.height()) { y -> TileRecord(x, y) } }
         }
 
         Events.on(EventType.BlockBuildBeginEventBefore::class.java) {
