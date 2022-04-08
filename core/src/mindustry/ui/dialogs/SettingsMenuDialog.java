@@ -411,9 +411,7 @@ public class SettingsMenuDialog extends BaseDialog{
                 return i + "";
             });
 
-            if(!Version.modifier.contains("beta")){
-                game.checkPref("publichost", false, i -> platform.updateLobby());
-            }
+            game.checkPref("publichost", false, i -> platform.updateLobby());
         }
 
         int[] lastUiScale = {settings.getInt("uiscale", 100)};

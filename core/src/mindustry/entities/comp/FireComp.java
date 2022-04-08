@@ -110,7 +110,7 @@ abstract class FireComp implements Timedc, Posc, Syncc, Drawc{
 
     @Override
     public void draw(){
-        if (ClientVars.hidingUnits || ClientVars.hidingBlocks) return;
+        if(ClientVars.hidingUnits || ClientVars.hidingBlocks) return;
         if(regions[0] == null){
             for(int i = 0; i < frames; i++){
                 regions[i] = Core.atlas.find("fire" + i);

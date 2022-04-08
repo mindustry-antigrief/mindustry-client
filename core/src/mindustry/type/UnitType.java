@@ -306,7 +306,7 @@ public class UnitType extends UnlockableContent{
 
         if(mineTier >= 1){
             stats.addPercent(Stat.mineSpeed, mineSpeed);
-            stats.add(Stat.mineTier, StatValues.blocks(b -> b instanceof Floor f && f.itemDrop != null && f.itemDrop.hardness <= mineTier && (!f.playerUnmineable || Core.settings.getBool("doubleclicktomine"))));
+            stats.add(Stat.mineTier, StatValues.blocks(b -> b instanceof Floor f && f.itemDrop != null && f.itemDrop.hardness <= mineTier && (!f.playerUnmineable || Core.settings.getBool("doubletapmine"))));
         }
         if(buildSpeed > 0){
             stats.addPercent(Stat.buildSpeed, buildSpeed);
@@ -329,13 +329,6 @@ public class UnitType extends UnlockableContent{
     @CallSuper
     @Override
     public void init(){
-        if (Core.settings != null && Core.settings.get("hitboxopacity", null) instanceof Float) Core.settings.put("hitboxopacity", 30); // FINISHME: I did a dumb, remove on v7 release
-        if (formationAlpha == -1) { // Only set these once.
-            drawAllItems = Core.settings != null && Core.settings.getBool("drawallitems");
-            formationAlpha = Core.settings != null ? Core.settings.getInt("formationopacity") / 100f : .3f;
-            hitboxAlpha = Core.settings != null ? Core.settings.getInt("hitboxopacity") / 100f : .3f;
-        }
-
         if(constructor == null) throw new IllegalArgumentException("no constructor set up for unit '" + name + "'");
 
         Unit example = constructor.get();
