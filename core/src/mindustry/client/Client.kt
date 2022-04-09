@@ -213,6 +213,13 @@ object Client {
                 content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
         }
 
+        register("uc <unit-type>", "Picks a unit nearest to cursor") { args, _ ->
+            ui.unitPicker.pickUnit(
+                content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) },
+                Core.input.mouseWorldX(), Core.input.mouseWorldY(), true
+            )
+        }
+
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
             val type =
                 content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
