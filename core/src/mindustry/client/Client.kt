@@ -36,6 +36,7 @@ import mindustry.ui.fragments.ChatFragment
 import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
+import mindustry.world.blocks.distribution.ItemBridge
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
@@ -712,6 +713,22 @@ object Client {
                 Core Modifies Unit Cap: ${rules.unitCapVariable}
                 """.trimIndent()
             })
+        }
+
+        register("phasei <interval>", "Changes interval for end bridge when shift+dragging phase conveyors.") { args, _ ->
+            try{
+                val interval = Integer.parseInt(args[0])
+                val maxInterval = (Blocks.phaseConveyor as ItemBridge).range
+                if(interval < 1 || interval > maxInterval){
+                    player.sendMessage("[scarlet]Interval must be within 1 and $maxInterval!")
+                    return@register
+                }
+                ItemBridge.phaseWeaveInterval = interval
+                Core.settings.put("weaveEndInterval", interval)
+                player.sendMessage("[accent]Successfully set interval to $interval.")
+            } catch (e : Exception){
+                player.sendMessage("[scarlet]Failed to parse integer!")
+            }
         }
 
         registerReplace("%", "c", "cursor") {
