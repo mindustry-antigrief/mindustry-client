@@ -8,6 +8,8 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.Nullable;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
@@ -22,6 +24,7 @@ import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
+import org.jetbrains.annotations.*;
 
 import static mindustry.Vars.*;
 
@@ -83,6 +86,33 @@ public class PowerNode extends PowerBlock{
                 }
 
                 power.graph.addGraph(other.power.graph);
+
+                if (entity instanceof PowerNodeBuild build && build.schematicLinks != null && !build.schematicLinks.isEmpty()) {
+                    if (!build.schematicLinks.contains(value)) {
+                        Log.debug("Scheduled cancel of (@, @) -> @", build.x, build.y, Point2.unpack(value));
+                        var req = new PowerNodeConfigReq(build, value, false); //undo it
+                        ClientVars.configs.add(() -> {
+                            req.run();
+                            if (build.schematicLinks == null) return;
+                            var it = build.schematicLinks.iterator();
+                            while (it.hasNext) {
+                                int v = it.next();
+                                if (power.links.contains(v)) { // already connected - remove
+                                    it.remove();
+                                    continue;
+                                }
+
+                                if (linkValid(build, world.build(v))) {
+                                    ClientVars.configs.add(new PowerNodeConfigReq(build, v, true)); // connect request
+                                    it.remove();
+                                }
+                            }
+                            // give up?
+                        });
+                    } else {
+                        build.removeFromSet(value);
+                    }
+                }
             }
         });
 
@@ -360,11 +390,40 @@ public class PowerNode extends PowerBlock{
         });
     }
 
+    public static class PowerNodeConfigReq extends ConfigRequest{
+
+        private final boolean connect;
+        private final int value;
+
+        public PowerNodeConfigReq(@NotNull PowerNodeBuild build, int value, boolean connect) {
+            super(build, null, false);
+            this.value = value;
+            this.connect = connect;
+        }
+
+        @Override
+        public void run() {
+            Tile tile = Vars.world.tile(x, y);
+            if(tile == null || !(tile.build instanceof PowerNodeBuild pb)) return;
+            Log.debug("Request fulfilled: connect: @, (@, @) -> @", connect, pb.x, pb.y, Point2.unpack(value));
+            boolean isConnected = pb.power.links.contains(value);
+            if(isConnected == connect) return; //already connected if want to connect, and vice versa
+
+            if(connect && pb.schematicLinks != null){
+                pb.schematicLinks.add(value);
+            }
+            Log.debug("Valid");
+            Call.tileConfig(Vars.player, tile.build, value);
+            pb.removeFromSet(value);
+        }
+    }
+
     public class PowerNodeBuild extends Building{
 
         /** This is used for power split notifications. */
         public @Nullable ChatFragment.ChatMessage message;
         public int disconnections = 0;
+        public @Nullable IntSet schematicLinks; // supposed links when placed in a schematic
 
         @Override
         public void placed(){
@@ -379,23 +438,39 @@ public class PowerNode extends PowerBlock{
             super.placed();
         }
 
-//        @Override
-//        public void playerPlaced(Object config) { FINISHME: Make this work, maybe an IntObjectMap with Entry<pos, Seq<linkPos>>
-//            super.playerPlaced(config);
-//
-//            if(net.client() && config instanceof Point2[] t){ // Fix incorrect power node linking in schems
-//                var current = new Seq<Point2>();
-//                getPotentialLinks(tile, team, other -> { // The server hasn't sent us the links yet, emulate how it would look if it had
-//                    if(!power.links.contains(other.pos())) current.add(new Point2(other.tile.x, other.tile.y).sub(tile.x, tile.y));
-//                });
-//
-//                Log.info(Arrays.toString(t) + " | " + current);
-//                current.each(l -> !Structs.contains(t, l), l -> { // Remove extra links.
-//                    ClientVars.configs.add(new ConfigRequest(this, l.add(tile.x, tile.y).pack()));
-//                    Log.info(tileX() + ", " + tileY() + " | " + l.x + tile.x + ", " + l.y + tile.y);
-//                });
-//            }
-//        }
+        private boolean removeFromSet(int value){
+            if(schematicLinks == null) return true;
+            schematicLinks.remove(value);
+            if(schematicLinks.isEmpty()) schematicLinks = null;
+            return schematicLinks == null;
+        }
+
+        @Override
+        public void playerPlaced(Object config) { //FINISHME: Make this work no matter who places the node
+            super.playerPlaced(config);
+            if(!net.client()) configure(config);
+            else if(config instanceof Point2[] t){ // Fix incorrect power node linking in schems
+                var current = new Seq<Point2>();
+                getPotentialLinks(tile, team, other -> { // The server hasn't sent us the links yet, emulate how it would look if it had
+                    if(!power.links.contains(other.pos())) current.add(new Point2(other.tile.x, other.tile.y).sub(tile.x, tile.y));
+                });
+
+                current.each(l -> !Structs.contains(t, l), l -> { // Remove extra links.
+                    ClientVars.configs.add(new PowerNodeConfigReq(this, l.add(tile.x, tile.y).pack(), false));
+                });
+
+                if(t.length > 0){
+                    schematicLinks = new IntSet();
+                    for(Point2 p: t){
+                        int pos = p.add(tile.x, tile.y).pack();
+                        if(!power.links.contains(pos)) {
+                            schematicLinks.add(p.pack());
+                        }
+                    }
+                }
+                Log.debug("Initialized schematicLinks, @", schematicLinks);
+            }
+        }
 
         @Override
         public void dropped(){
