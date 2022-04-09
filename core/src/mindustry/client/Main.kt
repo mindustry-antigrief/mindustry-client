@@ -168,6 +168,7 @@ object Main : ApplicationListener {
         if (!Core.settings.getBool("highlightcryptomsg")) return true
         val output = signatures.verifySignatureTransmission(msg.unformatted.encodeToByteArray(), transmission)
 
+        ChatFragment.ChatMessage.msgFormat()
         return when (output.first) {
             Signatures.VerifyResult.VALID -> {
                 msg.sender = output.second?.run { keyStorage.aliasOrName(this) }
@@ -315,6 +316,7 @@ object Main : ApplicationListener {
             when (transmission) {
                 is MessageTransmission -> {
                     ClientVars.lastCertName = system.peer.expectedCert.readableName
+                    ChatFragment.ChatMessage.msgFormat()
                     Vars.ui.chatfrag.addMessage(transmission.content, "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).run{ prefix = "${Iconc.ok} $prefix " }
                 }
 

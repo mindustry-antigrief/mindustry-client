@@ -24,6 +24,7 @@ import mindustry.input.*;
 import mindustry.ui.*;
 
 import java.util.*;
+import java.util.regex.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -497,13 +498,15 @@ public class ChatFragment extends Table{
 
     public static class ChatMessage{
         public String sender;
-        public String message;
+        public String message; // TODO: test if having red text at all (eg. sending 34 45) will cause impersonator
         public String formattedMessage;
         public Color backgroundColor;
         public String prefix;
         public String unformatted;
         public List<Image> attachments = new ArrayList<>();
-
+        public static boolean processCoords, setLastPos; // false by default, set them ON right before initializing a new message
+        private static final Pattern coordPattern = Pattern.compile("\\(?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\)?"); // This regex is a mess. https://regex101.com is the superior regex tester
+        private static final Pattern coordPattern2 = Pattern.compile("((\\[scarlet])?\\(?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\)?(\\[])?)"); //This regex now gobbles up [scarlet]
         public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
             this.message = message;
             this.sender = sender;
@@ -513,12 +516,44 @@ public class ChatFragment extends Table{
             format();
         }
 
+        public static void msgFormat(boolean processCoords2, boolean setLastPos2){
+            processCoords = processCoords2;
+            setLastPos = setLastPos2;
+        }
+        public static void msgFormat(boolean process){
+            msgFormat(process, process);
+        }
+        public static void msgFormat(){
+            msgFormat(true, true);
+        }
+
         public void format() {
             if(sender == null){ //no sender, this is a server message?
-                formattedMessage = message == null ? "" : message;
+                formattedMessage = message == null ? "" : processCoords ? processCoords(message, setLastPos) : message;
             } else {
-                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
+                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " +
+                        (processCoords ? processCoords(unformatted, setLastPos) : unformatted);
             }
+            processCoords = setLastPos = false;
+        }
+
+        public static String processCoords(String message, boolean setLastPos){
+            if (message == null) return null;
+            Matcher matcher = coordPattern2.matcher(message);
+            if(!matcher.find()) return message;
+            //message = matcher.replaceAll(mr -> "[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); since java 9 fml
+            StringBuffer result = new StringBuffer(message.length());
+            String group1, group2;
+            do{
+                matcher.appendReplacement(result,"[scarlet]" + Strings.stripColors(matcher.group()) + "[]");
+                group1 = matcher.group(3);
+                group2 = matcher.group(4);
+            } while (matcher.find());
+            matcher.appendTail(result);
+            if (setLastPos) try {
+                ClientVars.lastSentPos.set(Float.parseFloat(group1), Float.parseFloat(group2));
+            } catch (NumberFormatException ignored) {}
+            return result.toString();
         }
     }
 

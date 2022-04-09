@@ -32,6 +32,7 @@ import mindustry.graphics.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
+import mindustry.ui.fragments.ChatFragment
 import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
@@ -631,6 +632,7 @@ object Client {
 
             connectTls(certname) { comms, cert ->
                 comms.send(MessageTransmission(msg))
+                ChatFragment.ChatMessage.msgFormat()
                 ui.chatfrag.addMessage(
                     msg,
                     "[coral]${Main.keyStorage.cert()?.readableName ?: "you"} [white]-> ${

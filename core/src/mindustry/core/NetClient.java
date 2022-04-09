@@ -33,12 +33,12 @@ import mindustry.logic.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
+import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.regex.*;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
@@ -47,7 +47,6 @@ public class NetClient implements ApplicationListener{
     private static final float dataTimeout = 60 * 30; // Give up after 30s (vanilla is 20s)
     private static final float playerSyncTime = 5;
     private static final Reads dataReads = new Reads(null);
-    private static final Pattern coordPattern = Pattern.compile("\\(?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\)?"); // This regex is a mess. https://regex101.com is the superior regex tester
 
     private long ping;
     private Interval timer = new Interval(5);
@@ -220,8 +219,7 @@ public class NetClient implements ApplicationListener{
                 if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
-            unformatted = processCoords(unformatted, true);
-            message = processCoords(message, unformatted != null);
+            ChatFragment.ChatMessage.msgFormat();
             if (playersender != null) {
                 if (message.startsWith("[#" + playersender.team().color.toString() + "]<T>")) {
                     prefix += "[#" + playersender.team().color.toString() + "]<T> ";
@@ -257,28 +255,9 @@ public class NetClient implements ApplicationListener{
         if(Vars.ui != null){
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
-            message = processCoords(message, true);
+            ChatFragment.ChatMessage.msgFormat();
             Vars.ui.chatfrag.addMessage(message);
         }
-    }
-
-    public static String processCoords(String message, boolean setLastPos){
-        if (message == null) return null;
-        Matcher matcher = coordPattern.matcher(message);
-        String group1, group2;
-        StringBuffer result = new StringBuffer();
-        //message = matcher.replaceAll(mr -> "[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); since java 9 fml
-        if(!matcher.find()) return message;
-        do{
-            matcher.appendReplacement(result,"[scarlet]" + Strings.stripColors(matcher.group()) + "[]");
-            group1 = matcher.group(1);
-            group2 = matcher.group(2);
-        } while (matcher.find());
-        matcher.appendTail(result);
-        if (setLastPos) try {
-            ClientVars.lastSentPos.set(Float.parseFloat(group1), Float.parseFloat(group2));
-        } catch (NumberFormatException ignored) {}
-        return result.toString();
     }
 
     //called when a server receives a chat message from a player
