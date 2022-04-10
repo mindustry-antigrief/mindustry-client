@@ -87,30 +87,46 @@ public class PowerNode extends PowerBlock{
 
                 power.graph.addGraph(other.power.graph);
 
-                if (entity instanceof PowerNodeBuild build && build.schematicLinks != null && !build.schematicLinks.isEmpty()) {
-                    if (!build.schematicLinks.contains(value)) {
+                if(entity instanceof PowerNodeBuild build && build.queuedLinks != null && build.schematicLinks != null && !build.schematicLinks.isEmpty()){
+                    boolean has = false;
+                    outer:
+                    for(int i=0; i < 2; i++) {
+                        if(has) break;
+                        var its = i == 0 ? build.schematicLinks.iterator() : build.queuedLinks.iterator();
+                        while (its.hasNext) {
+                            int v = its.next();
+                            has = world.build(v) == other;
+                            if(has) break outer;
+                        }
+                    }
+                    Runnable connect = () -> {
+                        if (build.schematicLinks == null) return;
+                        var it = build.schematicLinks.iterator();
+                        while (it.hasNext) {
+                            int v = it.next();
+                            if (power.links.contains(v)) { // already connected - remove
+                                it.remove();
+                                continue;
+                            }
+                            if (linkValid(build, world.build(v))) {
+                                ClientVars.configs.add(new PowerNodeConfigReq(build, v, true)); // connect request
+                                it.remove();
+                                build.queuedLinks.add(v); // queuedLinks should never be null, if not NPE and then we cry
+                            }
+                        }
+                        if(build.schematicLinks.isEmpty()) build.schematicLinks = null;
+                    };
+                    if(!has){
                         Log.debug("Scheduled cancel of (@, @) -> @", build.x, build.y, Point2.unpack(value));
                         var req = new PowerNodeConfigReq(build, value, false); //undo it
                         ClientVars.configs.add(() -> {
                             req.run();
-                            if (build.schematicLinks == null) return;
-                            var it = build.schematicLinks.iterator();
-                            while (it.hasNext) {
-                                int v = it.next();
-                                if (power.links.contains(v)) { // already connected - remove
-                                    it.remove();
-                                    continue;
-                                }
-
-                                if (linkValid(build, world.build(v))) {
-                                    ClientVars.configs.add(new PowerNodeConfigReq(build, v, true)); // connect request
-                                    it.remove();
-                                }
-                            }
-                            // give up?
+                            connect.run();
                         });
                     } else {
-                        build.removeFromSet(value);
+                        build.removeFromSet(build.queuedLinks, value);
+                        build.removeFromSet(build.schematicLinks, value);
+                        connect.run();
                     }
                 }
             }
@@ -405,16 +421,17 @@ public class PowerNode extends PowerBlock{
         public void run() {
             Tile tile = Vars.world.tile(x, y);
             if(tile == null || !(tile.build instanceof PowerNodeBuild pb)) return;
+
             Log.debug("Request fulfilled: connect: @, (@, @) -> @", connect, pb.x, pb.y, Point2.unpack(value));
             boolean isConnected = pb.power.links.contains(value);
-            if(isConnected == connect) return; //already connected if want to connect, and vice versa
-
-            if(connect && pb.schematicLinks != null){
-                pb.schematicLinks.add(value);
+            if(isConnected == connect){
+                pb.removeFromSet(pb.queuedLinks, value);
+                return; //already connected if want to connect, and vice versa
             }
+
             Log.debug("Valid");
             Call.tileConfig(Vars.player, tile.build, value);
-            pb.removeFromSet(value);
+            pb.removeFromSet(pb.queuedLinks, value);
         }
     }
 
@@ -423,7 +440,7 @@ public class PowerNode extends PowerBlock{
         /** This is used for power split notifications. */
         public @Nullable ChatFragment.ChatMessage message;
         public int disconnections = 0;
-        public @Nullable IntSet schematicLinks; // supposed links when placed in a schematic
+        public @Nullable IntSet schematicLinks, queuedLinks; // supposed links when placed in a schematic
 
         @Override
         public void placed(){
@@ -438,11 +455,14 @@ public class PowerNode extends PowerBlock{
             super.placed();
         }
 
-        private boolean removeFromSet(int value){
-            if(schematicLinks == null) return true;
-            schematicLinks.remove(value);
-            if(schematicLinks.isEmpty()) schematicLinks = null;
-            return schematicLinks == null;
+        private boolean removeFromSet(@Nullable IntSet set, int value){
+            if(set == null) return true;
+            set.remove(value);
+            if(set.isEmpty()){
+                if(set == schematicLinks) schematicLinks = null;
+                if(set == queuedLinks && schematicLinks == null) queuedLinks = null;
+            }
+            return set.isEmpty();
         }
 
         @Override
@@ -460,6 +480,7 @@ public class PowerNode extends PowerBlock{
                 });
 
                 if(t.length > 0){
+                    queuedLinks = new IntSet();
                     schematicLinks = new IntSet();
                     for(Point2 p: t){
                         int pos = p.add(tile.x, tile.y).pack();
@@ -485,6 +506,14 @@ public class PowerNode extends PowerBlock{
 
         @Override
         public boolean onConfigureTileTapped(Building other){
+            if(schematicLinks != null){ // do not try to auto config further
+                schematicLinks.clear();
+                schematicLinks = null;
+            }
+            if(queuedLinks != null){
+                queuedLinks.clear();
+                queuedLinks = null;
+            }
             if(linkValid(this, other)){
                 configure(other.pos());
                 return false;
