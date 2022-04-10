@@ -5,6 +5,7 @@ import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.Texture.*;
+import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
@@ -511,24 +512,31 @@ public class SettingsMenuDialog extends BaseDialog{
             }
         });
 
-        //iOS (and possibly Android) devices do not support linear filtering well, so disable it
-        if(!ios){
-            graphics.checkPref("linear", !mobile, b -> {
-                for(Texture tex : Core.atlas.getTextures()){
-                    TextureFilter filter = b ? TextureFilter.linear : TextureFilter.nearest;
-                    tex.setFilter(filter, filter);
+        Cons<Boolean> getNonFont = b -> {
+            ObjectSet<Texture> atlas = new ObjectSet<>(Core.atlas.getTextures());
+            if(Core.settings.getBool("forcetextnonlinear", false)){
+                for(Font f : new Font[]{Fonts.def, Fonts.outline, Fonts.mono(), Fonts.monoOutline()}){ //from Fonts.loadContentIcons
+                    f.getRegions().each(t -> {
+                        t.texture.setFilter(TextureFilter.nearest);
+                        atlas.remove(t.texture);
+                    });
                 }
-            });
-        }else{
-            settings.put("linear", false);
-        }
-
-        if(Core.settings.getBool("linear")){
-            for(Texture tex : Core.atlas.getTextures()){
-                TextureFilter filter = TextureFilter.linear;
+            }
+            for(Texture tex : atlas){
+                TextureFilter filter = b ? TextureFilter.linear : TextureFilter.nearest;
                 tex.setFilter(filter, filter);
             }
+        };
+        //iOS (and possibly Android) devices do not support linear filtering well, so disable it
+        if(!ios){
+            graphics.checkPref("linear", !mobile, getNonFont::get);
+            graphics.checkPref("forcetextnonlinear", false, x -> getNonFont.get(Core.settings.getBool("linear")));
+        }else{
+            settings.put("linear", false);
+            settings.put("forcetextnonlinear", false);
         }
+
+        getNonFont.get(Core.settings.getBool("linear"));
 
         graphics.checkPref("skipcoreanimation", false);
 
