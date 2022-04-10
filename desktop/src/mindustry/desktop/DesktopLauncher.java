@@ -45,11 +45,30 @@ public class DesktopLauncher extends ClientLauncher{
             String env = OS.hasProp("aaSamples") ? OS.prop("aaSamples") : OS.hasEnv("aaSamples") ? OS.env("aaSamples") : "";
             if (Strings.canParsePositiveInt(env)) aaSamples[0] = Math.min(Integer.parseInt(env), 32);
 
-            Version.init();
             Vars.loadLogger();
+            Version.init();
+            if (OS.hasProp("git")) { // Run with -Dgit and a git repo initialized in the data dir to sync saves between computers
+                File saves = new File(OS.hasEnv("MINDUSTRY_DATA_DIR") ? OS.env("MINDUSTRY_DATA_DIR") : Version.modifier.contains("steam") ? "saves" : OS.getAppDataDirectoryString("Mindustry"));
+                ProcessBuilder pb = new ProcessBuilder("git", "pull").directory(saves).inheritIO();
+                Log.warn("&rBegin git sync (download)");
+                pb.start().waitFor();
+                Log.warn("&rEnd git sync (download)&fr");
+                Version.init(); // reinit in case of successful pull and version change
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> { // push on game close
+                    try {
+                        Log.warn("&rBegin git sync (upload)");
+                        pb.command("git", "add", "maps", "saves", "schematics", "settings.bin", "mods", "aliases", "keys", ":!*.DS_Store").start().waitFor();
+                        pb.command("git", "commit", "-m", "Upload saves from " + OS.username + " @ " + OS.osName + " x" + OS.osArchBits + " " + OS.osArch).start().waitFor();
+                        pb.command("git", "push").start().waitFor();
+                        Log.warn("&rEnd git sync (upload)&fr");
+                    } catch (InterruptedException | IOException e) {
+                        e.printStackTrace();
+                    }
+                }, "Git Synchronization"));
+            }
 
             Events.on(EventType.ClientLoadEvent.class, e -> {
-                if (Core.app.isDesktop()) SDL.SDL_SetWindowTitle(((SdlApplication) Core.app).getWindow(), getWindowTitle());
+                if (Core.app instanceof SdlApplication) SDL.SDL_SetWindowTitle(((SdlApplication) Core.app).getWindow(), getWindowTitle());
             });
 
             if (OS.isMac && !Structs.contains(arg, "-firstThread")) { //restart with -XstartOnFirstThread on mac, doesn't work without it

@@ -100,21 +100,31 @@ public class LCanvas extends Table{
     }
 
     public void rebuild(){
-        targetWidth = useRows() ? 400f : 900f;
+//        targetWidth = useRows() ? 400f : 900f;
+        targetWidth = Core.graphics.getWidth() / 1.2f;
         float s = pane != null ? pane.getScrollPercentY() : 0f;
         String toLoad = statements != null ? save() : null;
 
         clear();
 
         statements = new DragLayout();
-        jumps = new WidgetGroup();
+        jumps = new WidgetGroup(){
+            @Override
+            public void layout(){
+                cullable = false; //culling while scrolling results in weirdness
+                getChildren().each(h -> {
+                    if(!(h instanceof JumpCurve c)) return;
+                    c.setSize(width, c.getPrefHeight());
+                    c.setPosition(c.button.x + c.button.getWidth()/2f, c.py);
+                });
+                cullable = true;
+            }
+        };
 
         pane = pane(t -> {
             t.center();
             t.add(statements).pad(2f).center().width(targetWidth);
-            t.addChild(jumps);
-
-            jumps.cullable = false;
+            t.add(jumps).growY().width(100f).growY();
         }).grow().get();
         pane.setFlickScroll(false);
         recalculate();
@@ -193,6 +203,7 @@ public class LCanvas extends Table{
         }
 
         this.statements.layout();
+        jumps.layout();
         recalculate();
     }
 
@@ -220,21 +231,17 @@ public class LCanvas extends Table{
                 pane.setScrollY(pane.getScrollY() + sign * Scl.scl(15f) * Time.delta);
             }
         }
+
+        pane.scrolled(f -> jumps.layout()); //don't ask why this is needed, it just is
     }
 
     public class DragLayout extends WidgetGroup{
         float space = Scl.scl(10f), prefWidth, prefHeight;
         Seq<Element> seq = new Seq<>();
         int insertPosition = 0;
-        boolean invalidated;
-
-        {
-            setTransform(true);
-        }
 
         @Override
         public void layout(){
-            invalidated = true;
             float cy = 0;
             seq.clear();
 
@@ -285,10 +292,9 @@ public class LCanvas extends Table{
                 }
             }
 
-            invalidateHierarchy();
-
-            if(parent != null && parent instanceof Table){
+            if(parent instanceof Table){
                 setCullingArea(parent.getCullingArea());
+                jumps.setCullingArea(parent.getCullingArea());
             }
         }
 
@@ -315,16 +321,7 @@ public class LCanvas extends Table{
                 Tex.pane.draw(lastX, lastY - shiftAmount, width, dragging.getHeight());
             }
 
-            if(invalidated){
-                children.each(c -> c.cullable = false);
-            }
-
             super.draw();
-
-            if(invalidated){
-                children.each(c -> c.cullable = true);
-                invalidated = false;
-            }
         }
 
         void finishLayout(){
@@ -600,10 +597,16 @@ public class LCanvas extends Table{
 
     public static class JumpCurve extends Element{
         public JumpButton button;
+        float ph, py;
         int heightx;
 
         public JumpCurve(JumpButton button){
             this.button = button;
+        }
+
+        @Override
+        public float getPrefHeight(){
+            return ph;
         }
 
         @Override
@@ -617,8 +620,6 @@ public class LCanvas extends Table{
 
         @Override
         public void draw(){
-            canvas.jumpCount ++;
-
             //if(canvas.jumpCount > maxJumpsDrawn=100 && !button.selecting && !button.listener.isOver()){
             //return;
             //}
@@ -630,7 +631,6 @@ public class LCanvas extends Table{
                 heightx = button.to.get().jumpHeight;
 
             Element hover = button.to.get() == null && button.selecting ? canvas.hovered : button.to.get();
-            boolean draw = false;
             Vec2 t = Tmp.v1, r = Tmp.v2;
 
             Group desc = canvas.pane;
@@ -639,26 +639,25 @@ public class LCanvas extends Table{
 
             if(hover != null){
                 hover.localToAscendantCoordinates(desc, t.set(hover.getWidth(), hover.getHeight()/2f));
-
-                draw = true;
             }else if(button.selecting){
                 t.set(r).add(button.mx, button.my);
-                draw = true;
+            }else{
+                return;
             }
 
-            float offset = canvas.pane.getVisualScrollY() - canvas.pane.getMaxY();
+            ph = Math.abs(t.y - r.y);
+            py = Math.min(t.y, r.y);
 
+            float offset = canvas.pane.getVisualScrollY() - canvas.pane.getMaxY();
             t.y += offset;
             r.y += offset;
 
-            if(draw){
-                drawCurve(r.x + button.getWidth()/2f, r.y + button.getHeight()/2f, t.x, t.y);
+            drawCurve(r.x + button.getWidth()/2f, r.y + button.getHeight()/2f, t.x, t.y);
 
-                float s = button.getWidth();
-                Draw.color(button.color);
-                Tex.logicNode.draw(t.x + s*0.75f, t.y - s/2f, -s, s);
-                Draw.reset();
-            }
+            float s = button.getWidth();
+            Draw.color(button.color);
+            Tex.logicNode.draw(t.x + s*0.75f, t.y - s/2f, -s, s);
+            Draw.reset();
         }
 
         float lineWidth = 3f, heightSpacing = 8f, idealCurveRadius = 8f;

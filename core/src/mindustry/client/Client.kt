@@ -36,6 +36,7 @@ import mindustry.ui.fragments.ChatFragment
 import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
+import mindustry.world.blocks.defense.turrets.BaseTurret.*
 import mindustry.world.blocks.distribution.ItemBridge
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
@@ -76,11 +77,7 @@ object Client {
 
         if (!configs.isEmpty()) {
             try {
-                if (timer.get(
-                        3,
-                        (Administration.Config.interactRateWindow.num() + 1) * 60F
-                    )
-                ) { // Reset ratelimit, extra second to account for server lag
+                if (timer.get(3, (Administration.Config.interactRateWindow.num() + 1) * 60F)) { // Reset ratelimit, extra second to account for server lag
                     ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1
                 }
                 if (ratelimitRemaining > 0 || !net.client()) { // Run the config NOTE: Counter decremented in InputHandler and not here so that manual configs don't cause issues
@@ -103,11 +100,7 @@ object Client {
             for (i in 0 until spawner.spawns.size) {
                 var target: Tile? = spawner.spawns[i]
                 Lines.beginLine()
-                while (target != pathfinder.getTargetTile(
-                        target,
-                        pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore)
-                    ).also { target = it }
-                ) {
+                while(target != pathfinder.getTargetTile(target, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore)).also { target = it }) {
                     Lines.linePoint(target)
                 }
                 Lines.endLine()
@@ -116,10 +109,7 @@ object Client {
             if (timer.get(1, spawnTime)) tiles.addAll(spawner.spawns)
             for (i in 0 until tiles.size) {
                 val t = tiles.removeFirst()
-                val target = pathfinder.getTargetTile(
-                    t,
-                    pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore)
-                )
+                val target = pathfinder.getTargetTile(t, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
                 if (target != t) tiles.add(target)
                 Fx.healBlock.at(t.worldx(), t.worldy(), 1f, state.rules.waveTeam.color)
             }
@@ -136,13 +126,7 @@ object Client {
                 var valid : Boolean
                 var validInv : Boolean
                 for (t in obstacles) {
-                    if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(
-                            t.x - t.radius,
-                            t.y - t.radius,
-                            t.radius * 2,
-                            t.radius * 2
-                        )
-                    ) continue
+                    if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
                     if (playerFlying){
                         valid = t.targetAir
                         validInv = t.targetGround
@@ -150,8 +134,6 @@ object Client {
                         valid = t.targetGround
                         validInv = t.targetAir
                     }
-                    //valid = if (playerFlying) t.targetAir else t.targetGround
-                    //validInv = if (playerFlying) t.targetGround else t.targetAir
                     circles.add(t to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) t.team.color else Team.derelict.color)
                 }
             }
@@ -167,13 +149,7 @@ object Client {
         if (showingOverdrives) {
             overdrives.forEach { b ->
                 val range = b.realRange()
-                if (b.team == player.team() && bounds.overlaps(
-                        b.x - range,
-                        b.y - range,
-                        range * 2,
-                        range * 2
-                    )
-                ) b.drawSelect()
+                if (b.team == player.team() && bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect()
             }
         }
     }
@@ -193,25 +169,17 @@ object Client {
                 return@register
             }
             val result = buildString {
-                append(
-                    Strings.format(
-                        "[orange]-- Client Commands Page[lightgray] @[gray]/[lightgray]@[orange] --\n\n",
-                        page + 1,
-                        pages
-                    )
-                )
+                append(Strings.format("[orange]-- Client Commands Page[lightgray] @[gray]/[lightgray]@[orange] --\n\n", page + 1, pages))
                 for (i in commandsPerPage * page until (commandsPerPage * (page + 1)).coerceAtMost(clientCommandHandler.commandList.size)) {
                     val command = clientCommandHandler.commandList[i]
-                    append("[orange] !").append(command.text).append("[white] ").append(command.paramText)
-                        .append("[lightgray] - ").append(command.description).append("\n")
+                    append("[orange] !").append(command.text).append("[white] ").append(command.paramText).append("[lightgray] - ").append(command.description).append("\n")
                 }
             }
             player.sendMessage(result)
         }
 
         register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
-            ui.unitPicker.pickUnit(
-                content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
+            ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
         }
 
         register("uc <unit-type>", "Picks a unit nearest to cursor") { args, _ ->
@@ -222,35 +190,36 @@ object Client {
         }
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
-            val type =
-                content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
-            val counts = intArrayOf(0, 0, Units.getCap(player.team()), 0, 0, 0, 0, 0)
+            val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
+            val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var formation = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
 
-            for (unit in player.team().data().units) {
-                if (unit.type != type) continue
-
-                when (unit.sense(LAccess.controlled).toInt()) {
-                    GlobalConstants.ctrlPlayer -> counts[5]++
-                    GlobalConstants.ctrlFormation -> counts[6]++
-                    GlobalConstants.ctrlProcessor -> counts[7]++
-                    else -> counts[1]++
+            (player.team().data().unitCache(type) ?: Seq.with()).withEach {
+                total++
+                val ctrl = sense(LAccess.controlled).toInt()
+                if (flag == 0.0) unflagged++
+                else {
+                    flagged++
+                    if (ctrl == 0) freeFlagged++
                 }
-                counts[0]++
-                if (unit.flag != 0.0) counts[3]++
-                else counts[4]++
+                when (ctrl) {
+                    GlobalConstants.ctrlPlayer -> players++
+                    GlobalConstants.ctrlFormation -> formation++
+                    GlobalConstants.ctrlProcessor -> {
+                        if (flag != 0.0) logicFlagged++
+                        logic++
+                    }
+                    else -> free++
+                }
             }
 
-            player.sendMessage(
-                """
-                [accent]${type.localizedName}:
-                Total: ${counts[0]}
-                Free: ${counts[1]}
-                Cap: ${counts[2]}
-                Flagged(Unflagged): ${counts[3]}(${counts[4]})
-                Players(Formation): ${counts[5]}(${counts[6]})
-                Logic Controlled: ${counts[7]}
-                """.trimIndent()
-            )
+            player.sendMessage("""
+            [accent]${type.localizedName}:
+            Total(Cap): $total($cap)
+            Free(Free Flagged): $free($freeFlagged)
+            Flagged(Unflagged): $flagged($unflagged)
+            Players(Formation): $players($formation)
+            Logic(Logic Flagged): $logic($logicFlagged)
+            """.trimIndent())
         }
 
         // FINISHME: Add spawn command
@@ -261,12 +230,7 @@ object Client {
                 else throw IOException()
                 navigateTo(lastSentPos.cpy().scl(tilesize.toFloat()))
             } catch (e: Exception) {
-                player.sendMessage(
-                    Core.bundle.format(
-                        "client.command.coordsinvalid",
-                        clientCommandHandler.prefix + "go"
-                    )
-                )
+                player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "go"))
             }
         }
 
@@ -276,52 +240,25 @@ object Client {
                 if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
                 spectate(lastSentPos.cpy().scl(tilesize.toFloat()))
             } catch (e: Exception) {
-                player.sendMessage(
-                    Core.bundle.format(
-                        "client.command.coordsinvalid",
-                        clientCommandHandler.prefix + "lookat"
-                    )
-                )
+                player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "lookat"))
             }
         }
 
         register("tp [x] [y]", Core.bundle.get("client.command.tp.description")) { args, player ->
             try {
                 if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
-                NetClient.setPosition(
-                    lastSentPos.cpy().scl(tilesize.toFloat()).x,
-                    lastSentPos.cpy().scl(tilesize.toFloat()).y
-                )
+                NetClient.setPosition(lastSentPos.cpy().scl(tilesize.toFloat()).x, lastSentPos.cpy().scl(tilesize.toFloat()).y)
             } catch (e: Exception) {
-                player.sendMessage(
-                    Core.bundle.format(
-                        "client.command.coordsinvalid",
-                        clientCommandHandler.prefix + "tp"
-                    )
-                )
+                player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "tp"))
             }
         }
 
         register("here [message...]", Core.bundle.get("client.command.here.description")) { args, player ->
-            sendMessage(
-                Strings.format(
-                    "@(@, @)",
-                    if (args.isEmpty()) "" else args[0] + " ",
-                    player.tileX(),
-                    player.tileY()
-                )
-            )
+            sendMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", player.tileX(), player.tileY()))
         }
 
         register("cursor [message...]", Core.bundle.get("client.command.cursor.description")) { args, _ ->
-            sendMessage(
-                Strings.format(
-                    "@(@, @)",
-                    if (args.isEmpty()) "" else args[0] + " ",
-                    control.input.rawTileX(),
-                    control.input.rawTileY()
-                )
-            )
+            sendMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
         }
 
         register("builder [options...]", Core.bundle.get("client.command.builder.description")) { args, _: Player ->
@@ -364,29 +301,17 @@ object Client {
 
         register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
             if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
-                player.sendMessage(
-                    Core.bundle.format(
-                        "client.command.cc.invalid",
-                        player.team().data().command.localized()
-                    )
-                )
+                player.sendMessage(Core.bundle.format("client.command.cc.invalid", player.team().data().command.localized()))
                 return@register
             }
 
-            val cc = Units.findAllyTile(
-                player.team(),
-                player.x,
-                player.y,
-                Float.MAX_VALUE / 2
-            ) { it is CommandCenter.CommandBuild }
+            val cc = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) { it is CommandCenter.CommandBuild }
             if (cc != null) {
-                Call.tileConfig(
-                    player, cc, when (args[0].lowercase()[0]) {
-                        'a' -> UnitCommand.attack
-                        'r' -> UnitCommand.rally
-                        else -> UnitCommand.idle
-                    }
-                )
+                Call.tileConfig(player, cc, when (args[0].lowercase()[0]) {
+                    'a' -> UnitCommand.attack
+                    'r' -> UnitCommand.rally
+                    else -> UnitCommand.idle
+                })
                 player.sendMessage(Core.bundle.format("client.command.cc.success", args[0]))
             } else player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
         }
@@ -394,11 +319,9 @@ object Client {
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
             player.sendMessage(
                 if (pluginVersion != -1) "[accent]Using plugin communication" else // FINISHME: Bundle
-                    BlockCommunicationSystem.findProcessor()
-                        ?.run { "[accent]Using a logic block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
-                    BlockCommunicationSystem.findMessage()
-                        ?.run { "[accent]Using a message block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
-                    "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)" // FINISHME: Bundle
+                BlockCommunicationSystem.findProcessor()?.run { "[accent]Using a logic block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
+                BlockCommunicationSystem.findMessage()?.run { "[accent]Using a message block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
+                "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)" // FINISHME: Bundle
             )
         }
 
@@ -425,13 +348,7 @@ object Client {
                             if (l.add(grid) && t.add(link.power.graph.id)) {
                                 l.addAll(t)
                                 newLinks.put(link.power.graph.id, l)
-                                if (confirmed && !inProgress) tmp.add(
-                                    ConfigRequest(
-                                        nodeBuild.tileX(),
-                                        nodeBuild.tileY(),
-                                        link.pos()
-                                    )
-                                )
+                                if (confirmed && !inProgress) tmp.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
                                 n++
                             }
                         }
@@ -441,13 +358,7 @@ object Client {
                     configs.addAll(tmp)
                     if (confirmed) {
                         if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
-                        else player.sendMessage(
-                            Core.bundle.format(
-                                "client.command.fixpower.success",
-                                n,
-                                grids.size - n
-                            )
-                        )
+                        else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, grids.size - n))
                     } else {
                         player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, grids.size))
                     }
@@ -456,10 +367,7 @@ object Client {
         }
 
         @Suppress("unchecked_cast")
-        register(
-            "fixcode [c]",
-            "Disables problematic \"attem >= 83\" flagging logic"
-        ) { args, player -> // FINISHME: Bundle
+        register("fixcode [c]", "Disables problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
             val builds = Seq<Building>()
             Vars.player.team().data().buildings.getObjects(builds) // Must be done on the main thread
             clientThread.post {
@@ -474,52 +382,24 @@ object Client {
                         val patched = ProcessorPatcher.patch(build.code)
                         if (patched != build.code) {
                             Log.debug("${build.tileX()} ${build.tileY()}")
-                            configs.add(
-                                ConfigRequest(
-                                    build.tileX(),
-                                    build.tileY(),
-                                    LogicBlock.compress(patched, build.relativeConnections())
-                                )
-                            )
+                            configs.add(ConfigRequest(build.tileX(), build.tileY(), LogicBlock.compress(patched, build.relativeConnections())))
                             n++
                         }
                     }
                 }
                 Core.app.post {
                     if (confirmed) {
-                        if (inProgress) player.sendMessage(
-                            "[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${
-                                ProcessorPatcher.countProcessors(
-                                    builds
-                                )
-                            } processors to reconfigure."
-                        ) // FINISHME: Bundle
+                        if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
                         else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
                     } else {
-                        player.sendMessage(
-                            "[accent]Run [coral]!fixcode c[] to reconfigure ${
-                                ProcessorPatcher.countProcessors(
-                                    builds
-                                )
-                            }/${builds.size} processors"
-                        )
+                        player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
                     }
                 }
             }
         }
 
-        register(
-            "distance [distance]",
-            "Sets the assist distance multiplier distance (default is 1.5)"
-        ) { args, player -> // FINISHME: Bundle
-            if (args.size != 1) player.sendMessage(
-                "[accent]The distance multiplier is ${
-                    Core.settings.getFloat(
-                        "assistdistance",
-                        1.5f
-                    )
-                } (default is 1.5)"
-            )
+        register("distance [distance]", "Sets the assist distance multiplier distance (default is 1.5)") { args, player -> // FINISHME: Bundle
+            if (args.size != 1) player.sendMessage("[accent]The distance multiplier is ${Core.settings.getFloat("assistdistance", 1.5f)} (default is 1.5)")
             else {
                 Core.settings.put("assistdistance", abs(Strings.parseFloat(args[0], 1.5f)))
                 player.sendMessage("[accent]The distance multiplier is now ${Core.settings.getFloat("assistdistance")} (default is 1.5)")
@@ -538,17 +418,13 @@ object Client {
             }
         }
 
-        register(
-            "clearghosts [c]",
-            "Removes the ghosts of blocks which are in range of enemy turrets, useful to stop polys from building forever"
-        ) { args, player -> // FINISHME: Bundle
+        register("clearghosts [c]", "Removes the ghosts of blocks which are in range of enemy turrets, useful to stop polys from building forever") { args, player -> // FINISHME: Bundle
             clientThread.post {
                 val confirmed = args.any() && args[0].startsWith("c") // Don't clear by default
-                val all =
-                    confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
+                val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
                 val blocked = GridBits(world.width(), world.height())
 
-                synchronized(obstacles) {
+                synchronized (obstacles) {
                     for (turret in obstacles) {
                         if (!turret.turret) continue
                         val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
@@ -557,13 +433,7 @@ object Client {
                         val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
                         for (x in lowerXBound..upperXBound) {
                             for (y in lowerYBound..upperYBound) {
-                                if (Structs.inBounds(
-                                        x,
-                                        y,
-                                        world.width(),
-                                        world.height()
-                                    ) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())
-                                ) {
+                                if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
                                     blocked.set(x, y)
                                 }
                             }
@@ -573,10 +443,9 @@ object Client {
                 val plans = mutableListOf<Int>()
                 for (plan in Vars.player.team().data().blocks) {
                     var isBlocked = false
-                    world.tile(plan.x.toInt(), plan.y.toInt())
-                        .getLinkedTilesAs(content.block(plan.block.toInt())) { t ->
-                            if (blocked.get(t.x.toInt(), t.y.toInt())) isBlocked = true
-                        }
+                    world.tile(plan.x.toInt(), plan.y.toInt()).getLinkedTilesAs(content.block(plan.block.toInt())) { t ->
+                        if (blocked.get(t.x.toInt(), t.y.toInt())) isBlocked = true
+                    }
                     if (!isBlocked && !all) continue
 
                     plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
@@ -589,47 +458,8 @@ object Client {
                             plans.removeAll(batch)
                             Call.deletePlans(player, batch.toIntArray())
                         }
-                        player.sendMessage(
-                            "[accent]Removed $removedCount plans, ${
-                                Vars.player.team().data().blocks.size
-                            } remain"
-                        )
-                    } else player.sendMessage(
-                        "[accent]Found $removedCount (out of ${
-                            Vars.player.team().data().blocks.size
-                        }) block ghosts within turret range, run [coral]!clearghosts c[] to remove them"
-                    )
-                }
-            }
-        }
-
-        register("attem83 [c]", "Fixes the bad flagging logic with attem >= 83") { args, player ->
-            clientThread.post {
-                val confirmed = args.any() && args[0] == "c" // Don't configure by default
-                var toFix = 0
-
-                val matcher = Core.bundle.get("client.attem-83").toRegex(RegexOption.MULTILINE)
-                val buildings: Seq<Building> = Seq()
-                player.team().data().buildings.getObjects(buildings)
-
-                buildings.each {
-                    val lb = (it as? LogicBlock.LogicBuild) ?: return@each
-                    val matched = matcher.matchEntire(lb.code) ?: return@each
-                    val range = matched.groups[matched.groups.size - 1]!!.range
-                    val newCode: StringBuilder = StringBuilder(lb.code).replace(range.first, range.last, "jump -1")
-                    toFix++
-                    if (confirmed) configs.add(
-                        ConfigRequest(
-                            lb.tileX(),
-                            lb.tileY(),
-                            LogicBlock.compress(newCode.toString(), lb.relativeConnections())
-                        )
-                    )
-                }
-                if (confirmed) {
-                    player.sendMessage("[accent]Successfully queued $toFix processors for fixing")
-                } else {
-                    player.sendMessage("[accent]Run [coral]!attem83 c[] to fix $toFix processors")
+                        player.sendMessage("[accent]Removed $removedCount plans, ${Vars.player.team().data().blocks.size} remain")
+                    } else player.sendMessage("[accent]Found $removedCount (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
                 }
             }
         }
@@ -640,14 +470,7 @@ object Client {
 
             connectTls(certname) { comms, cert ->
                 comms.send(MessageTransmission(msg))
-                ChatFragment.ChatMessage.msgFormat()
-                ui.chatfrag.addMessage(
-                    msg,
-                    "[coral]${Main.keyStorage.cert()?.readableName ?: "you"} [white]-> ${
-                        Main.keyStorage.aliasOrName(cert)
-                    }",
-                    encrypted
-                )
+                ui.chatfrag.addMessage(msg, "[coral]${Main.keyStorage.cert()?.readableName ?: "you"} [white]-> ${Main.keyStorage.aliasOrName(cert)}", encrypted)
                 lastCertName = cert.readableName
             }
         }
@@ -655,25 +478,13 @@ object Client {
         register("togglesign", Core.bundle.get("client.command.togglesign.description")) { _, player ->
             val previous = Core.settings.getBool("signmessages")
             Core.settings.put("signmessages", !previous)
-            player.sendMessage(
-                Core.bundle.format(
-                    "client.command.togglesign.success",
-                    Core.bundle.get(if (previous) "off" else "on").lowercase()
-                )
-            )
+            player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (previous) "off" else "on").lowercase()))
         }
 
         register("stoppathing <name/id...>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
             val name = args.joinToString(" ")
-            val player = Groups.player.find { it.id == Strings.parseInt(name) }
-                ?: Groups.player.minByOrNull { Strings.levenshtein(Strings.stripColors(it.name), name) }!!
-            Main.send(
-                CommandTransmission(
-                    CommandTransmission.Commands.STOP_PATH,
-                    Main.keyStorage.cert() ?: return@register,
-                    player
-                )
-            )
+            val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(Strings.stripColors(it.name), name) }!!
+            Main.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH, Main.keyStorage.cert() ?: return@register, player))
             // FINISHME: success message
         }
 
@@ -698,7 +509,7 @@ object Client {
         }
 
         register("c <message...>", "Send a message to other client users.") { args, _ ->  // FINISHME: Bundle
-            Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag(true) })
+            Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
         }
 
         register("mapinfo", "Lists various useful map info.") { _, player ->
@@ -856,14 +667,13 @@ object Client {
                     if (!tile.team().isEnemy(player.team())) return@circle
                     val block = tile.block()
                     val scoreMul = when {
-                        // general logistics
-                        block == Blocks.itemSource -> 2f
                         // do NOT shoot power voided networks
                         (tile.build?.power?.graph?.getPowerBalance() ?: 0f) <= -1e12f -> Float.POSITIVE_INFINITY
                         // otherwise nodes are good to shoot
                         block == Blocks.powerSource -> 0f
                         block is PowerNode -> if (tile.build.power.status < .9) 2f else 1f
 
+                        block == Blocks.itemSource -> 2f
                         block == Blocks.liquidSource -> 3f  // lower priority because things generally don't need liquid to run
 
                         // likely to be touching a turret or something
@@ -875,10 +685,6 @@ object Client {
 
                         block == Blocks.liquidRouter -> 5f
 
-                        // I can't help myself, boom boom ... this was a bad plan
-//                        (block == Blocks.container || block == Blocks.vault) &&
-//                                tile.build.items.sum { item, amount -> (item.explosiveness * 2f + item.flammability) * amount } > 50 -> 0f
-
                         block == Blocks.mendProjector -> 6f
                         block == Blocks.forceProjector -> 6f
                         block is PointDefenseTurret -> 6f
@@ -888,8 +694,9 @@ object Client {
                         block != Blocks.air -> 9f
                         else -> 10f
                     }
-                    var score = (tile.x.toInt() - player.tileX()).toFloat() + (tile.y.toInt() - player.tileY())
-                    score += scoreMul * amount
+
+                    var score = Astar.manhattan.cost(tile.x.toInt(), tile.y.toInt(), player.tileX(), player.tileY())
+                    score += scoreMul * amount * if (tile.build?.proximity?.contains { it is BaseTurretBuild } == true) 1F else 1.1F
 
                     if (score < closestScore) {
                         target = tile.build

@@ -10,7 +10,7 @@ import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.content.*
-import mindustry.game.*
+import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.logic.*
 import mindustry.type.*
@@ -20,14 +20,25 @@ import mindustry.world.blocks.logic.*
  * Handles various events and such.
  * FINISHME: Move the 9000 different bits of code throughout the client to here */
 class ClientLogic {
+    private var switchTo: MutableList<Char>? = null
+
     /** Create event listeners */
     init {
-        Events.on(EventType.ServerJoinEvent::class.java) { // Run just after the player joins a server
+        Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
             Navigation.stopFollowing()
             Spectate.pos = null
+
+            Time.run(60F) {
+                val switchTo = switchTo
+                if (switchTo != null) {
+                    Call.sendChatMessage("/${arrayOf("no", "up", "down").random()}vote")
+                    if (switchTo.isEmpty()) this.switchTo = null
+                    else Call.sendChatMessage("/switch ${switchTo.removeFirst()}")
+                }
+            }
         }
 
-        Events.on(EventType.WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
+        Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             if (!syncing){
                 Player.persistPlans.clear()
@@ -50,7 +61,7 @@ class ClientLogic {
             Client.tiles.clear()
         }
 
-        Events.on(EventType.ClientLoadEvent::class.java) { // Run when the client finishes loading
+        Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading
             val changeHash = Core.files.internal("changelog").readString().hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
             if (Core.settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
             Core.settings.put("changeHash", changeHash)
@@ -83,6 +94,14 @@ class ClientLogic {
                 Client.register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
                     sendMessage("\"In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
                 }
+
+                Client.register("h", "!") { _, _ ->
+                    if (!Vars.net.client()) return@register
+
+                    val current = Vars.ui.join.lastHost.modeName?.first() ?: Vars.ui.join.lastHost.mode.name[0]
+                    switchTo = mutableListOf('a', 'p', 's', 'f', 't').apply { remove(current) }.apply { add(current) }
+                    Call.sendChatMessage("/switch ${switchTo!!.removeFirst()}")
+                }
             }
 
             val encoded = Main.keyStorage.cert()?.encoded
@@ -95,21 +114,21 @@ class ClientLogic {
             }
         }
 
-        Events.on(EventType.PlayerJoin::class.java) { e -> // Run when a player joins the server
+        Events.on(PlayerJoin::class.java) { e -> // Run when a player joins the server
             if (e.player == null) return@on
 
             if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has connected.")) && Time.timeSinceMillis(lastJoinTime) > 10000)
                 Vars.player.sendMessage(Core.bundle.format("client.connected", e.player.name))
         }
 
-        Events.on(EventType.PlayerLeave::class.java) { e -> // Run when a player leaves the server
+        Events.on(PlayerLeave::class.java) { e -> // Run when a player leaves the server
             if (e.player == null) return@on
 
             if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
                 Vars.player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
         }
 
-        Events.on(EventType.BlockBuildEndEvent::class.java) { e -> // Configure logic after construction
+        Events.on(BlockBuildEndEvent::class.java) { e -> // Configure logic after construction
             if (e.unit == null || e.team != Vars.player.team() || !Core.settings.getBool("processorconfigs")) return@on
             val build = e.tile.build as? LogicBlock.LogicBuild ?: return@on
             val packed = e.tile.pos()
@@ -119,7 +138,7 @@ class ClientLogic {
             else configs.add(ConfigRequest(e.tile.x.toInt(), e.tile.y.toInt(), processorConfigs.remove(packed)))
         }
 
-        Events.on(EventType.GameOverEventClient::class.java) {
+        Events.on(GameOverEventClient::class.java) {
             if (!Navigation.isFollowing() || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
         }
     }
