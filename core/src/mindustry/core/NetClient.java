@@ -565,14 +565,7 @@ public class NetClient implements ApplicationListener{
         Time.runTask(40f, platform::updateRPC);
         Core.app.post(ui.loadfrag::hide);
         Core.app.post(() -> Events.fire(new EventType.ServerJoinEvent()));
-        Core.app.post(() -> { // We already command on sync, the player's formation var isn't set correctly, so we have to set it here as well.
-            var units = Groups.unit.array.select(it -> it.controller().isBeingControlled(Vars.player.unit()));
-            if (units.any()) {
-                var formation = new Formation(new Vec3(Vars.player.x, Vars.player.y, Vars.player.unit().rotation), new CircleFormation());
-                Vars.player.unit().formation = formation;
-                formation.addMembers(units.map(it -> (FormationAI)it.controller()));
-            }
-        });
+        //don't do that [reassign formation], it is already handled when the packet queue is processed
     }
 
     private void reset(){
