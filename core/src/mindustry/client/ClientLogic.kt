@@ -54,7 +54,6 @@ class ClientLogic {
             hidingUnits = false
             hidingAirUnits = false
             showingTurrets = false
-            if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
             Client.tiles.clear()
         }
