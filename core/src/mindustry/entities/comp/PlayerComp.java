@@ -31,7 +31,7 @@ import static mindustry.Vars.*;
 @EntityDef(value = {Playerc.class}, serialize = false)
 @Component(base = true)
 abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Drawc{
-    static final float deathDelay = 60f;
+    static final float deathDelay = 10f;
     static final Queue<BuildPlan> persistPlans = new Queue<>(1);
 
     @Import float x, y;

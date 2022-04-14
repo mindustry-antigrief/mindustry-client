@@ -119,7 +119,6 @@ public class PowerNode extends PowerBlock{
                         if(build.schematicLinks.isEmpty()) build.schematicLinks = null;
                     };
                     if(!has){
-                        Log.debug("Scheduled cancel of (@, @) -> @", build.x, build.y, Point2.unpack(value));
                         var req = new PowerNodeConfigReq(build, value, false); //undo it
                         ClientVars.configs.add(() -> {
                             req.run();
@@ -406,14 +405,12 @@ public class PowerNode extends PowerBlock{
             Tile tile = Vars.world.tile(x, y);
             if(tile == null || !(tile.build instanceof PowerNodeBuild pb)) return;
 
-            Log.debug("Request fulfilled: connect: @, (@, @) -> @", connect, pb.x, pb.y, Point2.unpack(value));
             boolean isConnected = pb.power.links.contains(value);
             if(isConnected == connect){
                 pb.removeFromSet(pb.queuedLinks, value);
                 return; //already connected if want to connect, and vice versa
             }
 
-            Log.debug("Valid");
             Call.tileConfig(Vars.player, tile.build, value);
             pb.removeFromSet(pb.queuedLinks, value);
         }
@@ -425,6 +422,8 @@ public class PowerNode extends PowerBlock{
         public @Nullable ChatFragment.ChatMessage message;
         public int disconnections = 0;
         public @Nullable IntSet schematicLinks, queuedLinks; // supposed links when placed in a schematic
+
+        public static boolean fixNode = Core.settings.getBool("nodeconfigs", false);
 
         @Override
         public void placed(){
@@ -452,6 +451,7 @@ public class PowerNode extends PowerBlock{
         @Override
         public void playerPlaced(Object config) { //FINISHME: Make this work no matter who places the node
             super.playerPlaced(config);
+            if(!fixNode) return;
             if(!net.client()) configure(config);
             else if(config instanceof Point2[] t){ // Fix incorrect power node linking in schems
                 var current = new Seq<Point2>();
@@ -473,7 +473,6 @@ public class PowerNode extends PowerBlock{
                         }
                     }
                 }
-                Log.debug("Initialized schematicLinks, @", schematicLinks);
             }
         }
 

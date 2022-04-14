@@ -34,6 +34,7 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.power.*;
 
 import java.io.*;
 import java.util.zip.*;
@@ -359,6 +360,7 @@ public class SettingsMenuDialog extends BaseDialog{
         if (steam) client.checkPref("unlockallachievements", false, i -> { for (var a : Achievement.all) a.complete(); Core.settings.remove("unlockallachievements"); });
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
+        client.checkPref("nodeconfigs", false, i -> PowerNode.PowerNodeBuild.fixNode = i);
         // End Client Settings
 
 

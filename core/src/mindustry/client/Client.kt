@@ -542,6 +542,26 @@ object Client {
             }
         }
 
+        register("nodeconfig [0/1]", "Set enforcement of schematic node configs, either true or false") { args, _ ->
+            val new =
+            if(args.isEmpty()) !Core.settings.getBool("nodeconfigs", false)
+            else {
+                try {
+                    when(Integer.parseInt(args[0])){
+                        0 -> false
+                        1 -> true
+                        else -> throw Exception() //cursed
+                    }
+                } catch (e: Exception){
+                    player.sendMessage("[scarlet]Invalid argument!")
+                    return@register
+                }
+            }
+            Core.settings.put("nodeconfigs", new)
+            PowerNode.PowerNodeBuild.fixNode = new
+            player.sendMessage("[accent]Automatic node configuration " + if(new) "[green]enabled" else "[scarlet]disabled")
+        }
+
         registerReplace("%", "c", "cursor") {
             Strings.format("(@, @)", control.input.rawTileX(), control.input.rawTileY())
         }
