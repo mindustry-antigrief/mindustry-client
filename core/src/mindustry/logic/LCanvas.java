@@ -35,6 +35,7 @@ public class LCanvas extends Table{
     float targetWidth;
     int jumpCount = 0;
     Seq<Tooltip> tooltips = new Seq<>();
+    float visibleBoundLower, visibleBoundUpper;
 
     public LCanvas(){
         canvas = this;
@@ -108,26 +109,20 @@ public class LCanvas extends Table{
         clear();
 
         statements = new DragLayout();
-        jumps = new WidgetGroup(){
-            @Override
-            public void layout(){
-                cullable = false; //culling while scrolling results in weirdness
-                getChildren().each(h -> {
-                    if(!(h instanceof JumpCurve c)) return;
-                    c.setSize(width, c.getPrefHeight());
-                    c.setPosition(c.button.x + c.button.getWidth()/2f, c.py);
-                });
-                cullable = true;
-            }
-        };
+        jumps = new WidgetGroup();
 
         pane = pane(t -> {
             t.center();
             t.add(statements).pad(2f).center().width(targetWidth);
-            t.add(jumps).growY().width(100f).growY();
+            t.add(jumps);
+            jumps.cullable = false;
         }).grow().get();
+        pane.update(() -> {
+            float cHeight = Core.graphics.getHeight();
+            visibleBoundLower = pane.getMaxY() - pane.getVisualScrollY() - cHeight; // 1 screen above and below for buffer
+            visibleBoundUpper = visibleBoundLower + pane.getHeight() + cHeight * 2;
+        });
         pane.setFlickScroll(false);
-        recalculate();
 
         //load old scroll percent
         Core.app.post(() -> {
@@ -137,6 +132,10 @@ public class LCanvas extends Table{
 
         if(toLoad != null){
             load(toLoad);
+        } else {
+            statements.forceLayout();
+            statements.layout();
+            recalculate();
         }
     }
     public int maxJumpHeight = 0;
@@ -165,6 +164,12 @@ public class LCanvas extends Table{
                 i++;
             }else mask.clear(pq.poll().jumpHeight);
         }
+    }
+
+    @Override
+    public void layout(){
+        if(dragging != null) return;
+        super.layout();
     }
 
     @Override
@@ -202,8 +207,8 @@ public class LCanvas extends Table{
             st.setupUI();
         }
 
+        this.statements.forceLayout();
         this.statements.layout();
-        jumps.layout();
         recalculate();
     }
 
@@ -231,15 +236,15 @@ public class LCanvas extends Table{
                 pane.setScrollY(pane.getScrollY() + sign * Scl.scl(15f) * Time.delta);
             }
         }
-
-        pane.scrolled(f -> jumps.layout()); //don't ask why this is needed, it just is
     }
 
     public class DragLayout extends WidgetGroup{
         float space = Scl.scl(10f), prefWidth, prefHeight;
         Seq<Element> seq = new Seq<>();
         int insertPosition = 0;
-
+        {
+            setTransform(true);
+        }
         @Override
         public void layout(){
             float cy = 0;
@@ -291,10 +296,13 @@ public class LCanvas extends Table{
                     (e = (StatementElem) seq.get(i)).updateAddress(e.index + 1);
                 }
             }
+            pack();
+        }
 
-            if(parent instanceof Table){
-                setCullingArea(parent.getCullingArea());
-                jumps.setCullingArea(parent.getCullingArea());
+        public void forceLayout(){
+            for(Element e : getChildren()){
+                if(!(e instanceof StatementElem se)) return;
+                se.forceLayout = true;
             }
         }
 
@@ -357,6 +365,8 @@ public class LCanvas extends Table{
         public final static int MAX_SPAN = Integer.MIN_VALUE;
         public int minJump = Integer.MAX_VALUE, maxJump = -1, jumpHeight = -1;
         private boolean isDeleting = false;
+        private JumpButton button;
+        boolean forceLayout = true;
 
         public StatementElem(LStatement st){
             this.st = st;
@@ -408,7 +418,7 @@ public class LCanvas extends Table{
 
                     @Override
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
-
+                        canvas.setLayoutEnabled(false);
                         if(button == KeyCode.mouseMiddle){
                             copy();
                             return false;
@@ -438,6 +448,7 @@ public class LCanvas extends Table{
 
                     @Override
                     public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button){
+                        canvas.setLayoutEnabled(true);
                         statements.finishLayout();
                         recalculate();
                     }
@@ -451,6 +462,10 @@ public class LCanvas extends Table{
                 t.marginLeft(4);
                 t.setColor(color);
                 st.build(t);
+                if(st instanceof JumpStatement){
+                    var children = t.getChildren();
+                    button = (JumpButton)children.get(children.size - 1);
+                }
             }).pad(4).padTop(2).left().grow();
 
             marginBottom(7);
@@ -514,7 +529,21 @@ public class LCanvas extends Table{
         }
 
         @Override
+        public void layout(){
+            if(canvas.dragging != null && (y + height < canvas.visibleBoundLower || y > canvas.visibleBoundUpper)) return;
+            super.layout();
+        }
+
+        @Override
         public void draw(){
+            if(forceLayout){ // forces jump buttons to lay themselves out
+                super.layout();
+                forceLayout = false;
+            }
+            if(y + height < canvas.visibleBoundLower || y > canvas.visibleBoundUpper){
+                if(button != null) button.draw();
+                return;
+            }
             float pad = 5f;
             Fill.dropShadow(x + width/2f, y + height/2f, width + pad, height + pad, 10f, 0.9f * parentAlpha);
 
@@ -597,16 +626,10 @@ public class LCanvas extends Table{
 
     public static class JumpCurve extends Element{
         public JumpButton button;
-        float ph, py;
         int heightx;
 
         public JumpCurve(JumpButton button){
             this.button = button;
-        }
-
-        @Override
-        public float getPrefHeight(){
-            return ph;
         }
 
         @Override
@@ -623,14 +646,15 @@ public class LCanvas extends Table{
             //if(canvas.jumpCount > maxJumpsDrawn=100 && !button.selecting && !button.listener.isOver()){
             //return;
             //}
-
-            if(button.to.get() == null || button.to.get().jumpHeight == -1 ||
-                    (button.parent.parent != null && button.parent.parent instanceof StatementElem se && se == canvas.dragging))
+            @Nullable StatementElem to = button.to.get();
+            @Nullable StatementElem from = button.parent.parent instanceof StatementElem ? (StatementElem) button.parent.parent : null;
+            if(to == null || to.jumpHeight == -1 ||
+                    (from != null && from == canvas.dragging))
                 heightx = canvas.maxJumpHeight + 2;
             else
                 heightx = button.to.get().jumpHeight;
 
-            Element hover = button.to.get() == null && button.selecting ? canvas.hovered : button.to.get();
+            Element hover = to == null && button.selecting ? canvas.hovered : to;
             Vec2 t = Tmp.v1, r = Tmp.v2;
 
             Group desc = canvas.pane;
@@ -644,9 +668,6 @@ public class LCanvas extends Table{
             }else{
                 return;
             }
-
-            ph = Math.abs(t.y - r.y);
-            py = Math.min(t.y, r.y);
 
             float offset = canvas.pane.getVisualScrollY() - canvas.pane.getMaxY();
             t.y += offset;
@@ -662,6 +683,10 @@ public class LCanvas extends Table{
 
         float lineWidth = 3f, heightSpacing = 8f, idealCurveRadius = 8f;
         public void drawCurve(float x, float y, float x2, float y2){
+            float cHeight = Core.graphics.getHeight();
+            if((y > cHeight && y2 > cHeight) || (y < 0 && y2 < 0)) return; //TODO: shift this to the draw method to prevent unnecessary calc?
+            float yNew = Mathf.clamp(y, -lineWidth, cHeight + lineWidth), y2New = Mathf.clamp(y2, -lineWidth, cHeight + lineWidth); // margin so that curves are not partially cut off
+            boolean draw1curve = yNew == y, draw2curve = y2New == y2;
             float curveRadius = Math.min(idealCurveRadius, Math.abs((y2 - y) / 2));
             Lines.stroke(lineWidth, button.color);
             Draw.alpha(parentAlpha);
@@ -672,11 +697,15 @@ public class LCanvas extends Table{
             int isDownwards = Mathf.clamp(curveDirection, 0, 1);
             int segmentVertices = Lines.circleVertices(curveRadius); // just take this as the number of vertices in the quarter-circle for now..
 
-            Lines.line(x, y, maxX - curveRadius, y);
-            polySeg(segmentVertices*4, 0, segmentVertices, maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, -isDownwards * 90);
-            Lines.line(maxX, y + curveRadius * curveDirection, maxX, y2 - curveRadius * curveDirection);
-            polySeg(segmentVertices*4, 0, segmentVertices, maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, isDownwards * 90 - 90);
-            Lines.line(maxX - curveRadius, y2, x2, y2);
+            if(draw1curve){
+                Lines.line(x, y, maxX - curveRadius, y);
+                polySeg(segmentVertices * 4, 0, segmentVertices, maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, -isDownwards * 90);
+            }
+            Lines.line(maxX, yNew + curveRadius * curveDirection, maxX, y2New - curveRadius * curveDirection);
+            if(draw2curve){
+                polySeg(segmentVertices*4, 0, segmentVertices, maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, isDownwards * 90 - 90);
+                Lines.line(maxX - curveRadius, y2, x2, y2);
+            }
 
             /*
             Lines.curve(
