@@ -60,7 +60,7 @@ public class LCanvas extends Table{
 
     /** @return if statement elements should have rows. */
     public static boolean useRows(){
-        return Core.graphics.getWidth() < Scl.scl(900f) * 1.2f;
+        return Core.graphics.getWidth() < Scl.scl(900f) / (Core.settings.getInt("processorstatementscale") / 100f);
     }
 
     public static void tooltip(Cell<?> cell, String key){
@@ -102,7 +102,7 @@ public class LCanvas extends Table{
 
     public void rebuild(){
 //        targetWidth = useRows() ? 400f : 900f;
-        targetWidth = Core.graphics.getWidth() / 1.2f;
+        targetWidth = Core.graphics.getWidth() * Core.settings.getInt("processorstatementscale") / 100f;
         float s = pane != null ? pane.getScrollPercentY() : 0f;
         String toLoad = statements != null ? save() : null;
 
