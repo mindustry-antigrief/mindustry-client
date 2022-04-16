@@ -191,7 +191,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             }
         }
 
-        Client.INSTANCE.update();
+        if(finished) Client.INSTANCE.update();
 
         lastTime = Time.nanos();
     }
