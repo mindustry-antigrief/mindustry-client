@@ -58,7 +58,7 @@ object Client {
 
     fun initialize() {
         registerCommands()
-        clientLogic = ClientLogic()
+        ClientLogic()
 
         val bc = BouncyCastleProvider()
         // append bouncycastle to the list

@@ -34,7 +34,7 @@ public class ClientVars {
     // Commands
     @NotNull public static CommandHandler clientCommandHandler = new CommandHandler("!");
     @NotNull public static final ObjectMap<String, Seq<Pair<String, Prov<String>>>> containsCommandHandler = new ObjectMap<>(); // Currently a naive implementation which just replaces all occurrences
-    @NotNull public static Vec2 lastSentPos = new Vec2(), lastCorePos = new Vec2(), spectatingPos = new Vec2();
+    @NotNull public static Vec2 lastSentPos = new Vec2(), lastCorePos = new Vec2();
     public static final String MESSAGE_BLOCK_PREFIX = "IN USE FOR CHAT AUTHENTICATION, do not use";
     public static long lastJoinTime; // Last time we connected to a server
     public static boolean syncing; // Whether we are in the process of reloading the world
@@ -47,6 +47,4 @@ public class ClientVars {
     @NotNull public static String lastCertName = "";
     public static boolean isBuildingLock = false; // whether or not the building state is being controlled by networking
     public static int pluginVersion;
-
-    public static ClientLogic clientLogic;
 }
