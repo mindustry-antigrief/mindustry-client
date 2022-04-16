@@ -13,19 +13,40 @@ import static mindustry.Vars.*;
 public class ItemModule extends BlockModule{
     public static final ItemModule empty = new ItemModule();
 
+    public final static class ItemModuleStats {
+        private static ItemModuleStats instance;
+        private WindowedMean[] cacheFlow;
+        private float[] cacheSums;
+        private float[] displayFlow;
+        private final Bits cacheBits = new Bits();
+        private final Interval flowTimer = new Interval(2);
+        public static ItemModuleStats getInstance(){
+            if(instance == null) instance = new ItemModuleStats();
+            return instance;
+        }
+    }
+    private final ItemModuleStats stats;
     private static final int windowSize = 6;
-    private static WindowedMean[] cacheFlow;
-    private static float[] cacheSums;
-    private static float[] displayFlow;
-    private static final Bits cacheBits = new Bits();
-    private static final Interval flowTimer = new Interval(2);
+    private final Bits cacheBits;
+    private final Interval flowTimer;
     private static final float pollScl = 20f;
+
 
     protected int[] items = new int[content.items().size];
     protected int total;
     protected int takeRotation;
 
     private @Nullable WindowedMean[] flow;
+
+    public ItemModule(){
+        this(false);
+    }
+
+    public ItemModule(boolean newStats){
+        stats = newStats ? new ItemModuleStats() : ItemModuleStats.getInstance();
+        cacheBits = stats.cacheBits;
+        flowTimer = stats.flowTimer;
+    }
 
     public ItemModule copy(){
         ItemModule out = new ItemModule();
@@ -45,37 +66,37 @@ public class ItemModule extends BlockModule{
             if(flowTimer.get(1, pollScl)){
 
                 if(flow == null){
-                    if(cacheFlow == null || cacheFlow.length != items.length){
-                        cacheFlow = new WindowedMean[items.length];
+                    if(stats.cacheFlow == null || stats.cacheFlow.length != items.length){
+                        stats.cacheFlow = new WindowedMean[items.length];
                         for(int i = 0; i < items.length; i++){
-                            cacheFlow[i] = new WindowedMean(windowSize);
+                            stats.cacheFlow[i] = new WindowedMean(windowSize);
                         }
-                        cacheSums = new float[items.length];
-                        displayFlow = new float[items.length];
+                        stats.cacheSums = new float[items.length];
+                        stats.displayFlow = new float[items.length];
                     }else{
                         for(int i = 0; i < items.length; i++){
-                            cacheFlow[i].reset();
+                            stats.cacheFlow[i].reset();
                         }
-                        Arrays.fill(cacheSums, 0);
+                        Arrays.fill(stats.cacheSums, 0);
                         cacheBits.clear();
                     }
 
-                    Arrays.fill(displayFlow, -1);
+                    Arrays.fill(stats.displayFlow, -1);
 
-                    flow = cacheFlow;
+                    flow = stats.cacheFlow;
                 }
 
                 boolean updateFlow = flowTimer.get(30);
 
                 for(int i = 0; i < items.length; i++){
-                    flow[i].add(cacheSums[i]);
-                    if(cacheSums[i] > 0){
+                    flow[i].add(stats.cacheSums[i]);
+                    if(stats.cacheSums[i] > 0){
                         cacheBits.set(i);
                     }
-                    cacheSums[i] = 0;
+                    stats.cacheSums[i] = 0;
 
                     if(updateFlow){
-                        displayFlow[i] = flow[i].hasEnoughData() ? flow[i].mean() / pollScl : -1;
+                        stats.displayFlow[i] = flow[i].hasEnoughData() ? flow[i].mean() / pollScl : -1;
                     }
                 }
             }
@@ -92,7 +113,16 @@ public class ItemModule extends BlockModule{
     public float getFlowRate(Item item){
         if(flow == null) return -1f;
 
-        return displayFlow[item.id] * 60;
+        return stats.displayFlow[item.id] * 60;
+    }
+
+    public boolean flowHasEnoughData(){
+        if(flow == null) return false;
+        boolean enough = true;
+        for(int i=0; i < items.length; i++){
+            enough &= flow[i].hasEnoughData();
+        }
+        return enough;
     }
 
     public boolean hasFlowItem(Item item){
@@ -265,13 +295,13 @@ public class ItemModule extends BlockModule{
         items[item] += amount;
         total += amount;
         if(flow != null){
-            cacheSums[item] += amount;
+            stats.cacheSums[item] += amount;
         }
     }
 
     public void undoFlow(Item item){
         if(flow != null){
-            cacheSums[item.id] -= 1;
+            stats.cacheSums[item.id] -= 1;
         }
     }
 

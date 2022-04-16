@@ -8,6 +8,7 @@ import arc.struct.*;
 import arc.util.*;
 import kotlin.*;
 import mindustry.world.blocks.defense.*;
+import mindustry.world.modules.*;
 import org.jetbrains.annotations.*;
 
 import java.util.concurrent.*;
@@ -18,6 +19,9 @@ public class ClientVars {
     public static IntMap<Object> processorConfigs = new IntMap<>();
     public static float spawnTime = 60f * Core.settings.getInt("spawntime");
     public static float travelTime = Core.settings.getInt("traveltime");
+
+    // Core Item Display
+    public static ItemModule coreItems;
 
     // Config Queue
     @NotNull public static LinkedBlockingQueue<Runnable> configs = new LinkedBlockingQueue<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.

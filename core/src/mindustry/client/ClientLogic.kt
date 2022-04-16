@@ -15,6 +15,7 @@ import mindustry.gen.*
 import mindustry.logic.*
 import mindustry.type.*
 import mindustry.world.blocks.logic.*
+import mindustry.world.modules.*
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
@@ -59,6 +60,11 @@ class ClientLogic {
             if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
             Client.tiles.clear()
+            if(coreItems == null) coreItems = ItemModule(true)
+            else {
+                coreItems.update(false)
+                coreItems.clear()
+            }
         }
 
         Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading
