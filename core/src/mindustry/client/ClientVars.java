@@ -5,9 +5,12 @@ import arc.graphics.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.client.utils.*;
+import mindustry.game.EventType.*;
 import mindustry.world.blocks.defense.*;
 import org.jetbrains.annotations.*;
 
+import java.util.*;
 import java.util.concurrent.*;
 
 public class ClientVars {
@@ -37,4 +40,17 @@ public class ClientVars {
     @NotNull public static Color encrypted = Color.valueOf("#243266"), verified = Color.valueOf("#2c9e52"), invalid = Color.valueOf("#890800"), user = Color.coral.cpy().mul(0.6f); // Encrypted = Blue, Verified = Green
     @NotNull public static String lastCertName = "";
     public static int pluginVersion;
+
+    // Translating
+    public static String targetLang = Locale.getDefault().getLanguage(); // Language to translate messages to
+    public static Seq<String> supportedLangs = new Seq<>(); // List of supported languages
+    public static boolean enableTranslation = Core.settings.getBool("enabletranslation", true);
+    @NotNull public static Color translated = Color.sky;
+
+    static {
+        Events.on(ClientLoadEvent.class, e -> Translating.languages(langs -> {
+            supportedLangs = langs;
+            targetLang = langs.contains(targetLang) ? targetLang : "en";
+        }));
+    }
 }

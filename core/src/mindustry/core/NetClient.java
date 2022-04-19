@@ -212,6 +212,7 @@ public class NetClient implements ApplicationListener{
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
         Color background = null;
         var original = unformatted; // Cursed and horrible
+        String stripped = Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message));
         if(Vars.ui != null){
             var prefix = "";
 
@@ -230,15 +231,21 @@ public class NetClient implements ApplicationListener{
                     prefix += "[#" + Pal.adminChat.toString() + "]<A> ";
                 }
                 var sender = playersender.coloredName();
-                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
+                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + sender + "]: ") : unformatted;
                 ui.chatfrag.addMessage(message, sender, background, prefix, unformatted2);
+
+                if (Core.settings.getBool("enabletranslation") && playersender != player)
+                    Translating.translate(stripped, ClientVars.targetLang, translation -> {
+                        if (translation != stripped)
+                            ui.chatfrag.addMessage(translation, Core.bundle.get("translation"), ClientVars.translated);
+                    });
             } else {
-                Vars.ui.chatfrag.addMessage(message, null, unformatted == null ? "" : unformatted);
+                ui.chatfrag.addMessage(message, null, unformatted == null ? "" : unformatted);
             }
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
                 Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
                     "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
-                    "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
+                    "&lw" + stripped
                 );
         }
 
