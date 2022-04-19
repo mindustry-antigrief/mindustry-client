@@ -42,7 +42,7 @@ public class ClientVars {
     public static int pluginVersion;
 
     // Translating
-    public static String targetLang = Locale.getDefault().getLanguage(); // Language to translate messages to
+    public static String targetLang; // Language to translate messages to
     public static Seq<String> supportedLangs = new Seq<>(); // List of supported languages
     public static boolean enableTranslation = Core.settings.getBool("enabletranslation", true);
     @NotNull public static Color translated = Color.sky;
@@ -50,7 +50,8 @@ public class ClientVars {
     static {
         Events.on(ClientLoadEvent.class, e -> Translating.languages(langs -> {
             supportedLangs = langs;
-            targetLang = langs.contains(targetLang) ? targetLang : "en";
+            if (!supportedLangs.contains(targetLang = Locale.getDefault().getLanguage()))
+                targetLang = "en";
         }));
     }
 }
