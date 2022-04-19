@@ -50,7 +50,7 @@ public class ClientVars {
     static {
         Events.on(ClientLoadEvent.class, e -> Translating.languages(langs -> {
             supportedLangs = langs;
-            if (!supportedLangs.contains(targetLang = Locale.getDefault().getLanguage()))
+            if (!supportedLangs.contains(targetLang = Locale.getDefault().getLanguage().substring(0, 2)))
                 targetLang = "en";
         }));
     }
