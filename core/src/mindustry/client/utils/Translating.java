@@ -84,7 +84,13 @@ public class Translating {
                 "source", source,
                 "target", target
             ),
-            res -> success.get(JsonIO.json.fromJson(StringMap.class, res).get("translatedText"))
+            res -> {
+                String translation = JsonIO.json.fromJson(StringMap.class, res).get("translatedText");
+                if (translation.length() <= 256)
+                    success.get(translation);
+                else
+                    Log.warn("Translation is too long (@chars)", translation.length());
+            }
         );
     }
 
