@@ -333,37 +333,37 @@ object Client {
             var n = 0
             val newLinks = IntMap<IntSet>()
             val tmp = mutableListOf<ConfigRequest>()
-            clientThread.post {
-                for ((grid, buildings) in grids) { // This is horrible but works somehow
-                    for (nodeBuild in buildings) {
-                        val nodeBlock = nodeBuild.block as? PowerNode ?: continue
-                        var links = nodeBuild.power.links.size
-                        nodeBlock.getPotentialLinks(nodeBuild.tile, player.team()) { link ->
-                            val min = min(grid, link.power.graph.id)
-                            val max = max(grid, link.power.graph.id)
-                            if (diodeLinks.any { it[0] == min && it[1] == max }) return@getPotentialLinks // Don't connect across diodes
-                            if (++links > nodeBlock.maxNodes) return@getPotentialLinks // Respect max links
-                            val t = newLinks.get(grid) { IntSet.with(grid) }
-                            val l = newLinks.get(link.power.graph.id, IntSet())
-                            if (l.add(grid) && t.add(link.power.graph.id)) {
-                                l.addAll(t)
-                                newLinks.put(link.power.graph.id, l)
-                                if (confirmed && !inProgress) tmp.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
-                                n++
-                            }
+//            clientThread.post {
+            for ((grid, buildings) in grids) { // This is horrible but works somehow
+                for (nodeBuild in buildings) {
+                    val nodeBlock = nodeBuild.block as? PowerNode ?: continue
+                    var links = nodeBuild.power.links.size
+                    nodeBlock.getPotentialLinks(nodeBuild.tile, player.team()) { link ->
+                        val min = min(grid, link.power.graph.id)
+                        val max = max(grid, link.power.graph.id)
+                        if (diodeLinks.any { it[0] == min && it[1] == max }) return@getPotentialLinks // Don't connect across diodes
+                        if (++links > nodeBlock.maxNodes) return@getPotentialLinks // Respect max links
+                        val t = newLinks.get(grid) { IntSet.with(grid) }
+                        val l = newLinks.get(link.power.graph.id, IntSet())
+                        if (l.add(grid) && t.add(link.power.graph.id)) {
+                            l.addAll(t)
+                            newLinks.put(link.power.graph.id, l)
+                            if (confirmed && !inProgress) tmp.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
+                            n++
                         }
                     }
                 }
-                Core.app.post {
-                    configs.addAll(tmp)
-                    if (confirmed) {
-                        if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
-                        else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, grids.size - n))
-                    } else {
-                        player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, grids.size))
-                    }
-                }
             }
+//                Core.app.post {
+            configs.addAll(tmp)
+            if (confirmed) {
+                if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
+                else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, grids.size - n))
+            } else {
+                player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, grids.size))
+            }
+//                }
+//            }
         }
 
         @Suppress("unchecked_cast")
