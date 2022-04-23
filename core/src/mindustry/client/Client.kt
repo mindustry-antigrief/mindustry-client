@@ -261,7 +261,7 @@ object Client {
             val lang = if (args.size == 2 && supportedLangs.contains(args[0])) args[0] else "en"
 
             Translating.translate(msg, lang) { translation ->
-                sendMessage("[gray]Translation:[] " + translation)
+                sendMessage("$translation [gray](translated)[]")
             }
         }
 
