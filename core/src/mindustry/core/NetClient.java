@@ -21,6 +21,7 @@ import mindustry.client.*;
 import mindustry.client.communication.*;
 import mindustry.client.utils.*;
 import mindustry.core.GameState.*;
+import mindustry.core.Version;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -117,6 +118,8 @@ public class NetClient implements ApplicationListener{
             }
 
             net.send(c, true);
+            
+            Call.serverPacketReliable("FOO.VERSION",Version.clientVersion);
         });
 
         net.handleClient(Disconnect.class, packet -> {
