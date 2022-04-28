@@ -116,27 +116,25 @@ public class Translating {
                 if (e instanceof HttpStatusException) {
                     HttpStatusException hse = (HttpStatusException) e;
                     switch (hse.status) {
-                        case UNKNOWN_STATUS: // rate limit
-                            Log.info("Rate limit reached with @, retrying...", server + api);
+                        case BAD_REQUEST -> Log.debug("Bad request, aborting translation: @", body);
+                        case INTERNAL_SERVER_ERROR -> Log.debug("Server-side error, aborting translation : @", body);
+                        case UNKNOWN_STATUS -> { // rate limit
+                            Log.debug("Rate limit reached with @@, retrying...", server, api);
                             servers.put(server, true);
                             Timer.schedule(() -> servers.put(server, false), 60f);
                             fetch(api, body, success);
-                            break;
-                        case BAD_REQUEST:
-                            Log.warn("Bad request, aborting translation.\n@", body);
-                            break;
-                        case INTERNAL_SERVER_ERROR:
-                            Log.warn("Server-side error, aborting translation.\n@", body);
-                            break;
-                        default:
+                        }
+                        default -> {
                             if (servers.size >= 2) {
-                                Log.warn("HTTP Response indicates error, retrying...\n@", hse);
+                                Log.debug("HTTP Response indicates error, retrying: @", hse);
                                 servers.remove(server);
                                 fetch(api, body, success);
                             } else {
-                                Log.err("HTTP Response indicates error, disabling translation for this session", hse);
+                                Log.debug("HTTP Response indicates error, disabling translation for this session", hse);
                                 ClientVars.enableTranslation = false;
                             }
+                        }
+                    }
                     }
                 } else {
                     Log.err("An unknown error occurred, disabling translation for this session", e);
