@@ -236,7 +236,7 @@ public class NetClient implements ApplicationListener{
 
                 if (Core.settings.getBool("enabletranslation") && playersender != player)
                     Translating.translate(stripped, ClientVars.targetLang, translation -> {
-                        if (translation != stripped)
+                        if (!stripped.equals(translation))
                             ui.chatfrag.addMessage(translation, Core.bundle.get("translation"), ClientVars.translated);
                     });
             } else {
