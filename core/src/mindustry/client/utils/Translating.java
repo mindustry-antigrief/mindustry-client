@@ -117,9 +117,9 @@ public class Translating {
                     HttpStatusException hse = (HttpStatusException) e;
                     switch (hse.status) {
                         case BAD_REQUEST -> Log.debug("Bad request, aborting translation: @", body);
-                        case INTERNAL_SERVER_ERROR -> Log.debug("Server-side error, aborting translation : @", body);
-                        case UNKNOWN_STATUS -> { // rate limit
-                            Log.debug("Rate limit reached with @@, retrying...", server, api);
+                        case INTERNAL_SERVER_ERROR -> Log.debug("Server-side error, aborting translation: @", body);
+                        case UNKNOWN_STATUS -> { // most likely rate limit
+                            Log.debug("Rate limit reached with @, retrying...", server + api);
                             servers.put(server, true);
                             Timer.schedule(() -> servers.put(server, false), 60f);
                             fetch(api, body, success);
@@ -130,11 +130,10 @@ public class Translating {
                                 servers.remove(server);
                                 fetch(api, body, success);
                             } else {
-                                Log.debug("HTTP Response indicates error, disabling translation for this session", hse);
+                                Log.debug("HTTP Response indicates error, disabling translation for this session: @", hse);
                                 ClientVars.enableTranslation = false;
                             }
                         }
-                    }
                     }
                 } else {
                     Log.err("An unknown error occurred, disabling translation for this session", e);
