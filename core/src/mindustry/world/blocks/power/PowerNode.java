@@ -29,8 +29,6 @@ public class PowerNode extends PowerBlock{
     protected static BuildPlan otherReq;
     protected static int returnInt = 0;
     protected final static ObjectSet<PowerGraph> graphs = new ObjectSet<>();
-    /** The maximum range of all power nodes on the map */
-    public static float maxRange;
 
     public @Load("laser") TextureRegion laser;
     public @Load("laser-end") TextureRegion laserEnd;
@@ -237,7 +235,12 @@ public class PowerNode extends PowerBlock{
             graphs.add(tile.build.power.graph);
         }
 
-        indexer.eachBlock(team, tile.worldx(), tile.worldy(), laserRange * tilesize, valid, tempTileEnts::add);
+        Geometry.circle(tile.x, tile.y, (int)(laserRange + 2), (x, y) -> {
+            Building other = world.build(x, y);
+            if(valid.get(other) && !tempTileEnts.contains(other)){
+                tempTileEnts.add(other);
+            }
+        });
 
         tempTileEnts.sort((a, b) -> {
             int type = -Boolean.compare(a.block instanceof PowerNode, b.block instanceof PowerNode);
@@ -280,11 +283,24 @@ public class PowerNode extends PowerBlock{
             }
         }
 
-        indexer.eachBlock(team, tile.worldx(), tile.worldy(), maxRange * tilesize, valid, tempTileEnts::add);
+        if(tile.build != null && tile.build.power != null){
+            graphs.add(tile.build.power.graph);
+        }
 
-        tempTileEnts.sort(a -> a.dst2(tile));
+        Geometry.circle(tile.x, tile.y, 13, (x, y) -> {
+            Building other = world.build(x, y);
+            if(valid.get(other) && !tempTileEnts.contains(other)){
+                tempTileEnts.add(other);
+            }
+        });
 
-        tempTileEnts.each(t -> {
+        tempTileEnts.sort((a, b) -> {
+            int type = -Boolean.compare(a.block instanceof PowerNode, b.block instanceof PowerNode);
+            if(type != 0) return type;
+            return Float.compare(a.dst2(tile), b.dst2(tile));
+        });
+
+        tempTileEnts.each(valid, t -> {
             graphs.add(t.power.graph);
             others.get(t);
         });
