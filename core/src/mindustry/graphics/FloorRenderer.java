@@ -171,7 +171,10 @@ public class FloorRenderer{
 
         //enable all mesh attributes
         for(VertexAttribute attribute : attributes){
-            shader.enableVertexAttribute(attribute.alias);
+            int location = shader.getAttributeLocation(attribute.alias);
+            if(location < 0) continue;
+
+            Gl.enableVertexAttribArray(location);
         }
     }
 
@@ -179,7 +182,9 @@ public class FloorRenderer{
 
         //disable all mesh attributes
         for(VertexAttribute attribute : attributes){
-            shader.disableVertexAttribute(attribute.alias);
+            int location = shader.getAttributeLocation(attribute.alias);
+            if(location == -1) continue;
+            Gl.disableVertexAttribArray(location);
         }
 
         //unbind last buffer
@@ -259,7 +264,7 @@ public class FloorRenderer{
                             offset += attribute.size;
                             if(location < 0) continue;
 
-                            shader.setVertexAttribute(location, attribute.components, attribute.type, attribute.normalized, vertexSize * 4, aoffset);
+                            Gl.vertexAttribPointer(location, attribute.components, attribute.type, attribute.normalized, vertexSize * 4, aoffset);
                         }
 
                         ibo.bind();
@@ -372,8 +377,6 @@ public class FloorRenderer{
 
         texture = Core.atlas.find("grass1").texture;
         error = Core.atlas.find("env-error");
-        //not supported due to internal access
-        Mesh.useVAO = false;
 
         //pre-cache chunks
         if(!dynamic){

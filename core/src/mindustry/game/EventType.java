@@ -601,7 +601,7 @@ public class EventType{
         }
     }
 
-    /** UnitChangeEvent can't be changed without breaking compatibility (I think), this class adds the unit swapped from. */
+    /** UnitChangeEvent can't be changed without breaking compatibility with some mods, this class adds the unit swapped from. */
     public static class UnitChangeEventClient{
         public final Player player;
         public final Unit newUnit;

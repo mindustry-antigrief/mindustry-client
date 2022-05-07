@@ -19,7 +19,7 @@ jobs:
         run: |
           export PATH=./tools:$PATH
           chmod +x ./tools/antialias
-          ./gradlew desktop:dist -PfastAA --parallel
+          ./gradlew desktop:dist --parallel
 
       - name: Upload desktop JAR for testing
         uses: actions/upload-artifact@v2

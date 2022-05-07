@@ -7,8 +7,7 @@ import mindustry.gen.*;
 import static mindustry.Vars.*;
 
 public class PausedDialog extends BaseDialog{
-    private SaveDialog save = new SaveDialog();
-    private LoadDialog load = new LoadDialog();
+    private final SaveDialog save = new SaveDialog();
     private boolean wasClient = false;
 
     public PausedDialog(){
@@ -39,7 +38,7 @@ public class PausedDialog extends BaseDialog{
             if(!state.isCampaign() && !state.isEditor()){
                 cont.row();
                 cont.button("@savegame", Icon.save, save::show);
-                cont.button("@loadgame", Icon.upload, load::show).disabled(b -> net.active());
+                cont.button("@loadgame", Icon.upload, ui.load::show).disabled(b -> net.active());
             }
 
             cont.row();
@@ -77,7 +76,7 @@ public class PausedDialog extends BaseDialog{
 
                 cont.row();
 
-                cont.buttonRow("@load", Icon.download, load::show).disabled(b -> net.active());
+                cont.buttonRow("@load", Icon.download, ui.load::show).disabled(b -> net.active());
             }else if(state.isCampaign()){
                 cont.buttonRow("@research", Icon.tree, ui.research::show);
 

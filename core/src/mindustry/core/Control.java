@@ -252,8 +252,6 @@ public class Control implements ApplicationListener, Loadable{
         );
 
         createPlayer();
-
-        saves.load();
     }
 
     /** Automatically unlocks things with no requirements and no locked parents. */

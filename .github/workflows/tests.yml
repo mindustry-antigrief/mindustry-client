@@ -33,7 +33,7 @@ jobs:
           echo "SLUG=${GITHUB_SHA::7}" >> $GITHUB_ENV
           export PATH=./tools:$PATH
           chmod +x ./tools/antialias
-          ./gradlew tools:pack test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client-v7-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel -PfastAA
+          ./gradlew tools:pack test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client-v7-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
 
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v6' || github.event_name == 'workflow_dispatch') }}

@@ -8,7 +8,7 @@ import java.util.*;
 /** FINISHME: Remove in v7 release, this class implements Arc#99 (fast QuadTree.remove()) */
 public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
     public int totalObjects;
-    private Seq<QuadTree<T>> stack;
+    protected Seq<QuadTree<T>> stack;
 
     public QuadTreeMk2(Rect bounds){
         super(bounds);
@@ -75,7 +75,7 @@ public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
         }else{
             hitbox(obj);
             // Add to relevant child, or root if can't fit completely in a child
-            QuadTreeMk2<T> child = (QuadTreeMk2<T>)getFittingChild(tmp);
+            QuadTreeMk2<T> child = getFittingChild(tmp);
             if(child != null){
                 child.insert(obj);
             }else{
@@ -99,7 +99,7 @@ public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
             result = objects.remove(obj, true);
         }else{ // Remove from relevant child
             hitbox(obj);
-            QuadTreeMk2 child = (QuadTreeMk2)getFittingChild(tmp);
+            QuadTreeMk2 child = getFittingChild(tmp);
 
             if(child != null){
                 result = child.removeB(obj);
@@ -129,7 +129,7 @@ public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
         leaf = true;
     }
 
-    private QuadTree<T> getFittingChild(Rect boundingBox){
+    private QuadTreeMk2<T> getFittingChild(Rect boundingBox){
         float verticalMidpoint = bounds.x + (bounds.width / 2);
         float horizontalMidpoint = bounds.y + (bounds.height / 2);
 
@@ -141,15 +141,15 @@ public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
         // Object can completely fit within the left quadrants
         if(boundingBox.x < verticalMidpoint && boundingBox.x + boundingBox.width < verticalMidpoint){
             if(topQuadrant){
-                return topLeft;
+                return (QuadTreeMk2<T>)topLeft;
             }else if(bottomQuadrant){
-                return botLeft;
+                return (QuadTreeMk2<T>)botLeft;
             }
         }else if(boundingBox.x > verticalMidpoint){ // Object can completely fit within the right quadrants
             if(topQuadrant){
-                return topRight;
+                return (QuadTreeMk2<T>)topRight;
             }else if(bottomQuadrant){
-                return botRight;
+                return (QuadTreeMk2<T>)botRight;
             }
         }
 
@@ -212,5 +212,40 @@ public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
                 }
             }
         }
+    }
+
+    /**
+     * @return whether an object overlaps this rectangle.
+     * This will never result in false positives.
+     */
+    public boolean any(float x, float y, float width, float height){
+        if(stack == null) stack = new Seq<>();
+        stack.add(this);
+
+        while(stack.size > 0){
+            QuadTreeMk2<T> curr = (QuadTreeMk2<T>)stack.pop();
+
+            Seq<?> objects = curr.objects;
+
+            for(int i = 0; i < objects.size; i++){
+                T item = (T)objects.items[i];
+                hitbox(item);
+                if(tmp.overlaps(x, y, width, height)){
+                    stack.clear();
+                    return true;
+                }
+            }
+
+            if(curr.leaf) continue;
+            if(topLeft.bounds.overlaps(x, y, width, height)) stack.add(curr.topLeft);
+            if(topRight.bounds.overlaps(x, y, width, height)) stack.add(curr.topRight);
+            if(botLeft.bounds.overlaps(x, y, width, height)) stack.add(curr.botLeft);
+            if(botRight.bounds.overlaps(x, y, width, height)) stack.add(curr.botRight);
+        }
+        return false;
+    }
+
+    public boolean any(Rect rect){
+        return any(rect.x, rect.y, rect.width, rect.height);
     }
 }

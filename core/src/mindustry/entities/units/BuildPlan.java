@@ -29,11 +29,13 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
     /** Whether construction has started for this request, and other special variables.*/
     public boolean initialized, worldContext = true, stuck;
 
-    /** Visual scale. Used only for rendering.*/
+    /** Visual scale. Used only for rendering. */
     public float animScale = 0f;
     
     /** Cache */
     public boolean valid;
+    /** Double freeing plans is a bad idea. */
+    public boolean freed;
 
     @Override
     public void reset() {
@@ -41,6 +43,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         progress = 0;
         initialized = false;
         stuck = false;
+        freed = true;
     }
 
     /** This creates a build request. */
@@ -151,6 +154,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.rotation = rotation;
         this.block = block;
         this.breaking = false;
+        freed = false;
         return this;
     }
 
@@ -161,6 +165,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.block = block;
         this.breaking = false;
         this.config = config;
+        freed = false;
         return this;
     }
 
@@ -170,6 +175,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.rotation = -1;
         this.block = world.tile(x, y).block();
         this.breaking = true;
+        freed = false;
         return this;
     }
 

@@ -275,6 +275,9 @@ public class ModsDialog extends BaseDialog{
                                     if(item.isOutdated()){
                                         text.labelWrap("@mod.outdated").growX();
                                         text.row();
+                                    }else if(item.clientDisabled()){
+                                        text.labelWrap("@mod.clientdisabled").growX();
+                                        text.row();
                                     }else if(!item.isSupported()){
                                         text.labelWrap(Core.bundle.format("mod.requiresversion", item.meta.minGameVersion)).growX();
                                         text.row();

@@ -323,9 +323,7 @@ public class Renderer implements ApplicationListener{
 
         Groups.draw.draw(Drawc::draw);
 
-        Draw.z(Layer.space);
-        Client.INSTANCE.draw();
-        Draw.color();
+        Draw.draw(Layer.space, Client.INSTANCE::draw);
 
         Draw.reset();
         Draw.flush();

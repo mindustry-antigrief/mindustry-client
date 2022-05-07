@@ -28,12 +28,13 @@ import mindustry.world.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.payloads.*;
 
+import java.util.*;
+
 import static mindustry.Vars.*;
 import static mindustry.logic.GlobalConstants.*;
 
 @Component(base = true)
 abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, Itemsc, Rotc, Unitc, Weaponsc, Drawc, Boundedc, Syncc, Shieldc, Commanderc, Displayable, Senseable, Ranged, Minerc, Builderc{
-
     @Import boolean hovering, dead, disarmed;
     @Import float x, y, rotation, elevation, maxHealth, drag, armor, hitSize, health, ammo, minFormationSpeed, dragMultiplier;
     @Import Team team;
@@ -53,7 +54,8 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     private transient float resupplyTime = Mathf.random(10f);
     private transient boolean wasPlayer;
     private transient boolean wasHealed;
-    private final transient ObjectMap<Weapon, TurretPathfindingEntity> pathfindingEntities = new ObjectMap<>();
+    private transient Seq<TurretPathfindingEntity> turretEnts;
+    private static final transient IntSet weaponSet = new IntSet(4);
 
     /** Called when this unit was unloaded from a factory or spawn point. */
     public void unloaded(){
@@ -338,15 +340,27 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             Call.unitCapDeath(self());
             team.data().updateCount(type, -1);
         }
+
+        // Client stuff below
+        if(hasWeapons()){
+            turretEnts = new Seq<>(type.weapons.size);
+            for(var w : type.weapons){
+                if(weaponSet.add(Objects.hash(w.bullet.collidesAir, w.bullet.collidesGround, w.bullet.damage, w.bullet.lifetime, w.bullet.speed, w.bullet.healPercent))){
+                    turretEnts.add(new TurretPathfindingEntity(this, Math.max(24f, w.bullet.range()), w.bullet.collidesGround, w.bullet.collidesAir, this::canShoot));
+                }
+            }
+            turretEnts.each(Navigation::addEnt);
+            weaponSet.clear(); // Reusing things is good for the environment <3
+        }
     }
 
     @Override
     public void remove(){
         team.data().updateCount(type, -1);
         controller.removed(self());
-        for (Weapon weapon : type.weapons) {
-            Navigation.obstacles.remove(pathfindingEntities.get(weapon));
-        }
+
+        // Client stuff below
+        if(turretEnts != null) turretEnts.each(Navigation::removeEnt);
     }
 
     @Override
@@ -367,27 +381,6 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     @Override
     public void update(){
-        if (hasWeapons()) {
-            if (player != null && team != player.team()) {
-                for (Weapon weapon : type.weapons) {
-                    if (!pathfindingEntities.containsKey(weapon)) {
-                        TurretPathfindingEntity ent = new TurretPathfindingEntity(Math.max(20f, weapon.bullet.range()), false); // Crawler range is 9.5, use a min of 20 to be safe
-                        pathfindingEntities.put(weapon, ent);
-                        ent.targetGround = weapon.bullet.collidesGround;
-                    }
-                    TurretPathfindingEntity entity = pathfindingEntities.get(weapon);
-                    if (hasEffect(StatusEffects.disarmed)) {
-                        Navigation.obstacles.remove(entity);
-                    } else Navigation.obstacles.add(entity);
-                    entity.x = x;
-                    entity.y = y;
-                    entity.canHitPlayer = player.unit().isFlying() ? weapon.bullet.collidesAir : weapon.bullet.collidesGround;
-                    entity.canShoot = !state.rules.unitAmmo || ammo > 0;
-                    entity.team = team;
-                }
-            }
-        }
-
         type.update(self());
 
         if(wasHealed && healTime <= -1f){

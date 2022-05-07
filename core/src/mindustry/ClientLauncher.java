@@ -7,15 +7,16 @@ import arc.audio.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.struct.*;
 import arc.util.*;
 import arc.util.async.*;
+import kotlin.*;
 import mindustry.ai.*;
 import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
-import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.maps.*;
 import mindustry.mod.*;
@@ -35,6 +36,13 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
     @Override
     public void setup(){
+        Threads.daemon("Class Preloader", () -> {
+            try {
+                Class.forName("mindustry.gen.EntityMapping");
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
         String dataDir = OS.env("MINDUSTRY_DATA_DIR");
         if(dataDir != null){
             Core.settings.setDataDirectory(files.absolute(dataDir));
@@ -91,9 +99,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         assets.load(new AssetDescriptor<>(maxTextureSize >= 4096 ? "sprites/sprites.aatls" : "sprites/fallback/sprites.aatls", TextureAtlas.class)).loaded = t -> atlas = t;
         assets.loadRun("maps", Map.class, () -> maps.loadPreviews());
 
-        Musics.load();
-        Sounds.load();
-
         assets.loadRun("contentcreate", Content.class, () -> {
             content.createBaseContent();
             content.loadColors();
@@ -146,6 +151,19 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 loader.draw();
             }
             if(assets.update(1000 / loadingFPS)){
+                if(OS.hasProp("debug")){
+                    var sorted = new PQueue<>(12, Structs.comparingFloat(Pair<String, Float>::getSecond));
+                    int[] length = {0};
+                    assets.done.each((a, t) -> {
+                        sorted.add(new Pair<>(a, t));
+                        length[0] = Math.max(length[0], a.length());
+                    });
+                    Pair<String, Float> h;
+                    Log.warn("Listing assets from fastest to slowest");
+                    while((h = sorted.poll()) != null) {
+                        System.out.printf("%" + length[0] + "s | %s\n", h.getFirst(), h.getSecond());
+                    }
+                }
                 loader.dispose();
                 loader = null;
                 Log.info("Total time to load: @ms", Time.timeSinceMillis(beginTime));
@@ -177,6 +195,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             asyncCore.begin();
 
             super.update();
+            Client.INSTANCE.update();
 
             asyncCore.end();
         }
@@ -190,8 +209,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 Threads.sleep((target - elapsed) / 1000000, (int)((target - elapsed) % 1000000));
             }
         }
-
-        Client.INSTANCE.update();
 
         lastTime = Time.nanos();
     }
