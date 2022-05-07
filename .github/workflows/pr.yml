@@ -18,7 +18,6 @@ jobs:
       - name: Compile test JAR
         run: |
           export PATH=./tools:$PATH
-          chmod +x ./tools/antialias
           ./gradlew desktop:dist --parallel
 
       - name: Upload desktop JAR for testing
