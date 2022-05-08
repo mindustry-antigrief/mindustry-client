@@ -31,5 +31,5 @@ jobs:
           git config user.name "Actions"
           git fetch https://github.com/anuken/mindustry.git erekir --depth=1
           git reset --soft FETCH_HEAD
-          git pull FETCH_HEAD --allow-unrelated-histories
+          git pull
           git push
