@@ -30,5 +30,5 @@ jobs:
         run: |
           git checkout erekir
           git remote add anuke https://github.com/anuken/mindustry.git
-          git pull anuke erekir
+          git merge anuke/erekir
           git push
