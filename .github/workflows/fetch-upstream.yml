@@ -28,8 +28,8 @@ jobs:
       - name: Trigger Build If Needed
         if: ${{ steps.compare.outputs.changed != null }}
         run: |
-          git checkout -b tmp
+          git fetch origin
           git remote add anuke https://github.com/anuken/mindustry.git
-          git pull anuke erekir
+          git fetch anuke
           git checkout erekir
-          git push
+          git merge anuke/erekir
