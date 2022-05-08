@@ -1,0 +1,32 @@
+name: Poll Erekir Updates
+
+on:
+  schedule:
+    - cron: "*/5 * * * *" # Every 5 mins.
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v2
+        with:
+          ref: erekir
+
+      - name: Get Release
+        id: get-release
+        uses: gregziegan/fetch-latest-release@v2.0.0
+
+      - name: Compare With Latest
+        id: compare
+        run: |
+          echo ${{ steps.get-release.outputs.name }} >> lastCommit
+          echo "::set-output name=changed::$(git ls-remote -q https://github.com/anuken/mindustry.git erekir | cut -c1-7 | cmp lastCommit)"
+
+      - name: Trigger Build If Needed
+        if: ${{ steps.compare.outputs.changed != null }}
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: Java Tests
+          token: ${{ secrets.RELEASE_TOKEN }}
