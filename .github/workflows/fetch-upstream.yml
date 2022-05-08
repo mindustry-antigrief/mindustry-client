@@ -29,7 +29,7 @@ jobs:
         if: ${{ steps.compare.outputs.changed != null }}
         run: |
           git remote add anuke https://github.com/anuken/mindustry.git
-          git pull anuke/master
+          git pull anuke origin
           git push
 
       - name: Trigger Build If Needed
