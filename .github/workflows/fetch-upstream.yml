@@ -29,8 +29,7 @@ jobs:
         if: ${{ steps.compare.outputs.changed != null }}
         run: |
           git config user.name "Actions"
-          git fetch origin erekir
           git fetch https://github.com/anuken/mindustry.git erekir --depth=1
-          git reset --soft anuke/erekir
+          git reset --soft FETCH_HEAD
           git pull anuke erekir --allow-unrelated-histories
           git push
