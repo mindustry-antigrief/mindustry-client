@@ -31,5 +31,6 @@ jobs:
         run: |
           git config user.name "Actions"
           git remote add anuke https://github.com/anuken/mindustry.git
+          git reset --hard anuke/erekir
           git pull anuke erekir
           git push
