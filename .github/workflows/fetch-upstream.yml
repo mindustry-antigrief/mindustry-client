@@ -28,6 +28,7 @@ jobs:
       - name: Trigger Build If Needed
         if: ${{ steps.compare.outputs.changed != null }}
         run: |
+          git config user.name "Actions"
           git fetch origin erekir
           git remote add anuke https://github.com/anuken/mindustry.git
           git fetch anuke erekir
