@@ -28,13 +28,7 @@ jobs:
       - name: Trigger Build If Needed
         if: ${{ steps.compare.outputs.changed != null }}
         run: |
+          git checkout erekir
           git remote add anuke https://github.com/anuken/mindustry.git
           git pull anuke erekir
           git push
-
-      - name: Trigger Build If Needed
-        if: ${{ steps.compare.outputs.changed != null }}
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: Java Tests
-          token: ${{ secrets.RELEASE_TOKEN }}
