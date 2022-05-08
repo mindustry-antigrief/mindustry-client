@@ -2,8 +2,6 @@ name: Poll Erekir Updates
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/5 * * * *" # Every 6 mins.
 
 jobs:
   update:
