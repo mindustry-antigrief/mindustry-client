@@ -32,5 +32,5 @@ jobs:
           git remote add anuke https://github.com/anuken/mindustry.git
           git fetch anuke erekir
           git checkout erekir
-          git merge anuke/erekir --force
+          git pull anuke/erekir --force
           git push
