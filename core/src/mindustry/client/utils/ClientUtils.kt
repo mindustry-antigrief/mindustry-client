@@ -362,7 +362,7 @@ fun compressImage(img: Pixmap): ByteArray {
 
         jpgParamCls.getMethod("setCompressionMode", Int::class.java)
             .invoke(param, Class.forName("javax.imageio.ImageWriteParam").getField("MODE_EXPLICIT").get(null))
-        jpgParamCls.getMethod("setCompressionQuality", Float::class.java).invoke(param, 0.5f)
+        jpgParamCls.getMethod("setCompressionQuality", Float::class.java).invoke(param, ClientVars.jpegQuality)
 
         val imgTypeSpec = Class.forName("javax.imageio.ImageTypeSpecifier")
         val paramCls = Class.forName("javax.imageio.ImageWriteParam")

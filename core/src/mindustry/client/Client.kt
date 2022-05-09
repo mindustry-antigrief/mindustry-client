@@ -583,7 +583,7 @@ object Client {
             try {
                 val quality = args[0].toFloat()
                 if (quality !in 0f .. 1f) {
-                    player.sendMessage("[scarlet]Enter a number between 0.0 and 1.0 (please)")
+                    player.sendMessage("[scarlet]Please enter a number between 0.0 and 1.0 (please)")
                     return@register
                 }
                 jpegQuality = quality
@@ -591,7 +591,7 @@ object Client {
                 player.sendMessage("[accent]Set quality to [white]${quality}${if(quality == 0f)" (png)" else ""}[].")
             } catch (e: Exception) {
                 Log.err(e)
-                if (e is NumberFormatException) player.sendMessage("[scarlet]Enter a valid number (please)")
+                if (e is NumberFormatException) player.sendMessage("[scarlet]Please enter a valid number (please)")
                 else player.sendMessage("[scarlet]Something went wrong.")
             }
         }
