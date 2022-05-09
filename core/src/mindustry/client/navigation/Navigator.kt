@@ -87,7 +87,7 @@ abstract class Navigator {
                 }
             } else if (player.unit().spawnedByCore && !player.unit().isCommanding && player.unit().stack.amount == 0) { // Everything that isn't CN
                 val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst(end) }))
-                if (player.dst(end) > bestCore.dst(end)) {
+                if (player.dst(end) > bestCore.dst(end) && player.dst(bestCore) > player.unit().speed() * 24) { // don't try to move if we're already close to that core
                     lastWp = Time.millis() // Try again in 3s
                     Call.buildingControlSelect(player, bestCore)
                 }
