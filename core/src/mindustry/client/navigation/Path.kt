@@ -41,7 +41,7 @@ abstract class Path {
                 if (job.isDone) {
                     job = clientThread.submit {
                         v1.set(Vars.player) // starting position
-                        if (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>)) { // Same destination
+                        if (targetPos.within(destX, destY, 1F) && Navigation.currentlyFollowing != null) { // Same destination
                             var prevDst = Float.POSITIVE_INFINITY
                             for (i in 0 until waypoints.waypoints.size) {
                                 val dst = v1.dst2(waypoints.waypoints[i])
@@ -56,7 +56,9 @@ abstract class Path {
                         Pools.freeAll(filter)
                         filter.clear()
                         if (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>)) { // Same destination
-                            filter.addAll(*path).removeAll { (it.dst(destX, destY) < dist).apply { if (this) Pools.free(it) } }
+                            val relaxed = Navigation.navigator is AStarNavigatorOptimised
+                            filter.addAll(*path)
+                            if (!relaxed) filter.removeAll { (it.dst(destX, destY) < dist).apply { if (this) Pools.free(it) } }
 
                             while (filter.size > 1 && filter.min(Vars.player::dst) != filter.first()) Pools.free(filter.remove(0))
                             if (filter.size > 1 || (filter.any() && filter.first().dst(Vars.player) < Vars.tilesize)) Pools.free(filter.remove(0))
