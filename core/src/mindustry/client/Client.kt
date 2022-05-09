@@ -574,6 +574,26 @@ object Client {
             }
         }
 
+        register("pic [quality]", "Sets the image quality for sending via chat (0 -> png)") { args, _ ->
+            if (args.isEmpty()) {
+                player.sendMessage("[accent]Enter a value between 0.0 and 1.0 for quality (0.0 -> png)\n" +
+                        "Currently set to [white]${jpegQuality}${if(jpegQuality == 0f)" (png)" else ""}[].")
+                return@register
+            }
+            try {
+                val quality = args[0].toFloat()
+                if (quality !in 0f .. 1f) {
+                    player.sendMessage("[scarlet]Enter a number between 0.0 and 1.0 (please)")
+                    return@register
+                }
+                jpegQuality = quality
+                Core.settings.put("commpicquality", quality)
+                player.sendMessage("[accent]Set quality to [white]${quality}${if(quality == 0f)" (png)" else ""}[].")
+            } catch (e: Exception) {
+                Log.err(e)
+                if (e is NumberFormatException) player.sendMessage("[scarlet]Enter a valid number (please)")
+                else player.sendMessage("[scarlet]Something went wrong.")
+            }
         }
 
         registerReplace("%", "c", "cursor") {

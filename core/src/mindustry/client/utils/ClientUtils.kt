@@ -321,6 +321,9 @@ private val bytes = ByteArrayOutputStream()
 
 fun compressImage(img: Pixmap): ByteArray {
     try {
+        if (ClientVars.jpegQuality == 0f) {
+            throw ClassNotFoundException("I am lazy so we might use an already-implemented function")
+        }
         val imgIO = Class.forName("javax.imageio.ImageIO")
         val writers =
             imgIO.getMethod("getImageWritersByFormatName", String::class.java).invoke(null, "jpeg") as Iterator<*>
@@ -383,7 +386,7 @@ fun compressImage(img: Pixmap): ByteArray {
         return bytes.toByteArray()
     } catch (e: ClassNotFoundException) {
         bytes.reset()
-        PixmapIO.PngWriter().use { write(bytes, img) }
+        PixmapIO.PngWriter().use { write(bytes, img.flipY()) } // PNG is somehow flipped vertically when transferred to baos
         return bytes.toByteArray()
     }
 }
