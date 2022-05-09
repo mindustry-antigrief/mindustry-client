@@ -40,7 +40,19 @@ abstract class Path {
                 targetPos.set(destX, destY)
                 if (job.isDone) {
                     job = clientThread.submit {
-                        val path = Navigation.navigator.navigate(v1.set(Vars.player), v2.set(destX, destY), Navigation.obstacles)
+                        v1.set(Vars.player) // starting position
+                        if (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>)) { // Same destination
+                            var prevDst = Float.POSITIVE_INFINITY
+                            for (i in 0 until waypoints.waypoints.size) {
+                                val dst = v1.dst2(waypoints.waypoints[i])
+                                if (dst > prevDst) { // we are starting to move further away from the closest waypoint
+                                    if (prevDst < waypoints.waypoints[i].tolerance / 4) v1.set(waypoints.waypoints[i-1])
+                                    break
+                                }
+                                prevDst = dst
+                            }
+                        }
+                        val path = Navigation.navigator.navigate(v1, v2.set(destX, destY), Navigation.obstacles)
                         Pools.freeAll(filter)
                         filter.clear()
                         if (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>)) { // Same destination
