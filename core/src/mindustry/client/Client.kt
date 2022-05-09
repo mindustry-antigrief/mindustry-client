@@ -32,7 +32,6 @@ import mindustry.graphics.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
-import mindustry.ui.fragments.ChatFragment
 import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
@@ -543,8 +542,9 @@ object Client {
         }
 
         register("nodeconfig [0/1]", "Set enforcement of schematic node configs, either true or false") { args, _ ->
+            val retain = args.isEmpty()
             val new =
-            if(args.isEmpty()) !Core.settings.getBool("nodeconfigs", false)
+            if(retain) Core.settings.getBool("nodeconfigs", false)
             else {
                 try {
                     when(Integer.parseInt(args[0])){
@@ -557,9 +557,12 @@ object Client {
                     return@register
                 }
             }
-            Core.settings.put("nodeconfigs", new)
-            PowerNode.PowerNodeBuild.fixNode = new
-            player.sendMessage("[accent]Automatic node configuration " + if(new) "[green]enabled" else "[scarlet]disabled")
+            if(!retain){
+                Core.settings.put("nodeconfigs", new)
+                PowerNode.PowerNodeBuild.fixNode = new
+            }
+            player.sendMessage("[accent]Automatic node configuration " + (if(retain) "currently " else "") + if(new) "[green]enabled" else "[scarlet]disabled")
+        }
         }
 
         registerReplace("%", "c", "cursor") {
