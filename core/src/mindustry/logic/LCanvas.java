@@ -556,10 +556,11 @@ public class LCanvas extends Table{
     }
 
     public static class JumpButton extends ImageButton{
-        Color hoverColor = Pal.place;
+        //Color hoverColor = Pal.place;
+        Color hoverColor = new Color(Pal.place);
         Color defaultColor = Color.white;
         Prov<StatementElem> to;
-        boolean selecting;
+        boolean selecting, colored;
         float mx, my;
         ClickListener listener;
 
@@ -605,7 +606,11 @@ public class LCanvas extends Table{
                     setter.get(null);
                 }
 
-                setColor(listener.isOver() ? hoverColor : defaultColor);
+                colored = listener.isOver() || selecting;
+                if(colored){
+                    getColor((Time.globalTime / 60f / 2f) % 3f);
+                }
+                setColor(colored ? hoverColor : defaultColor);
                 getStyle().imageUpColor = this.color;
             });
 
@@ -622,6 +627,17 @@ public class LCanvas extends Table{
                 canvas.jumps.addChild(curve);
             }
         }
+
+        public void getColor(float state){
+            //https://www.instructables.com/How-to-Make-Proper-Rainbow-and-Random-Colors-With-/ sine wave method
+            //Log.debug("state: @\nr: @ g: @ b: @", state, sinColor(state, 0), sinColor(state, 1), sinColor(state, 2));
+            hoverColor.set(sinColor(state, 0f), sinColor(state, 1f), sinColor(state, 2f));
+        }
+        private static float sinColor(float state, float rise){
+            if(state < rise) state += 3f;
+            if(state > rise + 2f) return 0f;
+            return Mathf.absin((state - rise - 0.5f) * Mathf.pi, 0.5f, 1f); //im an idiot, 0.5f because at 0, the sin function should be 0 not -1
+        }
     }
 
     public static class JumpCurve extends Element{
@@ -630,6 +646,7 @@ public class LCanvas extends Table{
 
         public JumpCurve(JumpButton button){
             this.button = button;
+            calcArrowSpeed(); //TODO: fix 1000 calls
         }
 
         @Override
@@ -681,7 +698,12 @@ public class LCanvas extends Table{
             Draw.reset();
         }
 
-        float lineWidth = 3f, heightSpacing = 8f, idealCurveRadius = 8f;
+        static float lineWidth = 3f, heightSpacing = 8f, idealCurveRadius = 8f;
+        static float arrowInterval = 5f;
+        static float arrowSpeed;
+        public static void calcArrowSpeed(){
+            arrowSpeed = Core.graphics.getHeight() / 10f; // arbitrary speed of one screen height every x seconds //TODO: change this back (currently for debug)
+        }
         public void drawCurve(float x, float y, float x2, float y2){
             float cHeight = Core.graphics.getHeight();
             if((y > cHeight && y2 > cHeight) || (y < 0 && y2 < 0)) return; //TODO: shift this to the draw method to prevent unnecessary calc?
@@ -694,17 +716,50 @@ public class LCanvas extends Table{
             float len = heightx * (lineWidth + heightSpacing) + curveRadius + 2f;
             float maxX = Math.max(x, x2) + len + button.getWidth()*0.5f;
             int curveDirection = Mathf.sign(y2 - y);
-            int isDownwards = Mathf.clamp(curveDirection, 0, 1);
+            int isUpwards = Mathf.clamp(curveDirection, 0, 1);
             int segmentVertices = Lines.circleVertices(curveRadius); // just take this as the number of vertices in the quarter-circle for now..
 
             if(draw1curve){
                 Lines.line(x, y, maxX - curveRadius, y);
-                polySeg(segmentVertices * 4, 0, segmentVertices, maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, -isDownwards * 90);
+                polySeg(segmentVertices * 4, 0, segmentVertices, maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, -isUpwards * 90);
             }
             Lines.line(maxX, yNew + curveRadius * curveDirection, maxX, y2New - curveRadius * curveDirection);
             if(draw2curve){
-                polySeg(segmentVertices*4, 0, segmentVertices, maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, isDownwards * 90 - 90);
+                polySeg(segmentVertices * 4, 0, segmentVertices, maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, isUpwards * 90 - 90);
                 Lines.line(maxX - curveRadius, y2, x2, y2);
+            }
+            if(button.colored && button.to.get() != null){
+                float bw = button.getWidth(), bh = button.getHeight();
+                // new strategy: just spawn a new arrow every x seconds and we do math from there.
+                float hLen1 = maxX - curveRadius - x, hLen2 = hLen1 - (x2 - x);
+                float vLen = Math.abs(y2 - y) - curveRadius * 2f;
+                float curvePathLength = Mathf.halfPi * curveRadius;
+                float totalPathLength = hLen1 + hLen2 + vLen + curvePathLength * 2f - bw / 4f; //the second node placement is jank so -1/4bw
+                float yarrow = (Time.globalTime / 60f) % arrowInterval; // Time.time will not work since we want it to run while game is paused
+
+                for(float currPathProgress = yarrow * arrowSpeed; currPathProgress <= totalPathLength; currPathProgress += arrowInterval * arrowSpeed){
+                    if(currPathProgress <= hLen1){
+                        if(draw1curve) Tex.logicNode.draw(x + currPathProgress - bw/2, y - bh/2, bw, bh);
+                    }else if(currPathProgress < hLen1 + curvePathLength){
+                        if(draw1curve){ // Math intensifies
+                            float theta = (currPathProgress - hLen1) / curvePathLength * 90f;
+                            Tex.logicNode.draw(maxX - curveRadius * Mathf.cosDeg(theta) - bw/2, y + curveRadius * Mathf.sinDeg(theta) * curveDirection - bh/2,
+                                    bw/2, bh/2, bw, bh, 1f, 1f, curveDirection * theta);
+                        }
+                    }else if(currPathProgress <= hLen1 + curvePathLength + vLen){
+                        Tex.logicNode.draw(maxX - bw/2, y + curveDirection * (curveRadius + currPathProgress - hLen1 - curvePathLength) - bh/2,
+                                bw/2, bh/2, bw, bh, 1f, 1f, curveDirection * 90f);
+                    }else if(currPathProgress < totalPathLength - hLen2){
+                        if(draw2curve){
+                            float theta = (currPathProgress - (totalPathLength - hLen2 - curvePathLength)) / curvePathLength * 90f;
+                            Tex.logicNode.draw(maxX - curveRadius * Mathf.sinDeg(theta) - bw/2, y2 - curveRadius * Mathf.cosDeg(theta) * curveDirection - bh/2,
+                                    bw/2, bh/2, bw, bh, 1f, 1f, curveDirection * 90f + curveDirection * theta);
+                        } else break;
+                    }else if(currPathProgress <= totalPathLength){
+                        if(draw2curve) Tex.logicNode.draw(x2 + (totalPathLength - currPathProgress) + bw/2, y2 - bh/2, -bw, bh); //+bw/2 because the scale is -bw (that's funny)
+                        else break;
+                    }
+                }
             }
 
             /*
