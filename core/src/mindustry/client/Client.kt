@@ -563,6 +563,17 @@ object Client {
             }
             player.sendMessage("[accent]Automatic node configuration " + (if(retain) "currently " else "") + if(new) "[green]enabled" else "[scarlet]disabled")
         }
+
+        register("pathing", "Change the pathfinding algorithm") { _, _ ->
+            if (navigator is AStarNavigator) {
+                navigator = AStarNavigatorOptimised
+                player.sendMessage("[accent]Using [green]optimised[] algorithm")
+            } else if (navigator is AStarNavigatorOptimised) {
+                navigator = AStarNavigator
+                player.sendMessage("[accent]Using [gray]classic[] algorithm")
+            }
+        }
+
         }
 
         registerReplace("%", "c", "cursor") {

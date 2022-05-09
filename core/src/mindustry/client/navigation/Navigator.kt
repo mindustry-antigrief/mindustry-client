@@ -18,6 +18,9 @@ abstract class Navigator {
     val map = HashMap<Int, Vec2>()
     var lastWp = 0L
     private val realObstacles = Seq<Circle>() // Avoids creating new lists every time navigate is called
+    companion object {
+        var benchmark = false
+    }
 
     init {
         Events.on(EventType.WorldLoadEvent::class.java) {

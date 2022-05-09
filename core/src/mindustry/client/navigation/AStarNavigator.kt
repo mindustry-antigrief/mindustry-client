@@ -97,7 +97,7 @@ object AStarNavigator : Navigator() {
         height: Float,
         blocked: Int2P
     ): Array<PositionWaypoint> {
-
+        val t0 = Time.nanos()
         tileWidth = ceil(width / tilesize).toInt() + 1
         tileHeight = ceil(height / tilesize).toInt() + 1
 
@@ -133,7 +133,10 @@ object AStarNavigator : Navigator() {
             }
         }
 
+        val t1 = Time.nanos()
         aStarSearch()
+        val t2 = Time.nanos()
+        if (benchmark) Log.debug("AStarNavigator took @ us (@ init, @ A*)", (t2 - t0) / 1000f, (t1 - t0) / 1000f, (t2 - t1)/1000f)
 
         points.clear()
         if (cell(endX, endY).closed) {
