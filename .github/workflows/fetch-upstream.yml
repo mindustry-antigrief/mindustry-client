@@ -32,4 +32,5 @@ jobs:
           git fetch anuke erekir
           git reset --hard anuke/erekir
           git pull anuke erekir
+          git pull origin erekir
           git push
