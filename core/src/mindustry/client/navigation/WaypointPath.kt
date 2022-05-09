@@ -102,6 +102,7 @@ class WaypointPath<T : Waypoint> : Path {
         Draw.z(Layer.space)
         for (waypoint in waypoints) {
             if (waypoint !is Position) continue
+            if (waypoint.dst(-1f, -1f) < 0.001f) continue // don't draw the -1 -1
             Draw.color(Color.cyan, 0.6f)
             Lines.stroke(3f)
             Lines.line(lastWaypoint.x, lastWaypoint.y, waypoint.x, waypoint.y)
