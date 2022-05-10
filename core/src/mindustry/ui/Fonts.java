@@ -187,7 +187,7 @@ public class Fonts{
     /** Called from a static context for use in the loading screen.*/
     public static void loadDefaultFont(){
         int max = Gl.getInt(Gl.maxTextureSize);
-
+        boolean nonlinear = Core.settings.getBool("forcetextnonlinear");
         UI.packer = new PixmapPacker(max >= 4096 ? 4096 : 2048, 2048, 2, true);
         Core.assets.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(Core.files::internal));
         Core.assets.setLoader(Font.class, null, new FreetypeFontLoader(Core.files::internal){
@@ -202,11 +202,12 @@ public class Fonts{
 
                 if(!scaled.contains(parameter.fontParameters) && !unscaled.contains(fileName)){
                     parameter.fontParameters.size = (int)(Scl.scl(parameter.fontParameters.size));
+                    parameter.fontParameters.genMipMaps = nonlinear;
                     scaled.add(parameter.fontParameters);
                 }
 
-                parameter.fontParameters.magFilter = TextureFilter.linear;
-                parameter.fontParameters.minFilter = TextureFilter.linear;
+                parameter.fontParameters.magFilter = nonlinear ? TextureFilter.mipMapLinearLinear : TextureFilter.nearest;
+                parameter.fontParameters.minFilter = nonlinear ? TextureFilter.mipMapNearestNearest : TextureFilter.nearest;
                 parameter.fontParameters.packer = UI.packer;
                 return super.loadSync(manager, fileName, file, parameter);
             }
@@ -315,10 +316,14 @@ public class Fonts{
 
     static FreeTypeFontParameter fontParameter(){
         return new FreeTypeFontParameter(){{
+            boolean nonlinear = Core.settings.getBool("forcetextnonlinear");
             size = 18;
             shadowColor = Color.darkGray;
             shadowOffsetY = 2;
             incremental = true;
+            genMipMaps = nonlinear;
+            magFilter = nonlinear ? TextureFilter.mipMapLinearLinear : TextureFilter.nearest;
+            minFilter = nonlinear ? TextureFilter.mipMapNearestNearest : TextureFilter.nearest;
         }};
     }
 }

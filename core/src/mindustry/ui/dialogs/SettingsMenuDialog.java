@@ -421,7 +421,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         int[] lastUiScale = {settings.getInt("uiscale", 100)};
 
-        graphics.sliderPref("uiscale", 100, 25, 300, 25, s -> {
+        graphics.sliderPref("uiscale", 100, 25, 300, 5, s -> {
             //if the user changed their UI scale, but then put it back, don't consider it 'changed'
             Core.settings.put("uiscalechanged", s != lastUiScale[0]);
             return s + "%";
@@ -514,6 +514,8 @@ public class SettingsMenuDialog extends BaseDialog{
         });
 
         Cons<Boolean> getNonFont = b -> {
+            return;
+            /*
             ObjectSet<Texture> atlas = new ObjectSet<>(Core.atlas.getTextures());
             if(Core.settings.getBool("forcetextnonlinear", false)){
                 for(Font f : new Font[]{Fonts.def, Fonts.outline, Fonts.mono(), Fonts.monoOutline()}){ //from Fonts.loadContentIcons
@@ -527,6 +529,7 @@ public class SettingsMenuDialog extends BaseDialog{
                 TextureFilter filter = b ? TextureFilter.linear : TextureFilter.nearest;
                 tex.setFilter(filter, filter);
             }
+             */
         };
         //iOS (and possibly Android) devices do not support linear filtering well, so disable it
         if(!ios){
