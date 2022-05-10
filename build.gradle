@@ -19,8 +19,8 @@ buildscript{
         classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.16"
         if (!project.hasProperty("release") && new File(projectDir.parent, 'Arc').exists()) classpath fileTree(new File(projectDir.parent, 'Arc'))
         else {
-            classpath "com.github.Anuken.Arc:packer:$arcHash"
-            classpath "com.github.Anuken.Arc:arc-core:$arcHash"
+            classpath "com.github.mindustry-antigrief.arc:packer:$arcHash"
+            classpath "com.github.mindustry-antigrief.arc:arc-core:$arcHash"
         }
     }
 }
@@ -63,7 +63,7 @@ allprojects{
             }else{
                 //skip to last submodule
                 if(name.contains(':')) name = name.split(':').last()
-                return "com.github.Anuken.Arc:$name:${getArcHash()}"
+                return "com.github.mindustry-antigrief.arc:$name:${getArcHash()}"
             }
         }
 
@@ -362,7 +362,6 @@ project(":core"){
 
         api "org.lz4:lz4-java:1.7.1"
         api arcModule("arc-core")
-        implementation arcModule("extensions:profiling")
         api arcModule("extensions:flabel")
         api arcModule("extensions:freetype")
         api arcModule("extensions:g3d")
@@ -371,6 +370,7 @@ project(":core"){
         api "com.github.Anuken:rhino:$rhinoVersion"
         if(localArc() && debugged()) api arcModule("extensions:recorder")
         if(localArc()) api arcModule(":extensions:packer")
+        if(localArc()) implementation arcModule("extensions:profiling")
 
         implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.21"
 //        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0" Unused, removed to reduce jar size
@@ -470,7 +470,7 @@ project(":annotations"){
 
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"
-        implementation "com.github.Anuken.Arc:arc-core:$arcHash"
+        implementation "com.github.mindustry-antigrief.arc:arc-core:$arcHash"
     }
 }
 
