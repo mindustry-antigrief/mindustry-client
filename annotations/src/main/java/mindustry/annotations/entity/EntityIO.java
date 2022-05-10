@@ -77,16 +77,6 @@ public class EntityIO{
         }
     }
 
-    //temporary method because i screwed up
-    boolean compareRevisions(Revision a, Revision b){
-        int lim = Math.min(a.fields.size, b.fields.size);
-        for(int i = 0; i < lim; i++){
-            RevisionField ai = a.fields.get(i), bi = b.fields.get(i);
-            if(!ai.name.equals(bi.name) || !ai.type.equals(bi.type)) return false;
-        }
-        return true;
-    }
-
     void write(MethodSpec.Builder method, boolean write) throws Exception{
         this.method = method;
         this.write = write;
@@ -95,24 +85,10 @@ public class EntityIO{
         method.addAnnotation(CallSuper.class);
 
         if(write){
-            Revision use;
-            int peek = revisions.size;
-            use = revisions.peek();
-            while(peek-- > 2) {
-                //collapse duplicated revisions
-                Revision r2 = revisions.get(peek - 1);
-                Revision r1 = revisions.get(peek);
-                boolean same = compareRevisions(r1, r2);
-                if(!same){
-                    use = r1;
-                    break;
-                }
-                use = r2;
-            }
             //write short revision
-            st("write.s($L)", use.version);
+            st("write.s($L)", revisions.peek().version);
             //write uses most recent revision
-            for(RevisionField field : use.fields){
+            for(RevisionField field : revisions.peek().fields){
                 io(field.type, "this." + field.name);
             }
         }else{
