@@ -9,6 +9,7 @@ import mindustry.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.game.*
 import java.util.concurrent.*
+import kotlin.math.min
 
 /** A way of representing a path */
 abstract class Path {
@@ -41,29 +42,44 @@ abstract class Path {
                 if (job.isDone) {
                     job = clientThread.submit {
                         v1.set(Vars.player) // starting position
-                        if (targetPos.within(destX, destY, 1F) && Navigation.currentlyFollowing != null) { // Same destination
-                            var prevDst = Float.POSITIVE_INFINITY
-                            for (i in 0 until waypoints.waypoints.size) {
-                                val dst = v1.dst2(waypoints.waypoints[i])
-                                if (dst > prevDst) { // we are starting to move further away from the closest waypoint
-                                    if (prevDst < waypoints.waypoints[i].tolerance / 4) v1.set(waypoints.waypoints[i-1])
-                                    break
-                                }
-                                prevDst = dst
+                        if (targetPos.within(destX, destY, 1F) && Navigation.currentlyFollowing != null && waypoints.waypoints.any()) { // Same destination
+                            val point = waypoints.waypoints.first()
+                            if (v1.dst(point) < point.tolerance * 1.5) {
+                                v1.set(point)
                             }
                         }
                         val path = Navigation.navigator.navigate(v1, v2.set(destX, destY), Navigation.obstacles)
                         Pools.freeAll(filter)
                         filter.clear()
-                        if (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>)) { // Same destination
+                        if (path.isNotEmpty() && (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>))) { // Same destination
                             val relaxed = Navigation.navigator is AStarNavigatorOptimised
                             filter.addAll(*path)
                             if (!relaxed) filter.removeAll { (it.dst(destX, destY) < dist).apply { if (this) Pools.free(it) } }
-
-                            while (filter.size > 1 && filter.min(Vars.player::dst) != filter.first()) Pools.free(filter.remove(0))
-                            if (filter.size > 1 || (filter.any() && filter.first().dst(Vars.player) < Vars.tilesize)) Pools.free(filter.remove(0))
-                            if (filter.size > 1 && Vars.player.unit().isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
-                            waypoints.set(filter)
+                            if (filter.size > 1) {
+                                val m = filter.min(Vars.player::dst) // from O(n^2) to O(n) (pog) (cool stuff)
+                                if (!relaxed || Vars.player.dst(m) < m.tolerance * 2) { // 2: a random number i pulled out of nowhere
+                                    var i = -1; @Suppress("ControlFlowWithEmptyBody") // shut up
+                                    while (filter[++i] !== m);
+                                    for (j in 0..i) Pools.free(filter[j]); filter.removeRange(0, i)
+                            }}
+                            if (!relaxed) {
+                                if (filter.size > 1 || (filter.any() && filter.first().dst(Vars.player) < Vars.tilesize / 2f)) Pools.free(filter.remove(0))
+                                if (filter.size > 1 && Vars.player.unit().isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
+                            } else {
+                                if (filter.size > 1 && filter[0].dst(filter[1]) >= Vars.player.dst(filter[0])) filter.remove(0)
+                                // by triangular inequality, we check if filter[0] and filter[1] are on opposing sides of the player
+                            }
+                            if (filter.any()) {
+                                filter.peek().tolerance = 4f // greater accuracy when stopping
+                                filter.peek().stopOnFinish = true
+                                waypoints.set(filter)
+                            } else {
+                                waypoint.set(destX, destY, 8f, dist)
+                                waypoint.stopOnFinish = true
+                                waypoints.clear().add(waypoint)
+                            }
+                        } else if (path.isEmpty()){
+                            waypoints.clear()
                         } else { // Different destination, this is needed to prevent issues when starting a path at the end of the last one
                             waypoints.clear().add(waypoint.set(-1F, -1F))
                         }
@@ -72,7 +88,7 @@ abstract class Path {
                     }
                 }
             } else { // Not navigating
-                waypoints.set(waypoint.set(destX, destY, 16F, dist).run())
+                waypoints.set(waypoint.set(destX, destY, min(16F, aStarDist + if (aStarDist == 0f) 0.001f else 0f), dist).run())
                 cons?.get(waypoints)
             }
 

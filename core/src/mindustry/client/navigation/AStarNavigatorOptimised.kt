@@ -1,10 +1,12 @@
 package mindustry.client.navigation
 
+import arc.math.Mathf
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import arc.util.pooling.*
 import mindustry.Vars.*
+import mindustry.client.ClientVars
 import mindustry.client.navigation.waypoints.*
 import mindustry.core.*
 import java.lang.StringBuilder
@@ -21,23 +23,25 @@ object AStarNavigatorOptimised : Navigator() {
     private var grid: Array<Cell> = emptyArray()
     private var gridSize = Point2()
     private var open = BinaryHeap<Cell>(1 shl 16, false)
-    private var startX = 0
-    private var startY = 0
+    private var startX = -1
+    private var startY = -1
     private var endX = 0
     private var endY = 0
     private var tileWidth = 0
     private var tileHeight = 0
     private val points = mutableListOf<PositionWaypoint>()
 
-    private inline fun d8(cons: (x: Int, y: Int) -> Unit) {
-        cons(1, 0)
-        cons(1, 1)
-        cons(0, 1)
-        cons(-1, 1)
-        cons(-1, 0)
-        cons(-1, -1)
-        cons(0, -1)
-        cons(1, -1)
+    private val d8x: Array<Int> = arrayOf(1, 1, 0, -1, -1, -1, 0, 1)
+    private val d8y: Array<Int> = arrayOf(0, 1, 1, 1, 0, -1, -1, -1)
+    private inline fun d8(cons: (x: Int, y: Int, diag: Boolean) -> Unit) {
+        cons(1, 0, false)
+        cons(1, 1, true)
+        cons(0, 1, false)
+        cons(-1, 1, true)
+        cons(-1, 0, false)
+        cons(-1, -1, true)
+        cons(0, -1, false)
+        cons(1, -1, true)
     }
 
     private fun cell(x: Int, y: Int) = grid[x + (y * tileWidth)]
@@ -71,7 +75,8 @@ object AStarNavigatorOptimised : Navigator() {
         }
     }
 
-    private fun aStarSearch() {
+    /**@param checkCorners whether to check corners for diagonal movement **/
+    private fun aStarSearch(checkCorners: Boolean = false) {
         //add the start location to open list.
         addToHeap(cell(startX, startY), Float.MAX_VALUE)
         cell(startX, startY).closed = true
@@ -85,7 +90,7 @@ object AStarNavigatorOptimised : Navigator() {
             }
 
             // Check surrounding tiles
-            d8 { x1, y1 ->
+            d8 { x1, y1, diag ->
                 val x = current.x + x1
                 val y = current.y + y1
 
@@ -93,6 +98,9 @@ object AStarNavigatorOptimised : Navigator() {
                     return@d8
                 }
 
+                if (checkCorners && diag) {
+                    if (cell(x, current.y).blocked || cell(current.x, y).blocked) return@d8
+                }
                 // Add to the open list with calculated cost
                 checkAndUpdateCost(
                     current,
@@ -199,8 +207,15 @@ object AStarNavigatorOptimised : Navigator() {
         return (y3 - y2) * (x2 - x1) == (y2 - y1) * (x3 - x2)
     }
 
+    private fun diagonalLineOfSight(x1: Int, y1: Int, x2: Int, y2: Int): Float {
+        return if (cell(x1, y2).blocked || cell(x2, y1).blocked) Float.POSITIVE_INFINITY else Mathf.sqrt2
+    }
+
     private const val step_count = 200 // TODO: Use fixed step size or just get overlapped pixels and do math
-    private fun lineOfSight (x1: Int, y1: Int, x2: Int, y2: Int): Float {
+    // TODO: yeah we will need overlapped pixels since the ray might land on the corner
+    private fun lineOfSight(x1: Int, y1: Int, x2: Int, y2: Int): Float {
+        val absdx = abs(x1 - x2)
+        if (absdx == 1 && absdx == abs(y1 - y2)) return diagonalLineOfSight(x1, y1, x2, y2)
         var cost = 0f
         var x = x1.toFloat()
         var y = y1.toFloat()
@@ -244,14 +259,19 @@ object AStarNavigatorOptimised : Navigator() {
 
         open.clear()
 
+        // TODO: VERY long init time when ground (cache friendliness?)
+        var hasBlocked = false
         // Reset all cells
         for (x in 0 until tileWidth) {
             for (y in 0 until tileHeight) {
                 val cell = cell(x, y)
                 cell.g = 0f
                 cell.cameFrom = null
-                cell.closed = blocked(x, y)
-                cell.added = if (cell.closed) Float.POSITIVE_INFINITY else 1f
+                cell.goesTo = null
+                cell.blocked = blocked(x, y)
+                hasBlocked = hasBlocked || cell.blocked
+                cell.closed = cell.blocked
+                cell.added = if (cell.blocked) Float.POSITIVE_INFINITY else 1f
                 cell.inHeap = false
             }
         }
@@ -262,22 +282,72 @@ object AStarNavigatorOptimised : Navigator() {
             }
         }
 
-        val t1 = Time.nanos()
-        if (!blocked(endX, endY)) aStarSearch() // just dont search on blocked nodes
-        val t2 = Time.nanos()
-        if (!blocked(endX, endY)) relaxPath()
-        val t3 = Time.nanos()
-        if (benchmark) Log.debug("AStarNavigatorOptimised took @ us (@ init, @ A*, @ relax)",
-            ff(t3-t0), ff(t1-t0), ff(t2-t1), ff(t3-t2))
-        points.clear()
-        if (cell(endX, endY).closed) {
-            //Trace back the path
-            var current: Cell? = cell(endX, endY)
-            while (current != null) {
-                points.add(pool.obtain().set(World.unconv(current.x.toFloat()), World.unconv(current.y.toFloat())))
-                current = current.cameFrom
+        if (!cell(endX, endY).blocked) { // don't bother searching if it's blocked off
+            val t1 = Time.nanos()
+            aStarSearch(hasBlocked)
+            val t2 = Time.nanos()
+            relaxPath()
+            val t3 = Time.nanos()
+            points.clear()
+            if (cell(endX, endY).closed) {
+                //Trace back the path
+                var current: Cell? = cell(endX, endY)
+                while (current != null) {
+                    points.add(pool.obtain().set(World.unconv(current.x.toFloat()), World.unconv(current.y.toFloat())))
+                    current = current.cameFrom
+                }
+                points.reverse()
+                if (hasBlocked) {
+                    val tileSize = tilesize.toFloat()
+                    for (c in points) { // adjust tolerance values
+                        val cx = World.toTile(c.x)
+                        val cy = World.toTile(c.y)
+                        var blockedNeighbour = false
+                        for (j in d8x.indices) {
+                            val x = cx + d8x[j]
+                            val y = cy + d8y[j]
+                            if (Structs.inBounds(x, y, tileWidth, tileHeight) && cell(x, y).blocked) {
+                                blockedNeighbour = true
+                                break
+                            }
+                        }
+                        if (blockedNeighbour) {
+                            c.tolerance = tileSize / 2f // set tolerance to only that tile
+                        }
+                    }
+                    // corner identification
+                    val v1 = Vec2()
+                    val v2 = Vec2() //TODO: move this out
+                    for (i in 1 until points.size - 1) {
+                        val c = points[i]
+                        v1.set(points[i + 1].x - c.x, points[i + 1].y - c.y)
+                        v2.set(points[i - 1].x - c.x, points[i - 1].y - c.y)
+                        val angle = v1.angle(v2)
+                        if (abs(90f - abs(angle)) < 15f) { // if it is a corner
+                            v1.add(v2).setLength(tileSize) // get midpoint of the angle
+                            val ccx = World.conv(c.x + v1.x).roundToInt()
+                            val ccy = World.conv(c.y + v1.y).roundToInt()
+                            if (!Structs.inBounds(ccx, ccy, tileWidth, tileHeight)) continue
+                            if (cell(ccx, ccy).blocked) {
+                                c.set(c.x - v1.x * 0.25f, c.y - v1.y * 0.25f, c.tolerance / 2, c.distance)
+                                // move the corner outwards a bit and decrease its tolerance
+                                // i would modify PositionWaypoint to ensure the unit passes the point first,
+                                //  but it's hard to enforce
+                            }
+                        }
+                    }
+                }
             }
-            points.reverse()
+            val t4 = Time.nanos()
+            if (ClientVars.benchmarkNav) Log.debug(
+                "AStarNavigatorOptimised took @ us (@ init, @ A*, @ relax, @ tol [blocked: @])",
+                ff(t4 - t0), ff(t1 - t0), ff(t2 - t1), ff(t3 - t2), ff(t4 - t3), hasBlocked
+            )
+        } else {
+            val t3 = Time.nanos()
+            if (ClientVars.benchmarkNav) Log.debug(
+                "AStarNavigatorOptimised took @ us (@ init, not pathed)", ff(t3 - t0), ff(t3 - t0))
+            points.clear()
         }
         return points.toTypedArray()
     }

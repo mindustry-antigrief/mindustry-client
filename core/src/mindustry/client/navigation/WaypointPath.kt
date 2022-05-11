@@ -98,10 +98,14 @@ class WaypointPath<T : Waypoint> : Path {
     override fun draw() {
         if (!show) return
 
-        var lastWaypoint: Position = player
+        var lastWaypoint : Position? = if (Navigation.currentlyFollowing != null && Path.waypoints == this) player else null
         Draw.z(Layer.space)
         for (waypoint in waypoints) {
             if (waypoint !is Position) continue
+            if (lastWaypoint !is Position) {
+                lastWaypoint = waypoint
+                continue
+            }
             if (waypoint.dst(-1f, -1f) < 0.001f) continue // don't draw the -1 -1
             Draw.color(Color.cyan, 0.6f)
             Lines.stroke(3f)

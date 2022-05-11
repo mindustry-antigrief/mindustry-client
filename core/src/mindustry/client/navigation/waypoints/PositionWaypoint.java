@@ -15,6 +15,7 @@ public class PositionWaypoint extends Waypoint implements Position {
     public float tolerance = 16f;
     /** Stay this distance away from the waypoint */
     public float distance = 0f;
+    public boolean stopOnFinish = false;
     Vec2 vec = new Vec2();
 
     public PositionWaypoint() {
@@ -50,6 +51,7 @@ public class PositionWaypoint extends Waypoint implements Position {
         this.drawY = drawY;
         this.tolerance = tolerance;
         this.distance = distance;
+        this.stopOnFinish = false;
         return this;
     }
 
@@ -58,8 +60,22 @@ public class PositionWaypoint extends Waypoint implements Position {
         return player.within(this, tolerance);
     }
 
+    @Override
+    public void onFinish(){
+        if (stopOnFinish) {
+            float prev = player.unit().rotation();
+            if (dst(player) < 2f) {
+                player.unit().set(this);
+            }
+            player.unit().vel.setZero();
+            player.unit().lookAt(prev);
+            player.snapInterpolation();
+            stopOnFinish = false;
+        }
+    }
+
     protected void moveTo(Position target, float circleLength, float smooth){
-        if(target == null) return;
+        if(target == null || (target.getX() == -1f && target.getY() == -1f)) return;
 
         vec.set(target).sub(player.unit());
 
@@ -103,7 +119,7 @@ public class PositionWaypoint extends Waypoint implements Position {
     public void draw() {
         Draw.color(Color.green);
         Draw.alpha(0.3f);
-        Fill.circle(getX(), getY(), tolerance);
+        Fill.circle(getX(), getY(), stopOnFinish? 16f : tolerance);
         Draw.color();
     }
 }

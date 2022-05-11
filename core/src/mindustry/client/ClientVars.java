@@ -20,6 +20,7 @@ public class ClientVars {
     public static float spawnTime = 60f * Core.settings.getInt("spawntime");
     public static float travelTime = Core.settings.getInt("traveltime");
     public static float jpegQuality = Core.settings.getFloat("commpicquality", 0.5f);
+    public static boolean benchmarkNav = false;
 
     // Core Item Display
     public static ItemModule coreItems;

@@ -5,6 +5,7 @@ import arc.struct.*
 import arc.util.*
 import arc.util.pooling.*
 import mindustry.Vars.*
+import mindustry.client.ClientVars
 import mindustry.client.navigation.waypoints.*
 import mindustry.core.*
 import kotlin.math.*
@@ -136,7 +137,7 @@ object AStarNavigator : Navigator() {
         val t1 = Time.nanos()
         aStarSearch()
         val t2 = Time.nanos()
-        if (benchmark) Log.debug("AStarNavigator took @ us (@ init, @ A*)", (t2 - t0) / 1000f, (t1 - t0) / 1000f, (t2 - t1)/1000f)
+        if (ClientVars.benchmarkNav) Log.debug("AStarNavigator took @ us (@ init, @ A*)", (t2 - t0) / 1000f, (t1 - t0) / 1000f, (t2 - t1)/1000f)
 
         points.clear()
         if (cell(endX, endY).closed) {
