@@ -120,7 +120,7 @@ public class Universe{
     }
 
     public Schematic getLastLoadout(){
-        if(lastLoadout == null) lastLoadout = Loadouts.basicShard;
+        if(lastLoadout == null) lastLoadout = Loadouts.basicShard();
         return lastLoadout;
     }
 
@@ -128,7 +128,7 @@ public class Universe{
     @Nullable
     public Schematic getLoadout(CoreBlock core){
         //for tools - schem
-        if(schematics == null) return Loadouts.basicShard;
+        if(schematics == null) return Loadouts.basicShard();
 
         //find last used loadout file name
         String file = Core.settings.getString("lastloadout-" + core.name, "");

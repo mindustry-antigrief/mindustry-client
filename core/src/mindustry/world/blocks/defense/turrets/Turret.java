@@ -11,7 +11,6 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
@@ -154,12 +153,6 @@ public class Turret extends ReloadTurret{
         public boolean wasShooting, charging;
 
         @Override
-        public void remove() {
-            Navigation.obstacles.remove(pathfindingEntity);
-            super.remove();
-        }
-
-        @Override
         public boolean canControl(){
             return playerControllable;
         }
@@ -270,16 +263,6 @@ public class Turret extends ReloadTurret{
             unit.tile(this);
             unit.rotation(rotation);
             unit.team(team);
-            if (player != null && player.unit() != null && team != player.team()) {
-                Navigation.obstacles.add(pathfindingEntity);
-                pathfindingEntity.canHitPlayer = player.unit().isFlying() ? targetAir : targetGround;
-                pathfindingEntity.canShoot = cons.valid() && hasAmmo();
-                pathfindingEntity.x = x;
-                pathfindingEntity.y = y;
-                pathfindingEntity.team = team;
-                pathfindingEntity.targetGround = targetGround;
-                pathfindingEntity.targetAir = targetAir;
-            }
 
             if(logicControlTime > 0){
                 logicControlTime -= Time.delta;
@@ -520,6 +503,21 @@ public class Turret extends ReloadTurret{
         @Override
         public byte version(){
             return 1;
+        }
+
+        @Override
+        public boolean canShoot(){ // Client stuff
+            return cons.valid() && hasAmmo();
+        }
+
+        @Override
+        public boolean targetGround(){ // Client stuff
+            return targetGround;
+        }
+
+        @Override
+        public boolean targetAir(){ // Client stuff
+            return targetAir;
         }
     }
 }

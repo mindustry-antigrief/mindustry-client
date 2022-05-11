@@ -29,9 +29,9 @@ public class MenuRenderer implements Disposable{
     private CacheBatch batch;
     private float time = 0f;
     private float flyerRot = 45f;
-    private float flyerSpin = 0f;
     private int flyers = Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
     private UnitType flyerType = content.units().select(u -> !u.isHidden() && u.hitSize <= 20f && u.flying && u.onTitleScreen && u.region.found()).random();
+    private boolean cursed;
 
     public MenuRenderer(){
         Time.mark();
@@ -204,15 +204,18 @@ public class MenuRenderer implements Disposable{
     }
 
     public void render(){
-        if (Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null) flyerType = content.units().select(u -> (u.hitSize >= 20f || !u.flying) && u.region.found()).random();
+        if (Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null) {
+            flyerType = content.units().select(u -> (u.hitSize >= 20f || !u.flying) && u.region.found()).random();
+            cursed = true;
+        }
         time += Time.delta;
         float scaling = Math.max(Scl.scl(4f), Math.max(Core.graphics.getWidth() / ((width - 1f) * tilesize), Core.graphics.getHeight() / ((height - 1f) * tilesize)));
         camera.position.set(width * tilesize / 2f, height * tilesize / 2f);
         camera.resize(Core.graphics.getWidth() / scaling,
         Core.graphics.getHeight() / scaling);
-        flyerSpin = Mathf.absin(2f, 360f);
-        //flyerSpin += 3f;
-        //flyerSpin %= 360f;
+        if(cursed){
+            flyerRot = Mathf.absin(2f, 360f);
+        }
 
         mat.set(Draw.proj());
         Draw.flush();
@@ -246,7 +249,7 @@ public class MenuRenderer implements Disposable{
         float size = Math.max(icon.width, icon.height) * Draw.scl * 1.6f;
 
         flyers((x, y) -> {
-            Draw.rect(icon, x - 12f, y - 13f, flyerSpin);
+            Draw.rect(icon, x - 12f, y - 13f, flyerRot - 90);
         });
 
         flyers((x, y) -> {
@@ -255,7 +258,7 @@ public class MenuRenderer implements Disposable{
         Draw.color();
 
         flyers((x, y) -> {
-            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = flyerRot;
+            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = flyerRot + 180;
 
             Draw.color(Pal.engine);
             Fill.circle(x + Angles.trnsx(rotation + 180, engineOffset), y + Angles.trnsy(rotation + 180, engineOffset),
@@ -266,7 +269,7 @@ public class MenuRenderer implements Disposable{
             (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f)) / 2f);
             Draw.color();
 
-            Draw.rect(icon, x, y, flyerSpin);
+            Draw.rect(icon, x, y, flyerRot - 90);
         });
     }
 

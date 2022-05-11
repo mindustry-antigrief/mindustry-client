@@ -49,4 +49,5 @@ public class ClientVars {
     @NotNull public static String lastCertName = "";
     public static boolean isBuildingLock = false; // whether or not the building state is being controlled by networking
     public static int pluginVersion;
+    public static boolean useNew = true;
 }

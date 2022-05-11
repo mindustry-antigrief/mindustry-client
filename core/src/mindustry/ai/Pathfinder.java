@@ -71,7 +71,7 @@ public class Pathfinder implements Runnable{
     /** handles task scheduling on the update thread. */
     TaskQueue queue = new TaskQueue();
     /** Current pathfinding thread */
-    @Nullable Thread thread;
+    @Nullable public Thread thread;
     IntSeq tmpArray = new IntSeq();
 
     public Pathfinder(){

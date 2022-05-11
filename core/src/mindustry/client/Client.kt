@@ -38,6 +38,7 @@ import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.defense.turrets.BaseTurret.*
 import mindustry.world.blocks.distribution.ItemBridge
 import mindustry.world.blocks.logic.*
+import mindustry.world.blocks.logic.LogicBlock.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
@@ -46,6 +47,7 @@ import java.io.*
 import java.math.*
 import java.security.*
 import java.security.cert.*
+import javax.script.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -53,6 +55,7 @@ object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
     val timer = Interval(4)
+    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
     private val circles = mutableListOf<Pair<TurretPathfindingEntity, Color>>()
 
     fun initialize() {
@@ -117,23 +120,14 @@ object Client {
         // Turret range
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
         if (showingTurrets || showingInvTurrets) {
-            Draw.z(Layer.space)
             val units = Core.settings.getBool("unitranges")
             circles.clear()
-            val playerFlying = player.unit().isFlying
-            synchronized(obstacles) {
-                var valid : Boolean
-                var validInv : Boolean
-                for (t in obstacles) {
-                    if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
-                    if (playerFlying){
-                        valid = t.targetAir
-                        validInv = t.targetGround
-                    } else {
-                        valid = t.targetGround
-                        validInv = t.targetAir
-                    }
-                    circles.add(t to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) t.team.color else Team.derelict.color)
+            val flying = player.unit().isFlying
+            getTree().intersect(bounds) {
+                if ((units || it.turret) && it.canShoot()) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
+                    val valid = (flying && it.targetAir) || (!flying && it.targetGround)
+                    val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
+                    circles.add(it to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
                 }
             }
             RangeDrawer.draw(circles)
@@ -293,6 +287,10 @@ object Client {
             player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
         }
 
+        register("kts <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player -> // FINISHME: Bundle
+            player.sendMessage("[accent]${try{ kts.eval(args[0]) }catch(e: Throwable){ e }}")
+        }
+
         register("/js <code...>", Core.bundle.get("client.command.serverjs.description")) { args, player ->
             player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
             sendMessage("/js ${args[0]}")
@@ -333,42 +331,42 @@ object Client {
             val newLinks = IntMap<IntSet>()
             val tmp = mutableListOf<ConfigRequest>()
 //            clientThread.post {
-            for ((grid, buildings) in grids) { // This is horrible but works somehow
-                for (nodeBuild in buildings) {
-                    val nodeBlock = nodeBuild.block as? PowerNode ?: continue
-                    var links = nodeBuild.power.links.size
-                    nodeBlock.getPotentialLinks(nodeBuild.tile, player.team()) { link ->
-                        val min = min(grid, link.power.graph.id)
-                        val max = max(grid, link.power.graph.id)
-                        if (diodeLinks.any { it[0] == min && it[1] == max }) return@getPotentialLinks // Don't connect across diodes
-                        if (++links > nodeBlock.maxNodes) return@getPotentialLinks // Respect max links
-                        val t = newLinks.get(grid) { IntSet.with(grid) }
-                        val l = newLinks.get(link.power.graph.id, IntSet())
-                        if (l.add(grid) && t.add(link.power.graph.id)) {
-                            l.addAll(t)
-                            newLinks.put(link.power.graph.id, l)
-                            if (confirmed && !inProgress) tmp.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
-                            n++
+                for ((grid, buildings) in grids) { // This is horrible but works somehow
+                    for (nodeBuild in buildings) {
+                        val nodeBlock = nodeBuild.block as? PowerNode ?: continue
+                        var links = nodeBuild.power.links.size
+                        nodeBlock.getPotentialLinks(nodeBuild.tile, player.team()) { link ->
+                            val min = min(grid, link.power.graph.id)
+                            val max = max(grid, link.power.graph.id)
+                            if (diodeLinks.any { it[0] == min && it[1] == max }) return@getPotentialLinks // Don't connect across diodes
+                            if (++links > nodeBlock.maxNodes) return@getPotentialLinks // Respect max links
+                            val t = newLinks.get(grid) { IntSet.with(grid) }
+                            val l = newLinks.get(link.power.graph.id, IntSet())
+                            if (l.add(grid) && t.add(link.power.graph.id)) {
+                                l.addAll(t)
+                                newLinks.put(link.power.graph.id, l)
+                                if (confirmed && !inProgress) tmp.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
+                                n++
+                            }
                         }
                     }
                 }
-            }
 //                Core.app.post {
-            configs.addAll(tmp)
-            if (confirmed) {
-                if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
-                else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, grids.size - n))
-            } else {
-                player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, grids.size))
-            }
+                    configs.addAll(tmp)
+                    if (confirmed) {
+                        if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
+                        else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, grids.size - n))
+                    } else {
+                        player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, grids.size))
+                    }
 //                }
 //            }
         }
 
         @Suppress("unchecked_cast")
-        register("fixcode [c]", "Disables problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
-            val builds = Seq<Building>()
-            Vars.player.team().data().buildings.getObjects(builds) // Must be done on the main thread
+        register("fixcode [c]", "Fixes problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
+            val builds = Seq<LogicBuild>()
+            Vars.player.team().data().buildings.getObjects(builds as Seq<Building>) // Must be done on the main thread
             clientThread.post {
                 builds.removeAll { it !is LogicBlock.LogicBuild }
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
@@ -377,11 +375,11 @@ object Client {
 
                 if (confirmed && !inProgress) {
                     Log.debug("Patching!")
-                    (builds as Seq<LogicBlock.LogicBuild>).each { build ->
-                        val patched = ProcessorPatcher.patch(build.code)
-                        if (patched != build.code) {
-                            Log.debug("${build.tileX()} ${build.tileY()}")
-                            configs.add(ConfigRequest(build.tileX(), build.tileY(), LogicBlock.compress(patched, build.relativeConnections())))
+                    builds.forEach {
+                        val patched = ProcessorPatcher.patch(it.code)
+                        if (patched != it.code) {
+                            Log.debug("${it.tileX()} ${it.tileY()}")
+                            configs.add(ConfigRequest(it.tileX(), it.tileY(), compress(patched, it.relativeConnections())))
                             n++
                         }
                     }
@@ -418,49 +416,23 @@ object Client {
         }
 
         register("clearghosts [c]", "Removes the ghosts of blocks which are in range of enemy turrets, useful to stop polys from building forever") { args, player -> // FINISHME: Bundle
-            clientThread.post {
-                val confirmed = args.any() && args[0].startsWith("c") // Don't clear by default
-                val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
-                val blocked = GridBits(world.width(), world.height())
+            val confirmed = args.any() && args[0].startsWith("c") // Don't clear by default
+            val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
+            val plans = mutableListOf<Int>()
 
-                synchronized (obstacles) {
-                    for (turret in obstacles) {
-                        if (!turret.turret) continue
-                        val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
-                        val upperXBound = ((turret.x + turret.radius) / tilesize).toInt()
-                        val lowerYBound = ((turret.y - turret.radius) / tilesize).toInt()
-                        val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
-                        for (x in lowerXBound..upperXBound) {
-                            for (y in lowerYBound..upperYBound) {
-                                if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
-                                    blocked.set(x, y)
-                                }
-                            }
-                        }
-                    }
-                }
-                val plans = mutableListOf<Int>()
-                for (plan in Vars.player.team().data().blocks) {
-                    var isBlocked = false
-                    world.tile(plan.x.toInt(), plan.y.toInt()).getLinkedTilesAs(content.block(plan.block.toInt())) { t ->
-                        if (blocked.get(t.x.toInt(), t.y.toInt())) isBlocked = true
-                    }
-                    if (!isBlocked && !all) continue
+            for (plan in Vars.player.team().data().blocks) {
+                val block = content.block(plan.block.toInt())
+                if (!(all || getTree().any(Tmp.r1.setCentered(plan.x * tilesize + block.offset, plan.y * tilesize + block.offset, block.size * tilesizeF)))) continue
 
-                    plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
-                }
-                val removedCount = plans.size
-                Core.app.post {
-                    if (confirmed) {
-                        while (plans.any()) {
-                            val batch = plans.takeLast(100)
-                            plans.removeAll(batch)
-                            Call.deletePlans(player, batch.toIntArray())
-                        }
-                        player.sendMessage("[accent]Removed $removedCount plans, ${Vars.player.team().data().blocks.size} remain")
-                    } else player.sendMessage("[accent]Found $removedCount (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
-                }
+                plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
             }
+
+            Log.info("Took @ | new = @", Time.elapsed(), useNew)
+
+            if (confirmed) {
+                plans.chunked(100) { Call.deletePlans(player, it.toIntArray()) }
+                player.sendMessage("[accent]Removed ${plans.size} plans, ${Vars.player.team().data().blocks.size} remain")
+            } else player.sendMessage("[accent]Found ${plans.size} (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
         }
 
         register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, _ -> // FINISHME: Bundle

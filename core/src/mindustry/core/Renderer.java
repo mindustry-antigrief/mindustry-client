@@ -131,8 +131,8 @@ public class Renderer implements ApplicationListener{
     public void update(){
         Color.white.set(1f, 1f, 1f, 1f);
 
-        float dest = Mathf.clamp(Mathf.round(targetscale, 0.5f), minScale(), maxScale());
-//        float dest = targetscale;  // note: when the above line is commented out, there may be "jagged pixel scaling"
+//        float dest = Mathf.clamp(Mathf.round(targetscale, 0.5f), minScale(), maxScale());
+        float dest = targetscale;  // note: when the above line is commented out, there may be "jagged pixel scaling"
         camerascale = Mathf.lerpDelta(camerascale, dest, 0.1f);
         if(Mathf.equal(camerascale, dest, 0.001f)) camerascale = dest;
         laserOpacity = settings.getInt("lasersopacity") / 100f;
@@ -323,9 +323,7 @@ public class Renderer implements ApplicationListener{
 
         Groups.draw.draw(Drawc::draw);
 
-        Draw.z(Layer.space);
-        Client.INSTANCE.draw();
-        Draw.color();
+        Draw.draw(Layer.space, Client.INSTANCE::draw);
 
         Draw.reset();
         Draw.flush();

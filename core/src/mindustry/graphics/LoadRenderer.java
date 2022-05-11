@@ -1,6 +1,7 @@
 package mindustry.graphics;
 
 import arc.*;
+import arc.assets.*;
 import arc.func.*;
 import arc.fx.*;
 import arc.fx.filters.*;
@@ -65,7 +66,7 @@ public class LoadRenderer implements Disposable{
             new Bar("s_mem#", () -> true, () -> Core.app.getJavaHeap() / 1024f / 1024f / 200f, () -> Core.app.getJavaHeap() > 1024 * 1024 * 110),
             new Bar("v_ver#", () -> Version.build != 0, () -> Version.build == -1 ? 0.3f : (Version.build - 103f) / 10f, () -> !Version.modifier.equals("release")),
             new Bar("s_osv", OS.isWindows ? 0.35f : OS.isLinux ? 0.9f : OS.isMac ? 0.5f : 0.2f, OS.isMac),
-            new Bar("v_worlds#", () -> Vars.control != null && Vars.control.saves != null, () -> Vars.control.saves.getSaveSlots().size / 30f, () -> Vars.control.saves.getSaveSlots().size > 30),
+            new Bar("v_worlds#", () -> Vars.control != null && Vars.control.saves != null, () -> Vars.control.saves.saveCount() / 30f, () -> Vars.control.saves.saveCount() > 30, true),
             new Bar("c_datas#", () -> settings.keySize() > 0, () -> settings.keySize() / 50f, () -> settings.keySize() > 20),
             new Bar("v_alterc", () -> Vars.mods != null, () -> (Vars.mods.list().size + 1) / 6f, () -> Vars.mods.list().size > 0),
             new Bar("g_vcomp#", (graphics.getGLVersion().majorVersion + graphics.getGLVersion().minorVersion / 10f) / 4.6f, !graphics.getGLVersion().atLeast(3, 2)),
@@ -185,8 +186,8 @@ public class LoadRenderer implements Disposable{
         Lines.poly(w/2, h/2, 4, rad);
         Lines.poly(w/2, h/2, 4, rad2);
 
-        if(assets.isLoaded("tech") && renderStencil){
-            Font font = assets.get("tech");
+        if(assets.isLoaded("outline") && renderStencil){
+            Font font = assets.get("outline");
             font.getData().markupEnabled = true;
 
             int panei = 0;
@@ -469,13 +470,16 @@ public class LoadRenderer implements Disposable{
         Fill.square(w/2f, h/2f, bsize/3f, 45);
 
         //note for translators: this text is unreadable and for debugging/show anyway, so it's not translated
-        if(assets.isLoaded("tech")){
-            String name = assets.getCurrentLoading() != null ? assets.getCurrentLoading().fileName.toLowerCase() : "system";
+        if(assets.isLoaded("outline")){
+            String name = assets.getCurrentLoading() != null ? assets.getCurrentLoading().fileName.toLowerCase() : null;
+            if (name == null) synchronized (assets) {
+                name = Reflect.<Seq<AssetDescriptor>>get(assets, "loadQueue").first().fileName.toLowerCase();
+            }
 
             String key = name.contains("script") ? "scripts" : name.contains("content") ? "content" : name.contains("mod") ? "mods" : name.contains("msav") ||
-            name.contains("maps") ? "map" : name.contains("ogg") || name.contains("mp3") ? "sound" : name.contains("png") ? "image" : "system";
+            name.contains("maps") ? "map" : name.contains("ogg") || name.contains("mp3") ? "sound" : name.contains("png") ? "image" : name;
 
-            Font font = assets.get("tech");
+            Font font = assets.get("outline");
             font.getData().markupEnabled = true;
             font.setColor(Pal.accent);
             Draw.color(Color.black);
@@ -494,12 +498,15 @@ public class LoadRenderer implements Disposable{
         final Floatp value;
         final Boolp red, valid;
         final String text;
+        boolean cache, redC;
+        float valueC = -1f;
 
         public Bar(String text, float value, boolean red){
             this.value = () -> value;
             this.red = () -> red;
             this.valid = () -> true;
             this.text = text;
+            this.cache = true;
         }
 
         public Bar(String text, Boolp valid, Floatp value, Boolp red){
@@ -509,16 +516,29 @@ public class LoadRenderer implements Disposable{
             this.text = text;
         }
 
+        public Bar(String text, Boolp valid, Floatp value, Boolp red, boolean cache){
+            this.valid = valid;
+            this.value = value;
+            this.red = red;
+            this.text = text;
+            this.cache = cache;
+        }
+
         boolean valid(){
-            return valid.get();
+            var v = valid.get();
+            if(v && cache && valueC == -1f){
+                redC = red.get();
+                valueC = Mathf.clamp(value.get());
+            }
+            return v;
         }
 
         boolean red(){
-            return red.get();
+            return cache ? redC : red.get();
         }
 
         float value(){
-            return Mathf.clamp(value.get());
+            return cache ? valueC : Mathf.clamp(value.get());
         }
     }
 }

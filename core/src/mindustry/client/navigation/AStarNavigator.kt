@@ -1,5 +1,6 @@
 package mindustry.client.navigation
 
+import arc.math.*
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
@@ -152,7 +153,7 @@ object AStarNavigator : Navigator() {
         return points.toTypedArray()
     }
 
-    class Cell(var x: Int, var y: Int) : Comparable<Cell> {
+    class Cell(val x: Int, val y: Int) : Comparable<Cell> {
         var g = 0.0 // cost so far
         var f = Double.POSITIVE_INFINITY // g + h, estimate of total cost
         var cameFrom: Cell? = null
@@ -164,7 +165,7 @@ object AStarNavigator : Navigator() {
         }
 
         override fun compareTo(other: Cell): Int { // lower f is better
-            return f.compareTo(other.f)
+            return Mathf.sign(f > other.f)
         }
     }
 }

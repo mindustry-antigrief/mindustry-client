@@ -123,6 +123,7 @@ public class Fonts{
     }
 
     public static void loadContentIcons(){
+        var start = Time.nanos();
         Seq<Font> fonts = Seq.with(Fonts.def, Fonts.outline, Fonts.mono, Fonts.monoOutline);
         Texture uitex = Core.atlas.find("logo").texture;
         int size = (int)(Fonts.def.getData().lineHeight/Fonts.def.getData().scaleY);
@@ -182,6 +183,8 @@ public class Fonts{
                 team.emoji = stringIcons.get(team.name, "");
             }
         }
+
+        Log.warn("The icon stuff took @", Time.timeSinceNanos(start) / (float) Time.nanosPerMilli);
     }
 
     /** Called from a static context for use in the loading screen.*/
@@ -226,14 +229,15 @@ public class Fonts{
         Core.assets.load("monoOutline", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = f -> {
             StringBuilder chars = new StringBuilder();
             for(int c = 0; c <= 255; c++) chars.append((char)c);
-            (Fonts.monoOutline = f).setFixedWidthGlyphs(chars);
+            (monoOutline = f).setFixedWidthGlyphs(chars);
             monoOutline.getData().markupEnabled = true;
         };
         Core.assets.load("tech", Font.class, new FreeTypeFontLoaderParameter("fonts/tech.ttf", new FreeTypeFontParameter(){{
             size = 18;
         }})).loaded = f -> {
-            Fonts.tech = f;
-            Fonts.tech.getData().down *= 1.5f;
+            tech = f;
+            tech.getData().down *= 1.5f;
+            tech.getData().markupEnabled = true;
         };
     }
 

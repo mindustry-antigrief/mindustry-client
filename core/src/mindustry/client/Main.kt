@@ -13,6 +13,7 @@ import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
+import mindustry.core.*
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.game.Teams.*
@@ -67,7 +68,7 @@ object Main : ApplicationListener {
         Events.on(EventType.WorldLoadEvent::class.java) {
             if (!Vars.net.client()) { // This is so scuffed but shh
                 setPluginNetworking(false)
-                Call.serverPacketReliable("fooCheck", "")
+                NetServer.serverPacketReliable(Vars.player, "fooCheck", "") // Call locally
             }
             dispatchedBuildPlans.clear()
         }
@@ -84,6 +85,10 @@ object Main : ApplicationListener {
 
             ClientVars.pluginVersion = Strings.parseInt(version)
             setPluginNetworking(true)
+        }
+
+        Vars.netServer.addPacketHandler("pause") { p, _ ->
+            if (p.admin) Vars.state.serverPaused = true
         }
 
         communicationClient.addListener { transmission, senderId ->

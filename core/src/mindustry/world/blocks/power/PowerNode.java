@@ -438,6 +438,31 @@ public class PowerNode extends PowerBlock{
             super.placed();
         }
 
+        @Override
+        public void onProximityAdded() {
+            super.onProximityAdded();
+
+            if(laserRange > maxRange) maxRange = laserRange;
+        }
+
+
+//        @Override
+//        public void playerPlaced(Object config) { FINISHME: Make this work, maybe an IntObjectMap with Entry<pos, Seq<linkPos>>
+//            super.playerPlaced(config);
+//
+//            if(net.client() && config instanceof Point2[] t){ // Fix incorrect power node linking in schems
+//                var current = new Seq<Point2>();
+//                getPotentialLinks(tile, team, other -> { // The server hasn't sent us the links yet, emulate how it would look if it had
+//                    if(!power.links.contains(other.pos())) current.add(new Point2(other.tile.x, other.tile.y).sub(tile.x, tile.y));
+//                });
+//
+//                Log.info(Arrays.toString(t) + " | " + current);
+//                current.each(l -> !Structs.contains(t, l), l -> { // Remove extra links.
+//                    ClientVars.configs.add(new ConfigRequest(this, l.add(tile.x, tile.y).pack()));
+//                    Log.info(tileX() + ", " + tileY() + " | " + l.x + tile.x + ", " + l.y + tile.y);
+//                });
+//            }
+//        }
         private boolean removeFromSet(@Nullable IntSet set, int value){
             if(set == null) return true;
             set.remove(value);

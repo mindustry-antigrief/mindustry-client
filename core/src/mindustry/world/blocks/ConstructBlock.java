@@ -96,7 +96,6 @@ public class ConstructBlock extends Block{
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild co ? co.prevBuild : null;
         Block prevBlock = tile.block();
-        Object prevConf = tile.build == null ? null : tile.build.config();
 
         if (block == null) {
             Events.fire(new BlockBreakEvent(tile, team, builder, tile.block(), tile.build == null ? null : tile.build.config(), rotation));

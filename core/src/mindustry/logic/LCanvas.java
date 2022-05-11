@@ -19,8 +19,9 @@ import mindustry.graphics.*;
 import mindustry.logic.LStatements.*;
 import mindustry.ui.*;
 
+import java.util.*;
+
 import static mindustry.Vars.*;
-import java.util.Comparator;
 
 public class LCanvas extends Table{
     //ew static variables
@@ -250,14 +251,14 @@ public class LCanvas extends Table{
             float cy = 0;
             seq.clear();
 
-            float totalHeight = getChildren().sumf(e -> e.getHeight() + space);
+            float totalHeight = children.sumf(e -> e.getHeight() + space);
 
             height = prefHeight = totalHeight;
             width = prefWidth = Scl.scl(targetWidth);
 
             //layout everything normally
-            for(int i = 0; i < getChildren().size; i++){
-                Element e = getChildren().get(i);
+            for(int i = 0; i < children.size; i++){
+                Element e = children.get(i);
 
                 //ignore the dragged element
                 if(dragging == e) continue;
@@ -300,7 +301,7 @@ public class LCanvas extends Table{
         }
 
         public void forceLayout(){
-            for(Element e : getChildren()){
+            for(Element e : children){
                 if(!(e instanceof StatementElem se)) return;
                 se.forceLayout = true;
             }
@@ -335,7 +336,7 @@ public class LCanvas extends Table{
         void finishLayout(){
             if(dragging != null){
                 //reset translation first
-                for(Element child : getChildren()){
+                for(Element child : children){
                     child.setTranslation(0, 0);
                 }
                 clearChildren();
@@ -463,8 +464,7 @@ public class LCanvas extends Table{
                 t.setColor(color);
                 st.build(t);
                 if(st instanceof JumpStatement){
-                    var children = t.getChildren();
-                    button = (JumpButton)children.get(children.size - 1);
+                    button = (JumpButton)t.getChildren().peek();
                 }
             }).pad(4).padTop(2).left().grow();
 
@@ -717,15 +717,14 @@ public class LCanvas extends Table{
             float maxX = Math.max(x, x2) + len + button.getWidth()*0.5f;
             int curveDirection = Mathf.sign(y2 - y);
             int isUpwards = Mathf.clamp(curveDirection, 0, 1);
-            int segmentVertices = Lines.circleVertices(curveRadius); // just take this as the number of vertices in the quarter-circle for now..
 
             if(draw1curve){
                 Lines.line(x, y, maxX - curveRadius, y);
-                polySeg(segmentVertices * 4, 0, segmentVertices, maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, -isUpwards * 90);
+                Lines.swirl(maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, 1/4f, isUpwards * -90, 8);
             }
             Lines.line(maxX, yNew + curveRadius * curveDirection, maxX, y2New - curveRadius * curveDirection);
             if(draw2curve){
-                polySeg(segmentVertices * 4, 0, segmentVertices, maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, isUpwards * 90 - 90);
+                Lines.swirl(maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, 1/4f, (isUpwards - 1) * 90, 8);
                 Lines.line(maxX - curveRadius, y2, x2, y2);
             }
             if(button.colored && button.to.get() != null){
@@ -763,6 +762,7 @@ public class LCanvas extends Table{
             }
 
             /*
+            /*
             Lines.curve(
             x, y,
             x + dist, y,
@@ -770,21 +770,6 @@ public class LCanvas extends Table{
             x2, y2,
             Math.max(18, (int)(Mathf.dst(x, y, x2, y2) / 6)));
             */
-        }
-        public static void polySeg(int sides, int from, int to, float x, float y, float radius, float angle){ // Line.polySeg but the proper implementation
-            float space = 360f / sides;
-            float hstep = Lines.getStroke() / 2f / Mathf.cosDeg(space/2f);
-            float r1 = radius - hstep, r2 = radius + hstep;
-
-            for(int i = from; i < to; i++){
-                float a = space * i + angle, cos = Mathf.cosDeg(a), sin = Mathf.sinDeg(a), cos2 = Mathf.cosDeg(a + space), sin2 = Mathf.sinDeg(a + space);
-                Fill.quad(
-                        x + r1*cos, y + r1*sin,
-                        x + r1*cos2, y + r1*sin2,
-                        x + r2*cos2, y + r2*sin2,
-                        x + r2*cos, y + r2*sin
-                );
-            }
         }
     }
 }
