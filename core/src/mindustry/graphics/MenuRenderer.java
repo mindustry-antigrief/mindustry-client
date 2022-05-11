@@ -210,10 +210,9 @@ public class MenuRenderer implements Disposable{
         camera.position.set(width * tilesize / 2f, height * tilesize / 2f);
         camera.resize(Core.graphics.getWidth() / scaling,
         Core.graphics.getHeight() / scaling);
-        flyerSpin += 3f;
-        if(flyerSpin > 360f){
-            flyerSpin = 0f;
-        }
+        flyerSpin = Mathf.absin(2f, 360f);
+        //flyerSpin += 3f;
+        //flyerSpin %= 360f;
 
         mat.set(Draw.proj());
         Draw.flush();
