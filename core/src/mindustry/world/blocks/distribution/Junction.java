@@ -24,7 +24,7 @@ public class Junction extends Block{
     public int capacity = 6;
 
     // FINISHME: Rework to work with junctions with size >1
-    static final Vec2 direction = new Vec2(-tilesize, 0), baseOffset = new Vec2();
+    static final Vec2 direction = new Vec2(tilesize, 0), baseOffset = new Vec2();
     public static boolean drawItems = false;
 
     public Junction(String name){
@@ -168,6 +168,16 @@ public class Junction extends Block{
         public void read(Reads read, byte revision){
             super.read(read, revision);
             buffer.read(read);
+            // correct the time value since they all somehow get mapped to a high number
+            float now = Time.time;
+            for(int i = 0; i < 4; i++){
+                for(int j = buffer.indexes[i] - 1; j >= 0; j--){
+                    var l = buffer.buffers[i][j];
+                    if (now <= BufferItem.time(l)){
+                        buffer.buffers[i][j] = BufferItem.get(BufferItem.item(l),now - speed * timeScale);
+                    }
+                }
+            }
         }
 
         @Override
@@ -175,16 +185,15 @@ public class Junction extends Block{
             super.draw();
             if(!drawItems) return;
             Draw.z(Layer.blockOver);
+            float now = Time.time;
             for(int i = 0; i < 4; i++){ // Code from zxtej
-                for(int j = buffer.indexes[i] - 1; j >= 0; j--){ // highest to lowest progress
-                    var l = buffer.buffers[i][j];
-                    var item = content.item(BufferItem.item(l));
-                    var progress = Mathf.clamp((Time.time - BufferItem.time(l)) / speed * timeScale, 0, j / (float)capacity);
+                for(int j = buffer.indexes[i]; j > 0;){
+                    var l = buffer.buffers[i][--j];
+                    var progress = Mathf.clamp((now - BufferItem.time(l)) / speed * timeScale, 0, (capacity - j) / (float)capacity);
 
-                    var scl = .5f * tilesize + progress;
-                    Draw.rect(item.fullIcon,
-                        x + direction.x * scl + baseOffset.x,
-                        y + direction.y * scl + baseOffset.y,
+                    Draw.rect(content.item(BufferItem.item(l)).fullIcon,
+                        x + baseOffset.x + direction.x * progress,
+                        y + baseOffset.y + direction.y * progress,
                         itemSize / 4f, itemSize / 4f);
                 }
                 direction.rotate90(1);
