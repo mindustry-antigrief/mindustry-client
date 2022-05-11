@@ -720,11 +720,11 @@ public class LCanvas extends Table{
 
             if(draw1curve){
                 Lines.line(x, y, maxX - curveRadius, y);
-                Lines.swirl(maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, 1/4f, isUpwards * -90, 8);
+                Lines.arc(maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, 1/4f, isUpwards * -90, 8);
             }
             Lines.line(maxX, yNew + curveRadius * curveDirection, maxX, y2New - curveRadius * curveDirection);
             if(draw2curve){
-                Lines.swirl(maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, 1/4f, (isUpwards - 1) * 90, 8);
+                Lines.arc(maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, 1/4f, (isUpwards - 1) * 90, 8);
                 Lines.line(maxX - curveRadius, y2, x2, y2);
             }
             if(button.colored && button.to.get() != null){

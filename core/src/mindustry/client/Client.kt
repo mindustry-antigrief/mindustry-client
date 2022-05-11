@@ -20,7 +20,10 @@ import mindustry.client.communication.Packets
 import mindustry.client.crypto.*
 import mindustry.client.graphics.*
 import mindustry.client.navigation.*
-import mindustry.client.navigation.Navigation.*
+import mindustry.client.navigation.Navigation.follow
+import mindustry.client.navigation.Navigation.getTree
+import mindustry.client.navigation.Navigation.navigateTo
+import mindustry.client.navigation.Navigation.navigator
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.core.*

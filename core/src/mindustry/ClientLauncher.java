@@ -158,10 +158,10 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 if(OS.hasProp("debug")){
                     var sorted = new PQueue<>(12, Structs.comparingFloat(Pair<String, Float>::getSecond));
                     int[] length = {0};
-                    assets.done.each((a, t) -> {
-                        sorted.add(new Pair<>(a, t));
-                        length[0] = Math.max(length[0], a.length());
-                    });
+//                    assets.done.each((a, t) -> {
+//                        sorted.add(new Pair<>(a, t));
+//                        length[0] = Math.max(length[0], a.length());
+//                    });
                     Pair<String, Float> h;
                     Log.warn("Listing assets from fastest to slowest");
                     while((h = sorted.poll()) != null) {
