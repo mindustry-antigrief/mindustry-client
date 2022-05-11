@@ -275,7 +275,7 @@ object Client {
         }
 
         register("kts <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player -> // FINISHME: Bundle
-            player.sendMessage("[accent]${try{ kts.eval(args[0]) }catch(e: Throwable){ e }}")
+            player.sendMessage("[accent]${try{ kts.eval(args[0]) }catch(e: ScriptException){ e.message }}")
         }
 
         register("/js <code...>", Core.bundle.get("client.command.serverjs.description")) { args, player ->
