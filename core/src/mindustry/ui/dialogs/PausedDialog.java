@@ -32,6 +32,11 @@ public class PausedDialog extends BaseDialog{
             float dw = 220f;
             cont.defaults().width(dw).height(55).pad(5f);
 
+            cont.button("@objective", Icon.info, () -> {
+                ui.fullText.show("@objective", state.rules.sector.preset.description);
+            }).padTop(-60f).colspan(2)
+            .visible(() -> state.rules.sector != null && state.rules.sector.preset != null && state.rules.sector.preset.description != null).row();
+
             cont.button("@back", Icon.left, this::hide).name("back");
             cont.button("@settings", Icon.settings, ui.settings::show).name("settings");
 
@@ -112,12 +117,17 @@ public class PausedDialog extends BaseDialog{
         }else{
             quit.run();
         }
-
     }
 
     public void runExitSave(){
         if(state.isEditor() && !wasClient){
             ui.editor.resumeEditing();
+            return;
+        }else if(state.playtestingMap != null){
+            //no exit save here
+            var testing = state.playtestingMap;
+            logic.reset();
+            ui.editor.resumeAfterPlaytest(testing);
             return;
         }
 

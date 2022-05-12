@@ -8,19 +8,24 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
-import mindustry.entities.units.*;
+import mindustry.game.*;
 import mindustry.logic.LExecutor.*;
 import mindustry.type.*;
 import mindustry.world.*;
 
 import java.io.*;
 
+import static mindustry.Vars.*;
+
 /** Stores global constants for logic processors. */
 public class GlobalConstants{
-    public static final int ctrlProcessor = 1, ctrlPlayer = 2, ctrlFormation = 3;
+    public static final int ctrlProcessor = 1, ctrlPlayer = 2, ctrlCommand = 3;
     public static final ContentType[] lookableContent = {ContentType.block, ContentType.unit, ContentType.item, ContentType.liquid};
     /** Global random state. */
     public static final Rand rand = new Rand();
+
+    //non-constants that depend on state
+    private static int varTime, varTick, varSecond, varMinute, varWave, varWaveTime;
 
     private ObjectIntMap<String> namesToIds = new ObjectIntMap<>();
     private Seq<Var> vars = new Seq<>(Var.class);
@@ -34,13 +39,25 @@ public class GlobalConstants{
         put("true", 1);
         put("null", null);
 
+        //time
+        varTime = put("@time", 0);
+        varTick = put("@tick", 0);
+        varSecond = put("@second", 0);
+        varMinute = put("@minute", 0);
+        varWave = put("@waveNumber", 0);
+        varWaveTime = put("@waveTime", 0);
+
         //special enums
 
         put("@ctrlProcessor", ctrlProcessor);
         put("@ctrlPlayer", ctrlPlayer);
-        put("@ctrlFormation", ctrlFormation);
+        put("@ctrlCommand", ctrlCommand);
 
         //store base content
+
+        for(Team team : Team.baseTeams){
+            put("@" + team.name, team);
+        }
 
         for(Item item : Vars.content.items()){
             put("@" + item.name, item);
@@ -51,9 +68,7 @@ public class GlobalConstants{
         }
 
         for(Block block : Vars.content.blocks()){
-            if(block.synthetic()){
-                put("@" + block.name, block);
-            }
+            put("@" + block.name, block);
         }
 
         //used as a special value for any environmental solid block
@@ -67,10 +82,6 @@ public class GlobalConstants{
         //store sensor constants
         for(LAccess sensor : LAccess.all){
             put("@" + sensor.name(), sensor);
-        }
-
-        for(UnitCommand cmd : UnitCommand.all){
-            put("@command" + Strings.capitalize(cmd.name()), cmd);
         }
 
         logicIdToContent = new UnlockableContent[ContentType.all.length][];
@@ -105,6 +116,22 @@ public class GlobalConstants{
         }
     }
 
+    /** Updates global time and other state variables. */
+    public void update(){
+        //set up time; note that @time is now only updated once every invocation and directly based off of @tick.
+        //having time be based off of user system time was a very bad idea.
+        vars.items[varTime].numval = state.tick / 60.0 * 1000.0;
+        vars.items[varTick].numval = state.tick;
+
+        //shorthands for seconds/minutes spent in save
+        vars.items[varSecond].numval = state.tick / 60f;
+        vars.items[varMinute].numval = state.tick / 60f / 60f;
+
+        //wave state
+        vars.items[varWave].numval = state.wave;
+        vars.items[varWaveTime].numval = state.wavetime / 60f;
+    }
+
     /** @return a piece of content based on its logic ID. This is not equivalent to content ID. */
     public @Nullable Content lookupContent(ContentType type, int id){
         var arr = logicIdToContent[type.ordinal()];
@@ -127,8 +154,13 @@ public class GlobalConstants{
         return vars.items[id];
     }
 
+    /** Sets a global variable by an ID returned from put(). */
+    public void set(int id, double value){
+        get(id).numval = value;
+    }
+
     /** Adds a constant value by name. */
-    public Var put(String name, Object value){
+    public int put(String name, Object value){
         Var var = new Var(name);
         var.constant = true;
         if(value instanceof Number num){
@@ -141,6 +173,6 @@ public class GlobalConstants{
         int index = vars.size;
         namesToIds.put(name, index);
         vars.add(var);
-        return var;
+        return index;
     }
 }

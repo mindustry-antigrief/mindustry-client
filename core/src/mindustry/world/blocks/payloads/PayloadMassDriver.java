@@ -61,6 +61,7 @@ public class PayloadMassDriver extends PayloadBlock{
         rotate = true;
         outputsPayload = true;
         group = BlockGroup.units;
+        regionRotated1 = 1;
 
         //point2 is relative
         config(Point2.class, (PayloadDriverBuild tile, Point2 point) -> tile.link = Point2.pack(point.x + tile.tileX(), point.y + tile.tileY()));
@@ -70,14 +71,14 @@ public class PayloadMassDriver extends PayloadBlock{
     @Override
     public void init(){
         super.init();
-        clipSize = Math.max(clipSize, range*2f + tilesize*size);
+        updateClipRadius(range);
     }
 
     @Override
     public void setStats(){
         super.setStats();
 
-        stats.add(Stat.payloadCapacity, maxPayloadSize, StatUnit.blocksSquared);
+        stats.add(Stat.payloadCapacity, StatValues.squared(maxPayloadSize, StatUnit.blocksSquared));
         stats.add(Stat.reload, 60f / (chargeTime + reloadTime), StatUnit.seconds);
     }
 
@@ -87,11 +88,11 @@ public class PayloadMassDriver extends PayloadBlock{
     }
 
     @Override
-    public void drawRequestRegion(BuildPlan req, Eachable<BuildPlan> list){
-        Draw.rect(baseRegion, req.drawx(), req.drawy());
-        Draw.rect(topRegion, req.drawx(), req.drawy());
-        Draw.rect(outRegion, req.drawx(), req.drawy(), req.rotation * 90);
-        Draw.rect(region, req.drawx(), req.drawy());
+    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
+        Draw.rect(baseRegion, plan.drawx(), plan.drawy());
+        Draw.rect(topRegion, plan.drawx(), plan.drawy());
+        Draw.rect(outRegion, plan.drawx(), plan.drawy(), plan.rotation * 90);
+        Draw.rect(region, plan.drawx(), plan.drawy());
     }
 
     @Override
@@ -101,8 +102,8 @@ public class PayloadMassDriver extends PayloadBlock{
         Drawf.dashCircle(x * tilesize, y * tilesize, range, Pal.accent);
 
         //check if a mass driver is selected while placing this driver
-        if(!control.input.frag.config.isShown()) return;
-        Building selected = control.input.frag.config.getSelectedTile();
+        if(!control.input.config.isShown()) return;
+        Building selected = control.input.config.getSelected();
         if(selected == null || selected.block != this || !selected.within(x * tilesize, y * tilesize, range)) return;
 
         //if so, draw a dotted line towards it while it is in range
@@ -187,7 +188,7 @@ public class PayloadMassDriver extends PayloadBlock{
                 !(
                     current instanceof PayloadDriverBuild entity &&
                     current.isValid() &&
-                    entity.consValid() && entity.block == block &&
+                    entity.efficiency > 0 && entity.block == block &&
                     entity.link == pos() && within(current, range)
                 )){
                 waitingShooters.removeFirst();
@@ -218,7 +219,7 @@ public class PayloadMassDriver extends PayloadBlock{
             }
 
             //skip when there's no power
-            if(!consValid()){
+            if(efficiency <= 0f){
                 return;
             }
 
@@ -234,7 +235,7 @@ public class PayloadMassDriver extends PayloadBlock{
                 }
 
                 //align to shooter rotation
-                turretRotation = Angles.moveToward(turretRotation, angleTo(currentShooter()), rotateSpeed * efficiency());
+                turretRotation = Angles.moveToward(turretRotation, angleTo(currentShooter()), rotateSpeed * efficiency);
             }else if(state == shooting){
                 //if there's nothing to shoot at OR someone wants to shoot at this thing, bail
                 if(!hasLink || (!waitingShooters.isEmpty() && payload == null)){
@@ -268,7 +269,7 @@ public class PayloadMassDriver extends PayloadBlock{
 
                     if(reload <= 0){
                         //align to target location
-                        turretRotation = Angles.moveToward(turretRotation, targetRotation, rotateSpeed * efficiency());
+                        turretRotation = Angles.moveToward(turretRotation, targetRotation, rotateSpeed * efficiency);
 
                         //fire when it's the first in the queue and angles are ready.
                         if(other.currentShooter() == this &&
@@ -430,7 +431,7 @@ public class PayloadMassDriver extends PayloadBlock{
         }
 
         @Override
-        public boolean onConfigureTileTapped(Building other){
+        public boolean onConfigureBuildTapped(Building other){
             if(this == other){
                 if(link == -1) deselect();
                 configure(-1);

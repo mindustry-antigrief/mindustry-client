@@ -120,7 +120,7 @@ public class Universe{
     }
 
     public Schematic getLastLoadout(){
-        if(lastLoadout == null) lastLoadout = Loadouts.basicShard();
+        if(lastLoadout == null) lastLoadout = state.rules.sector == null || state.rules.sector.planet.generator == null ? Loadouts.basicShard : state.rules.sector.planet.generator.getDefaultLoadout();
         return lastLoadout;
     }
 
@@ -128,7 +128,7 @@ public class Universe{
     @Nullable
     public Schematic getLoadout(CoreBlock core){
         //for tools - schem
-        if(schematics == null) return Loadouts.basicShard();
+        if(schematics == null) return Loadouts.basicShard;
 
         //find last used loadout file name
         String file = Core.settings.getString("lastloadout-" + core.name, "");
@@ -194,7 +194,7 @@ public class Universe{
                         }
 
                         int wavesPassed = (int)(sector.info.secondsPassed*60f / sector.info.waveSpacing);
-                        boolean attacked = sector.info.waves;
+                        boolean attacked = sector.info.waves && sector.planet.allowWaveSimulation;
 
                         if(attacked){
                             sector.info.wavesPassed = wavesPassed;
@@ -243,7 +243,7 @@ public class Universe{
                     }
 
                     //queue random invasions
-                    if(!sector.isAttacked() && sector.info.minutesCaptured > invasionGracePeriod && sector.info.hasSpawns){
+                    if(!sector.isAttacked() && sector.planet.allowSectorInvasion && sector.info.minutesCaptured > invasionGracePeriod && sector.info.hasSpawns){
                         int count = sector.near().count(Sector::hasEnemyBase);
 
                         //invasion chance depends on # of nearby bases

@@ -76,8 +76,8 @@ public class MassDriver extends Block{
         indexer.eachBlock(player.team(), x * tilesize + offset, y * tilesize + offset, range, other -> other.block == this && other.dst(x * tilesize + offset, y * tilesize + offset) <= range, other -> Drawf.selected(other, Tmp.c1.set(Pal.accent).a(Mathf.absin(4f, 1f))));
 
         //check if a mass driver is selected while placing this driver
-        if(!control.input.frag.config.isShown()) return;
-        Building selected = control.input.frag.config.getSelectedTile();
+        if(!control.input.config.isShown()) return;
+        Building selected = control.input.config.getSelected();
         if(selected == null || selected.block != this || !selected.within(x * tilesize, y * tilesize, range)) return;
 
         //if so, draw a dotted line towards it while it is in range
@@ -154,7 +154,7 @@ public class MassDriver extends Block{
             }
 
             //skip when there's no power
-            if(!consValid()){
+            if(efficiency <= 0f){
                 return;
             }
 
@@ -166,7 +166,7 @@ public class MassDriver extends Block{
                 }
 
                 //align to shooter rotation
-                rotation = Angles.moveToward(rotation, angleTo(currentShooter()), rotateSpeed * efficiency());
+                rotation = Angles.moveToward(rotation, angleTo(currentShooter()), rotateSpeed * efficiency);
             }else if(state == DriverState.shooting){
                 //if there's nothing to shoot at OR someone wants to shoot at this thing, bail
                 if(!hasLink || (!waitingShooters.isEmpty() && (itemCapacity - items.total() >= minDistribute))){
@@ -186,7 +186,7 @@ public class MassDriver extends Block{
                     if(reload <= 0.0001f){
 
                         //align to target location
-                        rotation = Angles.moveToward(rotation, targetRotation, rotateSpeed * efficiency());
+                        rotation = Angles.moveToward(rotation, targetRotation, rotateSpeed * efficiency);
 
                         //fire when it's the first in the queue and angles are ready.
                         if(other.currentShooter() == this &&
@@ -252,7 +252,7 @@ public class MassDriver extends Block{
         }
 
         @Override
-        public boolean onConfigureTileTapped(Building other){
+        public boolean onConfigureBuildTapped(Building other){
             if(this == other){
                 if(link == -1) deselect();
                 configure(-1);
@@ -328,7 +328,7 @@ public class MassDriver extends Block{
         }
 
         protected boolean shooterValid(Building other){
-            return other instanceof MassDriverBuild entity && other.isValid() && other.consValid() && entity.block == block && entity.link == pos() && within(other, range);
+            return other instanceof MassDriverBuild entity && other.isValid() && other.efficiency > 0 && entity.block == block && entity.link == pos() && within(other, range);
         }
 
         protected boolean linkValid(){

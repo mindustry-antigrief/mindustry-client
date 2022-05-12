@@ -93,6 +93,7 @@ object Client {
     }
 
     fun draw() {
+        Navigation.draw()
         Spectate.draw()
 
         // Spawn path
@@ -171,7 +172,7 @@ object Client {
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
             val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
-            val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var formation = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
+            val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var command = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
 
             (player.team().data().unitCache(type) ?: Seq.with()).withEach {
                 total++
@@ -183,7 +184,7 @@ object Client {
                 }
                 when (ctrl) {
                     GlobalConstants.ctrlPlayer -> players++
-                    GlobalConstants.ctrlFormation -> formation++
+                    GlobalConstants.ctrlCommand -> command++
                     GlobalConstants.ctrlProcessor -> {
                         if (flag != 0.0) logicFlagged++
                         logic++
@@ -197,7 +198,7 @@ object Client {
             Total(Cap): $total($cap)
             Free(Free Flagged): $free($freeFlagged)
             Flagged(Unflagged): $flagged($unflagged)
-            Players(Formation): $players($formation)
+            Players(Command): $players($formation)
             Logic(Logic Flagged): $logic($logicFlagged)
             """.trimIndent())
         }

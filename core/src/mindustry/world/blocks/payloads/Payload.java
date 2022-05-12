@@ -4,6 +4,7 @@ import arc.graphics.g2d.*;
 import arc.math.geom.*;
 import arc.util.*;
 import arc.util.io.*;
+import mindustry.ctype.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
@@ -61,11 +62,8 @@ public interface Payload extends Position{
     /** @return icon describing the contents. */
     TextureRegion icon();
 
-    /** @deprecated use icon() instead. */
-    @Deprecated
-    default TextureRegion icon(Cicon icon){
-        return icon();
-    }
+    /** @return content describing this payload (block or unit) */
+    UnlockableContent content();
 
     @Override
     default float getX(){

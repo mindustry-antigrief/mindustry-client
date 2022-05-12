@@ -7,13 +7,14 @@ import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
 
+//TODO very strange idle behavior sometimes
 public class FlyingAI extends AIController{
 
     @Override
     public void updateMovement(){
         unloadPayloads();
 
-        if(target != null && unit.hasWeapons() && command() == UnitCommand.attack){
+        if(target != null && unit.hasWeapons()){
             if(!unit.type.circleTarget){
                 moveTo(target, unit.type.range * 0.8f);
                 unit.lookAt(target);
@@ -22,12 +23,8 @@ public class FlyingAI extends AIController{
             }
         }
 
-        if(target == null && command() == UnitCommand.attack && state.rules.waves && unit.team == state.rules.defaultTeam){
-            moveTo(getClosestSpawner(), state.rules.dropZoneRadius + 120f);
-        }
-
-        if(command() == UnitCommand.rally){
-            moveTo(targetFlag(unit.x, unit.y, BlockFlag.rally, false), 60f);
+        if(target == null && state.rules.waves && unit.team == state.rules.defaultTeam){
+            moveTo(getClosestSpawner(), state.rules.dropZoneRadius + 130f);
         }
     }
 
@@ -47,7 +44,7 @@ public class FlyingAI extends AIController{
             return core;
         }
 
-        for(var flag : unit.team.isAI() ? unit.type.targetFlags : unit.type.playerTargetFlags){
+        for(var flag : unit.type.targetFlags){
             if(flag == null){
                 Teamc result = target(x, y, range, air, ground);
                 if(result != null) return result;

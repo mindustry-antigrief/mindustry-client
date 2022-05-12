@@ -39,9 +39,9 @@ public class EditorTile extends Tile{
     }
 
     @Override
-    public void setBlock(Block type, Team team, int rotation){
+    public void setBlock(Block type, Team team, int rotation, Prov<Building> entityprov){
         if(skip()){
-            super.setBlock(type, team, rotation);
+            super.setBlock(type, team, rotation, entityprov);
             return;
         }
 
@@ -63,7 +63,7 @@ public class EditorTile extends Tile{
 
         }
 
-        super.setBlock(type, team, rotation);
+        super.setBlock(type, team, rotation, entityprov);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class EditorTile extends Tile{
             return;
         }
 
-        if(!floor.hasSurface() && overlay.asFloor().needsSurface) return;
+        if(!floor.hasSurface() && overlay.asFloor().needsSurface && (overlay instanceof OreBlock || !floor.supportsOverlay)) return;
         if(overlay() == overlay) return;
         op(OpType.overlay, this.overlay.id);
         super.setOverlay(overlay);
@@ -97,6 +97,15 @@ public class EditorTile extends Tile{
     protected void fireChanged(){
         if(skip()){
             super.fireChanged();
+        }else{
+            update();
+        }
+    }
+
+    @Override
+    protected void firePreChanged(){
+        if(skip()){
+            super.firePreChanged();
         }else{
             update();
         }
@@ -132,7 +141,6 @@ public class EditorTile extends Tile{
 
         if(block.hasBuilding()){
             build = entityprov.get().init(this, team, false, rotation);
-            build.cons = new ConsumeModule(build);
             if(block.hasItems) build.items = new ItemModule();
             if(block.hasLiquids) build.liquids(new LiquidModule());
             if(block.hasPower) build.power(new PowerModule());

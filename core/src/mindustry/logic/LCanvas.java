@@ -30,11 +30,13 @@ public class LCanvas extends Table{
     public DragLayout statements;
     public ScrollPane pane;
     public Group jumps;
+
     StatementElem dragging;
     static boolean jumping;
     StatementElem hovered;
     float targetWidth;
     int jumpCount = 0;
+    boolean privileged;
     Seq<Tooltip> tooltips = new Seq<>();
     float visibleBoundLower, visibleBoundUpper;
 
@@ -197,7 +199,7 @@ public class LCanvas extends Table{
     public void load(String asm){
         jumps.clear();
 
-        Seq<LStatement> statements = LAssembler.read(asm);
+        Seq<LStatement> statements = LAssembler.read(asm, privileged);
         statements.truncate(LExecutor.maxInstructions);
         this.statements.clearChildren();
         for(LStatement st : statements){
@@ -566,7 +568,9 @@ public class LCanvas extends Table{
         public JumpCurve curve;
 
         public JumpButton(Prov<StatementElem> getter, Cons<StatementElem> setter){
-            super(Tex.logicNode, Styles.colori);
+            super(Tex.logicNode, new ImageButtonStyle(){{
+                imageUpColor = Color.white;
+            }});
 
             to = getter;
             addListener(listener = new ClickListener());

@@ -18,6 +18,8 @@ public class GameState{
     public float wavetime;
     /** Logic tick. */
     public double tick;
+    /** Continuously ticks up every non-paused update. */
+    public long updateId;
     /** Whether the game is in game over state. */
     public boolean gameOver = false, serverPaused = false;
     /** Server ticks/second. Only valid in multiplayer. */
@@ -34,6 +36,8 @@ public class GameState{
     public Teams teams = new Teams();
     /** Number of enemies in the game; only used clientside in servers. */
     public int enemies;
+    /** Map being playtested (not edited!) */
+    public @Nullable Map playtestingMap;
     /** Current game state. */
     private State state = State.menu;
 

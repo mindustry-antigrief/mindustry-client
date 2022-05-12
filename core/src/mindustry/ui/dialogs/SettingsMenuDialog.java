@@ -41,7 +41,6 @@ import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class SettingsMenuDialog extends BaseDialog{
-    /** Mods break if these are changed to BetterSettingsTable so instead we cast them into different vars and just use those. */
     public SettingsTable graphics, sound, game, main, client, moderation;
 
     private Table prefs;
@@ -56,7 +55,7 @@ public class SettingsMenuDialog extends BaseDialog{
         cont.add(main = new SettingsTable());
         shouldPause = true;
 
-        hidden(() -> ConstructBlock.updateWarnBlocks()); // FINISHME: Horrible
+        hidden(ConstructBlock::updateWarnBlocks); // FINISHME: Horrible
 
         shown(() -> {
             back();
@@ -78,7 +77,6 @@ public class SettingsMenuDialog extends BaseDialog{
 
         menu = new Table(Tex.button);
 
-        // Casting avoids mod problems, no clue how or why
         game = new SettingsTable();
         graphics = new SettingsTable();
         sound = new SettingsTable();
@@ -99,7 +97,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         dataDialog.cont.table(Tex.button, t -> {
             t.defaults().size(280f, 60f).left();
-            TextButtonStyle style = Styles.cleart;
+            TextButtonStyle style = Styles.flatt;
 
             t.button("@settings.cleardata", Icon.trash, style, () -> ui.showConfirm("@confirm", "@settings.clearall.confirm", () -> {
                 ObjectMap<String, Object> map = new ObjectMap<>();
@@ -121,7 +119,7 @@ public class SettingsMenuDialog extends BaseDialog{
             t.row();
 
             t.button("@settings.clearsaves", Icon.trash, style, () -> {
-                ui.showConfirm("@confirm", "@settings.clearsaves.confirm", () -> control.saves.deleteAll());
+                ui.showConfirm("@confirm", "@settings.clearsaves.confirm", control.saves::deleteAll);
             }).marginLeft(4);
 
             t.row();
@@ -236,7 +234,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         row();
         ScrollPane pane = pane(prefs).grow().top().get();
-        pane.setFadeScrollBars(true); // TODO: needed in v7?
+        pane.setFadeScrollBars(true);
         pane.setCancelTouchFocus(false);
         row();
         add(buttons).fillX();
@@ -262,7 +260,7 @@ public class SettingsMenuDialog extends BaseDialog{
     void rebuildMenu(){
         menu.clearChildren();
 
-        TextButtonStyle style = Styles.cleart;
+        TextButtonStyle style = Styles.flatt;
 
         menu.defaults().size(300f, 60f);
         menu.button("@settings.game", style, () -> visible(0));
@@ -298,7 +296,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("slagwarningdistance", 10, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
         client.sliderPref("slagsounddistance", 5, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
-        client.checkPref("powersplitwarnings", true); // TODO: Add a minimum building requirement and a setting for it
+        client.checkPref("powersplitwarnings", true); // FINISHME: Add a minimum building requirement and a setting for it
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
         client.checkPref("commandwarnings", true);
         client.checkPref("removecorenukes", false);
@@ -311,7 +309,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("highlightcryptomsg", true);
         client.checkPref("highlightclientmsg", false);
         client.checkPref("displayasuser", true);
-        client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
+        client.checkPref("broadcastcoreattack", false); // FINISHME: Multiple people using this setting at once will cause chat spam
         client.checkPref("showuserid", false);
 
         client.category("controls");
@@ -423,6 +421,10 @@ public class SettingsMenuDialog extends BaseDialog{
         });
 
         graphics.sliderPref("screenshake", 4, 0, 8, i -> (i / 4f) + "x");
+
+        graphics.sliderPref("bloomintensity", 6, 0, 16, i -> (int)(i/4f * 100f) + "%");
+        graphics.sliderPref("bloomblur", 2, 1, 16, i -> i + "x");
+
         graphics.sliderPref("fpscap", 240, 10, 245, 5, s -> (s > 240 ? Core.bundle.get("setting.fpscap.none") : Core.bundle.format("setting.fpscap.text", s)));
         graphics.sliderPref("chatopacity", 100, 0, 100, 5, s -> s + "%");
         graphics.sliderPref("lasersopacity", 100, 0, 100, 5, s -> {
@@ -443,7 +445,7 @@ public class SettingsMenuDialog extends BaseDialog{
                 }
 
                 if(b){
-                    Core.graphics.setFullscreenMode(Core.graphics.getDisplayMode());
+                    Core.graphics.setFullscreen();
                 }else{
                     Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
                 }
@@ -461,7 +463,7 @@ public class SettingsMenuDialog extends BaseDialog{
             Core.graphics.setVSync(Core.settings.getBool("vsync"));
 
             if(Core.settings.getBool("fullscreen")){
-                Core.app.post(() -> Core.graphics.setFullscreenMode(Core.graphics.getDisplayMode()));
+                Core.app.post(() -> Core.graphics.setFullscreen());
             }
 
             if(Core.settings.getBool("borderlesswindow")){
@@ -528,6 +530,7 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         graphics.checkPref("skipcoreanimation", false);
+        graphics.checkPref("hidedisplays", false);
 
         if(!mobile){
             Core.settings.put("swapdiagonal", false);
@@ -708,7 +711,7 @@ public class SettingsMenuDialog extends BaseDialog{
             button(bundle.get("settings.reset", "Reset to Defaults"), () -> {
                 for(Setting setting : list){
                     if(setting.name == null || setting.title == null) continue;
-                    settings.put(setting.name, settings.getDefault(setting.name));
+                    settings.remove(setting.name);
                 }
                 rebuild();
             }).margin(14).width(240f).pad(6);
@@ -847,7 +850,7 @@ public class SettingsMenuDialog extends BaseDialog{
                     title = bundle.get("setting." + name + ".name");
 
                     table.table(t -> {
-                        t.button(Icon.refresh, Styles.settingtogglei, 32, () -> {
+                        t.button(Icon.refresh, Styles.settingTogglei, 32, () -> {
                             ui.loadfrag.show();
                             becontrol.checkUpdate(result -> {
                                 ui.loadfrag.hide();

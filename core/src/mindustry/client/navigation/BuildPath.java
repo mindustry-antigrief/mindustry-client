@@ -6,7 +6,6 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
-import mindustry.ai.formations.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.communication.*;
@@ -277,9 +276,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
 
             if(valid = validPlan(req)){
                 //move toward the request
-                Formation formation = player.unit().formation;
-                float range = buildingRange - player.unit().hitSize() / 2 - 32; // Range - 4 tiles
-                if (formation != null) range -= formation.pattern.radius(); // Account for the player formation
+                float range = player.unit().type.buildRange - player.unit().hitSize() / 2f - 32; // Range - 4 tiles
                 goTo(req.tile(), range); // Cannot go directly to req as it is pooled so the build changes.
             }else{
                 //discard invalid request

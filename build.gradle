@@ -37,13 +37,13 @@ allprojects{
     ext{
         versionNumber = '7'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
-        if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
+        if(!project.hasProperty("versionModifier")) versionModifier = 'alpha'
         if(!project.hasProperty("buildversion")) buildversion = '135'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
-        rhinoVersion = '3c6bbadf73a904eefcc28b6fd8aa742ac575e878'
+        rhinoVersion = '73a812444ac388ac2d94013b5cadc8f70b7ea027'
 
         loadVersionProps = {
             return new Properties().with{p -> p.load(file('../core/assets/version.properties').newReader()); return p }
@@ -299,6 +299,13 @@ project(":core"){
     apply plugin: "kotlin"
     apply plugin: "kotlin-kapt"
 
+    kapt{
+        javacOptions{
+            option("-source", "16")
+            option("-target", "1.8")
+        }
+    }
+
     compileJava.options.fork = true
 
     task preGen{
@@ -362,7 +369,7 @@ project(":core"){
 
         api "org.lz4:lz4-java:1.7.1"
         api arcModule("arc-core")
-        implementation arcModule("extensions:profiling")
+        if(localArc() && project.hasProperty("debug")) implementation arcModule("extensions:profiling")
         api arcModule("extensions:flabel")
         api arcModule("extensions:freetype")
         api arcModule("extensions:g3d")
@@ -381,12 +388,11 @@ project(":core"){
         compileOnly files("../bouncycastle/bcutil-jdk15on.jar")
         compileOnly arcModule("backends:backend-sdl")
         implementation 'commons-net:commons-net:3.8.0'
+        runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-jsr223:1.6.21"
 
         annotationProcessor 'com.github.Anuken:jabel:0.6.0'
         compileOnly project(":annotations")
         if (!project.hasProperty("noKapt")) kapt project(":annotations")
-
-        runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-jsr223:1.6.21"
     }
 
     afterEvaluate{

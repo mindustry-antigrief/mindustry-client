@@ -9,7 +9,6 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.async.*;
 import kotlin.*;
 import mindustry.ai.*;
 import mindustry.client.*;
@@ -86,6 +85,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         assets.load("sprites/error.png", Texture.class);
         atlas = TextureAtlas.blankAtlas();
         Vars.net = new Net(platform.getNet());
+        MapPreviewLoader.setupLoaders();
         mods = new Mods();
         schematics = new Schematics();
 
@@ -172,16 +172,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 }
                 mods.eachClass(Mod::init);
                 finished = true;
-                var event = new ClientLoadEvent();
-                //a temporary measure for compatibility with certain mods
-                Events.fireWrap(event.getClass(), event, listener -> {
-                    try{
-                        listener.get(event);
-                    }catch(NoSuchFieldError | NoSuchMethodError | NoClassDefFoundError error){
-                        Log.err(error);
-                    }
-
-                });
+                Events.fire(new ClientLoadEvent());
                 clientLoaded = true;
                 super.resize(graphics.getWidth(), graphics.getHeight());
                 app.post(() -> app.post(() -> app.post(() -> app.post(() -> {
@@ -195,7 +186,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             asyncCore.begin();
 
             super.update();
-            Client.INSTANCE.update();
+            Client.INSTANCE.update(); // FINISHME: Awful
 
             asyncCore.end();
         }

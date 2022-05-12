@@ -27,8 +27,10 @@ public class Saves{
     private @Nullable SaveSlot lastSectorSave;
     private boolean saving;
     private float time;
+
     long totalPlaytime;
     private long lastTimestamp;
+
     private final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance();
 
     public Saves(){

@@ -7,33 +7,39 @@ import arc.graphics.g2d.*;
 import arc.graphics.gl.*;
 import arc.math.*;
 import arc.math.geom.*;
-import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
 import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
+import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
-import mindustry.ui.*;
 import mindustry.world.*;
+import mindustry.world.blocks.environment.Floor.*;
 import mindustry.world.blocks.power.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class BlockRenderer{
-    public static final int crackRegions = 8, maxCrackSize = 9;
+    //TODO cracks take up far to much space, so I had to limit it to 7. this means larger blocks won't have cracks - draw tiling mirrored stuff instead?
+    public static final int crackRegions = 8, maxCrackSize = 7;
+    public static boolean drawQuadtreeDebug = false;
+    public static final Color shadowColor = new Color(0, 0, 0, 0.71f), blendShadowColor = Color.white.cpy().lerp(Color.black, shadowColor.a);
 
     private static final int initialRequests = 32 * 32;
-    private static final Color shadowColor = new Color(0, 0, 0, 0.71f), blendShadowColor = Color.white.cpy().lerp(Color.black, shadowColor.a);
 
     public final FloorRenderer floor = new FloorRenderer();
     public TextureRegion[][] cracks;
 
     private Seq<Tile> tileview = new Seq<>(false, initialRequests, Tile.class);
     private Seq<Tile> lightview = new Seq<>(false, initialRequests, Tile.class);
+    //TODO I don't like this system
+    private Seq<UpdateRenderState> updateFloors = new Seq<>(UpdateRenderState.class);
 
+    private boolean hadMapLimit;
     private int lastCamX, lastCamY, lastRangeX, lastRangeY;
     private float brokenFade = 0f;
     private FrameBuffer shadows = new FrameBuffer();
@@ -61,7 +67,9 @@ public class BlockRenderer{
             blockTree = new BlockQuadtree(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
             floorTree = new FloorQuadtree(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
             shadowEvents.clear();
+            updateFloors.clear();
             lastCamY = lastCamX = -99; //invalidate camera position so blocks get updated
+            hadMapLimit = state.rules.limitMapArea;
 
             shadows.getTexture().setFilter(TextureFilter.linear, TextureFilter.linear);
             shadows.resize(world.width(), world.height());
@@ -72,7 +80,17 @@ public class BlockRenderer{
             Draw.color(blendShadowColor);
 
             for(Tile tile : world.tiles){
-                if(tile.block().hasShadow){
+                recordIndex(tile);
+
+                if(tile.floor().updateRender(tile)){
+                    updateFloors.add(new UpdateRenderState(tile, tile.floor()));
+                }
+
+                if(tile.build != null && (tile.team() == player.team() || !state.rules.fog || (tile.build.visibleFlags & (1L << player.team().id)) != 0)){
+                    tile.build.wasVisible = true;
+                }
+
+                if(tile.block().hasShadow && (tile.build == null || tile.build.wasVisible)){
                     Fill.rect(tile.x + 0.5f, tile.y + 0.5f, 1, 1);
                 }
             }
@@ -81,26 +99,15 @@ public class BlockRenderer{
             Draw.color();
             shadows.end();
 
-            dark.getTexture().setFilter(TextureFilter.linear);
-            dark.resize(world.width(), world.height());
-            dark.begin();
-            Core.graphics.clear(Color.white);
-            Draw.proj().setOrtho(0, 0, dark.getWidth(), dark.getHeight());
+            updateDarkness();
+        });
 
-            for(Tile tile : world.tiles){
-                recordIndex(tile);
-
-                float darkness = world.getDarkness(tile.x, tile.y);
-
-                if(darkness > 0){
-                    Draw.colorl(1f - Math.min((darkness + 0.5f) / 4f, 1f));
-                    Fill.rect(tile.x + 0.5f, tile.y + 0.5f, 1, 1);
-                }
+        //sometimes darkness gets disabled.
+        Events.run(Trigger.newGame, () -> {
+            if(hadMapLimit && !state.rules.limitMapArea){
+                updateDarkness();
+                renderer.minimap.updateAll();
             }
-
-            Draw.flush();
-            Draw.color();
-            dark.end();
         });
 
         Events.on(TilePreChangeEvent.class, event -> {
@@ -109,7 +116,14 @@ public class BlockRenderer{
         });
 
         Events.on(TileChangeEvent.class, event -> {
-            shadowEvents.add(event.tile);
+            boolean visible = event.tile.build == null || !event.tile.build.inFogTo(Vars.player.team());
+            if(event.tile.build != null){
+                event.tile.build.wasVisible = visible;
+            }
+
+            if(visible){
+                shadowEvents.add(event.tile);
+            }
 
             int avgx = (int)(camera.position.x / tilesize);
             int avgy = (int)(camera.position.y / tilesize);
@@ -123,6 +137,42 @@ public class BlockRenderer{
             invalidateTile(event.tile);
             recordIndex(event.tile);
         });
+    }
+
+    public void updateDarkness(){
+        darkEvents.clear();
+        dark.getTexture().setFilter(TextureFilter.linear);
+        dark.resize(world.width(), world.height());
+        dark.begin();
+
+        //fill darkness with black when map area is limited
+        Core.graphics.clear(state.rules.limitMapArea ? Color.black : Color.white);
+        Draw.proj().setOrtho(0, 0, dark.getWidth(), dark.getHeight());
+
+        //clear out initial starting area
+        if(state.rules.limitMapArea){
+            Draw.color(Color.white);
+            Fill.crect(state.rules.limitX, state.rules.limitY, state.rules.limitWidth, state.rules.limitHeight);
+        }
+
+        for(Tile tile : world.tiles){
+            //skip lighting outside rect
+            if(state.rules.limitMapArea && !Rect.contains(state.rules.limitX, state.rules.limitY, state.rules.limitWidth - 1, state.rules.limitHeight - 1, tile.x, tile.y)){
+                continue;
+            }
+
+            float darkness = world.getDarkness(tile.x, tile.y);
+
+            if(darkness > 0){
+                float dark = 1f - Math.min((darkness + 0.5f) / 4f, 1f);
+                Draw.colorl(dark);
+                Fill.rect(tile.x + 0.5f, tile.y + 0.5f, 1, 1);
+            }
+        }
+
+        Draw.flush();
+        Draw.color();
+        dark.end();
     }
 
     public void invalidateTile(Tile tile){
@@ -204,14 +254,14 @@ public class BlockRenderer{
         }
 
         Draw.shader(Shaders.darkness);
-        Draw.fbo(dark, world.width(), world.height(), tilesize);
+        Draw.fbo(dark.getTexture(), world.width(), world.height(), tilesize, tilesize/2f);
         Draw.shader();
     }
 
     public void drawDestroyed(){
         if(!Core.settings.getBool("destroyedblocks")) return;
 
-        if(control.input.isPlacing() || control.input.isBreaking() || control.input.selectRequests.any()){
+        if(control.input.isPlacing() || control.input.isBreaking() || control.input.selectPlans.any()){
             brokenFade = Mathf.lerpDelta(brokenFade, 1f, 0.1f);
         }else{
             brokenFade = Mathf.lerpDelta(brokenFade, 0f, 0.1f);
@@ -231,7 +281,7 @@ public class BlockRenderer{
     }
 
     public void drawShadows(){
-        if (ClientVars.hidingBlocks) return;
+        if(ClientVars.hidingBlocks) return;
         if(!shadowEvents.isEmpty()){
             Draw.flush();
 
@@ -240,7 +290,7 @@ public class BlockRenderer{
 
             for(Tile tile : shadowEvents){
                 //draw white/shadow color depending on blend
-                Draw.color(!tile.block().hasShadow ? Color.white : blendShadowColor);
+                Draw.color((!tile.block().hasShadow || (state.rules.fog && tile.build != null && !tile.build.wasVisible)) ? Color.white : blendShadowColor);
                 Fill.rect(tile.x + 0.5f, tile.y + 0.5f, 1, 1);
             }
 
@@ -275,6 +325,16 @@ public class BlockRenderer{
         int rangex = (int)(camera.width / tilesize / 2);
         int rangey = (int)(camera.height / tilesize / 2);
 
+        if(!state.isPaused()){
+            int updates = updateFloors.size;
+            var uitems = updateFloors.items;
+            for(int i = 0; i < updates; i++){
+                var tile = uitems[i];
+                tile.floor.renderUpdate(tile);
+            }
+        }
+
+
         if(avgx == lastCamX && avgy == lastCamY && lastRangeX == rangex && lastRangeY == rangey){
             return;
         }
@@ -284,7 +344,7 @@ public class BlockRenderer{
         procLinks.clear();
         procLights.clear();
 
-        var bounds = camera.bounds(Tmp.r3).grow(tilesize);
+        var bounds = camera.bounds(Tmp.r3).grow(tilesize * 2f);
 
         //draw floor lights
         floorTree.intersect(bounds, lightview::add);
@@ -337,37 +397,63 @@ public class BlockRenderer{
 
     public void drawBlocks(){
         if (ClientVars.hidingBlocks) return;
+        Team pteam = player.team();
+
         drawDestroyed();
 
         //draw most tile stuff
         for(int i = 0; i < tileview.size; i++){
             Tile tile = tileview.items[i];
             Block block = tile.block();
-            Building entity = tile.build;
+            Building build = tile.build;
 
             Draw.z(Layer.block);
 
-            if(block != Blocks.air){
+            boolean visible = (build == null || !build.inFogTo(pteam));
+
+            //comment wasVisible part for hiding?
+            if(block != Blocks.air && (visible || build.wasVisible)){
                 block.drawBase(tile);
                 Draw.reset();
                 Draw.z(Layer.block);
 
-                if(entity != null){
-                    if(entity.damaged()){
-                        entity.drawCracks();
+                if(block.customShadow){
+                    Draw.z(Layer.block - 1);
+                    block.drawShadow(tile);
+                    Draw.z(Layer.block);
+                }
+
+                if(build != null){
+                    if(visible){
+                        if(!build.wasVisible){
+                            updateShadow(build);
+                            renderer.minimap.update(tile);
+                        }
+                        build.visibleFlags |= (1L << pteam.id);
+                        build.wasVisible = true;
+                    }
+
+                    if(build.damaged()){
+                        Draw.z(Layer.blockCracks);
+                        build.drawCracks();
                         Draw.z(Layer.block);
                     }
 
-                    if(entity.team != player.team()){
-                        entity.drawTeam();
+                    if(build.team != pteam){
+                        build.drawTeam();
                         Draw.z(Layer.block);
                     }
 
-                    if(renderer.drawStatus && block.consumes.any()){
-                        entity.drawStatus();
+                    if(renderer.drawStatus && block.hasConsumers){
+                        build.drawStatus();
                     }
                 }
                 Draw.reset();
+            }else if(!visible){
+                //TODO here is the question: should buildings you lost sight of remain rendered? if so, how should this information be stored?
+                //comment lines below for buggy persistence
+                //if(build.wasVisible) updateShadow(build);
+                //build.wasVisible = false;
             }
         }
 
@@ -387,34 +473,30 @@ public class BlockRenderer{
             }
         }
 
-        var bounds = camera.bounds(Tmp.r3).grow(tilesize);
+        if(drawQuadtreeDebug){
+            //TODO remove
+            Draw.z(Layer.overlayUI);
+            Lines.stroke(1f, Color.green);
 
-        if (drawCursors) {
-            Draw.z(Layer.space);
-            Draw.color(Color.red);
-            Draw.alpha(.3f);
-            boolean ints = Fonts.def.usesIntegerPositions();
-            Fonts.def.setUseIntegerPositions(false);
-            Fonts.def.getData().setScale(0.25f / Scl.scl(1f));
-            for (Player player : Groups.player) {
-                if (player.isLocal() || player.assisting) continue;
+            blockTree.intersect(camera.bounds(Tmp.r1), tile -> {
+                Lines.rect(tile.getHitbox(Tmp.r2));
+            });
 
-                Fill.circle(player.mouseX, player.mouseY, tilesize * .5f);
-                if (input.mouseWorld().dst(player.mouseX, player.mouseY) < 20 * tilesize) {
-                    Fonts.def.draw("[#" + player.color + "]" + player.name, player.mouseX, player.mouseY, Align.center);
-                }
-            }
-            Fonts.def.getData().setScale(1f);
-            Fonts.def.setUseIntegerPositions(ints);
-            Draw.color();
-        }
-        if (wasDrawingCursors != drawCursors) {
-            wasDrawingCursors = drawCursors;
-            settings.put("drawcursors", drawCursors);
+            Draw.reset();
         }
     }
 
-    static class BlockQuadtree extends QuadTreeMk2<Tile>{
+    void updateShadow(Building build){
+        int size = build.block.size, of = build.block.sizeOffset, tx = build.tile.x, ty = build.tile.y;
+
+        for(int x = 0; x < size; x++){
+            for(int y = 0; y < size; y++){
+                shadowEvents.add(world.tile(x + tx + of, y + ty + of));
+            }
+        }
+    }
+
+    static class BlockQuadtree extends QuadTree<Tile>{
 
         public BlockQuadtree(Rect bounds){
             super(bounds);
@@ -432,7 +514,7 @@ public class BlockRenderer{
         }
     }
 
-    static class FloorQuadtree extends QuadTreeMk2<Tile>{
+    static class FloorQuadtree extends QuadTree<Tile>{
 
         public FloorQuadtree(Rect bounds){
             super(bounds);
