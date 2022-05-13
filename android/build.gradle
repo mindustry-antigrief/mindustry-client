@@ -122,9 +122,6 @@ dependencies{
     natives "com.github.Anuken.Arc:natives-android:${getArcHash()}"
     natives "com.github.Anuken.Arc:natives-freetype-android:${getArcHash()}"
 
-    gpImplementation "com.google.android.gms:play-services-games:21.0.0"
-    gpImplementation "com.google.android.gms:play-services-auth:19.0.0"
-
     //TODO dynamically find best android platform jar instead of hard-coding to 30
     def sdkFile = new File((String)findSdkDir(), "/platforms/android-30/android.jar")
     if(sdkFile.exists()) compileOnly files(sdkFile.absolutePath)
