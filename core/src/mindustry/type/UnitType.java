@@ -1219,11 +1219,14 @@ public class UnitType extends UnlockableContent{
             unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY), size * 2, size * 2);
 
             if((drawAllItems || unit.isLocal()) && !renderer.pixelator.enabled()){
+                float z = Draw.z();
+                Draw.z(z + .01f); // Remove this if you enjoy 1000 texture swaps
                 Fonts.outline.draw(unit.stack.amount + "",
-                unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
-                unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY) - 3,
-                accentCopy.a(alpha), 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
+                    unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
+                    unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY) - 3,
+                    accentCopy.a(alpha), 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
                 );
+                Draw.z(z);
             }
 
             Draw.reset();

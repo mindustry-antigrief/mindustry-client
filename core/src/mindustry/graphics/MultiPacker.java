@@ -96,16 +96,16 @@ public class MultiPacker implements Disposable{
     //There are several pages for sprites.
     //main page (sprites.png) - all sprites for units, weapons, placeable blocks, effects, bullets, etc
     //environment page (sprites2.png) - all sprites for things in the environmental cache layer
-    //editor page (sprites3.png) - all sprites needed for rendering in the editor, including block icons and a few minor sprites
+    //ui page (sprites3.png) - content icons, white icons, fonts and UI elements
     //rubble page (sprites4.png) - scorch textures for unit deaths & wrecks
-    //ui page (sprites5.png) - content icons, white icons, fonts and UI elements
+    //editor page (sprites5.png) - all sprites needed for rendering in the editor, including block icons and a few minor sprites
     public enum PageType{
         //main page can be massive.
         main(8192),
 
         environment(4096, 2048),
         editor(4096, 2048),
-        rubble,
+        rubble(4096, 2048),
         ui(4096);
 
         public static final PageType[] all = values();
