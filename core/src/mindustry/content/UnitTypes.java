@@ -684,7 +684,6 @@ public class UnitTypes{
             hitSize = 15f;
             rotateSpeed = 3f;
             health = 1000;
-            immunities = ObjectSet.with(StatusEffects.burning, StatusEffects.melting);
             legCount = 6;
             legLength = 13f;
             legForwardScl = 0.8f;
@@ -1054,7 +1053,6 @@ public class UnitTypes{
             lowAltitude = true;
             forceMultiTarget = true;
             armor = 5f;
-            itemCapacity = 0;
 
             targetFlags = new BlockFlag[]{BlockFlag.launchPad, BlockFlag.storage, BlockFlag.battery, null};
             engineOffset = 12f;
