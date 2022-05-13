@@ -68,6 +68,7 @@ class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField var range:
     }
 }
 
+// FINISHME: Awful.
 class EntityTree(bounds: Rect) : QuadTreeMk2<TurretPathfindingEntity>(bounds) {
     companion object {
         val lock = ReentrantLock(true)
@@ -128,21 +129,15 @@ class EntityTree(bounds: Rect) : QuadTreeMk2<TurretPathfindingEntity>(bounds) {
         }
     }
 
-    override fun remove(obj: TurretPathfindingEntity?) {
+    override fun remove(obj: TurretPathfindingEntity?): Boolean {
         lock.withLock {
-            super.remove(obj)
+            return super.remove(obj)
         }
     }
 
     override fun getObjects(out: Seq<TurretPathfindingEntity>?) {
         lock.withLock {
             super.getObjects(out)
-        }
-    }
-
-    override fun getTotalObjectCount(): Int {
-        lock.withLock {
-            return super.getTotalObjectCount()
         }
     }
 

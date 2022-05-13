@@ -22,6 +22,8 @@ import java.util.concurrent.*;
 import static mindustry.Vars.*;
 
 public class Saves{
+    private static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance();
+
     @Nullable Seq<SaveSlot> saves;
     @Nullable SaveSlot current;
     private @Nullable SaveSlot lastSectorSave;
@@ -30,8 +32,6 @@ public class Saves{
 
     long totalPlaytime;
     private long lastTimestamp;
-
-    private final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance();
 
     public Saves(){
         Events.on(StateChangeEvent.class, event -> {
@@ -301,7 +301,7 @@ public class Saves{
         }
 
         public String getDate(){
-            return dateFormatter.format(new Date(meta.timestamp));
+            return dateFormat.format(new Date(meta.timestamp));
         }
 
         public Map getMap(){

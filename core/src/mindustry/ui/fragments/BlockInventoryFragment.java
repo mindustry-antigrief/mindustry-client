@@ -101,7 +101,7 @@ public class BlockInventoryFragment{
         table.touchable = Touchable.enabled;
         table.update(() -> {
 
-            if(state.isMenu() || build == null || (!build.isValid() && tile.tile != emptyTile) || !build.block.isAccessible() || emptyTime >= holdShrink){
+            if(state.isMenu() || build == null || (!build.isValid() && build.tile != emptyTile) || !build.block.isAccessible() || emptyTime >= holdShrink){
                 hide();
             }else{
                 if(build.items.total() == 0){
@@ -162,7 +162,7 @@ public class BlockInventoryFragment{
                 l.enabled = canPick;
 
                 Element image = itemImage(item.uiIcon, () -> {
-                    if(build == null || (!build.isValid() && tile.tile != emptyTile)){
+                    if(build == null || (!build.isValid() && build.tile != emptyTile)){
                         return "";
                     }
                     return round(build.items.get(item));

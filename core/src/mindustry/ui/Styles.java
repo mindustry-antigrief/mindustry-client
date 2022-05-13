@@ -145,7 +145,6 @@ public class Styles{
             fontColor = Color.white;
             up = none;
         }};
-        cleart = new TextButtonStyle(){{
         flatt = new TextButtonStyle(){{
             over = flatOver;
             font = Fonts.def;
@@ -249,10 +248,6 @@ public class Styles{
         nodei = new ImageButtonStyle(){{
             up = buttonOver;
             over = buttonDown;
-        }};
-        darki = new ImageButtonStyle(){{
-            imageDownColor = Pal.accent;
-            imageUpColor = Color.darkGray;
         }};
         emptyi = new ImageButtonStyle(){{
             imageDownColor = Pal.accent;

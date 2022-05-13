@@ -71,7 +71,7 @@ public class MendProjector extends Block{
     public void setBars(){
         super.setBars();
 
-        bars.add("progress", (MendBuild entity) -> new Bar("bar.progress", Pal.heal, () -> entity.charge / reload));
+        addBar("progress", (MendBuild entity) -> new Bar("bar.progress", Pal.heal, () -> entity.charge / reload));
     }
 
     public class MendBuild extends Building implements Ranged{

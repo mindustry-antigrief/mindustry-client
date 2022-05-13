@@ -73,7 +73,7 @@ public class ImpactReactor extends PowerGenerator{
     }
 
     @Override
-    public void drawRequestConfigTop(BuildPlan req, Eachable<BuildPlan> list){
+    public void drawPlanConfigTop(BuildPlan req, Eachable<BuildPlan> list){
         if (ClientUtilsKt.flood()) {
             Drawf.dashCircle(req.drawx(), req.drawy(), floodNullifierRange, Color.orange);
             indexer.eachBlock(null, req.drawx(), req.drawy(), floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
@@ -142,7 +142,7 @@ public class ImpactReactor extends PowerGenerator{
 
             Draw.blend(Blending.additive);
             for(int i = 0; i < plasmaRegions.length; i++){
-                float r = size * tilesize - 3f + Mathf.absin(Time.time, 2f + i * 1f, 5f - i * 0.5f);
+                float r = ((float)plasmaRegions[i].width * Draw.scl - 3f + Mathf.absin(Time.time, 2f + i * 1f, 5f - i * 0.5f));
 
                 Draw.color(plasma1, plasma2, (float)i / plasmaRegions.length);
                 Draw.alpha((0.3f + Mathf.absin(Time.time, 2f + i * 2f, 0.3f + i * 0.05f)) * warmup);

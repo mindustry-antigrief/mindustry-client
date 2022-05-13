@@ -74,6 +74,8 @@ public class LogicDialog extends BaseDialog{
             });
         }).disabled(t -> executor.team != player.team() && net.client() && !state.isEditor());
 
+        if(mobile && !Core.graphics.isPortrait()) buttons.row();
+
         buttons.button("@variables", Icon.menu, () -> {
             BaseDialog dialog = new BaseDialog("@variables");
             dialog.hidden(() -> {

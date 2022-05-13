@@ -19,9 +19,6 @@ import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
-import mindustry.client.*;
-import mindustry.client.navigation.*;
-import mindustry.client.navigation.waypoints.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
@@ -41,16 +38,15 @@ import mindustry.world.blocks.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.logic.*;
-import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
+import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
-import mindustry.world.blocks.power.*;
-import mindustry.world.blocks.units.*;
 import mindustry.world.meta.*;
 
 import java.util.*;
 
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
@@ -202,7 +198,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(player == null) return;
 
-        var it = player.team().data().blocks.iterator();
+        var it = player.team().data().plans.iterator();
         //O(n^2) search here; no way around it
         outer:
         while(it.hasNext()){
@@ -249,7 +245,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     ai.commandPosition(posTarget);
                 }
             }
+        }
 
+        if(unitIds.length > 0 && player == Vars.player){
             if(teamTarget != null){
                 Fx.attackCommand.at(teamTarget);
             }else{
@@ -302,7 +300,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot transfer an item.");
         }
 
-        //deposit for every controlling unit
         var unit = player.unit();
         Item item = unit.item();
         int accepted = build.acceptStack(item, unit.stack.amount, unit);
@@ -461,18 +458,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
 
         if (player != null && Vars.player != player) { // FINISHME: Move all this client stuff into the ClientLogic class
-            if (Core.settings.getBool("commandwarnings") && build instanceof CommandCenter.CommandBuild cmd && build.team == player.team()) {
-                if (commandWarning == null || timer.get(300)) {
-                    commandWarning = ui.chatfrag.addMessage(bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), (Color)null);
-                } else {
-                    commandWarning.message = bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized());
-                    commandWarning.format();
-                }
-                ClientVars.lastSentPos.set(build.tileX(), build.tileY());
-
-            } else if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
+            if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
                 if (value instanceof Integer val) {
-                    if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) {
+                    if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) { // FINISHME: Awful.
                         String message = bundle.format("client.powerwarn", Strings.stripColors(player.name), ++node.disconnections, build.tileX(), build.tileY());
                         ClientVars.lastSentPos.set(build.tileX(), build.tileY());
                         if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
@@ -645,6 +633,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             logicCutsceneZoom = -1f;
         }
 
+        if(!commandMode){
+            commandRect = false;
+        }
+
         playerPlanTree.clear();
         player.unit().plans.each(playerPlanTree::insert);
 
@@ -755,7 +747,159 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             controlledType = null;
             logicCutscene = false;
             config.forceHide();
+            commandMode = commandRect = false;
         }
+    }
+
+    //TODO when shift is held? ctrl?
+    public boolean multiUnitSelect(){
+        return false;
+    }
+
+    public void selectUnitsRect(){
+        if(commandMode && commandRect){
+            if(!tappedOne){
+                var units = selectedCommandUnits(commandRectX, commandRectY, input.mouseWorldX() - commandRectX, input.mouseWorldY() - commandRectY);
+                if(multiUnitSelect()){
+                    //tiny brain method of unique addition
+                    selectedUnits.removeAll(units);
+                }else{
+                    //nothing selected, clear units
+                    selectedUnits.clear();
+                }
+                selectedUnits.addAll(units);
+                commandBuild = null;
+            }
+            commandRect = false;
+        }
+    }
+
+    public void selectTypedUnits(){
+        if(commandMode){
+            Unit unit = selectedCommandUnit(input.mouseWorldX(), input.mouseWorldY());
+            if(unit != null){
+                selectedUnits.clear();
+                camera.bounds(Tmp.r1);
+                selectedUnits.addAll(selectedCommandUnits(Tmp.r1.x, Tmp.r1.y, Tmp.r1.width, Tmp.r1.height, u -> u.type == unit.type));
+            }
+        }
+    }
+
+    public void tapCommandUnit(){
+        if(commandMode){
+
+            Unit unit = selectedCommandUnit(input.mouseWorldX(), input.mouseWorldY());
+            Building build = world.buildWorld(input.mouseWorldX(), input.mouseWorldY());
+            if(unit != null){
+                if(!selectedUnits.contains(unit)){
+                    selectedUnits.add(unit);
+                }else{
+                    selectedUnits.remove(unit);
+                }
+                commandBuild = null;
+            }else{
+                //deselect
+                selectedUnits.clear();
+
+                if(build != null && build.team == player.team() && build.block.commandable){
+                    commandBuild = (commandBuild == build ? null : build);
+                }else{
+                    commandBuild = null;
+                }
+            }
+        }
+    }
+
+    public void commandTap(float screenX, float screenY){
+        if(commandMode){
+            //right click: move to position
+
+            //move to location - TODO right click instead?
+            Vec2 target = input.mouseWorld(screenX, screenY).cpy();
+
+            if(selectedUnits.size > 0){
+
+                Teamc attack = world.buildWorld(target.x, target.y);
+
+                if(attack == null || attack.team() == player.team()){
+                    attack = selectedEnemyUnit(target.x, target.y);
+                }
+
+                int[] ids = new int[selectedUnits.size];
+                for(int i = 0; i < ids.length; i++){
+                    ids[i] = selectedUnits.get(i).id;
+                }
+
+                Call.commandUnits(player, ids, attack instanceof Building b ? b : null, attack instanceof Unit u ? u : null, target);
+            }
+
+            if(commandBuild != null){
+                Call.commandBuilding(player, commandBuild, target);
+            }
+        }
+    }
+
+    public void drawCommand(Unit sel){
+        Drawf.square(sel.x, sel.y, sel.hitSize / 1.4f + Mathf.absin(4f, 1f), selectedUnits.contains(sel) ? Pal.remove : Pal.accent);
+    }
+
+    public void drawCommanded(){
+        if(commandMode){
+            //happens sometimes
+            selectedUnits.removeAll(u -> !u.isCommandable());
+
+            //draw command overlay UI
+            for(Unit unit : selectedUnits){
+                CommandAI ai = unit.command();
+                //draw target line
+                if(ai.targetPos != null){
+                    Position lineDest = ai.attackTarget != null ? ai.attackTarget : ai.targetPos;
+                    Drawf.limitLine(unit, lineDest, unit.hitSize / 2f, 3.5f);
+
+                    if(ai.attackTarget == null){
+                        Drawf.square(lineDest.getX(), lineDest.getY(), 3.5f);
+                    }
+                }
+
+                Drawf.square(unit.x, unit.y, unit.hitSize / 1.4f + 1f);
+
+                if(ai.attackTarget != null){
+                    Drawf.target(ai.attackTarget.getX(), ai.attackTarget.getY(), 6f, Pal.remove);
+                }
+            }
+
+            if(commandBuild != null){
+                Drawf.square(commandBuild.x, commandBuild.y, commandBuild.hitSize() / 1.4f + 1f);
+                var cpos = commandBuild.getCommandPosition();
+
+                if(cpos != null){
+                    Drawf.limitLine(commandBuild, cpos, commandBuild.hitSize() / 2f, 3.5f);
+                    Drawf.square(cpos.x, cpos.y, 3.5f);
+                }
+            }
+
+            if(commandMode && !commandRect){
+                Unit sel = selectedCommandUnit(input.mouseWorldX(), input.mouseWorldY());
+
+                if(sel != null && !(!multiUnitSelect() && selectedUnits.size == 1 && selectedUnits.contains(sel))){
+                    drawCommand(sel);
+                }
+            }
+
+            if(commandRect){
+                float x2 = input.mouseWorldX(), y2 = input.mouseWorldY();
+                var units = selectedCommandUnits(commandRectX, commandRectY, x2 - commandRectX, y2 - commandRectY);
+                for(var unit : units){
+                    drawCommand(unit);
+                }
+
+                Draw.color(Pal.accent, 0.3f);
+                Fill.crect(commandRectX, commandRectY, x2 - commandRectX, y2 - commandRectY);
+            }
+        }
+
+        Draw.reset();
+
     }
 
     public void drawBottom(){
@@ -982,7 +1126,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        for(BlockPlan plan : player.team().data().blocks){
+        for(BlockPlan plan : player.team().data().plans){
             Block block = content.block(plan.block);
             if(block.bounds(plan.x, plan.y, Tmp.r2).overlaps(Tmp.r1)){
                 drawSelected(plan.x, plan.y, content.block(plan.block), Pal.remove);
@@ -1022,19 +1166,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    protected void flushPlansReverse(Seq<BuildPlan> plans){ // FINISHME: No.
-        //reversed iteration.
-        for(int i = plans.size - 1; i >= 0; i--){
-            var plan = plans.get(i);
-            if(plan.block != null && validPlace(plan.x, plan.y, plan.block, plan.rotation)){
-                BuildPlan copy = plan.copy();
-                plan.block.onNewPlan(copy);
-                player.unit().addBuild(copy, false);
-            }
-        }
+    protected void flushPlansReverse(Seq<BuildPlan> plans){ // FINISHME: Does this method work as intended?
+        flushPlans(plans.copy().reverse());
     }
 
-    protected void flushRequests(Seq<BuildPlan> plans){
+    protected void flushPlans(Seq<BuildPlan> plans){
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[plans.size + plans.count(req -> req.block == Blocks.waterExtractor) * 3];
         var added = 0;
@@ -1124,7 +1260,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         while(it.hasNext()){
             var plan = it.next();
             if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
-                ClientVars.processorConfigs.remove(req.tile().pos());
+                ClientVars.processorConfigs.remove(plan.tile().pos());
                 it.remove();
             }
         }
@@ -1140,7 +1276,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         removed.clear();
 
         //remove blocks to rebuild
-        Iterator<BlockPlan> broken = player.team().data().blocks.iterator();
+        Iterator<BlockPlan> broken = player.team().data().plans.iterator();
         while(broken.hasNext()){
             BlockPlan plan = broken.next();
             Block block = content.block(plan.block);
@@ -1392,13 +1528,17 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return tmpUnits.min(u -> !u.inFogTo(player.team()), u -> u.dst(x, y) - u.hitSize/2f);
     }
 
-    public Seq<Unit> selectedCommandUnits(float x, float y, float w, float h){
+    public Seq<Unit> selectedCommandUnits(float x, float y, float w, float h, Boolf<Unit> predicate){
         var tree = player.team().data().tree();
         tmpUnits.clear();
         float rad = 4f;
         tree.intersect(Tmp.r1.set(x - rad/2f, y - rad/2f, rad*2f + w, rad*2f + h).normalize(), tmpUnits);
-        tmpUnits.removeAll(u -> !u.isCommandable());
+        tmpUnits.removeAll(u -> !u.isCommandable() || !predicate.get(u));
         return tmpUnits;
+    }
+
+    public Seq<Unit> selectedCommandUnits(float x, float y, float w, float h){
+        return selectedCommandUnits(x, y, w, h, u -> true);
     }
 
     public void remove(){
@@ -1636,21 +1776,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         float strafePenalty = ground ? 1f : Mathf.lerp(1f, unit.type().strafePenalty, Angles.angleDist(unit.vel().angle(), unit.rotation()) / 180f);
         float baseSpeed = unit.type().speed;
 
-        //limit speed to minimum formation speed to preserve formation
-        if(unit.isCommanding()){
-            //add a tiny multiplier to let units catch up just in case
-            baseSpeed = unit.minFormationSpeed() * 0.95f;
-        }
-
         float speed = baseSpeed * Mathf.lerp(1f, unit.type().canBoost ? unit.type().boostMultiplier : 1f, unit.elevation) * strafePenalty;
-        boolean boosted = (unit instanceof Mechc && unit.isFlying());
+        boolean boosted = unit instanceof Mechc && unit.isFlying();
 
         movement.set(x, y).nor().scl(speed);
         if(Core.input.keyDown(Binding.mouse_move)){
             movement.add(input.mouseWorld().sub(player).scl(1f / 25f * speed)).limit(speed);
         }
 
-        boolean aimCursor = omni && player.shooting && unit.type().hasWeapons() && unit.type().faceTarget && !boosted && unit.type().rotateShooting;
+        boolean aimCursor = omni && player.shooting && unit.type().hasWeapons() && unit.type().faceTarget && !boosted;
 
         if(aimCursor){
             unit.lookAt(direction);

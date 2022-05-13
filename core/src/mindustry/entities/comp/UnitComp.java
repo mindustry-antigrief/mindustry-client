@@ -6,6 +6,7 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
+import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.*;
 import mindustry.ai.types.*;
@@ -31,7 +32,7 @@ import mindustry.world.blocks.payloads.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
-import static mindustry.logic.GlobalConstants.*;
+import static mindustry.logic.GlobalVars.*;
 
 @Component(base = true)
 abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, Itemsc, Rotc, Unitc, Weaponsc, Drawc, Boundedc, Syncc, Shieldc, Displayable, Senseable, Ranged, Minerc, Builderc{
@@ -59,7 +60,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     private transient boolean wasPlayer;
     private transient boolean wasHealed;
     private transient Seq<TurretPathfindingEntity> turretEnts;
-    private static final transient IntSet weaponSet = new IntSet(4);
+    private static final IntSet weaponSet = new IntSet(4);
 
     /** Called when this unit was unloaded from a factory or spawn point. */
     public void unloaded(){
@@ -87,7 +88,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         moveAt(Tmp.v2.trns(rotation, vec.len()));
 
         if(!vec.isZero()){
-            rotation = Angles.moveToward(rotation, vec.angle(), type.rotateSpeed * Math.max(Time.delta, 1));
+            rotation = Angles.moveToward(rotation, vec.angle(), type.rotateSpeed * Time.delta);
         }
     }
 
@@ -268,6 +269,13 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     }
 
     @Override
+    public void collision(Hitboxc other, float x, float y){
+        if(other instanceof Bullet bullet){
+            controller.hit(bullet);
+        }
+    }
+
+    @Override
     public int itemCapacity(){
         return type.itemCapacity;
     }
@@ -402,7 +410,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             turretEnts = new Seq<>(type.weapons.size);
             for(var w : type.weapons){
                 if(weaponSet.add(Objects.hash(w.bullet.collidesAir, w.bullet.collidesGround, w.bullet.damage, w.bullet.lifetime, w.bullet.speed, w.bullet.healPercent))){
-                    turretEnts.add(new TurretPathfindingEntity(this, Math.max(24f, w.bullet.range()), w.bullet.collidesGround, w.bullet.collidesAir, this::canShoot));
+                    turretEnts.add(new TurretPathfindingEntity(this, Math.max(24f, w.bullet.range), w.bullet.collidesGround, w.bullet.collidesAir, this::canShoot));
                 }
             }
             turretEnts.each(Navigation::addEnt);
@@ -657,11 +665,6 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Nullable
     public Player getPlayer(){
         return isPlayer() ? (Player)controller : null;
-    }
-
-    @Deprecated
-    public Player playerNonNull(){
-        throw new RuntimeException("Cease immediately");
     }
 
     @Override

@@ -115,6 +115,8 @@ public class UnitType extends UnlockableContent{
     targetPriority = 0f,
     /** Elevation of shadow drawn under this (ground) unit. Visual only. */
     shadowElevation = -1f,
+    /** Scale for length of shadow drawn under this unit. Does nothing if this unit has no shadow. */
+    shadowElevationScl = 1f,
     /** backwards engine offset from center of unit */
     engineOffset = 5f,
     /** main engine radius */
@@ -364,7 +366,7 @@ public class UnitType extends UnlockableContent{
 
     //TANK UNITS
 
-    /** list of treads as rectangles in IMAGE COORDINATES. these should match the coordinates you see in an image editor*/
+    /** list of treads as rectangles in IMAGE COORDINATES, relative to the center. these are mirrored. */
     public Rect[] treadRects = {};
     /** number of frames of movement in a tread */
     public int treadFrames = 18;
@@ -1029,7 +1031,7 @@ public class UnitType extends UnlockableContent{
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
         alpha =
             ClientVars.hidingUnits || ClientVars.hidingAirUnits && unit.isFlying() ? 0 :
-            (unit.controller() instanceof FormationAI || unit.controller() instanceof Player p && p.assisting && !unit.isLocal()) ? formationAlpha :
+            (unit.controller() instanceof Player p && p.assisting && !unit.isLocal()) ? formationAlpha :
             1;
         if (alpha == 0) return; // Don't bother drawing what we can't see.
         float z = isPayload ? Draw.z() : unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
@@ -1104,7 +1106,7 @@ public class UnitType extends UnlockableContent{
         //TODO how/where do I draw under?
         if(parts.size > 0){
             for(int i = 0; i < parts.size; i++){
-                var part = parts.items[i];
+                var part = parts.get(i);
 
                 WeaponMount first = unit.mounts.length > part.weaponIndex ? unit.mounts[part.weaponIndex] : null;
                 if(first != null){
@@ -1165,7 +1167,7 @@ public class UnitType extends UnlockableContent{
     }
 
     public void drawShadow(Unit unit){
-        float e = Math.max(unit.elevation, shadowElevation) * (1f - unit.drownTime);
+        float e = Mathf.clamp(unit.elevation, shadowElevation, 1f) * shadowElevationScl * (1f - unit.drownTime);
         float x = unit.x + shadowTX * e, y = unit.y + shadowTY * e;
         Floor floor = world.floorWorld(x, y);
 
@@ -1326,8 +1328,8 @@ public class UnitType extends UnlockableContent{
             for(int i = 0; i < treadRects.length; i ++){
                 var region = treadRegions[i][frame];
                 var treadRect = treadRects[i];
-                float xOffset = treadRegion.width/2f - (treadRect.x + treadRect.width/2f);
-                float yOffset = treadRegion.height/2f - (treadRect.y + treadRect.height/2f);
+                float xOffset = -(treadRect.x + treadRect.width/2f);
+                float yOffset = -(treadRect.y + treadRect.height/2f);
 
                 for(int side : Mathf.signs){
                     Tmp.v1.set(xOffset * side, yOffset).rotate(unit.rotation - 90);
@@ -1364,8 +1366,8 @@ public class UnitType extends UnlockableContent{
 
             Tmp.v1.set(leg.base).sub(leg.joint).inv().setLength(legExtension);
 
-            if(footRegion.found() && leg.moving && visualElevation > 0){
-                float scl = visualElevation * invDrown;
+            if(footRegion.found() && leg.moving && shadowElevation > 0){
+                float scl = shadowElevation * invDrown;
                 float elev = Mathf.slope(1f - leg.stage) * scl;
                 Draw.color(Pal.shadow, Pal.shadow.a * alpha);
                 Draw.rect(footRegion, leg.base.x + shadowTX * elev, leg.base.y + shadowTY * elev, position.angleTo(leg.base));
@@ -1488,7 +1490,7 @@ public class UnitType extends UnlockableContent{
         if(healFlash){
             Tmp.c1.set(Color.white).lerp(healColor, Mathf.clamp(unit.healTime - unit.hitTime));
         }
-        Draw.mixcol(Tmp.c1, Math.max(unit.hitTime, Mathf.clamp(unit.healTime)));
+        Draw.mixcol(Tmp.c1, Math.max(unit.hitTime, !healFlash ? 0f : Mathf.clamp(unit.healTime)));
 
         if(unit.drownTime > 0 && unit.lastDrownFloor != null){
             Draw.mixcol(Tmp.c1.set(unit.lastDrownFloor.mapColor).mul(0.83f), unit.drownTime * 0.9f);

@@ -6,8 +6,6 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.*;
-import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -339,7 +337,7 @@ public class BlockIndexer{
         int size = breturnArray.size;
         for(int i = 0; i < size; i++){
             var b = items[i];
-            if(b.within(x, y, range + b.hitSize()/2f)){
+            if(b != null && b.within(x, y, range + b.hitSize()/2f)){
                 cons.get(b);
             }
             items[i] = null;

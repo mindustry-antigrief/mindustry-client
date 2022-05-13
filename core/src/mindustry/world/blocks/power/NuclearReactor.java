@@ -86,7 +86,7 @@ public class NuclearReactor extends PowerGenerator{
     }
 
     @Override
-    public void drawRequestConfigTop(BuildPlan req, Eachable<BuildPlan> list){
+    public void drawPlanConfigTop(BuildPlan req, Eachable<BuildPlan> list){
         if (!settings.getBool("showreactors") || !req.worldContext) return;
         Drawf.dashCircle(req.drawx(), req.drawy(), explosionRadius * tilesize, Color.coral);
     }

@@ -78,11 +78,16 @@ public class CommandAI extends AIController{
             float engageRange = unit.type.range - 10f;
 
             if(move){
-                moveTo(vecOut,
-                    attackTarget != null && unit.within(attackTarget, engageRange) ? engageRange :
-                    unit.isGrounded() ? 0f :
-                    attackTarget != null ? engageRange :
-                    0f, unit.isFlying() ? 40f : 100f, false, null);
+                if(unit.type.circleTarget && attackTarget != null){
+                    target = attackTarget;
+                    circleAttack(80f);
+                }else{
+                    moveTo(vecOut,
+                        attackTarget != null && unit.within(attackTarget, engageRange) ? engageRange :
+                        unit.isGrounded() ? 0f :
+                        attackTarget != null ? engageRange :
+                        0f, unit.isFlying() ? 40f : 100f, false, null);
+                }
 
                 //calculateFlock().limit(unit.speed() * flockMult)
             }
@@ -119,6 +124,13 @@ public class CommandAI extends AIController{
 
         }else if(target != null){
             faceTarget();
+        }
+    }
+
+    @Override
+    public void hit(Bullet bullet){
+        if(unit.team.isAI() && bullet.owner instanceof Teamc teamc && teamc.team() != unit.team && attackTarget == null){
+            commandTarget(teamc, true);
         }
     }
 

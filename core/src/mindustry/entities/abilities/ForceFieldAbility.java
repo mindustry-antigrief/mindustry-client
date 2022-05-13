@@ -1,5 +1,6 @@
 package mindustry.entities.abilities;
 
+import arc.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;

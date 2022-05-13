@@ -84,7 +84,7 @@ public class LogicBlock extends Block{
     }
 
     public boolean accessible(){
-        return !privileged || state.rules.editor;
+        return !privileged || state.rules.editor || state.playtestingMap != null;
     }
 
     @Override
@@ -588,7 +588,7 @@ public class LogicBlock extends Block{
                 ui.logic.show(code, executor, privileged, code -> configure(compress(code, relativeConnections())))
             ).size(40);
 
-            table.button(Icon.refresh, Styles.clearTransi, () -> {
+            table.button(Icon.refresh, Styles.cleari, () -> {
                 var original = code;
                 ClientVars.configs.add(() -> { // Cursed, enqueues a config now, when that one is run it enqueues a second config.
                     new ConfigRequest(this, compress("end\n" + code, relativeConnections())).run();

@@ -14,14 +14,12 @@ import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.ui.*;
-import mindustry.client.ui.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
-import mindustry.gen.Unit;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
@@ -512,7 +510,7 @@ public class ConstructBlock extends Block{
                 }
 
                 if (wb.warnDistance == 101 || distance.get() <= wb.warnDistance) {
-                    String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.playerNonNull().name), current.localizedName, tile.x, tile.y, distance.get());
+                    String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.getPlayer().name), current.localizedName, tile.x, tile.y, distance.get());
                     String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
                     if (toast == null || toast.parent == null) {
                         toast = new Toast(2f, 0f);

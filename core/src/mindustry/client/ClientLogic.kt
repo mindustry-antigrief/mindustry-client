@@ -49,7 +49,6 @@ class ClientLogic {
                 processorConfigs.clear()
             }
             lastJoinTime = Time.millis()
-            PowerInfo.initialize()
             configs.clear()
             Vars.control.input.lastVirusWarning = null
             dispatchingBuildPlans = false

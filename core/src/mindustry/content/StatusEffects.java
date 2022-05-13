@@ -3,6 +3,7 @@ package mindustry.content;
 import arc.*;
 import arc.graphics.*;
 import arc.math.*;
+import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.type.*;
 import mindustry.graphics.*;

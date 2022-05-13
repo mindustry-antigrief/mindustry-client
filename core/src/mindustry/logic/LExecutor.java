@@ -112,7 +112,7 @@ public class LExecutor{
 
     public Var var(int index){
         //global constants have variable IDs < 0, and they are fetched from the global constants object after being negated
-        return index < 0 ? constants.get(-index) : vars[index];
+        return index < 0 ? logicVars.get(-index) : vars[index];
     }
 
     public @Nullable Building building(int index){
@@ -123,6 +123,17 @@ public class LExecutor{
     public @Nullable Object obj(int index){
         Object o = var(index).objval;
         return var(index).isobj ? o : null;
+    }
+
+    public @Nullable Team team(int index){
+        Var v = var(index);
+        if(v.isobj){
+            return v.objval instanceof Team t ? t : null;
+        }else{
+            int t = (int)v.numval;
+            if(t < 0 || t >= Team.all.length) return null;
+            return Team.all[t];
+        }
     }
 
     public boolean bool(int index){
@@ -1118,7 +1129,7 @@ public class LExecutor{
 
         @Override
         public void run(LExecutor exec){
-            exec.setobj(dest, constants.lookupContent(type, exec.numi(from)));
+            exec.setobj(dest, logicVars.lookupContent(type, exec.numi(from)));
         }
     }
 
@@ -1196,7 +1207,8 @@ public class LExecutor{
         @Override
         public void run(LExecutor exec){
             int i = exec.numi(index);
-            if(!(exec.obj(team) instanceof Team t)) return;
+            Team t = exec.team(team);
+            if(t == null) return;
             TeamData data = t.data();
 
             switch(type){
@@ -1294,7 +1306,9 @@ public class LExecutor{
                         if(b instanceof Floor f && tile.floor() != f) tile.setFloorNet(f);
                     }
                     case block -> {
-                        Team t = exec.obj(team) instanceof Team steam ? steam : Team.derelict;
+                        Team t = exec.team(team);
+                        if(t == null) t = Team.derelict;
+
                         if(tile.block() != b || tile.team() != t){
                             tile.setNet(b, t, Mathf.clamp(exec.numi(rotation), 0, 3));
                         }
@@ -1324,12 +1338,43 @@ public class LExecutor{
         public void run(LExecutor exec){
             if(net.client()) return;
 
-            if(exec.obj(type) instanceof UnitType type && !type.hidden && exec.obj(team) instanceof Team team && Units.canCreate(team, type)){
+            Team t = exec.team(team);
+
+            if(exec.obj(type) instanceof UnitType type && !type.hidden && t != null && Units.canCreate(t, type)){
                 //random offset to prevent stacking
-                var unit = type.spawn(team, World.unconv(exec.numf(x)) + Mathf.range(0.01f), World.unconv(exec.numf(y)) + Mathf.range(0.01f));
+                var unit = type.spawn(t, World.unconv(exec.numf(x)) + Mathf.range(0.01f), World.unconv(exec.numf(y)) + Mathf.range(0.01f));
                 unit.rotation = exec.numf(rotation);
                 spawner.spawnEffect(unit);
                 exec.setobj(result, unit);
+            }
+        }
+    }
+
+    public static class ApplyEffectI implements LInstruction{
+        public boolean clear;
+        public String effect;
+        public int unit, duration;
+
+        public ApplyEffectI(boolean clear, String effect, int unit, int duration){
+            this.clear = clear;
+            this.effect = effect;
+            this.unit = unit;
+            this.duration = duration;
+        }
+
+        public ApplyEffectI(){
+        }
+
+        @Override
+        public void run(LExecutor exec){
+            if(net.client()) return;
+
+            if(exec.obj(unit) instanceof Unit unit && content.statusEffect(effect) != null){
+                if(clear){
+                    unit.unapply(content.statusEffect(effect));
+                }else{
+                    unit.apply(content.statusEffect(effect), exec.numf(duration) * 60f);
+                }
             }
         }
     }
@@ -1371,7 +1416,8 @@ public class LExecutor{
                 }
                 case ambientLight -> state.rules.ambientLight.fromDouble(exec.num(value));
                 case unitBuildSpeed, unitDamage, blockHealth, blockDamage, buildSpeed, rtsMinSquad, rtsMinWeight -> {
-                    if(exec.obj(p1) instanceof Team team){
+                    Team team = exec.team(p1);
+                    if(team != null){
                         float num = exec.numf(value);
                         switch(rule){
                             case buildSpeed -> team.rules().buildSpeedMultiplier = Mathf.clamp(num, 0.001f, 50f);
@@ -1454,8 +1500,8 @@ public class LExecutor{
             //skip back to self until possible
             //TODO this is guaranteed desync on servers - I don't see a good solution
             if(
-                type == MessageType.announce && ui.hudfrag.hasToast() ||
-                type == MessageType.notify && ui.hasAnnouncement() ||
+                type == MessageType.announce && ui.hasAnnouncement() ||
+                type == MessageType.notify && ui.hudfrag.hasToast() ||
                 type == MessageType.toast && ui.hasAnnouncement()
             ){
                 exec.var(varCounter).numval --;
@@ -1503,7 +1549,7 @@ public class LExecutor{
         public void run(LExecutor exec){
             if(net.client()) return;
 
-            Team t = exec.obj(team) instanceof Team te ? te : null;
+            Team t = exec.team(team);
             //note that there is a radius cap
             Call.logicExplosion(t, World.unconv(exec.numf(x)), World.unconv(exec.numf(y)), World.unconv(Math.min(exec.numf(radius), 100)), exec.numf(damage), exec.bool(air), exec.bool(ground), exec.bool(pierce));
         }

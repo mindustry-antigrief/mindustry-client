@@ -16,7 +16,7 @@ public class SectorPresets{
     impact0078, desolateRift, nuclearComplex, planetaryTerminal,
     coastline, navalFortress,
 
-    onset, two, three, four, five
+    onset, two, three, four
     ;
 
     public static void load(){
@@ -123,7 +123,7 @@ public class SectorPresets{
                         new ShapeTextMarker("Click to mine [accent]resources[] from walls.", 290f * 8f, 106f * 8f)
                     ),
                     new BuildCountObjective(Blocks.turbineCondenser, 1).withMarkers(
-                        new ShapeTextMarker("Place a [accent]turbine condenser[] on the vent.\nThis will generate [accent]power[].", 289f * 8f, 116f * 8f, 8f * 2.6f, 0f, 9f)
+                        new ShapeTextMarker("Open the tech tree.\nResearch, then place a [accent]turbine condenser[] on the vent.\nThis will generate [accent]power[].", 289f * 8f, 116f * 8f, 8f * 2.6f, 0f, 9f)
                     ),
                     new BuildCountObjective(Blocks.plasmaBore, 1).withMarkers(
                         new ShapeTextMarker("Research and place a [accent]plasma bore[]. \nThis automatically mines resources from walls.", 293.5f * 8f, 113.5f * 8f, 4f * 2.6f, 45f, 60f)
@@ -184,8 +184,8 @@ public class SectorPresets{
 
             rules = r -> {
                 r.objectives.addAll(
-                    new TimerObjective("[lightgray]Enemy detection:[] [accent]{0}", 5 * 60 * 60).withMarkers(
-                        new TextMarker("The enemy will begin constructing units in 5 minutes.", 276f * 8f, 164f * 8f)
+                    new TimerObjective("[lightgray]Enemy detection:[] [accent]{0}", 7 * 60 * 60).withMarkers(
+                        new TextMarker("The enemy will begin constructing units in 7 minutes.", 276f * 8f, 164f * 8f)
                     ).withFlags("beginBuilding"),
                     new ProduceObjective(Items.tungsten).withMarkers(
                         new ShapeTextMarker("Tungsten can be mined using an [accent]impact drill[].\nThis structure requires [accent]water[] and [accent]power[].", 220f * 8f, 181f * 8f)
@@ -228,10 +228,6 @@ public class SectorPresets{
                 ).withFlags("nuke1")
                 );
             };
-        }};
-
-        five = new SectorPreset("five", erekir, 12){{
-            difficulty = 7;
         }};
 
         //endregion

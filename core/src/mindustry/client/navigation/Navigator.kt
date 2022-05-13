@@ -43,9 +43,7 @@ abstract class Navigator {
     fun navigate(start: Vec2, end: Vec2, obstacles: Iterable<TurretPathfindingEntity>): Array<PositionWaypoint> {
         start.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
         end.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
-        val additionalRadius =
-            if (player.unit().formation == null) player.unit().hitSize / 2
-            else player.unit().formation().pattern.radius() + player.unit().formation.pattern.spacing / 2
+        val additionalRadius = player.unit().hitSize / 2
 
         if(state.map.name() != "The Maze") {
             for (turret in obstacles) {
@@ -80,7 +78,7 @@ abstract class Navigator {
                     lastWp = Time.millis() // Try again in 3s
                     Call.sendChatMessage("/wp ${closestCore.key}")
                 }
-            } else if (player.unit().spawnedByCore && !player.unit().isCommanding && player.unit().stack.amount == 0) { // Everything that isn't CN
+            } else if (player.unit().spawnedByCore && player.unit().stack.amount == 0) { // Everything that isn't CN
                 val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst(end) }))
                 if (player.dst(end) > bestCore.dst(end)) {
                     lastWp = Time.millis() // Try again in 3s

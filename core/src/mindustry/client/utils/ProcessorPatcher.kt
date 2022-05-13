@@ -10,10 +10,10 @@ object ProcessorPatcher {
 
     private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
-    fun countProcessors(builds: Seq<LogicBuild>): Int {
+    fun countProcessors(builds: Iterable<LogicBuild>): Int {
         Time.mark()
         val count = builds.count { attemMatcher.containsMatchIn(it.code) }
-        Log.debug("Counted $count/${builds.size} attems in ${Time.elapsed()}ms")
+        Log.debug("Counted $count/${builds.count()} attems in ${Time.elapsed()}ms")
         return count
     }
 

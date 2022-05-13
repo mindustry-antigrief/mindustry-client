@@ -401,7 +401,7 @@ public class LCanvas extends Table{
                 t.button(Icon.paste, Styles.logici, () -> {
                 }).size(24f).padRight(6).tooltip("Paste Here").get().tapped(() -> {
                     try {
-                        this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n")));
+                        this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n"), privileged));
                     } catch (Throwable e) {
                         ui.showException(e);
                     }
@@ -702,11 +702,11 @@ public class LCanvas extends Table{
 
 //            if(draw1curve){
                 Lines.line(x, y, maxX - curveRadius, y);
-                Lines.swirl(maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, 1/4f, isDownwards * -90, 8);
+                Lines.arc(maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, 1/4f, isDownwards * -90, 8);
 //            }
             Lines.line(maxX, yNew + curveRadius * curveDirection, maxX, y2New - curveRadius * curveDirection);
 //            if(draw2curve){
-                Lines.swirl(maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, 1/4f, (isDownwards - 1) * 90, 8);
+                Lines.arc(maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, 1/4f, (isDownwards - 1) * 90, 8);
                 Lines.line(maxX - curveRadius, y2, x2, y2);
 //            }
 

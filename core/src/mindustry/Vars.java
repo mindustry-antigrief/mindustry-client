@@ -98,8 +98,6 @@ public class Vars implements Loadable{
     public static final float buildingRange = 220f;
     /** range for moving items */
     public static final float itemTransferRange = 220f;
-    /** multiplier for core item capacity when launching */
-    public static final float launchCapacityMultiplier = 0.25f;
     /** range for moving items for logic units */
     public static final float logicItemTransferRange = 45f;
     /** duration of time between turns in ticks */
@@ -241,7 +239,7 @@ public class Vars implements Loadable{
     public static BeControl becontrol;
     public static AsyncCore asyncCore;
     public static BaseRegistry bases;
-    public static GlobalConstants constants;
+    public static GlobalVars logicVars;
     public static MapEditor editor;
     public static GameService service = new GameService();
 
@@ -262,7 +260,7 @@ public class Vars implements Loadable{
     public static NetClient netClient;
 
     public static Player player;
-    public static boolean drawCursors, wasDrawingCursors; // Client debug magic
+    public static boolean drawCursors, wasDrawingCursors; // Client debug magic FINISHME: Re-implement
 
     @Override
     public void loadAsync(){
@@ -287,7 +285,7 @@ public class Vars implements Loadable{
                 }
             }
 
-            Arrays.sort(locales, Structs.comparing(LanguageDialog::getDisplayName, String.CASE_INSENSITIVE_ORDER));
+            Arrays.sort(locales, 0, len, Structs.comparing(LanguageDialog::getDisplayName, String.CASE_INSENSITIVE_ORDER));
             locales[len] = new Locale("router");
         }
 
@@ -323,7 +321,7 @@ public class Vars implements Loadable{
         controlPath = new ControlPathfinder();
         fogControl = new FogControl();
         bases = new BaseRegistry();
-        constants = new GlobalConstants();
+        logicVars = new GlobalVars();
         drawCursors = settings.getBool("drawcursors");
         javaPath =
             new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
@@ -373,31 +371,34 @@ public class Vars implements Loadable{
         String[] tags = {"[green][D][]", "[royal][I][]", "[yellow][W][]", "[scarlet][E][]", ""};
         String[] stags = {"&lc&fb[D]", "&lb&fb[I]", "&ly&fb[W]", "&lr&fb[E]", ""};
 
-        final ConcurrentLinkedQueue<String>[] logBuffer = new ConcurrentLinkedQueue[]{new ConcurrentLinkedQueue<>()};
+        Seq<String>[] logBuffer = new Seq[]{new Seq<>()};
         Log.logger = (level, text) -> {
-            String result = text;
-            String rawText = Log.format(stags[level.ordinal()] + "&fr " + text);
-            System.out.println(rawText);
+            synchronized(logBuffer){
+                String result = text;
+                String rawText = Log.format(stags[level.ordinal()] + "&fr " + text);
+                System.out.println(rawText);
 
-            result = tags[level.ordinal()] + " " + result;
+                result = tags[level.ordinal()] + " " + result;
 
-            if(!headless && (ui == null || ui.scriptfrag == null)){
-                logBuffer[0].add(result);
-            }else if(!headless){
-                if(!OS.isWindows){
-                    for(String code : ColorCodes.values){
-                        result = result.replace(code, "");
+                if(logBuffer[0] != null && !headless && (ui == null || ui.scriptfrag == null)){
+                    logBuffer[0].add(result);
+                }else if(!headless){
+                    if(!OS.isWindows){
+                        for(String code : ColorCodes.values){
+                            result = result.replace(code, "");
+                        }
                     }
-                }
 
-                ui.scriptfrag.addMessage(Log.removeColors(result));
+                    ui.scriptfrag.addMessage(Log.removeColors(result));
+                }
             }
         };
 
         Events.on(ClientLoadEvent.class, e -> {
-            String msg;
-            while ((msg = logBuffer[0].poll()) != null) ui.scriptfrag.addMessage(msg);
-            logBuffer[0] = null; // Events stay in memory for all eternity, these few bytes are totally worth saving.
+            synchronized(logBuffer){
+                logBuffer[0].each(ui.scriptfrag::addMessage);
+                logBuffer[0] = null;
+            }
         });
 
         loadedLogger = true;

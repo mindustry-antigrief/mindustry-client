@@ -171,8 +171,8 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
 
             clearQueues();
 
-            if (queues.contains(broken, true) && !player.unit().team.data().blocks.isEmpty()) {
-                for (Teams.BlockPlan block : player.unit().team.data().blocks) {
+            if (queues.contains(broken, true) && !player.unit().team.data().plans.isEmpty()) {
+                for (Teams.BlockPlan block : player.unit().team.data().plans) {
                     broken.add(pool.obtain().set(block.x, block.y, block.rotation, content.block(block.block), block.config));
                 }
             }

@@ -14,8 +14,6 @@ import arc.util.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Jval.*;
-import kotlin.*;
-import kotlin.collections.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -50,13 +48,7 @@ public class Mods implements Loadable{
     private boolean requiresReload;
     private static final Seq<String> clientDisabled = Seq.with("automatic-mod-updater", "scheme-size"); // These mods aren't needed when using the client
 
-    private ObjectMap<Texture, PageType> pageTypes = ObjectMap.of(
-        Core.atlas.find("white").texture, PageType.main,
-        Core.atlas.find("stone1").texture, PageType.environment,
-        Core.atlas.find("clear-editor").texture, PageType.editor,
-        Core.atlas.find("whiteui").texture, PageType.ui,
-        Core.atlas.find("rubble-1-0").texture, PageType.rubble
-    );
+    private ObjectMap<Texture, PageType> pageTypes;
 
     public Mods(){
         Events.on(ClientLoadEvent.class, e -> Core.app.post(this::checkWarnings));
@@ -134,6 +126,15 @@ public class Mods implements Loadable{
     @Override
     public void loadAsync(){
         if(!mods.contains(LoadedMod::enabled)) return;
+
+        pageTypes = ObjectMap.of(
+            Core.atlas.find("white").texture, PageType.main,
+            Core.atlas.find("stone1").texture, PageType.environment,
+            Core.atlas.find("clear-editor").texture, PageType.editor,
+            Core.atlas.find("whiteui").texture, PageType.ui,
+            Core.atlas.find("rubble-1-0").texture, PageType.rubble
+        );
+
         Time.mark();
 
         packer = new MultiPacker();
@@ -271,7 +272,7 @@ public class Mods implements Loadable{
                 PageType type = pageTypes.get(region.texture, PageType.main);
 
                 if(!packer.has(type, region.name)){
-                    if(showMissing) Log.warn("Sprite '@' on page '@' is defined but is not overridden.", region.name, page);
+                    if(showMissing) Log.warn("Sprite '@' on page '@' is defined but is not overridden.", region.name, type);
                     entries[type.ordinal()].add(new RegionEntry(region.name, Core.atlas.getPixmap(region), region.splits, region.pads));
                 }
             }
@@ -279,16 +280,16 @@ public class Mods implements Loadable{
             //sort each page type by size first, for optimal packing. packs each page in parallel
             var tasks = new Seq<Future<?>>(); // FINISHME: Add time logging for every step of the sprite loading process
             for(int i = 0; i < PageType.all.length; i++){
+                var rects = entries[i];
+                var type = PageType.all[i];
                 tasks.add(mainExecutor.submit(() -> {
-                    var rects = entries[i];
-                    var type = PageType.all[i];
                     //TODO is this in reverse order?
                     rects.sort(Structs.comparingInt(o -> -Math.max(o.region.width, o.region.height)));
 
                     for(var entry : rects){
                         packer.add(type, entry.name, entry.region, entry.splits, entry.pads);
                     }
-                });
+                }));
             }
             Threads.awaitAll(tasks); //await packing
 
@@ -804,16 +805,18 @@ public class Mods implements Loadable{
         ObjectMap<String, Seq<String>> dependencies = new ObjectMap<>();
 
         for(Fi file : files){
-            Fi zip = file.isDirectory() ? file : new ZipFi(file);
-            if(OS.isMac) zip.child(".DS_Store").delete(); //macOS loves adding garbage files that break everything
-            if(zip.list().length == 1 && zip.list()[0].isDirectory()){
-                zip = zip.list()[0];
-            }
-
             ModMeta meta = null;
+
             try{
+                Fi zip = file.isDirectory() ? file : new ZipFi(file);
+                if(OS.isMac) zip.child(".DS_Store").delete(); //macOS loves adding garbage files that break everything
+
+                if(zip.list().length == 1 && zip.list()[0].isDirectory()){
+                    zip = zip.list()[0];
+                }
+
                 meta = findMeta(zip);
-            }catch(Exception ignored){
+            }catch(Throwable ignored){
             }
 
             if(meta == null) continue;

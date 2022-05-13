@@ -14,6 +14,7 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import kotlin.collections.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
@@ -806,7 +807,8 @@ public class HudFragment{
             t.stack(
                 new Table(tt -> tt.add(new SideBar(() -> player.unit().healthf(), () -> true, true)).width(bw).growY().padRight(pad)), // Health
                 new Table(tt -> tt.add(new SideBar(() -> player.unit().shield / maxShield[0], () -> true, true, 1/4f)).width(bw).growY().padRight(pad).color(Pal.accent).visible(() -> { // Ammo
-                    var ff = player.unit().abilities.find(a -> a instanceof ForceFieldAbility); // FINISHME: Probably creates a lot of garbage
+                    var ff = ArraysKt.firstOrNull(player.unit().abilities, a -> a instanceof ForceFieldAbility);
+
                     maxShield[0] = ff == null ? 0f : ((ForceFieldAbility)ff).max;
                     return maxShield[0] > 0;
                 }))

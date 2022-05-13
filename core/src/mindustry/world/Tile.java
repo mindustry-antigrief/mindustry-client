@@ -286,7 +286,7 @@ public class Tile implements Position, QuadTreeObject, Displayable{
         this.floor = type;
         this.overlay = (Floor)Blocks.air;
 
-        if(!headless && !world.isGenerating()){
+        if(!headless && !world.isGenerating() && !isEditorTile()){
             renderer.blocks.removeFloorIndex(this);
         }
 
@@ -294,6 +294,10 @@ public class Tile implements Position, QuadTreeObject, Displayable{
         if(build != null){
             build.onProximityUpdate();
         }
+    }
+
+    public boolean isEditorTile(){
+        return false;
     }
 
     /** Sets the floor, preserving overlay.*/

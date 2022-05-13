@@ -162,15 +162,10 @@ gradle-app.setting
 .DS_Store
 Thumbs.db
 android/libs/
-annotations/src/main/resources/revisions
 
+#no.
 arc-core/
 cache/
 
 # ignored due to frequent branch conflicts.
 core/assets/logicids.dat
-core/assets/icons/icons.properties
-
-# what even
-libsdl-arc64.so
-.temp/

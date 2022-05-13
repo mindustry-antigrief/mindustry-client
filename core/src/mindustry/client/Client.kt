@@ -25,7 +25,6 @@ import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
-import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.graphics.*
@@ -36,10 +35,8 @@ import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.defense.turrets.BaseTurret.*
-import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.logic.LogicBlock.*
 import mindustry.world.blocks.power.*
-import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
 import org.bouncycastle.jsse.provider.*
 import java.io.*
@@ -183,9 +180,9 @@ object Client {
                     if (ctrl == 0) freeFlagged++
                 }
                 when (ctrl) {
-                    GlobalConstants.ctrlPlayer -> players++
-                    GlobalConstants.ctrlCommand -> command++
-                    GlobalConstants.ctrlProcessor -> {
+                    GlobalVars.ctrlPlayer -> players++
+                    GlobalVars.ctrlCommand -> command++
+                    GlobalVars.ctrlProcessor -> {
                         if (flag != 0.0) logicFlagged++
                         logic++
                     }
@@ -198,7 +195,7 @@ object Client {
             Total(Cap): $total($cap)
             Free(Free Flagged): $free($freeFlagged)
             Flagged(Unflagged): $flagged($unflagged)
-            Players(Command): $players($formation)
+            Players(Command): $players($command)
             Logic(Logic Flagged): $logic($logicFlagged)
             """.trimIndent())
         }
@@ -284,23 +281,6 @@ object Client {
             sendMessage("/js ${args[0]}")
         }
 
-        register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
-            if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
-                player.sendMessage(Core.bundle.format("client.command.cc.invalid", player.team().data().command.localized()))
-                return@register
-            }
-
-            val cc = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) { it is CommandCenter.CommandBuild }
-            if (cc != null) {
-                Call.tileConfig(player, cc, when (args[0].lowercase()[0]) {
-                    'a' -> UnitCommand.attack
-                    'r' -> UnitCommand.rally
-                    else -> UnitCommand.idle
-                })
-                player.sendMessage(Core.bundle.format("client.command.cc.success", args[0]))
-            } else player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
-        }
-
         register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
             player.sendMessage(
                 if (pluginVersion != -1) "[accent]Using plugin communication" else // FINISHME: Bundle
@@ -312,7 +292,7 @@ object Client {
 
         register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
             val diodeLinks = PowerDiode.connections(player.team()) // Must be run on the main thread
-            val grids = PowerGraph.activeGraphs.select { it.team == player.team() }.associate { it.id to it.all.copy() }
+            val grids = PowerInfo.graphs.select { it.team == player.team() }.associate { it.id to it.all.copy() }
             val confirmed = args.any() && args[0] == "c" // Don't configure by default
             val inProgress = !configs.isEmpty()
             var n = 0
@@ -353,10 +333,8 @@ object Client {
 
         @Suppress("unchecked_cast")
         register("fixcode [c]", "Fixes problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
-            val builds = Seq<LogicBuild>()
-            Vars.player.team().data().buildings.getObjects(builds as Seq<Building>) // Must be done on the main thread
+            val builds = Vars.player.team().data().buildings.filterIsInstance<LogicBuild>() // Must be done on the main thread
             clientThread.post {
-                builds.removeAll { it !is LogicBlock.LogicBuild }
                 val confirmed = args.any() && args[0] == "c" // Don't configure by default
                 val inProgress = !configs.isEmpty()
                 var n = 0
@@ -408,7 +386,7 @@ object Client {
             val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
             val plans = mutableListOf<Int>()
 
-            for (plan in Vars.player.team().data().blocks) {
+            for (plan in Vars.player.team().data().plans) {
                 val block = content.block(plan.block.toInt())
                 if (!(all || getTree().any(Tmp.r1.setCentered(plan.x * tilesize + block.offset, plan.y * tilesize + block.offset, block.size * tilesizeF)))) continue
 
@@ -419,8 +397,8 @@ object Client {
 
             if (confirmed) {
                 plans.chunked(100) { Call.deletePlans(player, it.toIntArray()) }
-                player.sendMessage("[accent]Removed ${plans.size} plans, ${Vars.player.team().data().blocks.size} remain")
-            } else player.sendMessage("[accent]Found ${plans.size} (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
+                player.sendMessage("[accent]Removed ${plans.size} plans, ${Vars.player.team().data().plans.size} remain")
+            } else player.sendMessage("[accent]Found ${plans.size} (out of ${Vars.player.team().data().plans.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
         }
 
         register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, _ -> // FINISHME: Bundle
@@ -592,7 +570,7 @@ object Client {
             player.mouseY = intercept.y
             player.shooting = !boosting
 
-            if (type.omniMovement && player.shooting && type.hasWeapons() && type.faceTarget && !boosting && type.rotateShooting) { // Rotate towards enemy
+            if (type.omniMovement && player.shooting && type.hasWeapons() && type.faceTarget && !boosting && type.faceTarget) { // Rotate towards enemy
                 unit.lookAt(unit.angleTo(player.mouseX, player.mouseY))
             }
 

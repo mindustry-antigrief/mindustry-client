@@ -530,7 +530,7 @@ public class CoreBlock extends StorageBlock{
                 return;
             }
 
-            table.button(Icon.downOpen, Styles.clearTransi, () -> {
+            table.button(Icon.downOpen, Styles.cleari, () -> {
                 ui.planet.showSelect(state.rules.sector, other -> {
                     if(state.isCampaign()){
                         other.info.destination = state.rules.sector;

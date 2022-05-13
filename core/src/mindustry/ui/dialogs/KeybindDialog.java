@@ -23,7 +23,6 @@ public class KeybindDialog extends Dialog{
     protected boolean rebindMin = true;
     protected KeyCode minKey = null;
     protected Dialog rebindDialog;
-    protected float scroll;
     protected ObjectIntMap<Section> sectionControls = new ObjectIntMap<>();
 
     public KeybindDialog(){
@@ -56,7 +55,6 @@ public class KeybindDialog extends Dialog{
         ButtonGroup<TextButton> group = new ButtonGroup<>();
         ScrollPane pane = new ScrollPane(stack);
         pane.setFadeScrollBars(false);
-        pane.update(() -> scroll = pane.getScrollY());
         this.section = sections[0];
 
         for(Section section : sections){
@@ -171,7 +169,6 @@ public class KeybindDialog extends Dialog{
         cont.add(pane).growX().colspan(sections.length);
         cont.pack();
         pane.setScrollYForce(scroll[0]);
-
     }
 
     void rebind(Section section, KeyBind bind, KeyCode newKey){

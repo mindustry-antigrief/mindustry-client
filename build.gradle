@@ -19,8 +19,8 @@ buildscript{
         classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.16"
         if (!project.hasProperty("release") && new File(projectDir.parent, 'Arc').exists()) classpath fileTree(new File(projectDir.parent, 'Arc'))
         else {
-            classpath "com.github.Anuken.Arc:packer:$arcHash"
-            classpath "com.github.Anuken.Arc:arc-core:$arcHash"
+            classpath "com.github.mindustry-antigrief.arc:packer:$arcHash"
+            classpath "com.github.mindustry-antigrief.arc:arc-core:$arcHash"
         }
     }
 }
@@ -31,7 +31,7 @@ plugins{
 }
 
 allprojects{
-    version = 'release'
+    version = project.hasProperty("packageVersion") ? project.getProperty("packageVersion") : 'release'
     group = 'com.github.Anuken'
 
     ext{
@@ -63,7 +63,7 @@ allprojects{
             }else{
                 //skip to last submodule
                 if(name.contains(':')) name = name.split(':').last()
-                return "com.github.Anuken.Arc:$name:${getArcHash()}"
+                return "com.github.mindustry-antigrief.arc:$name:${getArcHash()}"
             }
         }
 
@@ -476,13 +476,12 @@ project(":annotations"){
 
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"
-        implementation "com.github.Anuken.Arc:arc-core:$arcHash"
+        implementation "com.github.mindustry-antigrief.arc:arc-core:$arcHash"
     }
 }
 
-configure([":core", ":desktop", ":server", ":tools"].collect{project(it)}){
+configure([":core", ":server"].collect{project(it)}){
     apply plugin: 'maven-publish'
-
     java{
         withJavadocJar()
         withSourcesJar()

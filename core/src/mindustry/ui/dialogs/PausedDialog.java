@@ -119,19 +119,26 @@ public class PausedDialog extends BaseDialog{
         }
     }
 
-    public void runExitSave(){
-        if(state.isEditor() && !wasClient){
-            ui.editor.resumeEditing();
-            return;
-        }else if(state.playtestingMap != null){
+    public boolean checkPlaytest(){
+        if(state.playtestingMap != null){
             //no exit save here
             var testing = state.playtestingMap;
             logic.reset();
             ui.editor.resumeAfterPlaytest(testing);
+            return true;
+        }
+        return false;
+    }
+
+    public void runExitSave(){
+        if(state.isEditor() && !wasClient){
+            ui.editor.resumeEditing();
+            return;
+        }else if(checkPlaytest()){
             return;
         }
 
-        if(control.saves.getCurrent() == null || !control.saves.getCurrent().isAutosave() || wasClient){
+        if(control.saves.getCurrent() == null || !control.saves.getCurrent().isAutosave() || wasClient || state.gameOver){
             logic.reset();
             return;
         }
