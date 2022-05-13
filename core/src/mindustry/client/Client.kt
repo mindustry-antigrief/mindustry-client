@@ -505,9 +505,9 @@ object Client {
             hadTarget = false
         }
 
-        if (target == null || timer.get(2, 6f)) { // Acquire target
-            target = Units.closestEnemy(unit.team, unit.x, unit.y, unit.range()) { u -> u.checkTarget(unit.type.targetAir, unit.type.targetGround) }
-            if (unit.type.canHeal && target == null) {
+        if (target == null || timer.get(2, 6f)) { // Acquire target FINISHME: Heal allied units?
+            if (type.canAttack) target = Units.closestEnemy(unit.team, unit.x, unit.y, unit.range()) { u -> u.checkTarget(type.targetAir, unit.type.targetGround) }
+            if (type.canHeal && target == null) {
                 target = Units.findDamagedTile(player.team(), player.x, player.y)
                 if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() else 0f)) target = null
             }
@@ -552,7 +552,7 @@ object Client {
                     }
 
                     var score = Astar.manhattan.cost(tile.x.toInt(), tile.y.toInt(), player.tileX(), player.tileY())
-                    score += scoreMul * amount * if (tile.build?.proximity?.contains { it is BaseTurretBuild } == true) 1F else 1.1F
+                    score += scoreMul * amount * if (tile.build?.proximity?.contains { it is BaseTurretBuild } == true) 1F else 1.3F
 
                     if (score < closestScore) {
                         target = tile.build
@@ -563,14 +563,14 @@ object Client {
         }
 
         if (target != null) { // Shoot at target
-            val intercept = Predict.intercept(unit, target, if (type.hasWeapons()) type.weapons.first().bullet.speed else 0f)
+            val intercept = if (type.weapons.contains { it.predictTarget }) Predict.intercept(unit, target, if (type.hasWeapons()) type.weapons.first().bullet.speed else 0f) else target!!
             val boosting = unit is Mechc && unit.isFlying()
 
             player.mouseX = intercept.x
             player.mouseY = intercept.y
             player.shooting = !boosting
 
-            if (type.omniMovement && player.shooting && type.hasWeapons() && type.faceTarget && !boosting && type.faceTarget) { // Rotate towards enemy
+            if (type.omniMovement && player.shooting && type.hasWeapons() && type.faceTarget && !boosting) { // Rotate towards enemy
                 unit.lookAt(unit.angleTo(player.mouseX, player.mouseY))
             }
 

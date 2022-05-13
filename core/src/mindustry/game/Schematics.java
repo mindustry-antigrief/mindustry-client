@@ -528,8 +528,6 @@ public class Schematics implements Loadable{
         try(DataInputStream stream = new DataInputStream(new InflaterInputStream(input))){
             short width = stream.readShort(), height = stream.readShort();
 
-            if(width > 128 || height > 128) throw new IOException("Invalid schematic: Too large (max possible size is 128x128)");
-
             StringMap map = new StringMap();
             int tags = stream.readUnsignedByte();
             for(int i = 0; i < tags; i++){
@@ -554,8 +552,6 @@ public class Schematics implements Loadable{
             }
 
             int total = stream.readInt();
-
-            if(total > 128 * 128) throw new IOException("Invalid schematic: Too many blocks.");
 
             Seq<Stile> tiles = new Seq<>(total);
             var reads = readsLocal.get();

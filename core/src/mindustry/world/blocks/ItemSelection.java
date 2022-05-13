@@ -75,7 +75,7 @@ public class ItemSelection{
                 button.getStyle().imageUp = new TextureRegionDrawable(item.uiIcon);
                 button.update(() -> button.setChecked(holder.get() == item));
 
-                if(++i % columns + 1 == 0){
+                if(++i % (columns + 1) == 0){
                     cont.row();
                     rowCount++;
                 }

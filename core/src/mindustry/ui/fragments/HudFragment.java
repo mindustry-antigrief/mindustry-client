@@ -227,12 +227,9 @@ public class HudFragment{
                 s.add(makeStatusTable()).grow().name("status");
 
                 var rightStyle = new ImageButtonStyle(){{
-                    over = buttonRightOver;
-                    down = buttonRightDown;
-                    up = buttonRight;
-                    disabled = buttonRightDisabled;
-                    imageDisabledColor = Color.clear;
-                    imageUpColor = Color.white;
+                    up = wavepane;
+                    over = wavepane;
+                    disabled = wavepane;
                 }};
 
                 // button to skip wave
