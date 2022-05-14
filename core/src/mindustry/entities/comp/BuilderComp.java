@@ -65,6 +65,9 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         while(it.hasNext()){
             BuildPlan req = it.next();
             Tile tile = world.tile(req.x, req.y);
+            if(req.clientConfig != null && tile.build instanceof ConstructBuild cb && cb.clientConfig == null){
+                cb.clientConfig = req.clientConfig;
+            }
             if(tile == null || (req.breaking && tile.block() == Blocks.air) || (!req.breaking && ((tile.build != null && tile.build.rotation == req.rotation) || !req.block.rotate) && tile.block() == req.block)){
                 it.remove();
             }

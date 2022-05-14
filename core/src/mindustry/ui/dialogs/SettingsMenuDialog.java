@@ -285,6 +285,7 @@ public class SettingsMenuDialog extends BaseDialog{
     }
 
     void addSettings(){
+        Core.settings.remove("nodeconfigs");
         sound.sliderPref("musicvol", 100, 0, 100, 1, i -> i + "%");
         sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> i + "%");
         sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> i + "%");
@@ -349,6 +350,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
         client.sliderPref("processorstatementscale", 80, 10, 100, 1, s -> String.format("%.2fx", s/100f)); // This is the most scuffed setting you have ever seen
+        client.sliderPref("nodeconf", 0, 0, PowerNode.PowerNodeFixSettings.values().length - 1, 1, s -> PowerNode.PowerNodeFixSettings.get(PowerNode.PowerNodeBuild.fixNode = s).desc);
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
@@ -360,7 +362,6 @@ public class SettingsMenuDialog extends BaseDialog{
         if (steam) client.checkPref("unlockallachievements", false, i -> { for (var a : Achievement.all) a.complete(); Core.settings.remove("unlockallachievements"); });
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
-        client.checkPref("nodeconfigs", false, i -> PowerNode.PowerNodeBuild.fixNode = i);
         // End Client Settings
 
 

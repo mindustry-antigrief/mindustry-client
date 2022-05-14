@@ -3,6 +3,7 @@ package mindustry.world.blocks;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
+import arc.func.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.scene.event.*;
@@ -95,6 +96,7 @@ public class ConstructBlock extends Block{
 
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild co ? co.prevBuild : null;
+        Cons<Building> customConfig = tile.build instanceof ConstructBuild co ? co.clientConfig : null;
         Block prevBlock = tile.block();
 
         if (block == null) {
@@ -127,6 +129,10 @@ public class ConstructBlock extends Block{
         //last builder was this local client player, call placed()
         if(tile.build != null && !headless && builder == player.unit()){
             tile.build.playerPlaced(config);
+        }
+
+        if(tile.build != null && customConfig != null){
+            customConfig.get(tile.build);
         }
 
         Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
@@ -210,6 +216,7 @@ public class ConstructBlock extends Block{
         public float progress = 0;
         public float buildCost;
         public @Nullable Object lastConfig;
+        public @Nullable Cons<Building> clientConfig;
         public @Nullable Unit lastBuilder;
         public boolean wasConstructing, activeDeconstruct;
         public float constructColor;

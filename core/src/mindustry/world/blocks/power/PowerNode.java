@@ -26,6 +26,8 @@ import mindustry.world.meta.*;
 import mindustry.world.modules.*;
 import org.jetbrains.annotations.*;
 
+import java.util.*;
+
 import static mindustry.Vars.*;
 
 public class PowerNode extends PowerBlock{
@@ -88,48 +90,6 @@ public class PowerNode extends PowerBlock{
                 }
 
                 power.graph.addGraph(other.power.graph);
-
-                if(entity instanceof PowerNodeBuild build && build.queuedLinks != null && build.schematicLinks != null && !build.schematicLinks.isEmpty()){
-                    boolean has = false;
-                    outer:
-                    for(int i=0; i < 2; i++) {
-                        if(has) break;
-                        var its = i == 0 ? build.schematicLinks.iterator() : build.queuedLinks.iterator();
-                        while (its.hasNext) {
-                            int v = its.next();
-                            has = world.build(v) == other;
-                            if(has) break outer;
-                        }
-                    }
-                    Runnable connect = () -> {
-                        if (build.schematicLinks == null) return;
-                        var it = build.schematicLinks.iterator();
-                        while (it.hasNext) {
-                            int v = it.next();
-                            if (power.links.contains(v)) { // already connected - remove
-                                it.remove();
-                                continue;
-                            }
-                            if (linkValid(build, world.build(v))) {
-                                ClientVars.configs.add(new PowerNodeConfigReq(build, v, true)); // connect request
-                                it.remove();
-                                build.queuedLinks.add(v); // queuedLinks should never be null, if not NPE and then we cry
-                            }
-                        }
-                        if(build.schematicLinks.isEmpty()) build.schematicLinks = null;
-                    };
-                    if(!has){
-                        var req = new PowerNodeConfigReq(build, value, false); //undo it
-                        ClientVars.configs.add(() -> {
-                            req.run();
-                            connect.run();
-                        });
-                    } else {
-                        build.removeFromSet(build.queuedLinks, value);
-                        build.removeFromSet(build.schematicLinks, value);
-                        connect.run();
-                    }
-                }
             }
         });
 
@@ -407,12 +367,12 @@ public class PowerNode extends PowerBlock{
 
             boolean isConnected = pb.power.links.contains(value);
             if(isConnected == connect){
-                pb.removeFromSet(pb.queuedLinks, value);
+                pb.removeFromQueue(value);
                 return; //already connected if want to connect, and vice versa
             }
 
             Call.tileConfig(Vars.player, tile.build, value);
-            pb.removeFromSet(pb.queuedLinks, value);
+            pb.removeFromQueue(value);
         }
     }
 
@@ -421,9 +381,10 @@ public class PowerNode extends PowerBlock{
         /** This is used for power split notifications. */
         public @Nullable ChatFragment.ChatMessage message;
         public int disconnections = 0;
-        public @Nullable IntSet schematicLinks, queuedLinks; // supposed links when placed in a schematic
+        public @Nullable IntSet correctLinks, queuedConfigs; // supposed links when placed in a schematic
+        public long timeout = Time.millis();
 
-        public static boolean fixNode = Core.settings.getBool("nodeconfigs", false);
+        public static int fixNode = 0;
 
         @Override
         public void placed(){
@@ -463,20 +424,48 @@ public class PowerNode extends PowerBlock{
 //                });
 //            }
 //        }
-        private boolean removeFromSet(@Nullable IntSet set, int value){
-            if(set == null) return true;
-            set.remove(value);
-            if(set.isEmpty()){
-                if(set == schematicLinks) schematicLinks = null;
-                if(set == queuedLinks && schematicLinks == null) queuedLinks = null;
-            }
-            return set.isEmpty();
+        private void removeFromQueue(int value){
+            if(queuedConfigs == null) return;
+            queuedConfigs.remove(value);
+            if (queuedConfigs.isEmpty() && correctLinks == null) queuedConfigs = null;
         }
 
-        @Override
-        public void playerPlaced(Object config) { //FINISHME: Make this work no matter who places the node
-            super.playerPlaced(config);
-            if(!fixNode) return;
+        private void addToQueue(int value, boolean connect){
+            if(queuedConfigs == null || queuedConfigs.contains(value)) return;
+            queuedConfigs.add(value);
+            ClientVars.configs.add(new PowerNodeConfigReq(this, value, connect));
+            timeout = Time.millis();
+        }
+
+        private void addToQueue(int value){
+            if(queuedConfigs == null || queuedConfigs.contains(value)) return;
+            queuedConfigs.add(value);
+            timeout = Time.millis();
+        }
+
+        public void findDisconnect(){
+            power.links.each(v -> {
+                if(!correctLinks.contains(v) && !queuedConfigs.contains(v)){
+                    addToQueue(v, false);
+                }
+            });
+        }
+
+        public void findConnect(){
+            boolean[] pending = {false};
+            correctLinks.each(v -> {
+               if(power.links.contains(v)) return;
+               pending[0] = true;
+               if(!queuedConfigs.contains(v) && linkValid(this, world.build(v))){
+                   addToQueue(v, true);
+               }
+            });
+            if(!pending[0] || Time.timeSinceMillis(timeout) > 300000L /*300 seconds*/){
+                correctLinks = null;
+            }
+        }
+
+        public void fixNode(Object config){
             if(!net.client()) configure(config);
             else if(config instanceof Point2[] t){ // Fix incorrect power node linking in schems
                 var current = new Seq<Point2>();
@@ -484,44 +473,44 @@ public class PowerNode extends PowerBlock{
                     if(!power.links.contains(other.pos())) current.add(new Point2(other.tile.x, other.tile.y).sub(tile.x, tile.y));
                 });
 
+                queuedConfigs = new IntSet();
+                boolean[] hasQueued = {false};
                 current.each(l -> !Structs.contains(t, l), l -> { // Remove extra links.
-                    ClientVars.configs.add(new PowerNodeConfigReq(this, l.add(tile.x, tile.y).pack(), false));
+                    hasQueued[0] = true;
+                    int v = l.add(tile.x, tile.y).pack();
+                    Core.app.post(() -> addToQueue(v, false));
                 });
 
                 if(t.length > 0){
-                    queuedLinks = new IntSet();
-                    schematicLinks = new IntSet();
+                    correctLinks = new IntSet();
                     for(Point2 p: t){
-                        int pos = p.add(tile.x, tile.y).pack();
-                        if(!power.links.contains(pos)) {
-                            schematicLinks.add(p.pack());
-                        }
+                        correctLinks.add(p.add(tile.x, tile.y).pack());
                     }
-                }
+                } else if(!hasQueued[0]) queuedConfigs = null;
             }
         }
 
         @Override
         public void dropped(){
             power.links.clear();
+            queuedConfigs = null;
+            correctLinks = null;
             updatePowerGraph();
         }
 
         @Override
         public void updateTile(){
+            if(correctLinks != null){
+                findDisconnect();
+                findConnect(); // shame (lots of overhead)
+            }
             power.graph.update();
         }
 
         @Override
         public boolean onConfigureTileTapped(Building other){
-            if(schematicLinks != null){ // do not try to auto config further
-                schematicLinks.clear();
-                schematicLinks = null;
-            }
-            if(queuedLinks != null){
-                queuedLinks.clear();
-                queuedLinks = null;
-            }
+            correctLinks = null; // do not try to auto config further
+            queuedConfigs = null;
             if(linkValid(this, other)){
                 configure(other.pos());
                 return false;
@@ -615,6 +604,39 @@ public class PowerNode extends PowerBlock{
                 out[i] = Point2.unpack(power.links.get(i)).sub(tile.x, tile.y);
             }
             return out;
+        }
+    }
+
+    public enum PowerNodeFixSettings {
+        disabled("Disabled", false, false),
+        schematicOnlyExcludeSource("Only in schematics but not power sources", false, false),
+        schematicOnly("Only in schematics", false, true),
+        enabledExcludeSource("Everywhere but not power sources", true, false),
+        enabled("Everywhere", true, true);
+
+        public String desc; // for use in settings
+        public boolean normal, source;
+
+        PowerNodeFixSettings(String desc, boolean normal, boolean source){
+            this.desc = desc;
+            this.normal = normal;
+            this.source = source;
+        }
+
+        public static PowerNodeFixSettings get(int i){
+            return values()[i];
+        }
+
+        public static PowerNodeFixSettings get(boolean normal, boolean source){
+            return get((normal ? nonSchematicReq : enableReq) + (source ? 1 : 0));
+        }
+
+        public static final int enableReq = schematicOnlyExcludeSource.ordinal();
+        public static final int nonSchematicReq = enabledExcludeSource.ordinal();
+
+        @Override
+        public String toString(){
+            return desc.toLowerCase(Locale.ROOT) + " (on non-loaded schematics: " + normal + ", on sources: " + source + ")";
         }
     }
 }

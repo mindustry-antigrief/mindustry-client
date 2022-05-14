@@ -37,9 +37,13 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
     /** Double freeing plans is a bad idea. */
     public boolean freed;
 
+    /** Client: Client-side configs for plans (and subsequently a ConstructBuild then Building)*/
+    public @Nullable Cons<Building> clientConfig;
+
     @Override
     public void reset() {
         config = null;
+        clientConfig = null;
         progress = 0;
         initialized = false;
         stuck = false;
@@ -63,6 +67,16 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.block = block;
         this.breaking = false;
         this.config = config;
+    }
+
+    public BuildPlan(int x, int y, int rotation, Block block, Object config, Cons<Building> clientConfig){
+        this.x = x;
+        this.y = y;
+        this.rotation = rotation;
+        this.block = block;
+        this.breaking = false;
+        this.config = config;
+        this.clientConfig = clientConfig;
     }
 
     /** This creates a remove request. */
@@ -129,6 +143,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         copy.progress = progress;
         copy.initialized = initialized;
         copy.animScale = animScale;
+        copy.clientConfig = clientConfig;
         return copy;
     }
 

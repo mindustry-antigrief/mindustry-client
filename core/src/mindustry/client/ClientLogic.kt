@@ -47,7 +47,6 @@ class ClientLogic {
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             if (!syncing){
                 Player.persistPlans.clear()
-                processorConfigs.clear()
                 Vars.frozenPlans.clear()
             }
             lastJoinTime = Time.millis()
@@ -134,16 +133,6 @@ class ClientLogic {
 
             if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
                 Vars.player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
-        }
-
-        Events.on(BlockBuildEndEvent::class.java) { e -> // Configure logic after construction
-            if (e.unit == null || e.team != Vars.player.team() || !Core.settings.getBool("processorconfigs")) return@on
-            val build = e.tile.build as? LogicBlock.LogicBuild ?: return@on
-            val packed = e.tile.pos()
-            if (!processorConfigs.containsKey(packed)) return@on
-
-            if (build.code.any() || build.links.any()) processorConfigs.remove(packed) // Someone else built a processor with data
-            else configs.add(ConfigRequest(e.tile.x.toInt(), e.tile.y.toInt(), processorConfigs.remove(packed)))
         }
 
         Events.on(GameOverEventClient::class.java) {
