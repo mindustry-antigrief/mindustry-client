@@ -151,9 +151,15 @@ object Client {
     }
 
     private fun registerCommands() {
-        register("help [page]", Core.bundle.get("client.command.help.description")) { args, player ->
+        register("help [page/command]", Core.bundle.get("client.command.help.description")) { args, player ->
             if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
-                player.sendMessage("[scarlet]'page' must be a number.")
+                val command = clientCommandHandler.commandList.find { it.text == args[0] }
+                if (command != null) {
+                    player.sendMessage(Strings.format("[orange] !@[white] @[lightgray] - @",
+                        command.text, command.paramText, command.description))
+                    return@register
+                }
+                player.sendMessage("[scarlet]input must be a number or command.")
                 return@register
             }
             val commandsPerPage = 6
