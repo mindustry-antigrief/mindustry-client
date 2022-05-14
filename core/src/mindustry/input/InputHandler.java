@@ -91,6 +91,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     private static Interval timer = new Interval();
     private static ChatFragment.ChatMessage commandWarning = null;
 
+    /** Other client stuff **/
+    public boolean showTypingIndicator = Core.settings.getBool("typingindicator");
+
     public InputHandler(){
         Events.on(UnitDestroyEvent.class, e -> {
             if(e.unit != null && e.unit.isPlayer() && e.unit.getPlayer().isLocal() && e.unit.type.weapons.contains(w -> w.bullet.killShooter)){
@@ -534,8 +537,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public void update(){
-        player.typing = ui.chatfrag.shown();
         isLoadedSchematic &= lastSchematic != null; // i am lazy to reset it on all other instances; this should suffice
+        player.typing = showTypingIndicator && ui.chatfrag.shown();
 
         if(player.dead()){
             droppingItem = false;
