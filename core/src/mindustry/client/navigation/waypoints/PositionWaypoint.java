@@ -16,6 +16,7 @@ public class PositionWaypoint extends Waypoint implements Position {
     /** Stay this distance away from the waypoint */
     public float distance = 0f;
     public boolean stopOnFinish = false;
+    public Position mustPassThrough = null; // the tile the unit should "over-walk" away from
     Vec2 vec = new Vec2();
 
     public PositionWaypoint() {
@@ -52,12 +53,15 @@ public class PositionWaypoint extends Waypoint implements Position {
         this.tolerance = tolerance;
         this.distance = distance;
         this.stopOnFinish = false;
+        this.mustPassThrough = null;
         return this;
     }
 
     @Override
     public boolean isDone() {
-        return player.within(this, tolerance);
+        return player.within(this, tolerance) &&
+                (mustPassThrough == null || !player.within(mustPassThrough, tilesize * 0.99f)); // 0.99 - a number i plucked out of nowhere.
+        // most units should be able to surpass the distance requirement to change direction and not hit the corner block
     }
 
     @Override
@@ -72,6 +76,7 @@ public class PositionWaypoint extends Waypoint implements Position {
             player.snapInterpolation();
             stopOnFinish = false;
         }
+        mustPassThrough = null;
     }
 
     protected void moveTo(Position target, float circleLength, float smooth){

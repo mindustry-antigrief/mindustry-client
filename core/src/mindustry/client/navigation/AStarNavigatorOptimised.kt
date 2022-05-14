@@ -329,10 +329,8 @@ object AStarNavigatorOptimised : Navigator() {
                             val ccy = World.conv(c.y + v1.y).roundToInt()
                             if (!Structs.inBounds(ccx, ccy, tileWidth, tileHeight)) continue
                             if (cell(ccx, ccy).blocked) {
-                                c.set(c.x - v1.x * 0.25f, c.y - v1.y * 0.25f, c.tolerance / 2, c.distance)
-                                // move the corner outwards a bit and decrease its tolerance
-                                // i would modify PositionWaypoint to ensure the unit passes the point first,
-                                //  but it's hard to enforce
+                                //c.set(c.x - v1.x * 0.25f, c.y - v1.y * 0.25f, c.tolerance / 2, c.distance)
+                                c.mustPassThrough = points[i - 1]
                             }
                         }
                     }
