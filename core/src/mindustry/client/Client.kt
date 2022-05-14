@@ -468,7 +468,7 @@ object Client {
             // FINISHME: success message
         }
 
-        register("replacemessage <from> <to> [useRegex=t]", "Replaces corresponding text in messages.") { args, _ ->
+        register("replacemessage <from> <to> [useRegex=t]", "Replaces corresponding text in messages.") { args, player ->
             if (args[0].length < 3) {
                 player.sendMessage("[scarlet]That might not be a good idea...")
                 return@register
@@ -480,7 +480,7 @@ object Client {
         register(
             "replacemsgif <matches> <from> <to> [useMatchRegex=t] [useFromRegex=t]",
             "Replaces corresponding text in messages, only if they match the text."
-        ) { args, _ ->
+        ) { args, player ->
             if (args[0].length < 3) {
                 player.sendMessage("[scarlet]That might not be a good idea...")
                 return@register
@@ -506,7 +506,7 @@ object Client {
             })
         }
 
-        register("phasei <interval>", "Changes interval for end bridge when shift+dragging phase conveyors.") { args, _ ->
+        register("phasei <interval>", "Changes interval for end bridge when shift+dragging phase conveyors.") { args, player ->
             try{
                 val interval = Integer.parseInt(args[0])
                 val maxInterval = (Blocks.phaseConveyor as ItemBridge).range
@@ -545,7 +545,7 @@ object Client {
             player.sendMessage("[accent]Automatic node configuration " + (if(retain) "currently " else "") + if(new) "[green]enabled" else "[scarlet]disabled")
         }
 
-        register("pathing", "Change the pathfinding algorithm") { _, _ ->
+        register("pathing", "Change the pathfinding algorithm") { _, player ->
             if (navigator is AStarNavigator) {
                 navigator = AStarNavigatorOptimised
                 player.sendMessage("[accent]Using [green]improved[] algorithm")
@@ -555,7 +555,7 @@ object Client {
             }
         }
 
-        register("pic [quality]", "Sets the image quality for sending via chat (0 -> png)") { args, _ ->
+        register("pic [quality]", "Sets the image quality for sending via chat (0 -> png)") { args, player ->
             if (args.isEmpty()) {
                 player.sendMessage("[accent]Enter a value between 0.0 and 1.0 for quality (0.0 -> png)\n" +
                         "Currently set to [white]${jpegQuality}${if(jpegQuality == 0f)" (png)" else ""}[].")
