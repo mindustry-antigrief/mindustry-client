@@ -59,7 +59,6 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
 
     override fun send(bytes: ByteArray) { // FINISHME: Won't work on new planet where processors don't exist.
         if (!Vars.player.unit().canBuild()) {
-            Toast(3f).add("[scarlet]Failed to send packet, build plan networking doesn't work if you can't build.")
             return
         }
         val config = bytes.base32678().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = PREFIX.format(Random.nextLong())) { "print \"$it\"" }
