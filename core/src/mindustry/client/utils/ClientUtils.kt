@@ -11,7 +11,7 @@ import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
-import mindustry.ai.types.LogicAI
+import mindustry.ai.types.*
 import mindustry.client.*
 import mindustry.client.communication.*
 import mindustry.core.*
