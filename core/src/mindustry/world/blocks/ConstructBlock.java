@@ -11,9 +11,11 @@ import arc.struct.*;
 import arc.util.Timer;
 import arc.util.*;
 import arc.util.io.*;
+import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.ui.*;
+import mindustry.client.utils.ClientUtilsKt;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
@@ -32,7 +34,6 @@ import mindustry.world.blocks.storage.*;
 import mindustry.world.modules.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.*;
 
 import static mindustry.Vars.*;
 import static mindustry.ui.Styles.*;
@@ -305,9 +306,7 @@ public class ConstructBlock extends Block{
             wasConstructing = true;
             activeDeconstruct = false;
 
-            if(builder.isPlayer()){
-                lastBuilder = builder;
-            }
+            lastBuilder = builder;
 
             lastConfig = config;
 
@@ -327,7 +326,7 @@ public class ConstructBlock extends Block{
 
             progress = state.rules.infiniteResources ? 1 : Mathf.clamp(progress + maxProgress);
 
-            blockWarning(config);
+            handleBlockWarning(config);
 
             if(progress >= 1f || state.rules.infiniteResources){
                 if(lastBuilder == null) lastBuilder = builder;
@@ -348,9 +347,8 @@ public class ConstructBlock extends Block{
             activeDeconstruct = true;
             float deconstructMultiplier = state.rules.deconstructRefundMultiplier;
 
-            if(builder.isPlayer()){
-                lastBuilder = builder;
-            }
+            lastBuilder = builder;
+
 
             ItemStack[] requirements = current.requirements;
             if(requirements.length != accumulator.length || totalAccumulator.length != requirements.length){
@@ -382,7 +380,6 @@ public class ConstructBlock extends Block{
             progress = Mathf.clamp(progress - amount);
 
             if(progress <= current.deconstructThreshold || state.rules.infiniteResources){
-                if(lastBuilder == null) lastBuilder = builder;
                 Call.deconstructFinish(tile, this.current, lastBuilder);
             }
         }
@@ -491,42 +488,72 @@ public class ConstructBlock extends Block{
             buildCost = current.buildCost * state.rules.buildCostMultiplier;
         }
 
-        public void blockWarning(Object config) { // FINISHME: Account for non player building stuff
-            if (!wasConstructing || closestCore() == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
-            var wb = warnBlocks.find(b -> b.block == current);
-            if (wb != null) {
-                lastBuilder.drawBuildPlans(); // Draw their build plans FINISHME: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
-                AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
-                closestCore().proximity.each(e -> e instanceof StorageBlock.StorageBuild, block -> block.tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get()))))); // This stupidity finds the smallest distance between vaults on the closest core and the block being built
-                closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get())))); // This stupidity checks the distance to the core as well just in case it ends up being shorter
+        public boolean shouldDisplayWarning(){
+            return wasConstructing && closestCore() != null && lastBuilder != null
+                    && team == player.team() && progress != lastProgress
+                    && lastBuilder != player.unit() && getWarnBlock() != null;
+        }
 
-                // Play warning sound (only played when no reactor has been built for 10s)
-                if (wb.soundDistance == 101 || distance.get() <= wb.soundDistance) {
-                    if (Time.timeSinceMillis(lastWarn) > 10 * 1000) Sounds.corexplode.play(.5f * (float)Core.settings.getInt("sfxvol") / 100.0F);
-                    lastWarn = Time.millis();
-                }
+        public ConstructBlock.WarnBlock getWarnBlock(){
+            return warnBlocks.find(b -> b.block == current);
+        }
 
-                if (wb.warnDistance == 101 || distance.get() <= wb.warnDistance) {
-                    String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.playerNonNull().name), current.localizedName, tile.x, tile.y, distance.get());
-                    String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
-                    if (toast == null || toast.parent == null) {
-                        toast = new Toast(2f, 0f);
-                    } else {
-                        toast.clearChildren();
-                    }
-                    toast.setFadeAfter(2f);
-                    toast.add(new Label(format));
-                    toast.row();
-                    toast.add(new Label(format2, monoLabel));
-                    toast.touchable = Touchable.enabled;
-                    toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
-                    ClientVars.lastSentPos.set(tile.x, tile.y);
+        /** Returns the smallest distance to the core and/or its connected vaults.*/
+        public int distanceToGreaterCore(){
+            int lowestDistance = Integer.MAX_VALUE;
+            //Loop through the core and all connected storage
+            for(Building building : closestCore().proximity.copy().and(closestCore())) {
+                if (building instanceof StorageBlock.StorageBuild || building instanceof CoreBuild) {
+                    lowestDistance = Math.min(World.toTile(building.tile.dst(this.tile)), lowestDistance);
                 }
+            }
+            return lowestDistance;
+        }
 
-                if (lastProgress == 0 && Core.settings.getBool("removecorenukes") && state.rules.reactorExplosions && current instanceof NuclearReactor && !lastBuilder.isLocal() && distance.get() <= 20) { // Automatically remove reactors within 20 blocks of core
-                    Call.buildingControlSelect(player, closestCore());
-                    Timer.schedule(() -> player.unit().plans.add(new BuildPlan(tile.x, tile.y)), net.client() ? netClient.getPing()/1000f+.3f : 0);
+        public void handleBlockWarning(Object config) {
+            //refactored by BalaM314
+            if (!shouldDisplayWarning()) return;
+            var warnBlock = getWarnBlock();
+            lastBuilder.drawBuildPlans(); // Draw their build plans FINISHME: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
+            int distance = distanceToGreaterCore();
+
+            // Play warning sound (only played when no reactor has been built for 10s)
+            if (warnBlock.soundDistance == 101 || distance <= warnBlock.soundDistance) {
+                if (Time.timeSinceMillis(lastWarn) > 10 * 1000){
+                    Sounds.corexplode.play(.5f * (float)Core.settings.getInt("sfxvol") / 100.0F);
                 }
+                lastWarn = Time.millis();
+            }
+
+            if (warnBlock.warnDistance == 101 || distance <= warnBlock.warnDistance) {
+                String toastMessage = Core.bundle.format(
+                        "client.blockwarn", ClientUtilsKt.getName(lastBuilder),
+                        current.localizedName, tile.x, tile.y, distance
+                );
+                String toastSubtitle = String.format("%2d%% completed.", Mathf.round(progress * 100));
+                if (toast == null || toast.parent == null) {
+                    toast = new Toast(2f, 0f);
+                } else {
+                    toast.clearChildren();
+                }
+                toast.setFadeAfter(2f);
+                toast.add(new Label(toastMessage));
+                toast.row();
+                toast.add(new Label(toastSubtitle, monoLabel));
+                toast.touchable = Touchable.enabled;
+                toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
+                ClientVars.lastSentPos.set(tile.x, tile.y);
+            }
+
+            if (
+                    lastProgress == 0 && Core.settings.getBool("removecorenukes")
+                    && state.rules.reactorExplosions && current instanceof NuclearReactor
+                    && !lastBuilder.isLocal() && distance <= 21
+            ) { // Automatically remove reactors within explosion radiusof core
+                Call.buildingControlSelect(player, closestCore());
+                Timer.schedule(() -> player.unit().plans.add(
+                        new BuildPlan(tile.x, tile.y)
+                ), net.client() ? netClient.getPing()/1000f+.3f : 0);
             }
             lastProgress = progress;
         }

@@ -11,6 +11,7 @@ import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
+import mindustry.ai.types.LogicAI
 import mindustry.client.*
 import mindustry.client.communication.*
 import mindustry.core.*
@@ -413,6 +414,23 @@ inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
 /** Send a signed message to chat. */
 fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))
 
+fun getName(builder:mindustry.gen.Unit):String {
+    if(builder.isPlayer()){
+        return Strings.stripColors(builder.getPlayer().name)
+    } else if(builder.controller() is LogicAI){
+        val controller = (builder.controller() as LogicAI).controller;
+        return Strings.format(
+            "@ controlled by @ last configured by @ at (@, @)",
+            builder.type.toString(), controller.getDisplayName(),
+            if(controller.lastAccessed == null) "[unknown]" else Strings.stripColors(controller.lastAccessed),
+            controller.tileX(), controller.tileY()
+        )
+    } else if(builder.controller() != null){
+        return Strings.format("@ controlled by controller of class @", builder.type.toString(), (builder.controller()::javaClass).toString())
+    } else {
+        return Strings.format("@ not controlled by anything-wait what-")
+    }
+}
 
 //inline fun <T> Seq<out T>.forEach(consumer: (T?) -> Unit) {
 //    for (i in 0 until size) consumer(items[i])
