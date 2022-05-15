@@ -1,10 +1,12 @@
 package mindustry.client.navigation
 
 import arc.*
+import arc.math.Mathf
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
+import mindustry.client.navigation.Path.Companion.waypoints
 import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.gen.*
@@ -13,6 +15,7 @@ import mindustry.type.*
 class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().type.mineItems, var cap: Int = Core.settings.getInt("minepathcap"), val newGame: Boolean = false) : Path() {
     private var lastItem: Item? = null // Last item mined
     private var timer = Interval()
+    private var transferedToCore = false
 
     companion object {
         init {
@@ -44,22 +47,29 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
     override fun follow() {
         val core = player.closestCore() ?: return
         var item = items.min({ indexer.hasOre(it) && player.unit().canMine(it) }) { core.items[it].toFloat() } ?: return
-        if (lastItem != null && player.unit().canMine(lastItem) && core.items[lastItem] - core.items[item] < 100) item = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
+        val maxCap = if (cap == 0) core.storageCapacity else core.storageCapacity.coerceAtMost(cap)
+        if (lastItem != null && player.unit().canMine(lastItem) && core.items[lastItem] - core.items[item] < 100 && core.items[lastItem] < maxCap) item = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
         lastItem = item
-        if (!newGame && cap < core.storageCapacity && core.items[item] >= core.storageCapacity || cap != 0 && core.items[item] > cap) {  // Auto switch to BuildPath when core is sufficiently full
-            player.sendMessage(Strings.format("[accent]Automatically switching to BuildPath as the core has @ items (this number can be changed in settings).", if (cap == 0) core.storageCapacity else cap))
+
+        if (!newGame && core.items[item] >= maxCap && cap != 0) {  // Auto switch to BuildPath when core is sufficiently full
+            transferedToCore = false
+            player.sendMessage(Strings.format("[accent]Automatically switching to BuildPath as the core has @ items (this number can be changed in settings).", maxCap))
             Navigation.follow(BuildPath(items, cap))
         }
 
-        if (player.unit().maxAccepted(item) <= 1) { // drop off
-            if (player.within(core, itemTransferRange - tilesize * 10) && timer[30f]) {
+        if (player.unit().maxAccepted(item) <= 1 || (core.items[item] >= maxCap && cap == 0)) { // go to core and drop off
+            if (player.within(core, itemTransferRange - tilesize * 10) && timer[30f] && !transferedToCore) {
+                player.unit().mineTile = null
                 Call.transferInventory(player, core)
+                if (player.unit().hasItem()) player.unit().clearItem()
+                else transferedToCore = true
             } else {
                 if (player.unit().type.canBoost) player.boosting = true
-                goTo(core, itemTransferRange - tilesize * 15)
+                if (!player.within(core, itemTransferRange - tilesize * 15)) goTo(core, itemTransferRange - tilesize * 15)
             }
 
         } else { // mine
+            transferedToCore = false
             val tile = indexer.findClosestOre(player.unit(), item) // FINISHME: Ignore blocked tiles
             player.unit().mineTile = tile
             if (tile == null) return
