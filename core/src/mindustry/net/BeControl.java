@@ -82,7 +82,7 @@ public class BeControl{
                 }
                 String latest = found.getString("name");
                 var token = latest.split("[.]");
-                int smallVersion = Integer.parseInt(token[token.length - 1]) + 1;
+                int smallVersion = Integer.parseInt(token[token.length - 1]);
                 var token2 = Version.clientVersion.split("[.]");
                 int smallVersion2 = Integer.parseInt(token2[token2.length - 1]);
                 if (smallVersion <= smallVersion2) {
