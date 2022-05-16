@@ -386,7 +386,7 @@ project(":core"){
         compileOnly project(":annotations")
         if (!project.hasProperty("noKapt")) kapt project(":annotations")
 
-        runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-jsr223:1.6.21"
+//        runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-jsr223:1.6.21"
     }
 
     afterEvaluate{
