@@ -54,20 +54,31 @@ abstract class Path {
                         if (path.isNotEmpty() && (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>))) { // Same destination
                             val relaxed = Navigation.navigator is AStarNavigatorOptimised
                             filter.addAll(*path)
-                            filter.removeAll { (it.dst(destX, destY) < dist).apply { if (this) Pools.free(it) } }
+                            if (!relaxed) filter.removeAll { (it.dst(destX, destY) < dist).apply { if (this) Pools.free(it) } }
+                            else while(filter.size > 1 && filter[filter.size - 2].dst(destX, destY) < dist) Pools.free(filter.pop())
                             if (filter.size > 1) {
                                 val m = filter.min(Vars.player::dst) // from O(n^2) to O(n) (pog) (cool stuff)
                                 if (!relaxed || Vars.player.within(m, m.tolerance)) {
                                     val i = filter.indexOf(m)
-                                    if (i > 0) { for (j in 0 until i) Pools.free(filter[j]);filter.removeRange(0, i - 1) }
+                                    if (i > 0) { for (j in 0 until i) Pools.free(filter[j]); filter.removeRange(0, i - 1) }
                             }}
                             if (!relaxed) {
                                 if (filter.size > 1 || (filter.any() && filter.first().dst(Vars.player) < Vars.tilesize / 2f)) Pools.free(filter.remove(0))
                                 if (filter.size > 1 && Vars.player.unit().isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
-                            } else {
-                                if (filter.size > 1 && Vars.player.dst(filter[0]) <= Vars.tilesize &&
-                                    filter[0].dst(filter[1]) >= Vars.player.dst(filter[0])) Pools.free(filter.remove(0))
-                                // by triangular inequality, we check if filter[0] and filter[1] are on opposing sides of the player
+                            } else if (filter.size > 1) {
+                                var prev: Position = v1 // startX, startY should be guaranteed to be behind the player?
+                                var removeTo = -1
+                                for (i in 0 until filter.size) {
+                                    val curr = filter[i]
+                                    if (prev.dst2(curr) >= Vars.player.dst2(prev)) { // find the point where the path crosses through the player
+                                        removeTo = i - 1
+                                        break
+                                    }
+                                    prev = curr
+                                }
+                                if (removeTo >= 0) { for (j in 0 .. removeTo) Pools.free(filter[j]); filter.removeRange(0, removeTo) }
+                                // if (filter[0].dst(filter[1]) >= Vars.player.dst(filter[0])) Pools.free(filter.remove(0))
+                                // by triangular inequality, we check if filter[i] and filter[i+1] are on opposing sides of the player
                             }
                             if (filter.any()) {
                                 filter.peek().tolerance = 4f // greater accuracy when stopping
