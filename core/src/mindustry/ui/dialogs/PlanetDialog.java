@@ -162,9 +162,17 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
         shown(this::setup);
     }
 
+    private boolean first = true;
+
     /** show with no limitations, just as a map. */
     @Override
     public Dialog show(){
+        if(first){ // FINISHME: Awful fix for https://trello.com/c/cxYJlsKq
+            first = false;
+            control.saves.load();
+            control.saves.unload();
+        }
+
         if(net.client()){
             ui.showInfo("@map.multiplayer");
             return this;

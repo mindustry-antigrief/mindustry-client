@@ -37,10 +37,10 @@ allprojects{
     ext{
         versionNumber = '7'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
-        if(!project.hasProperty("versionModifier")) versionModifier = 'bleeding-edge'
+        if(!project.hasProperty("versionModifier")) versionModifier = 'alpha'
         if(!project.hasProperty("buildversion")) buildversion = '136'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
-        if(!project.hasProperty("versionType")) versionType = 'official'
+        if(!project.hasProperty("versionType")) versionType = 'bleeding-edge'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
         rhinoVersion = '73a812444ac388ac2d94013b5cadc8f70b7ea027'
@@ -217,14 +217,6 @@ allprojects{
     }
 }
 
-configure(project(":annotations")){
-    tasks.withType(JavaCompile){
-        targetCompatibility = 8
-        sourceCompatibility = 8
-        options.fork = true
-    }
-}
-
 //compile with java 8 compatibility for everything except the annotation project
 configure(subprojects - project(":annotations")){
     tasks.withType(JavaCompile){
@@ -364,6 +356,17 @@ project(":core"){
         archives assetsJar
     }
 
+    kapt {
+        keepJavacAnnotationProcessors = true
+//        javacOptions {
+//            option("-source", "8")
+//        }
+    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask.class).configureEach {
+        kaptProcessJvmArgs.add('--source=8')
+    }
+
     dependencies{
         compileJava.dependsOn(preGen)
 
@@ -471,8 +474,14 @@ project(":tools"){
     }
 }
 
-project(":annotations"){
+configure(project(":annotations")){
     apply plugin: "java-library"
+
+    tasks.withType(JavaCompile){
+        targetCompatibility = 8
+        sourceCompatibility = 8
+        options.fork = false
+    }
 
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"

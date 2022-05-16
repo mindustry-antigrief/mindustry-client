@@ -99,8 +99,6 @@ public class BaseTurret extends Block{
             Drawf.dashCircle(x, y, range(), team.color);
         }
 
-        // FINISHME: No.
-        @Deprecated
         public boolean canShoot(){ // Client stuff
             return canConsume();
         }

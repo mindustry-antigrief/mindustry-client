@@ -36,13 +36,13 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
     @Override
     public void setup(){
-        Threads.daemon("Class Preloader", () -> {
-            try {
-                Class.forName("mindustry.gen.EntityMapping");
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        });
+//        Threads.daemon("Class Preloader", () -> {
+//            try {
+//                Class.forName("mindustry.gen.EntityMapping");
+//            } catch (ClassNotFoundException e) {
+//                throw new RuntimeException(e);
+//            }
+//        });
         String dataDir = OS.env("MINDUSTRY_DATA_DIR");
         if(dataDir != null){
             Core.settings.setDataDirectory(files.absolute(dataDir));

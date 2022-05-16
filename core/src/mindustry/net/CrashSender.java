@@ -30,7 +30,7 @@ public class CrashSender{
         + "Java Version: " + OS.javaVersion + "\n"
         + "Runtime Available Memory: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "mb\n"
         + "Cores: " + Runtime.getRuntime().availableProcessors() + "\n"
-        + (mods == null ? "<no mod init>" : "Mods: " + (!mods.list().contains(LoadedMod::shouldBeEnabled) ? "none (vanilla)" : mods.list().select(LoadedMod::shouldBeEnabled).toString(", ", mod -> mod.name + ":" + mod.meta.version)))
+        + (mods == null ? "<no mod init>" : "Mods: " + (!mods.list().contains(LoadedMod::enabled) ? "none (vanilla)" : mods.list().select(LoadedMod::shouldBeEnabled).toString(", ", mod -> mod.name + ":" + mod.meta.version)))
         + "\n\n" + error + "```";
     }
 

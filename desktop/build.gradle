@@ -24,7 +24,7 @@ task run(dependsOn: classes, type: JavaExec){
     jvmArgs += "-XX:+ShowCodeDetailsInExceptionMessages"
 
     if(project.hasProperty("args")){
-        args Eval.me(project.getProperties()["args"])
+        args += project.property("args")
     }
 
     if(project.hasProperty("jvmArgs")){
