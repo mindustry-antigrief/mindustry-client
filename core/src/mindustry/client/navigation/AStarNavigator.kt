@@ -16,7 +16,7 @@ object AStarNavigator : Navigator() {
     private val pool = Pools.get(PositionWaypoint::class.java) { PositionWaypoint() }
     private var grid: Array<Cell> = emptyArray()
     private var gridSize = Point2()
-    private var open = BinaryHeap<Cell>(1 shl 16, false)
+    private var open = BinaryHeap<Cell>(65_536, false)
     private var startX = 0
     private var startY = 0
     private var endX = 0
