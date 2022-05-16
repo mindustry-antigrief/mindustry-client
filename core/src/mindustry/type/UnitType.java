@@ -473,6 +473,10 @@ public class UnitType extends UnlockableContent{
 
     }
 
+    public void updatePayload(Unit unit, @Nullable Unit unitHolder, @Nullable Building buildingHolder){
+
+    }
+
     public void landed(Unit unit){}
 
     public void display(Unit unit, Table table){
@@ -618,6 +622,16 @@ public class UnitType extends UnlockableContent{
         }
     }
 
+    //never actually called; it turns out certain mods have custom weapons that do not need bullets.
+    protected void validateWeapons(){
+        for(int i = 0; i < weapons.size; i++){
+            var wep = weapons.get(i);
+            if(wep.bullet == Bullets.placeholder || wep.bullet == null){
+                throw new RuntimeException("Unit: " + name + ": weapon #" + i + " ('" + wep.name + "') does not have a bullet defined. Make sure you have a bullet: (JSON) or `bullet = ` field in your unit definition.");
+            }
+        }
+    }
+
     @CallSuper
     @Override
     public void init(){
@@ -635,13 +649,6 @@ public class UnitType extends UnlockableContent{
             immunities.add(StatusEffects.wet);
             if(shadowElevation < 0f){
                 shadowElevation = 0.11f;
-            }
-        }
-
-        for(int i = 0; i < weapons.size; i++){
-            var wep = weapons.get(i);
-            if(wep.bullet == Bullets.placeholder || wep.bullet == null){
-                throw new RuntimeException("Unit: " + name + ": weapon #" + i + " ('" + wep.name + "') does not have a bullet defined. Make sure you have a bullet: (JSON) or `bullet = ` field in your unit definition.");
             }
         }
 
@@ -864,7 +871,7 @@ public class UnitType extends UnlockableContent{
                 String regionName = atlas.name;
                 Pixmap outlined = Pixmaps.outline(Core.atlas.getPixmap(region), outlineColor, outlineRadius);
 
-                if(Core.settings.getBool("linear", true)) Pixmaps.bleed(outlined);
+                Drawf.checkBleed(outlined);
 
                 packer.add(PageType.main, regionName + "-outline", outlined);
             }
@@ -1527,6 +1534,17 @@ public class UnitType extends UnlockableContent{
 
             Tmp.v1.set(x, y).rotate(rot);
             float ex = Tmp.v1.x, ey = Tmp.v1.y;
+
+            //engine outlines (cursed?)
+            /*float z = Draw.z();
+            Draw.z(z - 0.0001f);
+            Draw.color(type.outlineColor);
+            Fill.circle(
+            unit.x + ex,
+            unit.y + ey,
+            (type.outlineRadius * Draw.scl + radius + Mathf.absin(Time.time, 2f, radius / 4f)) * scale
+            );
+            Draw.z(z);*/
 
             Draw.color(color);
             Fill.circle(

@@ -209,11 +209,8 @@ public class Mods implements Loadable{
                     Log.warn("Sprite '@' on page '@' in mod '@' attempts to override a sprite on page '@'. Ignoring.", name, page, mod.name, existingPage);
                     continue;
                 }
-            }else if(name.endsWith("-outline")){
-                //TODO !!! document this on the wiki !!!
-                //do not allow packing standard outline sprites for now, they are no longer necessary and waste space!
-                //TODO also full regions are bad:  || name.endsWith("-full")
-                Log.warn("Sprite '@' in mod '@' is redundant; outline sprites are no longer needed. Ignoring.", name, mod.name);
+            }else if(prefix && name.endsWith("-outline") && file.path().contains("units") && !file.path().contains("blocks")){
+                Log.warn("Sprite '@' in mod '@' is likely to be an unnecessary unit outline. These should not be separate sprites. Ignoring.", name, mod.name);
                 continue;
             }
 
