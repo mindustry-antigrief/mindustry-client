@@ -35,7 +35,9 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
             items = player.unit().type.mineItems
             if (split.none { Strings.parseInt(it) > 0 }) player.sendMessage("client.path.miner.allinvalid".bundle())
         } else if (cap >= 0) {
-            player.sendMessage(Core.bundle.format("client.path.miner.mining", items.joinToString(), if (cap == 0) "∞" else cap))
+            player.sendMessage(Core.bundle.format("client.path.miner.tobuild", items.joinToString(), if (cap == 0) "∞" else cap))
+        } else {
+            player.sendMessage(Core.bundle.format("client.path.miner.toidle", items.joinToString(), player.closestCore().storageCapacity))
         }
     }
 
@@ -51,7 +53,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
 
         if (!newGame && core.items[item] >= maxCap && cap >= 0) {  // Auto switch to BuildPath when core is sufficiently full
             coreIdle = false
-            player.sendMessage(Strings.format("[accent]Automatically switching to BuildPath as the core has @ items (this number can be changed in settings).", maxCap))
+            player.sendMessage(Core.bundle.format("client.path.miner.build", maxCap))
             Navigation.follow(BuildPath(items, cap))
         }
 
@@ -62,7 +64,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
             if (player.unit().hasItem()) player.unit().clearItem() // clear items to prepare for MinePath resumption
 
             if (core.items[item] < maxCap / 2) {
-                player.sendMessage(Strings.format("[accent]Resuming MinePath as core is few on items."))
+                player.sendMessage(Core.bundle.get("client.path.miner.resume"))
                 coreIdle = false
             }
 
@@ -77,7 +79,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
 
                 // idle at core if cap < 0 (never switch to build path)
                 if (core.items[item] >= maxCap && cap < 0) {
-                    player.sendMessage(Strings.format("[accent]Idling nearby core until core has less than @ items.", maxCap))
+                    player.sendMessage(Core.bundle.format("client.path.miner.idle", maxCap))
                     coreIdle = true
                 }
             } else {
