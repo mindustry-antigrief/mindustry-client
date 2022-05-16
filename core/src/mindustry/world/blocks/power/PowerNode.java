@@ -367,12 +367,12 @@ public class PowerNode extends PowerBlock{
 
             boolean isConnected = pb.power.links.contains(value);
             if(isConnected == connect){
-                pb.removeFromQueue(value);
+                pb.removeFromQueue(value, connect);
                 return; //already connected if want to connect, and vice versa
             }
 
             Call.tileConfig(Vars.player, tile.build, value);
-            pb.removeFromQueue(value);
+            pb.removeFromQueue(value, connect);
         }
     }
 
@@ -382,6 +382,7 @@ public class PowerNode extends PowerBlock{
         public @Nullable ChatFragment.ChatMessage message;
         public int disconnections = 0;
         public @Nullable IntSet correctLinks, queuedConfigs; // supposed links when placed in a schematic
+        public int queuedConnectionSize = 0; // true number of connections if queued connections are successful
         public long timeout = Time.millis();
 
         public static int fixNode = 0;
@@ -424,9 +425,10 @@ public class PowerNode extends PowerBlock{
 //                });
 //            }
 //        }
-        private void removeFromQueue(int value){
+        private void removeFromQueue(int value, boolean connect){
             if(queuedConfigs == null) return;
             queuedConfigs.remove(value);
+            queuedConnectionSize -= connect ? 1 : -1;
             if (queuedConfigs.isEmpty() && correctLinks == null) queuedConfigs = null;
         }
 
@@ -434,12 +436,7 @@ public class PowerNode extends PowerBlock{
             if(queuedConfigs == null || queuedConfigs.contains(value)) return;
             queuedConfigs.add(value);
             ClientVars.configs.add(new PowerNodeConfigReq(this, value, connect));
-            timeout = Time.millis();
-        }
-
-        private void addToQueue(int value){
-            if(queuedConfigs == null || queuedConfigs.contains(value)) return;
-            queuedConfigs.add(value);
+            queuedConnectionSize += connect ? 1 : -1;
             timeout = Time.millis();
         }
 
@@ -456,11 +453,11 @@ public class PowerNode extends PowerBlock{
             correctLinks.each(v -> {
                if(power.links.contains(v)) return;
                pending[0] = true;
-               if(!queuedConfigs.contains(v) && linkValid(this, world.build(v))){
+               if(!queuedConfigs.contains(v) && power.links.size + queuedConnectionSize < maxNodes && linkValid(this, world.build(v))){
                    addToQueue(v, true);
                }
             });
-            if(!pending[0] || Time.timeSinceMillis(timeout) > 300000L /*300 seconds*/){
+            if(!pending[0] || Time.timeSinceMillis(timeout) > 300000L /*300 seconds*/ || correctLinks.size > maxNodes){
                 correctLinks = null;
             }
         }
