@@ -39,7 +39,13 @@ allprojects{
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
         if(!project.hasProperty("buildversion")) buildversion = '135'
-        if(!project.hasProperty("clientVersion")) clientVersion = 'git branch --show-current'.execute().text.trim() + ", " + new Date().format('dd MMM yyyy, HHmm') // 28 Oct 2021, time
+        if(!project.hasProperty("clientVersion")){
+            def tagTokens = "git tag --sort=committerdate -l v${project.getProperties()["buildversion"]}* -n1".execute().text.trim().split('[\n]')[-1]
+                    .tokenize(' ')[0].split('[.]') as String[]
+            tagTokens[0] = tagTokens[0][1..-1]
+            tagTokens[-1] = ((tagTokens[-1] as Integer) + 1) as String
+            clientVersion = 'git branch --show-current'.execute().text.trim() + " / ${tagTokens.join('.')}"
+        }
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
