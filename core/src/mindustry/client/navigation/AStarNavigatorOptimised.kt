@@ -105,7 +105,7 @@ object AStarNavigatorOptimised : Navigator() {
                 checkAndUpdateCost(
                     current,
                     cell(x, y),
-                    current.g * (if (abs(x1) + abs(y1) == 1) 1f else 1.00001f) + cell(x, y).added * if (abs(x1) + abs(y1) == 1) 1f else 1.414f // Tiebreaker is needed to draw correct path
+                    current.g * (if (diag) 1.00001f else 1f) + cell(x, y).added * if (diag) 1.414f else 1f // Tiebreaker is needed to draw correct path
                 )
             }
         }
