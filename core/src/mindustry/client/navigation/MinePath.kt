@@ -86,7 +86,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
                 }
             } else {
                 if (player.unit().type.canBoost) player.boosting = true
-                if (!player.within(core, itemTransferRange - tilesize * 15)) goTo(core, itemTransferRange - tilesize * 15)
+                goTo(core, itemTransferRange - tilesize * 15)
             }
 
         // mine
