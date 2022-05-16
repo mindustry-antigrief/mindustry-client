@@ -930,6 +930,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     private final Seq<Tile> tempTiles = new Seq<>(4);
     protected void flushRequests(Seq<BuildPlan> requests){
+        var useClientConfigs = !state.rules.infiniteResources;
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[requests.size + requests.count(req -> req.block == Blocks.waterExtractor) * 3];
         var added = 0;
@@ -958,21 +959,26 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
             if(validPlace(req.x, req.y, req.block, req.rotation)){
                 BuildPlan copy = req.copy();
-                if (configLogic && copy.block instanceof LogicBlock && copy.config != null) {
-                    final var conf = copy.config; // this is okay because processor connections are relative
-                    copy.config = null;
-                    copy.clientConfig = it -> {
-                        if (!(it instanceof LogicBlock.LogicBuild build)) return;
-                        if (!build.code.isEmpty() || build.links.any()) return; // Someone else built a processor with data
-                        configs.add(new ConfigRequest(it.tile.x, it.tile.y, conf));
-                    };
-                }
-                if (copy.block instanceof PowerNode && copy.config instanceof Point2[] conf) {
-                    int requiredSetting = (isLoadedSchematic ? PowerNodeFixSettings.enableReq : PowerNodeFixSettings.nonSchematicReq) + (copy.block instanceof PowerSource ? 1 : 0);
-                    if(PowerNodeBuild.fixNode >= requiredSetting) {
-                        final var nconf = new Point2[conf.length];
-                        for(int i = 0; i < conf.length; i++) nconf[i] = conf[i].cpy();
-                        copy.clientConfig = it -> { if (it instanceof PowerNodeBuild build) build.fixNode(nconf); };
+                if(useClientConfigs){
+                    if(configLogic && copy.block instanceof LogicBlock && copy.config != null){
+                        final var conf = copy.config; // this is okay because processor connections are relative
+                        copy.config = null;
+                        copy.clientConfig = it -> {
+                            if (!(it instanceof LogicBlock.LogicBuild build)) return;
+                            if (!build.code.isEmpty() || build.links.any())
+                                return; // Someone else built a processor with data
+                            configs.add(new ConfigRequest(it.tile.x, it.tile.y, conf));
+                        };
+                    }
+                    if(copy.block instanceof PowerNode && copy.config instanceof Point2[] conf){
+                        int requiredSetting = (isLoadedSchematic ? PowerNodeFixSettings.enableReq : PowerNodeFixSettings.nonSchematicReq) + (copy.block instanceof PowerSource ? 1 : 0);
+                        if (PowerNodeBuild.fixNode >= requiredSetting) {
+                            final var nconf = new Point2[conf.length];
+                            for (int i = 0; i < conf.length; i++) nconf[i] = conf[i].cpy();
+                            copy.clientConfig = it -> {
+                                if (it instanceof PowerNodeBuild build) build.fixNode(nconf);
+                            };
+                        }
                     }
                 }
                 req.block.onNewPlan(copy);
