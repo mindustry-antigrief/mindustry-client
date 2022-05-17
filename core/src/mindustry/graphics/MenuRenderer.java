@@ -30,6 +30,7 @@ public class MenuRenderer implements Disposable{
     private float time = 0f;
     private float flyerRot = 45f;
     private float flyerSpin = 0f;
+    private float flyerEngineSpin = 360f;
     private int flyers = Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
     private UnitType flyerType = content.units().select(u -> !u.isHidden() && u.hitSize <= 20f && u.flying && u.onTitleScreen && u.region.found()).random();
 
@@ -214,6 +215,10 @@ public class MenuRenderer implements Disposable{
         if(flyerSpin > 360f){
             flyerSpin = 0f;
         }
+        flyerEngineSpin -= 5f;
+        if(flyerEngineSpin < 0f){
+            flyerEngineSpin = 360f;
+        }
 
         mat.set(Draw.proj());
         Draw.flush();
@@ -256,7 +261,7 @@ public class MenuRenderer implements Disposable{
         Draw.color();
 
         flyers((x, y) -> {
-            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = flyerRot;
+            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = flyerEngineSpin;
 
             Draw.color(Pal.engine);
             Fill.circle(x + Angles.trnsx(rotation + 180, engineOffset), y + Angles.trnsy(rotation + 180, engineOffset),
