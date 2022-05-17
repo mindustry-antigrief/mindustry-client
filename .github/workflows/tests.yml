@@ -1,9 +1,9 @@
 name: Java Tests # Tests and pushes to unstable
 
-on: 
+on:
   push:
     branches: "**" # Runs on all branches but never on tags
-  workflow_dispatch:
+  workflow_dispatch: # Manual trigger
 
 jobs:
   build:
@@ -13,101 +13,55 @@ jobs:
       - name: Checkout Commit
         uses: actions/checkout@v2
 
-      - name: Set up JDK 16
+      - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
-          java-version: 16
+          java-version: 17
           distribution: temurin
 
       - name: Setup Gradle Caching
         uses: gradle/gradle-build-action@v2
 
+      - name: Set Env
+        run: echo "SLUG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
       - name: Timestamp
         id: time
         uses: 1466587594/get-current-time@v2
         with:
-          format: ${[GITHUB_RUN_NUMBER]}, MMM. D, YYYY [Unstable] # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
+          format: ${[env.SLUG]}, MMM. D, YYYY [Unstable] # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
 
       - name: Run Tests
         run: |
-          echo "SLUG=${GITHUB_SHA::7}" >> $GITHUB_ENV
           export PATH=./tools:$PATH
-          ./gradlew tools:pack test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client-v7-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
+          ./gradlew tools:pack test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
 
-      - name: Create Release
-        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v6' || github.event_name == 'workflow_dispatch') }}
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Get Latest Release
+        id: get_release
+        uses: gregziegan/fetch-latest-release@v2.0.0
+
+      - name: Delete Old Jar
+        uses: flcdrg/remove-release-asset-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          body: |
-            Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/mindustry-antigrief/mindustry-client/commit/${{ github.sha }})
-            Steam installation instructions [here](../../../mindustry-client#steam)
-            **Commit Message:**
-            *${{ github.event.head_commit.message }}*
-          commitish: main
-          tag_name: ${{ github.run_number }}
-          release_name: Unstable ${{ github.run_number }} (${{ env.SLUG }})
-          repo: ${{ github.event.repository.name }}-builds
-          draft: false
-          prerelease: false
+          release_id: ${{ steps.get_release.outputs.id }}
+          asset_name: erekir-client.jar
 
-      - name: Upload Release Asset
-        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v6' || github.event_name == 'workflow_dispatch') }}
+      - name: Upload New Jar
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: desktop/build/libs/Mindustry.jar
-          asset_name: desktop.jar
+          asset_name: erekir-client.jar
           asset_content_type: application/zip
 
-      - name: Create Release (v7)
-        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && github.ref == 'refs/heads/v7' }}
-        id: create_release_v7
-        uses: actions/create-release@v1
+      - name: Update Release Name
+        uses: tubone24/update_release@v1.3.1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          TAG_NAME: "v8.0.0"
         with:
-          body: |
-            Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/mindustry-antigrief/mindustry-client/commit/${{ github.sha }})
-            Steam installation instructions [here](../../../mindustry-client/tree/v7#steam)
-            **Commit Message:**
-            *${{ github.event.head_commit.message }}*
-          commitish: main
-          tag_name: ${{ github.run_number }}
-          release_name: Unstable ${{ github.run_number }} (${{ env.SLUG }})
-          repo: mindustry-client-v7-builds
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset (v7)
-        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && github.ref == 'refs/heads/v7' }}
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release_v7.outputs.upload_url }}
-          asset_path: desktop/build/libs/Mindustry.jar
-          asset_name: desktop.jar
-          asset_content_type: application/zip
-
-      - name: Upload Artifact (No release was made)
-        if: ${{ !(github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v7' || github.event_name == 'workflow_dispatch')) }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: Desktop JAR (zipped)
-          path: desktop/build/libs/Mindustry.jar
-
-      - name: Upload Test Results To Pages
-        if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v7' || github.event_name == 'workflow_dispatch') }}
-        uses: JamesIves/github-pages-deploy-action@4.0.0
-        with:
-          token: ${{ secrets.RELEASE_TOKEN }}
-          repository-name: ${{ github.repository }}-v7-builds
-          branch: gh-pages # The branch the action should deploy to.
-          folder: tests/build/reports/tests/test
-          silent: true
-          single-commit: true
+          release_name: ${{ steps.time.outputs.formattedTime }}
