@@ -29,7 +29,7 @@ jobs:
         id: time
         uses: 1466587594/get-current-time@v2
         with:
-          format: "[${{ env.SLUG }}], MMM. D, YYYY [Unstable]" # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
+          format: "[${{env.SLUG}}], MMM. D, YYYY [Unstable]" # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
 
       - name: Run Tests
         run: |
