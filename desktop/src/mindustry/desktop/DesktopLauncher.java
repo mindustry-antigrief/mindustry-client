@@ -392,19 +392,14 @@ public class DesktopLauncher extends ClientLauncher{
         if(useDiscord && Core.settings.getBool("discordrpc")){
             DiscordRPC.RichPresence presence = new DiscordRPC.RichPresence();
 
-            if(inGame){
-                presence.state = gameMode + gamePlayersSuffix;
-                presence.details = gameMapWithWave;
-                if(state.rules.waves){
-                    presence.largeImageText = "Wave " + state.wave;
-                }
-            }else{
-                presence.state = uiState;
-            }
+            presence.state = "SB Flavored";
+            
+            if(inGame) presence.details = gameMode + gamePlayersSuffix;
+            else presence.details = uiState;
 
             presence.largeImageKey = "logo";
             presence.smallImageKey = "foo";
-            presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
+            presence.smallImageText = Strings.format("Foo's Client SByte Edition (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
             presence.startTimestamp = state.tick == 0 ? beginTime/1000 : Time.timeSinceMillis((long)(state.tick * 16.666));
             presence.label1 = "Client Github";
             presence.url1 = "https://github.com/mindustry-antigrief/mindustry-client";
