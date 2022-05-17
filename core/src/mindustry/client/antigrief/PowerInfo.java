@@ -17,7 +17,7 @@ public class PowerInfo {
     public static final Seq<PowerGraph> graphs = new Seq<>();
 
     public static void update() {
-        found = graphs.min(g -> g.team == Vars.player.team(), g -> g.all.size);
+        found = graphs.max(g -> g.team == Vars.player.team(), g -> g.all.size);
     }
 
     public static Element getBars(Table power) { // FINISHME: What in the world

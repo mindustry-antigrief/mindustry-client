@@ -391,7 +391,7 @@ project(":core"){
         compileOnly files("../bouncycastle/bcutil-jdk15on.jar")
         compileOnly arcModule("backends:backend-sdl")
         implementation 'commons-net:commons-net:3.8.0'
-        runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-jsr223:1.6.21"
+//        runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-jsr223:1.6.21"
 
         annotationProcessor 'com.github.Anuken:jabel:0.6.0'
         compileOnly project(":annotations")
@@ -480,7 +480,6 @@ configure(project(":annotations")){
     tasks.withType(JavaCompile){
         targetCompatibility = 8
         sourceCompatibility = 8
-        options.fork = false
     }
 
     dependencies{

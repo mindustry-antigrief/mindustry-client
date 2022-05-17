@@ -60,7 +60,7 @@ public class DirectionalItemBuffer{
             for(int j = 0; j < length; j++){
                 long value = read.l();
                 if(j < buffers[i].length){
-                    buffers[i][j] = value;
+                    buffers[i][j] = BufferItem.get(BufferItem.item(value), Time.time); // BufferItem.time(value, Time.time) doesn't work as intended FINISHME: Change when StructProcess is fixed.
                 }
             }
         }
