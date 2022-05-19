@@ -370,11 +370,6 @@ public class DesktopLauncher extends ClientLauncher{
         String uiState = "";
 
         if(inGame){
-            gameMapWithWave = Strings.capitalize(Strings.stripColors(state.map.name()));
-
-            if(state.rules.waves){
-                gameMapWithWave += " | Wave " + state.wave;
-            }
             gameMode = state.rules.pvp ? "PvP" : state.rules.attackMode ? "Attack" : "Survival";
             if(net.active() && Groups.player.size() > 1){
                 gamePlayersSuffix = " | " + Groups.player.size() + " Players";
