@@ -43,7 +43,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     private BuildPlan req;
     private boolean valid;
     private final Pool<BuildPlan> pool = Pools.get(BuildPlan.class, BuildPlan::new, 15_000); // This is cursed but
-    private final PQueue<BuildPlan> priority = new PQueue<>(300, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, player.core())), Structs.comparingFloat(plan -> plan.dst(player))));
+    private final PQueue<BuildPlan> priority = new PQueue<>(301, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, player.core())), Structs.comparingFloat(plan -> plan.dst(player))));
     private final Seq<BuildPlan> freed = new Seq<>();
     private CompletableFuture<Void> job = null;
 
@@ -248,10 +248,9 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                         var queue = queues.get(j); // Since we break out of the loop, we can't use the iterator
                         sortPlans(queue, all);
                         if (priority.empty()) continue;
-                        i = 0;
-                        BuildPlan plan;
-                        while ((plan = priority.poll()) != null && i++ < 300) {
-                            player.unit().addBuild(plan);
+
+                        for(int k = 0, count = Math.min(priority.size, 300); k < count; k++){ // Imagine a language with a repeat method
+                            player.unit().addBuild(priority.poll());
                         }
                         priority.clear();
                         break sort;
@@ -309,30 +308,26 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     }
 
     @Override
-    public void reset() {
-        broken.clear();
-        boulders.clear();
-        assist.clear();
-        unfinished.clear();
-        cleanup.clear();
-    }
+    public void reset() {}
 
     @Override
     public Position next() {
         return null;
     }
 
+    private Seq<Tile> tempTiles = new Seq<>();
     /** Adds all the plans to the priority variable
      * @param includeAll whether to include unaffordable plans (appended to end of affordable ones) */
-    private void sortPlans(Queue<BuildPlan> plans, boolean includeAll) {
-        if (plans == null) return;
-        int count = Math.min(plans.size, 300);
-        var rad = radius * tilesize;
-        for (int i = 0; i < count; i++) {
+    private void sortPlans(Queue<BuildPlan> plans, boolean includeAll) { // FINISHME: This is bad. Why does this even use a PQ? Its almost certainly slower than a Seq that is sorted once at the end (not to mention it would fix the PQ's super redundant sorting)
+        if (plans == null) return; // FINISHME: Why is this null check a thing? Is the plan queue ever null? If it is, that should be fixed.
+        float rad = radius * tilesize;
+        for (int i = 0, size = plans.size; i < size; i++) {
             var plan = plans.get(i);
-            if (radius == 0 || plan.within(origin, rad) && validPlan(plan)
-                && (includeAll || plan.block != null && !player.unit().shouldSkip(plan, player.core()))
-            ) priority.add(plan);
+            if ((radius == 0 || plan.within(origin, rad)) && validPlan(plan) && !plan.tile().getLinkedTilesAs(plan.block, tempTiles).contains(t -> blocked.get(t.x, t.y))
+                && (includeAll || !player.unit().shouldSkip(plan, player.core()) && !blocked.get(plan.x, plan.y))
+            ) { // FINISHME: Implement and use a min-max heap and remove the 300th element whenever the priority queue is larger then that as we only use that many.
+                priority.add(plan);
+            }
         }
     }
 

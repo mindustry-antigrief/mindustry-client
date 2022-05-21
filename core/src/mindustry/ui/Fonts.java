@@ -185,7 +185,7 @@ public class Fonts{
     public static void loadDefaultFont(){
         int max = Gl.getInt(Gl.maxTextureSize);
 
-        UI.packer = new PixmapPacker(max >= 4096 ? 4096 : 2048, 2048, 2, true);
+        UI.packer = new PixmapPacker(max >= 4096 ? 4096 : 2048, max >= 4096 ? 4096 : 2048, 2, true);
         Core.assets.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(Core.files::internal));
         Core.assets.setLoader(Font.class, null, new FreetypeFontLoader(Core.files::internal){
             ObjectSet<FreeTypeFontParameter> scaled = new ObjectSet<>();

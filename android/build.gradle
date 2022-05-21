@@ -128,11 +128,13 @@ dependencies{
 }
 
 task copyAndroidNatives(){
-    configurations.natives.files.each{ jar ->
-        copy{
-            from zipTree(jar)
-            into file("libs/")
-            include "**"
+    doLast{
+        configurations.natives.files.each{ jar ->
+            copy{
+                from zipTree(jar)
+                into file("libs/")
+                include "**"
+            }
         }
     }
 }

@@ -35,7 +35,7 @@ fun autoShoot() {
         if (type.canAttack) target = Units.closestEnemy(unit.team, unit.x, unit.y, unit.range()) { u -> u.checkTarget(type.targetAir, unit.type.targetGround) }
         if (type.canHeal && target == null) {
             target = Units.findDamagedTile(Vars.player.team(), Vars.player.x, Vars.player.y)
-            if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() + (target as Building).hitSize()/2f else 0f)) target = null
+            if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() + 4 + (target as Building).hitSize()/2f else 0f)) target = null
         }
         if (target == null && flood()) { // Shoot buildings in flood because why not.
             target = Units.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range()) { type.targetGround }

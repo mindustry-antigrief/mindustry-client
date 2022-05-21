@@ -397,6 +397,7 @@ project(":core"){
 
         compileOnly project(":annotations")
         if (!project.hasProperty("noKapt")) kapt project(":annotations")
+        annotationProcessor 'com.github.Anuken:jabel:0.6.0'
     }
 
     afterEvaluate{
@@ -485,7 +486,7 @@ configure(project(":annotations")){
 
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"
-        implementation "com.github.mindustry-antigrief.arc:arc-core:$arcHash"
+        implementation arcModule("arc-core")
     }
 }
 

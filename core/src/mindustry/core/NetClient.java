@@ -13,7 +13,6 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import kotlin.text.*;
 import mindustry.*;
-import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.communication.*;
@@ -25,7 +24,6 @@ import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.io.*;
 import mindustry.logic.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
@@ -305,7 +303,7 @@ public class NetClient implements ApplicationListener{
             }
 
             //server console logging
-            Log.info("&fi@: @", "&lc" + player.plainName(), "&lw" + message);
+            Log.info("&fi@: @", "&lc" + player.plainName(), "&lw" + InvisibleCharCoder.INSTANCE.strip(message));
 
             //invoke event for all clients but also locally
             //this is required so other clients get the correct name even if they don't know who's sending it yet
