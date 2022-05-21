@@ -148,8 +148,8 @@ public class LCanvas extends Table{
 
     public void recalculate(){
         tempseq.set(statements.getChildren().as());
-        tempseq.forEach(t -> {t.resetJumpInfo(); if(t.st instanceof JumpStatement) t.st.saveUI();});
-        tempseq.forEach(s -> {
+        tempseq.each(t -> {t.resetJumpInfo(); if(t.st instanceof JumpStatement) t.st.saveUI();});
+        tempseq.each(s -> {
             if(!(s.st instanceof JumpStatement js) || js.destIndex == -1) return;
             js.dest.updateJumpsToHere(s.index);
         });
@@ -253,7 +253,7 @@ public class LCanvas extends Table{
             float cy = 0;
             seq.clear();
 
-            float totalHeight = children.sumf(e -> e.getHeight() + space);
+            float totalHeight = getChildren().sumf(e -> e.getHeight() + space);
 
             height = prefHeight = totalHeight;
             width = prefWidth = Scl.scl(targetWidth);
@@ -700,24 +700,15 @@ public class LCanvas extends Table{
             int curveDirection = Mathf.sign(y2 - y);
             int isDownwards = Mathf.clamp(curveDirection, 0, 1);
 
-//            if(draw1curve){
+            if(draw1curve){
                 Lines.line(x, y, maxX - curveRadius, y);
                 Lines.arc(maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, 1/4f, isDownwards * -90, 8);
-//            }
+            }
             Lines.line(maxX, yNew + curveRadius * curveDirection, maxX, y2New - curveRadius * curveDirection);
-//            if(draw2curve){
+            if(draw2curve){
                 Lines.arc(maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, 1/4f, (isDownwards - 1) * 90, 8);
                 Lines.line(maxX - curveRadius, y2, x2, y2);
-//            }
-
-            /*
-            Lines.curve(
-            x, y,
-            x + dist, y,
-            x2 + dist, y2,
-            x2, y2,
-            Math.max(18, (int)(Mathf.dst(x, y, x2, y2) / 6)));
-            */
+            }
         }
     }
 }
