@@ -135,10 +135,18 @@ public class ItemModule extends BlockModule{
     }
 
     public boolean has(ItemSeq items){
-        for(Item item : content.items()){
-            if(!has(item, items.get(item))){
-                return false;
-            }
+        int[] counts = items.values;
+        for(int i = counts.length - 1; i >= 0; i--){
+            if(!has(content.item(i), counts[i])) return false;
+        }
+        return true;
+    }
+
+    public boolean has(Seq<ItemStack> stacks){ // same as iterable but without allocating...
+        ItemStack[] items = stacks.items;
+        for(int i = stacks.size - 1; i >= 0; i--){
+            ItemStack stack = items[i];
+            if(!has(stack.item, stack.amount)) return false;
         }
         return true;
     }

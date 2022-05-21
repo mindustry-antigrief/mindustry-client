@@ -113,16 +113,7 @@ public class Drill extends Block{
 
     @Override
     public boolean canPlaceOn(Tile tile, Team team, int rotation){
-        if(isMultiblock()){
-            for(Tile other : tile.getLinkedTilesAs(this, tempTiles)){
-                if(canMine(other)){
-                    return true;
-                }
-            }
-            return false;
-        }else{
-            return canMine(tile);
-        }
+        return tile.getLinkedTilesAs(this, tempTiles).contains(this::canMine);
     }
 
     @Override

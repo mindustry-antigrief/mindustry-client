@@ -146,9 +146,7 @@ public class Conveyor extends Block implements Autotiler{
             for(int i = 0; i < 4; i++){
                 if((blending & (1 << i)) != 0){
                     int dir = rotation - i;
-                    float rot = i == 0 ? rotation * 90 : (dir)*90;
-
-                    Draw.rect(sliced(regions[0][frame], i != 0 ? SliceMode.bottom : SliceMode.top), x + Geometry.d4x(dir) * tilesize*0.75f, y + Geometry.d4y(dir) * tilesize*0.75f, rot);
+                    Draw.rect(sliced(regions[0][frame], i != 0 ? SliceMode.bottom : SliceMode.top), x + Geometry.d4x(dir) * tilesize*0.75f, y + Geometry.d4y(dir) * tilesize*0.75f, dir * 90);
                 }
             }
 
@@ -218,7 +216,6 @@ public class Conveyor extends Block implements Autotiler{
 
         @Override
         public void unitOn(Unit unit){
-
             if(clogHeat > 0.5f || !enabled) return;
 
             noSleep();

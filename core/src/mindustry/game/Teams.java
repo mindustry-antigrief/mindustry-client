@@ -56,10 +56,12 @@ public class Teams{
     }
 
     public boolean anyEnemyCoresWithin(Team team, float x, float y, float radius){
-        for(TeamData data : active){
+        for(int t = 0; t < active.size; t++){
+            TeamData data = active.get(t);
             if(team != data.team){
-                for(CoreBuild tile : data.cores){
-                    if(tile.within(x, y, radius)){
+                Seq<CoreBuild> cores = data.cores;
+                for(int c = 0; c < cores.size; c++){
+                    if(cores.get(c).within(x, y, radius)){
                         return true;
                     }
                 }
