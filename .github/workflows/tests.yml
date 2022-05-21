@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          ./gradlew tools:pack test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
+          ./gradlew cleanTest tools:pack test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
 
       - name: Get Latest Release
         id: get_release
