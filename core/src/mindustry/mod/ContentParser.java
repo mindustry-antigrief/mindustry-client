@@ -437,7 +437,9 @@ public class ContentParser{
 
             UnitType unit;
             if(locate(ContentType.unit, name) == null){
-                unit = new UnitType(mod + "-" + name);
+
+                unit = make(resolve(value.getString("type", ""), UnitType.class), mod + "-" + name);
+
                 var typeVal = value.get("type");
 
                 if(typeVal != null && !typeVal.isString()){
@@ -470,8 +472,8 @@ public class ContentParser{
 
                 }
 
-                if(value.has("controller")){
-                    unit.aiController = supply(resolve(value.getString("controller"), FlyingAI.class));
+                if(value.has("controller") || value.has("aiController")){
+                    unit.aiController = supply(resolve(value.getString("controller", value.getString("aiController", "")), FlyingAI.class));
                     value.remove("controller");
                 }
 
