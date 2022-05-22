@@ -19,6 +19,8 @@ public class BuildWeapon extends Weapon{
 
     {
         rotate = true;
+        noAttack = true;
+        predictTarget = false;
         bullet = new BulletType();
     }
 

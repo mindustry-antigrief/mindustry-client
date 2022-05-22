@@ -1,7 +1,6 @@
 package mindustry.client
 
 import arc.*
-import arc.graphics.*
 import arc.graphics.g2d.*
 import arc.util.*
 import mindustry.Vars.*
@@ -9,7 +8,6 @@ import mindustry.ai.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.crypto.*
-import mindustry.client.graphics.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.getTree
 import mindustry.content.*
@@ -27,7 +25,6 @@ object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
     val timer = Interval(4)
-    private val circles = mutableListOf<Pair<TurretPathfindingEntity, Color>>()
 
     fun initialize() {
         setup()
@@ -93,11 +90,14 @@ object Client {
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
         if (showingTurrets) {
             val units = Core.settings.getBool("unitranges")
-            circles.clear()
             getTree().intersect(bounds) {
-                if ((units || it.turret) && it.canShoot()) circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
+                if ((units || it.turret) && it.canShoot()) {
+                    Drawf.dashCircle(
+                        it.entity.x, it.entity.y, it.range - tilesize,
+                        if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color
+                    )
+                }
             }
-            RangeDrawer.draw(circles)
         }
 
         // Player controlled turret range
