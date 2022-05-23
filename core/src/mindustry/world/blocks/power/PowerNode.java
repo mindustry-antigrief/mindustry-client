@@ -385,7 +385,7 @@ public class PowerNode extends PowerBlock{
         public int queuedConnectionSize = 0; // true number of connections if queued connections are successful
         public long timeout = Time.millis();
 
-        public static int fixNode = 0;
+        public static int fixNode = Core.settings.getInt("nodeconf");
 
         @Override
         public void placed(){
@@ -457,7 +457,7 @@ public class PowerNode extends PowerBlock{
                    addToQueue(v, true);
                }
             });
-            if(!pending[0] || Time.timeSinceMillis(timeout) > 300000L /*300 seconds*/ || correctLinks.size > maxNodes){
+            if(!pending[0] || Time.timeSinceMillis(timeout) > 300000L /*300 seconds*/ || correctLinks.size > maxNodes || power.links.size + queuedConnectionSize > maxNodes){
                 correctLinks = null;
             }
         }
