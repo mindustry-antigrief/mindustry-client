@@ -35,6 +35,7 @@ import mindustry.ui.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.power.*;
+import mindustry.world.blocks.storage.*;
 
 import java.io.*;
 import java.util.zip.*;
@@ -344,6 +345,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
+        client.checkPref("unloaderview", false, i -> Unloader.UnloaderBuild.drawUnloaderItems = i);
+        client.checkPref("customnullunloader", false, i -> Unloader.UnloaderBuild.customNullLoader = i);
 
         client.category("misc");
         client.updatePref();
