@@ -376,7 +376,6 @@ project(":core"){
         if(localArc() && debugged()) api arcModule("extensions:recorder")
         if(localArc()) api arcModule(":extensions:packer")
 
-        implementation "com.beust:klaxon:5.4" // Yes, I'm aware arc has a json system, but I don't know how to use it.
         implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.20"
 //        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0" Unused, removed to reduce jar size
 
