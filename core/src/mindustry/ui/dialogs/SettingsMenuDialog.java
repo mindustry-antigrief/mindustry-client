@@ -5,6 +5,7 @@ import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.Texture.*;
+import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
@@ -514,26 +515,38 @@ public class SettingsMenuDialog extends BaseDialog{
             }
         });
 
+        Core.settings.remove("forcetextnonlinear");
+        Cons2<Boolean, Boolean> setFilters = (setNonText, setText) -> {
+            ObjectSet<Texture> atlas = new ObjectSet<>(Core.atlas.getTextures());
+            final boolean lText = Core.settings.getBool("lineartext");
+            var fontFilter = Fonts.getTextFilter(lText);
+            for(Font f: new Font[]{Fonts.def, Fonts.outline, Fonts.mono(), Fonts.monoOutline()}){
+                f.getRegions().each(t -> {
+                    if(setText) {
+                        t.texture.setFilter(fontFilter);
+                    }
+                    atlas.remove(t.texture);
+                });
+            }
+            if(setNonText){
+                final var filter = Core.settings.getBool("linear") ? TextureFilter.linear : TextureFilter.nearest;
+                atlas.each(t -> t.setFilter(filter));
+            }
+        };
         //iOS (and possibly Android) devices do not support linear filtering well, so disable it
         if(!ios){
             graphics.checkPref("linear", !mobile, b -> {
-                TextureFilter filter = b ? TextureFilter.linear : TextureFilter.nearest;
-                for(Texture tex : Core.atlas.getTextures()){
-                    tex.setFilter(filter, filter);
-                }
+                setFilters.get(true, false);
             });
-            graphics.checkPref("forcetextnonlinear", false);
+            graphics.checkPref("lineartext", Core.settings.getBool("linear"), b -> {
+                setFilters.get(false, true);
+            });
         }else{
             settings.put("linear", false);
-            settings.put("forcetextnonlinear", false);
+            settings.put("lineartext", false);
         }
 
-        if(Core.settings.getBool("linear")){
-            for(Texture tex : Core.atlas.getTextures()){
-                TextureFilter filter = TextureFilter.linear;
-                tex.setFilter(filter, filter);
-            }
-        }
+        setFilters.get(true, true);
 
         graphics.checkPref("skipcoreanimation", false);
 

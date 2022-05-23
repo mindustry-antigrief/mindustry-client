@@ -187,10 +187,17 @@ public class Fonts{
         Log.warn("The icon stuff took @", Time.timeSinceNanos(start) / (float) Time.nanosPerMilli);
     }
 
+    public static TextureFilter getTextFilter(boolean linear){ //TODO: separate into min and max filter
+        return linear ? TextureFilter.linear : TextureFilter.nearest;
+    }
+
+    public static TextureFilter getTextFilter(){
+        return getTextFilter(Core.settings.getBool("lineartext", Core.settings.getBool("linear")));
+    }
+
     /** Called from a static context for use in the loading screen.*/
     public static void loadDefaultFont(){
         int max = Gl.getInt(Gl.maxTextureSize);
-        boolean nonlinear = Core.settings.getBool("forcetextnonlinear");
         UI.packer = new PixmapPacker(max >= 4096 ? 4096 : 2048, 2048, 2, true);
         Core.assets.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(Core.files::internal));
         Core.assets.setLoader(Font.class, null, new FreetypeFontLoader(Core.files::internal){
@@ -205,12 +212,11 @@ public class Fonts{
 
                 if(!scaled.contains(parameter.fontParameters) && !unscaled.contains(fileName)){
                     parameter.fontParameters.size = (int)(Scl.scl(parameter.fontParameters.size));
-                    parameter.fontParameters.genMipMaps = nonlinear;
                     scaled.add(parameter.fontParameters);
                 }
 
-                parameter.fontParameters.magFilter = nonlinear ? TextureFilter.mipMapLinearLinear : TextureFilter.nearest;
-                parameter.fontParameters.minFilter = nonlinear ? TextureFilter.mipMapNearestNearest : TextureFilter.nearest;
+                parameter.fontParameters.magFilter = getTextFilter();
+                parameter.fontParameters.minFilter = getTextFilter();
                 parameter.fontParameters.packer = UI.packer;
                 return super.loadSync(manager, fileName, file, parameter);
             }
@@ -220,6 +226,10 @@ public class Fonts{
             borderColor = Color.darkGray;
             incremental = true;
             size = 18;
+            /*
+            size *= 2;
+            scaleFactor = 1f/2;
+             */
         }};
 
         Core.assets.load("outline", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = t -> {
@@ -320,14 +330,17 @@ public class Fonts{
 
     static FreeTypeFontParameter fontParameter(){
         return new FreeTypeFontParameter(){{
-            boolean nonlinear = Core.settings.getBool("forcetextnonlinear");
             size = 18;
             shadowColor = Color.darkGray;
             shadowOffsetY = 2;
             incremental = true;
-            genMipMaps = nonlinear;
-            magFilter = nonlinear ? TextureFilter.mipMapLinearLinear : TextureFilter.nearest;
-            minFilter = nonlinear ? TextureFilter.mipMapNearestNearest : TextureFilter.nearest;
+            magFilter = minFilter = getTextFilter();
+
+            /*
+            size *= 2;
+            scaleFactor = 1f/2;
+            shadowOffsetY *= 2;
+             */
         }};
     }
 }
