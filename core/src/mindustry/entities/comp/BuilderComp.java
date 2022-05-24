@@ -83,10 +83,10 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         if(plans.size > 1){
             int total = 0;
             BuildPlan req;
-            while((!within((req = buildPlan()).tile(), finalPlaceDst) || shouldSkip(req, core)) && total < plans.size){
+            while(total++ < plans.size && (!within((req = buildPlan()).tile(), finalPlaceDst) || shouldSkip(req, core) ||
+                    (!req.initialized && !Build.validPlaceCoreRange(req.block, team, req.x, req.y)))){
                 plans.removeFirst();
                 plans.addLast(req);
-                total++;
             }
         }
 
@@ -108,6 +108,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
             if(!(tile.build instanceof ConstructBuild cb)){
                 if(!current.initialized && !current.breaking && Build.validPlace(current.block, team, current.x, current.y, current.rotation)){
+                    if(!Build.validPlaceCoreRange(current.block, team, current.x, current.y)) return;
                     boolean hasAll = infinite || current.isRotation(team) || !Structs.contains(current.block.requirements, i -> core != null && !core.items.has(i.item, Math.min(Mathf.round(i.amount * state.rules.buildCostMultiplier), 1)));
 
                     if(hasAll){
