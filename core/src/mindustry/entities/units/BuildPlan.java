@@ -37,8 +37,11 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
     /** Double freeing plans is a bad idea. */
     public boolean freed;
 
-    /** Client: Client-side configs for plans (and subsequently a ConstructBuild then Building)*/
+    /** Client: Client-side configs for plans (and subsequently a ConstructBuild then Building).*/
     public @Nullable Cons<Building> clientConfig;
+
+    /** Whether to always prioritise the plan, regardless of ability to be built.*/
+    public boolean priority = false;
 
     @Override
     public void reset() {
@@ -48,6 +51,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         initialized = false;
         stuck = false;
         freed = true;
+        priority = false;
     }
 
     /** This creates a build request. */

@@ -212,6 +212,8 @@ public class ConstructBlock extends Block{
         public Block previous = Blocks.air;
         /** Buildings that previously occupied this location. */
         public @Nullable Seq<Building> prevBuild;
+        /** Reference to its BuildPlan, for prioritization purposes. */
+        public @Nullable BuildPlan attachedPlan;
 
         public float progress = 0;
         public float buildCost;
@@ -253,7 +255,9 @@ public class ConstructBlock extends Block{
                 if(control.input.buildWasAutoPaused && !control.input.isBuilding && player.isBuilder()){
                     control.input.isBuilding = true;
                 }
-                player.unit().addBuild(new BuildPlan(tile.x, tile.y, rotation, current, lastConfig), false);
+                if(attachedPlan == null) attachedPlan = new BuildPlan(tile.x, tile.y, rotation, current, lastConfig);
+                player.unit().addBuild(attachedPlan, attachedPlan.priority); // BuildPlan.priority and tail are inverted
+                attachedPlan.priority ^= true;
             }
         }
 
