@@ -8,6 +8,7 @@ import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.entities.*;
+import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
@@ -64,6 +65,7 @@ public class Build{
         Core.app.post(() -> Events.fire(new BlockBuildBeginEvent(tile, team, unit, true)));
     }
 
+    public final static Seq<BuildPlan> planSeq = new Seq<>(BuildPlan.class);
     /** Places a ConstructBlock at this location. */
     @Remote(called = Loc.server)
     public static void beginPlace(@Nullable Unit unit, Block result, Team team, int x, int y, int rotation){
@@ -119,6 +121,26 @@ public class Build{
         if(unit != null && unit.getControllerName() != null) build.lastAccessed = unit.getControllerName();
 
         result.placeBegan(tile, previous);
+
+        var plans = player.unit().plans;
+        if(plans.size < 10 || control.input.planTreeNeedsRecalculation()){
+            // what are the chances of this method being called many times in a frame
+            for(int i = 0; i < plans.size; i++){
+                var plan = plans.get(i);
+                if(plan.clientConfig != null && plan.x == x && plan.y == y && plan.block == build.current){
+                    build.clientConfig = plan.clientConfig;
+                }
+            }
+        } else {
+            control.input.planTree().intersect(result.bounds(x, y, Tmp.r1), planSeq);
+            for(int i = 0; i < planSeq.size; i++){
+                var plan = planSeq.items[i];
+                if(plan.clientConfig != null && plan.block == build.current){
+                    build.clientConfig = plan.clientConfig;
+                }
+            }
+            planSeq.clear();
+        }
 
         Core.app.post(() -> Events.fire(new BlockBuildBeginEvent(tile, team, unit, false)));
     }
