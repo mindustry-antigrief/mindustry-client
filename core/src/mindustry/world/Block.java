@@ -36,6 +36,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.cameraBounds;
 
 public class Block extends UnlockableContent{
     /** If true, buildings have an ItemModule. */
@@ -526,6 +527,7 @@ public class Block extends UnlockableContent{
 
     public void drawPlan(BuildPlan req, Eachable<BuildPlan> list, boolean valid, float alpha, boolean freeze){
         Draw.reset();
+        if(req.worldContext && !cameraBounds.overlaps(req.block.bounds(req.x, req.y, Tmp.r1))) return;
         Draw.mixcol(valid ? freeze ? Pal.freeze : Color.white : Pal.breakInvalid, (valid ? 0.24f : 0.4f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(alpha);
         float prevScale = Draw.scl;

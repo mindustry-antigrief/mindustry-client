@@ -20,6 +20,7 @@ public class ClientVars {
     public static float travelTime = Core.settings.getInt("traveltime");
     public static float jpegQuality = Core.settings.getFloat("commpicquality", 0.5f);
     public static boolean benchmarkNav = false;
+    public final static Rect cameraBounds = new Rect();
 
     // Core Item Display
     public static ItemModule coreItems;

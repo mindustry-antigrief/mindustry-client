@@ -998,6 +998,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     protected void drawOverRequest(BuildPlan request, boolean valid){
         Draw.reset();
+        if(request.worldContext && !cameraBounds.overlaps(request.block.bounds(request.x, request.y, Tmp.r1))) return;
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(1f);
         request.block.drawRequestConfigTop(request, cons -> {

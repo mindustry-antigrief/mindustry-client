@@ -79,6 +79,7 @@ object Client {
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
+        Core.camera.bounds(cameraBounds); // do we do this here or on draw? can Core.camera be null?
 
         if (!configs.isEmpty()) {
             try {

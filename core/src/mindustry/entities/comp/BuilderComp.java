@@ -25,6 +25,7 @@ import mindustry.world.blocks.ConstructBlock.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.cameraBounds;
 
 @Component
 abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
@@ -156,6 +157,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         for(int i = 0; i < 2; i++){
             for(BuildPlan plan : plans){
                 if(skip.get(plan)) continue;
+                if(plan.worldContext && !cameraBounds.overlaps(plan.block.bounds(plan.x, plan.y, Tmp.r1))) continue;
                 if(i == 0){
                     drawPlan(plan, 1f);
                 }else{
