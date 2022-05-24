@@ -282,7 +282,6 @@ public class Mods implements Loadable{
                 tasks.add(mainExecutor.submit(() -> {
                     //TODO is this in reverse order?
                     new Sort().sort(rects, Structs.comparingInt(o -> -Math.max(o.region.width, o.region.height)));
-                    rects.sort();
 
                     for(var entry : rects){
                         packer.add(type, entry.name, entry.region, entry.splits, entry.pads);
