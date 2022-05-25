@@ -636,7 +636,7 @@ public class ModsDialog extends BaseDialog{
 
     private void githubImportMod(String repo, boolean isJava, @Nullable String prevVersion){
         modImportProgress = 0f;
-        if (prevVersion == null) ui.loadfrag.show("@downloading");
+        if(prevVersion == null) ui.loadfrag.show("@downloading");
         ui.loadfrag.setProgress(() -> modImportProgress);
 
         if(isJava){

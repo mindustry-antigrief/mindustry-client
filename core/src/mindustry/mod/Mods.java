@@ -27,6 +27,7 @@ import mindustry.ui.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.zip.*;
 
 import static mindustry.Vars.*;
 
@@ -93,6 +94,11 @@ public class Mods implements Loadable{
     public LoadedMod importMod(Fi file) throws IOException{
         //for some reason, android likes to add colons to file names, e.g. primary:ExampleJavaMod.jar, which breaks dexing
         String baseName = file.nameWithoutExtension().replace(':', '_').replace(' ', '_');
+        if(file instanceof ZipFi zip && baseName.isEmpty()){ // The ZipFi name methods return empty strings...
+            var path = Reflect.<ZipFile>get(zip, "zip").getName(); // The absolute path to the zip
+            var ext = path.lastIndexOf('.');
+            baseName = path.substring(path.lastIndexOf(File.separatorChar) + 1, ext == -1 ? path.length() : ext); // The part after the last / (the actual name) without the extension
+        }
         String finalName = baseName;
         //find a name to prevent any name conflicts
         int count = 1;
