@@ -204,6 +204,7 @@ public class NetClient implements ApplicationListener{
         effect(effect, x, y, rotation, color);
     }
 
+    // FINISHME: This is disgusting
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
         Color background = null;
@@ -231,6 +232,7 @@ public class NetClient implements ApplicationListener{
             } else {
                 Vars.ui.chatfrag.addMessage(message, null, unformatted == null ? "" : unformatted);
             }
+            Sounds.chatMessage.play();
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
                 Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
                     "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
@@ -255,6 +257,7 @@ public class NetClient implements ApplicationListener{
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
             message = processCoords(message, true);
             Vars.ui.chatfrag.addMessage(message);
+            Sounds.chatMessage.play();
         }
     }
 
