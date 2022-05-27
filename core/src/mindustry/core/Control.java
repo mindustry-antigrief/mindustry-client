@@ -314,7 +314,6 @@ public class Control implements ApplicationListener, Loadable{
     }
 
     void createPlayer(){
-        player = Player.create();
         player.name = Core.settings.getString("name");
         player.color.set(Core.settings.getInt("color-0"));
 

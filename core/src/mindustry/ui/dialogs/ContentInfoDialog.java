@@ -71,7 +71,7 @@ public class ContentInfoDialog extends BaseDialog{
                     inset.add("[lightgray]" + stat.localized() + ":[] ").left().top();
                     Seq<StatValue> arr = map.get(stat);
                     for(StatValue value : arr){
-                        value.display(inset); // TODO: Item production/consumption rate display in v7
+                        value.display(inset); // FINISHME: Item production/consumption rate display in v7 (is this even needed? probably only for liquids)
                         inset.add().size(10f);
                     }
 

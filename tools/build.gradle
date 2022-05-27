@@ -18,6 +18,7 @@ import arc.struct.OrderedMap
 import arc.struct.Seq
 import arc.util.*
 import arc.util.io.PropertiesUtils
+import groovy.transform.CompileStatic
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -26,12 +27,12 @@ import java.util.stream.Streams
 def genFolder = "../core/assets-raw/sprites_out/generated/"
 def doAntialias = !project.hasProperty("disableAntialias")
 
-@groovy.transform.CompileStatic
+@CompileStatic
 static int getRGB(Pixmap image, int ix, int iy) {
     return image.getRaw(Math.max(Math.min(ix, image.width - 1), 0), Math.max(Math.min(iy, image.height - 1), 0))
 }
 
-@groovy.transform.CompileStatic
+@CompileStatic
 static void antialias(File file){
     Pixmap image = new Pixmap(new Fi(file))
     Pixmap out = image.copy()
@@ -176,7 +177,7 @@ task pack(dependsOn: [classes, configurations.runtimeClasspath]){
             fileTree(dir: new File(rootDir, 'core/assets-raw/sprites_out/').absolutePath, include: "**/*.png").visit{ file ->
                 if(file.isDirectory() || (file.toString().replace("\\", "/").contains("/ui/") && file.toString().startsWith("icon-")) || file.toString().contains(".9.png") || file.toString().contains("aaaa")) return
 
-                executor.submit{
+                executor.execute{
                     antialias(file.file)
                 }
             }

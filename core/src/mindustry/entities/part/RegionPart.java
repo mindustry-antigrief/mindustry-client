@@ -83,14 +83,14 @@ public class RegionPart extends DrawPart{
             //can be null
             var region = drawRegion ? regions[Math.min(i, regions.length - 1)] : null;
             float sign = (i == 0 ? 1 : -1) * params.sideMultiplier;
-            Tmp.v1.set((x + mx) * sign, y + my).rotate(params.rotation - 90);
+            Tmp.v1.set((x + mx) * sign * Draw.xscl, (y + my) * Draw.yscl).rotate(params.rotation - 90);
 
             float
                 rx = params.x + Tmp.v1.x,
                 ry = params.y + Tmp.v1.y,
                 rot = mr * sign + params.rotation - 90;
 
-            Draw.xscl = sign;
+            Draw.xscl *= sign;
 
             if(outline && drawRegion){
                 Draw.z(prevZ + outlineLayerOffset);
@@ -114,7 +114,7 @@ public class RegionPart extends DrawPart{
                 Drawf.additive(heat, heatColor.write(Tmp.c1).a(heatProgress.getClamp(params) * heatColor.a), rx, ry, rot, turretShading ? Layer.turretHeat : Draw.z() + heatLayerOffset);
             }
 
-            Draw.xscl = 1f;
+            Draw.xscl /= sign;
         }
 
         Draw.z(z);
