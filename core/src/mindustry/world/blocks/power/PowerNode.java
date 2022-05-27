@@ -451,9 +451,21 @@ public class PowerNode extends PowerBlock{
         public void findConnect(){
             boolean[] pending = {false};
             correctLinks.each(v -> {
-               if(power.links.contains(v)) return;
+               if(power.links.contains(v) || queuedConfigs.contains(v)) return;
+               if(!linkValid(this, world.build(v), false)) {
+                   pending[0] = true;
+                   return;
+               };
+               world.tile(v).getLinkedTiles(tile -> {
+                   int pos = tile.pos();
+                   if(power.links.contains(pos)){
+                       correctLinks.remove(v);
+                       correctLinks.add(pos);
+                   }
+               });
+               if(!correctLinks.contains(v)) return;
                pending[0] = true;
-               if(!queuedConfigs.contains(v) && power.links.size + queuedConnectionSize < maxNodes && linkValid(this, world.build(v))){
+               if(power.links.size + queuedConnectionSize < maxNodes){
                    addToQueue(v, true);
                }
             });
