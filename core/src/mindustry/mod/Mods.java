@@ -843,7 +843,7 @@ public class Mods implements Loadable{
                 (mainFile.exists() || meta.java) &&
                 !skipModLoading() &&
                 Core.settings.getBool("mod-" + baseName + "-enabled", true) &&
-                Version.isAtLeast(meta.minGameVersion) &&
+                /*Version.isAtLeast(meta.minGameVersion) &&*/
                 (meta.getMinMajor() >= 105 || headless)
             ){
                 if(ios){
@@ -970,8 +970,8 @@ public class Mods implements Loadable{
         public boolean isSupported(){
             if(isOutdated()) return false;
             if(clientDisabled()) return false;
-
-            return Version.isAtLeast(meta.minGameVersion);
+            return true;
+            //return Version.isAtLeast(meta.minGameVersion);
         }
 
         /** @return whether this mod is outdated, e.g. not compatible with v6. */

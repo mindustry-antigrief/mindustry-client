@@ -278,7 +278,7 @@ public class ModsDialog extends BaseDialog{
                                     }else if(item.clientDisabled()){
                                         text.labelWrap("@mod.clientdisabled").growX();
                                         text.row();
-                                    }else if(!item.isSupported()){
+                                    }else if(!item.isSupported() || !Version.isAtLeast(item.meta.minGameVersion)){
                                         text.labelWrap(Core.bundle.format("mod.requiresversion", item.meta.minGameVersion)).growX();
                                         text.row();
                                     }else if(item.hasUnmetDependencies()){
