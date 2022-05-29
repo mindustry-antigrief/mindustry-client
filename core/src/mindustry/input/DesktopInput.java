@@ -23,6 +23,7 @@ import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.client.ui.*;
 import mindustry.core.*;
+import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -452,7 +453,7 @@ public class DesktopInput extends InputHandler{
                 });
                 scene.add(table);
             }
-            if((input.keyDown(Binding.control) || input.shift()) && Core.input.keyTap(Binding.select)){
+            if(mode != placing && (input.keyDown(Binding.control) || input.shift()) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
                 if(on != null){
@@ -467,6 +468,10 @@ public class DesktopInput extends InputHandler{
                         Spectate.INSTANCE.spectate(ai.controller);
                         shouldShoot = false;
                     }
+                }else if((on = Units.closestOverlap(Core.input.mouseWorld().x, Core.input.mouseWorld().y, tilesize * 8f,
+                        u -> Core.input.mouseWorld().dst2(u) < u.hitSize * u.hitSize)) != null && on.controller() instanceof LogicAI ai && ai.controller != null && (!player.unit().type.canBoost || player.boosting)){
+                    Spectate.INSTANCE.spectate(ai.controller);
+                    shouldShoot = false;
                 }else if(build != null && input.keyDown(Binding.control)){
                     Call.buildingControlSelect(player, build);
                     recentRespawnTimer = 1f;
