@@ -385,7 +385,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         build.configured(player == null || player.dead() ? null : player.unit(), value);
         Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
 
-        if (player != null && Vars.player != player) { // FINISHME: Move all this client stuff into the ClientLogic class
+        if (player != null /*&& Vars.player != player*/) { // FINISHME: Move all this client stuff into the ClientLogic class
             if (Core.settings.getBool("commandwarnings") && build instanceof CommandCenter.CommandBuild cmd && build.team == player.team()) {
                 if (commandWarning == null || timer.get(300)) {
                     commandWarning = ui.chatfrag.addMessage(bundle.format("client.commandwarn", Strings.stripColors(player.name), cmd.tileX(), cmd.tileY(), cmd.team.data().command.localized()), (Color)null);
@@ -397,7 +397,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
             } else if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
                 if (value instanceof Integer val) {
-                    if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) {
+                    Point2 target = Point2.unpack(val).sub(build.tileX(), build.tileY());
+                    for(Point2 point: (Point2[])previous){
+                        if(!(target.x == point.x && target.y == point.y)) continue;
+                        if(node.power.graph.all.contains(world.build(val))) continue; // if it is still in the same graph
                         String message = bundle.format("client.powerwarn", Strings.stripColors(player.name), ++node.disconnections, build.tileX(), build.tileY());
                         lastCorePos.set(build.tileX(), build.tileY());
                         if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
@@ -408,6 +411,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                             node.message.message = message;
                             node.message.format();
                         }
+                        break;
                     }
                 } else if (value instanceof Point2[]) {
                     // FINISHME: handle this
