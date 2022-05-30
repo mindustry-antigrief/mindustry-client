@@ -167,8 +167,6 @@ public abstract class LStatement{
             if(t.getWidth() > Core.scene.getWidth()) t.setWidth(Core.graphics.getWidth());
             if(t.getHeight() > Core.scene.getHeight()) t.setHeight(Core.graphics.getHeight());
             t.keepInStage();
-            t.invalidateHierarchy();
-            t.pack();
         });
         t.actions(Actions.alpha(0), Actions.fadeIn(0.3f, Interp.fade));
 

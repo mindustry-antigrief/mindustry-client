@@ -1,7 +1,8 @@
 package mindustry.client.crypto
 
-import com.beust.klaxon.*
+import arc.util.serialization.*
 import mindustry.client.utils.*
+import mindustry.io.*
 import java.io.*
 import java.math.*
 import java.security.*
@@ -10,12 +11,11 @@ import java.security.cert.*
 open class KeyStorage(val directory: File) {
     private val store: KeyStore = KeyStore.getInstance("BKS")
     private val password = "password123".toCharArray() // FINISHME: probably don't bother fixing tbh
-    private var aliases: Map<String, String> = emptyMap()
-    private val klaxon = Klaxon()
+    private val aliases: HashMap<String, String> = hashMapOf()
     val builtInCerts: List<X509Certificate>
 
     init {
-        val certs = listOf(
+        val certs = arrayOf(
             // foo
             "MIIBRzCByKADAgECAiCdhMB3qS0218EgXi0asK7io931Jjo2lWjYlL18rmoKxzAFBgMrZXEwDjEMMAoGA1UEAxMDZm9vMB4XDTIxMDgyMDAxNDYzOFoXDTM2MDgyNzAxNDYzOFowDjEMMAoGA1UEAxMDZm9vMEMwBQYDK2VxAzoAshx1nVePa4FkbLczm2Osp+IHU0ikU/+JyCUbs43klnP49tSybg1WS0NMCRINnEh30DzwOBKUs9+AoxMwETAPBgNVHRMBAf8EBTADAQH/MAUGAytlcQNzAE/uMei8ryVSW5l0GipNTko396syxdvdCQeUrlmwks1l5MNRkhjXHfYxlDow0KMM41K8r+w5HThPAAQFrzCMlKPVccZDdJy+xfLUUkmmjuO8q2TtDSmQw8cdXydPjPiK7t/l5WvJJFacO7QWJHUNl9QbAA==",
             // buthed
@@ -41,12 +41,18 @@ open class KeyStorage(val directory: File) {
             save()
         }
 
-        for (cert in builtInCerts) {
-            store.setCertificateEntry("trusted${cert.serialNumber}", cert)
-        }
+        for (cert in builtInCerts) store.setCertificateEntry("trusted${cert.serialNumber}", cert)
 
         if (aliasFile.exists()) {
-            aliases = klaxon.parseArray<Pair<String, String>>(aliasFile.readText())?.toMap() ?: emptyMap()
+            try {
+                @Suppress("UNCHECKED_CAST")
+                aliases.putAll(JsonIO.json.fromJson(HashMap::class.java, String::class.java, aliasFile.reader()) as HashMap<String, String>)
+            } catch (_: SerializationException) { // Compatibility with old klaxon format FINISHME: Remove eventually
+                JsonReader().parse(aliasFile.bufferedReader()).forEach {
+                    aliases[it.get("first").asString()] = it.get("second").asString()
+                }
+                save() // Overwrite the klaxon json
+            }
         }
     }
 
@@ -55,10 +61,9 @@ open class KeyStorage(val directory: File) {
     fun alias(certificate: X509Certificate): String? = aliases[certificate.serialNumber.toString()]
 
     fun alias(certificate: X509Certificate, alias: String?) {
-        aliases = if (alias == null) {
-            aliases.minus(certificate.serialNumber.toString())
-        } else {
-            aliases.plus(Pair(certificate.serialNumber.toString(), alias))
+        when (alias) {
+            null -> aliases -= certificate.serialNumber.toString()
+            else -> aliases[certificate.serialNumber.toString()] = alias
         }
         save()
     }
@@ -70,7 +75,7 @@ open class KeyStorage(val directory: File) {
     fun save() {
         try {
             store.store(directory.resolve("keys").outputStream(), password)
-            directory.resolve("aliases").writeText(klaxon.toJsonString(aliases.entries.map { Pair(it.key, it.value) }))
+            JsonIO.json.toJson(aliases, HashMap::class.java, String::class.java, directory.resolve("aliases").writer())
         } catch (e: Exception) {
             e.printStackTrace()
         }
