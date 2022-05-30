@@ -25,7 +25,6 @@ buildscript{
 plugins{
     id "org.jetbrains.kotlin.jvm" version "1.6.20"
     id "org.jetbrains.kotlin.kapt" version "1.6.20"
-    id "com.google.devtools.ksp" version "1.6.20-1.0.4"
 }
 
 allprojects{
@@ -225,7 +224,7 @@ configure(project(":annotations")){
     tasks.withType(JavaCompile){
         targetCompatibility = 8
         sourceCompatibility = 8
-        options.fork = true
+//        options.fork = true
     }
 }
 
@@ -246,7 +245,7 @@ configure(subprojects - project(":annotations")){
 project(":desktop"){
     apply plugin: "java"
 
-    compileJava.options.fork = true
+//    compileJava.options.fork = true
 
     dependencies{
         implementation project(":core")
@@ -302,9 +301,8 @@ project(":core"){
     apply plugin: "java-library"
     apply plugin: "kotlin"
     apply plugin: "kotlin-kapt"
-    apply plugin: "com.google.devtools.ksp"
 
-    compileJava.options.fork = true
+//    compileJava.options.fork = true
 
     task preGen{
         outputs.upToDateWhen{ false }
@@ -367,6 +365,7 @@ project(":core"){
 
         api "org.lz4:lz4-java:1.7.1"
         api arcModule("arc-core")
+        if(localArc() && project.hasProperty("debug")) implementation arcModule("extensions:profiling")
         api arcModule("extensions:flabel")
         api arcModule("extensions:freetype")
         api arcModule("extensions:g3d")
@@ -388,7 +387,6 @@ project(":core"){
 
         annotationProcessor 'com.github.Anuken:jabel:0.6.0'
         compileOnly project(":annotations")
-        ksp project(":annotations")
         kapt project(":annotations")
     }
 
@@ -470,7 +468,6 @@ project(":annotations"){
 
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"
-        implementation "com.google.devtools.ksp:symbol-processing-api:1.6.20-1.0.4"
         implementation "com.github.Anuken.Arc:arc-core:$arcHash"
     }
 }
