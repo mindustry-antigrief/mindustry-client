@@ -970,8 +970,7 @@ public class Mods implements Loadable{
         public boolean isSupported(){
             if(isOutdated()) return false;
             if(clientDisabled()) return false;
-            return true;
-            //return Version.isAtLeast(meta.minGameVersion);
+            return Core.settings.getBool("ignoremodminversion") || Version.isAtLeast(meta.minGameVersion);
         }
 
         /** @return whether this mod is outdated, e.g. not compatible with v6. */

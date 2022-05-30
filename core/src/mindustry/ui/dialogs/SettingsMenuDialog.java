@@ -358,6 +358,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
+        client.checkPref("typingindicator", true, i -> control.input.showTypingIndicator = i);
         client.checkPref("pathnav", true);
         client.checkPref("nyduspadpatch", true);
         client.checkPref("hidebannedblocks", false);
@@ -366,7 +367,7 @@ public class SettingsMenuDialog extends BaseDialog{
         if (steam) client.checkPref("unlockallachievements", false, i -> { for (var a : Achievement.all) a.complete(); Core.settings.remove("unlockallachievements"); });
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
-        client.checkPref("typingindicator", true, i -> control.input.showTypingIndicator = i);
+        client.checkPref("ignoremodminversion", false);
         // End Client Settings
 
 
