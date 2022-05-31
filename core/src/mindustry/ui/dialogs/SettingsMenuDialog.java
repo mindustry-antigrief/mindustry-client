@@ -576,9 +576,7 @@ public class SettingsMenuDialog extends BaseDialog{
     }
 
     public void importData(Fi file){
-        Fi dest = Core.files.local("zipdata.zip");
-        file.copyTo(dest);
-        Fi zipped = new ZipFi(dest);
+        Fi zipped = new ZipFi(file);
 
         Fi base = Core.settings.getDataDirectory();
         if(!zipped.child("settings.bin").exists()){
@@ -592,7 +590,7 @@ public class SettingsMenuDialog extends BaseDialog{
         tmpDirectory.deleteDirectory();
 
         zipped.walk(f -> f.copyTo(base.child(f.path())));
-        dest.delete();
+        
 
         //clear old data
         settings.clear();
