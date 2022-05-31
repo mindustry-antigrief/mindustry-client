@@ -201,7 +201,7 @@ public class BeControl{
                     args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
                     if(OS.isMac) args.add("-XstartOnFirstThread");
                     args.addAll("-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath(), "-firstThread");
-                    if(settings.getBool("autorestart")) Runtime.getRuntime().exec(args.toArray());
+                    if(Core.settings.getBool("autorestart")) Runtime.getRuntime().exec(args.toArray());
                     Core.app.exit();
                 }catch(IOException e){
                     dialog.cont.clearChildren();
