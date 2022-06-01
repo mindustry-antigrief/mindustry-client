@@ -998,14 +998,20 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     protected void drawOverRequest(BuildPlan request, boolean valid){
+        if(!request.isVisible()) return;
         Draw.reset();
-        if(request.worldContext && !cameraBounds.overlaps(request.block.bounds(request.x, request.y, Tmp.r1))) return;
+        final long frameId = graphics.getFrameId();
+        if(lastFrameVisible != frameId){
+            lastFrameVisible = frameId;
+            visiblePlanSeq.clear();
+            BuildPlan.getVisiblePlans(cons -> {
+                selectRequests.each(cons);
+                lineRequests.each(cons);
+            }, visiblePlanSeq);
+        }
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(1f);
-        request.block.drawRequestConfigTop(request, cons -> {
-            selectRequests.each(cons);
-            lineRequests.each(cons);
-        });
+        request.block.drawRequestConfigTop(request, visiblePlanSeq);
         Draw.reset();
     }
 
@@ -1448,9 +1454,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return validPlace(x, y, type, rotation, null);
     }
 
-    private long lastFrame;
+    private long lastFrame, lastFrameVisible;
     private QuadTreeMk2<BuildPlan> tree = new QuadTreeMk2<>(new Rect(0, 0, 0, 0));
-    public final Seq<BuildPlan> planSeq = new Seq<>();
+    public final Seq<BuildPlan> planSeq = new Seq<>(), visiblePlanSeq = new Seq<>();
 
     public boolean planTreeNeedsRecalculation(){
         return lastFrame == graphics.getFrameId();

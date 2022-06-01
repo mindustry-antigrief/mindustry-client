@@ -2,14 +2,18 @@ package mindustry.entities.units;
 
 import arc.func.*;
 import arc.math.geom.*;
+import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.*;
+import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.power.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.cameraBounds;
 
 /** Class for storing build requests. Can be either a place or remove request. */
 public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObject {
@@ -221,6 +225,19 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         }else{
             return tile.block() == block && (tile.build == null || tile.build.rotation == rotation);
         }
+    }
+
+    public boolean isVisible(){
+        final Rect r1 = Tmp.r1;
+        return !worldContext || cameraBounds.overlaps(block.bounds(x, y, r1)) ||
+                (block instanceof ItemBridge b && Tmp.r2.set(cameraBounds).grow(2 * b.range * tilesizeF).overlaps(r1)) ||
+                (block instanceof PowerNode p && Tmp.r2.set(cameraBounds).grow(2 * tilesize * p.laserRange).overlaps(r1));
+    }
+
+    public static void getVisiblePlans(Eachable<BuildPlan> plans, Seq<BuildPlan> output){
+        plans.each(plan -> {
+            if(plan.isVisible()) output.add(plan);
+        });
     }
 
     @Override

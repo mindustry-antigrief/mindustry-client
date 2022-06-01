@@ -6,6 +6,7 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
+import arc.struct.*;
 import arc.struct.Queue;
 import arc.util.*;
 import mindustry.*;
@@ -24,8 +25,8 @@ import mindustry.world.blocks.ConstructBlock.*;
 
 import java.util.*;
 
+import static arc.Core.graphics;
 import static mindustry.Vars.*;
-import static mindustry.client.ClientVars.cameraBounds;
 
 @Component
 abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
@@ -148,14 +149,21 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         }while(massPlace && plans.removeFirst() != null && plans.size > 0 && placed++ < 1000);
     }
 
+    private transient long lastFrame;
+    private transient final Seq<BuildPlan> visiblePlans = new Seq<>(1);
+    private void getVisiblePlans(){
+        lastFrame = graphics.getFrameId();
+        visiblePlans.clear();
+        BuildPlan.getVisiblePlans(plans, visiblePlans);
+    }
     /** Draw all current build plans. Does not draw the beam effect, only the positions. */
     void drawBuildPlans(){
         Boolf<BuildPlan> skip = plan -> plan.progress > 0.01f || (buildPlan() == plan && plan.initialized && (within(plan.x * tilesize, plan.y * tilesize, buildingRange) || state.isEditor()));
+        if(lastFrame != graphics.getFrameId()) getVisiblePlans();
 
         for(int i = 0; i < 2; i++){
-            for(BuildPlan plan : plans){
+            for(BuildPlan plan : visiblePlans){
                 if(skip.get(plan)) continue;
-                if(plan.worldContext && !cameraBounds.overlaps(plan.block.bounds(plan.x, plan.y, Tmp.r1))) continue;
                 if(i == 0){
                     drawPlan(plan, 1f);
                 }else{
@@ -173,17 +181,19 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             control.input.drawBreaking(request);
         }else{
             request.block.drawPlan(request, control.input.allRequests(),
-            Build.validPlace(request.block, team, request.x, request.y, request.rotation) || control.input.requestMatches(request),
+                    (Build.validPlace(request.block, team, request.x, request.y, request.rotation) &&
+                    Build.validPlaceCoreRange(request.block, team, request.x, request.y)) || control.input.requestMatches(request),
             alpha);
         }
     }
 
     void drawPlanTop(BuildPlan request, float alpha){
         if(!request.breaking){
+            if(lastFrame != graphics.getFrameId()) getVisiblePlans();
             Draw.reset();
             Draw.mixcol(Color.white, 0.24f + Mathf.absin(Time.globalTime, 6f, 0.28f));
             Draw.alpha(alpha);
-            request.block.drawRequestConfigTop(request, plans);
+            request.block.drawRequestConfigTop(request, visiblePlans);
         }
     }
 
