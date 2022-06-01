@@ -440,8 +440,10 @@ public class BlockRenderer{
                     }
 
                     if(build.team != pteam){
-                        build.drawTeam();
-                        Draw.z(Layer.block);
+                        if(build.block.drawTeamOverlay){
+                            build.drawTeam();
+                            Draw.z(Layer.block);
+                        }
                     }
 
                     if(renderer.drawStatus && block.hasConsumers){
