@@ -182,11 +182,11 @@ object Client {
             player.sendMessage(result)
         }
 
-        register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
+        register("unit-old <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
             ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
         }
 
-        register("uc <unit-type>", "Picks a unit nearest to cursor") { args, _ ->
+        register("unit <unit-type>", "Picks a unit nearest to cursor") { args, _ ->
             ui.unitPicker.pickUnit(
                 content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) },
                 Core.input.mouseWorldX(), Core.input.mouseWorldY(), true
