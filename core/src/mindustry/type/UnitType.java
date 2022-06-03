@@ -212,7 +212,7 @@ public class UnitType extends UnlockableContent{
         table.table(bars -> {
             bars.defaults().growX().height(20f).pad(4);
 
-            bars.add(new Bar("stat.health", Pal.health, unit::healthf).blink(Color.white));
+            bars.add(new Bar(() -> Core.bundle.get("stat.health") + " (" + unit.health + ")", () -> Pal.health, unit::healthf).blink(Color.white));
             bars.row();
 
             if(state.rules.unitAmmo){

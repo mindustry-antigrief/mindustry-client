@@ -53,6 +53,8 @@ public class KeybindDialog extends Dialog{
     }
 
     private void setup(){
+        float[] scroll = {0};
+        cont.getChildren().find(c -> { if(c instanceof ScrollPane s){scroll[0] = s.getScrollY(); return true;} else return false; }); //too lazy to do this right
         cont.clear();
 
         Section[] sections = Core.keybinds.getSections();
@@ -188,6 +190,8 @@ public class KeybindDialog extends Dialog{
         cont.row();
 
         cont.add(pane).growX().colspan(sections.length);
+        cont.pack();
+        pane.setScrollYForce(scroll[0]);
 
     }
 

@@ -48,5 +48,4 @@ robovm{
 
     iosSignIdentity = project.properties["signIdentity"]
     iosProvisioningProfile = project.properties["provisioningProfile"]
-    iosSkipSigning = false
 }

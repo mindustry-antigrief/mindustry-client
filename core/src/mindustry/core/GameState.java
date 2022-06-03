@@ -43,8 +43,12 @@ public class GameState{
     }
 
     public void set(State astate){
-        //cannot pause when in multiplayer
-        if(astate == State.paused && net.active()) return;
+        //cannot pause when in multiplayer (client adds a pause packet for p2p and servers that support it I suppose)
+        if(astate == State.paused && net.active()) {
+            if (net.server()) serverPaused ^= true; // pause locally
+            else Call.serverPacketReliable("pause", ""); // send pause request
+            return;
+        }
 
         Events.fire(new StateChangeEvent(state, astate));
         state = astate;

@@ -10,6 +10,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.async.*;
 import arc.util.io.*;
 import arc.util.io.Streams.*;
 import arc.util.pooling.*;
@@ -39,6 +40,7 @@ import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.meta.*;
 
 import java.io.*;
+import java.util.concurrent.*;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
@@ -80,22 +82,23 @@ public class Schematics implements Loadable{
     public void load(){
         all.clear();
 
-        loadLoadouts();
+        var await = Seq.<Future<?>>with(mainExecutor.submit(this::loadLoadouts));
 
         for(Fi file : schematicDirectory.list()){
-            loadFile(file);
+            await.add(mainExecutor.submit(() -> loadFile(file)));
         }
 
-        platform.getWorkshopContent(Schematic.class).each(this::loadFile);
+        platform.getWorkshopContent(Schematic.class).each(file -> await.add(mainExecutor.submit(() -> loadFile(file))));
 
         //mod-specific schematics, cannot be removed
-        mods.listFiles("schematics", (mod, file) -> {
+        mods.listFiles("schematics", (mod, file) -> await.add(mainExecutor.submit(() -> {
             Schematic s = loadFile(file);
             if(s != null){
                 s.mod = mod;
             }
-        });
+        })));
 
+        await.each(Threads::await);
         all.sort();
 
         if(shadowBuffer == null){
@@ -104,7 +107,7 @@ public class Schematics implements Loadable{
     }
 
     private void loadLoadouts(){
-        Seq.with(Loadouts.basicShard, Loadouts.basicFoundation, Loadouts.basicNucleus).each(s -> checkLoadout(s, false));
+        Seq.with(Loadouts.basicShard(), Loadouts.basicFoundation(), Loadouts.basicNucleus()).each(s -> checkLoadout(s, false));
     }
 
     public void overwrite(Schematic target, Schematic newSchematic){
@@ -138,8 +141,10 @@ public class Schematics implements Loadable{
 
         try{
             Schematic s = read(file);
-            all.add(s);
-            checkLoadout(s, true);
+            synchronized(this){
+                all.add(s);
+                checkLoadout(s, true);
+            }
 
             //external file from workshop
             if(!s.file.parent().equals(schematicDirectory)){
@@ -277,7 +282,7 @@ public class Schematics implements Loadable{
 
     /** Creates an array of build requests from a schematic's data, centered on the provided x+y coordinates. */
     public Seq<BuildPlan> toRequests(Schematic schem, int x, int y){
-        return schem.tiles.map(t -> new BuildPlan(t.x + x - schem.width/2, t.y + y - schem.height/2, t.rotation, t.block, t.config).original(t.x, t.y, schem.width, schem.height))
+        return schem.tiles.map(t -> new BuildPlan(t.x + x - schem.width/2, t.y + y - schem.height/2, t.rotation, t.block, t.config, t.clientConfig).original(t.x, t.y, schem.width, schem.height))
             .removeAll(s -> (!s.block.isVisible() && !(s.block instanceof CoreBlock)) || !s.block.unlockedNow()).sort(Structs.comparingInt(s -> -s.block.schematicPriority));
     }
 
@@ -390,12 +395,9 @@ public class Schematics implements Loadable{
                 if(tile != null && !counted.contains(tile.pos()) && realBlock != null
                     && (realBlock.isVisible() || realBlock instanceof CoreBlock)){
                     Object config = !(tile instanceof ConstructBuild cons) ?
-                        tile.config() :
-                        cons.lastConfig == null && realBlock instanceof LogicBlock && ClientVars.processorConfigs.containsKey(Point2.pack(cx, cy)) ?
-                            ClientVars.processorConfigs.get(Point2.pack(cx, cy)) :
-                            cons.lastConfig;
-
-                    tiles.add(new Stile(realBlock, tile.tileX() + offsetX, tile.tileY() + offsetY, config, (byte)tile.rotation));
+                        tile.config() : cons.lastConfig;
+                    tiles.add(new Stile(realBlock, tile.tileX() + offsetX, tile.tileY() + offsetY, config,
+                            tile instanceof ConstructBuild cons ? cons.clientConfig : null, (byte)tile.rotation));
                     counted.add(tile.pos());
                 }
             }
@@ -505,6 +507,7 @@ public class Schematics implements Loadable{
         return s;
     }
 
+    private static ThreadLocal<Reads> readsLocal = Threads.local(() -> new Reads(null));
     public static Schematic read(InputStream input) throws IOException{
         for(byte b : header){
             if(input.read() != b){
@@ -529,6 +532,7 @@ public class Schematics implements Loadable{
             try{
                 labels = JsonIO.read(String[].class, map.get("labels", "[]"));
             }catch(Exception ignored){
+                Log.err(ignored);
             }
 
             IntMap<Block> blocks = new IntMap<>();
@@ -541,10 +545,12 @@ public class Schematics implements Loadable{
 
             int total = stream.readInt();
             Seq<Stile> tiles = new Seq<>(total);
+            var reads = readsLocal.get();
+            reads.input = stream;
             for(int i = 0; i < total; i++){
                 Block block = blocks.get(stream.readByte());
                 int position = stream.readInt();
-                Object config = ver == 0 ? mapConfig(block, stream.readInt(), position) : TypeIO.readObject(Reads.get(stream));
+                Object config = ver == 0 ? mapConfig(block, stream.readInt(), position) : TypeIO.readObject(reads);
                 byte rotation = stream.readByte();
                 if(block != Blocks.air){
                     tiles.add(new Stile(block, Point2.x(position), Point2.y(position), config, rotation));

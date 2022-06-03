@@ -56,8 +56,10 @@ public class MultiPacker implements Disposable{
     }
 
     public TextureAtlas flush(TextureFilter filter, TextureAtlas atlas){
-        for(PixmapPacker p : packers){
-            p.updateTextureAtlas(atlas, filter, filter, false, false);
+        for(var page : PageType.all){
+            var packer = packers[page.ordinal()];
+            Log.debug("Packer @ has @ pages", page, packer.getPages().size);
+            packer.updateTextureAtlas(atlas, filter, filter, false, false);
         }
         return atlas;
     }
@@ -74,14 +76,13 @@ public class MultiPacker implements Disposable{
     //main page (sprites.png) - all sprites for units, weapons, placeable blocks, effects, bullets, etc
     //environment page (sprites2.png) - all sprites for things in the environmental cache layer
     //editor page (sprites3.png) - all sprites needed for rendering in the editor, including block icons and a few minor sprites
-    //zone page (sprites4.png) - zone preview
-    //rubble page - scorch textures for unit deaths & wrecks
+    //rubble page (sprites4.png) - scorch textures for unit deaths & wrecks
     //ui page (sprites5.png) - content icons, white icons, fonts and UI elements
     public enum PageType{
-        main(4096),
-        environment,
+        main(8192),
+        environment(4096, 2048),
         editor(4096, 2048),
-        rubble,
+        rubble(4096, 2048),
         ui(4096);
 
         public static final PageType[] all = values();

@@ -21,7 +21,7 @@ import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
 
-public class Weapon implements Cloneable{
+public class Weapon implements Cloneable {
     /** temporary weapon sequence number */
     static int sequenceNum = 0;
     

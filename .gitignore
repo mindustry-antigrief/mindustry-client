@@ -170,9 +170,8 @@ cache/
 # ignored due to frequent branch conflicts.
 core/assets/logicids.dat
 core/assets/icons/icons.properties
-client/build/
-core/annotations/
 
 # what even
 libsdl-arc64.so
 .temp/
+*.properties

@@ -3,6 +3,7 @@ package mindustry.world.blocks;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
+import arc.func.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.scene.event.*;
@@ -27,6 +28,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
 import mindustry.type.*;
+import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
@@ -95,8 +97,8 @@ public class ConstructBlock extends Block{
 
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild co ? co.prevBuild : null;
+        Cons<Building> customConfig = tile.build instanceof ConstructBuild co ? co.clientConfig : null;
         Block prevBlock = tile.block();
-        Object prevConf = tile.build == null ? null : tile.build.config();
 
         if (block == null) {
             Events.fire(new BlockBreakEvent(tile, team, builder, tile.block(), tile.build == null ? null : tile.build.config(), rotation));
@@ -128,6 +130,10 @@ public class ConstructBlock extends Block{
         //last builder was this local client player, call placed()
         if(tile.build != null && !headless && builder == player.unit()){
             tile.build.playerPlaced(config);
+        }
+
+        if(tile.build != null && customConfig != null){
+            customConfig.get(tile.build);
         }
 
         Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
@@ -207,10 +213,13 @@ public class ConstructBlock extends Block{
         public Block previous = Blocks.air;
         /** Buildings that previously occupied this location. */
         public @Nullable Seq<Building> prevBuild;
+        /** Reference to its BuildPlan, for prioritization purposes. */
+        public @Nullable BuildPlan attachedPlan;
 
         public float progress = 0;
         public float buildCost;
         public @Nullable Object lastConfig;
+        public @Nullable Cons<Building> clientConfig;
         public @Nullable Unit lastBuilder;
         public boolean wasConstructing, activeDeconstruct;
         public float constructColor;
@@ -247,7 +256,9 @@ public class ConstructBlock extends Block{
                 if(control.input.buildWasAutoPaused && !control.input.isBuilding && player.isBuilder()){
                     control.input.isBuilding = true;
                 }
-                player.unit().addBuild(new BuildPlan(tile.x, tile.y, rotation, current, lastConfig), false);
+                if(attachedPlan == null) attachedPlan = new BuildPlan(tile.x, tile.y, rotation, current, lastConfig);
+                player.unit().addBuild(attachedPlan, attachedPlan.priority); // BuildPlan.priority and tail are inverted
+                attachedPlan.priority ^= true;
             }
         }
 
@@ -370,6 +381,7 @@ public class ConstructBlock extends Block{
                         int accepting = Math.min(accumulated, core.storageCapacity - core.items.get(requirements[i].item));
                         //transfer items directly, as this is not production.
                         core.items.add(requirements[i].item, accepting);
+                        if(core.team == player.team()) CoreItemsDisplay.addItemRate(requirements[i].item, accepting);
                         accumulator[i] -= accepting;
                     }else{
                         accumulator[i] -= accumulated;

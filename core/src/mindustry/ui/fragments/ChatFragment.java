@@ -24,9 +24,11 @@ import mindustry.input.*;
 import mindustry.ui.*;
 
 import java.util.*;
+import java.util.regex.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class ChatFragment extends Table{
     private static final int messagesShown = 10;
@@ -84,7 +86,7 @@ public class ChatFragment extends Table{
                     historyPos--;
                     updateChat();
                 }
-                if (input.keyTap(Binding.chat_autocomplete) && completion.any() && mode == ChatMode.normal) {
+                if (input.keyTap(Binding.chat_autocomplete) && completion.any() /*&& mode == ChatMode.normal*/) {
                     completionPos = Mathf.clamp(completionPos, 0, completion.size - 1);
                     chatfield.setText(completion.get(completionPos).getCompletion(chatfield.getText()) + " ");
                     updateCursor();
@@ -303,6 +305,32 @@ public class ChatFragment extends Table{
             message = message.replaceFirst("^" + mode.prefix + " ([/!])", "$1");
         }
 
+        StringBuilder messageBuild = new StringBuilder(message);
+
+        for (var entry : containsCommandHandler.entries()){ // s l o w
+            String prefix = entry.key;
+            int pos = -1;
+            while (true) {
+                pos = messageBuild.indexOf(prefix, pos + 1);
+                if(pos == -1 || pos == messageBuild.length() - 1) break;
+                String tmp = messageBuild.substring(pos + 1);
+                if(tmp.startsWith(prefix)){ // double prefix - escaped
+                    messageBuild.deleteCharAt(pos);
+                    continue;
+                }
+                for(var pair : entry.value){
+                    String cmd = pair.getFirst();
+                    if(tmp.startsWith(cmd)){
+                        String replace = pair.getSecond().get();
+                        messageBuild.replace(pos, pos + cmd.length() + 1, replace);
+                        pos += replace.length() - 1;
+                        break;
+                    }
+                }
+            }
+        }
+        message = messageBuild.toString();
+
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
@@ -470,13 +498,15 @@ public class ChatFragment extends Table{
 
     public static class ChatMessage{
         public String sender;
-        public String message;
+        public String message; // TODO: test if having red text at all (eg. sending 34 45) will cause impersonator
         public String formattedMessage;
         public Color backgroundColor;
         public String prefix;
         public String unformatted;
         public List<Image> attachments = new ArrayList<>();
-
+        public static boolean processCoords, setLastPos; // false by default, set them ON right before initializing a new message
+        private static final Pattern coordPattern = Pattern.compile("\\(?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\)?"); // This regex is a mess. https://regex101.com is the superior regex tester
+        private static final Pattern coordPattern2 = Pattern.compile("((\\[scarlet])?\\(?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\)?(\\[])?)"); //This regex now gobbles up [scarlet]
         public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
             this.message = message;
             this.sender = sender;
@@ -486,12 +516,44 @@ public class ChatFragment extends Table{
             format();
         }
 
+        public static void msgFormat(boolean processCoords2, boolean setLastPos2){
+            processCoords = processCoords2;
+            setLastPos = setLastPos2;
+        }
+        public static void msgFormat(boolean process){
+            msgFormat(process, process);
+        }
+        public static void msgFormat(){
+            msgFormat(true, true);
+        }
+
         public void format() {
             if(sender == null){ //no sender, this is a server message?
-                formattedMessage = message == null ? "" : message;
+                formattedMessage = message == null ? "" : processCoords ? processCoords(message, setLastPos) : message;
             } else {
-                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
+                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " +
+                        (processCoords ? processCoords(unformatted, setLastPos) : unformatted);
             }
+            processCoords = setLastPos = false;
+        }
+
+        public static String processCoords(String message, boolean setLastPos){
+            if (message == null) return null;
+            Matcher matcher = coordPattern2.matcher(message);
+            if(!matcher.find()) return message;
+            //message = matcher.replaceAll(mr -> "[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); since java 9 fml
+            StringBuffer result = new StringBuffer(message.length());
+            String group1, group2;
+            do{
+                matcher.appendReplacement(result,"[scarlet]" + Strings.stripColors(matcher.group()) + "[]");
+                group1 = matcher.group(3);
+                group2 = matcher.group(4);
+            } while (matcher.find());
+            matcher.appendTail(result);
+            if (setLastPos) try {
+                ClientVars.lastSentPos.set(Float.parseFloat(group1), Float.parseFloat(group2));
+            } catch (NumberFormatException ignored) {}
+            return result.toString();
         }
     }
 

@@ -29,9 +29,9 @@ public class MenuRenderer implements Disposable{
     private CacheBatch batch;
     private float time = 0f;
     private float flyerRot = 45f;
-    private float flyerSpin = 0f;
     private int flyers = Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
     private UnitType flyerType = content.units().select(u -> !u.isHidden() && u.hitSize <= 20f && u.flying && u.onTitleScreen && u.region.found()).random();
+    private boolean cursed;
 
     public MenuRenderer(){
         Time.mark();
@@ -204,16 +204,17 @@ public class MenuRenderer implements Disposable{
     }
 
     public void render(){
-        if (Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null) flyerType = content.units().select(u -> (u.hitSize >= 20f || !u.flying) && u.region.found()).random();
+        if (Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null) {
+            flyerType = content.units().select(u -> (u.hitSize >= 20f || !u.flying) && u.region.found()).random();
+            cursed = true;
+            flyers = Mathf.chance(0.005) ? 70 + Mathf.random(20) : Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
+            Log.debug("There are @ flyers.", flyers);
+        }
         time += Time.delta;
         float scaling = Math.max(Scl.scl(4f), Math.max(Core.graphics.getWidth() / ((width - 1f) * tilesize), Core.graphics.getHeight() / ((height - 1f) * tilesize)));
         camera.position.set(width * tilesize / 2f, height * tilesize / 2f);
         camera.resize(Core.graphics.getWidth() / scaling,
         Core.graphics.getHeight() / scaling);
-        flyerSpin += 3f;
-        if(flyerSpin > 360f){
-            flyerSpin = 0f;
-        }
 
         mat.set(Draw.proj());
         Draw.flush();
@@ -247,7 +248,7 @@ public class MenuRenderer implements Disposable{
         float size = Math.max(icon.width, icon.height) * Draw.scl * 1.6f;
 
         flyers((x, y) -> {
-            Draw.rect(icon, x - 12f, y - 13f, flyerSpin);
+            Draw.rect(icon, x - 12f, y - 13f, flyerRot - 90);
         });
 
         flyers((x, y) -> {
@@ -267,7 +268,7 @@ public class MenuRenderer implements Disposable{
             (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f)) / 2f);
             Draw.color();
 
-            Draw.rect(icon, x, y, flyerSpin);
+            Draw.rect(icon, x, y, flyerRot - 90);
         });
     }
 
@@ -279,11 +280,14 @@ public class MenuRenderer implements Disposable{
 
         for(int i = 0; i < flyers; i++){
             Tmp.v1.trns(flyerRot, time * (flyerType.speed));
-
-            cons.get(
-            (Mathf.randomSeedRange(i, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 5, 0, 500)),
-            (Mathf.randomSeedRange(i + 1, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset) % th
-            );
+            float x = (Mathf.randomSeedRange(i, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 5, 0, 500));
+            float y = (Mathf.randomSeedRange(i + 1, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset) % th;
+            float prevRot = flyerRot;
+            if(cursed){
+                flyerRot = camera.unproject(Core.input.mouseX(), Core.input.mouseY()).sub(x, y).angle();
+            }
+            cons.get(x, y);
+            flyerRot = prevRot;
         }
     }
 

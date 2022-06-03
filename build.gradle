@@ -16,20 +16,21 @@ buildscript{
     }
 
     dependencies{
-        classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.14"
-        classpath "com.github.Anuken.Arc:packer:$arcHash"
-        classpath "com.github.Anuken.Arc:arc-core:$arcHash"
+        classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.16"
+        if (!project.hasProperty("release") && new File(projectDir.parent, 'Arc').exists()) classpath fileTree(new File(projectDir.parent, 'Arc'))
+        else {
+            classpath "com.github.mindustry-antigrief.arc:packer:$arcHash"
+            classpath "com.github.mindustry-antigrief.arc:arc-core:$arcHash"
+        }
     }
 }
 
 plugins{
-    id "org.jetbrains.kotlin.jvm" version "1.6.20"
-    id "org.jetbrains.kotlin.kapt" version "1.6.20"
+    id "org.jetbrains.kotlin.jvm" version "1.6.21"
+    id "org.jetbrains.kotlin.kapt" version "1.6.21"
 }
 
 allprojects{
-    apply plugin: 'maven-publish'
-    
     version = 'release'
     group = 'com.github.Anuken'
 
@@ -38,7 +39,13 @@ allprojects{
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
         if(!project.hasProperty("buildversion")) buildversion = '135'
-        if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
+        if(!project.hasProperty("clientVersion")){
+            def tagTokens = "git tag --sort=committerdate -l v${project.getProperties()["buildversion"]}* -n1".execute().text.trim().split('[\n]')[-1]
+                    .tokenize(' ')[0].split('[.]') as String[]
+            tagTokens[0] = tagTokens[0][1..-1]
+            tagTokens[-1] = ((tagTokens[-1] as Integer) + 1) as String
+            clientVersion = 'git branch --show-current'.execute().text.trim() + " / ${tagTokens.join('.')}"
+        }
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
@@ -62,7 +69,7 @@ allprojects{
             }else{
                 //skip to last submodule
                 if(name.contains(':')) name = name.split(':').last()
-                return "com.github.Anuken.Arc:$name:${getArcHash()}"
+                return "com.github.mindustry-antigrief.arc:$name:${getArcHash()}"
             }
         }
 
@@ -192,12 +199,8 @@ allprojects{
         maven{ url 'https://jitpack.io' }
     }
 
-    task clearCache{
-        doFirst{
-            delete{
-                delete "$rootDir/core/assets/cache"
-            }
-        }
+    task clearCache(type: Delete){
+        delete "$rootDir/core/assets/cache"
     }
 
     tasks.withType(JavaCompile){
@@ -374,8 +377,9 @@ project(":core"){
         api "com.github.Anuken:rhino:$rhinoVersion"
         if(localArc() && debugged()) api arcModule("extensions:recorder")
         if(localArc()) api arcModule(":extensions:packer")
+        if(localArc()) implementation arcModule("extensions:profiling")
 
-        implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.20"
+        implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.21"
 //        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0" Unused, removed to reduce jar size
 
         compileOnly files("../bouncycastle/bcprov-jdk15on.jar")
@@ -387,7 +391,9 @@ project(":core"){
 
         annotationProcessor 'com.github.Anuken:jabel:0.6.0'
         compileOnly project(":annotations")
-        kapt project(":annotations")
+        if (!project.hasProperty("noKapt")) kapt project(":annotations")
+
+//        runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-jsr223:1.6.21"
     }
 
     afterEvaluate{
@@ -432,11 +438,14 @@ project(":tests"){
 
     dependencies{
         testImplementation project(":core")
-        testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.6.20"
+        testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.6.21"
         testImplementation "org.junit.jupiter:junit-jupiter-params:5.7.1"
         testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.1"
         testImplementation arcModule("backends:backend-headless")
         testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.7.1"
+        testImplementation "org.bouncycastle:bcprov-jdk15on:1.69"
+        testImplementation "org.bouncycastle:bcpkix-jdk15on:1.69"
+        testImplementation "org.bouncycastle:bctls-jdk15on:1.69"
     }
 
     test{
@@ -468,11 +477,13 @@ project(":annotations"){
 
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"
-        implementation "com.github.Anuken.Arc:arc-core:$arcHash"
+        implementation "com.github.mindustry-antigrief.arc:arc-core:$arcHash"
     }
 }
 
 configure([":core", ":desktop", ":server", ":tools"].collect{project(it)}){
+    apply plugin: 'maven-publish'
+
     java{
         withJavadocJar()
         withSourcesJar()

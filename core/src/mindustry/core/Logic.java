@@ -1,9 +1,14 @@
 package mindustry.core;
 
 import arc.*;
+import arc.func.Cons;
 import arc.math.*;
+import arc.math.geom.Point2;
+import arc.struct.Queue;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigrief.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -11,14 +16,17 @@ import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.maps.*;
+import mindustry.net.*;
 import mindustry.type.*;
 import mindustry.type.Weather.*;
 import mindustry.world.*;
+import mindustry.world.blocks.logic.LogicBlock;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 /**
  * Logic module.
@@ -31,7 +39,6 @@ import static mindustry.Vars.*;
 public class Logic implements ApplicationListener{
 
     public Logic(){
-
         Events.on(BlockDestroyEvent.class, event -> {
             //blocks that get broken are appended to the team's broken block queue
             Tile tile = event.tile;
@@ -44,11 +51,12 @@ public class Logic implements ApplicationListener{
         Events.on(BlockBuildEndEvent.class, event -> {
             if(!event.breaking){
                 TeamData data = event.team.data();
+                event.tile.block().bounds(event.tile.x, event.tile.y, Tmp.r1);
                 Iterator<BlockPlan> it = data.blocks.iterator();
                 while(it.hasNext()){
                     BlockPlan b = it.next();
                     Block block = content.block(b.block);
-                    if(event.tile.block().bounds(event.tile.x, event.tile.y, Tmp.r1).overlaps(block.bounds(b.x, b.y, Tmp.r2))){
+                    if(Tmp.r1.overlaps(block.bounds(b.x, b.y, Tmp.r2))){
                         b.removed = true;
                         it.remove();
                     }

@@ -376,7 +376,6 @@ public class Maps{
     }
 
     public void loadPreviews(){
-
         for(Map map : maps){
             //try to load preview
             if(map.previewFile().exists()){

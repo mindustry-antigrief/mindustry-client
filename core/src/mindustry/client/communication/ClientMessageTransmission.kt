@@ -6,7 +6,9 @@ import mindustry.client.*
 import mindustry.client.crypto.*
 import mindustry.client.crypto.Signatures.VerifyResult.*
 import mindustry.client.utils.*
+import mindustry.core.NetClient
 import mindustry.gen.*
+import mindustry.ui.fragments.ChatFragment
 import java.math.*
 import java.nio.*
 import java.security.cert.*
@@ -84,7 +86,7 @@ class ClientMessageTransmission : Transmission {
         return cert to if (Signatures.rawVerify(signable, signature, cert.publicKey)) VALID else INVALID
     }
 
-    fun addToChatfrag() {
+    fun addToChatfrag(processCoords: Boolean = false) {
         val background = when (validity) {
             VALID -> /* TODO: builtin check */ ClientVars.verified
             INVALID -> ClientVars.invalid
@@ -92,6 +94,7 @@ class ClientMessageTransmission : Transmission {
         }
         val prefix = "[accent]<[white]F[]>[] ${when (validity) { VALID -> Iconc.ok; INVALID -> Iconc.cancel; UNKNOWN_CERT -> "" }} ".replace("  ", " ") // No double spaces. Cursed
 
+        ChatFragment.ChatMessage.msgFormat(processCoords)
         Vars.ui.chatfrag.addMessage(message, sender, background, prefix)
     }
 

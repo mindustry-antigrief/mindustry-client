@@ -83,13 +83,10 @@ public class SaveIO{
     }
 
     public static SaveMeta getMeta(DataInputStream stream){
-
-        try{
+        try(stream){
             readHeader(stream);
             int version = stream.readInt();
-            SaveMeta meta = versions.get(version).getMeta(stream);
-            stream.close();
-            return meta;
+            return versions.get(version).getMeta(stream);
         }catch(IOException e){
             throw new RuntimeException(e);
         }

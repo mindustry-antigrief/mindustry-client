@@ -6,7 +6,6 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.utils.*
-import mindustry.game.*
 import mindustry.gen.*
 import mindustry.type.*
 
@@ -15,20 +14,13 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
     private var timer = Interval()
     private var coreIdle = false
 
-    companion object {
-        init {
-            Events.on(EventType.WorldLoadEvent::class.java) {
-                (Navigation.currentlyFollowing as? MinePath)?.lastItem = null // Reset on world load to prevent stupidity
-            }
-        }
-    }
     constructor(args: String) : this(Seq()) {
         val split = args.split("\\s".toRegex())
         for (a in split) {
             if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
-            else if (Strings.canParseInt(a)) cap = a.toInt().coerceAtLeast(0) // Specified cap, <= 0 results in infinite cap
-            else content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.apply(items::add) ?:
-            player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
+            else a.toIntOrNull()?.coerceAtLeast(0)?.also { cap = it } // Parse int arg as cap, <= 0 results in infinite cap
+            ?: content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.apply(items::add) // Parse item name
+            ?: player.sendMessage(Core.bundle.format("client.path.builder.invalid", a)) // Invalid argument
         }
 
         if (items.isEmpty) {
@@ -47,8 +39,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
     override fun follow() {
         val core = player.closestCore() ?: return
         var item = items.min({ indexer.hasOre(it) && player.unit().canMine(it) }) { core.items[it].toFloat() } ?: return
-        val maxCap = if (cap <= 0) core.storageCapacity else core.storageCapacity.coerceAtMost(cap)
-        if (lastItem != null && player.unit().canMine(lastItem) && core.items[lastItem] - core.items[item] < 100 && core.items[lastItem] < maxCap) item = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
+        if (lastItem != null && player.unit().canMine(lastItem) && indexer.hasOre(lastItem) && core.items[lastItem] - core.items[item] < 100) item = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
         lastItem = item
 
         if (!newGame && core.items[item] >= maxCap && cap >= 0) {  // Auto switch to BuildPath when core is sufficiently full

@@ -15,6 +15,8 @@ import arc.util.async.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Jval.*;
+import kotlin.*;
+import kotlin.collections.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -27,17 +29,16 @@ import mindustry.ui.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
 
 public class Mods implements Loadable{
-    private AsyncExecutor async = new AsyncExecutor();
     private Json json = new Json();
     private @Nullable Scripts scripts;
     private ContentParser parser = new ContentParser();
     private ObjectMap<String, Seq<Fi>> bundles = new ObjectMap<>();
     private ObjectSet<String> specialFolders = ObjectSet.with("bundles", "sprites", "sprites-override");
-
     private int totalSprites;
     private MultiPacker packer;
     private ModClassLoader mainLoader = new ModClassLoader(getClass().getClassLoader());
@@ -45,6 +46,9 @@ public class Mods implements Loadable{
     public Seq<LoadedMod> mods = new Seq<>();
     private ObjectMap<Class<?>, ModMeta> metas = new ObjectMap<>();
     private boolean requiresReload;
+    private static final Seq<String> clientDisabled = Seq.with("automatic-mod-updater", "scheme-size"); // These mods aren't needed when using the client
+    private Seq<Future<?>> tasks;
+    private Thread thread;
 
     public Mods(){
         Events.on(ClientLoadEvent.class, e -> Core.app.post(this::checkWarnings));
@@ -125,38 +129,54 @@ public class Mods implements Loadable{
         Time.mark();
 
         packer = new MultiPacker();
-        //all packing tasks to await
-        var tasks = new Seq<AsyncResult<Runnable>>();
+        tasks = new Seq<>();
 
         eachEnabled(mod -> {
             Seq<Fi> sprites = mod.root.child("sprites").findAll(f -> f.extension().equals("png"));
             Seq<Fi> overrides = mod.root.child("sprites-override").findAll(f -> f.extension().equals("png"));
 
-            packSprites(sprites, mod, true, tasks);
-            packSprites(overrides, mod, false, tasks);
+            tasks.ensureCapacity(sprites.size + overrides.size); //free performance
+            packSprites(sprites, mod, true);
+            packSprites(overrides, mod, false);
 
             Log.debug("Packed @ images for mod '@'.", sprites.size + overrides.size, mod.meta.name);
             totalSprites += sprites.size + overrides.size;
         });
 
-        for(var result : tasks){
-            try{
-                var packRun = result.get();
-                if(packRun != null){ //can be null for very strange reasons, ignore if that's the case
-                    try{
-                        //actually pack the image
-                        packRun.run();
-                    }catch(Exception e){ //the image can fail to fit in the spritesheet
-                        Log.err("Failed to fit image into the spritesheet, skipping.");
-                        Log.err(e);
+//        thread = Threads.daemon("Pack", () -> {
+//            Seq<Future<Triple<PageType, String, Pixmap>>> casted = tasks.as();
+//            casted.each(t -> {
+//                var get = Threads.await(t);
+//                var pix = get.getThird();
+//                packer.add(get.getFirst(), get.getSecond(), new PixmapRegion(pix));
+//                pix.dispose();
+//            });
+//        });
+        thread = Threads.daemon("Pack", () -> { // FINISHME: What the hell.
+            var s = Time.nanos();
+            var grouped = CollectionsKt.<Future<Triple<PageType, String, Pixmap>>, PageType, Triple<PageType, String, Pixmap>>groupBy(tasks.as(), t -> Threads.await(t).getFirst(), Threads::await);
+            var bt = Time.timeSinceNanos(s)/(float)Time.nanosPerMilli;
+            Log.debug("Time to bleed @", bt);
+            var t = new Seq<Future<?>>();
+            for(var byPage : grouped.entrySet()){
+                if(byPage.getKey() == null) continue;
+                t.add(mainExecutor.submit(() -> {
+                    for(var v : byPage.getValue()){
+                        var pix = v.getThird();
+                        packer.add(v.getFirst(), v.getSecond(), new PixmapRegion(pix));
+                        pix.dispose();
                     }
-                }
-            }catch(Exception e){ //this means loading the image failed, log it and move on
-                Log.err(e);
+                }));
             }
-        }
+            t.each(Threads::await);
+            Log.debug("Time to packasync @", Time.timeSinceNanos(s)/(float)Time.nanosPerMilli - bt);
+            Log.debug("Time to bleed + packasync @", Time.timeSinceNanos(s)/(float)Time.nanosPerMilli);
+        });
+    }
 
-        Log.debug("Time to pack textures: @", Time.elapsed());
+    @Override
+    public Seq<AssetDescriptor> getDependencies() {
+        return Seq.with(new AssetDescriptor<>("contentcreate", Content.class));
     }
 
     private void loadIcons(){
@@ -177,27 +197,32 @@ public class Mods implements Loadable{
         }
     }
 
-    private void packSprites(Seq<Fi> sprites, LoadedMod mod, boolean prefix, Seq<AsyncResult<Runnable>> tasks){
-        boolean linear = Core.settings.getBool("linear", true);
+    private final Triple<PageType, String, Pixmap> nullT = new Triple<>(null, null, null);
+    private void packSprites(Seq<Fi> sprites, LoadedMod mod, boolean prefix){
+        boolean bleed = !mod.meta.prebled && Core.settings.getBool("linear", true), debug = !prefix && OS.hasProp("debugsprites");
 
-        for(Fi file : sprites){
-            //read and bleed pixmaps in parallel
-            tasks.add(async.submit(() -> {
-                try{
-                    Pixmap pix = new Pixmap(file.readBytes());
-                    //only bleeds when linear filtering is on at startup
-                    if(linear){
-                        Pixmaps.bleed(pix, 2);
+        for (var s : sprites) {
+            tasks.add(mainExecutor.submit(() -> {
+                var name = (prefix ? mod.name + "-" : "") + s.nameWithoutExtension();
+                var page = getPage(s);
+                if(debug){
+                    var overwritten = Core.atlas.find(name);
+                    if(overwritten == null){
+                        Log.warn("Sprite '@' in mod '@' attempts to override a non-existent sprite. Ignoring.", name, mod.name);
+                        return nullT;
                     }
-                    //this returns a *runnable* which actually packs the resulting pixmap; this has to be done synchronously outside the method
-                    return () -> {
-                        packer.add(getPage(file), (prefix ? mod.name + "-" : "") + file.nameWithoutExtension(), new PixmapRegion(pix));
-                        pix.dispose();
-                    };
-                }catch(Exception e){
-                    //rethrow exception with details about the cause of failure
-                    throw new Exception("Failed to load image " + file + " for mod " + mod.name, e);
+                    var overwrittenPage = getPage(overwritten);
+                    if(overwrittenPage != page){
+                        Log.warn("Sprite '@' on page '@' in mod '@' attempts to override a sprite on page '@'. Ignoring.", name, page, mod.name, overwrittenPage);
+                        return nullT;
+                    }
                 }
+                Pixmap pix = new Pixmap(s.readBytes());
+                if(bleed) Pixmaps.bleed(pix, 2);
+                return new Triple<>(page, name, (pix));
+//                    packer.add(getPage(s), (prefix ? mod.name + "-" : "") + s.nameWithoutExtension(), new PixmapRegion(pix));
+//                    pix.dispose();
+//                };
             }));
         }
     }
@@ -207,18 +232,46 @@ public class Mods implements Loadable{
         loadIcons();
 
         if(packer == null) return;
-        Time.mark();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        thread = null;
+        tasks.clear();
 
         //get textures packed
         if(totalSprites > 0){
-
-            for(AtlasRegion region : Core.atlas.getRegions()){
-                //TODO PageType completely breaks down with multiple pages.
-                PageType type = getPage(region);
-                if(!packer.has(type, region.name)){
-                    packer.add(type, region.name, Core.atlas.getPixmap(region), region.splits, region.pads);
-                }
+            Time.mark();
+            Time.mark();
+            Time.mark();
+            var group = CollectionsKt.groupBy(Core.atlas.getRegions(), this::getPage);
+            Log.debug("Grouping took @", Time.elapsed());
+            Log.infoTag("PAGES", String.valueOf(group.size()));
+            for(var byPage : group.entrySet()){
+                var page = byPage.getKey();
+                tasks.add(mainExecutor.submit(() -> {
+                    var showMissing = OS.hasProp("debugmissingsprites");
+                    for(var region : byPage.getValue()){
+                        if(!packer.has(page, region.name)){
+                            if(showMissing) Log.warn("Sprite '@' on page '@' is defined but is not overridden.", region.name, page);
+                            packer.add(page, region.name, Core.atlas.getPixmap(region), region.splits, region.pads);
+                        }
+                    }
+                }));
             }
+//            for(var page : PageType.values()){
+//                tasks.add(mainExecutor.submit(() -> {
+//                    Core.atlas.getRegions().each(r -> getPage(r) == page, region -> {
+//                        if(!packer.has(page, region.name)){
+//                            packer.add(page, region.name, Core.atlas.getPixmap(region), region.splits, region.pads);
+//                        }
+//                    });
+//                }));
+//            }
+            tasks.each(Threads::await);
+            tasks = null;
+            Log.debug("Repacking took @", Time.elapsed());
 
             Core.atlas.dispose();
 
@@ -286,14 +339,16 @@ public class Mods implements Loadable{
             Log.debug("Time to generate icons: @", Time.elapsed());
 
             //dispose old atlas data
+            Time.mark();
             Core.atlas = packer.flush(filter, new TextureAtlas());
+            Log.debug("Sprite flush took: @", Time.elapsed());
 
             Core.atlas.setErrorRegion("error");
-            Log.debug("Total pages: @", Core.atlas.getTextures().size);
         }
-
         packer.dispose();
         packer = null;
+
+        Log.debug("Total pages: @", Core.atlas.getTextures().size);
         Log.debug("Total time to generate & flush textures synchronously: @", Time.elapsed());
     }
 
@@ -310,10 +365,10 @@ public class Mods implements Loadable{
     private PageType getPage(Fi file){
         String path = file.path();
         return
-            path.contains("sprites/blocks/environment") ? PageType.environment :
-            path.contains("sprites/editor") ? PageType.editor :
-            path.contains("sprites/rubble") ? PageType.editor :
-            path.contains("sprites/ui") ? PageType.ui :
+            path.contains("sprites/blocks/environment") || path.contains("sprites-override/blocks/environment") ? PageType.environment :
+            path.contains("sprites/editor") || path.contains("sprites-override/editor") ? PageType.editor :
+            path.contains("sprites/rubble") || path.contains("sprites-override/rubble") ? PageType.rubble :
+            path.contains("sprites/ui") || path.contains("sprites-override/ui") ? PageType.ui :
             PageType.main;
     }
 
@@ -723,7 +778,7 @@ public class Mods implements Loadable{
 
         try{
             Fi zip = sourceFile.isDirectory() ? sourceFile : (rootZip = new ZipFi(sourceFile));
-            if(OS.isMac) zip.walk(f -> { if(f.name().equals(".DS_Store")) f.delete(); }); // macOS loves adding garbage files that break everything
+            if(OS.isMac) zip.child(".DS_Store").delete(); // macOS loves adding garbage files that break everything
             if(zip.list().length == 1 && zip.list()[0].isDirectory()){
                 zip = zip.list()[0];
             }
@@ -788,7 +843,7 @@ public class Mods implements Loadable{
                 (mainFile.exists() || meta.java) &&
                 !skipModLoading() &&
                 Core.settings.getBool("mod-" + baseName + "-enabled", true) &&
-                Version.isAtLeast(meta.minGameVersion) &&
+                /*Version.isAtLeast(meta.minGameVersion) &&*/
                 (meta.getMinMajor() >= 105 || headless)
             ){
                 if(ios){
@@ -914,14 +969,19 @@ public class Mods implements Loadable{
         /** @return whether this mod is supported by the game version */
         public boolean isSupported(){
             if(isOutdated()) return false;
-
-            return Version.isAtLeast(meta.minGameVersion);
+            if(clientDisabled()) return false;
+            return Core.settings.getBool("ignoremodminversion") || Version.isAtLeast(meta.minGameVersion);
         }
 
         /** @return whether this mod is outdated, e.g. not compatible with v6. */
         public boolean isOutdated(){
             //must be at least 105 to indicate v6 compat
             return getMinMajor() < 105;
+        }
+
+        /** @return whether the client disables this mod for one reason or another */
+        public boolean clientDisabled(){
+            return clientDisabled.contains(name);
         }
 
         public int getMinMajor(){
@@ -1009,6 +1069,8 @@ public class Mods implements Loadable{
         public boolean hidden;
         /** If true, this mod should be loaded as a Java class mod. This is technically optional, but highly recommended. */
         public boolean java;
+        /** If true, sprites are assumed to be pre-bled and won't be bled on startup. Useful for texture packs or mods with lots of sprites. */
+        public boolean prebled;
 
         public String displayName(){
             return displayName == null ? name : displayName;
@@ -1026,7 +1088,7 @@ public class Mods implements Loadable{
             int dot = ver.indexOf(".");
             return dot != -1 ? Strings.parseInt(ver.substring(0, dot), 0) : Strings.parseInt(ver, 0);
         }
-        
+
         @Override
         public String toString() {
             return "ModMeta{" +

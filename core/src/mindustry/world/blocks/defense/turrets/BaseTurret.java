@@ -61,7 +61,20 @@ public class BaseTurret extends Block{
 
     public class BaseTurretBuild extends Building implements Ranged{
         public float rotation = 90;
-        protected TurretPathfindingEntity pathfindingEntity = new TurretPathfindingEntity(range, true);
+        protected TurretPathfindingEntity turretEnt;
+
+        @Override
+        public void add(){ // Client stuff
+            super.add();
+            turretEnt = new TurretPathfindingEntity(this, range, targetGround(), targetAir(), this::canShoot);
+            Navigation.addEnt(turretEnt);
+        }
+
+        @Override
+        public void remove(){ // Client stuff
+            super.remove();
+            Navigation.removeEnt(turretEnt);
+        }
 
         @Override
         public float range(){
@@ -71,6 +84,18 @@ public class BaseTurret extends Block{
         @Override
         public void drawSelect(){
             Drawf.dashCircle(x, y, range, team.color);
+        }
+
+        public boolean canShoot(){ // Client stuff
+            return cons.valid();
+        }
+
+        public boolean targetGround(){ // Client stuff
+            return false;
+        }
+
+        public boolean targetAir(){ // Client stuff
+            return false;
         }
     }
 }

@@ -142,6 +142,7 @@ importPackage(Packages.mindustry.client.navigation)
 importPackage(Packages.mindustry.client.navigation.waypoints)
 importPackage(Packages.mindustry.client.ui)
 importPackage(Packages.mindustry.client.utils)
+importPackage(Packages.mindustry.client.graphics)
 const PlayerIpUnbanEvent = Packages.mindustry.game.EventType.PlayerIpUnbanEvent
 const PlayerIpBanEvent = Packages.mindustry.game.EventType.PlayerIpBanEvent
 const PlayerUnbanEvent = Packages.mindustry.game.EventType.PlayerUnbanEvent

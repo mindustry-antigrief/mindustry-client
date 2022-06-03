@@ -1,5 +1,6 @@
 package mindustry.world.blocks.distribution;
 
+import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -8,6 +9,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
@@ -21,6 +23,7 @@ import static mindustry.Vars.*;
 
 public class ItemBridge extends Block{
     private static BuildPlan otherReq;
+    public static int phaseWeaveInterval = Math.max(Core.settings.getInt("weaveEndInterval", 2), 1);
 
     public final int timerCheckMoved = timers ++;
 
@@ -160,6 +163,22 @@ public class ItemBridge extends Block{
 
     @Override
     public void handlePlacementLine(Seq<BuildPlan> plans){
+        if (Core.input.shift()){
+            for(int i = 0; i < plans.size; i++){ // let the last one link to itself
+                BuildPlan cur = plans.get(i);
+                BuildPlan next;
+                if(this == Blocks.phaseConveyor && i + range > plans.size - 1) {
+                    int distFromEnd = plans.size - 1 - i;
+                    next = plans.get(plans.size - 1 - distFromEnd % phaseWeaveInterval);
+                } else {
+                    next = plans.get(Math.min(plans.size - 1, i + range));
+                }
+                if(positionsValid(cur.x, cur.y, next.x, next.y)){
+                    cur.config = new Point2(next.x - cur.x, next.y - cur.y);
+                }
+            }
+            return;
+        }
         for(int i = 0; i < plans.size - 1; i++){
             var cur = plans.get(i);
             var next = plans.get(i + 1);
@@ -171,7 +190,9 @@ public class ItemBridge extends Block{
 
     @Override
     public void changePlacementPath(Seq<Point2> points, int rotation){
-        Placement.calculateNodes(points, this, rotation, (point, other) -> Math.max(Math.abs(point.x - other.x), Math.abs(point.y - other.y)) <= range);
+        if (!Core.input.shift()) { // if shift, try to place on every tile
+            Placement.calculateNodes(points, this, rotation, (point, other) -> Math.max(Math.abs(point.x - other.x), Math.abs(point.y - other.y)) <= range);
+        }
     }
 
     public class ItemBridgeBuild extends Building{

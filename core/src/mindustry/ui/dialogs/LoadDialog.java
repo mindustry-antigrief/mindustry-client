@@ -1,12 +1,10 @@
 package mindustry.ui.dialogs;
 
 import arc.*;
-import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
-import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.core.GameState.*;
@@ -27,7 +25,6 @@ public class LoadDialog extends BaseDialog{
     Gamemode filteredMode;
     TextField searchField;
     ScrollPane pane;
-    BaseDialog dialog;
 
     public LoadDialog(){
         this("@loadgame");
@@ -35,9 +32,12 @@ public class LoadDialog extends BaseDialog{
 
     public LoadDialog(String title){
         super(title);
-        setup();
 
         shown(this::setup);
+        hidden(() -> {
+            if(slots != null) slots.clearChildren();
+            control.saves.unload();
+        });
         onResize(this::setup);
 
         addCloseButton();
@@ -49,8 +49,6 @@ public class LoadDialog extends BaseDialog{
 
         slots = new Table();
         pane = new ScrollPane(slots);
-
-        rebuild();
 
         Table search = new Table();
         search.image(Icon.zoom);
@@ -70,6 +68,8 @@ public class LoadDialog extends BaseDialog{
             }
         }
 
+        rebuild();
+
         pane.setFadeScrollBars(false);
         pane.setScrollingDisabled(true, false);
 
@@ -79,20 +79,16 @@ public class LoadDialog extends BaseDialog{
     }
 
     public void rebuild(){
-
         slots.clear();
         slots.marginRight(24).marginLeft(20f);
 
         Time.runTask(2f, () -> Core.scene.setScrollFocus(pane));
 
-        Seq<SaveSlot> array = control.saves.getSaveSlots();
-        array.sort((slot, other) -> -Long.compare(slot.getTimestamp(), other.getTimestamp()));
-
         int maxwidth = Math.max((int)(Core.graphics.getWidth() / Scl.scl(470)), 1);
         int i = 0;
         boolean any = false;
 
-        for(SaveSlot slot : array){
+        for(SaveSlot slot : control.saves.getSaveSlots().sort(s -> -s.getTimestamp())){
             if(slot.isHidden()
             || (searchString != null && !Strings.stripColors(slot.getName()).toLowerCase().contains(searchString))
             || (filteredMode != null && filteredMode != slot.mode())){
@@ -147,9 +143,9 @@ public class LoadDialog extends BaseDialog{
                     draw.setRegion(def);
                 }
 
-                Texture text = slot.previewTexture();
-                if(draw.getRegion() == def && text != null){
-                    draw.setRegion(new TextureRegion(text));
+                var reg = slot.previewTexture();
+                if(draw.getRegion() != reg){
+                    draw.setRegion(reg);
                 }
                 im.setScaling(Scaling.fit);
             }).left().size(160f).padRight(6);
@@ -204,23 +200,21 @@ public class LoadDialog extends BaseDialog{
     }
 
     public void runLoadSave(SaveSlot slot){
-        slot.cautiousLoad(() -> {
-            ui.loadAnd(() -> {
-                hide();
-                ui.paused.hide();
-                try{
-                    net.reset();
-                    slot.load();
-                    state.rules.editor = false;
-                    state.rules.sector = null;
-                    state.set(State.playing);
-                }catch(SaveException e){
-                    Log.err(e);
-                    logic.reset();
-                    ui.showErrorMessage("@save.corrupted");
-                }
-            });
-        });
+        slot.cautiousLoad(() -> ui.loadAnd(() -> {
+            hide();
+            ui.paused.hide();
+            try{
+                net.reset();
+                slot.load();
+                state.rules.editor = false;
+                state.rules.sector = null;
+                state.set(State.playing);
+            }catch(SaveException e){
+                Log.err(e);
+                logic.reset();
+                ui.showErrorMessage("@save.corrupted");
+            }
+        }));
     }
 
     public void modifyButton(TextButton button, SaveSlot slot){

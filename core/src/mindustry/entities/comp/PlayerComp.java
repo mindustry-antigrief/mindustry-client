@@ -31,16 +31,17 @@ import static mindustry.Vars.*;
 @EntityDef(value = {Playerc.class}, serialize = false)
 @Component(base = true)
 abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Drawc{
-    static final float deathDelay = 60f;
+    static final float deathDelay = 10f;
     static final Queue<BuildPlan> persistPlans = new Queue<>(1);
 
     @Import float x, y;
+    @Import float mouseX_TARGET_, mouseY_TARGET_;
 
     @ReadOnly Unit unit = Nulls.unit;
     transient @Nullable NetConnection con;
     @ReadOnly Team team = Team.sharded;
     @SyncLocal boolean typing, shooting, boosting;
-    @SyncLocal float mouseX, mouseY;
+    @SyncField(true) @SyncLocal float mouseX, mouseY;
     boolean admin;
     String name = "frog";
     Color color = new Color();
@@ -172,8 +173,8 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
         textFadeTime -= Time.delta / (60 * 5);
 
-        fooUser = FloatEmbed.isEmbedded(mouseX, ClientVars.FOO_USER) && (FloatEmbed.isEmbedded(mouseY, ClientVars.ASSISTING) || FloatEmbed.isEmbedded(mouseY, ClientVars.FOO_USER));
-        assisting = (FloatEmbed.isEmbedded(mouseX, ClientVars.FOO_USER) || FloatEmbed.isEmbedded(mouseX, ClientVars.ASSISTING)) && FloatEmbed.isEmbedded(mouseY, ClientVars.ASSISTING);
+        fooUser = FloatEmbed.isEmbedded(mouseX_TARGET_, ClientVars.FOO_USER) && (FloatEmbed.isEmbedded(mouseY_TARGET_, ClientVars.ASSISTING) || FloatEmbed.isEmbedded(mouseY_TARGET_, ClientVars.FOO_USER));
+        assisting = (FloatEmbed.isEmbedded(mouseX_TARGET_, ClientVars.FOO_USER) || FloatEmbed.isEmbedded(mouseY_TARGET_, ClientVars.ASSISTING)) && FloatEmbed.isEmbedded(mouseY_TARGET_, ClientVars.ASSISTING);
     }
 
     public void checkSpawn(){

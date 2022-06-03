@@ -547,6 +547,14 @@ public class EventType{
         }
     }
 
+    public static class UnitDeadEvent{
+        public final Unit unit;
+
+        public UnitDeadEvent(Unit unit){
+            this.unit = unit;
+        }
+    }
+
     public static class UnitDrownEvent{
         public final Unit unit;
 
@@ -601,7 +609,7 @@ public class EventType{
         }
     }
 
-    /** UnitChangeEvent can't be changed without breaking compatibility (I think), this class adds the unit swapped from. */
+    /** UnitChangeEvent can't be changed without breaking compatibility with some mods, this class adds the unit swapped from. */
     public static class UnitChangeEventClient{
         public final Player player;
         public final Unit newUnit;
@@ -726,6 +734,18 @@ public class EventType{
 
         public SendChatMessageEvent(String message) {
             this.message = message;
+        }
+    }
+
+    /** custom client events **/
+    public static class CommandBeforeAfterEvent {
+        public final Building tile;
+        public final UnitCommand command_bef, command_aft;
+
+        public CommandBeforeAfterEvent(Building tile, UnitCommand o, UnitCommand e) {
+            this.tile = tile;
+            this.command_bef = o;
+            this.command_aft = e;
         }
     }
 }

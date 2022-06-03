@@ -1,6 +1,5 @@
 package mindustry.annotations.impl;
 
-import arc.*;
 import arc.audio.*;
 import arc.files.*;
 import arc.scene.style.*;
@@ -146,13 +145,12 @@ public class AssetsProcess extends BaseProcessor{
         files.sortComparing(Fi::name);
         int id = 0;
 
+        loadBegin.addCode("mindustry.Vars.mainExecutor.execute(() -> {$>\n");
         for(Fi p : files){
             String name = p.nameWithoutExtension();
 
-            if(names.contains(name)){
+            if(!names.add(name)){
                 BaseProcessor.err("Duplicate file name: " + p + "!");
-            }else{
-                names.add(name);
             }
 
             if(SourceVersion.isKeyword(name)) name += "s";
@@ -161,17 +159,18 @@ public class AssetsProcess extends BaseProcessor{
 
             if(genid){
                 staticb.addStatement("soundToId.put($L, $L)", name, id);
+                staticb.addStatement("idToSound.put($L, $L)", id, name);
 
-                loadBegin.addStatement("$T.assets.load($S, $L.class).loaded = a -> { $L = ($L)a; soundToId.put(a, $L); idToSound.put($L, a); }",
-                Core.class, filepath, rtype, name, rtype, id, id);
+                loadBegin.addStatement("$L.load(mindustry.Vars.tree.get($S))", name, filepath);
             }else{
-                loadBegin.addStatement("$T.assets.load($S, $L.class).loaded = a -> { $L = ($L)a; }", Core.class, filepath, rtype, name, rtype);
+                loadBegin.addStatement("try{$L.load(mindustry.Vars.tree.get($S));}catch(Exception e){throw new RuntimeException(e);}", name, filepath);
             }
 
             type.addField(FieldSpec.builder(ClassName.bestGuess(rtype), name, Modifier.STATIC, Modifier.PUBLIC).initializer("new " + rtype + "()").build());
 
             id ++;
         }
+        loadBegin.addStatement("$<})");
 
         if(genid){
             type.addStaticBlock(staticb.build());
