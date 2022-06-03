@@ -12,6 +12,20 @@ import arc.util.io.*
 import java.util.concurrent.*
 import java.util.stream.*
 
+sourceSets.main.java.srcDirs = ["src/"]
+
+buildscript{
+    repositories{
+        maven{ url 'https://jitpack.io' }
+    }
+
+    dependencies{
+        classpath localGroovy()
+        classpath "com.github.mindustry-antigrief.Arc:packer:$arcHash"
+        classpath "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
+    }
+}
+
 def genFolder = "../core/assets-raw/sprites_out/generated/"
 boolean doAntialias = !project.hasProperty("disableAntialias")
 def colorMap = new IntMap<List<Color>>(), colorIndexMap = new IntIntMap()

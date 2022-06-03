@@ -17,8 +17,8 @@ buildscript{
 
     dependencies{
         classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.14"
-        classpath "com.github.Anuken.Arc:packer:$arcHash"
-        classpath "com.github.Anuken.Arc:arc-core:$arcHash"
+        classpath "com.github.mindustry-antigrief.Arc:packer:$arcHash"
+        classpath "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
     }
 }
 
@@ -69,7 +69,7 @@ allprojects{
             }else{
                 //skip to last submodule
                 if(name.contains(':')) name = name.split(':').last()
-                return "com.github.Anuken.Arc:$name:${getArcHash()}"
+                return "com.github.mindustry-antigrief.Arc:$name:${getArcHash()}"
             }
         }
 
@@ -477,7 +477,7 @@ project(":annotations"){
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"
         implementation "com.google.devtools.ksp:symbol-processing-api:1.6.20-1.0.4"
-        implementation "com.github.Anuken.Arc:arc-core:$arcHash"
+        implementation "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
     }
 }
 
