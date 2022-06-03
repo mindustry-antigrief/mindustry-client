@@ -185,6 +185,41 @@ public class Weather extends UnlockableContent{
             }
         }
     }
+    // Overloading because probably a mod caused incompatibility, Copied from above, except alpha now directly takes it from core settings instead of relying on other functions to pass the variable
+
+    public static void drawRain(float sizeMin, float sizeMax, float xspeed, float yspeed, float density, float intensity, float stroke, Color color){
+        rand.setSeed(0);
+        float padding = sizeMax * 0.9f;
+
+        Tmp.r1.setCentered(Core.camera.position.x, Core.camera.position.y, Mathf.clamp(Core.graphics.getWidth() / renderer.minScale(), 0f, world.unitWidth()), Mathf.clamp(Core.graphics.getHeight() / renderer.minScale(), 0f, world.unitHeight()));
+        Tmp.r1.grow(padding);
+        Core.camera.bounds(Tmp.r2);
+        int total = (int)(Tmp.r1.area() / density * intensity);
+        Lines.stroke(stroke);
+        float alpha = Draw.getColor().a * Core.settings.getInt("weatheropacity") / 100f;
+        Draw.color(color);
+
+        for(int i = 0; i < total; i++){
+            float scl = rand.random(0.5f, 1f);
+            float scl2 = rand.random(0.5f, 1f);
+            float size = rand.random(sizeMin, sizeMax);
+            float x = (rand.random(0f, world.unitWidth()) + Time.time * xspeed * scl2);
+            float y = (rand.random(0f, world.unitHeight()) - Time.time * yspeed * scl);
+            float tint = rand.random(1f) * alpha;
+
+            x -= Tmp.r1.x;
+            y -= Tmp.r1.y;
+            x = Mathf.mod(x, Tmp.r1.width);
+            y = Mathf.mod(y, Tmp.r1.height);
+            x += Tmp.r1.x;
+            y += Tmp.r1.y;
+
+            if(Tmp.r3.setCentered(x, y, size).overlaps(Tmp.r2)){
+                Draw.alpha(tint);
+                Lines.lineAngle(x, y, Angles.angle(xspeed * scl2, - yspeed * scl), size/2f);
+            }
+        }
+    }
 
     public static void drawSplashes(TextureRegion[] splashes, float padding, float density, float intensity, float opacity, float timeScale, float stroke, Color color, Liquid splasher){
         Tmp.r1.setCentered(Core.camera.position.x, Core.camera.position.y, Mathf.clamp(Core.graphics.getWidth() / renderer.minScale(), 0f, world.unitWidth()), Mathf.clamp(Core.graphics.getHeight() / renderer.minScale(), 0f, world.unitHeight()));
