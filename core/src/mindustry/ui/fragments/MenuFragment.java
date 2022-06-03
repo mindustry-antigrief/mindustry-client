@@ -96,7 +96,7 @@ public class MenuFragment extends Fragment{
             });
         }
 
-        String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H";
+        String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H[]\nThe awesome drifting units you see below were brought to you by BalaM314 and buthed010203 tried to kill them.";
         parent.fill((x, y, w, h) -> {
             TextureRegion logo = Core.atlas.find("logo");
             float width = Core.graphics.getWidth(), height = Core.graphics.getHeight() - Core.scene.marginTop;
