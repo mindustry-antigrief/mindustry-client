@@ -35,8 +35,8 @@ buildscript{
 
     dependencies{
         classpath localGroovy()
-        classpath "com.github.Anuken.Arc:packer:$arcHash"
-        classpath "com.github.Anuken.Arc:arc-core:$arcHash"
+        classpath "com.github.mindustry-antigrief.Arc:packer:$arcHash"
+        classpath "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
     }
 }
 
