@@ -48,17 +48,15 @@ abstract class Navigator {
             else player.unit().formation().pattern.radius() + player.unit().formation.pattern.spacing / 2
 
         if(state.map.name() != "The Maze") {
-            synchronized (obstacles) {
-                for (turret in obstacles) {
-                    if (turret.canHitPlayer && turret.canShoot) {
-                        realObstacles.add(
-                            Pools.obtain(Circle::class.java) { Circle() }.set(
-                                turret.x,
-                                turret.y,
-                                turret.radius + additionalRadius
-                            )
+            for (turret in obstacles) {
+                if (turret.canHitPlayer() && turret.canShoot()) {
+                    realObstacles.add(
+                        Pools.obtain(Circle::class.java) { Circle() }.set(
+                            turret.x(),
+                            turret.y(),
+                            turret.range + additionalRadius
                         )
-                    }
+                    )
                 }
             }
         }
@@ -84,7 +82,7 @@ abstract class Navigator {
                 }
             } else if (player.unit().spawnedByCore && !player.unit().isCommanding && player.unit().stack.amount == 0) { // Everything that isn't CN
                 val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst(end) }))
-                if (player.dst(end) > bestCore.dst(end)) {
+                if (player.dst(end) > bestCore.dst(end) && player.dst(bestCore) > player.unit().speed() * 24) { // don't try to move if we're already close to that core
                     lastWp = Time.millis() // Try again in 3s
                     Call.buildingControlSelect(player, bestCore)
                 }

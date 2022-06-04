@@ -2,14 +2,18 @@ package mindustry.entities.units;
 
 import arc.func.*;
 import arc.math.geom.*;
+import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.*;
+import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.power.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.cameraBounds;
 
 /** Class for storing build requests. Can be either a place or remove request. */
 public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObject {
@@ -29,18 +33,29 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
     /** Whether construction has started for this request, and other special variables.*/
     public boolean initialized, worldContext = true, stuck;
 
-    /** Visual scale. Used only for rendering.*/
+    /** Visual scale. Used only for rendering. */
     public float animScale = 0f;
     
     /** Cache */
     public boolean valid;
+    /** Double freeing plans is a bad idea. */
+    public boolean freed;
+
+    /** Client: Client-side configs for plans (and subsequently a ConstructBuild then Building).*/
+    public @Nullable Cons<Building> clientConfig;
+
+    /** Whether to always prioritise the plan, regardless of ability to be built.*/
+    public boolean priority = false;
 
     @Override
     public void reset() {
         config = null;
+        clientConfig = null;
         progress = 0;
         initialized = false;
         stuck = false;
+        freed = true;
+        priority = false;
     }
 
     /** This creates a build request. */
@@ -60,6 +75,16 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.block = block;
         this.breaking = false;
         this.config = config;
+    }
+
+    public BuildPlan(int x, int y, int rotation, Block block, Object config, Cons<Building> clientConfig){
+        this.x = x;
+        this.y = y;
+        this.rotation = rotation;
+        this.block = block;
+        this.breaking = false;
+        this.config = config;
+        this.clientConfig = clientConfig;
     }
 
     /** This creates a remove request. */
@@ -126,6 +151,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         copy.progress = progress;
         copy.initialized = initialized;
         copy.animScale = animScale;
+        copy.clientConfig = clientConfig;
         return copy;
     }
 
@@ -151,6 +177,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.rotation = rotation;
         this.block = block;
         this.breaking = false;
+        freed = false;
         return this;
     }
 
@@ -161,6 +188,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.block = block;
         this.breaking = false;
         this.config = config;
+        freed = false;
         return this;
     }
 
@@ -170,6 +198,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.rotation = -1;
         this.block = world.tile(x, y).block();
         this.breaking = true;
+        freed = false;
         return this;
     }
 
@@ -196,6 +225,19 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         }else{
             return tile.block() == block && (tile.build == null || tile.build.rotation == rotation);
         }
+    }
+
+    public boolean isVisible(){
+        final Rect r1 = Tmp.r1;
+        return !worldContext || cameraBounds.overlaps(block.bounds(x, y, r1)) ||
+                (block instanceof ItemBridge b && Tmp.r2.set(cameraBounds).grow(2 * b.range * tilesizeF).overlaps(r1)) ||
+                (block instanceof PowerNode p && Tmp.r2.set(cameraBounds).grow(2 * tilesize * p.laserRange).overlaps(r1));
+    }
+
+    public static void getVisiblePlans(Eachable<BuildPlan> plans, Seq<BuildPlan> output){
+        plans.each(plan -> {
+            if(plan.isVisible()) output.add(plan);
+        });
     }
 
     @Override

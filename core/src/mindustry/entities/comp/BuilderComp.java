@@ -6,6 +6,7 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
+import arc.struct.*;
 import arc.struct.Queue;
 import arc.util.*;
 import mindustry.*;
@@ -24,6 +25,7 @@ import mindustry.world.blocks.ConstructBlock.*;
 
 import java.util.*;
 
+import static arc.Core.graphics;
 import static mindustry.Vars.*;
 
 @Component
@@ -79,10 +81,10 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         if(plans.size > 1){
             int total = 0;
             BuildPlan req;
-            while((!within((req = buildPlan()).tile(), finalPlaceDst) || shouldSkip(req, core)) && total < plans.size){
+            while(total++ < plans.size && (!within((req = buildPlan()).tile(), finalPlaceDst) || shouldSkip(req, core) ||
+                    (!req.initialized && !Build.validPlaceCoreRange(req.block, team, req.x, req.y)))){
                 plans.removeFirst();
                 plans.addLast(req);
-                total++;
             }
         }
 
@@ -104,6 +106,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
             if(!(tile.build instanceof ConstructBuild cb)){
                 if(!current.initialized && !current.breaking && Build.validPlace(current.block, team, current.x, current.y, current.rotation)){
+                    if(!Build.validPlaceCoreRange(current.block, team, current.x, current.y)) return;
                     boolean hasAll = infinite || current.isRotation(team) || !Structs.contains(current.block.requirements, i -> core != null && !core.items.has(i.item, Math.min(Mathf.round(i.amount * state.rules.buildCostMultiplier), 1)));
 
                     if(hasAll){
@@ -146,12 +149,20 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         }while(massPlace && plans.removeFirst() != null && plans.size > 0 && placed++ < 1000);
     }
 
+    private transient long lastFrame;
+    private transient final Seq<BuildPlan> visiblePlans = new Seq<>(1);
+    private void getVisiblePlans(){
+        lastFrame = graphics.getFrameId();
+        visiblePlans.clear();
+        BuildPlan.getVisiblePlans(plans, visiblePlans);
+    }
     /** Draw all current build plans. Does not draw the beam effect, only the positions. */
     void drawBuildPlans(){
         Boolf<BuildPlan> skip = plan -> plan.progress > 0.01f || (buildPlan() == plan && plan.initialized && (within(plan.x * tilesize, plan.y * tilesize, buildingRange) || state.isEditor()));
+        if(lastFrame != graphics.getFrameId()) getVisiblePlans();
 
         for(int i = 0; i < 2; i++){
-            for(BuildPlan plan : plans){
+            for(BuildPlan plan : visiblePlans){
                 if(skip.get(plan)) continue;
                 if(i == 0){
                     drawPlan(plan, 1f);
@@ -170,24 +181,26 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             control.input.drawBreaking(request);
         }else{
             request.block.drawPlan(request, control.input.allRequests(),
-            Build.validPlace(request.block, team, request.x, request.y, request.rotation) || control.input.requestMatches(request),
+                    (Build.validPlace(request.block, team, request.x, request.y, request.rotation) &&
+                    Build.validPlaceCoreRange(request.block, team, request.x, request.y)) || control.input.requestMatches(request),
             alpha);
         }
     }
 
     void drawPlanTop(BuildPlan request, float alpha){
         if(!request.breaking){
+            if(lastFrame != graphics.getFrameId()) getVisiblePlans();
             Draw.reset();
             Draw.mixcol(Color.white, 0.24f + Mathf.absin(Time.globalTime, 6f, 0.28f));
             Draw.alpha(alpha);
-            request.block.drawRequestConfigTop(request, plans);
+            request.block.drawRequestConfigTop(request, visiblePlans);
         }
     }
 
     /** @return whether this request should be skipped, in favor of the next one. */
     boolean shouldSkip(BuildPlan request, @Nullable Building core){
         //requests that you have at least *started* are considered
-        if(state.rules.infiniteResources || team.rules().infiniteResources || request.breaking || core == null || request.isRotation(team) || (isBuilding() && !within(plans.last(), buildingRange))) return false;
+        if(request.priority || state.rules.infiniteResources || team.rules().infiniteResources || request.breaking || core == null || request.isRotation(team) || (isBuilding() && !within(plans.last(), buildingRange))) return false;
 
         return (request.stuck && !core.items.has(request.block.requirements)) || (Structs.contains(request.block.requirements, i -> !core.items.has(i.item, Math.min(i.amount, 15)) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0) && !request.initialized);
     }

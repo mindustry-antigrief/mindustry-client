@@ -33,12 +33,12 @@ import mindustry.logic.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
+import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.regex.*;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
@@ -47,7 +47,6 @@ public class NetClient implements ApplicationListener{
     private static final float dataTimeout = 60 * 30; // Give up after 30s (vanilla is 20s)
     private static final float playerSyncTime = 5;
     private static final Reads dataReads = new Reads(null);
-    private static final Pattern coordPattern = Pattern.compile("\\S*?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\S*"); // This regex is a mess, it captures the coords into $1 and $2 while $0 contains all surrounding text as well. https://regex101.com is the superior regex tester
 
     private long ping;
     private Interval timer = new Interval(5);
@@ -220,8 +219,7 @@ public class NetClient implements ApplicationListener{
                 if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
-            unformatted = processCoords(unformatted, true);
-            message = processCoords(message, unformatted != null);
+            ChatFragment.ChatMessage.msgFormat();
             if (playersender != null) {
                 if (message.startsWith("[#" + playersender.team().color.toString() + "]<T>")) {
                     prefix += "[#" + playersender.team().color.toString() + "]<T> ";
@@ -257,19 +255,9 @@ public class NetClient implements ApplicationListener{
         if(Vars.ui != null){
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
-            message = processCoords(message, true);
+            ChatFragment.ChatMessage.msgFormat();
             Vars.ui.chatfrag.addMessage(message);
         }
-    }
-
-    private static String processCoords(String message, boolean setLastPos){
-        if (message == null) return null;
-        Matcher matcher = coordPattern.matcher(message);
-        if (!matcher.find()) return message;
-        if (setLastPos) try {
-            ClientVars.lastSentPos.set(Float.parseFloat(matcher.group(1)), Float.parseFloat(matcher.group(2)));
-        } catch (NumberFormatException ignored) {}
-        return matcher.replaceFirst(Matcher.quoteReplacement("[scarlet]" + Strings.stripColors(matcher.group()) + "[]")); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
     }
 
     //called when a server receives a chat message from a player
@@ -577,12 +565,14 @@ public class NetClient implements ApplicationListener{
         Time.runTask(40f, platform::updateRPC);
         Core.app.post(ui.loadfrag::hide);
         Core.app.post(() -> Events.fire(new EventType.ServerJoinEvent()));
-        Core.app.post(() -> { // We already command on sync, the player's formation var isn't set correctly, so we have to set it here as well.
+        Core.app.post(() -> { // We already command on sync, the player's formation var isn't set correctly, so we have to set it here as well. TODO: Kill in v7
             var units = Groups.unit.array.select(it -> it.controller().isBeingControlled(Vars.player.unit()));
             if (units.any()) {
                 var formation = new Formation(new Vec3(Vars.player.x, Vars.player.y, Vars.player.unit().rotation), new CircleFormation());
-                Vars.player.unit().formation = formation;
-                formation.addMembers(units.map(it -> (FormationAI)it.controller()));
+                formation.addMembers(units.map(u -> (FormationAI)u.controller()));
+                player.unit().formation = formation;
+                player.unit().minFormationSpeed = Math.min(player.unit().type.speed, units.min(u -> u.type.speed).type.speed);
+                formation.pattern.spacing = Math.max(player.unit().hitSize * .9f, units.max(u -> u.hitSize).hitSize * 1.3f);
             }
         });
     }

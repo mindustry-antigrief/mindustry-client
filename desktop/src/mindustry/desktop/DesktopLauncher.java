@@ -47,9 +47,9 @@ public class DesktopLauncher extends ClientLauncher{
 
             Vars.loadLogger();
             Version.init();
-            if (OS.hasProp("git")) { // Run with -Dgit and a git repo initialized in the data dir to sync saves between computers
+            if (OS.hasProp("git")) { // Run with -Dgit and a git repo initialized in the data dir to sync saves between computers (shallow clone = good)
                 File saves = new File(OS.hasEnv("MINDUSTRY_DATA_DIR") ? OS.env("MINDUSTRY_DATA_DIR") : Version.modifier.contains("steam") ? "saves" : OS.getAppDataDirectoryString("Mindustry"));
-                ProcessBuilder pb = new ProcessBuilder("git", "pull").directory(saves).inheritIO();
+                ProcessBuilder pb = new ProcessBuilder("git", "pull", "--force", "--shallow-since=1w").directory(saves).inheritIO();
                 Log.warn("&rBegin git sync (download)");
                 pb.start().waitFor();
                 Log.warn("&rEnd git sync (download)&fr");
@@ -59,7 +59,8 @@ public class DesktopLauncher extends ClientLauncher{
                         Log.warn("&rBegin git sync (upload)");
                         pb.command("git", "add", "maps", "saves", "schematics", "settings.bin", "mods", "aliases", "keys", ":!*.DS_Store").start().waitFor();
                         pb.command("git", "commit", "-m", "Upload saves from " + OS.username + " @ " + OS.osName + " x" + OS.osArchBits + " " + OS.osArch).start().waitFor();
-                        pb.command("git", "push").start().waitFor();
+                        pb.command("git", "push", "-f").start().waitFor();
+                        if(OS.hasProp("gpgbad")) pb.command("taskkill", "/F", "/IM", "gpg-agent.exe").start();
                         Log.warn("&rEnd git sync (upload)&fr");
                     } catch (InterruptedException | IOException e) {
                         e.printStackTrace();
@@ -67,11 +68,10 @@ public class DesktopLauncher extends ClientLauncher{
                 }, "Git Synchronization"));
             }
 
-            Events.on(EventType.ClientLoadEvent.class, e -> {
-                if (Core.app instanceof SdlApplication) SDL.SDL_SetWindowTitle(((SdlApplication) Core.app).getWindow(), getWindowTitle());
-            });
+            Events.on(EventType.ClientLoadEvent.class, e -> Core.graphics.setTitle(getWindowTitle()));
 
             if (OS.isMac && !Structs.contains(arg, "-firstThread")) { //restart with -XstartOnFirstThread on mac, doesn't work without it
+                Log.warn("Performing mac restart");
                 Core.files = new SdlFiles(); //this is null otherwise
                 javaPath = //this is null otherwise
                     new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
@@ -132,7 +132,7 @@ public class DesktopLauncher extends ClientLauncher{
     public void startDiscord() {
         if(useDiscord){
             try{
-                new FutureTask<Void>(() -> {
+                Log.warn(new FutureTask<Void>(() -> {
                     try{
                         DiscordRPC.connect(discordID);
                         Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::close));
@@ -144,7 +144,7 @@ public class DesktopLauncher extends ClientLauncher{
                         useDiscord = false;
                         Log.warn("Failed to initialize Discord RPC - you are likely using a JVM <16.");
                     }
-                }, null).get(500, TimeUnit.MILLISECONDS);
+                }, null).get(500, TimeUnit.MILLISECONDS).toString());
             } catch (ExecutionException | InterruptedException | TimeoutException ignored) {}
         }
     }
@@ -397,7 +397,7 @@ public class DesktopLauncher extends ClientLauncher{
             presence.smallImageText = Strings.format("Foo's Client SByte Edition (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
             presence.startTimestamp = state.tick == 0 ? beginTime/1000 : Time.timeSinceMillis((long)(state.tick * 16.666));
             presence.label1 = "Client Github";
-            presence.url1 = "https://github.com/mindustry-antigrief/mindustry-client";
+            presence.url1 = "https://github.com/zxtej/mindustry-client";
             if (DiscordRPC.getStatus() == DiscordRPC.PipeStatus.connected) DiscordRPC.send(presence);
         }
 

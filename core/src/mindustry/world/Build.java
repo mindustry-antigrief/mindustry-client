@@ -8,6 +8,7 @@ import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.entities.*;
+import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
@@ -64,10 +65,11 @@ public class Build{
         Core.app.post(() -> Events.fire(new BlockBuildBeginEvent(tile, team, unit, true)));
     }
 
+    public final static Seq<BuildPlan> planSeq = new Seq<>(BuildPlan.class);
     /** Places a ConstructBlock at this location. */
     @Remote(called = Loc.server)
     public static void beginPlace(@Nullable Unit unit, Block result, Team team, int x, int y, int rotation){
-        if(!validPlace(result, team, x, y, rotation)){
+        if(!validPlace(result, team, x, y, rotation) || !validPlaceCoreRange(result, team, x, y)){
             return;
         }
 
@@ -120,6 +122,26 @@ public class Build{
 
         result.placeBegan(tile, previous);
 
+        var plans = player.unit().plans;
+        if(plans.size < 10 || control.input.planTreeNeedsRecalculation()){
+            // what are the chances of this method being called many times in a frame
+            for(int i = 0; i < plans.size; i++){
+                var plan = plans.get(i);
+                if(plan.clientConfig != null && plan.x == x && plan.y == y && plan.block == build.current){
+                    build.clientConfig = plan.clientConfig;
+                }
+            }
+        } else {
+            control.input.planTree().intersect(result.bounds(x, y, Tmp.r1), planSeq);
+            for(int i = 0; i < planSeq.size; i++){
+                var plan = planSeq.items[i];
+                if(plan.clientConfig != null && plan.block == build.current){
+                    build.clientConfig = plan.clientConfig;
+                }
+            }
+            planSeq.clear();
+        }
+
         Core.app.post(() -> Events.fire(new BlockBuildBeginEvent(tile, team, unit, false)));
     }
 
@@ -139,6 +161,7 @@ public class Build{
             return false;
         }
 
+        /*
         if(!state.rules.editor){
             //find closest core, if it doesn't match the team, placing is not legal
             if(state.rules.polygonCoreProtection){
@@ -160,6 +183,7 @@ public class Build{
                 return false;
             }
         }
+         */
 
         Tile tile = world.tile(x, y);
 
@@ -207,6 +231,25 @@ public class Build{
         }
 
         return true;
+    }
+
+    public static boolean validPlaceCoreRange(Block type, Team team, int x, int y){
+        if(state.rules.editor) return true;
+        //find closest core, if it doesn't match the team, placing is not legal
+        if(state.rules.polygonCoreProtection){
+            float mindst = Float.MAX_VALUE;
+            CoreBuild closest = null;
+            for(TeamData data : state.teams.active){
+                for(CoreBuild tile : data.cores){
+                    float dst = tile.dst2(x * tilesize + type.offset, y * tilesize + type.offset);
+                    if(dst < mindst){
+                        closest = tile;
+                        mindst = dst;
+                    }
+                }
+            }
+            return closest == null || closest.team == team;
+        }else return !state.teams.anyEnemyCoresWithin(team, x * tilesize + type.offset, y * tilesize + type.offset, state.rules.enemyCoreBuildRadius + tilesize);
     }
 
     public static boolean contactsGround(int x, int y, Block block){

@@ -30,14 +30,13 @@ public class ContentLoader{
     private @Nullable LoadedMod currentMod;
     private @Nullable Content lastAdded;
     private ObjectSet<Cons<Content>> initialization = new ObjectSet<>();
-    private ContentList[] content = {
+    private final ContentList[] content = {
         new Items(),
         new StatusEffects(),
         new Liquids(),
         new Bullets(),
         new UnitTypes(),
         new Blocks(),
-        new Loadouts(),
         new Weathers(),
         new Planets(),
         new SectorPresets(),
@@ -64,7 +63,9 @@ public class ContentLoader{
     /** Creates all base types. */
     public void createBaseContent(){
         for(ContentList list : content){
+            var s = Time.nanos();
             list.load();
+            Log.warn("Content @ in @ms", list.getClass().getSimpleName(), Time.timeSinceNanos(s)/(float)Time.nanosPerMilli);
         }
     }
 

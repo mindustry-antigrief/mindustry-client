@@ -383,6 +383,7 @@ public class CoreBlock extends StorageBlock{
                     Fx.coreBurn.at(x, y);
                 }
             }
+            if(team == player.team()) CoreItemsDisplay.addItemRate(item, realAmount);
         }
 
         @Override
@@ -491,6 +492,7 @@ public class CoreBlock extends StorageBlock{
                 incinerateEffect(this, source);
                 noEffect = false;
             }
+            if(team == player.team()) CoreItemsDisplay.addItemRate(item, items.get(item) >= storageCapacity ? 0 : 1);
         }
 
         @Override

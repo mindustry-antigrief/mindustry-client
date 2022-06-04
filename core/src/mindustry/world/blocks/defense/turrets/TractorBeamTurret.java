@@ -7,7 +7,6 @@ import arc.math.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
@@ -79,27 +78,7 @@ public class TractorBeamTurret extends BaseTurret{
         public float coolant = 1f;
 
         @Override
-        public void created() {
-            pathfindingEntity.targetGround = targetGround;
-        }
-
-        @Override
-        public void remove() {
-            Navigation.obstacles.remove(pathfindingEntity);
-            super.remove();
-        }
-
-        @Override
         public void updateTile(){
-            if (player != null && player.unit() != null && team != player.team()) {
-                Navigation.obstacles.add(pathfindingEntity);
-                pathfindingEntity.canHitPlayer = player.unit().isFlying() ? targetAir : targetGround;
-                pathfindingEntity.canShoot = cons.valid();
-                pathfindingEntity.x = x;
-                pathfindingEntity.y = y;
-                pathfindingEntity.team = team;
-            }
-
             //retarget
             if(timer(timerTarget, retargetTime)){
                 target = Units.closestEnemy(team, x, y, range, u -> u.checkTarget(targetAir, targetGround));
@@ -192,6 +171,16 @@ public class TractorBeamTurret extends BaseTurret{
             super.read(read, revision);
 
             rotation = read.f();
+        }
+
+        @Override
+        public boolean targetGround(){ // Client stuff
+            return targetGround;
+        }
+
+        @Override
+        public boolean targetAir(){ // Client stuff
+            return targetAir;
         }
     }
 }

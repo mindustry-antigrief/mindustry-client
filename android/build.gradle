@@ -133,8 +133,8 @@ dependencies{
     implementation arcModule("backends:backend-android")
     implementation 'com.jakewharton.android.repackaged:dalvik-dx:9.0.0_r3'
 
-    natives "com.github.Anuken.Arc:natives-android:${getArcHash()}"
-    natives "com.github.Anuken.Arc:natives-freetype-android:${getArcHash()}"
+    natives "com.github.mindustry-antigrief.arc:natives-android:${getArcHash()}"
+    natives "com.github.mindustry-antigrief.arc:natives-freetype-android:${getArcHash()}"
 
     gpImplementation "com.google.android.gms:play-services-games:21.0.0"
     gpImplementation "com.google.android.gms:play-services-auth:19.0.0"

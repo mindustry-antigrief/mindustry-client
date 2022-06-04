@@ -50,7 +50,7 @@ public class Renderer implements ApplicationListener{
     public boolean animateShields, drawWeather = true, drawStatus;
     public float weatherAlpha;
     /** minZoom = zooming out, maxZoom = zooming in */
-    public float minZoom = 0.01f, maxZoom = 12f;
+    public float minZoom = 0.01f, maxZoom = 80f;
     public Seq<EnvRenderer> envRenderers = new Seq<>();
     public ObjectMap<String, Runnable> customBackgrounds = new ObjectMap<>();
     public TextureRegion[] bubbles = new TextureRegion[16], splashes = new TextureRegion[12];
@@ -323,9 +323,7 @@ public class Renderer implements ApplicationListener{
 
         Groups.draw.draw(Drawc::draw);
 
-        Draw.z(Layer.space);
-        Client.INSTANCE.draw();
-        Draw.color();
+        Draw.draw(Layer.space, Client.INSTANCE::draw);
 
         Draw.reset();
         Draw.flush();

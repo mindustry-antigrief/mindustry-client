@@ -7,6 +7,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.client.*;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -392,6 +393,66 @@ public class BlockIndexer{
 
         return null;
     }
+
+    /** Find the closest ore block relative to a position. */
+    public Tile findClosestOreButWithoutTurrets(float xp, float yp, Item item){ // FINISHME: WIP
+        if(ores[item.id] != null){
+            float minDst = 0f;
+            Tile closest = null;
+            for(int qx = 0; qx < quadWidth; qx++){
+                for(int qy = 0; qy < quadHeight; qy++){
+                    var arr = ores[item.id][qx][qy];
+                    if(arr != null && arr.size > 0){
+                        Tile tile = world.tile(arr.first());
+                        float dst = Mathf.dst2(xp, yp, tile.worldx(), tile.worldy());
+                        if(closest == null || dst < minDst){
+                            for(int i : arr.items){
+                                tile = world.tile(i);
+                                dst = Mathf.dst2(xp, yp, tile.worldx(), tile.worldy());
+                                if((closest == null || dst < minDst) && !Navigation.getTree().any(tile.worldx(), tile.worldy(), tilesize, tilesize)){
+                                    closest = tile;
+                                    minDst = dst;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return closest;
+        }
+
+        return null;
+    }
+
+//    /** Find the closest ore block relative to a position. */
+//    public Tile findClosestOreButWithoutTurrets(float xp, float yp, Item item){
+//        if(ores[item.id] != null){
+//            float minDst = 0f;
+//            Tile closest = null;
+//            for(int qx = 0; qx < quadWidth; qx++){
+//                for(int qy = 0; qy < quadHeight; qy++){
+//                    var arr = ores[item.id][qx][qy];
+//                    if(arr != null && arr.size > 0){
+//                        Tile tile = world.tile(arr.first());
+//                        float dst = Mathf.dst2(xp, yp, tile.worldx(), tile.worldy());
+//                        if(closest == null || dst < minDst){
+//                            for(int i : arr.items){
+//                                tile = world.tile(i);
+//                                dst = Mathf.dst2(xp, yp, tile.worldx(), tile.worldy());
+//                                if((closest == null || dst < minDst) && !Navigation.obstacles.){
+//                                    closest = tile;
+//                                    minDst = dst;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            return closest;
+//        }
+//
+//        return null;
+//    }
 
     /** Find the closest ore block relative to a position. */
     public Tile findClosestOre(Unit unit, Item item){

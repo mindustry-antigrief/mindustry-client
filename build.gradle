@@ -16,20 +16,18 @@ buildscript{
     }
 
     dependencies{
-        classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.14"
+        classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.16"
         classpath "com.github.mindustry-antigrief.Arc:packer:$arcHash"
         classpath "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
     }
 }
 
 plugins{
-    id "org.jetbrains.kotlin.jvm" version "1.6.20"
-    id "org.jetbrains.kotlin.kapt" version "1.6.20"
+    id "org.jetbrains.kotlin.jvm" version "1.6.21"
+    id "org.jetbrains.kotlin.kapt" version "1.6.21"
 }
 
 allprojects{
-    apply plugin: 'maven-publish'
-    
     version = 'release'
     group = 'com.github.Anuken'
 
@@ -198,12 +196,8 @@ allprojects{
         maven{ url 'https://jitpack.io' }
     }
 
-    task clearCache{
-        doFirst{
-            delete{
-                delete "$rootDir/core/assets/cache"
-            }
-        }
+    task clearCache(type: Delete){
+        delete "$rootDir/core/assets/cache"
     }
 
     tasks.withType(JavaCompile){
@@ -380,8 +374,9 @@ project(":core"){
         api "com.github.Anuken:rhino:$rhinoVersion"
         if(localArc() && debugged()) api arcModule("extensions:recorder")
         if(localArc()) api arcModule(":extensions:packer")
+        if(localArc()) implementation arcModule("extensions:profiling")
 
-        implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.20"
+        implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.21"
 //        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0" Unused, removed to reduce jar size
 
         compileOnly files("../bouncycastle/bcprov-jdk15on.jar")
@@ -393,7 +388,9 @@ project(":core"){
 
         annotationProcessor 'com.github.Anuken:jabel:0.6.0'
         compileOnly project(":annotations")
-        kapt project(":annotations")
+        if (!project.hasProperty("noKapt")) kapt project(":annotations")
+
+//        runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-jsr223:1.6.21"
     }
 
     afterEvaluate{
@@ -438,11 +435,14 @@ project(":tests"){
 
     dependencies{
         testImplementation project(":core")
-        testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.6.20"
+        testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.6.21"
         testImplementation "org.junit.jupiter:junit-jupiter-params:5.7.1"
         testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.1"
         testImplementation arcModule("backends:backend-headless")
         testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.7.1"
+        testImplementation "org.bouncycastle:bcprov-jdk15on:1.69"
+        testImplementation "org.bouncycastle:bcpkix-jdk15on:1.69"
+        testImplementation "org.bouncycastle:bctls-jdk15on:1.69"
     }
 
     test{
@@ -474,12 +474,15 @@ project(":annotations"){
 
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"
-        implementation "com.google.devtools.ksp:symbol-processing-api:1.6.20-1.0.4"
+//        implementation "com.google.devtools.ksp:symbol-processing-api:1.6.20-1.0.4"
+        // WARNING commenting this out might have broken it
         implementation "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
     }
 }
 
 configure([":core", ":desktop", ":server", ":tools"].collect{project(it)}){
+    apply plugin: 'maven-publish'
+
     java{
         withJavadocJar()
         withSourcesJar()

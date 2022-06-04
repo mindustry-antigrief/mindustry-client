@@ -28,11 +28,13 @@ import mindustry.mod.*;
 import mindustry.net.*;
 import mindustry.service.*;
 import mindustry.type.*;
+import mindustry.ui.dialogs.*;
 import mindustry.world.*;
 
 import java.io.*;
 import java.nio.charset.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import static arc.Core.*;
 
@@ -112,6 +114,7 @@ public class Vars implements Loadable{
     public static final float coreLandDuration = 160f;
     /** size of tiles in units */
     public static final int tilesize = 8;
+    public static final float tilesizeF = tilesize;
     /** size of one tile payload (^2) */
     public static final float tilePayload = tilesize * tilesize;
     /** icon sizes for UI */
@@ -169,7 +172,7 @@ public class Vars implements Loadable{
     public static boolean headless;
     /** whether steam is enabled for this game */
     public static boolean steam;
-    /** whether typing into the console is enabled - developers only */ // Hi, I'm buthed and I'm a "developer" -buthed010203 9/6/21
+    /** whether typing into the console is enabled - developers only */ // Hi, I'm buthed and I'm a "developer" -buthed010203 9/6/21 // hi zxtej 29 5 22 developing
     public static boolean enableConsole = true;
     /** whether to clear sector saves when landing */
     public static boolean clearSectors = false;
@@ -244,9 +247,17 @@ public class Vars implements Loadable{
     public static NetServer netServer;
     public static NetClient netClient;
 
+    public static CSHandler customScripts;
+
     public static Player player;
+    public static ThreadPoolExecutor mainExecutor = new ThreadPoolExecutor(OS.cores, OS.cores, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), r -> {
+        Thread thread = new Thread(r, "mainExecutorThread");
+        thread.setDaemon(true);
+        thread.setUncaughtExceptionHandler((t, e) -> e.printStackTrace());
+        return thread;
+    });
     public static boolean drawCursors, wasDrawingCursors; // Client debug magic
-    public static Seq<BuildPlan> frozenPlans = new Seq<>();
+    public static Seq<BuildPlan> frozenPlans = new Seq<>(); // remind me to shift this to Vars.player() maybe. or maybe not since unneeded space
 
     @Override
     public void loadAsync(){
@@ -260,8 +271,9 @@ public class Vars implements Loadable{
         if(loadLocales){
             //load locales
             String[] stra = Core.files.internal("locales").readString().split("\n");
-            locales = new Locale[stra.length];
-            for(int i = 0; i < locales.length; i++){
+            int len = stra.length;
+            locales = new Locale[len + 1];
+            for(int i = 0; i < len; i++){
                 String code = stra[i];
                 if(code.contains("_")){
                     locales[i] = new Locale(code.split("_")[0], code.split("_")[1]);
@@ -270,8 +282,8 @@ public class Vars implements Loadable{
                 }
             }
 
-            Arrays.sort(locales, Structs.comparing(l -> l.getDisplayName(l), String.CASE_INSENSITIVE_ORDER));
-            locales = Seq.with(locales).and(new Locale("router")).toArray(Locale.class);
+            Arrays.sort(locales, 0, len, Structs.comparing(l -> LanguageDialog.displayNames.get(l.toString(), l.getDisplayName(Locale.ROOT)), String.CASE_INSENSITIVE_ORDER));
+            locales[len] = new Locale("router");
         }
 
         CacheLayer.init();
@@ -325,6 +337,8 @@ public class Vars implements Loadable{
 
         mods.load();
         maps.load();
+        customScripts = new CSHandler();
+
     }
 
     /** Checks if a launch failure occurred.
@@ -354,7 +368,7 @@ public class Vars implements Loadable{
         String[] tags = {"[green][D][]", "[royal][I][]", "[yellow][W][]", "[scarlet][E][]", ""};
         String[] stags = {"&lc&fb[D]", "&lb&fb[I]", "&ly&fb[W]", "&lr&fb[E]", ""};
 
-        LinkedList<String> logBuffer = new LinkedList<>();
+        final ConcurrentLinkedQueue<String>[] logBuffer = new ConcurrentLinkedQueue[]{new ConcurrentLinkedQueue<>()};
         Log.logger = (level, text) -> {
             String result = text;
             String rawText = Log.format(stags[level.ordinal()] + "&fr " + text);
@@ -363,7 +377,7 @@ public class Vars implements Loadable{
             result = tags[level.ordinal()] + " " + result;
 
             if(!headless && (ui == null || ui.scriptfrag == null)){
-                logBuffer.add(result);
+                logBuffer[0].add(result);
             }else if(!headless){
                 if(!OS.isWindows){
                     for(String code : ColorCodes.values){
@@ -376,7 +390,9 @@ public class Vars implements Loadable{
         };
 
         Events.on(ClientLoadEvent.class, e -> {
-            while(!logBuffer.isEmpty()) ui.scriptfrag.addMessage(logBuffer.removeFirst()); // Saves like 1 byte
+            String msg;
+            while ((msg = logBuffer[0].poll()) != null) ui.scriptfrag.addMessage(msg);
+            logBuffer[0] = null; // Events stay in memory for all eternity, these few bytes are totally worth saving.
         });
 
         loadedLogger = true;
@@ -427,6 +443,7 @@ public class Vars implements Loadable{
             UnitType.formationAlpha = settings.getInt("formationopacity") / 100f;
             UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f;
         });
+        if (Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug;
 
         Scl.setProduct(settings.getInt("uiscale", 100) / 100f);
 

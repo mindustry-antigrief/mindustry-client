@@ -13,6 +13,7 @@ import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
+import mindustry.core.*
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.game.Teams.*
@@ -62,12 +63,12 @@ object Main : ApplicationListener {
 
         communicationClient = Packets.CommunicationClient(communicationSystem)
 
-        Navigation.navigator = AStarNavigator
+        Navigation.navigator = AStarNavigatorOptimised
 
         Events.on(EventType.WorldLoadEvent::class.java) {
             if (!Vars.net.client()) { // This is so scuffed but shh
                 setPluginNetworking(false)
-                Call.serverPacketReliable("fooCheck", "")
+                NetServer.serverPacketReliable(Vars.player, "fooCheck", "") // Call locally
             }
             dispatchedBuildPlans.clear()
         }
@@ -84,6 +85,10 @@ object Main : ApplicationListener {
 
             ClientVars.pluginVersion = Strings.parseInt(version)
             setPluginNetworking(true)
+        }
+
+        Vars.netServer.addPacketHandler("pause") { p, _ ->
+            if (p.admin) Vars.state.serverPaused = true
         }
 
         communicationClient.addListener { transmission, senderId ->
@@ -136,7 +141,7 @@ object Main : ApplicationListener {
                 }
 
                 is ClientMessageTransmission -> {
-                    if (senderId != Vars.player.id) transmission.addToChatfrag()
+                    if (senderId != Vars.player.id) transmission.addToChatfrag(true)
                 }
 
                 is ImageTransmission -> {
@@ -168,6 +173,7 @@ object Main : ApplicationListener {
         if (!Core.settings.getBool("highlightcryptomsg")) return true
         val output = signatures.verifySignatureTransmission(msg.unformatted.encodeToByteArray(), transmission)
 
+        ChatFragment.ChatMessage.msgFormat()
         return when (output.first) {
             Signatures.VerifyResult.VALID -> {
                 msg.sender = output.second?.run { keyStorage.aliasOrName(this) }
@@ -315,6 +321,7 @@ object Main : ApplicationListener {
             when (transmission) {
                 is MessageTransmission -> {
                     ClientVars.lastCertName = system.peer.expectedCert.readableName
+                    ChatFragment.ChatMessage.msgFormat()
                     Vars.ui.chatfrag.addMessage(transmission.content, "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).run{ prefix = "${Iconc.ok} $prefix " }
                 }
 

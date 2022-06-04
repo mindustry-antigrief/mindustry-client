@@ -1,6 +1,7 @@
 package mindustry.client
 
 import arc.*
+import arc.func.Prov
 import arc.graphics.*
 import arc.graphics.g2d.*
 import arc.math.*
@@ -19,7 +20,10 @@ import mindustry.client.communication.Packets
 import mindustry.client.crypto.*
 import mindustry.client.graphics.*
 import mindustry.client.navigation.*
-import mindustry.client.navigation.Navigation.*
+import mindustry.client.navigation.Navigation.follow
+import mindustry.client.navigation.Navigation.getTree
+import mindustry.client.navigation.Navigation.navigateTo
+import mindustry.client.navigation.Navigation.navigator
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.core.*
@@ -35,7 +39,9 @@ import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.defense.turrets.BaseTurret.*
+import mindustry.world.blocks.distribution.ItemBridge
 import mindustry.world.blocks.logic.*
+import mindustry.world.blocks.logic.LogicBlock.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
@@ -44,6 +50,7 @@ import java.io.*
 import java.math.*
 import java.security.*
 import java.security.cert.*
+import javax.script.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -51,6 +58,7 @@ object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
     val timer = Interval(4)
+//    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
     private val circles = mutableListOf<Pair<TurretPathfindingEntity, Color>>()
 
     fun initialize() {
@@ -71,6 +79,8 @@ object Client {
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
+        Core.camera.bounds(cameraBounds) // do we do this here or on draw? can Core.camera be null?
+        cameraBounds.grow(2 * tilesizeF)
 
         if (!configs.isEmpty()) {
             try {
@@ -114,14 +124,15 @@ object Client {
 
         // Turret range
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
-        if (showingTurrets) {
-            Draw.z(Layer.space)
+        if (showingTurrets || showingInvTurrets) {
             val units = Core.settings.getBool("unitranges")
             circles.clear()
-            synchronized(obstacles) {
-                for (t in obstacles) {
-                    if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
-                    circles.add(t to if (t.canHitPlayer) t.team.color else Team.derelict.color)
+            val flying = player.unit().isFlying
+            getTree().intersect(bounds) {
+                if ((units || it.turret) && it.canShoot()) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
+                    val valid = (flying && it.targetAir) || (!flying && it.targetGround)
+                    val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
+                    circles.add(it to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
                 }
             }
             RangeDrawer.draw(circles)
@@ -142,9 +153,15 @@ object Client {
     }
 
     private fun registerCommands() {
-        register("help [page]", Core.bundle.get("client.command.help.description")) { args, player ->
+        register("help [page/command]", Core.bundle.get("client.command.help.description")) { args, player ->
             if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
-                player.sendMessage("[scarlet]'page' must be a number.")
+                val command = clientCommandHandler.commandList.find { it.text == args[0] }
+                if (command != null) {
+                    player.sendMessage(Strings.format("[orange] !@[white] @[lightgray] - @",
+                        command.text, command.paramText, command.description))
+                    return@register
+                }
+                player.sendMessage("[scarlet]input must be a number or command.")
                 return@register
             }
             val commandsPerPage = 6
@@ -167,6 +184,13 @@ object Client {
 
         register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
             ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
+        }
+
+        register("uc <unit-type>", "Picks a unit nearest to cursor") { args, _ ->
+            ui.unitPicker.pickUnit(
+                content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) },
+                Core.input.mouseWorldX(), Core.input.mouseWorldY(), true
+            )
         }
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
@@ -249,7 +273,7 @@ object Client {
             follow(MinePath(if (args.isEmpty()) "" else args[0]))
         } // FINISHME: This is so scuffed lol
 
-        register("buildmine", "Buildpath (self) + mine (all)") {_, player: Player ->
+        register("buildmine", "Buildpath (self) + mine (all)") {_, _: Player ->
             follow(BuildMinePath())
         }
 
@@ -277,6 +301,10 @@ object Client {
         register("js <code...>", Core.bundle.get("client.command.js.description")) { args, player: Player ->
             player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
         }
+
+//        register("kts <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player -> // FINISHME: Bundle
+//            player.sendMessage("[accent]${try{ kts.eval(args[0]) }catch(e: Throwable){ e }}")
+//        }
 
         register("/js <code...>", Core.bundle.get("client.command.serverjs.description")) { args, player ->
             player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
@@ -352,8 +380,8 @@ object Client {
 
         @Suppress("unchecked_cast")
         register("fixcode [options...]", "Disables problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
-            val builds = Seq<Building>()
-            Vars.player.team().data().buildings.getObjects(builds) // Must be done on the main thread
+            val builds = Seq<LogicBuild>()
+            Vars.player.team().data().buildings.getObjects(builds as Seq<Building>) // Must be done on the main thread
             clientThread.post {
                 builds.removeAll { it !is LogicBlock.LogicBuild }
                 val confirmed = args.any() && (args[0] == "c" || args[0] == "r") // Don't configure by default
@@ -362,11 +390,11 @@ object Client {
 
                 if (confirmed && !inProgress) {
                     Log.debug("Patching!")
-                    (builds as Seq<LogicBlock.LogicBuild>).each { build ->
-                        val patched = ProcessorPatcher.patch(build.code, args[0])
-                        if (patched != build.code) {
-                            Log.debug("${build.tileX()} ${build.tileY()}")
-                            configs.add(ConfigRequest(build.tileX(), build.tileY(), LogicBlock.compress(patched, build.relativeConnections())))
+                    builds.forEach {
+                        val patched = ProcessorPatcher.patch(it.code, args[0])
+                        if (patched != it.code) {
+                            Log.debug("${it.tileX()} ${it.tileY()}")
+                            configs.add(ConfigRequest(it.tileX(), it.tileY(), compress(patched, it.relativeConnections())))
                             n++
                         }
                     }
@@ -403,49 +431,23 @@ object Client {
         }
 
         register("clearghosts [c]", "Removes the ghosts of blocks which are in range of enemy turrets, useful to stop polys from building forever") { args, player -> // FINISHME: Bundle
-            clientThread.post {
-                val confirmed = args.any() && args[0].startsWith("c") // Don't clear by default
-                val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
-                val blocked = GridBits(world.width(), world.height())
+            val confirmed = args.any() && args[0].startsWith("c") // Don't clear by default
+            val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
+            val plans = mutableListOf<Int>()
 
-                synchronized (obstacles) {
-                    for (turret in obstacles) {
-                        if (!turret.turret) continue
-                        val lowerXBound = ((turret.x - turret.radius) / tilesize).toInt()
-                        val upperXBound = ((turret.x + turret.radius) / tilesize).toInt()
-                        val lowerYBound = ((turret.y - turret.radius) / tilesize).toInt()
-                        val upperYBound = ((turret.y + turret.radius) / tilesize).toInt()
-                        for (x in lowerXBound..upperXBound) {
-                            for (y in lowerYBound..upperYBound) {
-                                if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize.toFloat(), y * tilesize.toFloat())) {
-                                    blocked.set(x, y)
-                                }
-                            }
-                        }
-                    }
-                }
-                val plans = mutableListOf<Int>()
-                for (plan in Vars.player.team().data().blocks) {
-                    var isBlocked = false
-                    world.tile(plan.x.toInt(), plan.y.toInt()).getLinkedTilesAs(content.block(plan.block.toInt())) { t ->
-                        if (blocked.get(t.x.toInt(), t.y.toInt())) isBlocked = true
-                    }
-                    if (!isBlocked && !all) continue
+            for (plan in Vars.player.team().data().blocks) {
+                val block = content.block(plan.block.toInt())
+                if (!(all || getTree().any(Tmp.r1.setCentered(plan.x * tilesize + block.offset, plan.y * tilesize + block.offset, block.size * tilesizeF)))) continue
 
-                    plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
-                }
-                val removedCount = plans.size
-                Core.app.post {
-                    if (confirmed) {
-                        while (plans.any()) {
-                            val batch = plans.takeLast(100)
-                            plans.removeAll(batch)
-                            Call.deletePlans(player, batch.toIntArray())
-                        }
-                        player.sendMessage("[accent]Removed $removedCount plans, ${Vars.player.team().data().blocks.size} remain")
-                    } else player.sendMessage("[accent]Found $removedCount (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
-                }
+                plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
             }
+
+            Log.info("Took @ | new = @", Time.elapsed(), useNew)
+
+            if (confirmed) {
+                plans.chunked(100) { Call.deletePlans(player, it.toIntArray()) }
+                player.sendMessage("[accent]Removed ${plans.size} plans, ${Vars.player.team().data().blocks.size} remain")
+            } else player.sendMessage("[accent]Found ${plans.size} (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
         }
 
         register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, _ -> // FINISHME: Bundle
@@ -472,6 +474,26 @@ object Client {
             // FINISHME: success message
         }
 
+        register("replacemessage <from> <to> [useRegex=t]", "Replaces corresponding text in messages.") { args, player ->
+            if (args[0].length < 3) {
+                player.sendMessage("[scarlet]That might not be a good idea...")
+                return@register
+            }
+            val useRegex = args.size > 2 && args[2] == "t"
+            replaceMsg(args[0], useRegex, args[0], useRegex, args[1])
+        }
+
+        register(
+            "replacemsgif <matches> <from> <to> [useMatchRegex=t] [useFromRegex=t]",
+            "Replaces corresponding text in messages, only if they match the text."
+        ) { args, player ->
+            if (args[0].length < 3) {
+                player.sendMessage("[scarlet]That might not be a good idea...")
+                return@register
+            }
+            replaceMsg(args[0], args.size > 3 && args[3] == "t", args[1], args.size > 4 && args[4] == "t", args[2])
+        }
+
         register("c <message...>", "Send a message to other client users.") { args, _ ->  // FINISHME: Bundle
             Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
         }
@@ -488,6 +510,155 @@ object Client {
                 Core Modifies Unit Cap: ${rules.unitCapVariable}
                 """.trimIndent()
             })
+        }
+
+        register("phasei <interval>", "Changes interval for end bridge when shift+dragging phase conveyors.") { args, player ->
+            try{
+                val interval = Integer.parseInt(args[0])
+                val maxInterval = (Blocks.phaseConveyor as ItemBridge).range
+                if(interval < 1 || interval > maxInterval){
+                    player.sendMessage("[scarlet]Interval must be within 1 and $maxInterval!")
+                    return@register
+                }
+                ItemBridge.phaseWeaveInterval = interval
+                Core.settings.put("weaveEndInterval", interval)
+                player.sendMessage("[accent]Successfully set interval to $interval.")
+            } catch (e : Exception){
+                player.sendMessage("[scarlet]Failed to parse integer!")
+            }
+        }
+        register("hfixnode [pls]", "Displays info for !fixnode") { args, player -> //TODO: Make param info some tooltip/popup thing
+            if (args.isNotEmpty() && args[0] == "pls") player.sendMessage("[lightgray]Thanks for saying please!") // i am going insane
+            player.sendMessage(
+                "Set enforcement of node configs, use either [scarlet]0/false []or [green]1/true[]\n" +
+                "   [lightgray]Enter your command in the form [orange]!fixnode[] [white][[[yellow][t][]emptoggle]/[yellow][d][]isable[yellow](-1)[]][]\n" +
+                "   OR [orange]!fixnode[] [white][normal] [source][]\n" +
+                "   [white]normal[] - Whether to enforce on regular copy and paste (not just from saved schematics). Set to -1 to completely disable fixing.\n" +
+                "   [white]source[] - Whether to enforce on item sources\n" +
+                "[orange]-- End --"
+            )
+        }
+        register("fixnode [do-!hfixnode] [for-more-info]","Do !hfixnode for more info") { args, player -> //TODO: Bundle (how about no)
+            val setting = PowerNode.PowerNodeFixSettings.get(Core.settings.getInt("nodeconf", 0))
+            val curr = PowerNode.PowerNodeFixSettings.get(PowerNode.PowerNodeBuild.fixNode)
+            if (args.isEmpty()) {
+                player.sendMessage("[accent]Node fixing is currently [white]$curr[].")
+                return@register
+            }
+            val set = { new: Int ->
+                PowerNode.PowerNodeBuild.fixNode = new
+                Core.settings.put("nodeconf", new)
+            }
+            val print = { changed: Boolean, now: PowerNode.PowerNodeFixSettings ->
+                player.sendMessage("[accent]Automatic node fixing [white]$now[]${if (changed) "" else " [lightgray](no change)[]"}.") }
+            if ((args[0] == "-1" && args.size < 2) || args[0] == "d" || args[0] == "disable") {
+                set(PowerNode.PowerNodeFixSettings.disabled.ordinal)
+                player.sendMessage("[accent]Automatic node fixing disabled")
+                return@register
+            }
+            if (args[0] == "t" || args[0] == "temp" || args[0] == "temptoggle") {
+                if (setting == curr) {
+                    player.sendMessage("[accent]No changes made (currently [white]$curr[]).")
+                    return@register
+                }
+                if (curr == PowerNode.PowerNodeFixSettings.disabled) { // enable back
+                    PowerNode.PowerNodeBuild.fixNode = setting.ordinal
+                    player.sendMessage("[accent]Automatic node fixing re-enabled (now [white]$setting[]).")
+                    return@register
+                } else { // disable
+                    PowerNode.PowerNodeBuild.fixNode = PowerNode.PowerNodeFixSettings.disabled.ordinal
+                    player.sendMessage("[accent]Automatic node fixing temporarily disabled.")
+                    return@register
+                }
+            }
+            val normal = try { when(Integer.parseInt(args[0])){ 0 -> false; 1 -> true; else -> throw Exception() } }
+            catch (e: Exception) { // cursed
+                player.sendMessage("[scarlet]Invalid input for first argument!")
+                return@register
+            }
+            if (args.size <= 1) {
+                val new = PowerNode.PowerNodeFixSettings.get(normal, setting.source)
+                val changed = new != curr || new != setting
+                if (changed) set(new.ordinal)
+                print(changed, new)
+                return@register
+            }
+            val source = try { when(Integer.parseInt(args[1])){ 0 -> false; 1 -> true; else -> throw Exception() } }
+            catch (e: Exception) { // cursed2
+                player.sendMessage("[scarlet]Invalid input for second argument!")
+                return@register
+            }
+            val new = PowerNode.PowerNodeFixSettings.get(normal, source)
+            val changed = new != curr || new != setting
+            if (changed) set(new.ordinal)
+            print(changed, new)
+        }
+
+        register("pathing", "Change the pathfinding algorithm") { _, player ->
+            if (navigator is AStarNavigator) {
+                navigator = AStarNavigatorOptimised
+                player.sendMessage("[accent]Using [green]improved[] algorithm")
+            } else if (navigator is AStarNavigatorOptimised) {
+                navigator = AStarNavigator
+                player.sendMessage("[accent]Using [gray]classic[] algorithm")
+            }
+        }
+
+        register("pic [quality]", "Sets the image quality for sending via chat (0 -> png)") { args, player ->
+            if (args.isEmpty()) {
+                player.sendMessage("[accent]Enter a value between 0.0 and 1.0 for quality (0.0 -> png)\n" +
+                        "Currently set to [white]${jpegQuality}${if(jpegQuality == 0f)" (png)" else ""}[].")
+                return@register
+            }
+            try {
+                val quality = args[0].toFloat()
+                if (quality !in 0f .. 1f) {
+                    player.sendMessage("[scarlet]Please enter a number between 0.0 and 1.0 (please)")
+                    return@register
+                }
+                jpegQuality = quality
+                Core.settings.put("commpicquality", quality)
+                player.sendMessage("[accent]Set quality to [white]${quality}${if(quality == 0f)" (png)" else ""}[].")
+            } catch (e: Exception) {
+                Log.err(e)
+                if (e is NumberFormatException) player.sendMessage("[scarlet]Please enter a valid number (please)")
+                else player.sendMessage("[scarlet]Something went wrong.")
+            }
+        }
+
+        registerReplace("%", "c", "cursor") {
+            Strings.format("(@, @)", control.input.rawTileX(), control.input.rawTileY())
+        }
+
+        registerReplace("%", "s", "shrug") {
+            "¯\\_(ツ)_/¯"
+        }
+
+        registerReplace("%", "h", "here") {
+            Strings.format("(@, @)", player.tileX(), player.tileY())
+        }
+
+        //TOOD: add various % for gamerules
+    }
+
+    fun replaceMsg(match: String, matchRegex: Boolean, from: String, fromRegex: Boolean, to: String){
+        clientThread.post {
+            var matchReg = Regex("No. Something went wrong.")
+            var fromReg = Regex("No. Something went wrong.")
+            if(matchRegex) matchReg = match.toRegex()
+            if(fromRegex) fromReg = from.toRegex()
+            var num = 0
+            val seq = Seq<Building>()
+            player.team().data().buildings.getObjects(seq)
+            seq.each<MessageBlock.MessageBuild>({ it.team() == player.team() && it is MessageBlock.MessageBuild}, {
+                val msg = it.message.toString()
+                if((!matchRegex && !msg.contains(match)) || (matchRegex && !matchReg.matches(msg))) return@each
+                val msg2 = if(fromRegex) msg.replace(fromReg, to)
+                else msg.replace(from, to)
+                configs.add(ConfigRequest(it.tileX(), it.tileY(), msg2))
+                num++
+            })
+            player.sendMessage("[accent]Queued $num messages for editing");
         }
     }
 
@@ -532,6 +703,16 @@ object Client {
     fun register(format: String, description: String = "", runner: (args: Array<String>, player: Player) -> Unit) {
         val args = if (format.contains(' ')) format.substringAfter(' ') else ""
         clientCommandHandler.register(format.substringBefore(' '), args, description, runner)
+    }
+
+    fun registerReplace(symbol: String = "%", vararg cmds: String, runner: Prov<String>) {
+        cmds.forEach { registerReplace(symbol, it, runner) }
+    }
+    fun registerReplace(symbol: String = "%", cmd: String, runner: Prov<String>) {
+        if(symbol.length != 1) throw IllegalArgumentException("Bad symbol in replace command")
+        val seq = containsCommandHandler.get(symbol) { Seq() }
+        seq.add(Pair(cmd, runner))
+        seq.sort(Structs.comparingInt{ -it.first.length })
     }
 
     var target: Teamc? = null

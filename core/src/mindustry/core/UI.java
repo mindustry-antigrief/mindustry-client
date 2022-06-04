@@ -89,11 +89,6 @@ public class UI implements ApplicationListener, Loadable{
     }
 
     @Override
-    public void loadAsync(){
-
-    }
-
-    @Override
     public void loadSync(){
         Fonts.outline.getData().markupEnabled = true;
         Fonts.def.getData().markupEnabled = true;

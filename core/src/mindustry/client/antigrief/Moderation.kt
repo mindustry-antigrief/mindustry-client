@@ -55,8 +55,7 @@ class Moderation {
     fun leftList() {
         dialog("Leaves, newest first") {
             cont.pane {
-                for (i in traces.size - 1 downTo 0) {
-                    val player = traces[i]
+                for (player in traces.asReversed()) {
                     it.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace) }.wrapLabel(false).minWidth(100f)
                     it.row()
                 }
