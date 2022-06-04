@@ -630,6 +630,7 @@ object Client {
 
             if (newArgs.isEmpty()) {
                 player.sendMessage("[accent]Use [coral]!procfind query ...[] to enter a search query.\n" +
+                        "Use [coral]!procfind cluster[] to log clusters of processors.\n" +
                         "Use [coral]!procfind clear[] to clear highlights.")
                 return@register
             }
@@ -643,9 +644,14 @@ object Client {
                 clientThread.post {
                     ProcessorFinder.query(queryRegex)
                 }
+
             } else if (newArgs[0] == "clear") {
                 player.sendMessage("[accent]Cleared ${ProcessorFinder.getCount()} highlighters.")
                 ProcessorFinder.clear()
+
+            } else if (newArgs[0] == "cluster") {
+                ProcessorFinder.logClusters()
+
             } else {
                 player.sendMessage("[scarlet]Invalid argument!")
             }
