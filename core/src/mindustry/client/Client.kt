@@ -628,8 +628,6 @@ object Client {
         register("procfind [options...]", "Highlights processors based on search query") { args, player ->
             val newArgs = args.joinToString(" ").split(" ").toTypedArray() // TODO: fix the command arguments. this is beyond cursed
 
-            Log.debug(args)
-
             if (newArgs.isEmpty()) {
                 player.sendMessage("[accent]Use [coral]!procfind query ...[] to enter a search query.\n" +
                         "Use [coral]!procfind clear[] to clear highlights.")
@@ -642,7 +640,9 @@ object Client {
                     return@register
                 }
                 val queryRegex = newArgs.drop(1).joinToString(" ").toRegex()
-                ProcessorFinder.query(queryRegex)
+                clientThread.post {
+                    ProcessorFinder.query(queryRegex)
+                }
             } else if (newArgs[0] == "clear") {
                 player.sendMessage("[accent]Cleared ${ProcessorFinder.getCount()} highlighters.")
                 ProcessorFinder.clear()

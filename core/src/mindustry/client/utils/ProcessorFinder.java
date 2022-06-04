@@ -2,13 +2,17 @@ package mindustry.client.utils;
 
 import arc.struct.Seq;
 import kotlin.text.Regex;
-import static mindustry.Vars.*;
 import mindustry.gen.Building;
 import mindustry.graphics.Drawf;
 import mindustry.world.blocks.logic.LogicBlock.LogicBuild;
 
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import static mindustry.Vars.player;
+import static mindustry.Vars.tilesize;
+
 public class ProcessorFinder {
-    private static final Seq<LogicBuild> highlighted = new Seq<>();
+    private static final CopyOnWriteArrayList<LogicBuild> highlighted = new CopyOnWriteArrayList<>();
 
     public static void query(Regex query) {
         Seq<Building> builds = new Seq<>();
@@ -35,12 +39,12 @@ public class ProcessorFinder {
     }
     
     public static int getCount() {
-        return highlighted.size;
+        return highlighted.size();
     }
 
     public static void draw() {
         for (LogicBuild build : highlighted) {
-            Drawf.square(build.x, build.y, build.block.size * tilesize/2f + 2f);
+            Drawf.square(build.x, build.y, build.block.size * tilesize / 2f + 2f);
         }
     }
 }
