@@ -505,8 +505,7 @@ public class ChatFragment extends Table{
         public String unformatted;
         public List<Image> attachments = new ArrayList<>();
         public static boolean processCoords, setLastPos; // false by default, set them ON right before initializing a new message
-        private static final Pattern coordPattern = Pattern.compile("\\(?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\)?"); // This regex is a mess. https://regex101.com is the superior regex tester
-        private static final Pattern coordPattern2 = Pattern.compile("((\\[scarlet])?\\(?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\)?(\\[])?)"); //This regex now gobbles up [scarlet]
+        private static final Pattern coordPattern = Pattern.compile("[\\[,\\(]?(\\d+)[ ,]+(\\d+)[\\],\\)]?"); // This regex captures the coords into $1 and $2 while $0 contains all surrounding text as well. Fixed by BalaM314. https://regexr.com is the superior regex tester
         public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
             this.message = message;
             this.sender = sender;
@@ -545,7 +544,7 @@ public class ChatFragment extends Table{
             StringBuffer result = new StringBuffer(message.length());
             String group1, group2;
             do{
-                matcher.appendReplacement(result,"[scarlet]" + Strings.stripColors(matcher.group()) + "[]");
+                matcher.appendReplacement(result,"[blue]" + Strings.stripColors(matcher.group()) + "[]");
                 group1 = matcher.group(3);
                 group2 = matcher.group(4);
             } while (matcher.find());
