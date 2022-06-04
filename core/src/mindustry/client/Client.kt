@@ -404,7 +404,7 @@ object Client {
                         if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
                         else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
                     } else {
-                        player.sendMessage("[accent]Run [coral]!fixcode \\[c | r\\][] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
+                        player.sendMessage("[accent]Run [coral]!fixcode [c | r][] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
                     }
                 }
             }
