@@ -505,7 +505,7 @@ public class ChatFragment extends Table{
         public String unformatted;
         public List<Image> attachments = new ArrayList<>();
         public static boolean processCoords, setLastPos; // false by default, set them ON right before initializing a new message
-        private static final Pattern coordPattern = Pattern.compile("[\\[,\\(]?(\\d+)[ ,]+(\\d+)[\\],\\)]?"); // This regex captures the coords into $1 and $2 while $0 contains all surrounding text as well. Fixed by BalaM314. https://regexr.com is the superior regex tester
+        private static final Pattern coordPattern = Pattern.compile("([\\[,\\(]?(\\d+)[ ,]+(\\d+)[\\],\\)]?)"); // This regex captures the coords into $1 and $2 while $0 contains all surrounding text as well. Fixed by BalaM314. https://regexr.com is the superior regex tester
         public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
             this.message = message;
             this.sender = sender;
@@ -540,19 +540,19 @@ public class ChatFragment extends Table{
             if (message == null) return null;
             Matcher matcher = coordPattern.matcher(message);
             if(!matcher.find()) return message;
-            //message = matcher.replaceAll(mr -> "[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); since java 9 fml
-            StringBuffer result = new StringBuffer(message.length());
             String group1, group2;
-            do{
-                matcher.appendReplacement(result,"[blue]" + Strings.stripColors(matcher.group()) + "[]");
-                group1 = matcher.group(3);
-                group2 = matcher.group(4);
-            } while (matcher.find());
-            matcher.appendTail(result);
+            try {
+                group1 = matcher.group(1);
+                group2 = matcher.group(2);
+            } catch(IndexOutOfBoundsException e){
+                e.printStackTrace();
+                return message;
+            }
+            
             if (setLastPos) try {
                 ClientVars.lastSentPos.set(Float.parseFloat(group1), Float.parseFloat(group2));
             } catch (NumberFormatException ignored) {}
-            return result.toString();
+            return message.replaceAll(coordPattern, "[scarlet]$0[]");
         }
     }
 
