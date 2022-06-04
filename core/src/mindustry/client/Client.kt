@@ -249,6 +249,10 @@ object Client {
             follow(MinePath(if (args.isEmpty()) "" else args[0]))
         } // FINISHME: This is so scuffed lol
 
+        register("buildmine", "Buildpath (self) + mine (all)") {_, player: Player ->
+            follow(BuildMinePath())
+        }
+
         register(" [message...]", Core.bundle.get("client.command.!.description")) { args, _ ->
             sendMessage("!" + if (args.size == 1) args[0] else "")
         }
