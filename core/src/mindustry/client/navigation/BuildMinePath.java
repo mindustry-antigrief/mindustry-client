@@ -32,7 +32,7 @@ public class BuildMinePath extends Path{ // This is so scuffed. Help.
                 initBuild = false;
                 initMine = true;
                 
-                player.sendMessage("[BuildMine] Swapping to mine path.");
+                player.sendMessage("\\[BuildMine\\] Swapping to mine path.");
             }
             else currentPath.follow();
         } else {
@@ -41,7 +41,7 @@ public class BuildMinePath extends Path{ // This is so scuffed. Help.
                 initBuild = true;
                 initMine = false;
 
-                player.sendMessage("[BuildMine] Swapping to build path (self).");
+                player.sendMessage("\\[BuildMine\\] Swapping to build path (self).");
             }
             else {
                 currentPath.follow();
