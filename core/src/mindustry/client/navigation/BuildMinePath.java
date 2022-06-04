@@ -1,8 +1,10 @@
 package mindustry.client.navigation;
 
-import static mindustry.Vars.*;
 import arc.math.geom.Position;
 import org.jetbrains.annotations.Nullable;
+
+import static mindustry.Vars.control;
+import static mindustry.Vars.player;
 
 public class BuildMinePath extends Path{ // This is so scuffed. Help.
     private boolean show;
@@ -25,27 +27,27 @@ public class BuildMinePath extends Path{ // This is so scuffed. Help.
     
     @Override
     public void follow() {
-        // really really scuffed
-        if (player.unit().plans.isEmpty()) {
-            if (initBuild) {
-                currentPath = new MinePath("*");
-                initBuild = false;
-                initMine = true;
-                
-                player.sendMessage("\\[BuildMine\\] Swapping to mine path.");
-            }
-            else currentPath.follow();
-        } else {
+        // this is more of a personal use thing. You might not want to have this.
+        if (control.input.isBuilding && !player.unit().plans.isEmpty()) {
             if (initMine) {
                 currentPath = new BuildPath("self");
                 initBuild = true;
                 initMine = false;
 
-                player.sendMessage("\\[BuildMine\\] Swapping to build path (self).");
+                player.sendMessage("[sky][BuildMine] [accent]Swapping to build path (self).");
             }
             else {
                 currentPath.follow();
             }
+        } else {
+            if (initBuild) {
+                currentPath = new MinePath("*");
+                initBuild = false;
+                initMine = true;
+                
+                player.sendMessage("[sky][BuildMine] [accent]Swapping to mine path (all).");
+            }
+            else currentPath.follow();
         }
     }
     
