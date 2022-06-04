@@ -50,7 +50,6 @@ import java.io.*
 import java.math.*
 import java.security.*
 import java.security.cert.*
-import javax.script.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -623,6 +622,32 @@ object Client {
                 Log.err(e)
                 if (e is NumberFormatException) player.sendMessage("[scarlet]Please enter a valid number (please)")
                 else player.sendMessage("[scarlet]Something went wrong.")
+            }
+        }
+
+        register("procfind [options...]", "Highlights processors based on search query") { args, player ->
+            val newArgs = args.joinToString(" ").split(" ").toTypedArray() // TODO: fix the command arguments. this is beyond cursed
+
+            Log.debug(args)
+
+            if (newArgs.isEmpty()) {
+                player.sendMessage("[accent]Use [coral]!procfind query ...[] to enter a search query.\n" +
+                        "Use [coral]!procfind clear[] to clear highlights.")
+                return@register
+            }
+
+            if (newArgs[0] == "query") {
+                if (newArgs.size < 2) {
+                    player.sendMessage("[accent]Use [coral]!procfind query ...[] to enter a search query.")
+                    return@register
+                }
+                val queryRegex = newArgs.drop(1).joinToString(" ").toRegex()
+                ProcessorFinder.query(queryRegex)
+            } else if (newArgs[0] == "clear") {
+                player.sendMessage("[accent]Cleared ${ProcessorFinder.getCount()} highlighters.")
+                ProcessorFinder.clear()
+            } else {
+                player.sendMessage("[scarlet]Invalid argument!")
             }
         }
 
