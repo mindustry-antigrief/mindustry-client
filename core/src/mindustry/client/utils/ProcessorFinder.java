@@ -44,7 +44,7 @@ public class ProcessorFinder {
 
     public static void draw() {
         for (LogicBuild build : highlighted) {
-            Drawf.square(build.x, build.y, build.block.size * tilesize / 2f + 2f);
+            Drawf.square(build.x, build.y, build.block.size * tilesize / 2f + 8f);
         }
     }
 }
