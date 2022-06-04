@@ -65,7 +65,6 @@ public class ContentLoader{
         for(ContentList list : content){
             var s = Time.nanos();
             list.load();
-            Log.warn("Content @ in @ms", list.getClass().getSimpleName(), Time.timeSinceNanos(s)/(float)Time.nanosPerMilli);
         }
     }
 
