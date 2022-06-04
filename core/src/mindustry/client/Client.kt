@@ -351,19 +351,19 @@ object Client {
         }
 
         @Suppress("unchecked_cast")
-        register("fixcode [c]", "Disables problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
+        register("fixcode [options...]", "Disables problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
             val builds = Seq<Building>()
             Vars.player.team().data().buildings.getObjects(builds) // Must be done on the main thread
             clientThread.post {
                 builds.removeAll { it !is LogicBlock.LogicBuild }
-                val confirmed = args.any() && args[0] == "c" // Don't configure by default
+                val confirmed = args.any() && (args[0] == "c" || args[0] == "r") // Don't configure by default
                 val inProgress = !configs.isEmpty()
                 var n = 0
 
                 if (confirmed && !inProgress) {
                     Log.debug("Patching!")
                     (builds as Seq<LogicBlock.LogicBuild>).each { build ->
-                        val patched = ProcessorPatcher.patch(build.code)
+                        val patched = ProcessorPatcher.patch(build.code, args[0])
                         if (patched != build.code) {
                             Log.debug("${build.tileX()} ${build.tileY()}")
                             configs.add(ConfigRequest(build.tileX(), build.tileY(), LogicBlock.compress(patched, build.relativeConnections())))
@@ -376,7 +376,7 @@ object Client {
                         if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
                         else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
                     } else {
-                        player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
+                        player.sendMessage("[accent]Run [coral]!fixcode \\[c | r\\][] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
                     }
                 }
             }

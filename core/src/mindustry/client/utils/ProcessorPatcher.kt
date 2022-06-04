@@ -14,17 +14,22 @@ object ProcessorPatcher {
 
     fun countProcessors(builds: Seq<Building>) = builds.count { it.team == player.team() && it is LogicBuild && attemMatcher.containsMatchIn(it.code) }
 
-    fun patch(code: String): String {
-        val result = attemMatcher.find(code) ?: return code
+    fun patch(code: String, mode: String): String {
+        if (mode == "c") {
+            val result = attemMatcher.find(code) ?: return code
 
-        val groups = result.groupValues
-        val bindLine = (0..result.range.first).count { code[it] == '\n' }
-        return buildString {
-            replaceJumps(this, code.substring(0, result.range.first), bindLine)
-            append(groups[1])
-            append("sensor ").append(groups[2]).append(" @unit @flag\n")
-            append("jump ").append(bindLine).append(" notEqual ").append(groups[2]).append(' ').append(groups[4]).append('\n')
-            replaceJumps(this, code.substring(result.range.last + 1), bindLine)
+            val groups = result.groupValues
+            val bindLine = (0..result.range.first).count { code[it] == '\n' }
+            return buildString {
+                replaceJumps(this, code.substring(0, result.range.first), bindLine)
+                append(groups[1])
+                append("sensor ").append(groups[2]).append(" @unit @flag\n")
+                append("jump ").append(bindLine).append(" notEqual ").append(groups[2]).append(' ').append(groups[4]).append('\n')
+                replaceJumps(this, code.substring(result.range.last + 1), bindLine)
+            }
+        }
+        else {
+            return "end\nprint \"Do not use this delivery logic! It is attem83; it is bad logic and should not be used.\"\nprint \"For more information: https://mindustry.dev/attem\""
         }
     }
 
