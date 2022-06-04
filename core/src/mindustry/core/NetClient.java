@@ -109,6 +109,12 @@ public class NetClient implements ApplicationListener{
             }
 
             net.send(c, SendMode.tcp);
+
+            Timer timer=new Timer();
+            timer.schedule(new TimerTask(){
+            public void run(){
+                Call.serverPacketReliable("FOO","");
+            }},1000);
         });
 
         net.handleClient(Disconnect.class, packet -> {
