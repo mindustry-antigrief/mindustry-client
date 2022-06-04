@@ -103,11 +103,11 @@ public class Weather extends UnlockableContent{
         }
     }
 
-    public void drawOver(WeatherState state, float alpha){
+    public void drawOver(WeatherState state){
 
     }
 
-    public void drawUnder(WeatherState state, float alpha){
+    public void drawUnder(WeatherState state){
 
     }
 
@@ -152,7 +152,7 @@ public class Weather extends UnlockableContent{
         Draw.reset();
     }
 
-    public static void drawRain(float sizeMin, float sizeMax, float xspeed, float yspeed, float density, float intensity, float stroke, Color color, float alpha){
+    public static void drawRain(float sizeMin, float sizeMax, float xspeed, float yspeed, float density, float intensity, float stroke, Color color){
         rand.setSeed(0);
         float padding = sizeMax * 0.9f;
 
@@ -161,7 +161,7 @@ public class Weather extends UnlockableContent{
         Core.camera.bounds(Tmp.r2);
         int total = (int)(Tmp.r1.area() / density * intensity);
         Lines.stroke(stroke);
-        alpha = Draw.getColor().a * alpha;
+        float alpha = Draw.getColor().a;
         Draw.color(color);
 
         for(int i = 0; i < total; i++){
@@ -329,7 +329,7 @@ public class Weather extends UnlockableContent{
             if(life < fadeTime){
                 opacity = Math.min(life / fadeTime, opacity);
             }else{
-                opacity = Mathf.lerpDelta(opacity, 1f, 0.004f);
+                opacity = Mathf.lerpDelta(opacity, Core.settings.getInt("weatheropacity") / 100f, 0.004f);
             }
 
             life -= Time.delta;
@@ -344,17 +344,16 @@ public class Weather extends UnlockableContent{
 
         @Override
         public void draw(){
-            float alpha = Core.settings.getInt("weatheropacity") / 100f;
-            if(renderer.weatherAlpha > 0.0001f && alpha > 0 && renderer.drawWeather){
+            if(renderer.weatherAlpha > 0.0001f && opacity > 0.01f && renderer.drawWeather){
                 Draw.draw(Layer.weather, () -> {
-                    Draw.alpha(renderer.weatherAlpha * opacity * weather.opacityMultiplier * alpha);
-                    weather.drawOver(self(), alpha);
+                    Draw.alpha(renderer.weatherAlpha * opacity * weather.opacityMultiplier);
+                    weather.drawOver(self());
                     Draw.reset();
                 });
 
                 Draw.draw(Layer.debris, () -> {
-                    Draw.alpha(renderer.weatherAlpha * opacity * weather.opacityMultiplier * alpha);
-                    weather.drawUnder(self(), alpha);
+                    Draw.alpha(renderer.weatherAlpha * opacity * weather.opacityMultiplier);
+                    weather.drawUnder(self());
                     Draw.reset();
                 });
             }
