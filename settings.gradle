@@ -31,7 +31,7 @@ if(hasSdk){
     println("No Android SDK found. Skipping Android module.")
 }
 
-if(!hasProperty("release")){
+if(!hasProperty("release") && !hasProperty("noLocalArc")){
     if(new File(settingsDir, '../Arc').exists()){
         use(
         ':Arc',
