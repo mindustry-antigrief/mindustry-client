@@ -538,7 +538,7 @@ public class ChatFragment extends Table{
 
         public static String processCoords(String message, boolean setLastPos){
             if (message == null) return null;
-            Matcher matcher = coordPattern2.matcher(message);
+            Matcher matcher = coordPattern.matcher(message);
             if(!matcher.find()) return message;
             //message = matcher.replaceAll(mr -> "[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); since java 9 fml
             StringBuffer result = new StringBuffer(message.length());
