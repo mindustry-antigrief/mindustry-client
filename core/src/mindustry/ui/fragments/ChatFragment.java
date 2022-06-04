@@ -542,8 +542,8 @@ public class ChatFragment extends Table{
             if(!matcher.find()) return message;
             String group1, group2;
             try {
-                group1 = matcher.group(1);
-                group2 = matcher.group(2);
+                group1 = matcher.group(2);
+                group2 = matcher.group(3);
             } catch(IndexOutOfBoundsException e){
                 e.printStackTrace();
                 return message;
@@ -552,7 +552,7 @@ public class ChatFragment extends Table{
             if (setLastPos) try {
                 ClientVars.lastSentPos.set(Float.parseFloat(group1), Float.parseFloat(group2));
             } catch (NumberFormatException ignored) {}
-            return message.replaceAll(coordPattern, "[scarlet]$0[]");
+            return matcher.replaceAll("[scarlet]$1[]");
         }
     }
 
