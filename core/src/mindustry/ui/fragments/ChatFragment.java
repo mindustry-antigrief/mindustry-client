@@ -506,7 +506,7 @@ public class ChatFragment extends Table{
         public List<Image> attachments = new ArrayList<>();
         public static boolean processCoords, setLastPos; // false by default, set them ON right before initializing a new message
         private static final Pattern coordPattern = Pattern.compile("\\(?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\)?"); // This regex is a mess. https://regex101.com is the superior regex tester
-        private static final Pattern coordPattern2 = Pattern.compile("((\\[scarlet])?\\(?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\)?(\\[])?)"); //This regex now gobbles up [scarlet]
+        private static final Pattern coordPattern2 = Pattern.compile("((\\[scarlet])?\\(?(-?\\d+(\\.\\d+)?)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(-?\\d+(\\.\\d+)?)\\)?(\\[])?)"); //This regex now gobbles up [scarlet] // Regex now catches negative numbers and floating points
         public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
             this.message = message;
             this.sender = sender;
@@ -547,7 +547,7 @@ public class ChatFragment extends Table{
             do{
                 matcher.appendReplacement(result,"[scarlet]" + Strings.stripColors(matcher.group()) + "[]");
                 group1 = matcher.group(3);
-                group2 = matcher.group(4);
+                group2 = matcher.group(5);
             } while (matcher.find());
             matcher.appendTail(result);
             if (setLastPos) try {
