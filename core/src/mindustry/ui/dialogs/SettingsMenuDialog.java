@@ -348,6 +348,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("showtoasts", true);
         client.checkPref("unloaderview", false, i -> Unloader.UnloaderBuild.drawUnloaderItems = i);
         client.checkPref("customnullunloader", false, i -> Unloader.UnloaderBuild.customNullLoader = i);
+        client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
 
         client.category("misc");
         client.updatePref();

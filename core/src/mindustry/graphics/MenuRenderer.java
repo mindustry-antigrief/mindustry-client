@@ -11,6 +11,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.noise.*;
+import mindustry.client.CursednessLevel;
 import mindustry.content.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -28,16 +29,31 @@ public class MenuRenderer implements Disposable{
     private FrameBuffer shadows;
     private CacheBatch batch;
     private float time = 0f;
-    private float flyerRot = 45f;
-    private float flyerSpin = 0f;
-    private int flyers = Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
-    private UnitType flyerType = content.units().select(u -> !u.isHidden() && u.hitSize <= 20f && u.flying && u.onTitleScreen && u.region.found()).random();
+    public float flyerRot = 45f;
+    public float flyerSpin = 0f;
+    public int numFlyers;
+    public int numBlockFlyers;
+    public UnitType flyerType = content.units().select(u -> u.region != null && u.region.found()).random();
+    public Block blockFlyerType = content.blocks().select(u -> u.region != null && u.region.found() && u.isPlaceable()).random();
+    public CursednessLevel cursednessLevel = Core.settings == null ?
+            CursednessLevel.NORMAL :
+            CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1));
 
     public MenuRenderer(){
         Time.mark();
         generate();
         cache();
         Log.debug("Time to generate menu: @", Time.elapsed());
+        numFlyers = switch(cursednessLevel){
+            case NORMAL, UHH -> Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
+            case OHNO, CURSED -> Mathf.random(35, 70);
+            case WWWHHHHHYYYY -> Mathf.random(100, 110);
+        };
+        numBlockFlyers = switch(cursednessLevel){
+            case NORMAL, UHH, OHNO -> 0;
+            case CURSED -> Mathf.random(5, 10);
+            case WWWHHHHHYYYY -> Mathf.random(20, 25);
+        };
     }
 
     private void generate(){
@@ -205,9 +221,20 @@ public class MenuRenderer implements Disposable{
 
     public void render(){
         if (Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null) {
-            flyerType = content.units().select(u -> (u.hitSize >= 20f || !u.flying) && u.region.found()).random();
-            flyers = Mathf.chance(0.005) ? 70 + Mathf.random(20) : Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
-            Log.debug("There are @ flyers.", flyers);
+            flyerType = content.units().select(u -> u.region != null && u.region.found()).random();
+            blockFlyerType = content.blocks().select(u -> u.region != null && u.region.found() && u.isPlaceable()).random();
+            numFlyers = Mathf.chance(0.005) ? 70 + Mathf.random(20) : Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
+            numFlyers = switch(cursednessLevel){
+                case NORMAL, UHH -> Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
+                case OHNO, CURSED -> Mathf.random(35, 70);
+                case WWWHHHHHYYYY -> Mathf.random(100, 110);
+            };
+            numBlockFlyers = switch(cursednessLevel){
+                case NORMAL, UHH, OHNO -> 0;
+                case CURSED -> Mathf.random(5, 10);
+                case WWWHHHHHYYYY -> Mathf.random(20, 25);
+            };
+            Log.debug("There are @ flyers and the cursedness level is @.", numFlyers, cursednessLevel.name());
         }
         time += Time.delta;
         float scaling = Math.max(Scl.scl(4f), Math.max(Core.graphics.getWidth() / ((width - 1f) * tilesize), Core.graphics.getHeight() / ((height - 1f) * tilesize)));
@@ -244,12 +271,32 @@ public class MenuRenderer implements Disposable{
     private void drawFlyers(){
         Draw.color(0f, 0f, 0f, 0.4f);
 
-        TextureRegion icon = flyerType.fullIcon;
+        TextureRegion icon = switch(cursednessLevel){
+            case NORMAL, UHH, OHNO, CURSED, WWWHHHHHYYYY -> flyerType.fullIcon;
+        };
+        TextureRegion blockIcon = switch(cursednessLevel){
+            case NORMAL, UHH, OHNO, CURSED -> blockFlyerType.fullIcon;
+            case WWWHHHHHYYYY -> blockFlyerType.teamRegion.found() ? blockFlyerType.teamRegion : blockFlyerType.uiIcon;
+        };
 
-        float size = Math.max(icon.width, icon.height) * Draw.scl * 1.6f;
+        float size = switch(cursednessLevel){
+            case NORMAL, UHH, OHNO -> Math.max(icon.width, icon.height) * Draw.scl * 1.6f;
+            case CURSED, WWWHHHHHYYYY -> Math.max(icon.width, icon.height) * Draw.scl * 2.4f * Mathf.cosDeg((time % 30) * 2);
+        };
+
+        float blockSize = switch(cursednessLevel){
+            case NORMAL, UHH, OHNO -> Math.max(blockIcon.width, blockIcon.height) * Draw.scl * 1.6f;
+            case CURSED -> Math.max(blockIcon.width, blockIcon.height) * Draw.scl * 3.6f * Mathf.cosDeg((time % 30) * 2);
+            case WWWHHHHHYYYY -> Math.max(blockIcon.width, blockIcon.height) * Draw.scl * 8f * Mathf.cosDeg((time % 30) * 2);
+        };
+
+        float effectiveFlyerSpin = switch(cursednessLevel){
+            case NORMAL -> flyerRot;
+            default -> flyerSpin;
+        };
 
         flyers((x, y) -> {
-            Draw.rect(icon, x - 12f, y - 13f, flyerSpin);
+            Draw.rect(icon, x - 12f, y - 13f, size, size, effectiveFlyerSpin);
         });
 
         flyers((x, y) -> {
@@ -258,7 +305,7 @@ public class MenuRenderer implements Disposable{
         Draw.color();
 
         flyers((x, y) -> {
-            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = flyerSpin + 90;
+            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = effectiveFlyerSpin + 90;
 
             Draw.color(Pal.engine);
             Fill.circle(x + Angles.trnsx(rotation + 180, engineOffset), y + Angles.trnsy(rotation + 180, engineOffset),
@@ -269,7 +316,15 @@ public class MenuRenderer implements Disposable{
             (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f)) / 2f);
             Draw.color();
 
-            Draw.rect(icon, x, y, flyerSpin);
+            Draw.rect(icon, x, y, size, size, effectiveFlyerSpin);
+        });
+
+
+        blockFlyers((x, y) -> {
+            switch(cursednessLevel){
+                case WWWHHHHHYYYY -> Draw.rect(blockIcon, x, y, effectiveFlyerSpin, blockSize, blockSize);
+                default -> Draw.rect(blockIcon, x, y, blockSize, blockSize, effectiveFlyerSpin);
+            }
         });
     }
 
@@ -279,10 +334,26 @@ public class MenuRenderer implements Disposable{
         float range = 500f;
         float offset = -100f;
 
-        for(int i = 0; i < flyers; i++){
+        for(int i = 0; i < numFlyers; i++){
             Tmp.v1.trns(flyerRot, time * (flyerType.speed));
             float x = (Mathf.randomSeedRange(i, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 5, 0, 500));
             float y = (Mathf.randomSeedRange(i + 1, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset) % th;
+            float prevRot = flyerRot;
+            cons.get(x, y);
+            flyerRot = prevRot;
+        }
+    }
+
+    private void blockFlyers(Floatc2 cons){
+        float tw = width * tilesize * 1f + tilesize;
+        float th = height * tilesize * 1f + tilesize;
+        float range = 500f;
+        float offset = -100f;
+
+        for(int i = 0; i < numBlockFlyers; i++){
+            Tmp.v1.trns(flyerRot, time * (flyerType.speed));
+            float x = (Mathf.randomSeedRange(i + 9999, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 5, 0, 500));
+            float y = (Mathf.randomSeedRange(i + 1 + 9999, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset) % th;
             float prevRot = flyerRot;
             cons.get(x, y);
             flyerRot = prevRot;
