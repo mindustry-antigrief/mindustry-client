@@ -861,7 +861,7 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         private void updatePref(){
-            settings.defaults("updateurl", "stormybytes/mindustry-client");
+            settings.defaults("updateurl", "balam314/mindustry-client");
             if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
             pref(new Setting("updateurl") {
                 boolean urlChanged;
@@ -890,7 +890,7 @@ public class SettingsMenuDialog extends BaseDialog{
                             becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
                             urlChanged = true;
                             settings.put(name, text);
-                        }).width(450).get().setMessageText("stormybytes/mindustry-client");
+                        }).width(450).get().setMessageText("BalaM314/mindustry-client");
                     }).left().expandX().padTop(3).height(32).padBottom(3);
                     table.row();
                 }
