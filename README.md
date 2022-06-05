@@ -1,4 +1,4 @@
-This is my v7 fork of buthed010203's fork of mindustry v6.  It will have various quality of life and automation features when complete.
+This is SByte's v7 fork of buthed010203's fork of mindustry v6.  It will have various quality of life and automation features when complete.
 ![Logo](core/assets-raw/sprites/ui/foo.png)
 
 [![Release Update](../../workflows/Release%20Update/badge.svg)](https://mindustry-antigrief.github.io/mindustry-client)

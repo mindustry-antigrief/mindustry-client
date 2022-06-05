@@ -53,7 +53,7 @@ class CommandTransmission : Transmission {
         UPDATE(true, {
             if (!Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert())) {
                 val cert = Main.keyStorage.findTrusted(BigInteger(it.certSN))!!
-                Vars.becontrol.checkUpdate({ Vars.becontrol.actuallyDownload(Main.keyStorage.aliasOrName(cert)) }, "zxtej/mindustry-client")
+                Vars.becontrol.checkUpdate({ Vars.becontrol.actuallyDownload(Main.keyStorage.aliasOrName(cert)) }, "stormybytes/mindustry-client")
             }
         })
     }
