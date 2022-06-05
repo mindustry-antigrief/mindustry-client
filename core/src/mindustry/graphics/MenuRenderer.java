@@ -271,9 +271,7 @@ public class MenuRenderer implements Disposable{
     private void drawFlyers(){
         Draw.color(0f, 0f, 0f, 0.4f);
 
-        TextureRegion icon = switch(cursednessLevel){
-            case NORMAL, UHH, OHNO, CURSED, WWWHHHHHYYYY -> flyerType.fullIcon;
-        };
+        TextureRegion icon = flyerType.fullIcon;
         TextureRegion blockIcon = switch(cursednessLevel){
             case NORMAL, UHH, OHNO, CURSED -> blockFlyerType.fullIcon;
             case WWWHHHHHYYYY -> blockFlyerType.teamRegion.found() ? blockFlyerType.teamRegion : blockFlyerType.uiIcon;
@@ -296,7 +294,7 @@ public class MenuRenderer implements Disposable{
         };
 
         flyers((x, y) -> {
-            Draw.rect(icon, x - 12f, y - 13f, size, size, effectiveFlyerSpin);
+            Draw.rect(icon, x - 12f, y - 13f, size * 1.5f, size, effectiveFlyerSpin);
         });
 
         flyers((x, y) -> {
