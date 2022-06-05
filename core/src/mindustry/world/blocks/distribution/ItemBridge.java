@@ -23,7 +23,7 @@ import static mindustry.Vars.*;
 
 public class ItemBridge extends Block{
     private static BuildPlan otherReq;
-    public static int phaseWeaveInterval = Math.max(Core.settings.getInt("weaveEndInterval", 2), 1);
+    public static int phaseWeaveInterval = Math.max(Core.settings == null ? 2 : Core.settings.getInt("weaveEndInterval", 2), 1);
 
     public final int timerCheckMoved = timers ++;
 
