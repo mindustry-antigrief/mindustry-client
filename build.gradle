@@ -474,8 +474,6 @@ project(":annotations"){
 
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"
-//        implementation "com.google.devtools.ksp:symbol-processing-api:1.6.20-1.0.4"
-        // WARNING commenting this out might have broken it
         implementation "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
     }
 }
