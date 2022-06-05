@@ -374,11 +374,6 @@ public class DesktopLauncher extends ClientLauncher{
         String uiState = "";
 
         if(inGame){
-            gameMapWithWave = Strings.capitalize(Strings.stripColors(state.map.name()));
-
-            if(state.rules.waves){
-                gameMapWithWave += " | Wave " + state.wave;
-            }
             gameMode = state.rules.pvp ? "PvP" : state.rules.attackMode ? "Attack" : "Survival";
             if(net.active() && Groups.player.size() > 1){
                 gamePlayersSuffix = " | " + Groups.player.size() + " Players";
@@ -396,22 +391,17 @@ public class DesktopLauncher extends ClientLauncher{
         if(useDiscord && Core.settings.getBool("discordrpc")){
             DiscordRPC.RichPresence presence = new DiscordRPC.RichPresence();
 
-            if(inGame){
-                presence.state = gameMode + gamePlayersSuffix;
-                presence.details = gameMapWithWave;
-                if(state.rules.waves){
-                    presence.largeImageText = "Wave " + state.wave;
-                }
-            }else{
-                presence.state = uiState;
-            }
+            presence.state = "SB Flavored";
+            
+            if(inGame) presence.details = gameMode + gamePlayersSuffix;
+            else presence.details = uiState;
 
             presence.largeImageKey = "logo";
             presence.smallImageKey = "foo";
-            presence.smallImageText = Strings.format("Foo's Client zxtej Flavour (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
+            presence.smallImageText = Strings.format("Foo's Client SByte Edition (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
             presence.startTimestamp = state.tick == 0 ? beginTime/1000 : Time.timeSinceMillis((long)(state.tick * 16.666));
             presence.label1 = "Client Github";
-            presence.url1 = "https://github.com/zxtej/mindustry-client";
+            presence.url1 = "https://github.com/stormybytes/mindustry-client";
             if (DiscordRPC.getStatus() == DiscordRPC.PipeStatus.connected) DiscordRPC.send(presence);
         }
 

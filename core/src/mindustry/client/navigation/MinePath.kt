@@ -1,10 +1,12 @@
 package mindustry.client.navigation
 
 import arc.*
+import arc.math.Mathf
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
+import mindustry.client.navigation.Path.Companion.waypoints
 import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.gen.*
@@ -48,7 +50,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
         val core = player.closestCore() ?: return
         var item = items.min({ indexer.hasOre(it) && player.unit().canMine(it) }) { core.items[it].toFloat() } ?: return
         val maxCap = if (cap <= 0) core.storageCapacity else core.storageCapacity.coerceAtMost(cap)
-        if (lastItem != null && player.unit().canMine(lastItem) && core.items[lastItem] - core.items[item] < 100 && core.items[lastItem] < maxCap) item = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
+        if (lastItem != null && player.unit().canMine(lastItem) && indexer.hasOre(lastItem) && core.items[lastItem] - core.items[item] < 100 && core.items[lastItem] < maxCap) item = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
         lastItem = item
 
         if (!newGame && core.items[item] >= maxCap && cap >= 0) {  // Auto switch to BuildPath when core is sufficiently full

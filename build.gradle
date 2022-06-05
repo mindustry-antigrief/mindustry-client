@@ -17,11 +17,8 @@ buildscript{
 
     dependencies{
         classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.16"
-        if (!project.hasProperty("release") && new File(projectDir.parent, 'Arc').exists()) classpath fileTree(new File(projectDir.parent, 'Arc'))
-        else {
-            classpath "com.github.mindustry-antigrief.arc:packer:$arcHash"
-            classpath "com.github.mindustry-antigrief.arc:arc-core:$arcHash"
-        }
+        classpath "com.github.mindustry-antigrief.Arc:packer:$arcHash"
+        classpath "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
     }
 }
 
@@ -69,7 +66,7 @@ allprojects{
             }else{
                 //skip to last submodule
                 if(name.contains(':')) name = name.split(':').last()
-                return "com.github.mindustry-antigrief.arc:$name:${getArcHash()}"
+                return "com.github.mindustry-antigrief.Arc:$name:${getArcHash()}"
             }
         }
 
@@ -477,7 +474,7 @@ project(":annotations"){
 
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"
-        implementation "com.github.mindustry-antigrief.arc:arc-core:$arcHash"
+        implementation "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
     }
 }
 

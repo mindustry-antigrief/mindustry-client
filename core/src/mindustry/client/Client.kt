@@ -50,7 +50,6 @@ import java.io.*
 import java.math.*
 import java.security.*
 import java.security.cert.*
-import javax.script.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -273,6 +272,10 @@ object Client {
             follow(MinePath(if (args.isEmpty()) "" else args[0]))
         } // FINISHME: This is so scuffed lol
 
+        register("buildmine", "Buildpath (self) + mine (all)") {_, _: Player ->
+            follow(BuildMinePath())
+        }
+
         register(" [message...]", Core.bundle.get("client.command.!.description")) { args, _ ->
             sendMessage("!" + if (args.size == 1) args[0] else "")
         }
@@ -379,19 +382,19 @@ object Client {
         }
 
         @Suppress("unchecked_cast")
-        register("fixcode [c]", "Fixes problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
+        register("fixcode [options...]", "Disables problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
             val builds = Seq<LogicBuild>()
             Vars.player.team().data().buildings.getObjects(builds as Seq<Building>) // Must be done on the main thread
             clientThread.post {
                 builds.removeAll { it !is LogicBlock.LogicBuild }
-                val confirmed = args.any() && args[0] == "c" // Don't configure by default
+                val confirmed = args.any() && (args[0] == "c" || args[0] == "r") // Don't configure by default
                 val inProgress = !configs.isEmpty()
                 var n = 0
 
                 if (confirmed && !inProgress) {
                     Log.debug("Patching!")
                     builds.forEach {
-                        val patched = ProcessorPatcher.patch(it.code)
+                        val patched = ProcessorPatcher.patch(it.code, args[0])
                         if (patched != it.code) {
                             Log.debug("${it.tileX()} ${it.tileY()}")
                             configs.add(ConfigRequest(it.tileX(), it.tileY(), compress(patched, it.relativeConnections())))
@@ -404,7 +407,7 @@ object Client {
                         if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
                         else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
                     } else {
-                        player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
+                        player.sendMessage("[accent]Run [coral]!fixcode [c | r][] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
                     }
                 }
             }
@@ -623,6 +626,38 @@ object Client {
                 Log.err(e)
                 if (e is NumberFormatException) player.sendMessage("[scarlet]Please enter a valid number (please)")
                 else player.sendMessage("[scarlet]Something went wrong.")
+            }
+        }
+
+        register("procfind [options...]", "Highlights processors based on search query") { args, player ->
+            val newArgs = args.joinToString(" ").split(" ").toTypedArray() // TODO: fix the command arguments. this is beyond cursed
+
+            if (newArgs.isEmpty()) {
+                player.sendMessage("[accent]Use [coral]!procfind query ...[] to enter a search query.\n" +
+                        "Use [coral]!procfind cluster[] to log clusters of processors.\n" +
+                        "Use [coral]!procfind clear[] to clear highlights.")
+                return@register
+            }
+
+            if (newArgs[0] == "query") {
+                if (newArgs.size < 2) {
+                    player.sendMessage("[accent]Use [coral]!procfind query ...[] to enter a search query.")
+                    return@register
+                }
+                val queryRegex = newArgs.drop(1).joinToString(" ").toRegex()
+                clientThread.post {
+                    ProcessorFinder.query(queryRegex)
+                }
+
+            } else if (newArgs[0] == "clear") {
+                player.sendMessage("[accent]Cleared ${ProcessorFinder.getCount()} highlighters.")
+                ProcessorFinder.clear()
+
+            } else if (newArgs[0] == "cluster") {
+                ProcessorFinder.logClusters()
+
+            } else {
+                player.sendMessage("[scarlet]Invalid argument!")
             }
         }
 
