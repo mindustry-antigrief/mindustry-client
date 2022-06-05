@@ -29,10 +29,12 @@ public class MenuRenderer implements Disposable{
     private CacheBatch batch;
     private float time = 0f;
     private float flyerRot = 45f;
-    private float flyerEngineSpin = 360f;
+    private float flyerSpin = 0f, flyerSpinOpp = 0f, flyerEngineSpin = 360f, flyerEngineSpinOpp = 360f;
     private int flyers = Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
     private UnitType flyerType = content.units().select(u -> !u.isHidden() && u.hitSize <= 20f && u.flying && u.onTitleScreen && u.region.found()).random();
-    private boolean cursed;
+    
+    private int flyerSpinMode = 0;
+    private boolean flyerSpinMode2 = false;
 
     public MenuRenderer(){
         Time.mark();
@@ -207,7 +209,6 @@ public class MenuRenderer implements Disposable{
     public void render(){
         if (Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null) {
             flyerType = content.units().select(u -> (u.hitSize >= 20f || !u.flying) && u.region.found()).random();
-            cursed = true;
             flyers = Mathf.chance(0.005) ? 70 + Mathf.random(20) : Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
             Log.debug("There are @ flyers.", flyers);
         }
@@ -216,10 +217,16 @@ public class MenuRenderer implements Disposable{
         camera.position.set(width * tilesize / 2f, height * tilesize / 2f);
         camera.resize(Core.graphics.getWidth() / scaling,
         Core.graphics.getHeight() / scaling);
-        flyerEngineSpin -= 5f;
-        if(flyerEngineSpin < 0f){
-            flyerEngineSpin = 360f;
-        }
+        
+        flyerSpin += 10f;
+        if(flyerSpin > 360f)flyerSpin = 0f;
+        flyerSpinOpp -= 8f;
+        if(flyerSpinOpp < 0f)flyerSpinOpp = 360f;
+        
+        flyerEngineSpin -= 6f;
+        if(flyerEngineSpin < 0f) flyerEngineSpin = 360f;
+        flyerEngineSpinOpp += 3f;
+        if(flyerEngineSpinOpp > 360f) flyerEngineSpinOpp = 0f;
 
         mat.set(Draw.proj());
         Draw.flush();
@@ -262,8 +269,13 @@ public class MenuRenderer implements Disposable{
         Draw.color();
 
         flyers((x, y) -> {
-            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = flyerEngineSpin;
-
+            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize;
+            
+            float rotation;
+            if (flyerSpinMode2) rotation = flyerEngineSpin;
+            else rotation = flyerEngineSpinOpp;
+            flyerSpinMode2 = !flyerSpinMode2; // weEeEeeEEe
+    
             Draw.color(Pal.engine);
             Fill.circle(x + Angles.trnsx(rotation + 180, engineOffset), y + Angles.trnsy(rotation + 180, engineOffset),
             engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f));
@@ -288,9 +300,22 @@ public class MenuRenderer implements Disposable{
             float x = (Mathf.randomSeedRange(i, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 5, 0, 500));
             float y = (Mathf.randomSeedRange(i + 1, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset) % th;
             float prevRot = flyerRot;
-            if(cursed){
-                flyerRot = camera.unproject(Core.input.mouseX(), Core.input.mouseY()).sub(x, y).angle();
+    
+            switch (flyerSpinMode) { // weeeeeee
+                case 0 -> {
+                    flyerRot = flyerSpin;
+                    flyerSpinMode++;
+                }
+                case 1 -> {
+                    flyerRot = flyerSpinOpp;
+                    flyerSpinMode++;
+                }
+                case 2 -> {
+                    flyerRot = camera.unproject(Core.input.mouseX(), Core.input.mouseY()).sub(x, y).angle();
+                    flyerSpinMode = 0;
+                }
             }
+            
             cons.get(x, y);
             flyerRot = prevRot;
         }
