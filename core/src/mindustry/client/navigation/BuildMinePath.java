@@ -8,10 +8,9 @@ import static mindustry.Vars.player;
 
 public class BuildMinePath extends Path{ // This is so scuffed. Help.
     private boolean show;
-    
     private boolean initMine = true;
     private boolean initBuild = true;
-    private static Path currentPath;
+    private Path currentPath;
     
     public BuildMinePath() {}
     
@@ -29,10 +28,10 @@ public class BuildMinePath extends Path{ // This is so scuffed. Help.
     public void follow() {
         // this is more of a personal use thing. You might not want to have this.
         if (control.input.isBuilding && !player.unit().plans.isEmpty()) {
-            if (initMine) {
+            if (initBuild) {
                 currentPath = new BuildPath("self");
-                initBuild = true;
-                initMine = false;
+                initBuild = false;
+                initMine = true;
 
                 player.sendMessage("[sky][BuildMine] [accent]Swapping to build path (self).");
             }
@@ -40,10 +39,10 @@ public class BuildMinePath extends Path{ // This is so scuffed. Help.
                 currentPath.follow();
             }
         } else {
-            if (initBuild) {
+            if (initMine) {
                 currentPath = new MinePath("*");
-                initBuild = false;
-                initMine = true;
+                initBuild = true;
+                initMine = false;
                 
                 player.sendMessage("[sky][BuildMine] [accent]Swapping to mine path (all).");
             }
