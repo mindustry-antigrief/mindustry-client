@@ -1,6 +1,7 @@
 package mindustry.client.navigation;
 
 import arc.math.geom.Position;
+import arc.util.Interval;
 import org.jetbrains.annotations.Nullable;
 
 import static mindustry.Vars.control;
@@ -11,6 +12,7 @@ public class BuildMinePath extends Path{ // This is so scuffed. Help.
     private boolean initMine = true;
     private boolean initBuild = true;
     private Path currentPath;
+    private Interval timer = new Interval();
     
     public BuildMinePath() {}
     
@@ -37,9 +39,10 @@ public class BuildMinePath extends Path{ // This is so scuffed. Help.
             }
             else {
                 currentPath.follow();
+                timer.reset(0, 0);
             }
         } else {
-            if (initMine) {
+            if (initMine && timer.get(0, 300)) {
                 currentPath = new MinePath("*");
                 initBuild = true;
                 initMine = false;
