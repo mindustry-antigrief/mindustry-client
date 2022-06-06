@@ -31,16 +31,16 @@ class ClientLogic {
 
             Timer.schedule({
                 Core.app.post {
-                val switchTo = switchTo
-                if (switchTo != null) {
-                    Call.sendChatMessage("/${arrayOf("no", "up", "down").random()}vote")
-                    if (switchTo.firstOrNull() is Char) Call.sendChatMessage("/switch ${switchTo.removeFirst()}")
-                    else {
-                        if (switchTo.firstOrNull() is UnitType) Vars.ui.unitPicker.pickUnit(switchTo.first() as UnitType)
-                        this.switchTo = null
+                    val switchTo = switchTo
+                    if (switchTo != null) {
+                        Call.sendChatMessage("/${arrayOf("no", "up", "down").random()}vote")
+                        if (switchTo.firstOrNull() is Char) Call.sendChatMessage("/switch ${switchTo.removeFirst()}")
+                        else {
+                            if (switchTo.firstOrNull() is UnitType) Vars.ui.unitPicker.pickUnit(switchTo.first() as UnitType)
+                            this.switchTo = null
+                        }
                     }
-                }
-            } }, 1F)
+                } }, 1F)
         }
 
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
