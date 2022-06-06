@@ -325,6 +325,11 @@ public class Weather extends UnlockableContent{
         }
 
         @Override
+        public void afterSync() {
+            opacity *= Core.settings.getInt("weatheropacity") / 100f;
+        }
+
+        @Override
         public void update(){
             if(life < fadeTime){
                 opacity = Math.min(life / fadeTime, opacity);
