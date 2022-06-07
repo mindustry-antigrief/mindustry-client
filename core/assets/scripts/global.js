@@ -20,7 +20,6 @@ const cons = method => new Cons(){get: method}
 const prov = method => new Prov(){get: method}
 const func = method => new Func(){get: method}
 
-const me = Packages.mindustry.Vars.player
 const msg = text => Vars.ui.chatfrag.addMessage(text)
 
 Call = Packages.mindustry.gen.Call

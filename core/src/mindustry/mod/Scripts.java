@@ -16,7 +16,7 @@ import java.util.regex.*;
 
 public class Scripts implements Disposable{
     public final Context context;
-    public final Scriptable scope;
+    public final ImporterTopLevel scope;
 
     private boolean errored;
     LoadedMod currentMod = null;
@@ -26,6 +26,7 @@ public class Scripts implements Disposable{
 
         context = Vars.platform.getScriptContext();
         scope = new ImporterTopLevel(context);
+        setPlayerConst();
 
         new RequireBuilder()
             .setModuleScriptProvider(new SoftCachingModuleScriptProvider(new ScriptModuleProvider()))
@@ -35,6 +36,12 @@ public class Scripts implements Disposable{
             errored = true;
         }
         Log.debug("Time to load script engine: @", Time.elapsed());
+    }
+
+    /** Sets the "me" variable to the player for ease of use. */
+    public void setPlayerConst(){
+        if(Vars.player == null || scope.has("me", scope)) return;
+        scope.putConst("me", scope, Vars.player);
     }
 
     public boolean hasErrored(){

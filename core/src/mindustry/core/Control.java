@@ -298,7 +298,10 @@ public class Control implements ApplicationListener, Loadable{
         "name", "",
         "lastBuild", 0
         );
+    }
 
+    @Override
+    public void loadSync() {
         createPlayer();
     }
 
@@ -314,6 +317,8 @@ public class Control implements ApplicationListener, Loadable{
     }
 
     void createPlayer(){
+        player = Player.create();
+        if(mods.hasScripts()) mods.getScripts().setPlayerConst(); // having a null const wouldn't be very helpful now, would it?
         player.name = Core.settings.getString("name");
         player.color.set(Core.settings.getInt("color-0"));
 
