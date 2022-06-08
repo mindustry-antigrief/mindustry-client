@@ -99,6 +99,10 @@ public class BaseTurret extends Block{
             Drawf.dashCircle(x, y, range(), team.color);
         }
 
+        public float estimateDps(){
+            return 0f;
+        }
+
         public boolean canShoot(){ // Client stuff
             return canConsume();
         }

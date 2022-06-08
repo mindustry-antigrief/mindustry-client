@@ -152,7 +152,7 @@ public class PlacementFragment{
             }
         }
 
-        if(ui.chatfrag.shown() || Core.scene.hasKeyboard()) return false;
+        if(ui.chatfrag.shown() || ui.consolefrag.shown() || Core.scene.hasKeyboard()) return false;
 
         for(int i = 0; i < blockSelect.length; i++){
             if(Core.input.keyTap(blockSelect[i])){
@@ -565,7 +565,7 @@ public class PlacementFragment{
     }
 
     Seq<Block> getByCategory(Category cat){
-        return returnArray.selectFrom(content.blocks(), block -> block.category == cat && block.isVisible());
+        return returnArray.selectFrom(content.blocks(), block -> block.category == cat && block.isVisible() && block.environmentBuildable());
     }
 
     Seq<Block> getUnlockedByCategory(Category cat){
@@ -600,7 +600,7 @@ public class PlacementFragment{
 
         if (!ClientVars.hidingUnits) {
             //check for a unit
-            Unit unit = Units.closestOverlap(Core.input.mouseWorldX(), Core.input.mouseWorldY(), input.shift() ? tilesize * 6 : 5f, u -> !u.isLocal());
+            Unit unit = Units.closestOverlap(Core.input.mouseWorldX(), Core.input.mouseWorldY(), input.shift() ? tilesize * 6 : 5f, u -> !u.isLocal() && u.displayable());
             //if cursor has a unit, display it
             if (unit != null) return unit;
         }

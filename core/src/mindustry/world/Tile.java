@@ -508,13 +508,23 @@ public class Tile implements Position, QuadTreeObject, Displayable{
     }
 
     public @Nullable Tile nearby(int rotation){
-        if(rotation < 0 || rotation > 3) return null;
-        return world.tile(x + Geometry.d4x[rotation], y + Geometry.d4y[rotation]);
+        return switch(rotation){
+            case 0 -> world.tile(x + 1, y);
+            case 1 -> world.tile(x, y + 1);
+            case 2 -> world.tile(x - 1, y);
+            case 3 -> world.tile(x, y - 1);
+            default -> null;
+        };
     }
 
     public @Nullable Building nearbyBuild(int rotation){
-        if(rotation < 0 || rotation > 3) return null;
-        return world.build(x + Geometry.d4x[rotation], y + Geometry.d4y[rotation]);
+        return switch(rotation){
+            case 0 -> world.build(x + 1, y);
+            case 1 -> world.build(x, y + 1);
+            case 2 -> world.build(x - 1, y);
+            case 3 -> world.build(x, y - 1);
+            default -> null;
+        };
     }
 
     public boolean interactable(Team team){
@@ -528,7 +538,7 @@ public class Tile implements Position, QuadTreeObject, Displayable{
     public @Nullable Item wallDrop(){
         return block.solid ?
             block.itemDrop != null ? block.itemDrop :
-            overlay.wallOre ? overlay.itemDrop :
+            overlay.wallOre && !block.synthetic() ? overlay.itemDrop :
             null : null;
     }
 

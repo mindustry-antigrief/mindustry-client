@@ -174,8 +174,6 @@ public class Vars implements Loadable{
     public static boolean headless;
     /** whether steam is enabled for this game */
     public static boolean steam;
-    /** whether typing into the console is enabled - developers only */ // Hi, I'm buthed and I'm a "developer" -buthed010203 9/6/21
-    public static boolean enableConsole = true;
     /** whether to clear sector saves when landing */
     public static boolean clearSectors = false;
     /** whether any light rendering is enabled */
@@ -373,14 +371,13 @@ public class Vars implements Loadable{
 
         Seq<String>[] logBuffer = new Seq[]{new Seq<>()};
         Log.logger = (level, text) -> {
+            String result = text;
+            String rawText = Log.format(stags[level.ordinal()] + "&fr " + text);
+            System.out.println(rawText);
+            result = tags[level.ordinal()] + " " + result;
             synchronized(logBuffer){
-                String result = text;
-                String rawText = Log.format(stags[level.ordinal()] + "&fr " + text);
-                System.out.println(rawText);
 
-                result = tags[level.ordinal()] + " " + result;
-
-                if(logBuffer[0] != null && !headless && (ui == null || ui.scriptfrag == null)){
+                if(logBuffer[0] != null && !headless && (ui == null || ui.consolefrag == null)){
                     logBuffer[0].add(result);
                 }else if(!headless){
                     if(!OS.isWindows){
@@ -389,14 +386,14 @@ public class Vars implements Loadable{
                         }
                     }
 
-                    ui.scriptfrag.addMessage(Log.removeColors(result));
+                    ui.consolefrag.addMessage(Log.removeColors(result));
                 }
             }
         };
 
         Events.on(ClientLoadEvent.class, e -> {
             synchronized(logBuffer){
-                logBuffer[0].each(ui.scriptfrag::addMessage);
+                logBuffer[0].each(ui.consolefrag::addMessage);
                 logBuffer[0] = null;
             }
         });

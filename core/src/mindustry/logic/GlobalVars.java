@@ -68,7 +68,10 @@ public class GlobalVars{
         }
 
         for(Block block : Vars.content.blocks()){
-            put("@" + block.name, block);
+            //only register blocks that have no item equivalent (this skips sand)
+            if(content.item(block.name) == null){
+                put("@" + block.name, block);
+            }
         }
 
         //used as a special value for any environmental solid block
@@ -161,8 +164,8 @@ public class GlobalVars{
     /** Adds a constant value by name. */
     public int put(String name, Object value){
         int existingIdx = namesToIds.get(name, -1);
-        if(existingIdx != -1){ //don't overwrite existing vars (see #____)
-            Log.debug("Failed to add global logic var '@' as it already exists.", name);
+        if(existingIdx != -1){ //don't overwrite existing vars (see #6910)
+            Log.debug("Failed to add global logic variable '@', as it already exists.", name);
             return existingIdx;
         }
 
