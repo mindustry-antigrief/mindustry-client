@@ -573,7 +573,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     /** @return a preview icon for this unit. */
     public TextureRegion icon(){
-        return type.fullIcon;
+        return type.uiIcon;
     }
 
     /** Actually destroys the unit, removing it and creating explosions. **/

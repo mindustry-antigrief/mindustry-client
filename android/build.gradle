@@ -119,8 +119,8 @@ dependencies{
     implementation arcModule("backends:backend-android")
     implementation 'com.jakewharton.android.repackaged:dalvik-dx:9.0.0_r3'
 
-    natives "com.github.mindustry-antigrief.arc:natives-android:${getArcHash()}"
-    natives "com.github.mindustry-antigrief.arc:natives-freetype-android:${getArcHash()}"
+    natives arcModule("natives:natives-android")
+    natives arcModule("natives:natives-freetype-android")
 
     //TODO dynamically find best android platform jar instead of hard-coding to 30
     def sdkFile = new File((String)findSdkDir(), "/platforms/android-30/android.jar")

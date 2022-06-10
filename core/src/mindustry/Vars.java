@@ -371,12 +371,10 @@ public class Vars implements Loadable{
 
         Seq<String>[] logBuffer = new Seq[]{new Seq<>()};
         Log.logger = (level, text) -> {
-            String result = text;
             String rawText = Log.format(stags[level.ordinal()] + "&fr " + text);
             System.out.println(rawText);
-            result = tags[level.ordinal()] + " " + result;
+            String result = tags[level.ordinal()] + " " + text;
             synchronized(logBuffer){
-
                 if(logBuffer[0] != null && !headless && (ui == null || ui.consolefrag == null)){
                     logBuffer[0].add(result);
                 }else if(!headless){

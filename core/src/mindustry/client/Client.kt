@@ -107,9 +107,11 @@ object Client {
 
         // Overdrive range
         if (showingOverdrives) {
+            val team = player.team()
             overdrives.forEach { b ->
+                if (b.team != team) return@forEach
                 val range = b.realRange()
-                if (b.team == player.team() && bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect()
+                if (bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect()
             }
         }
     }

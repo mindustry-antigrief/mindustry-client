@@ -417,22 +417,21 @@ public class BlockRenderer{
             if(block != Blocks.air && (visible || build.wasVisible)){
                 block.drawBase(tile);
                 Draw.reset();
-                Draw.z(Layer.block);
 
                 if(block.customShadow){
                     Draw.z(Layer.block - 1);
                     block.drawShadow(tile);
-                    Draw.z(Layer.block);
                 }
+                Draw.z(Layer.block);
 
                 if(build != null){
                     if(visible){
                         if(!build.wasVisible){
                             updateShadow(build);
                             renderer.minimap.update(tile);
+                            build.wasVisible = true;
                         }
                         build.visibleFlags |= (1L << pteam.id);
-                        build.wasVisible = true;
                     }
 
                     if(build.damaged()){
