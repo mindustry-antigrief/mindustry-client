@@ -177,6 +177,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             asyncCore.begin();
 
             super.update();
+            Client.INSTANCE.update();
 
             asyncCore.end();
         }
@@ -190,8 +191,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 Threads.sleep((target - elapsed) / 1000000, (int)((target - elapsed) % 1000000));
             }
         }
-
-        Client.INSTANCE.update();
 
         lastTime = Time.nanos();
     }
