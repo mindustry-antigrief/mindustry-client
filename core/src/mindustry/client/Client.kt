@@ -51,6 +51,7 @@ object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
     val timer = Interval(4)
+    val autoTransfer by lazy { AutoTransfer() } // FINISHME: Awful
     private val circles = mutableListOf<Pair<TurretPathfindingEntity, Color>>()
 
     fun initialize() {
@@ -68,6 +69,7 @@ object Client {
     }
 
     fun update() {
+        autoTransfer.update()
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below

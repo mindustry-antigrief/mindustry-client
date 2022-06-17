@@ -20,7 +20,7 @@ import mindustry.world.blocks.logic.*
  * Handles various events and such.
  * FINISHME: Move the 9000 different bits of code throughout the client to here */
 class ClientLogic {
-    private var switchTo: MutableList<Char>? = null
+    private var switchTo: MutableList<Any>? = null
 
     /** Create event listeners */
     init {
@@ -28,14 +28,18 @@ class ClientLogic {
             Navigation.stopFollowing()
             Spectate.pos = null
 
-            Time.run(60F) {
-                val switchTo = switchTo
-                if (switchTo != null) {
-                    Call.sendChatMessage("/${arrayOf("no", "up", "down").random()}vote")
-                    if (switchTo.isEmpty()) this.switchTo = null
-                    else Call.sendChatMessage("/switch ${switchTo.removeFirst()}")
-                }
-            }
+            Timer.schedule({
+                Core.app.post {
+                    val switchTo = switchTo
+                    if (switchTo != null) {
+                        Call.sendChatMessage("/${arrayOf("no", "up", "down").random()}vote")
+                        if (switchTo.firstOrNull() is Char) Call.sendChatMessage("/switch ${switchTo.removeFirst()}")
+                        else {
+                            if (switchTo.firstOrNull() is UnitType) Vars.ui.unitPicker.pickUnit(switchTo.first() as UnitType)
+                            this.switchTo = null
+                        }
+                    }
+                } }, 1F)
         }
 
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
@@ -93,11 +97,11 @@ class ClientLogic {
                     sendMessage("\"In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
                 }
 
-                Client.register("h", "!") { _, _ ->
+                Client.register("hh [h]", "!") { args, _ ->
                     if (!Vars.net.client()) return@register
-
+                    val u = if (args.any()) Vars.content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) } else Vars.player.unit().type
                     val current = Vars.ui.join.lastHost.modeName?.first() ?: Vars.ui.join.lastHost.mode.name[0]
-                    switchTo = mutableListOf('a', 'p', 's', 'f', 't').apply { remove(current) }.apply { add(current) }
+                    switchTo = mutableListOf<Any>('a', 'p', 's', 'f', 't').apply { remove(current); add(current); add(u) }
                     Call.sendChatMessage("/switch ${switchTo!!.removeFirst()}")
                 }
             }

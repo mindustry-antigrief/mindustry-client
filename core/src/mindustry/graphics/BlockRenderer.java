@@ -406,6 +406,7 @@ public class BlockRenderer{
             }
             Fonts.def.getData().setScale(1f);
             Fonts.def.setUseIntegerPositions(ints);
+            Draw.reset();
         }
         if (wasDrawingCursors != drawCursors) {
             wasDrawingCursors = drawCursors;

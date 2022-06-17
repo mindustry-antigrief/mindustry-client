@@ -5,6 +5,7 @@ import arc.graphics.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.net.*;
 import mindustry.world.blocks.defense.*;
 import org.jetbrains.annotations.*;
 
@@ -19,7 +20,7 @@ public class ClientVars {
 
     // Config Queue
     @NotNull public static LinkedBlockingQueue<Runnable> configs = new LinkedBlockingQueue<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
-    public static int ratelimitRemaining = -1; // Number of configs that can be made safely before ratelimit reset
+    public static int ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1; // Number of configs that can be made safely before ratelimit reset
 
     // Hotkeys
     public static boolean showingTurrets, hidingUnits, hidingAirUnits, hidingBlocks, dispatchingBuildPlans, showingOverdrives;
