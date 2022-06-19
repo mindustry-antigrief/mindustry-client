@@ -363,6 +363,14 @@ public class PowerNode extends PowerBlock{
             super.placed();
         }
 
+        @Override
+        public void onProximityAdded() {
+            super.onProximityAdded();
+
+            if(laserRange > maxRange) maxRange = laserRange;
+        }
+
+
 //        @Override
 //        public void playerPlaced(Object config) { FINISHME: Make this work, maybe an IntObjectMap with Entry<pos, Seq<linkPos>>
 //            super.playerPlaced(config);
