@@ -186,6 +186,12 @@ public class Turret extends ReloadTurret{
         drawer.getRegionsToOutline(this, out);
     }
 
+    public void limitRange(BulletType bullet, float margin){
+        float realRange = bullet.rangeChange + range;
+        //doesn't handle drag
+        bullet.lifetime = (realRange + margin) / bullet.speed;
+    }
+
     public static abstract class AmmoEntry{
         public int amount;
 
@@ -477,7 +483,7 @@ public class Turret extends ReloadTurret{
 
             //skip first entry if it has less than the required amount of ammo
             if(ammo.size >= 2 && ammo.peek().amount < ammoPerShot && ammo.get(ammo.size - 2).amount >= ammoPerShot){
-                totalAmmo -= ammo.pop().amount;
+                ammo.swap(ammo.size - 1, ammo.size - 2);
             }
             return ammo.size > 0 && ammo.peek().amount >= ammoPerShot;
         }

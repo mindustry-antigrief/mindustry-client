@@ -350,7 +350,7 @@ project(":core"){
 
         compileOnly project(":annotations")
         if (!project.hasProperty("noKapt")) kapt project(":annotations")
-        annotationProcessor 'com.github.Anuken:jabel:0.8.0'
+        annotationProcessor 'com.github.Anuken:jabel:0.9.0'
     }
 
     afterEvaluate{

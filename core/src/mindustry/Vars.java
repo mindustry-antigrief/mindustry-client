@@ -218,12 +218,7 @@ public class Vars implements Loadable{
     public static Locale[] locales;
 
     //the main executor will only have at most [cores] number of threads active
-    public static ThreadPoolExecutor mainExecutor = new ThreadPoolExecutor(OS.cores, OS.cores, 30L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), r -> {
-        Thread thread = new Thread(r, "mainExecutorThread");
-        thread.setDaemon(true);
-        thread.setUncaughtExceptionHandler((t, e) -> e.printStackTrace());
-        return thread;
-    });
+    public static ExecutorService mainExecutor = Threads.executor("Main Executor", OS.cores);
 
     public static FileTree tree = new FileTree();
     public static Net net;
