@@ -1,7 +1,6 @@
 package mindustry.world.blocks.units;
 
 import arc.*;
-import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
@@ -84,8 +83,8 @@ public class Reconstructor extends UnitBlock{
             table.row();
             for(var upgrade : upgrades){
                 if(upgrade[0].unlockedNow() && upgrade[1].unlockedNow()){
-                    table.table(t -> {
-                        t.setBackground(Tex.whiteui);
+                    table.table(Tex.whiteui, t -> {
+                        t.left();
                         t.setColor(Pal.darkestGray);
 
                         t.image(upgrade[0].uiIcon).size(40).pad(10f).left();
@@ -102,8 +101,8 @@ public class Reconstructor extends UnitBlock{
                         t.image(Icon.right).color(Pal.darkishGray).size(40).pad(10f);
                     }).fill().padTop(5).padBottom(5);
 
-                    table.table(t -> {
-                        t.setBackground(Tex.whiteui);
+                    table.table(Tex.whiteui, t -> {
+                        t.left();
                         t.setColor(Pal.darkestGray);
 
                         t.image(upgrade[1].uiIcon).size(40).pad(10f).right();
