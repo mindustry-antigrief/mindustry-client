@@ -76,7 +76,7 @@ abstract class Navigator {
         if (Time.timeSinceMillis(lastWp) > 3000) {
             if (map.size > 0) { // CN auto core tp is different as a plugin allows for some magic...
                 val closestCore = map.minByOrNull { it.value.dst(end) }!!
-                if (player.dst(end) > closestCore.value.dst(end)) {
+                if (player.dst(closestCore.value) > buildingRange &&  player.dst(end) > closestCore.value.dst(end)) {
                     lastWp = Time.millis() // Try again in 3s
                     Call.sendChatMessage("/wp ${closestCore.key}")
                 }
@@ -90,11 +90,11 @@ abstract class Navigator {
             if (Time.timeSinceMillis(lastWp) > 3000) lastWp = Time.millis() - 2900 // Didn't tp, try again in .1s
         }
 
-        val flood = flood() && player.unit().type != UnitTypes.horizon
+        val avoidFlood = flood() && player.unit().type != UnitTypes.horizon
         val ret = findPath(
             start, end, realObstacles, world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->
-            flood && world.tiles.getc(x, y).team() == Team.blue || player.unit().type != null && !player.unit().type.canBoost && player.unit().solidity()?.solid(x, y) ?: false
+            avoidFlood && world.tiles.getc(x, y).team() == Team.blue || player.unit().type != null && !player.unit().type.canBoost && player.unit().solidity()?.solid(x, y) ?: false
         }
         Pools.freeAll(realObstacles)
         realObstacles.clear()

@@ -285,7 +285,7 @@ public class PowerNode extends PowerBlock{
             }
         }
 
-        indexer.eachBlock(team, tile.worldx(), tile.worldy(), maxRange * tilesize, valid, tempTileEnts::add);
+        indexer.eachBlock(team, tile.worldx(), tile.worldy(), (maxRange + .5f) * tilesize, valid, tempTileEnts::add);
 
         tempTileEnts.sort(a -> a.dst2(tile));
 
