@@ -74,11 +74,12 @@ object Client {
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
 
+        if (ratelimitRemaining != Administration.Config.interactRateLimit.num() - 1 && timer.get(3, (Administration.Config.interactRateWindow.num() + 1) * 60F)) { // Reset ratelimit, extra second to account for server lag
+            ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1
+        }
+
         if (!configs.isEmpty()) {
             try {
-                if (timer.get(3, (Administration.Config.interactRateWindow.num() + 1) * 60F)) { // Reset ratelimit, extra second to account for server lag
-                    ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1
-                }
                 if (ratelimitRemaining > 0 || !net.client()) { // Run the config NOTE: Counter decremented in InputHandler and not here so that manual configs don't cause issues
                     configs.poll().run()
                 }

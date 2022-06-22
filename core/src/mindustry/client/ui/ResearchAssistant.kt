@@ -9,7 +9,7 @@ import mindustry.game.*
 import mindustry.type.*
 
 /** Handles various client behavior related to research in campaign */
-object ResearchAssistant: Table() {
+object ResearchAssistant : Table() {
     private val queue = Seq<TechNode>()
     private var sectors = content.planets().sum { it.sectors.count(Sector::hasBase) } // Owned sector count
     private var autoResearch = false
@@ -24,7 +24,8 @@ object ResearchAssistant: Table() {
 
                 // Run until no new nodes are unlocked
                 var any = autoResearch
-                while (any) any = ui.research.nodes.any { it.visible && ui.research.view.canSpend(it.node) && spend(it.node) }
+                var i = 0 // FINISHME: This is a horribly janky "fix"
+                while (any && i++ < 10) any = ui.research.nodes.any { it.visible && ui.research.view.canSpend(it.node) && spend(it.node) }
             }
         }
     }

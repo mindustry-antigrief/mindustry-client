@@ -387,8 +387,6 @@ public class BlockRenderer{
             }
         }
 
-        var bounds = camera.bounds(Tmp.r3).grow(tilesize);
-
         if (drawCursors) {
             Draw.z(Layer.space);
             Draw.color(Color.red);
