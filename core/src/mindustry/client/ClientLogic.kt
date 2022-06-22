@@ -27,6 +27,7 @@ class ClientLogic {
         Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
             Navigation.stopFollowing()
             Spectate.pos = null
+            if (Vars.state.rules.pvp && io()) AutoTransfer.enabled = false
 
             Timer.schedule({
                 Core.app.post {
@@ -39,7 +40,8 @@ class ClientLogic {
                             this.switchTo = null
                         }
                     }
-                } }, 1F)
+                }
+            }, 1F)
         }
 
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)

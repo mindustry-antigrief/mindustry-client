@@ -1,5 +1,6 @@
 package mindustry.client.utils
 
+import arc.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
@@ -8,70 +9,10 @@ import mindustry.gen.*
 import mindustry.type.*
 import mindustry.world.consumers.*
 
-///** A work in progress auto transfer setup based on ilya246's javascript version */
-//class AutoTransfer {
-//    companion object Settings {
-//        var enabled = false
-//        var fromCores = true // Whether we take from cores
-//        val items = Seq<Item>() // The items to take
-//        val source = Seq<Block>()
-//        val dest = Seq<Block>()
-//        var range = itemTransferRange
-//        var delay = 60F // Delay in ticks between actions FINISHME: This should also probably communicate with the config queue setup or something
-//        var reflimit = 5 // actions per burst FINISHME: Use ratelimit system instead
-//        var ammoThreshold = 0.85F // prevents turret infinite refill desync FINISHME: Handle this properly
-//        var fullEnough = .2F // ?? FINISHME: What is this?
-//    }
-//
-//    private var item = Items.copper!! // The currently used item
-//    private var chitemi = 0 // ??
-//    private var timer = 0F
-//
-//    fun update() {
-//        if (!enabled) return
-//        if (items.isEmpty) return
-//        if (dest.isEmpty) return
-//        if (source.isEmpty && !fromCores) return
-//        if (ratelimitRemaining <= 1) return // Don't eat the whole ratelimit
-//
-//        timer += Time.delta
-//        if (timer < delay) return
-//        timer = 0F
-//
-//        val core = player.unit().closestCore() ?: return
-//
-//        if (fromCores && player.unit().acceptsItem(item)) Call.requestItem(player, core, item, Int.MAX_VALUE) // FINISHME: Implement a range check
-//
-//        var refi = 0
-//        val buildings = player.team().data().buildings ?: return
-//        buildings.intersect(player.x - range, player.y - range, range * 2, range * 2) {
-//            if (refi >= reflimit || ratelimitRemaining <= 1) return@intersect // FINISHME:
-//            if (player.unit().maxAccepted(item) > player.unit().itemCapacity() * fullEnough && source.contains(it.block) && it.items.has(item)) { // Take item
-//                Call.requestItem(player, it, item, Int.MAX_VALUE)
-//                ratelimitRemaining--
-//                refi++
-//                return@intersect
-//            }
-//
-//            if ((source.contains(it.block) || // Drop item
-//                dest.contains(it.block) && player.unit().hasItem() && it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()) > 0 &&
-//                (it !is TurretBuild || it.totalAmmo / (it.block as Turret).maxAmmo.toFloat() < ammoThreshold)))
-//            {
-//                ratelimitRemaining--
-//                Call.transferInventory(player, it)
-//                refi++
-//            }
-//        }
-//        chitemi = (chitemi + 1) % items.size
-//        item = items[chitemi]
-//        if (fromCores && player.unit().hasItem() && player.unit().item() != item) Call.transferInventory(player, core) // FINISHME: Doesn't handle core overflow, should return to source if possible
-//    }
-//}
-
 /** An auto transfer setup based on Ferlern/extended-ui */
 class AutoTransfer {
     companion object Settings {
-        var enabled = false
+        @JvmField var enabled = Core.settings.getBool("autotransfer", false)
         var fromCores = true
         var minCoreItems = 20
             set(_) = TODO("Min core items not yet implemented")
@@ -85,8 +26,9 @@ class AutoTransfer {
     fun update() {
         if (!enabled) return
         if (ratelimitRemaining <= 1) return
+        player.unit().item() ?: return
         timer += Time.delta
-        if (timer < AutoTransfer.delay) return
+        if (timer < delay) return
         timer = 0F
         val buildings = player.team().data().buildings ?: return
         val core = if (fromCores) player.closestCore() else null
