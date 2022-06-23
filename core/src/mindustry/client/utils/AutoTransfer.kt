@@ -7,6 +7,8 @@ import mindustry.Vars.*
 import mindustry.client.ClientVars.*
 import mindustry.gen.*
 import mindustry.type.*
+import mindustry.world.blocks.defense.turrets.ItemTurret
+import mindustry.world.blocks.power.NuclearReactor.*
 import mindustry.world.consumers.*
 
 /** An auto transfer setup based on Ferlern/extended-ui */
@@ -14,7 +16,7 @@ class AutoTransfer {
     companion object Settings {
         @JvmField var enabled = Core.settings.getBool("autotransfer", false)
         var fromCores = true
-        var minCoreItems = 20
+        var minCoreItems = 100
             set(_) = TODO("Min core items not yet implemented")
         var delay = 30F
     }
@@ -34,7 +36,8 @@ class AutoTransfer {
         val core = if (fromCores) player.closestCore() else null
 
         buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear())
-        dest.filter { it.block.consumes.has(ConsumeType.item) }.sort { b -> b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() }
+        dest.filter { it.block.consumes.has(ConsumeType.item) && it !is NuclearReactorBuild }
+        .sort { b -> b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() }
         .forEach {
             if (ratelimitRemaining <= 1) return@forEach
 
@@ -54,9 +57,21 @@ class AutoTransfer {
                             }
                         }
                         is ConsumeItemFilter -> {
-                            content.items().forEach { i ->
-                                if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7) {
-                                    return@run item
+                            if (it.block is ItemTurret) {
+                                var ammo: Item? = null
+                                var damage = 0
+                                content.items().forEach { i ->
+                                    if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && (it.block as ItemTurret).ammoTypes.get(i).damage > damage && core.items.has(i)) {
+                                        damage = (it.block as ItemTurret).ammoTypes.get(i).damage.toInt()
+                                        ammo = i
+                                    }
+                                }
+                                return@run ammo
+                            } else {
+                                content.items().forEach { i ->
+                                    if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7) {
+                                        return@run i
+                                    }
                                 }
                             }
                         }
