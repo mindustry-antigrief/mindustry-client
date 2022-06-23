@@ -37,7 +37,7 @@ class AutoTransfer {
         val core = if (fromCores) player.closestCore() else null
 
         buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear())
-        dest.filter { (it.block.consumes.has(ConsumeType.item) || it.block is ItemTurret) && it.block !is NuclearReactor }
+        dest.filter { it.block.consumes.has(ConsumeType.item) && it.block !is NuclearReactor }
         .sort { b -> b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() * if (b.block is ItemTurret) 0.5f else 1f }
         .forEach {
             if (ratelimitRemaining <= 1) return@forEach
