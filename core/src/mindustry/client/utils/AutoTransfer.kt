@@ -1,13 +1,12 @@
 package mindustry.client.utils
 
-import arc.Core
-import arc.struct.Seq
-import arc.util.Time
+import arc.*
+import arc.struct.*
+import arc.util.*
 import mindustry.Vars.*
-import mindustry.client.ClientVars.ratelimitRemaining
-import mindustry.gen.Building
-import mindustry.gen.Call
-import mindustry.type.Item
+import mindustry.client.ClientVars.*
+import mindustry.gen.*
+import mindustry.type.*
 import mindustry.world.blocks.defense.turrets.ItemTurret
 import mindustry.world.blocks.power.NuclearReactor
 import mindustry.world.consumers.*
