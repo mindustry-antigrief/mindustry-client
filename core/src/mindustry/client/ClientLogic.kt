@@ -28,6 +28,7 @@ class ClientLogic {
         Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
             Navigation.stopFollowing()
             Spectate.pos = null
+            if (Vars.state.rules.pvp && io()) AutoTransfer.enabled = false
 
             Timer.schedule({
                 Core.app.post {
@@ -40,7 +41,8 @@ class ClientLogic {
                             this.switchTo = null
                         }
                     }
-                } }, 1F)
+                }
+            }, 1F)
         }
 
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
@@ -105,7 +107,7 @@ class ClientLogic {
                 Client.register("hh [h]", "!") { args, _ ->
                     if (!Vars.net.client()) return@register
                     val u = if (args.any()) Vars.content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) } else Vars.player.unit().type
-                    val current = Vars.ui.join.lastHost.modeName?.first() ?: Vars.ui.join.lastHost.mode.name[0]
+                    val current = (Vars.ui.join.lastHost.modeName?.first() ?: Vars.ui.join.lastHost?.mode?.name?.get(0) ?: 'f').lowercaseChar()
                     switchTo = mutableListOf<Any>('a', 'p', 's', 'f', 't').apply { remove(current); add(current); add(u) }
                     Call.sendChatMessage("/switch ${switchTo!!.removeFirst()}")
                 }
