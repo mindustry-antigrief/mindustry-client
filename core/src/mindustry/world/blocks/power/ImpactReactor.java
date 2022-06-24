@@ -31,7 +31,7 @@ public class ImpactReactor extends PowerGenerator{
     public int explosionRadius = 23;
     public int explosionDamage = 1900;
     public Effect explodeEffect = Fx.impactReactorExplosion;
-    public int floodNullifierRange = 16 * tilesize;
+    public float floodNullifierRange;
 
     public Color plasma1 = Color.valueOf("ffd06b"), plasma2 = Color.valueOf("ff361b");
 
@@ -52,6 +52,12 @@ public class ImpactReactor extends PowerGenerator{
     }
 
     @Override
+    public void init(){
+        super.init();
+        floodNullifierRange = (16 - size/2f) * tilesize; // io programmn't and didn't factor in the actual reactor size
+    }
+
+    @Override
     public void setBars(){
         super.setBars();
 
@@ -68,7 +74,7 @@ public class ImpactReactor extends PowerGenerator{
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, explosionRadius * tilesize, Color.coral);
         if (ClientUtilsKt.flood()) {
             Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, floodNullifierRange, Color.orange);
-            indexer.eachBlock(null, x * tilesize + offset, y * tilesize + offset, floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
+            indexer.eachBlock(null, x * tilesize + offset, y * tilesize + offset, floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild && b.within(x, y, floodNullifierRange), b -> Drawf.selected(b, Color.orange));
         }
     }
 

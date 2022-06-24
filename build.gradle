@@ -298,7 +298,7 @@ project(":ios"){
 }
 
 project(":core"){
-    apply plugin: "java-library"
+//    apply plugin: "java-library"
     apply plugin: "kotlin"
     apply plugin: "kotlin-kapt"
 
@@ -363,7 +363,7 @@ project(":core"){
     dependencies{
         compileJava.dependsOn(preGen)
 
-        api "org.lz4:lz4-java:1.7.1"
+        api "org.lz4:lz4-java:1.8.0"
         api arcModule("arc-core")
         if(localArc() && project.hasProperty("debug")) implementation arcModule("extensions:profiling")
         api arcModule("extensions:flabel")
@@ -386,7 +386,7 @@ project(":core"){
         compileOnly arcModule("backends:backend-sdl")
         implementation 'commons-net:commons-net:3.8.0'
 
-        annotationProcessor 'com.github.Anuken:jabel:0.6.0'
+        annotationProcessor 'com.github.Anuken:jabel:f88d3273ba'
         compileOnly project(":annotations")
         if (!project.hasProperty("noKapt")) kapt project(":annotations")
 

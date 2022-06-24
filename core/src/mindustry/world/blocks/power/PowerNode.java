@@ -242,7 +242,7 @@ public class PowerNode extends PowerBlock{
             graphs.add(tile.build.power.graph);
         }
 
-        indexer.eachBlock(team, tile.worldx(), tile.worldy(), laserRange * tilesize, valid, tempTileEnts::add);
+        indexer.eachBlock(team, tile.worldx() + offset, tile.worldy() + offset, (laserRange + size) * tilesize, valid, tempTileEnts::add);
 
         tempTileEnts.sort((a, b) -> {
             int type = -Boolean.compare(a.block instanceof PowerNode, b.block instanceof PowerNode);
@@ -285,7 +285,7 @@ public class PowerNode extends PowerBlock{
             }
         }
 
-        indexer.eachBlock(team, tile.worldx(), tile.worldy(), maxRange * tilesize, valid, tempTileEnts::add);
+        indexer.eachBlock(team, tile.worldx() + block.offset, tile.worldy() + block.offset, maxRange * tilesize, valid, tempTileEnts::add);
 
         tempTileEnts.sort(a -> a.dst2(tile));
 
