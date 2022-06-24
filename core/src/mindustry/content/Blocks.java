@@ -8,6 +8,7 @@ import mindustry.entities.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.*;
 import mindustry.entities.part.*;
+import mindustry.entities.part.DrawPart.*;
 import mindustry.entities.pattern.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -133,7 +134,7 @@ public class Blocks{
     duo, scatter, scorch, hail, arc, wave, lancer, swarmer, salvo, fuse, ripple, cyclone, foreshadow, spectre, meltdown, segment, parallax, tsunami,
 
     //turrets - erekir
-    breach, diffuse, sublimate, titan, disperse, afflict, fracture,
+    breach, diffuse, sublimate, titan, disperse, afflict, lustre,
 
     //units
     groundFactory, airFactory, navalFactory,
@@ -4079,7 +4080,6 @@ public class Blocks{
             limitRange(-5f);
         }};
 
-        //TODO WIP
         afflict = new PowerTurret("afflict"){{
             requirements(Category.turret, with(Items.surgeAlloy, 100, Items.silicon, 200, Items.graphite, 250, Items.oxide, 40));
 
@@ -4188,59 +4188,40 @@ public class Blocks{
             recoil = 3f;
             range = 340;
             shootCone = 20f;
-            scaledHealth = 180;
+            scaledHealth = 220;
             rotateSpeed = 1.5f;
             researchCostMultiplier = 0.05f;
 
             limitRange(9f);
         }};
 
-        fracture = new ItemTurret("fracture"){{
-            //requirements(Category.turret, with(Items.beryllium, 150, Items.silicon, 200, Items.graphite, 200, Items.carbide, 50));
+        lustre = new ContinuousTurret("lustre"){{
+            requirements(Category.turret, with(Items.beryllium, 150, Items.silicon, 200, Items.graphite, 200, Items.carbide, 50));
 
-            ammo(
-            Items.tungsten, new BasicBulletType(8f, 41){{
-                knockback = 4f;
-                width = 25f;
-                hitSize = 7f;
-                height = 20f;
-                shootEffect = Fx.shootBigColor;
-                smokeEffect = Fx.shootSmokeSquareSparse;
-                ammoMultiplier = 1;
-                hitColor = backColor = trailColor = Color.valueOf("ea8878");
-                frontColor = Color.valueOf("feb380");
-                trailWidth = 6f;
-                trailLength = 3;
-                hitEffect = despawnEffect = Fx.hitSquaresColor;
-                buildingDamageMultiplier = 0.2f;
-            }}
-            );
+            range = 100f;
 
-            shoot = new ShootSpread(15, 2f);
-
-            coolantMultiplier = 6f;
-
-            inaccuracy = 0.2f;
-            velocityRnd = 0.17f;
-            shake = 1f;
-            ammoPerShot = 3;
-            maxAmmo = 30;
-            consumeAmmoOnce = true;
+            shootType = new PointLaserBulletType(){{
+                damage = 150f;
+                buildingDamageMultiplier = 0.3f;
+                hitColor = Color.valueOf("fd9e81");
+            }};
 
             drawer = new DrawTurret("reinforced-"){{
+                var heatp = PartProgress.warmup.blend(p -> Mathf.absin(2f, 1f) * p.warmup, 0.2f);
+
                 parts.add(new RegionPart("-blade"){{
                     progress = PartProgress.warmup;
-                    heatProgress = PartProgress.warmup.blend(PartProgress.recoil, 0.2f);
+                    heatProgress = PartProgress.warmup;
                     heatColor = Color.valueOf("ff6214");
                     mirror = true;
                     under = true;
                     moveX = 2f;
-                    //moveY = -1f;
                     moveRot = -7f;
-                    moves.add(new PartMove(PartProgress.recoil, 0f, -2f, 3f));
+                    moves.add(new PartMove(PartProgress.warmup, 0f, -2f, 3f));
                 }},
                 new RegionPart("-inner"){{
-                    progress = PartProgress.recoil;
+                    heatProgress = heatp;
+                    progress = PartProgress.warmup;
                     heatColor = Color.valueOf("ff6214");
                     mirror = true;
                     under = false;
@@ -4248,29 +4229,32 @@ public class Blocks{
                     moveY = -8f;
                 }},
                 new RegionPart("-mid"){{
-                    heatProgress = PartProgress.warmup.blend(PartProgress.recoil, 0.2f);
+                    heatProgress = heatp;
+                    progress = PartProgress.warmup;
                     heatColor = Color.valueOf("ff6214");
                     moveY = -8f;
-                    progress = PartProgress.recoil;
-                    //drawRegion = false;
                     mirror = false;
                     under = true;
                 }});
             }};
 
-            shootY = 5f;
+            shootWarmupSpeed = 0.08f;
+            shootCone = 360f;
+
+            aimChangeSpeed = 0.9f;
+            rotateSpeed = 0.9f;
+
+            shootY = 0.5f;
             outlineColor = Pal.darkOutline;
             size = 4;
             envEnabled |= Env.space;
-            reload = 30f;
-            recoil = 2f;
-            range = 125;
-            shootCone = 40f;
+            range = 250f;
             scaledHealth = 210;
-            rotateSpeed = 3f;
 
-            coolant = consume(new ConsumeLiquid(Liquids.water, 15f / 60f));
-            limitRange();
+            //TODO is this a good idea to begin with?
+            unitSort = UnitSorts.strongest;
+
+            consumeLiquid(Liquids.nitrogen, 5f / 60f);
         }};
 
         //TODO 3 more turrets.

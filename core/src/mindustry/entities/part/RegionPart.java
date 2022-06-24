@@ -115,7 +115,7 @@ public class RegionPart extends DrawPart{
                 Drawf.additive(heat, heatColor.write(Tmp.c1).a(heatProgress.getClamp(params) * heatColor.a), rx, ry, rot, turretShading ? Layer.turretHeat : Draw.z() + heatLayerOffset);
             }
 
-            Draw.xscl /= sign;
+            Draw.xscl *= sign;
         }
 
         Draw.z(z);
