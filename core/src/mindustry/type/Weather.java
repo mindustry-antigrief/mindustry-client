@@ -325,16 +325,11 @@ public class Weather extends UnlockableContent{
         }
 
         @Override
-        public void afterSync() {
-            opacity *= Core.settings.getInt("weatheropacity") / 100f;
-        }
-
-        @Override
         public void update(){
             if(life < fadeTime){
                 opacity = Math.min(life / fadeTime, opacity);
             }else{
-                opacity = Mathf.lerpDelta(opacity, Core.settings.getInt("weatheropacity") / 100f, 0.004f);
+                opacity = Mathf.lerpDelta(opacity, 1, 0.004f);
             }
 
             life -= Time.delta;
@@ -349,15 +344,16 @@ public class Weather extends UnlockableContent{
 
         @Override
         public void draw(){
-            if(renderer.weatherAlpha > 0.0001f && opacity > 0.01f && renderer.drawWeather){
+            float alpha = Core.settings.getInt("weatheropacity") / 100f;
+            if(renderer.weatherAlpha > 0.0001f && opacity > 0.01f && alpha > 0.01f && renderer.drawWeather){
                 Draw.draw(Layer.weather, () -> {
-                    Draw.alpha(renderer.weatherAlpha * opacity * weather.opacityMultiplier);
+                    Draw.alpha(renderer.weatherAlpha * opacity * weather.opacityMultiplier * alpha);
                     weather.drawOver(self());
                     Draw.reset();
                 });
 
                 Draw.draw(Layer.debris, () -> {
-                    Draw.alpha(renderer.weatherAlpha * opacity * weather.opacityMultiplier);
+                    Draw.alpha(renderer.weatherAlpha * opacity * weather.opacityMultiplier * alpha);
                     weather.drawUnder(self());
                     Draw.reset();
                 });

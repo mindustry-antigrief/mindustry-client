@@ -1,6 +1,7 @@
 package mindustry.client.navigation;
 
 import arc.math.geom.Position;
+import arc.util.Interval;
 import org.jetbrains.annotations.Nullable;
 
 import static mindustry.Vars.control;
@@ -8,10 +9,10 @@ import static mindustry.Vars.player;
 
 public class BuildMinePath extends Path{ // This is so scuffed. Help.
     private boolean show;
-    
     private boolean initMine = true;
     private boolean initBuild = true;
-    private static Path currentPath;
+    private Path currentPath;
+    private Interval timer = new Interval();
     
     public BuildMinePath() {}
     
@@ -29,21 +30,22 @@ public class BuildMinePath extends Path{ // This is so scuffed. Help.
     public void follow() {
         // this is more of a personal use thing. You might not want to have this.
         if (control.input.isBuilding && !player.unit().plans.isEmpty()) {
-            if (initMine) {
+            if (initBuild) {
                 currentPath = new BuildPath("self");
-                initBuild = true;
-                initMine = false;
+                initBuild = false;
+                initMine = true;
 
                 player.sendMessage("[sky][BuildMine] [accent]Swapping to build path (self).");
             }
             else {
                 currentPath.follow();
+                timer.reset(0, 0);
             }
         } else {
-            if (initBuild) {
-                currentPath = new MinePath("*");
-                initBuild = false;
-                initMine = true;
+            if (initMine && timer.get(0, 300)) {
+                currentPath = new MinePath(); // actually, dont mine scrap. bad.
+                initBuild = true;
+                initMine = false;
                 
                 player.sendMessage("[sky][BuildMine] [accent]Swapping to mine path (all).");
             }
