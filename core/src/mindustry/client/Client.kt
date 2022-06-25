@@ -12,6 +12,7 @@ import mindustry.*
 import mindustry.Vars.*
 import mindustry.Vars.state
 import mindustry.ai.*
+import mindustry.client.Client.timer
 import mindustry.client.ClientVars.*
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
@@ -633,31 +634,38 @@ object Client {
             val newArgs = args.joinToString(" ").split(" ").toTypedArray() // TODO: fix the command arguments. this is beyond cursed
 
             if (newArgs.isEmpty()) {
-                player.sendMessage("[accent]Use [coral]!procfind query ...[] to enter a search query.\n" +
-                        "Use [coral]!procfind cluster[] to log clusters of processors.\n" +
-                        "Use [coral]!procfind clear[] to clear highlights.")
+                player.sendMessage("""
+                    [accent]Use [coral]!procfind query ...[] to add a search query (automatically continues with !procfind search).
+                    Use [coral]!procfind queries[] to list all regex queries. 
+                    Use [coral]!procfind search[] to scan for processors matching queries
+                    Use [coral]!procfind list[] to log clusters of processors.
+                    Use [coral]!procfind clear[] to clear highlights.
+                """.trimIndent())
                 return@register
             }
 
-            if (newArgs[0] == "query") {
-                if (newArgs.size < 2) {
-                    player.sendMessage("[accent]Use [coral]!procfind query ...[] to enter a search query.")
-                    return@register
+            when (newArgs[0]) {
+                "query" -> {
+                    if (newArgs.size < 2) {
+                        player.sendMessage("[accent]Use [coral]!procfind query ...[] to enter a search query.")
+                        return@register
+                    }
+                    val queryRegex = newArgs.drop(1).joinToString(" ").toRegex()
+                    ProcessorFinder.queries.add(queryRegex)
+                    ProcessorFinder.search()
                 }
-                val queryRegex = newArgs.drop(1).joinToString(" ").toRegex()
-                clientThread.post {
-                    ProcessorFinder.query(queryRegex)
+                "queries" -> {
+                    val sb = StringBuilder().append("[accent]ProcFind queries:\n")
+                    ProcessorFinder.queries.forEach { r -> sb.append("\n").append(r.toPattern().pattern()) }
+                    player.sendMessage(sb.toString())
                 }
-
-            } else if (newArgs[0] == "clear") {
-                player.sendMessage("[accent]Cleared ${ProcessorFinder.getCount()} highlighters.")
-                ProcessorFinder.clear()
-
-            } else if (newArgs[0] == "cluster") {
-                ProcessorFinder.logClusters()
-
-            } else {
-                player.sendMessage("[scarlet]Invalid argument!")
+                "search" -> ProcessorFinder.search()
+                "clear" -> {
+                    player.sendMessage("[accent]Cleared ${ProcessorFinder.getCount()} highlighters.")
+                    ProcessorFinder.clear()
+                }
+                "list" -> ProcessorFinder.list()
+                else -> player.sendMessage("Invalid argument!")
             }
         }
 
