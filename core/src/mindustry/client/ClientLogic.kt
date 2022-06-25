@@ -27,7 +27,7 @@ class ClientLogic {
         Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
             Navigation.stopFollowing()
             Spectate.pos = null
-            if (Vars.state.rules.pvp && io()) AutoTransfer.enabled = false
+            AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
 
             Timer.schedule({
                 Core.app.post {

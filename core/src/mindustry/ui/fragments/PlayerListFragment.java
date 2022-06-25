@@ -201,7 +201,7 @@ public class PlayerListFragment extends Fragment{
                 button.button(Icon.copy, ustyle, // Assist/copy
                         () -> Navigation.follow(new AssistPath(user, Core.input.shift(), Core.input.ctrl()))).size(h / 2).tooltip("@client.assist");
                 button.button(Icon.cancel, ustyle, // Unassist/block
-                        () -> Navigation.follow(new UnAssistPath(user))).size(h / 2).tooltip("@client.unassist");
+                        () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.move, ustyle, // Goto
                         () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
                 button.button(Icon.zoom, ustyle, // Spectate/stalk
