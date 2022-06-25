@@ -28,7 +28,7 @@ class ClientLogic {
         Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
             Navigation.stopFollowing()
             Spectate.pos = null
-            if (Vars.state.rules.pvp && io()) AutoTransfer.enabled = false
+            AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
 
             Timer.schedule({
                 Core.app.post {
@@ -79,7 +79,7 @@ class ClientLogic {
             if (Core.settings.getBool("discordrpc")) Vars.platform.startDiscord()
             if (Core.settings.getBool("mobileui")) Vars.mobile = !Vars.mobile
             if (Core.settings.getBool("viruswarnings")) LExecutor.virusWarnings = true
-            if (Core.settings.getBool("autotransfer", false)) AutoTransfer.enabled = true
+            if (Core.settings.getBool("autotransfer")) AutoTransfer.enabled = true
 
             Autocomplete.autocompleters.add(BlockEmotes(), PlayerCompletion(), CommandCompletion())
 

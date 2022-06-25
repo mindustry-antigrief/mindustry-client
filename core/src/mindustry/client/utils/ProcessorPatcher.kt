@@ -2,6 +2,10 @@ package mindustry.client.utils
 
 import arc.struct.*
 import arc.util.*
+import mindustry.Vars.*
+import mindustry.client.*
+import mindustry.client.antigrief.*
+import mindustry.gen.*
 import mindustry.world.blocks.logic.LogicBlock.*
 
 object ProcessorPatcher {
@@ -9,6 +13,14 @@ object ProcessorPatcher {
         "(ubind @?[^ ]+\\n)sensor (\\w+) @unit @flag\\nop add (\\w+) \\3 1\\njump \\d+ greaterThanEq \\3 \\d+\\njump \\d+ notEqual ([^ ]+) \\2\\nset \\3 0".toRegex()
 
     private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
+
+    private val attemText = """
+        print "Please do not use this delivery logic."
+        print "It is attem83 logic is considered bad logic"
+        print "as it breaks other logic."
+        print "For more info please go to mindustry.dev/attem"
+        printflush message1
+    """.trimIndent();
 
     fun countProcessors(builds: Seq<LogicBuild>): Int {
         Time.mark()
@@ -20,11 +32,11 @@ object ProcessorPatcher {
     fun patch(code: String, mode: String): String {
         val result = attemMatcher.find(code) ?: return code
 
-        when (mode) {
+        return when (mode) {
             "c" -> {
                 val groups = result.groupValues
                 val bindLine = (0..result.range.first).count { code[it] == '\n' }
-                return buildString {
+                buildString {
                     replaceJumps(this, code.substring(0, result.range.first), bindLine)
                     append(groups[1])
                     append("sensor ").append(groups[2]).append(" @unit @flag\n")
@@ -32,12 +44,8 @@ object ProcessorPatcher {
                     replaceJumps(this, code.substring(result.range.last + 1), bindLine)
                 }
             }
-            "r" -> {
-                return "end\nprint \"Do not use this delivery logic! It is attem83; it is bad logic and should not be used.\"\nprint \"For more information: https://mindustry.dev/attem\""
-            }
-            else -> {
-                return code
-            }
+            "r" -> attemText
+            else -> code
         }
     }
 
@@ -50,5 +58,10 @@ object ProcessorPatcher {
             val line = Strings.parseInt(group.value)
             if (line >= bindLine) sb.setRange(group.range.first + extra, group.range.last + extra + 1, (line - 3).toString())
         }
+    }
+
+    fun inform(build: LogicBuild) {
+        ClientVars.configs.add(ConfigRequest(build.tileX(), build.tileY(), compress(attemText, build.relativeConnections()
+        )))
     }
 }

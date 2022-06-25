@@ -368,6 +368,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
         client.checkPref("ignoremodminversion", false);
+        client.checkPref("attemwarfare", false);
         // End Client Settings
 
 

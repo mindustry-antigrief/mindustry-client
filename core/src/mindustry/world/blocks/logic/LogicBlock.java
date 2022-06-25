@@ -1,5 +1,6 @@
 package mindustry.world.blocks.logic;
 
+import arc.*;
 import arc.func.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
@@ -10,6 +11,8 @@ import arc.util.io.*;
 import mindustry.ai.types.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.navigation.*;
+import mindustry.client.utils.*;
 import mindustry.core.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -125,8 +128,7 @@ public class LogicBlock extends Block{
     /** Jank method to get the code from a byte array. */
     public static String decompress(byte[] data){
         if (data == null) return "";
-        try{
-            DataInputStream stream = new DataInputStream(new InflaterInputStream(new ByteArrayInputStream(data)));
+        try(DataInputStream stream = new DataInputStream(new InflaterInputStream(new ByteArrayInputStream(data)))){
 
             stream.read(); // Version
             int bytelen = stream.readInt();
@@ -466,6 +468,32 @@ public class LogicBlock extends Block{
         @Override
         public byte[] config(){
             return compress(code, relativeConnections());
+        }
+
+        @Override
+        public void configured(Unit builder, Object value) {
+            super.configured(builder, value);
+
+            if (value instanceof byte[] && Core.settings.getBool("attemwarfare")) {
+//            if (value instanceof byte[] && Core.settings.getBool("attemwarfare") && ClientUtilsKt.io()) {
+                Player player = builder.isPlayer() ? builder.playerNonNull() :
+                                builder.controller() instanceof FormationAI ai && ai.leader.isPlayer() ? ai.leader.playerNonNull() :
+                                builder.controller() instanceof LogicAI ai && ai.controller != null ? Groups.player.find(p -> p.name.equals(ai.controller.lastAccessed)) :
+                                null;
+                clientThread.post(() -> { // The regex can be expensive, so we delegate it to the client thread
+                    long begin = Time.nanos();
+                    String patched = ProcessorPatcher.INSTANCE.patch(code, "r");
+                    if (!patched.equals(code)) {
+                        Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
+                            if (ClientUtilsKt.io() && player != null) Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
+//                            ProcessorPatcher.INSTANCE.inform(this);
+                            ClientVars.configs.add(new ConfigRequest(this.tileX(), this.tileY(), compress(patched, this.relativeConnections())));
+                            ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[white] at (@, @)", builder.getControllerName(), tileX(), tileY()));
+                        });
+                    }
+                    Log.debug("Regex: @ms", Time.timeSinceNanos(begin)/(float)Time.nanosPerMilli);
+                });
+            }
         }
 
         public Seq<LogicLink> relativeConnections(){
