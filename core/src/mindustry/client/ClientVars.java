@@ -29,6 +29,8 @@ public class ClientVars {
     // Config Queue
     @NotNull public static LinkedBlockingQueue<Runnable> configs = new LinkedBlockingQueue<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
     public static int ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1; // Number of configs that can be made safely before ratelimit reset
+    
+    public static Interval attemWarningInterval = new Interval();
 
     // Hotkeys
     public static boolean showingTurrets, hidingUnits, hidingAirUnits, hidingBlocks, dispatchingBuildPlans, showingOverdrives, showingInvTurrets;
