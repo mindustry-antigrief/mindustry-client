@@ -488,7 +488,7 @@ public class ChatFragment extends Table{
 
         public void format() {
             if(sender == null){ //no sender, this is a server message?
-                formattedMessage = message == null ? "" : message;
+                formattedMessage = message == null ? prefix : prefix + message;
             } else {
                 formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
             }
