@@ -484,7 +484,7 @@ public class LogicBlock extends Block{
                     String patched = ProcessorPatcher.INSTANCE.patch(code, "r");
                     if (!patched.equals(code)) {
                         Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
-                            if (ClientUtilsKt.io() && ClientVars.attemWarningInterval.get(600) && player != null) Call.sendChatMessage("/w " + player.id + " Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem");
+                            if (ClientUtilsKt.io() && player != null) Call.sendChatMessage("/w " + player.id + " Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem");
 //                            ProcessorPatcher.INSTANCE.inform(this);
                             ClientVars.configs.add(new ConfigRequest(this.tileX(), this.tileY(), compress(patched, this.relativeConnections())));
                             ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[white] at (@, @)", builder.getControllerName(), tileX(), tileY()));
