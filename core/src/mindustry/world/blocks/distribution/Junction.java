@@ -171,7 +171,7 @@ public class Junction extends Block{
             // correct the time value since they all somehow get mapped to a high number
             float now = Time.time;
             for(int i = 0; i < 4; i++){
-                for(int j = buffer.indexes[i] - 1; j >= 0; j--){
+                for(int j = Math.min(buffer.indexes[i], capacity) - 1; j >= 0; j--){
                     var l = buffer.buffers[i][j];
                     if (now <= BufferItem.time(l)){
                         buffer.buffers[i][j] = BufferItem.get(BufferItem.item(l),now - speed * timeScale);
