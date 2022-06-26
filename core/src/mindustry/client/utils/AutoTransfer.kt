@@ -9,6 +9,7 @@ import mindustry.type.*
 import mindustry.world.blocks.defense.turrets.ItemTurret
 import mindustry.world.blocks.power.NuclearReactor.*
 import mindustry.world.consumers.*
+import kotlin.math.*
 
 /** An auto transfer setup based on Ferlern/extended-ui */
 class AutoTransfer {
@@ -16,7 +17,6 @@ class AutoTransfer {
         @JvmField var enabled = false
         var fromCores = true
         var minCoreItems = 100
-            set(_) = TODO("Min core items not yet implemented")
         var delay = 30F
     }
 
@@ -53,7 +53,7 @@ class AutoTransfer {
                     when (val cons = it.block.consumes.get<Consume>(ConsumeType.item)) { // Cursed af
                         is ConsumeItems -> {
                             cons.items.forEach { i ->
-                                if (it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit()) >= 7) { // FINISHME: Do not hardcode the minumum required number (7) here, this is awful
+                                    if (it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit()) >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) { // FINISHME: Do not hardcode the minumum required number (7) here, this is awful
                                     return@run i.item
                                 }
                             }
@@ -63,7 +63,7 @@ class AutoTransfer {
                                 var ammo: Item? = null
                                 var damage = 0
                                 content.items().forEach { i ->
-                                    if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && (it.block as ItemTurret).ammoTypes.get(i).damage > damage && core.items.has(i)) {
+                                    if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && core.items.has(i, minCoreItems) && (it.block as ItemTurret).ammoTypes.get(i).damage > damage) {
                                         damage = (it.block as ItemTurret).ammoTypes.get(i).damage.toInt()
                                         ammo = i
                                     }
@@ -71,7 +71,7 @@ class AutoTransfer {
                                 return@run ammo
                             } else {
                                 content.items().forEach { i ->
-                                    if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7) {
+                                    if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && core.items.has(i, minCoreItems)) {
                                         return@run i
                                     }
                                 }
@@ -79,7 +79,7 @@ class AutoTransfer {
                         }
                         is ConsumeItemDynamic -> {
                             cons.items.get(it).forEach { i -> // Get the current requirements
-                                if (it.acceptStack(i.item, i.amount, player.unit()) >= 7) {
+                                if (it.acceptStack(i.item, i.amount, player.unit()) >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) {
                                     return@run i.item
                                 }
                             }

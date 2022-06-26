@@ -2,6 +2,7 @@ package mindustry.world.blocks.logic;
 
 import arc.*;
 import arc.func.*;
+import arc.graphics.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.Bits;
@@ -22,6 +23,7 @@ import mindustry.logic.*;
 import mindustry.logic.LAssembler.*;
 import mindustry.logic.LExecutor.*;
 import mindustry.ui.*;
+import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.meta.*;
@@ -33,6 +35,10 @@ import static mindustry.Vars.*;
 
 public class LogicBlock extends Block{
     private static final int maxByteLen = 1024 * 500;
+    private static @Nullable Player lastAttem;
+    private static int attemCount;
+    private static long attemTime;
+    private static ChatFragment.ChatMessage attemMsg;
 
     public int maxInstructionScale = 5;
     public int instructionsPerTick = 1;
@@ -484,10 +490,25 @@ public class LogicBlock extends Block{
                     String patched = ProcessorPatcher.INSTANCE.patch(code, "r");
                     if (!patched.equals(code)) {
                         Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
-                            if (ClientUtilsKt.io() && player != null) Call.sendChatMessage("/w " + player.id + " Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem");
-//                            ProcessorPatcher.INSTANCE.inform(this);
-                            ClientVars.configs.add(new ConfigRequest(this.tileX(), this.tileY(), compress(patched, this.relativeConnections())));
-                            ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[white] at (@, @)", builder.getControllerName(), tileX(), tileY()));
+                            if (ClientUtilsKt.io() && (player != lastAttem || player == null)) {
+                                lastAttem = player;
+                                attemCount = 1;
+                                attemTime = Time.millis();
+                                attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", builder.getControllerName(), tileX(), tileY()), (Color)null);
+                                if (player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
+                                    Call.sendChatMessage("/w " + player.id + " Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem");
+                                }
+                            } else {
+                                if(Time.timeSinceMillis(attemTime) > 5000) {
+                                    attemTime = Time.millis();
+                                    ui.chatfrag.messages.remove(attemMsg);
+                                    ui.chatfrag.messages.insert(0, attemMsg);
+                                }
+                                attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
+                                attemMsg.format();
+                            }
+                            lastAttem = player;
+		            	    ClientVars.configs.add(new ConfigRequest(this.tileX(), this.tileY(), compress(patched, this.relativeConnections())));
                         });
                     }
                     Log.debug("Regex: @ms", Time.timeSinceNanos(begin)/(float)Time.nanosPerMilli);

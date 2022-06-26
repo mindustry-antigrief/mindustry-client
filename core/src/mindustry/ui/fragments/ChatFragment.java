@@ -529,7 +529,7 @@ public class ChatFragment extends Table{
 
         public void format() {
             if(sender == null){ //no sender, this is a server message?
-                formattedMessage = message == null ? "" : processCoords ? processCoords(message, setLastPos) : message;
+                formattedMessage = message == null ? prefix : prefix + message;
             } else {
                 formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " +
                         (processCoords ? processCoords(unformatted, setLastPos) : unformatted);
