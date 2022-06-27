@@ -502,7 +502,7 @@ public class ConstructBlock extends Block{
 
         public boolean shouldDisplayWarning(){
             return wasConstructing && closestCore() != null && lastBuilder != null
-                    && team == player.team() && progress != lastProgress
+                    && player != null && team == player.team() && progress != lastProgress
                     && lastBuilder != player.unit() && getWarnBlock() != null;
         }
 
