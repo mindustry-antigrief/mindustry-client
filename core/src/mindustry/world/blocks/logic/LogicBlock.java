@@ -2,6 +2,7 @@ package mindustry.world.blocks.logic;
 
 import arc.*;
 import arc.func.*;
+import arc.graphics.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.Bits;
@@ -22,6 +23,7 @@ import mindustry.logic.*;
 import mindustry.logic.LAssembler.*;
 import mindustry.logic.LExecutor.*;
 import mindustry.ui.*;
+import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.meta.*;
@@ -33,6 +35,10 @@ import static mindustry.Vars.*;
 
 public class LogicBlock extends Block{
     private static final int maxByteLen = 1024 * 500;
+    private static @Nullable Player lastAttem;
+    private static int attemCount;
+    private static long attemTime;
+    private static ChatFragment.ChatMessage attemMsg;
 
     public int maxInstructionScale = 5;
     public int instructionsPerTick = 1;
@@ -483,9 +489,25 @@ public class LogicBlock extends Block{
                     long begin = Time.nanos();
                     if (!ProcessorPatcher.INSTANCE.patch(code).equals(code)) {
                         Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
-                            if (player != null) Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
+                            if (player != lastAttem || player == null) {
+                                lastAttem = player;
+                                attemCount = 1;
+                                attemTime = Time.millis();
+                                attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", builder.getControllerName(), tileX(), tileY()), (Color)null);
+                                if (player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
+                                    Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
+                                }
+                            } else {
+                                if(Time.timeSinceMillis(attemTime) > 5000) {
+                                    attemTime = Time.millis();
+                                    ui.chatfrag.messages.remove(attemMsg);
+                                    ui.chatfrag.messages.insert(0, attemMsg);
+                                }
+                                attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
+                                attemMsg.format();
+                            }
+                            lastAttem = player;
                             ProcessorPatcher.INSTANCE.inform(this);
-                            ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[white] at (@, @)", builder.getControllerName(), tileX(), tileY()));
                         });
                     }
                     Log.debug("Regex: @ms", Time.timeSinceNanos(begin)/(float)Time.nanosPerMilli);
