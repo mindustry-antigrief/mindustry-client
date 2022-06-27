@@ -21,7 +21,11 @@ object ProcessorPatcher {
         return count
     }
 
-    fun patch(code: String, mode: String): String {
+    fun isAttem(code: String): Boolean {
+        return attemMatcher.containsMatchIn(code)
+    }
+
+    fun patch(code: String, mode: String = "c"): String {
         val result = attemMatcher.find(code) ?: return code
 
         when (mode) {
