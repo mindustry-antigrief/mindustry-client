@@ -1,6 +1,5 @@
 package mindustry.client.utils
 
-import arc.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
@@ -13,7 +12,7 @@ import mindustry.world.consumers.*
 /** An auto transfer setup based on Ferlern/extended-ui */
 class AutoTransfer {
     companion object Settings {
-        @JvmField var enabled = Core.settings.getBool("autotransfer", false)
+        @JvmField var enabled = false
         var fromCores = true
         var minCoreItems = 100
             set(_) = TODO("Min core items not yet implemented")
@@ -33,6 +32,7 @@ class AutoTransfer {
         timer = 0F
         val buildings = player.team().data().buildings ?: return
         val core = if (fromCores) player.closestCore() else null
+        var held = player.unit().stack.amount
 
         buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear())
         dest.filter { it.block.consumes.has(ConsumeType.item) && it !is NuclearReactorBuild }
@@ -40,8 +40,10 @@ class AutoTransfer {
         .forEach {
             if (ratelimitRemaining <= 1) return@forEach
 
-            if (it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()) > 0) {
+            val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
+            if (accepted > 0 && held > 0) {
                 Call.transferInventory(player, it)
+                held -= accepted
                 ratelimitRemaining--
             }
 
