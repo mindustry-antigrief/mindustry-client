@@ -371,6 +371,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("processorconfigs", false);
         client.checkPref("autorestart", true);
         client.checkPref("ignoremodminversion", false);
+        client.checkPref("attemwarfare", false);
         // End Client Settings
 
 

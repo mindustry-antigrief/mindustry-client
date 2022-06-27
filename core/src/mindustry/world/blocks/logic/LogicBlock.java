@@ -480,22 +480,23 @@ public class LogicBlock extends Block{
         public void configured(Unit builder, Object value) {
             super.configured(builder, value);
 
-            if (value instanceof byte[] && Core.settings.getBool("attemwarfare") && ClientUtilsKt.io()) {
+            if (value instanceof byte[] && Core.settings.getBool("attemwarfare")) {
                 Player player = builder.isPlayer() ? builder.playerNonNull() :
                                 builder.controller() instanceof FormationAI ai && ai.leader.isPlayer() ? ai.leader.playerNonNull() :
                                 builder.controller() instanceof LogicAI ai && ai.controller != null ? Groups.player.find(p -> p.name.equals(ai.controller.lastAccessed)) :
                                 null;
                 clientThread.post(() -> { // The regex can be expensive, so we delegate it to the client thread
                     long begin = Time.nanos();
-                    if (!ProcessorPatcher.INSTANCE.patch(code).equals(code)) {
+                    String patched = ProcessorPatcher.INSTANCE.patch(code, "r");
+                    if (!patched.equals(code)) {
                         Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
-                            if (player != lastAttem || player == null) {
+                            if (ClientUtilsKt.io() && (player != lastAttem || player == null)) {
                                 lastAttem = player;
                                 attemCount = 1;
                                 attemTime = Time.millis();
                                 attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", builder.getControllerName(), tileX(), tileY()), (Color)null);
                                 if (player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
-                                    Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
+                                    Call.sendChatMessage("/w " + player.id + " Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem");
                                 }
                             } else {
                                 if(Time.timeSinceMillis(attemTime) > 5000) {
@@ -507,7 +508,7 @@ public class LogicBlock extends Block{
                                 attemMsg.format();
                             }
                             lastAttem = player;
-                            ProcessorPatcher.INSTANCE.inform(this);
+		            	    ClientVars.configs.add(new ConfigRequest(this.tileX(), this.tileY(), compress(patched, this.relativeConnections())));
                         });
                     }
                     Log.debug("Regex: @ms", Time.timeSinceNanos(begin)/(float)Time.nanosPerMilli);

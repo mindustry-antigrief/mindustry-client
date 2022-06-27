@@ -14,6 +14,14 @@ object ProcessorPatcher {
 
     private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
+    private val attemText = """
+        print "Please do not use this delivery logic."
+        print "It is attem83 logic is considered bad logic"
+        print "as it breaks other logic."
+        print "For more info please go to mindustry.dev/attem"
+        printflush message1
+    """.trimIndent();
+
     fun countProcessors(builds: Seq<LogicBuild>): Int {
         Time.mark()
         val count = builds.count { attemMatcher.containsMatchIn(it.code) }
@@ -28,11 +36,11 @@ object ProcessorPatcher {
     fun patch(code: String, mode: String = "c"): String {
         val result = attemMatcher.find(code) ?: return code
 
-        when (mode) {
+        return when (mode) {
             "c" -> {
                 val groups = result.groupValues
                 val bindLine = (0..result.range.first).count { code[it] == '\n' }
-                return buildString {
+                buildString {
                     replaceJumps(this, code.substring(0, result.range.first), bindLine)
                     append(groups[1])
                     append("sensor ").append(groups[2]).append(" @unit @flag\n")
@@ -40,12 +48,8 @@ object ProcessorPatcher {
                     replaceJumps(this, code.substring(result.range.last + 1), bindLine)
                 }
             }
-            "r" -> {
-                return "end\nprint \"Do not use this delivery logic! It is attem83; it is bad logic and should not be used.\"\nprint \"For more information: https://mindustry.dev/attem\""
-            }
-            else -> {
-                return code
-            }
+            "r" -> attemText
+            else -> code
         }
     }
 
@@ -61,13 +65,7 @@ object ProcessorPatcher {
     }
 
     fun inform(build: LogicBuild) {
-        ClientVars.configs.add(ConfigRequest(build.tileX(), build.tileY(), compress("""
-            print "Please do not use this logic "
-            print "this attem logic is not good "
-            print "it breaks other logic "
-            print "more info at mindustry.dev/attem"
-            printflush message1
-        """.trimIndent(), build.relativeConnections()
+        ClientVars.configs.add(ConfigRequest(build.tileX(), build.tileY(), compress(attemText, build.relativeConnections()
         )))
     }
 }

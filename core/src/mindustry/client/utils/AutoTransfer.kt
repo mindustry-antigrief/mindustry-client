@@ -6,6 +6,7 @@ import mindustry.Vars.*
 import mindustry.client.ClientVars.*
 import mindustry.gen.*
 import mindustry.type.*
+import mindustry.world.blocks.defense.turrets.ItemTurret
 import mindustry.world.blocks.power.NuclearReactor.*
 import mindustry.world.consumers.*
 import kotlin.math.*
@@ -58,9 +59,21 @@ class AutoTransfer {
                             }
                         }
                         is ConsumeItemFilter -> {
-                            content.items().forEach { i ->
-                                if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && core.items.has(i, minCoreItems)) {
-                                    return@run item
+                            if (it.block is ItemTurret) {
+                                var ammo: Item? = null
+                                var damage = 0
+                                content.items().forEach { i ->
+                                    if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && core.items.has(i, minCoreItems) && (it.block as ItemTurret).ammoTypes.get(i).damage > damage) {
+                                        damage = (it.block as ItemTurret).ammoTypes.get(i).damage.toInt()
+                                        ammo = i
+                                    }
+                                }
+                                return@run ammo
+                            } else {
+                                content.items().forEach { i ->
+                                    if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && core.items.has(i, minCoreItems)) {
+                                        return@run i
+                                    }
                                 }
                             }
                         }
