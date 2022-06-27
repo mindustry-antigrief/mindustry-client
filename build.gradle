@@ -231,7 +231,7 @@ configure(project(":annotations")){
 //compile with java 8 compatibility for everything except the annotation project
 configure(subprojects - project(":annotations")){
     tasks.withType(JavaCompile){
-        options.compilerArgs.addAll(['--release', '8'])
+        options.compilerArgs.addAll(['--release', '16'])
     }
 
     tasks.withType(Javadoc){
