@@ -353,17 +353,18 @@ public class ModsDialog extends BaseDialog{
     private void reload(){
         ui.showInfoOnHidden("@mods.reloadexit", () -> {
             Log.info("Exiting to reload mods.");
+            if(settings.getBool("autorestart")){
+                try{
+                    Fi jar = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                    Seq<String> args = Seq.with(javaPath);
+                    args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
+                    if(OS.isMac) args.add("-XstartOnFirstThread");
+                    args.addAll("-jar", jar.absolutePath(), "-firstThread");
 
-            try{
-                Fi jar = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-                Seq<String> args = Seq.with(javaPath);
-                args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
-                if(OS.isMac) args.add("-XstartOnFirstThread");
-                args.addAll("-jar", jar.absolutePath(), "-firstThread");
-
-                Runtime.getRuntime().exec(args.toArray());
-                Core.app.exit();
-            }catch(Exception ignored){} // If we can't find java, just close the game
+                    Runtime.getRuntime().exec(args.toArray());
+                    Core.app.exit();
+                }catch(Exception ignored){} // If we can't find java, just close the game
+            }
             Core.app.exit();
         });
     }

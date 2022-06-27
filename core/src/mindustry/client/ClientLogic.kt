@@ -61,7 +61,7 @@ class ClientLogic {
             hidingAirUnits = false
             showingTurrets = false
             showingInvTurrets = false
-            if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
+//            if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
             Client.tiles.clear()
             if(coreItems == null) coreItems = ItemModule(true)

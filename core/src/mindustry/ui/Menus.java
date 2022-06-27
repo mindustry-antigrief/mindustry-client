@@ -105,13 +105,14 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoToast(String message, float duration){
         if(message == null) return;
-
+        if(!Core.settings.getBool("showtoasts")) return;
         ui.showInfoToast(message, duration);
     }
 
     @Remote(variants = Variant.both)
     public static void warningToast(int unicode, String text){
         if(text == null || Fonts.icon.getData().getGlyph((char)unicode) == null) return;
+        if(!Core.settings.getBool("showtoasts")) return;
 
         ui.hudfrag.showToast(Fonts.getGlyph(Fonts.icon, (char)unicode), text);
     }

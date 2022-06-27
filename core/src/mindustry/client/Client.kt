@@ -60,6 +60,7 @@ object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
     val timer = Interval(4)
+//    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
     val autoTransfer by lazy { AutoTransfer() } // FINISHME: Awful
     private val circles = mutableListOf<Pair<TurretPathfindingEntity, Color>>()
 
@@ -133,7 +134,7 @@ object Client {
             circles.clear()
             val flying = player.unit().isFlying
             getTree().intersect(bounds) {
-                if ((units || it.turret) && it.canShoot()) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
+                if ((units || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
                     val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                     val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
                     circles.add(it to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
@@ -186,11 +187,11 @@ object Client {
             player.sendMessage(result)
         }
 
-        register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
+        register("unit-old <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
             ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
         }
 
-        register("uc <unit-type>", "Picks a unit nearest to cursor") { args, _ ->
+        register("unit <unit-type>", "Picks a unit nearest to cursor") { args, _ ->
             ui.unitPicker.pickUnit(
                 content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) },
                 Core.input.mouseWorldX(), Core.input.mouseWorldY(), true
@@ -262,11 +263,11 @@ object Client {
         }
 
         register("here [message...]", Core.bundle.get("client.command.here.description")) { args, player ->
-            sendMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", player.tileX(), player.tileY()))
+            sendMessage(Strings.format("@[#3141FF](@, @)", if (args.isEmpty()) "" else args[0] + " ", player.tileX(), player.tileY()))
         }
 
         register("cursor [message...]", Core.bundle.get("client.command.cursor.description")) { args, _ ->
-            sendMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
+            sendMessage(Strings.format("@[#3141FF](@, @)", if (args.isEmpty()) "" else args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
         }
 
         register("builder [options...]", Core.bundle.get("client.command.builder.description")) { args, _: Player ->
@@ -306,6 +307,9 @@ object Client {
             player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
         }
 
+        register("blank", "Sends nothing.") { args, player: Player ->
+            sendMessage("\u200B")
+        }
 //        register("kts <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player -> // FINISHME: Bundle
 //            player.sendMessage("[accent]${try{ kts.eval(args[0]) }catch(e: Throwable){ e }}")
 //        }

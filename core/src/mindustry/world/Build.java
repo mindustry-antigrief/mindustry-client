@@ -122,24 +122,26 @@ public class Build{
 
         result.placeBegan(tile, previous);
 
-        var plans = player.unit().plans;
-        if(plans.size < 10 || control.input.planTreeNeedsRecalculation()){
-            // what are the chances of this method being called many times in a frame
-            for(int i = 0; i < plans.size; i++){
-                var plan = plans.get(i);
-                if(plan.clientConfig != null && plan.x == x && plan.y == y && plan.block == build.current){
-                    build.clientConfig = plan.clientConfig;
+        if(player != null){
+            var plans = player.unit().plans;
+            if(plans.size < 10 || control.input.planTreeNeedsRecalculation()){
+                // what are the chances of this method being called many times in a frame
+                for(int i = 0; i < plans.size; i++){
+                    var plan = plans.get(i);
+                    if(plan.clientConfig != null && plan.x == x && plan.y == y && plan.block == build.current){
+                        build.clientConfig = plan.clientConfig;
+                    }
                 }
-            }
-        } else {
-            control.input.planTree().intersect(result.bounds(x, y, Tmp.r1), planSeq);
-            for(int i = 0; i < planSeq.size; i++){
-                var plan = planSeq.items[i];
-                if(plan.clientConfig != null && plan.block == build.current){
-                    build.clientConfig = plan.clientConfig;
+            } else {
+                control.input.planTree().intersect(result.bounds(x, y, Tmp.r1), planSeq);
+                for(int i = 0; i < planSeq.size; i++){
+                    var plan = planSeq.items[i];
+                    if(plan.clientConfig != null && plan.block == build.current){
+                        build.clientConfig = plan.clientConfig;
+                    }
                 }
+                planSeq.clear();
             }
-            planSeq.clear();
         }
 
         Core.app.post(() -> Events.fire(new BlockBuildBeginEvent(tile, team, unit, false)));

@@ -487,8 +487,7 @@ public class LogicBlock extends Block{
                                 null;
                 clientThread.post(() -> { // The regex can be expensive, so we delegate it to the client thread
                     long begin = Time.nanos();
-                    String patched = ProcessorPatcher.INSTANCE.patch(code, "r");
-                    if (!patched.equals(code)) {
+                    if (ProcessorPatcher.INSTANCE.isAttem(code)) {
                         Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
                             if ((player != lastAttem || player == null)) {
                                 lastAttem = player;
@@ -508,7 +507,7 @@ public class LogicBlock extends Block{
                                 attemMsg.format();
                             }
                             lastAttem = player;
-		            	    ClientVars.configs.add(new ConfigRequest(this.tileX(), this.tileY(), compress(patched, this.relativeConnections())));
+		            	    ClientVars.configs.add(new ConfigRequest(this.tileX(), this.tileY(), compress(ProcessorPatcher.INSTANCE.patch(code), this.relativeConnections())));
                         });
                     }
                     Log.debug("Regex: @ms", Time.timeSinceNanos(begin)/(float)Time.nanosPerMilli);

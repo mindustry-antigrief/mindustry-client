@@ -345,8 +345,10 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
+        client.checkPref("showtoasts", true);
         client.checkPref("unloaderview", false, i -> Unloader.UnloaderBuild.drawUnloaderItems = i);
         client.checkPref("customnullunloader", false, i -> Unloader.UnloaderBuild.customNullLoader = i);
+        client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
 
         client.category("misc");
         client.updatePref();
@@ -367,8 +369,10 @@ public class SettingsMenuDialog extends BaseDialog{
         if (steam) client.checkPref("unlockallachievements", false, i -> { for (var a : Achievement.all) a.complete(); Core.settings.remove("unlockallachievements"); });
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
+        client.checkPref("autorestart", true);
         client.checkPref("ignoremodminversion", false);
         client.checkPref("attemwarfare", false);
+        client.checkPref("allowinvturrets", true);
         // End Client Settings
 
 
@@ -600,9 +604,7 @@ public class SettingsMenuDialog extends BaseDialog{
     }
 
     public void importData(Fi file){
-        Fi dest = Core.files.local("zipdata.zip");
-        file.copyTo(dest);
-        Fi zipped = new ZipFi(dest);
+        Fi zipped = new ZipFi(file);
 
         Fi base = Core.settings.getDataDirectory();
         if(!zipped.child("settings.bin").exists()){
@@ -616,7 +618,7 @@ public class SettingsMenuDialog extends BaseDialog{
         tmpDirectory.deleteDirectory();
 
         zipped.walk(f -> f.copyTo(base.child(f.path())));
-        dest.delete();
+        
 
         //clear old data
         settings.clear();

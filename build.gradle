@@ -389,6 +389,11 @@ project(":core"){
         annotationProcessor 'com.github.Anuken:jabel:0.9.0'
         compileOnly project(":annotations")
         if (!project.hasProperty("noKapt")) kapt project(":annotations")
+<<<<<<< HEAD
+=======
+
+//        runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-jsr223:1.6.21"
+>>>>>>> bala/BalaM314
     }
 
     afterEvaluate{

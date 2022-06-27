@@ -29,6 +29,7 @@ import mindustry.service.*;
 import mindustry.type.*;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
@@ -39,6 +40,7 @@ public class DesktopLauncher extends ClientLauncher{
     Throwable steamError;
 
     public static void main(String[] arg){
+        System.out.println("Launching Mindustry! Arguments: " + Arrays.toString(arg));
         try{
             int[] aaSamples = new int[1];
 
@@ -81,6 +83,7 @@ public class DesktopLauncher extends ClientLauncher{
                 try {
                     Seq<String> args = Seq.with(javaPath);
                     args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
+                    args.addAll(arg);
                     args.addAll("-XstartOnFirstThread", "-jar", jar.absolutePath(), "-firstThread");
 
                     new ProcessBuilder(args.toArray(String.class)).inheritIO().start().waitFor();
@@ -98,13 +101,14 @@ public class DesktopLauncher extends ClientLauncher{
                 height = 700;
                 samples = aaSamples[0];
                 //enable gl3 with command-line argument
-                if(Structs.contains(arg, "-gl3")){
+                if(Structs.contains(arg, "--gl3")){
                     gl30 = true;
                 }
-                if(Structs.contains(arg, "-debug")){
+                if(Structs.contains(arg, "--debug")){
                     Log.level = LogLevel.debug;
                 }
-                setWindowIcon(FileType.internal, "icons/foo_64.png");
+
+                setWindowIcon(FileType.internal, "icons/pi_64.png");
             }});
 
         }catch(Throwable e){
@@ -119,7 +123,7 @@ public class DesktopLauncher extends ClientLauncher{
                 if (mod.enabled()) enabled++;
             }
         }
-        return Strings.format("Mindustry (v@) | Foo's Client (@) | @/@ Mods Enabled", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, enabled, mods == null ? 0 : mods.mods.size);
+        return Strings.format("Mindustry (v@) | Foo's Client Messed with by BalaM314 (@) | @/@ Mods Enabled", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, enabled, mods == null ? 0 : mods.mods.size);
     }
 
     @Override
@@ -387,14 +391,14 @@ public class DesktopLauncher extends ClientLauncher{
         if(useDiscord && Core.settings.getBool("discordrpc")){
             DiscordRPC.RichPresence presence = new DiscordRPC.RichPresence();
 
-            presence.state = "SB Flavored";
+            presence.state = "Messed With by BalaM314";
             
             if(inGame) presence.details = gameMode + gamePlayersSuffix;
             else presence.details = uiState;
 
             presence.largeImageKey = "logo";
             presence.smallImageKey = "foo";
-            presence.smallImageText = Strings.format("Foo's Client SByte Edition (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
+            presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
             presence.startTimestamp = state.tick == 0 ? beginTime/1000 : Time.timeSinceMillis((long)(state.tick * 16.666));
             presence.label1 = "Client Github";
             presence.url1 = "https://github.com/stormybytes/mindustry-client";

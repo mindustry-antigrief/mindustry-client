@@ -505,8 +505,7 @@ public class ChatFragment extends Table{
         public String unformatted;
         public List<Image> attachments = new ArrayList<>();
         public static boolean processCoords, setLastPos; // false by default, set them ON right before initializing a new message
-        private static final Pattern coordPattern = Pattern.compile("\\(?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\)?"); // This regex is a mess. https://regex101.com is the superior regex tester
-        private static final Pattern coordPattern2 = Pattern.compile("((\\[scarlet])?\\(?(-?\\d+(\\.\\d+)?)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(-?\\d+(\\.\\d+)?)\\)?(\\[])?)"); //This regex now gobbles up [scarlet] // Regex now catches negative numbers and floating points
+        private static final Pattern coordPattern = Pattern.compile("([\\[,\\(]?([\\d\\.]+)[ ,]+([\\d\\.]+)[\\],\\)]?)"); // This regex captures the coords into $1 and $2 while $0 contains all surrounding text as well. Fixed by BalaM314. https://regexr.com is the superior regex tester
         public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
             this.message = message;
             this.sender = sender;
@@ -529,7 +528,7 @@ public class ChatFragment extends Table{
 
         public void format() {
             if(sender == null){ //no sender, this is a server message?
-                formattedMessage = message == null ? prefix : prefix + message;
+                formattedMessage = message == null ? prefix : processCoords ? processCoords(prefix + message, setLastPos) : prefix + message;
             } else {
                 formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " +
                         (processCoords ? processCoords(unformatted, setLastPos) : unformatted);
@@ -539,21 +538,21 @@ public class ChatFragment extends Table{
 
         public static String processCoords(String message, boolean setLastPos){
             if (message == null) return null;
-            Matcher matcher = coordPattern2.matcher(message);
+            Matcher matcher = coordPattern.matcher(message);
             if(!matcher.find()) return message;
-            //message = matcher.replaceAll(mr -> "[scarlet]" + Strings.stripColors(matcher.group()) + "[]"); since java 9 fml
-            StringBuffer result = new StringBuffer(message.length());
             String group1, group2;
-            do{
-                matcher.appendReplacement(result,"[scarlet]" + Strings.stripColors(matcher.group()) + "[]");
-                group1 = matcher.group(3);
-                group2 = matcher.group(5);
-            } while (matcher.find());
-            matcher.appendTail(result);
+            try {
+                group1 = matcher.group(2);
+                group2 = matcher.group(3);
+            } catch(IndexOutOfBoundsException e){
+                e.printStackTrace();
+                return message;
+            }
+            
             if (setLastPos) try {
                 ClientVars.lastSentPos.set(Float.parseFloat(group1), Float.parseFloat(group2));
             } catch (NumberFormatException ignored) {}
-            return result.toString();
+            return matcher.replaceAll("[scarlet]$1[]");
         }
     }
 
