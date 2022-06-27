@@ -60,7 +60,6 @@ class ClientLogic {
             hidingUnits = false
             hidingAirUnits = false
             showingTurrets = false
-            showingInvTurrets = false
             overdrives.clear()
             Client.tiles.clear()
             if(coreItems == null) coreItems = ItemModule(true)
