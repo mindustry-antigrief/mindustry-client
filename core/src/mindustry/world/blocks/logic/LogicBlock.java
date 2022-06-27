@@ -490,12 +490,12 @@ public class LogicBlock extends Block{
                     String patched = ProcessorPatcher.INSTANCE.patch(code, "r");
                     if (!patched.equals(code)) {
                         Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
-                            if (ClientUtilsKt.io() && (player != lastAttem || player == null)) {
+                            if ((player != lastAttem || player == null)) {
                                 lastAttem = player;
                                 attemCount = 1;
                                 attemTime = Time.millis();
                                 attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", builder.getControllerName(), tileX(), tileY()), (Color)null);
-                                if (player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
+                                if (ClientUtilsKt.io() && player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
                                     Call.sendChatMessage("/w " + player.id + " Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem");
                                 }
                             } else {
