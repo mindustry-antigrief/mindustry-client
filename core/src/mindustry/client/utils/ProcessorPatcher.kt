@@ -33,7 +33,9 @@ object ProcessorPatcher {
         return attemMatcher.containsMatchIn(code)
     }
 
-    fun patch(code: String, mode: String = "c"): String {
+
+    fun patch(code: String): String {return patch(code, "c")}
+    fun patch(code: String, mode: String): String {
         val result = attemMatcher.find(code) ?: return code
 
         return when (mode) {
