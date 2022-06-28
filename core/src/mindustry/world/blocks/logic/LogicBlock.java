@@ -39,6 +39,7 @@ public class LogicBlock extends Block{
     private static int attemCount;
     private static long attemTime;
     private static ChatFragment.ChatMessage attemMsg;
+    public static String attemWhisperMessage = "/w %s Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem";
 
     public int maxInstructionScale = 5;
     public int instructionsPerTick = 1;
@@ -481,7 +482,8 @@ public class LogicBlock extends Block{
             super.configured(builder, value);
 
             if (value instanceof byte[] && Core.settings.getBool("attemwarfare")) {
-                Player player = builder.isPlayer() ? builder.playerNonNull() :
+                Player player = builder == null ? null :
+                                builder.isPlayer() ? builder.playerNonNull() :
                                 builder.controller() instanceof FormationAI ai && ai.leader.isPlayer() ? ai.leader.playerNonNull() :
                                 builder.controller() instanceof LogicAI ai && ai.controller != null ? Groups.player.find(p -> p.name.equals(ai.controller.lastAccessed)) :
                                 null;
@@ -495,10 +497,12 @@ public class LogicBlock extends Block{
                                 attemTime = Time.millis();
                                 attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", builder.getControllerName(), tileX(), tileY()), (Color)null);
                                 if (ClientUtilsKt.io() && player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
-                                    Call.sendChatMessage("/w " + player.id + " Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem");
+//                                    Call.sendChatMessage("/w " + player.id + " " + attemWhisperMessage);
+                                    Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                 }
                             } else {
                                 if(Time.timeSinceMillis(attemTime) > 5000) {
+                                    if (ClientUtilsKt.io()) Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                     attemTime = Time.millis();
                                     ui.chatfrag.messages.remove(attemMsg);
                                     ui.chatfrag.messages.insert(0, attemMsg);
