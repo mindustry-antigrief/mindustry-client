@@ -91,8 +91,8 @@ class AutoTransfer {
             }
         }
 
-        if (item != null && core != null && player.within(core, itemTransferRange)) {
-            if (player.unit().hasItem()) Call.transferInventory(player, core)
+        if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
+            if (player.unit().hasItem() && held > 0) Call.transferInventory(player, core)
             else Call.requestItem(player, core, item, Int.MAX_VALUE)
             item = null
             ratelimitRemaining--
