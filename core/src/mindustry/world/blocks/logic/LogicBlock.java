@@ -481,7 +481,8 @@ public class LogicBlock extends Block{
             super.configured(builder, value);
 
             if (value instanceof byte[] && Core.settings.getBool("attemwarfare") && ClientUtilsKt.io()) {
-                Player player = builder.isPlayer() ? builder.playerNonNull() :
+                Player player = builder == null ? null :
+                                builder.isPlayer() ? builder.playerNonNull() :
                                 builder.controller() instanceof FormationAI ai && ai.leader.isPlayer() ? ai.leader.playerNonNull() :
                                 builder.controller() instanceof LogicAI ai && ai.controller != null ? Groups.player.find(p -> p.name.equals(ai.controller.lastAccessed)) :
                                 null;
