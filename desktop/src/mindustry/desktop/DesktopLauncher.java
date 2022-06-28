@@ -123,7 +123,7 @@ public class DesktopLauncher extends ClientLauncher{
                 if (mod.enabled()) enabled++;
             }
         }
-        return Strings.format("Mindustry (v@) | Foo's Client Messed with by BalaM314 (@) | @/@ Mods Enabled", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, enabled, mods == null ? 0 : mods.mods.size);
+        return Strings.format("Mindustry (v@) | Foo's Client Messed with by Zxtej, BalaM314, SBytes (@) | @/@ Mods Enabled", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, enabled, mods == null ? 0 : mods.mods.size);
     }
 
     @Override
@@ -391,7 +391,7 @@ public class DesktopLauncher extends ClientLauncher{
         if(useDiscord && Core.settings.getBool("discordrpc")){
             DiscordRPC.RichPresence presence = new DiscordRPC.RichPresence();
 
-            presence.state = "Messed With by BalaM314";
+            presence.state = "Messed with by Zxtej, BalaM314, SBytes";
             
             if(inGame) presence.details = gameMode + gamePlayersSuffix;
             else presence.details = uiState;
