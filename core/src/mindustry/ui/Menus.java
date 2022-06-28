@@ -105,7 +105,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoToast(String message, float duration){
         if(message == null) return;
-        if(!Core.settings.getBool("showtoasts")) return;
+        if(!Core.settings.getBool("showtoasts")) return; // .io admins are known to abuse this
         ui.showInfoToast(message, duration);
     }
 
