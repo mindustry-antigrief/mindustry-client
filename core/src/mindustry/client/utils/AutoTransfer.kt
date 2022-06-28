@@ -63,7 +63,7 @@ class AutoTransfer {
                                 var ammo: Item? = null
                                 var damage = 0
                                 content.items().forEach { i ->
-                                    if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && (it.block as ItemTurret).ammoTypes.get(i).damage > damage && core.items.has(i)) {
+                                    if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && (it.block as ItemTurret).ammoTypes.get(i).damage > damage && core.items.has(i, minCoreItems)) {
                                         damage = (it.block as ItemTurret).ammoTypes.get(i).damage.toInt()
                                         ammo = i
                                     }
