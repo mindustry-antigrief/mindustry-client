@@ -10,6 +10,7 @@ import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
+import com.sun.org.apache.xpath.internal.operations.Bool
 import mindustry.*
 import mindustry.ai.types.LogicAI
 import mindustry.client.*
@@ -249,6 +250,9 @@ fun cn() = Vars.net.client() && Vars.ui.join.communityHosts.contains { it.group 
 /** Whether we are connected to a .io server */
 fun io() = Vars.net.client() && Vars.ui.join.communityHosts.contains { it.group == "io" && it.address == Vars.ui.join.lastHost?.address }
 
+/** Whether we are connected to a Phoenix Network server */
+fun phoenix() = Vars.net.client() && Vars.ui.join.communityHosts.contains { it.group == "Phoenix Network" && it.address == Vars.ui.join.lastHost?.address }
+
 /** Whether the current gamemode is flood */
 fun flood() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Flood") || Vars.state.rules.modeName == "Flood"
 
@@ -435,6 +439,8 @@ fun getName(builder:mindustry.gen.Unit):String {
         return Strings.format("@ not controlled by anything-wait what-")
     }
 }
+
+fun canWhisper() = io() || phoenix()
 
 //inline fun <T> Seq<out T>.forEach(consumer: (T?) -> Unit) {
 //    for (i in 0 until size) consumer(items[i])
