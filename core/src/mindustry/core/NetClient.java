@@ -581,8 +581,10 @@ public class NetClient implements ApplicationListener{
             var units = Groups.unit.array.select(it -> it.controller().isBeingControlled(Vars.player.unit()));
             if (units.any()) {
                 var formation = new Formation(new Vec3(Vars.player.x, Vars.player.y, Vars.player.unit().rotation), new CircleFormation());
-                Vars.player.unit().formation = formation;
-                formation.addMembers(units.map(it -> (FormationAI)it.controller()));
+                formation.addMembers(units.map(u -> (FormationAI)u.controller()));
+                player.unit().formation = formation;
+                player.unit().minFormationSpeed = Math.min(player.unit().type.speed, units.min(u -> u.type.speed).type.speed);
+                formation.pattern.spacing = Math.max(player.unit().hitSize * .9f, units.max(u -> u.hitSize).hitSize * 1.3f);
             }
         });
     }
