@@ -105,6 +105,9 @@ public class DesktopInput extends InputHandler{
                         if(hidingBlocks){
                             str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
                         }
+                        if (hidingPlans) {
+                            str.append("\n").append(bundle.format("client.toggleplans", keybinds.get(Binding.hide_blocks).key.toString()));
+                        }
                         if(Navigation.state == NavigationState.RECORDING){
                             str.append("\n").append(bundle.format("client.waypoint", keybinds.get(Binding.place_waypoint).key.toString()));
                         }else if(Navigation.state == NavigationState.FOLLOWING){
@@ -291,7 +294,8 @@ public class DesktopInput extends InputHandler{
         }
 
         if(input.keyTap(Binding.hide_blocks) && scene.getKeyboardFocus() == null){
-            hidingBlocks = !hidingBlocks;
+            if (input.shift()) hidingPlans = !hidingPlans;
+            else hidingBlocks = !hidingBlocks;
         }
 
         if(input.keyTap(Binding.stop_following_path) && scene.getKeyboardFocus() == null){

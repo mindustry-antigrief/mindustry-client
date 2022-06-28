@@ -10,6 +10,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ai.types.*;
+import mindustry.client.ClientVars;
 import mindustry.client.utils.ProcessorFinder;
 import mindustry.entities.*;
 import mindustry.entities.units.BuildPlan;
@@ -68,16 +69,15 @@ public class OverlayRenderer{
     }
 
     public void drawBottom(){
-        InputHandler input = control.input;
+        if(ClientVars.hidingPlans || player.dead()) return;
 
-        if(player.dead()) return;
-
-//        if(player.isBuilder()){
-            player.unit().drawBuildPlans();
-//        }
+//        if (player.isBuilder()) player.unit().drawBuildPlans();
+        player.unit().drawBuildPlans();
         drawFrozenPlans();
 
-        input.drawBottom();
+//        InputHandler input = control.input;
+//        input.drawBottom();
+        control.input.drawBottom();
     }
 
     public void drawFrozenPlans(){
