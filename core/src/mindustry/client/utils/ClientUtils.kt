@@ -10,7 +10,6 @@ import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
-import com.sun.org.apache.xpath.internal.operations.Bool
 import mindustry.*
 import mindustry.ai.types.LogicAI
 import mindustry.client.*
