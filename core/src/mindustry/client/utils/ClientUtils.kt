@@ -247,6 +247,9 @@ fun cn() = Vars.net.client() && Vars.ui.join.communityHosts.contains { it.group 
 /** Whether we are connected to a .io server */
 fun io() = Vars.net.client() && Vars.ui.join.communityHosts.contains { it.group == "io" && it.address == Vars.ui.join.lastHost?.address }
 
+/** Whether we are connected to a Phoenix Network server */
+fun phoenix() = Vars.net.client() && Vars.ui.join.communityHosts.contains { it.group == "Phoenix Network" && it.address == Vars.ui.join.lastHost?.address }
+
 /** Whether the current gamemode is flood */
 fun flood() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Flood") || Vars.state.rules.modeName == "Flood"
 

@@ -480,7 +480,7 @@ public class LogicBlock extends Block{
         public void configured(Unit builder, Object value) {
             super.configured(builder, value);
 
-            if (value instanceof byte[] && Core.settings.getBool("attemwarfare") && ClientUtilsKt.io()) {
+            if (value instanceof byte[] && Core.settings.getBool("attemwarfare") && (ClientUtilsKt.io() || ClientUtilsKt.phoenix())) {
                 Player player = builder == null ? null :
                                 builder.isPlayer() ? builder.playerNonNull() :
                                 builder.controller() instanceof FormationAI ai && ai.leader.isPlayer() ? ai.leader.playerNonNull() :

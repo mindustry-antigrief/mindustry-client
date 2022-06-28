@@ -71,7 +71,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoMessage(String message){
         if(message == null) return;
-        if(ClientUtilsKt.io() && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
+        if((ClientUtilsKt.io() || ClientUtilsKt.phoenix()) && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
 
         ui.showText("", message);
     }
