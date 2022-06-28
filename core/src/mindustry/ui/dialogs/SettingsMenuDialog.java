@@ -345,6 +345,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
+        client.checkPref("allowinvturrets", true);
         client.checkPref("showtoasts", true);
         client.checkPref("unloaderview", false, i -> Unloader.UnloaderBuild.drawUnloaderItems = i);
         client.checkPref("customnullunloader", false, i -> Unloader.UnloaderBuild.customNullLoader = i);
@@ -372,7 +373,6 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("autorestart", true);
         client.checkPref("ignoremodminversion", false);
         client.checkPref("attemwarfare", false);
-        client.checkPref("allowinvturrets", true);
         // End Client Settings
 
 
