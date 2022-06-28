@@ -370,7 +370,7 @@ public class PowerNode extends PowerBlock{
             if(laserRange > maxRange) maxRange = laserRange;
         }
 
-        //        @Override
+//        @Override
 //        public void playerPlaced(Object config) { FINISHME: Make this work, maybe an IntObjectMap with Entry<pos, Seq<linkPos>>
 //            super.playerPlaced(config);
 //
