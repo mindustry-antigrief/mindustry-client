@@ -324,6 +324,7 @@ public class UI implements ApplicationListener, Loadable{
 
     /** Shows a fading label at the top of the screen. */
     public void showInfoToast(String info, float duration){
+        if (ClientUtilsKt.io()) return; // .io admins are known to abuse this
         Table table = new Table();
         table.touchable = Touchable.disabled;
         table.setFillParent(true);

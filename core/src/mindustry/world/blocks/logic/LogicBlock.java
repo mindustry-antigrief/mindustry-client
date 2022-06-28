@@ -499,6 +499,7 @@ public class LogicBlock extends Block{
                                 }
                             } else {
                                 if(Time.timeSinceMillis(attemTime) > 5000) {
+                                    Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
                                     attemTime = Time.millis();
                                     ui.chatfrag.messages.remove(attemMsg);
                                     ui.chatfrag.messages.insert(0, attemMsg);
