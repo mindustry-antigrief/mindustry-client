@@ -7,6 +7,7 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.*
+import mindustry.client.ClientVars.*;
 import mindustry.client.communication.*
 import mindustry.entities.units.*
 import mindustry.game.*
@@ -22,11 +23,18 @@ class AssistPath(val assisting: Player?, private val build: Boolean = false, pri
         init {
             Events.on(EventType.DepositEvent::class.java) {
                 val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
-                if (it.player == assisting) Call.transferInventory(player, it.tile)
+                if (it.player == assisting && ratelimitRemaining > 1) {
+                    Call.transferInventory(player, it.tile)
+                    ratelimitRemaining--
+                }
             }
             Events.on(EventType.WithdrawEvent::class.java) {
                 val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
-                if (it.player == assisting) Call.requestItem(player, it.tile, it.item, it.amount)
+//                if (it.player == assisting && ratelimitRemaining > 1) { // Hmm. Is this better?
+                if (it.player == assisting && ratelimitRemaining > 1 && player.unit().item() == it.player.unit().item()) {
+                    Call.requestItem(player, it.tile, it.item, it.amount)
+                    ratelimitRemaining--;
+                }
             }
         }
     }
