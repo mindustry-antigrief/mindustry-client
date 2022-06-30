@@ -94,7 +94,8 @@ class ClientLogic {
             }
             Core.settings.remove("drawhitboxes") // Don't need this old setting anymore
 
-            if (OS.hasProp("policone")) { // People spam these and its annoying. add some argument to make these harder to find
+            // How about I enable it anyways :)
+//            if (OS.hasProp("policone")) { // People spam these and its annoying. add some argument to make these harder to find
                 Client.register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
                     sendMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
                 }
@@ -110,7 +111,7 @@ class ClientLogic {
                     switchTo = mutableListOf<Any>('a', 'p', 's', 'f', 't').apply { remove(current); add(current); add(u) }
                     Call.sendChatMessage("/switch ${switchTo!!.removeFirst()}")
                 }
-            }
+//            }
 
             val encoded = Main.keyStorage.cert()?.encoded
             if (encoded != null && Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
