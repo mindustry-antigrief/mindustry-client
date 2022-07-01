@@ -80,7 +80,7 @@ class AutoTransfer {
 
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
-                if (player.unit().hasItem() && held > 0) Call.transferInventory(player, core)
+                if (player.unit().hasItem() && item != player.unit().stack.item) Call.transferInventory(player, core)
                 else Call.requestItem(player, core, item, Int.MAX_VALUE)
                 item = null
                 ratelimitRemaining--
