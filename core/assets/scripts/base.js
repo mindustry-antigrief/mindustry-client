@@ -49,18 +49,3 @@ function extend(/*Base, ..., def*/){
 
 //For backwards compatibility, use extend instead
 const extendContent = extend;
-
-//Below utility functions by BalaM314
-
-function makeUnit(unit, x, y, team){
-    if(team == undefined) team = Team.sharded;
-    let payload = new UnitPayload(unit.create(team));
-    payload.set(x * 8, y * 8, 0);
-    payload.dump();
-}
-
-function info(object){
-    return Object.keys(object).toString();
-}
-
-//more coming soon

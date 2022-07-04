@@ -208,3 +208,19 @@ const ResizeEvent = Packages.mindustry.game.EventType.ResizeEvent
 const LoseEvent = Packages.mindustry.game.EventType.LoseEvent
 const WinEvent = Packages.mindustry.game.EventType.WinEvent
 const Trigger = Packages.mindustry.game.EventType.Trigger
+
+//Below utility functions by BalaM314
+
+function makeUnit(unit, x, y, team){
+    if(team == undefined) team = Team.sharded;
+    let payload = new UnitPayload(unit.create(team));
+    payload.set(x * 8, y * 8, 0);
+    payload.dump();
+}
+
+function info(object){
+    return Object.keys(object).toString();
+}
+
+//more coming soon
+
