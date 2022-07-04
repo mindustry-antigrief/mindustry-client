@@ -2,7 +2,7 @@ name: Release Update
 
 on:
   push:
-    tags: v*
+    tags: flarogus-*
 
 jobs:
   build:
