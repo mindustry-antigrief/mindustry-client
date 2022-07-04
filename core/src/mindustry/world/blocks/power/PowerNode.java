@@ -242,7 +242,12 @@ public class PowerNode extends PowerBlock{
             graphs.add(tile.build.power.graph);
         }
 
-        indexer.eachBlock(team, tile.worldx() + offset, tile.worldy() + offset, (laserRange + size) * tilesize, valid, tempTileEnts::add);
+        Geometry.circle(tile.x, tile.y, (int)(laserRange + 2), (x, y) -> {
+            Building other = world.build(x, y);
+            if(valid.get(other) && !tempTileEnts.contains(other)){
+                tempTileEnts.add(other);
+            }
+        });
 
         tempTileEnts.sort((a, b) -> {
             int type = -Boolean.compare(a.block instanceof PowerNode, b.block instanceof PowerNode);
@@ -285,11 +290,24 @@ public class PowerNode extends PowerBlock{
             }
         }
 
-        indexer.eachBlock(team, tile.worldx() + block.offset, tile.worldy() + block.offset, maxRange * tilesize, valid, tempTileEnts::add);
+        if(tile.build != null && tile.build.power != null){
+            graphs.add(tile.build.power.graph);
+        }
 
-        tempTileEnts.sort(a -> a.dst2(tile));
+        Geometry.circle(tile.x, tile.y, (int)(maxRange + 2), (x, y) -> {
+            Building other = world.build(x, y);
+            if(valid.get(other) && !tempTileEnts.contains(other)){
+                tempTileEnts.add(other);
+            }
+        });
 
-        tempTileEnts.each(t -> {
+        tempTileEnts.sort((a, b) -> {
+            int type = -Boolean.compare(a.block instanceof PowerNode, b.block instanceof PowerNode);
+            if(type != 0) return type;
+            return Float.compare(a.dst2(tile), b.dst2(tile));
+        });
+
+        tempTileEnts.each(valid, t -> {
             graphs.add(t.power.graph);
             others.get(t);
         });
