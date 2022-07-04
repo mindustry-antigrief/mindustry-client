@@ -2,7 +2,7 @@ This is SByte's and BalaM314's v7 fork of buthed010203's fork of mindustry.  It 
 ![Logo](core/assets/icons/pi_64.png)
 
 
-A fork of a sandbox tower defense game written in Java.
+flarogus
 
 _[Trello Board](https://trello.com/b/aE2tcUwF/mindustry-40-plans)_  
 _[Wiki](https://mindustrygame.github.io/wiki)_  
