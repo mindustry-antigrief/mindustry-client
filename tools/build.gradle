@@ -1,17 +1,21 @@
-sourceSets.main.java.srcDirs = ["src/"]
-
 buildscript {
     dependencies {
         classpath localGroovy()
     }
 }
 
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.7.0"
+}
+
+sourceSets.main.java.srcDirs = ["src/"]
+
+
 import arc.files.Fi
 import arc.files.ZipFi
 import arc.func.Func2
 import arc.graphics.Color
 import arc.graphics.Pixmap
-import arc.graphics.Pixmaps
 import arc.packer.TexturePacker
 import arc.struct.ObjectMap
 import arc.struct.OrderedMap
@@ -138,8 +142,30 @@ task bleedImages(){
                 pix.dispose()
             }
         }
-
         Threads.await(executor)
+    }
+}
+
+task mapImages(){
+    doLast{
+//        def executor = Executors.newFixedThreadPool(OS.cores)
+        def dir = new Fi(project.getProperty("startdir"))
+        Paletter.INSTANCE.missing.clear()
+        dir.walk { fi ->
+            var name = fi.name()
+            if (Paletter.INSTANCE.blacklist.contains(name) || name.startsWith("zzzzz-") || Paletter.INSTANCE.regexlist.any(regex -> regex.matches(name))) return
+            if (!name.endsWith(".png")) {
+                throw new IOException(name)
+            }
+//            executor.execute {
+                var pix = new Pixmap(fi)
+                Paletter.INSTANCE.mapColors(pix, name)
+                fi.sibling("zzzzz-" + name).writePng(pix)
+                pix.dispose()
+//            }
+        }
+        println(Paletter.INSTANCE.missing.size)
+//        Threads.await(executor)
     }
 }
 
