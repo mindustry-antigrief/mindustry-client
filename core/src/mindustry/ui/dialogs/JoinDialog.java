@@ -135,7 +135,7 @@ public class JoinDialog extends BaseDialog{
                 if(!buttons[0].childrenPressed()){
                     if(server.lastHost != null){
                         Events.fire(new ClientPreConnectEvent(server.lastHost));
-                        safeConnect(server.ip, server.port, server.lastHost);
+                        safeConnect(server.lastHost.address, server.lastHost.port, server.lastHost);
                     }else{
                         connect(server.ip, server.port);
                     }

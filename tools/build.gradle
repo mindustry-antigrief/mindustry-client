@@ -25,7 +25,7 @@ import java.util.concurrent.Executors
 import java.util.stream.Streams
 
 def genFolder = "../core/assets-raw/sprites_out/generated/"
-def doAntialias = !project.hasProperty("disableAntialias")
+def enableAA = !project.hasProperty("disableAntialias")
 
 @CompileStatic
 static int getRGB(Pixmap image, int ix, int iy) {
@@ -169,7 +169,7 @@ task pack(dependsOn: [classes, configurations.runtimeClasspath]){
 
         delete "../core/assets-raw/sprites_out/ui/icons"
 
-        if(doAntialias){
+        if(enableAA){
             Time.mark()
             ExecutorService executor = Executors.newFixedThreadPool(OS.cores)
 

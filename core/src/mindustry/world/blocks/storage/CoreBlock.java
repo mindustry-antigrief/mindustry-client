@@ -117,7 +117,7 @@ public class CoreBlock extends StorageBlock{
 
     @Override
     public boolean canBreak(Tile tile){
-        return false;
+        return state.isEditor();
     }
 
     @Override

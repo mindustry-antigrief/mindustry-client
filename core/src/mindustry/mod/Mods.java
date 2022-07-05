@@ -198,7 +198,7 @@ public class Mods implements Loadable{
     }
 
     private void packSprites(Seq<Fi> sprites, LoadedMod mod, boolean prefix, Seq<Future<Runnable>> tasks){
-        boolean bleed = !mod.meta.prebled && Core.settings.getBool("linear", true), debug = !prefix && OS.hasProp("debugsprites");
+        boolean bleed = !mod.meta.prebled && Core.settings.getBool("linear", true);
 
         for(Fi file : sprites){
             String name = file.nameWithoutExtension();

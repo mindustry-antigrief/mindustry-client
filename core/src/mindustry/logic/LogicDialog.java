@@ -37,6 +37,23 @@ public class LogicDialog extends BaseDialog{
 
         addCloseListener();
 
+        shown(this::setup);
+        hidden(() -> { // If the executor is null, theres a very big problem.
+            if (!Core.input.shift() && (executor.team == player.team() || !net.client())) consumer.get(canvas.save());
+        });
+        onResize(() -> {
+            setup();
+            canvas.rebuild();
+        });
+
+
+        add(canvas).grow().name("canvas");
+        row();
+        add(buttons).growX().name("canvas");
+    }
+
+    private void setup(){
+        buttons.clearChildren();
         buttons.defaults().size(160f, 64f);
         buttons.button("@back", Icon.left, this::hide).name("back").update(b -> b.setText(Core.input.shift() ? "@research.discard" : "@back"));
 
@@ -75,7 +92,7 @@ public class LogicDialog extends BaseDialog{
             });
         }).disabled(t -> executor.team != player.team() && net.client() && !state.isEditor());
 
-        if(mobile && !Core.graphics.isPortrait()) buttons.row();
+        if(Core.graphics.isPortrait()) buttons.row();
 
         buttons.button("@variables", Icon.menu, () -> {
             BaseDialog dialog = new BaseDialog("@variables");
@@ -163,18 +180,6 @@ public class LogicDialog extends BaseDialog{
 
         buttons.button("@add", Icon.add, () -> addDialog(canvas.statements.getChildren().size))
             .disabled(t -> (executor.team != player.team() && net.client() && !state.isEditor()) || canvas.statements.getChildren().size >= LExecutor.maxInstructions);
-
-        add(canvas).grow().name("canvas");
-
-        row();
-
-        add(buttons).growX().name("canvas");
-
-        hidden(() -> {
-            if (!Core.input.shift() && (executor.team == player.team() || !net.client())) consumer.get(canvas.save());
-        });
-
-        onResize(() -> canvas.rebuild());
     }
 
     public void show(String code, LExecutor executor, boolean privileged, Cons<String> modified){
