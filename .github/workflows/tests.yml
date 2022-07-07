@@ -3,7 +3,7 @@ name: Java Tests # Tests and pushes to unstable
 on: 
   push:
     branches: "**" # Runs on all branches but never on tags
-  workflow_dispatch:
+  workflow-dispatch:
 
 jobs:
   build:
