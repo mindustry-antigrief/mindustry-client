@@ -3,7 +3,7 @@ name: Release Update
 on:
   push:
     tags: flarogus-*
-  workflow-dispatch:
+  workflow_dispatch:
 
 jobs:
   build:
