@@ -334,6 +334,8 @@ public class Weapon implements Cloneable{
                 if(alwaysContinuous && mount.shoot){
                     mount.bullet.time = mount.bullet.lifetime * mount.bullet.type.optimalLifeFract * mount.warmup;
                     mount.bullet.keepAlive = true;
+
+                    unit.apply(shootStatus, shootStatusDuration);
                 }
             }
         }else{

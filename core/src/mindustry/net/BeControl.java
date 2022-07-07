@@ -71,7 +71,7 @@ public class BeControl{
     public void checkUpdate(Boolc done, String repo){
         Http.get("https://api.github.com/repos/" + repo + "/releases/latest")
             .error(e -> {
-                ui.loadfrag.hide();
+                done.get(false);
                 Log.err(e);
             })
             .submit(res -> {
