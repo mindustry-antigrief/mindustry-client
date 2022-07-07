@@ -39,14 +39,6 @@ jobs:
           export PATH=./tools:$PATH
           ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" --parallel # Testing and building in parallel saves a few dozen seconds.
 
-      - name: Upload Test Results To Pages
-        if: ${{ !cancelled() }}
-        uses: JamesIves/github-pages-deploy-action@4.0.0
-        with:
-          branch: gh-pages # The branch the action should deploy to.
-          folder: tests/build/reports/tests/test
-          silent: true
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -56,8 +48,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ env.VERSION }} (${{ steps.time.outputs.formattedTime }})
           body: | # The release body with the latest set of changes from the changelog
-            # Foo's Client (${{ env.VERSION }})
-            ### Steam installation instructions [here](../../#steam)
+            # Flarogus Client (${{ env.VERSION }})
             ## Latest Changelog (May be out of date)
             ${{ env.CHANGELOG }}
           draft: false
