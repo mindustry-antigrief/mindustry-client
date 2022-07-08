@@ -21,13 +21,13 @@ public class ProcessorFinder {
 
     public static void search() {
         highlighted.clear();
-        for (Regex query : queries) {
-            Seq<Building> builds = new Seq<>();
-            player.team().data().buildings.getObjects(builds);
+        Seq<Building> builds = new Seq<>();
+        player.team().data().buildings.getObjects(builds);
     
-            int matchCount = 0, processorCount = 0;
-            for (Building build : builds) {
-                if (build instanceof LogicBuild logicBuild ) {
+        int matchCount = 0, processorCount = 0;
+        for (Building build : builds) {
+            if (build instanceof LogicBuild logicBuild ) {
+                for (Regex query : queries) {
                     if (query.containsMatchIn((logicBuild.code))) {
                         matchCount++;
                         highlighted.add(logicBuild);
@@ -35,11 +35,11 @@ public class ProcessorFinder {
                     processorCount++;
                 }
             }
-    
-            // Log how many found
-            if (matchCount == 0) player.sendMessage("[accent]No matches found.");
-            else player.sendMessage(String.format("[accent]Found [coral]%d/%d[] [accent]matches.", matchCount, processorCount));
         }
+    
+        // Log how many found
+        if (matchCount == 0) player.sendMessage("[accent]No matches found.");
+        else player.sendMessage(String.format("[accent]Found [coral]%d/%d[] [accent]matches.", matchCount, processorCount));
     }
 
     public static void list() {

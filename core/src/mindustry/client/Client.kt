@@ -44,6 +44,7 @@ import mindustry.world.blocks.distribution.ItemBridge
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.logic.LogicBlock.*
 import mindustry.world.blocks.power.*
+import mindustry.world.blocks.sandbox.PowerVoid
 import mindustry.world.blocks.units.*
 import org.bouncycastle.jce.provider.*
 import org.bouncycastle.jsse.provider.*
@@ -275,7 +276,7 @@ object Client {
         } // FINISHME: This is so scuffed lol
 
         register("miner [options...]", Core.bundle.get("client.command.miner.description")) { args, _: Player ->
-            follow(MinePath(if (args.isEmpty()) "" else args[0]))
+            if (args.isEmpty()) follow(MinePath()) else follow(MinePath(args[0]))
         } // FINISHME: This is so scuffed lol
 
         register("buildmine", "Buildpath (self) + mine (all)") {_, _: Player ->
@@ -670,6 +671,41 @@ object Client {
                 }
                 "list" -> ProcessorFinder.list()
                 else -> player.sendMessage("Invalid argument!")
+            }
+        }
+
+        register("voids [count]", "Lists power void locations. Use count 0 to list all") { args, player ->
+            var count = 1
+            if (args.isNotEmpty()) {
+                try {
+                    count = args[0].toInt()
+                }
+                catch (e: Exception) {
+                    player.sendMessage("Invalid parameter! Input a number.")
+                }
+            }
+            if (count == 0) count = -1
+
+            clientThread.post {
+                val voids = Seq<Building>()
+                for (tile in world.tiles) {
+                    if (tile.block() is PowerVoid) voids.add(tile.build)
+                }
+                voids.sort { c -> player.dst(c) }
+
+                if (voids.size > 0) {
+                    val sb = StringBuilder()
+                        .append("[accent]Found ")
+                        .append(if (count < 0) voids.size else voids.size.coerceAtMost(count))
+                        .append(" voids: ")
+                    for (void in voids) {
+                        if (count == 0) break
+                        sb.append(String.format("(%d,%d) ", void.tileX(), void.tileY()))
+                        if (count > 0) count--
+                    }
+                    Core.app.post { player.sendMessage(sb.toString()) }
+                }
+                else Core.app.post { player.sendMessage("[accent]No voids found") }
             }
         }
 

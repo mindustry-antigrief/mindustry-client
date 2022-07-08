@@ -359,6 +359,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("processorstatementscale", 80, 10, 100, 1, s -> String.format("%.2fx", s/100f)); // This is the most scuffed setting you have ever seen
         client.sliderPref("nodeconf", 0, 0, PowerNode.PowerNodeFixSettings.values().length - 1, 1, s -> PowerNode.PowerNodeFixSettings.get(PowerNode.PowerNodeBuild.fixNode = s).desc);
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
+        client.textPref("defaultminepathargs", "copper lead sand coal titanium thorium");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("typingindicator", true, i -> control.input.showTypingIndicator = i);
@@ -372,7 +373,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("processorconfigs", false);
         client.checkPref("autorestart", true);
         client.checkPref("ignoremodminversion", false);
-        client.checkPref("attemwarfare", false);
+        client.checkPref("attemwarfare", true);
         // End Client Settings
 
 
