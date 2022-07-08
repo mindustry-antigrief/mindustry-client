@@ -2,10 +2,8 @@ package mindustry.client.utils
 
 import arc.struct.*
 import arc.util.*
-import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.antigrief.*
-import mindustry.gen.*
 import mindustry.world.blocks.logic.LogicBlock.*
 
 object ProcessorPatcher {
@@ -33,7 +31,7 @@ object ProcessorPatcher {
         return attemMatcher.containsMatchIn(code)
     }
 
-    fun patch(code: String): String {return patch(code, "c")}
+    fun patch(code: String): String {return patch(code, "r")}
     fun patch(code: String, mode: String): String {
         val result = attemMatcher.find(code) ?: return code
 
