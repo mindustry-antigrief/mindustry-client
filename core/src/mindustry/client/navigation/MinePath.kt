@@ -24,7 +24,8 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
             }
         }
     }
-    constructor(args: String) : this(Seq()) {
+
+    constructor(args: String = Core.settings.getString("defaultminepathargs", "")) : this(Seq()) {
         val split = args.split("\\s".toRegex())
         for (a in split) {
             if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
