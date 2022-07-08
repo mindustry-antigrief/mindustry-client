@@ -556,7 +556,7 @@ public class PowerNode extends PowerBlock{
                         ClientVars.configs.add(new ConfigRequest(this, pos)); // FINISHME: V7 release fixes multi point configs, use those instead
                     }
                 }
-                deselect();
+                // deselect();      // Dont deselect
                 return false;
             }
 
