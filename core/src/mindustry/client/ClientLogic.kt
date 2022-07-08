@@ -1,6 +1,7 @@
 package mindustry.client
 
 import arc.*
+import arc.struct.Seq
 import arc.util.*
 import mindustry.*
 import mindustry.client.ClientVars.*
@@ -68,6 +69,42 @@ class ClientLogic {
             else {
                 coreItems.update(false)
                 coreItems.clear()
+            }
+
+            Time.run(60F) { // Runs fixcode on load world
+                if (!Vars.state.isGame || Vars.player.unit().type == null) return@run
+
+                Core.app.post {
+                    val builds = Seq<LogicBlock.LogicBuild>()
+                    Vars.player.team().data().buildings.getObjects(builds as Seq<Building>) // Must be done on the main thread
+                    clientThread.post {
+                        builds.removeAll { it !is LogicBlock.LogicBuild }
+                        val inProgress = !configs.isEmpty()
+                        var n = 0
+                        if (Core.settings.getBool("attemwarfare") && !inProgress) {
+                            Log.debug("Patching!")
+                            builds.forEach {
+                                val patched = ProcessorPatcher.patch(it.code, "r")
+                                if (patched != it.code) {
+                                    Log.debug("${it.tileX()} ${it.tileY()}")
+                                    configs.add(ConfigRequest(it.tileX(), it.tileY(),
+                                        LogicBlock.compress(patched, it.relativeConnections())
+                                    ))
+                                    n++
+                                }
+                            }
+                        }
+
+                        Core.app.post {
+                            if (Core.settings.getBool("attemwarfare")) {
+                                if (inProgress) Vars.player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
+                                else Vars.player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
+                            } else {
+                                Vars.player.sendMessage("[accent]Run [coral]!fixcode [c | r][] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
+                            }
+                        }
+                    }
+                }
             }
         }
 
