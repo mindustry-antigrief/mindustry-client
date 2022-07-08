@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     permissions:
-      read-all
+      read-all:
       contents: write
       actions: write
     runs-on: ubuntu-latest
