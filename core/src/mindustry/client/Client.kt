@@ -308,7 +308,7 @@ object Client {
             player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
         }
 
-        register("blank", "Sends nothing.") { args, player: Player ->
+        register("blank", "Sends nothing.") { _, _ ->
             sendMessage("\u200B")
         }
 //        register("kts <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player -> // FINISHME: Bundle
