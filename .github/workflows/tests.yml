@@ -39,7 +39,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           body: |
             Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/stormybytes/mindustry-client/commit/${{ github.sha }})
@@ -57,7 +57,7 @@ jobs:
         if: ${{ github.repository == 'stormybytes/mindustry-client' && (github.ref == 'refs/heads/v6' || github.event_name == 'workflow_dispatch') }}
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: desktop/build/libs/Mindustry.jar
@@ -69,7 +69,7 @@ jobs:
         id: create_release_flarogus
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           body: |
             Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/stormybytes/mindustry-client/commit/${{ github.sha }})
@@ -86,7 +86,7 @@ jobs:
         if: ${{ github.repository == 'stormybytes/mindustry-client' && github.ref == 'refs/heads/flarogus' }}
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release_flarogus.outputs.upload_url }}
           asset_path: desktop/build/libs/Mindustry.jar
@@ -104,7 +104,7 @@ jobs:
         if: ${{ !cancelled() && github.repository == 'stormybytes/mindustry-client' && (github.ref == 'refs/heads/flarogus' || github.event_name == 'workflow_dispatch') }}
         uses: JamesIves/github-pages-deploy-action@4.0.0
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
           repository-name: ${{ github.repository }}-builds
           branch: gh-pages # The branch the action should deploy to.
           folder: tests/build/reports/tests/test
