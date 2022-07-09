@@ -4,6 +4,8 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
+import mindustry.client.navigation.MinePath
+import mindustry.client.navigation.Navigation
 import mindustry.gen.*
 import mindustry.type.*
 import mindustry.world.blocks.defense.turrets.ItemTurret
@@ -31,8 +33,13 @@ class AutoTransfer {
         timer += Time.delta
         if (timer < delay) return
         timer = 0F
-        val buildings = player.team().data().buildings ?: return
+
         val core = if (fromCores) player.closestCore() else null
+        if (Navigation.currentlyFollowing is MinePath) { // Only allow autotransfer + minepath when within mineTransferRange
+            if ((Navigation.currentlyFollowing as MinePath).tile?.within(core, mineTransferRange - tilesize * 10) == false) return
+        } // Ngl this looks spaghetti
+
+        val buildings = player.team().data().buildings ?: return
         var held = player.unit().stack.amount
 
         buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear())

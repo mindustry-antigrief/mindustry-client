@@ -1,21 +1,21 @@
 package mindustry.client.navigation
 
 import arc.*
-import arc.math.Mathf
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
-import mindustry.client.navigation.Path.Companion.waypoints
 import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.type.*
+import mindustry.world.Tile
 
 class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().type.mineItems, var cap: Int = Core.settings.getInt("minepathcap"), val newGame: Boolean = false) : Path() {
     private var lastItem: Item? = null // Last item mined
     private var timer = Interval()
     private var coreIdle = false
+    var tile: Tile? = null
 
     companion object {
         init {
@@ -75,7 +75,8 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
         }
 
         // go to core and transfer items
-        if (player.unit().maxAccepted(item) <= 1) {
+        // No need to drop to core if within mineTransferRange
+        if (player.unit().maxAccepted(item) <= 1 && tile?.within(core, mineTransferRange - tilesize * 10) == false) {
             if (player.within(core, itemTransferRange - tilesize * 10) && timer[30f]) {
                 player.unit().mineTile = null
                 Call.transferInventory(player, core)
@@ -92,7 +93,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
 
         // mine
         } else {
-            val tile = indexer.findClosestOre(player.unit(), item) // FINISHME: Ignore blocked tiles
+            tile = indexer.findClosestOre(player.unit(), item) // FINISHME: Ignore blocked tiles
             player.unit().mineTile = tile
             if (tile == null) return
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 3F)
