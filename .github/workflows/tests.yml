@@ -64,16 +64,15 @@ jobs:
           asset_name: desktop.jar
           asset_content_type: application/zip
 
-      - name: Create Release (v7)
-        if: ${{ github.repository == 'stormybytes/mindustry-client' && github.ref == 'refs/heads/v7' }}
-        id: create_release_v7
+      - name: Create Release (flarogus)
+        if: ${{ github.repository == 'stormybytes/mindustry-client' && github.ref == 'refs/heads/flarogus' }}
+        id: create_release_flarogus
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           body: |
             Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/stormybytes/mindustry-client/commit/${{ github.sha }})
-            Steam installation instructions [here](../../../mindustry-client/tree/v7#steam)
             **Commit Message:**
             *${{ github.event.head_commit.message }}*
           commitish: main
@@ -83,30 +82,30 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload Release Asset (v7)
-        if: ${{ github.repository == 'stormybytes/mindustry-client' && github.ref == 'refs/heads/v7' }}
+      - name: Upload Release Asset (flarogus)
+        if: ${{ github.repository == 'stormybytes/mindustry-client' && github.ref == 'refs/heads/flarogus' }}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release_v7.outputs.upload_url }}
+          upload_url: ${{ steps.create_release_flarogus.outputs.upload_url }}
           asset_path: desktop/build/libs/Mindustry.jar
           asset_name: desktop.jar
           asset_content_type: application/zip
 
       - name: Upload Artifact (No release was made)
-        if: ${{ !(github.repository == 'stormybytes/mindustry-client' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v7' || github.event_name == 'workflow_dispatch')) }}
+        if: ${{ !(github.repository == 'stormybytes/mindustry-client' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/flarogus' || github.event_name == 'workflow_dispatch')) }}
         uses: actions/upload-artifact@v2
         with:
           name: Desktop JAR (zipped)
           path: desktop/build/libs/Mindustry.jar
 
       - name: Upload Test Results To Pages
-        if: ${{ !cancelled() && github.repository == 'stormybytes/mindustry-client' && (github.ref == 'refs/heads/v7' || github.event_name == 'workflow_dispatch') }}
+        if: ${{ !cancelled() && github.repository == 'stormybytes/mindustry-client' && (github.ref == 'refs/heads/flarogus' || github.event_name == 'workflow_dispatch') }}
         uses: JamesIves/github-pages-deploy-action@4.0.0
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
-          repository-name: ${{ github.repository }}-v7-builds
+          repository-name: ${{ github.repository }}-builds
           branch: gh-pages # The branch the action should deploy to.
           folder: tests/build/reports/tests/test
           silent: true
