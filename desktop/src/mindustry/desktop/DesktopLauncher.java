@@ -401,7 +401,7 @@ public class DesktopLauncher extends ClientLauncher{
             presence.smallImageText = Strings.format("Foo's Client (@)", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion);
             presence.startTimestamp = state.tick == 0 ? beginTime/1000 : Time.timeSinceMillis((long)(state.tick * 16.666));
             presence.label1 = "Client Github";
-            presence.url1 = "https://github.com/stormybytes/mindustry-client";
+            presence.url1 = "https://github.com/stormybytes/mindustry-client-builds";
             if (DiscordRPC.getStatus() == DiscordRPC.PipeStatus.connected) DiscordRPC.send(presence);
         }
 
