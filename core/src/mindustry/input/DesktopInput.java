@@ -290,6 +290,7 @@ public class DesktopInput extends InputHandler{
         if(input.keyTap(Binding.show_turret_ranges) && scene.getKeyboardFocus() == null){
             if (input.shift()) showingOverdrives = !showingOverdrives;
             else if (input.ctrl() && settings.getBool("allowinvturrets")) showingInvTurrets = !showingInvTurrets;
+            else if (input.alt()) showingAllyTurrets = !showingAllyTurrets;
             else showingTurrets = !showingTurrets;
         }
 

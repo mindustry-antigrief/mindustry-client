@@ -22,6 +22,7 @@ import mindustry.client.crypto.*
 import mindustry.client.graphics.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.follow
+import mindustry.client.navigation.Navigation.getAllyTree
 import mindustry.client.navigation.Navigation.getTree
 import mindustry.client.navigation.Navigation.navigateTo
 import mindustry.client.navigation.Navigation.navigator
@@ -139,6 +140,15 @@ object Client {
                     val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                     val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
                     circles.add(it to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
+                }
+            }
+            if (showingAllyTurrets) {
+                getAllyTree().intersect(bounds) {
+                    if ((units || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
+                        val valid = (flying && it.targetAir) || (!flying && it.targetGround)
+                        val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
+                        circles.add(it to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
+                    }
                 }
             }
             RangeDrawer.draw(circles)
