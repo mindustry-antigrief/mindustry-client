@@ -131,7 +131,7 @@ object Client {
 
         // Turret range
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
-        if (showingEnemyTurrets || showingInvTurrets) {
+        if (showingTurrets || showingInvTurrets) {
             val units = Core.settings.getBool("unitranges")
             circles.clear()
             val flying = player.unit().isFlying
@@ -139,7 +139,7 @@ object Client {
                 if ((units || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
                     val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                     val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
-                    circles.add(it to if ((valid && showingEnemyTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
+                    circles.add(it to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
                 }
             }
             if (showingAllyTurrets) {
@@ -147,7 +147,7 @@ object Client {
                     if (it.turret && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
                         val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                         val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
-                        circles.add(it to if ((valid && showingEnemyTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
+                        circles.add(it to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
                     }
                 }
             }
