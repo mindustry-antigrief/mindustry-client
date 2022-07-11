@@ -144,7 +144,7 @@ object Client {
             }
             if (showingAllyTurrets) {
                 getAllyTree().intersect(bounds) {
-                    if ((units || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
+                    if (it.turret && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
                         val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                         val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
                         circles.add(it to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
