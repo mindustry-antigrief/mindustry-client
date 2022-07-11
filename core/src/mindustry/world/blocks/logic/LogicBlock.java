@@ -68,12 +68,10 @@ public class LogicBlock extends Block{
             String bname = getLinkName(lbuild.block);
 
             if(link != null){
-                link.active = !link.active;
-                //find a name when the base name differs (new block type)
-                if(!link.name.startsWith(bname)){
-                    link.name = "";
-                    link.name = entity.findLinkName(lbuild.block);
-                }
+                if(net.active())
+                    link.active = !link.active;
+                else
+                    entity.links.remove(link);
             }else{
                 entity.links.remove(l -> world.build(l.x, l.y) == lbuild);
                 entity.links.add(new LogicLink(x, y, entity.findLinkName(lbuild.block), true));
