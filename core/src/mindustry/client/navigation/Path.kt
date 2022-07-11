@@ -48,7 +48,7 @@ abstract class Path {
                                 v1.set(point)
                             }
                         }
-                        val path = Navigation.navigator.navigate(v1, v2.set(destX, destY), Navigation.getEnts())
+                        val path = Navigation.navigator.navigate(v1, v2.set(destX, destY), Navigation.getEnemyEnts())
                         Pools.freeAll(filter)
                         filter.clear()
                         if (path.isNotEmpty() && (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>))) { // Same destination

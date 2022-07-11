@@ -47,15 +47,15 @@ object Navigation {
         Path.repeat = repeat
     }
 
-    private var job = CompletableFuture.completedFuture<Seq<TurretPathfindingEntity>>(null)
+    private var enemyJob = CompletableFuture.completedFuture<Seq<TurretPathfindingEntity>>(null)
     private var allyJob = CompletableFuture.completedFuture<Seq<TurretPathfindingEntity>>(null)
-    private var updatingEnts = AtomicInteger(0)
+    private var updatingEnemyEnts = AtomicInteger(0)
     private var updatingAllyEnts = AtomicInteger(0)
     private var lastFrame = 0L
 
     /** Client thread only */
     private fun updateEnts(force: Boolean = false): Seq<TurretPathfindingEntity> {
-        if ((force || updatingEnts.get() <= 0) && Core.graphics.frameId > lastFrame) { // Update once per frame
+        if ((force || updatingEnemyEnts.get() <= 0) && Core.graphics.frameId > lastFrame) { // Update once per frame
             lastFrame = Core.graphics.frameId
             val tree = tmpTree
             tree.clear()
@@ -93,17 +93,17 @@ object Navigation {
 
     @JvmStatic
     /** Thread safe */
-    fun getEnts(): Seq<TurretPathfindingEntity> {
+    fun getEnemyEnts(): Seq<TurretPathfindingEntity> {
         if (Thread.currentThread().name == "main") {
-            if (updatingEnts.get() <= 0) submit(::updateEnts).get()
-            updatingEnts.set(2)
+            if (updatingEnemyEnts.get() <= 0) submit(::updateEnts).get()
+            updatingEnemyEnts.set(2)
         } else updateEnts()
         return obstacles
     }
 
     /** Thread safe */
     @JvmStatic
-    fun getTree(): EntityTree {
+    fun getEnemyTree(): EntityTree {
         if (Thread.currentThread().name == "main") {
             if (updatingAllyEnts.get() <= 0) submit(::updateEnts).get()
             updatingAllyEnts.set(2)
@@ -116,7 +116,7 @@ object Navigation {
     fun getAllyEnts(): Seq<TurretPathfindingEntity> {
         if (Thread.currentThread().name == "main") {
             if (updatingAllyEnts.get() <= 0) submit(::updateAllyEnts).get()
-            updatingEnts.set(2)
+            updatingEnemyEnts.set(2)
         } else updateAllyEnts()
         return allies
     }
@@ -132,10 +132,10 @@ object Navigation {
     }
 
     fun update() {
-        if (job.isDone && updatingEnts.get() > 0) {
-            if (updatingEnts.get() == 1) obstacles.set(job.get())
-            job = submit { updateEnts(true) }
-            updatingEnts.decrementAndGet()
+        if (enemyJob.isDone && updatingEnemyEnts.get() > 0) {
+            if (updatingEnemyEnts.get() == 1) obstacles.set(enemyJob.get())
+            enemyJob = submit { updateEnts(true) }
+            updatingEnemyEnts.decrementAndGet()
         }
 
         if (allyJob.isDone && updatingAllyEnts.get() > 0) {

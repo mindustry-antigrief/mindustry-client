@@ -12,7 +12,6 @@ import mindustry.*
 import mindustry.Vars.*
 import mindustry.Vars.state
 import mindustry.ai.*
-import mindustry.client.Client.timer
 import mindustry.client.ClientVars.*
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
@@ -23,7 +22,7 @@ import mindustry.client.graphics.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.follow
 import mindustry.client.navigation.Navigation.getAllyTree
-import mindustry.client.navigation.Navigation.getTree
+import mindustry.client.navigation.Navigation.getEnemyTree
 import mindustry.client.navigation.Navigation.navigateTo
 import mindustry.client.navigation.Navigation.navigator
 import mindustry.client.utils.*
@@ -53,10 +52,8 @@ import java.io.*
 import java.math.*
 import java.security.*
 import java.security.cert.*
-import javax.annotation.processing.Processor
 import kotlin.math.*
 import kotlin.random.*
-import kotlin.reflect.KParameter
 
 object Client {
     var leaves: Moderation? = Moderation()
@@ -135,7 +132,7 @@ object Client {
             val units = Core.settings.getBool("unitranges")
             circles.clear()
             val flying = player.unit().isFlying
-            getTree().intersect(bounds) {
+            getEnemyTree().intersect(bounds) {
                 if ((units || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
                     val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                     val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
@@ -456,7 +453,7 @@ object Client {
 
             for (plan in Vars.player.team().data().blocks) {
                 val block = content.block(plan.block.toInt())
-                if (!(all || getTree().any(Tmp.r1.setCentered(plan.x * tilesize + block.offset, plan.y * tilesize + block.offset, block.size * tilesizeF)))) continue
+                if (!(all || getEnemyTree().any(Tmp.r1.setCentered(plan.x * tilesize + block.offset, plan.y * tilesize + block.offset, block.size * tilesizeF)))) continue
 
                 plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
             }

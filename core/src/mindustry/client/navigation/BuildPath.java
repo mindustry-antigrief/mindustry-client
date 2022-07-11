@@ -148,7 +148,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
 
             if (timer.get(1, 300)) {
                 clientThread.post(() -> {
-                    for (var turret : Navigation.getEnts()) {
+                    for (var turret : Navigation.getEnemyEnts()) {
                         if (!turret.canShoot()) continue;
                         Geometry.circle(World.toTile(turret.x()), World.toTile(turret.y()), World.toTile(turret.range), (x, y) -> {
                             if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {

@@ -409,7 +409,7 @@ public class BlockIndexer{
                             for(int i : arr.items){
                                 tile = world.tile(i);
                                 dst = Mathf.dst2(xp, yp, tile.worldx(), tile.worldy());
-                                if((closest == null || dst < minDst) && !Navigation.getTree().any(tile.worldx(), tile.worldy(), tilesize, tilesize)){
+                                if((closest == null || dst < minDst) && !Navigation.getEnemyTree().any(tile.worldx(), tile.worldy(), tilesize, tilesize)){
                                     closest = tile;
                                     minDst = dst;
                                 }
