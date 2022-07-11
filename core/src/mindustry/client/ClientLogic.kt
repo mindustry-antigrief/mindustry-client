@@ -60,7 +60,7 @@ class ClientLogic {
             hidingBlocks = false
             hidingUnits = false
             hidingAirUnits = false
-            showingTurrets = false
+            showingEnemyTurrets = false
             showingAllyTurrets = false
             showingInvTurrets = false
 //            if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)

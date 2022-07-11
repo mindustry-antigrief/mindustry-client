@@ -93,7 +93,7 @@ public class DesktopInput extends InputHandler{
                             str.append("\n").append(bundle.format("client.toggleunits", keybinds.get(Binding.invisible_units).key.toString()));
                             str.append("\n").append(bundle.format("client.toggleairunits", keybinds.get(Binding.invisible_units).key.toString()));
                         }
-                        if(showingTurrets){
+                        if(showingEnemyTurrets){
                             str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
                         }
                         if(showingInvTurrets){
@@ -291,7 +291,7 @@ public class DesktopInput extends InputHandler{
             if (input.shift()) showingOverdrives = !showingOverdrives;
             else if (input.ctrl() && settings.getBool("allowinvturrets")) showingInvTurrets = !showingInvTurrets;
             else if (input.alt()) showingAllyTurrets = !showingAllyTurrets;
-            else showingTurrets = !showingTurrets;
+            else showingEnemyTurrets = !showingEnemyTurrets;
         }
 
         if(input.keyTap(Binding.hide_blocks) && scene.getKeyboardFocus() == null){
