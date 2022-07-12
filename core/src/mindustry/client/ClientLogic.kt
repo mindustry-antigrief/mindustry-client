@@ -16,6 +16,7 @@ import mindustry.gen.*
 import mindustry.logic.*
 import mindustry.type.*
 import mindustry.world.blocks.logic.*
+import mindustry.world.blocks.sandbox.PowerVoid
 import mindustry.world.modules.*
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
@@ -177,6 +178,12 @@ class ClientLogic {
 
         Events.on(GameOverEventClient::class.java) {
             if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
+        }
+
+        Events.on(BlockDestroyEvent::class.java) {
+            if (it.tile.block() is PowerVoid) {
+                Vars.player.sendMessage(Core.bundle.format("client.voidwarn", it.tile.x, it.tile.y))
+            }
         }
     }
 }
