@@ -205,7 +205,7 @@ object Client {
         register("unit <unit-type>", "Picks a unit nearest to cursor") { args, _ ->
             ui.unitPicker.pickUnit(
                 content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) },
-                Core.input.mouseWorldX(), Core.input.mouseWorldY(), true
+                Core.input.mouseWorldX(), Core.input.mouseWorldY(), false
             )
         }
 
