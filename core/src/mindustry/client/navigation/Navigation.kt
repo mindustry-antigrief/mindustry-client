@@ -105,8 +105,8 @@ object Navigation {
     @JvmStatic
     fun getTree(): EntityTree {
         if (Thread.currentThread().name == "main") {
-            if (updatingAllyEnts.get() <= 0) submit(::updateEnts).get()
-            updatingAllyEnts.set(2)
+            if (updatingEnts.get() <= 0) submit(::updateEnts).get()
+            updatingEnts.set(2)
         } else updateEnts()
         return obstacleTree
     }
@@ -116,7 +116,7 @@ object Navigation {
     fun getAllyEnts(): Seq<TurretPathfindingEntity> {
         if (Thread.currentThread().name == "main") {
             if (updatingAllyEnts.get() <= 0) submit(::updateAllyEnts).get()
-            updatingEnts.set(2)
+            updatingAllyEnts.set(2)
         } else updateAllyEnts()
         return allies
     }
