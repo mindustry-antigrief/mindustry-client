@@ -25,6 +25,7 @@ public class Menus{
 
     @Remote(variants = Variant.both)
     public static void menu(int menuId, String title, String message, String[][] options){
+        if (!Core.settings.getBool("showpopups")) return;
         if(title == null) title = "";
         if(options == null) options = new String[0][0];
         if(options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
@@ -36,6 +37,7 @@ public class Menus{
 
     @Remote(targets = Loc.both, called = Loc.both)
     public static void menuChoose(@Nullable Player player, int menuId, int option){
+        if (!Core.settings.getBool("showpopups")) return;
         if(player != null){
             Events.fire(new MenuOptionChooseEvent(player, menuId, option));
             if(menuId >= 0 && menuId < menuListeners.size){
@@ -72,6 +74,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoMessage(String message){
         if(message == null) return;
+        if (!Core.settings.getBool("showpopups")) return;
         if((ClientUtilsKt.io() || ClientUtilsKt.phoenix()) && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
 
         ui.showText("", message);
@@ -80,6 +83,7 @@ public class Menus{
     @Remote(variants = Variant.both, unreliable = true)
     public static void infoPopup(String message, float duration, int align, int top, int left, int bottom, int right){
         if(message == null) return;
+        if (!Core.settings.getBool("showpopups")) return;
 
         ui.showInfoPopup(message, duration, align, top, left, bottom, right);
     }
@@ -94,6 +98,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoPopupReliable(String message, float duration, int align, int top, int left, int bottom, int right){
         if(message == null) return;
+        if (!Core.settings.getBool("showpopups")) return;
 
         ui.showInfoPopup(message, duration, align, top, left, bottom, right);
     }
@@ -106,6 +111,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoToast(String message, float duration){
         if(message == null) return;
+        if (!Core.settings.getBool("showpopups")) return;
 
         ui.showInfoToast(message, duration);
     }
@@ -113,6 +119,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void warningToast(int unicode, String text){
         if(text == null || Fonts.icon.getData().getGlyph((char)unicode) == null) return;
+        if (!Core.settings.getBool("showpopups")) return;
 
         ui.hudfrag.showToast(Fonts.getGlyph(Fonts.icon, (char)unicode), text);
     }
