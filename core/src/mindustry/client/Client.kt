@@ -664,6 +664,7 @@ object Client {
                     player.sendMessage(sb.toString())
                 }
                 "search" -> ProcessorFinder.search()
+                "searchall" -> ProcessorFinder.searchAll()
                 "clear" -> {
                     player.sendMessage("[accent]Cleared ${ProcessorFinder.getCount()} highlighters.")
                     ProcessorFinder.clear()
@@ -672,9 +673,10 @@ object Client {
                 else -> player.sendMessage("""
                     [accent]Use [coral]!procfind query ...[] to add a search query (automatically continues with !procfind search).
                     Use [coral]!procfind queries[] to list all regex queries. 
-                    Use [coral]!procfind search[] to scan for processors matching queries
+                    Use [coral]!procfind search[] to scan your team for processors matching queries
+                    Use [coral]!procfind searchall[] to scan every team for processors matching queries
                     Use [coral]!procfind list[] to log clusters of processors.
-                    Use [coral]!procfind clear[] to clear highlights.
+                    Use [coral]!procfind clear[] to clear queries.
                 """.trimIndent())
             }
         }

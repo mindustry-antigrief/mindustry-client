@@ -4,8 +4,10 @@ import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.struct.Seq;
 import kotlin.text.Regex;
+import mindustry.Vars;
 import mindustry.gen.Building;
 import mindustry.graphics.Drawf;
+import mindustry.world.Tile;
 import mindustry.world.blocks.logic.LogicBlock.LogicBuild;
 
 import java.util.HashSet;
@@ -27,6 +29,27 @@ public class ProcessorFinder {
         int matchCount = 0, processorCount = 0;
         for (Building build : builds) {
             if (build instanceof LogicBuild logicBuild ) {
+                for (Regex query : queries) {
+                    if (query.containsMatchIn((logicBuild.code))) {
+                        matchCount++;
+                        highlighted.add(logicBuild);
+                    }
+                    processorCount++;
+                }
+            }
+        }
+    
+        // Log how many found
+        if (matchCount == 0) player.sendMessage("[accent]No matches found.");
+        else player.sendMessage(String.format("[accent]Found [coral]%d/%d[] [accent]matches.", matchCount, processorCount));
+    }
+    
+    public static void searchAll() {
+        highlighted.clear();
+        
+        int matchCount = 0, processorCount = 0;
+        for (Tile tile : Vars.world.tiles) {
+            if (tile.build instanceof LogicBuild logicBuild) {
                 for (Regex query : queries) {
                     if (query.containsMatchIn((logicBuild.code))) {
                         matchCount++;
