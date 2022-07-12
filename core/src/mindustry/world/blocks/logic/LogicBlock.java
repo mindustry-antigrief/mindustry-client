@@ -560,12 +560,14 @@ public class LogicBlock extends Block{
         public void drawSelect(){
             Groups.unit.each(u -> u.controller() instanceof LogicAI ai && ai.controller == this, unit -> {
                 Drawf.square(unit.x, unit.y, unit.hitSize, unit.rotation + 45);
-                Draw.draw((float) (Layer.overlayUI+0.01), () -> { // Taken from extended-UI
-                    Lines.stroke(2, Color.purple);
-                    Draw.alpha(0.7f);
-                    Lines.line(unit.x, unit.y, this.x, this.y);
-                    Draw.reset();
-                });
+                if (Core.settings.getBool("tracelogicunits")) {
+                    Draw.draw((float) (Layer.overlayUI+0.01), () -> { // Taken from extended-UI
+                        Lines.stroke(2, Color.purple);
+                        Draw.alpha(0.7f);
+                        Lines.line(unit.x, unit.y, this.x, this.y);
+                        Draw.reset();
+                    });
+                }
             });
         }
 

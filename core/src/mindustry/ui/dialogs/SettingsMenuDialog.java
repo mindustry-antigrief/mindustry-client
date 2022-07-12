@@ -341,6 +341,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("drawwrecks", true);
         client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
         client.checkPref("drawpath", true);
+        client.checkPref("tracelogicunits", false);
         client.checkPref("unitranges", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
