@@ -3,6 +3,8 @@ package mindustry.world.blocks.logic;
 import arc.*;
 import arc.func.*;
 import arc.graphics.*;
+import arc.graphics.g2d.Draw;
+import arc.graphics.g2d.Lines;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.Bits;
@@ -558,6 +560,12 @@ public class LogicBlock extends Block{
         public void drawSelect(){
             Groups.unit.each(u -> u.controller() instanceof LogicAI ai && ai.controller == this, unit -> {
                 Drawf.square(unit.x, unit.y, unit.hitSize, unit.rotation + 45);
+                Draw.draw((float) (Layer.overlayUI+0.01), () -> { // Taken from extended-UI
+                    Lines.stroke(2, Color.purple);
+                    Draw.alpha(0.7f);
+                    Lines.line(unit.x, unit.y, this.x, this.y);
+                    Draw.reset();
+                });
             });
         }
 
