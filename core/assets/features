@@ -91,6 +91,7 @@
  * Proccessor link name fix - E.g. after unlinking smelter3, the next smelter you link wont be smelter4, it will be smelter3.
  * Automatic attem search - Upon entering a world, !fixcode is ran. If attemwarfare is enabled, the processor codes are automatically replaced.
  * Core item flow rate - Use {select} on the core items list on the top to cycle between flow rate modes: Normal, PositiveOnly, Negative
+ * Trace Logic Units - Draw lines from hovered processor to controlled units. Toggleable in settings.
  * >=========================< Commands >=========================<
  * !voids [count] - Shows void locations
  * !procfind [options] - Searches for processors with matching regex. Run without arguments for explanation.
