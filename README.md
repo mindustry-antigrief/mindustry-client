@@ -13,6 +13,7 @@ _[Javadoc](https://mindustrygame.github.io/docs/)_
 
 ## Installation
 
+Go to the [client builds repository](https://github.com/stormybytes/mindustry-client-builds/) and get the latest release. 
 
 ## Contributing
 
