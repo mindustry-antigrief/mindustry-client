@@ -648,17 +648,6 @@ object Client {
         register("procfind [options...]", "Highlights processors based on search query") { args, player ->
             val newArgs = args.joinToString(" ").split(" ").toTypedArray() // TODO: fix the command arguments. this is beyond cursed
 
-            if (newArgs.isEmpty()) {
-                player.sendMessage("""
-                    [accent]Use [coral]!procfind query ...[] to add a search query (automatically continues with !procfind search).
-                    Use [coral]!procfind queries[] to list all regex queries. 
-                    Use [coral]!procfind search[] to scan for processors matching queries
-                    Use [coral]!procfind list[] to log clusters of processors.
-                    Use [coral]!procfind clear[] to clear highlights.
-                """.trimIndent())
-                return@register
-            }
-
             when (newArgs[0]) {
                 "query" -> {
                     if (newArgs.size < 2) {
@@ -680,7 +669,13 @@ object Client {
                     ProcessorFinder.clear()
                 }
                 "list" -> ProcessorFinder.list()
-                else -> player.sendMessage("Invalid argument!")
+                else -> player.sendMessage("""
+                    [accent]Use [coral]!procfind query ...[] to add a search query (automatically continues with !procfind search).
+                    Use [coral]!procfind queries[] to list all regex queries. 
+                    Use [coral]!procfind search[] to scan for processors matching queries
+                    Use [coral]!procfind list[] to log clusters of processors.
+                    Use [coral]!procfind clear[] to clear highlights.
+                """.trimIndent())
             }
         }
 
