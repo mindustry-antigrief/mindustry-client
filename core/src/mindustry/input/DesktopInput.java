@@ -94,7 +94,7 @@ public class DesktopInput extends InputHandler{
                             str.append("\n").append(bundle.format("client.toggleairunits", keybinds.get(Binding.invisible_units).key.toString()));
                         }
                         if(showingTurrets){
-                            str.append("\n").append(bundle.format("client.toggleturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
+                            str.append("\n").append(bundle.format("client.toggleenemyturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
                         }
                         if (showingAllyTurrets) {
                             str.append("\n").append(bundle.format("client.toggleallyturrets", keybinds.get(Binding.show_turret_ranges).key.toString()));
