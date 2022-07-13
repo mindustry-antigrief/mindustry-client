@@ -29,6 +29,7 @@ import mindustry.client.navigation.Navigation.navigator
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.core.*
+import mindustry.core.Version.type
 import mindustry.entities.*
 import mindustry.entities.units.*
 import mindustry.game.*
@@ -210,36 +211,49 @@ object Client {
         }
 
         register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
-            val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
-            val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var formation = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
-
-            (player.team().data().unitCache(type) ?: Seq.with()).withEach {
-                total++
-                val ctrl = sense(LAccess.controlled).toInt()
-                if (flag == 0.0) unflagged++
-                else {
-                    flagged++
-                    if (ctrl == 0) freeFlagged++
+            if (args[0] == "all") {
+                val cap = Units.getStringCap(player.team())
+                val sb = StringBuilder("[accent]Count all units (Cap: $cap)")
+                for (type in content.units()) {
+                    var total = 0
+                    (player.team().data().unitCache(type) ?: Seq.with()).withEach { total++ } // If possible please rewrite this single line. It looks scuffed.
+                    if (total == 0) continue
+                    sb.append("\n${Iconc.codes.get(type.name)} ${type.localizedName}: $total")
                 }
-                when (ctrl) {
-                    GlobalConstants.ctrlPlayer -> players++
-                    GlobalConstants.ctrlFormation -> formation++
-                    GlobalConstants.ctrlProcessor -> {
-                        if (flag != 0.0) logicFlagged++
-                        logic++
-                    }
-                    else -> free++
-                }
+                player.sendMessage(sb.toString())
             }
+            else {
+                val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
+                val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var formation = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
 
-            player.sendMessage("""
-            [accent]${type.localizedName}:
-            Total(Cap): $total($cap)
-            Free(Free Flagged): $free($freeFlagged)
-            Flagged(Unflagged): $flagged($unflagged)
-            Players(Formation): $players($formation)
-            Logic(Logic Flagged): $logic($logicFlagged)
-            """.trimIndent())
+                (player.team().data().unitCache(type) ?: Seq.with()).withEach {
+                    total++
+                    val ctrl = sense(LAccess.controlled).toInt()
+                    if (flag == 0.0) unflagged++
+                    else {
+                        flagged++
+                        if (ctrl == 0) freeFlagged++
+                    }
+                    when (ctrl) {
+                        GlobalConstants.ctrlPlayer -> players++
+                        GlobalConstants.ctrlFormation -> formation++
+                        GlobalConstants.ctrlProcessor -> {
+                            if (flag != 0.0) logicFlagged++
+                            logic++
+                        }
+                        else -> free++
+                    }
+                }
+
+                player.sendMessage("""
+                [accent]${type.localizedName}:
+                Total(Cap): $total($cap)
+                Free(Free Flagged): $free($freeFlagged)
+                Flagged(Unflagged): $flagged($unflagged)
+                Players(Formation): $players($formation)
+                Logic(Logic Flagged): $logic($logicFlagged)
+                """.trimIndent())
+            }
         }
 
         // FINISHME: Add spawn command

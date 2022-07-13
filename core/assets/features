@@ -100,6 +100,7 @@
  * !pathing - Switches between the classic and optimized A star navigator (the tightened path one)
  * !buildmine - A mix of !builder and !miner. Switches to buildpath when buildplans exist (and build is enabled) then switches back to mining after done.
  * !fixnode - Enables/disables certain parts of the better-node-connection-system. (Ask zxtej, I have no idea how this works -SByte)
+ * !count all - Counts all units.
  * >=========================< Chat Text Replacer >=========================<
  * %s - replaces with a !shrug
  * %c - replaces with cursor coordinates
