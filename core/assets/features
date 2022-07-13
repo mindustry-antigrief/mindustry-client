@@ -86,6 +86,7 @@
  * Rainbow logic jump arrows - Upon hovering, turns the respective jump arrow rainbowie.
  * Core item flow rate - Use {select} on the core items list on the top to cycle between flow rate modes: Normal, PositiveOnly, Negative
  * Trace Logic Units - Draw lines from hovered processor to controlled units. Toggleable in settings.
+ * Power void broken notifs - Notifies in chat when a power void is broken and where.
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.
  * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
@@ -104,6 +105,7 @@
  * !buildmine - A mix of !builder and !miner. Switches to buildpath when buildplans exist (and build is enabled) then switches back to mining after done.
  * !fixnode - Enables/disables certain parts of the better-node-connection-system. (Ask zxtej, I have no idea how this works -SByte)
  * !count all - Counts all units.
+ * !unit null - Exits the unit picking queue.
  * >=========================< Chat Text Replacer >=========================<
  * %s - replaces with a !shrug
  * %c - replaces with cursor coordinates
