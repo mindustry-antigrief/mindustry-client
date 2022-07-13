@@ -95,8 +95,9 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path()
 
         val unit = player.unit()
         val shouldShoot =
-            assisting.unit().isShooting || // Target shooting
-            type == Type.FreeMove && player.shooting && Core.input.keyDown(Binding.select) // Player not following and shooting
+            type != Type.BuildPath &&
+            (assisting.unit().isShooting || // Target shooting
+            player.shooting && Core.input.keyDown(Binding.select)) // Player not following and shooting
         val aimPos =
             if ((type == Type.Regular || type == Type.Cursor) && assisting.unit().isShooting) Tmp.v1.set(assisting.unit().aimX, assisting.unit().aimY) // Following or shooting
             else if (unit.type.faceTarget) Core.input.mouseWorld() else Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, player.unit().y) // Not following, not shooting
