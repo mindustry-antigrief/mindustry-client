@@ -11,6 +11,7 @@ import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
+import mindustry.ai.types.FormationAI
 import mindustry.ai.types.LogicAI
 import mindustry.client.*
 import mindustry.client.communication.*
@@ -422,20 +423,20 @@ inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
 fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))
 
 fun getName(builder:mindustry.gen.Unit):String {
-    if(builder.isPlayer()){
-        return Strings.stripColors(builder.getPlayer().name)
-    } else if(builder.controller() is LogicAI){
+    return if (builder.isPlayer || builder.controller() is FormationAI){
+        Strings.stripColors(builder.player.name)
+    } else if (builder.controller() is LogicAI){
         val controller = (builder.controller() as LogicAI).controller;
-        return Strings.format(
+        Strings.format(
             "@ controlled by @ last configured by @ at (@, @)",
-            builder.type.toString(), controller.getDisplayName(),
+            builder.type.toString(), controller.displayName,
             if(controller.lastAccessed == null) "[unknown]" else Strings.stripColors(controller.lastAccessed),
             controller.tileX(), controller.tileY()
         )
     } else if(builder.controller() != null){
-        return Strings.format("@ controlled by controller of class @", builder.type.toString(), (builder.controller()::javaClass).toString())
+        Strings.format("@ controlled by controller of class @", builder.type.toString(), (builder.controller()::javaClass).toString()) // Bala, what have you done this time?
     } else {
-        return Strings.format("@ not controlled by anything-wait what-")
+        Strings.format("@ not controlled by anything-wait what-")
     }
 }
 
