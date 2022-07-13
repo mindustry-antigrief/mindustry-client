@@ -93,8 +93,8 @@
  * Shift + {hide_blocks} - Hides build plans.
  * Shift + {break_block} - Freezes/Unfreezes build plans. Useful for prioritizing which build plans to execute first.
  * Auto bridge weave - Press shift while building with bridges to automatically bridge weave. End point has automatically converged bridge connections.
- * Player List Assist - None (Regular), Shift (Free-move), Ctrl (Follow Cursor), Alt (BuildPath)
- * Click Assist - Shift (Regular), Shift + Alt (Free-move), Ctrl (Follow Cursor), Alt (BuildPath)
+ * Player List Assist - None (Regular), Shift (Free Move), Ctrl (Follow Cursor), Alt (BuildPath)
+ * Click Assist - Shift (Regular), Shift + Alt (Free Move), Ctrl (Follow Cursor), Alt (BuildPath)
  * >=========================< Commands >=========================<
  * !voids [count] - Shows void locations
  * !procfind [options] - Searches for processors with matching regex. Run without arguments for explanation.
