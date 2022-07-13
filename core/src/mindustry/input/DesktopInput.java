@@ -478,8 +478,12 @@ public class DesktopInput extends InputHandler{
                         Call.unitControl(player, on);
                         shouldShoot = false;
                         recentRespawnTimer = 1f;
-                    } else if ((input.keyDown(Binding.control) || input.shift()) && on.isPlayer()) { // Shift + click player: quick assist (ctrl + click to assist similar to buildpath, shift/ctrl + alt + click to not follow)
-                        Navigation.follow(new AssistPath(on.playerNonNull(), input.keyDown(Binding.control), input.alt()));
+                    } else if ((input.ctrl() || input.shift() || input.alt()) && on.isPlayer()) { // Shift + click player: quick assist (ctrl + click to assist similar to buildpath, shift/ctrl + alt + click to not follow)
+                        Navigation.follow(new AssistPath(on.playerNonNull(),
+                                input.shift() && input.alt() ? AssistPath.Type.FreeMove :
+                                input.ctrl() ? AssistPath.Type.Cursor :
+                                input.alt() ? AssistPath.Type.BuildPath :
+                                AssistPath.Type.Regular));
                         shouldShoot = false;
                     } else if (on.controller() instanceof LogicAI ai && ai.controller != null && (!player.unit().type.canBoost || player.boosting)) { // Shift + click logic unit: spectate processor
                         Spectate.INSTANCE.spectate(ai.controller);

@@ -14,10 +14,11 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 
-class AssistPath(val assisting: Player?, private val build: Boolean = false, private val noFollow: Boolean = false) : Path() {
+class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path() {
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
     private var tolerance = 0F
+    private var buildPath: BuildPath? = if (type == Type.BuildPath) BuildPath.Self() else null
 
     companion object { // Events.remove is weird, so we just create the hooks once instead
         init {
@@ -95,9 +96,9 @@ class AssistPath(val assisting: Player?, private val build: Boolean = false, pri
         val unit = player.unit()
         val shouldShoot =
             assisting.unit().isShooting || // Target shooting
-            noFollow && player.shooting && Core.input.keyDown(Binding.select) // Player not following and shooting
+            type == Type.FreeMove && player.shooting && Core.input.keyDown(Binding.select) // Player not following and shooting
         val aimPos =
-            if (!noFollow || assisting.unit().isShooting) Tmp.v1.set(assisting.unit().aimX, assisting.unit().aimY) // Following or shooting
+            if ((type == Type.Regular || type == Type.Cursor) && assisting.unit().isShooting) Tmp.v1.set(assisting.unit().aimX, assisting.unit().aimY) // Following or shooting
             else if (unit.type.faceTarget) Core.input.mouseWorld() else Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, player.unit().y) // Not following, not shooting
         val lookPos =
             if (assisting.unit().isShooting && unit.type.rotateShooting) player.angleTo(assisting.unit().aimX, assisting.unit().aimY) // Assisting is shooting and player has fixed weapons
@@ -109,16 +110,17 @@ class AssistPath(val assisting: Player?, private val build: Boolean = false, pri
         unit.aim(aimPos)
         unit.lookAt(lookPos)
 
-        if (!noFollow) { // Following
-            goTo(assisting.x, assisting.y, tolerance, tolerance + tilesize * 5)
-        } else { // Not following
-            player.unit().moveAt((control.input as? DesktopInput)?.movement ?: (control.input as MobileInput).movement)
+        when (type) {
+            Type.Regular -> goTo(assisting.x, assisting.y, tolerance, tolerance + tilesize * 5)
+            Type.FreeMove -> player.unit().moveAt((control.input as? DesktopInput)?.movement ?: (control.input as MobileInput).movement)
+            Type.Cursor -> goTo(assisting.mouseX, assisting.mouseY, tolerance, tolerance + tilesize * 5)
+            Type.BuildPath -> if (!plans.isEmpty) buildPath?.follow()
         }
     }
 
     override fun draw() {
         assisting ?: return
-        if (!noFollow && player.dst(assisting) > tolerance + tilesize * 5) waypoints.draw()
+        if (type != Type.FreeMove && player.dst(assisting) > tolerance + tilesize * 5) waypoints.draw()
 
         if (Spectate.pos != assisting) assisting.unit().drawBuildPlans() // Don't draw plans twice
     }
@@ -129,5 +131,12 @@ class AssistPath(val assisting: Player?, private val build: Boolean = false, pri
 
     override fun next(): Position? {
         return null
+    }
+
+    enum class Type {
+        Regular,
+        FreeMove,
+        Cursor,
+        BuildPath,
     }
 }

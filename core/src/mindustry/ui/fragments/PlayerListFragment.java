@@ -10,6 +10,7 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
 import mindustry.gen.*;
@@ -195,7 +196,12 @@ public class PlayerListFragment extends Fragment{
             }
             if (user != player) {
                 button.button(Icon.copy, ustyle, // Assist/copy
-                        () -> Navigation.follow(new AssistPath(user, Core.input.shift(), Core.input.ctrl()))).size(h / 2).tooltip("@client.assist");
+                        () -> Navigation.follow(new AssistPath(user,
+                                Core.input.shift() ? AssistPath.Type.FreeMove :
+                                Core.input.ctrl() ? AssistPath.Type.Cursor :
+                                Core.input.alt() ? AssistPath.Type.BuildPath :
+                                                    AssistPath.Type.Regular)
+                        )).size(h / 2).tooltip("@client.assist");
                 button.button(Icon.cancel, ustyle, // Unassist/block
                         () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.move, ustyle, // Goto
