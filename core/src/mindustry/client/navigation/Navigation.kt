@@ -30,6 +30,7 @@ object Navigation {
     init {
         Events.on(WorldLoadEvent::class.java) {
             obstacleTree = EntityTree(Vars.world.getQuadBounds(Rect()))
+            allyTree = EntityTree(Vars.world.getQuadBounds(Rect()))
             tmpTree = EntityTree(Vars.world.getQuadBounds(Rect()))
             ents.shrink(51)
         }
@@ -88,7 +89,7 @@ object Navigation {
             tmpTree = allyTree
             allyTree = tree
         }
-        return obstacles
+        return allies
     }
 
     @JvmStatic
@@ -139,7 +140,7 @@ object Navigation {
         }
 
         if (allyJob.isDone && updatingAllyEnts.get() > 0) {
-            if (updatingAllyEnts.get() == 1) obstacles.set(allyJob.get())
+            if (updatingAllyEnts.get() == 1) allies.set(allyJob.get())
             allyJob = submit { updateAllyEnts(true) }
             updatingAllyEnts.decrementAndGet()
         }
