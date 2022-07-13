@@ -114,7 +114,7 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path()
             Type.Regular -> goTo(assisting.x, assisting.y, tolerance, tolerance + tilesize * 5)
             Type.FreeMove -> player.unit().moveAt((control.input as? DesktopInput)?.movement ?: (control.input as MobileInput).movement)
             Type.Cursor -> goTo(assisting.mouseX, assisting.mouseY, tolerance, tolerance + tilesize * 5)
-            Type.BuildPath -> if (!plans.isEmpty) buildPath?.follow()
+            Type.BuildPath -> if (!plans.isEmpty) buildPath?.follow() else goTo(assisting.x, assisting.y, tolerance, tolerance + tilesize * 5) // Follow build path if plans exist, otherwise follow player
         }
     }
 
