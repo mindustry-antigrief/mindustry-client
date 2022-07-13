@@ -87,6 +87,7 @@
  * Core item flow rate - Use {select} on the core items list on the top to cycle between flow rate modes: Normal, PositiveOnly, Negative
  * Trace Logic Units - Draw lines from hovered processor to controlled units. Toggleable in settings.
  * Power void broken notifs - Notifies in chat when a power void is broken and where.
+ * No drift MinePath - Yes.
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.
  * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
