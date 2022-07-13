@@ -478,7 +478,7 @@ public class DesktopInput extends InputHandler{
                         Call.unitControl(player, on);
                         shouldShoot = false;
                         recentRespawnTimer = 1f;
-                    } else if ((input.ctrl() || input.shift() || input.alt()) && on.isPlayer()) { // Shift + click player: quick assist (ctrl + click to assist similar to buildpath, shift/ctrl + alt + click to not follow)
+                    } else if ((input.ctrl() || input.shift() || input.alt()) && on.isPlayer()) {
                         Navigation.follow(new AssistPath(on.playerNonNull(),
                                 input.shift() && input.alt() ? AssistPath.Type.FreeMove :
                                 input.ctrl() ? AssistPath.Type.Cursor :
