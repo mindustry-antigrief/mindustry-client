@@ -251,14 +251,7 @@ public class OverlayRenderer{
         if(ui.hudfrag.blockfrag.hover() instanceof Unit unit && unit.controller() instanceof LogicAI ai && ai.controller != null && ai.controller.isValid()){
             var build = ai.controller;
             Drawf.square(build.x, build.y, build.block.size * tilesize/2f + 2f);
-            if (Core.settings.getBool("tracelogicunits")) {
-                Draw.draw((float) (Layer.overlayUI+0.01), () -> { // Taken from extended-UI
-                    Lines.stroke(2, Color.purple);
-                    Draw.alpha(0.7f);
-                    Lines.line(unit.x, unit.y, build.x, build.y);
-                    Draw.reset();
-                });
-            }
+            if (Core.settings.getBool("tracelogicunits")) build.drawSelect();
             else if(!unit.within(build, unit.hitSize * 2f)){
                 Drawf.arrow(unit.x, unit.y, build.x, build.y, unit.hitSize *2f, 4f);
             }
