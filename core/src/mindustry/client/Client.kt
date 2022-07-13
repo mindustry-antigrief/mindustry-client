@@ -203,8 +203,9 @@ object Client {
             ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
         }
 
-        register("unit <unit-type>", "Picks a unit nearest to cursor") { args, _ ->
-            ui.unitPicker.pickUnit(
+        register("unit <unit-type>", "Picks a unit nearest to cursor. Use null or no args to unqueue switch.") { args, _ ->
+            if (args[0] == "null" || args[0] == "") ui.unitPicker.unpickUnit()
+            else ui.unitPicker.pickUnit(
                 content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) },
                 Core.input.mouseWorldX(), Core.input.mouseWorldY(), false
             )

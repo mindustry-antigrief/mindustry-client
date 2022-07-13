@@ -77,6 +77,10 @@ public class UnitPicker extends BaseDialog {
         }
         return found != null;
     }
+    
+    public void unpickUnit() {
+        this.type = null;
+    }
 
     public Unit findUnit(UnitType type) {
         return findUnit(type, player.x, player.y);
