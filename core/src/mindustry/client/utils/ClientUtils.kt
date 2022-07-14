@@ -423,8 +423,10 @@ inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
 fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))
 
 fun getName(builder:mindustry.gen.Unit):String {
-    return if (builder.isPlayer || builder.controller() is FormationAI){
+    return if (builder.isPlayer) {
         Strings.stripColors(builder.player.name)
+    } else if (builder.controller() is FormationAI) {
+        Strings.stripColors((builder.controller() as FormationAI).leader.player.name)
     } else if (builder.controller() is LogicAI){
         val controller = (builder.controller() as LogicAI).controller;
         Strings.format(
