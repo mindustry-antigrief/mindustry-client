@@ -12,7 +12,6 @@ import mindustry.*
 import mindustry.Vars.*
 import mindustry.Vars.state
 import mindustry.ai.*
-import mindustry.client.Client.timer
 import mindustry.client.ClientVars.*
 import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
@@ -29,7 +28,6 @@ import mindustry.client.navigation.Navigation.navigator
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.core.*
-import mindustry.core.Version.type
 import mindustry.entities.*
 import mindustry.entities.units.*
 import mindustry.game.*
@@ -38,6 +36,7 @@ import mindustry.graphics.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
+import mindustry.ui.Fonts
 import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
@@ -54,10 +53,8 @@ import java.io.*
 import java.math.*
 import java.security.*
 import java.security.cert.*
-import javax.annotation.processing.Processor
 import kotlin.math.*
 import kotlin.random.*
-import kotlin.reflect.KParameter
 
 object Client {
     var leaves: Moderation? = Moderation()
@@ -219,7 +216,7 @@ object Client {
                     var total = 0
                     (player.team().data().unitCache(type) ?: Seq.with()).withEach { total++ } // If possible please rewrite this single line. It looks scuffed.
                     if (total == 0) continue
-                    sb.append("\n${Iconc.codes.get(type.name)} ${type.localizedName}: $total")
+                    sb.append("\n[white]${Fonts.stringIcons.get(type.name)}[] ${type.localizedName}: $total")
                 }
                 player.sendMessage(sb.toString())
             }
