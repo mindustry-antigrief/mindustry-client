@@ -25,6 +25,7 @@
  * Core item flow rate - Use {select} on the core items list on the top to cycle between flow rate modes: Normal, PositiveOnly, Negative
  * Trace Logic Units - Draw lines from hovered processor to controlled units. Toggleable in settings.
  * Power void broken notifs - Notifies in chat when a power void is broken and where.
+ * Zero drift setting - No more drifting after releasing movement keys. Looks a bit choppy due to the linear interpolation though.
  * No drift MinePath - Yes.
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.

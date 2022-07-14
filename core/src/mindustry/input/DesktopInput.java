@@ -928,7 +928,8 @@ public class DesktopInput extends InputHandler{
             }
 
 //            unit.movePref(movement); Client replaces this with the line below
-            unit.moveAt(movement);
+            if (Core.settings.getBool("zerodrift") && movement.epsilonEquals(0, 0)) unit.vel().setZero();
+            else unit.moveAt(movement);
 
             unit.aim(unit.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, unit.y));
 
