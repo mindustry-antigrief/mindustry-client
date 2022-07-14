@@ -11,36 +11,45 @@ import mindustry.gen.*
 import mindustry.type.*
 import mindustry.world.Tile
 
-class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().type.mineItems, var cap: Int = Core.settings.getInt("minepathcap"), val newGame: Boolean = false) : Path() {
+class MinePath @JvmOverloads constructor(
+    var items: Seq<Item> = Seq<Item>(),
+    var cap: Int = Core.settings.getInt("minepathcap"),
+    val newGame: Boolean = false,
+    args: String = Core.settings.getString("defaultminepathargs")
+) : Path() {
+
     private var lastItem: Item? = null // Last item mined
     private var timer = Interval()
     private var coreIdle = false
     var tile: Tile? = null
+
+    init {
+        val split = args.split("\\s".toRegex())
+        if (items.isEmpty) {
+            for (a in split) {
+                if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
+                else if (Strings.canParseInt(a)) cap = a.toInt().coerceAtLeast(0) // Specified cap, <= 0 results in infinite cap
+                else content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.apply(items::add) ?:
+                player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
+            }
+        }
+
+        if (items.isEmpty) {
+            items = player.unit().type.mineItems
+            if (split.none { Strings.parseInt(it) > 0 }) player.sendMessage("client.path.miner.allinvalid".bundle())
+        }
+        else if (cap >= 0) {
+            player.sendMessage(Core.bundle.format("client.path.miner.tobuild", items.joinToString(), if (cap == 0) "∞" else cap))
+        } else {
+            player.sendMessage(Core.bundle.format("client.path.miner.toidle", items.joinToString(), player.closestCore().storageCapacity))
+        }
+    }
 
     companion object {
         init {
             Events.on(EventType.WorldLoadEvent::class.java) {
                 (Navigation.currentlyFollowing as? MinePath)?.lastItem = null // Reset on world load to prevent stupidity
             }
-        }
-    }
-
-    constructor(args: String = Core.settings.getString("defaultminepathargs", "")) : this(Seq()) {
-        val split = args.split("\\s".toRegex())
-        for (a in split) {
-            if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
-            else if (Strings.canParseInt(a)) cap = a.toInt().coerceAtLeast(0) // Specified cap, <= 0 results in infinite cap
-            else content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.apply(items::add) ?:
-            player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
-        }
-
-        if (items.isEmpty) {
-            items = player.unit().type.mineItems
-            if (split.none { Strings.parseInt(it) > 0 }) player.sendMessage("client.path.miner.allinvalid".bundle())
-        } else if (cap >= 0) {
-            player.sendMessage(Core.bundle.format("client.path.miner.tobuild", items.joinToString(), if (cap == 0) "∞" else cap))
-        } else {
-            player.sendMessage(Core.bundle.format("client.path.miner.toidle", items.joinToString(), player.closestCore().storageCapacity))
         }
     }
 

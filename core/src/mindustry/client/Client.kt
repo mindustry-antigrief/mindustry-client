@@ -301,7 +301,7 @@ object Client {
         } // FINISHME: This is so scuffed lol
 
         register("miner [options...]", Core.bundle.get("client.command.miner.description")) { args, _: Player ->
-            if (args.isEmpty()) follow(MinePath()) else follow(MinePath(args[0]))
+            if (args.isEmpty()) follow(MinePath()) else follow(MinePath(args = args[0]))
         } // FINISHME: This is so scuffed lol
 
         register("buildmine", "Buildpath (self) + mine (all)") {_, _: Player ->

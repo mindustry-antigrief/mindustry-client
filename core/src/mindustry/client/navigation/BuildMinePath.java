@@ -43,7 +43,7 @@ public class BuildMinePath extends Path{ // This is so scuffed. Help.
             }
         } else {
             if (initMine && timer.get(0, 300)) {
-                currentPath = new MinePath(); // actually, dont mine scrap. bad.
+                currentPath = new MinePath();
                 initBuild = true;
                 initMine = false;
                 
