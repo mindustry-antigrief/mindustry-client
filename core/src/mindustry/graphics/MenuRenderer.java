@@ -33,17 +33,20 @@ public class MenuRenderer implements Disposable{
     public float flyerSpin = 0f;
     public int numFlyers;
     public int numBlockFlyers;
-    public UnitType flyerType = content.units().select(u -> u.region != null && u.region.found()).random();
-    public Block blockFlyerType = content.blocks().select(u -> u.region != null && u.region.found() && u.isPlaceable()).random();
-    public CursednessLevel cursednessLevel = Core.settings == null ?
-            CursednessLevel.NORMAL :
-            CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1));
+    public UnitType flyerType;
+    public Block blockFlyerType;
+    public CursednessLevel cursednessLevel;
 
     public MenuRenderer(){
-        Time.mark();
         generate();
         cache();
-        Log.debug("Time to generate menu: @", Time.elapsed());
+        updateCursedness();
+    }
+
+    public void updateCursedness(){
+        cursednessLevel = Core.settings == null ?
+            CursednessLevel.NORMAL :
+            CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1));
         numFlyers = switch(cursednessLevel){
             case NORMAL, UHH -> Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
             case OHNO, CURSED -> Mathf.random(35, 70);
@@ -54,6 +57,8 @@ public class MenuRenderer implements Disposable{
             case CURSED -> Mathf.random(5, 10);
             case WWWHHHHHYYYY -> Mathf.random(20, 25);
         };
+        flyerType = content.units().select(u -> u.region != null && u.region.found()).random();
+        blockFlyerType = content.blocks().select(u -> u.region != null && u.region.found() && u.isPlaceable()).random();
     }
 
     private void generate(){

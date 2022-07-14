@@ -24,7 +24,7 @@ import static mindustry.Vars.*;
 public class MenuFragment extends Fragment{
     private Table container, submenu;
     private Button currentMenu;
-    private MenuRenderer renderer;
+    public MenuRenderer renderer;
 
     @Override
     public void build(Group parent){

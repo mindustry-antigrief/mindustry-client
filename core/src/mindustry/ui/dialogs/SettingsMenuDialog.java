@@ -59,7 +59,7 @@ public class SettingsMenuDialog extends BaseDialog{
         cont.add(main = new SettingsTable());
         shouldPause = true;
 
-        hidden(() -> ConstructBlock.updateWarnBlocks()); // FINISHME: Horrible
+        hidden(() -> updateSettings()); // FINISHME: Horrible
 
         shown(() -> {
             back();
@@ -245,6 +245,13 @@ public class SettingsMenuDialog extends BaseDialog{
         add(buttons).fillX();
 
         addSettings();
+    }
+
+    public void updateSettings(){
+        ConstructBlock.updateWarnBlocks();
+        if(Vars.ui.menufrag.renderer.cursednessLevel != CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1))){
+            Vars.ui.menufrag.renderer.updateCursedness();
+        }
     }
 
     String getLogs(){
