@@ -28,7 +28,10 @@ class ClientLogic {
     /** Create event listeners */
     init {
         Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
-            Navigation.stopFollowing()
+            if (Navigation.currentlyFollowing is AssistPath ||
+                Navigation.currentlyFollowing is UnAssistPath ||
+                Navigation.currentlyFollowing is WaypointPath<*>
+            ) Navigation.stopFollowing()
             Spectate.pos = null
             AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
 
