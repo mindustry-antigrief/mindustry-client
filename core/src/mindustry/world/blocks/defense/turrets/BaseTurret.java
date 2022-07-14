@@ -73,7 +73,9 @@ public class BaseTurret extends Block{
         @Override
         public void remove(){ // Client stuff
             super.remove();
-            Navigation.removeEnt(turretEnt);
+            if(turretEnt != null){
+                Navigation.removeEnt(turretEnt);
+            }
         }
 
         @Override
