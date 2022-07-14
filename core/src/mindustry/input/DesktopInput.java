@@ -470,7 +470,7 @@ public class DesktopInput extends InputHandler{
                 });
                 scene.add(table);
             }
-            if(mode != placing && (input.keyDown(Binding.control) || input.shift()) && Core.input.keyTap(Binding.select)){
+            if(mode != placing && (input.ctrl() || input.shift()) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
                 if(on != null){
@@ -478,11 +478,11 @@ public class DesktopInput extends InputHandler{
                         Call.unitControl(player, on);
                         shouldShoot = false;
                         recentRespawnTimer = 1f;
-                    } else if ((input.ctrl() || input.shift() || input.alt()) && on.isPlayer()) {
+                    } else if ((input.ctrl() || input.shift()) && on.isPlayer()) {
                         Navigation.follow(new AssistPath(on.playerNonNull(),
                                 input.shift() && input.alt() ? AssistPath.Type.FreeMove :
+                                input.ctrl() && input.alt() ? AssistPath.Type.BuildPath :
                                 input.ctrl() ? AssistPath.Type.Cursor :
-                                input.alt() ? AssistPath.Type.BuildPath :
                                 AssistPath.Type.Regular));
                         shouldShoot = false;
                     } else if (on.controller() instanceof LogicAI ai && ai.controller != null && (!player.unit().type.canBoost || player.boosting)) { // Shift + click logic unit: spectate processor
