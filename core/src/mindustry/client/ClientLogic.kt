@@ -183,6 +183,10 @@ class ClientLogic {
             if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
         }
 
+        Events.on(GameOverEvent::class.java) {
+            if (Core.settings.getString("gameovertext").isNotEmpty()) Call.sendChatMessage(Core.settings.getString("gameovertext"))
+        }
+
         Events.on(BlockDestroyEvent::class.java) {
             if (it.tile.block() is PowerVoid) {
                 Vars.player.sendMessage(Core.bundle.format("client.voidwarn", it.tile.x, it.tile.y))

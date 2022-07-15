@@ -46,6 +46,7 @@
  * !fixnode - Enables/disables certain parts of the better-node-connection-system. (Ask zxtej, I have no idea how this works -SByte)
  * !count all - Counts all units.
  * !unit null - Exits the unit picking queue.
+ * !gameovertext - Sets the text you send when game ends. Typically something like "gg".
  * >=========================< Chat Text Replacer >=========================<
  * %s - replaces with a !shrug
  * %c - replaces with cursor coordinates

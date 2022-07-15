@@ -728,6 +728,14 @@ object Client {
             }
         }
 
+        register("gameovertext [text...]", "Sets the text you automatically send when game ends. (eg 'gg bois!')") {args, player ->
+            if (args.isEmpty() || args[0] == "") player.sendMessage("[accent]Cleared gameovertext because no text was provided.")
+            else {
+                Core.settings.put("gameovertext", args[0])
+                player.sendMessage("[accent]Gameover text set to \"${args[0]}\"")
+            }
+        }
+
         registerReplace("%", "c", "cursor") {
             Strings.format("(@, @)", control.input.rawTileX(), control.input.rawTileY())
         }
