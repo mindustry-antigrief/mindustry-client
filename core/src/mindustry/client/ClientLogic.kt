@@ -4,6 +4,7 @@ import arc.*
 import arc.struct.Seq
 import arc.util.*
 import mindustry.*
+import mindustry.Vars.ui
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
@@ -15,6 +16,7 @@ import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.logic.*
 import mindustry.type.*
+import mindustry.ui.fragments.ChatFragment
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.sandbox.PowerVoid
 import mindustry.world.modules.*
@@ -187,7 +189,8 @@ class ClientLogic {
 
         Events.on(BlockDestroyEvent::class.java) {
             if (it.tile.block() is PowerVoid) {
-                Vars.player.sendMessage(Core.bundle.format("client.voidwarn", it.tile.x, it.tile.y))
+                ChatFragment.ChatMessage.msgFormat()
+                ui.chatfrag.addMessage(Core.bundle.format("client.voidwarn", it.tile.x, it.tile.y))
             }
         }
     }
