@@ -383,6 +383,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("autorestart", true);
         client.checkPref("ignoremodminversion", false);
         client.checkPref("attemwarfare", true);
+        client.checkPref("onjoinfixcode", true);
         // End Client Settings
 
 

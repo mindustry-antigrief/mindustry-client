@@ -48,37 +48,8 @@ class ClientLogic {
                     }
                 }
             }, 1F)
-        }
 
-        Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
-            Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
-            if (!syncing){
-                Player.persistPlans.clear()
-                Vars.frozenPlans.clear()
-            }
-            lastJoinTime = Time.millis()
-            PowerInfo.initialize()
-            configs.clear()
-            Vars.control.input.lastVirusWarning = null
-            dispatchingBuildPlans = false
-            hidingBlocks = false
-            hidingUnits = false
-            hidingAirUnits = false
-            showingTurrets = false
-            showingAllyTurrets = false
-            showingInvTurrets = false
-//            if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
-            overdrives.clear()
-            Client.tiles.clear()
-            if(coreItems == null) coreItems = ItemModule(true)
-            else {
-                coreItems.update(false)
-                coreItems.clear()
-            }
-
-            Time.run(60F) { // Runs fixcode on load world
-                if (!Vars.state.isGame || Vars.player.unit().type == null) return@run
-
+            if (Core.settings.getBool("onjoinfixcode")) { // TODO: Make this also work for singleplayer worlds
                 Core.app.post {
                     val builds = Seq<LogicBlock.LogicBuild>()
                     Vars.player.team().data().buildings.getObjects(builds as Seq<Building>) // Must be done on the main thread
@@ -110,6 +81,33 @@ class ClientLogic {
                         }
                     }
                 }
+            }
+        }
+
+        Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
+            Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
+            if (!syncing){
+                Player.persistPlans.clear()
+                Vars.frozenPlans.clear()
+            }
+            lastJoinTime = Time.millis()
+            PowerInfo.initialize()
+            configs.clear()
+            Vars.control.input.lastVirusWarning = null
+            dispatchingBuildPlans = false
+            hidingBlocks = false
+            hidingUnits = false
+            hidingAirUnits = false
+            showingTurrets = false
+            showingAllyTurrets = false
+            showingInvTurrets = false
+//            if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
+            overdrives.clear()
+            Client.tiles.clear()
+            if(coreItems == null) coreItems = ItemModule(true)
+            else {
+                coreItems.update(false)
+                coreItems.clear()
             }
         }
 
