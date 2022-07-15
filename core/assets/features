@@ -47,6 +47,7 @@
  * !count all - Counts all units.
  * !unit null - Exits the unit picking queue.
  * !gameovertext - Sets the text you send when game ends. Typically something like "gg".
+ * !ptext - Sets a custom text you can easily send in chat with !ptext say (do !help ptext for more details)
  * >=========================< Chat Text Replacer >=========================<
  * %s - replaces with a !shrug
  * %c - replaces with cursor coordinates

@@ -736,6 +736,57 @@ object Client {
             }
         }
 
+        register("ptext <option> [name] [text...]",
+            """Sets custom personal text. 
+                |Use [accent]!ptext edit <name> <text...>[] to create/edit a text. Input no text to clear the ptext.
+                |Use [accent]!ptext say <name>[] to say the registered text in chat.
+                |Use [accent]!ptext list[] to list out registered texts""".trimMargin()
+        ) { args, player ->
+            when (args[0]) {
+                "edit" -> {
+                    if (args.size <= 1) {
+                        player.sendMessage("[scarlet]No text name selected to edit.")
+                        return@register
+                    }
+                    if (args.size <= 2) {
+                        player.sendMessage("[accent]No text inputted. Clearing registered text \"${args[1]}\"")
+                        if (Core.settings.get("ptext-${args[1]}", "").toString().isNotEmpty()) Core.settings.remove("ptext-${args[1]}")
+                    }
+                    else {
+                        val text = args.drop(2).joinToString(" ")
+                        Core.settings.put("ptext-${args[1]}", text)
+                        player.sendMessage("[accent]Custom text \"${args[1]}\" set to \"$text\"")
+                    }
+                }
+                "say" -> {
+                    if (args.size <= 1) {
+                        player.sendMessage("[scarlet]No text name selected to say.")
+                        return@register
+                    }
+                    val text = Core.settings.get("ptext-${args[1]}", "").toString()
+                    if (text.isEmpty()) player.sendMessage("[accent]No existing text is set for \"${args[1]}\"")
+                    else Call.sendChatMessage(text)
+                }
+                "list" -> {
+                    var exists = false
+                    val texts = Seq<String>()
+                    for (setting in Core.settings.keys()) {
+                        if (setting.startsWith("ptext-")) {
+                            exists = true
+                            texts.add(setting)
+                        }
+                    }
+                    if (!exists) player.sendMessage("[accent]You currently have no ptext set")
+                    else {
+                        val sb = StringBuilder("[accent]Your ptext(s):")
+                        texts.forEach { sb.append("\n${it.drop(6)} [gray]-[] ${Core.settings.getString(it)}") }
+                        player.sendMessage(sb.toString())
+                    }
+                }
+                else -> player.sendMessage("[scarlet]Invalid option! [accent]Valid options are edit, say, list")
+            }
+        }
+
         registerReplace("%", "c", "cursor") {
             Strings.format("(@, @)", control.input.rawTileX(), control.input.rawTileY())
         }
