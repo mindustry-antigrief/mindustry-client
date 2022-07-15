@@ -95,7 +95,7 @@ class ClientLogic {
                 }
 
                 Client.register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
-                    sendMessage("In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance. They are not the same, please get it right!")
+                    sendMessage("\"Silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
                 }
 
                 Client.register("hh [h]", "!") { args, _ ->

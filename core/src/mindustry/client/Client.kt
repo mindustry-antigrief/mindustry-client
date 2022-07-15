@@ -17,7 +17,6 @@ import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.communication.Packets
 import mindustry.client.crypto.*
-import mindustry.client.graphics.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.*
 import mindustry.client.utils.*
@@ -118,16 +117,17 @@ object Client {
         // Turret range
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
         if (showingTurrets) {
-            Draw.z(Layer.space)
             val units = Core.settings.getBool("unitranges")
-            circles.clear()
             synchronized(obstacles) {
                 for (t in obstacles) {
                     if (!t.canShoot || !(t.turret || units) || !bounds.overlaps(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2)) continue
                     circles.add(t to if (t.canHitPlayer) t.team.color else Team.derelict.color)
+                    Drawf.dashCircle(
+                        t.x, t.y, t.radius - tilesize,
+                        if (t.canHitPlayer) t.team.color else Team.derelict.color
+                    )
                 }
             }
-            RangeDrawer.draw(circles)
         }
 
         // Player controlled turret range
