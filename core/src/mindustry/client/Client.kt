@@ -18,7 +18,6 @@ import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.communication.Packets
 import mindustry.client.crypto.*
-import mindustry.client.graphics.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.follow
 import mindustry.client.navigation.Navigation.getAllyTree
@@ -149,7 +148,6 @@ object Client {
                     }
                 }
             }
-            RangeDrawer.draw(circles)
         }
 
         // Player controlled turret range

@@ -437,9 +437,18 @@ fun getName(builder:mindustry.gen.Unit):String {
         )
     } else if(builder.controller() != null){
         Strings.format("@ controlled by controller of class @", builder.type.toString(), (builder.controller()::javaClass).toString()) // Bala, what have you done this time?
-    } else {
-        Strings.format("@ not controlled by anything-wait what-")
-    }
+    } else "unknown"
+}
+
+fun getPlayer(unit: mindustry.gen.Unit?): Player? {
+    return if (unit == null) null
+    else if (unit.isPlayer) {
+        unit.playerNonNull()
+    } else if ((unit.controller() as? FormationAI)?.leader?.isPlayer == true) {
+        (unit.controller() as FormationAI).leader.playerNonNull()
+    } else if ((unit.controller() as? LogicAI)?.controller != null) {
+        Groups.player.find{ p -> p.name.equals((unit.controller() as LogicAI).controller.lastAccessed)}
+    } else null
 }
 
 fun canWhisper() = io() || phoenix()

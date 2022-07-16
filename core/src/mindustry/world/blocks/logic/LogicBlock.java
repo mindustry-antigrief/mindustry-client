@@ -487,11 +487,7 @@ public class LogicBlock extends Block{
             super.configured(builder, value);
 
             if (value instanceof byte[] && Core.settings.getBool("attemwarfare")) {
-                Player player = builder == null ? null :
-                                builder.isPlayer() ? builder.playerNonNull() :
-                                builder.controller() instanceof FormationAI ai && ai.leader.isPlayer() ? ai.leader.playerNonNull() :
-                                builder.controller() instanceof LogicAI ai && ai.controller != null ? Groups.player.find(p -> p.name.equals(ai.controller.lastAccessed)) :
-                                null;
+                Player player = ClientUtilsKt.getPlayer(builder);
                 clientThread.post(() -> { // The regex can be expensive, so we delegate it to the client thread
                     long begin = Time.nanos();
                     if (ProcessorPatcher.INSTANCE.isAttem(code)) {
@@ -500,7 +496,7 @@ public class LogicBlock extends Block{
                                 lastAttem = player;
                                 attemCount = 1;
                                 attemTime = Time.millis();
-                                attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", builder.getControllerName(), tileX(), tileY()), (Color)null);
+                                attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtilsKt.getName(builder), tileX(), tileY()), (Color)null);
                                 if (ClientUtilsKt.canWhisper() && player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
                                     Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                 }
@@ -515,7 +511,9 @@ public class LogicBlock extends Block{
                                 attemMsg.format();
                             }
                             lastAttem = player;
-		            	    ClientVars.configs.add(new ConfigRequest(this.tileX(), this.tileY(), compress(ProcessorPatcher.INSTANCE.patch(code), this.relativeConnections())));
+                            if (player != null && builder.team == player.team()) { // Only config if its our team
+		            	        ClientVars.configs.add(new ConfigRequest(this.tileX(), this.tileY(), compress(ProcessorPatcher.INSTANCE.patch(code), this.relativeConnections())));
+                            }
                         });
                     }
                     Log.debug("Regex: @ms", Time.timeSinceNanos(begin)/(float)Time.nanosPerMilli);

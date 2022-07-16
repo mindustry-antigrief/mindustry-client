@@ -49,7 +49,7 @@ class AutoTransfer {
             if (ratelimitRemaining <= 1) return@forEach
 
             val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
-            if (accepted >= 5 && held > 0) { // Don't bother transferring items unless we're moving 5 or more, any less and we just waste ratelimit
+            if (accepted >= min(player.unit().stack.amount, 5) && held > 0) { // Don't bother transferring items unless we're moving 5 or more, any less and we just waste ratelimit
                 Call.transferInventory(player, it)
                 held -= accepted
                 ratelimitRemaining--
