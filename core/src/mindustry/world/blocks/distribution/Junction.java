@@ -27,6 +27,9 @@ public class Junction extends Block{
     static final Vec2 direction = new Vec2(tilesize, 0), baseOffset = new Vec2();
     public static boolean drawItems = false;
 
+    public static boolean flowRateByDirection = Core.settings != null && Core.settings.getBool("junctionflowratedirection", false);
+    public final static TextureRegionDrawable[] directionIcons = {Icon.rightSmall, Icon.upSmall, Icon.leftSmall, Icon.downSmall};
+
     public Junction(String name){
         super(name);
         update = true;
@@ -50,8 +53,6 @@ public class Junction extends Block{
     public class JunctionBuild extends Building{
         public DirectionalItemBuffer buffer = new DirectionalItemBuffer(capacity);
         public ItemModule items2 = new ItemModule();
-        public static boolean flowRateByDirection = Core.settings != null && Core.settings.getBool("junctionflowratedirection", false);
-        public final static TextureRegionDrawable[] directionIcons = {Icon.rightSmall, Icon.upSmall, Icon.leftSmall, Icon.downSmall};
 
         @Override
         public void update(){

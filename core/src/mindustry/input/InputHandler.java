@@ -42,8 +42,6 @@ import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
 import mindustry.world.blocks.power.*;
-import mindustry.world.blocks.power.PowerNode.*;
-import mindustry.world.blocks.sandbox.*;
 import mindustry.world.blocks.units.*;
 import mindustry.world.meta.*;
 
@@ -971,16 +969,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                             return; // Someone else built a processor with data
                         configs.add(new ConfigRequest(it.tile.x, it.tile.y, conf));
                     };
-                }
-                if(copy.block instanceof PowerNode && copy.config instanceof Point2[] conf){
-                    int requiredSetting = (isLoadedSchematic ? PowerNodeFixSettings.enableReq : PowerNodeFixSettings.nonSchematicReq) + (copy.block instanceof PowerSource ? 1 : 0);
-                    if (PowerNodeBuild.fixNode >= requiredSetting) {
-                        final var nconf = new Point2[conf.length];
-                        for (int i = 0; i < conf.length; i++) nconf[i] = conf[i].cpy();
-                        copy.clientConfig = it -> {
-                            if (it instanceof PowerNodeBuild build) build.fixNode(nconf);
-                        };
-                    }
                 }
                 req.block.onNewPlan(copy);
                 temp[added++] = copy;

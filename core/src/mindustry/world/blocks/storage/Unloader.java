@@ -22,6 +22,8 @@ import static mindustry.Vars.*;
 
 public class Unloader extends Block{
     public float speed = 1f;
+    public static boolean drawUnloaderItems = Core.settings.getBool("unloaderview");
+    public static boolean customNullLoader = Core.settings.getBool("customnullunloader");
 
     public Unloader(String name){
         super(name);
@@ -65,8 +67,6 @@ public class Unloader extends Block{
         public Seq<ContainerStat> possibleBlocks = new Seq<>(ContainerStat.class);
         private Item lastItem = null;
         private Building lastDumpFrom, lastDumpTo;
-        public static boolean drawUnloaderItems = Core.settings.getBool("unloaderview");
-        public static boolean customNullLoader = Core.settings.getBool("customnullunloader");
 
         public class ContainerStat{
             Building building;

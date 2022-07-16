@@ -288,6 +288,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
     void addSettings(){
         Core.settings.remove("nodeconfigs");
+        Core.settings.remove("nodeconf");
         sound.sliderPref("musicvol", 100, 0, 100, 1, i -> i + "%");
         sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> i + "%");
         sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> i + "%");
@@ -337,7 +338,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", true); // Requires Restart
         client.checkPref("placementfragmentsearch", true);
-        client.checkPref("junctionflowratedirection", false, s -> Junction.JunctionBuild.flowRateByDirection = s);
+        client.checkPref("junctionflowratedirection", false, s -> Junction.flowRateByDirection = s);
         client.checkPref("drawwrecks", true);
         client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
         client.checkPref("drawpath", true);
@@ -345,8 +346,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
-        client.checkPref("unloaderview", false, i -> Unloader.UnloaderBuild.drawUnloaderItems = i);
-        client.checkPref("customnullunloader", false, i -> Unloader.UnloaderBuild.customNullLoader = i);
+        client.checkPref("unloaderview", false, i -> Unloader.drawUnloaderItems = i);
+        client.checkPref("customnullunloader", false, i -> Unloader.customNullLoader = i);
 
         client.category("misc");
         client.updatePref();
@@ -354,7 +355,6 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
         client.sliderPref("processorstatementscale", 80, 10, 100, 1, s -> String.format("%.2fx", s/100f)); // This is the most scuffed setting you have ever seen
-        client.sliderPref("nodeconf", 0, 0, PowerNode.PowerNodeFixSettings.values().length - 1, 1, s -> PowerNode.PowerNodeFixSettings.get(PowerNode.PowerNodeBuild.fixNode = s).desc);
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));

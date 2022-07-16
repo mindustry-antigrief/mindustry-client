@@ -18,7 +18,6 @@ import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.communication.Packets
 import mindustry.client.crypto.*
-import mindustry.client.graphics.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.follow
 import mindustry.client.navigation.Navigation.getTree
@@ -50,7 +49,6 @@ import java.io.*
 import java.math.*
 import java.security.*
 import java.security.cert.*
-import javax.script.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -60,7 +58,6 @@ object Client {
     val timer = Interval(4)
     val autoTransfer by lazy { AutoTransfer() } // FINISHME: Awful
 //    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
-    private val circles = mutableListOf<Pair<TurretPathfindingEntity, Color>>()
 
     fun initialize() {
         registerCommands()
@@ -129,16 +126,14 @@ object Client {
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
         if (showingTurrets || showingInvTurrets) {
             val units = Core.settings.getBool("unitranges")
-            circles.clear()
             val flying = player.unit().isFlying
             getTree().intersect(bounds) {
-                if ((units || it.turret) && it.canShoot()) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
+                if ((units || it.turret) && it.canShoot()) {// if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color
                     val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                     val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
-                    circles.add(it to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
                     Drawf.dashCircle(
-                        it.x, it.y, it.radius - tilesize,
-                        if (it.canHitPlayer) it.team.color else Team.derelict.color
+                        it.x(), it.y(), it.range - tilesize,
+                        if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color
                     )
                 }
             }
@@ -539,61 +534,6 @@ object Client {
                 "   [white]source[] - Whether to enforce on item sources\n" +
                 "[orange]-- End --"
             )
-        }
-        register("fixnode [do-!hfixnode] [for-more-info]","Do !hfixnode for more info") { args, player -> //TODO: Bundle (how about no)
-            val setting = PowerNode.PowerNodeFixSettings.get(Core.settings.getInt("nodeconf", 0))
-            val curr = PowerNode.PowerNodeFixSettings.get(PowerNode.PowerNodeBuild.fixNode)
-            if (args.isEmpty()) {
-                player.sendMessage("[accent]Node fixing is currently [white]$curr[].")
-                return@register
-            }
-            val set = { new: Int ->
-                PowerNode.PowerNodeBuild.fixNode = new
-                Core.settings.put("nodeconf", new)
-            }
-            val print = { changed: Boolean, now: PowerNode.PowerNodeFixSettings ->
-                player.sendMessage("[accent]Automatic node fixing [white]$now[]${if (changed) "" else " [lightgray](no change)[]"}.") }
-            if ((args[0] == "-1" && args.size < 2) || args[0] == "d" || args[0] == "disable") {
-                set(PowerNode.PowerNodeFixSettings.disabled.ordinal)
-                player.sendMessage("[accent]Automatic node fixing disabled")
-                return@register
-            }
-            if (args[0] == "t" || args[0] == "temp" || args[0] == "temptoggle") {
-                if (setting == curr) {
-                    player.sendMessage("[accent]No changes made (currently [white]$curr[]).")
-                    return@register
-                }
-                if (curr == PowerNode.PowerNodeFixSettings.disabled) { // enable back
-                    PowerNode.PowerNodeBuild.fixNode = setting.ordinal
-                    player.sendMessage("[accent]Automatic node fixing re-enabled (now [white]$setting[]).")
-                    return@register
-                } else { // disable
-                    PowerNode.PowerNodeBuild.fixNode = PowerNode.PowerNodeFixSettings.disabled.ordinal
-                    player.sendMessage("[accent]Automatic node fixing temporarily disabled.")
-                    return@register
-                }
-            }
-            val normal = try { when(Integer.parseInt(args[0])){ 0 -> false; 1 -> true; else -> throw Exception() } }
-            catch (e: Exception) { // cursed
-                player.sendMessage("[scarlet]Invalid input for first argument!")
-                return@register
-            }
-            if (args.size <= 1) {
-                val new = PowerNode.PowerNodeFixSettings.get(normal, setting.source)
-                val changed = new != curr || new != setting
-                if (changed) set(new.ordinal)
-                print(changed, new)
-                return@register
-            }
-            val source = try { when(Integer.parseInt(args[1])){ 0 -> false; 1 -> true; else -> throw Exception() } }
-            catch (e: Exception) { // cursed2
-                player.sendMessage("[scarlet]Invalid input for second argument!")
-                return@register
-            }
-            val new = PowerNode.PowerNodeFixSettings.get(normal, source)
-            val changed = new != curr || new != setting
-            if (changed) set(new.ordinal)
-            print(changed, new)
         }
 
         register("pathing", "Change the pathfinding algorithm") { _, player ->
