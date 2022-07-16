@@ -61,7 +61,6 @@ object Client {
     val timer = Interval(4)
 //    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
     val autoTransfer by lazy { AutoTransfer() } // FINISHME: Awful
-    private val circles = mutableListOf<Pair<TurretPathfindingEntity, Color>>()
 
     fun initialize() {
         registerCommands()
@@ -130,21 +129,22 @@ object Client {
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
         if (showingTurrets || showingInvTurrets || showingAllyTurrets) {
             val units = Core.settings.getBool("unitranges")
-            circles.clear()
             if (showingTurrets || showingInvTurrets) {
                 val flying = player.unit().isFlying
                 getTree().intersect(bounds) {
                     if ((units || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
                         val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                         val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
-                        circles.add(it to if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
+                        Drawf.dashCircle(
+                            it.entity.x, it.entity.y, it.range - tilesize,
+                            if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
                     }
                 }
             }
             if (showingAllyTurrets) {
                 getAllyTree().intersect(bounds) {
                     if ((units || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {
-                        circles.add(it to it.entity.team().color)
+                        Drawf.dashCircle(it.entity.x, it.entity.y, it.range - tilesize, it.entity.team().color)
                     }
                 }
             }
