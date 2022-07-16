@@ -337,8 +337,8 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
         var rad = radius * tilesize;
         for (int i = 0; i < count; i++) {
             var plan = plans.get(i);
-            if (radius == 0 || plan.within(origin, rad) && validPlan(plan)
-                && (includeAll || plan.block != null && !player.unit().shouldSkip(plan, player.core()))
+            if ((radius == 0 || plan.within(origin, rad)) && validPlan(plan)
+                && (includeAll || !player.unit().shouldSkip(plan, player.core()))
             ) priority.add(plan);
         }
     }
