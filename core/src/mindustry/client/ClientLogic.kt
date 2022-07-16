@@ -28,6 +28,7 @@ class ClientLogic {
         Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
             Navigation.stopFollowing()
             Spectate.pos = null
+            AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
 
             Timer.schedule({
                 Core.app.post {
@@ -77,10 +78,9 @@ class ClientLogic {
             if (Core.settings.getBool("discordrpc")) Vars.platform.startDiscord()
             if (Core.settings.getBool("mobileui")) Vars.mobile = !Vars.mobile
             if (Core.settings.getBool("viruswarnings")) LExecutor.virusWarnings = true
+            if (Core.settings.getBool("autotransfer")) AutoTransfer.enabled = true
 
-            Autocomplete.autocompleters.add(BlockEmotes())
-            Autocomplete.autocompleters.add(PlayerCompletion())
-            Autocomplete.autocompleters.add(CommandCompletion())
+            Autocomplete.autocompleters.add(BlockEmotes(), PlayerCompletion(), CommandCompletion())
 
             Autocomplete.initialize()
 
@@ -99,13 +99,13 @@ class ClientLogic {
                 }
 
                 Client.register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
-                    sendMessage("\"In short, silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
+                    sendMessage("\"Silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
                 }
 
                 Client.register("hh [h]", "!") { args, _ ->
                     if (!Vars.net.client()) return@register
                     val u = if (args.any()) Vars.content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) } else Vars.player.unit().type
-                    val current = Vars.ui.join.lastHost.modeName?.first() ?: Vars.ui.join.lastHost.mode.name[0]
+                    val current = (Vars.ui.join.lastHost?.modeName?.first() ?: Vars.ui.join.lastHost?.mode?.name?.get(0) ?: 'f').lowercaseChar()
                     switchTo = mutableListOf<Any>('a', 'p', 's', 'f', 't').apply { remove(current); add(current); add(u) }
                     Call.sendChatMessage("/switch ${switchTo!!.removeFirst()}")
                 }

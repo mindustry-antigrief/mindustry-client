@@ -22,6 +22,7 @@ import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.client.ui.*;
+import mindustry.client.utils.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -413,6 +414,14 @@ public class DesktopInput extends InputHandler{
                     TileRecords.INSTANCE.show(cursor);
                     table.remove();
                 });
+
+                table.row().fill();
+                table.button("@client.autotransfer", () -> { // Auto transfer
+                    AutoTransfer.enabled ^= true;
+                    settings.put("autotransfer", AutoTransfer.enabled);
+                    new Toast(1).add(bundle.get("client.autotransfer") + ": " + bundle.get(AutoTransfer.enabled ? "mod.enabled" : "mod.disabled"));
+                    table.remove();
+                }).disabled(b -> state.rules.pvp && ClientUtilsKt.io());
 
                 table.row().fill();
                 table.button("@client.unitpicker", () -> { // Unit Picker / Sniper

@@ -387,8 +387,6 @@ public class BlockRenderer{
             }
         }
 
-        var bounds = camera.bounds(Tmp.r3).grow(tilesize);
-
         if (drawCursors) {
             Draw.z(Layer.space);
             Draw.color(Color.red);
@@ -406,7 +404,7 @@ public class BlockRenderer{
             }
             Fonts.def.getData().setScale(1f);
             Fonts.def.setUseIntegerPositions(ints);
-            Draw.color();
+            Draw.reset();
         }
         if (wasDrawingCursors != drawCursors) {
             wasDrawingCursors = drawCursors;

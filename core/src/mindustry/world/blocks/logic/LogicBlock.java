@@ -1,6 +1,8 @@
 package mindustry.world.blocks.logic;
 
+import arc.*;
 import arc.func.*;
+import arc.graphics.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.Bits;
@@ -10,6 +12,8 @@ import arc.util.io.*;
 import mindustry.ai.types.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.navigation.*;
+import mindustry.client.utils.*;
 import mindustry.core.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -19,6 +23,7 @@ import mindustry.logic.*;
 import mindustry.logic.LAssembler.*;
 import mindustry.logic.LExecutor.*;
 import mindustry.ui.*;
+import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.meta.*;
@@ -30,6 +35,10 @@ import static mindustry.Vars.*;
 
 public class LogicBlock extends Block{
     private static final int maxByteLen = 1024 * 500;
+    private static @Nullable Player lastAttem;
+    private static int attemCount;
+    private static long attemTime;
+    private static ChatFragment.ChatMessage attemMsg;
 
     public int maxInstructionScale = 5;
     public int instructionsPerTick = 1;
@@ -125,8 +134,7 @@ public class LogicBlock extends Block{
     /** Jank method to get the code from a byte array. */
     public static String decompress(byte[] data){
         if (data == null) return "";
-        try{
-            DataInputStream stream = new DataInputStream(new InflaterInputStream(new ByteArrayInputStream(data)));
+        try(DataInputStream stream = new DataInputStream(new InflaterInputStream(new ByteArrayInputStream(data)))){
 
             stream.read(); // Version
             int bytelen = stream.readInt();
@@ -466,6 +474,47 @@ public class LogicBlock extends Block{
         @Override
         public byte[] config(){
             return compress(code, relativeConnections());
+        }
+
+        @Override
+        public void configured(Unit builder, Object value) {
+            super.configured(builder, value);
+
+            if (value instanceof byte[] && team == player.team() && Core.settings.getBool("attemwarfare") && (ClientUtilsKt.io() || ClientUtilsKt.phoenix())) {
+                Player player = builder == null ? null :
+                                builder.isPlayer() ? builder.playerNonNull() :
+                                builder.controller() instanceof FormationAI ai && ai.leader.isPlayer() ? ai.leader.playerNonNull() :
+                                builder.controller() instanceof LogicAI ai && ai.controller != null ? Groups.player.find(p -> p.name.equals(ai.controller.lastAccessed)) :
+                                null;
+                clientThread.post(() -> { // The regex can be expensive, so we delegate it to the client thread
+                    long begin = Time.nanos();
+                    if (!ProcessorPatcher.INSTANCE.patch(code).equals(code)) {
+                        Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
+                            if (player != lastAttem || player == null) {
+                                lastAttem = player;
+                                attemCount = 1;
+                                attemTime = Time.millis();
+                                attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", builder == null ? "unknown" : builder.getControllerName(), tileX(), tileY()), (Color)null);
+                                if (player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
+                                    Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
+                                }
+                            } else {
+                                if(Time.timeSinceMillis(attemTime) > 5000) {
+                                    Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
+                                    attemTime = Time.millis();
+                                    ui.chatfrag.messages.remove(attemMsg);
+                                    ui.chatfrag.messages.insert(0, attemMsg);
+                                }
+                                attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
+                                attemMsg.format();
+                            }
+                            lastAttem = player;
+                            ProcessorPatcher.INSTANCE.inform(this);
+                        });
+                    }
+                    Log.debug("Regex: @ms", Time.timeSinceNanos(begin)/(float)Time.nanosPerMilli);
+                });
+            }
         }
 
         public Seq<LogicLink> relativeConnections(){
