@@ -691,7 +691,7 @@ object Client {
             }
         }
 
-        register("voids [count]", "Lists power void locations. Use count 0 to list all") { args, player ->
+        register("voids [count]", "Lists power void locations. Use count 0 (or less) to list all") { args, player ->
             var count = 1
             if (args.isNotEmpty()) {
                 try {
@@ -712,9 +712,8 @@ object Client {
 
                 if (voids.size > 0) {
                     val sb = StringBuilder()
-                        .append("[accent]Found ")
-                        .append(if (count < 0) voids.size else voids.size.coerceAtMost(count))
-                        .append(" voids: ")
+                    if (count > 0) sb.append("[accent]Found ${voids.size} voids. Listing only ${count}:")
+                    else sb.append("[accent]Found ${voids.size} voids:")
                     for (void in voids) {
                         if (count == 0) break
                         sb.append(String.format("(%d,%d) ", void.tileX(), void.tileY()))
