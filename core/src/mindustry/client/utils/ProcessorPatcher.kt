@@ -10,7 +10,7 @@ import mindustry.world.blocks.logic.LogicBlock.*
 
 object ProcessorPatcher {
     private val attemMatcher =
-        "(ubind @?[^ ]+\\n)sensor (\\w+) @unit @flag\\nop add (\\w+) \\3 1\\njump \\d+ greaterThanEq \\3 \\d+\\njump \\d+ notEqual ([^ ]+) \\2\\nset \\3 0".toRegex()
+        "(ubind @?[^ ]+\\n)sensor (\\S+) @unit @flag\\nop add (\\S+) \\3 1\\njump \\d+ greaterThanEq \\3 \\d+\\njump \\d+ notEqual ([^ ]+) \\2\\nset \\3 0".toRegex()
 
     private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
