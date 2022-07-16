@@ -507,6 +507,7 @@ public class LogicBlock extends Block{
                                     ui.chatfrag.messages.remove(attemMsg);
                                     ui.chatfrag.messages.insert(0, attemMsg);
                                 }
+                                ChatFragment.ChatMessage.msgFormat();
                                 attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
                                 attemMsg.format();
                             }

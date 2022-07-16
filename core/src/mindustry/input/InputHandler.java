@@ -409,6 +409,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                             node.message = ui.chatfrag.addMessage(message, (Color)null);
                         } else {
                             ui.chatfrag.doFade(2);
+                            ChatFragment.ChatMessage.msgFormat();
                             node.message.message = message;
                             node.message.format();
                         }
