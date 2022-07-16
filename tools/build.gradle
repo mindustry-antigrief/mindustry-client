@@ -35,8 +35,8 @@ buildscript{
 
     dependencies{
         classpath localGroovy()
-        classpath "com.github.mindustry-antigrief.Arc:packer:$arcHash"
-        classpath "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
+        classpath "com.github.zxtej.Arc:packer:freeze-v135-SNAPSHOT"
+        classpath "com.github.zxtej.Arc:arc-core:freeze-v135-SNAPSHOT"
     }
 }
 
