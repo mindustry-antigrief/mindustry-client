@@ -252,7 +252,14 @@ object Client {
             }
         }
 
-        // FINISHME: Add spawn command
+        register("spawn [x] [y]", Core.bundle.get("client.command.spawn.description")) {args, player ->
+            try {
+                if (args.size == 2) state.teams.closestCore(args[0].toFloat(), args[1].toFloat(), player.team())?.requestSpawn(player)
+                else state.teams.closestCore(Core.input.mouseWorldX(), Core.input.mouseWorldY(), player.team())?.requestSpawn(player)
+            } catch (e: Exception) {
+                player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "go"))
+            }
+        }
 
         register("go [x] [y]", Core.bundle.get("client.command.go.description")) { args, player ->
             try {
