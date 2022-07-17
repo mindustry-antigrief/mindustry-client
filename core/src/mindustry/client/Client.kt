@@ -742,12 +742,12 @@ object Client {
 
         register("ptext <option> [name] [text...]",
             """Sets custom personal text. 
-                |Use [accent]!ptext edit <name> <text...>[] to create/edit a text. Input no text to clear the ptext.
-                |Use [accent]!ptext say <name>[] to say the registered text in chat.
-                |Use [accent]!ptext list[] to list out registered texts""".trimMargin()
+                |Use [accent]!ptext edit/e <name> <text...>[] to create/edit a text. Input no text to clear the ptext.
+                |Use [accent]!ptext say/s <name>[] to say the registered text in chat.
+                |Use [accent]!ptext list/l[] to list out registered texts""".trimMargin()
         ) { args, player ->
             when (args[0]) {
-                "edit" -> {
+                "edit", "e" -> {
                     if (args.size <= 1) {
                         player.sendMessage("[scarlet]No text name selected to edit.")
                         return@register
@@ -762,7 +762,7 @@ object Client {
                         player.sendMessage("[accent]Custom text \"${args[1]}\" set to \"$text\"")
                     }
                 }
-                "say" -> {
+                "say", "s" -> {
                     if (args.size <= 1) {
                         player.sendMessage("[scarlet]No text name selected to say.")
                         return@register
@@ -771,7 +771,7 @@ object Client {
                     if (text.isEmpty()) player.sendMessage("[accent]No existing text is set for \"${args[1]}\"")
                     else Call.sendChatMessage(text)
                 }
-                "list" -> {
+                "list", "l" -> {
                     var exists = false
                     val texts = Seq<String>()
                     for (setting in Core.settings.keys()) {
