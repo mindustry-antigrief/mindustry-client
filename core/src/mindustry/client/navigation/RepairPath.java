@@ -30,7 +30,7 @@ public class RepairPath extends Path {
     @Override
     public void follow() {
         Building build = Units.findDamagedTile(player.team(), player.x, player.y);
-        if (build == null || player.unit() == null || (build != current && !delay.check(0, 30))) return;
+        if (build == null || player.unit() == null || (build != current && !delay.check(0, 1))) return;
         current = build;
         delay.reset(0, 0);
         player.shooting(player.unit().inRange(build) && !player.unit().activelyBuilding() && !player.unit().mining());

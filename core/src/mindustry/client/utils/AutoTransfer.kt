@@ -30,12 +30,12 @@ class AutoTransfer {
         timer += Time.delta
         if (timer < delay) return
         timer = 0F
-        val buildings = player.team().data().buildings ?: return
+        val buildings = player.team().data().buildingTree ?: return
         val core = if (fromCores) player.closestCore() else null
         var held = player.unit().stack.amount
 
         buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear())
-        dest.filter { it.block.consumes.has(ConsumeType.item) && it !is NuclearReactorBuild }
+        dest.filter { it.block.findConsumer<Consume?> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic } != null && it !is NuclearReactorBuild }
         .sort { b -> b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() }
         .forEach {
             if (ratelimitRemaining <= 1) return@forEach
@@ -49,7 +49,7 @@ class AutoTransfer {
 
             if (item == null && core != null) { // Automatically take needed item from core, only request once FINISHME: int[content.items().size)] that keeps track of number of each item needed so that this can be more efficient
                 item = run<Item?> { // FINISHME: I should really just make this its own function
-                    when (val cons = it.block.consumes.get<Consume>(ConsumeType.item)) { // Cursed af
+                    when (val cons = it.block.findConsumer<Consume> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic }) { // Cursed af
                         is ConsumeItems -> {
                             cons.items.forEach { i ->
                                     if (it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit()) >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) { // FINISHME: Do not hardcode the minumum required number (7) here, this is awful
@@ -59,7 +59,7 @@ class AutoTransfer {
                         }
                         is ConsumeItemFilter -> {
                             content.items().forEach { i ->
-                                if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && core.items.has(i, minCoreItems)) {
+                                if (it.block.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && core.items.has(i, minCoreItems)) {
                                     return@run item
                                 }
                             }
