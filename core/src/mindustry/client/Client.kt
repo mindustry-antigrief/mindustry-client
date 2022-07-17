@@ -10,6 +10,7 @@ import mindustry.client.antigrief.*
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.getTree
+import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.game.*
 import mindustry.gen.*
@@ -25,6 +26,7 @@ object Client {
     var leaves: Moderation? = Moderation()
     val tiles = mutableListOf<Tile>()
     val timer = Interval(4)
+    val autoTransfer by lazy { AutoTransfer() } // FINISHME: Awful
 
     fun initialize() {
         setup()
@@ -41,15 +43,17 @@ object Client {
     }
 
     fun update() {
+        autoTransfer.update()
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
 
+        if (ratelimitRemaining != Administration.Config.interactRateLimit.num() - 1 && timer.get(3, (Administration.Config.interactRateWindow.num() + 1) * 60F)) { // Reset ratelimit, extra second to account for server lag
+            ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1
+        }
+
         if (!configs.isEmpty()) {
             try {
-                if (timer.get(3, (Administration.Config.interactRateWindow.num() + 1) * 60F)) { // Reset ratelimit, extra second to account for server lag
-                    ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1
-                }
                 if (ratelimitRemaining > 0 || !net.client()) { // Run the config NOTE: Counter decremented in InputHandler and not here so that manual configs don't cause issues
                     configs.poll().run()
                 }

@@ -2,11 +2,15 @@ package mindustry.client.utils
 
 import arc.struct.*
 import arc.util.*
+import mindustry.Vars.*
+import mindustry.client.*
+import mindustry.client.antigrief.*
+import mindustry.gen.*
 import mindustry.world.blocks.logic.LogicBlock.*
 
 object ProcessorPatcher {
     private val attemMatcher =
-        "(ubind @?[^ ]+\\n)sensor (\\w+) @unit @flag\\nop add (\\w+) \\3 1\\njump \\d+ greaterThanEq \\3 \\d+\\njump \\d+ notEqual ([^ ]+) \\2\\nset \\3 0".toRegex()
+        "(ubind @?[^ ]+\\n)sensor (\\S+) @unit @flag\\nop add (\\S+) \\3 1\\njump \\d+ greaterThanEq \\3 \\d+\\njump \\d+ notEqual ([^ ]+) \\2\\nset \\3 0".toRegex()
 
     private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
@@ -40,5 +44,16 @@ object ProcessorPatcher {
             val line = Strings.parseInt(group.value)
             if (line >= bindLine) sb.setRange(group.range.first + extra, group.range.last + extra + 1, (line - 3).toString())
         }
+    }
+
+    fun inform(build: LogicBuild) {
+        ClientVars.configs.add(ConfigRequest(build.tileX(), build.tileY(), compress("""
+            print "Please do not use this logic "
+            print "this attem logic is not good "
+            print "it breaks other logic "
+            print "more info at mindustry.dev/attem"
+            printflush message1
+        """.trimIndent(), build.relativeConnections()
+        )))
     }
 }

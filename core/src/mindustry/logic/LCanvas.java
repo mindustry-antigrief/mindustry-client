@@ -253,7 +253,7 @@ public class LCanvas extends Table{
             float cy = 0;
             seq.clear();
 
-            float totalHeight = getChildren().sumf(e -> e.getHeight() + space);
+            float totalHeight = children.sumf(e -> e.getHeight() + space);
 
             height = prefHeight = totalHeight;
             width = prefWidth = Scl.scl(targetWidth);

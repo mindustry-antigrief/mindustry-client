@@ -376,6 +376,7 @@ public class Logic implements ApplicationListener{
             ui.restart.show(winner);
         });
         netClient.setQuiet();
+//        if (net.client()) Events.fire(new GameOverEvent(winner));
     }
 
     //called when the remote server researches something

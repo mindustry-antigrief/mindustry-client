@@ -245,7 +245,12 @@ public class PowerNode extends PowerBlock{
             graphs.add(tile.build.power.graph);
         }
 
-        indexer.eachBlock(team, tile.worldx(), tile.worldy(), laserRange * tilesize, valid, tempBuilds::add);
+        Geometry.circle(tile.x, tile.y, (int)(laserRange + 2), (x, y) -> {
+            Building other = world.build(x, y);
+            if(valid.get(other) && !tempBuilds.contains(other)){
+                tempBuilds.add(other);
+            }
+        });
 
         tempBuilds.sort((a, b) -> {
             int type = -Boolean.compare(a.block instanceof PowerNode, b.block instanceof PowerNode);
@@ -289,9 +294,16 @@ public class PowerNode extends PowerBlock{
             }
         }
 
-        indexer.eachBlock(team, tile.worldx(), tile.worldy(), maxRange * tilesize, valid, tempBuilds::add);
+        if(tile.build != null && tile.build.power != null){
+            graphs.add(tile.build.power.graph);
+        }
 
-        tempBuilds.sort(a -> a.dst2(tile));
+        Geometry.circle(tile.x, tile.y, 13, (x, y) -> {
+            Building other = world.build(x, y);
+            if(valid.get(other) && !tempBuilds.contains(other)){
+                tempBuilds.add(other);
+            }
+        });
 
         tempBuilds.sort((a, b) -> {
             int type = -Boolean.compare(a.block instanceof PowerNode, b.block instanceof PowerNode);
@@ -299,7 +311,7 @@ public class PowerNode extends PowerBlock{
             return Float.compare(a.dst2(tile), b.dst2(tile));
         });
 
-        tempBuilds.each(t -> {
+        tempBuilds.each(valid, t -> {
             graphs.add(t.power.graph);
             others.get(t);
         });
@@ -379,12 +391,11 @@ public class PowerNode extends PowerBlock{
         }
 
         @Override
-        public void onProximityAdded() {
-            super.onProximityAdded();
+        public void add() {
+            super.add();
 
             if(laserRange > maxRange) maxRange = laserRange;
         }
-
 
 //        @Override
 //        public void playerPlaced(Object config) { FINISHME: Make this work, maybe an IntObjectMap with Entry<pos, Seq<linkPos>>

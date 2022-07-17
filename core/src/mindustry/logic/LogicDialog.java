@@ -238,6 +238,8 @@ public class LogicDialog extends BaseDialog{
                     cat.button(example.name(), style, () -> {
                         canvas.add(prov.get());
                         dialog.hide();
+                        canvas.layout();
+                        canvas.recalculate();
                     }).size(130f, 50f).self(c -> tooltip(c, "lst." + example.name())).top().left();
 
                     if(cat.getChildren().size % 3 == 0) cat.row();

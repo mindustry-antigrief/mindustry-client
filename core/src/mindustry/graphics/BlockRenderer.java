@@ -476,6 +476,30 @@ public class BlockRenderer{
             }
         }
 
+        if (drawCursors) {
+            Draw.z(Layer.space);
+            Draw.color(Color.red);
+            Draw.alpha(.3f);
+            boolean ints = Fonts.def.usesIntegerPositions();
+            Fonts.def.setUseIntegerPositions(false);
+            Fonts.def.getData().setScale(0.25f / Scl.scl(1f));
+            for (Player player : Groups.player) {
+                if (player.isLocal() || player.assisting) continue;
+
+                Fill.circle(player.mouseX, player.mouseY, tilesize * .5f);
+                if (input.mouseWorld().dst(player.mouseX, player.mouseY) < 20 * tilesize) {
+                    Fonts.def.draw("[#" + player.color + "]" + player.name, player.mouseX, player.mouseY, Align.center);
+                }
+            }
+            Fonts.def.getData().setScale(1f);
+            Fonts.def.setUseIntegerPositions(ints);
+            Draw.reset();
+        }
+        if (wasDrawingCursors != drawCursors) {
+            wasDrawingCursors = drawCursors;
+            settings.put("drawcursors", drawCursors);
+        }
+
         if(drawQuadtreeDebug){
             //TODO remove
             Draw.z(Layer.overlayUI);

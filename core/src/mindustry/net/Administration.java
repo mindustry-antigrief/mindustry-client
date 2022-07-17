@@ -533,11 +533,11 @@ public class Administration{
         }
 
         public boolean bool(){
-            return Core.settings.getBool(key, (Boolean)defaultValue);
+            return Core.settings.getBool(key, (boolean)defaultValue);
         }
 
         public int num(){
-            return Core.settings.getInt(key, (Integer)defaultValue);
+            return Core.settings.getInt(key, (int)defaultValue);
         }
 
         public String string(){

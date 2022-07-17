@@ -32,7 +32,7 @@ public class ImpactReactor extends PowerGenerator{
     public int explosionDamage = 1900;
     public Effect explodeEffect = Fx.impactReactorExplosion;
     public Sound explodeSound = Sounds.explosionbig;
-    public int floodNullifierRange = 16 * tilesize;
+    public float floodNullifierRange;
 
     public ImpactReactor(String name){
         super(name);
@@ -47,6 +47,12 @@ public class ImpactReactor extends PowerGenerator{
         envEnabled = Env.any;
 
         drawer = new DrawMulti(new DrawRegion("-bottom"), new DrawPlasma(), new DrawDefault());
+    }
+
+    @Override
+    public void init(){
+        super.init();
+        floodNullifierRange = (16 - size/2f) * tilesize; // .io programmn't and didn't factor in the actual reactor size
     }
 
     @Override
@@ -66,7 +72,7 @@ public class ImpactReactor extends PowerGenerator{
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, explosionRadius * tilesize, Color.coral);
         if (ClientUtilsKt.flood()) {
             Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, floodNullifierRange, Color.orange);
-            indexer.eachBlock(null, x * tilesize + offset, y * tilesize + offset, floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
+            indexer.eachBlock(null, x * tilesize + offset, y * tilesize + offset, floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild && b.within(x, y, floodNullifierRange), b -> Drawf.selected(b, Color.orange));
         }
     }
 

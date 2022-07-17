@@ -611,6 +611,7 @@ public class NetClient implements ApplicationListener{
         Core.app.post(Call::connectConfirm);
         Time.runTask(40f, platform::updateRPC);
         Core.app.post(ui.loadfrag::hide);
+        Core.app.post(() -> Events.fire(new EventType.ServerJoinEvent()));
     }
 
     private void reset(){
