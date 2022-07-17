@@ -744,7 +744,8 @@ object Client {
             """Sets custom personal text. 
                 |Use [accent]!ptext edit/e <name> <text...>[] to create/edit a text. Input no text to clear the ptext.
                 |Use [accent]!ptext say/s <name>[] to say the registered text in chat.
-                |Use [accent]!ptext list/l[] to list out registered texts""".trimMargin()
+                |Use [accent]!ptext list/l[] to list out registered texts
+                |Use [accent]!ptext js/j <name>[] to run a ptext as a js command""".trimMargin()
         ) { args, player ->
             when (args[0]) {
                 "edit", "e" -> {
@@ -770,6 +771,15 @@ object Client {
                     val text = Core.settings.get("ptext-${args[1]}", "").toString()
                     if (text.isEmpty()) player.sendMessage("[accent]No existing text is set for \"${args[1]}\"")
                     else Call.sendChatMessage(text)
+                }
+                "js", "j" -> {
+                    if (args.size <= 1) {
+                        player.sendMessage("[scarlet]No text name selected to say.")
+                        return@register
+                    }
+                    val text = Core.settings.get("ptext-${args[1]}", "").toString()
+                    if (text.isEmpty()) player.sendMessage("[accent]No existing text is set for \"${args[1]}\"")
+                    else player.sendMessage("[accent]${mods.scripts.runConsole(text)}")
                 }
                 "list", "l" -> {
                     var exists = false
