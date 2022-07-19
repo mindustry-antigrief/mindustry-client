@@ -1311,7 +1311,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             linePlans.add(plan);
         });
 
-        if(Core.settings.getBool("blockreplace") != control.input.conveyorPlaceNormal){
+        if(Core.settings.getBool("blockreplace") != control.input.conveyorPlaceNormal || block instanceof ItemBridge){ // Bridges need this for weaving, i'm too lazy to fix this properly
             linePlans.each(plan -> {
                 Block replace = plan.block.getReplacement(plan, linePlans);
                 if(replace.unlockedNow()){

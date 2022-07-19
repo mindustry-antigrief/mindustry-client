@@ -55,7 +55,7 @@ public class ThermalGenerator extends PowerGenerator{
         super.drawPlace(x, y, rotation, valid);
 
         if(displayEfficiency){
-            drawPlaceText(Core.bundle.formatFloat("bar.efficiency", sumAttribute(attribute, x, y) * 100, 1), x, y, valid);
+            drawPlaceText(Core.bundle.formatFloat("bar.powerbalance", powerProduction * sumAttribute(attribute, x, y) * 60, 1), x, y, valid);
         }
     }
 

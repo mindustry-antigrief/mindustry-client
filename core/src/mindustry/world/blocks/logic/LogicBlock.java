@@ -552,7 +552,7 @@ public class LogicBlock extends Block{
                 Player player = builder == null ? null :
                                 builder.isPlayer() ? builder.getPlayer() :
 //                                builder.controller() instanceof FormationAI ai && ai.leader.isPlayer() ? ai.leader.playerNonNull() : FINISHME: No
-                                builder.controller() instanceof LogicAI ai && ai.controller != null ? Groups.player.find(p -> p.name.equals(ai.controller.lastAccessed)) :
+//                                builder.controller() instanceof LogicAI ai && ai.controller != null ? Groups.player.find(p -> p.name.equals(ai.controller.lastAccessed)) :
                                 null;
                 clientThread.post(() -> { // The regex can be expensive, so we delegate it to the client thread
                     long begin = Time.nanos();
@@ -576,6 +576,7 @@ public class LogicBlock extends Block{
                                 attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
                                 attemMsg.format();
                             }
+                            ClientVars.lastSentPos.set(tileX(), tileY());
                             lastAttem = player;
                             ProcessorPatcher.INSTANCE.inform(this);
                         });

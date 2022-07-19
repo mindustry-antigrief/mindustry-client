@@ -68,6 +68,7 @@ object Client {
     fun draw() {
         Navigation.draw()
         Spectate.draw()
+        autoTransfer.draw()
 
         // Spawn path
         if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
