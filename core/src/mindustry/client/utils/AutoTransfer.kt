@@ -27,7 +27,7 @@ class AutoTransfer {
     private var timer = 0F
 
     fun draw() {
-        if (!debug) return
+        if (!debug || player.unit().item() == null) return
         dest.forEach {
             val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
             Drawf.select(it.x, it.y, it.block.size * tilesize / 2f + 2f, if (accepted >= Mathf.clamp(player.unit().stack.amount, 1, 5)) Pal.place else Pal.noplace)
