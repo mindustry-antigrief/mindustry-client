@@ -1,5 +1,6 @@
 package mindustry.world.blocks.distribution;
 
+import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -160,9 +161,9 @@ public class ItemBridge extends Block{
 
     @Override
     public void handlePlacementLine(Seq<BuildPlan> plans){
-        for(int i = 0; i < plans.size - 1; i++){
+        for(int i = 0; i < plans.size; i++){
             var cur = plans.get(i);
-            var next = plans.get(i + 1);
+            var next = plans.get(Math.min(Core.input.shift() ? i + range : i + 1, plans.size - 1)); // Bridge weaving is enabled when shift is held
             if(positionsValid(cur.x, cur.y, next.x, next.y)){
                 cur.config = new Point2(next.x - cur.x, next.y - cur.y);
             }
@@ -171,6 +172,7 @@ public class ItemBridge extends Block{
 
     @Override
     public void changePlacementPath(Seq<Point2> points, int rotation){
+        if(Core.input.shift()) return; // Bridge weaving is enabled when shift is held
         Placement.calculateNodes(points, this, rotation, (point, other) -> Math.max(Math.abs(point.x - other.x), Math.abs(point.y - other.y)) <= range);
     }
 

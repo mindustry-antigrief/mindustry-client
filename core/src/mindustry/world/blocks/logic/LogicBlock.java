@@ -508,6 +508,7 @@ public class LogicBlock extends Block{
                                 attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
                                 attemMsg.format();
                             }
+                            ClientVars.lastSentPos.set(tileX(), tileY());
                             lastAttem = player;
                             ProcessorPatcher.INSTANCE.inform(this);
                         });
