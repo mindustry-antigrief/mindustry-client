@@ -6,7 +6,6 @@ import arc.math.geom.QuadTree.*
 import arc.struct.*
 import mindustry.*
 import mindustry.Vars.*
-import mindustry.client.*
 import mindustry.gen.*
 import mindustry.logic.*
 import java.util.concurrent.locks.*
@@ -69,10 +68,12 @@ class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField var range:
 }
 
 // FINISHME: Awful.
-class EntityTree(bounds: Rect) : QuadTreeMk2<TurretPathfindingEntity>(bounds) {
+class EntityTree(bounds: Rect) : QuadTree<TurretPathfindingEntity>(bounds) {
     companion object {
         val lock = ReentrantLock(true)
     }
+
+    var stack: Seq<QuadTree<TurretPathfindingEntity>>? = null
 
     /**
      * @return whether an object overlaps this rectangle.
@@ -87,6 +88,7 @@ class EntityTree(bounds: Rect) : QuadTreeMk2<TurretPathfindingEntity>(bounds) {
             val w = w - half
             val h = h - half
             if (stack == null) stack = Seq()
+            val stack = stack!!
             stack.add(this)
 
             while (stack.size > 0) {
