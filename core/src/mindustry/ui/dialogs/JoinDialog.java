@@ -41,6 +41,7 @@ public class JoinDialog extends BaseDialog{
     int lastPort;
     @Nullable public Host lastHost;
     Task ping;
+    private boolean beList = becontrol.active();
 
     public JoinDialog(){
         super("@joingame");
@@ -58,6 +59,11 @@ public class JoinDialog extends BaseDialog{
 
         if(!steam) buttons.add().width(60f);
         buttons.add().growX().width(-1);
+        buttons.button("", () -> {
+            beList ^= true;
+            defaultServers.clear();
+            loadCommunityServers(beList ? serverJsonBeURL : serverJsonURL, true, true);
+        }).update(b -> b.setText("Use " + (beList ? "v7" : "BE") + " server list")).wrapLabel(false).height(64);
 
         addCloseButton();
 
@@ -594,15 +600,15 @@ public class JoinDialog extends BaseDialog{
             Core.settings.remove("server-list");
         }
 
-        loadCommunityServers(becontrol.active() ? serverJsonBeURL : serverJsonURL, true);
+        loadCommunityServers(beList ? serverJsonBeURL : serverJsonURL, true, false);
     }
 
-    private void loadCommunityServers(String url, boolean retryOnFail) {
+    private void loadCommunityServers(String url, boolean retryOnFail, boolean refreshCommunity) {
         Log.info("Fetching community servers at @", url);
         Http.get(url)
         .error(t -> {
             Log.err("Failed to fetch community servers", t);
-            if (retryOnFail) loadCommunityServers(url, false); // Sometimes this just randomly times out the first time
+            if(retryOnFail) loadCommunityServers(url, false, refreshCommunity); // Sometimes this just randomly times out the first time
         })
         .submit(result -> {
             Jval val = Jval.read(result.getResultAsString());
@@ -620,6 +626,7 @@ public class JoinDialog extends BaseDialog{
             //modify default servers on main thread
             Core.app.post(() -> {
                 defaultServers.addAll(servers);
+                if(refreshCommunity) refreshCommunity();
                 Log.info("Fetched @ community servers.", defaultServers.size);
             });
         });
