@@ -36,8 +36,7 @@ public class ThermalGenerator extends PowerGenerator{
     @Override
     public void drawPlace(int x, int y, int rotation, boolean valid){
         super.drawPlace(x, y, rotation, valid);
-
-        drawPlaceText(Core.bundle.formatFloat("bar.efficiency", sumAttribute(attribute, x, y) * 100, 1), x, y, valid);
+        drawPlaceText(Core.bundle.formatFloat("bar.powerbalance", powerProduction * sumAttribute(attribute, x, y) * 60, 1), x, y, valid);
     }
 
     @Override

@@ -492,11 +492,11 @@ public class LogicBlock extends Block{
                     long begin = Time.nanos();
                     if (ProcessorPatcher.INSTANCE.isAttem(code)) {
                         Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
+                            ChatFragment.ChatMessage.msgFormat();
                             if ((player != lastAttem || player == null)) {
                                 lastAttem = player;
                                 attemCount = 1;
                                 attemTime = Time.millis();
-                                ChatFragment.ChatMessage.msgFormat();
                                 attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtilsKt.getName(builder), tileX(), tileY()), (Color)null);
                                 if (ClientUtilsKt.canWhisper() && player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
                                     Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
@@ -508,7 +508,6 @@ public class LogicBlock extends Block{
                                     ui.chatfrag.messages.remove(attemMsg);
                                     ui.chatfrag.messages.insert(0, attemMsg);
                                 }
-                                ChatFragment.ChatMessage.msgFormat();
                                 attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
                                 attemMsg.format();
                             }

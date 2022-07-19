@@ -308,8 +308,8 @@ project(":core"){
         outputs.upToDateWhen{ false }
         generateLocales()
         writeVersion()
-        writeProcessors()
-        writePlugins()
+//        writeProcessors()
+//        writePlugins()
     }
 
     task copyChangelog{

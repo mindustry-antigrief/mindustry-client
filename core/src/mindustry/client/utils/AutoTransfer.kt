@@ -1,5 +1,6 @@
 package mindustry.client.utils
 
+import arc.math.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
@@ -7,6 +8,7 @@ import mindustry.client.ClientVars.*
 import mindustry.client.navigation.MinePath
 import mindustry.client.navigation.Navigation
 import mindustry.gen.*
+import mindustry.graphics.*
 import mindustry.type.*
 import mindustry.world.blocks.defense.turrets.ItemTurret
 import mindustry.world.blocks.power.NuclearReactor.*
@@ -19,12 +21,21 @@ class AutoTransfer {
         @JvmField var enabled = false
         var fromCores = true
         var minCoreItems = 100
-        var delay = 30F
+        var delay = 60F
+        var debug = false
     }
 
     private val dest = Seq<Building>()
     private var item: Item? = null
     private var timer = 0F
+
+    fun draw() {
+        if (!debug) return
+        dest.forEach {
+            val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
+            Drawf.select(it.x, it.y, it.block.size * tilesize / 2f + 2f, if (accepted >= Mathf.clamp(player.unit().stack.amount, 1, 5)) Pal.place else Pal.noplace)
+        }
+    }
 
     fun update() {
         if (!enabled) return
@@ -43,13 +54,13 @@ class AutoTransfer {
         var held = player.unit().stack.amount
 
         buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear())
-        dest.filter { it.block.consumes.has(ConsumeType.item) && it !is NuclearReactorBuild }
+        dest.filter { it.block.consumes.has(ConsumeType.item) && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
         .sort { b -> b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() }
         .forEach {
             if (ratelimitRemaining <= 1) return@forEach
 
             val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
-            if (accepted >= min(player.unit().stack.amount, 5) && held > 0) { // Don't bother transferring items unless we're moving 5 or more, any less and we just waste ratelimit
+            if (accepted >= min(held, 5) && held > 0) { // Don't bother transferring items unless we're moving 5 or more, any less and we just waste ratelimit
                 Call.transferInventory(player, it)
                 held -= accepted
                 ratelimitRemaining--
@@ -100,7 +111,7 @@ class AutoTransfer {
 
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
-                if (player.unit().hasItem() && item != player.unit().stack.item) Call.transferInventory(player, core)
+                if (held > 0 && item != player.unit().stack.item) Call.transferInventory(player, core)
                 else Call.requestItem(player, core, item, Int.MAX_VALUE)
                 item = null
                 ratelimitRemaining--
