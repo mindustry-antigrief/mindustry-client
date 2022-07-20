@@ -362,6 +362,7 @@ object Client {
 
                 if (confirmed && !inProgress) {
                     Log.debug("Patching!")
+                    val start = Time.nanos()
                     (builds as Seq<LogicBlock.LogicBuild>).each { build ->
                         val patched = ProcessorPatcher.patch(build.code)
                         if (patched != build.code) {
@@ -370,6 +371,7 @@ object Client {
                             n++
                         }
                     }
+                    Log.debug("Patching took ${Time.timeSinceNanos(start)/Time.nanosPerMilli.toFloat()}ms")
                 }
                 Core.app.post {
                     if (confirmed) {

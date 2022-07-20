@@ -25,6 +25,7 @@ class AutoTransfer {
     private val dest = Seq<Building>()
     private var item: Item? = null
     private var timer = 0F
+    private val counts = IntArray(content.items().size)
 
     fun draw() {
         if (!debug || player.unit().item() == null) return
@@ -45,6 +46,7 @@ class AutoTransfer {
         val core = if (fromCores) player.closestCore() else null
         var held = player.unit().stack.amount
 
+        counts.fill(0) // reset needed item counters
         buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear())
         dest.filter { it.block.consumes.has(ConsumeType.item) && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
         .sort { b -> b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() }
@@ -58,36 +60,41 @@ class AutoTransfer {
                 ratelimitRemaining--
             }
 
-            if (item == null && core != null) { // Automatically take needed item from core, only request once FINISHME: int[content.items().size)] that keeps track of number of each item needed so that this can be more efficient
-                item = run<Item?> { // FINISHME: I should really just make this its own function
-                    when (val cons = it.block.consumes.get<Consume>(ConsumeType.item)) { // Cursed af
-                        is ConsumeItems -> {
-                            cons.items.forEach { i ->
-                                    if (it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit()) >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) { // FINISHME: Do not hardcode the minumum required number (7) here, this is awful
-                                    return@run i.item
-                                }
+            if (item == null && core != null) { // Automatically take needed item from core, only request once
+                when (val cons = it.block.consumes.get<Consume>(ConsumeType.item)) { // Cursed af
+                    is ConsumeItems -> {
+                        cons.items.forEach { i ->
+                            val acceptedC = it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit())
+                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) { // FINISHME: Do not hardcode the minumum required number (7) here, this is awful
+                                counts[i.item.id.toInt()] += acceptedC
                             }
                         }
-                        is ConsumeItemFilter -> {
-                            content.items().forEach { i ->
-                                if (it.block.consumes.consumesItem(i) && it.acceptStack(i, Int.MAX_VALUE, player.unit()) >= 7 && core.items.has(i, minCoreItems)) {
-                                    return@run item
-                                }
-                            }
-                        }
-                        is ConsumeItemDynamic -> {
-                            cons.items.get(it).forEach { i -> // Get the current requirements
-                                if (it.acceptStack(i.item, i.amount, player.unit()) >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) {
-                                    return@run i.item
-                                }
-                            }
-                        }
-                        else -> throw IllegalArgumentException("This should never happen. Report this.")
                     }
-                    return@run null
+                    is ConsumeItemFilter -> {
+                        content.items().forEach { i ->
+                            val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
+                            if (it.block.consumes.consumesItem(i) && acceptedC >= 7 && core.items.has(i, minCoreItems)) {
+                                counts[i.id.toInt()] += acceptedC
+                            }
+                        }
+                    }
+                    is ConsumeItemDynamic -> {
+                        cons.items.get(it).forEach { i -> // Get the current requirements
+                            val acceptedC = it.acceptStack(i.item, i.amount, player.unit())
+                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) {
+                                counts[i.item.id.toInt()] += acceptedC
+                            }
+                        }
+                    }
+                    else -> throw IllegalArgumentException("This should never happen. Report this.")
                 }
             }
         }
+        var maxID = 0
+        for (i in 1 until counts.size) {
+            if (counts[i] > counts[maxID]) maxID = i
+        }
+        item = content.item(maxID)
 
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
