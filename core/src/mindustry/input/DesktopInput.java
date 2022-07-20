@@ -448,7 +448,7 @@ public class DesktopInput extends InputHandler{
                 });
                 scene.add(table);
             }
-            if((input.keyDown(Binding.control) || input.shift()) && Core.input.keyTap(Binding.select)){
+            if(((input.keyDown(Binding.control) || input.shift()) && Core.input.keyTap(Binding.select)) && block == null){
                 Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
                 if(on != null){

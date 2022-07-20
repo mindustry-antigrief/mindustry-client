@@ -94,7 +94,7 @@ class AutoTransfer {
         for (i in 1 until counts.size) {
             if (counts[i] > counts[maxID]) maxID = i
         }
-        item = content.item(maxID)
+        if (counts[maxID] != 0) item = content.item(maxID) // This is cursed
 
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
