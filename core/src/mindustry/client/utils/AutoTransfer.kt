@@ -23,6 +23,7 @@ class AutoTransfer {
         var minCoreItems = 100
         var delay = 60F
         var debug = false
+        var minTransferItems = 7 
     }
 
     private val dest = Seq<Building>()
@@ -73,7 +74,7 @@ class AutoTransfer {
                     is ConsumeItems -> {
                         cons.items.forEach { i ->
                             val acceptedC = it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit())
-                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) { // FINISHME: Do not hardcode the minumum required number (7) here, this is awful
+                            if (acceptedC > 0 && core.items.has(i.item, max(i.amount, minCoreItems))) {
                                 counts[i.item.id.toInt()] += acceptedC
                             }
                         }
@@ -81,7 +82,7 @@ class AutoTransfer {
                     is ConsumeItemFilter -> {
                         content.items().forEach { i ->
                             val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
-                            if (it.block.consumes.consumesItem(i) && acceptedC >= 7 && core.items.has(i, minCoreItems)) {
+                            if (accepted > 0 && it.block.consumes.consumesItem(i) && core.items.has(i, minCoreItems)) {
                                 val turretC = (it.block as? ItemTurret)?.ammoTypes?.get(i)?.damage?.toInt() ?: 1 // Sort based on damage for turrets
                                 counts[i.id.toInt()] += acceptedC * turretC
                             }
@@ -90,7 +91,7 @@ class AutoTransfer {
                     is ConsumeItemDynamic -> {
                         cons.items.get(it).forEach { i -> // Get the current requirements
                             val acceptedC = it.acceptStack(i.item, i.amount, player.unit())
-                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) {
+                            if (acceptedC > 0 && core.items.has(i.item, max(i.amount, minCoreItems))) {
                                 counts[i.item.id.toInt()] += acceptedC
                             }
                         }
@@ -103,7 +104,7 @@ class AutoTransfer {
         for (i in 1 until counts.size) {
             if (counts[i] > counts[maxID]) maxID = i
         }
-        if (counts[maxID] != 0) item = content.item(maxID) // This is cursed
+        if (counts[maxID] >= minTransferItems) item = content.item(maxID) // This is cursed
 
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
