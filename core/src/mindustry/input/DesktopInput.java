@@ -86,6 +86,9 @@ public class DesktopInput extends InputHandler{
                                 .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
                                 .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
                         }
+                        if (isFreezeQueueing) {
+                            str.append("\n").append(bundle.format("client.freezequeueing", keybinds.get(Binding.pause_building).key.toString()));
+                        }
                         if(player.unit().isBuildingIgnoreNetworking() || dispatchingBuildPlans){
                             str.append("\n").append(bundle.format(dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
                         }
@@ -741,11 +744,14 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Core.input.keyTap(Binding.pause_building)){
-            isBuilding = !isBuilding;
-            buildWasAutoPaused = false;
-
-            if(isBuilding){
-                player.shooting = false;
+            if (Core.input.shift()) isFreezeQueueing = !isFreezeQueueing;
+            else {
+                isBuilding = !isBuilding;
+                buildWasAutoPaused = false;
+    
+                if(isBuilding){
+                    player.shooting = false;
+                }
             }
         }
 
@@ -804,6 +810,7 @@ public class DesktopInput extends InputHandler{
             BuildPlan req = getRequest(cursorX, cursorY);
             if(req != null && req.breaking){
                 player.unit().plans().remove(req);
+                frozenPlans.remove(req);
             }
         }else{
             deleting = false;

@@ -32,6 +32,7 @@
  * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
  * Alt + {show_turret_ranges} - Show your team's turret ranges.
  * Shift + {hide_blocks} - Hides build plans.
+ * Shift + {pause_building} - Switches to freeze build queue.
  * Shift + {break_block} - Freezes/Unfreezes build plans. Useful for prioritizing which build plans to execute first.
  * Auto bridge weave - Press shift while building with bridges to automatically bridge weave. End point has automatically converged bridge connections.
  * Player List Assist - None (Regular), Shift (Free Move), Ctrl (Follow Cursor), Alt (BuildPath)

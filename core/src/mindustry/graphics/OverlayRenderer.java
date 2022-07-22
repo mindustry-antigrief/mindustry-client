@@ -89,7 +89,8 @@ public class OverlayRenderer{
                 if (i == 0) {
                     //drawPlan
                     plan.animScale = 1.0F;
-                    plan.block.drawPlan(plan, (cons) -> {for(var req:frozenPlans)cons.get(req);}, Build.validPlace(plan.block, player.team(), plan.x, plan.y, plan.rotation) || control.input.requestMatches(plan), 1.0F, true);
+                    if (plan.breaking) control.input.drawSelected(plan.x, plan.y, plan.block, Pal.freeze);
+                    else plan.block.drawPlan(plan, (cons) -> {for(var req:frozenPlans)cons.get(req);}, Build.validPlace(plan.block, player.team(), plan.x, plan.y, plan.rotation) || control.input.requestMatches(plan), 1.0F, true);
                 } else {
                     //drawPlanTop
                     Draw.reset();

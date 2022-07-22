@@ -53,6 +53,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static arc.Core.*;
 import static mindustry.Vars.*;
 import static mindustry.client.ClientVars.*;
+import static mindustry.ui.CoreItemsDisplay.mode;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
     /** Used for dropping items. */
@@ -72,7 +73,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public int rotation;
     public boolean droppingItem;
     public Group uiGroup;
-    public boolean isBuilding = true, buildWasAutoPaused = false, wasShooting = false;
+    public boolean isBuilding = true, isFreezeQueueing = false, buildWasAutoPaused = false, wasShooting = false;
     public @Nullable UnitType controlledType;
     public float recentRespawnTimer;
 
@@ -828,6 +829,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         for(BuildPlan req : player.unit().plans()){
             if(test.get(req)) return req;
         }
+        for (BuildPlan req : frozenPlans) if (test.get(req)) return req;
 
         return selectRequests.find(test);
     }
@@ -935,8 +937,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
+    protected void flushRequests(Seq<BuildPlan> requests) {
+        flushRequests(requests, true);
+    }
     private final Seq<Tile> tempTiles = new Seq<>(4);
-    protected void flushRequests(Seq<BuildPlan> requests){
+    protected void flushRequests(Seq<BuildPlan> requests, boolean allowFreeze){
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[requests.size + requests.count(req -> req.block == Blocks.waterExtractor) * 3];
         var added = 0;
@@ -957,7 +962,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                         }
                     }
                 } else if (validPlace(first.x, first.y, Blocks.rotaryPump, 0)) { // Mechanical pumps can't cover everything, use rotary pump instead
-                    player.unit().addBuild(new BuildPlan(req.x, req.y, 0, Blocks.rotaryPump));
+                    var plan = new BuildPlan(first.x, first.y, 0, Blocks.rotaryPump);
+                    req.block.onNewPlan(plan);
+                    temp[added++] = plan;
                     replaced = true;
                 }
                 if (replaced) continue; // Swapped water extractor for pump, don't place it
@@ -997,7 +1004,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        for (int i = 0; i < added; i++) player.unit().addBuild(temp[i]);
+        for (int i = 0; i < added; i++) {
+            if (isFreezeQueueing && allowFreeze) frozenPlans.add(temp[i]);
+            else player.unit().addBuild(temp[i]);
+        }
     }
 
     protected void drawOverRequest(BuildPlan request, boolean valid){
@@ -1082,6 +1092,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 it.remove();
             }
         }
+        
+        it = frozenPlans.iterator();
+        while (it.hasNext()) {
+            BuildPlan plan = it.next();
+            if (!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)) it.remove();
+        }
 
         removed.clear();
 
@@ -1124,16 +1140,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
 
         for(BuildPlan req : player.unit().plans()){
-            if(!req.breaking && req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
+            if(req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
         }
 
         for(BuildPlan req : selectRequests){
-            if(!req.breaking && req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
+            if(req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
         }
 
         Seq<BuildPlan> unfreeze = new Seq<>();
         for(BuildPlan req : frozenPlans){
-            if(!req.breaking && req.bounds(Tmp.r2).overlaps(Tmp.r1)) unfreeze.add(req);
+            if(req.bounds(Tmp.r2, true).overlaps(Tmp.r1)) unfreeze.add(req);
         }
 
         Iterator<BuildPlan> it1, it2;
@@ -1143,7 +1159,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 while(it1.hasNext() && it1.next() != frz);
                 if(it1.hasNext()) it1.remove();
             }
-            flushRequests(unfreeze);
+            flushRequests(unfreeze, false);
         }
         else{
             it1 = player.unit().plans().iterator();
@@ -1504,7 +1520,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public void breakBlock(int x, int y){
         Tile tile = world.tile(x, y);
         if(tile != null && tile.build != null) tile = tile.build.tile;
-        player.unit().addBuild(new BuildPlan(tile.x, tile.y));
+        if (!isFreezeQueueing) player.unit().addBuild(new BuildPlan(tile.x, tile.y));
+        else frozenPlans.add(new BuildPlan(tile.x, tile.y));
     }
 
     public void drawArrow(Block block, int x, int y, int rotation){
