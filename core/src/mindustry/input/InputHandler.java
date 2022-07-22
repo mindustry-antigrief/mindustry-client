@@ -48,6 +48,7 @@ import mindustry.world.blocks.units.*;
 import mindustry.world.meta.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -950,8 +951,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     for (var t : tempTiles) {
                         var plan = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
                         if (validPlace(t.x, t.y, plan.block, 0)) {
-                            req.block.onNewPlan(req);
-                            temp[added++] = req;
+                            req.block.onNewPlan(plan);
+                            temp[added++] = plan;
                             replaced = true;
                         }
                     }
