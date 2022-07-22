@@ -78,6 +78,9 @@ public class DesktopInput extends InputHandler{
                 b.label(() -> {
                     str.setLength(0);
                     if(Core.settings.getBool("hints")) {
+                        if (isFreezeQueueing) {
+                            str.append("\n").append(bundle.format("client.freezequeueing", keybinds.get(Binding.pause_building).key.toString()));
+                        }
                         if(!isBuilding && !isBuildingLock && !settings.getBool("buildautopause") && !player.unit().isBuildingIgnoreNetworking()){
                             str.append("\n").append(bundle.format("enablebuilding", keybinds.get(Binding.pause_building).key.toString()));
                         }else if(player.unit().isBuildingIgnoreNetworking() || !Player.persistPlans.isEmpty()){
@@ -85,9 +88,6 @@ public class DesktopInput extends InputHandler{
                                 .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
                                 .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
                                 .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
-                        }
-                        if (isFreezeQueueing) {
-                            str.append("\n").append(bundle.format("client.freezequeueing", keybinds.get(Binding.pause_building).key.toString()));
                         }
                         if(player.unit().isBuildingIgnoreNetworking() || dispatchingBuildPlans){
                             str.append("\n").append(bundle.format(dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
