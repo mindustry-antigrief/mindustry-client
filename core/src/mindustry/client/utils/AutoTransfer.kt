@@ -63,7 +63,7 @@ class AutoTransfer {
             if (ratelimitRemaining <= 1) return@forEach
 
             val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
-            if (accepted >= min(held, 5) && held > 0) { // Don't bother transferring items unless we're moving 5 or more, any less and we just waste ratelimit
+            if (accepted >= min(held, minTransferItems) && held > 0) { // Don't bother transferring items unless we're moving 5 or more, any less and we just waste ratelimit
                 Call.transferInventory(player, it)
                 held -= accepted
                 ratelimitRemaining--
@@ -82,7 +82,7 @@ class AutoTransfer {
                     is ConsumeItemFilter -> {
                         content.items().forEach { i ->
                             val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
-                            if (accepted > 0 && it.block.consumes.consumesItem(i) && core.items.has(i, minCoreItems)) {
+                            if (acceptedC > 0 && it.block.consumes.consumesItem(i) && core.items.has(i, minCoreItems)) {
                                 val turretC = (it.block as? ItemTurret)?.ammoTypes?.get(i)?.damage?.toInt() ?: 1 // Sort based on damage for turrets
                                 counts[i.id.toInt()] += acceptedC * turretC
                             }
