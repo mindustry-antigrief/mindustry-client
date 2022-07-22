@@ -181,7 +181,7 @@ class ClientLogic {
 
         Events.on(GameOverEventClient::class.java) {
             if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
-            if (Core.settings.getString("gameovertext").isNotEmpty()) Call.sendChatMessage(Core.settings.getString("gameovertext")) // TODO: Make this work in singleplayer
+            if (Core.settings.getString("gameovertext")?.isNotEmpty() == true) Call.sendChatMessage(Core.settings.getString("gameovertext")) // TODO: Make this work in singleplayer
         }
 
         Events.on(BlockDestroyEvent::class.java) {

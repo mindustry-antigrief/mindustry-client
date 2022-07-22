@@ -287,7 +287,9 @@ public class HudFragment extends Fragment{
                 .style(Styles.outlineLabel).name("plans");
                 info.row();
 
-                info.label(() -> players.get(Groups.player.size(),ui.join.lastHost == null ? 0 : ui.join.lastHost.playerLimit)).visible(net::active).left() // Player count
+                info.label(() -> "Rate Limit: " + ClientVars.ratelimitRemaining).left().style(Styles.outlineLabel).row();
+
+                info.label(() -> players.get(Groups.player.size(), ui.join.lastHost == null ? 0 : ui.join.lastHost.playerLimit)).visible(net::active).left() // Player count
                 .style(Styles.outlineLabel).name("players");
                 info.row();
 

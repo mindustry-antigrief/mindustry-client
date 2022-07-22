@@ -470,7 +470,7 @@ public class DesktopInput extends InputHandler{
                 });
                 scene.add(table);
             }
-            if(mode != placing && (input.ctrl() || input.shift()) && Core.input.keyTap(Binding.select)){
+            if(mode != placing && ((input.ctrl() || input.shift()) && Core.input.keyTap(Binding.select)) && block == null){
                 Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
                 if(on != null){

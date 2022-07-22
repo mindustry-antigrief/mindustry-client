@@ -17,8 +17,8 @@ buildscript{
 
     dependencies{
         classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.16"
-        classpath "com.github.mindustry-antigrief.Arc:packer:$arcHash"
-        classpath "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
+        classpath "com.github.zxtej.Arc:packer:freeze-v135-SNAPSHOT" // Could break when updating to build 136 (erekir).
+        classpath "com.github.zxtej.Arc:arc-core:freeze-v135-SNAPSHOT"
     }
 }
 
@@ -66,7 +66,7 @@ allprojects{
             }else{
                 //skip to last submodule
                 if(name.contains(':')) name = name.split(':').last()
-                return "com.github.mindustry-antigrief.Arc:$name:${getArcHash()}"
+                return "com.github.zxtej.Arc:$name:freeze-v135-SNAPSHOT"
             }
         }
 
@@ -308,8 +308,8 @@ project(":core"){
         outputs.upToDateWhen{ false }
         generateLocales()
         writeVersion()
-        writeProcessors()
-        writePlugins()
+//        writeProcessors()
+//        writePlugins()
     }
 
     task copyChangelog{
@@ -473,7 +473,7 @@ project(":annotations"){
 
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"
-        implementation "com.github.mindustry-antigrief.Arc:arc-core:$arcHash"
+        implementation "com.github.zxtej.Arc:arc-core:freeze-v135-SNAPSHOT"
     }
 }
 

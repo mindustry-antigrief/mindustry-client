@@ -24,18 +24,15 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path()
         init {
             Events.on(EventType.DepositEvent::class.java) {
                 val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
-                if (it.player == assisting && ratelimitRemaining > 1) {
-                    Call.transferInventory(player, it.tile)
-                    ratelimitRemaining--
-                }
+                if (it.player != assisting || ratelimitRemaining <= 1) return@on
+                ratelimitRemaining--
+                Call.transferInventory(player, it.tile)
             }
             Events.on(EventType.WithdrawEvent::class.java) {
                 val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
-//                if (it.player == assisting && ratelimitRemaining > 1) { // Hmm. Is this better?
-                if (it.player == assisting && ratelimitRemaining > 1 && player.unit().item() == it.player.unit().item()) {
-                    Call.requestItem(player, it.tile, it.item, it.amount)
-                    ratelimitRemaining--;
-                }
+                if (it.player != assisting || ratelimitRemaining <= 1) return@on
+                ratelimitRemaining--
+                Call.requestItem(player, it.tile, it.item, it.amount)
             }
         }
     }

@@ -34,7 +34,6 @@ steam_appid.txt
 /android/assets/mindustry-maps/
 /android/assets/mindustry-saves/
 /core/assets/gifexport/
-/annotations/src/main/resources/META-INF/services
 /core/assets/version.properties
 /core/assets/locales
 /core/assets/cache/
@@ -45,6 +44,7 @@ packr-out/
 config/
 *.gif
 /tests/out
+buildSrc
 
 /core/assets/basepartnames
 version.properties
