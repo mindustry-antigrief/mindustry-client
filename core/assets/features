@@ -27,6 +27,7 @@
  * Power void broken notifs - Notifies in chat when a power void is broken and where.
  * Zero drift setting - No more drifting after releasing movement keys. Looks a bit choppy due to the linear interpolation though.
  * No drift MinePath - Yes.
+ * Draw Logic Display Border Setting
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.
  * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.

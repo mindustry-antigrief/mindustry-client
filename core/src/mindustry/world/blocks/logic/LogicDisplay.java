@@ -54,7 +54,7 @@ public class LogicDisplay extends Block{
 
         @Override
         public void draw(){
-//            super.draw(); Don't draw borders
+            if (Core.settings.getBool("drawdisplayborder")) super.draw();
 
             Draw.draw(Draw.z(), () -> {
                 if(buffer == null){
