@@ -2,6 +2,7 @@ package mindustry.world.blocks.distribution;
 
 import arc.*;
 import arc.graphics.g2d.*;
+import arc.math.*;
 import arc.math.geom.*;
 import arc.util.*;
 import arc.util.io.*;
@@ -17,7 +18,7 @@ public class Junction extends Block{
     public float speed = 26; //frames taken to go through this junction
     public int capacity = 6;
 
-    static Vec2 displacement = new Vec2(), direction = new Vec2(tilesize, 0), baseOffset = setBaseOffset(Core.settings == null ? 0 : Core.settings.getInt("junctionview", 0));
+    static Vec2 direction = new Vec2(tilesize, 0), baseOffset = setBaseOffset(Core.settings == null ? 0 : Core.settings.getInt("junctionview", 0));
     public static boolean drawItems = false;
 
     public Junction(String name){
@@ -106,21 +107,25 @@ public class Junction extends Block{
         @Override
         public void draw(){
             super.draw();
+
             if(!drawItems) return;
             Draw.z(Layer.blockOver);
-            float firstProgress = 0;
+            var realSpeed = speed * timeScale;
+            var iSize = (tilesize * size) / capacity;
+            var spacing = 1f / capacity;
             for(int i = 0; i < 4; i++){ // Code from zxtej
-                for(int j = 0; j < buffer.indexes[i]; j++){ // from DirectionalItemBuffer.poll()
-                    long l = buffer.buffers[i][j];
-                    Item item = content.item(BufferItem.item(l));
-                    float time = Time.time - BufferItem.time(l); // to exit, Time.time > time + speed. Then currFrame (ie speed) = Time.time - time
-                    if(time < 0) time = Float.MAX_VALUE; // if joining a game later than when item was placed
-                    float progress = time / speed * timeScale;
-                    if (j == 0) firstProgress = progress;
+                var last = 1f - spacing * .5f;
+                for(int j = 0; j < buffer.indexes[i]; j++){ // highest to lowest progress
+                    var l = buffer.buffers[i][j];
+                    var item = content.item(BufferItem.item(l));
+                    var progress = Mathf.clamp((Time.time - BufferItem.time(l)) / realSpeed, spacing * .5f, last);
+                    last -= spacing;
 
-                    progress = Math.min(progress+.15f, firstProgress >= 1 ? 1f - (float)j / capacity : 1); // (cap - j) * 1/cap
-                    displacement.set(direction).scl(-0.5f/capacity + progress).add(baseOffset); // -0.5/capacity: 1/capacity times half that distance
-                    Draw.rect(item.fullIcon, tile.x * tilesize + displacement.x, tile.y * tilesize + displacement.y, itemSize / 4f, itemSize / 4f);
+                    Draw.rect(item.fullIcon,
+                        x + direction.x * progress + baseOffset.x,
+                        y + direction.y * progress + baseOffset.y,
+                        iSize, iSize
+                    );
                 }
                 direction.rotate90(1);
                 baseOffset.rotate90(1);
