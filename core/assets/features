@@ -40,6 +40,7 @@
  * Player List Assist - None (Regular), Shift (Free Move), Ctrl (Follow Cursor), Alt (BuildPath)
  * Click Assist - Shift (Regular), Shift + Alt (Free Move), Ctrl (Follow Cursor), Ctrl + Alt (BuildPath)
  * >=========================< Commands >=========================<
+ * !hh - Switches between all io servers and does /novote aka pet point farmer
  * !voids [count] - Shows void locations
  * !procfind [options] - Searches for processors with matching regex. Run without arguments for explanation.
  * !blank - Sends an empty text message
