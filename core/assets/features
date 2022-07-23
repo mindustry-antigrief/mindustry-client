@@ -102,7 +102,6 @@
  * !admin [option] - open admin settings ('settings') or leave logs ('leaves')
  * !clearghosts [c] - remove block ghosts in range of enemy turrets
  * !e <certname> <message...> - send an encrypted message to someone, see secure chat section below
- * !togglesign - toggle the sign outgoing message setting
  * !c <message...> - send a message to other client users
 
 # Networking

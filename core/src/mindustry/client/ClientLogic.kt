@@ -135,6 +135,7 @@ class ClientLogic {
                 UnitType.hitboxAlpha = Core.settings.getInt("hitboxopacity") / 100f
             }
             Core.settings.remove("drawhitboxes") // Don't need this old setting anymore
+            Core.settings.remove("signmessages") // same as above FINISHME: Remove this at some point
 
             // How about I enable it anyways :)
 //            if (OS.hasProp("policone")) { // People spam these and its annoying. add some argument to make these harder to find
