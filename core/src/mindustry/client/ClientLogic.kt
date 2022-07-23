@@ -88,6 +88,7 @@ class ClientLogic {
                 UnitType.hitboxAlpha = Core.settings.getInt("hitboxopacity") / 100f
             }
             Core.settings.remove("drawhitboxes") // Don't need this old setting anymore
+            Core.settings.remove("signmessages") // same as above FINISHME: Remove this at some point
 
             if (OS.hasProp("policone")) { // People spam these and its annoying. add some argument to make these harder to find
                 Client.register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->

@@ -187,7 +187,6 @@ object Main : ApplicationListener {
     }
 
     fun sign(content: String): String {
-//        if (!Core.settings.getBool("signmessages")) return content  // ID is also needed for attachments now
         if (content.startsWith("/") && !(content.startsWith("/t ") || content.startsWith("/a "))) return content
 
         val msgId = Random.nextInt().toShort()
