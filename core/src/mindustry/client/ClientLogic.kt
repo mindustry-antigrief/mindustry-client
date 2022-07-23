@@ -41,7 +41,7 @@ class ClientLogic {
                 Core.app.post {
                     val switchTo = switchTo
                     if (switchTo != null) {
-                        Call.sendChatMessage("/${arrayOf("no", "up", "down").random()}vote")
+                        Call.sendChatMessage("/novote") // Having it not be a random vote is better
                         if (switchTo.firstOrNull() is Char) Call.sendChatMessage("/switch ${switchTo.removeFirst()}")
                         else {
                             if (switchTo.firstOrNull() is UnitType) Vars.ui.unitPicker.pickUnit(switchTo.first() as UnitType)
