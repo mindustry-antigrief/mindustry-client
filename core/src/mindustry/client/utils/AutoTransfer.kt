@@ -29,7 +29,7 @@ class AutoTransfer {
     private val dest = Seq<Building>()
     private var item: Item? = null
     private var timer = 0F
-    private val counts = IntArray(content.items().size)
+    private val counts = IntArray(content.items().size); private val countsAdditional = IntArray(content.items().size)
 
     fun draw() {
         if (!debug || player.unit().item() == null) return
@@ -56,6 +56,7 @@ class AutoTransfer {
         var held = player.unit().stack.amount
 
         counts.fill(0) // reset needed item counters
+        countsAdditional.fill(0)
         buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear())
         dest.filter { it.block.consumes.has(ConsumeType.item) && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
         .sort { b -> -b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() }
@@ -63,7 +64,7 @@ class AutoTransfer {
             if (ratelimitRemaining <= 1) return@forEach
 
             val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
-            if (accepted >= min(held, minTransferItems) && held > 0) { // Don't bother transferring items unless we're moving 5 or more, any less and we just waste ratelimit
+            if (accepted > 0 && held > 0) {
                 Call.transferInventory(player, it)
                 held -= accepted
                 ratelimitRemaining--
@@ -84,7 +85,8 @@ class AutoTransfer {
                             val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
                             if (acceptedC > 0 && it.block.consumes.consumesItem(i) && core.items.has(i, minCoreItems)) {
                                 val turretC = (it.block as? ItemTurret)?.ammoTypes?.get(i)?.damage?.toInt() ?: 1 // Sort based on damage for turrets
-                                counts[i.id.toInt()] += acceptedC * turretC
+                                counts[i.id.toInt()] += acceptedC
+                                countsAdditional[i.id.toInt()] += acceptedC * turretC
                             }
                         }
                     }
@@ -100,11 +102,15 @@ class AutoTransfer {
                 }
             }
         }
-        var maxID = 0
+        var maxID = 0; var maxCount = 0
         for (i in 1 until counts.size) {
-            if (counts[i] > counts[maxID]) maxID = i
+            val count = counts[i] + countsAdditional[i]
+            if (count > maxCount) {
+                maxID = i
+                maxCount = count
+            }
         }
-        if (counts[maxID] >= minTransferItems) item = content.item(maxID) // This is cursed
+        if (counts[maxID] >= minTransferItems) item = content.item(maxID)
 
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
