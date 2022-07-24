@@ -435,8 +435,8 @@ fun getName(builder:mindustry.gen.Unit):String {
             if(controller.lastAccessed == null) "[unknown]" else Strings.stripColors(controller.lastAccessed),
             controller.tileX(), controller.tileY()
         )
-    } else if(builder.controller() != null){
-        Strings.format("@ controlled by controller of class @", builder.type.toString(), (builder.controller()::javaClass).toString()) // Bala, what have you done this time?
+    } else if (builder.controller() != null){
+        builder.type.toString()
     } else "unknown"
 }
 
