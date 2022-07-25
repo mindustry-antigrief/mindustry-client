@@ -1091,10 +1091,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
         
-        it = frozenPlans.iterator();
-        while (it.hasNext()) {
-            BuildPlan plan = it.next();
-            if (!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)) it.remove();
+        if (isFreezeQueueing) {
+            it = frozenPlans.iterator();
+            while (it.hasNext()) {
+                BuildPlan plan = it.next();
+                if (!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)) it.remove();
+            }
         }
 
         removed.clear();
@@ -1114,6 +1116,36 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         //TODO array may be too large?
         if(removed.size > 0 && net.active()){
             Call.deletePlans(player, removed.toArray());
+        }
+    }
+    
+    /** Remove plans in a selection */
+    protected void removeSelectionPlans(int x1, int y1, int x2, int y2, int maxLength) {
+        NormalizeResult result = Placement.normalizeArea(x1, y1, x2, y2, rotation, false, maxLength);
+        Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
+    
+        Iterator<BuildPlan> it = player.unit().plans().iterator();
+        while(it.hasNext()){
+            BuildPlan req = it.next();
+            if(req.bounds(Tmp.r2, true).overlaps(Tmp.r1)){
+                it.remove();
+            }
+        }
+    
+        it = selectRequests.iterator();
+        while(it.hasNext()){
+            BuildPlan req = it.next();
+            if(req.bounds(Tmp.r2, true).overlaps(Tmp.r1)){
+                it.remove();
+            }
+        }
+    
+        if (isFreezeQueueing) {
+            it = frozenPlans.iterator();
+            while (it.hasNext()) {
+                BuildPlan plan = it.next();
+                if (plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) it.remove();
+            }
         }
     }
 
