@@ -29,6 +29,7 @@
  * No drift MinePath - Yes.
  * Draw Logic Display Border Setting
  * !unit searches for the closest unit from the cursor instead of player. Allows you to pick closest unit from a location where you want to be instead of where your player is currently now.
+ * Buildplans persist even when in enemy core range or when a unit intersecting. 
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.
  * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
