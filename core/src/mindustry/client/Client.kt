@@ -819,6 +819,13 @@ object Client {
             }
         }
 
+        register("bannedcontent", "Lists banned units and blocks on the map") { args, player ->
+            val sb = StringBuilder("[accent]Banned content on this map: ")
+            state.rules.bannedUnits.forEach {sb.append(it.localizedName).append(" ") }
+            state.rules.bannedBlocks.forEach { sb.append(it.localizedName).append(" ") }
+            player.sendMessage(sb.toString())
+        }
+
         registerReplace("%", "c", "cursor") {
             Strings.format("(@, @)", control.input.rawTileX(), control.input.rawTileY())
         }

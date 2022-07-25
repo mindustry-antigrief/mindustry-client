@@ -56,6 +56,7 @@
  * !gamelosetext - Same as above but for when you lose.
  * !ptext - Sets a custom text you can easily send in chat with !ptext say (do !help ptext for more details)
  * !spawn [x] [y] - Spawns you at the closest core to (x, y) or to your cursor
+ * !bannedcontent - Lists out banned units and blocks on the map
  * >=========================< Chat Text Replacer >=========================<
  * %s - replaces with a !shrug
  * %c - replaces with cursor coordinates
