@@ -138,7 +138,7 @@ class ClientLogic {
             // FINISHME: Remove these at some point
             Core.settings.remove("drawhitboxes")
             Core.settings.remove("signmessages")
-            if (Core.settings.getString("gameovertext").isNotEmpty()) {
+            if (Core.settings.getString("gameovertext")?.isNotEmpty() == true) {
                 Core.settings.put("gamewintext", Core.settings.getString("gameovertext"))
                 Core.settings.remove("gameovertext")
             }
