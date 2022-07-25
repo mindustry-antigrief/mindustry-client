@@ -48,6 +48,11 @@ class ClientLogic {
                             this.switchTo = null
                         }
                     }
+
+                    // If no hh then send gamejointext
+                    else if (Core.settings.getString("gamejointext")?.isNotEmpty() == true) {
+                        Call.sendChatMessage(Core.settings.getString("gamejointext"))
+                    }
                 }
             }, 1F)
 
