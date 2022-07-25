@@ -81,8 +81,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         if(plans.size > 1){
             int total = 0;
             BuildPlan req;
-            while(total++ < plans.size && (!within((req = buildPlan()).tile(), finalPlaceDst) || shouldSkip(req, core) ||
-                    (!req.initialized && (!Build.validPlaceCoreRange(req.block, team, req.x, req.y) || !Build.validPlaceUnit(req.block, req.x, req.y))))){
+            while(total++ < plans.size && (!within((req = buildPlan()).tile(), finalPlaceDst) || shouldSkip(req, core) || !req.initialized)){
                 plans.removeFirst();
                 plans.addLast(req);
             }
@@ -204,7 +203,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         //requests that you have at least *started* are considered
         if(request.priority || state.rules.infiniteResources || team.rules().infiniteResources || request.breaking || core == null || request.isRotation(team) || (isBuilding() && !within(plans.last(), buildingRange))) return false;
 
-        return (request.stuck && !core.items.has(request.block.requirements)) || (Structs.contains(request.block.requirements, i -> !core.items.has(i.item, Math.min(i.amount, 15)) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0) && !request.initialized);
+        return (request.stuck && !core.items.has(request.block.requirements)) || (Structs.contains(request.block.requirements, i -> !core.items.has(i.item, Math.min(i.amount, 15)) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0) && !request.initialized) || (!Build.validPlaceCoreRange(request.block, team, request.x, request.y) || !Build.validPlaceUnit(request.block, request.x, request.y));
     }
 
     void removeBuild(int x, int y, boolean breaking){
