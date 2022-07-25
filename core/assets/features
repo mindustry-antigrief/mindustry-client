@@ -40,7 +40,7 @@
  * Shift + {hide_blocks} - Hides build plans.
  * Shift + {pause_building} - Switches to freeze build queue.
  * Shift + {break_block} - Freezes/Unfreezes build plans. Useful for prioritizing which build plans to execute first.
- * Ctrl + {break_block} - Deletes only build plans. Doesn't add break plans.
+ * Ctrl + {break_block} - Dequeue selection. Aka deletes only build plans. Doesn't deconstruct existing blocks.
  * Auto bridge weave - Press shift while building with bridges to automatically bridge weave. End point has automatically converged bridge connections.
  * Player List Assist - None (Regular), Shift (Free Move), Ctrl (Follow Cursor), Alt (BuildPath)
  * Click Assist - Shift (Regular), Shift + Alt (Free Move), Ctrl (Follow Cursor), Ctrl + Alt (BuildPath)

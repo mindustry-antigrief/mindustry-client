@@ -832,6 +832,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return selectRequests.find(test);
     }
 
+    protected void drawRemovePlanSelection(int x1, int y1, int x2, int y2, int maxLength) {
+        NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
+        Draw.color(Color.white);
+        Draw.alpha(0.3f);
+        float x = (result.x2 + result.x) / 2;
+        float y = (result.y2 + result.y) / 2;
+        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
+    }
+    
     protected void drawFreezeSelection(int x1, int y1, int x2, int y2, int maxLength){
         NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
 
