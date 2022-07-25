@@ -134,8 +134,14 @@ class ClientLogic {
                 Core.settings.put("hitboxopacity", 30)
                 UnitType.hitboxAlpha = Core.settings.getInt("hitboxopacity") / 100f
             }
-            Core.settings.remove("drawhitboxes") // Don't need this old setting anymore
-            Core.settings.remove("signmessages") // same as above FINISHME: Remove this at some point
+
+            // FINISHME: Remove these at some point
+            Core.settings.remove("drawhitboxes")
+            Core.settings.remove("signmessages")
+            if (Core.settings.getString("gameovertext").isNotEmpty()) {
+                Core.settings.put("gamewintext", Core.settings.getString("gameovertext"))
+                Core.settings.remove("gameovertext")
+            }
 
             // How about I enable it anyways :)
 //            if (OS.hasProp("policone")) { // People spam these and its annoying. add some argument to make these harder to find
@@ -182,7 +188,13 @@ class ClientLogic {
 
         Events.on(GameOverEventClient::class.java) {
             if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
-            if (Core.settings.getString("gameovertext")?.isNotEmpty() == true) Call.sendChatMessage(Core.settings.getString("gameovertext")) // TODO: Make this work in singleplayer
+
+            // TODO: Make this work in singleplayer
+            if (it.winner == Vars.player.team()) {
+                if (Core.settings.getString("gamewintext")?.isNotEmpty() == true) Call.sendChatMessage(Core.settings.getString("gamewintext"))
+            } else {
+                if (Core.settings.getString("gamelosetext")?.isNotEmpty() == true) Call.sendChatMessage(Core.settings.getString("gamelosetext"))
+            }
         }
 
         Events.on(BlockDestroyEvent::class.java) {

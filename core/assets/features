@@ -51,7 +51,8 @@
  * !fixnode - Enables/disables certain parts of the better-node-connection-system. (Ask zxtej, I have no idea how this works -SByte)
  * !count all - Counts all units.
  * !unit null - Exits the unit picking queue.
- * !gameovertext - Sets the text you send when game ends. Typically something like "gg".
+ * !gamewintext - Sets the text you send when you win the game. Typically something like "gg".
+ * !gamelosetext - Same as above but for when you lose.
  * !ptext - Sets a custom text you can easily send in chat with !ptext say (do !help ptext for more details)
  * !spawn [x] [y] - Spawns you at the closest core to (x, y) or to your cursor
  * >=========================< Chat Text Replacer >=========================<

@@ -742,11 +742,19 @@ object Client {
             }
         }
 
-        register("gameovertext [text...]", "Sets the text you automatically send when game ends. (eg 'gg bois!')") {args, player ->
-            if (args.isEmpty() || args[0] == "") player.sendMessage("[accent]Cleared gameovertext because no text was provided.")
+        register("gamewintext [text...]", "Sets the text you automatically send when you win. (eg 'gg bois!')") {args, player ->
+            if (args.isEmpty() || args[0] == "") player.sendMessage("[accent]Cleared gamewintext because no text was provided.")
             else {
-                Core.settings.put("gameovertext", args[0])
-                player.sendMessage("[accent]Gameover text set to \"${args[0]}\"")
+                Core.settings.put("gamewintext", args[0])
+                player.sendMessage("[accent]gamewintext text set to \"${args[0]}\"")
+            }
+        }
+
+        register("gamelosetext [text...]", "Sets the text you automatically send when you lose.") {args, player ->
+            if (args.isEmpty() || args[0] == "") player.sendMessage("[accent]Cleared gamelosetext because no text was provided.")
+            else {
+                Core.settings.put("gamelosetext", args[0])
+                player.sendMessage("[accent]gamelosetext text set to \"${args[0]}\"")
             }
         }
 
