@@ -2,17 +2,18 @@ package mindustry.client.utils
 
 import arc.struct.*
 import arc.util.*
+import arc.*
 import mindustry.client.*
 import mindustry.client.antigrief.*
 import mindustry.world.blocks.logic.LogicBlock.*
 
 object ProcessorPatcher {
-    private val attemMatcher =
+    public val attemMatcher =
         "(ubind @?[^ ]+\\n)sensor ([^ ]+) @unit @flag\\nop add ([^ ]+) \\3 1\\njump \\d+ greaterThanEq \\3 \\d+\\njump \\d+ notEqual ([^ ]+) \\2\\nset \\3 0".toRegex()
 
-    private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
+    public val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
-    private val attemText = """
+    public val attemText = """
         print "Please do not use this delivery logic."
         print "It is attem83 logic is considered bad logic"
         print "as it breaks other logic."
@@ -31,7 +32,7 @@ object ProcessorPatcher {
         return attemMatcher.containsMatchIn(code)
     }
 
-    fun patch(code: String): String {return patch(code, "r")}
+    fun patch(code: String): String {return patch(code, if(Core.settings.getBool("removeatteminsteadoffixing")) "r" else "c")}
     fun patch(code: String, mode: String): String {
         val result = attemMatcher.find(code) ?: return code
 

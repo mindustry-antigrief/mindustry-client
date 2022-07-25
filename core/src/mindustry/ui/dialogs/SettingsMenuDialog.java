@@ -385,6 +385,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("attemwarfare", true);
         client.checkPref("attemwarfarewhisper", false);
         client.checkPref("onjoinfixcode", true);
+        client.checkPref("removeatteminsteadoffixing", true);
         // End Client Settings
 
 

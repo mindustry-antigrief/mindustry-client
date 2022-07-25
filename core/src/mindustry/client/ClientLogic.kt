@@ -62,7 +62,7 @@ class ClientLogic {
                         if (Core.settings.getBool("attemwarfare") && !inProgress) {
                             Log.debug("Patching!")
                             builds.forEach {
-                                val patched = ProcessorPatcher.patch(it.code, "r")
+                                val patched = ProcessorPatcher.patch(it.code, if(Core.settings.getBool("removeatteminsteadoffixing")) "r" else "c")
                                 if (patched != it.code) {
                                     Log.debug("${it.tileX()} ${it.tileY()}")
                                     configs.add(ConfigRequest(it.tileX(), it.tileY(),
