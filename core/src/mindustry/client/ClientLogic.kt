@@ -54,7 +54,7 @@ class ClientLogic {
             if (Core.settings.getBool("onjoinfixcode")) { // TODO: Make this also work for singleplayer worlds
                 Core.app.post {
                     val builds = Seq<LogicBlock.LogicBuild>()
-                    Vars.player.team().data().buildings.getObjects(builds as Seq<Building>) // Must be done on the main thread
+                    @Suppress("unchecked_cast") Vars.player.team().data().buildings.getObjects(builds as Seq<Building>) // Must be done on the main thread
                     clientThread.post {
                         builds.removeAll { it !is LogicBlock.LogicBuild }
                         val inProgress = !configs.isEmpty()
