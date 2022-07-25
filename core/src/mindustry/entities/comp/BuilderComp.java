@@ -82,7 +82,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             int total = 0;
             BuildPlan req;
             while(total++ < plans.size && (!within((req = buildPlan()).tile(), finalPlaceDst) || shouldSkip(req, core) ||
-                    (!req.initialized && !Build.validPlaceCoreRange(req.block, team, req.x, req.y)))){
+                    (!req.initialized && (!Build.validPlaceCoreRange(req.block, team, req.x, req.y) || !Build.validPlaceUnit(req.block, req.x, req.y))))){
                 plans.removeFirst();
                 plans.addLast(req);
             }
@@ -106,7 +106,8 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
             if(!(tile.build instanceof ConstructBuild cb)){
                 if(!current.initialized && !current.breaking && Build.validPlace(current.block, team, current.x, current.y, current.rotation)){
-                    if(!Build.validPlaceCoreRange(current.block, team, current.x, current.y)) return;
+                    if(!Build.validPlaceCoreRange(current.block, team, current.x, current.y) ||
+                        !Build.validPlaceUnit(current.block, current.x, current.y)) return;
                     boolean hasAll = infinite || current.isRotation(team) || !Structs.contains(current.block.requirements, i -> core != null && !core.items.has(i.item, Math.min(Mathf.round(i.amount * state.rules.buildCostMultiplier), 1)));
 
                     if(hasAll){
@@ -182,7 +183,8 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         }else{
             request.block.drawPlan(request, control.input.allRequests(),
                     (Build.validPlace(request.block, team, request.x, request.y, request.rotation) &&
-                    Build.validPlaceCoreRange(request.block, team, request.x, request.y)) || control.input.requestMatches(request),
+                            Build.validPlaceCoreRange(request.block, team, request.x, request.y) &&
+                            Build.validPlaceUnit(request.block, request.x, request.y)) || control.input.requestMatches(request),
             alpha);
         }
     }
