@@ -48,12 +48,10 @@ import mindustry.world.blocks.units.*;
 import mindustry.world.meta.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
 import static mindustry.client.ClientVars.*;
-import static mindustry.ui.CoreItemsDisplay.mode;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
     /** Used for dropping items. */
@@ -1140,11 +1138,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
 
         for(BuildPlan req : player.unit().plans()){
-            if(req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
+            if(req.bounds(Tmp.r2, true).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
         }
 
         for(BuildPlan req : selectRequests){
-            if(req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
+            if(req.bounds(Tmp.r2, true).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
         }
 
         Seq<BuildPlan> unfreeze = new Seq<>();
