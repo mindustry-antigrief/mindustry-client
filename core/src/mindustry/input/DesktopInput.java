@@ -771,7 +771,7 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(Binding.break_block)){
                 mode = none;
             }else if(selectRequests.any()){
-                flushRequests(selectRequests);
+                flushRequests(selectRequests, isFreezeQueueing);
             }else if(isPlacing()){
                 selectX = cursorX;
                 selectY = cursorY;
@@ -842,11 +842,11 @@ public class DesktopInput extends InputHandler{
         if(Core.input.keyRelease(Binding.break_block) || Core.input.keyRelease(Binding.select)){
 
             if(mode == placing && block != null){ //touch up while placing, place everything in selection
-                flushRequests(lineRequests);
+                flushRequests(lineRequests, isFreezeQueueing);
                 lineRequests.clear();
                 Events.fire(new LineConfirmEvent());
             }else if(mode == breaking){ //touch up while breaking, break everything in selection
-                removeSelection(selectX, selectY, cursorX, cursorY, /*!Core.input.keyDown(Binding.schematic_select) ? maxLength :*/ Vars.maxSchematicSize);
+                removeSelection(selectX, selectY, cursorX, cursorY, false, /*!Core.input.keyDown(Binding.schematic_select) ? maxLength :*/ Vars.maxSchematicSize, isFreezeQueueing);
                 
                 if(lastSchematic != null){
                     useSchematic(lastSchematic);

@@ -944,11 +944,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    protected void flushRequests(Seq<BuildPlan> requests) {
-        flushRequests(requests, true);
-    }
     private final Seq<Tile> tempTiles = new Seq<>(4);
-    protected void flushRequests(Seq<BuildPlan> requests, boolean allowFreeze){
+    protected void flushRequests(Seq<BuildPlan> requests, boolean freeze){
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[requests.size + requests.count(req -> req.block == Blocks.waterExtractor) * 3];
         var added = 0;
@@ -1012,7 +1009,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         for (int i = 0; i < added; i++) {
-            if (isFreezeQueueing && allowFreeze) frozenPlans.add(temp[i]);
+            if (freeze) frozenPlans.add(temp[i]);
             else player.unit().addBuild(temp[i]);
         }
     }
@@ -1053,16 +1050,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     /** Remove everything from the queue in a selection. */
     protected void removeSelection(int x1, int y1, int x2, int y2, int maxLength){
-        removeSelection(x1, y1, x2, y2, false, maxLength);
+        removeSelection(x1, y1, x2, y2, false, maxLength, false);
     }
 
     /** Remove everything from the queue in a selection. */
     protected void removeSelection(int x1, int y1, int x2, int y2, boolean flush){
-        removeSelection(x1, y1, x2, y2, flush, maxLength);
+        removeSelection(x1, y1, x2, y2, flush, maxLength, false);
     }
 
     /** Remove everything from the queue in a selection. */
-    protected void removeSelection(int x1, int y1, int x2, int y2, boolean flush, int maxLength){
+    protected void removeSelection(int x1, int y1, int x2, int y2, boolean flush, int maxLength, boolean freeze){
         NormalizeResult result = Placement.normalizeArea(x1, y1, x2, y2, rotation, false, maxLength);
         for(int x = 0; x <= Math.abs(result.x2 - result.x); x++){
             for(int y = 0; y <= Math.abs(result.y2 - result.y); y++){
@@ -1074,9 +1071,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 if(tile == null) continue;
 
                 if(!flush){
-                    tryBreakBlock(wx, wy);
+                    tryBreakBlock(wx, wy, freeze);
                 }else if(validBreak(tile.x, tile.y) && !selectRequests.contains(r -> r.tile() != null && r.tile() == tile)){
-                    selectRequests.add(new BuildPlan(tile.x, tile.y));
+                    if (freeze) frozenPlans.add(new BuildPlan(tile.x, tile.y));
+                    else selectRequests.add(new BuildPlan(tile.x, tile.y));
                 }
             }
         }
@@ -1502,9 +1500,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    public void tryBreakBlock(int x, int y){
+    public void tryBreakBlock(int x, int y) {
+        tryBreakBlock(x, y, false);
+    }
+    
+    public void tryBreakBlock(int x, int y, boolean freeze){
         if(validBreak(x, y)){
-            breakBlock(x, y);
+            breakBlock(x, y, freeze);
         }
     }
 
@@ -1556,11 +1558,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return Build.validBreak(player.team(), x, y);
     }
 
-    public void breakBlock(int x, int y){
+    public void breakBlock(int x, int y, boolean freeze){
         Tile tile = world.tile(x, y);
         if(tile != null && tile.build != null) tile = tile.build.tile;
-        if (!isFreezeQueueing) player.unit().addBuild(new BuildPlan(tile.x, tile.y));
-        else frozenPlans.add(new BuildPlan(tile.x, tile.y));
+        if (freeze) frozenPlans.add(new BuildPlan(tile.x, tile.y));
+        else player.unit().addBuild(new BuildPlan(tile.x, tile.y));
     }
 
     public void drawArrow(Block block, int x, int y, int rotation){
