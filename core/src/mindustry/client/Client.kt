@@ -828,9 +828,9 @@ object Client {
             }
         }
 
-        register("bannedcontent", "Lists banned units and blocks on the map") { args, player ->
+        register("bannedcontent", "Lists banned units and blocks on the map") { _, player ->
             val sb = StringBuilder("[accent]Banned content on this map: ")
-            state.rules.bannedUnits.forEach {sb.append(it.localizedName).append(" ") }
+            state.rules.bannedUnits.forEach { sb.append(it.localizedName).append(" ") }
             state.rules.bannedBlocks.forEach { sb.append(it.localizedName).append(" ") }
             player.sendMessage(sb.toString())
         }
@@ -867,7 +867,7 @@ object Client {
                 configs.add(ConfigRequest(it.tileX(), it.tileY(), msg2))
                 num++
             })
-            player.sendMessage("[accent]Queued $num messages for editing");
+            player.sendMessage("[accent]Queued $num messages for editing")
         }
     }
 
