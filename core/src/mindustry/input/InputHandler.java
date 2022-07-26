@@ -945,9 +945,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     private final Seq<Tile> tempTiles = new Seq<>(4);
-    protected void flushRequests(Seq<BuildPlan> requests, boolean freeze){
+    protected void flushRequests(Seq<BuildPlan> requests, boolean freeze, boolean force){
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[requests.size + requests.count(req -> req.block == Blocks.waterExtractor) * 3];
+        var tempForced = new Seq<BuildPlan>();
         var added = 0;
         for(BuildPlan req : requests){
             if (req.block == null) continue;
@@ -973,8 +974,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
                 if (replaced) continue; // Swapped water extractor for pump, don't place it
             }
-
-            if(validPlace(req.x, req.y, req.block, req.rotation)){
+    
+            boolean valid = validPlace(req.x, req.y, req.block, req.rotation);
+            if(force || valid){
                 BuildPlan copy = req.copy();
                 if(configLogic && copy.block instanceof LogicBlock && copy.config != null){
                     final var conf = copy.config; // this is okay because processor connections are relative
@@ -996,8 +998,23 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                         };
                     }
                 }
-                req.block.onNewPlan(copy);
-                temp[added++] = copy;
+                
+                if (force && !valid) { // Add build plans to remove block underneath
+                    Seq<Tile> tmpTiles = new Seq<>(4);
+                    req.tile().getLinkedTilesAs(req.block, tmpTiles);
+                    tmpTiles.forEach(tile -> {
+                        if (tile.block() != Blocks.air) {
+                            BuildPlan plan = new BuildPlan(tile.x, tile.y);
+                            tempForced.add(plan);
+                        }
+                        tempForced.add(copy);
+                    });
+                }
+                
+                else {
+                    req.block.onNewPlan(copy);
+                    temp[added++] = copy;
+                }
             }
             Iterator<BuildPlan> it = frozenPlans.iterator();
             while(it.hasNext()){
@@ -1008,9 +1025,14 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
+        for (BuildPlan req : tempForced) {
+            if (!validPlace(req.x, req.y, req.block, req.rotation)) frozenPlans.add(req);
+            else player.unit().addBuild(req);
+        }
         for (int i = 0; i < added; i++) {
-            if (freeze) frozenPlans.add(temp[i]);
-            else player.unit().addBuild(temp[i]);
+            var req = temp[i];
+            if (freeze) frozenPlans.add(req);
+            else player.unit().addBuild(req);
         }
     }
 
@@ -1196,7 +1218,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 while(it1.hasNext() && it1.next() != frz);
                 if(it1.hasNext()) it1.remove();
             }
-            flushRequests(unfreeze, false);
+            flushRequests(unfreeze, false, false);
         }
         else{
             it1 = player.unit().plans().iterator();

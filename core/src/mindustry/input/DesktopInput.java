@@ -771,7 +771,7 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(Binding.break_block)){
                 mode = none;
             }else if(selectRequests.any()){
-                flushRequests(selectRequests, isFreezeQueueing);
+                flushRequests(selectRequests, isFreezeQueueing, input.ctrl());
             }else if(isPlacing()){
                 selectX = cursorX;
                 selectY = cursorY;
@@ -842,7 +842,7 @@ public class DesktopInput extends InputHandler{
         if(Core.input.keyRelease(Binding.break_block) || Core.input.keyRelease(Binding.select)){
 
             if(mode == placing && block != null){ //touch up while placing, place everything in selection
-                flushRequests(lineRequests, isFreezeQueueing);
+                flushRequests(lineRequests, isFreezeQueueing, input.ctrl());
                 lineRequests.clear();
                 Events.fire(new LineConfirmEvent());
             }else if(mode == breaking){ //touch up while breaking, break everything in selection
