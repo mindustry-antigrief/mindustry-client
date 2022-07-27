@@ -278,7 +278,7 @@ fun setup() {
 
         for (plan in Vars.player.team().data().plans) {
             val block = Vars.content.block(plan.block.toInt())
-            if (!(all || Navigation.getTree().any(Tmp.r1.setCentered(plan.x * Vars.tilesize + block.offset, plan.y * Vars.tilesize + block.offset, block.size * Vars.tilesizeF)))) continue
+            if (!(all || Navigation.getTree().any(plan.x * Vars.tilesizeF, plan.y * Vars.tilesizeF, block.size * Vars.tilesizeF, block.size * Vars.tilesizeF))) continue
 
             plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
         }
