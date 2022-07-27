@@ -112,11 +112,23 @@ public class PlacementFragment extends Fragment{
                 Blocks.coreFoundation.isVisible() && Blocks.coreFoundation.unlockedNow() ? Blocks.coreFoundation :
                 null;
 
-            for(BuildPlan req : player.unit().plans()){
+            // TODO: Perhaps better overlap checking?
+            boolean found = false;
+            for(BuildPlan req : frozenPlans){
                 if(!req.breaking && req.block.bounds(req.x, req.y, Tmp.r1).contains(Core.input.mouseWorld())){
                     tryRecipe = req.block;
                     tryConfig = req.config;
+                    found = true;
                     break;
+                }
+            }
+            if (!found) {
+                for(BuildPlan req : player.unit().plans()){
+                    if(!req.breaking && req.block.bounds(req.x, req.y, Tmp.r1).contains(Core.input.mouseWorld())){
+                        tryRecipe = req.block;
+                        tryConfig = req.config;
+                        break;
+                    }
                 }
             }
 
