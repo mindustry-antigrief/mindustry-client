@@ -948,7 +948,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     protected void flushRequests(Seq<BuildPlan> requests, boolean freeze, boolean force){
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[requests.size + requests.count(req -> req.block == Blocks.waterExtractor) * 3];
-        var tempForced = new Seq<BuildPlan>();
         var added = 0;
         for(BuildPlan req : requests){
             if (req.block == null) continue;
@@ -1000,35 +999,30 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
                 
                 if (force && !valid) { // Add build plans to remove block underneath
+                    frozenPlans.add(copy);
                     Seq<Tile> tmpTiles = new Seq<>(4);
                     req.tile().getLinkedTilesAs(req.block, tmpTiles);
                     tmpTiles.forEach(tile -> {
-                        if (tile.block() != Blocks.air) {
-                            BuildPlan plan = new BuildPlan(tile.x, tile.y);
-                            tempForced.add(plan);
-                        }
-                        tempForced.add(copy);
+                        if (tile.block() != Blocks.air) player.unit().addBuild(new BuildPlan(tile.build.tileX(), tile.build.tileY()));
                     });
                 }
-                
                 else {
                     req.block.onNewPlan(copy);
                     temp[added++] = copy;
                 }
             }
-            Iterator<BuildPlan> it = frozenPlans.iterator();
-            while(it.hasNext()){
-                BuildPlan frz = it.next();
-                if(req.block.bounds(req.x, req.y, Tmp.r1).overlaps(frz.block.bounds(frz.x, frz.y, Tmp.r2))){
-                    it.remove();
+            
+            if (!force) {
+                Iterator<BuildPlan> it = frozenPlans.iterator();
+                while(it.hasNext()){
+                    BuildPlan frz = it.next();
+                    if(req.block.bounds(req.x, req.y, Tmp.r1).overlaps(frz.block.bounds(frz.x, frz.y, Tmp.r2))){
+                        it.remove();
+                    }
                 }
             }
         }
 
-        for (BuildPlan req : tempForced) {
-            if (!validPlace(req.x, req.y, req.block, req.rotation)) frozenPlans.add(req);
-            else player.unit().addBuild(req);
-        }
         for (int i = 0; i < added; i++) {
             var req = temp[i];
             if (freeze) frozenPlans.add(req);
