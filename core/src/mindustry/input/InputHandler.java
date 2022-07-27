@@ -945,12 +945,27 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     private final Seq<Tile> tempTiles = new Seq<>(4);
-    protected void flushRequests(Seq<BuildPlan> requests, boolean freeze, boolean force){
+    protected void flushRequests(Seq<BuildPlan> requests, boolean freeze, boolean force, boolean removeFrozen){
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[requests.size + requests.count(req -> req.block == Blocks.waterExtractor) * 3];
         var added = 0;
         for(BuildPlan req : requests){
             if (req.block == null) continue;
+    
+            if (removeFrozen) {
+                Iterator<BuildPlan> it = frozenPlans.iterator();
+                while(it.hasNext()){
+                    BuildPlan frz = it.next();
+                    if(req.bounds(Tmp.r1, true).overlaps(frz.bounds(Tmp.r2, true))){
+                        it.remove();
+                    }
+                }
+            }
+            
+            if (req.breaking) {
+                tryBreakBlock(req.x, req.y, freeze);
+                continue;
+            }
 
             if (req.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed
                     && req.tile() != null && req.tile().getLinkedTilesAs(req.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
@@ -975,7 +990,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
     
             boolean valid = validPlace(req.x, req.y, req.block, req.rotation);
-            if(force || valid){
+            if(freeze || force || valid){
                 BuildPlan copy = req.copy();
                 if(configLogic && copy.block instanceof LogicBlock && copy.config != null){
                     final var conf = copy.config; // this is okay because processor connections are relative
@@ -1009,16 +1024,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 else {
                     req.block.onNewPlan(copy);
                     temp[added++] = copy;
-                }
-            }
-            
-            if (!force) {
-                Iterator<BuildPlan> it = frozenPlans.iterator();
-                while(it.hasNext()){
-                    BuildPlan frz = it.next();
-                    if(req.block.bounds(req.x, req.y, Tmp.r1).overlaps(frz.block.bounds(frz.x, frz.y, Tmp.r2))){
-                        it.remove();
-                    }
                 }
             }
         }
@@ -1206,14 +1211,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         Iterator<BuildPlan> it1, it2;
-        if(unfreeze.size > tmpFrozenPlans.size){
-            it1 = frozenPlans.iterator();
-            for(BuildPlan frz : unfreeze){
-                while(it1.hasNext() && it1.next() != frz);
-                if(it1.hasNext()) it1.remove();
-            }
-            flushRequests(unfreeze, false, false);
-        }
+        if(unfreeze.size > tmpFrozenPlans.size) flushRequests(unfreeze, false, false, true);
         else{
             it1 = player.unit().plans().iterator();
             it2 = selectRequests.iterator();
