@@ -1,31 +1,46 @@
 package mindustry.client
 
-import arc.*
+import arc.Core
+import arc.Events
+import arc.graphics.Color
 import arc.struct.Seq
-import arc.util.*
-import mindustry.*
+import arc.util.Log
+import arc.util.Strings
+import arc.util.Time
+import arc.util.Timer
+import mindustry.Vars
 import mindustry.Vars.ui
 import mindustry.client.ClientVars.*
-import mindustry.client.antigrief.*
-import mindustry.client.communication.*
+import mindustry.client.antigrief.ConfigRequest
+import mindustry.client.antigrief.PowerInfo
+import mindustry.client.communication.CommandTransmission
 import mindustry.client.navigation.*
-import mindustry.client.ui.*
+import mindustry.client.ui.ChangelogDialog
 import mindustry.client.utils.*
-import mindustry.content.*
+import mindustry.content.UnitTypes
 import mindustry.game.EventType.*
-import mindustry.gen.*
-import mindustry.logic.*
-import mindustry.type.*
+import mindustry.gen.Building
+import mindustry.gen.Call
+import mindustry.gen.Groups
+import mindustry.gen.Player
+import mindustry.logic.LExecutor
+import mindustry.type.UnitType
 import mindustry.ui.fragments.ChatFragment
-import mindustry.world.blocks.logic.*
+import mindustry.ui.fragments.ChatFragment.ChatMessage
+import mindustry.world.blocks.defense.turrets.Turret
+import mindustry.world.blocks.logic.LogicBlock
 import mindustry.world.blocks.sandbox.PowerVoid
-import mindustry.world.modules.*
+import mindustry.world.modules.ItemModule
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
  * FINISHME: Move the 9000 different bits of code throughout the client to here */
 class ClientLogic {
     private var switchTo: MutableList<Any>? = null
+
+    private var turretVoidWarnMsg: ChatMessage? = null
+    private var turretVoidWarnCount = 0
+    private var turretVoidWarnPlayer: Player? = null
 
     /** Create event listeners */
     init {
@@ -206,6 +221,40 @@ class ClientLogic {
             if (it.tile.block() is PowerVoid) {
                 ChatFragment.ChatMessage.msgFormat()
                 ui.chatfrag.addMessage(Core.bundle.format("client.voidwarn", it.tile.x, it.tile.y))
+            }
+        }
+
+        // Warn about turrets that are built with an enemy void in range
+        Events.on(BlockBuildBeginEventBefore::class.java) { event ->
+            val block = event.newBlock
+            if (block !is Turret) return@on
+            clientThread.post { // Scanning through tiles can be exhaustive. Delegate it to the client thread.
+                val voids = Seq<Building>()
+                for (tile in Vars.world.tiles) if (tile.block() is PowerVoid) voids.add(tile.build)
+
+                val void = voids.find { it.within(event.tile, block.range) }
+                if (void != null) { // Code taken from LogicBlock.LogicBuild.configure
+                    Core.app.post {
+                        ChatMessage.msgFormat()
+                        if (event.unit?.player != turretVoidWarnPlayer || turretVoidWarnPlayer == null) {
+                            turretVoidWarnPlayer = event.unit?.player
+                            turretVoidWarnCount = 1
+                            turretVoidWarnMsg = ui.chatfrag.addMessage(
+                                Strings.format(
+                                    "[accent]Turret placed by @[accent] at (@, @) is within void (@, @) range", // TODO: Bundle
+                                    getName(event.unit), event.tile.x, event.tile.y, void.tileX(), void.tileY()
+                                ), null as Color?
+                            )
+                        } else {
+                            ui.chatfrag.messages.remove(turretVoidWarnMsg)
+                            ui.chatfrag.messages.insert(0, turretVoidWarnMsg)
+                            ui.chatfrag.doFade(6f); // Reset fading
+                            turretVoidWarnMsg!!.prefix = "[scarlet](x${++turretVoidWarnCount}) "
+                            turretVoidWarnMsg!!.format()
+                        }
+                        turretVoidWarnPlayer = event.unit?.player
+                    }
+                }
             }
         }
     }
