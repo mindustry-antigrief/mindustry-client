@@ -5,6 +5,7 @@ import arc.graphics.g2d.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.ai.*
+import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.crypto.*

@@ -133,7 +133,7 @@ public class ChatFragment extends Table{
         chatfield.setProgrammaticChangeEvents(true);
         chatfield.setFilter((f, c) -> c != '\t'); // Using .changed(...) and allowing tabs causes problems for tab completion and cursor position, .typed(...) doesn't do what I need
         chatfield.changed(() -> {
-            chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 0 : maxTextLength - 2 * Mathf.num(Core.settings.getBool("signmessages"))); // Scuffed way to allow long js
+            chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 0 : maxTextLength - 2); // Scuffed way to allow long js
 
             // FINISHME: Implement proper replacement & string interpolation system
             var replacement = switch (chatfield.getText().replaceFirst("^" + mode.normalizedPrefix(), "")) {
@@ -386,7 +386,7 @@ public class ChatFragment extends Table{
     }
 
     public void updateChat(){
-        chatfield.setMaxLength(history.get(historyPos).startsWith("!js ") ? 0 : maxTextLength - 2 * Mathf.num(Core.settings.getBool("signmessages")));
+        chatfield.setMaxLength(history.get(historyPos).startsWith("!js ") ? 0 : maxTextLength - 2);
         chatfield.setText(mode.normalizedPrefix() + history.get(historyPos));
         updateCursor();
     }

@@ -110,6 +110,7 @@ public class Junction extends Block{
         @Override
         public void draw(){
             super.draw();
+
             if(!drawItems) return;
             Draw.z(Layer.blockOver);
             var realSpeed = speed * timeScale;
