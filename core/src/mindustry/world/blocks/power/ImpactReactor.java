@@ -71,10 +71,11 @@ public class ImpactReactor extends PowerGenerator{
     @Override
     public void drawPlace(int x, int y, int rotation, boolean valid) {
         super.drawPlace(x, y, rotation, valid);
-        Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, explosionRadius * tilesize, Color.coral);
+        float wx = x * tilesize + offset, wy = y * tilesize + offset;
+        Drawf.dashCircle(wx, wy, explosionRadius * tilesize, Color.coral);
         if (ClientUtilsKt.flood()) {
-            Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, floodNullifierRange, Color.orange);
-            indexer.eachBlock(null, x * tilesize + offset, y * tilesize + offset, floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild && b.within(x, y, floodNullifierRange), b -> Drawf.selected(b, Color.orange));
+            Drawf.dashCircle(wx, wy, floodNullifierRange, Color.orange);
+            indexer.eachBlock(null, wx, wy, floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild && b.within(wx, wy, floodNullifierRange), b -> Drawf.selected(b, Color.orange));
         }
     }
 
@@ -84,8 +85,9 @@ public class ImpactReactor extends PowerGenerator{
             Drawf.dashCircle(req.drawx(), req.drawy(), floodNullifierRange, Color.orange);
             indexer.eachBlock(null, req.drawx(), req.drawy(), floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
         }
-        if (!settings.getBool("showreactors")) return;
-        Drawf.dashCircle(req.drawx(), req.drawy(), explosionRadius * tilesize, Color.coral);
+        if (settings.getBool("showreactors")) {
+            Drawf.dashCircle(req.drawx(), req.drawy(), explosionRadius * tilesize, Color.coral);
+        }
     }
 
     @Override
