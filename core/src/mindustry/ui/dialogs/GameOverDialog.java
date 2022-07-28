@@ -113,7 +113,7 @@ public class GameOverDialog extends BaseDialog{
                 hide();
                 if(!ui.paused.checkPlaytest()){
                     logic.reset();
-                }).size(140f, 60f);
+                }
                 buttons.button("@continue", () -> {
                     hide();
                     state.rules.canGameOver = false;
@@ -121,7 +121,7 @@ public class GameOverDialog extends BaseDialog{
                     state.gameOver = false;
                     state.set(State.paused);
                 }).size(140f, 60f);
-            }
+            }).size(140f, 60f);
         }
     }
 

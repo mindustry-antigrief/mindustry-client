@@ -26,20 +26,18 @@ public class ProcessorFinder {
 
     public static void search() {
         highlighted.clear();
-        Seq<Building> builds = new Seq<>();
-        player.team().data().buildings.getObjects(builds);
+        Seq<Building> builds = player.team().data().buildings.filter(b -> b instanceof LogicBuild);
     
         clientThread.post(() -> {
             int matchCount = 0, processorCount = 0;
             for (Building build : builds) {
-                if (build instanceof LogicBuild logicBuild ) {
-                    for (Regex query : queries) {
-                        if (query.containsMatchIn((logicBuild.code))) {
-                            matchCount++;
-                            highlighted.add(logicBuild);
-                        }
-                        processorCount++;
+                var logicBuild = (LogicBuild) build;
+                for (Regex query : queries) {
+                    if (query.containsMatchIn((logicBuild.code))) {
+                        matchCount++;
+                        highlighted.add(logicBuild);
                     }
+                    processorCount++;
                 }
             }
     

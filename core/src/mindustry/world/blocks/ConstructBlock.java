@@ -36,6 +36,7 @@ import mindustry.world.blocks.storage.*;
 import mindustry.world.modules.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static mindustry.Vars.*;
 import static mindustry.ui.Styles.*;
@@ -507,11 +508,11 @@ public class ConstructBlock extends Block{
             buildCost = current.buildCost * state.rules.buildCostMultiplier;
         }
 
-//        public boolean shouldDisplayWarning(){
-//            return wasConstructing && closestCore() != null && lastBuilder != null
-//                    && player != null && team == player.team() && progress != lastProgress
-//                    && lastBuilder != player.unit() && getWarnBlock() != null;
-//        }
+        public boolean shouldDisplayWarning(){
+            return wasConstructing && closestCore() != null && lastBuilder != null
+                    && player != null && team == player.team() && progress != lastProgress
+                    && lastBuilder != player.unit() && getWarnBlock() != null;
+        }
         public void blockWarning(Object config) { // FINISHME: Account for non player building stuff. This method is also horrid
             if (!wasConstructing || closestCore() == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer())
                 return;
@@ -536,6 +537,7 @@ public class ConstructBlock extends Block{
                     toast.touchable = Touchable.enabled;
                     toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
                     ClientVars.lastSentPos.set(tile.x, tile.y);
+                }
             }
         }
 
@@ -548,7 +550,8 @@ public class ConstructBlock extends Block{
         public int distanceToGreaterCore(){
             int lowestDistance = Integer.MAX_VALUE;
             //Loop through the core and all connected storage
-            for(Building building : closestCore().proximity.copy().and(closestCore())) {
+            // BALA WARNING: I dont know whether replacing .and with .add was the correct move but I hope it is
+            for(Building building : closestCore().proximity.copy().add(closestCore())) {
                 if (building instanceof StorageBlock.StorageBuild || building instanceof CoreBuild) {
                     lowestDistance = Math.min(World.toTile(building.tile.dst(this.tile)), lowestDistance);
                 }

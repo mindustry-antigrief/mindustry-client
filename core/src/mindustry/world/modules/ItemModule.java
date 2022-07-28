@@ -59,44 +59,49 @@ public class ItemModule extends BlockModule{
         takeRotation = other.takeRotation;
         System.arraycopy(other.items, 0, items, 0, items.length);
     }
-
-    public void updateFlow(){
-        //update the flow at N fps at most
-        if(flowTimer.get(1, pollScl)){
-            if(flow == null){
-                if(cacheFlow == null || cacheFlow.length != items.length){
-                    cacheFlow = new WindowedMean[items.length];
-                    for(int i = 0; i < items.length; i++){
-                        cacheFlow[i] = new WindowedMean(windowSize);
+    
+    public void update(boolean showFlow){
+        if(showFlow){
+            //update the flow at 30fps at most
+            if(flowTimer.get(1, pollScl)){
+                
+                if(flow == null){
+                    if(stats.cacheFlow == null || stats.cacheFlow.length != items.length){
+                        stats.cacheFlow = new WindowedMean[items.length];
+                        for(int i = 0; i < items.length; i++){
+                            stats.cacheFlow[i] = new WindowedMean(windowSize);
+                        }
+                        stats.cacheSums = new float[items.length];
+                        stats.displayFlow = new float[items.length];
+                    }else{
+                        for(int i = 0; i < items.length; i++){
+                            stats.cacheFlow[i].reset();
+                        }
+                        Arrays.fill(stats.cacheSums, 0);
+                        cacheBits.clear();
                     }
-                    cacheSums = new float[items.length];
-                    displayFlow = new float[items.length];
-                }else{
-                    for(int i = 0; i < items.length; i++){
-                        cacheFlow[i].reset();
+                    
+                    Arrays.fill(stats.displayFlow, -1);
+                    
+                    flow = stats.cacheFlow;
+                }
+                
+                boolean updateFlow = flowTimer.get(30);
+                
+                for(int i = 0; i < items.length; i++){
+                    flow[i].add(stats.cacheSums[i]);
+                    if(stats.cacheSums[i] > 0){
+                        cacheBits.set(i);
                     }
-                    Arrays.fill(cacheSums, 0);
-                    cacheBits.clear();
-                }
-
-                Arrays.fill(displayFlow, -1);
-
-                flow = cacheFlow;
-            }
-
-            boolean updateFlow = flowTimer.get(30);
-
-            for(int i = 0; i < items.length; i++){
-                flow[i].add(cacheSums[i]);
-                if(cacheSums[i] > 0){
-                    cacheBits.set(i);
-                }
-                cacheSums[i] = 0;
-
-                if(updateFlow){
-                    displayFlow[i] = flow[i].hasEnoughData() ? flow[i].mean() / pollScl : -1;
+                    stats.cacheSums[i] = 0;
+                    
+                    if(updateFlow){
+                        stats.displayFlow[i] = flow[i].hasEnoughData() ? flow[i].mean() / pollScl : -1;
+                    }
                 }
             }
+        }else{
+            flow = null;
         }
     }
 
@@ -310,7 +315,7 @@ public class ItemModule extends BlockModule{
 
     public void handleFlow(Item item, int amount){
         if(flow != null){
-            cacheSums[item.id] += amount;
+            stats.cacheSums[item.id] += amount;
         }
     }
 

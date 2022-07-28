@@ -543,7 +543,7 @@ public class PowerNode extends PowerBlock{
         }
 
         @Override
-        public boolean onConfigureTileTapped(Building other){
+        public boolean onConfigureBuildTapped(Building other){
             correctLinks = null; // do not try to auto config further
             queuedConfigs = null;
             if(linkValid(this, other)){

@@ -724,7 +724,6 @@ public class LCanvas extends Table{
 
             if(draw1curve){
                 Lines.line(x, y, maxX - curveRadius, y);
-/*
                 Lines.arc(maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, 1/4f, isUpwards * -90);
             }
             Lines.line(maxX, yNew + curveRadius * curveDirection, maxX, y2New - curveRadius * curveDirection);
@@ -765,8 +764,6 @@ public class LCanvas extends Table{
                     }
                 }
             }
-
-            /*
             /*
             Lines.curve(
             x, y,
@@ -774,14 +771,7 @@ public class LCanvas extends Table{
             x2 + dist, y2,
             x2, y2,
             Math.max(18, (int)(Mathf.dst(x, y, x2, y2) / 6)));
-*/
-                Lines.arc(maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, 1/4f, isDownwards * -90, 8);
-            }
-            Lines.line(maxX, yNew + curveRadius * curveDirection, maxX, y2New - curveRadius * curveDirection);
-            if(draw2curve){
-                Lines.arc(maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, 1/4f, (isDownwards - 1) * 90, 8);
-                Lines.line(maxX - curveRadius, y2, x2, y2);
-            }
+            */
         }
     }
 }

@@ -502,7 +502,7 @@ public class DesktopInput extends InputHandler{
                         shouldShoot = false;
                         recentRespawnTimer = 1f;
                     } else if ((input.ctrl() || input.shift()) && on.isPlayer()) {
-                        Navigation.follow(new AssistPath(on.playerNonNull(),
+                        Navigation.follow(new AssistPath(on.getPlayer(),
                                 input.shift() && input.alt() ? AssistPath.Type.FreeMove :
                                 input.ctrl() && input.alt() ? AssistPath.Type.BuildPath :
                                 input.ctrl() ? AssistPath.Type.Cursor :
@@ -802,7 +802,7 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(Binding.break_block)){
                 mode = none;
             }else if(selectPlans.any()){
-                flushPlans(selectRequests, isFreezeQueueing, input.ctrl(), false);
+                flushPlans(selectPlans, isFreezeQueueing, input.ctrl(), false);
             }else if(!selectPlans.isEmpty()){
                 flushPlans(selectPlans);
             }else if(isPlacing()){
@@ -882,7 +882,7 @@ public class DesktopInput extends InputHandler{
                 if(input.keyDown(Binding.boost)){
                     flushPlansReverse(linePlans);
                 }else{
-                    flushPlans(lineRequests, isFreezeQueueing, input.ctrl(), false);
+                    flushPlans(linePlans, isFreezeQueueing, input.ctrl(), false);
                 }
 
                 linePlans.clear();

@@ -4,18 +4,12 @@ import arc.*
 import arc.graphics.g2d.*
 import arc.util.*
 import mindustry.Vars.*
-import mindustry.Vars.state
 import mindustry.ai.*
-import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*
-import mindustry.client.navigation.Navigation.follow
 import mindustry.client.navigation.Navigation.getAllyTree
-import mindustry.client.navigation.Navigation.getTree
-import mindustry.client.navigation.Navigation.navigateTo
-import mindustry.client.navigation.Navigation.navigator
 import mindustry.client.navigation.Navigation.getTree
 import mindustry.client.utils.*
 import mindustry.content.*
@@ -23,7 +17,6 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.graphics.*
 import mindustry.net.*
-import mindustry.ui.Fonts
 import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
 import org.bouncycastle.jce.provider.*

@@ -162,17 +162,6 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         return this;
     }
 
-    public Rect bounds(Rect rect) {
-        return bounds(rect, false);
-    }
-    public Rect bounds(Rect rect, boolean allowBreak){
-        if(breaking && !allowBreak){
-            return rect.set(-100f, -100f, 0f, 0f);
-        }else{
-            return block.bounds(x, y, rect);
-        }
-    }
-
     public BuildPlan set(int x, int y, int rotation, Block block){
         this.x = x;
         this.y = y;
@@ -250,9 +239,13 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
             out.setCentered(x * tilesize, y * tilesize, tilesize);
         }
     }
-
-    public Rect bounds(Rect rect){
-        if(breaking){
+    
+    public Rect bounds(Rect rect) {
+        return bounds(rect, false);
+    }
+    
+    public Rect bounds(Rect rect, boolean allowBreak){
+        if(breaking && !allowBreak){
             return rect.set(-100f, -100f, 0f, 0f);
         }else{
             return block.bounds(x, y, rect);

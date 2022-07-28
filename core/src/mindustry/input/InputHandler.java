@@ -1241,6 +1241,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     protected void flushPlansReverse(Seq<BuildPlan> plans){ // FINISHME: Does this method work as intended?
         flushPlans(plans.copy().reverse());
     }
+    
+    protected void flushPlans(Seq<BuildPlan> plans) {
+        flushPlans(plans, false, false, false);
+    }
+    
     protected void flushPlans(Seq<BuildPlan> plans, boolean freeze, boolean force, boolean removeFrozen){
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[plans.size + plans.count(plan -> plan.block == Blocks.waterExtractor) * 3];
@@ -1269,17 +1274,17 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 var replaced = false;
                 if (tempTiles.contains(t -> !t.adjacentTo(first) && t != first && t.floor().liquidDrop == Liquids.water)) { // Can use mechanical pumps (covers all outputs)
                     for (var t : tempTiles) {
-                        var plan = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
-                        if (validPlace(t.x, t.y, plan.block, 0)) {
-                            plan.block.onNewPlan(plan);
-                            temp[added++] = plan;
+                        var copy = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
+                        if (validPlace(t.x, t.y, copy.block, 0)) {
+                            copy.block.onNewPlan(copy);
+                            temp[added++] = copy;
                             replaced = true;
                         }
                     }
                 } else if (validPlace(first.x, first.y, Blocks.rotaryPump, 0)) { // Mechanical pumps can't cover everything, use rotary pump instead
-                    var plan = new BuildPlan(first.x, first.y, 0, Blocks.rotaryPump);
-                    plan.block.onNewPlan(plan);
-                    temp[added++] = plan;
+                    var copy = new BuildPlan(first.x, first.y, 0, Blocks.rotaryPump);
+                    copy.block.onNewPlan(copy);
+                    temp[added++] = copy;
                     replaced = true;
                 }
                 if (replaced) continue; // Swapped water extractor for pump, don't place it
@@ -1295,11 +1300,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                         if (!(it instanceof LogicBlock.LogicBuild build)) return;
                         if (!build.code.isEmpty() || build.links.any())
                             return; // Someone else built a processor with data
-                        configs.add(new ConfigPlan(it.tile.x, it.tile.y, conf));
+                        configs.add(new ConfigRequest(it.tile.x, it.tile.y, conf));
                     };
                 }
                 if(copy.block instanceof PowerNode && copy.config instanceof Point2[] conf){
-                    int planuiredSetting = (isLoadedSchematic ? PowerNodeFixSettings.enablePlan : PowerNodeFixSettings.nonSchematicPlan) + (copy.block instanceof PowerSource ? 1 : 0);
+                    int planuiredSetting = (isLoadedSchematic ? PowerNodeFixSettings.enableReq : PowerNodeFixSettings.nonSchematicReq) + (copy.block instanceof PowerSource ? 1 : 0);
                     if (PowerNodeBuild.fixNode >= planuiredSetting) {
                         final var nconf = new Point2[conf.length];
                         for (int i = 0; i < conf.length; i++) nconf[i] = conf[i].cpy();
@@ -1411,7 +1416,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         while(it.hasNext()){
             BuildPlan plan = it.next();
             if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
-                ClientVars.processorConfigs.remove(plan.tile().pos());
+                processorConfigs.remove(plan.tile().pos());
                 it.remove();
             }
         }
@@ -1883,27 +1888,27 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return validPlace(x, y, type, rotation, null);
     }
 
-//    private long lastFrame, lastFrameVisible;
-//    private QuadTreeMk2<BuildPlan> tree = new QuadTreeMk2<>(new Rect(0, 0, 0, 0));
-//    public final Seq<BuildPlan> planSeq = new Seq<>(), visiblePlanSeq = new Seq<>();
-//
-//    public boolean planTreeNeedsRecalculation(){
-//        return lastFrame == graphics.getFrameId();
-//    }
-//    /** Cursed method to put the player's plans in a quadtree for non-slow overlap checks. */
-//    public QuadTreeMk2<BuildPlan> planTree() {
-//        if(lastFrame == graphics.getFrameId()) return tree;
-//        lastFrame = graphics.getFrameId();
-//
-//        tree.clear();
-//        if (world.unitWidth() != tree.bounds.width || world.unitHeight() != tree.bounds.height)
-//            tree = new QuadTreeMk2<>(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
-//        var plans = player.unit().plans();
-//        for (int i = 0; i < plans.size; i++)
-//            tree.insert(plans.get(i));
-//
-//        return tree;
-//    }
+    private long lastFrame, lastFrameVisible;
+    private QuadTree<BuildPlan> tree = new QuadTree<>(new Rect(0, 0, 0, 0));
+    public final Seq<BuildPlan> planSeq = new Seq<>(), visiblePlanSeq = new Seq<>();
+
+    public boolean planTreeNeedsRecalculation(){
+        return lastFrame == graphics.getFrameId();
+    }
+    /** Cursed method to put the player's plans in a quadtree for non-slow overlap checks. */
+    public QuadTree<BuildPlan> planTree() {
+        if(lastFrame == graphics.getFrameId()) return tree;
+        lastFrame = graphics.getFrameId();
+
+        tree.clear();
+        if (world.unitWidth() != tree.bounds.width || world.unitHeight() != tree.bounds.height)
+            tree = new QuadTree<>(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
+        var plans = player.unit().plans();
+        for (int i = 0; i < plans.size; i++)
+            tree.insert(plans.get(i));
+
+        return tree;
+    }
 
     public boolean validPlace(int x, int y, Block type, int rotation, BuildPlan ignore){
         if (!Build.validPlace(type, player.team(), x, y, rotation, true)) return false;

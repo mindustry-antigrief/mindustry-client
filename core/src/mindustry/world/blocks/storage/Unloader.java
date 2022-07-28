@@ -85,7 +85,6 @@ public class Unloader extends Block{
         public int offset = 0;
         public int rotations = 0;
         
-        /*
         public Seq<ContainerStat> possibleBlocks = new Seq<>(ContainerStat.class);
         private Item lastItem = null;
         private Building lastDumpFrom, lastDumpTo;
@@ -99,9 +98,7 @@ public class Unloader extends Block{
             boolean canUnload;
             int index;
         }
-         */
 
-        public Seq<ContainerStat> possibleBlocks = new Seq<>();
         public int[] lastUsed;
 
         protected final Comparator<ContainerStat> comparator = Structs.comps(

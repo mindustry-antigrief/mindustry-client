@@ -47,13 +47,12 @@ class AutoTransfer {
         if (timer < delay) return
         timer = 0F
 
-        val buildings = player.team().data().buildingTree ?: return
         val core = if (fromCores) player.closestCore() else null
         if (Navigation.currentlyFollowing is MinePath) { // Only allow autotransfer + minepath when within mineTransferRange
             if (core != null && (Navigation.currentlyFollowing as MinePath).tile?.within(core, mineTransferRange - tilesize * 10) != true) return
         } // Ngl this looks spaghetti
 
-        val buildings = player.team().data().buildings ?: return
+        val buildings = player.team().data().buildingTree ?: return
         var held = player.unit().stack.amount
 
         counts.fill(0) // reset needed item counters
@@ -84,7 +83,7 @@ class AutoTransfer {
                     is ConsumeItemFilter -> {
                         content.items().forEach { i ->
                             val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
-                            if (acceptedC > 0 && it.block.consumes.consumesItem(i) && core.items.has(i, minCoreItems)) {
+                            if (acceptedC > 0 && it.block.consumesItem(i) && core.items.has(i, minCoreItems)) {
                                 val turretC = (it.block as? ItemTurret)?.ammoTypes?.get(i)?.damage?.toInt() ?: 1 // Sort based on damage for turrets
                                 counts[i.id.toInt()] += acceptedC
                                 countsAdditional[i.id.toInt()] += acceptedC * turretC
@@ -116,7 +115,7 @@ class AutoTransfer {
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
                 if (held > 0 && item != player.unit().stack.item) Call.transferInventory(player, core)
-                else Call.requestItem(player, core, item, Int.MAX_VALUE)
+                else Call.takeItems(core, item, Int.MAX_VALUE, player.unit())
                 item = null
                 ratelimitRemaining--
             }

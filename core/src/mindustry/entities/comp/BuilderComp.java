@@ -177,7 +177,6 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
     }
     /** Draw all current build plans. Does not draw the beam effect, only the positions. */
     void drawBuildPlans(){
-        Boolf<BuildPlan> skip = plan -> plan.progress > 0.01f || (buildPlan() == plan && plan.initialized && (within(plan.x * tilesize, plan.y * tilesize, buildingRange) || state.isEditor()));
         if(lastFrame != graphics.getFrameId()) getVisiblePlans();
         Boolf<BuildPlan> skip = plan -> plan.progress > 0.01f || (buildPlan() == plan && plan.initialized && (within(plan.x * tilesize, plan.y * tilesize, type.buildRange) || state.isEditor()));
 
@@ -200,10 +199,10 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         if(plan.breaking){
             control.input.drawBreaking(plan);
         }else{
-            plan.block.drawPlan(request, control.input.allRequests(),
-                    (Build.validPlace(request.block, team, request.x, request.y, request.rotation) &&
-                            Build.validPlaceCoreRange(request.block, team, request.x, request.y) &&
-                            Build.validPlaceUnit(request.block, request.x, request.y)) || control.input.requestMatches(request),
+            plan.block.drawPlan(plan, control.input.allPlans(),
+                    (Build.validPlace(plan.block, team, plan.x, plan.y, plan.rotation) &&
+                            Build.validPlaceCoreRange(plan.block, team, plan.x, plan.y) &&
+                            Build.validPlaceUnit(plan.block, plan.x, plan.y)) || control.input.planMatches(plan),
             alpha);
         }
     }
@@ -214,14 +213,14 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             Draw.reset();
             Draw.mixcol(Color.white, 0.24f + Mathf.absin(Time.globalTime, 6f, 0.28f));
             Draw.alpha(alpha);
-            plan.block.drawRequestConfigTop(plan, visiblePlans);
+            plan.block.drawPlanConfigTop(plan, visiblePlans);
         }
     }
 
     /** @return whether this request should be skipped, in favor of the next one. */
-    boolean shouldSkip(BuildPlan request, @Nullable Building core){
+    boolean shouldSkip(BuildPlan plan, @Nullable Building core){
         //requests that you have at least *started* are considered
-        if(request.priority || state.rules.infiniteResources || team.rules().infiniteResources || request.breaking || core == null || request.isRotation(team) || (isBuilding() && !within(plans.last(), buildingRange))) return false;
+        if(plan.priority || state.rules.infiniteResources || team.rules().infiniteResources || plan.breaking || core == null || plan.isRotation(team) || (isBuilding() && !within(plans.last(), buildingRange))) return false;
 
         return (plan.stuck && !core.items.has(plan.block.requirements)) || (Structs.contains(plan.block.requirements, i -> !core.items.has(i.item, Math.min(i.amount, 15)) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0) && !plan.initialized);
     }

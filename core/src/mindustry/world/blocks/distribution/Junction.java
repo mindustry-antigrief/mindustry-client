@@ -56,9 +56,8 @@ public class Junction extends Block{
 
         @Override
         public void update(){
-            boolean updateFlowTemp = updateFlow;
             super.update();
-            items2.update(updateFlowTemp);
+            items2.update(true); // WARNING MIGHT BREAK
         }
 
         @Override

@@ -11,7 +11,6 @@ import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
-import mindustry.ai.types.FormationAI
 import mindustry.ai.types.LogicAI
 import mindustry.client.*
 import mindustry.client.communication.*
@@ -425,8 +424,8 @@ fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))
 fun getName(builder:mindustry.gen.Unit):String {
     return if (builder.isPlayer) {
         Strings.stripColors(builder.player.name)
-    } else if (builder.controller() is FormationAI) {
-        Strings.stripColors((builder.controller() as FormationAI).leader.player.name)
+//    } else if (builder.controller() is FormationAI) {
+//        Strings.stripColors((builder.controller() as FormationAI).leader.player.name)
     } else if (builder.controller() is LogicAI){
         val controller = (builder.controller() as LogicAI).controller;
         Strings.format(
@@ -443,9 +442,9 @@ fun getName(builder:mindustry.gen.Unit):String {
 fun getPlayer(unit: mindustry.gen.Unit?): Player? {
     return if (unit == null) null
     else if (unit.isPlayer) {
-        unit.playerNonNull()
-    } else if ((unit.controller() as? FormationAI)?.leader?.isPlayer == true) {
-        (unit.controller() as FormationAI).leader.playerNonNull()
+        unit.player
+//    } else if ((unit.controller() as? FormationAI)?.leader?.isPlayer == true) {
+//        (unit.controller() as FormationAI).leader.playerNonNull()
     } else if ((unit.controller() as? LogicAI)?.controller != null) {
         Groups.player.find{ p -> p.name.equals((unit.controller() as LogicAI).controller.lastAccessed)}
     } else null

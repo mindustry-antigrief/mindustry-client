@@ -265,8 +265,10 @@ public class Build{
     /** Whether a build plan intersects a unit here */
     public static boolean validPlaceUnit(Block type, int x, int y) {
         return state.rules.editor || !((type.solid || type.solidifes) && Units.anyEntities(x * tilesize + type.offset - type.size*tilesize/2f, y * tilesize + type.offset - type.size*tilesize/2f, type.size * tilesize, type.size*tilesize));
-//    public static @Nullable Building getEnemyOverlap(Block block, Team team, int x, int y){
-//        return indexer.findEnemyTile(team, x * tilesize + block.size, y * tilesize + block.size, block.placeOverlapRange + 4f, p -> true);
+    }
+    
+    public static @Nullable Building getEnemyOverlap(Block block, Team team, int x, int y) {
+        return indexer.findEnemyTile(team, x * tilesize + block.size, y * tilesize + block.size, block.placeOverlapRange + 4f, p -> true);
     }
 
     public static boolean contactsGround(int x, int y, Block block){

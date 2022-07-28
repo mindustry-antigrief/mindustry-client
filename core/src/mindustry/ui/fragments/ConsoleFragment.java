@@ -42,7 +42,7 @@ public class ConsoleFragment extends Table{
                 shown = !shown;
                 if(shown && !open && settings.getBool("console")){
                     toggle();
-                } else if(!shown && enableConsole){
+                } else if(!shown && settings.getBool("console")){
                     hide();
                 }
                 if(shown){

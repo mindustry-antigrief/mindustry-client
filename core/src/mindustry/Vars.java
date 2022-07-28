@@ -253,8 +253,6 @@ public class Vars implements Loadable{
     public static NetServer netServer;
     public static NetClient netClient;
 
-    public static CSHandler customScripts;
-
     public static Player player;
     public static boolean drawCursors, wasDrawingCursors; // Client debug magic
     public static Seq<BuildPlan> frozenPlans = new Seq<>(); // remind me to shift this to Vars.player() maybe. or maybe not since unneeded space
@@ -343,8 +341,6 @@ public class Vars implements Loadable{
 
         mods.load();
         maps.load();
-        customScripts = new CSHandler();
-
     }
 
     /** Checks if a launch failure occurred.

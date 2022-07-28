@@ -94,13 +94,13 @@ public class OverlayRenderer{
                     //drawPlan
                     plan.animScale = 1.0F;
                     if (plan.breaking) control.input.drawSelected(plan.x, plan.y, plan.block, Pal.freeze);
-                    else plan.block.drawPlan(plan, (cons) -> {for(var req:frozenPlans)cons.get(req);}, Build.validPlace(plan.block, player.team(), plan.x, plan.y, plan.rotation) || control.input.requestMatches(plan), 1.0F, true);
+                    else plan.block.drawPlan(plan, (cons) -> {for(var req:frozenPlans)cons.get(req);}, Build.validPlace(plan.block, player.team(), plan.x, plan.y, plan.rotation) || control.input.planMatches(plan), 1.0F, true);
                 } else {
                     //drawPlanTop
                     Draw.reset();
                     Draw.mixcol(Pal.freeze, 0.24F + Mathf.absin(Time.globalTime, 6.0F, 0.28F)); //TODO: potential optimization here lol
                     Draw.alpha(1.0F);
-                    plan.block.drawRequestConfigTop(plan, frozenPlans);
+                    plan.block.drawPlanConfigTop(plan, frozenPlans);
                 }
             }
         }
