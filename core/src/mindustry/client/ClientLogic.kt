@@ -41,6 +41,7 @@ class ClientLogic {
     private var turretVoidWarnMsg: ChatMessage? = null
     private var turretVoidWarnCount = 0
     private var turretVoidWarnPlayer: Player? = null
+    private var lastTurretVoidWarn = 0L
 
     /** Create event listeners */
     init {
@@ -236,7 +237,7 @@ class ClientLogic {
                 if (void != null) { // Code taken from LogicBlock.LogicBuild.configure
                     Core.app.post {
                         ChatMessage.msgFormat()
-                        if (event.unit?.player != turretVoidWarnPlayer || turretVoidWarnPlayer == null) {
+                        if (event.unit?.player != turretVoidWarnPlayer || turretVoidWarnPlayer == null || Time.timeSinceMillis(lastTurretVoidWarn) > 5e3) {
                             turretVoidWarnPlayer = event.unit?.player
                             turretVoidWarnCount = 1
                             turretVoidWarnMsg = ui.chatfrag.addMessage(
@@ -252,7 +253,7 @@ class ClientLogic {
                             turretVoidWarnMsg!!.prefix = "[scarlet](x${++turretVoidWarnCount}) "
                             turretVoidWarnMsg!!.format()
                         }
-                        turretVoidWarnPlayer = event.unit?.player
+                        lastTurretVoidWarn = Time.millis()
                     }
                 }
             }
