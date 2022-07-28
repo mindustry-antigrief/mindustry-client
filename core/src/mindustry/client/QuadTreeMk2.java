@@ -14,7 +14,7 @@ public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
         super(bounds);
     }
 
-    private void split(){
+    protected void split(){
         if(!leaf) return;
 
         float subW = bounds.width / 2;
@@ -40,7 +40,7 @@ public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
         }
     }
 
-    private void unsplit(){
+    protected void unsplit(){
         if(leaf) return;
         objects.addAll(botLeft.objects);
         objects.addAll(botRight.objects);
@@ -84,16 +84,8 @@ public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
         }
     }
 
-    /**
-     * Removes an object from this node or its child nodes.
-     */
     @Override
-    public void remove(T obj){
-        removeB(obj);
-    }
-
-    // Can't have different return type
-    private boolean removeB(T obj){
+    public boolean remove(T obj){
         boolean result;
         if(leaf){ // Leaf, no children, remove from root
             result = objects.remove(obj, true);
@@ -102,7 +94,7 @@ public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
             QuadTreeMk2 child = getFittingChild(tmp);
 
             if(child != null){
-                result = child.removeB(obj);
+                result = child.remove(obj);
             }else{ // Or root if object doesn't fit in a child
                 result = objects.remove(obj, true);
             }
@@ -129,7 +121,7 @@ public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
         leaf = true;
     }
 
-    private QuadTreeMk2<T> getFittingChild(Rect boundingBox){
+    public QuadTreeMk2<T> getFittingChild(Rect boundingBox){
         float verticalMidpoint = bounds.x + (bounds.width / 2);
         float horizontalMidpoint = bounds.y + (bounds.height / 2);
 

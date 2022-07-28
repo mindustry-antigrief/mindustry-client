@@ -11,6 +11,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.event.*;
+import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
@@ -44,13 +45,12 @@ import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class SettingsMenuDialog extends BaseDialog{
-    /** Mods break if these are changed to BetterSettingsTable so instead we cast them into different vars and just use those. */
     public SettingsTable graphics, sound, game, main, client, moderation;
 
     private Table prefs;
     private Table menu;
     private BaseDialog dataDialog;
-    private boolean wasPaused;
+    private Seq<SettingsCategory> categories = new Seq<>();
 
     public SettingsMenuDialog(){
         super(bundle.get("settings", "Settings"));
@@ -59,7 +59,9 @@ public class SettingsMenuDialog extends BaseDialog{
         cont.add(main = new SettingsTable());
         shouldPause = true;
 
-        hidden(() -> updateSettings()); // FINISHME: Horrible
+        // This is going to break isnt it?
+//        hidden(() -> updateSettings()); // FINISHME: Horrible
+        hidden(ConstructBlock::updateWarnBlocks); // FINISHME: Horrible
 
         shown(() -> {
             back();
@@ -81,7 +83,6 @@ public class SettingsMenuDialog extends BaseDialog{
 
         menu = new Table(Tex.button);
 
-        // Casting avoids mod problems, no clue how or why
         game = new SettingsTable();
         graphics = new SettingsTable();
         sound = new SettingsTable();
@@ -102,7 +103,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         dataDialog.cont.table(Tex.button, t -> {
             t.defaults().size(280f, 60f).left();
-            TextButtonStyle style = Styles.cleart;
+            TextButtonStyle style = Styles.flatt;
 
             t.button("@settings.cleardata", Icon.trash, style, () -> ui.showConfirm("@confirm", "@settings.clearall.confirm", () -> {
                 ObjectMap<String, Object> map = new ObjectMap<>();
@@ -124,7 +125,7 @@ public class SettingsMenuDialog extends BaseDialog{
             t.row();
 
             t.button("@settings.clearsaves", Icon.trash, style, () -> {
-                ui.showConfirm("@confirm", "@settings.clearsaves.confirm", () -> control.saves.deleteAll());
+                ui.showConfirm("@confirm", "@settings.clearsaves.confirm", control.saves::deleteAll);
             }).marginLeft(4);
 
             t.row();
@@ -239,7 +240,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         row();
         ScrollPane pane = pane(prefs).grow().top().get();
-        pane.setFadeScrollBars(true); // TODO: needed in v7?
+        pane.setFadeScrollBars(true);
         pane.setCancelTouchFocus(false);
         row();
         add(buttons).fillX();
@@ -247,12 +248,13 @@ public class SettingsMenuDialog extends BaseDialog{
         addSettings();
     }
 
-    public void updateSettings(){
-        ConstructBlock.updateWarnBlocks();
-        if(Vars.ui.menufrag.renderer.cursednessLevel != CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1))){
-            Vars.ui.menufrag.renderer.updateCursedness();
-        }
-    }
+    // FIX CURSED MENU SCREEN
+//    public void updateSettings(){
+//        ConstructBlock.updateWarnBlocks();
+//        if(Vars.ui.menufrag.renderer.cursednessLevel != CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1))){
+//            Vars.ui.menufrag.renderer.updateCursedness();
+//        }
+//    }
 
     String getLogs(){
         Fi log = settings.getDataDirectory().child("last_log.txt");
@@ -269,28 +271,54 @@ public class SettingsMenuDialog extends BaseDialog{
         return out.toString();
     }
 
+    /** Adds a custom settings category, with the icon being the specified region. */
+    public void addCategory(String name, @Nullable String region, Cons<SettingsTable> builder){
+        categories.add(new SettingsCategory(name, region == null ? null : new TextureRegionDrawable(atlas.find(region)), builder));
+    }
+
+    /** Adds a custom settings category, for use in mods. The specified consumer should add all relevant mod settings to the table. */
+    public void addCategory(String name, @Nullable Drawable icon, Cons<SettingsTable> builder){
+        categories.add(new SettingsCategory(name, icon, builder));
+    }
+
+    /** Adds a custom settings category, for use in mods. The specified consumer should add all relevant mod settings to the table. */
+    public void addCategory(String name, Cons<SettingsTable> builder){
+        addCategory(name, (Drawable)null, builder);
+    }
+    
+    public Seq<SettingsCategory> getCategories(){
+        return categories;
+    }
+
     void rebuildMenu(){
         menu.clearChildren();
 
-        TextButtonStyle style = Styles.cleart;
+        TextButtonStyle style = Styles.flatt;
+
+        float marg = 8f, isize = iconMed;
 
         menu.defaults().size(300f, 60f);
-        menu.button("@settings.game", style, () -> visible(0));
-        menu.row();
-        menu.button("@settings.graphics", style, () -> visible(1));
-        menu.row();
-        menu.button("@settings.sound", style, () -> visible(2));
-        menu.row();
-        menu.button("@settings.client", style, () -> visible(3));
-        menu.row();
-        menu.button("@settings.language", style, ui.language::show);
+        menu.button("@settings.game", Icon.settings, style, isize, () -> visible(0)).marginLeft(marg).row();
+        menu.button("@settings.graphics", Icon.image, style, isize, () -> visible(1)).marginLeft(marg).row();
+        menu.button("@settings.sound", Icon.filters, style, isize, () -> visible(2)).marginLeft(marg).row();
+        menu.button("@settings.client", Icon.wrench, style, isize, () -> visible(3)).marginLeft(marg).row();
+        menu.button("@settings.language", Icon.chat, style, isize, ui.language::show).marginLeft(marg).row();
         if(!mobile || Core.settings.getBool("keyboard")){
-            menu.row();
-            menu.button("@settings.controls", style, ui.controls::show);
+            menu.button("@settings.controls", Icon.move, style, isize, ui.controls::show).marginLeft(marg).row();
         }
 
-        menu.row();
-        menu.button("@settings.data", style, () -> dataDialog.show());
+        menu.button("@settings.data", Icon.save, style, isize, () -> dataDialog.show()).marginLeft(marg).row();
+
+        int i = 3;
+        for(var cat : categories){
+            int index = i;
+            if(cat.icon == null){
+                menu.button(cat.name, style, () -> visible(index)).marginLeft(marg).row();
+            }else{
+                menu.button(cat.name, cat.icon, style, isize, () -> visible(index)).with(b -> ((Image)b.getChildren().get(1)).setScaling(Scaling.fit)).marginLeft(marg).row();
+            }
+            i++;
+        }
     }
 
     void addSettings(){
@@ -309,7 +337,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("slagwarningdistance", 10, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
         client.sliderPref("slagsounddistance", 5, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
-        client.checkPref("powersplitwarnings", true); // TODO: Add a minimum building requirement and a setting for it
+        client.checkPref("powersplitwarnings", true); // FINISHME: Add a minimum building requirement and a setting for it
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
         client.checkPref("commandwarnings", true);
         client.checkPref("removecorenukes", false);
@@ -321,7 +349,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("highlightcryptomsg", true);
         client.checkPref("highlightclientmsg", false);
         client.checkPref("displayasuser", true);
-        client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
+        client.checkPref("broadcastcoreattack", false); // FINISHME: Multiple people using this setting at once will cause chat spam
         client.checkPref("showuserid", false);
 
         client.category("controls");
@@ -429,6 +457,7 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         game.checkPref("doubletapmine", false);
+        game.checkPref("commandmodehold", true);
 
         if(!ios){
             game.checkPref("modcrashdisable", true);
@@ -443,6 +472,10 @@ public class SettingsMenuDialog extends BaseDialog{
             game.checkPref("publichost", false, i -> platform.updateLobby());
         }
 
+        if(!mobile){
+            game.checkPref("console", false);
+        }
+
         int[] lastUiScale = {settings.getInt("uiscale", 100)};
 
         graphics.sliderPref("uiscale", 100, 25, 300, 5, s -> {
@@ -452,6 +485,10 @@ public class SettingsMenuDialog extends BaseDialog{
         });
 
         graphics.sliderPref("screenshake", 4, 0, 8, i -> (i / 4f) + "x");
+
+        graphics.sliderPref("bloomintensity", 6, 0, 16, i -> (int)(i/4f * 100f) + "%");
+        graphics.sliderPref("bloomblur", 2, 1, 16, i -> i + "x");
+
         graphics.sliderPref("fpscap", 240, 10, 245, 5, s -> (s > 240 ? Core.bundle.get("setting.fpscap.none") : Core.bundle.format("setting.fpscap.text", s)));
         graphics.sliderPref("chatopacity", 100, 0, 100, 5, s -> s + "%");
         graphics.sliderPref("lasersopacity", 100, 0, 100, 5, s -> {
@@ -472,7 +509,7 @@ public class SettingsMenuDialog extends BaseDialog{
                 }
 
                 if(b){
-                    Core.graphics.setFullscreenMode(Core.graphics.getDisplayMode());
+                    Core.graphics.setFullscreen();
                 }else{
                     Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
                 }
@@ -490,7 +527,7 @@ public class SettingsMenuDialog extends BaseDialog{
             Core.graphics.setVSync(Core.settings.getBool("vsync"));
 
             if(Core.settings.getBool("fullscreen")){
-                Core.app.post(() -> Core.graphics.setFullscreenMode(Core.graphics.getDisplayMode()));
+                Core.app.post(() -> Core.graphics.setFullscreen());
             }
 
             if(Core.settings.getBool("borderlesswindow")){
@@ -571,6 +608,7 @@ public class SettingsMenuDialog extends BaseDialog{
         setFilters.get(true, true);
 
         graphics.checkPref("skipcoreanimation", false);
+        graphics.checkPref("hidedisplays", false);
 
         if(!mobile){
             Core.settings.put("swapdiagonal", false);
@@ -647,7 +685,11 @@ public class SettingsMenuDialog extends BaseDialog{
 
     public void visible(int index){
         prefs.clearChildren();
-        prefs.add(new Table[]{game, graphics, sound, client, moderation}[index]);
+
+        Seq<Table> tables = Seq.with(game, graphics, sound, client, moderation);
+        categories.each(c -> tables.add(c.table));
+
+        prefs.add(tables.get(index));
     }
 
     @Override
@@ -673,6 +715,22 @@ public class SettingsMenuDialog extends BaseDialog{
 
     public interface StringProcessor{
         String get(int i);
+    }
+
+    public static class SettingsCategory{
+        public String name;
+        public @Nullable Drawable icon;
+        public Cons<SettingsTable> builder;
+        public SettingsTable table;
+
+        public SettingsCategory(String name, Drawable icon, Cons<SettingsTable> builder){
+            this.name = name;
+            this.icon = icon;
+            this.builder = builder;
+
+            table = new SettingsTable();
+            builder.get(table);
+        }
     }
 
     public static class SettingsTable extends Table{
@@ -763,7 +821,7 @@ public class SettingsMenuDialog extends BaseDialog{
             public Setting(String name){
                 this.name = name;
                 String winkey = "setting." + name + ".name.windows";
-                title = OS.isWindows && bundle.has(winkey) ? bundle.get(winkey) : bundle.get("setting." + name + ".name");
+                title = OS.isWindows && bundle.has(winkey) ? bundle.get(winkey) : bundle.get("setting." + name + ".name", name);
                 description = bundle.getOrNull("setting." + name + ".description");
             }
 
@@ -856,7 +914,7 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         /** Add a section/subcategory. */
-        public void category(String name){
+        public void category(String name){ // FINISHME: Rename this to header or something, it doesn't do the same thing as SettingsCategory
             pref(new Category(name));
         }
 
@@ -888,7 +946,7 @@ public class SettingsMenuDialog extends BaseDialog{
                     title = bundle.get("setting." + name + ".name");
 
                     table.table(t -> {
-                        t.button(Icon.refresh, Styles.settingtogglei, 32, () -> {
+                        t.button(Icon.refresh, Styles.settingTogglei, 32, () -> {
                             ui.loadfrag.show();
                             becontrol.checkUpdate(result -> {
                                 ui.loadfrag.hide();

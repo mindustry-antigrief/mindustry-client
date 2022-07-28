@@ -1,31 +1,31 @@
 [
   {
     "name": "mindustry.pl",
-    "address": ["0.baseduser.eu.org:6000", "0.baseduser.eu.org:6666", "0.baseduser.eu.org:6966"]
-  },
-  {
-    "name": "SkaarjDustry",
-    "address": ["skaarjproject.duckdns.org"]
+    "address": ["0.baseduser.eu.org:6966", "0.baseduser.eu.org:6666", "0.baseduser.eu.org:6000"]
   },
   {
     "name": "C.A.M.S.",
-    "address": ["baseduser.eu.org:6569", "v7.thedimas.pp.ua", "yeeth.mindustry.me:7000", "yeeth.mindustry.me:4000", "yeeth.mindustry.me:2000", "yeeth.mindustry.me:3000"]
+    "address": ["0.baseduser.eu.org:42001", "0.baseduser.eu.org:42002", "v7.thedimas.pp.ua"]
   },
   {
-    "name": "hexpvp.ml",
-    "address": "hexpvp.ml"
+    "name": "SMokeOfAnarchy",
+    "address": ["SMokeOfAnarchy.ru", "strider.smokeofanarchy.ru"]
   },
   {
-    "name": "Omega",
-    "address": ["yeeth.mindustry.me", "yeeth.mindustry.me:2006", "yeeth.mindustry.me:2003","yeeth.mindustry.me:2002", "yeeth.mindustry.me:2001", "yeeth.mindustry.me:2007", "yeeth.mindustry.me:2005"]
+    "name": "HexPvP Network",
+    "address": ["hexpvp.ml", "kycb42148.ddns.net:6614"]
+  },
+  {
+    "name": "Omega Hub",
+    "address": ["n1.yeet.ml:6572", "n1.yeet.ml:6573"]
   },
   {
     "name": "MeowLand",
-    "address": ["34.134.111.15", "fifr4.quackhost.uk:21013", "34.134.111.15:4000", "34.134.111.15:7000"]
+    "address": ["meowland.ru"]
   },
   {
-    "name": "DarkDustry",
-    "address": ["darkdustry.ml", "darkdustry.ml:6000", "darkdustry.ml:7000", "darkdustry.ml:8000", "darkdustry.ml:9000"] 
+    "name": "Darkdustry",
+    "address": ["darkdustry.tk", "darkdustry.tk:5000", "darkdustry.tk:6000", "darkdustry.tk:7000", "darkdustry.tk:8000", "darkdustry.tk:9000"] 
   },
   {
     "name": "Chaotic Neutral",
@@ -33,7 +33,7 @@
   },
   {
     "name": "XCore",
-    "address": ["skaarjproject.duckdns.org:2000"]
+    "address": ["sandbox.xcore.tk:2707", "attack.xcore.tk:8141"]
   },
   {
     "name": "Obvilion Network",
@@ -52,16 +52,12 @@
     "address": ["minty-server.ddns.net"]
   },
   {
-    "name": "Shiza Minigames",
-    "address": ["shizashizashiza.ml"]
-  },
-  {
     "name": "Phoenix Network",
-    "address": ["172.104.253.198"]
+    "address": ["172.104.253.198", "172.104.253.198:6464"]
   },
   {
     "name": "Xpdustry",
-    "address": ["xpdustry.fr:7000"]
+    "address": ["n1.xpdustry.fr:7000"]
   },
   {
     "name": "Pandorum",
@@ -69,10 +65,38 @@
   },
   {
     "name": "MindustryBR",
-    "address": ["n2.mindustry.me:4003", "n2.mindustry.me:4005", "n2.mindustry.me:4008", "panel.mindustry.me:2005", "n2.mindustry.me:4010"]
+    "address": ["mindustryptbr.myddns.me"]
   },
   {
     "name": "LostDustry",
     "address": ["lostdustry.northeurope.cloudapp.azure.com:6568", "lostdustry.northeurope.cloudapp.azure.com:6569", "lostdustry.northeurope.cloudapp.azure.com:6570"]
-  } 
+  },
+  {
+    "name": "Doge Multiverse",
+    "address": ["v7.servegame.com:25578"]
+  },
+  {
+    "name": "Beyond Anarchy",
+    "address": ["45.156.25.49"]
+  },
+  {
+    "name": "M-DE",
+    "address": ["mindustry.inc.li:6569", "mindustry.inc.li:6560"]
+  },
+  {
+    "name": "Surrealment v7",
+    "address": ["md.surrealment.com:6567"]
+  },
+  {
+    "name": "TinyLake",
+    "address": ["mdt.wayzer.cf"]
+  },
+  {
+    "name": "[CIG]Potato",
+    "address": ["mindustry.vicp.io:6800", "mindustry.vicp.io:7000", "mindustry.vicp.io:6567"]
+  },
+  {
+    "name": "Harders",
+    "address": ["212.20.42.61:6567", "212.20.42.61:6568", "212.20.42.61:6569"]
+  }
 ]

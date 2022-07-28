@@ -30,6 +30,7 @@ import mindustry.service.*;
 import mindustry.type.*;
 import mindustry.ui.dialogs.*;
 import mindustry.world.*;
+import mindustry.world.meta.*;
 
 import java.io.*;
 import java.nio.charset.*;
@@ -51,12 +52,12 @@ public class Vars implements Loadable{
     public static String steamPlayerName = "";
     /** Default accessible content types used for player-selectable icons. */
     public static final ContentType[] defaultContentIcons = {ContentType.item, ContentType.liquid, ContentType.block, ContentType.unit};
+    /** Default rule environment. */
+    public static final int defaultEnv = Env.terrestrial | Env.spores | Env.groundOil | Env.groundWater | Env.oxygen;
     /** Wall darkness radius. */
     public static final int darkRadius = 4;
     /** Maximum extra padding around deployment schematics. */
-    public static final int maxLoadoutSchematicPad = 5;
-    /** Maximum schematic size.*/
-    public static final int maxSchematicSize = 1024;
+    public static final int maxLoadoutSchematicPad = 4;
     /** All schematic base64 starts with this string.*/
     public static final String schematicBaseStart ="bXNjaA";
     /** IO buffer size. */
@@ -71,8 +72,6 @@ public class Vars implements Loadable{
     public static final String discordURL = "https://discord.gg/mindustry";
     /** URL for client discord. */
     public static final String clientDiscord = "https://discord.gg/yp9ZW7j";
-    /** URL for sending crash reports to. Currently offline. */
-    public static final String crashReportURL = "http://192.99.169.18/report";
     /** URL the links to the wiki's modding guide.*/
     public static final String modGuideURL = "https://mindustrygame.github.io/wiki/modding/1-modding/";
     /** URL to the JSON file containing all the BE servers. Only queried in BE. */
@@ -96,7 +95,7 @@ public class Vars implements Loadable{
     public static final float itemSize = 5f;
     /** units outside this bound will die instantly */
     public static final float finalWorldBounds = 250;
-    /** range for building */
+    /** default range for building */
     public static final float buildingRange = 220f;
     /** range for moving items */
     public static final float itemTransferRange = 220f;
@@ -146,12 +145,16 @@ public class Vars implements Loadable{
     public static final int port = 6567;
     /** multicast discovery port.*/
     public static final int multicastPort = 20151;
+    /** Maximum char length of mod subtitles in browser/viewer. */
+    public static final int maxModSubtitleLength = 40;
     /** multicast group for discovery.*/
     public static final String multicastGroup = "227.2.7.7";
     /** whether the graphical game client has loaded */
     public static boolean clientLoaded = false;
     /** max GL texture size */
     public static int maxTextureSize = 2048;
+    /** Maximum schematic size.*/
+    public static int maxSchematicSize = 1024;
     /** Whether to show sector info upon landing. */
     public static boolean showSectorLandInfo = true;
     /** Whether to check for memory use before taking screenshots. */
@@ -172,8 +175,6 @@ public class Vars implements Loadable{
     public static boolean headless;
     /** whether steam is enabled for this game */
     public static boolean steam;
-    /** whether typing into the console is enabled - developers only */ // Hi, I'm buthed and I'm a "developer" -buthed010203 9/6/21 // hi zxtej 29 5 22 developing //hi balam314 the developer was here 6-3-2022 // hi im a developer too -sbytes 27-06-2022
-    public static boolean enableConsole = true;
     /** whether to clear sector saves when landing */
     public static boolean clearSectors = false;
     /** whether any light rendering is enabled */
@@ -217,6 +218,9 @@ public class Vars implements Loadable{
     /** list of all locales that can be switched to */
     public static Locale[] locales;
 
+    //the main executor will only have at most [cores] number of threads active
+    public static ExecutorService mainExecutor = Threads.executor("Main Executor", OS.cores);
+
     public static FileTree tree = new FileTree();
     public static Net net;
     public static ContentLoader content;
@@ -229,7 +233,7 @@ public class Vars implements Loadable{
     public static BeControl becontrol;
     public static AsyncCore asyncCore;
     public static BaseRegistry bases;
-    public static GlobalConstants constants;
+    public static GlobalVars logicVars;
     public static MapEditor editor;
     public static GameService service = new GameService();
 
@@ -239,6 +243,8 @@ public class Vars implements Loadable{
     public static WaveSpawner spawner;
     public static BlockIndexer indexer;
     public static Pathfinder pathfinder;
+    public static ControlPathfinder controlPath;
+    public static FogControl fogControl;
 
     public static Control control;
     public static Logic logic;
@@ -250,12 +256,6 @@ public class Vars implements Loadable{
     public static CSHandler customScripts;
 
     public static Player player;
-    public static ThreadPoolExecutor mainExecutor = new ThreadPoolExecutor(OS.cores, OS.cores, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), r -> {
-        Thread thread = new Thread(r, "mainExecutorThread");
-        thread.setDaemon(true);
-        thread.setUncaughtExceptionHandler((t, e) -> e.printStackTrace());
-        return thread;
-    });
     public static boolean drawCursors, wasDrawingCursors; // Client debug magic
     public static Seq<BuildPlan> frozenPlans = new Seq<>(); // remind me to shift this to Vars.player() maybe. or maybe not since unneeded space
 
@@ -282,11 +282,15 @@ public class Vars implements Loadable{
                 }
             }
 
-            Arrays.sort(locales, 0, len, Structs.comparing(l -> LanguageDialog.displayNames.get(l.toString(), l.getDisplayName(Locale.ROOT)), String.CASE_INSENSITIVE_ORDER));
+            Arrays.sort(locales, 0, len, Structs.comparing(LanguageDialog::getDisplayName, String.CASE_INSENSITIVE_ORDER));
             locales[len] = new Locale("router");
         }
 
         CacheLayer.init();
+
+        if(!headless){
+            Log.info("[Mindustry] Version: @", Version.buildString());
+        }
 
         dataDirectory = settings.getDataDirectory();
         screenshotDirectory = dataDirectory.child("screenshots/");
@@ -315,8 +319,10 @@ public class Vars implements Loadable{
         spawner = new WaveSpawner();
         indexer = new BlockIndexer();
         pathfinder = new Pathfinder();
+        controlPath = new ControlPathfinder();
+        fogControl = new FogControl();
         bases = new BaseRegistry();
-        constants = new GlobalConstants();
+        logicVars = new GlobalVars();
         drawCursors = settings.getBool("drawcursors");
         javaPath =
             new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
@@ -368,31 +374,31 @@ public class Vars implements Loadable{
         String[] tags = {"[green][D][]", "[royal][I][]", "[yellow][W][]", "[scarlet][E][]", ""};
         String[] stags = {"&lc&fb[D]", "&lb&fb[I]", "&ly&fb[W]", "&lr&fb[E]", ""};
 
-        final ConcurrentLinkedQueue<String>[] logBuffer = new ConcurrentLinkedQueue[]{new ConcurrentLinkedQueue<>()};
+        Seq<String>[] logBuffer = new Seq[]{new Seq<>()};
         Log.logger = (level, text) -> {
-            String result = text;
             String rawText = Log.format(stags[level.ordinal()] + "&fr " + text);
             System.out.println(rawText);
-
-            result = tags[level.ordinal()] + " " + result;
-
-            if(!headless && (ui == null || ui.scriptfrag == null)){
-                logBuffer[0].add(result);
-            }else if(!headless){
-                if(!OS.isWindows){
-                    for(String code : ColorCodes.values){
-                        result = result.replace(code, "");
+            String result = tags[level.ordinal()] + " " + text;
+            synchronized(logBuffer){
+                if(logBuffer[0] != null && !headless && (ui == null || ui.consolefrag == null)){
+                    logBuffer[0].add(result);
+                }else if(!headless){
+                    if(!OS.isWindows){
+                        for(String code : ColorCodes.values){
+                            result = result.replace(code, "");
+                        }
                     }
-                }
 
-                ui.scriptfrag.addMessage(Log.removeColors(result));
+                    ui.consolefrag.addMessage(Log.removeColors(result));
+                }
             }
         };
 
         Events.on(ClientLoadEvent.class, e -> {
-            String msg;
-            while ((msg = logBuffer[0].poll()) != null) ui.scriptfrag.addMessage(msg);
-            logBuffer[0] = null; // Events stay in memory for all eternity, these few bytes are totally worth saving.
+            synchronized(logBuffer){
+                logBuffer[0].each(ui.consolefrag::addMessage);
+                logBuffer[0] = null;
+            }
         });
 
         loadedLogger = true;
@@ -406,7 +412,6 @@ public class Vars implements Loadable{
         try{
             Writer writer = settings.getDataDirectory().child("last_log.txt").writer(false);
             LogHandler log = Log.logger;
-            //ignore it
             Log.logger = (level, text) -> {
                 log.log(level, text);
 
@@ -438,12 +443,12 @@ public class Vars implements Loadable{
         keybinds.setDefaults(Binding.values());
         settings.setAutosave(false);
         settings.load();
-        Core.app.post(() -> { // Set settings vars
+        Core.app.post(() -> { // Set settings vars FINISHME: Move this awfulness
             UnitType.drawAllItems = settings.getBool("drawallitems");
             UnitType.formationAlpha = settings.getInt("formationopacity") / 100f;
             UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f;
         });
-        if (Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug;
+        if(Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug;
 
         Scl.setProduct(settings.getInt("uiscale", 100) / 100f);
 
@@ -485,7 +490,7 @@ public class Vars implements Loadable{
             Core.bundle = I18NBundle.createBundle(handle, locale);
 
             //router
-            if(locale.getDisplayName().equals("router")){
+            if(locale.toString().equals("router")){
                 bundle.debug("router");
             }
 

@@ -23,13 +23,15 @@ public class Junction extends Block{
     public float speed = 26; //frames taken to go through this junction
     public int capacity = 6;
 
+    // FINISHME: Rework to work with junctions with size >1
     static final Vec2 direction = new Vec2(tilesize, 0), baseOffset = new Vec2();
     public static boolean drawItems = false;
 
     public Junction(String name){
         super(name);
         update = true;
-        solid = true;
+        solid = false;
+        underBullets = true;
         group = BlockGroup.transportation;
         unloadable = false;
         noUpdateDisabled = true;
@@ -123,7 +125,6 @@ public class Junction extends Block{
                     float time = BufferItem.time(l);
 
                     if(Time.time >= time + speed / timeScale || Time.time < time){
-
                         Item item = content.item(BufferItem.item(l));
                         Building dest = nearby(i);
 
@@ -180,12 +181,18 @@ public class Junction extends Block{
         }
 
         @Override
+        public void add() {
+            super.add();
+        }
+
+        @Override
         public void draw(){
             super.draw();
             if(!drawItems) return;
             Draw.z(Layer.blockOver);
             var realSpeed = speed * timeScale;
-            var iSize = (tilesize * size) / capacity;
+//            var iSize = (tilesize * size) / capacity;
+            var iSize = (tilesizeF * size) / capacity;
             var spacing = 1f / capacity;
             for(int i = 0; i < 4; i++){ // Code from zxtej
                 var last = 1f - spacing * .5f;

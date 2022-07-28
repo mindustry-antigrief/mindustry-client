@@ -5,6 +5,10 @@ import arc.util.*
 import arc.*
 import mindustry.client.*
 import mindustry.client.antigrief.*
+import mindustry.Vars.*
+import mindustry.client.*
+import mindustry.client.antigrief.*
+import mindustry.gen.*
 import mindustry.world.blocks.logic.LogicBlock.*
 
 object ProcessorPatcher {
@@ -21,10 +25,10 @@ object ProcessorPatcher {
         printflush message1
     """.trimIndent();
 
-    fun countProcessors(builds: Seq<LogicBuild>): Int {
+    fun countProcessors(builds: Iterable<LogicBuild>): Int {
         Time.mark()
         val count = builds.count { attemMatcher.containsMatchIn(it.code) }
-        Log.debug("Counted $count/${builds.size} attems in ${Time.elapsed()}ms")
+        Log.debug("Counted $count/${builds.count()} attems in ${Time.elapsed()}ms")
         return count
     }
 

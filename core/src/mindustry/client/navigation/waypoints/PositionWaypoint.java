@@ -98,7 +98,7 @@ public class PositionWaypoint extends Waypoint implements Position {
             else if (length < 0) vec.setZero();
             player.unit().moveAt(vec);
         }
-        if (!player.unit().isShooting || !player.unit().type.rotateShooting) player.unit().lookAt(vec.angle()); // Look towards waypoint when possible
+        if (!player.unit().isShooting || !player.unit().type.faceTarget) player.unit().lookAt(vec.angle()); // Look towards waypoint when possible
     }
     @Override
     public PositionWaypoint run() {

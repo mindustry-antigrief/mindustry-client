@@ -15,45 +15,23 @@ public class ItemImage extends Stack{
 
         add(new Table(o -> {
             o.left();
-            o.add(new Image(region)).size(32f);
+            o.add(new Image(region)).size(32f).scaling(Scaling.fit);
         }));
 
-        add(new Table(t -> {
-            t.left().bottom();
-            t.add(amount > 1000 ? UI.formatAmount(amount) : amount + "");
-            t.pack();
-        }));
-    }
-
-    public ItemImage(TextureRegion region){
-        Table t = new Table().left().bottom();
-
-        add(new Image(region));
-        add(t);
-    }
-
-    public ItemImage(ItemStack stack){
-        this(stack, 0);
-    }
-
-    public ItemImage(ItemStack stack, float timePeriod){
-
-        add(new Table(o -> {
-            o.left();
-            o.add(new Image(stack.item.uiIcon)).size(iconMed);
-        }));
-
-        if(stack.amount != 0){
+        if(amount != 0){
             add(new Table(t -> {
-                t.left().bottom().defaults().left();
-
-                t.add(stack.amount > 1000 ? UI.formatAmount(stack.amount) : stack.amount + "").style(Styles.outlineLabel);
-                if (timePeriod != 0) {
-                    t.row();
-                    t.add(Strings.autoFixed(stack.amount / timePeriod, 2) + "/s", .5f).style(Styles.outlineLabel);
-                }
+                t.left().bottom();
+                t.add(amount >= 1000 ? UI.formatAmount(amount) : amount + "").style(Styles.outlineLabel);
                 t.pack();
             }));
         }
+    }
+
+    public ItemImage(ItemStack stack){
+        this(stack.item.uiIcon, stack.amount);
+    }
+
+    public ItemImage(PayloadStack stack){
+        this(stack.item.uiIcon, stack.amount);
     }
 }

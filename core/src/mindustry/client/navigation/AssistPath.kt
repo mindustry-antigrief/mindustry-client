@@ -99,8 +99,8 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path()
             if ((type == Type.Regular || type == Type.Cursor) && assisting.unit().isShooting) Tmp.v1.set(assisting.unit().aimX, assisting.unit().aimY) // Following or shooting
             else if (unit.type.faceTarget) Core.input.mouseWorld() else Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, player.unit().y) // Not following, not shooting
         val lookPos =
-            if (assisting.unit().isShooting && unit.type.rotateShooting) player.angleTo(assisting.unit().aimX, assisting.unit().aimY) // Assisting is shooting and player has fixed weapons
-            else if (unit.type.omniMovement && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !(unit is Mechc && unit.isFlying()) && unit.type.rotateShooting) Angles.mouseAngle(unit.x, unit.y);
+            if (assisting.unit().isShooting && unit.type.faceTarget) player.angleTo(assisting.unit().aimX, assisting.unit().aimY) // Assisting is shooting and player has fixed weapons
+            else if (unit.type.omniMovement && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !(unit is Mechc && unit.isFlying())) Angles.mouseAngle(unit.x, unit.y);
             else player.unit().prefRotation() // Anything else
 
         player.shooting(shouldShoot)
@@ -124,7 +124,7 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path()
     }
 
     override fun progress(): Float {
-        return if (assisting == null || !assisting.added) 1f else 0f
+        return if (assisting == null || !assisting.isAdded) 1f else 0f
     }
 
     override fun next(): Position? {

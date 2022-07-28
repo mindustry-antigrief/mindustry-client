@@ -113,7 +113,6 @@ class ClientLogic {
                 Vars.frozenPlans.clear()
             }
             lastJoinTime = Time.millis()
-            PowerInfo.initialize()
             configs.clear()
             Vars.control.input.lastVirusWarning = null
             dispatchingBuildPlans = false
@@ -173,7 +172,7 @@ class ClientLogic {
                     sendMessage("Silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance. They are not the same, please get it right!")
                 }
 
-                Client.register("hh [h]", "!") { args, _ ->
+                register("hh [h]", "!") { args, _ ->
                     if (!Vars.net.client()) return@register
                     val u = if (args.any()) Vars.content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) } else Vars.player.unit().type
                     val current = (Vars.ui.join.lastHost?.modeName?.first() ?: Vars.ui.join.lastHost?.mode?.name?.get(0) ?: 'f').lowercaseChar()
@@ -184,7 +183,7 @@ class ClientLogic {
 
             val encoded = Main.keyStorage.cert()?.encoded
             if (encoded != null && Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
-                Client.register("update <name/id...>") { args, _ ->
+                register("update <name/id...>") { args, _ ->
                     val name = args.joinToString(" ")
                     val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(Strings.stripColors(it.name), name) }!!
                     Main.send(CommandTransmission(CommandTransmission.Commands.UPDATE, Main.keyStorage.cert() ?: return@register, player))
