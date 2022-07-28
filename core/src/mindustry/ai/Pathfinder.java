@@ -203,7 +203,7 @@ public class Pathfinder implements Runnable{
         thread = new Thread(this, "Pathfinder");
         thread.setPriority(Thread.MIN_PRIORITY);
         thread.setDaemon(true);
-
+        thread.start();
     }
 
     /** Stops the pathfinding thread. */

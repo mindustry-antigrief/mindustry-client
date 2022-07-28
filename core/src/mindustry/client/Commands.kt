@@ -8,6 +8,7 @@ import arc.struct.*
 import arc.util.*
 import arc.util.CommandHandler.*
 import mindustry.*
+import mindustry.ai.types.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
@@ -227,7 +228,6 @@ fun setup() {
         var n = 0
         val newLinks = IntMap<IntSet>()
         val tmp = mutableListOf<ConfigRequest>()
-//            clientThread.post {
         for ((grid, buildings) in grids) { // This is horrible but works somehow
             for (nodeBuild in buildings) {
                 val nodeBlock = nodeBuild.block as? PowerNode ?: continue
@@ -248,16 +248,20 @@ fun setup() {
                 }
             }
         }
-//                Core.app.post {
         ClientVars.configs.addAll(tmp)
-        if (confirmed) {
-            if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${ClientVars.configs.size} configs queued, there are $n nodes to connect.") // FINISHME: Bundle
-            else player.sendMessage(Core.bundle.format("client.command.fixpower.success", n, grids.size - n))
-        } else {
-            player.sendMessage(Core.bundle.format("client.command.fixpower.confirm", n, grids.size))
+        @Suppress("CAST_NEVER_SUCCEEDS") val msg = Vars.ui.chatfrag.addMessage("", null as? Color)
+        msg.message = when {
+            confirmed && inProgress -> Core.bundle.format("client.command.fixpower.inprogress", ClientVars.configs.size, n)
+            confirmed -> { // Actually fix the connections
+                ClientVars.configs.add { // This runs after the connections are made
+                    msg.message = Core.bundle.format("client.command.fixpower.success", n, PowerInfo.graphs.select { it.team == player.team() }.size)
+                    msg.format()
+                }
+                Core.bundle.format("client.command.fixpower.confirmed", n)
+            }
+            else -> Core.bundle.format("client.command.fixpower.confirm", n, grids.size)
         }
-//                }
-//            }
+        msg.format()
     }
 
     @Suppress("unchecked_cast")
@@ -319,7 +323,7 @@ fun setup() {
 
         for (plan in Vars.player.team().data().plans) {
             val block = Vars.content.block(plan.block.toInt())
-            if (!(all || Navigation.getTree().any(Tmp.r1.setCentered(plan.x * Vars.tilesize + block.offset, plan.y * Vars.tilesize + block.offset, block.size * Vars.tilesizeF)))) continue
+            if (!(all || Navigation.getTree().any(plan.x * Vars.tilesizeF, plan.y * Vars.tilesizeF, block.size * Vars.tilesizeF, block.size * Vars.tilesizeF))) continue
 
             plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
         }
@@ -347,12 +351,6 @@ fun setup() {
         }
     }
 
-    register("togglesign", Core.bundle.get("client.command.togglesign.description")) { _, player ->
-        val previous = Core.settings.getBool("signmessages")
-        Core.settings.put("signmessages", !previous)
-        player.sendMessage(Core.bundle.format("client.command.togglesign.success", Core.bundle.get(if (previous) "off" else "on").lowercase()))
-    }
-
     register("stoppathing <name/id...>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
         val name = args.joinToString(" ")
         val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(
@@ -365,21 +363,32 @@ fun setup() {
         Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
     }
 
-    register("mapinfo", "Lists various useful map info.") { _, player ->
+    register("mapinfo", "Lists various useful map info.") { _, player -> // FINISHME: Bundle
         player.sendMessage(with(Vars.state) {
             """
-                [accent]Name: ${map.name()}[accent] (by: ${map.author()}[accent])
-                Map Time: ${UI.formatTime(tick.toFloat())}
-                Build Speed (Unit Factories): ${rules.buildSpeedMultiplier}x (${rules.unitBuildSpeedMultiplier}x)
-                Build Cost (Refund): ${rules.buildCostMultiplier}x (${rules.deconstructRefundMultiplier}x)
-                Core Capture: ${rules.coreCapture}
-                Core Incinerates: ${rules.coreIncinerates}
-                Core Modifies Unit Cap: ${rules.unitCapVariable}
-                """.trimIndent()
+            [accent]Name: ${map.name()}[accent] (by: ${map.author()}[accent])
+            Map Time: ${UI.formatTime(tick.toFloat())}
+            Build Speed (Unit Factories): ${rules.buildSpeedMultiplier}x (${rules.unitBuildSpeedMultiplier}x)
+            Build Cost (Refund): ${rules.buildCostMultiplier}x (${rules.deconstructRefundMultiplier}x)
+            Core Capture: ${rules.coreCapture}
+            Core Incinerates: ${rules.coreIncinerates}
+            Core Modifies Unit Cap: ${rules.unitCapVariable}
+            """.trimIndent()
         })
     }
 
+    register("binds <type>", "") { args, player -> // FINISHME: Bundle
+        val type = Vars.content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
 
+        player.team().data().unitCache(type)
+            ?.filter { it.controller() is LogicAI }
+            ?.distinctBy { (it.controller() as LogicAI).controller }
+            ?.forEach {
+                player.sendMessage("[accent]${it.tileX()}, ${it.tileY()}")
+            }
+    }
+
+    // START OF CUSTOM COMMANDS
     register("spawn [x] [y]", Core.bundle.get("client.command.spawn.description")) {args, player ->
         try {
             if (args.size == 2) state.teams.closestCore(args[0].toFloat(), args[1].toFloat(), player.team())?.requestSpawn(player)
