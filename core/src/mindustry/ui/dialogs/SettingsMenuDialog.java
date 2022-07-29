@@ -351,7 +351,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("drawdisplayborder", false);
         client.checkPref("drawpath", true);
         client.checkPref("tracelogicunits", false);
-        client.checkPref("unitranges", false);
+        client.checkPref("enemyunitranges", false);
+        client.checkPref("allyunitranges", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
