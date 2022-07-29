@@ -197,7 +197,7 @@ public class PlayerListFragment extends Fragment{
             }
             if (user != player) {
                 button.button(Icon.lock, ustyle, // Mute player
-                        () -> ClientUtilsKt.toggleMutePlayer(user)).tooltip("@client.mute");
+                        () -> ClientUtilsKt.toggleMutePlayer(user)).size(h / 2).tooltip("@client.mute");
                 button.button(Icon.cancel, ustyle, // Unassist/block
                         () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.copy, ustyle, // Assist/copy
@@ -210,10 +210,10 @@ public class PlayerListFragment extends Fragment{
                 button.button(Icon.move, ustyle, // Goto
                         () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
                 button.button(Icon.zoom, ustyle, // Spectate/stalk
-                        () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).tooltip("@client.spectate");
+                        () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).size(h / 2).tooltip("@client.spectate");
             }
 
-            content.add(button).padBottom(-6).width(700).maxHeight(h + 14);
+            content.add(button).padBottom(-6).width(750).maxHeight(h + 14);
             content.row();
             content.image().height(4f).color(state.rules.pvp ? user.team().color : Pal.gray).growX();
             content.row();
