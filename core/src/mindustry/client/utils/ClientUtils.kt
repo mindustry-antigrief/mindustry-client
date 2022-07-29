@@ -11,6 +11,7 @@ import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
+import mindustry.Vars.ui
 import mindustry.ai.types.FormationAI
 import mindustry.ai.types.LogicAI
 import mindustry.client.*
@@ -452,6 +453,17 @@ fun getPlayer(unit: mindustry.gen.Unit?): Player? {
 }
 
 fun canWhisper() = io() || phoenix()
+
+fun toggleMutePlayer(player: Player) {
+    val match = ClientVars.mutedPlayers.firstOrNull { p -> p.second == player.id || (p.first != null && p.first == player) }
+    if (match == null) {
+        ClientVars.mutedPlayers.add(Pair(player, player.id))
+        ui.chatfrag.addMessage(Core.bundle.format("client.command.mute", player.coloredName(), player.id))
+    } else {
+        ClientVars.mutedPlayers.remove(match)
+        Vars.player.sendMessage(Core.bundle.format("client.command.unmute", player.coloredName(), player.id))
+    }
+}
 
 //inline fun <T> Seq<out T>.forEach(consumer: (T?) -> Unit) {
 //    for (i in 0 until size) consumer(items[i])

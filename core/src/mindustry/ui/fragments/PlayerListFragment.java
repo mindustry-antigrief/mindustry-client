@@ -13,6 +13,7 @@ import arc.util.*;
 import mindustry.Vars;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
+import mindustry.client.utils.ClientUtilsKt;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
@@ -195,6 +196,10 @@ public class PlayerListFragment extends Fragment{
                 }).size(h/2);
             }
             if (user != player) {
+                button.button(Icon.lock, ustyle, // Mute player
+                        () -> ClientUtilsKt.toggleMutePlayer(user)).tooltip("@client.mute");
+                button.button(Icon.cancel, ustyle, // Unassist/block
+                        () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.copy, ustyle, // Assist/copy
                         () -> Navigation.follow(new AssistPath(user,
                                 Core.input.shift() ? AssistPath.Type.FreeMove :
@@ -202,8 +207,6 @@ public class PlayerListFragment extends Fragment{
                                 Core.input.alt() ? AssistPath.Type.BuildPath :
                                                     AssistPath.Type.Regular)
                         )).size(h / 2).tooltip("@client.assist");
-                button.button(Icon.cancel, ustyle, // Unassist/block
-                        () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.move, ustyle, // Goto
                         () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
                 button.button(Icon.zoom, ustyle, // Spectate/stalk
