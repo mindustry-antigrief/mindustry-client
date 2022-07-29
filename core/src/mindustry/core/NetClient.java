@@ -219,8 +219,18 @@ public class NetClient implements ApplicationListener{
                 if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
-            ChatFragment.ChatMessage.msgFormat();
+            if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
+                Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
+                    "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
+                    "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
+                );
+            
             if (playersender != null) {
+                if (ClientVars.mutedPlayers.contains( p -> p.getSecond() == playersender.id || (p.getFirst() != null && playersender.name.equals(p.getFirst().name)))) {
+                    return; // Just ignore them
+                }
+                
+                ChatFragment.ChatMessage.msgFormat();
                 if (message.startsWith("[#" + playersender.team().color.toString() + "]<T>")) {
                     prefix += "[#" + playersender.team().color.toString() + "]<T> ";
                 }
@@ -231,13 +241,9 @@ public class NetClient implements ApplicationListener{
                 var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
                 ui.chatfrag.addMessage(message, sender, background, prefix, unformatted2);
             } else {
+                ChatFragment.ChatMessage.msgFormat();
                 Vars.ui.chatfrag.addMessage(message, null, unformatted == null ? "" : unformatted);
             }
-            if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
-                Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
-                    "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
-                    "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
-                );
         }
 
         //display raw unformatted text above player head

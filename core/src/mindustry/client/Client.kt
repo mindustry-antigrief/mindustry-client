@@ -835,6 +835,34 @@ object Client {
             player.sendMessage(sb.toString())
         }
 
+        register("mute <player>", "Mutes messages sent from a player") { args, player ->
+            val id = args[0].toIntOrNull()
+            val target = if (id != null && Groups.player.getByID(id) != null) Groups.player.getByID(id)
+                        else Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshteinInsensitive(p.name, args[0]) }
+
+            player.sendMessage(Core.bundle.format("client.command.mute", target.coloredName(), target.id))
+            val previous = mutedPlayers.firstOrNull { pair -> pair.first.name == target.name || pair.second == target.id }
+            if (previous != null) mutedPlayers.remove(previous)
+            mutedPlayers.add(Pair(target, target.id))
+        }
+
+        register("unmute <player>", "Unmutes messages sent from a player") { args, player ->
+            val id = args[0].toIntOrNull()
+            val target = Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshteinInsensitive(p.name, args[0]) }
+            val match = mutedPlayers.firstOrNull { p -> (id != null && p.second == id) || (p.first != null && p.first.name == target.name) }
+            if (match != null) {
+                if (target != null) player.sendMessage(Core.bundle.format("client.command.unmute", target.coloredName(), target.id))
+                else player.sendMessage(Core.bundle.format("client.command.unmute.byid", match.second))
+                mutedPlayers.remove(match)
+            }
+            else player.sendMessage(Core.bundle.get("client.command.mute.notmuted"))
+        }
+
+        register("clearmutes", "Clears list of muted players") {_, player ->
+            player.sendMessage(Core.bundle.get("client.command.clearmutes"))
+            mutedPlayers.clear()
+        }
+
         registerReplace("%", "c", "cursor") {
             Strings.format("(@, @)", control.input.rawTileX(), control.input.rawTileY())
         }

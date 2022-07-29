@@ -7,6 +7,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import kotlin.*;
+import mindustry.gen.Player;
 import mindustry.net.*;
 import mindustry.world.blocks.defense.*;
 import mindustry.world.modules.*;
@@ -43,6 +44,7 @@ public class ClientVars {
     public static boolean syncing; // Whether we are in the process of reloading the world
     public static double lastServerStartTime;
     public static String lastServerName;
+    public static Seq<Pair<Player, Integer>> mutedPlayers = new Seq<>();
 
     // Networking
     public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;
