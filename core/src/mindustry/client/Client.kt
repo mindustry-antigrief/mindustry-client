@@ -37,6 +37,7 @@ import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
 import mindustry.ui.Fonts
+import mindustry.ui.fragments.ChatFragment.ChatMessage
 import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
@@ -840,6 +841,7 @@ object Client {
             val target = if (id != null && Groups.player.getByID(id) != null) Groups.player.getByID(id)
                         else Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshteinInsensitive(p.name, args[0]) }
 
+            ChatMessage.msgFormat(false) // Why are player IDs weirdly formatted...
             player.sendMessage(Core.bundle.format("client.command.mute", target.coloredName(), target.id))
             val previous = mutedPlayers.firstOrNull { pair -> pair.first.name == target.name || pair.second == target.id }
             if (previous != null) mutedPlayers.remove(previous)

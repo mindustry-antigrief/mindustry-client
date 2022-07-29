@@ -20,6 +20,7 @@ import mindustry.core.*
 import mindustry.gen.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
+import mindustry.ui.fragments.ChatFragment.ChatMessage
 import mindustry.world.*
 import java.io.*
 import java.nio.*
@@ -456,6 +457,7 @@ fun canWhisper() = io() || phoenix()
 
 fun toggleMutePlayer(player: Player) {
     val match = ClientVars.mutedPlayers.firstOrNull { p -> p.second == player.id || (p.first != null && p.first == player) }
+    ChatMessage.msgFormat(false) // Why are player IDs weirdly formatted...
     if (match == null) {
         ClientVars.mutedPlayers.add(Pair(player, player.id))
         ui.chatfrag.addMessage(Core.bundle.format("client.command.mute", player.coloredName(), player.id))
