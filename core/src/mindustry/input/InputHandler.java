@@ -48,12 +48,10 @@ import mindustry.world.blocks.units.*;
 import mindustry.world.meta.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
 import static mindustry.client.ClientVars.*;
-import static mindustry.ui.CoreItemsDisplay.mode;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
     /** Used for dropping items. */
@@ -834,6 +832,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return selectRequests.find(test);
     }
 
+    protected void drawRemovePlanSelection(int x1, int y1, int x2, int y2, int maxLength) {
+        NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
+        Draw.color(Color.white);
+        Draw.alpha(0.3f);
+        float x = (result.x2 + result.x) / 2;
+        float y = (result.y2 + result.y) / 2;
+        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
+    }
+    
     protected void drawFreezeSelection(int x1, int y1, int x2, int y2, int maxLength){
         NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
 
@@ -937,16 +944,28 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    protected void flushRequests(Seq<BuildPlan> requests) {
-        flushRequests(requests, true);
-    }
     private final Seq<Tile> tempTiles = new Seq<>(4);
-    protected void flushRequests(Seq<BuildPlan> requests, boolean allowFreeze){
+    protected void flushRequests(Seq<BuildPlan> requests, boolean freeze, boolean force, boolean removeFrozen){
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[requests.size + requests.count(req -> req.block == Blocks.waterExtractor) * 3];
         var added = 0;
         for(BuildPlan req : requests){
             if (req.block == null) continue;
+    
+            if (removeFrozen) {
+                Iterator<BuildPlan> it = frozenPlans.iterator();
+                while(it.hasNext()){
+                    BuildPlan frz = it.next();
+                    if(req.bounds(Tmp.r1, true).overlaps(frz.bounds(Tmp.r2, true))){
+                        it.remove();
+                    }
+                }
+            }
+            
+            if (req.breaking) {
+                tryBreakBlock(req.x, req.y, freeze);
+                continue;
+            }
 
             if (req.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed
                     && req.tile() != null && req.tile().getLinkedTilesAs(req.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
@@ -969,8 +988,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
                 if (replaced) continue; // Swapped water extractor for pump, don't place it
             }
-
-            if(validPlace(req.x, req.y, req.block, req.rotation)){
+    
+            boolean valid = validPlace(req.x, req.y, req.block, req.rotation);
+            if(freeze || force || valid){
                 BuildPlan copy = req.copy();
                 if(configLogic && copy.block instanceof LogicBlock && copy.config != null){
                     final var conf = copy.config; // this is okay because processor connections are relative
@@ -992,21 +1012,26 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                         };
                     }
                 }
-                req.block.onNewPlan(copy);
-                temp[added++] = copy;
-            }
-            Iterator<BuildPlan> it = frozenPlans.iterator();
-            while(it.hasNext()){
-                BuildPlan frz = it.next();
-                if(req.block.bounds(req.x, req.y, Tmp.r1).overlaps(frz.block.bounds(frz.x, frz.y, Tmp.r2))){
-                    it.remove();
+                
+                if (force && !valid) { // Add build plans to remove block underneath
+                    frozenPlans.add(copy);
+                    Seq<Tile> tmpTiles = new Seq<>(4);
+                    req.tile().getLinkedTilesAs(req.block, tmpTiles);
+                    tmpTiles.forEach(tile -> {
+                        if (tile.block() != Blocks.air) player.unit().addBuild(new BuildPlan(tile.build.tileX(), tile.build.tileY()));
+                    });
+                }
+                else {
+                    req.block.onNewPlan(copy);
+                    temp[added++] = copy;
                 }
             }
         }
 
         for (int i = 0; i < added; i++) {
-            if (isFreezeQueueing && allowFreeze) frozenPlans.add(temp[i]);
-            else player.unit().addBuild(temp[i]);
+            var req = temp[i];
+            if (freeze) frozenPlans.add(req);
+            else player.unit().addBuild(req);
         }
     }
 
@@ -1046,16 +1071,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     /** Remove everything from the queue in a selection. */
     protected void removeSelection(int x1, int y1, int x2, int y2, int maxLength){
-        removeSelection(x1, y1, x2, y2, false, maxLength);
+        removeSelection(x1, y1, x2, y2, false, maxLength, false);
     }
 
     /** Remove everything from the queue in a selection. */
     protected void removeSelection(int x1, int y1, int x2, int y2, boolean flush){
-        removeSelection(x1, y1, x2, y2, flush, maxLength);
+        removeSelection(x1, y1, x2, y2, flush, maxLength, false);
     }
 
     /** Remove everything from the queue in a selection. */
-    protected void removeSelection(int x1, int y1, int x2, int y2, boolean flush, int maxLength){
+    protected void removeSelection(int x1, int y1, int x2, int y2, boolean flush, int maxLength, boolean freeze){
         NormalizeResult result = Placement.normalizeArea(x1, y1, x2, y2, rotation, false, maxLength);
         for(int x = 0; x <= Math.abs(result.x2 - result.x); x++){
             for(int y = 0; y <= Math.abs(result.y2 - result.y); y++){
@@ -1067,9 +1092,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 if(tile == null) continue;
 
                 if(!flush){
-                    tryBreakBlock(wx, wy);
+                    tryBreakBlock(wx, wy, freeze);
                 }else if(validBreak(tile.x, tile.y) && !selectRequests.contains(r -> r.tile() != null && r.tile() == tile)){
-                    selectRequests.add(new BuildPlan(tile.x, tile.y));
+                    if (freeze) frozenPlans.add(new BuildPlan(tile.x, tile.y));
+                    else selectRequests.add(new BuildPlan(tile.x, tile.y));
                 }
             }
         }
@@ -1093,10 +1119,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
         
-        it = frozenPlans.iterator();
-        while (it.hasNext()) {
-            BuildPlan plan = it.next();
-            if (!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)) it.remove();
+        if (isFreezeQueueing) {
+            it = frozenPlans.iterator();
+            while (it.hasNext()) {
+                BuildPlan plan = it.next();
+                if (!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)) it.remove();
+            }
         }
 
         removed.clear();
@@ -1116,6 +1144,36 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         //TODO array may be too large?
         if(removed.size > 0 && net.active()){
             Call.deletePlans(player, removed.toArray());
+        }
+    }
+    
+    /** Remove plans in a selection */
+    protected void removeSelectionPlans(int x1, int y1, int x2, int y2, int maxLength) {
+        NormalizeResult result = Placement.normalizeArea(x1, y1, x2, y2, rotation, false, maxLength);
+        Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
+    
+        Iterator<BuildPlan> it = player.unit().plans().iterator();
+        while(it.hasNext()){
+            BuildPlan req = it.next();
+            if(req.bounds(Tmp.r2, true).overlaps(Tmp.r1)){
+                it.remove();
+            }
+        }
+    
+        it = selectRequests.iterator();
+        while(it.hasNext()){
+            BuildPlan req = it.next();
+            if(req.bounds(Tmp.r2, true).overlaps(Tmp.r1)){
+                it.remove();
+            }
+        }
+    
+        if (isFreezeQueueing) {
+            it = frozenPlans.iterator();
+            while (it.hasNext()) {
+                BuildPlan plan = it.next();
+                if (plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) it.remove();
+            }
         }
     }
 
@@ -1140,11 +1198,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
 
         for(BuildPlan req : player.unit().plans()){
-            if(req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
+            if(req.bounds(Tmp.r2, true).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
         }
 
         for(BuildPlan req : selectRequests){
-            if(req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
+            if(req.bounds(Tmp.r2, true).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
         }
 
         Seq<BuildPlan> unfreeze = new Seq<>();
@@ -1153,14 +1211,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         Iterator<BuildPlan> it1, it2;
-        if(unfreeze.size > tmpFrozenPlans.size){
-            it1 = frozenPlans.iterator();
-            for(BuildPlan frz : unfreeze){
-                while(it1.hasNext() && it1.next() != frz);
-                if(it1.hasNext()) it1.remove();
-            }
-            flushRequests(unfreeze, false);
-        }
+        if(unfreeze.size > tmpFrozenPlans.size) flushRequests(unfreeze, false, false, true);
         else{
             it1 = player.unit().plans().iterator();
             it2 = selectRequests.iterator();
@@ -1463,9 +1514,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    public void tryBreakBlock(int x, int y){
+    public void tryBreakBlock(int x, int y) {
+        tryBreakBlock(x, y, false);
+    }
+    
+    public void tryBreakBlock(int x, int y, boolean freeze){
         if(validBreak(x, y)){
-            breakBlock(x, y);
+            breakBlock(x, y, freeze);
         }
     }
 
@@ -1517,11 +1572,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return Build.validBreak(player.team(), x, y);
     }
 
-    public void breakBlock(int x, int y){
+    public void breakBlock(int x, int y, boolean freeze){
         Tile tile = world.tile(x, y);
         if(tile != null && tile.build != null) tile = tile.build.tile;
-        if (!isFreezeQueueing) player.unit().addBuild(new BuildPlan(tile.x, tile.y));
-        else frozenPlans.add(new BuildPlan(tile.x, tile.y));
+        if (freeze) frozenPlans.add(new BuildPlan(tile.x, tile.y));
+        else player.unit().addBuild(new BuildPlan(tile.x, tile.y));
     }
 
     public void drawArrow(Block block, int x, int y, int rotation){

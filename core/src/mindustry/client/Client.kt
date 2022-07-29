@@ -37,6 +37,7 @@ import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
 import mindustry.ui.Fonts
+import mindustry.ui.fragments.ChatFragment.ChatMessage
 import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
@@ -742,6 +743,15 @@ object Client {
             }
         }
 
+        register("gamejointext [text...]", "Sets the text you automatically send upon joining.") { args, player ->
+            if (args.isEmpty() || args[0] == "") player.sendMessage("[accent]Cleared gamejointext because no text was provided.")
+            else {
+                Core.settings.put("gamejointext", args[0])
+                player.sendMessage("[accent]gamejointext text set to \"${args[0]}\"")
+            }
+        }
+
+
         register("gamewintext [text...]", "Sets the text you automatically send when you win. (eg 'gg bois!')") {args, player ->
             if (args.isEmpty() || args[0] == "") player.sendMessage("[accent]Cleared gamewintext because no text was provided.")
             else {
@@ -819,11 +829,40 @@ object Client {
             }
         }
 
-        register("bannedcontent", "Lists banned units and blocks on the map") { args, player ->
+        register("bannedcontent", "Lists banned units and blocks on the map") { _, player ->
             val sb = StringBuilder("[accent]Banned content on this map: ")
-            state.rules.bannedUnits.forEach {sb.append(it.localizedName).append(" ") }
+            state.rules.bannedUnits.forEach { sb.append(it.localizedName).append(" ") }
             state.rules.bannedBlocks.forEach { sb.append(it.localizedName).append(" ") }
             player.sendMessage(sb.toString())
+        }
+
+        register("mute <player>", "Mutes messages sent from a player") { args, player ->
+            val id = args[0].toIntOrNull()
+            val target = if (id != null && Groups.player.getByID(id) != null) Groups.player.getByID(id)
+                        else Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshteinInsensitive(p.name, args[0]) }
+
+            ChatMessage.msgFormat(false) // Why are player IDs weirdly formatted...
+            player.sendMessage(Core.bundle.format("client.command.mute", target.coloredName(), target.id))
+            val previous = mutedPlayers.firstOrNull { pair -> pair.first.name == target.name || pair.second == target.id }
+            if (previous != null) mutedPlayers.remove(previous)
+            mutedPlayers.add(Pair(target, target.id))
+        }
+
+        register("unmute <player>", "Unmutes messages sent from a player") { args, player ->
+            val id = args[0].toIntOrNull()
+            val target = Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshteinInsensitive(p.name, args[0]) }
+            val match = mutedPlayers.firstOrNull { p -> (id != null && p.second == id) || (p.first != null && p.first.name == target.name) }
+            if (match != null) {
+                if (target != null) player.sendMessage(Core.bundle.format("client.command.unmute", target.coloredName(), target.id))
+                else player.sendMessage(Core.bundle.format("client.command.unmute.byid", match.second))
+                mutedPlayers.remove(match)
+            }
+            else player.sendMessage(Core.bundle.get("client.command.mute.notmuted"))
+        }
+
+        register("clearmutes", "Clears list of muted players") {_, player ->
+            player.sendMessage(Core.bundle.get("client.command.clearmutes"))
+            mutedPlayers.clear()
         }
 
         registerReplace("%", "c", "cursor") {
@@ -858,7 +897,7 @@ object Client {
                 configs.add(ConfigRequest(it.tileX(), it.tileY(), msg2))
                 num++
             })
-            player.sendMessage("[accent]Queued $num messages for editing");
+            player.sendMessage("[accent]Queued $num messages for editing")
         }
     }
 

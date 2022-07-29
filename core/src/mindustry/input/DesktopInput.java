@@ -161,8 +161,12 @@ public class DesktopInput extends InputHandler{
         if(mode == breaking){
             drawBreakSelection(selectX, selectY, cursorX, cursorY, /*!Core.input.keyDown(Binding.schematic_select) ? maxLength :*/ Vars.maxSchematicSize);
         }
+        //draw dequeueing selection
+        if (mode == dequeue){
+            drawRemovePlanSelection(selectX, selectY, cursorX, cursorY, Vars.maxSchematicSize);
+        }
 
-        if(Core.input.keyDown(Binding.schematic_select) && !Core.scene.hasKeyboard() && mode != breaking && mode != freezing){
+        if(Core.input.keyDown(Binding.schematic_select) && !Core.scene.hasKeyboard() && mode != breaking && mode != freezing && mode != dequeue){
             drawSelection(schemX, schemY, cursorX, cursorY, Vars.maxSchematicSize);
         }
 
@@ -767,7 +771,7 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(Binding.break_block)){
                 mode = none;
             }else if(selectRequests.any()){
-                flushRequests(selectRequests);
+                flushRequests(selectRequests, isFreezeQueueing, input.ctrl(), false);
             }else if(isPlacing()){
                 selectX = cursorX;
                 selectY = cursorY;
@@ -799,7 +803,7 @@ public class DesktopInput extends InputHandler{
         }else if(Core.input.keyTap(Binding.break_block) && !Core.scene.hasMouse() /*&& player.isBuilder()*/){
             //is recalculated because setting the mode to breaking removes potential multiblock cursor offset
             deleting = false;
-            mode = Core.input.shift() ? freezing : breaking;
+            mode = Core.input.shift() ? freezing : Core.input.ctrl() ? dequeue : breaking;
             selectX = tileX(Core.input.mouseX());
             selectY = tileY(Core.input.mouseY());
             schemX = rawCursorX;
@@ -826,7 +830,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(mode == breaking || mode == freezing){
-            mode = Core.input.shift() ?  freezing : breaking;
+            mode = Core.input.shift() ?  freezing : Core.input.ctrl() ? dequeue : breaking;
         }
 
         if(Core.input.keyRelease(Binding.break_block) && Core.input.keyDown(Binding.schematic_select) && mode == breaking){
@@ -838,17 +842,20 @@ public class DesktopInput extends InputHandler{
         if(Core.input.keyRelease(Binding.break_block) || Core.input.keyRelease(Binding.select)){
 
             if(mode == placing && block != null){ //touch up while placing, place everything in selection
-                flushRequests(lineRequests);
+                flushRequests(lineRequests, isFreezeQueueing, input.ctrl(), false);
                 lineRequests.clear();
                 Events.fire(new LineConfirmEvent());
             }else if(mode == breaking){ //touch up while breaking, break everything in selection
-                removeSelection(selectX, selectY, cursorX, cursorY, /*!Core.input.keyDown(Binding.schematic_select) ? maxLength :*/ Vars.maxSchematicSize);
+                removeSelection(selectX, selectY, cursorX, cursorY, false, /*!Core.input.keyDown(Binding.schematic_select) ? maxLength :*/ Vars.maxSchematicSize, isFreezeQueueing);
+                
                 if(lastSchematic != null){
                     useSchematic(lastSchematic);
                     lastSchematic = null;
                 }
             }else if(mode == freezing){
                 freezeSelection(selectX, selectY, cursorX, cursorY, Vars.maxSchematicSize);
+            } else if (mode == dequeue) {
+                removeSelectionPlans(selectX, selectY, cursorX, cursorY, Vars.maxSchematicSize);
             }
             selectX = -1;
             selectY = -1;

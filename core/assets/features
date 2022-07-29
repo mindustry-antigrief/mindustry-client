@@ -32,13 +32,16 @@
  * Buildplans persist even when in enemy core range or when a unit intersecting.
  * Show force projector buildup (when hovering over it) when its shield is destroyed
  * Anti toast - Disables toasts from being shown.
+ * Remove attem instead of fixing setting. If true it just completely replaces the attem logic instead of just removing the jump part.
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.
  * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
  * Alt + {show_turret_ranges} - Show your team's turret ranges.
  * Shift + {hide_blocks} - Hides build plans.
  * Shift + {pause_building} - Switches to freeze build queue.
- * Shift + {break_block} - Freezes/Unfreezes build plans. Useful for prioritizing which build plans to execute first.
+ * Shift + {deselect} - Freezes/Unfreezes build plans. Useful for prioritizing which build plans to execute first.
+ * Ctrl + {deselect} - Dequeue selection. Aka deletes only build plans. Doesn't deconstruct existing blocks.
+ * Ctrl + {select} placement - Forcefully
  * Auto bridge weave - Press shift while building with bridges to automatically bridge weave. End point has automatically converged bridge connections.
  * Player List Assist - None (Regular), Shift (Free Move), Ctrl (Follow Cursor), Alt (BuildPath)
  * Click Assist - Shift (Regular), Shift + Alt (Free Move), Ctrl (Follow Cursor), Ctrl + Alt (BuildPath)
@@ -58,6 +61,9 @@
  * !ptext - Sets a custom text you can easily send in chat with !ptext say (do !help ptext for more details)
  * !spawn [x] [y] - Spawns you at the closest core to (x, y) or to your cursor
  * !bannedcontent - Lists out banned units and blocks on the map
+ * !mute <player> - Searches for the player name / id and mutes messages coming from that player.(The symbols infront of names [if the server does add symbols] are required when using name search)
+ * !unmute <player> - Same as !mute
+ * !clearmutes - Clears the list of muted players
  * >=========================< Chat Text Replacer >=========================<
  * %s - replaces with a !shrug
  * %c - replaces with cursor coordinates
