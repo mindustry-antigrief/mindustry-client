@@ -329,6 +329,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("instantturn", true);
         client.checkPref("autoboost", false);
         client.checkPref("assumeunstrict", false);
+        client.checkPref("decreasedrift", false);
         client.checkPref("zerodrift", false);
 
         client.category("graphics");

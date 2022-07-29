@@ -27,6 +27,7 @@
  * Power void broken notifs - Notifies in chat when a power void is broken and where.
  * Zero drift setting - No more drifting after releasing movement keys. Looks a bit choppy due to the linear interpolation though.
  * No drift MinePath - Yes.
+ * Decreased drift setting for higher speeds.
  * Draw Logic Display Border Setting
  * !unit searches for the closest unit from the cursor instead of player. Allows you to pick closest unit from a location where you want to be instead of where your player is currently now.
  * Buildplans persist even when in enemy core range or when a unit intersecting.
