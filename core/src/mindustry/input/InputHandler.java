@@ -893,25 +893,25 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         for(BuildPlan req : requests){
             if (req.block == null) continue;
 
-            if (req.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed
-                    && req.tile() != null && req.tile().getLinkedTilesAs(req.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
-                var first = tempTiles.first();
-                var replaced = false;
-                if (tempTiles.contains(t -> !t.adjacentTo(first) && t != first && t.floor().liquidDrop == Liquids.water)) { // Can use mechanical pumps (covers all outputs)
-                    for (var t : tempTiles) {
-                        var plan = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
-                        if (validPlace(t.x, t.y, plan.block, 0)) {
-                            req.block.onNewPlan(req);
-                            temp[added++] = req;
-                            replaced = true;
-                        }
-                    }
-                } else if (validPlace(first.x, first.y, Blocks.rotaryPump, 0)) { // Mechanical pumps can't cover everything, use rotary pump instead
-                    player.unit().addBuild(new BuildPlan(req.x, req.y, 0, Blocks.rotaryPump));
-                    replaced = true;
-                }
-                if (replaced) continue; // Swapped water extractor for pump, don't place it
-            }
+//            if (req.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed
+//                    && req.tile() != null && req.tile().getLinkedTilesAs(req.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
+//                var first = tempTiles.first();
+//                var replaced = false;
+//                if (tempTiles.contains(t -> !t.adjacentTo(first) && t != first && t.floor().liquidDrop == Liquids.water)) { // Can use mechanical pumps (covers all outputs)
+//                    for (var t : tempTiles) {
+//                        var plan = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
+//                        if (validPlace(t.x, t.y, plan.block, 0)) {
+//                            req.block.onNewPlan(req);
+//                            temp[added++] = req;
+//                            replaced = true;
+//                        }
+//                    }
+//                } else if (validPlace(first.x, first.y, Blocks.rotaryPump, 0)) { // Mechanical pumps can't cover everything, use rotary pump instead
+//                    player.unit().addBuild(new BuildPlan(req.x, req.y, 0, Blocks.rotaryPump));
+//                    replaced = true;
+//                }
+//                if (replaced) continue; // Swapped water extractor for pump, don't place it
+//            }
 
             if(validPlace(req.x, req.y, req.block, req.rotation)){
                 BuildPlan copy = req.copy();
