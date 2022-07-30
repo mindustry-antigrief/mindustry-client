@@ -99,7 +99,8 @@ class AutoTransfer {
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
                 if (held > 0 && item != player.unit().stack.item) Call.transferInventory(player, core)
-                else Call.requestItem(player, core, item, Int.MAX_VALUE)
+                else if (held == 0 || item != player.unit().stack.item || counts[maxID] > held) Call.requestItem(player, core, item, Int.MAX_VALUE)
+                else ratelimitRemaining++ // Yes im this lazy
                 item = null
                 ratelimitRemaining--
             }

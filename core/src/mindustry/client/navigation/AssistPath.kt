@@ -48,7 +48,7 @@ class AssistPath(val assisting: Player?, private val cursor: Boolean = false, pr
         if (player?.dead() != false) return
         assisting?.unit() ?: return // We don't care if they are dead
 
-        tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) // FINISHME: Factor in formations
+        tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)
 
         handleInput()
 

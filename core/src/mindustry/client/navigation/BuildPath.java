@@ -290,11 +290,10 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
         } else if (blockedPlayer.get(player.tileX(), player.tileY())) { // Leave enemy turret range while not building
             if (job == null || job.isDone()) {
                 job = clientThread.post(() -> { // FINISHME: This is totally not inefficient at all...
-                    var safeTiles = new Seq<Tile>() {{
-                        world.tiles.eachTile(t -> {
-                            if (!blockedPlayer.get(t.x, t.y)) add(t);
-                        });
-                    }};
+                    var safeTiles = new Seq<Tile>();
+                    world.tiles.eachTile(t -> {
+                        if (!blockedPlayer.get(t.x, t.y)) safeTiles.add(t);
+                    });
                     var tile = Geometry.findClosest(player.x, player.y, safeTiles);
                     waypoint.set(tile.getX(), tile.getY(), 0, 0);
                 });

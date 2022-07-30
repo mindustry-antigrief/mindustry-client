@@ -11,7 +11,6 @@ import mindustry.net.*
 import mindustry.ui.*
 import java.util.concurrent.*
 
-// FINISHME: Heavily work in progress mod logs
 class Moderation {
     private val traces = CopyOnWriteArrayList<Player>() // last people to leave
 

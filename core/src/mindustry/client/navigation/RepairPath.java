@@ -38,7 +38,7 @@ public class RepairPath extends Path {
         player.unit().aimLook(build);
 
         Formation formation = player.unit().formation;
-        float range = formation == null ? 16f : formation.pattern.radius() + 16f; // FINISHME: Distance based on formation size
+        float range = formation == null ? tilesize * 2 : formation.pattern.radius() + tilesize * 2;
         goTo(build, range, tilesize * 3);
     }
 

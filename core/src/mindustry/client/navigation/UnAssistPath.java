@@ -12,7 +12,6 @@ import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.input.*;
-import mindustry.world.*;
 import mindustry.world.blocks.*;
 
 public class UnAssistPath extends Path {
@@ -62,13 +61,11 @@ public class UnAssistPath extends Path {
         if (target == null || Vars.player == null) return;
 
         try {
-            if (target.unit().canBuild()) { // FINISHME: What even
+            if (target.unit().canBuild()) {
                 BuildPlan plan = target.unit().buildPlan();
                 if (plan != null) {
                     if (plan.initialized) {
-                        Tile tile = Vars.world.tile(plan.x, plan.y);
-                        if (tile.build instanceof ConstructBlock.ConstructBuild) {
-                            ConstructBlock.ConstructBuild build = (ConstructBlock.ConstructBuild) tile.build;
+                        if (plan.tile().build instanceof ConstructBlock.ConstructBuild build) {
                             if (build.current.buildCost > 10) {
                                 if (plan.breaking) {
                                     toUndo.add(new BuildPlan(plan.x, plan.y, build.rotation, build.current, build.lastConfig));

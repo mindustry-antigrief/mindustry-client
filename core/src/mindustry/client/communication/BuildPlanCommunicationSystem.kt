@@ -57,7 +57,7 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
         }, 0.2f, 0.2f)
     }
 
-    override fun send(bytes: ByteArray) { // FINISHME: Won't work on new planet where processors don't exist.
+    override fun send(bytes: ByteArray) {
         if (!Vars.player.unit().canBuild()) {
             Toast(3f).add("[scarlet]Failed to send packet, build plan networking doesn't work if you can't build.")
             return

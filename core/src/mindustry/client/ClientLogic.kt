@@ -18,7 +18,7 @@ import mindustry.world.blocks.logic.*
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
- * FINISHME: Move the 9000 different bits of code throughout the client to here */
+ * FINISHME: Move the 9000 different bits of code throughout the client to here. Update: this was an awful idea lmao */
 class ClientLogic {
     private var switchTo: MutableList<Any>? = null
 
@@ -27,7 +27,6 @@ class ClientLogic {
         Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
             Navigation.stopFollowing()
             Spectate.pos = null
-            AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
 
             Timer.schedule({
                 Core.app.post {
@@ -47,6 +46,7 @@ class ClientLogic {
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             if (!syncing) {
+                AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
                 Player.persistPlans.clear()
                 processorConfigs.clear()
             }
@@ -112,7 +112,7 @@ class ClientLogic {
             if (encoded != null && Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
                 Client.register("update <name/id...>") { args, _ ->
                     val name = args.joinToString(" ")
-                    val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(Strings.stripColors(it.name), name) }!!
+                    val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { BiasedLevenshtein.biasedLevenshteinInsensitive(Strings.stripColors(it.name), name) }!!
                     Main.send(CommandTransmission(CommandTransmission.Commands.UPDATE, Main.keyStorage.cert() ?: return@register, player))
                 }
             }

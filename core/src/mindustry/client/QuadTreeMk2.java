@@ -5,7 +5,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 
 import java.util.*;
-/** FINISHME: Remove in v7 release, this class implements Arc#99 (fast QuadTree.remove()) */
+
 public class QuadTreeMk2<T extends QuadTree.QuadTreeObject> extends QuadTree<T>{
     public int totalObjects;
     private Seq<QuadTree<T>> stack;
