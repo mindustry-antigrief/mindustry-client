@@ -36,6 +36,8 @@ import mindustry.graphics.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
+import mindustry.type.Item
+import mindustry.type.Liquid
 import mindustry.ui.Fonts
 import mindustry.ui.fragments.ChatFragment.ChatMessage
 import mindustry.world.*
@@ -998,7 +1000,7 @@ object Client {
                         block is PowerNode -> if (tile.build.power.status < .9) 2f else 1f
 
                         block == Blocks.itemSource -> 2f
-                        block == Blocks.liquidSource -> 3f  // lower priority because things generally don't need liquid to run
+                        block == Blocks.liquidSource && ((tile.build.config() as? Liquid)?.explosiveness ?: 0f) < 0.3f -> 3f  // lower priority because things generally don't need liquid to run
 
                         // likely to be touching a turret or something
                         block == Blocks.unloader -> 3.5f
