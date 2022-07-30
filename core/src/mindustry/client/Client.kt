@@ -1001,7 +1001,7 @@ object Client {
                         block == Blocks.liquidSource -> 3f  // lower priority because things generally don't need liquid to run
 
                         // likely to be touching a turret or something
-                        block == Blocks.unloader -> 4f
+                        block == Blocks.unloader -> 3.5f
                         block == Blocks.router -> 4f
                         block == Blocks.overflowGate -> 4f
                         block == Blocks.underflowGate -> 4f
