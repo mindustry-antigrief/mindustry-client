@@ -1021,7 +1021,7 @@ object Client {
                     }
 
                     var score = Astar.manhattan.cost(tile.x.toInt(), tile.y.toInt(), player.tileX(), player.tileY())
-                    score += scoreMul * amount * if (tile.build?.proximity?.contains { it is BaseTurretBuild } == true) 1F else 1.1F
+                    score += scoreMul * amount * getAutoShootProximityScore(tile)
 
                     if (score < closestScore) {
                         target = tile.build
@@ -1046,5 +1046,13 @@ object Client {
             unit.aim(player.mouseX, player.mouseY)
             hadTarget = true
         }
+    }
+
+    private fun getAutoShootProximityScore(tile: Tile): Float {
+        val turret = tile.build?.proximity?.firstOrNull { it is BaseTurretBuild }
+        return if (turret != null) {
+            if (turret.block == Blocks.foreshadow) 1f
+            else 1.1f
+        } else 1.2f
     }
 }
