@@ -70,6 +70,15 @@ class ClientLogic {
                         if (Core.settings.getString("gamejointext")?.isNotEmpty() == true) {
                             Call.sendChatMessage(Core.settings.getString("gamejointext"))
                         }
+
+                        when (Core.settings.getInt("automapvote")) {
+                            0 -> {}
+                            1 -> Call.sendChatMessage("/downvote")
+                            2 -> Call.sendChatMessage("/novote")
+                            3 -> Call.sendChatMessage("/upvote")
+                            4 -> Call.sendChatMessage(("/${arrayOf("no", "up", "down").random()}"))
+                            else -> {}
+                        }
                     }
                 }
             }, 1F)
