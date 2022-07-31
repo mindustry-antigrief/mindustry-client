@@ -13,6 +13,7 @@ import arc.util.*;
 import mindustry.Vars;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
+import mindustry.client.utils.ClientUtilsKt;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
@@ -194,6 +195,10 @@ public class PlayerListFragment{
                 }).size(h/2);
             }
             if (user != player) {
+                button.button(Icon.lock, ustyle, // Mute player
+                        () -> ClientUtilsKt.toggleMutePlayer(user)).size(h / 2).tooltip("@client.mute");
+                button.button(Icon.cancel, ustyle, // Unassist/block
+                        () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.copy, ustyle, // Assist/copy
                         () -> Navigation.follow(new AssistPath(user,
                                 Core.input.shift() ? AssistPath.Type.FreeMove :
@@ -201,15 +206,13 @@ public class PlayerListFragment{
                                 Core.input.alt() ? AssistPath.Type.BuildPath :
                                                     AssistPath.Type.Regular)
                         )).size(h / 2).tooltip("@client.assist");
-                button.button(Icon.cancel, ustyle, // Unassist/block
-                        () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.move, ustyle, // Goto
                         () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
                 button.button(Icon.zoom, ustyle, // Spectate/stalk
-                        () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).tooltip("@client.spectate");
+                        () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).size(h / 2).tooltip("@client.spectate");
             }
 
-            content.add(button).padBottom(-6).width(700).maxHeight(h + 14);
+            content.add(button).padBottom(-6).width(750).maxHeight(h + 14);
             content.row();
             content.image().height(4f).color(state.rules.pvp ? user.team().color : Pal.gray).growX();
             content.row();

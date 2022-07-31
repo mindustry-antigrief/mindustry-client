@@ -110,7 +110,16 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path()
 
         when (type) {
             Type.Regular -> goTo(assisting.x, assisting.y, tolerance, tolerance + tilesize * 5)
-            Type.FreeMove -> player.unit().moveAt((control.input as? DesktopInput)?.movement ?: (control.input as MobileInput).movement)
+            Type.FreeMove -> {
+                val input = control.input
+                if (input is DesktopInput) {
+                    if (input.movement.epsilonEquals(0f, 0f)) {
+                        if (Core.settings.getBool("zerodrift")) unit.vel.setZero()
+                        else if (Core.settings.getBool("decreasedrift") && unit.vel().len() > 3.5) unit.vel.set(unit.vel().scl(0.95f));
+                    }
+                    else player.unit().moveAt(input.movement)
+                } else player.unit().moveAt((input as MobileInput).movement)
+            }
             Type.Cursor -> goTo(assisting.mouseX, assisting.mouseY, tolerance, tolerance + tilesize * 5)
             Type.BuildPath -> if (!plans.isEmpty) buildPath?.follow() else goTo(assisting.x, assisting.y, tolerance, tolerance + tilesize * 5) // Follow build path if plans exist, otherwise follow player
         }

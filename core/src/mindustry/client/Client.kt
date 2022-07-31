@@ -97,11 +97,12 @@ object Client {
         // Turret range
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
         if (showingTurrets || showingInvTurrets || showingAllyTurrets) {
-            val units = Core.settings.getBool("unitranges")
+            val enemyunits = Core.settings.getBool("enemyunitranges")
+            val allyunits = Core.settings.getBool("enemyunitranges")
             if (showingTurrets || showingInvTurrets) {
                 val flying = player.unit().isFlying
                 getTree().intersect(bounds) {
-                    if ((units || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
+                    if ((enemyunits || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
                         val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                         val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
                         Drawf.dashCircle(
@@ -112,7 +113,7 @@ object Client {
             }
             if (showingAllyTurrets) {
                 getAllyTree().intersect(bounds) {
-                    if ((units || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {
+                    if ((allyunits || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {
                         Drawf.dashCircle(it.entity.x, it.entity.y, it.range - tilesize, it.entity.team().color)
                     }
                 }

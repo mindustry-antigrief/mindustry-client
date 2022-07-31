@@ -1268,6 +1268,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 continue;
             }
 
+            // NOTE: This is temporarily removed in foos/v7
+            // Buthed is planning to reimplement it
             if (plan.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed
                     && plan.tile() != null && plan.tile().getLinkedTilesAs(plan.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
                 var first = tempTiles.first();

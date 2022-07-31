@@ -27,12 +27,14 @@
  * Power void broken notifs - Notifies in chat when a power void is broken and where.
  * Zero drift setting - No more drifting after releasing movement keys. Looks a bit choppy due to the linear interpolation though.
  * No drift MinePath - Yes.
+ * Decreased drift setting for higher speeds.
  * Draw Logic Display Border Setting
  * !unit searches for the closest unit from the cursor instead of player. Allows you to pick closest unit from a location where you want to be instead of where your player is currently now.
  * Buildplans persist even when in enemy core range or when a unit intersecting.
  * Show force projector buildup (when hovering over it) when its shield is destroyed
  * Anti toast - Disables toasts from being shown.
  * Remove attem instead of fixing setting. If true it just completely replaces the attem logic instead of just removing the jump part.
+ * Automapvote setting - Automatically does /novote, /downvote, or /upvote when joining servers like io
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.
  * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
@@ -56,11 +58,15 @@
  * !fixnode - Enables/disables certain parts of the better-node-connection-system. (Ask zxtej, I have no idea how this works -SByte)
  * !count all - Counts all units.
  * !unit null - Exits the unit picking queue.
+ * !gamejointext - Sets the text you send when you join.
  * !gamewintext - Sets the text you send when you win the game. Typically something like "gg".
  * !gamelosetext - Same as above but for when you lose.
  * !ptext - Sets a custom text you can easily send in chat with !ptext say (do !help ptext for more details)
  * !spawn [x] [y] - Spawns you at the closest core to (x, y) or to your cursor
  * !bannedcontent - Lists out banned units and blocks on the map
+ * !mute <player> - Searches for the player name / id and mutes messages coming from that player.(The symbols infront of names [if the server does add symbols] are required when using name search)
+ * !unmute <player> - Same as !mute
+ * !clearmutes - Clears the list of muted players
  * >=========================< Chat Text Replacer >=========================<
  * %s - replaces with a !shrug
  * %c - replaces with cursor coordinates
