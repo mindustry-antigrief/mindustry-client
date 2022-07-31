@@ -754,6 +754,13 @@ object Client {
             }
         }
 
+        register("gamejointext [text...]", "Sets the text you automatically send when you join a server") { args, player ->
+            if (args.isEmpty() || args[0] == "") player.sendMessage("[accent]Cleared gamejointext because no text was provided.")
+            else {
+                Core.settings.put("gamejointext", args[0])
+                player.sendMessage("[accent]gamejointext text set to \"${args[0]}\"")
+            }
+        }
 
         register("gamewintext [text...]", "Sets the text you automatically send when you win. (eg 'gg bois!')") {args, player ->
             if (args.isEmpty() || args[0] == "") player.sendMessage("[accent]Cleared gamewintext because no text was provided.")
