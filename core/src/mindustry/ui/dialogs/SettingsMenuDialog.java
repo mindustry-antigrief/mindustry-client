@@ -372,6 +372,9 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("automapvote", 0, 0, 4, s -> s == 0 ? "Never" : s == 4 ? "Random vote" : "Always " + new String[]{"downvote", "novote", "upvote"}[--s]);
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
         client.textPref("defaultminepathargs", "copper lead sand coal titanium");
+        client.textPref("gamejointext", "");
+        client.textPref("gamewintext", "");
+        client.textPref("gamelosetext", "");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("typingindicator", true, i -> control.input.showTypingIndicator = i);
