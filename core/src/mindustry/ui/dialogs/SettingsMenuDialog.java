@@ -373,8 +373,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
         client.textPref("defaultminepathargs", "copper lead sand coal titanium");
         client.textPref("gamejointext", "");
-        client.textPref("gamewintext", "");
-        client.textPref("gamelosetext", "");
+        client.textPref("gamewintext", "gg");
+        client.textPref("gamelosetext", "gg");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("typingindicator", true, i -> control.input.showTypingIndicator = i);
