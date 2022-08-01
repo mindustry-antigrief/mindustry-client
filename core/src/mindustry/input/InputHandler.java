@@ -43,7 +43,6 @@ import mindustry.world.blocks.payloads.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.power.PowerNode.*;
 import mindustry.world.blocks.sandbox.*;
-import mindustry.world.blocks.units.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.meta.*;
@@ -329,7 +328,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     @Remote(targets = Loc.both, called = Loc.server)
-    public static void planUnitPayload(Player player, Unit target){
+    public static void requestUnitPayload(Player player, Unit target){
         if(player == null || !(player.unit() instanceof Payloadc pay)) return;
 
         Unit unit = player.unit();
@@ -341,7 +340,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     @Remote(targets = Loc.both, called = Loc.server)
-    public static void planBuildPayload(Player player, Building build){
+    public static void requestBuildPayload(Player player, Building build){
         if(player == null || !(player.unit() instanceof Payloadc pay)) return;
 
         Unit unit = player.unit();
@@ -398,7 +397,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     @Remote(targets = Loc.both, called = Loc.server)
-    public static void planDropPayload(Player player, float x, float y){
+    public static void requestDropPayload(Player player, float x, float y){
         if(player == null || net.client()) return;
 
         Payloadc pay = (Payloadc)player.unit();
@@ -729,12 +728,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         Unit target = Units.closest(player.team(), pay.x(), pay.y(), unit.type.hitSize * 2f, u -> u.isAI() && u.isGrounded() && pay.canPickup(u) && u.within(unit, u.hitSize + unit.hitSize));
         if(target != null){
-            Call.planUnitPayload(player, target);
+            Call.requestUnitPayload(player, target);
         }else{
             Building build = world.buildWorld(pay.x(), pay.y());
 
             if(build != null && state.teams.canInteract(unit.team, build.team)){
-                Call.planBuildPayload(player, build);
+                Call.requestBuildPayload(player, build);
                 if(Navigation.state == NavigationState.RECORDING){ // FINISHME: The recording handling should have its own class, its very messy
                     Navigation.addWaypointRecording(new PayloadPickupWaypoint(build.tileX(), build.tileY()));
                 }
@@ -746,7 +745,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Unit unit = player.unit();
         if(!(unit instanceof Payloadc)) return;
 
-        Call.planDropPayload(player, player.x, player.y);
+        Call.requestDropPayload(player, player.x, player.y);
         if(Navigation.state == NavigationState.RECORDING){ // FINISHME: The recording handling should have its own class, its very messy
             Navigation.addWaypointRecording(new PayloadDropoffWaypoint(player.tileX(), player.tileY()));
         }

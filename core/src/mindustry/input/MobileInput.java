@@ -957,10 +957,10 @@ public class MobileInput extends InputHandler implements GestureListener{
                     tryDropPayload();
                 }else if(payloadTarget instanceof Building build && build.team == unit.team){
                     //building -> picking building up
-                    Call.planBuildPayload(player, build);
+                    Call.requestBuildPayload(player, build);
                 }else if(payloadTarget instanceof Unit other && pay.canPickup(other)){
                     //unit -> picking unit up
-                    Call.planUnitPayload(player, other);
+                    Call.requestUnitPayload(player, other);
                 }
 
                 payloadTarget = null;

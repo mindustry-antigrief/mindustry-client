@@ -101,11 +101,11 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             //find the next build plan
             if(plans.size > 1){
                 int total = 0;
-                BuildPlan req;
-                while(total++ < plans.size && (!within((req = buildPlan()).tile(), finalPlaceDst) || shouldSkip(req, core) ||
-                        (!req.initialized && (!Build.validPlaceCoreRange(req.block, team, req.x, req.y) || !Build.validPlaceUnit(req.block, req.x, req.y))))){
+                BuildPlan plan;
+                while(total++ < plans.size && (!within((plan = buildPlan()).tile(), finalPlaceDst) || shouldSkip(plan, core) ||
+                        (!plan.initialized && (!Build.validPlaceCoreRange(plan.block, team, plan.x, plan.y) || !Build.validPlaceUnit(plan.block, plan.x, plan.y))))){
                     plans.removeFirst();
-                    plans.addLast(req);
+                    plans.addLast(plan);
                 }
             }
 
@@ -217,9 +217,9 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         }
     }
 
-    /** @return whether this request should be skipped, in favor of the next one. */
+    /** @return whether this plan should be skipped, in favor of the next one. */
     boolean shouldSkip(BuildPlan plan, @Nullable Building core){
-        //requests that you have at least *started* are considered
+        //plans that you have at least *started* are considered
         if(plan.priority || state.rules.infiniteResources || team.rules().infiniteResources || plan.breaking || core == null || plan.isRotation(team) || (isBuilding() && !within(plans.last(), buildingRange))) return false;
 
         return (plan.stuck && !core.items.has(plan.block.requirements)) || (Structs.contains(plan.block.requirements, i -> !core.items.has(i.item, Math.min(i.amount, 15)) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0) && !plan.initialized);

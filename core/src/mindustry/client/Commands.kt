@@ -8,11 +8,8 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import arc.util.CommandHandler.*
-import mindustry.*
-import mindustry.*
 import mindustry.Vars.*
 import mindustry.ai.types.*
-import mindustry.client.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
@@ -28,6 +25,7 @@ import mindustry.input.*
 import mindustry.logic.*
 import mindustry.logic.GlobalVars.*
 import mindustry.ui.*
+import mindustry.ui.fragments.ChatFragment
 import mindustry.world.blocks.distribution.ItemBridge
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.logic.LogicBlock.compress
@@ -40,15 +38,9 @@ import kotlin.math.*
 import kotlin.random.*
 
 fun setup() {
-    register("help [page/command]", Core.bundle.get("client.command.help.description")) { args, player ->
+    register("help [page]", Core.bundle.get("client.command.help.description")) { args, player ->
         if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
-            val command = clientCommandHandler.commandList.find { it.text == args[0] }
-            if (command != null) {
-                player.sendMessage(Strings.format("[orange] !@[white] @[lightgray] - @",
-                    command.text, command.paramText, command.description))
-                return@register
-            }
-            player.sendMessage("[scarlet]input must be a number or command.")
+            player.sendMessage("[scarlet]'page' must be a number.")
             return@register
         }
         val commandsPerPage = 6
@@ -95,7 +87,7 @@ fun setup() {
         }
         else {
             val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
-            val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var formation = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
+            val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var command = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
 
             (player.team().data().unitCache(type) ?: Seq.with()).withEach {
                 total++
@@ -106,9 +98,9 @@ fun setup() {
                     if (ctrl == 0) freeFlagged++
                 }
                 when (ctrl) {
-                    GlobalConstants.ctrlPlayer -> players++
-                    GlobalConstants.ctrlFormation -> formation++
-                    GlobalConstants.ctrlProcessor -> {
+                    ctrlPlayer -> players++
+                    ctrlCommand -> command++
+                    ctrlProcessor -> {
                         if (flag != 0.0) logicFlagged++
                         logic++
                     }
@@ -117,30 +109,23 @@ fun setup() {
             }
 
             player.sendMessage("""
-                [accent]${type.localizedName}:
-                Total(Cap): $total($cap)
-                Free(Free Flagged): $free($freeFlagged)
-                Flagged(Unflagged): $flagged($unflagged)
-                Players(Formation): $players($formation)
-                Logic(Logic Flagged): $logic($logicFlagged)
-                """.trimIndent())
+            [accent]${type.localizedName}:
+            Total(Cap): $total($cap)
+            Free(Free Flagged): $free($freeFlagged)
+            Flagged(Unflagged): $flagged($unflagged)
+            Players(Command): $players($command)
+            Logic(Logic Flagged): $logic($logicFlagged)
+            """.trimIndent())
         }
     }
 
-    register("spawn [x] [y]", Core.bundle.get("client.command.spawn.description")) {args, player ->
-        try {
-            if (args.size == 2) state.teams.closestCore(args[0].toFloat(), args[1].toFloat(), player.team())?.requestSpawn(player)
-            else state.teams.closestCore(Core.input.mouseWorldX(), Core.input.mouseWorldY(), player.team())?.requestSpawn(player)
-        } catch (e: Exception) {
-            player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "go"))
-        }
-    }
+    // FINISHME: Add spawn command
 
     register("go [x] [y]", Core.bundle.get("client.command.go.description")) { args, player ->
         try {
             if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
             else throw IOException()
-            navigateTo(lastSentPos.cpy().scl(tilesize.toFloat()))
+            Navigation.navigateTo(lastSentPos.cpy().scl(tilesize.toFloat()))
         } catch (e: Exception) {
             player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "go"))
         }
@@ -150,7 +135,7 @@ fun setup() {
         try {
             (control.input as? DesktopInput)?.panning = true
             if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
-            spectate(lastSentPos.cpy().scl(tilesize.toFloat()))
+            Spectate.spectate(lastSentPos.cpy().scl(tilesize.toFloat()))
         } catch (e: Exception) {
             player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "lookat"))
         }
@@ -159,26 +144,28 @@ fun setup() {
     register("tp [x] [y]", Core.bundle.get("client.command.tp.description")) { args, player ->
         try {
             if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
-            NetClient.setPosition(lastSentPos.cpy().scl(tilesize.toFloat()).x, lastSentPos.cpy().scl(tilesize.toFloat()).y)
+            NetClient.setPosition(
+                lastSentPos.cpy().scl(tilesize.toFloat()).x, lastSentPos.cpy().scl(
+                    tilesize.toFloat()).y)
         } catch (e: Exception) {
             player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "tp"))
         }
     }
 
     register("here [message...]", Core.bundle.get("client.command.here.description")) { args, player ->
-        sendMessage(Strings.format("@[#3141FF](@, @)", if (args.isEmpty()) "" else args[0] + " ", player.tileX(), player.tileY()))
+        sendMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", player.tileX(), player.tileY()))
     }
 
     register("cursor [message...]", Core.bundle.get("client.command.cursor.description")) { args, _ ->
-        sendMessage(Strings.format("@[#3141FF](@, @)", if (args.isEmpty()) "" else args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
+        sendMessage(Strings.format("@(@, @)", if (args.isEmpty()) "" else args[0] + " ", control.input.rawTileX(), control.input.rawTileY()))
     }
 
     register("builder [options...]", Core.bundle.get("client.command.builder.description")) { args, _: Player ->
         follow(BuildPath(if (args.isEmpty()) "" else args[0]))
     } // FINISHME: This is so scuffed lol
 
-    register("miner [options...]", Core.bundle.get("client.command.miner.description")) { args, _: Player ->
-        if (args.isEmpty()) follow(MinePath()) else follow(MinePath(args = args[0]))
+    register("miner [options...]", Core.bundle.get("client.command.miner.description")) { arguments, _: Player ->
+        follow(MinePath(args = if (arguments.isEmpty()) "" else arguments[0]))
     } // FINISHME: This is so scuffed lol
 
     register("buildmine", "Buildpath (self) + mine (all)") {_, _: Player ->
@@ -210,11 +197,10 @@ fun setup() {
         player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
     }
 
-    register("blank", "Sends nothing.") { _, _ ->
-        sendMessage("\u200B")
-    }
+    // Removed as the dependency was like 50MB. If i ever add this back, it will probably just download the jar when needed and then cache it between client builds so that each update isn't massive.
+//        val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
 //        register("kts <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player -> // FINISHME: Bundle
-//            player.sendMessage("[accent]${try{ kts.eval(args[0]) }catch(e: Throwable){ e }}")
+//            player.sendMessage("[accent]${try{ kts.eval(args[0]) }catch(e: ScriptException){ e.message }}")
 //        }
 
     register("/js <code...>", Core.bundle.get("client.command.serverjs.description")) { args, player ->
@@ -222,22 +208,23 @@ fun setup() {
         sendMessage("/js ${args[0]}")
     }
 
-    register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
-        if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
-            player.sendMessage(Core.bundle.format("client.command.cc.invalid", player.team().data().command.localized()))
-            return@register
-        }
-
-        val cc = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) { it is CommandCenter.CommandBuild }
-        if (cc != null) {
-            Call.tileConfig(player, cc, when (args[0].lowercase()[0]) {
-                'a' -> UnitCommand.attack
-                'r' -> UnitCommand.rally
-                else -> UnitCommand.idle
-            })
-            player.sendMessage(Core.bundle.format("client.command.cc.success", args[0]))
-        } else player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
-    }
+    // Removed in Erekir
+//    register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
+//        if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
+//            player.sendMessage(Core.bundle.format("client.command.cc.invalid", player.team().data().command.localized()))
+//            return@register
+//        }
+//
+//        val cc = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) { it is CommandCenter.CommandBuild }
+//        if (cc != null) {
+//            Call.tileConfig(player, cc, when (args[0].lowercase()[0]) {
+//                'a' -> UnitCommand.attack
+//                'r' -> UnitCommand.rally
+//                else -> UnitCommand.idle
+//            })
+//            player.sendMessage(Core.bundle.format("client.command.cc.success", args[0]))
+//        } else player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
+//    }
 
     register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
         player.sendMessage(
@@ -250,7 +237,7 @@ fun setup() {
 
     register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
         val diodeLinks = PowerDiode.connections(player.team()) // Must be run on the main thread
-        val grids = PowerGraph.activeGraphs.select { it.team == player.team() }.associate { it.id to it.all.copy() }
+        val grids = PowerInfo.graphs.select { it.team == player.team() }.associate { it.id to it.all.copy() }
         val confirmed = args.any() && args[0] == "c" // Don't configure by default
         val inProgress = !configs.isEmpty()
         var n = 0
@@ -282,7 +269,7 @@ fun setup() {
             confirmed && inProgress -> Core.bundle.format("client.command.fixpower.inprogress", configs.size, n)
             confirmed -> { // Actually fix the connections
                 configs.add { // This runs after the connections are made
-                    msg.message = Core.bundle.format("client.command.fixpower.success", n, PowerGraph.activeGraphs.select { it.team == player.team() }.size)
+                    msg.message = Core.bundle.format("client.command.fixpower.success", n, PowerInfo.graphs.select { it.team == player.team() }.size)
                     msg.format()
                 }
                 Core.bundle.format("client.command.fixpower.confirmed", n)
@@ -294,10 +281,8 @@ fun setup() {
 
     @Suppress("unchecked_cast")
     register("fixcode [options...]", "Disables problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
-        val builds = Seq<LogicBuild>()
-        Vars.player.team().data().buildings.getObjects(builds as Seq<Building>) // Must be done on the main thread
+        val builds = player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
         clientThread.post {
-            builds.removeAll { it !is LogicBlock.LogicBuild }
             val confirmed = args.any() && (args[0] == "c" || args[0] == "r") // Don't configure by default
             val inProgress = !configs.isEmpty()
             var n = 0
@@ -339,7 +324,7 @@ fun setup() {
                 ui.settings.show()
                 ui.settings.visible(4)
             }
-            "l", "leaves" -> leaves?.leftList() ?: player.sendMessage("[scarlet]Leave logs are disabled")
+            "l", "leaves" -> Client.leaves?.leftList() ?: player.sendMessage("[scarlet]Leave logs are disabled")
             else -> player.sendMessage("[scarlet]Invalid option specified, options are:\nSettings, Leaves")
         }
     }
@@ -349,9 +334,9 @@ fun setup() {
         val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
         val plans = mutableListOf<Int>()
 
-        for (plan in Vars.player.team().data().blocks) {
+        for (plan in player.team().data().plans) {
             val block = content.block(plan.block.toInt())
-            if (!(all || getTree().any(Tmp.r1.setCentered(plan.x * tilesize + block.offset, plan.y * tilesize + block.offset, block.size * tilesizeF)))) continue
+            if (!(all || Navigation.getTree().any(plan.x * tilesizeF, plan.y * tilesizeF, block.size * tilesizeF, block.size * tilesizeF))) continue
 
             plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
         }
@@ -360,8 +345,8 @@ fun setup() {
 
         if (confirmed) {
             plans.chunked(100) { Call.deletePlans(player, it.toIntArray()) }
-            player.sendMessage("[accent]Removed ${plans.size} plans, ${Vars.player.team().data().blocks.size} remain")
-        } else player.sendMessage("[accent]Found ${plans.size} (out of ${Vars.player.team().data().blocks.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
+            player.sendMessage("[accent]Removed ${plans.size} plans, ${player.team().data().plans.size} remain")
+        } else player.sendMessage("[accent]Found ${plans.size} (out of ${player.team().data().plans.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
     }
 
     register("e <certname> <message...>", "Sends an encrypted message over TLS.") { args, _ -> // FINISHME: Bundle
@@ -370,16 +355,68 @@ fun setup() {
 
         connectTls(certname) { comms, cert ->
             comms.send(MessageTransmission(msg))
-            ui.chatfrag.addMessage(msg, "[coral]${Main.keyStorage.cert()?.readableName ?: "you"} [white]-> ${Main.keyStorage.aliasOrName(cert)}", encrypted)
+            ui.chatfrag.addMessage(
+                msg,
+                "[coral]${Main.keyStorage.cert()?.readableName ?: "you"} [white]-> ${Main.keyStorage.aliasOrName(cert)}",
+                encrypted
+            )
             lastCertName = cert.readableName
         }
     }
 
     register("stoppathing <name/id...>", "Stop someone from pathfinding.") { args, _ -> // FINISHME: Bundle
         val name = args.joinToString(" ")
-        val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(Strings.stripColors(it.name), name) }!!
+        val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(
+            Strings.stripColors(it.name), name) }!!
         Main.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH, Main.keyStorage.cert() ?: return@register, player))
         // FINISHME: success message
+    }
+
+    register("c <message...>", "Send a message to other client users.") { args, _ ->  // FINISHME: Bundle
+        Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
+    }
+
+    register("mapinfo", "Lists various useful map info.") { _, player -> // FINISHME: Bundle
+        player.sendMessage(with(state) {
+            """
+            [accent]Name: ${map.name()}[accent] (by: ${map.author()}[accent])
+            Map Time: ${UI.formatTime(tick.toFloat())}
+            Build Speed (Unit Factories): ${rules.buildSpeedMultiplier}x (${rules.unitBuildSpeedMultiplier}x)
+            Build Cost (Refund): ${rules.buildCostMultiplier}x (${rules.deconstructRefundMultiplier}x)
+            Core Capture: ${rules.coreCapture}
+            Core Incinerates: ${rules.coreIncinerates}
+            Core Modifies Unit Cap: ${rules.unitCapVariable}
+            """.trimIndent()
+        })
+    }
+
+    register("binds <type>", "") { args, player -> // FINISHME: Bundle
+        val type = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
+
+        player.team().data().unitCache(type)
+            ?.filter { it.controller() is LogicAI }
+            ?.distinctBy { (it.controller() as LogicAI).controller }
+            ?.forEach {
+                player.sendMessage("[accent]${it.tileX()}, ${it.tileY()}")
+            }
+    }
+
+    // START OF CUSTOM COMMANDS
+    register("spawn [x] [y]", Core.bundle.get("client.command.spawn.description")) {args, player ->
+        try {
+            if (args.size == 2) state.teams.closestCore(args[0].toFloat(), args[1].toFloat(), player.team())?.requestSpawn(player)
+            else state.teams.closestCore(Core.input.mouseWorldX(), Core.input.mouseWorldY(), player.team())?.requestSpawn(player)
+        } catch (e: Exception) {
+            player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "go"))
+        }
+    }
+
+    register("buildmine", "Buildpath (self) + mine (all)") {_, _: Player ->
+        follow(BuildMinePath())
+    }
+
+    register("blank", "Sends nothing.") { _, _ ->
+        sendMessage("\u200B")
     }
 
     register("replacemessage <from> <to> [useRegex=t]", "Replaces corresponding text in messages.") { args, player ->
@@ -720,7 +757,7 @@ fun setup() {
         val target = if (id != null && Groups.player.getByID(id) != null) Groups.player.getByID(id)
         else Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshteinInsensitive(p.name, args[0]) }
 
-        ChatMessage.msgFormat(false) // Why are player IDs weirdly formatted...
+        ChatFragment.ChatMessage.msgFormat(false) // Why are player IDs weirdly formatted...
         player.sendMessage(Core.bundle.format("client.command.mute", target.coloredName(), target.id))
         val previous = mutedPlayers.firstOrNull { pair -> pair.first.name == target.name || pair.second == target.id }
         if (previous != null) mutedPlayers.remove(previous)

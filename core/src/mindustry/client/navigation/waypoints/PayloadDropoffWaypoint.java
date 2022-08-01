@@ -34,7 +34,7 @@ public class PayloadDropoffWaypoint extends Waypoint implements Position {
     @Override
     public PayloadDropoffWaypoint run() {
         if (Vars.player.within(getX(), getY(), 8f)) {
-            Call.planDropPayload(Vars.player, tileX * tilesize, tileY * tilesize);
+            Call.requestDropPayload(Vars.player, tileX * tilesize, tileY * tilesize);
             done = true;
         } else {
             float direction = player.angleTo(this);
