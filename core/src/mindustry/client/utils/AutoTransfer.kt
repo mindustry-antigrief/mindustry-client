@@ -66,12 +66,13 @@ class AutoTransfer {
                 ratelimitRemaining--
             }
 
+            val minItems = if (core is CoreBlock.CoreBuild) minCoreItems else 0
             if (item == null && core != null) { // Automatically take needed item from core, only request once
                 when (val cons = it.block.findConsumer<Consume> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic }) { // Cursed af
                     is ConsumeItems -> {
                         cons.items.forEach { i ->
                             val acceptedC = it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit())
-                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) { // FINISHME: Do not hardcode the minumum required number (7) here, this is awful
+                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minItems))) { // FINISHME: Do not hardcode the minumum required number (7) here, this is awful
                                 counts[i.item.id.toInt()] += acceptedC
                             }
                         }
@@ -79,7 +80,7 @@ class AutoTransfer {
                     is ConsumeItemFilter -> {
                         content.items().forEach { i ->
                             val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
-                            if (it.block.consumesItem(i) && acceptedC >= 7 && core.items.has(i, minCoreItems)) {
+                            if (it.block.consumesItem(i) && acceptedC >= 7 && core.items.has(i, minItems)) {
                                 counts[i.id.toInt()] += acceptedC
                             }
                         }
@@ -87,7 +88,7 @@ class AutoTransfer {
                     is ConsumeItemDynamic -> {
                         cons.items.get(it).forEach { i -> // Get the current requirements
                             val acceptedC = it.acceptStack(i.item, i.amount, player.unit())
-                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) {
+                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minItems))) {
                                 counts[i.item.id.toInt()] += acceptedC
                             }
                         }
