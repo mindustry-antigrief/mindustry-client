@@ -331,9 +331,15 @@ public class DesktopInput extends InputHandler{
         }
 
         if(input.keyTap(Binding.toggle_auto_target) && scene.getKeyboardFocus() == null && selectPlans.isEmpty()){
-            player.shooting = false;
-            settings.put("autotarget", !settings.getBool("autotarget"));
-            new Toast(1).add(bundle.get("setting.autotarget.name") + ": " + bundle.get((settings.getBool("autotarget") ? "mod.enabled" : "mod.disabled")));
+            if (input.shift()) { // Toggle auto transfer
+                AutoTransfer.enabled ^= true;
+                settings.put("autotransfer", AutoTransfer.enabled);
+                new Toast(1).add(bundle.get("client.autotransfer") + ": " + bundle.get(AutoTransfer.enabled ? "mod.enabled" : "mod.disabled"));
+            } else { // Toggle auto target
+                player.shooting = false;
+                settings.put("autotarget", !settings.getBool("autotarget"));
+                new Toast(1).add(bundle.get("setting.autotarget.name") + ": " + bundle.get((settings.getBool("autotarget") ? "mod.enabled" : "mod.disabled")));
+            }
         }
 
         boolean locked = locked();
