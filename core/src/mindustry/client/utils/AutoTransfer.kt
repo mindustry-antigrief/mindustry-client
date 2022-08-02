@@ -10,6 +10,7 @@ import mindustry.graphics.*
 import mindustry.type.*
 import mindustry.world.blocks.power.NuclearReactor.*
 import mindustry.world.blocks.storage.*
+import mindustry.world.blocks.storage.CoreBlock.*
 import mindustry.world.consumers.*
 import kotlin.math.*
 
@@ -66,12 +67,13 @@ class AutoTransfer {
                 ratelimitRemaining--
             }
 
+            val minItems = if (core is CoreBuild) minCoreItems else 0
             if (item == null && core != null) { // Automatically take needed item from core, only request once
                 when (val cons = it.block.consumes.get<Consume>(ConsumeType.item)) { // Cursed af
                     is ConsumeItems -> {
                         cons.items.forEach { i ->
                             val acceptedC = it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit())
-                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) { // FINISHME: Do not hardcode the minumum required number (7) here, this is awful
+                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minItems))) { // FINISHME: Do not hardcode the minumum required number (7) here, this is awful
                                 counts[i.item.id.toInt()] += acceptedC
                             }
                         }
@@ -79,16 +81,15 @@ class AutoTransfer {
                     is ConsumeItemFilter -> {
                         content.items().each { i ->
                             val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
-                            if (it.block.consumes.consumesItem(i) && acceptedC >= 5 && core.items.has(i, minCoreItems)) {
+                            if (it.block.consumes.consumesItem(i) && acceptedC >= 5 && core.items.has(i, minItems)) {
                                 counts[i.id.toInt()] += acceptedC
-                                Log.info("$acceptedC, ${counts[i.id.toInt()]}")
                             }
                         }
                     }
                     is ConsumeItemDynamic -> {
                         cons.items.get(it).forEach { i -> // Get the current requirements
                             val acceptedC = it.acceptStack(i.item, i.amount, player.unit())
-                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minCoreItems))) {
+                            if (acceptedC >= 7 && core.items.has(i.item, max(i.amount, minItems))) {
                                 counts[i.item.id.toInt()] += acceptedC
                             }
                         }
