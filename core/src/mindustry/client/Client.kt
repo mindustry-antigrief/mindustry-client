@@ -98,7 +98,7 @@ object Client {
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
         if (showingTurrets || showingInvTurrets || showingAllyTurrets) {
             val enemyunits = Core.settings.getBool("enemyunitranges")
-            val allyunits = Core.settings.getBool("enemyunitranges")
+            val allyunits = Core.settings.getBool("allyunitranges")
             if (showingTurrets || showingInvTurrets) {
                 val flying = player.unit().isFlying
                 getTree().intersect(bounds) {
