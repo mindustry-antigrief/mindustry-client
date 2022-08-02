@@ -134,7 +134,7 @@ object Client {
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
         if (showingTurrets || showingInvTurrets || showingAllyTurrets) {
             val enemyunits = Core.settings.getBool("enemyunitranges")
-            val allyunits = Core.settings.getBool("enemyunitranges")
+            val allyunits = Core.settings.getBool("allyunitranges")
             if (showingTurrets || showingInvTurrets) {
                 val flying = player.unit().isFlying
                 getTree().intersect(bounds) {
@@ -754,6 +754,13 @@ object Client {
             }
         }
 
+        register("gamejointext [text...]", "Sets the text you automatically send when you join a server") { args, player ->
+            if (args.isEmpty() || args[0] == "") player.sendMessage("[accent]Cleared gamejointext because no text was provided.")
+            else {
+                Core.settings.put("gamejointext", args[0])
+                player.sendMessage("[accent]gamejointext text set to \"${args[0]}\"")
+            }
+        }
 
         register("gamewintext [text...]", "Sets the text you automatically send when you win. (eg 'gg bois!')") {args, player ->
             if (args.isEmpty() || args[0] == "") player.sendMessage("[accent]Cleared gamewintext because no text was provided.")

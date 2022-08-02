@@ -34,6 +34,7 @@
  * Show force projector buildup (when hovering over it) when its shield is destroyed
  * Anti toast - Disables toasts from being shown.
  * Remove attem instead of fixing setting. If true it just completely replaces the attem logic instead of just removing the jump part.
+ * Automapvote setting - Automatically does /novote, /downvote, or /upvote when joining servers like io
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.
  * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
@@ -57,6 +58,7 @@
  * !fixnode - Enables/disables certain parts of the better-node-connection-system. (Ask zxtej, I have no idea how this works -SByte)
  * !count all - Counts all units.
  * !unit null - Exits the unit picking queue.
+ * !gamejointext - Sets the text you send when you join.
  * !gamewintext - Sets the text you send when you win the game. Typically something like "gg".
  * !gamelosetext - Same as above but for when you lose.
  * !ptext - Sets a custom text you can easily send in chat with !ptext say (do !help ptext for more details)

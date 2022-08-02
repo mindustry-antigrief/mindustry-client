@@ -12,6 +12,7 @@ import mindustry.graphics.*
 import mindustry.type.*
 import mindustry.world.blocks.defense.turrets.ItemTurret
 import mindustry.world.blocks.power.NuclearReactor.*
+import mindustry.world.blocks.storage.*
 import mindustry.world.consumers.*
 import kotlin.math.*
 
@@ -20,6 +21,7 @@ class AutoTransfer {
     companion object Settings {
         @JvmField var enabled = false
         var fromCores = true
+        var fromContainers = true
         var minCoreItems = 100
         var delay = 60F
         var debug = false
@@ -27,6 +29,7 @@ class AutoTransfer {
     }
 
     private val dest = Seq<Building>()
+    private val containers = Seq<Building>()
     private var item: Item? = null
     private var timer = 0F
     private val counts = IntArray(content.items().size); private val countsAdditional = IntArray(content.items().size)
@@ -47,7 +50,7 @@ class AutoTransfer {
         if (timer < delay) return
         timer = 0F
 
-        val core = if (fromCores) player.closestCore() else null
+        var core: Building? = if (fromCores) player.closestCore() else null
         if (Navigation.currentlyFollowing is MinePath) { // Only allow autotransfer + minepath when within mineTransferRange
             if (core != null && (Navigation.currentlyFollowing as MinePath).tile?.within(core, mineTransferRange - tilesize * 10) != true) return
         } // Ngl this looks spaghetti
@@ -57,7 +60,10 @@ class AutoTransfer {
 
         counts.fill(0) // reset needed item counters
         countsAdditional.fill(0)
-        buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear())
+        buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear()) // grab all buildings in range
+
+        if (fromContainers && (core == null || !player.within(core, itemTransferRange))) core = containers.selectFrom(dest) { it.block is StorageBlock }.min { it -> it.dst(player) }
+
         dest.filter { it.block.consumes.has(ConsumeType.item) && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
         .sort { b -> -b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() }
         .forEach {
@@ -70,12 +76,13 @@ class AutoTransfer {
                 ratelimitRemaining--
             }
 
+            val minItems = if (core is CoreBlock.CoreBuild) minCoreItems else 0
             if (item == null && core != null) { // Automatically take needed item from core, only request once
                 when (val cons = it.block.consumes.get<Consume>(ConsumeType.item)) { // Cursed af
                     is ConsumeItems -> {
                         cons.items.forEach { i ->
                             val acceptedC = it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit())
-                            if (acceptedC > 0 && core.items.has(i.item, max(i.amount, minCoreItems))) {
+                            if (acceptedC > 0 && core.items.has(i.item, max(i.amount, minItems))) {
                                 counts[i.item.id.toInt()] += acceptedC
                             }
                         }
@@ -83,7 +90,7 @@ class AutoTransfer {
                     is ConsumeItemFilter -> {
                         content.items().forEach { i ->
                             val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
-                            if (acceptedC > 0 && it.block.consumes.consumesItem(i) && core.items.has(i, minCoreItems)) {
+                            if (acceptedC > 0 && it.block.consumes.consumesItem(i) && core.items.has(i, minItems)) {
                                 val turretC = (it.block as? ItemTurret)?.ammoTypes?.get(i)?.damage?.toInt() ?: 1 // Sort based on damage for turrets
                                 counts[i.id.toInt()] += acceptedC
                                 countsAdditional[i.id.toInt()] += acceptedC * turretC
@@ -93,7 +100,7 @@ class AutoTransfer {
                     is ConsumeItemDynamic -> {
                         cons.items.get(it).forEach { i -> // Get the current requirements
                             val acceptedC = it.acceptStack(i.item, i.amount, player.unit())
-                            if (acceptedC > 0 && core.items.has(i.item, max(i.amount, minCoreItems))) {
+                            if (acceptedC > 0 && core.items.has(i.item, max(i.amount, minItems))) {
                                 counts[i.item.id.toInt()] += acceptedC
                             }
                         }
