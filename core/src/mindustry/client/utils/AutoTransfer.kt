@@ -59,6 +59,7 @@ class AutoTransfer {
         var held = player.unit().stack.amount
 
         counts.fill(0) // reset needed item counters
+        countsAdditional.fill(0)
         buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear()) // grab all buildings in range
 
         if (fromContainers && (core == null || !player.within(core, itemTransferRange))) core = containers.selectFrom(dest) { it.block is StorageBlock }.min { it -> it.dst(player) }
