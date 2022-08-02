@@ -1295,7 +1295,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         var invBuild = !build.block.hasItems && build.getPayload() instanceof BuildPayload pay ? pay.build : build;
         if(build.interactable(player.team()) && build.block.consumesTap){
             consumed = true;
-        }else if(/*build.interactable(player.team()) &&*/ build.block.synthetic() && (!consumed || invBuild.block.allowConfigInventory)){
+        }else if((build.interactable(player.team()) || 
+            !(Vars.player != null && Vars.player.unit() instanceof BlockUnitUnit blockunit && Arrays.stream(noInteractTurrets).anyMatch((t) -> t == blockunit.tile().block))
+        ) && build.block.synthetic() && (!consumed || invBuild.block.allowConfigInventory)){
             if(invBuild.block.hasItems && invBuild.items.total() > 0){
                 frag.inv.showFor(invBuild);
                 consumed = true;
