@@ -284,7 +284,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     @Remote(called = Loc.server, targets = Loc.both, forward = true)
-    public static void planItem(Player player, Building build, Item item, int amount){
+    public static void requestItem(Player player, Building build, Item item, int amount){
         if(player == null || build == null || !build.interactable(player.team()) || !player.within(build, itemTransferRange) || player.dead()) return;
 
         if(net.server() && (!Units.canInteract(player, build) ||
@@ -292,7 +292,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             action.item = item;
             action.itemAmount = amount;
         }))){
-            throw new ValidateException(player, "Player cannot plan items.");
+            throw new ValidateException(player, "Player cannot request items.");
         }
 
         Navigation.addWaypointRecording(new ItemPickupWaypoint(build.tileX(), build.tileY(), new ItemStack().set(item, amount))); // FINISHME: Awful
