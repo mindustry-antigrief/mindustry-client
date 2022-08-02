@@ -9,6 +9,7 @@ import mindustry.gen.*
 import mindustry.graphics.*
 import mindustry.type.*
 import mindustry.world.blocks.power.NuclearReactor.*
+import mindustry.world.blocks.storage.*
 import mindustry.world.consumers.*
 import kotlin.math.*
 
@@ -17,12 +18,14 @@ class AutoTransfer {
     companion object Settings {
         @JvmField var enabled = false
         var fromCores = true
+        var fromContainers = true
         var minCoreItems = 100
         var delay = 60F
         var debug = false
     }
 
     private val dest = Seq<Building>()
+    private val containers = Seq<Building>()
     private var item: Item? = null
     private var timer = 0F
     private val counts = IntArray(content.items().size)
@@ -43,11 +46,14 @@ class AutoTransfer {
         if (timer < delay) return
         timer = 0F
         val buildings = player.team().data().buildings ?: return
-        val core = if (fromCores) player.closestCore() else null
-        var held = player.unit().stack.amount
+        var core: Building? = if (fromCores) player.closestCore() else null
 
         counts.fill(0) // reset needed item counters
-        buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear())
+        buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear()) // grab all buildings in range
+
+        if (fromContainers && (core == null || !player.within(core, itemTransferRange))) core = containers.selectFrom(dest) { it.block is StorageBlock }.min { it -> it.dst(player) }
+        var held = player.unit().stack.amount
+
         dest.filter { it.block.consumes.has(ConsumeType.item) && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
         .sort { b -> -b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() }
         .forEach {
