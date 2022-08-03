@@ -88,7 +88,7 @@ object Main : ApplicationListener {
         }
 
         Vars.netServer.addPacketHandler("pause") { p, _ ->
-            if (p.admin) Vars.state.serverPaused = true
+            if (p.admin) Vars.state.serverPaused = !Vars.state.serverPaused
         }
 
         communicationClient.addListener { transmission, senderId ->
