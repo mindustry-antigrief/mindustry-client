@@ -78,9 +78,9 @@ class AutoTransfer {
                         }
                     }
                     is ConsumeItemFilter -> {
-                        content.items().forEach { i ->
+                        content.items().each { i ->
                             val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
-                            if (it.block.consumesItem(i) && acceptedC >= 7 && core.items.has(i, minItems)) {
+                            if (it.block.consumesItem(i) && acceptedC >= 5 && core.items.has(i, minItems)) {
                                 counts[i.id.toInt()] += acceptedC
                             }
                         }
@@ -93,7 +93,7 @@ class AutoTransfer {
                             }
                         }
                     }
-                    else -> throw IllegalArgumentException("This should never happen. Report this.")
+                    else -> throw IllegalStateException("This should never happen. Report this.")
                 }
             }
         }
