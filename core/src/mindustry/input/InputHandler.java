@@ -1268,15 +1268,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
     
             var tempTiles = Block.tempTiles;
-            if (req.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed.
-                    && req.tile() != null && req.tile().getLinkedTilesAs(req.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
+            if (plan.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed.
+                    && plan.tile() != null && plan.tile().getLinkedTilesAs(plan.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
                 var first = tempTiles.first();
                 if (tempTiles.contains(t -> !t.adjacentTo(first) && t != first && t.floor().liquidDrop == Liquids.water)
                         && !tempTiles.contains(t -> !validPlace(t.x, t.y, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction, 0))) { // Can use mechanical pumps (covers all outputs)
                     for (var t : tempTiles) temp[added++] = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
                     continue; // Swapped water extractor for mechanical pumps, don't place it
                 } else if (validPlace(first.x, first.y, Blocks.rotaryPump, 0)) { // Mechanical pumps can't cover everything, use rotary pump instead
-                    temp[added++] = new BuildPlan(req.x, req.y, 0, Blocks.rotaryPump);
+                    temp[added++] = new BuildPlan(plan.x, plan.y, 0, Blocks.rotaryPump);
                     continue; // Swapped water extractor for rotary pump, don't place it
                 }
             }

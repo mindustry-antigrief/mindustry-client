@@ -11,6 +11,8 @@ import arc.util.*;
 import arc.util.Nullable;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.ClientVars;
+import mindustry.client.antigrief.ConfigRequest;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
@@ -23,8 +25,6 @@ import mindustry.world.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
 import org.jetbrains.annotations.*;
-
-import java.util.*;
 
 import java.util.*;
 
@@ -376,7 +376,7 @@ public class PowerNode extends PowerBlock{
         });
     }
 
-    public static class PowerNodeConfigReq extends ConfigRequest{
+    public static class PowerNodeConfigReq extends ConfigRequest {
 
         private final boolean connect;
         private final int value;
