@@ -76,9 +76,10 @@ public class BeControl{
             })
             .submit(res -> {
                 Jval val = Jval.read(res.getResultAsString());
-                String newBuild = val.getString("name");
-                if(!newBuild.trim().isEmpty() && !Version.clientVersion.equals(newBuild)){
-                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("erekir-client"));
+                String newBuild = val.getString("tag_name", "0");
+                if(!Version.clientVersion.startsWith(newBuild)){
+                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("desktop"));
+                    if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("mindustry"));
                     if (asset == null) {
                         Core.app.post(() -> done.get(false));
                         return;
