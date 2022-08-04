@@ -9,6 +9,8 @@ import arc.scene.actions.*;
 import arc.scene.event.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
+import arc.scene.ui.ImageButton.*;
+import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.client.CursednessLevel;
@@ -20,13 +22,13 @@ import mindustry.graphics.*;
 import mindustry.ui.*;
 
 import static mindustry.Vars.*;
+import static mindustry.gen.Tex.*;
 
-public class MenuFragment extends Fragment{
+public class MenuFragment{
     private Table container, submenu;
     private Button currentMenu;
     public MenuRenderer renderer;
 
-    @Override
     public void build(Group parent){
         renderer = new MenuRenderer();
 
@@ -52,10 +54,17 @@ public class MenuFragment extends Fragment{
             }
         });
 
+        parent.fill(c -> c.bottom().right().button(Icon.discord, new ImageButtonStyle(){{ // FINISHME: This is cursed af
+            up = discordBanner;
+        }}, ui.discord::show).marginTop(9f).marginLeft(10f).tooltip("@discord").size(84, 45).name("discord"));
+
         //info icon
         if(mobile){
-            parent.fill(c -> c.bottom().left().button("", Styles.infot, ui.about::show).size(84, 45).name("info"));
-            parent.fill(c -> c.bottom().right().button("", Styles.discordt, ui.discord::show).size(84, 45).name("discord"));
+            parent.fill(c -> c.bottom().left().button("", new TextButtonStyle(){{
+                font = Fonts.def;
+                fontColor = Color.white;
+                up = infoBanner;
+            }}, ui.about::show).size(84, 45).name("info"));
         }else{
             parent.fill(c -> {
                 c.bottom().right().button("Switch to v6", Icon.download, () -> {
@@ -97,7 +106,10 @@ public class MenuFragment extends Fragment{
             });
         }
 
-        String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + Strings.format("\n[gray]Don't press H[]\nCursedness by BalaM314 and SBytes. Cursedness Level: @", CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel")).name());
+                // FIX CURSED MENU SCREEN
+//        String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + Strings.format("\n[gray]Don't press H[]\nCursedness by BalaM314 and SBytes. Cursedness Level: @", CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel")).name());
+//        String versionText = (Version.build == -1 ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H";
+        String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H[]\nClient Fork by Zxtej, BalaM314, SBytes. Cursedness Level: @";
         parent.fill((x, y, w, h) -> {
             TextureRegion logo = Core.atlas.find("logo");
             float width = Core.graphics.getWidth(), height = Core.graphics.getHeight() - Core.scene.marginTop;
@@ -111,8 +123,8 @@ public class MenuFragment extends Fragment{
             Draw.color();
             Draw.rect(logo, fx, fy, logow, logoh);
 
-            Fonts.def.setColor(Color.white);
-            Fonts.def.draw(versionText, fx, fy - logoh/2f, Align.center);
+            Fonts.outline.setColor(Color.white);
+            Fonts.outline.draw(versionText, fx, fy - logoh/2f - Scl.scl(2f), Align.center);
         }).touchable = Touchable.disabled;
     }
 
@@ -261,7 +273,7 @@ public class MenuFragment extends Fragment{
         for(Buttoni b : buttons){
             if(b == null) continue;
             Button[] out = {null};
-            out[0] = t.button(b.text, b.icon, Styles.clearToggleMenut, () -> {
+            out[0] = t.button(b.text, b.icon, Styles.flatToggleMenut, () -> {
                 if(currentMenu == out[0]){
                     currentMenu = null;
                     fadeOutMenu();

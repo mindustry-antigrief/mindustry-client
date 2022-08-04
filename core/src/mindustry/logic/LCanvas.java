@@ -30,11 +30,13 @@ public class LCanvas extends Table{
     public DragLayout statements;
     public ScrollPane pane;
     public Group jumps;
+
     StatementElem dragging;
     static boolean jumping;
     StatementElem hovered;
     float targetWidth;
     int jumpCount = 0;
+    boolean privileged;
     Seq<Tooltip> tooltips = new Seq<>();
     float visibleBoundLower, visibleBoundUpper;
 
@@ -146,8 +148,8 @@ public class LCanvas extends Table{
 
     public void recalculate(){
         tempseq.set(statements.getChildren().as());
-        tempseq.forEach(t -> {t.resetJumpInfo(); if(t.st instanceof JumpStatement) t.st.saveUI();});
-        tempseq.forEach(s -> {
+        tempseq.each(t -> {t.resetJumpInfo(); if(t.st instanceof JumpStatement) t.st.saveUI();});
+        tempseq.each(s -> {
             if(!(s.st instanceof JumpStatement js) || js.destIndex == -1) return;
             js.dest.updateJumpsToHere(s.index);
         });
@@ -197,7 +199,7 @@ public class LCanvas extends Table{
     public void load(String asm){
         jumps.clear();
 
-        Seq<LStatement> statements = LAssembler.read(asm);
+        Seq<LStatement> statements = LAssembler.read(asm, privileged);
         statements.truncate(LExecutor.maxInstructions);
         this.statements.clearChildren();
         for(LStatement st : statements){
@@ -374,7 +376,7 @@ public class LCanvas extends Table{
             st.elem = this;
 
             background(Tex.whitePane);
-            setColor(st.color());
+            setColor(st.category().color);
             margin(0f);
             touchable = Touchable.enabled;
 
@@ -399,7 +401,7 @@ public class LCanvas extends Table{
                 t.button(Icon.paste, Styles.logici, () -> {
                 }).size(24f).padRight(6).tooltip("Paste Here").get().tapped(() -> {
                     try {
-                        this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n")));
+                        this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n"), privileged));
                     } catch (Throwable e) {
                         ui.showException(e);
                     }
@@ -567,7 +569,9 @@ public class LCanvas extends Table{
         public JumpCurve curve;
 
         public JumpButton(Prov<StatementElem> getter, Cons<StatementElem> setter){
-            super(Tex.logicNode, Styles.colori);
+            super(Tex.logicNode, new ImageButtonStyle(){{
+                imageUpColor = Color.white;
+            }});
 
             to = getter;
             addListener(listener = new ClickListener());
@@ -760,8 +764,6 @@ public class LCanvas extends Table{
                     }
                 }
             }
-
-            /*
             /*
             Lines.curve(
             x, y,

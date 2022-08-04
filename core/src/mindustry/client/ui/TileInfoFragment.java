@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.*;
 
 public class TileInfoFragment extends Table {
 
-    public TileInfoFragment() {
+    public TileInfoFragment() { // FINISHME: Rewrite this in a non horrible way in kotlin, this is horrendous
         setBackground(Tex.wavepane);
         marginRight(6);
         Image img = new Image();
@@ -32,7 +32,7 @@ public class TileInfoFragment extends Table {
                 label.setText("");
                 return;
             } else if (hovered.block() == null) {
-                img.setDrawable(hovered.floor().fullIcon);
+                img.setDrawable(hovered.floor().uiIcon);
                 label.setText("");
                 return;
             } else if (hovered.pos() == lastPos.get()) {
@@ -40,8 +40,8 @@ public class TileInfoFragment extends Table {
             }
             lastPos.set(hovered.pos());
 
-            TextureRegion icon = hovered.block().fullIcon;
-            img.setDrawable(icon.found() ? icon : hovered.floor().fullIcon);
+            TextureRegion icon = hovered.block().uiIcon;
+            img.setDrawable(icon.found() ? icon : hovered.floor().uiIcon);
             var record = TileRecords.INSTANCE.get(hovered);
             if (record == null) return;
             var logs = record.lastLogs(7);

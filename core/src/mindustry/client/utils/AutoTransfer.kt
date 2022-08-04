@@ -55,7 +55,7 @@ class AutoTransfer {
             if (core != null && (Navigation.currentlyFollowing as MinePath).tile?.within(core, mineTransferRange - tilesize * 10) != true) return
         } // Ngl this looks spaghetti
 
-        val buildings = player.team().data().buildings ?: return
+        val buildings = player.team().data().buildingTree ?: return
         var held = player.unit().stack.amount
 
         counts.fill(0) // reset needed item counters
@@ -64,7 +64,7 @@ class AutoTransfer {
 
         if (fromContainers && (core == null || !player.within(core, itemTransferRange))) core = containers.selectFrom(dest) { it.block is StorageBlock }.min { it -> it.dst(player) }
 
-        dest.filter { it.block.consumes.has(ConsumeType.item) && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
+        dest.filter { it.block.findConsumer<Consume?> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic } != null && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
         .sort { b -> -b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() }
         .forEach {
             if (ratelimitRemaining <= 1) return@forEach
@@ -78,7 +78,7 @@ class AutoTransfer {
 
             val minItems = if (core is CoreBlock.CoreBuild) minCoreItems else 0
             if (item == null && core != null) { // Automatically take needed item from core, only request once
-                when (val cons = it.block.consumes.get<Consume>(ConsumeType.item)) { // Cursed af
+                when (val cons = it.block.findConsumer<Consume> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic }) { // Cursed af
                     is ConsumeItems -> {
                         cons.items.forEach { i ->
                             val acceptedC = it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit())
@@ -90,7 +90,7 @@ class AutoTransfer {
                     is ConsumeItemFilter -> {
                         content.items().forEach { i ->
                             val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
-                            if (acceptedC > 0 && it.block.consumes.consumesItem(i) && core.items.has(i, minItems)) {
+                            if (acceptedC > 0 && it.block.consumesItem(i) && core.items.has(i, minItems)) {
                                 val turretC = (it.block as? ItemTurret)?.ammoTypes?.get(i)?.damage?.toInt() ?: 1 // Sort based on damage for turrets
                                 counts[i.id.toInt()] += acceptedC
                                 countsAdditional[i.id.toInt()] += acceptedC * turretC
@@ -122,7 +122,7 @@ class AutoTransfer {
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
                 if (held > 0 && item != player.unit().stack.item) Call.transferInventory(player, core)
-                else Call.requestItem(player, core, item, Int.MAX_VALUE)
+                else Call.takeItems(core, item, Int.MAX_VALUE, player.unit())
                 item = null
                 ratelimitRemaining--
             }

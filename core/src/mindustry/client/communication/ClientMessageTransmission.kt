@@ -88,7 +88,7 @@ class ClientMessageTransmission : Transmission {
 
     fun addToChatfrag(processCoords: Boolean = false) {
         val background = when (validity) {
-            VALID -> /* TODO: builtin check */ ClientVars.verified
+            VALID -> /* FINISHME: builtin check */ ClientVars.verified
             INVALID -> ClientVars.invalid
             UNKNOWN_CERT -> Color.darkGray
         }

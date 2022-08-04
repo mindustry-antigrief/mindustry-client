@@ -22,14 +22,16 @@ import java.util.concurrent.*;
 import static mindustry.Vars.*;
 
 public class Saves{
-    @Nullable Seq<SaveSlot> saves;
+    private static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance();
+
+    final Seq<SaveSlot> saves = new Seq<>(0);
     @Nullable SaveSlot current;
     private @Nullable SaveSlot lastSectorSave;
     private boolean saving;
     private float time;
+
     long totalPlaytime;
     private long lastTimestamp;
-    private final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance();
 
     public Saves(){
         Events.on(StateChangeEvent.class, event -> {
@@ -43,7 +45,6 @@ public class Saves{
 
     /** Loads all saves */
     public void load(){
-        saves = new Seq<>();
         var tasks = new Seq<Future<SaveSlot>>();
         for(Fi file : saveDirectory.findAll(f -> !f.name().contains("backup") && f.extEquals("msav"))){
             tasks.add(mainExecutor.submit(() -> {
@@ -63,18 +64,17 @@ public class Saves{
         }
 
         for(Future<SaveSlot> task : tasks){
-            try{
-                var s = task.get();
-                if(s != null) saves.add(s);
-            }catch(ExecutionException | InterruptedException ignored){}
+            var s = Threads.await(task);
+            if(s != null) saves.add(s);
         }
 
         lastSectorSave = saves.find(s -> s.isSector() && s.getName().equals(Core.settings.getString("last-sector-save", "<none>")));
 
-        //automatically assign sector save slots
-        for (SaveSlot slot : saves) {
-            if (slot.getSector() != null) {
-                if (slot.getSector().save != null) {
+        //automatically (re)assign sector save slots
+        content.planets().each(p -> p.sectors.each(s -> s.save = null)); // FINISHME: This is most likely a horrible idea
+        for(SaveSlot slot : saves){
+            if(slot.getSector() != null){
+                if(slot.getSector().save != null){
                     Log.warn("Sector @ has two corresponding saves: @ and @", slot.getSector(), slot.getSector().save.file, slot.file);
                 }
                 slot.getSector().save = slot;
@@ -84,12 +84,8 @@ public class Saves{
 
     /** Unload all saves to reclaim resources */
     public void unload(){
-        if(saves != null){
-            for(var save : saves){
-                save.unloadTexture();
-            }
-            saves = null;
-        }
+        saves.each(SaveSlot::unloadTexture);
+        saves.clear().shrink(); // Don't want all of this stuff in memory
     }
 
     public @Nullable SaveSlot getLastSector(){
@@ -160,7 +156,7 @@ public class Saves{
     public SaveSlot addSave(String name){
         SaveSlot slot = new SaveSlot(getNextSlotFile());
         slot.setName(name);
-        if(saves != null) saves.add(slot);
+        saves.add(slot);
         slot.save();
         return slot;
     }
@@ -186,7 +182,7 @@ public class Saves{
     }
 
     public Seq<SaveSlot> getSaveSlots(){
-        if(saves == null) load();
+        if(saves.isEmpty()) load();
         return saves;
     }
 
@@ -195,13 +191,10 @@ public class Saves{
     }
 
     public void deleteAll(){
-        if(saves == null) load();
-        for(SaveSlot slot : saves.copy()){
-            if(!slot.isSector()){
-                slot.delete();
-            }
-        }
-        saves = null;
+        var needsLoad = saves.isEmpty();
+        if(needsLoad) load(); // Need to load them in order to delete them.
+        saves.filter(s -> !s.isSector()).each(SaveSlot::delete); // Delete non sectors
+        if(needsLoad) unload(); // Unload if we just loaded
     }
 
     public class SaveSlot{
@@ -299,7 +292,7 @@ public class Saves{
         }
 
         public String getDate(){
-            return dateFormatter.format(new Date(meta.timestamp));
+            return dateFormat.format(new Date(meta.timestamp));
         }
 
         public Map getMap(){

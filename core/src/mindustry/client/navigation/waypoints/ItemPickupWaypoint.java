@@ -40,7 +40,7 @@ public class ItemPickupWaypoint extends Waypoint implements Position {
         if (Vars.player.within(sourceX * Vars.tilesize, sourceY * Vars.tilesize, Vars.itemTransferRange)) {
             Tile tile = Vars.world.tile(sourceX, sourceY);
             if (tile.build == null) return this;
-            Call.requestItem(Vars.player, tile.build, items.item, items.amount);
+            Call.takeItems(tile.build, items.item, items.amount, Vars.player.unit());
             done = true;
         } else {
             float direction = player.angleTo(this);

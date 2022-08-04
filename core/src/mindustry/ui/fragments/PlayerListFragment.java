@@ -23,14 +23,13 @@ import mindustry.ui.*;
 import static mindustry.Vars.*;
 import static mindustry.client.ClientVars.*;
 
-public class PlayerListFragment extends Fragment{
+public class PlayerListFragment{
     public Table content = new Table().marginRight(13f).marginLeft(13f);
     private boolean visible = false;
     private final Interval timer = new Interval();
     private TextField search;
     private final Seq<Player> players = new Seq<>();
 
-    @Override
     public void build(Group parent){
         content.name = "players";
 

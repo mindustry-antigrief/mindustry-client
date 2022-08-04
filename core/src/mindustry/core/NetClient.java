@@ -13,22 +13,17 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import kotlin.text.*;
 import mindustry.*;
-import mindustry.ai.formations.*;
-import mindustry.ai.formations.patterns.*;
-import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.communication.*;
 import mindustry.client.utils.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
-import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.io.*;
 import mindustry.logic.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
@@ -45,7 +40,8 @@ import static mindustry.Vars.*;
 
 public class NetClient implements ApplicationListener{
     private static final float dataTimeout = 60 * 30; // Give up after 30s (vanilla is 20s)
-    private static final float playerSyncTime = 5;
+    /** ticks between syncs, e.g. 5 means 60/5 = 12 syncs/sec*/
+    private static final float playerSyncTime = 4;
     private static final Reads dataReads = new Reads(null);
 
     private long ping;
@@ -173,16 +169,16 @@ public class NetClient implements ApplicationListener{
         clientPacketReliable(type, contents);
     }
 
-    @Remote(variants = Variant.both, unreliable = true)
+    @Remote(variants = Variant.both, unreliable = true, called = Loc.server)
     public static void sound(Sound sound, float volume, float pitch, float pan){
-        if(sound == null) return;
+        if(sound == null || headless) return;
 
-        sound.play(Mathf.clamp(volume, 0, 4f) * Core.settings.getInt("sfxvol") / 100f, pitch, pan);
+        sound.play(Mathf.clamp(volume, 0, 8f) * Core.settings.getInt("sfxvol") / 100f, pitch, pan, false, false);
     }
 
-    @Remote(variants = Variant.both, unreliable = true)
+    @Remote(variants = Variant.both, unreliable = true, called = Loc.server)
     public static void soundAt(Sound sound, float x, float y, float volume, float pitch){
-        if(sound == null) return;
+        if(sound == null || headless) return;
         if(sound == Sounds.corexplode && ClientUtilsKt.io()) return;
 
         sound.at(x, y, pitch, Mathf.clamp(volume, 0, 4f));
@@ -207,6 +203,7 @@ public class NetClient implements ApplicationListener{
         effect(effect, x, y, rotation, color);
     }
 
+    // FINISHME: This is disgusting
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
         Color background = null;
@@ -263,6 +260,7 @@ public class NetClient implements ApplicationListener{
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
             ChatFragment.ChatMessage.msgFormat();
             Vars.ui.chatfrag.addMessage(message);
+            Sounds.chatMessage.play();
         }
     }
 
@@ -283,7 +281,7 @@ public class NetClient implements ApplicationListener{
         //log commands before they are handled
         if(message.startsWith(netServer.clientCommands.getPrefix())){
             //log with brackets
-            Log.info("<&fi@: @&fr>", "&lk" + player.name, "&lw" + message);
+            Log.info("<&fi@: @&fr>", "&lk" + player.plainName(), "&lw" + message);
         }
 
         //check if it's a command
@@ -301,7 +299,7 @@ public class NetClient implements ApplicationListener{
             }
 
             //server console logging
-            Log.info("&fi@: @", "&lc" + player.name, "&lw" + message);
+            Log.info("&fi@: @", "&lc" + player.plainName(), "&lw" + InvisibleCharCoder.INSTANCE.strip(message));
 
             //invoke event for all clients but also locally
             //this is required so other clients get the correct name even if they don't know who's sending it yet
@@ -381,8 +379,22 @@ public class NetClient implements ApplicationListener{
     }
 
     @Remote(variants = Variant.both)
+    public static void setObjectives(MapObjectives executor){
+        //clear old markers
+        for(var objective : state.rules.objectives){
+            for(var marker : objective.markers){
+                if(marker.wasAdded){
+                    marker.removed();
+                    marker.wasAdded = false;
+                }
+            }
+        }
+
+        state.rules.objectives = executor;
+    }
+
+    @Remote(variants = Variant.both)
     public static void worldDataBegin(){
-        if (ClientVars.syncing && Groups.unit.contains(u -> u.controller() instanceof FormationAI ai && ai.leader == player.unit())) Call.unitCommand(player);
         Groups.clear();
         netClient.removed.clear();
         logic.reset();
@@ -405,6 +417,13 @@ public class NetClient implements ApplicationListener{
         player.set(x, y);
     }
 
+    @Remote(variants = Variant.both, unreliable = true)
+    public static void setCameraPosition(float x, float y){ // FINISHME: Add some sort of toggle
+        if(Core.camera != null){
+            Core.camera.position.set(x, y);
+        }
+    }
+
     @Remote
     public static void playerDisconnect(int playerid){
         Events.fire(new PlayerLeave(Groups.player.getByID(playerid)));
@@ -414,6 +433,43 @@ public class NetClient implements ApplicationListener{
         Groups.player.removeByID(playerid);
     }
 
+    public static void readSyncEntity(DataInputStream input, Reads read) throws IOException{
+        int id = input.readInt();
+        byte typeID = input.readByte();
+
+        Syncc entity = Groups.sync.getByID(id);
+        boolean add = false, created = false;
+
+        if(entity == null && id == player.id()){
+            entity = player;
+            add = true;
+        }
+
+        //entity must not be added yet, so create it
+        if(entity == null){
+            entity = (Syncc)EntityMapping.map(typeID).get();
+            entity.id(id);
+            if(!netClient.isEntityUsed(entity.id())){
+                add = true;
+            }
+            created = true;
+        }
+
+        //read the entity
+        entity.readSync(read);
+
+        if(created){
+            //snap initial starting position
+            entity.snapSync();
+        }
+
+        if(add){
+            entity.add();
+            netClient.addRemovedEntity(entity.id());
+            if (entity instanceof Player p) Events.fire(new PlayerJoin(p));
+        }
+    }
+
     @Remote(variants = Variant.one, priority = PacketPriority.low, unreliable = true)
     public static void entitySnapshot(short amount, byte[] data){
         try{
@@ -421,43 +477,21 @@ public class NetClient implements ApplicationListener{
             DataInputStream input = netClient.dataStream;
 
             for(int j = 0; j < amount; j++){
-                int id = input.readInt();
-                byte typeID = input.readByte();
-
-                Syncc entity = Groups.sync.getByID(id);
-                boolean add = false, created = false;
-
-                if(entity == null && id == player.id()){
-                    entity = player;
-                    add = true;
-                }
-
-                //entity must not be added yet, so create it
-                if(entity == null){
-                    entity = (Syncc)EntityMapping.map(typeID).get();
-                    entity.id(id);
-                    if(!netClient.isEntityUsed(entity.id())){
-                        add = true;
-                    }
-                    created = true;
-                }
-
-                //read the entity
-                entity.readSync(Reads.get(input));
-
-                if(created){
-                    //snap initial starting position
-                    entity.snapSync();
-                }
-
-                if(add){
-                    entity.add();
-                    netClient.addRemovedEntity(entity.id());
-                    if (entity instanceof Player p) Events.fire(new PlayerJoin(p));
-                }
+                readSyncEntity(input, Reads.get(input));
             }
         }catch(IOException e){
             throw new RuntimeException(e);
+        }
+    }
+
+    @Remote(variants = Variant.one, priority = PacketPriority.low, unreliable = true)
+    public static void hiddenSnapshot(IntSeq ids){
+        for(int i = 0; i < ids.size; i++){
+            int id = ids.items[i];
+            var entity = Groups.sync.getByID(id);
+            if(entity != null){
+                entity.handleSyncHidden();
+            }
         }
     }
 
@@ -503,8 +537,8 @@ public class NetClient implements ApplicationListener{
 
             //note that this is far from a guarantee that random state is synced - tiny changes in delta and ping can throw everything off again.
             //syncing will only make much of a difference when rand() is called infrequently
-            GlobalConstants.rand.seed0 = rand0;
-            GlobalConstants.rand.seed1 = rand1;
+            GlobalVars.rand.seed0 = rand0;
+            GlobalVars.rand.seed1 = rand1;
 
             universe.updateNetSeconds(timeData);
 
@@ -571,16 +605,6 @@ public class NetClient implements ApplicationListener{
         Time.runTask(40f, platform::updateRPC);
         Core.app.post(ui.loadfrag::hide);
         Core.app.post(() -> Events.fire(new EventType.ServerJoinEvent()));
-        Core.app.post(() -> { // We already command on sync, the player's formation var isn't set correctly, so we have to set it here as well. TODO: Kill in v7
-            var units = Groups.unit.array.select(it -> it.controller().isBeingControlled(Vars.player.unit()));
-            if (units.any()) {
-                var formation = new Formation(new Vec3(Vars.player.x, Vars.player.y, Vars.player.unit().rotation), new CircleFormation());
-                formation.addMembers(units.map(u -> (FormationAI)u.controller()));
-                player.unit().formation = formation;
-                player.unit().minFormationSpeed = Math.min(player.unit().type.speed, units.min(u -> u.type.speed).type.speed);
-                formation.pattern.spacing = Math.max(player.unit().hitSize * .9f, units.max(u -> u.hitSize).hitSize * 1.3f);
-            }
-        });
     }
 
     private void reset(){
@@ -630,34 +654,11 @@ public class NetClient implements ApplicationListener{
         return removed.contains(id);
     }
 
-    private final ReusableByteOutStream counter = new ReusableByteOutStream();
-    private final Writes write = new Writes(new DataOutputStream(counter));
     void sync(){
         if(timer.get(0, playerSyncTime)){
-            BuildPlan[] requests = null;
-            if(player.isBuilder() || player.unit().isBuilding()){
-                int usedRequests = player.unit().plans().size;
-
-                for(int i = 0; i < usedRequests; i++){
-                    BuildPlan plan = player.unit().plans().get(i);
-                    TypeIO.writeRequest(write, plan); // Write plan so we can get the byte length
-
-                    if(counter.size() > 500){ // prevent buffer overflows (large configs / many plans)
-                        usedRequests = i + 1;
-                        break;
-                    }
-                }
-                counter.reset();
-
-                requests = new BuildPlan[usedRequests];
-                for(int i = 0; i < usedRequests; i++){
-                    requests[i] = player.unit().plans().get(i);
-                }
-            }
-
             Unit unit = player.dead() ? Nulls.unit : player.unit();
             int uid = player.dead() ? -1 : unit.id;
-            Vec2 aimPos = Main.INSTANCE.floatEmbed();
+            Vec2 aimPos = Main.INSTANCE.floatEmbed(); // FINISHME: This method doesn't allocate garbage, does it?
 
             Call.clientSnapshot(
             lastSent++,
@@ -671,7 +672,7 @@ public class NetClient implements ApplicationListener{
             unit.vel.x, unit.vel.y,
             player.unit().mineTile,
             player.boosting, player.shooting, ui.chatfrag.shown(), control.input.isBuilding,
-            requests,
+            player.isBuilder() ? player.unit().plans : null,
             Core.camera.position.x, Core.camera.position.y,
             Core.camera.width, Core.camera.height
             );

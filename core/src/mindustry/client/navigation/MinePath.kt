@@ -106,7 +106,7 @@ class MinePath @JvmOverloads constructor(
             player.unit().mineTile = tile
             if (tile == null) return
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 3F)
-            goTo(tile, player.unit().type.miningRange - tilesize * 2) // FINISHME: Distance based on formation radius rather than just moving super close
+            goTo(tile, player.unit().type.mineRange - tilesize * 2) // FINISHME: Distance based on formation radius rather than just moving super close
         }
     }
 

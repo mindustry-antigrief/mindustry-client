@@ -47,13 +47,7 @@ public class ChatFragment extends Table{
     private Seq<String> history = new Seq<>();
     private int historyPos = 0;
     private int scrollPos = 0;
-    private Fragment container = new Fragment(){
-        @Override
-        public void build(Group parent){
-            scene.add(ChatFragment.this);
-        }
-    };
-    private Seq<Autocompleteable> completion = new Seq<>();
+    private Seq<Autocompleteable> completion = new Seq<>(); // FINISHME: The autocompletion system is awful.
     private int completionPos = -1;
 
     public ChatFragment(){
@@ -72,7 +66,7 @@ public class ChatFragment extends Table{
 
         update(() -> {
 
-            if(input.keyTap(Binding.chat) && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null || ui.minimapfrag.shown()) && !ui.scriptfrag.shown()){
+            if(input.keyTap(Binding.chat) && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null || ui.minimapfrag.shown()) && !ui.consolefrag.shown()){
                 toggle();
             }
 
@@ -101,7 +95,7 @@ public class ChatFragment extends Table{
         setup();
     }
 
-    // FINISHME: Why is this so complex???
+    // FINISHME: Awful.
     void updateCompletion() {
         if (Autocomplete.matches(chatfield.getText())) {
             Seq<Autocompleteable> oldCompletion = completion.copy();
@@ -117,12 +111,12 @@ public class ChatFragment extends Table{
         }
     }
 
-    public Fragment container(){
-        return container;
+    public void build(Group parent){
+        scene.add(this);
     }
 
     public void clearMessages(){
-        if (!settings.getBool("clearchatonleave")) return;
+        if(!settings.getBool("clearchatonleave")) return;
         messages.clear();
         history.clear();
         history.insert(0, "");
@@ -143,6 +137,7 @@ public class ChatFragment extends Table{
         chatfield.changed(() -> {
             chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 0 : maxTextLength - 2); // Scuffed way to allow long js
 
+            // FINISHME: Implement proper replacement & string interpolation system
             var replacement = switch (chatfield.getText().replaceFirst("^" + mode.normalizedPrefix(), "")) {
                 case "!r " -> "!e " + ClientVars.lastCertName + " ";
                 case "!b " -> "!builder ";
@@ -179,6 +174,11 @@ public class ChatFragment extends Table{
         }
     }
 
+    protected void rect(float x, float y, float w, float h){
+        //prevents texture bindings; the string lookup is irrelevant as it is only called <10 times per frame, and maps are very fast anyway
+        Draw.rect("whiteui", x + w/2f, y + h/2f, w, h);
+    }
+
     @Override
     public void draw(){
         float opacity = Core.settings.getInt("chatopacity") / 100f;
@@ -187,7 +187,7 @@ public class ChatFragment extends Table{
         Draw.color(shadowColor);
 
         if(shown){
-            Fill.crect(offsetx, chatfield.y + scene.marginBottom, chatfield.getWidth() + 15f, chatfield.getHeight() - 1);
+            rect(offsetx, chatfield.y + scene.marginBottom, chatfield.getWidth() + 15f, chatfield.getHeight() - 1);
         }
 
         super.draw();
@@ -199,9 +199,6 @@ public class ChatFragment extends Table{
 
         Draw.color(shadowColor);
         Draw.alpha(shadowColor.a * opacity);
-
-//        float blockFragX = ui.hudfrag.blockfrag.blockPane.localToStageCoordinates(Vec2.ZERO).x;
-//        Vec2.ZERO.setZero();
 
         float theight = offsety + spacing + getMarginBottom() + scene.marginBottom;
         for(int i = scrollPos; i < messages.size && i < messagesShown + scrollPos && (i < fadetime || shown); i++){
@@ -231,7 +228,7 @@ public class ChatFragment extends Table{
                 Draw.color(color);
             }
 
-            Fill.crect(offsetx, theight - layout.height - 2, textWidth + Scl.scl(4f), layout.height + textspacing);
+            rect(offsetx, theight - layout.height - 2, textWidth + Scl.scl(4f), layout.height + textspacing);
             Draw.color(shadowColor);
             Draw.alpha(opacity * shadowColor.a);
 
@@ -399,7 +396,7 @@ public class ChatFragment extends Table{
             }
         }else{
             //sending chat has a delay; workaround for issue #1943
-            Time.runTask(2f, () ->{
+            Time.runTask(2f, () -> {
                 scene.setKeyboardFocus(null);
                 shown = false;
                 scrollPos = 0;

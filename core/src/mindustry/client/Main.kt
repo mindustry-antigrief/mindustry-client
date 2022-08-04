@@ -297,6 +297,7 @@ object Main : ApplicationListener {
         dispatchedBuildPlans.addAll(toSend)
     }
 
+    /** Singleplayer/host use only */
     private fun addBuildPlan(plan: BuildPlan) {
         if (plan.breaking) return
         if (plan.isDone) {
@@ -304,15 +305,15 @@ object Main : ApplicationListener {
             return
         }
 
-        val data: TeamData = Vars.player.team().data()
-        for (i in 0 until data.blocks.size) {
-            val b = data.blocks[i]
+        val data = Vars.player.team().data()
+        for (i in 0 until data.plans.size) {
+            val b = data.plans[i]
             if (b.x == plan.x.toShort() && b.y == plan.y.toShort()) {
-                data.blocks.removeIndex(i)
+                data.plans.removeIndex(i)
                 break
             }
         }
-        data.blocks.addFirst(BlockPlan(plan.x, plan.y, plan.rotation.toShort(), plan.block.id, plan.config))
+        data.plans.addFirst(BlockPlan(plan.x, plan.y, plan.rotation.toShort(), plan.block.id, plan.config))
     }
 
     private fun registerTlsListeners(commsClient: Packets.CommunicationClient, system: TlsCommunicationSystem) {
@@ -331,7 +332,4 @@ object Main : ApplicationListener {
             }
         }
     }
-
-    /** Run when the object is disposed. */
-    override fun dispose() {}
 }

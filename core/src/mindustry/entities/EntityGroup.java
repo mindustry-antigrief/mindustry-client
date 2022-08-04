@@ -5,7 +5,6 @@ import arc.func.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.*;
 import mindustry.gen.*;
 
 import java.util.*;
@@ -22,7 +21,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
     private final Rect viewport = new Rect();
     private final Rect intersectRect = new Rect();
     private IntMap<T> map;
-    private QuadTreeMk2 tree;
+    private QuadTree tree;
     private boolean clearing;
 
     private int index;
@@ -31,16 +30,33 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
         return lastId++;
     }
 
+    /** Makes sure the next ID counter is higher than this number, so future entities cannot possibly use this ID. */
+    public static void checkNextId(int id){
+        lastId = Math.max(lastId, id + 1);
+    }
+
     public EntityGroup(Class<T> type, boolean spatial, boolean mapping){
         array = new Seq<>(false, 32, type);
 
         if(spatial){
-            tree = new QuadTreeMk2<>(new Rect(0, 0, 0, 0));
+            tree = new QuadTree<>(new Rect(0, 0, 0, 0));
         }
 
         if(mapping){
             map = new IntMap<>();
         }
+    }
+
+    /** @return entities with colliding IDs, or an empty array. */
+    public Seq<T> checkIDCollisions(){
+        Seq<T> out = new Seq<>();
+        IntSet ints = new IntSet();
+        each(u -> {
+            if(!ints.add(u.id())){
+                out.add(u);
+            }
+        });
+        return out;
     }
 
     public void sort(Comparator<? super T> comp){
@@ -81,12 +97,13 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
     public void draw(Cons<T> cons){
         Core.camera.bounds(viewport);
 
-        each(e -> {
-            Drawc draw = (Drawc)e;
-            if(viewport.overlaps(draw.x() - draw.clipSize()/2f, draw.y() - draw.clipSize()/2f, draw.clipSize(), draw.clipSize())){
-                cons.get(e);
+        for(index = 0; index < array.size; index++){
+            Drawc draw = (Drawc)array.items[index];
+            float clip = draw.clipSize();
+            if(viewport.overlaps(draw.x() - clip/2f, draw.y() - clip/2f, clip, clip)){
+                cons.get((T)draw);
             }
-        });
+        }
     }
 
     public boolean useTree(){
@@ -125,7 +142,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
         return intersectArray;
     }
 
-    public QuadTreeMk2 tree(){
+    public QuadTree tree(){
         if(tree == null) throw new RuntimeException("This group does not support quadtrees! Enable quadtrees when creating it.");
         return tree;
     }
@@ -133,7 +150,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
     /** Resizes the internal quadtree, if it is enabled.*/
     public void resize(float x, float y, float w, float h){
         if(tree != null){
-            tree = new QuadTreeMk2<>(new Rect(x, y, w, h));
+            tree = new QuadTree<>(new Rect(x, y, w, h));
         }
     }
 

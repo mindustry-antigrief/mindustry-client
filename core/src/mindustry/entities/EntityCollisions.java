@@ -4,6 +4,7 @@ import arc.func.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
+import arc.util.*;
 import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.gen.*;
@@ -12,9 +13,7 @@ import mindustry.world.*;
 import static mindustry.Vars.*;
 
 public class EntityCollisions{
-    //range for tile collision scanning
-    private static final int r = 1;
-    //move in 1-unit chunks
+    //move in 1-unit chunks (can this be made more efficient?)
     private static final float seg = 1f;
 
     //tile collisions
@@ -43,10 +42,12 @@ public class EntityCollisions{
         if(Math.abs(deltax) < 0.0001f & Math.abs(deltay) < 0.0001f) return;
 
         boolean movedx = false;
+        entity.hitboxTile(r1);
+        int r = Math.max(Math.round(r1.width / tilesize), 1);
 
         while(Math.abs(deltax) > 0 || !movedx){
             movedx = true;
-            moveDelta(entity, Math.min(Math.abs(deltax), seg) * Mathf.sign(deltax), 0, true, solidCheck);
+            moveDelta(entity, Math.min(Math.abs(deltax), seg) * Mathf.sign(deltax), 0, r, true, solidCheck);
 
             if(Math.abs(deltax) >= seg){
                 deltax -= seg * Mathf.sign(deltax);
@@ -59,7 +60,7 @@ public class EntityCollisions{
 
         while(Math.abs(deltay) > 0 || !movedy){
             movedy = true;
-            moveDelta(entity, 0, Math.min(Math.abs(deltay), seg) * Mathf.sign(deltay), false, solidCheck);
+            moveDelta(entity, 0, Math.min(Math.abs(deltay), seg) * Mathf.sign(deltay), r, false, solidCheck);
 
             if(Math.abs(deltay) >= seg){
                 deltay -= seg * Mathf.sign(deltay);
@@ -69,7 +70,7 @@ public class EntityCollisions{
         }
     }
 
-    public void moveDelta(Hitboxc entity, float deltax, float deltay, boolean x, SolidPred solidCheck){
+    public void moveDelta(Hitboxc entity, float deltax, float deltay, int r, boolean x, SolidPred solidCheck){
         entity.hitboxTile(r1);
         entity.hitboxTile(r2);
         r1.x += deltax;
@@ -95,9 +96,11 @@ public class EntityCollisions{
         entity.trns(r1.x - r2.x, r1.y - r2.y);
     }
 
-    public boolean overlapsTile(Rect rect){
+    public boolean overlapsTile(Rect rect, @Nullable SolidPred solidChecker){
+        if(solidChecker == null) return false;
+
         rect.getCenter(vector);
-        int r = 1;
+        int r = Math.max(Math.round(r1.width / tilesize), 1);
 
         //assumes tiles are centered
         int tilex = Math.round(vector.x / tilesize);
@@ -106,10 +109,9 @@ public class EntityCollisions{
         for(int dx = -r; dx <= r; dx++){
             for(int dy = -r; dy <= r; dy++){
                 int wx = dx + tilex, wy = dy + tiley;
-                if(solid(wx, wy)){
-                    r2.setSize(tilesize).setCenter(wx * tilesize, wy * tilesize);
+                if(solidChecker.solid(wx, wy)){
 
-                    if(r2.overlaps(rect)){
+                    if(r2.setCentered(wx * tilesize, wy * tilesize, tilesize).overlaps(rect)){
                         return true;
                     }
                 }
@@ -120,7 +122,7 @@ public class EntityCollisions{
 
     @SuppressWarnings("unchecked")
     public <T extends Hitboxc> void updatePhysics(EntityGroup<T> group){
-        QuadTreeMk2 tree = group.tree();
+        var tree = group.tree();
         tree.clear();
 
         group.each(s -> {
@@ -158,7 +160,7 @@ public class EntityCollisions{
         float vbx = b.getX() - b.lastX();
         float vby = b.getY() - b.lastY();
 
-        if(a != b && a.collides(b)){
+        if(a != b && a.collides(b) && b.collides(a)){
             l1.set(a.getX(), a.getY());
             boolean collide = r1.overlaps(r2) || collide(r1.x, r1.y, r1.width, r1.height, vax, vay,
             r2.x, r2.y, r2.width, r2.height, vbx, vby, l1);

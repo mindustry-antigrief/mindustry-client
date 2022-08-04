@@ -34,7 +34,7 @@ public class CommandCompletion implements Autocompleter {
 
     @Override
     public Seq<Autocompleteable> closest(String input) {
-        return commands.sort(item -> item.matches(input)).map(item -> item);
+        return commands.sort(item -> item.matches(input)).as();
     }
 
     private static class CommandCompletable implements Autocompleteable {
