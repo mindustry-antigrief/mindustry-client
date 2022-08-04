@@ -358,7 +358,7 @@ public class Block extends UnlockableContent implements Senseable{
     public @Load("@-team") TextureRegion teamRegion;
     public TextureRegion[] teamRegions, variantRegions, variantShadowRegions;
 
-    protected static final Seq<Tile> tempTiles = new Seq<>();
+    public static final Seq<Tile> tempTiles = new Seq<>();
     protected static final Seq<Building> tempBuilds = new Seq<>();
 
     /** Dump timer ID.*/

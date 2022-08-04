@@ -1186,6 +1186,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         for(BuildPlan req : plans){
             if (req.block == null) continue;
 
+            var tempTiles = Block.tempTiles;
             if (req.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed.
                     && req.tile() != null && req.tile().getLinkedTilesAs(req.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
                 var first = tempTiles.first();
