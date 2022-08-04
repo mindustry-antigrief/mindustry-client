@@ -32,7 +32,7 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path()
                 val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
                 if (it.player != assisting || ratelimitRemaining <= 1) return@on
                 ratelimitRemaining--
-                Call.takeItems(it.tile, it.item, it.amount, player.unit())
+                Call.requestItem(player, it.tile, it.item, it.amount)
             }
         }
     }
