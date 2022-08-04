@@ -4,6 +4,7 @@ import arc.*;
 import arc.graphics.g2d.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
+import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.*;
@@ -53,6 +54,13 @@ public class CustomGameDialog extends BaseDialog{
         maps.defaults().width(170).fillY().top().pad(4f);
         int maxwidth = Math.max((int)(Core.graphics.getWidth() / Scl.scl(210)), 1);
         float images = 146f;
+
+        ImageButtonStyle style = new ImageButtonStyle(){{
+            up = Styles.grayPanel;
+            down = Styles.flatOver;
+            over = Styles.flatOver;
+            disabled = Styles.none;
+        }};
 
         int i = 0;
 
