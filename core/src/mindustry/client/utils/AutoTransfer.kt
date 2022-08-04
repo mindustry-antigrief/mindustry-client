@@ -25,7 +25,7 @@ class AutoTransfer {
         var minCoreItems = 100
         var delay = 60F
         var debug = false
-        var minTransferItems = 7 
+        var minTransferItems = 7
     }
 
     private val dest = Seq<Building>()
@@ -88,7 +88,7 @@ class AutoTransfer {
                         }
                     }
                     is ConsumeItemFilter -> {
-                        content.items().forEach { i ->
+                        content.items().each { i ->
                             val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
                             if (acceptedC > 0 && it.block.consumesItem(i) && core.items.has(i, minItems)) {
                                 val turretC = (it.block as? ItemTurret)?.ammoTypes?.get(i)?.damage?.toInt() ?: 1 // Sort based on damage for turrets
@@ -105,7 +105,7 @@ class AutoTransfer {
                             }
                         }
                     }
-                    else -> throw IllegalArgumentException("This should never happen. Report this.")
+                    else -> throw IllegalStateException("This should never happen. Report this.")
                 }
             }
         }
@@ -122,7 +122,8 @@ class AutoTransfer {
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
                 if (held > 0 && item != player.unit().stack.item) Call.transferInventory(player, core)
-                else Call.takeItems(core, item, Int.MAX_VALUE, player.unit())
+                else if (held == 0 || item != player.unit().stack.item || counts[maxID] > held) Call.takeItems(core, item, Int.MAX_VALUE, player.unit())
+                else ratelimitRemaining++ // Yes im this lazy
                 item = null
                 ratelimitRemaining--
             }

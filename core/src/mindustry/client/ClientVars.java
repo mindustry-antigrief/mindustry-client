@@ -10,6 +10,8 @@ import kotlin.*;
 import mindustry.gen.Player;
 import mindustry.net.*;
 import mindustry.world.blocks.defense.*;
+import mindustry.content.*;
+import mindustry.world.*;
 import mindustry.world.modules.*;
 import org.jetbrains.annotations.*;
 
@@ -24,6 +26,7 @@ public class ClientVars {
     public static float jpegQuality = Core.settings.getFloat("commpicquality", 0.5f);
     public static boolean benchmarkNav = false;
     public final static Rect cameraBounds = new Rect();
+    public static final Block[] noInteractTurrets = {Blocks.foreshadow, Blocks.ripple, Blocks.arc};
 
     // Core Item Display
     public static ItemModule coreItems;

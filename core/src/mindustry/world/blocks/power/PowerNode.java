@@ -11,8 +11,8 @@ import arc.util.*;
 import arc.util.Nullable;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.*;
-import mindustry.client.antigrief.*;
+import mindustry.client.ClientVars;
+import mindustry.client.antigrief.ConfigRequest;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
@@ -376,7 +376,7 @@ public class PowerNode extends PowerBlock{
         });
     }
 
-    public static class PowerNodeConfigReq extends ConfigRequest{
+    public static class PowerNodeConfigReq extends ConfigRequest {
 
         private final boolean connect;
         private final int value;
@@ -554,16 +554,15 @@ public class PowerNode extends PowerBlock{
             if(this == other){ // Double tap
                 if(other.power.links.size == 0 || Core.input.shift()){ // Find and add possible links (shift to toggle modes)
                     int[] total = {0};
+                    Point2[] links = new Point2[maxNodes];
                     getPotentialLinks(tile, team, link -> {
-                        if(!insulated(this, link) && total[0]++ < maxNodes){
-                            ClientVars.configs.add(new ConfigRequest(this, link.pos())); // FINISHME: V7 release fixes multi point configs, use those instead
+                        if(!insulated(this, link) && total[0] < maxNodes){
+                            links[total[0]++] = new Point2(link.tileX() - tile.x, link.tileY() - tile.y);
                         }
                     });
+                    configure(Arrays.copyOfRange(links, 0, total[0]));
                 }else{ // Clear all links
-                    for(int link = power.links.size - 1; link >= 0; link--){
-                        var pos = power.links.get(link);
-                        ClientVars.configs.add(new ConfigRequest(this, pos)); // FINISHME: V7 release fixes multi point configs, use those instead
-                    }
+                    configure(new Point2[0]);
                 }
                 // deselect();      // Dont deselect
                 return false;
