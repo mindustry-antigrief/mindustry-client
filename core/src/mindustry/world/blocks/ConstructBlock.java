@@ -11,6 +11,7 @@ import arc.struct.*;
 import arc.util.Timer;
 import arc.util.*;
 import arc.util.io.*;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.ui.*;
@@ -20,7 +21,6 @@ import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
-import mindustry.gen.Unit;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
@@ -52,9 +52,10 @@ public class ConstructBlock extends Block{
         super("build" + size);
         this.size = size;
         update = true;
-        health = 20;
+        health = 10;
         consumesTap = true;
         solidifes = true;
+        generateIcons = false;
         inEditor = false;
         consBlocks[size - 1] = this;
         sync = true;
@@ -68,14 +69,14 @@ public class ConstructBlock extends Block{
 
     @Remote(called = Loc.server)
     public static void deconstructFinish(Tile tile, Block block, Unit builder){
-        if (tile != null && block != null) {
-            tile.getLinkedTiles(t -> Events.fire(new BlockBuildEventTile(t, tile.team(), builder, block, Blocks.air, tile.build == null ? null : tile.build.config(), null)));
-            Team team = tile.team();
-            Events.fire(new BlockBuildEndEvent(tile, builder, team, true, tile.build == null ? null : tile.build.config(), tile.block()));
-            tile.remove();
+        Team team = tile.team();
+        tile.getLinkedTiles(t -> Events.fire(new BlockBuildEventTile(t, team, builder, block, Blocks.air, tile.build == null ? null : tile.build.config(), null))); // This line is a client thing FINISHME: Move this line into its own method to make merges less painful
+        if(!headless && fogControl.isVisibleTile(Vars.player.team(), tile.x, tile.y)){
             block.breakEffect.at(tile.drawx(), tile.drawy(), block.size, block.mapColor);
-            if (shouldPlay()) block.breakSound.at(tile, block.breakPitchChange ? calcPitch(false) : 1f);
+            if(shouldPlay()) block.breakSound.at(tile, block.breakPitchChange ? calcPitch(false) : 1f);
         }
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, true, tile.build == null ? null : tile.build.config(), tile.block())); // FINISHME: This overrides the vanilla class; likely to cause issues w/ mods | Vanilla: Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null));
+        tile.remove();
     }
 
     /** Send a warning in chat when these blocks are broken/picked up/built over as they typically shouldn't be touched. */
@@ -95,7 +96,6 @@ public class ConstructBlock extends Block{
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild co ? co.prevBuild : null;
         Block prevBlock = tile.block();
-        Object prevConf = tile.build == null ? null : tile.build.config();
 
         if (block == null) {
             Events.fire(new BlockBreakEvent(tile, team, builder, tile.block(), tile.build == null ? null : tile.build.config(), rotation));
@@ -119,9 +119,7 @@ public class ConstructBlock extends Block{
             }
 
             //make sure block indexer knows it's damaged
-            if(tile.build.damaged()){
-                indexer.notifyBuildDamaged(tile.build);
-            }
+            indexer.notifyHealthChanged(tile.build);
         }
 
         //last builder was this local client player, call placed()
@@ -129,16 +127,18 @@ public class ConstructBlock extends Block{
             tile.build.playerPlaced(config);
         }
 
-        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
+        if(fogControl.isVisibleTile(team, tile.x, tile.y)){
+            Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
+            if(shouldPlay()) block.placeSound.at(tile, block.placePitchChange ? calcPitch(true) : 1f);
+        }
 
-        if (tile.build instanceof ConstructBuild b) { // FINISHME: Does this even work?
-            for (var item : b.prevBuild != null ? b.prevBuild : new Seq<Building>()) {
+        if(tile.build instanceof ConstructBuild b && b.prevBuild != null){ // FINISHME: Does this even work?
+            for(var item : b.prevBuild){
                 Events.fire(new BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
             }
         }
 
-        Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
-        if(shouldPlay()) block.placeSound.at(tile, block.placePitchChange ? calcPitch(true) : 1f);
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock)); // FINISHME: Yet another case of a changed vanilla event. Vanilla: Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config));
     }
 
     static boolean shouldPlay(){
@@ -178,7 +178,7 @@ public class ConstructBlock extends Block{
     }
 
     private static Seq<WarnBlock> warnBlocks;
-    private static class WarnBlock {
+    private static class WarnBlock { // FINISHME: Enums exist.
         final Block block;
         final int warnDistance;
         final int soundDistance;
@@ -287,14 +287,17 @@ public class ConstructBlock extends Block{
 
             Draw.draw(Layer.blockBuilding, () -> {
                 Draw.color(Pal.accent, Pal.remove, constructColor);
+                boolean noOverrides = current.regionRotated1 == -1 && current.regionRotated2 == -1;
+                int i = 0;
 
                 for(TextureRegion region : current.getGeneratedIcons()){
                     Shaders.blockbuild.region = region;
                     Shaders.blockbuild.time = Time.time;
                     Shaders.blockbuild.progress = progress;
 
-                    Draw.rect(region, x, y, current.rotate ? rotdeg() : 0);
+                    Draw.rect(region, x, y, current.rotate && (noOverrides || current.regionRotated2 == i || current.regionRotated1 == i) ? rotdeg() : 0);
                     Draw.flush();
+                    i ++;
                 }
 
                 Draw.color();
@@ -432,6 +435,7 @@ public class ConstructBlock extends Block{
             this.buildCost = block.buildCost * state.rules.buildCostMultiplier;
             this.accumulator = new float[block.requirements.length];
             this.totalAccumulator = new float[block.requirements.length];
+            pathfinder.updateTile(tile);
         }
 
         public void setDeconstruct(Block previous){
@@ -445,6 +449,7 @@ public class ConstructBlock extends Block{
             this.buildCost = previous.buildCost * state.rules.buildCostMultiplier;
             this.accumulator = new float[previous.requirements.length];
             this.totalAccumulator = new float[previous.requirements.length];
+            pathfinder.updateTile(tile);
         }
 
         @Override
@@ -491,12 +496,12 @@ public class ConstructBlock extends Block{
             buildCost = current.buildCost * state.rules.buildCostMultiplier;
         }
 
-        public void blockWarning(Object config) { // FINISHME: Account for non player building stuff
+        public void blockWarning(Object config) { // FINISHME: Account for non player building stuff. This method is also horrid
             if (!wasConstructing || closestCore() == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer()) return;
             var wb = warnBlocks.find(b -> b.block == current);
             if (wb != null) {
                 lastBuilder.drawBuildPlans(); // Draw their build plans FINISHME: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
-                AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE);
+                AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE); // FINISHME: Do this from the edges instead, checking all blocks is more expensive than it needs to be
                 closestCore().proximity.each(e -> e instanceof StorageBlock.StorageBuild, block -> block.tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get()))))); // This stupidity finds the smallest distance between vaults on the closest core and the block being built
                 closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get())))); // This stupidity checks the distance to the core as well just in case it ends up being shorter
 
@@ -507,7 +512,7 @@ public class ConstructBlock extends Block{
                 }
 
                 if (wb.warnDistance == 101 || distance.get() <= wb.warnDistance) {
-                    String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.playerNonNull().name), current.localizedName, tile.x, tile.y, distance.get());
+                    String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.getPlayer().name), current.localizedName, tile.x, tile.y, distance.get());
                     String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
                     if (toast == null || toast.parent == null) {
                         toast = new Toast(2f, 0f);

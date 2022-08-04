@@ -14,7 +14,12 @@ object ProcessorPatcher {
 
     private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
-    fun countProcessors(builds: Seq<Building>) = builds.count { it.team == player.team() && it is LogicBuild && attemMatcher.containsMatchIn(it.code) }
+    fun countProcessors(builds: Iterable<LogicBuild>): Int {
+        Time.mark()
+        val count = builds.count { attemMatcher.containsMatchIn(it.code) }
+        Log.debug("Counted $count/${builds.count()} attems in ${Time.elapsed()}ms")
+        return count
+    }
 
     fun patch(code: String): String {
         val result = attemMatcher.find(code) ?: return code

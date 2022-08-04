@@ -1,7 +1,6 @@
 package mindustry.client.utils
 
 import arc.util.*
-import arc.util.async.*
 import org.apache.commons.net.ntp.*
 import java.net.*
 import java.time.*

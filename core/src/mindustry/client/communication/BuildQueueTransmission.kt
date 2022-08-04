@@ -18,14 +18,14 @@ class BuildQueueTransmission : Transmission {
     constructor(input: ByteArray, id: Long, @Suppress("UNUSED_PARAMETER") senderID: Int) {
         this.id = id
         val reads = Reads.get(DataInputStream(input.inputStream()))
-        plans = TypeIO.readRequests(reads) ?: throw IllegalArgumentException("Invalid request array!")
+        plans = TypeIO.readPlans(reads) ?: throw IllegalArgumentException("Invalid request array!")
         reads.close()
     }
 
     override fun serialize(): ByteArray {
         val stream = ByteArrayOutputStream()
         val writes = Writes(DataOutputStream(stream))
-        TypeIO.writeRequests(writes, plans)
+        TypeIO.writePlans(writes, plans)
         val array = stream.toByteArray()
         writes.close()
         return array

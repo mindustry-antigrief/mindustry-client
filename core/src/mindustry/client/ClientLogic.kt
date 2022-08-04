@@ -51,8 +51,6 @@ class ClientLogic {
                 processorConfigs.clear()
             }
             lastJoinTime = Time.millis()
-            PowerInfo.initialize()
-            Navigation.obstacles.clear()
             configs.clear()
             Vars.control.input.lastVirusWarning = null
             dispatchingBuildPlans = false
@@ -70,7 +68,6 @@ class ClientLogic {
             if (Core.settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
             Core.settings.put("changeHash", changeHash)
 
-            if (Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug // Set log level to debug if the setting is checked
             if (Core.settings.getBool("discordrpc")) Vars.platform.startDiscord()
             if (Core.settings.getBool("mobileui")) Vars.mobile = !Vars.mobile
             if (Core.settings.getBool("viruswarnings")) LExecutor.virusWarnings = true
@@ -91,15 +88,15 @@ class ClientLogic {
             Core.settings.remove("signmessages") // same as above FINISHME: Remove this at some point
 
             if (OS.hasProp("policone")) { // People spam these and its annoying. add some argument to make these harder to find
-                Client.register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
+                register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
                     sendMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
                 }
 
-                Client.register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
+                register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
                     sendMessage("\"Silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance.\" They are not the same, please get it right!")
                 }
 
-                Client.register("hh [h]", "!") { args, _ ->
+                register("hh [h]", "!") { args, _ ->
                     if (!Vars.net.client()) return@register
                     val u = if (args.any()) Vars.content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) } else Vars.player.unit().type
                     val current = (Vars.ui.join.lastHost?.modeName?.first() ?: Vars.ui.join.lastHost?.mode?.name?.get(0) ?: 'f').lowercaseChar()
@@ -110,7 +107,7 @@ class ClientLogic {
 
             val encoded = Main.keyStorage.cert()?.encoded
             if (encoded != null && Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
-                Client.register("update <name/id...>") { args, _ ->
+                register("update <name/id...>") { args, _ ->
                     val name = args.joinToString(" ")
                     val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { BiasedLevenshtein.biasedLevenshteinInsensitive(Strings.stripColors(it.name), name) }!!
                     Main.send(CommandTransmission(CommandTransmission.Commands.UPDATE, Main.keyStorage.cert() ?: return@register, player))
@@ -143,7 +140,7 @@ class ClientLogic {
         }
 
         Events.on(GameOverEventClient::class.java) {
-            if (!Navigation.isFollowing() || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
+            if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
         }
     }
 }

@@ -3,7 +3,6 @@ package mindustry.ui.fragments;
 import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.input.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
@@ -21,14 +20,13 @@ import mindustry.ui.*;
 
 import static mindustry.Vars.*;
 
-public class PlayerListFragment extends Fragment{
+public class PlayerListFragment{
     public Table content = new Table().marginRight(13f).marginLeft(13f);
     private boolean visible = false;
     private final Interval timer = new Interval();
     private TextField search;
     private final Seq<Player> players = new Seq<>();
 
-    @Override
     public void build(Group parent){
         content.name = "players";
 
@@ -41,12 +39,8 @@ public class PlayerListFragment extends Fragment{
                     return;
                 }
 
-                if(visible && timer.get(5) && !Core.input.keyDown(KeyCode.mouseLeft) && !(Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof Image || Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof ImageButton)){
+                if(visible && timer.get(60) /*&& !Core.input.keyDown(KeyCode.mouseLeft) && !(Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof Image || Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof ImageButton)*/){
                     rebuild();
-                    content.pack();
-                    content.act(Core.graphics.getDeltaTime());
-                    //hacky
-                    Core.scene.act(0f);
                 }
             });
 

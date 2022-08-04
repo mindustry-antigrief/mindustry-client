@@ -7,13 +7,11 @@ import arc.math.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
-import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
@@ -36,7 +34,7 @@ public class TractorBeamTurret extends BaseTurret{
     public Sound shootSound = Sounds.tractorbeam;
     public float shootSoundVolume = 0.9f;
 
-    public @Load("block-@size") TextureRegion baseRegion;
+    public @Load(value = "@-base", fallback = "block-@size") TextureRegion baseRegion;
     public @Load("@-laser") TextureRegion laser;
     public @Load(value = "@-laser-start", fallback = "@-laser-end") TextureRegion laserStart;
     public @Load("@-laser-end") TextureRegion laserEnd;
@@ -46,9 +44,7 @@ public class TractorBeamTurret extends BaseTurret{
 
         rotateSpeed = 10f;
         coolantMultiplier = 1f;
-
-        //disabled due to version mismatch problems
-        acceptCoolant = false;
+        envEnabled |= Env.space;
     }
 
     @Override
@@ -62,43 +58,25 @@ public class TractorBeamTurret extends BaseTurret{
 
         stats.add(Stat.targetsAir, targetAir);
         stats.add(Stat.targetsGround, targetGround);
-        stats.add(Stat.damage, damage * 60f, StatUnit.perSecond);
+        if(damage > 0) stats.add(Stat.damage, damage * 60f, StatUnit.perSecond);
     }
 
     @Override
     public void init(){
         super.init();
 
-        clipSize = Math.max(clipSize, (range + tilesize) * 2);
+        updateClipRadius(range + tilesize);
     }
 
     public class TractorBeamBuild extends BaseTurretBuild{
         public @Nullable Unit target;
         public float lastX, lastY, strength;
         public boolean any;
-        public float coolant = 1f;
-
-        @Override
-        public void created() {
-            pathfindingEntity.targetGround = targetGround;
-        }
-
-        @Override
-        public void remove() {
-            Navigation.obstacles.remove(pathfindingEntity);
-            super.remove();
-        }
+        public float coolantMultiplier = 1f;
 
         @Override
         public void updateTile(){
-            if (player != null && player.unit() != null && team != player.team()) {
-                Navigation.obstacles.add(pathfindingEntity);
-                pathfindingEntity.canHitPlayer = player.unit().isFlying() ? targetAir : targetGround;
-                pathfindingEntity.canShoot = cons.valid();
-                pathfindingEntity.x = x;
-                pathfindingEntity.y = y;
-                pathfindingEntity.team = team;
-            }
+            float eff = efficiency * coolantMultiplier, edelta = eff * delta();
 
             //retarget
             if(timer(timerTarget, retargetTime)){
@@ -106,8 +84,8 @@ public class TractorBeamTurret extends BaseTurret{
             }
 
             //consume coolant
-            if(target != null && acceptCoolant){
-                float maxUsed = consumes.<ConsumeLiquidBase>get(ConsumeType.liquid).amount;
+            if(target != null && coolant != null){
+                float maxUsed = coolant.amount;
 
                 Liquid liquid = liquids.current();
 
@@ -119,19 +97,19 @@ public class TractorBeamTurret extends BaseTurret{
                     coolEffect.at(x + Mathf.range(size * tilesize / 2f), y + Mathf.range(size * tilesize / 2f));
                 }
 
-                coolant = 1f + (used * liquid.heatCapacity * coolantMultiplier);
+                coolantMultiplier = 1f + (used * liquid.heatCapacity * coolantMultiplier);
             }
 
             any = false;
 
             //look at target
-            if(target != null && target.within(this, range + target.hitSize/2f) && target.team() != team && target.checkTarget(targetAir, targetGround) && efficiency() > 0.02f){
+            if(target != null && target.within(this, range + target.hitSize/2f) && target.team() != team && target.checkTarget(targetAir, targetGround) && efficiency > 0.02f){
                 if(!headless){
                     control.sound.loop(shootSound, this, shootSoundVolume);
                 }
 
                 float dest = angleTo(target);
-                rotation = Angles.moveToward(rotation, dest, rotateSpeed * edelta());
+                rotation = Angles.moveToward(rotation, dest, rotateSpeed * edelta);
                 lastX = target.x;
                 lastY = target.y;
                 strength = Mathf.lerpDelta(strength, 1f, 0.1f);
@@ -139,7 +117,7 @@ public class TractorBeamTurret extends BaseTurret{
                 //shoot when possible
                 if(Angles.within(rotation, dest, shootCone)){
                     if(damage > 0){
-                        target.damageContinuous(damage * efficiency());
+                        target.damageContinuous(damage * eff);
                     }
 
                     if(status != StatusEffects.none){
@@ -147,7 +125,7 @@ public class TractorBeamTurret extends BaseTurret{
                     }
 
                     any = true;
-                    target.impulseNet(Tmp.v1.set(this).sub(target).limit((force + (1f - target.dst(this) / range) * scaledForce) * edelta() * timeScale));
+                    target.impulseNet(Tmp.v1.set(this).sub(target).limit((force + (1f - target.dst(this) / range) * scaledForce) * edelta));
                 }
             }else{
                 strength = Mathf.lerpDelta(strength, 0, 0.1f);
@@ -155,8 +133,14 @@ public class TractorBeamTurret extends BaseTurret{
         }
 
         @Override
-        public float efficiency(){
-            return super.efficiency() * coolant;
+        public boolean shouldConsume(){
+            return super.shouldConsume() && target != null;
+        }
+
+        @Override
+        public float estimateDps(){
+            if(!any || damage <= 0) return 0f;
+            return damage * 60f * efficiency * coolantMultiplier;
         }
 
         @Override
@@ -172,9 +156,9 @@ public class TractorBeamTurret extends BaseTurret{
 
                 Draw.mixcol(laserColor, Mathf.absin(4f, 0.6f));
 
-                Drawf.laser(team, laser, laserStart, laserEnd,
+                Drawf.laser(laser, laserStart, laserEnd,
                 x + Angles.trnsx(ang, shootLength), y + Angles.trnsy(ang, shootLength),
-                lastX, lastY, strength * efficiency() * laserWidth);
+                lastX, lastY, strength * efficiency * laserWidth);
 
                 Draw.mixcol();
             }
@@ -192,6 +176,16 @@ public class TractorBeamTurret extends BaseTurret{
             super.read(read, revision);
 
             rotation = read.f();
+        }
+
+        @Override
+        public boolean targetGround(){ // Client stuff
+            return targetGround;
+        }
+
+        @Override
+        public boolean targetAir(){ // Client stuff
+            return targetAir;
         }
     }
 }

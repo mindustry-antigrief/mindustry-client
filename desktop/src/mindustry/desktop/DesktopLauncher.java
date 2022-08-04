@@ -47,31 +47,11 @@ public class DesktopLauncher extends ClientLauncher{
 
             Vars.loadLogger();
             Version.init();
-            if (OS.hasProp("git")) { // Run with -Dgit and a git repo initialized in the data dir to sync saves between computers
-                File saves = new File(OS.hasEnv("MINDUSTRY_DATA_DIR") ? OS.env("MINDUSTRY_DATA_DIR") : Version.modifier.contains("steam") ? "saves" : OS.getAppDataDirectoryString("Mindustry"));
-                ProcessBuilder pb = new ProcessBuilder("git", "pull").directory(saves).inheritIO();
-                Log.warn("&rBegin git sync (download)");
-                pb.start().waitFor();
-                Log.warn("&rEnd git sync (download)&fr");
-                Version.init(); // reinit in case of successful pull and version change
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> { // push on game close
-                    try {
-                        Log.warn("&rBegin git sync (upload)");
-                        pb.command("git", "add", "maps", "saves", "schematics", "settings.bin", "mods", "aliases", "keys", ":!*.DS_Store").start().waitFor();
-                        pb.command("git", "commit", "-m", "Upload saves from " + OS.username + " @ " + OS.osName + " x" + OS.osArchBits + " " + OS.osArch).start().waitFor();
-                        pb.command("git", "push").start().waitFor();
-                        Log.warn("&rEnd git sync (upload)&fr");
-                    } catch (InterruptedException | IOException e) {
-                        e.printStackTrace();
-                    }
-                }, "Git Synchronization"));
-            }
 
-            Events.on(EventType.ClientLoadEvent.class, e -> {
-                if (Core.app instanceof SdlApplication) SDL.SDL_SetWindowTitle(((SdlApplication) Core.app).getWindow(), getWindowTitle());
-            });
+            Events.on(EventType.ClientLoadEvent.class, e -> Core.graphics.setTitle(getWindowTitle()));
 
             if (OS.isMac && !Structs.contains(arg, "-firstThread")) { //restart with -XstartOnFirstThread on mac, doesn't work without it
+                Log.warn("Performing mac restart");
                 Core.files = new SdlFiles(); //this is null otherwise
                 javaPath = //this is null otherwise
                     new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
@@ -97,9 +77,12 @@ public class DesktopLauncher extends ClientLauncher{
                 width = 900;
                 height = 700;
                 samples = aaSamples[0];
-                //enable gl3 with command-line argument
+                //enable gl3 with command-line argument (slower performance, apparently)
                 if(Structs.contains(arg, "-gl3")){
                     gl30 = true;
+                }
+                if(Structs.contains(arg, "-antialias")){
+                    samples = 16;
                 }
                 if(Structs.contains(arg, "-debug")){
                     Log.level = LogLevel.debug;
@@ -132,7 +115,7 @@ public class DesktopLauncher extends ClientLauncher{
     public void startDiscord() {
         if(useDiscord){
             try{
-                new FutureTask<Void>(() -> {
+                Log.warn(new FutureTask<Void>(() -> {
                     try{
                         DiscordRPC.connect(discordID);
                         Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::close));
@@ -144,7 +127,7 @@ public class DesktopLauncher extends ClientLauncher{
                         useDiscord = false;
                         Log.warn("Failed to initialize Discord RPC - you are likely using a JVM <16.");
                     }
-                }, null).get(500, TimeUnit.MILLISECONDS);
+                }, null).get(500, TimeUnit.MILLISECONDS).toString());
             } catch (ExecutionException | InterruptedException | TimeoutException ignored) {}
         }
     }
@@ -436,12 +419,5 @@ public class DesktopLauncher extends ClientLauncher{
 
     private static void message(String message){
         SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MESSAGEBOX_ERROR, "oh no", message);
-    }
-
-    private boolean validAddress(byte[] bytes){
-        if(bytes == null) return false;
-        byte[] result = new byte[8];
-        System.arraycopy(bytes, 0, result, 0, bytes.length);
-        return !new String(Base64Coder.encode(result)).equals("AAAAAAAAAOA=") && !new String(Base64Coder.encode(result)).equals("AAAAAAAAAAA=");
     }
 }

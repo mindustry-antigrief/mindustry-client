@@ -82,7 +82,7 @@ public class UnAssistPath extends Path {
         if(follow) waypoint.set(target.x, target.y, 0f, 0f).run(); // FINISHME: Navigation
         else { // FINISHME: This is horrendous, it should really just enable the default movement instead
             Unit u = Vars.player.unit();
-            boolean aimCursor = u.type.omniMovement && Vars.player.shooting && u.type.hasWeapons() && u.type.faceTarget && !(u instanceof Mechc && u.isFlying()) && u.type.rotateShooting;
+            boolean aimCursor = u.type.omniMovement && Vars.player.shooting && u.type.hasWeapons() && u.type.faceTarget && !(u instanceof Mechc && u.isFlying());
             if (aimCursor) u.lookAt(Angles.mouseAngle(u.x, u.y));
             else u.lookAt(u.prefRotation());
             u.moveAt(Vars.control.input instanceof DesktopInput in ? in.movement : ((MobileInput)Vars.control.input).movement);

@@ -1,12 +1,11 @@
 package mindustry.game;
 
 import arc.*;
-import arc.assets.*;
 import arc.files.*;
 import arc.graphics.*;
+import arc.graphics.g2d.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.async.*;
 import mindustry.*;
 import mindustry.core.GameState.*;
 import mindustry.game.EventType.*;
@@ -18,14 +17,16 @@ import mindustry.type.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
 
 public class Saves{
-    Seq<SaveSlot> saves = new Seq<>();
+    private static final DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance();
+
+    final Seq<SaveSlot> saves = new Seq<>(0);
     @Nullable SaveSlot current;
     private @Nullable SaveSlot lastSectorSave;
-    AsyncExecutor previewExecutor = new AsyncExecutor(1);
     private boolean saving;
     private float time;
 
@@ -33,8 +34,6 @@ public class Saves{
     private long lastTimestamp;
 
     public Saves(){
-        Core.assets.setLoader(Texture.class, ".spreview", new SavePreviewLoader());
-
         Events.on(StateChangeEvent.class, event -> {
             if(event.to == State.menu){
                 totalPlaytime = 0;
@@ -44,30 +43,35 @@ public class Saves{
         });
     }
 
+    /** Loads all saves */
     public void load(){
-        saves.clear();
-
-        for(Fi file : saveDirectory.list()){
-            if(!file.name().contains("backup") && SaveIO.isSaveValid(file)){
-                SaveSlot slot = new SaveSlot(file);
-                saves.add(slot);
-                slot.meta = SaveIO.getMeta(file);
-            }
+        var tasks = new Seq<Future<SaveSlot>>();
+        for(Fi file : saveDirectory.findAll(f -> !f.name().contains("backup") && f.extEquals("msav"))){
+            tasks.add(mainExecutor.submit(() -> {
+                try{
+                    var s = new SaveSlot(file, SaveIO.getMeta(file));
+                    //clear saves from build <130 that had the new naval sectors.
+                    if(s.getSector() != null && (s.getSector().id == 108 || s.getSector().id == 216) && s.meta.build <= 130 && s.meta.build > 0){
+                        s.getSector().clearInfo();
+                        s.file.delete();
+                    }
+                    return s;
+                }catch(Throwable e){
+                    Log.err("Failed to load save '" + file.name() + "'", e);
+                    return null;
+                }
+            }));
         }
 
-        //clear saves from build <130 that had the new naval sectors.
-        saves.removeAll(s -> {
-            if(s.getSector() != null && (s.getSector().id == 108 || s.getSector().id == 216) && s.meta.build <= 130 && s.meta.build > 0){
-                s.getSector().clearInfo();
-                s.file.delete();
-                return true;
-            }
-            return false;
-        });
+        for(Future<SaveSlot> task : tasks){
+            var s = Threads.await(task);
+            if(s != null) saves.add(s);
+        }
 
         lastSectorSave = saves.find(s -> s.isSector() && s.getName().equals(Core.settings.getString("last-sector-save", "<none>")));
 
-        //automatically assign sector save slots
+        //automatically (re)assign sector save slots
+        content.planets().each(p -> p.sectors.each(s -> s.save = null)); // FINISHME: This is most likely a horrible idea
         for(SaveSlot slot : saves){
             if(slot.getSector() != null){
                 if(slot.getSector().save != null){
@@ -76,6 +80,12 @@ public class Saves{
                 slot.getSector().save = slot;
             }
         }
+    }
+
+    /** Unload all saves to reclaim resources */
+    public void unload(){
+        saves.each(SaveSlot::unloadTexture);
+        saves.clear().shrink(); // Don't want all of this stuff in memory
     }
 
     public @Nullable SaveSlot getLastSector(){
@@ -172,24 +182,33 @@ public class Saves{
     }
 
     public Seq<SaveSlot> getSaveSlots(){
+        if(saves.isEmpty()) load();
         return saves;
     }
 
+    public int saveCount(){
+        return saveDirectory.findAll(f -> !f.name().contains("backup") && !f.name().endsWith(".vdf")).size;
+    }
+
     public void deleteAll(){
-        for(SaveSlot slot : saves.copy()){
-            if(!slot.isSector()){
-                slot.delete();
-            }
-        }
+        var needsLoad = saves.isEmpty();
+        if(needsLoad) load(); // Need to load them in order to delete them.
+        saves.filter(s -> !s.isSector()).each(SaveSlot::delete); // Delete non sectors
+        if(needsLoad) unload(); // Unload if we just loaded
     }
 
     public class SaveSlot{
         public final Fi file;
-        boolean requestedPreview;
+        private TextureRegion preview;
         public SaveMeta meta;
 
         public SaveSlot(Fi file){
+            this(file, null);
+        }
+
+        public SaveSlot(Fi file, SaveMeta meta){
             this.file = file;
+            this.meta = meta;
         }
 
         public void load() throws SaveException{
@@ -220,29 +239,36 @@ public class Saves{
         }
 
         private void savePreview(){
-            if(Core.assets.isLoaded(loadPreviewFile().path())){
-                Core.assets.unload(loadPreviewFile().path());
-            }
-            previewExecutor.submit(() -> {
+            mainExecutor.submit(() -> {
                 try{
                     previewFile().writePng(renderer.minimap.getPixmap());
-                    requestedPreview = false;
+                    unloadTexture();
                 }catch(Throwable t){
                     Log.err(t);
                 }
             });
         }
 
-        public Texture previewTexture(){
-            if(!previewFile().exists()){
-                return null;
-            }else if(Core.assets.isLoaded(loadPreviewFile().path())){
-                return Core.assets.get(loadPreviewFile().path());
-            }else if(!requestedPreview){
-                Core.assets.load(new AssetDescriptor<>(loadPreviewFile(), Texture.class));
-                requestedPreview = true;
+        /** Asynchronously loads this save's preview on demand */
+        public TextureRegion previewTexture(){
+            if(preview == null){
+                preview = Core.atlas.find("nomap"); //prevents loading twice
+                if(previewFile().exists()){
+                    mainExecutor.execute(() -> {
+                        var data = TextureData.load(previewFile(), false);
+                        if(!data.isPrepared()) data.prepare();
+                        Log.info("Loading @", file.name());
+                        Core.app.post(() -> preview = preview == null ? null : new TextureRegion(new Texture(data))); //don't overwrite cancelled request
+                    });
+                }
             }
-            return null;
+            return preview;
+        }
+
+        public void unloadTexture(){
+            if(preview != null && preview != Core.atlas.find("nomap")) preview.texture.dispose();
+            preview = null;
+            Log.debug("Unloading @", file.name());
         }
 
         private String index(){
@@ -251,10 +277,6 @@ public class Saves{
 
         private Fi previewFile(){
             return mapPreviewDirectory.child("save_slot_" + index() + ".png");
-        }
-
-        private Fi loadPreviewFile(){
-            return previewFile().sibling(previewFile().name() + ".spreview");
         }
 
         public boolean isHidden(){
@@ -270,7 +292,7 @@ public class Saves{
         }
 
         public String getDate(){
-            return SimpleDateFormat.getDateTimeInstance().format(new Date(meta.timestamp));
+            return dateFormat.format(new Date(meta.timestamp));
         }
 
         public Map getMap(){
@@ -332,7 +354,7 @@ public class Saves{
             try{
                 from.copyTo(file);
                 if(previewFile().exists()){
-                    requestedPreview = false;
+                    unloadTexture();
                     previewFile().delete();
                 }
             }catch(Exception e){
@@ -358,9 +380,7 @@ public class Saves{
                 current = null;
             }
 
-            if(Core.assets.isLoaded(loadPreviewFile().path())){
-                Core.assets.unload(loadPreviewFile().path());
-            }
+            unloadTexture();
         }
     }
 }

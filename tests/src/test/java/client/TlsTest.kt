@@ -1,24 +1,16 @@
 package client
 
-import mindustry.Vars
-import mindustry.client.communication.DummyCommunicationSystem
-import mindustry.client.communication.DummyTransmission
-import mindustry.client.communication.Packets
-import mindustry.client.communication.TlsCommunicationSystem
+import mindustry.*
+import mindustry.client.communication.*
 import mindustry.client.crypto.*
-import mindustry.client.utils.escape
-import mindustry.client.utils.unescape
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
-import org.bouncycastle.tls.TlsClientProtocol
-import org.bouncycastle.tls.TlsServerProtocol
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import java.security.Security
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.random.Random
+import mindustry.client.utils.*
+import org.bouncycastle.jce.provider.*
+import org.bouncycastle.jsse.provider.*
+import org.bouncycastle.tls.*
+import org.junit.jupiter.api.*
+import java.security.*
+import java.util.concurrent.atomic.*
+import kotlin.random.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TlsTest {

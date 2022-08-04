@@ -165,6 +165,6 @@ public class ItemSeq implements Iterable<ItemStack>, JsonSerializable{
 
     @Override
     public Iterator<ItemStack> iterator(){
-        return toSeq().iterator();
+        return toSeq().iterator(); // FINISHME: This has got to be the single worst line of code in existence.
     }
 }

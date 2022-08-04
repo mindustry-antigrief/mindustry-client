@@ -37,7 +37,7 @@ public class ShrapnelBulletType extends BulletType{
     public void init(Bullet b){
         super.init(b);
 
-        Damage.collideLaser(b, length, hitLarge);
+        Damage.collideLaser(b, length, hitLarge, laserAbsorb, pierceCap);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class ShrapnelBulletType extends BulletType{
     }
 
     @Override
-    public float range(){
+    protected float calculateRange(){
         return Math.max(length, maxRange);
     }
 
@@ -68,6 +68,6 @@ public class ShrapnelBulletType extends BulletType{
         Drawf.tri(b.x, b.y, width * b.fout(), 10f, b.rotation() + 180f);
         Draw.reset();
 
-        Drawf.light(b.team, b.x, b.y, b.x + Angles.trnsx(rot, realLength), b.y + Angles.trnsy(rot, realLength), width * 2.5f * b.fout(), toColor, lightOpacity);
+        Drawf.light(b.x, b.y, b.x + Angles.trnsx(rot, realLength), b.y + Angles.trnsy(rot, realLength), width * 2.5f * b.fout(), toColor, lightOpacity);
     }
 }

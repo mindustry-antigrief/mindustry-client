@@ -3,7 +3,6 @@ package mindustry.client.navigation;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.util.*;
-import mindustry.ai.formations.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 
@@ -31,15 +30,13 @@ public class RepairPath extends Path {
     @Override
     public void follow() {
         Building build = Units.findDamagedTile(player.team(), player.x, player.y);
-        if (build == null || player.unit() == null || (build != current && !delay.check(0, 30))) return;
+        if (build == null || player.unit() == null || (build != current && !delay.check(0, 1))) return;
         current = build;
         delay.reset(0, 0);
-        player.shooting(player.unit().inRange(build));
+        player.shooting(player.unit().inRange(build) && !player.unit().activelyBuilding() && !player.unit().mining());
         player.unit().aimLook(build);
 
-        Formation formation = player.unit().formation;
-        float range = formation == null ? tilesize * 2 : formation.pattern.radius() + tilesize * 2;
-        goTo(build, range, tilesize * 3);
+        goTo(build, 16f, tilesize * 3);
     }
 
     @Override
