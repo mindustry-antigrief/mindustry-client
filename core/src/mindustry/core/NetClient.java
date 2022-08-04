@@ -473,7 +473,7 @@ public class NetClient implements ApplicationListener{
         if(add){
             entity.add();
             netClient.addRemovedEntity(entity.id());
-            if (entity instanceof Player p) Events.fire(new PlayerJoin(p));
+            if (entity instanceof Player p && !ClientVars.syncing) Events.fire(new PlayerJoin(p));
         }
     }
 
