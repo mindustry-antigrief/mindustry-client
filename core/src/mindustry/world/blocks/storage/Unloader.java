@@ -173,19 +173,6 @@ public class Unloader extends Block{
 
             if(sortItem != null){
                 if(isPossibleItem(sortItem)) item = sortItem;
-//                item = sortItem;
-//
-//                for(int pos = 0; pos < pSize; pos++){
-//                    var other = proximity.get(pos);
-//                    boolean interactable = other.interactable(team);
-//
-//                    //set the stats of all buildings in possibleBlocks
-//                    ContainerStat pb = possibleBlockItems[pos];
-//                    pb.building = other;
-//                    pb.canUnload = interactable && other.canUnload() && other.items != null && other.items.has(sortItem);
-//                    pb.canLoad = interactable && !(other.block instanceof StorageBlock) && other.acceptItem(this, sortItem);
-//                    pb.index = pos;
-//                }
             }else{
                 //selects the next item for nulloaders
                 //inspired of nextIndex() but for all "proximity" (possibleBlocks) at once, and also way more powerful
@@ -249,8 +236,8 @@ public class Unloader extends Block{
                 final int possibleBlocksSize = possibleBlocks.size;
                 //choose the building to accept the item
                 for(int i = 0; i < possibleBlocksSize; i++){
-                    if(possibleBlockItems[i].canLoad){
-                        dumpingTo = possibleBlockItems[i];
+                    if(possibleBlocks.get(i).canLoad){
+                        dumpingTo = possibleBlocks.get(i);
                         break;
                     }
                 }
@@ -281,10 +268,6 @@ public class Unloader extends Block{
             }else{
                 unloadTimer = Math.min(unloadTimer, speed);
             }
-
-//            // if(pSize > 0){ always true // does it even do anything?
-//            offset++;
-//            offset %= pSize;
         }
 
         private final static float halfTilesizeF = tilesizeF / 2f, nodeSize = halfTilesizeF, halfNodeSize = nodeSize / 2f;
