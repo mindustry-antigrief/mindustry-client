@@ -43,7 +43,8 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
             Core.app.post { // don't do async for thread safety
                 val start = Time.millis()
                 for (p in Groups.player) {
-                    val plan = p.unit()?.plans?.find { it.block == Blocks.microProcessor && (it.config as? String)?.run { re.containsMatchIn(this) } == true }
+                    // FINISHME: The it?.block prob shouldnt have a null check but erekir is buggy now so...
+                    val plan = p.unit()?.plans?.find { (it?.block ?: (return@find false)) == Blocks.microProcessor && (it.config as? String)?.run { re.containsMatchIn(this) } == true }
                     if (plan == null || lastGotten[p.id] == plan.config?.hashCode()) continue
 
                     lastGotten[p.id] = plan.config.hashCode()
@@ -58,7 +59,7 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
         }, 0.2f, 0.2f)
     }
 
-    override fun send(bytes: ByteArray) { // FINISHME: Won't work on new planet where processors don't exist.
+    override fun send(bytes: ByteArray) {
         if (!Vars.player.unit().canBuild()) {
             Toast(3f).add("[scarlet]Failed to send packet, build plan networking doesn't work if you can't build.")
             return

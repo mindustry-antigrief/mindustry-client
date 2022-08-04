@@ -1,4 +1,3 @@
-
 import arc.graphics.*
 import arc.struct.*
 

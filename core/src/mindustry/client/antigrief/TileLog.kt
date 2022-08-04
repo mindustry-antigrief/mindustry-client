@@ -15,8 +15,8 @@ import java.time.*
 import kotlin.math.*
 
 // FINISHME: Add rotate logs, why dont they exist yet anyways?
-// FINISHME: The string truncation is done in the most retarded way imagineable
-data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int) : Iterable<Point2> {
+// FINISHME: The string truncation is done in the most convoluted way imagineable
+data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int) : Iterable<Point2> { // Finishme: This class is entirely useless
     private class IntRectIterator(val intrect: IntRectangle) : Iterator<Point2> {
         var index = 0
         override fun hasNext() = index < intrect.width * intrect.height

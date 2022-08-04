@@ -492,7 +492,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                         break;
                     }
                 } else if (value instanceof Point2[]) {
-                    // FINISHME: handle this
+                    // FINISHME: handle this urgent in erekir as it actually works there
                 }
             }
         }
@@ -1247,7 +1247,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     
     protected void flushPlans(Seq<BuildPlan> plans, boolean freeze, boolean force, boolean removeFrozen){
         var configLogic = Core.settings.getBool("processorconfigs");
-        var temp = new BuildPlan[plans.size + plans.count(plan -> plan.block == Blocks.waterExtractor) * 3];
+        var temp = new BuildPlan[plans.size + plans.count(plan -> plan.block == Blocks.waterExtractor) * 3]; // Cursed but works good enough for me
         var added = 0;
         for(BuildPlan plan : plans){
             if (plan.block == null) continue;
@@ -1266,29 +1266,19 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 tryBreakBlock(plan.x, plan.y, freeze);
                 continue;
             }
-
-            // NOTE: This is temporarily removed in foos/v7
-            // Buthed is planning to reimplement it
-            if (plan.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed
-                    && plan.tile() != null && plan.tile().getLinkedTilesAs(plan.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
+    
+            var tempTiles = Block.tempTiles;
+            if (req.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed.
+                    && req.tile() != null && req.tile().getLinkedTilesAs(req.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
                 var first = tempTiles.first();
-                var replaced = false;
-                if (tempTiles.contains(t -> !t.adjacentTo(first) && t != first && t.floor().liquidDrop == Liquids.water)) { // Can use mechanical pumps (covers all outputs)
-                    for (var t : tempTiles) {
-                        var copy = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
-                        if (validPlace(t.x, t.y, copy.block, 0)) {
-                            copy.block.onNewPlan(copy);
-                            temp[added++] = copy;
-                            replaced = true;
-                        }
-                    }
+                if (tempTiles.contains(t -> !t.adjacentTo(first) && t != first && t.floor().liquidDrop == Liquids.water)
+                        && !tempTiles.contains(t -> !validPlace(t.x, t.y, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction, 0))) { // Can use mechanical pumps (covers all outputs)
+                    for (var t : tempTiles) temp[added++] = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
+                    continue; // Swapped water extractor for mechanical pumps, don't place it
                 } else if (validPlace(first.x, first.y, Blocks.rotaryPump, 0)) { // Mechanical pumps can't cover everything, use rotary pump instead
-                    var copy = new BuildPlan(first.x, first.y, 0, Blocks.rotaryPump);
-                    copy.block.onNewPlan(copy);
-                    temp[added++] = copy;
-                    replaced = true;
+                    temp[added++] = new BuildPlan(req.x, req.y, 0, Blocks.rotaryPump);
+                    continue; // Swapped water extractor for rotary pump, don't place it
                 }
-                if (replaced) continue; // Swapped water extractor for pump, don't place it
             }
     
             boolean valid = validPlace(plan.x, plan.y, plan.block, plan.rotation);
@@ -1613,7 +1603,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         var invBuild = !build.block.hasItems && build.getPayload() instanceof BuildPayload pay ? pay.build : build;
         if(build.interactable(player.team()) && build.block.consumesTap){
             consumed = true;
-        }else if((build.interactable(player.team()) || 
+        }else if((build.interactable(player.team()) ||
             !(Vars.player != null && Vars.player.unit() instanceof BlockUnitUnit blockunit && Arrays.stream(noInteractTurrets).anyMatch((t) -> t == blockunit.tile().block))
         ) && build.block.synthetic() && (!consumed || invBuild.block.allowConfigInventory)){
             if(invBuild.block.hasItems && invBuild.items.total() > 0){
