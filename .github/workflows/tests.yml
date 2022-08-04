@@ -48,7 +48,7 @@ jobs:
             **Commit Message:**
             *${{ github.event.head_commit.message }}*
           commitish: main
-          tag_name: ${{ github.run_number }}
+          tag_name: ${{ steps.time.outputs.formattedTime }}
           release_name: Unstable ${{ github.run_number }} (${{ env.SLUG }})
           repo: mindustry-client-v7-builds
           draft: false
