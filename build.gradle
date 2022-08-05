@@ -42,7 +42,7 @@ allprojects{
         versionNumber = '7'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'alpha'
-        if(!project.hasProperty("buildversion")) buildversion = '136.1' // Modders use BE build numbers which is stupid
+        if(!project.hasProperty("buildversion")) buildversion = '137' // Modders use BE build numbers which is stupid
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'

@@ -180,7 +180,7 @@ public class PlayerListFragment{
 
                     t.button(Icon.zoom, ustyle, () -> Call.adminRequest(user, AdminAction.trace));
 
-                }).padRight(12).size(bs + 10f, bs);
+                }).padRight(12).padLeft(12).size(bs + 10f, bs);
             }else if(!user.isLocal() && !user.admin && net.client() && Groups.player.size() >= 3 && player.team() == user.team()){ //votekick
                 button.add().growY();
 
