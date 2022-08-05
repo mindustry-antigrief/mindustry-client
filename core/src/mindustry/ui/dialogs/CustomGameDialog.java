@@ -14,6 +14,8 @@ import mindustry.graphics.*;
 import mindustry.maps.*;
 import mindustry.ui.*;
 
+import static arc.scene.ui.ImageButton.*;
+
 public class CustomGameDialog extends BaseDialog{
     private MapPlayDialog dialog = new MapPlayDialog();
     private TextField searchField;
@@ -55,12 +57,12 @@ public class CustomGameDialog extends BaseDialog{
         int maxwidth = Math.max((int)(Core.graphics.getWidth() / Scl.scl(210)), 1);
         float images = 146f;
 
-        ImageButtonStyle style = new ImageButtonStyle(){{
-            up = Styles.grayPanel;
-            down = Styles.flatOver;
-            over = Styles.flatOver;
-            disabled = Styles.none;
-        }};
+        ImageButtonStyle style = new ImageButtonStyle();
+        style.up = Styles.grayPanel;
+        style.down = Styles.flatOver;
+        style.over = Styles.flatOver;
+        style.disabled = Styles.none;
+
 
         int i = 0;
 
@@ -72,7 +74,7 @@ public class CustomGameDialog extends BaseDialog{
                 maps.row();
             }
 
-            ImageButton image = new ImageButton(new TextureRegion(map.safeTexture()), Styles.cleari);
+            ImageButton image = new ImageButton(new TextureRegion(map.safeTexture()), style);
             image.margin(5);
             image.top();
 
