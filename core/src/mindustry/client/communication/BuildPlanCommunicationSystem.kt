@@ -42,8 +42,7 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
             Core.app.post { // don't do async for thread safety
                 val start = Time.millis()
                 for (p in Groups.player) {
-                    // FINISHME: The it?.block prob shouldnt have a null check but erekir is buggy now so...
-                    val plan = p.unit()?.plans?.find { (it?.block ?: (return@find false)) == Blocks.microProcessor && (it.config as? String)?.run { re.containsMatchIn(this) } == true }
+                    val plan = p.unit()?.plans?.find { it.block == Blocks.microProcessor && (it.config as? String)?.run { re.containsMatchIn(this) } == true }
                     if (plan == null || lastGotten[p.id] == plan.config?.hashCode()) continue
 
                     lastGotten[p.id] = plan.config.hashCode()
