@@ -50,7 +50,7 @@ public class Renderer implements ApplicationListener{
     public boolean animateShields, drawWeather = true, drawStatus, enableEffects, drawDisplays = true;
     public float weatherAlpha;
     /** minZoom = zooming out, maxZoom = zooming in */
-    public float minZoom = 0.01f, maxZoom = 12f;
+    public float minZoom = 1.5f, maxZoom = 6f; // Note: These aren't used for client min/max zoom, don't change or vanilla compat breaks
     public Seq<EnvRenderer> envRenderers = new Seq<>();
     public ObjectMap<String, Runnable> customBackgrounds = new ObjectMap<>();
     public TextureRegion[] bubbles = new TextureRegion[16], splashes = new TextureRegion[12];
@@ -629,7 +629,7 @@ public class Renderer implements ApplicationListener{
     }
 
     public float maxScale(){
-        return Mathf.round(Scl.scl(maxZoom));
+        return Mathf.round(Scl.scl(12));
     }
 
     public float getScale(){
