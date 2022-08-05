@@ -249,8 +249,7 @@ class ClientLogic {
                             turretVoidWarnPlayer = event.unit?.player
                             turretVoidWarnCount = 1
                             turretVoidWarnMsg = ui.chatfrag.addMessage(
-                                Strings.format(
-                                    "[accent]Turret placed by @[accent] at (@, @) is within void (@, @) range", // TODO: Bundle
+                                Core.bundle.format("client.turretvoidwarn",
                                     getName(event.unit), event.tile.x, event.tile.y, void.tileX(), void.tileY()
                                 ), null as Color?
                             )
