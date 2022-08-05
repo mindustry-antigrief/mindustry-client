@@ -25,13 +25,8 @@ import static mindustry.Vars.*;
 
 public class ImpactReactor extends PowerGenerator{
     public final int timerUse = timers++;
-
     public float warmupSpeed = 0.001f;
     public float itemDuration = 60f;
-    public int explosionRadius = 23;
-    public int explosionDamage = 1900;
-    public Effect explodeEffect = Fx.impactReactorExplosion;
-    public Sound explodeSound = Sounds.explosionbig;
     public float floodNullifierRange;
 
     public ImpactReactor(String name){
@@ -47,6 +42,12 @@ public class ImpactReactor extends PowerGenerator{
         envEnabled = Env.any;
 
         drawer = new DrawMulti(new DrawRegion("-bottom"), new DrawPlasma(), new DrawDefault());
+
+        explosionShake = 6f;
+        explosionShakeDuration = 16f;
+        explosionDamage = 1900 * 4;
+        explodeEffect = Fx.impactReactorExplosion;
+        explodeSound = Sounds.explosionbig;
     }
 
     @Override
@@ -149,16 +150,10 @@ public class ImpactReactor extends PowerGenerator{
         }
 
         @Override
-        public void onDestroyed(){
-            super.onDestroyed();
-
-            if(warmup < 0.3f || !state.rules.reactorExplosions) return;
-
-            Damage.damage(x, y, explosionRadius * tilesize, explosionDamage * 4);
-
-            Effect.shake(6f, 16f, x, y);
-            explodeEffect.at(this);
-            explodeSound.at(this);
+        public void createExplosion(){
+            if(warmup >= 0.3f){
+                super.createExplosion();
+            }
         }
 
         @Override
