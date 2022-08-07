@@ -67,6 +67,7 @@
  * !mute <player> - Searches for the player name / id and mutes messages coming from that player.(The symbols infront of names [if the server does add symbols] are required when using name search)
  * !unmute <player> - Same as !mute
  * !clearmutes - Clears the list of muted players
+ * !unfog - Begone fog of war. Kinda unfair but idgaf :P
  * >=========================< Chat Text Replacer >=========================<
  * %s - replaces with a !shrug
  * %c - replaces with cursor coordinates
