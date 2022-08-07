@@ -29,7 +29,7 @@ class MinePath @JvmOverloads constructor(
             for (a in split) {
                 if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
                 else if (Strings.canParseInt(a)) cap = a.toInt().coerceAtLeast(0) // Specified cap, <= 0 results in infinite cap
-                else content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.apply(items::add) ?:
+                else content.items().find { a.equals(it.name, true) && indexer.hasOre(it) }?.apply(items::add) ?:
                 player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
             }
         }

@@ -62,13 +62,13 @@ fun setup() {
     }
 
     register("unit-old <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
-        ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
+        ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.name) })
     }
 
     register("unit <unit-type>", "Picks a unit nearest to cursor. Use null or no args to unqueue switch.") { args, _ ->
         if (args[0] == "null" || args[0] == "") ui.unitPicker.unpickUnit()
         else ui.unitPicker.pickUnit(
-            content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) },
+            content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.name) },
             Core.input.mouseWorldX(), Core.input.mouseWorldY(), false
         )
     }
@@ -86,7 +86,7 @@ fun setup() {
             player.sendMessage(sb.toString())
         }
         else {
-            val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
+            val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) }
             val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var command = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
 
             (player.team().data().unitCache(type) ?: Seq.with()).withEach {
@@ -391,7 +391,7 @@ fun setup() {
     }
 
     register("binds <type>", "") { args, player -> // FINISHME: Bundle
-        val type = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
+        val type = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.name) }
 
         player.team().data().unitCache(type)
             ?.filter { it.controller() is LogicAI }
@@ -458,7 +458,7 @@ fun setup() {
     }
 
     register("binds <type>", "") { args, player -> // FINISHME: Bundle
-        val type = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
+        val type = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.name) }
 
         player.team().data().unitCache(type)
             ?.filter { it.controller() is LogicAI }
