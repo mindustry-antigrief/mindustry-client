@@ -1310,7 +1310,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     Seq<Tile> tmpTiles = new Seq<>(4);
                     plan.tile().getLinkedTilesAs(plan.block, tmpTiles);
                     tmpTiles.forEach(tile -> {
-                        if (tile.block() != Blocks.air) player.unit().addBuild(new BuildPlan(tile.build.tileX(), tile.build.tileY()));
+                        if (tile.build != null) player.unit().addBuild(new BuildPlan(tile.build.tileX(), tile.build.tileY()));
                     });
                 }
                 else {
