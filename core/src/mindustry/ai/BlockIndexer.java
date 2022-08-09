@@ -85,7 +85,7 @@ public class BlockIndexer{
                     int qy = (tile.y / quadrantSize);
 
                     //add position of quadrant to list
-                    if(tile.drop() != null || tile.block().itemDrop != null){
+                    if((tile.block() == Blocks.air && tile.drop() != null) || tile.block().itemDrop != null){
                         if(ores[drop.id] == null){
                             ores[drop.id] = new IntSeq[quadWidth][quadHeight];
                         }
@@ -159,7 +159,7 @@ public class BlockIndexer{
             var seq = ores[drop.id][qx][qy];
 
             //when the drop can be mined, record the ore position
-            if((tile.drop() != null || tile.block().itemDrop != null) && !seq.contains(pos)){
+            if(((tile.block() == Blocks.air && tile.drop() != null) || tile.block().itemDrop != null) && !seq.contains(pos)){
                 seq.add(pos);
                 allOres.increment(drop);
             }else{
@@ -415,7 +415,7 @@ public class BlockIndexer{
                     var arr = ores[item.id][qx][qy];
                     if(arr != null && arr.size > 0){
                         Tile tile = world.tile(arr.first());
-                        if(tile.drop() != null || tile.block().itemDrop != null){
+                        if((tile.block() == Blocks.air && tile.drop() != null) || tile.block().itemDrop != null){
                             float dst = Mathf.dst2(xp, yp, tile.worldx(), tile.worldy());
                             if(closest == null || dst < minDst){
                                 closest = tile;
