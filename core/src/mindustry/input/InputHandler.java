@@ -1336,13 +1336,19 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     }
                 }
                 
-                if (force && !valid) { // Add build plans to remove block underneath
-                    frozenPlans.add(copy);
-                    Seq<Tile> tmpTiles = new Seq<>(4);
-                    plan.tile().getLinkedTilesAs(plan.block, tmpTiles);
-                    tmpTiles.forEach(tile -> {
-                        if (tile.block() != Blocks.air) player.unit().addBuild(new BuildPlan(tile.build.tileX(), tile.build.tileY()));
-                    });
+                if (force && !valid) {
+                    var existing = world.tiles.get(plan.x, plan.y);
+                    if (existing.build != null && existing.block() == plan.block && existing.build.tileX() == plan.x && existing.build.tileY() == plan.y) {
+                        configs.add(new ConfigRequest(existing.build, plan.config));
+                    }
+                    else { // Add build plans to remove block underneath
+                        frozenPlans.add(copy);
+                        Seq<Tile> tmpTiles = new Seq<>(4);
+                        plan.tile().getLinkedTilesAs(plan.block, tmpTiles);
+                        tmpTiles.forEach(tile -> {
+                            if (tile.build != null) player.unit().addBuild(new BuildPlan(tile.build.tileX(), tile.build.tileY()));
+                        });
+                    }
                 }
                 else {
                     plan.block.onNewPlan(copy);
