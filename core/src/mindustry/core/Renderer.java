@@ -167,7 +167,7 @@ public class Renderer implements ApplicationListener{
         float baseTarget = targetscale;
 
         if(control.input.logicCutscene){
-            baseTarget = Mathf.lerp(minZoom, maxZoom, control.input.logicCutsceneZoom);
+            baseTarget = Mathf.clamp(Mathf.lerp(minZoom, maxZoom, control.input.logicCutsceneZoom), Scl.scl(minZoom), Scl.scl(maxZoom));
         }
 
         float dest = Mathf.clamp(baseTarget, minScale(), maxScale());
