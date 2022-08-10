@@ -35,83 +35,82 @@ jobs:
         run: |
           ./gradlew tests:cleanTest tools:pack tests:test desktop:dist -PupdateUrl=stormybytes/mindustry-client-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
 
-      # Temporary
-      - name: Get Latest Release
-        id: get_release
-        uses: gregziegan/fetch-latest-release@v2.0.0
-
-      - name: Delete Old Jar
-        uses: flcdrg/remove-release-asset-action@v2
+      - name: Create Release
+        if: ${{ github.repository == 'stormybytes/mindustry-client' && github.ref == 'refs/heads/flarogus' }}
+        id: create_release_v7
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          release_id: ${{ steps.get_release.outputs.id }}
-          asset_name: desktop.jar
+          body: |
+            Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/stormybytes/mindustry-client/commit/${{ github.sha }})
+            Steam installation instructions [here](../../../stormybytes/tree/v7#steam)
+            **Commit Message:**
+            *${{ github.event.head_commit.message }}*
+          commitish: main
+          tag_name: ${{ github.run_number }}
+          release_name: ${{ steps.time.outputs.formattedTime }}
+          repo: mindustry-client-builds
+          draft: false
+          prerelease: false
 
-      - name: Upload New Jar
+      - name: Upload Release Asset
+        if: ${{ github.repository == 'stormybytes/mindustry-client' && github.ref == 'refs/heads/flarogus' }}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          upload_url: ${{ steps.create_release_v7.outputs.upload_url }}
           asset_path: desktop/build/libs/Mindustry.jar
           asset_name: desktop.jar
           asset_content_type: application/zip
 
-      - name: Update Release Name
-        uses: tubone24/update_release@v1.3.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          TAG_NAME: "v8.0.0"
+      - name: Upload Artifact (No release was made)
+        if: ${{ !(github.repository == 'stormybytes/mindustry-client' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/flarogus' || github.event_name == 'workflow_dispatch')) }}
+        uses: actions/upload-artifact@v2
         with:
-          release_name: ${{ steps.time.outputs.formattedTime }}
+          name: Desktop JAR (zipped)
+          path: desktop/build/libs/Mindustry.jar
 
-# Old
-#      - name: Create Release
-#        if: ${{ github.repository == 'stormybytes/mindustry-client' && github.ref == 'refs/heads/flarogus' }}
-#        id: create_release_v7
-#        uses: actions/create-release@v1
+      - name: Upload Test Results To Pages
+        if: ${{ !cancelled() && github.repository == 'stormybytes/mindustry-client' && (github.ref == 'refs/heads/flarogus' || github.event_name == 'workflow_dispatch') }}
+        uses: JamesIves/github-pages-deploy-action@4.0.0
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          repository-name: ${{ github.repository }}-builds
+          branch: gh-pages # The branch the action should deploy to.
+          folder: tests/build/reports/tests/test
+          silent: true
+          single-commit: true
+
+      # Temporary
+#      - name: Get Latest Release
+#        id: get_release
+#        uses: gregziegan/fetch-latest-release@v2.0.0
+#
+#      - name: Delete Old Jar
+#        uses: flcdrg/remove-release-asset-action@v2
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 #        with:
-#          body: |
-#            Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/stormybytes/mindustry-client/commit/${{ github.sha }})
-#            Steam installation instructions [here](../../../stormybytes/tree/v7#steam)
-#            **Commit Message:**
-#            *${{ github.event.head_commit.message }}*
-#          commitish: main
-#          tag_name: ${{ github.run_number }}
-#          release_name: ${{ steps.time.outputs.formattedTime }}
-#          repo: mindustry-client-builds
-#          draft: false
-#          prerelease: false
+#          release_id: ${{ steps.get_release.outputs.id }}
+#          asset_name: desktop.jar
 #
-#      - name: Upload Release Asset
-#        if: ${{ github.repository == 'stormybytes/mindustry-client' && github.ref == 'refs/heads/flarogus' }}
+#      - name: Upload New Jar
 #        uses: actions/upload-release-asset@v1
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 #        with:
-#          upload_url: ${{ steps.create_release_v7.outputs.upload_url }}
+#          upload_url: ${{ steps.get_release.outputs.upload_url }}
 #          asset_path: desktop/build/libs/Mindustry.jar
 #          asset_name: desktop.jar
 #          asset_content_type: application/zip
 #
-#      - name: Upload Artifact (No release was made)
-#        if: ${{ !(github.repository == 'stormybytes/mindustry-client' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/flarogus' || github.event_name == 'workflow_dispatch')) }}
-#        uses: actions/upload-artifact@v2
+#      - name: Update Release Name
+#        uses: tubone24/update_release@v1.3.1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+#          TAG_NAME: "v8.0.0"
 #        with:
-#          name: Desktop JAR (zipped)
-#          path: desktop/build/libs/Mindustry.jar
-#
-#      - name: Upload Test Results To Pages
-#        if: ${{ !cancelled() && github.repository == 'stormybytes/mindustry-client' && (github.ref == 'refs/heads/flarogus' || github.event_name == 'workflow_dispatch') }}
-#        uses: JamesIves/github-pages-deploy-action@4.0.0
-#        with:
-#          token: ${{ secrets.RELEASE_TOKEN }}
-#          repository-name: ${{ github.repository }}-builds
-#          branch: gh-pages # The branch the action should deploy to.
-#          folder: tests/build/reports/tests/test
-#          silent: true
-#          single-commit: true
+#          release_name: ${{ steps.time.outputs.formattedTime }}
 
