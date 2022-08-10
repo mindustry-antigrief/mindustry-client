@@ -68,7 +68,7 @@ class AutoTransfer {
                 ratelimitRemaining--
             }
 
-            val minItems = if (core is CoreBlock.CoreBuild) minCoreItems else 0
+            val minItems = if (core is CoreBlock.CoreBuild) minCoreItems else 1
             if (item == null && core != null) { // Automatically take needed item from core, only request once
                 when (val cons = it.block.findConsumer<Consume> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic }) { // Cursed af
                     is ConsumeItems -> {
