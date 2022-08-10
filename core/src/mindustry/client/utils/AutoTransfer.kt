@@ -5,8 +5,8 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
-import mindustry.client.navigation.MinePath
-import mindustry.client.navigation.Navigation
+import mindustry.client.navigation.*
+import mindustry.content.*
 import mindustry.gen.*
 import mindustry.graphics.*
 import mindustry.type.*
@@ -44,6 +44,7 @@ class AutoTransfer {
 
     fun update() {
         if (!enabled) return
+        if (state.rules.onlyDepositCore) return
         if (ratelimitRemaining <= 1) return
         player.unit().item() ?: return
         timer += Time.delta
@@ -89,7 +90,7 @@ class AutoTransfer {
                     }
                     is ConsumeItemFilter -> {
                         content.items().each { i ->
-                            val acceptedC = it.acceptStack(i, Int.MAX_VALUE, player.unit())
+                            val acceptedC = if (item == Items.blastCompound && cons is ConsumeItemFlammable) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
                             if (acceptedC > 0 && it.block.consumesItem(i) && core.items.has(i, minItems)) {
                                 val turretC = (it.block as? ItemTurret)?.ammoTypes?.get(i)?.damage?.toInt() ?: 1 // Sort based on damage for turrets
                                 counts[i.id.toInt()] += acceptedC
