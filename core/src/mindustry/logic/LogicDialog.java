@@ -236,7 +236,7 @@ public class LogicDialog extends BaseDialog{
                     style.font = Fonts.outline;
 
                     cat.button(example.name(), style, () -> {
-                        canvas.add(prov.get());
+                        canvas.addAt(at, prov.get());
                         dialog.hide();
                         canvas.layout();
                         canvas.recalculate();

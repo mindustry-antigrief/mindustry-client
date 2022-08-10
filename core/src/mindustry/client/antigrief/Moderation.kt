@@ -55,7 +55,7 @@ class Moderation {
         dialog("Leaves, newest first") {
             cont.pane {
                 for (player in traces.asReversed()) {
-                    it.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace) }.wrapLabel(false).minWidth(100f)
+                    it.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace, true) }.wrapLabel(false).minWidth(100f)
                     it.row()
                 }
             }.growY()

@@ -33,10 +33,11 @@ public class RepairPath extends Path {
         if (build == null || player.unit() == null || (build != current && !delay.check(0, 5))) return;
         current = build;
         delay.reset(0, 0);
-        player.shooting(player.unit().inRange(build) && !player.unit().activelyBuilding() && !player.unit().mining());
+        var range = player.unit().range() + 4 + build.hitSize()/2f;
+        player.shooting(player.within(build, range) && !player.unit().activelyBuilding() && !player.unit().mining());
         player.unit().aimLook(build);
 
-        goTo(build, 16f, tilesize * 3);
+        goTo(build, 3 * tilesize, 2 * tilesize);
     }
 
     @Override
