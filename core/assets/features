@@ -40,6 +40,7 @@
  * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
  * Alt + {show_turret_ranges} - Show your team's turret ranges.
  * Shift + {hide_blocks} - Hides build plans.
+ * Ctrl + {invisible_units} - Hides fog.
  * Shift + {pause_building} - Switches to freeze build queue.
  * Shift + {deselect} - Freezes/Unfreezes build plans. Useful for prioritizing which build plans to execute first.
  * Ctrl + {deselect} - Dequeue selection. Aka deletes only build plans. Doesn't deconstruct existing blocks.

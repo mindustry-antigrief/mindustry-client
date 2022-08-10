@@ -32,6 +32,7 @@ import mindustry.world.blocks.payloads.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 import static mindustry.logic.GlobalVars.*;
 
 @Component(base = true)
@@ -156,7 +157,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     @Replace
     public boolean inFogTo(Team viewer){
-        if(this.team == viewer || !state.rules.fog) return false;
+        if(this.team == viewer || !state.rules.fog || hidingFog) return false;
 
         if(hitSize <= 16f){
             return !fogControl.isVisible(viewer, x, y);

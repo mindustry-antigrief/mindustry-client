@@ -20,6 +20,7 @@ import mindustry.ui.*;
 import mindustry.world.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class MinimapRenderer{
     private static final float baseSize = 16f;
@@ -150,7 +151,7 @@ public class MinimapRenderer{
 
         Draw.reset();
 
-        if(state.rules.fog){
+        if(state.rules.fog && !hidingFog){
             if(withLabels){
                 float z = zoom;
                 //max zoom out fixes everything, somehow?
@@ -299,7 +300,7 @@ public class MinimapRenderer{
 
     private Block realBlock(Tile tile){
         //TODO doesn't work properly until player goes and looks at block
-        return tile.build == null ? tile.block() : state.rules.fog && !tile.build.wasVisible ? Blocks.air : tile.block();
+        return tile.build == null ? tile.block() : state.rules.fog && !hidingFog && !tile.build.wasVisible ? Blocks.air : tile.block();
     }
 
     private int colorFor(Tile tile){

@@ -17,6 +17,7 @@ import mindustry.world.meta.*;
 import java.io.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public final class FogControl implements CustomChunk{
     private static volatile int ww, wh;

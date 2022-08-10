@@ -45,6 +45,7 @@ import mindustry.world.modules.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 @EntityDef(value = {Buildingc.class}, isFinal = false, genio = false, serialize = false)
 @Component(base = true)
@@ -1886,7 +1887,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     @Replace
     @Override
     public boolean inFogTo(Team viewer){
-        if(team == viewer || !state.rules.fog) return false;
+        if(team == viewer || !state.rules.fog || hidingFog) return false;
 
         int size = block.size, of = block.sizeOffset, tx = tile.x, ty = tile.y;
 

@@ -781,23 +781,6 @@ fun setup() {
         mutedPlayers.clear()
     }
 
-    register("unfog", "Goodbye fog of war :)") { _, _ ->
-        Core.app.post {
-            // Unrestrict map area
-            state.rules.limitMapArea = false
-            state.rules.limitX = 0
-            state.rules.limitY = 0
-            state.rules.limitWidth = state.map.width
-            state.rules.limitHeight = state.map.height
-
-            // Turn off fog of war
-            state.rules.fog = false
-            state.rules.staticFog = false
-
-            renderer.updateAllDarkness()
-        }
-    }
-
     registerReplace("%", "c", "cursor") {
         Strings.format("(@, @)", control.input.rawTileX(), control.input.rawTileY())
     }
