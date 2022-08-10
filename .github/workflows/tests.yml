@@ -31,10 +31,9 @@ jobs:
         with:
           format: "[${{env.SLUG}}], MMM. D, YYYY [Unstable]" # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
 
-#          ./gradlew tests:cleanTest tools:pack tests:test desktop:dist -PupdateUrl=stormybytes/mindustry-client-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
       - name: Run Tests
         run: |
-          ./gradlew tests:cleanTest tools:pack tests:test desktop:dist -PupdateUrl=stormybytes/mindustry-client -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
+          ./gradlew tests:cleanTest tools:pack tests:test desktop:dist -PupdateUrl=stormybytes/mindustry-client-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
 
       # Temporary
       - name: Get Latest Release
