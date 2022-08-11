@@ -35,6 +35,7 @@
  * Anti toast - Disables toasts from being shown.
  * Remove attem instead of fixing setting. If true it just completely replaces the attem logic instead of just removing the jump part.
  * Automapvote setting - Automatically does /novote, /downvote, or /upvote when joining servers like io
+ * Fast respawn setting - Ultimate rush strat :tm:
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.
  * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
