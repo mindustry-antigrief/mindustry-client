@@ -6,10 +6,10 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.pooling.*
 import mindustry.*
+import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.game.*
 import java.util.concurrent.*
-import kotlin.math.*
 
 /** A way of representing a path */
 abstract class Path {
@@ -99,7 +99,9 @@ abstract class Path {
                     }
                 }
             } else { // Not navigating
-                waypoints.set(waypoint.set(destX, destY, min(16F, aStarDist + if (aStarDist == 0f) 0.001f else 0f), dist).run())
+                waypoint.set(destX, destY, if (aStarDist == 0f) 4f else aStarDist, dist)
+                waypoint.stopOnFinish = true
+                waypoints.set(waypoint.run())
                 cons?.get(waypoints)
             }
 
