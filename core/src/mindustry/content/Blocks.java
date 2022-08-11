@@ -2415,7 +2415,7 @@ public class Blocks{
         }};
 
         beamLink = new LongPowerNode("beam-link"){{
-            requirements(Category.power, BuildVisibility.editorOnly, with());
+            requirements(Category.power, BuildVisibility.sandboxOnly, with()); // Hmm. Perhaps sandbox + editor?
             size = 3;
             maxNodes = 1;
             laserRange = 1000f;
