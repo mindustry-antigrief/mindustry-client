@@ -44,8 +44,8 @@ abstract class Navigator {
         start.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
         end.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
         val additionalRadius = player.unit().hitSize / 2
-
-        if(player.unit().type.targetable || state.map.name() != "The Maze") {
+ 
+        if(player.unit().type.targetable) {
             for (turret in obstacles) {
                 if (turret.canHitPlayer() && turret.canShoot()) {
                     realObstacles.add(
