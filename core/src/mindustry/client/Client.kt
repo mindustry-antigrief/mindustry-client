@@ -102,7 +102,7 @@ object Client {
             if (showingTurrets || showingInvTurrets) {
                 val flying = player.unit().isFlying
                 getTree().intersect(bounds) {
-                    if (it.entity.inFogTo(player.team())) return@intersect
+                    if (fogControl.isDiscovered(player.team(), it.x().toInt(), it.y().toInt())) return@intersect
                     if ((enemyunits || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
                         val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                         val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
