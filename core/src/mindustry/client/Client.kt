@@ -5,7 +5,6 @@ import arc.graphics.g2d.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.ai.*
-import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.crypto.*
@@ -16,7 +15,6 @@ import mindustry.content.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.graphics.*
-import mindustry.net.*
 import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
 import org.bouncycastle.jce.provider.*
@@ -49,9 +47,8 @@ object Client {
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
 
-        if (ratelimitRemaining != Administration.Config.interactRateLimit.num() - 1 && timer.get(3, (Administration.Config.interactRateWindow.num() + 1) * 60F)) { // Reset ratelimit, extra second to account for server lag
-            ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1
-        }
+        // Ratelimit reset handling
+        if (ratelimitRemaining != ratelimitMax && timer.get(3, ratelimitSeconds * 60F)) ratelimitRemaining = ratelimitMax
 
         if (!configs.isEmpty()) {
             try {

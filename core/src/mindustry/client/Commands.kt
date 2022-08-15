@@ -287,8 +287,6 @@ fun setup() {
             plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
         }
 
-        Log.info("Took @ | new = @", Time.elapsed(), ClientVars.useNew)
-
         if (confirmed) {
             plans.chunked(100) { Call.deletePlans(player, it.toIntArray()) }
             player.sendMessage("[accent]Removed ${plans.size} plans, ${Vars.player.team().data().plans.size} remain")
