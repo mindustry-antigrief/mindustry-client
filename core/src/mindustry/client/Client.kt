@@ -16,7 +16,6 @@ import mindustry.content.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.graphics.*
-import mindustry.net.*
 import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
 import org.bouncycastle.jce.provider.*
@@ -51,9 +50,8 @@ object Client {
         Core.camera.bounds(cameraBounds) // do we do this here or on draw? can Core.camera be null?
         cameraBounds.grow(2 * tilesizeF)
 
-        if (ratelimitRemaining != Administration.Config.interactRateLimit.num() - 1 && timer.get(3, (Administration.Config.interactRateWindow.num() + 1) * 60F)) { // Reset ratelimit, extra second to account for server lag
-            ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1
-        }
+        // Ratelimit reset handling
+        if (ratelimitRemaining != ratelimitMax && timer.get(3, ratelimitSeconds * 60F)) ratelimitRemaining = ratelimitMax
 
         if (!configs.isEmpty()) {
             try {
