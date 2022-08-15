@@ -132,8 +132,10 @@ public class PlacementFragment{
         if(Core.input.keyTap(Binding.pick) && !Core.scene.hasDialog() /*&& player.isBuilder()*/){ //mouse eyedropper select
             var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
 
-            //can't middle click buildings in fog
-            if(build != null && build.inFogTo(player.team())){
+            // Middle clicking enemy blocks is cool, Anuke. Why would you disable it smh.
+            // Now it uses isDiscovered not inFogTo
+                //can't middle click buildings in fog
+            if(build != null && fogControl.isDiscovered(player.team(), build.tile.x, build.tile.y)){
                 build = null;
             }
 
