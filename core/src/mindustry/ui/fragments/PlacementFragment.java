@@ -30,6 +30,7 @@ import mindustry.world.blocks.ConstructBlock.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class PlacementFragment{
     final int rowWidth = 4;
@@ -135,7 +136,7 @@ public class PlacementFragment{
             // Middle clicking enemy blocks is cool, Anuke. Why would you disable it smh.
             // Now it uses isDiscovered not inFogTo
                 //can't middle click buildings in fog
-            if(build != null && fogControl.isDiscovered(player.team(), build.tile.x, build.tile.y)){
+            if(build != null && !hidingFog && fogControl.isDiscovered(player.team(), build.tile.x, build.tile.y)){
                 build = null;
             }
 
