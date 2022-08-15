@@ -134,11 +134,13 @@ public class PlacementFragment{
             var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
 
             // Middle clicking enemy blocks is cool, Anuke. Why would you disable it smh.
-            // Now it uses isDiscovered not inFogTo
-                //can't middle click buildings in fog
-            if(build != null && !hidingFog && fogControl.isDiscovered(player.team(), build.tile.x, build.tile.y)){
-                build = null;
-            }
+
+	    /*
+              //can't middle click buildings in fog
+	      if(build != null && build.inFogTo(player.team())){
+                   build = null;
+              }
+	    */
 
             Block tryRecipe = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
             Object tryConfig = build == null || !build.block.copyConfig ? null : build.config();
