@@ -12,6 +12,7 @@ import mindustry.core.*
 import mindustry.gen.Unit
 import mindustry.world.*
 import java.time.*
+import java.util.*
 import kotlin.math.*
 
 // FINISHME: Add rotate logs, why dont they exist yet anyways?
@@ -31,7 +32,7 @@ data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int)
 }
 
 private var lastID: Long = 0
-abstract class TileLog(val position: IntRectangle, override val cause: Interactor) : InteractionLog {
+abstract class TileLog(val position: IntRectangle, override val cause: Interactor, val isOrigin: Boolean = false) : InteractionLog {
     val id: Long = lastID++
 
     override val time: Instant = Instant.now()
@@ -54,7 +55,7 @@ abstract class TileLog(val position: IntRectangle, override val cause: Interacto
         }
     }
 
-    constructor(tile: Tile, cause: Interactor) : this(tile.linkedArea(), cause)
+    constructor(tile: Tile, cause: Interactor, origin: Boolean) : this(tile.linkedArea(), cause, origin)
 
     abstract fun apply(previous: TileState)
 
@@ -90,7 +91,7 @@ class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterabl
 }
 
 class TileRecord(val x: Int, val y: Int) {
-    private var logs: MutableList<TileLogSequence>? = null
+    var logs: MutableList<TileLogSequence>? = null
     val size get() = logs?.lastOrNull()?.range?.last ?: 0
     private val totalRange get() = 0..size
 
@@ -169,8 +170,22 @@ class TileRecord(val x: Int, val y: Int) {
     }
 }
 
-class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, var configuration: Any?) : TileLog(tile, cause) {
+class PreexistingTileLog(tile: Tile, val block: Block, val rotation: Int, var configuration: Any?, origin: Boolean) : TileLog(tile, NoInteractor(), origin) {
     override fun apply(previous: TileState) {
+        previous.block = block
+        previous.rotation = rotation
+        previous.configuration = configuration
+    }
+
+    override fun toString() = toShortString()
+    override fun toShortString(): String {
+        return block.localizedName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    }
+}
+
+class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, var configuration: Any?, origin: Boolean) : TileLog(tile, cause, origin) {
+    override fun apply(previous: TileState) {
+        previous.rotation = rotation
         previous.configuration = configuration
     }
 
@@ -188,9 +203,10 @@ class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, var conf
     override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.configured")}"
 }
 
-open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val configuration: Any?) : TileLog(tile, cause) {
+open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, val configuration: Any?, origin: Boolean) : TileLog(tile, cause, origin) {
     override fun apply(previous: TileState) {
         previous.block = block
+        previous.rotation = rotation
         previous.configuration = configuration
     }
 
@@ -201,7 +217,7 @@ open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val co
     override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.built")} ${block.localizedName}"
 }
 
-class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, configuration: Any?) : TilePlacedLog(tile, cause, block, configuration) {
+class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, rotation: Int, configuration: Any?, origin: Boolean) : TilePlacedLog(tile, cause, block, rotation, configuration, origin) {
     override fun toString(): String {
         return "${cause.name.stripColors()} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
     }
@@ -209,9 +225,10 @@ class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, configura
     override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
 }
 
-open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause) {
+open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause, false) {
     override fun apply(previous: TileState) {
         previous.block = Blocks.air
+        previous.rotation = -1
         previous.configuration = null
     }
 
@@ -238,7 +255,7 @@ class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteract
     override fun toShortString() = "${block.localizedName} ${Core.bundle.get("client.destroyed")}"
 }
 
-class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val isPlayer : Boolean) : TileLog(tile, cause) {
+class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val isPlayer : Boolean) : TileLog(tile, cause, false) {
     override fun apply(previous: TileState) {
         //pass
     }

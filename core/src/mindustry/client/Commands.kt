@@ -20,6 +20,7 @@ import mindustry.client.utils.*
 import mindustry.content.Blocks
 import mindustry.core.*
 import mindustry.entities.*
+import mindustry.entities.units.BuildPlan
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
@@ -27,6 +28,7 @@ import mindustry.logic.GlobalVars.*
 import mindustry.ui.*
 import mindustry.ui.fragments.ChatFragment
 import mindustry.world.blocks.distribution.ItemBridge
+import mindustry.world.blocks.environment.Prop
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.logic.LogicBlock.compress
 import mindustry.world.blocks.power.*
@@ -34,6 +36,8 @@ import mindustry.world.blocks.sandbox.PowerVoid
 import java.io.*
 import java.math.*
 import java.security.cert.*
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlin.math.*
 import kotlin.random.*
 
@@ -772,6 +776,68 @@ fun setup() {
             mutedPlayers.remove(match)
         }
         else player.sendMessage(Core.bundle.get("client.command.mute.notmuted"))
+    }
+
+    register("undo <timestart> <timerange> <buildrange>", """
+            Retrieves blocks from tilelogs before <timestart> and places them into buildplan.
+            Specify how far back to rollback on <timestart> in minutes
+            Specify how many minutes of changes should be retrieved on <timerange> in minutes
+            Specify how big the area radius is on <buildrange>
+        """.trimIndent()) { args, player ->
+        val timeStart: Instant
+        val timeEnd: Instant
+        val range: Float
+        try {
+            timeEnd = Instant.now().minus(args[0].toLong(), ChronoUnit.MINUTES)
+            timeStart = timeEnd.minus(args[1].toLong(), ChronoUnit.MINUTES)
+            range = args[2].toFloat() * tilesize
+        }
+        catch (_: Exception) {
+            player.sendMessage("[scarlet]Invalid arguments! Please specify 2 numbers (minutes and range)!")
+            return@register
+        }
+
+        Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
+        val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
+        clientThread.post {
+            val plans: Seq<BuildPlan> = Seq()
+            tiles.forEach {
+                if (!it.within(player.x, player.y, range) || (it.block() != Blocks.air && it.block() !is Prop)) return@forEach
+
+                val record = TileRecords[it] ?: return@forEach
+                val logs = record.logs ?: return@forEach
+
+                var state: TileState = logs[0].snapshot
+                var found = false
+
+                for (seq in record.logs!!) {
+                    state = seq.snapshot.clone()
+//                    if (state.block is Floor) break // On second thought, world proc might be able to set wall and floor tiles
+
+                    val iterator = seq.iterator()
+                    while (iterator.hasNext()) {
+                        val diff = iterator.next()
+                        diff.apply(state)
+                        // Exit if we've gone past the time start
+                        // Continue searching if we have not reached time end
+                        if (diff.time < timeStart) break
+                        if (diff.time > timeEnd || !diff.isOrigin || state.block == Blocks.air) continue
+
+                        found = true
+                        break
+                    }
+                    if (found) break
+                }
+                if (!found) return@forEach
+
+                plans.add(BuildPlan(state.x, state.y, state.rotation, state.block, state.configuration))
+            }
+
+            if (plans.size == 0) return@post
+            Core.app.post {
+                plans.forEach { player.unit().addBuild(it) }
+            }
+        }
     }
 
     register("clearmutes", "Clears list of muted players") {_, player ->

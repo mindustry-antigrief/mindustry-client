@@ -26,7 +26,12 @@ object TileRecords {
 
             ClientVars.lastServerStartTime = startTime
             ClientVars.lastServerName = Vars.state.map.name()
-            if (!ClientVars.syncing && !sameMap) records = Array(Vars.world.width()) { x -> Array(Vars.world.height()) { y -> TileRecord(x, y) } }
+            if (!ClientVars.syncing && !sameMap) records = Array(Vars.world.width()) { x -> Array(Vars.world.height()) Tile@ { y ->
+                val record = TileRecord(x, y)
+                val tile = Vars.world.tile(x, y)
+                record.add(PreexistingTileLog(tile, tile.block(), tile.build?.rotation ?: 0, tile.build?.config(), isOrigin(tile)), tile)
+                return@Tile record
+            } }
         }
 
         Events.on(EventType.BlockBuildBeginEventBefore::class.java) {
@@ -34,16 +39,20 @@ object TileRecords {
                 it.tile.getLinkedTiles { tile ->
                     addLog(tile, TileBreakLog(tile, it.unit.toInteractor(), tile.block()))
                 }
-            } else {
-                it.tile.getLinkedTilesAs(it.newBlock) { tile ->
-                    addLog(tile, TilePlacedLog(tile, it.unit.toInteractor(), it.newBlock, tile.build?.config()))
+            }
+        }
+
+        Events.on(EventType.BlockBuildBeginEvent::class.java) {
+            if (!it.breaking) {
+                it.tile.getLinkedTilesAs(it.tile.block()) { tile ->
+                    addLog(tile, TilePlacedLog(tile, it.unit.toInteractor(), it.tile.block(), it.tile.build.rotation, tile.build.config(), isOrigin(tile)))
                 }
             }
         }
 
         Events.on(EventType.ConfigEventBefore::class.java) {
             it.tile.tile.getLinkedTiles { tile ->
-                addLog(tile, ConfigureTileLog(tile, it.player.toInteractor(), tile.block(), it.value))
+                addLog(tile, ConfigureTileLog(tile, it.player.toInteractor(), tile.block(), it.tile.rotation, it.value, isOrigin(tile)))
             }
         }
 
@@ -55,7 +64,7 @@ object TileRecords {
 
         Events.on(EventType.BuildPayloadDrop::class.java) {
             it.tile.getLinkedTilesAs(it.building.block) { tile ->
-                addLog(tile, BlockPayloadDropLog(tile, it.unit.toInteractor(), it.building.block, it.building.config()))
+                addLog(tile, BlockPayloadDropLog(tile, it.unit.toInteractor(), it.building.block, it.building.rotation, it.building.config(), isOrigin(tile)))
             }
         }
 
@@ -98,5 +107,9 @@ object TileRecords {
             cont.add(TileRecords[tile]?.toElement())
             addCloseButton()
         }.show()
+    }
+
+    private fun isOrigin(tile: Tile): Boolean {
+        return tile.build?.pos() == tile.pos()
     }
 }
