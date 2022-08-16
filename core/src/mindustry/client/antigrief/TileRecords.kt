@@ -45,7 +45,9 @@ object TileRecords {
         Events.on(EventType.BlockBuildBeginEvent::class.java) {
             if (!it.breaking && it.tile.build != null) { // TODO: Find out why the hell is tile.build sometimes null. This SHOULD NOT happen.
                 it.tile.getLinkedTilesAs(it.tile.block()) { tile ->
-                    addLog(tile, TilePlacedLog(tile, it.unit.toInteractor(), it.tile.block(), it.tile.build.rotation, tile.build.config(), isOrigin(tile)))
+                    addLog(tile, TilePlacedLog(tile, it.unit.toInteractor(),
+                        (it.tile.build as? ConstructBlock.ConstructBuild)?.current ?: it.tile.block(),
+                        it.tile.build.rotation, tile.build.config(), isOrigin(tile)))
                 }
             }
         }
