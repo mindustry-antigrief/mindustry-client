@@ -29,6 +29,7 @@ object Client {
 
     fun initialize() {
         setup()
+        AutoTransfer.init()
         ClientLogic()
 
         val bc = BouncyCastleProvider()

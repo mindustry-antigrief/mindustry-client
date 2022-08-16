@@ -1,5 +1,6 @@
 package mindustry.client.utils
 
+import arc.*
 import arc.math.*
 import arc.struct.*
 import arc.util.*
@@ -17,12 +18,21 @@ import kotlin.math.*
 /** An auto transfer setup based on Ferlern/extended-ui */
 class AutoTransfer {
     companion object Settings {
+        // All of these settings (aside from debug) are overwritten on init()
         @JvmField var enabled = false
-        var fromCores = true
-        var fromContainers = true
-        var minCoreItems = 100
-        var delay = 60F
+        var fromCores = false
+        var fromContainers = false
+        var minCoreItems = -1
+        var delay = -1F
         var debug = false
+
+        fun init() {
+            enabled = Core.settings.getBool("autotransfer", false)
+            fromCores = Core.settings.getBool("fromcores", true)
+            fromContainers = Core.settings.getBool("fromcontainers", true)
+            minCoreItems = Core.settings.getInt("mincoreitems", 100)
+            delay = Core.settings.getFloat("transferdelay", 60F)
+        }
     }
 
     private val dest = Seq<Building>()

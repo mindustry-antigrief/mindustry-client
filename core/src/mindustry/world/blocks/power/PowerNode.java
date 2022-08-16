@@ -9,6 +9,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigrief.*;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
@@ -178,8 +179,16 @@ public class PowerNode extends PowerBlock{
     }
 
     protected void setupColor(float satisfaction){
-        Draw.color(laserColor1, laserColor2, (1f - satisfaction) * 0.86f + Mathf.absin(3f, 0.1f));
-        Draw.alpha(Renderer.laserOpacity);
+        setupColor(satisfaction, false);
+    }
+
+    protected void setupColor(float satisfaction, boolean purple){
+        if(purple){
+            Draw.color(Pal.place, Renderer.laserOpacity + .2f);
+        }else{
+            Draw.color(laserColor1, laserColor2, (1f - satisfaction) * 0.86f + Mathf.absin(3f, 0.1f));
+            Draw.alpha(Renderer.laserOpacity);
+        }
     }
 
     public void drawLaser(float x1, float y1, float x2, float y2, int size1, int size2){
@@ -483,7 +492,7 @@ public class PowerNode extends PowerBlock{
             if(Mathf.zero(Renderer.laserOpacity) || isPayload()) return;
 
             Draw.z(Layer.power);
-            setupColor(power.graph.getSatisfaction());
+            setupColor(power.graph.getSatisfaction(), power.graph == PowerInfo.hovered);
 
             for(int i = 0; i < power.links.size; i++){
                 Building link = world.build(power.links.get(i));

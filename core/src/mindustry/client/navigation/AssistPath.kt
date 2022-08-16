@@ -72,7 +72,7 @@ class AssistPath(val assisting: Player?, private val build: Boolean = false, pri
             }
         }
 
-        if (assisting.isBuilder && player.isBuilder) {
+        if (assisting.isBuilder && player.isBuilder && build) {
             if (assisting.unit().updateBuilding && assisting.team() == player.team()) {
                 plans.forEach { player.unit().removeBuild(it.x, it.y, it.breaking) }
                 plans.clear()
