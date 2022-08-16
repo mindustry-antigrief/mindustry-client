@@ -892,11 +892,12 @@ public class DesktopInput extends InputHandler{
         if(Core.input.keyRelease(Binding.break_block) || Core.input.keyRelease(Binding.select)){
 
             if(mode == placing && block != null){ //touch up while placing, place everything in selection
-                if(input.keyDown(Binding.boost)){
-                    flushPlansReverse(linePlans);
-                }else{
+                // Why do we even need reversed build plans - SBytes 17/08/2022
+//                if(input.keyDown(Binding.boost)){
+//                    flushPlansReverse(linePlans);
+//                }else{
                     flushPlans(linePlans, isFreezeQueueing, input.ctrl(), false);
-                }
+//                }
 
                 linePlans.clear();
                 Events.fire(new LineConfirmEvent());
