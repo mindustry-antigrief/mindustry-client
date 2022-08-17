@@ -150,7 +150,6 @@ class ClientLogic {
             if (Core.settings.getBool("discordrpc")) Vars.platform.startDiscord()
             if (Core.settings.getBool("mobileui")) Vars.mobile = !Vars.mobile
             if (Core.settings.getBool("viruswarnings")) LExecutor.virusWarnings = true
-            if (Core.settings.getBool("autotransfer")) AutoTransfer.enabled = true
 
             Autocomplete.autocompleters.add(BlockEmotes(), PlayerCompletion(), CommandCompletion())
 

@@ -1708,7 +1708,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return world.tile(tileX(x), tileY(y));
     }
 
-    public Tile cursorTile(){
+    public @Nullable Tile cursorTile(){
         return world.tileWorld(input.mouseWorldX(), input.mouseWorldY());
     }
 
