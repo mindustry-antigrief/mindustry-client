@@ -820,8 +820,8 @@ fun setup() {
                         diff.apply(state)
                         // Exit if we've gone past the time start
                         // Continue searching if we have not reached time end
-                        if (diff.time < timeStart) break
-                        if (diff.time > timeEnd || !diff.isOrigin || state.block == Blocks.air) continue
+                        if (diff.time > timeEnd) break
+                        if (diff.time < timeStart || !diff.isOrigin || state.block == Blocks.air) continue
 
                         found = true
                         break
