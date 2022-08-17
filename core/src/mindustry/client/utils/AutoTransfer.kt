@@ -28,15 +28,17 @@ class AutoTransfer {
         var minCoreItems = -1
         var delay = -1F
         var debug = false
-        var minTransferTotal = 10
-        var minTransfer = 2
+        var minTransferTotal = -1
+        var minTransfer = -1
 
         fun init() {
             enabled = Core.settings.getBool("autotransfer", false)
-            fromCores = Core.settings.getBool("fromcores", true)
-            fromContainers = Core.settings.getBool("fromcontainers", true)
-            minCoreItems = Core.settings.getInt("mincoreitems", 100)
-            delay = Core.settings.getFloat("transferdelay", 60F)
+            fromCores = Core.settings.getBool("autotransfer-fromcores", true)
+            fromContainers = Core.settings.getBool("autotransfer-fromcontainers", true)
+            minCoreItems = Core.settings.getInt("autotransfer-mincoreitems", 100)
+            delay = Core.settings.getFloat("autotransfer-transferdelay", 60F)
+            minTransferTotal = Core.settings.getInt("autotransfer-mintransfertotal", 10)
+            minTransfer = Core.settings.getInt("autotransfer-mintransfer", 2)
         }
     }
 
