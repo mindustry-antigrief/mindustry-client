@@ -6,8 +6,9 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
-import mindustry.client.navigation.*
 import mindustry.content.*
+import mindustry.client.navigation.*
+import mindustry.entities.bullet.*
 import mindustry.gen.*
 import mindustry.graphics.*
 import mindustry.type.*
@@ -42,7 +43,7 @@ class AutoTransfer {
     private val containers = Seq<Building>()
     private var item: Item? = null
     private var timer = 0F
-    private val counts = IntArray(content.items().size); private val countsAdditional = IntArray(content.items().size)
+    private val counts = IntArray(content.items().size); private val countsAdditional = FloatArray(content.items().size)
 
     fun draw() {
         if (!debug || player.unit().item() == null) return
@@ -70,7 +71,7 @@ class AutoTransfer {
         var held = player.unit().stack.amount
 
         counts.fill(0) // reset needed item counters
-        countsAdditional.fill(0)
+        countsAdditional.fill(0f)
         buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear()) // grab all buildings in range
 
         if (fromContainers && (core == null || !player.within(core, itemTransferRange))) core = containers.selectFrom(dest) { it.block is StorageBlock }.min { it -> it.dst(player) }
@@ -102,9 +103,9 @@ class AutoTransfer {
                         content.items().each { i ->
                             val acceptedC = if (item == Items.blastCompound && cons is ConsumeItemFlammable) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
                             if (acceptedC > 0 && it.block.consumesItem(i) && core.items.has(i, minItems)) {
-                                val turretC = (it.block as? ItemTurret)?.ammoTypes?.get(i)?.damage?.toInt() ?: 1 // Sort based on damage for turrets
+                                // Turrets have varying ammo, add an offset to prioritize some than others
                                 counts[i.id.toInt()] += acceptedC
-                                countsAdditional[i.id.toInt()] += acceptedC * turretC
+                                countsAdditional[i.id.toInt()] += acceptedC * getAmmoScore((it.block as? ItemTurret)?.ammoTypes?.get(i))
                             }
                         }
                     }
@@ -120,7 +121,7 @@ class AutoTransfer {
                 }
             }
         }
-        var maxID = 0; var maxCount = 0
+        var maxID = 0; var maxCount = 0f
         for (i in 1 until counts.size) {
             val count = counts[i] + countsAdditional[i]
             if (count > maxCount) {
@@ -139,5 +140,15 @@ class AutoTransfer {
                 ratelimitRemaining--
             }
         }
+    }
+
+    private fun getAmmoScore(ammo: BulletType?): Float {
+        return ammo?.estimateDPS() ?: 0f
+        /* Commented out for future reference in case I do need my own dps estimation function
+//        return (((ammo.damage * if (ammo.pierceBuilding || ammo.pierce) ammo.pierceCap else 1) +
+//                    ammo.splashDamage +
+//                    ammo.fragBullets * getAmmoScore(ammo.fragBullet)
+//                ) * ammo.ammoMultiplier * ammo.reloadMultiplier).toInt()
+         */
     }
 }
