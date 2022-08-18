@@ -19,9 +19,9 @@ object ProcessorPatcher {
 
     public val attemText = """
         print "Please do not use this delivery logic."
-        print "It is attem83 logic is considered bad logic"
-        print "as it breaks other logic."
-        print "For more info please go to mindustry.dev/attem"
+        print "It is attem83 logic and is considered bad logic"
+        print "as it breaks other delivery logic and even other attem logic."
+        print "For more info please go to https://mindustry.dev/attem."
         printflush message1
     """.trimIndent();
 
