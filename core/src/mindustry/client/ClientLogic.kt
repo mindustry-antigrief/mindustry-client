@@ -40,7 +40,7 @@ class ClientLogic {
                         }
                     }
                 }
-            }, 1F)
+            }, .1F)
         }
 
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)

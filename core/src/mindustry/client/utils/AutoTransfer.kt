@@ -63,7 +63,7 @@ class AutoTransfer {
         counts.fill(0) // reset needed item counters
         buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear()) // grab all buildings in range
 
-        if (fromContainers && (core == null || !player.within(core, itemTransferRange))) core = containers.selectFrom(dest) { it.block is StorageBlock }.min { it -> it.dst(player) }
+        if (fromContainers && (core == null || !player.within(core, itemTransferRange))) core = containers.selectFrom(dest) { it.block is StorageBlock && (item == null || it.items.has(item)) }.min { it -> it.dst(player) }
         var held = player.unit().stack.amount
 
         dest.filter { it.block.findConsumer<Consume?> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic } != null && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
@@ -71,15 +71,17 @@ class AutoTransfer {
         .forEach {
             if (ratelimitRemaining <= 1) return@forEach
 
-            val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
-            if (accepted >= min(held, 5) && held > 0) { // Don't bother transferring items unless we're moving 5 or more, any less and we just waste ratelimit
-                Call.transferInventory(player, it)
-                held -= accepted
-                ratelimitRemaining--
+            if (player.unit().item() != Items.blastCompound || it.block.findConsumer<ConsumeItems> { it is ConsumeItemExplode } == null ) {
+                val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
+                if (accepted >= min(held, 5) && held > 0) { // Don't bother transferring items unless we're moving 5 or more, any less and we just waste ratelimit
+                    Call.transferInventory(player, it)
+                    held -= accepted
+                    ratelimitRemaining--
+                }
             }
 
             val minItems = if (core is CoreBlock.CoreBuild) minCoreItems else 1
-            if (item == null && core != null) { // Automatically take needed item from core, only request once
+            if (core != null) { // Automatically take needed item from core
                 when (val cons = it.block.findConsumer<Consume> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic }) { // Cursed af
                     is ConsumeItems -> {
                         cons.items.forEach { i ->
@@ -91,7 +93,7 @@ class AutoTransfer {
                     }
                     is ConsumeItemFilter -> {
                         content.items().each { i ->
-                            val acceptedC = if (item == Items.blastCompound && cons is ConsumeItemFlammable) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
+                            val acceptedC = if (item == Items.blastCompound && cons is ConsumeItemExplode) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
                             if (it.block.consumesItem(i) && acceptedC >= 5 && core.items.has(i, minItems)) {
                                 counts[i.id.toInt()] += acceptedC
                             }
@@ -109,7 +111,7 @@ class AutoTransfer {
                 }
             }
         }
-        var maxID = 0
+        var maxID = 0 // FINISHME: Also include the items from nearby containers since otherwise we night never find those items
         for (i in 1 until counts.size) {
             if (counts[i] > counts[maxID]) maxID = i
         }

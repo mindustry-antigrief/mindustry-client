@@ -64,7 +64,7 @@ public class PlayerListFragment{
                     menu.button("@close", this::toggle).get().getLabel().setWrap(false);
                 }).margin(0f).pad(10f).growX();
 
-            }).touchable(Touchable.enabled).margin(14f).minWidth(360f);
+            }).touchable(Touchable.enabled).margin(14f).minWidth(400f);
         });
 
         rebuild();
@@ -180,7 +180,7 @@ public class PlayerListFragment{
 
                     t.button(Icon.zoom, ustyle, () -> Call.adminRequest(user, AdminAction.trace));
 
-                }).padRight(12).padLeft(12).size(bs + 10f, bs);
+                }).padRight(12).size(bs + 10f, bs);
             }else if(!user.isLocal() && !user.admin && net.client() && Groups.player.size() >= 3 && player.team() == user.team()){ //votekick
                 button.add().growY();
 
@@ -193,7 +193,7 @@ public class PlayerListFragment{
             }
             if (user != player) {
                 button.button(Icon.copy, ustyle, // Assist/copy
-                        () -> Navigation.follow(new AssistPath(user, Core.input.shift(), Core.input.ctrl()))).size(h / 2).tooltip("@client.assist");
+                        () -> Navigation.follow(new AssistPath(user, !Core.input.ctrl(), Core.input.alt()))).size(h / 2).tooltip("@client.assist");
                 button.button(Icon.cancel, ustyle, // Unassist/block
                         () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.move, ustyle, // Goto

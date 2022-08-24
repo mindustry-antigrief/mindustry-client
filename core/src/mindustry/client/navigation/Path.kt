@@ -58,7 +58,7 @@ abstract class Path {
                     }
                 }
             } else { // Not navigating
-                waypoints.set(waypoint.set(destX, destY, 0F, dist).run())
+                waypoints.set(waypoint.set(destX, destY, 1F, dist).run())
                 cons?.get(waypoints)
             }
 
