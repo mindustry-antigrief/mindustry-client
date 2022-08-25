@@ -353,9 +353,9 @@ fun setup() {
 
         player.team().data().unitCache(type)
             ?.filter { it.controller() is LogicAI }
-            ?.distinctBy { (it.controller() as LogicAI).controller }
-            ?.forEach {
-                player.sendMessage("[accent]${it.tileX()}, ${it.tileY()}")
+            ?.groupBy { (it.controller() as LogicAI).controller }
+            ?.forEach { (build, units) ->
+                player.sendMessage("x${units.size} [accent](${build.tileX()}, ${build.tileY()})")
             }
     }
 }
