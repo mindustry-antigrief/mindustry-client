@@ -93,7 +93,7 @@ class AutoTransfer {
                     }
                     is ConsumeItemFilter -> {
                         content.items().each { i ->
-                            val acceptedC = if (item == Items.blastCompound && cons is ConsumeItemExplode) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
+                            val acceptedC = if (item == Items.blastCompound && it.block.findConsumer<Consume> { it is ConsumeItemExplode} != null) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
                             if (it.block.consumesItem(i) && acceptedC >= 5 && core.items.has(i, minItems)) {
                                 counts[i.id.toInt()] += acceptedC
                             }
