@@ -224,7 +224,7 @@ fun setup() {
             }
         }
         ClientVars.configs.addAll(tmp)
-        @Suppress("CAST_NEVER_SUCCEEDS") val msg = Vars.ui.chatfrag.addMessage("", null as? Color)
+        @Suppress("CAST_NEVER_SUCCEEDS") val msg = Vars.ui.chatfrag.addMessage("", null, null as? Color, "", "")
         msg.message = when {
             confirmed && inProgress -> Core.bundle.format("client.command.fixpower.inprogress", ClientVars.configs.size, n)
             confirmed -> { // Actually fix the connections
@@ -316,7 +316,9 @@ fun setup() {
             Vars.ui.chatfrag.addMessage(
                 msg,
                 "[coral]${Main.keyStorage.cert()?.readableName ?: "you"} [white]-> ${Main.keyStorage.aliasOrName(cert)}",
-                ClientVars.encrypted
+                ClientVars.encrypted,
+                "",
+                msg
             )
             ClientVars.lastCertName = cert.readableName
         }

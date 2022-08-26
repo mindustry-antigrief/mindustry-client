@@ -414,7 +414,7 @@ public class DesktopInput extends InputHandler{
                 table.defaults().height(itemHeight).padTop(5).fillX();
                 try {
                     table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().growX().fillY().padTop(-5);
-                } catch (Exception e) { ui.chatfrag.addMessage(e.getMessage(), Color.scarlet); }
+                } catch (Exception e) { ui.chatfrag.addMessage(e.getMessage(), null, Color.scarlet, "", e.getMessage()); }
 
                 table.row().fill();
                 table.button("@client.log", () -> { // Tile Logs

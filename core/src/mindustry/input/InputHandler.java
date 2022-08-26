@@ -497,7 +497,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                         ClientVars.lastSentPos.set(build.tileX(), build.tileY());
                         if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
                             node.disconnections = 1;
-                            node.message = ui.chatfrag.addMessage(message, (Color)null);
+                            node.message = ui.chatfrag.addMessage(message, null, null, "", message);
                         } else {
                             ui.chatfrag.doFade(2);
                             node.message.message = message;

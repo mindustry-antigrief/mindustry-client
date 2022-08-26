@@ -28,12 +28,14 @@ import mindustry.logic.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
+import mindustry.ui.fragments.ChatFragment;
 import mindustry.world.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
+import java.util.stream.Collectors;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
@@ -43,7 +45,8 @@ public class NetClient implements ApplicationListener{
     /** ticks between syncs, e.g. 5 means 60/5 = 12 syncs/sec*/
     private static final float playerSyncTime = 4;
     private static final Reads dataReads = new Reads(null);
-    private static final Pattern coordPattern = Pattern.compile("\\S*?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\S*"); // This regex is a mess, it captures the coords into $1 and $2 while $0 contains all surrounding text as well. https://regex101.com is the superior regex tester
+    private static final Pattern wholeCoordPattern = Pattern.compile("\\S*?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\S*"); // This regex is a mess, it captures the coords into $1 and $2 while $0 contains all surrounding text as well. https://regex101.com is the superior regex tester
+    private static final Pattern coordPattern = Pattern.compile("(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)"); // Same as above, but without the surrounding text and https://regexr.com
 
     private long ping;
     private Interval timer = new Interval(5);
@@ -204,33 +207,48 @@ public class NetClient implements ApplicationListener{
         effect(effect, x, y, rotation, color);
     }
 
-    // FINISHME: This is disgusting
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
+        // message is the full formatted message from the server, including the sender
+        // unformatted is the message content itself, i.e. "gg", null for server messages
+        // playersender is exactly what you think it is, null for server messages
+
         Color background = null;
-        var original = unformatted; // Cursed and horrible
         if(Vars.ui != null){
             var prefix = "";
 
-            if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
+            // Add wrench to client user messages, highlight if enabled
+            if (playersender != null && playersender.fooUser && playersender != player) {
                 prefix = Iconc.wrench + " ";
                 if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
+            // highlight coords and set as the last position
             unformatted = processCoords(unformatted, true);
             message = processCoords(message, unformatted != null);
+
+            ChatFragment.ChatMessage output;
+
             if (playersender != null) {
+                // from a player
+
+                // if it's an admin or team message, incorporate that into the prefix because the original formatting will be discarded
                 if (message.startsWith("[#" + playersender.team().color.toString() + "]<T>")) {
                     prefix += "[#" + playersender.team().color.toString() + "]<T> ";
-                }
-                if (message.startsWith("[#" + Pal.adminChat.toString() + "]<A>")) {
+                } else if (message.startsWith("[#" + Pal.adminChat.toString() + "]<A>")) {
                     prefix += "[#" + Pal.adminChat.toString() + "]<A> ";
                 }
-                var sender = playersender.coloredName();
-                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
-                ui.chatfrag.addMessage(message, sender, background, prefix, unformatted2);
+
+                // I don't think this even works
+//                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
+                output = ui.chatfrag.addMessage(message, playersender.coloredName(), background, prefix, unformatted);
             } else {
-                Vars.ui.chatfrag.addMessage(message, null, unformatted == null ? "" : unformatted);
+                // server message, unformatted is ignored
+                output = Vars.ui.chatfrag.addMessage(message, null, null, "", "");
+            }
+            var foundCoords = findCoords(output.formattedMessage);
+            for (var f : foundCoords) {
+                output.buttons.add(new ChatFragment.ClickableArea(f.start, f.end, () -> Spectate.INSTANCE.spectate(f.pos)));
             }
             Sounds.chatMessage.play();
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
@@ -246,7 +264,7 @@ public class NetClient implements ApplicationListener{
             playersender.textFadeTime(1f);
         }
 
-        Events.fire(new PlayerChatEventClient(playersender, original));
+        Events.fire(new PlayerChatEventClient());
     }
 
     //equivalent to above method but there's no sender and no console log
@@ -256,14 +274,42 @@ public class NetClient implements ApplicationListener{
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
             message = processCoords(message, true);
-            Vars.ui.chatfrag.addMessage(message);
+            var output = Vars.ui.chatfrag.addMessage(message, "", null, "", message);
+            var foundCoords = findCoords(output.formattedMessage);
+            for (var f : foundCoords) {
+                output.buttons.add(new ChatFragment.ClickableArea(f.start, f.end, () -> Spectate.INSTANCE.spectate(f.pos)));
+            }
             Sounds.chatMessage.play();
         }
     }
 
-    private static String processCoords(String message, boolean setLastPos){
-        if (message == null) return null;
+    private static class FoundCoords {
+        Vec2 pos;
+        int start, end;
+    }
+
+    private static List<FoundCoords> findCoords(String message) {
+        if (message == null) return new ArrayList<>();
         Matcher matcher = coordPattern.matcher(message);
+        List<FoundCoords> out = new ArrayList<>();
+        while (matcher.find()) {
+            var result = matcher.toMatchResult();
+            try {
+                var pos = new Vec2(Float.parseFloat(result.group(1)) * tilesize, Float.parseFloat(result.group(2)) * tilesize);
+                var coord = new FoundCoords();
+                coord.pos = pos;
+                coord.start = result.start();
+                coord.end = result.end();
+                out.add(coord);
+            } catch (NumberFormatException ignored) {}
+        }
+        return out;
+    }
+
+    public static String processCoords(String message, boolean setLastPos){
+        // FINISHME: use findCoords()
+        if (message == null) return null;
+        Matcher matcher = wholeCoordPattern.matcher(message);
         if (!matcher.find()) return message;
         if (setLastPos) try {
             ClientVars.lastSentPos.set(Float.parseFloat(matcher.group(1)), Float.parseFloat(matcher.group(2)));

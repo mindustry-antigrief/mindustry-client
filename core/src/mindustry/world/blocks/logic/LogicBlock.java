@@ -563,7 +563,8 @@ public class LogicBlock extends Block{
                                 lastAttem = player;
                                 attemCount = 1;
                                 attemTime = Time.millis();
-                                attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", builder == null ? "unknown" : builder.getControllerName(), tileX(), tileY()), (Color)null);
+                                String msg = Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", builder == null ? "unknown" : builder.getControllerName(), tileX(), tileY());
+                                attemMsg = ui.chatfrag.addMessage(msg, null, null, "", msg);
                                 if (player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
                                     Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
                                 }

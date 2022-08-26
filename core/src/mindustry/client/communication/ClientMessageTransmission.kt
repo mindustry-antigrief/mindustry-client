@@ -92,7 +92,7 @@ class ClientMessageTransmission : Transmission {
         }
         val prefix = "[accent]<[white]F[]>[] ${when (validity) { VALID -> Iconc.ok; INVALID -> Iconc.cancel; UNKNOWN_CERT -> "" }} ".replace("  ", " ") // No double spaces. Cursed
 
-        Vars.ui.chatfrag.addMessage(message, sender, background, prefix)
+        Vars.ui.chatfrag.addMessage(message, sender, background, prefix, message)
     }
 
     override fun toString(): String {
