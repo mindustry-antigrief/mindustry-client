@@ -11,7 +11,6 @@ import arc.util.*;
 import arc.util.CommandHandler.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
-import kotlin.text.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
@@ -19,8 +18,8 @@ import mindustry.client.communication.*;
 import mindustry.client.utils.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
-import mindustry.game.EventType.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -28,14 +27,13 @@ import mindustry.logic.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
-import mindustry.ui.fragments.ChatFragment;
+import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
-import java.util.stream.Collectors;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
@@ -242,6 +240,7 @@ public class NetClient implements ApplicationListener{
                 // I don't think this even works
 //                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
                 output = ui.chatfrag.addMessage(message, playersender.coloredName(), background, prefix, unformatted);
+                output.buttons.add(new ChatFragment.ClickableArea(output.formattedMessage.indexOf(playersender.coloredName()), playersender.coloredName().length() + 16 + output.prefix.length(), () -> Spectate.INSTANCE.spectate(playersender)));
             } else {
                 // server message, unformatted is ignored
                 output = Vars.ui.chatfrag.addMessage(message, null, null, "", "");
@@ -288,10 +287,10 @@ public class NetClient implements ApplicationListener{
         int start, end;
     }
 
-    private static List<FoundCoords> findCoords(String message) {
-        if (message == null) return new ArrayList<>();
+    private static Seq<FoundCoords> findCoords(String message) {
+        if (message == null) return new Seq<>();
         Matcher matcher = coordPattern.matcher(message);
-        List<FoundCoords> out = new ArrayList<>();
+        Seq<FoundCoords> out = new Seq<>();
         while (matcher.find()) {
             var result = matcher.toMatchResult();
             try {

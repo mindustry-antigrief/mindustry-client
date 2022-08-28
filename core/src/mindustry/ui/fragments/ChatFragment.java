@@ -285,7 +285,7 @@ public class ChatFragment extends Table{
 
             font.getCache().draw();
 
-            if (msg.attachments.size() != 0) {
+            if (msg.attachments.any()) {
                 Draw.color();
                 if (!shown) Draw.alpha(Mathf.clamp(fadetime - i, 0, 1) * opacity);
                 float x = textWidth - 10f;
@@ -534,9 +534,9 @@ public class ChatFragment extends Table{
         public String prefix;
         /** The content of the message (i.e. "gg") */
         public String unformatted;
-        public List<Image> attachments = new ArrayList<>();
+        public Seq<Image> attachments = new Seq<>();
         public float start, height;
-        public List<ClickableArea> buttons = new ArrayList<>();
+        public Seq<ClickableArea> buttons = new Seq<>();
 
         /**
          * Creates a new ChatMessage.
