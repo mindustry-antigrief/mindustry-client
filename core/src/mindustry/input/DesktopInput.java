@@ -450,7 +450,7 @@ public class DesktopInput extends InputHandler{
                 table.defaults().height(itemHeight).padTop(5).fillX();
                 try {
                     table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().growX().fillY().padTop(-5);
-                } catch (Exception e) { ui.chatfrag.addMessage(e.getMessage(), Color.scarlet); }
+                } catch (Exception e) { ui.chatfrag.addMessage(e.getMessage(), null, Color.scarlet, "", e.getMessage()); }
 
                 table.row().fill();
                 table.button("@client.log", () -> { // Tile Logs
@@ -516,7 +516,7 @@ public class DesktopInput extends InputHandler{
                         recentRespawnTimer = 1f;
                     } else if ((input.ctrl() || input.shift()) && on.isPlayer()) {
                         Navigation.follow(new AssistPath(on.getPlayer(),
-                                input.shift() && input.alt() ? AssistPath.Type.FreeMove :
+                                !input.shift() && input.alt() ? AssistPath.Type.FreeMove :
                                 input.ctrl() && input.alt() ? AssistPath.Type.BuildPath :
                                 input.ctrl() ? AssistPath.Type.Cursor :
                                 AssistPath.Type.Regular));

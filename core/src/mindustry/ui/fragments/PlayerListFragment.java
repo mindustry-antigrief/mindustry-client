@@ -67,7 +67,7 @@ public class PlayerListFragment{
                     menu.button("@close", this::toggle).get().getLabel().setWrap(false);
                 }).margin(0f).pad(10f).growX();
 
-            }).touchable(Touchable.enabled).margin(14f).minWidth(360f);
+            }).touchable(Touchable.enabled).margin(14f).minWidth(400f);
         });
 
         rebuild();
@@ -183,7 +183,7 @@ public class PlayerListFragment{
 
                     t.button(Icon.zoom, ustyle, () -> Call.adminRequest(user, AdminAction.trace));
 
-                }).padRight(12).padLeft(12).size(bs + 10f, bs);
+                }).padRight(12).size(bs + 10f, bs);
             }else if(!user.isLocal() && !user.admin && net.client() && Groups.player.size() >= 3 && player.team() == user.team()){ //votekick
                 button.add().growY();
 

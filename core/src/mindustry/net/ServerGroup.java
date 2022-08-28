@@ -15,11 +15,13 @@ public class ServerGroup{
     }
 
     public boolean hidden(){
-        return Core.settings.getBool(key() + "-hidden", false);
+        return Core.settings.getBool(key() + "-hidden", false) != Core.settings.getBool("hideserversbydefault");
     }
 
     public void setHidden(boolean hidden){
-        Core.settings.put(key() + "-hidden", hidden);
+        var hiddenByDefault = Core.settings.getBool("hideserversbydefault");
+        if (hidden != hiddenByDefault) Core.settings.put(key() + "-hidden", true);
+        else Core.settings.remove(key() + "-hidden"); // Delete redundant setting, no need to have it around if its doing nothing (unless people want to swap between hidden/shown by default for some reason?)
     }
 
     String key(){

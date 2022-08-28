@@ -566,7 +566,8 @@ public class LogicBlock extends Block{
                                 lastAttem = player;
                                 attemCount = 1;
                                 attemTime = Time.millis();
-                                attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtilsKt.getName(builder), tileX(), tileY()), (Color)null);
+                                String msg = Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtilsKt.getName(builder), tileX(), tileY());
+                                attemMsg = ui.chatfrag.addMessage(msg, null, null, "", msg);
                                 if (Core.settings.getBool("attemwarfarewhisper") && ClientUtilsKt.canWhisper() && player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
                                     Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                 }

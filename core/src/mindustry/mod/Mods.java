@@ -47,7 +47,7 @@ public class Mods implements Loadable{
     public Seq<LoadedMod> mods = new Seq<>();
     private ObjectMap<Class<?>, ModMeta> metas = new ObjectMap<>();
     private boolean requiresReload;
-    private static final Seq<String> clientDisabled = Seq.with("automatic-mod-updater", "scheme-size"); // These mods aren't needed when using the client
+    private static final Seq<String> clientDisabled = Seq.with("automatic-mod-updater", "scheme-size", "auto-updater"); // These mods aren't needed when using the client
 
     private ObjectMap<Texture, PageType> pageTypes;
 

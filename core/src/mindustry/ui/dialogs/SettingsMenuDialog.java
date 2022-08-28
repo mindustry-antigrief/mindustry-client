@@ -351,6 +351,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("displayasuser", true);
         client.checkPref("broadcastcoreattack", false); // FINISHME: Multiple people using this setting at once will cause chat spam
         client.checkPref("showuserid", false);
+        client.checkPref("hideserversbydefault", false); // Inverts behavior of server hiding
 
         client.category("controls");
         client.checkPref("blockreplace", true);

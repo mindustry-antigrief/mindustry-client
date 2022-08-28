@@ -42,11 +42,13 @@ class AutoTransfer {
         }
     }
 
-    private val dest = Seq<Building>()
-    private val containers = Seq<Building>()
-    private var item: Item? = null
-    private var timer = 0F
-    private val counts = IntArray(content.items().size); private val countsAdditional = FloatArray(content.items().size)
+    val dest = Seq<Building>()
+    val containers = Seq<Building>()
+    var item: Item? = null
+    var timer = 0F
+    val counts = IntArray(content.items().size)
+    val countsAdditional = FloatArray(content.items().size)
+    var core: Building? = null
 
     fun draw() {
         if (!debug || player.unit().item() == null) return
@@ -65,7 +67,7 @@ class AutoTransfer {
         if (timer < delay) return
         timer = 0F
 
-        var core: Building? = if (fromCores) player.closestCore() else null
+        core = if (fromCores) player.closestCore() else null
         if (Navigation.currentlyFollowing is MinePath) { // Only allow autotransfer + minepath when within mineTransferRange
             if (core != null && (Navigation.currentlyFollowing as MinePath).tile?.within(core, mineTransferRange - tilesize * 10) != true) return
         } // Ngl this looks spaghetti
@@ -84,28 +86,30 @@ class AutoTransfer {
         .forEach {
             if (ratelimitRemaining <= 1) return@forEach
 
-            val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
-            if (accepted > 0 && held > 0) {
-                Call.transferInventory(player, it)
-                held -= accepted
-                ratelimitRemaining--
+            if (player.unit().item() != Items.blastCompound || it.block.findConsumer<ConsumeItems> { it is ConsumeItemExplode } == null ) {
+                val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
+                if (accepted > 0 && held > 0) {
+                    Call.transferInventory(player, it)
+                    held -= accepted
+                    ratelimitRemaining--
+                }
             }
 
             val minItems = if (core is CoreBlock.CoreBuild) minCoreItems else 1
-            if (item == null && core != null) { // Automatically take needed item from core, only request once
+            if (core != null) { // Automatically take needed item from core
                 when (val cons = it.block.findConsumer<Consume> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic }) { // Cursed af
                     is ConsumeItems -> {
                         cons.items.forEach { i ->
                             val acceptedC = it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit())
-                            if (acceptedC >= minTransfer && core.items.has(i.item, max(i.amount, minItems))) {
+                            if (acceptedC >= minTransfer && core!!.items.has(i.item, max(i.amount, minItems))) {
                                 counts[i.item.id.toInt()] += acceptedC
                             }
                         }
                     }
                     is ConsumeItemFilter -> {
                         content.items().each { i ->
-                            val acceptedC = if (item == Items.blastCompound && cons is ConsumeItemFlammable) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
-                            if (acceptedC >= minTransfer && it.block.consumesItem(i) && core.items.has(i, minItems)) {
+                            val acceptedC = if (item == Items.blastCompound && it.block.findConsumer<Consume> { it is ConsumeItemExplode } != null) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
+                            if (acceptedC >= minTransfer && it.block.consumesItem(i) && core!!.items.has(i, minItems)) {
                                 // Turrets have varying ammo, add an offset to prioritize some than others
                                 counts[i.id.toInt()] += acceptedC
                                 countsAdditional[i.id.toInt()] += acceptedC * getAmmoScore((it.block as? ItemTurret)?.ammoTypes?.get(i))
@@ -115,7 +119,7 @@ class AutoTransfer {
                     is ConsumeItemDynamic -> {
                         cons.items.get(it).forEach { i -> // Get the current requirements
                             val acceptedC = it.acceptStack(i.item, i.amount, player.unit())
-                            if (acceptedC >= minTransfer && core.items.has(i.item, max(i.amount, minItems))) {
+                            if (acceptedC >= minTransfer && core!!.items.has(i.item, max(i.amount, minItems))) {
                                 counts[i.item.id.toInt()] += acceptedC
                             }
                         }
@@ -124,7 +128,7 @@ class AutoTransfer {
                 }
             }
         }
-        var maxID = 0; var maxCount = 0f
+        var maxID = 0; var maxCount = 0f // FINISHME: Also include the items from nearby containers since otherwise we night never find those items
         for (i in 1 until counts.size) {
             val count = counts[i] + countsAdditional[i]
             if (count > maxCount) {

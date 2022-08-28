@@ -16,7 +16,7 @@ import java.util.regex.*;
 
 public class Scripts implements Disposable{
     public final Context context;
-    public final ImporterTopLevel scope;
+    public final Scriptable scope; // kept as Scriptable instead of ImporterTopLevel for vanilla compatibility (mods that access this such as project unity crash otherwise)
 
     private boolean errored;
     LoadedMod currentMod = null;
@@ -41,7 +41,7 @@ public class Scripts implements Disposable{
     /** Sets the "me" variable to the player for ease of use. */
     public void setPlayerConst(){
         if(Vars.player == null || scope.has("me", scope)) return;
-        scope.putConst("me", scope, Vars.player);
+        ((ImporterTopLevel)scope).putConst("me", scope, Vars.player);
     }
 
     public boolean hasErrored(){

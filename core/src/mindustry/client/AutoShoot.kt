@@ -11,6 +11,7 @@ import mindustry.input.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
+import mindustry.world.blocks.sandbox.LiquidSource.LiquidSourceBuild
 
 private var target: Teamc? = null
 private var hadTarget = false
@@ -56,6 +57,7 @@ fun autoShoot() {
                     block == Blocks.powerSource -> 0f
                     block is PowerNode -> if (tile.build.power.status < .9) 2f else 1f
 
+                    block == Blocks.liquidSource && (tile.build as LiquidSourceBuild).config() == Liquids.oil -> 1f
                     block == Blocks.itemSource -> 2f
                     block == Blocks.liquidSource -> 3f  // lower priority because things generally don't need liquid to run
 
