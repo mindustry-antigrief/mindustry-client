@@ -61,6 +61,8 @@ class ClientLogic {
             if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
             Client.tiles.clear()
+
+            UnitTypes.horizon.itemCapacity = if (flood()) 20 else 0 // Horizons can pick up items in flood, this just allows the items to draw correctly
         }
 
         Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading
