@@ -497,12 +497,12 @@ public class ChatFragment extends Table{
     /** @deprecated Kept for mod compatibility */
     @Deprecated
     public void addMessage(String ignored, String message){
-        addMessage(message, "", null, "", message);
+        addMessage(message, null, null, "", message);
     }
 
     /** Adds a message */
     public void addMessage(String message){
-        addMessage(message, "", null, "", message);
+        addMessage(message, null, null, "", message);
     }
 
     public void doFade(float seconds){
