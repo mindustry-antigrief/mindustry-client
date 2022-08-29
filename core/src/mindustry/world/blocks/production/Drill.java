@@ -126,9 +126,9 @@ public class Drill extends Block{
         countOre(tile);
 
         if(returnItem != null){
+            float width = drawPlaceText(Core.bundle.formatFloat("bar.drillspeed", 60f / getDrillTime(returnItem) * returnCount, 2), x, y, valid);
             float rate = 60f / (drillTime + hardnessDrillMultiplier * returnItem.hardness) * returnCount;
             String boostedRate = liquidBoostIntensity != 1 ? " ([white]" + Liquids.water.emoji() + "[]" + Strings.fixed(rate * liquidBoostIntensity * liquidBoostIntensity, 2)  + ")" : "";
-            float width = drawPlaceText(Core.bundle.format("bar.drillspeed", Strings.fixed(rate, 2) + boostedRate), x, y, valid);
             float dx = x * tilesize + offset - width/2f - 4f, dy = y * tilesize + offset + size * tilesize / 2f + 5, s = iconSmall / 4f;
             Draw.mixcol(Color.darkGray, 1f);
             Draw.rect(returnItem.fullIcon, dx, dy - 1, s, s);
@@ -147,6 +147,10 @@ public class Drill extends Block{
                 drawPlaceText(Core.bundle.get("bar.drilltierreq"), x, y, valid);
             }
         }
+    }
+
+    public float getDrillTime(Item item){
+        return drillTime + hardnessDrillMultiplier * item.hardness;
     }
 
     @Override
@@ -256,6 +260,12 @@ public class Drill extends Block{
         }
 
         @Override
+        public Object senseObject(LAccess sensor){
+            if(sensor == LAccess.firstItem) return dominantItem;
+            return super.senseObject(sensor);
+        }
+
+        @Override
         public void updateTile(){
             if(dominantItem == null){
                 return;
@@ -267,10 +277,12 @@ public class Drill extends Block{
 
             timeDrilled += warmup * delta();
 
+            float delay = getDrillTime(dominantItem);
+
             if(items.total() < itemCapacity && dominantItems > 0 && efficiency > 0){
                 float speed = Mathf.lerp(1f, liquidBoostIntensity, optionalEfficiency) * efficiency;
 
-                lastDrillSpeed = (speed * dominantItems * warmup) / (drillTime + hardnessDrillMultiplier * dominantItem.hardness);
+                lastDrillSpeed = (speed * dominantItems * warmup) / delay;
                 warmup = Mathf.approachDelta(warmup, speed, warmupSpeed);
                 progress += delta() * dominantItems * speed * warmup;
 
@@ -282,8 +294,6 @@ public class Drill extends Block{
                 return;
             }
 
-            float delay = drillTime + hardnessDrillMultiplier * dominantItem.hardness;
-
             if(dominantItems > 0 && progress >= delay && items.total() < itemCapacity){
                 offload(dominantItem);
 
@@ -294,8 +304,13 @@ public class Drill extends Block{
         }
 
         @Override
+        public float progress(){
+            return dominantItem == null ? 0f : Mathf.clamp(progress / getDrillTime(dominantItem));
+        }
+
+        @Override
         public double sense(LAccess sensor){
-            if(sensor == LAccess.progress && dominantItem != null) return Mathf.clamp(progress / (drillTime + hardnessDrillMultiplier * dominantItem.hardness));
+            if(sensor == LAccess.progress && dominantItem != null) return progress;
             return super.sense(sensor);
         }
 

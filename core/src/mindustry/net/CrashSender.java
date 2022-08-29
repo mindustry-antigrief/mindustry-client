@@ -86,7 +86,7 @@ public class CrashSender{
             try{
                 File file = new File(OS.getAppDataDirectoryString(Vars.appName), "crashes/crash-report-" + new SimpleDateFormat("MM_dd_yyyy_HH_mm_ss").format(new Date()) + ".txt");
                 new Fi(OS.getAppDataDirectoryString(Vars.appName)).child("crashes").mkdirs();
-                new Fi(file).writeString(createReport(parseException(exception)));
+                new Fi(file).writeString(createReport(writeException(exception)));
                 writeListener.get(file);
             }catch(Throwable e){
                 Log.err("Failed to save local crash report.", e);
@@ -170,17 +170,10 @@ public class CrashSender{
         System.exit(1);
     }
 
-    private static String parseException(Throwable e){
+    private static String writeException(Throwable e){
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         return sw.toString();
-    }
-
-    private static void ex(Runnable r){
-        try{
-            r.run();
-        }catch(Throwable ignored){
-        }
     }
 }
