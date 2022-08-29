@@ -10,6 +10,7 @@ import mindustry.graphics.g3d.*;
 import mindustry.maps.generators.*;
 import mindustry.type.*;
 import mindustry.world.blocks.environment.*;
+import mindustry.world.*;
 
 import static mindustry.Vars.*;
 
