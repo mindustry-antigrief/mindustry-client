@@ -44,7 +44,7 @@ public class AsteroidGenerator extends BlankPlanetGenerator{
 
     @Override
     public void generate(){
-        seed = state.rules.sector.planet.id;
+        //seed = state.rules.sector.planet.id;
         int sx = width/2, sy = height/2;
         rand = new Rand(seed);
 
@@ -149,6 +149,19 @@ public class AsteroidGenerator extends BlankPlanetGenerator{
         state.rules.showSpawns = true;
         //TODO better wavegen, do it by hand even
         state.rules.spawns = Waves.generate(0.5f, rand, false, true, false);
+    }
+
+    @Override
+    public void generate(Tiles tiles, Sector sec, int seed){
+        this.tiles = tiles;
+        this.sector = sec;
+        this.rand.setSeed(sec.id + seed + baseSeed);
+        
+        this.seed = state.rules.sector.planet.id + seed;
+
+        tiles.fill();
+
+        generate(tiles);
     }
 
     @Override
