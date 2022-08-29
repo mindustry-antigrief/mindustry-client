@@ -156,7 +156,6 @@ public class AsteroidGenerator extends BlankPlanetGenerator{
     public void generate(Tiles tiles, Sector sec, int seed){
         this.tiles = tiles;
         this.sector = sec;
-        this.rand.setSeed(sec.id + seed + baseSeed);
         
         this.seed = state.rules.sector.planet.id + seed;
 
