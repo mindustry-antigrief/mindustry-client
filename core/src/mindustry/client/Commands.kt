@@ -9,6 +9,7 @@ import arc.util.*
 import arc.util.CommandHandler.*
 import mindustry.*
 import mindustry.ai.types.*
+import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
@@ -19,6 +20,7 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
+import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
 import java.io.*
@@ -26,6 +28,7 @@ import java.math.*
 import java.security.cert.*
 import kotlin.math.*
 import kotlin.random.*
+
 
 fun setup() {
     register("help [page]", Core.bundle.get("client.command.help.description")) { args, player ->
@@ -357,7 +360,9 @@ fun setup() {
             ?.filter { it.controller() is LogicAI }
             ?.groupBy { (it.controller() as LogicAI).controller }
             ?.forEach { (build, units) ->
-                player.sendMessage("x${units.size} [accent](${build.tileX()}, ${build.tileY()})")
+                val txt = "x${units.size} [accent](${build.tileX()}, ${build.tileY()})"
+                val msg = Vars.ui.chatfrag.addMessage(txt, null, null, "", txt)
+                NetClient.findCoords(msg.formattedMessage).each { c -> msg.buttons.add(ClickableArea(c.start, c.end) { spectate(c.pos) }) }
             }
     }
 }

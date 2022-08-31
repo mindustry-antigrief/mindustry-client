@@ -274,20 +274,30 @@ public class NetClient implements ApplicationListener{
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
             message = processCoords(message, true);
             var output = Vars.ui.chatfrag.addMessage(message, null, null, "", message);
-            var foundCoords = findCoords(output.formattedMessage);
-            for (var f : foundCoords) {
-                output.buttons.add(new ChatFragment.ClickableArea(f.start, f.end, () -> Spectate.INSTANCE.spectate(f.pos)));
+
+            var foundCoords = findCoords(output.formattedMessage); // Clickable coordinates
+            for (var f : foundCoords) output.buttons.add(new ChatFragment.ClickableArea(f.start, f.end, () -> Spectate.INSTANCE.spectate(f.pos)));
+
+            if (message.contains("Type[orange] /vote <y/n>[] to " + (ClientUtilsKt.io() ? "vote." : "agree."))
+            || ClientUtilsKt.phoenix() && message.contains("Type [cyan]/vote y")) { // Vote kick clickable buttons
+                String yes = "[green]VOTE YES", no = "[red]VOTE NO";
+                output.message = output.message + '\n' + yes + '\n' + no;
+                output.format();
+                int yesi = output.formattedMessage.indexOf(yes), noi = output.formattedMessage.indexOf(no);
+                output.buttons.add(new ChatFragment.ClickableArea(yesi, yesi + yes.length(), () -> Call.sendChatMessage("/vote y")));
+                output.buttons.add(new ChatFragment.ClickableArea(noi, noi + no.length(), () -> Call.sendChatMessage("/vote n")));
             }
+
             Sounds.chatMessage.play();
         }
     }
 
-    private static class FoundCoords {
-        Vec2 pos;
-        int start, end;
+    public static class FoundCoords {
+        public Vec2 pos;
+        public int start, end;
     }
 
-    private static Seq<FoundCoords> findCoords(String message) {
+    public static Seq<FoundCoords> findCoords(String message) {
         if (message == null) return new Seq<>();
         Matcher matcher = coordPattern.matcher(message);
         Seq<FoundCoords> out = new Seq<>();
