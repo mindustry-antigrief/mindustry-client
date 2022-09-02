@@ -84,6 +84,6 @@ public class Version{
         if(build == -1){
             return "custom build";
         }
-        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + "\n(Flarogus Client Version: " + (clientVersion.equals("v0.0.0") ? "Dev" : clientVersion) + ")";
+        return (type.equals("official") ? modifier : type) + " build " + build + (revision == 0 ? "" : "." + revision) + "\n(SByte Foo Fork Client Version: " + (clientVersion.equals("v0.0.0") ? "Dev" : clientVersion) + ")";
     }
 }
