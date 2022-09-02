@@ -250,11 +250,10 @@ class ClientLogic {
                         if (event.unit?.player != turretVoidWarnPlayer || turretVoidWarnPlayer == null || Time.timeSinceMillis(lastTurretVoidWarn) > 5e3) {
                             turretVoidWarnPlayer = event.unit?.player
                             turretVoidWarnCount = 1
-                            turretVoidWarnMsg = ui.chatfrag.addMessage(
-                                Core.bundle.format("client.turretvoidwarn",
-                                    getName(event.unit), event.tile.x, event.tile.y, void.tileX(), void.tileY()
-                                ), null as Color?
+                            val message = Core.bundle.format("client.turretvoidwarn", getName(event.unit),
+                                event.tile.x, event.tile.y, void.tileX(), void.tileY()
                             )
+                            turretVoidWarnMsg = ui.chatfrag.addMessage(message , null, null, "", message)
                         } else {
                             ui.chatfrag.messages.remove(turretVoidWarnMsg)
                             ui.chatfrag.messages.insert(0, turretVoidWarnMsg)
