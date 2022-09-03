@@ -126,7 +126,7 @@ public class Drill extends Block{
         countOre(tile);
 
         if(returnItem != null){
-            float rate = getDrillTime(returnItem) * returnCount;
+            float rate = 60f / getDrillTime(returnItem) * returnCount;
             String boostedRate = liquidBoostIntensity != 1 ? " ([white]" + Liquids.water.emoji() + "[]" + Strings.fixed(rate * liquidBoostIntensity * liquidBoostIntensity, 2)  + ")" : "";
             float width = drawPlaceText(Core.bundle.format("bar.drillspeed", Strings.fixed(rate, 2) + boostedRate), x, y, valid);
             float dx = x * tilesize + offset - width/2f - 4f, dy = y * tilesize + offset + size * tilesize / 2f + 5, s = iconSmall / 4f;
