@@ -110,6 +110,9 @@ public class LogicBlock extends Block{
 
     public static String getLinkName(Block block){
         String name = block.name;
+        if(name.contains("-")){
+            String[] split = name.split("-");
+            //filter out 'large' at the end of block names
             if(split.length >= 2 && (split[split.length - 1].equals("large") || Strings.canParseFloat(split[split.length - 1]))){
                 name = split[split.length - 2];
             }else{
@@ -674,20 +677,6 @@ public class LogicBlock extends Block{
 
             if(validLink(other)){
                 configure(other.pos());
-                return false;
-            }
-
-            return super.onConfigureBuildTapped(other);
-        }
-
-        @Override
-        public byte version(){
-            return 2;
-        }
-
-        @Override
-        public void write(Writes write){
-            super.write(write);
                 return false;
             }
 
