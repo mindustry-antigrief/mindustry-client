@@ -571,7 +571,6 @@ public class LogicBlock extends Block{
                                 NetClient.findCoords(attemMsg.formattedMessage).each(c -> attemMsg.buttons.add(new ChatFragment.ClickableArea(c.start, c.end, () -> Spectate.INSTANCE.spectate(c.pos))));
 				// FINISHME: Send this every time an attem is placed but hide it from our view instead
                                 if (Core.settings.getBool("attemwarfarewhisper") && ClientUtilsKt.canWhisper() && player != null) { 
-                                    Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
                                     Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                 }
                             } else {
