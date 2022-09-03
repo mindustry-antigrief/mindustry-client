@@ -110,9 +110,6 @@ public class LogicBlock extends Block{
 
     public static String getLinkName(Block block){
         String name = block.name;
-        if(name.contains("-")){
-            String[] split = name.split("-");
-            //filter out 'large' at the end of block names
             if(split.length >= 2 && (split[split.length - 1].equals("large") || Strings.canParseFloat(split[split.length - 1]))){
                 name = split[split.length - 2];
             }else{
@@ -568,7 +565,10 @@ public class LogicBlock extends Block{
                                 attemTime = Time.millis();
                                 String msg = Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtilsKt.getName(builder), tileX(), tileY());
                                 attemMsg = ui.chatfrag.addMessage(msg, null, null, "", msg);
-                                if (Core.settings.getBool("attemwarfarewhisper") && ClientUtilsKt.canWhisper() && player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
+                                NetClient.findCoords(attemMsg.formattedMessage).each(c -> attemMsg.buttons.add(new ChatFragment.ClickableArea(c.start, c.end, () -> Spectate.INSTANCE.spectate(c.pos))));
+				// FINISHME: Send this every time an attem is placed but hide it from our view instead
+                                if (Core.settings.getBool("attemwarfarewhisper") && ClientUtilsKt.canWhisper() && player != null) { 
+                                    Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
                                     Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                 }
                             } else {
@@ -674,6 +674,20 @@ public class LogicBlock extends Block{
 
             if(validLink(other)){
                 configure(other.pos());
+                return false;
+            }
+
+            return super.onConfigureBuildTapped(other);
+        }
+
+        @Override
+        public byte version(){
+            return 2;
+        }
+
+        @Override
+        public void write(Writes write){
+            super.write(write);
                 return false;
             }
 

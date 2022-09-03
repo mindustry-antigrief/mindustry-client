@@ -11,6 +11,7 @@ import arc.util.CommandHandler.*
 import mindustry.Vars.*
 import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
+import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
@@ -30,6 +31,7 @@ import mindustry.ui.*
 import mindustry.ui.fragments.ChatFragment
 import mindustry.world.blocks.distribution.ItemBridge
 import mindustry.world.blocks.environment.Prop
+import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.logic.LogicBlock.compress
 import mindustry.world.blocks.power.*
@@ -41,6 +43,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.math.*
 import kotlin.random.*
+
 
 fun setup() {
     register("help [page]", Core.bundle.get("client.command.help.description")) { args, player ->
@@ -415,7 +418,9 @@ fun setup() {
             ?.filter { it.controller() is LogicAI }
             ?.groupBy { (it.controller() as LogicAI).controller }
             ?.forEach { (build, units) ->
-                player.sendMessage("x${units.size} [accent](${build.tileX()}, ${build.tileY()})")
+                val txt = "x${units.size} [accent](${build.tileX()}, ${build.tileY()})"
+                val msg = Vars.ui.chatfrag.addMessage(txt, null, null, "", txt)
+                NetClient.findCoords(msg.formattedMessage).each { c -> msg.buttons.add(ClickableArea(c.start, c.end) { spectate(c.pos) }) }
             }
     }
 
