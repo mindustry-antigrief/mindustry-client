@@ -27,6 +27,7 @@ import mindustry.logic.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
+import mindustry.ui.*;
 import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.modules.*;
@@ -45,6 +46,7 @@ public class NetClient implements ApplicationListener{
     private static final Reads dataReads = new Reads(null);
     private static final Pattern wholeCoordPattern = Pattern.compile("\\S*?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\S*"); // This regex is a mess, it captures the coords into $1 and $2 while $0 contains all surrounding text as well. https://regex101.com is the superior regex tester
     private static final Pattern coordPattern = Pattern.compile("(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)"); // Same as above, but without the surrounding text and https://regexr.com
+    private static final Pattern linkPattern = Pattern.compile("(https?://)?[-a-zA-Z0-9@:%._\\\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b[-a-zA-Z0-9()@:%_\\\\+.~#?&/=]*");
 
     private long ping;
     private Interval timer = new Interval(5);
@@ -245,10 +247,10 @@ public class NetClient implements ApplicationListener{
                 // server message, unformatted is ignored
                 output = Vars.ui.chatfrag.addMessage(message, null, null, "", "");
             }
-            var foundCoords = findCoords(output.formattedMessage);
-            for (var f : foundCoords) {
-                output.buttons.add(new ChatFragment.ClickableArea(f.start, f.end, () -> Spectate.INSTANCE.spectate(f.pos)));
-            }
+
+            findCoords(output);
+            findLinks(output);
+
             Sounds.chatMessage.play();
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
                 Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
@@ -275,8 +277,8 @@ public class NetClient implements ApplicationListener{
             message = processCoords(message, true);
             var output = Vars.ui.chatfrag.addMessage(message, null, null, "", message);
 
-            var foundCoords = findCoords(output.formattedMessage); // Clickable coordinates
-            for (var f : foundCoords) output.buttons.add(new ChatFragment.ClickableArea(f.start, f.end, () -> Spectate.INSTANCE.spectate(f.pos)));
+            findCoords(output);
+            findLinks(output);
 
             if (message.contains("Type[orange] /vote <y/n>[] to " + (ClientUtilsKt.io() ? "vote." : "agree."))
             || ClientUtilsKt.phoenix() && message.contains("Type [cyan]/vote y")) { // Vote kick clickable buttons
@@ -313,6 +315,22 @@ public class NetClient implements ApplicationListener{
             } catch (NumberFormatException ignored) {}
         }
         return out;
+    }
+
+    /** Finds coordinates in a message and makes them clickable */
+    public static void findCoords(ChatFragment.ChatMessage msg) {
+        findCoords(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage))
+            .each(c -> msg.buttons.add(new ChatFragment.ClickableArea(c.start, c.end, () -> Spectate.INSTANCE.spectate(c.pos))));
+    }
+
+    /** Finds links in a message and makes them clickable */
+    public static void findLinks(ChatFragment.ChatMessage msg) {
+        Matcher matcher = linkPattern.matcher(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage));
+        while (matcher.find()) {
+            var res = matcher.toMatchResult();
+            var url = res.group(1) == null ? "https://" + res.group() : res.group(); // Add https:// if missing protocol
+            msg.buttons.add(new ChatFragment.ClickableArea(res.start(), res.end(), () -> Menus.openURI(url)));
+        }
     }
 
     public static String processCoords(String message, boolean setLastPos){

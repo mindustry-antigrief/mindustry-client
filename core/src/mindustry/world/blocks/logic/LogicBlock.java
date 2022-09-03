@@ -563,7 +563,7 @@ public class LogicBlock extends Block{
                                 attemTime = Time.millis();
                                 String msg = Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", builder == null ? "unknown" : builder.getControllerName(), tileX(), tileY());
                                 attemMsg = ui.chatfrag.addMessage(msg, null, null, "", msg);
-                                NetClient.findCoords(attemMsg.formattedMessage).each(c -> attemMsg.buttons.add(new ChatFragment.ClickableArea(c.start, c.end, () -> Spectate.INSTANCE.spectate(c.pos))));
+                                NetClient.findCoords(attemMsg);
                                 if (player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
                                     Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
                                 }
