@@ -296,7 +296,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         menu.button("@settings.data", Icon.save, style, isize, () -> dataDialog.show()).marginLeft(marg).row();
 
-        int i = 3;
+        int i = 5;
         for(var cat : categories){
             int index = i;
             if(cat.icon == null){
