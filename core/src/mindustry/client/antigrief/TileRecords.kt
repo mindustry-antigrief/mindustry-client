@@ -47,9 +47,15 @@ object TileRecords {
                 it.tile.getLinkedTilesAs(it.tile.block()) { tile ->
                     addLog(tile, TilePlacedLog(tile, it.unit.toInteractor(),
                         (it.tile.build as? ConstructBlock.ConstructBuild)?.current ?: it.tile.block(),
-                        it.tile.build.rotation, tile.build.config(), isOrigin(tile)))
+                        it.tile.build.rotation, it.tile.build.config(), isOrigin(tile)))
                 }
             }
+        }
+
+        Events.on(EventType.BlockBuildEndEvent::class.java) {
+            if (it.breaking) return@on
+            val record = this[it.tile] ?: return@on
+            (record.logs!!.last().logs.last() as? TilePlacedLog)?.configuration = it.tile.build.config()
         }
 
         Events.on(EventType.ConfigEventBefore::class.java) {
@@ -112,6 +118,7 @@ object TileRecords {
     }
 
     private fun isOrigin(tile: Tile): Boolean {
-        return tile.build?.pos() == tile.pos()
+//        return tile.build?.pos() == tile.pos()
+        return tile.build?.tile == tile // Ahem. Why did this break everything
     }
 }

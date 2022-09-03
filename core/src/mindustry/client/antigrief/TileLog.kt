@@ -203,7 +203,7 @@ class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, val rota
     override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.configured")}"
 }
 
-open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, val configuration: Any?, origin: Boolean) : TileLog(tile, cause, origin) {
+open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, var configuration: Any?, origin: Boolean) : TileLog(tile, cause, origin) {
     override fun apply(previous: TileState) {
         previous.block = block
         previous.rotation = rotation

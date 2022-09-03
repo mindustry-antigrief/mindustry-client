@@ -30,7 +30,6 @@ import mindustry.logic.GlobalVars.*
 import mindustry.ui.*
 import mindustry.ui.fragments.ChatFragment
 import mindustry.world.blocks.distribution.ItemBridge
-import mindustry.world.blocks.environment.Prop
 import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.logic.LogicBlock.compress
@@ -823,35 +822,25 @@ fun setup() {
         clientThread.post {
             val plans: Seq<BuildPlan> = Seq()
             tiles.forEach {
-                if (!it.within(player.x, player.y, range) || (it.block() != Blocks.air && it.block() !is Prop)) return@forEach
+                if (!it.within(player.x, player.y, range) || it.block() != Blocks.air) return@forEach
 
                 val record = TileRecords[it] ?: return@forEach
-                val logs = record.logs ?: return@forEach
+                var use: TileState? = null
 
-                var state: TileState = logs[0].snapshot
-                var found = false
-
-                for (seq in record.logs!!) {
-                    state = seq.snapshot.clone()
-//                    if (state.block is Floor) break // On second thought, world proc might be able to set wall and floor tiles
-
-                    val iterator = seq.iterator()
-                    while (iterator.hasNext()) {
-                        val diff = iterator.next()
+                seq@ for (seq in record.logs!!) {
+                val state = seq.snapshot.clone()
+                    for (diff in seq.iterator()) {
                         diff.apply(state)
                         // Exit if we've gone past the time start
                         // Continue searching if we have not reached time end
-                        if (diff.time > timeEnd) break
+                        if (diff.time > timeEnd) break@seq
                         if (diff.time < timeStart || !diff.isOrigin || state.block == Blocks.air) continue
 
-                        found = true
-                        break
+                        use = state.clone()
                     }
-                    if (found) break
                 }
-                if (!found) return@forEach
-
-                plans.add(BuildPlan(state.x, state.y, state.rotation, state.block, state.configuration))
+                if (use == null) return@forEach
+                plans.add(BuildPlan(use.x, use.y, use.rotation, use.block, use.configuration))
             }
 
             if (plans.size == 0) return@post
