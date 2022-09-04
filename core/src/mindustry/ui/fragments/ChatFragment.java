@@ -234,9 +234,9 @@ public class ChatFragment extends Table{
 
             msg.start = theight - layout.height - 2;
             msg.height = layout.height + textspacing;
-            float mousey = input.mouse().y;
-            float mousex = input.mouse().x;
-            if (mousey > msg.start && mousey < msg.start + msg.height) {
+            float mousey = input.mouseY();
+            float mousex = input.mouseX();
+            if (mousey > msg.start && mousey < msg.start + msg.height && msg.buttons != null) {
                 litUp.clear();
                 var co = Draw.getColor().cpy();
                 for (var g : font.getCache().getLayouts()) {
@@ -287,7 +287,7 @@ public class ChatFragment extends Table{
 
             font.getCache().draw();
 
-            if (msg.attachments.any()) {
+            if (msg.attachments != null && msg.attachments.any()) {
                 Draw.color();
                 if (!shown) Draw.alpha(Mathf.clamp(fadetime - i, 0, 1) * opacity);
                 float x = textWidth - 10f;
@@ -516,6 +516,12 @@ public class ChatFragment extends Table{
         ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy(), prefix, unformatted);
         messages.insert(0, msg);
 
+        if (messages.size >= 100) { // Free up memory by disposing of stuff in old messages
+            var msg100 = messages.get(99);
+            msg100.attachments = null;
+            msg100.buttons = null;
+        }
+
         doFade(6); // fadetime was originally incremented by 2f, that works out to 6s
 
         if(scrollPos > 0) scrollPos++;
@@ -562,13 +568,14 @@ public class ChatFragment extends Table{
         public String prefix;
         /** The content of the message (i.e. "gg") */
         public String unformatted;
-        public Seq<Image> attachments = new Seq<>();
+        @Nullable public Seq<Image> attachments = new Seq<>(); // This seq is deleted after 100 new messages to save ram
         public float start, height;
-        public Seq<ClickableArea> buttons = new Seq<>();
     
         public static boolean processCoords, setLastPos; // false by default, set them ON right before initializing a new message
         private static final Pattern coordPattern = Pattern.compile("([\\[,\\(]?([\\d\\.]+)[ ,]+([\\d\\.]+)[\\],\\)]?)"); // This regex captures the coords into $1 and $2 while $0 contains all surrounding text as well. Fixed by BalaM314. https://regexr.com is the superior regex tester
         
+        @Nullable public Seq<ClickableArea> buttons = new Seq<>(); // This seq is deleted after 100 new messages to save ram
+
         /**
          * Creates a new ChatMessage.
          * @param message     The message as formatted by the server
@@ -607,7 +614,7 @@ public class ChatFragment extends Table{
             }
             processCoords = setLastPos = false;
             int shift = formattedMessage.length() - initial;
-            if (moveButtons) {
+            if (moveButtons && buttons != null) {
                 for (var b : buttons) {
                     b.start += shift;
                     b.end += shift;

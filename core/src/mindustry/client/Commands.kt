@@ -419,7 +419,7 @@ fun setup() {
             ?.forEach { (build, units) ->
                 val txt = "x${units.size} [accent](${build.tileX()}, ${build.tileY()})"
                 val msg = ui.chatfrag.addMessage(txt, null, null, "", txt)
-                NetClient.findCoords(msg.formattedMessage).each { c -> msg.buttons.add(ClickableArea(c.start, c.end) { spectate(c.pos) }) }
+                NetClient.findCoords(msg)
             }
     }
 
