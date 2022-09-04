@@ -2,7 +2,6 @@ package mindustry.client
 
 import arc.Core
 import arc.Events
-import arc.graphics.Color
 import arc.struct.Seq
 import arc.util.Log
 import arc.util.Strings
@@ -12,7 +11,7 @@ import mindustry.Vars
 import mindustry.Vars.ui
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.ConfigRequest
-import mindustry.client.antigrief.PowerInfo
+import mindustry.client.antigrief.Seer
 import mindustry.client.communication.CommandTransmission
 import mindustry.client.navigation.*
 import mindustry.client.ui.ChangelogDialog
@@ -113,6 +112,8 @@ class ClientLogic {
                     }
                 }
             }
+
+            Groups.player.each { Seer.registerPlayer(it) }
         }
 
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
@@ -121,6 +122,7 @@ class ClientLogic {
                 AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
                 Player.persistPlans.clear()
                 Vars.frozenPlans.clear()
+                Seer.players.clear()
             }
             lastJoinTime = Time.millis()
             configs.clear()

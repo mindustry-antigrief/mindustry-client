@@ -12,10 +12,10 @@ import arc.struct.*;
 import arc.util.Timer;
 import arc.util.*;
 import arc.util.io.*;
-import mindustry.ai.types.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
+import mindustry.client.antigrief.Seer;
 import mindustry.client.ui.*;
 import mindustry.client.utils.ClientUtilsKt;
 import mindustry.content.*;
@@ -522,6 +522,7 @@ public class ConstructBlock extends Block{
                 AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE); // FINISHME: Do this from the edges instead, checking all blocks is more expensive than it needs to be
                 closestCore().proximity.each(e -> e instanceof StorageBlock.StorageBuild, block -> block.tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get()))))); // This stupidity finds the smallest distance between vaults on the closest core and the block being built
                 closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get())))); // This stupidity checks the distance to the core as well just in case it ends up being shorter
+                Seer.INSTANCE.thoriumReactor(ClientUtilsKt.getPlayer(lastBuilder), distance.get());
                 if (wb.warnDistance == 101 || distance.get() <= wb.warnDistance) {
                     String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.getPlayer().name), current.localizedName, tile.x, tile.y, distance.get());
                     String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));

@@ -852,7 +852,9 @@ fun setup() {
 
     register("undoc <player> [range]", "Undo Configs from a specific player (get rekt config griefers)") { args, player ->
         val range: Float
+        val id: Int?
         try {
+            id = args[0].toIntOrNull()
             range = if (args.size >= 2) args[1].toFloat() * tilesize else Float.POSITIVE_INFINITY
         }
         catch (_: Exception) {
@@ -892,6 +894,20 @@ fun setup() {
                 configs.addAll(plans)
                 player.sendMessage("Undoing ${plans.size} configs made by $playerName")
             }
+        }
+    }
+
+    register("seer <option>", "Seer related commands") { args, player ->
+        if (args[0] == "list") {
+            val sb = StringBuilder()
+            sb.appendLine("[royal]Players who have joined and their IDs:")
+            Seer.players.forEach {
+                sb.appendLine("${it.lastInstance.coloredName()}[royal] (${it.id})")
+            }
+            player.sendMessage(sb.toString())
+        }
+        else {
+            Seer.showDialog()
         }
     }
 
