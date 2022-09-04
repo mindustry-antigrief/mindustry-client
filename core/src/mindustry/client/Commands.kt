@@ -11,7 +11,6 @@ import arc.util.CommandHandler.*
 import mindustry.Vars.*
 import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
-import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
@@ -30,7 +29,6 @@ import mindustry.logic.GlobalVars.*
 import mindustry.ui.*
 import mindustry.ui.fragments.ChatFragment
 import mindustry.world.blocks.distribution.ItemBridge
-import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.logic.LogicBlock.compress
 import mindustry.world.blocks.power.*
@@ -81,12 +79,12 @@ fun setup() {
     }
 
     register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
-        if (args[0] == "all") {
+        if (args[0] == "all" || args[0].isEmpty()) {
             val cap = Units.getStringCap(player.team())
             val sb = StringBuilder("[accent]Count all units (Cap: $cap)")
             for (type in content.units()) {
                 var total = 0
-                (player.team().data().unitCache(type) ?: Seq.with()).withEach { total++ } // If possible please rewrite this single line. It looks scuffed.
+                (player.team().data().unitCache(type) ?: Seq.with()).each { total++ } // If possible please rewrite this single line. It looks scuffed.
                 if (total == 0) continue
                 sb.append("\n[white]${Fonts.stringIcons.get(type.name)}[] ${type.localizedName}: $total")
             }
@@ -96,10 +94,10 @@ fun setup() {
             val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) }
             val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var command = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
 
-            (player.team().data().unitCache(type) ?: Seq.with()).withEach {
+            (player.team().data().unitCache(type) ?: Seq.with()).each {
                 total++
-                val ctrl = sense(LAccess.controlled).toInt()
-                if (flag == 0.0) unflagged++
+                val ctrl = it.sense(LAccess.controlled).toInt()
+                if (it.flag == 0.0) unflagged++
                 else {
                     flagged++
                     if (ctrl == 0) freeFlagged++
@@ -108,7 +106,7 @@ fun setup() {
                     ctrlPlayer -> players++
                     ctrlCommand -> command++
                     ctrlProcessor -> {
-                        if (flag != 0.0) logicFlagged++
+                        if (it.flag != 0.0) logicFlagged++
                         logic++
                     }
                     else -> free++
