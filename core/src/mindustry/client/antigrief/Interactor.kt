@@ -8,6 +8,8 @@ interface Interactor {
     val name: String
 
     val shortName: String
+
+    val playerID: Int
 }
 
 open class UnitInteractor(unit: Unit?) : Interactor {
@@ -27,6 +29,8 @@ open class UnitInteractor(unit: Unit?) : Interactor {
         unit?.controller() is LogicAI -> "logic-controlled ${unit.type.localizedName}"
         else -> unit?.type?.localizedName ?: "null unit"
     }
+
+    override val playerID: Int = if (unit?.isPlayer == true) unit.player.id else -1
 }
 
 class NullUnitInteractor : UnitInteractor(Nulls.unit) {
@@ -38,6 +42,7 @@ class NullUnitInteractor : UnitInteractor(Nulls.unit) {
 class NoInteractor : Interactor {
     override val name = ""
     override val shortName = ""
+    override val playerID: Int = -1
 }
 
 fun Player?.toInteractor(): Interactor {

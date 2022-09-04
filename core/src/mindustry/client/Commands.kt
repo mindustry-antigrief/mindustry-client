@@ -853,7 +853,7 @@ fun setup() {
         val id: Int?
         try {
             id = args[0].toIntOrNull()
-            range = if (args.size >= 2) args[1].toFloat() * tilesize else Float.POSITIVE_INFINITY
+            range = if (args.size >= 2) args[1].toFloat() * tilesize else Float.MAX_VALUE
         }
         catch (_: Exception) {
             player.sendMessage("[scarlet]Invalid range! Please specify a number")
@@ -863,28 +863,31 @@ fun setup() {
         Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
         val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
         clientThread.post {
-            var playerName: String = "ERROR. report this issue to sbyte."
+            var playerName = "ERROR. report this issue to sbyte."
             val plans: Seq<ConfigRequest> = Seq()
             tiles.forEach {
-                if (!it.within(player.x, player.y, range) || it.build != null) return@forEach
+                if (!it.within(player.x, player.y, range) || !it.block().configurable) return@forEach
 
                 val record = TileRecords[it] ?: return@forEach
-                var req: Any? = null
+                var config: Any? = null
+                var shouldConfig = false
 
-                seq@ for (seq in record.logs!!) {
+                for (seq in record.logs!!) {
                     val state = seq.snapshot.clone()
                     for (diff in seq.iterator()) {
                         diff.apply(state)
 
-                        if (state.block != it.block() ||
-                            BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], diff.cause.name) >= diff.cause.name.length / 3f
-                        ) continue
-
-                        req = state.clone().configuration
-                        playerName = diff.cause.name
+                        // Only if block is the same as current block
+                        if (state.block == it.block()) {
+                            if (!(diff is ConfigureTileLog && // Ignore if its config log and its the target player
+                                (diff.cause.playerID == id || BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], diff.cause.name) <= 3))) {
+                                config = state.clone().configuration
+                                if (diff.cause.shortName.isNotEmpty()) playerName = diff.cause.shortName
+                            } else shouldConfig = config != it.build.config() // Only configure if its different
+                        }
                     }
                 }
-                if (req != null) plans.add(ConfigRequest(it.build, req))
+                if (shouldConfig) plans.add(ConfigRequest(it.build, config))
             }
 
             if (plans.size == 0) return@post
