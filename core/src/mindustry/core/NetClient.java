@@ -280,14 +280,21 @@ public class NetClient implements ApplicationListener{
             findCoords(output);
             findLinks(output);
 
-            if (message.contains("Type[orange] /vote <y/n>[] to " + (ClientUtilsKt.io() ? "vote." : "agree."))
-            || ClientUtilsKt.phoenix() && message.contains("Type [cyan]/vote y")) { // Vote kick clickable buttons
+            if (message.contains("Type[orange] /vote <y/n>[] to " + (ClientUtilsKt.io() ? "vote." : "agree.")) // Vote kick clickable buttons
+            || ClientUtilsKt.phoenix() && message.contains("Type [cyan]/vote y")) {
                 String yes = "[green]VOTE YES", no = "[red]VOTE NO";
                 output.message = output.message + '\n' + yes + '\n' + no;
                 output.format();
                 int yesi = output.formattedMessage.indexOf(yes), noi = output.formattedMessage.indexOf(no);
                 output.buttons.add(new ChatFragment.ClickableArea(yesi, yesi + yes.length(), () -> Call.sendChatMessage("/vote y")));
                 output.buttons.add(new ChatFragment.ClickableArea(noi, noi + no.length(), () -> Call.sendChatMessage("/vote n")));
+            }
+
+            else if (message.contains("Type [cyan]/rtv") && ClientUtilsKt.phoenix() // Rock the vote clickable button
+            || message.contains("Type [lightgray]/rtv") && ClientUtilsKt.cn()
+            || message.contains("Type[accent] /rtv") && ClientUtilsKt.io()) {
+                int rtvi = output.formattedMessage.indexOf("/rtv");
+                output.buttons.add(new ChatFragment.ClickableArea(rtvi, rtvi + 4, () -> Call.sendChatMessage("/rtv")));
             }
 
             Sounds.chatMessage.play();
