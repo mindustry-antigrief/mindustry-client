@@ -55,7 +55,7 @@ object TileRecords {
         Events.on(EventType.BlockBuildEndEvent::class.java) {
             if (it.breaking) return@on
             val record = this[it.tile] ?: return@on
-            (record.logs!!.last().logs.last() as? TilePlacedLog)?.configuration = it.tile.build.config()
+            (record.logs!!.last().logs.last() as? TilePlacedLog)?.configuration = it.tile.build?.config()
         }
 
         Events.on(EventType.ConfigEventBefore::class.java) {
