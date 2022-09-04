@@ -41,15 +41,17 @@ object Seer {
                     cont.pane { t ->
                         for (data in players) {
                             t.button(
-                                "<${data.score}> ${data.lastInstance.name} (${data.id}) [${data.firstJoined.truncatedTo(ChronoUnit.MINUTES)}m]") {
+                                "<${data.score}> ${data.lastInstance.name}[] (${data.id}) [${data.firstJoined.truncatedTo(ChronoUnit.MINUTES)}m]") {
                                 Core.app.clipboardText = data.id.toString()
                             }.wrap(false)
                             t.row()
                         }
                     }.grow()
-                }
-            }
-        }
+                    addCloseButton()
+                }.show()
+            }.size(200f, 50f)
+            addCloseButton()
+        }.show()
     }
 
     fun registerPlayer(player: Player) {

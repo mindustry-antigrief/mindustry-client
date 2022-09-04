@@ -113,6 +113,7 @@ class ClientLogic {
                 }
             }
 
+            Seer.players.clear()
             Groups.player.each { Seer.registerPlayer(it) }
         }
 
@@ -122,7 +123,6 @@ class ClientLogic {
                 AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
                 Player.persistPlans.clear()
                 Vars.frozenPlans.clear()
-                Seer.players.clear()
             }
             lastJoinTime = Time.millis()
             configs.clear()

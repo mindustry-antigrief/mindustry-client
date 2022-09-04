@@ -898,8 +898,8 @@ fun setup() {
         }
     }
 
-    register("seer <option>", "Seer related commands") { args, player ->
-        if (args[0] == "list") {
+    register("seer [option]", "Seer related commands") { args, player ->
+        if (args.getOrNull(0) == "list") {
             val sb = StringBuilder()
             sb.appendLine("[royal]Players who have joined and their IDs:")
             Seer.players.forEach {
