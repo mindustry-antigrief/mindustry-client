@@ -300,9 +300,11 @@ public class NetClient implements ApplicationListener{
 
             else if (message.contains("Type [cyan]/rtv") && ClientUtilsKt.phoenix() // Rock the vote clickable button
             || message.contains("Type [lightgray]/rtv") && ClientUtilsKt.cn()
-            || message.contains("Type[accent] /rtv") && ClientUtilsKt.io()) {
-                int rtvi = output.formattedMessage.indexOf("/rtv");
-                output.buttons.add(new ChatFragment.ClickableArea(rtvi, rtvi + 4, () -> Call.sendChatMessage("/rtv")));
+            || message.contains("Type[accent] /rtv") && ClientUtilsKt.io()
+            || message.contains("Type Type[orange] /skip") && ClientUtilsKt.nydus()) {
+                var rtv = ClientUtilsKt.nydus() ? "/skip y" : "/rtv";
+                int rtvi = output.formattedMessage.indexOf(rtv);
+                output.buttons.add(new ChatFragment.ClickableArea(rtvi, rtvi + rtv.length(), () -> Call.sendChatMessage(rtv)));
             }
 
             Sounds.chatMessage.play();
