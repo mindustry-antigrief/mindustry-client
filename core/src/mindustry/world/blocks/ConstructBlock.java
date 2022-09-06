@@ -347,7 +347,7 @@ public class ConstructBlock extends Block{
             Player targetPlayer = ClientUtilsKt.getPlayer(lastBuilder);
             if (targetPlayer != null) {
                 WarnBlock wb = getWarnBlock();
-                if (wb.block == Blocks.thoriumReactor) Seer.INSTANCE.thoriumReactor(targetPlayer, tile, tile.dst(targetPlayer));
+                if (wb != null && wb.block == Blocks.thoriumReactor) Seer.INSTANCE.thoriumReactor(targetPlayer, tile, tile.dst(targetPlayer));
             }
             
             handleBlockWarning(config);
