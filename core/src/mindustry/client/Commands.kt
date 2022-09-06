@@ -898,7 +898,7 @@ fun setup() {
             }
 
             Core.app.post {
-                player.sendMessage("Undoing ${configs.size} configs and ${plans.size} builds made by $playerName")
+                player.sendMessage("[accent] Undoing ${configs.size} configs and ${plans.size} builds made by $playerName")
                 control.input.flushPlans(plans, false, true, false) // Overplace
                 ClientVars.configs.addAll(configs)
             }
