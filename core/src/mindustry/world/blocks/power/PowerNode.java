@@ -307,7 +307,7 @@ public class PowerNode extends PowerBlock{
             graphs.add(tile.build.power.graph);
         }
 
-        Geometry.circle(tile.x, tile.y, 13, (x, y) -> {
+        Geometry.circle(tile.x, tile.y, Mathf.ceil(maxRange), (x, y) -> {
             Building other = world.build(x, y);
             if(valid.get(other) && !tempBuilds.contains(other)){
                 tempBuilds.add(other);
@@ -400,10 +400,10 @@ public class PowerNode extends PowerBlock{
         }
 
         @Override
-        public void add() {
-            super.add();
-
+        public void created(){ // Called when one is placed/loded in the world
             if(laserRange > maxRange) maxRange = laserRange;
+
+            super.created();
         }
 
         @Override

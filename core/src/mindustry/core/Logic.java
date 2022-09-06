@@ -5,6 +5,7 @@ import arc.math.*;
 import arc.util.*;
 import mindustry.ai.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -494,6 +495,7 @@ public class Logic implements ApplicationListener{
                 Groups.weather.each(w -> state.envAttrs.add(w.weather.attrs, w.opacity));
 
                 Groups.update();
+                Client.INSTANCE.update();
             }
 
             if(!net.client() && !world.isInvalidMap() && !state.isEditor() && state.rules.canGameOver){
