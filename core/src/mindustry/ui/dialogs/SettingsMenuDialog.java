@@ -341,6 +341,20 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
         client.checkPref("commandwarnings", true);
         client.checkPref("removecorenukes", false);
+        // Seer
+        client.checkPref("seer-enabled", false);
+        client.checkPref("seer-autokick", false); // by default false to avoid false positives
+        client.sliderPref("seer-warnthreshold", 10, 0, 50, String::valueOf);
+        client.sliderPref("seer-autokickthreshold", 20, 0, 50, String::valueOf);
+        client.sliderPref("seer-scoredecayinterval", 1, 0, 10, i -> String.valueOf(i * 30) + "s");
+        client.sliderPref("seer-scoredecay", 5, 0, 20, String::valueOf);
+        client.sliderPref("seer-reactorscore", 8, 0, 10, String::valueOf);
+        client.sliderPref("seer-reactordistance", 5, 0, 20, String::valueOf);
+        client.sliderPref("seer-configscore", 3, 0, 50, i -> String.valueOf(i / 5f)); // 0.60
+        client.sliderPref("seer-configdistance", 20, 0, 100, String::valueOf);
+        client.sliderPref("seer-proclinkthreshold", 20, 0, 80, String::valueOf);
+        client.sliderPref("seer-proclinkscore", 10, 0, 50, String::valueOf);
+        
 
         client.category("chat");
         client.checkPref("clearchatonleave", true);

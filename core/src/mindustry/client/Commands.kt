@@ -16,6 +16,7 @@ import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.follow
 import mindustry.client.navigation.Navigation.navigator
+import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.content.Blocks
 import mindustry.core.*
@@ -905,18 +906,8 @@ fun setup() {
         }
     }
 
-    register("seer [option]", "Seer related commands") { args, player ->
-        if (args.getOrNull(0) == "list") {
-            val sb = StringBuilder()
-            sb.appendLine("[royal]Players who have joined and their IDs:")
-            Seer.players.forEach {
-                sb.appendLine("${it.lastInstance.coloredName()}[royal] (${it.id})")
-            }
-            player.sendMessage(sb.toString())
-        }
-        else {
-            Seer.showDialog()
-        }
+    register("seer", "Seer related commands") { args, player ->
+        SeerDialog.show()
     }
 
     register("clearmutes", "Clears list of muted players") {_, player ->

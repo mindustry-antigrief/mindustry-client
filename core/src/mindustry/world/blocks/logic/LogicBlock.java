@@ -39,7 +39,7 @@ import java.util.zip.*;
 import static mindustry.Vars.*;
 
 public class LogicBlock extends Block{
-    private static final int maxByteLen = 1024 * 500;
+    public static final int maxByteLen = 1024 * 500;
     private static @Nullable Player lastAttem;
     private static int attemCount;
     private static long attemTime;
