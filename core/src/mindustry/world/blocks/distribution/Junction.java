@@ -180,11 +180,6 @@ public class Junction extends Block{
         }
 
         @Override
-        public void add() {
-            super.add();
-        }
-
-        @Override
         public void draw(){
             super.draw();
             if(!drawItems) return;

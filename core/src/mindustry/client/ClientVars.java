@@ -19,7 +19,7 @@ import java.util.concurrent.*;
 
 public class ClientVars {
     // Misc
-    public static byte silentTrace; // How many traces to do silently (this is pretty 0head but shh)
+    public static byte silentTrace, silentStat; // How many actions to do silently (this is pretty 0head but shh)
     public static IntMap<Object> processorConfigs = new IntMap<>();
     public static float spawnTime = 60f * Core.settings.getInt("spawntime");
     public static float travelTime = Core.settings.getInt("traveltime");

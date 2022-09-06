@@ -252,7 +252,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             asyncCore.begin();
 
             super.update();
-            Client.INSTANCE.update(); // FINISHME: Awful
 
             asyncCore.end();
         }
