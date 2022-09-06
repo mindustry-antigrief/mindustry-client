@@ -1273,11 +1273,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         flushPlans(plans.copy().reverse());
     }
     
-    protected void flushPlans(Seq<BuildPlan> plans) {
+    public void flushPlans(Seq<BuildPlan> plans) {
         flushPlans(plans, false, false, false);
     }
     
-    protected void flushPlans(Seq<BuildPlan> plans, boolean freeze, boolean force, boolean removeFrozen){
+    public void flushPlans(Seq<BuildPlan> plans, boolean freeze, boolean force, boolean removeFrozen){
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[plans.size + plans.count(plan -> plan.block == Blocks.waterExtractor) * 3]; // Cursed but works good enough for me
         var added = 0;

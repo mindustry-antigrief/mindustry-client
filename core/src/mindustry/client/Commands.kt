@@ -29,6 +29,7 @@ import mindustry.logic.GlobalVars.*
 import mindustry.ui.*
 import mindustry.ui.fragments.ChatFragment
 import mindustry.world.blocks.distribution.ItemBridge
+import mindustry.world.blocks.environment.Prop
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.logic.LogicBlock.compress
 import mindustry.world.blocks.power.*
@@ -796,7 +797,7 @@ fun setup() {
         else player.sendMessage(Core.bundle.get("client.command.mute.notmuted"))
     }
 
-    register("undo <timestart> <timerange> <buildrange>", """
+    register("rebuild <timestart> <timerange> <buildrange>", """
             Retrieves blocks from tilelogs before <timestart> and places them into buildplan.
             Specify how far back to rollback on <timestart> in minutes
             Specify how many minutes of changes should be retrieved on <timerange> in minutes
@@ -823,10 +824,10 @@ fun setup() {
                 if (!it.within(player.x, player.y, range) || it.block() != Blocks.air) return@forEach
 
                 val record = TileRecords[it] ?: return@forEach
-                var use: TileState? = null
+                var last: TileState? = null
 
-                seq@ for (seq in record.logs!!) {
-                val state = seq.snapshot.clone()
+                seq@ for (seq in record.logs!!.asReversed()) { // Rebuilds are likely used on recent states, so start from the last logs
+                    val state = seq.snapshot.clone()
                     for (diff in seq.iterator()) {
                         diff.apply(state)
                         // Exit if we've gone past the time start
@@ -834,66 +835,72 @@ fun setup() {
                         if (diff.time > timeEnd) break@seq
                         if (diff.time < timeStart || !diff.isOrigin || state.block == Blocks.air) continue
 
-                        use = state.clone()
+                        last = state.clone()
                     }
                 }
-                if (use == null) return@forEach
-                plans.add(BuildPlan(use.x, use.y, use.rotation, use.block, use.configuration))
+                if (last == null) return@forEach
+                plans.add(BuildPlan(last.x, last.y, last.rotation, last.block, last.configuration))
             }
 
             if (plans.size == 0) return@post
             Core.app.post {
-                plans.forEach { player.unit().addBuild(it) }
+                control.input.flushPlans(plans)
             }
         }
     }
 
-    register("undoc <player> [range]", "Undo Configs from a specific player (get rekt config griefers)") { args, player ->
+    register("undo <player> [range]", "Undo Configs from a specific player (get rekt griefers)") { args, player ->
         val range: Float
         val id: Int?
         try {
-            id = args[0].toIntOrNull()
+            id = args[0].toInt()
             range = if (args.size >= 2) args[1].toFloat() * tilesize else Float.MAX_VALUE
         }
         catch (_: Exception) {
-            player.sendMessage("[scarlet]Invalid range! Please specify a number")
+            player.sendMessage("[scarlet]Invalid args! Please specify a player id number and (optionally) a range number")
             return@register
         }
 
         Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
         val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
         clientThread.post {
-            var playerName = "ERROR. report this issue to sbyte."
-            val plans: Seq<ConfigRequest> = Seq()
+            var playerName = ""
+            val configs: Seq<ConfigRequest> = Seq()
+            val plans: Seq<BuildPlan> = Seq()
             tiles.forEach {
-                if (!it.within(player.x, player.y, range) || !it.block().configurable) return@forEach
+                if (!it.within(player.x, player.y, range)) return@forEach
 
                 val record = TileRecords[it] ?: return@forEach
-                var config: Any? = null
-                var shouldConfig = false
+                var last: TileState? = null
 
                 for (seq in record.logs!!) {
                     val state = seq.snapshot.clone()
                     for (diff in seq.iterator()) {
                         diff.apply(state)
+                        if (playerName.isNotEmpty() || diff.cause.shortName.isNotEmpty()) playerName = diff.cause.shortName
 
-                        // Only if block is the same as current block
-                        if (state.block == it.block()) {
-                            if (!(diff is ConfigureTileLog && // Ignore if its config log and its the target player
-                                (diff.cause.playerID == id || BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], diff.cause.name) <= 3))) {
-                                config = state.clone().configuration
-                                if (diff.cause.shortName.isNotEmpty()) playerName = diff.cause.shortName
-                            } else shouldConfig = config != it.build.config() // Only configure if its different
+                        // Ignore if its the target player
+                        if (diff.cause.playerID != id) {
+                            last = state.clone()
                         }
                     }
                 }
-                if (shouldConfig) plans.add(ConfigRequest(it.build, config))
+                // Only rebuild if block is different than the current block
+                // Only configure if its different
+                if (last == null) return@forEach
+
+                if (last!!.block != it.block() || last!!.rotation != it.build?.rotation) {
+                    if (last!!.block == Blocks.air || last!!.block is Prop) plans.add(BuildPlan(last!!.x, last!!.y))
+                    else plans.add(BuildPlan(last!!.x, last!!.y, last!!.rotation, last!!.block, last!!.configuration))
+                }
+
+                if (last!!.block == it.block() && last!!.configuration != it.build?.config()) configs.add(ConfigRequest(it.build, last!!.configuration))
             }
 
-            if (plans.size == 0) return@post
             Core.app.post {
-                configs.addAll(plans)
-                player.sendMessage("Undoing ${plans.size} configs made by $playerName")
+                player.sendMessage("Undoing ${configs.size} configs and ${plans.size} builds made by $playerName")
+                control.input.flushPlans(plans, false, true, false) // Overplace
+                ClientVars.configs.addAll(configs)
             }
         }
     }

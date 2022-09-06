@@ -52,7 +52,8 @@
  * >=========================< Commands >=========================<
  * !hh - Switches between all io servers and does /novote aka pet point farmer
  * !voids [count] - Shows void locations
- * !undo <timestart> <timerange> <radius> - Searches through tile log history and rebuilds buildings from the specified time range and radius. (Bye bye griefers)
+ * !rebuild <timestart> <timerange> <radius> - Searches through tile log history and rebuilds buildings from the specified time range and radius. (Bye bye griefers)
+ * !undo <player> [range] - Undoes player buildings and configurations.
  * !procfind [options] - Searches for processors with matching regex. Run without arguments for explanation.
  * !blank - Sends an empty text message
  * !fixcode - Now gives you 2 options. "c" to only remove the attem part and "r" (subjectively better) to completely yeet everything and replace it with anti attem text.
