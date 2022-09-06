@@ -256,7 +256,6 @@ public class NetClient implements ApplicationListener{
                 output.addButton(output.formattedMessage.indexOf(playersender.coloredName()), playersender.coloredName().length() + 16 + output.prefix.length(), () -> Spectate.INSTANCE.spectate(playersender));
             } else {
                 ChatFragment.ChatMessage.msgFormat();
-                Vars.ui.chatfrag.addMessage(message, null, null, "", unformatted == null ? "" : unformatted);
                 // server message, unformatted is ignored
                 output = Vars.ui.chatfrag.addMessage(message, null, null, "", "");
             }
