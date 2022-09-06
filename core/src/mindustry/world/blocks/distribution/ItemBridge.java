@@ -140,7 +140,7 @@ public class ItemBridge extends Block{
 
     public boolean positionsValid(int x1, int y1, int x2, int y2){
         if(x1 == x2){
-            return Math.abs(y1 - y2) <= range;
+            return y1 != y2 && Math.abs(y1 - y2) <= range; // Can't link to self
         }else if(y1 == y2){
             return Math.abs(x1 - x2) <= range;
         }else{
@@ -467,7 +467,6 @@ public class ItemBridge extends Block{
 
         @Override
         public Point2 config(){
-            if (tile == null) return null;  // this happened once somehow
             return Point2.unpack(link).sub(tile.x, tile.y);
         }
 

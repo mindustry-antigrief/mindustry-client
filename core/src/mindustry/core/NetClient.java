@@ -242,7 +242,7 @@ public class NetClient implements ApplicationListener{
                 // I don't think this even works
 //                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
                 output = ui.chatfrag.addMessage(message, playersender.coloredName(), background, prefix, unformatted);
-                output.buttons.add(new ChatFragment.ClickableArea(output.formattedMessage.indexOf(playersender.coloredName()), playersender.coloredName().length() + 16 + output.prefix.length(), () -> Spectate.INSTANCE.spectate(playersender)));
+                output.addButton(output.formattedMessage.indexOf(playersender.coloredName()), playersender.coloredName().length() + 16 + output.prefix.length(), () -> Spectate.INSTANCE.spectate(playersender));
             } else {
                 // server message, unformatted is ignored
                 output = Vars.ui.chatfrag.addMessage(message, null, null, "", "");
@@ -286,8 +286,8 @@ public class NetClient implements ApplicationListener{
                 output.message = output.message + '\n' + yes + '\n' + no;
                 output.format();
                 int yesi = output.formattedMessage.indexOf(yes), noi = output.formattedMessage.indexOf(no);
-                output.buttons.add(new ChatFragment.ClickableArea(yesi, yesi + yes.length(), () -> Call.sendChatMessage("/vote y")));
-                output.buttons.add(new ChatFragment.ClickableArea(noi, noi + no.length(), () -> Call.sendChatMessage("/vote n")));
+                output.addButton(yesi, yesi + yes.length(), () -> Call.sendChatMessage("/vote y"));
+                output.addButton(noi, noi + no.length(), () -> Call.sendChatMessage("/vote n"));
             }
 
             else if (message.contains("Type [cyan]/rtv") && ClientUtilsKt.phoenix() // Rock the vote clickable button
@@ -296,7 +296,7 @@ public class NetClient implements ApplicationListener{
             || message.contains("Type Type[orange] /skip") && ClientUtilsKt.nydus()) {
                 var rtv = ClientUtilsKt.nydus() ? "/skip y" : "/rtv";
                 int rtvi = output.formattedMessage.indexOf(rtv);
-                output.buttons.add(new ChatFragment.ClickableArea(rtvi, rtvi + rtv.length(), () -> Call.sendChatMessage(rtv)));
+                output.addButton(rtvi, rtvi + rtv.length(), () -> Call.sendChatMessage(rtv));
             }
 
             Sounds.chatMessage.play();
@@ -329,7 +329,7 @@ public class NetClient implements ApplicationListener{
     /** Finds coordinates in a message and makes them clickable */
     public static void findCoords(ChatFragment.ChatMessage msg) {
         findCoords(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage))
-            .each(c -> msg.buttons.add(new ChatFragment.ClickableArea(c.start, c.end, () -> Spectate.INSTANCE.spectate(c.pos))));
+            .each(c -> msg.addButton(c.start, c.end, () -> Spectate.INSTANCE.spectate(c.pos)));
     }
 
     /** Finds links in a message and makes them clickable */
@@ -338,7 +338,7 @@ public class NetClient implements ApplicationListener{
         while (matcher.find()) {
             var res = matcher.toMatchResult();
             var url = res.group(1) == null ? "https://" + res.group() : res.group(); // Add https:// if missing protocol
-            msg.buttons.add(new ChatFragment.ClickableArea(res.start(), res.end(), () -> Menus.openURI(url)));
+            msg.addButton(res.start(), res.end(), () -> Menus.openURI(url));
         }
     }
 
