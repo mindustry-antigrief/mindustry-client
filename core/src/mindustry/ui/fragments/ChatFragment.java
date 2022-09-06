@@ -199,8 +199,7 @@ public class ChatFragment extends Table{
         chatfield.visible = shown;
         fieldlabel.visible = shown;
 
-        Draw.color(shadowColor);
-        Draw.alpha(shadowColor.a * opacity);
+        Draw.color(shadowColor, shadowColor.a * opacity);
 
         float theight = offsety + spacing + getMarginBottom() + scene.marginBottom;
         for(int i = scrollPos; i < messages.size && i < messagesShown + scrollPos && (i < fadetime || shown); i++){
@@ -282,8 +281,7 @@ public class ChatFragment extends Table{
                 }
                 Draw.color(co);
             }
-            Draw.color(shadowColor);
-            Draw.alpha(opacity * shadowColor.a);
+            Draw.color(shadowColor, shadowColor.a * opacity);
 
             font.getCache().draw();
 
@@ -600,8 +598,12 @@ public class ChatFragment extends Table{
         public static void msgFormat(boolean process){
             msgFormat(process, process);
         }
-        public static void msgFormat(){
+        public static void msgFormat() {
             msgFormat(true, true);
+        }
+       
+        public void addButton(int start, int end, Runnable lambda) {
+            buttons.add(new ClickableArea(start, end, lambda));
         }
 
         private void format(boolean moveButtons) {
