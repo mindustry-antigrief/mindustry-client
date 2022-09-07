@@ -59,7 +59,7 @@ object TileRecords {
         }
 
         Events.on(EventType.ConfigEventBefore::class.java) {
-            Seer.blockConfig(it.player, it.tile.tile, it.value)
+            if (it.player != null) Seer.blockConfig(it.player, it.tile.tile, it.value)
             it.tile.tile.getLinkedTiles { tile ->
                 addLog(tile, ConfigureTileLog(tile, it.player.toInteractor(), tile.block(), it.tile.rotation, it.value, isOrigin(tile)))
             }
