@@ -9,7 +9,6 @@ import arc.util.*
 import arc.util.CommandHandler.*
 import mindustry.*
 import mindustry.ai.types.*
-import mindustry.client.Spectate.spectate
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
@@ -20,9 +19,11 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
-import mindustry.ui.fragments.ChatFragment.*
+import mindustry.world.blocks.distribution.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
+import mindustry.world.blocks.storage.*
+import mindustry.world.blocks.storage.Unloader.*
 import java.io.*
 import java.math.*
 import java.security.cert.*
@@ -339,13 +340,17 @@ fun setup() {
         Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
     }
 
-    register("mapinfo", "Lists various useful map info.") { _, player -> // FINISHME: Bundle
+    register("mapinfo [team]", "Lists various useful map info.") { args, player -> // FINISHME: Bundle
+        val team = if (args.isEmpty()) player.team() else if (args[0].toIntOrNull() in 0 until 255) Team.all[args[0].toInt()] else Team.all.minBy { t -> if (t.name == null) Float.MAX_VALUE else BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], t.name) }
         player.sendMessage(with(Vars.state) {
             """
             [accent]Name: ${map.name()}[accent] (by: ${map.author()}[accent])
+            Team: ${team.name}
             Map Time: ${UI.formatTime(tick.toFloat())}
-            Build Speed (Unit Factories): ${rules.buildSpeedMultiplier}x (${rules.unitBuildSpeedMultiplier}x)
+            Build Speed (Unit Factories): ${rules.buildSpeed(team)}x (${rules.unitBuildSpeed(team)}x)
             Build Cost (Refund): ${rules.buildCostMultiplier}x (${rules.deconstructRefundMultiplier}x)
+            Block Health (Damage): ${rules.blockHealth(team)}x (${rules.blockDamage(team)}x)
+            Unit Damage: ${rules.unitDamage(team)}x
             Core Capture: ${rules.coreCapture}
             Core Incinerates: ${rules.coreIncinerates}
             Core Modifies Unit Cap: ${rules.unitCapVariable}
@@ -353,7 +358,7 @@ fun setup() {
         })
     }
 
-    register("binds <type>", "") { args, player -> // FINISHME: Bundle
+    register("binds <type>", "Shows the positions of all blocks binding a type of unit") { args, player -> // FINISHME: Bundle
         val type = Vars.content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
 
         player.team().data().unitCache(type)
@@ -364,6 +369,37 @@ fun setup() {
                 val msg = Vars.ui.chatfrag.addMessage(txt, null, null, "", txt)
                 NetClient.findCoords(msg)
             }
+    }
+
+    register("unloaders <item> [enabledOnly] [setOnly]", "Shows the positions of core unloaders of a certain type") { args, player -> // FINISHME: Bundle
+        val item = Vars.content.items().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
+        val enabledOnly = args.size < 2 || args[1].lowercase() == "y"
+        val setOnly = args.size < 3 || args[2].lowercase() == "y"
+
+        val linkedCores = ObjectSet<Building>()
+        player.team().cores().forEach { core ->  // Add all cores and their adjacent containers/vaults to the list
+            linkedCores.add(core)
+            core.proximity.forEach {
+                if ((it.block as? StorageBlock)?.coreMerge == true) linkedCores.add(it)
+            }
+        }
+
+        val coords = ObjectSet<Building>()
+        linkedCores.forEach { core -> // Iterate through proximity of all cores & adjacent vaults looking for unloaders of the specified type
+            core.proximity.forEach proximity@{
+                if (!coords.add(it)) return@proximity // We already went through this block
+                if (it is UnloaderBuild) { // Normal unloaders
+                    if (!it.enabled && enabledOnly) return@proximity
+                    if (it.config() != item && (setOnly || it.config() != null)) return@proximity
+
+                    val txt = "[accent](${it.tileX()}, ${it.tileY()})"
+                    val msg = Vars.ui.chatfrag.addMessage(txt, null, null, "", txt) // FINISHME: Fix this horribly lazy and messy code
+                    NetClient.findCoords(msg)
+                } else if ((it.block as? DirectionalUnloader)?.allowCoreUnload == true) { // Erekir unloaders
+                    // FINISHME: Still have to do these
+                }
+            }
+        }
     }
 }
 
