@@ -15,11 +15,11 @@ import mindustry.client.navigation.*
 import mindustry.client.utils.*
 import mindustry.core.*
 import mindustry.entities.*
-import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.world.blocks.distribution.*
+import mindustry.world.blocks.distribution.DirectionalUnloader.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.storage.*
@@ -56,11 +56,11 @@ fun setup() {
     }
 
     register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
-        Vars.ui.unitPicker.pickUnit(Vars.content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
+        Vars.ui.unitPicker.pickUnit(findUnit(args[0]))
     }
 
     register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
-        val type = Vars.content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
+        val type = findUnit(args[0])
         val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var command = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
 
         (player.team().data().unitCache(type) ?: Seq.with()).withEach {
@@ -82,21 +82,23 @@ fun setup() {
             }
         }
 
-        player.sendMessage("""
+        player.sendMessage(
+            """
             [accent]${type.localizedName}:
             Total(Cap): $total($cap)
             Free(Free Flagged): $free($freeFlagged)
             Flagged(Unflagged): $flagged($unflagged)
             Players(Command): $players($command)
             Logic(Logic Flagged): $logic($logicFlagged)
-            """.trimIndent())
+            """.trimIndent()
+        )
     }
 
     // FINISHME: Add unit control/select command(s)
 
     register("spawn <type> [team] [x] [y] [count]", Core.bundle.get("client.command.spawn.description")) { args, player ->
-        val type = Vars.content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
-        val team = if (args.size < 2) player.team() else if (args[1].toIntOrNull() in 0 until 255) Team.all[args[1].toInt()] else Team.all.minBy { t -> if (t.name == null) Float.MAX_VALUE else BiasedLevenshtein.biasedLevenshteinInsensitive(args[1], t.name) }
+        val type = findUnit(args[0])
+        val team = if (args.size < 2) player.team() else findTeam(args[1])
         val x = if (args.size < 3 || !Strings.canParsePositiveFloat(args[2])) player.x else args[2].toFloat() * Vars.tilesizeF
         val y = if (args.size < 4 || !Strings.canParsePositiveFloat(args[3])) player.y else args[3].toFloat() * Vars.tilesizeF
         val count = if (args.size < 5 || !Strings.canParsePositiveInt(args[4])) 1 else args[4].toInt()
@@ -228,7 +230,7 @@ fun setup() {
             }
         }
         ClientVars.configs.addAll(tmp)
-        @Suppress("CAST_NEVER_SUCCEEDS") val msg = Vars.ui.chatfrag.addMessage("", null, null as? Color, "", "")
+        val msg = Vars.ui.chatfrag.addMsg("")
         msg.message = when {
             confirmed && inProgress -> Core.bundle.format("client.command.fixpower.inprogress", ClientVars.configs.size, n)
             confirmed -> { // Actually fix the connections
@@ -341,7 +343,7 @@ fun setup() {
     }
 
     register("mapinfo [team]", "Lists various useful map info.") { args, player -> // FINISHME: Bundle
-        val team = if (args.isEmpty()) player.team() else if (args[0].toIntOrNull() in 0 until 255) Team.all[args[0].toInt()] else Team.all.minBy { t -> if (t.name == null) Float.MAX_VALUE else BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], t.name) }
+        val team = if (args.isEmpty()) player.team() else findTeam(args[0])
         player.sendMessage(with(Vars.state) {
             """
             [accent]Name: ${map.name()}[accent] (by: ${map.author()}[accent])
@@ -359,22 +361,20 @@ fun setup() {
     }
 
     register("binds <type>", "Shows the positions of all blocks binding a type of unit") { args, player -> // FINISHME: Bundle
-        val type = Vars.content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
+        val type = findUnit(args[0])
 
         player.team().data().unitCache(type)
             ?.filter { it.controller() is LogicAI }
             ?.groupBy { (it.controller() as LogicAI).controller }
             ?.forEach { (build, units) ->
-                val txt = "x${units.size} [accent](${build.tileX()}, ${build.tileY()})"
-                val msg = Vars.ui.chatfrag.addMessage(txt, null, null, "", txt)
-                NetClient.findCoords(msg)
+                Vars.ui.chatfrag.addMsg("x${units.size} [accent](${build.tileX()}, ${build.tileY()})").findCoords()
             }
     }
 
-    register("unloaders <item> [enabledOnly] [setOnly]", "Shows the positions of core unloaders of a certain type") { args, player -> // FINISHME: Bundle
-        val item = Vars.content.items().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
-        val enabledOnly = args.size < 2 || args[1].lowercase() == "y"
-        val setOnly = args.size < 3 || args[2].lowercase() == "y"
+    register("unloaders <item> [enabledOnly] [setOnly]", "Shows the positions of core unloaders of a certain type. Extra arguments accept t/f inputs") { args, player -> // FINISHME: Bundle
+        val item = findItem(args[0])
+        val enabledOnly = args.size < 2 || parseBool(args[1])
+        val setOnly = args.size < 3 || parseBool(args[2])
 
         val linkedCores = ObjectSet<Building>()
         player.team().cores().forEach { core ->  // Add all cores and their adjacent containers/vaults to the list
@@ -385,19 +385,15 @@ fun setup() {
         }
 
         val coords = ObjectSet<Building>()
-        linkedCores.forEach { core -> // Iterate through proximity of all cores & adjacent vaults looking for unloaders of the specified type
-            core.proximity.forEach proximity@{
-                if (!coords.add(it)) return@proximity // We already went through this block
-                if (it is UnloaderBuild) { // Normal unloaders
-                    if (!it.enabled && enabledOnly) return@proximity
-                    if (it.config() != item && (setOnly || it.config() != null)) return@proximity
+        for (core in linkedCores) { // Iterate through proximity of all cores & adjacent vaults looking for unloaders of the specified type
+            core.proximity.forEach {
+                if (it !is UnloaderBuild && !(it is DirectionalUnloaderBuild && (it.block as? DirectionalUnloader)?.allowCoreUnload == true)) return@forEach
+                if (!it.enabled && enabledOnly) return@forEach
+                if (it.config() != item && (setOnly || it.config() != null)) return@forEach
+                if (it is DirectionalUnloaderBuild && !linkedCores.contains(it.back())) return@forEach // Erekir unloaders only unload from the tile behind
+                if (!coords.add(it)) return@forEach // We have already printed this tile's coords
 
-                    val txt = "[accent](${it.tileX()}, ${it.tileY()})"
-                    val msg = Vars.ui.chatfrag.addMessage(txt, null, null, "", txt) // FINISHME: Fix this horribly lazy and messy code
-                    NetClient.findCoords(msg)
-                } else if ((it.block as? DirectionalUnloader)?.allowCoreUnload == true) { // Erekir unloaders
-                    // FINISHME: Still have to do these
-                }
+                Vars.ui.chatfrag.addMsg("[accent](${it.tileX()}, ${it.tileY()})").findCoords()
             }
         }
     }
