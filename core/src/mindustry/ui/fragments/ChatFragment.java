@@ -568,8 +568,14 @@ public class ChatFragment extends Table{
             format(false);
         }
 
-        public void addButton(int start, int end, Runnable lambda) {
-            buttons.add(new ClickableArea(start, end, lambda));
+        public ChatMessage addButton(int start, int end, Runnable lambda) {
+            if (buttons != null) buttons.add(new ClickableArea(start, end, lambda));
+            return this;
+        }
+
+        public ChatMessage addButton(String text, Runnable lambda) {
+            int i = formattedMessage.indexOf(text);
+            return addButton(i, i + text.length(), lambda);
         }
 
         private void format(boolean moveButtons) {

@@ -127,7 +127,7 @@ public class KeybindDialog extends Dialog{
             for(KeyBind keybind : keybinds.getKeybinds()){
                 if(lastCategory != keybind.category() && keybind.category() != null){
                     table.add(bundle.get("category." + keybind.category() + ".name", Strings.capitalize(keybind.category()))).color(Color.gray).colspan(4).pad(10).padBottom(4).row();
-                    table.image().color(Color.gray).fillX().height(3).pad(6).colspan(4).padTop(0).padBottom(10).row();
+                    table.image().color(Color.gray).fillX().height(3).pad(6).colspan(5).padTop(0).padBottom(10).row();
                     lastCategory = keybind.category();
                 }
 
@@ -144,6 +144,13 @@ public class KeybindDialog extends Dialog{
                         rebindMin = true;
                         openDialog(section, keybind);
                     }).width(130f);
+
+                    table.button("@settings.unbindKey", tstyle, () -> {
+                        rebindAxis = true;
+                        rebindMin = true;
+                        rebindKey = keybind;
+                        rebind(section, keybind, KeyCode.unset);
+                    }).width(130f).padLeft(4f);
                 }else{
                     table.add(bundle.get("keybind." + keybind.name() + ".name", Strings.capitalize(keybind.name())), Color.white).left().padRight(40).padLeft(8);
                     table.label(() -> keybinds.get(section, keybind).key.toString()).color(Pal.accent).left().minWidth(90).padRight(20);
@@ -153,6 +160,13 @@ public class KeybindDialog extends Dialog{
                         rebindMin = false;
                         openDialog(section, keybind);
                     }).width(130f);
+
+                    table.button("@settings.unbindKey", tstyle, () -> {
+                        rebindAxis = false;
+                        rebindMin = false;
+                        rebindKey = keybind;
+                        rebind(section, keybind, KeyCode.unset);
+                    }).width(130f).padLeft(4f);
                 }
                 table.button("@settings.resetKey", tstyle, () -> keybinds.resetToDefault(section, keybind)).width(130f).pad(2f).padLeft(4f);
                 table.row();
@@ -173,7 +187,7 @@ public class KeybindDialog extends Dialog{
 
     void rebind(Section section, KeyBind bind, KeyCode newKey){
         if(rebindKey == null) return;
-        rebindDialog.hide();
+        if(rebindDialog != null) rebindDialog.hide();
         boolean isAxis = bind.defaultValue(section.device.type()) instanceof Axis;
 
         if(isAxis){
@@ -187,7 +201,8 @@ public class KeybindDialog extends Dialog{
         if(rebindAxis && isAxis && rebindMin && !newKey.axis){
             rebindMin = false;
             minKey = newKey;
-            openDialog(section, rebindKey);
+            if (newKey == KeyCode.unset) rebind(section, bind, newKey);
+            else openDialog(section, rebindKey);
         }else{
             rebindKey = null;
             rebindAxis = false;
