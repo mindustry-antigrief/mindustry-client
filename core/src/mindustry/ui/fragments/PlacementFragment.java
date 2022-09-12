@@ -141,7 +141,7 @@ public class PlacementFragment{
             Object tryConfig = build == null || !build.block.copyConfig ? null : build.config();
             boolean wasShard = tryRecipe == Blocks.coreShard;
             if (wasShard || tryRecipe == Blocks.coreFoundation) tryRecipe = // If core was middle-clicked, selects the best affordable core
-                Blocks.coreNucleus.isVisible() && Blocks.coreNucleus.unlockedNow() && (state.rules.infiniteResources || build.items.has(Blocks.coreNucleus.requirements, state.rules.buildCostMultiplier)) ? Blocks.coreNucleus :
+                Blocks.coreNucleus.isVisible() && Blocks.coreNucleus.unlockedNow() && (state.rules.infiniteResources || player.team().items().has(Blocks.coreNucleus.requirements, state.rules.buildCostMultiplier)) ? Blocks.coreNucleus :
                 Blocks.coreFoundation.isVisible() && Blocks.coreFoundation.unlockedNow() ? Blocks.coreFoundation :
                 null;
 
