@@ -62,6 +62,7 @@ class ClientLogic {
             showingInvTurrets = false
             if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
+            massDrivers.clear()
             Client.tiles.clear()
             if(coreItems == null) coreItems = ItemModule(true)
             else {

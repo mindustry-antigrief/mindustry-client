@@ -102,6 +102,9 @@ public class DesktopInput extends InputHandler{
                         if(showingOverdrives){
                             str.append("\n").append(bundle.format("client.toggleoverdrives", keybinds.get(Binding.show_turret_ranges).key.toString()));
                         }
+                        if(showingMassDrivers){
+                            str.append("\n").append(bundle.format("client.togglemassdrivers", keybinds.get(Binding.show_massdriver_configs).key.toString()));
+                        }
                         if(hidingBlocks){
                             str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
                         }
@@ -288,6 +291,10 @@ public class DesktopInput extends InputHandler{
             if (input.ctrl()) showingOverdrives = !showingOverdrives;
             else if (input.shift()) showingInvTurrets = !showingInvTurrets;
             else showingTurrets = !showingTurrets;
+        }
+
+        if(input.keyTap(Binding.show_massdriver_configs)){
+            showingMassDrivers = !showingMassDrivers;
         }
 
         if(input.keyTap(Binding.hide_blocks) && scene.getKeyboardFocus() == null){
