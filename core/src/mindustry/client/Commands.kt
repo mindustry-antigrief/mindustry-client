@@ -9,6 +9,7 @@ import arc.struct.*
 import arc.util.*
 import arc.util.CommandHandler.*
 import mindustry.Vars.*
+import mindustry.Vars
 import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
@@ -104,11 +105,7 @@ fun setup() {
                 }
                 else -> free++
             }
-            player.sendMessage(sb.toString())
         }
-        else {
-            val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) }
-            val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var command = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
 
         player.sendMessage(
             """
