@@ -348,6 +348,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("showdomes", false);
         client.checkPref("unloaderview", false, i -> Unloader.drawUnloaderItems = i);
         client.checkPref("customnullunloader", false, i -> Unloader.customNullLoader = i);
+        client.checkPref("logiclinkorder", false);
 
         client.category("misc");
         client.updatePref();
