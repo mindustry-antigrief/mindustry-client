@@ -102,8 +102,8 @@ class MinePath @JvmOverloads constructor(
 
         // mine
         } else {
-            tile = indexer.findClosestOre(player.unit(), item) // FINISHME: Ignore blocked tiles
-            player.unit().mineTile = tile
+            val tile = indexer.findClosestOre(player.unit(), item) // FINISHME: Ignore blocked tiles
+            if (player.unit().validMine(tile) || tile == null) player.unit().mineTile = tile
             if (tile == null) return
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 3F)
             goTo(tile, player.unit().type.mineRange - tilesize * 2)

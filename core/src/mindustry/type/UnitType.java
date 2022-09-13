@@ -1330,7 +1330,6 @@ public class UnitType extends UnlockableContent{
     public void drawEngines(Unit unit){
         if((useEngineElevation ? unit.elevation : 1f) <= 0.0001f) return;
 
-        // FINISHME: Apply alpha
         for(var engine : engines){
             engine.draw(unit);
         }
@@ -1625,13 +1624,13 @@ public class UnitType extends UnlockableContent{
             );
             Draw.z(z);*/
 
-            Draw.color(color);
+            Draw.color(color, alpha);
             Fill.circle(
             unit.x + ex,
             unit.y + ey,
             (radius + Mathf.absin(Time.time, 2f, radius / 4f)) * scale
             );
-            Draw.color(type.engineColorInner);
+            Draw.color(type.engineColorInner, alpha);
             Fill.circle(
             unit.x + ex - Angles.trnsx(rot + rotation, 1f),
             unit.y + ey - Angles.trnsy(rot + rotation, 1f),

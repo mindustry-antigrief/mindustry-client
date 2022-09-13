@@ -49,6 +49,7 @@ public class ChatFragment extends Table{
     private int scrollPos = 0;
     private Seq<Autocompleteable> completion = new Seq<>(); // FINISHME: The autocompletion system is awful.
     private int completionPos = -1;
+    private static final Color hoverColor = Color.sky.cpy().mul(0.5f);
 
     public ChatFragment(){
         super();
@@ -237,7 +238,7 @@ public class ChatFragment extends Table{
             float mousex = input.mouseX();
             if (mousey > msg.start && mousey < msg.start + msg.height && msg.buttons != null) {
                 litUp.clear();
-                var co = Draw.getColor().cpy();
+                var co = Tmp.c1.set(Draw.getColor()); // Save current color for later
                 for (var g : font.getCache().getLayouts()) {
                     for (var r : g.runs) {
                         float x = r.x + r.xAdvances.get(0) + fontoffsetx + offsetx;
@@ -248,12 +249,15 @@ public class ChatFragment extends Table{
                             float liney = r.y + theight - font.getLineHeight() + 2;
                             for (var area : msg.buttons) {
                                 if (idx >= area.start && idx < area.end) {
-                                    if (mousex > x && mousex < x + w && mousey > liney && mousey < liney + font.getLineHeight()) {
+                                    if (mousex > x && mousex <= x + w && mousey > liney && mousey < liney + font.getLineHeight()) {
                                         for (int k = area.start; k < area.end; k++) {
                                             litUp.add(k);
                                         }
                                         if (Core.input.keyTap(Binding.select)) {
                                             area.lambda.run();
+                                        }
+                                        if (control.input instanceof DesktopInput) {
+                                            Core.graphics.cursor(Graphics.Cursor.SystemCursor.hand);
                                         }
                                     }
                                 }
@@ -263,12 +267,12 @@ public class ChatFragment extends Table{
                     }
                 }
 
-                Draw.color(Color.sky.cpy().mul(0.5f));
+                Draw.color(hoverColor);
                 for (var g : font.getCache().getLayouts()) {
                     for (var r : g.runs) {
                         float x = r.x + r.xAdvances.get(0) + fontoffsetx + offsetx;
                         int j = 0;
-                        for (var ignored : r.glyphs) {
+                        for (var c : r.glyphs) {
                             int idx = r.textPositions.get(j++);
                             float w = r.xAdvances.get(j);
                             float liney = r.y + theight - font.getLineHeight() + 2;
@@ -279,7 +283,7 @@ public class ChatFragment extends Table{
                         }
                     }
                 }
-                Draw.color(co);
+                Draw.color(co); // Reset color
             }
             Draw.color(shadowColor, shadowColor.a * opacity);
 
@@ -526,14 +530,19 @@ public class ChatFragment extends Table{
         return msg;
     }
 
+    /** Alias for {@link #addMessage(String)} that returns a ChatMessage since return type changes are binary incompatible and break mods */
+    public ChatMessage addMsg(String message) {
+        return addMessage(message, null, null, "", message);
+    }
+
+    /** Adds a message, see {@link #addMsg} for ChatMessage return type */
+    public void addMessage(String message) {
+        addMsg(message);
+    }
+
     /** @deprecated Kept for mod compatibility */
     @Deprecated
     public void addMessage(String ignored, String message){
-        addMessage(message, null, null, "", message);
-    }
-
-    /** Adds a message */
-    public void addMessage(String message){
         addMessage(message, null, null, "", message);
     }
 
@@ -602,8 +611,14 @@ public class ChatFragment extends Table{
             msgFormat(true, true);
         }
        
-        public void addButton(int start, int end, Runnable lambda) {
-            buttons.add(new ClickableArea(start, end, lambda));
+        public ChatMessage addButton(int start, int end, Runnable lambda) {
+            if (buttons != null) buttons.add(new ClickableArea(start, end, lambda));
+            return this;
+        }
+
+        public ChatMessage addButton(String text, Runnable lambda) {
+            int i = formattedMessage.indexOf(text);
+            return addButton(i, i + text.length(), lambda);
         }
 
         private void format(boolean moveButtons) {

@@ -139,6 +139,7 @@ class ClientLogic {
             Client.tiles.clear()
 
             UnitTypes.horizon.itemCapacity = if (flood()) 20 else 0 // Horizons can pick up items in flood, this just allows the items to draw correctly
+            UnitTypes.crawler.health = if (flood()) 100f else 200f // Crawler health is halved in flood
 
             if(coreItems == null) coreItems = ItemModule(true)
             else {

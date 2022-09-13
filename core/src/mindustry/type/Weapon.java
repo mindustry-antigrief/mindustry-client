@@ -216,16 +216,19 @@ public class Weapon implements Cloneable{
 
         Draw.xscl = -Mathf.sign(flipSprite);
 
-        if(region.found()) Draw.rect(region, wx, wy, weaponRotation);
+        if(region.found()) {
+            Draw.alpha(UnitType.alpha);
+            Draw.rect(region, wx, wy, weaponRotation);
+        }
 
-        if(cellRegion.found()){ // FINISHME: Apply alpha
-            Draw.color(unit.type.cellColor(unit));
+        if(cellRegion.found()){
+            Draw.color(unit.type.cellColor(unit), UnitType.alpha);
             Draw.rect(cellRegion, wx, wy, weaponRotation);
             Draw.color();
         }
 
-        if(heatRegion.found() && mount.heat > 0){ // FINISHME: Apply alpha
-            Draw.color(heatColor, mount.heat);
+        if(heatRegion.found() && mount.heat > 0){
+            Draw.color(heatColor, mount.heat * UnitType.alpha);
             Draw.blend(Blending.additive);
             Draw.rect(heatRegion, wx, wy, weaponRotation);
             Draw.blend();
