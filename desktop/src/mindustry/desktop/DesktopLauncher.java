@@ -16,7 +16,6 @@ import arc.util.serialization.*;
 import com.codedisaster.steamworks.*;
 import mindustry.*;
 import mindustry.client.*;
-import mindustry.client.utils.*;
 import mindustry.core.*;
 import mindustry.desktop.steam.*;
 import mindustry.game.*;
@@ -50,25 +49,6 @@ public class DesktopLauncher extends ClientLauncher{
 
             Events.on(EventType.ClientLoadEvent.class, e -> Core.graphics.setTitle(getWindowTitle()));
 
-            if (OS.isMac && !Structs.contains(arg, "-firstThread")) { //restart with -XstartOnFirstThread on mac, doesn't work without it
-                Log.warn("Performing mac restart");
-                Core.files = new SdlFiles(); //this is null otherwise
-                javaPath = //this is null otherwise
-                    new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
-                    Core.files.local("jre/bin/java").exists() ? Core.files.local("jre/bin/java").absolutePath() :
-                    "java";
-                Fi jar = Fi.get(DesktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-                try {
-                    Seq<String> args = Seq.with(javaPath);
-                    args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
-                    args.addAll("-XstartOnFirstThread", "-jar", jar.absolutePath(), "-firstThread");
-
-                    new ProcessBuilder(args.toArray(String.class)).inheritIO().start().waitFor();
-                    return;
-                } catch (IOException ignored) {} //java command failed (couldn't find java install)
-            }
-
-            new UnpackJars().unpack();
             Log.infoTag("AA Samples", "" + aaSamples[0]);
 
             new SdlApplication(new DesktopLauncher(arg), new SdlConfig() {{

@@ -420,9 +420,9 @@ inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
 /** Send a signed message to chat. */
 fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))
 
-fun ChatMessage.findCoords() = NetClient.findCoords(this)
+fun ChatMessage.findCoords(): ChatMessage = NetClient.findCoords(this)
 
-fun ChatMessage.findLinks() = NetClient.findLinks(this)
+fun ChatMessage.findLinks(): ChatMessage = NetClient.findLinks(this)
 
 fun findItem(arg: String): Item = Vars.content.items().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
 

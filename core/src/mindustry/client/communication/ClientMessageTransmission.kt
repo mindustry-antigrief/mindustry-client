@@ -6,6 +6,7 @@ import mindustry.client.*
 import mindustry.client.crypto.*
 import mindustry.client.crypto.Signatures.VerifyResult.*
 import mindustry.client.utils.*
+import mindustry.core.*
 import mindustry.gen.*
 import java.math.*
 import java.nio.*
@@ -92,7 +93,8 @@ class ClientMessageTransmission : Transmission {
         }
         val prefix = "[accent]<[white]F[]>[] ${when (validity) { VALID -> Iconc.ok; INVALID -> Iconc.cancel; UNKNOWN_CERT -> "" }} ".replace("  ", " ") // No double spaces. Cursed
 
-        Vars.ui.chatfrag.addMessage(message, sender, background, prefix, message)
+        val newMsg = NetClient.processCoords(message, true)
+        Vars.ui.chatfrag.addMessage(newMsg, sender, background, prefix, newMsg).findCoords().findLinks()
     }
 
     override fun toString(): String {

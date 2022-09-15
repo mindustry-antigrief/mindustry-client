@@ -366,7 +366,7 @@ public class ModsDialog extends BaseDialog{
                 Seq<String> args = Seq.with(javaPath);
                 args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
                 if(OS.isMac) args.add("-XstartOnFirstThread");
-                args.addAll("-jar", jar.absolutePath(), "-firstThread");
+                args.addAll("-jar", jar.absolutePath());
 
                 Runtime.getRuntime().exec(args.toArray());
                 Core.app.exit();

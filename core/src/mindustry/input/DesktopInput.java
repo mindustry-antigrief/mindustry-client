@@ -55,6 +55,8 @@ public class DesktopInput extends InputHandler{
     public float selectScale;
     /** Selected build plan for movement. */
     public @Nullable BuildPlan splan;
+    /** Used to track whether the splan was moved. */
+    public boolean splanMoved = false;
     /** Whether player is currently deleting removal plans. */
     public boolean deleting = false, shouldShoot = false, panning = false;
     /** Mouse pan speed. */
@@ -469,7 +471,7 @@ public class DesktopInput extends InputHandler{
                 });
                 scene.add(table);
             }
-            if(((input.keyDown(Binding.control) || input.shift()) && Core.input.keyTap(Binding.select) && state.rules.possessionAllowed) && block == null){
+            if(((input.keyDown(Binding.control) || input.alt()) && Core.input.keyTap(Binding.select) && state.rules.possessionAllowed) && block == null){
                 Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
                 if(on != null){
@@ -478,10 +480,10 @@ public class DesktopInput extends InputHandler{
                         Call.unitControl(player, on);
                         shouldShoot = false;
                         recentRespawnTimer = 1f;
-                    }else if((input.keyDown(Binding.control) || input.shift()) && on.isPlayer()) { // Shift + click player: quick assist (ctrl + click to assist similar to buildpath, shift/ctrl + alt + click to not follow)
-                        Navigation.follow(new AssistPath(on.getPlayer(), !input.keyDown(Binding.control), input.alt()));
+                    }else if((input.keyDown(Binding.control) || input.alt()) && on.isPlayer()) { // Alt + click player: quick assist (ctrl + click to assist similar to buildpath, alt/ctrl + shift + click to not follow)
+                        Navigation.follow(new AssistPath(on.getPlayer(), !input.keyDown(Binding.control), input.shift()));
                         shouldShoot = false;
-                    }else if(on.controller() instanceof LogicAI ai && ai.controller != null && (!player.unit().type.canBoost || player.boosting)) { // Shift + click logic unit: spectate processor
+                    }else if(on.controller() instanceof LogicAI ai && ai.controller != null) { // Alt + click logic unit: spectate processor
                         Spectate.INSTANCE.spectate(ai.controller);
                         shouldShoot = false;
                     }
@@ -726,11 +728,12 @@ public class DesktopInput extends InputHandler{
 
         if(splan != null){
             float offset = ((splan.block.size + 2) % 2) * tilesize / 2f;
-            float x = Core.input.mouseWorld().x + offset;
-            float y = Core.input.mouseWorld().y + offset;
-            if (splan.block instanceof LogicBlock) processorConfigs.put(Point2.pack((int)(x/tilesize), (int)(y/tilesize)), processorConfigs.remove(splan.tile().pos()));
-            splan.x = (int)(x / tilesize);
-            splan.y = (int)(y / tilesize);
+            int x = (int)((Core.input.mouseWorld().x + offset) / tilesize);
+            int y = (int)((Core.input.mouseWorld().y + offset) / tilesize);
+            if (splan.block instanceof LogicBlock) processorConfigs.put(Point2.pack(x, y), processorConfigs.remove(splan.tile().pos()));
+            if (splan.x != x || splan.y != y) splanMoved = true;
+            splan.x = x;
+            splan.y = y;
         }
 
         if(block == null || mode != placing){
@@ -858,7 +861,9 @@ public class DesktopInput extends InputHandler{
                 if(getPlan(splan.x, splan.y, splan.block.size, splan) != null){
                     player.unit().plans().remove(splan, true);
                 }
+                if(!splanMoved) player.unit().addBuild(splan, false); // Add the plan to the top of the queue
                 splan = null;
+                splanMoved = false;
             }
 
             mode = none;

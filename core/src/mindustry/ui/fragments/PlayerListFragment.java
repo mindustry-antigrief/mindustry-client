@@ -5,6 +5,7 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.scene.*;
 import arc.scene.event.*;
+import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
@@ -12,6 +13,8 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
+import mindustry.client.utils.*;
+import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
@@ -151,9 +154,9 @@ public class PlayerListFragment{
                     t.defaults().size(bs);
 
                     t.button(Icon.hammer, ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban",  user.name()), () -> Call.adminRequest(user, AdminAction.ban)));
+                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()), () -> Call.adminRequest(user, AdminAction.ban)));
                     t.button(Icon.cancel, ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick",  user.name()), () -> Call.adminRequest(user, AdminAction.kick)));
+                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick", user.name()), () -> Call.adminRequest(user, AdminAction.kick)));
 
                     t.row();
 
@@ -193,14 +196,19 @@ public class PlayerListFragment{
             }
             if (user != player) {
                 button.button(Icon.copy, ustyle, // Assist/copy
-                        () -> Navigation.follow(new AssistPath(user, !Core.input.ctrl(), Core.input.alt()))).size(h / 2).tooltip("@client.assist");
+                    () -> Navigation.follow(new AssistPath(user, !Core.input.ctrl(), Core.input.alt()))).size(h / 2).tooltip("@client.assist");
                 button.button(Icon.cancel, ustyle, // Unassist/block
-                        () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
+                    () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.move, ustyle, // Goto
-                        () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
+                    () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
                 button.button(Icon.zoom, ustyle, // Spectate/stalk
-                        () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).tooltip("@client.spectate");
+                    () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).tooltip("@client.spectate");
             }
+
+            if (ClientUtilsKt.io() && ClientVars.rank >= 4) // Apprentice+ on io
+                button.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon), ustyle,
+                    () -> ui.showConfirm("@confirm", Core.bundle.format("client.confirmfreeze", user.name()),
+                        () -> Call.serverPacketReliable("freeze_by_id", String.valueOf(user.id)))).tooltip("@client.freeze");
 
             content.add(button).padBottom(-6).width(700).maxHeight(h + 14);
             content.row();

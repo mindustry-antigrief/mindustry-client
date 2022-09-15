@@ -82,8 +82,6 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         float finalPlaceDst = state.rules.infiniteResources ? Float.MAX_VALUE : type.buildRange;
         boolean infinite = state.rules.infiniteResources || team().rules().infiniteResources;
 
-        if(!canBuild()) return;
-
         buildCounter += Time.delta;
         if(Float.isNaN(buildCounter) || Float.isInfinite(buildCounter)) buildCounter = 0f;
         buildCounter = Math.min(buildCounter, 10f);
