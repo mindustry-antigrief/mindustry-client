@@ -18,7 +18,6 @@ task run(dependsOn: classes, type: JavaExec){
 
     if(System.getProperty("os.name").toLowerCase().contains("mac")){
         jvmArgs += "-XstartOnFirstThread"
-        args += "-firstThread"
     }
 
     jvmArgs += "-XX:+ShowCodeDetailsInExceptionMessages"
@@ -76,11 +75,12 @@ task steamtest(dependsOn: dist){
         copy{
             from "build/libs/Mindustry.jar"
             if(System.getProperty("os.name").toLowerCase().contains("mac")){
-                into "/Users/anuke/Library/Application Support/Steam/steamapps/common/Mindustry/Mindustry.app/Contents/Resources"
+                into "/Users/nate/Library/Application Support/Steam/steamapps/common/Mindustry/Mindustry.app/Contents/Resources"
+                rename("Mindustry.jar", "desktop.jar")
             }else{
                 into "D:\\Steam2\\steamapps\\common\\Mindustry\\jre"
+                rename("Mindustry.jar", "client.jar")
             }
-            rename("Mindustry.jar", "client.jar")
         }
     }
 }
