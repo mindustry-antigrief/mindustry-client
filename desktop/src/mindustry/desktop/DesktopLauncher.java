@@ -16,6 +16,7 @@ import arc.util.serialization.*;
 import com.codedisaster.steamworks.*;
 import mindustry.*;
 import mindustry.client.*;
+import mindustry.client.utils.*;
 import mindustry.core.*;
 import mindustry.desktop.steam.*;
 import mindustry.game.*;
@@ -49,6 +50,7 @@ public class DesktopLauncher extends ClientLauncher{
 
             Events.on(EventType.ClientLoadEvent.class, e -> Core.graphics.setTitle(getWindowTitle()));
 
+            new UnpackJars().unpack();
             Log.infoTag("AA Samples", "" + aaSamples[0]);
 
             new SdlApplication(new DesktopLauncher(arg), new SdlConfig() {{
