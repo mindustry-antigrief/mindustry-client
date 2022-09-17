@@ -121,7 +121,12 @@ public class AssetsProcess extends BaseProcessor{
         MethodSpec.Builder loadBegin = MethodSpec.methodBuilder("load").addModifiers(Modifier.PUBLIC, Modifier.STATIC);
         CodeBlock.Builder staticb = CodeBlock.builder();
 
-        if(genid){
+        type.addField(boolean.class, "loaded", Modifier.STATIC, Modifier.PRIVATE);
+        loadBegin.addStatement("if(loaded || !mindustry.Vars.clientLoaded) return");
+
+        if(genid){ // Sounds
+            loadBegin.addStatement("if(arc.Core.settings.getInt($S) == 0 && arc.Core.settings.getInt($S) == 0) return", "sfxvol", "ambientvol");
+
             type.addField(FieldSpec.builder(IntMap.class, "idToSound", Modifier.STATIC, Modifier.PRIVATE).initializer("new IntMap()").build());
             type.addField(FieldSpec.builder(ObjectIntMap.class, "soundToId", Modifier.STATIC, Modifier.PRIVATE).initializer("new ObjectIntMap()").build());
 
@@ -136,7 +141,10 @@ public class AssetsProcess extends BaseProcessor{
             .addParameter(int.class, "id")
             .returns(Sound.class)
             .addStatement("return (Sound)idToSound.get(id, () -> Sounds.none)").build());
+        } else { // Music
+            loadBegin.addStatement("if(arc.Core.settings.getInt($S) == 0) return", "musicvol");
         }
+        loadBegin.addStatement("loaded = true");
 
         HashSet<String> names = new HashSet<>();
         Seq<Fi> files = new Seq<>();

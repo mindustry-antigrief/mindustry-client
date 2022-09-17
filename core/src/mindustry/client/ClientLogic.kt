@@ -67,8 +67,11 @@ class ClientLogic {
         }
 
         Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading
-            Musics.load() // Loading music isn't very important
-            Sounds.load() // Same applies to sounds
+            Core.app.post { // Run next frame as Vars.clientLoaded is true then and the load methods depend on it
+                Musics.load() // Loading music isn't very important
+                Sounds.load() // Same applies to sounds
+            }
+
             val changeHash = Core.files.internal("changelog").readString().hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
             if (Core.settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
             Core.settings.put("changeHash", changeHash)

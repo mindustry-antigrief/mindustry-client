@@ -309,9 +309,9 @@ public class SettingsMenuDialog extends BaseDialog{
     }
 
     void addSettings(){
-        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> i + "%");
+        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> { Musics.load(); return i + "%"; });
+        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> { Sounds.load(); return i + "%"; });
+        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> { Sounds.load(); return i + "%"; });
 
 
         // Client Settings, organized exactly the same as Bundle.properties: text first, sliders second, checked boxes third, unchecked boxes last
