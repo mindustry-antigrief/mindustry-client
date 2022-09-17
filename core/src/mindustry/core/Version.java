@@ -22,6 +22,8 @@ public class Version{
     public static boolean enabled = true;
     /** Foo's update url used for... updating */
     public static String updateUrl = "";
+    /** Foo's asset repo, commit ref used for downloading muic on the go */
+    public static String assetUrl = "", assetRef = "";
     /** Foo's version string */
     public static String clientVersion = "v1.0.0, Jan. 1, 1970";
 
@@ -37,6 +39,8 @@ public class Version{
         PropertiesUtils.load(map, file.reader());
 
         updateUrl = map.get("updateUrl");
+        assetUrl = map.get("assetUrl");
+        assetRef = map.get("assetRef");
         clientVersion = map.get("clientVersion");
         type = map.get("type");
         number = Integer.parseInt(map.get("number", "4"));

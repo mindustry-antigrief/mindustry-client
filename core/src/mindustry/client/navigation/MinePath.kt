@@ -9,7 +9,7 @@ import mindustry.client.utils.*
 import mindustry.gen.*
 import mindustry.type.*
 
-class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().type.mineItems, var cap: Int = Core.settings.getInt("minepathcap"), val newGame: Boolean = false) : Path() {
+class MinePath @JvmOverloads constructor(val items: Seq<Item> = player.unit().type.mineItems, var cap: Int = Core.settings.getInt("minepathcap"), val newGame: Boolean = false) : Path() {
     private var lastItem: Item? = null // Last item mined
     private var timer = Interval()
     private var coreIdle = false
@@ -24,7 +24,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
         }
 
         if (items.isEmpty) {
-            items = player.unit().type.mineItems
+            items.addAll(player.unit().type.mineItems)
             if (split.none { Strings.parseInt(it) > 0 }) player.sendMessage("client.path.miner.allinvalid".bundle())
         } else if (cap >= 0) {
             player.sendMessage(Core.bundle.format("client.path.miner.tobuild", items.joinToString(), if (cap == 0) "∞" else cap))

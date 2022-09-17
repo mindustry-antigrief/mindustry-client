@@ -325,7 +325,6 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
         client.checkPref("powersplitwarnings", true); // FINISHME: Add a minimum building requirement and a setting for it
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
-        client.checkPref("commandwarnings", true);
         client.checkPref("removecorenukes", false);
 
         client.category("chat");

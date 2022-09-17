@@ -67,6 +67,8 @@ class ClientLogic {
         }
 
         Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading
+            Musics.load() // Loading music isn't very important
+            Sounds.load() // Same applies to sounds
             val changeHash = Core.files.internal("changelog").readString().hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
             if (Core.settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
             Core.settings.put("changeHash", changeHash)
@@ -88,8 +90,9 @@ class ClientLogic {
             }
             Core.settings.remove("drawhitboxes") // Don't need this old setting anymore
             Core.settings.remove("signmessages") // same as above FINISHME: Remove this at some point
-            Core.settings.remove("firescl")
+            Core.settings.remove("firescl") // firescl, effectscl and cmdwarn were added in sept 2022, remove them in mid 2023 or something
             Core.settings.remove("effectscl")
+            Core.settings.remove("commandwarnings")
 
             if (OS.hasProp("policone")) { // People spam these and its annoying. add some argument to make these harder to find
                 register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
