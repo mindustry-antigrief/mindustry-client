@@ -322,8 +322,9 @@ public class Vars implements Loadable{
         drawCursors = settings.getBool("drawcursors");
         javaPath =
             new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
-            Core.files.local("jre/bin/java").exists() ? Core.files.local("jre/bin/java").absolutePath() :
-            "java";
+            Core.files.local("jre/bin/java").exists() ? Core.files.local("jre/bin/java").absolutePath() : // Unix
+            Core.files.local("jre/bin/java.exe").exists() ? Core.files.local("jre/bin/java.exe").absolutePath() : // Windows
+            "java"; // Fallback
 
         state = new GameState();
 
