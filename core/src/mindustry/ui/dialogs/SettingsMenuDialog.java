@@ -364,6 +364,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
+        client.checkPref("showpopups", true);
 
         client.category("misc");
         client.updatePref();
