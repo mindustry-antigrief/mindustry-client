@@ -574,9 +574,8 @@ public class ConstructBlock extends Block{
             lastBuilder.drawBuildPlans(); // Draw their build plans FINISHME: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
             int distance = distanceToGreaterCore();
 
-
             // Play warning sound (only played when no reactor has been built for 10s)
-            if (wb.soundDistance == 101 || distance.get() <= wb.soundDistance) {
+            if (warnBlock.soundDistance == 101 || distance <= (warnBlock.soundDistance)) {
                 if (Time.timeSinceMillis(lastWarn) > 10 * 1000) Sounds.corexplode.play(.3f * (float)Core.settings.getInt("sfxvol") / 100.0F);
                 lastWarn = Time.millis();
             }

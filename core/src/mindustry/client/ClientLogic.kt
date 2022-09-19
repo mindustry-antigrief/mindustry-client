@@ -1,35 +1,27 @@
 package mindustry.client
 
-import arc.Core
-import arc.Events
-import arc.struct.Seq
-import arc.util.Log
-import arc.util.Strings
-import arc.util.Time
-import arc.util.Timer
-import mindustry.Vars
-import mindustry.Vars.ui
+import arc.*
+import arc.struct.*
+import arc.util.*
+import mindustry.*
+import mindustry.Vars.*
 import mindustry.client.ClientVars.*
-import mindustry.client.antigrief.ConfigRequest
-import mindustry.client.antigrief.Seer
-import mindustry.client.communication.CommandTransmission
+import mindustry.client.antigrief.*
+import mindustry.client.communication.*
 import mindustry.client.navigation.*
-import mindustry.client.ui.ChangelogDialog
+import mindustry.client.ui.*
 import mindustry.client.utils.*
-import mindustry.content.UnitTypes
+import mindustry.content.*
 import mindustry.game.EventType.*
-import mindustry.gen.Building
-import mindustry.gen.Call
-import mindustry.gen.Groups
-import mindustry.gen.Player
-import mindustry.logic.LExecutor
-import mindustry.type.UnitType
-import mindustry.ui.fragments.ChatFragment
-import mindustry.ui.fragments.ChatFragment.ChatMessage
-import mindustry.world.blocks.defense.turrets.Turret
-import mindustry.world.blocks.logic.LogicBlock
-import mindustry.world.blocks.sandbox.PowerVoid
-import mindustry.world.modules.ItemModule
+import mindustry.gen.*
+import mindustry.logic.*
+import mindustry.type.*
+import mindustry.ui.fragments.*
+import mindustry.ui.fragments.ChatFragment.*
+import mindustry.world.blocks.defense.turrets.*
+import mindustry.world.blocks.logic.*
+import mindustry.world.blocks.sandbox.*
+import mindustry.world.modules.*
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
