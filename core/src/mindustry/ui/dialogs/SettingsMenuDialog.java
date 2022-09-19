@@ -339,7 +339,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
         client.checkPref("removecorenukes", false);
         // Seer
-        client.checkPref("seer-enabled", false);
+        client.checkPref("seer-enabled", false); // by default false because still new
         client.checkPref("seer-autokick", false); // by default false to avoid false positives
         client.sliderPref("seer-warnthreshold", 10, 0, 50, String::valueOf);
         client.sliderPref("seer-autokickthreshold", 20, 0, 50, String::valueOf);

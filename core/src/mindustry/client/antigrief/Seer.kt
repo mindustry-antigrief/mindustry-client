@@ -58,6 +58,7 @@ object Seer {
     }
 
     fun thoriumReactor(player: Player?, location: Tile, distance: Float) {
+        if (!Core.settings.getBool("seer-enabled")) return
         if (player == null) return
         val data = getData(player)
         data.score += Core.settings.getInt("seer-reactorscore") * distance / Core.settings.getInt("seer-reactordistance")
@@ -67,7 +68,9 @@ object Seer {
 //    fun blockConfig(player: Player, tile: Tile) {
 //        blockConfig(player, tile, null)
 //    }
+
     fun blockConfig(player: Player, tile: Tile, config: Any?) {
+        if (!Core.settings.getBool("seer-enabled")) return
         val data = getData(player)
         data.score += Core.settings.getInt("seer-configscore") * tile.dst(player) / (Core.settings.getInt("seer-configdistance") * 5f) // 5f per config score
         if (tile.block() is LogicBlock && config != null) handleLogicConfig(player, tile, config)
