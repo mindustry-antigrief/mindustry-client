@@ -334,19 +334,21 @@ public class NetClient implements ApplicationListener{
     }
 
     /** Finds coordinates in a message and makes them clickable */
-    public static void findCoords(ChatFragment.ChatMessage msg) {
+    public static ChatFragment.ChatMessage findCoords(ChatFragment.ChatMessage msg) {
         findCoords(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage))
             .each(c -> msg.addButton(c.start, c.end, () -> Spectate.INSTANCE.spectate(c.pos)));
+        return msg;
     }
 
     /** Finds links in a message and makes them clickable */
-    public static void findLinks(ChatFragment.ChatMessage msg) {
+    public static ChatFragment.ChatMessage findLinks(ChatFragment.ChatMessage msg) {
         Matcher matcher = linkPattern.matcher(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage));
         while (matcher.find()) {
             var res = matcher.toMatchResult();
             var url = res.group(1) == null ? "https://" + res.group() : res.group(); // Add https:// if missing protocol
             msg.addButton(res.start(), res.end(), () -> Menus.openURI(url));
         }
+        return msg;
     }
 
     public static String processCoords(String message, boolean setLastPos){

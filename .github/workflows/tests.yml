@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          ./gradlew tests:cleanTest tools:pack tests:test desktop:dist -PupdateUrl=stormybytes/mindustry-client-builds -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
+          ./gradlew tests:cleanTest tools:pack tests:test desktop:dist -PupdateUrl=stormybytes/mindustry-client-builds -PassetUrl=stormybytes/mindustry-client-builds -PassetRef=${{ env.SLUG }} -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
 
       - name: Create Release
         if: ${{ github.repository == 'stormybytes/mindustry-client' && github.ref == 'refs/heads/main' }}

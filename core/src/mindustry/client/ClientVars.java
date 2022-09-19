@@ -27,6 +27,7 @@ public class ClientVars {
     public static boolean benchmarkNav = false;
     public final static Rect cameraBounds = new Rect();
     public static final Block[] noInteractTurrets = {Blocks.foreshadow, Blocks.ripple, Blocks.arc};
+    public static int rank; // The rank int for servers such as io
 
     // Core Item Display
     public static ItemModule coreItems;

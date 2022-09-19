@@ -31,7 +31,6 @@ buildscript{
 plugins{
     id "org.jetbrains.kotlin.jvm" version "1.7.10"
     id "org.jetbrains.kotlin.kapt" version "1.7.10" apply false
-//    id "com.github.evestera.depsize" version "0.2.0"
 }
 
 allprojects{
@@ -41,6 +40,8 @@ allprojects{
     ext{
         versionNumber = '7'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
+        if(!project.hasProperty("assetUrl")) assetUrl = ''
+        if(!project.hasProperty("assetRef")) assetRef = ''
         if(!project.hasProperty("versionModifier")) versionModifier = 'alpha'
         if(!project.hasProperty("buildversion")) buildversion = '138' // Modders use BE build numbers which is stupid
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
@@ -135,6 +136,8 @@ allprojects{
                 println("Compiling with build: '$buildid'")
 
                 props["updateUrl"] = updateUrl
+                props["assetUrl"] = assetUrl
+                props["assetRef"] = assetRef
                 props["clientVersion"] = clientVersion
                 props["type"] = versionType
                 props["number"] = versionNumber

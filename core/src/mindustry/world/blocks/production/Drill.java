@@ -330,8 +330,8 @@ public class Drill extends Block{
             Draw.z(Layer.blockCracks);
             drawDefaultCracks();
 
-            Draw.z(Layer.blockAfterCracks);
             if(drawRim){
+                Draw.z(Layer.blockAdditive);
                 Draw.color(heatColor);
                 Draw.alpha(warmup * ts * (1f - s + Mathf.absin(Time.time, 3f, s)));
                 Draw.blend(Blending.additive);
@@ -339,6 +339,7 @@ public class Drill extends Block{
                 Draw.blend();
                 Draw.color();
             }
+            Draw.z(Layer.blockAfterCracks);
 
             if(drawSpinSprite){
                 Drawf.spinSprite(rotatorRegion, x, y, timeDrilled * rotateSpeed);

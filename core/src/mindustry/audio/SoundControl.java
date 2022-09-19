@@ -32,7 +32,7 @@ public class SoundControl{
     protected float fade;
     protected boolean silenced;
 
-    protected AudioBus uiBus = new AudioBus();
+    public AudioBus uiBus = new AudioBus();
     protected boolean wasPlaying;
     protected AudioFilter filter = new BiquadFilter(){{
         set(0, 500, 1);
