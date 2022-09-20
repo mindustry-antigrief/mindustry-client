@@ -188,7 +188,7 @@ public class SoundControl{
             if(data.soundID <= 0 || !Core.audio.isPlaying(data.soundID)){
                 if(play){
                     data.soundID = sound.loop(data.curVolume, 1f, pan);
-                    Core.audio.protect(data.soundID, true);
+                    if (data.soundID != -1) Core.audio.protect(data.soundID, true);
                 }
             }else{
                 if(data.curVolume <= 0.001f){
