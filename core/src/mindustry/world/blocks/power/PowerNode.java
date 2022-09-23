@@ -400,8 +400,8 @@ public class PowerNode extends PowerBlock{
         }
 
         @Override
-        public void created(){ // Called when one is placed/loded in the world
-            if(laserRange > maxRange) maxRange = laserRange;
+        public void created(){ // Called when one is placed/loaded in the world
+            if(autolink && laserRange > maxRange) maxRange = laserRange;
 
             super.created();
         }
