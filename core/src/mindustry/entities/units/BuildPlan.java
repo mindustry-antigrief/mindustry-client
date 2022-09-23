@@ -20,8 +20,10 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
     public @Nullable Block block;
     /** Whether this is a break plan.*/
     public boolean breaking;
-    /** Config int. Not used unless hasConfig is true.*/
+    /** Config int. Not used unless hasConfig is true. */
     public Object config;
+    /** Used for logic blocks when configure after place is enabled. */
+    public transient Object localConfig;
     /** Original position, only used in schematics.*/
     public int originalX, originalY, originalWidth, originalHeight;
 

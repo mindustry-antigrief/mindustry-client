@@ -334,7 +334,7 @@ public class HudFragment{
                 Events.on(TeamCoreDamage.class, event -> {
                     if (Time.timeSinceMillis(lastWarn) > 30_000) { // Prevent chat flooding
                         if (Core.settings.getBool("broadcastcoreattack")) {
-                            ClientUtilsKt.sendMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
+                            ClientUtils.sendMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                         } else {
                             ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                         }

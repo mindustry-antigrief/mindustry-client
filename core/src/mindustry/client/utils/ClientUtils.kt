@@ -1,4 +1,5 @@
 @file:Suppress("UNUSED")
+@file:JvmName("ClientUtils")
 
 package mindustry.client.utils
 

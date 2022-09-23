@@ -548,7 +548,7 @@ public class LogicBlock extends Block{
         public void configured(Unit builder, Object value) {
             super.configured(builder, value);
 
-            if (value instanceof byte[] && team == player.team() && Core.settings.getBool("attemwarfare") && (ClientUtilsKt.io() || ClientUtilsKt.phoenix())) {
+            if (value instanceof byte[] && team == player.team() && Core.settings.getBool("attemwarfare") && (ClientUtils.io() || ClientUtils.phoenix())) {
                 Player player = builder == null ? null :
                                 builder.isPlayer() ? builder.getPlayer() :
 //                                builder.controller() instanceof LogicAI ai && ai.controller != null ? Groups.player.find(p -> p.name.equals(ai.controller.lastAccessed)) :
@@ -568,7 +568,7 @@ public class LogicBlock extends Block{
                                     Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
                                 }
                             } else {
-                                if(Time.timeSinceMillis(attemTime) > 5000) {
+                                if (Time.timeSinceMillis(attemTime) > 5000) {
                                     Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
                                     attemTime = Time.millis();
                                     ui.chatfrag.messages.remove(attemMsg);
@@ -582,7 +582,7 @@ public class LogicBlock extends Block{
                             ProcessorPatcher.INSTANCE.inform(this);
                         });
                     }
-                    Log.debug("Regex: @ms", Time.timeSinceNanos(begin)/(float)Time.nanosPerMilli);
+                    Log.debug("Regex: @ms", Time.millisSinceNanos(begin));
                 });
             }
         }

@@ -1,7 +1,6 @@
 package mindustry.world.blocks.power;
 
 import arc.*;
-import arc.audio.*;
 import arc.graphics.*;
 import arc.math.*;
 import arc.struct.*;
@@ -9,7 +8,6 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
-import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -72,7 +70,7 @@ public class ImpactReactor extends PowerGenerator{
         super.drawPlace(x, y, rotation, valid);
         float wx = x * tilesize + offset, wy = y * tilesize + offset;
         Drawf.dashCircle(wx, wy, explosionRadius * tilesize, Color.coral);
-        if (ClientUtilsKt.flood()) {
+        if (ClientUtils.flood()) {
             Drawf.dashCircle(wx, wy, floodNullifierRange, Color.orange);
             indexer.eachBlock(null, wx, wy, floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild && b.within(wx, wy, floodNullifierRange), b -> Drawf.selected(b, Color.orange));
         }
@@ -80,7 +78,7 @@ public class ImpactReactor extends PowerGenerator{
 
     @Override
     public void drawPlanConfigTop(BuildPlan req, Eachable<BuildPlan> list){
-        if (ClientUtilsKt.flood()) {
+        if (ClientUtils.flood()) {
             Drawf.dashCircle(req.drawx(), req.drawy(), floodNullifierRange, Color.orange);
             indexer.eachBlock(null, req.drawx(), req.drawy(), floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
         }

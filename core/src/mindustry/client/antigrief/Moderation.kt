@@ -40,7 +40,7 @@ class Moderation {
                             fun Int.s() = if (this == Int.MAX_VALUE) "unknown" else toString()
                             Vars.ui.chatfrag.addMsg("[scarlet]Player $name [scarlet]($ioid) has ${games.s()} games, ${buildings.s()} builds, ${time.s()} mins")
                                 .addButton(name) { Spectate.spectate(player) }
-                                .addButton(ioid) { Call.sendMessage("/stats $ioid") }
+                                .addButton(ioid) { Call.sendChatMessage("/stats ${player.id}") }
                         }
                     }
                 }

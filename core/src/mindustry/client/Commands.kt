@@ -33,7 +33,7 @@ import kotlin.random.*
 
 fun setup() {
     register("help [page]", Core.bundle.get("client.command.help.description")) { args, player ->
-        if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
+        if (args.isNotEmpty() && !Strings.canParseInt(args[0])) { // FINISHME: !help [command] so that command descriptions aren't long
             player.sendMessage("[scarlet]'page' must be a number.")
             return@register
         }
@@ -245,21 +245,22 @@ fun setup() {
         msg.format()
     }
 
-    @Suppress("unchecked_cast")
-    register("fixcode [c]", "Fixes problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
+    register("fixcode [c/l]", "Fixes problematic \"attem >= 83\" flagging logic. See mindustry.dev/attem") { args, player -> // FINISHME: Bundle
         val builds = Vars.player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
         clientThread.post {
             val confirmed = args.any() && args[0] == "c" // Don't configure by default
+            val locations = args.any() && args[0] == "l"
+            val locMsg = StringBuilder("[accent]Processor locations:")
             val inProgress = !ClientVars.configs.isEmpty()
             var n = 0
 
-            if (confirmed && !inProgress) {
+            if (confirmed && !inProgress || locations) {
                 Log.debug("Patching!")
                 builds.forEach {
                     val patched = ProcessorPatcher.patch(it.code)
                     if (patched != it.code) {
-                        Log.debug("${it.tileX()} ${it.tileY()}")
-                        ClientVars.configs.add(ConfigRequest(it.tileX(), it.tileY(), LogicBlock.compress(patched, it.relativeConnections())))
+                        if (locations) locMsg.append("\n(").append(it.tileX()).append(", ").append(it.tileY()).append(')')
+                        else ClientVars.configs.add(ConfigRequest(it.tileX(), it.tileY(), LogicBlock.compress(patched, it.relativeConnections())))
                         n++
                     }
                 }
@@ -268,8 +269,10 @@ fun setup() {
                 if (confirmed) {
                     if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${ClientVars.configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
                     else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
+                } else if (locations) {
+                    Vars.ui.chatfrag.addMsg(locMsg.toString()).findCoords()
                 } else {
-                    player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
+                    player.sendMessage("[accent]Run [coral]!fixcode c[] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors. Run [coral]!fixcode l[] for locations.")
                 }
             }
         }

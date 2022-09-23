@@ -14,7 +14,7 @@ object ProcessorPatcher {
         jump \d+ greaterThanEq \3 \d+              # break if _attem >= 83
         jump \d+ (?:notEqual|always) ([^ ]+) \2    # loop if _flag != 0 (or always in some variants)
         set \3 0                                   # _attem = 0
-        """.replace("\\s+#.+$".toRegex(RegexOption.MULTILINE), "").trimIndent().toRegex() // The regex multiline mode is dumb
+        """.replace("\\s+#.+$".toRegex(RegexOption.MULTILINE), "").trimIndent().toRegex() // The regex comment mode is dumb
 
     private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
