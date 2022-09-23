@@ -256,7 +256,7 @@ public class PowerNode extends PowerBlock{
 
         var worldRange = laserRange * tilesize;
         team.data().buildingTree.intersect(tile.worldx() - worldRange, tile.worldy() - worldRange, worldRange * 2, worldRange * 2, build -> {
-            if(build.within(tile, worldRange) && valid.get(build) && !tempBuilds.contains(build)){
+            if(valid.get(build) && !tempBuilds.contains(build)){
                 tempBuilds.add(build);
             }
         });
@@ -309,7 +309,7 @@ public class PowerNode extends PowerBlock{
 
         var rangeWorld = maxRange * tilesize;
         team.data().buildingTree.intersect(tile.worldx() - rangeWorld, tile.worldy() - rangeWorld, rangeWorld * 2, rangeWorld * 2, build -> {
-            if(build.within(tile, rangeWorld) && valid.get(build) && !tempBuilds.contains(build)){
+            if(valid.get(build) && !tempBuilds.contains(build)){
                 tempBuilds.add(build);
             }
         });
