@@ -254,10 +254,10 @@ public class PowerNode extends PowerBlock{
             graphs.add(tile.build.power.graph);
         }
 
-        Geometry.circle(tile.x, tile.y, (int)(laserRange + 2), (x, y) -> {
-            Building other = world.build(x, y);
-            if(valid.get(other) && !tempBuilds.contains(other)){
-                tempBuilds.add(other);
+        var worldRange = laserRange * tilesize;
+        team.data().buildingTree.intersect(tile.worldx() - worldRange, tile.worldy() - worldRange, worldRange * 2, worldRange * 2, build -> {
+            if(build.within(tile, worldRange) && valid.get(build) && !tempBuilds.contains(build)){
+                tempBuilds.add(build);
             }
         });
 
@@ -307,10 +307,10 @@ public class PowerNode extends PowerBlock{
             graphs.add(tile.build.power.graph);
         }
 
-        Geometry.circle(tile.x, tile.y, Mathf.ceil(maxRange), (x, y) -> {
-            Building other = world.build(x, y);
-            if(valid.get(other) && !tempBuilds.contains(other)){
-                tempBuilds.add(other);
+        var rangeWorld = maxRange * tilesize;
+        team.data().buildingTree.intersect(tile.worldx() - rangeWorld, tile.worldy() - rangeWorld, rangeWorld * 2, rangeWorld * 2, build -> {
+            if(build.within(tile, rangeWorld) && valid.get(build) && !tempBuilds.contains(build)){
+                tempBuilds.add(build);
             }
         });
 
