@@ -418,7 +418,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             weaponSet.clear(); // Reusing things is good for the environment <3
         }
 
-        ui.unitPicker.handle(self());
+        if(ui != null) ui.unitPicker.handle(self());
     }
 
     @Override
