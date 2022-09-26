@@ -935,7 +935,7 @@ fun setup() {
         }
     }
 
-    register("seer", "Seer related commands") { args, player ->
+    register("seer", "Seer related commands") { _, _ -> // FINISHME
         SeerDialog.show()
     }
 

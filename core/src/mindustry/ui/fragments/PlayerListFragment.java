@@ -198,7 +198,7 @@ public class PlayerListFragment{
             }
             if (user != player) {
                 button.button(Icon.lock, ustyle, // Mute player
-                        () -> ClientUtilsKt.toggleMutePlayer(user)).size(h / 2).tooltip("@client.mute");
+                        () -> ClientUtils.toggleMutePlayer(user)).size(h / 2).tooltip("@client.mute");
                 button.button(Icon.copy, ustyle, // Assist/copy
                         () -> Navigation.follow(new AssistPath(user,
                                 Core.input.shift() ? AssistPath.Type.FreeMove :

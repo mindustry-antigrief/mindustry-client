@@ -556,7 +556,7 @@ public class LogicBlock extends Block{
             super.configured(builder, value);
 
             if (value instanceof byte[] && Core.settings.getBool("attemwarfare")) {
-                Player player = ClientUtilsKt.getPlayer(builder);
+                Player player = ClientUtils.getPlayer(builder);
                 clientThread.post(() -> { // The regex can be expensive, so we delegate it to the client thread
                     long begin = Time.nanos();
                     if (ProcessorPatcher.INSTANCE.isAttem(code)) {
@@ -566,16 +566,16 @@ public class LogicBlock extends Block{
                                 lastAttem = player;
                                 attemCount = 1;
                                 attemTime = Time.millis();
-                                String msg = Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtilsKt.getName(builder), tileX(), tileY());
+                                String msg = Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtils.getName(builder), tileX(), tileY());
                                 attemMsg = ui.chatfrag.addMessage(msg, null, null, "", msg);
                                 NetClient.findCoords(attemMsg);
 				// FINISHME: Send this every time an attem is placed but hide it from our view instead
-                                if (Core.settings.getBool("attemwarfarewhisper") && ClientUtilsKt.canWhisper() && player != null) {
+                                if (Core.settings.getBool("attemwarfarewhisper") && ClientUtils.canWhisper() && player != null) {
                                     Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                 }
                             } else {
                                 if (Time.timeSinceMillis(attemTime) > 5000) {
-                                    if (Core.settings.getBool("attemwarfarewhisper") && ClientUtilsKt.canWhisper()) {
+                                    if (Core.settings.getBool("attemwarfarewhisper") && ClientUtils.canWhisper()) {
                                         Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                     }
                                     attemTime = Time.millis();

@@ -17,7 +17,7 @@ import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.Seer;
 import mindustry.client.ui.*;
-import mindustry.client.utils.ClientUtilsKt;
+import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
@@ -344,7 +344,7 @@ public class ConstructBlock extends Block{
             progress = state.rules.infiniteResources ? 1 : Mathf.clamp(progress + maxProgress);
     
             // Warnings
-            Player targetPlayer = ClientUtilsKt.getPlayer(lastBuilder);
+            Player targetPlayer = ClientUtils.getPlayer(lastBuilder);
             if (targetPlayer != null) {
                 WarnBlock wb = getWarnBlock();
                 if (wb != null && wb.block == Blocks.thoriumReactor) Seer.INSTANCE.thoriumReactor(targetPlayer, tile, tile.dst(targetPlayer));
@@ -582,7 +582,7 @@ public class ConstructBlock extends Block{
 
             if (warnBlock.warnDistance == 101 || distance <= warnBlock.warnDistance) {
                 String toastMessage = Core.bundle.format(
-                        "client.blockwarn", ClientUtilsKt.getName(lastBuilder),
+                        "client.blockwarn", ClientUtils.getName(lastBuilder),
                         current.localizedName, tile.x, tile.y, distance
                 );
                 String toastSubtitle = String.format("%2d%% completed.", Mathf.round(progress * 100));
