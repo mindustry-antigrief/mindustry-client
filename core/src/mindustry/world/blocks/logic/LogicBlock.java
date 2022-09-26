@@ -570,11 +570,11 @@ public class LogicBlock extends Block{
                                 attemMsg = ui.chatfrag.addMessage(msg, null, null, "", msg);
                                 NetClient.findCoords(attemMsg);
 				// FINISHME: Send this every time an attem is placed but hide it from our view instead
-                                if (Core.settings.getBool("attemwarfarewhisper") && ClientUtilsKt.canWhisper() && player != null) { 
+                                if (Core.settings.getBool("attemwarfarewhisper") && ClientUtilsKt.canWhisper() && player != null) {
                                     Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                 }
                             } else {
-                                if(Time.timeSinceMillis(attemTime) > 5000) {
+                                if (Time.timeSinceMillis(attemTime) > 5000) {
                                     if (Core.settings.getBool("attemwarfarewhisper") && ClientUtilsKt.canWhisper()) {
                                         Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                     }
@@ -591,7 +591,7 @@ public class LogicBlock extends Block{
                             }
                         });
                     }
-                    Log.debug("Regex: @ms", Time.timeSinceNanos(begin)/(float)Time.nanosPerMilli);
+                    Log.debug("Regex: @ms", Time.millisSinceNanos(begin));
                 });
             }
         }

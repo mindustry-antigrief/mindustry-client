@@ -50,7 +50,7 @@ public class PlayerListFragment{
             });
 
             cont.table(Tex.buttonTrans, pane -> {
-                pane.label(() -> Core.bundle.format("players" + (Groups.player.size() == 1 && (ui.join.lastHost == null || ui.join.lastHost.playerLimit <= 0) ? ".single" : ""), Groups.player.size() + (ui.join.lastHost != null && ui.join.lastHost.playerLimit > 0 ? " / " + ui.join.lastHost.playerLimit : "")));
+                pane.label(() -> Core.bundle.format("players" + (Groups.player.size() == 1 && (ui.join.lastHost == null || ui.join.lastHost.playerLimit <= 0) ? ".single" : ""), Groups.player.size() + " (" + Groups.player.count(p -> p.fooUser) + Iconc.wrench + ") " + (ui.join.lastHost != null && ui.join.lastHost.playerLimit > 0 ? " / " + ui.join.lastHost.playerLimit : "")));
                 pane.row();
 
                 search = pane.field(null, text -> rebuild()).grow().pad(8).name("search").maxTextLength(maxNameLength).get();
@@ -214,10 +214,14 @@ public class PlayerListFragment{
                     () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).tooltip("@client.spectate");
             }
 
-            if (ClientUtilsKt.io() && ClientVars.rank >= 4) // Apprentice+ on io
+            if (ClientUtils.io() && ClientVars.rank >= 4 || ClientUtils.phoenix() && ClientVars.rank >= 9) { // Apprentice+ on io, Colonel+ on phoenix
                 button.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon), ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("client.confirmfreeze", user.name()),
-                        () -> Call.serverPacketReliable("freeze_by_id", String.valueOf(user.id)))).tooltip("@client.freeze");
+                    () -> ui.showConfirm("@confirm", Core.bundle.format("client.confirmfreeze", user.name()), () -> {
+                        if (ClientVars.rank == 4 && ClientUtils.io()) Call.serverPacketReliable("freeze_by_id", String.valueOf(user.id));
+                        else Call.sendChatMessage("/freeze " + user.id); // Freeze command preferred since it actually has a response (io doesn't let apprentice run it for some reason)
+                    })
+                ).tooltip("@client.freeze");
+            }
 
             content.add(button).padBottom(-6).width(700).maxHeight(h + 14);
             content.row();

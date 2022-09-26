@@ -418,6 +418,8 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             turretEnts.each(Navigation::addEnt);
             weaponSet.clear(); // Reusing things is good for the environment <3
         }
+
+        if(ui != null) ui.unitPicker.handle(self());
     }
 
     @Override

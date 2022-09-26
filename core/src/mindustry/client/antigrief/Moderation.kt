@@ -21,9 +21,10 @@ class Moderation {
             Vars.netClient.addPacketHandler("playerdata") { // Handles autostats from plugins
                 if (io() || phoenix()) {
                     val json = JsonReader().parse(it)
+                    Log.info(json)
 
-                    fun String.i() = json.getInt(this)
-                    fun String.s() = json.getString(this)
+                    fun String.i() = json.getInt(this, Int.MAX_VALUE)
+                    fun String.s() = json.getString(this, "unknown")
 
                     val player = Groups.player.getByID("id".i()) ?: return@addPacketHandler
                     val rank = "rank".i() // 0 for unranked, 1 for active, 2 for veteran etc
@@ -36,9 +37,10 @@ class Moderation {
                         val ioid = "playercode".s()
 
                         if (games < 3 || buildings < 1000 || time < 60) { // Low stat player; show a warning FINISHME: Settings for these values
-                            Vars.ui.chatfrag.addMsg("[scarlet]Player $name [scarlet]($ioid) has $games games, $buildings builds, $time mins")
+                            fun Int.s() = if (this == Int.MAX_VALUE) "unknown" else toString()
+                            Vars.ui.chatfrag.addMsg("[scarlet]Player $name [scarlet]($ioid) has ${games.s()} games, ${buildings.s()} builds, ${time.s()} mins")
                                 .addButton(name) { Spectate.spectate(player) }
-                                .addButton(ioid) { Call.sendMessage("/stats $ioid") }
+                                .addButton(ioid) { Call.sendChatMessage("/stats ${player.id}") }
                         }
                     }
                 }
@@ -47,13 +49,13 @@ class Moderation {
             Events.on(EventType.PlayerJoin::class.java) { e ->
                 if (e.player == Vars.player) return@on
 
-                if (Core.settings.getBool("autostats") && io() || phoenix()) { // Makes use of a custom packet on io
+                if (Core.settings.getBool("autostats") && (io() || phoenix())) { // Makes use of a custom packet on io
                     Call.serverPacketReliable("playerdata_by_id", e.player.id.toString())
                 }
             }
 
             Events.on(EventType.ServerJoinEvent::class.java) {
-                rank = -1 // reset rank pn server join
+                rank = -1 // reset rank on server join
                 if (io() || phoenix()) Call.serverPacketReliable("playerdata_by_id", Vars.player.id.toString()) // Stat trace self to get rank info
             }
         }

@@ -391,6 +391,10 @@ public class DesktopInput extends InputHandler{
             camera.position.add(input.axis(Binding.move_x) * speed, input.axis(Binding.move_y) * speed);
         }
 
+        if(Core.settings.getBool("returnonmove") && ((!input.keyDown(Binding.freecam_modifier) && (Math.abs(Core.input.axis(Binding.move_x)) > 0 || Math.abs(Core.input.axis(Binding.move_y)) > 0)) || input.keyDown(Binding.mouse_move)) && !scene.hasField()){
+            panning = false;
+        }
+
         if(input.keyDown(Binding.drop_payload) && scene.getKeyboardFocus() == null){
             mode = payloadPlace;
         }
@@ -466,7 +470,7 @@ public class DesktopInput extends InputHandler{
                     settings.put("autotransfer", AutoTransfer.enabled);
                     new Toast(1).add(bundle.get("client.autotransfer") + ": " + bundle.get(AutoTransfer.enabled ? "mod.enabled" : "mod.disabled"));
                     table.remove();
-                }).disabled(b -> state.rules.pvp && ClientUtilsKt.io());
+                }).disabled(b -> state.rules.pvp && ClientUtils.io());
 
                 table.row().fill();
                 table.button("@client.unitpicker", () -> { // Unit Picker / Sniper

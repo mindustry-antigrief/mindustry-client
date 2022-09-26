@@ -183,7 +183,7 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both, unreliable = true, called = Loc.server)
     public static void soundAt(Sound sound, float x, float y, float volume, float pitch){
         if(sound == null || headless) return;
-        if(sound == Sounds.corexplode && ClientUtilsKt.io()) return;
+        if(sound == Sounds.corexplode && ClientUtils.io()) return;
 
         sound.at(x, y, pitch, Mathf.clamp(volume, 0, 4f));
     }
@@ -287,23 +287,21 @@ public class NetClient implements ApplicationListener{
             findCoords(output);
             findLinks(output);
 
-            if (message.contains("Type[orange] /vote <y/n>[] to " + (ClientUtilsKt.io() ? "vote." : "agree.")) // Vote kick clickable buttons
-            || ClientUtilsKt.phoenix() && message.contains("Type [cyan]/vote y")) {
-                String yes = "[green]VOTE YES", no = "[red]VOTE NO";
-                output.message = output.message + '\n' + yes + '\n' + no;
+            if (message.contains("Type[orange] /vote <y/n>[] to " + (ClientUtils.io() ? "vote." : "agree.")) // Vote kick clickable buttons
+            || ClientUtils.phoenix() && message.contains("Type [cyan]/vote y")) {
+                String yes = Core.bundle.get("client.voteyes"), no = Core.bundle.get("client.voteno");
+                output.message = output.message + '\n' + yes + "  " + no;
                 output.format();
-                int yesi = output.formattedMessage.indexOf(yes), noi = output.formattedMessage.indexOf(no);
-                output.addButton(yesi, yesi + yes.length(), () -> Call.sendChatMessage("/vote y"));
-                output.addButton(noi, noi + no.length(), () -> Call.sendChatMessage("/vote n"));
+                output.addButton(yes, () -> Call.sendChatMessage("/vote y"));
+                output.addButton(no, () -> Call.sendChatMessage("/vote n"));
             }
 
-            else if (message.contains("Type [cyan]/rtv") && ClientUtilsKt.phoenix() // Rock the vote clickable button
-            || message.contains("Type [lightgray]/rtv") && ClientUtilsKt.cn()
-            || message.contains("Type[accent] /rtv") && ClientUtilsKt.io()
-            || message.contains("Type Type[orange] /skip") && ClientUtilsKt.nydus()) {
-                var rtv = ClientUtilsKt.nydus() ? "/skip y" : "/rtv";
-                int rtvi = output.formattedMessage.indexOf(rtv);
-                output.addButton(rtvi, rtvi + rtv.length(), () -> Call.sendChatMessage(rtv));
+            else if (message.contains("Type [cyan]/rtv") && ClientUtils.phoenix() // Rock the vote clickable button
+            || message.contains("Type [lightgray]/rtv") && ClientUtils.cn()
+            || message.contains("Type[accent] /rtv") && ClientUtils.io()
+            || message.contains("Type Type[orange] /skip") && ClientUtils.nydus()) {
+                var rtv = ClientUtils.nydus() ? "/skip y" : "/rtv";
+                output.addButton(rtv, () -> Call.sendChatMessage(rtv));
             }
 
             Sounds.chatMessage.play();

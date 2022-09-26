@@ -169,3 +169,6 @@ cache/
 
 # ignored due to frequent branch conflicts.
 core/assets/logicids.dat
+
+# Packr
+jdks/
