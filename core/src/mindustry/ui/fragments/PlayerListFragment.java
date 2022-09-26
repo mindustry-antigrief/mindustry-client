@@ -223,7 +223,7 @@ public class PlayerListFragment{
                 ).tooltip("@client.freeze");
             }
 
-            content.add(button).padBottom(-6).width(700).maxHeight(h + 14);
+            content.add(button).padBottom(-6).width(750).maxHeight(h + 14);
             content.row();
             content.image().height(4f).color(state.rules.pvp ? user.team().color : Pal.gray).growX();
             content.row();
