@@ -524,7 +524,7 @@ public class DesktopInput extends InputHandler{
                         recentRespawnTimer = 1f;
                     } else if ((input.ctrl() || input.shift()) && on.isPlayer()) {
                         Navigation.follow(new AssistPath(on.getPlayer(),
-                                !input.shift() && input.alt() ? AssistPath.Type.FreeMove :
+                                input.shift() && input.alt() ? AssistPath.Type.FreeMove :
                                 input.ctrl() && input.alt() ? AssistPath.Type.BuildPath :
                                 input.ctrl() ? AssistPath.Type.Cursor :
                                 AssistPath.Type.Regular));
