@@ -82,7 +82,7 @@ public class BlockInventoryFragment{
         int amount = Math.min(requested, player.unit().maxAccepted(lastItem));
 
         if(amount > 0){
-            Call.takeItems(build, lastItem, amount, player.unit());
+            Call.requestItem(player, build, lastItem, amount);
             holding = false;
             holdTime = 0f;
             held = true;

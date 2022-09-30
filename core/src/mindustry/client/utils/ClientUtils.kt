@@ -1,4 +1,5 @@
 @file:Suppress("UNUSED")
+@file:JvmName("ClientUtils")
 
 package mindustry.client.utils
 
@@ -16,10 +17,12 @@ import mindustry.ai.types.*
 import mindustry.client.*
 import mindustry.client.communication.*
 import mindustry.core.*
+import mindustry.game.*
 import mindustry.gen.*
+import mindustry.type.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
-import mindustry.ui.fragments.ChatFragment.ChatMessage
+import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.*
 import java.io.*
 import java.nio.*
@@ -475,3 +478,17 @@ fun toggleMutePlayer(player: Player) {
 //        if (pred(items[i])) consumer(items[i])
 //    }
 //}
+
+fun ChatMessage.findCoords(): ChatMessage = NetClient.findCoords(this)
+
+fun ChatMessage.findLinks(): ChatMessage = NetClient.findLinks(this)
+
+fun findItem(arg: String): Item = Vars.content.items().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+
+fun findUnit(arg: String): UnitType = Vars.content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+
+fun findBlock(arg: String): Block = Vars.content.blocks().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+
+fun findTeam(arg: String): Team = if (arg.toIntOrNull() in 0 until Team.all.size) Team.all[arg.toInt()] else Team.all.minBy { t -> if (t.name == null) Float.MAX_VALUE else BiasedLevenshtein.biasedLevenshteinInsensitive(arg, t.localized()) }
+
+fun parseBool(arg: String) = arg.lowercase().startsWith("y") || arg.lowercase().startsWith("t") // FINISHME: This should probably just spit out an error on non y/n input

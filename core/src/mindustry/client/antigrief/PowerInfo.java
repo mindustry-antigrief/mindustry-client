@@ -13,11 +13,14 @@ import mindustry.ui.*;
 import mindustry.world.blocks.power.*;
 
 public class PowerInfo {
-    private static PowerGraph found = null;
+    private static PowerGraph found;
+    public static PowerGraph hovered;
     public static final Seq<PowerGraph> graphs = new Seq<>();
 
     public static void update() {
         found = graphs.max(g -> g.team == Vars.player.team(), g -> g.all.size);
+        var tile = Vars.control.input.cursorTile();
+        hovered = Core.settings.getBool("graphdisplay") && tile != null && tile.build instanceof PowerNode.PowerNodeBuild node ? node.power.graph : null;
     }
 
     public static Element getBars(Table power) { // FINISHME: What in the world

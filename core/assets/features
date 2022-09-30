@@ -7,7 +7,7 @@
  * \n does linebreak
 */
 
-# Flarogus Client
+# SByte Foo Fork Client
  * Edits done by Zxtej, SByte and BalaM314
  * Pong SByte#7574 or BalaM314#4781 on discord if theres anything missing.
  * >=========================< Misc >=========================<
@@ -35,11 +35,13 @@
  * Anti toast - Disables toasts from being shown.
  * Remove attem instead of fixing setting. If true it just completely replaces the attem logic instead of just removing the jump part.
  * Automapvote setting - Automatically does /novote, /downvote, or /upvote when joining servers like io
+ * Fast respawn setting - Ultimate rush strat :tm:
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.
  * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
  * Alt + {show_turret_ranges} - Show your team's turret ranges.
  * Shift + {hide_blocks} - Hides build plans.
+ * Ctrl + {invisible_units} - Hides fog.
  * Shift + {pause_building} - Switches to freeze build queue.
  * Shift + {deselect} - Freezes/Unfreezes build plans. Useful for prioritizing which build plans to execute first.
  * Ctrl + {deselect} - Dequeue selection. Aka deletes only build plans. Doesn't deconstruct existing blocks.
@@ -50,6 +52,8 @@
  * >=========================< Commands >=========================<
  * !hh - Switches between all io servers and does /novote aka pet point farmer
  * !voids [count] - Shows void locations
+ * !rebuild <timestart> <timerange> <radius> - Searches through tile log history and rebuilds buildings from the specified time range and radius. (Bye bye griefers)
+ * !undo <player> [range] - Undoes player buildings and configurations.
  * !procfind [options] - Searches for processors with matching regex. Run without arguments for explanation.
  * !blank - Sends an empty text message
  * !fixcode - Now gives you 2 options. "c" to only remove the attem part and "r" (subjectively better) to completely yeet everything and replace it with anti attem text.
@@ -67,6 +71,7 @@
  * !mute <player> - Searches for the player name / id and mutes messages coming from that player.(The symbols infront of names [if the server does add symbols] are required when using name search)
  * !unmute <player> - Same as !mute
  * !clearmutes - Clears the list of muted players
+ * !unfog - Begone fog of war. Kinda unfair but idgaf :P
  * >=========================< Chat Text Replacer >=========================<
  * %s - replaces with a !shrug
  * %c - replaces with cursor coordinates

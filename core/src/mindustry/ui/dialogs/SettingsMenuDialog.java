@@ -309,7 +309,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         menu.button("@settings.data", Icon.save, style, isize, () -> dataDialog.show()).marginLeft(marg).row();
 
-        int i = 3;
+        int i = 5;
         for(var cat : categories){
             int index = i;
             if(cat.icon == null){
@@ -322,11 +322,9 @@ public class SettingsMenuDialog extends BaseDialog{
     }
 
     void addSettings(){
-        Core.settings.remove("nodeconfigs");
-        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> i + "%");
-
+        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> { Musics.load(); return i + "%"; });
+        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> { Sounds.load(); return i + "%"; });
+        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> { Sounds.load(); return i + "%"; });
 
         // Client Settings, organized exactly the same as Bundle.properties: text first, sliders second, checked boxes third, unchecked boxes last
         client.category("antigrief");
@@ -339,8 +337,21 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
         client.checkPref("powersplitwarnings", true); // FINISHME: Add a minimum building requirement and a setting for it
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
-        client.checkPref("commandwarnings", true);
         client.checkPref("removecorenukes", false);
+        // Seer
+        client.checkPref("seer-enabled", false); // by default false because still new
+        client.checkPref("seer-autokick", false); // by default false to avoid false positives
+        client.sliderPref("seer-warnthreshold", 10, 0, 50, String::valueOf);
+        client.sliderPref("seer-autokickthreshold", 20, 0, 50, String::valueOf);
+        client.sliderPref("seer-scoredecayinterval", 1, 0, 10, i -> String.valueOf(i * 30) + "s");
+        client.sliderPref("seer-scoredecay", 5, 0, 20, String::valueOf);
+        client.sliderPref("seer-reactorscore", 8, 0, 10, String::valueOf);
+        client.sliderPref("seer-reactordistance", 5, 0, 20, String::valueOf);
+        client.sliderPref("seer-configscore", 3, 0, 50, i -> String.valueOf(i / 5f)); // 0.60
+        client.sliderPref("seer-configdistance", 20, 0, 100, String::valueOf);
+        client.sliderPref("seer-proclinkthreshold", 20, 0, 80, String::valueOf);
+        client.sliderPref("seer-proclinkscore", 10, 0, 50, String::valueOf);
+        
 
         client.category("chat");
         client.checkPref("clearchatonleave", true);
@@ -351,19 +362,21 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("displayasuser", true);
         client.checkPref("broadcastcoreattack", false); // FINISHME: Multiple people using this setting at once will cause chat spam
         client.checkPref("showuserid", false);
+        client.checkPref("hideserversbydefault", false); // Inverts behavior of server hiding
 
         client.category("controls");
         client.checkPref("blockreplace", true);
         client.checkPref("instantturn", true);
         client.checkPref("autoboost", false);
         client.checkPref("assumeunstrict", false);
+        client.checkPref("returnonmove", false);
         client.checkPref("decreasedrift", false);
         client.checkPref("zerodrift", false);
+        client.checkPref("fastrespawn", false);
 
         client.category("graphics");
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
-        client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%");
         client.sliderPref("junctionview", 0, -1, 1, 1, s -> { Junction.setBaseOffset(s); return s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show"; });
         client.sliderPref("spawntime", 5, -1, 60, s -> { ClientVars.spawnTime = 60 * s; if (Vars.pathfinder.thread == null) Vars.pathfinder.start(); return s == -1 ? "Solid Line" : s == 0 ? "Disabled" : String.valueOf(s); });
         client.sliderPref("traveltime", 10, 0, 60, s -> { ClientVars.travelTime = 60f / s; return s == 0 ? "Disabled" : String.valueOf(s); });
@@ -381,6 +394,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("tracelogicunits", false);
         client.checkPref("enemyunitranges", false);
         client.checkPref("allyunitranges", false);
+        client.checkPref("graphdisplay", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
@@ -399,7 +413,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("nodeconf", 0, 0, PowerNode.PowerNodeFixSettings.values().length - 1, 1, s -> PowerNode.PowerNodeFixSettings.get(PowerNode.PowerNodeBuild.fixNode = s).desc);
         client.sliderPref("automapvote", 0, 0, 4, s -> s == 0 ? "Never" : s == 4 ? "Random vote" : "Always " + new String[]{"downvote", "novote", "upvote"}[--s]);
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
-        client.textPref("defaultminepathargs", "copper lead sand coal titanium");
+        client.textPref("defaultminepathargs", "copper lead sand coal titanium beryllium graphite tungsten");
         client.textPref("gamejointext", "");
         client.textPref("gamewintext", "gg");
         client.textPref("gamelosetext", "gg");

@@ -1,36 +1,27 @@
 package mindustry.client
 
-import arc.Core
-import arc.Events
-import arc.graphics.Color
-import arc.struct.Seq
-import arc.util.Log
-import arc.util.Strings
-import arc.util.Time
-import arc.util.Timer
-import mindustry.Vars
-import mindustry.Vars.ui
+import arc.*
+import arc.struct.*
+import arc.util.*
+import mindustry.*
+import mindustry.Vars.*
 import mindustry.client.ClientVars.*
-import mindustry.client.antigrief.ConfigRequest
-import mindustry.client.antigrief.PowerInfo
-import mindustry.client.communication.CommandTransmission
+import mindustry.client.antigrief.*
+import mindustry.client.communication.*
 import mindustry.client.navigation.*
-import mindustry.client.ui.ChangelogDialog
+import mindustry.client.ui.*
 import mindustry.client.utils.*
-import mindustry.content.UnitTypes
+import mindustry.content.*
 import mindustry.game.EventType.*
-import mindustry.gen.Building
-import mindustry.gen.Call
-import mindustry.gen.Groups
-import mindustry.gen.Player
-import mindustry.logic.LExecutor
-import mindustry.type.UnitType
-import mindustry.ui.fragments.ChatFragment
-import mindustry.ui.fragments.ChatFragment.ChatMessage
-import mindustry.world.blocks.defense.turrets.Turret
-import mindustry.world.blocks.logic.LogicBlock
-import mindustry.world.blocks.sandbox.PowerVoid
-import mindustry.world.modules.ItemModule
+import mindustry.gen.*
+import mindustry.logic.*
+import mindustry.type.*
+import mindustry.ui.fragments.*
+import mindustry.ui.fragments.ChatFragment.*
+import mindustry.world.blocks.defense.turrets.*
+import mindustry.world.blocks.logic.*
+import mindustry.world.blocks.sandbox.*
+import mindustry.world.modules.*
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
@@ -80,7 +71,7 @@ class ClientLogic {
                         }
                     }
                 }
-            }, 1F)
+            }, .1F)
 
             if (Core.settings.getBool("onjoinfixcode")) { // TODO: Make this also work for singleplayer worlds
                 Core.app.post {
@@ -113,6 +104,9 @@ class ClientLogic {
                     }
                 }
             }
+
+            Seer.players.clear()
+            Groups.player.each { Seer.registerPlayer(it) }
         }
 
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
@@ -135,6 +129,10 @@ class ClientLogic {
 //            if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
             Client.tiles.clear()
+
+            UnitTypes.horizon.itemCapacity = if (flood()) 20 else 0 // Horizons can pick up items in flood, this just allows the items to draw correctly
+            UnitTypes.crawler.health = if (flood()) 100f else 200f // Crawler health is halved in flood
+
             if(coreItems == null) coreItems = ItemModule(true)
             else {
                 coreItems.update(false)
@@ -143,6 +141,11 @@ class ClientLogic {
         }
 
         Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading
+            Core.app.post { // Run next frame as Vars.clientLoaded is true then and the load methods depend on it
+                Musics.load() // Loading music isn't very important
+                Sounds.load() // Same applies to sounds
+            }
+
             val changeHash = Core.files.internal("changelog").readString().hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
             if (Core.settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
             Core.settings.put("changeHash", changeHash)
@@ -150,7 +153,6 @@ class ClientLogic {
             if (Core.settings.getBool("discordrpc")) Vars.platform.startDiscord()
             if (Core.settings.getBool("mobileui")) Vars.mobile = !Vars.mobile
             if (Core.settings.getBool("viruswarnings")) LExecutor.virusWarnings = true
-            if (Core.settings.getBool("autotransfer")) AutoTransfer.enabled = true
 
             Autocomplete.autocompleters.add(BlockEmotes(), PlayerCompletion(), CommandCompletion())
 
@@ -165,8 +167,12 @@ class ClientLogic {
             }
 
             // FINISHME: Remove these at some point
-            Core.settings.remove("drawhitboxes")
-            Core.settings.remove("signmessages")
+            Core.settings.remove("drawhitboxes") // Don't need this old setting anymore
+            Core.settings.remove("signmessages") // same as above FINISHME: Remove this at some point
+            Core.settings.remove("firescl") // firescl, effectscl and cmdwarn were added in sept 2022, remove them in mid 2023 or something
+            Core.settings.remove("effectscl")
+            Core.settings.remove("commandwarnings")
+	    Core.settings.remove("nodeconfigs")
             if (Core.settings.getString("gameovertext")?.isNotEmpty() == true) {
                 Core.settings.put("gamewintext", Core.settings.getString("gameovertext"))
                 Core.settings.remove("gameovertext")
@@ -184,7 +190,7 @@ class ClientLogic {
 
             register("hh [h]", "!") { args, _ ->
                 if (!Vars.net.client()) return@register
-                val u = if (args.any()) Vars.content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) } else Vars.player.unit().type
+                val u = if (args.any()) Vars.content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) } else Vars.player.unit().type
                 val current = (Vars.ui.join.lastHost?.modeName?.first() ?: Vars.ui.join.lastHost?.mode?.name?.get(0) ?: 'f').lowercaseChar()
                 switchTo = mutableListOf<Any>('a', 'p', 's', 'f', 't').apply { remove(current); add(current); add(u) }
                 Call.sendChatMessage("/switch ${switchTo!!.removeFirst()}")
@@ -248,12 +254,10 @@ class ClientLogic {
                         if (event.unit?.player != turretVoidWarnPlayer || turretVoidWarnPlayer == null || Time.timeSinceMillis(lastTurretVoidWarn) > 5e3) {
                             turretVoidWarnPlayer = event.unit?.player
                             turretVoidWarnCount = 1
-                            turretVoidWarnMsg = ui.chatfrag.addMessage(
-                                Strings.format(
-                                    "[accent]Turret placed by @[accent] at (@, @) is within void (@, @) range", // TODO: Bundle
-                                    getName(event.unit), event.tile.x, event.tile.y, void.tileX(), void.tileY()
-                                ), null as Color?
+                            val message = Core.bundle.format("client.turretvoidwarn", getName(event.unit),
+                                event.tile.x, event.tile.y, void.tileX(), void.tileY()
                             )
+                            turretVoidWarnMsg = ui.chatfrag.addMessage(message , null, null, "", message)
                         } else {
                             ui.chatfrag.messages.remove(turretVoidWarnMsg)
                             ui.chatfrag.messages.insert(0, turretVoidWarnMsg)

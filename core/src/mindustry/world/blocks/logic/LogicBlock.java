@@ -7,6 +7,7 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Lines;
+import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.Bits;
@@ -38,7 +39,7 @@ import java.util.zip.*;
 import static mindustry.Vars.*;
 
 public class LogicBlock extends Block{
-    private static final int maxByteLen = 1024 * 500;
+    public static final int maxByteLen = 1024 * 500;
     private static @Nullable Player lastAttem;
     private static int attemCount;
     private static long attemTime;
@@ -555,7 +556,7 @@ public class LogicBlock extends Block{
             super.configured(builder, value);
 
             if (value instanceof byte[] && Core.settings.getBool("attemwarfare")) {
-                Player player = ClientUtilsKt.getPlayer(builder);
+                Player player = ClientUtils.getPlayer(builder);
                 clientThread.post(() -> { // The regex can be expensive, so we delegate it to the client thread
                     long begin = Time.nanos();
                     if (ProcessorPatcher.INSTANCE.isAttem(code)) {
@@ -565,13 +566,16 @@ public class LogicBlock extends Block{
                                 lastAttem = player;
                                 attemCount = 1;
                                 attemTime = Time.millis();
-                                attemMsg = ui.chatfrag.addMessage(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtilsKt.getName(builder), tileX(), tileY()), (Color)null);
-                                if (Core.settings.getBool("attemwarfarewhisper") && ClientUtilsKt.canWhisper() && player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
+                                String msg = Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtils.getName(builder), tileX(), tileY());
+                                attemMsg = ui.chatfrag.addMessage(msg, null, null, "", msg);
+                                NetClient.findCoords(attemMsg);
+				// FINISHME: Send this every time an attem is placed but hide it from our view instead
+                                if (Core.settings.getBool("attemwarfarewhisper") && ClientUtils.canWhisper() && player != null) {
                                     Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                 }
                             } else {
-                                if(Time.timeSinceMillis(attemTime) > 5000) {
-                                    if (Core.settings.getBool("attemwarfarewhisper") && ClientUtilsKt.canWhisper()) {
+                                if (Time.timeSinceMillis(attemTime) > 5000) {
+                                    if (Core.settings.getBool("attemwarfarewhisper") && ClientUtils.canWhisper()) {
                                         Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                     }
                                     attemTime = Time.millis();
@@ -587,7 +591,7 @@ public class LogicBlock extends Block{
                             }
                         });
                     }
-                    Log.debug("Regex: @ms", Time.timeSinceNanos(begin)/(float)Time.nanosPerMilli);
+                    Log.debug("Regex: @ms", Time.millisSinceNanos(begin));
                 });
             }
         }
@@ -715,7 +719,7 @@ public class LogicBlock extends Block{
             write.i(0);
 
             if(privileged){
-                write.s(ipt);
+                write.s(Mathf.clamp(ipt, 1, maxInstructionsPerTick));
             }
         }
 
@@ -770,7 +774,7 @@ public class LogicBlock extends Block{
             });
 
             if(privileged && revision >= 2){
-                ipt = Math.max(read.s(), 1);
+                ipt = Mathf.clamp(read.s(), 1, maxInstructionsPerTick);
             }
 
         }

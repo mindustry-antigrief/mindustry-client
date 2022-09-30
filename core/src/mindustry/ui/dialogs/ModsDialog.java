@@ -66,7 +66,7 @@ public class ModsDialog extends BaseDialog{
                 searchtxt = res;
                 rebuildBrowser();
             }).growX().get();
-            table.button(Icon.list, Styles.clearNonei, 32f, () -> {
+            table.button(Icon.list, Styles.emptyi, 32f, () -> {
                 orderDate = !orderDate;
                 rebuildBrowser();
             }).update(b -> b.getStyle().imageUp = (orderDate ? Icon.list : Icon.star)).size(40f).get()
@@ -359,30 +359,19 @@ public class ModsDialog extends BaseDialog{
 
     private void reload(){
         ui.showInfoOnHidden("@mods.reloadexit", () -> {
-            Log.info("Exiting to reload mods.");
             if(settings.getBool("autorestart")){
+                Log.info("Exiting to reload mods.");
                 try{
                     Fi jar = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
                     Seq<String> args = Seq.with(javaPath);
                     args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
                     if(OS.isMac) args.add("-XstartOnFirstThread");
-                    args.addAll("-jar", jar.absolutePath(), "-firstThread");
+                    args.addAll("-jar", jar.absolutePath());
 
                     Runtime.getRuntime().exec(args.toArray());
                     Core.app.exit();
                 }catch(Exception ignored){} // If we can't find java, just close the game
             }
-//            try{ // FINISHME: Standardize auto reboots
-//                Fi jar = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-//                Seq<String> args = Seq.with(javaPath);
-//                args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
-//                if(OS.isMac) args.add("-XstartOnFirstThread");
-//                args.addAll("-jar", jar.absolutePath(), "-firstThread");
-//
-//                Runtime.getRuntime().exec(args.toArray());
-//                Core.app.exit();
-//            }catch(Exception ignored){} // If we can't find java, just close the game
-            Core.app.exit();
         });
     }
 

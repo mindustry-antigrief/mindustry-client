@@ -19,7 +19,7 @@ import java.util.concurrent.*;
 
 public class ClientVars {
     // Misc
-    public static byte silentTrace; // How many traces to do silently (this is pretty 0head but shh)
+    public static byte silentTrace; // How many actions to do silently (this is pretty 0head but shh)
     public static IntMap<Object> processorConfigs = new IntMap<>();
     public static float spawnTime = 60f * Core.settings.getInt("spawntime");
     public static float travelTime = Core.settings.getInt("traveltime");
@@ -27,16 +27,25 @@ public class ClientVars {
     public static boolean benchmarkNav = false;
     public final static Rect cameraBounds = new Rect();
     public static final Block[] noInteractTurrets = {Blocks.foreshadow, Blocks.ripple, Blocks.arc};
+    public static int rank; // The rank int for servers such as io
 
     // Core Item Display
     public static ItemModule coreItems;
 
     // Config Queue
     @NotNull public static LinkedBlockingQueue<Runnable> configs = new LinkedBlockingQueue<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
-    public static int ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1; // Number of configs that can be made safely before ratelimit reset
+    public static int ratelimitMax = Core.settings.getInt("ratelimitmax", Administration.Config.interactRateLimit.num()); // The max number of configs per ratelimit window
+    public static float ratelimitSeconds = Core.settings.getFloat("ratelimitseconds", Administration.Config.interactRateWindow.num() + 1); // The number of seconds between ratelimit resets
+    public static int ratelimitRemaining = ratelimitMax; // Number of configs that can be made safely before ratelimit reset
 
     // Hotkeys
-    public static boolean showingTurrets, showingAllyTurrets, hidingUnits, hidingAirUnits, hidingBlocks, hidingPlans, dispatchingBuildPlans, showingOverdrives, showingInvTurrets;
+    public static boolean
+            showingTurrets, showingAllyTurrets, showingInvTurrets,
+            hidingUnits, hidingAirUnits,
+            hidingBlocks, hidingPlans,
+            dispatchingBuildPlans,
+            showingOverdrives,
+            hidingFog;
     @NotNull public static Seq<OverdriveProjector.OverdriveBuild> overdrives = new Seq<>(); // For whatever reason the stupid allBuildings method hates me so im just not using it FINISHME: Replace this by just expanding block clipsize and drawing a circle in the draw method rather than using this
 
     // Commands
@@ -56,5 +65,4 @@ public class ClientVars {
     @NotNull public static String lastCertName = "";
     public static boolean isBuildingLock = false; // whether or not the building state is being controlled by networking
     public static int pluginVersion;
-    public static boolean useNew = true;
 }

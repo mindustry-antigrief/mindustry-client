@@ -147,6 +147,7 @@ object Main : ApplicationListener {
                 is ImageTransmission -> {
                     val msg = findMessage(transmission.message) ?: return@addListener
                     msg.attachments.add(Image(Texture(transmission.image)))
+//                    transmission.image.dispose() FINISHME: The pixmap and texture really need to be disposed to prevent native memory leakage
                 }
             }
         }
@@ -199,7 +200,7 @@ object Main : ApplicationListener {
         val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
 
         communicationClient.send(signatures.signatureTransmission(
-            contentWithId.replace("^/[t|a] ".toRegex(), "").encodeToByteArray(),
+            NetClient.processCoords(contentWithId.replace("^/[t|a] ".toRegex(), ""), false).encodeToByteArray(),
             communicationSystem.id,
             msgId) ?: return contentWithId)
 
@@ -322,7 +323,14 @@ object Main : ApplicationListener {
                 is MessageTransmission -> {
                     ClientVars.lastCertName = system.peer.expectedCert.readableName
                     ChatFragment.ChatMessage.msgFormat()
-                    Vars.ui.chatfrag.addMessage(transmission.content, "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).run{ prefix = "${Iconc.ok} $prefix " }
+                    Vars.ui.chatfrag.addMessage(transmission.content,
+                        "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName
+                            ?: "you"),
+                        ClientVars.encrypted,
+                        "",
+                        transmission.content
+                    )
+                        .run{ prefix = "${Iconc.ok} $prefix " }
                 }
 
                 is CommandTransmission -> {

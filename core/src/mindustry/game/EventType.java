@@ -32,6 +32,7 @@ public class EventType{
         teamCoreDamage,
         socketConfigChanged,
         update,
+        unitCommandChange,
         draw,
         drawOver,
         preDraw,
@@ -168,15 +169,8 @@ public class EventType{
         }
     }
 
-    public static class PlayerChatEventClient{
-        public final Player player;
-        public final String message;
-
-        public PlayerChatEventClient(Player player, String message){
-            this.player = player;
-            this.message = message;
-        }
-    }
+    /** Fired just after a chat message is added to chatfrag. */
+    public static class PlayerChatEventClient{}
 
     /** Called when a sector is conquered, e.g. a boss or base is defeated. */
     public static class SectorCaptureEvent{
@@ -715,6 +709,7 @@ public class EventType{
         }
     }
 
+    /** Called before a player leaves the game. */
     public static class PlayerLeave{
         public final Player player;
 

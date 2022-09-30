@@ -12,12 +12,12 @@ import arc.struct.*;
 import arc.util.Timer;
 import arc.util.*;
 import arc.util.io.*;
-import mindustry.ai.types.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
+import mindustry.client.antigrief.Seer;
 import mindustry.client.ui.*;
-import mindustry.client.utils.ClientUtilsKt;
+import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
@@ -342,7 +342,14 @@ public class ConstructBlock extends Block{
             maxProgress = core == null || team.rules().infiniteResources ? maxProgress : checkRequired(core.items, maxProgress, true);
 
             progress = state.rules.infiniteResources ? 1 : Mathf.clamp(progress + maxProgress);
-
+    
+            // Warnings
+            Player targetPlayer = ClientUtils.getPlayer(lastBuilder);
+            if (targetPlayer != null) {
+                WarnBlock wb = getWarnBlock();
+                if (wb != null && wb.block == Blocks.thoriumReactor) Seer.INSTANCE.thoriumReactor(targetPlayer, tile, tile.dst(targetPlayer));
+            }
+            
             handleBlockWarning(config);
 
             if(progress >= 1f || state.rules.infiniteResources){
@@ -522,6 +529,7 @@ public class ConstructBlock extends Block{
                 AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE); // FINISHME: Do this from the edges instead, checking all blocks is more expensive than it needs to be
                 closestCore().proximity.each(e -> e instanceof StorageBlock.StorageBuild, block -> block.tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get()))))); // This stupidity finds the smallest distance between vaults on the closest core and the block being built
                 closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get())))); // This stupidity checks the distance to the core as well just in case it ends up being shorter
+
                 if (wb.warnDistance == 101 || distance.get() <= wb.warnDistance) {
                     String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.getPlayer().name), current.localizedName, tile.x, tile.y, distance.get());
                     String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
@@ -567,16 +575,14 @@ public class ConstructBlock extends Block{
             int distance = distanceToGreaterCore();
 
             // Play warning sound (only played when no reactor has been built for 10s)
-            if (warnBlock.soundDistance == 101 || distance <= warnBlock.soundDistance) {
-                if (Time.timeSinceMillis(lastWarn) > 10 * 1000){
-                    Sounds.corexplode.play(.5f * (float)Core.settings.getInt("sfxvol") / 100.0F);
-                }
+            if (warnBlock.soundDistance == 101 || distance <= (warnBlock.soundDistance)) {
+                if (Time.timeSinceMillis(lastWarn) > 10 * 1000) Sounds.corexplode.play(.3f * (float)Core.settings.getInt("sfxvol") / 100.0F);
                 lastWarn = Time.millis();
             }
 
             if (warnBlock.warnDistance == 101 || distance <= warnBlock.warnDistance) {
                 String toastMessage = Core.bundle.format(
-                        "client.blockwarn", ClientUtilsKt.getName(lastBuilder),
+                        "client.blockwarn", ClientUtils.getName(lastBuilder),
                         current.localizedName, tile.x, tile.y, distance
                 );
                 String toastSubtitle = String.format("%2d%% completed.", Mathf.round(progress * 100));

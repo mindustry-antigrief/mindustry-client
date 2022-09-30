@@ -12,7 +12,7 @@ import arc.util.Nullable;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.ClientVars;
-import mindustry.client.antigrief.ConfigRequest;
+import mindustry.client.antigrief.*;
 import mindustry.core.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
@@ -183,8 +183,16 @@ public class PowerNode extends PowerBlock{
     }
 
     protected void setupColor(float satisfaction){
-        Draw.color(laserColor1, laserColor2, (1f - satisfaction) * 0.86f + Mathf.absin(3f, 0.1f));
-        Draw.alpha(Renderer.laserOpacity);
+        setupColor(satisfaction, false);
+    }
+
+    protected void setupColor(float satisfaction, boolean purple){
+        if(purple){
+            Draw.color(Pal.place, Renderer.laserOpacity + .2f);
+        }else{
+            Draw.color(laserColor1, laserColor2, (1f - satisfaction) * 0.86f + Mathf.absin(3f, 0.1f));
+            Draw.alpha(Renderer.laserOpacity);
+        }
     }
 
     public void drawLaser(float x1, float y1, float x2, float y2, int size1, int size2){
@@ -250,10 +258,10 @@ public class PowerNode extends PowerBlock{
             graphs.add(tile.build.power.graph);
         }
 
-        Geometry.circle(tile.x, tile.y, (int)(laserRange + 2), (x, y) -> {
-            Building other = world.build(x, y);
-            if(valid.get(other) && !tempBuilds.contains(other)){
-                tempBuilds.add(other);
+        var worldRange = laserRange * tilesize;
+        team.data().buildingTree.intersect(tile.worldx() - worldRange, tile.worldy() - worldRange, worldRange * 2, worldRange * 2, build -> {
+            if(valid.get(build) && !tempBuilds.contains(build)){
+                tempBuilds.add(build);
             }
         });
 
@@ -303,10 +311,10 @@ public class PowerNode extends PowerBlock{
             graphs.add(tile.build.power.graph);
         }
 
-        Geometry.circle(tile.x, tile.y, 13, (x, y) -> {
-            Building other = world.build(x, y);
-            if(valid.get(other) && !tempBuilds.contains(other)){
-                tempBuilds.add(other);
+        var rangeWorld = maxRange * tilesize;
+        team.data().buildingTree.intersect(tile.worldx() - rangeWorld, tile.worldy() - rangeWorld, rangeWorld * 2, rangeWorld * 2, build -> {
+            if(valid.get(build) && !tempBuilds.contains(build)){
+                tempBuilds.add(build);
             }
         });
 
@@ -428,10 +436,10 @@ public class PowerNode extends PowerBlock{
         }
 
         @Override
-        public void add() {
-            super.add();
+        public void created(){ // Called when one is placed/loaded in the world
+            if(autolink && laserRange > maxRange) maxRange = laserRange;
 
-            if(laserRange > maxRange) maxRange = laserRange;
+            super.created();
         }
 
 //        @Override
@@ -624,7 +632,7 @@ public class PowerNode extends PowerBlock{
             if(Mathf.zero(Renderer.laserOpacity) || isPayload()) return;
 
             Draw.z(Layer.power);
-            setupColor(power.graph.getSatisfaction());
+            setupColor(power.graph.getSatisfaction(), power.graph == PowerInfo.hovered);
 
             for(int i = 0; i < power.links.size; i++){
                 Building link = world.build(power.links.get(i));

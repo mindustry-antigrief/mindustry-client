@@ -56,6 +56,8 @@ public class DesktopInput extends InputHandler{
     public float selectScale;
     /** Selected build plan for movement. */
     public @Nullable BuildPlan splan;
+    /** Used to track whether the splan was moved. */
+    public boolean splanMoved = false;
     /** Whether player is currently deleting removal plans. */
     public boolean deleting = false, shouldShoot = false, panning = false;
     /** Mouse pan speed. */
@@ -92,6 +94,9 @@ public class DesktopInput extends InputHandler{
                         }
                         if(player.unit().isBuildingIgnoreNetworking() || dispatchingBuildPlans){
                             str.append("\n").append(bundle.format(dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
+                        }
+                        if (hidingFog){
+                            str.append("\n").append(bundle.format("client.togglefog", keybinds.get(Binding.invisible_units).key.toString()));
                         }
                         if(hidingUnits || hidingAirUnits){
                             str.append("\n").append(bundle.format("client.toggleunits", keybinds.get(Binding.invisible_units).key.toString()));
@@ -289,7 +294,11 @@ public class DesktopInput extends InputHandler{
         }
 
         if(input.keyTap(Binding.invisible_units) && scene.getKeyboardFocus() == null){
-            if (input.shift()) hidingAirUnits = !hidingAirUnits;
+            if (input.ctrl()) {
+                hidingFog = !hidingFog;
+                renderer.updateAllDarkness();
+            }
+            else if (input.shift()) hidingAirUnits = !hidingAirUnits;
             else hidingUnits = !hidingUnits;
         }
 
@@ -382,6 +391,10 @@ public class DesktopInput extends InputHandler{
             camera.position.add(input.axis(Binding.move_x) * speed, input.axis(Binding.move_y) * speed);
         }
 
+        if(Core.settings.getBool("returnonmove") && ((!input.keyDown(Binding.freecam_modifier) && (Math.abs(Core.input.axis(Binding.move_x)) > 0 || Math.abs(Core.input.axis(Binding.move_y)) > 0)) || input.keyDown(Binding.mouse_move)) && !scene.hasField()){
+            panning = false;
+        }
+
         if(input.keyDown(Binding.drop_payload) && scene.getKeyboardFocus() == null){
             mode = payloadPlace;
         }
@@ -443,7 +456,7 @@ public class DesktopInput extends InputHandler{
                 table.defaults().height(itemHeight).padTop(5).fillX();
                 try {
                     table.add(cursor.block().localizedName + ": (" + cursor.x + ", " + cursor.y + ")").height(itemHeight).left().growX().fillY().padTop(-5);
-                } catch (Exception e) { ui.chatfrag.addMessage(e.getMessage(), Color.scarlet); }
+                } catch (Exception e) { ui.chatfrag.addMessage(e.getMessage(), null, Color.scarlet, "", e.getMessage()); }
 
                 table.row().fill();
                 table.button("@client.log", () -> { // Tile Logs
@@ -457,7 +470,7 @@ public class DesktopInput extends InputHandler{
                     settings.put("autotransfer", AutoTransfer.enabled);
                     new Toast(1).add(bundle.get("client.autotransfer") + ": " + bundle.get(AutoTransfer.enabled ? "mod.enabled" : "mod.disabled"));
                     table.remove();
-                }).disabled(b -> state.rules.pvp && ClientUtilsKt.io());
+                }).disabled(b -> state.rules.pvp && ClientUtils.io());
 
                 table.row().fill();
                 table.button("@client.unitpicker", () -> { // Unit Picker / Sniper
@@ -498,7 +511,9 @@ public class DesktopInput extends InputHandler{
                 });
                 scene.add(table);
             }
+
             if(mode != placing && ((input.ctrl() || input.shift()) && Core.input.keyTap(Binding.select)) && block == null && state.rules.possessionAllowed){
+            // if(((input.keyDown(Binding.control) || input.alt()) && Core.input.keyTap(Binding.select) && state.rules.possessionAllowed) && block == null){ // Hmm?
                 Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
                 if(on != null){
@@ -514,7 +529,7 @@ public class DesktopInput extends InputHandler{
                                 input.ctrl() ? AssistPath.Type.Cursor :
                                 AssistPath.Type.Regular));
                         shouldShoot = false;
-                    }else if(on.controller() instanceof LogicAI ai && ai.controller != null && (!player.unit().type.canBoost || player.boosting)) { // Shift + click logic unit: spectate processor
+                    }else if(on.controller() instanceof LogicAI ai && ai.controller != null) { // Alt + click logic unit: spectate processor
                         Spectate.INSTANCE.spectate(ai.controller);
                         shouldShoot = false;
                     }
@@ -635,7 +650,7 @@ public class DesktopInput extends InputHandler{
                 cursorType = ui.unloadCursor;
             }
 
-            if(cursor.build != null && cursor.interactable(player.team()) && !isPlacing() && Math.abs(Core.input.axisTap(Binding.rotate)) > 0 && Core.input.keyDown(Binding.rotateplaced) && cursor.block().rotate && cursor.block().quickRotate){
+            if(!ui.chatfrag.shown() && cursor.build != null && cursor.interactable(player.team()) && !isPlacing() && Math.abs(Core.input.axisTap(Binding.rotate)) > 0 && Core.input.keyDown(Binding.rotateplaced) && cursor.block().rotate && cursor.block().quickRotate){
                 Call.rotateBlock(player, cursor.build, Core.input.axisTap(Binding.rotate) > 0);
             }
         }
@@ -767,11 +782,12 @@ public class DesktopInput extends InputHandler{
 
         if(splan != null){
             float offset = ((splan.block.size + 2) % 2) * tilesize / 2f;
-            float x = Core.input.mouseWorld().x + offset;
-            float y = Core.input.mouseWorld().y + offset;
-            if (splan.block instanceof LogicBlock) processorConfigs.put(Point2.pack((int)(x/tilesize), (int)(y/tilesize)), processorConfigs.remove(splan.tile().pos()));
-            splan.x = (int)(x / tilesize);
-            splan.y = (int)(y / tilesize);
+            int x = (int)((Core.input.mouseWorld().x + offset) / tilesize);
+            int y = (int)((Core.input.mouseWorld().y + offset) / tilesize);
+            if (splan.block instanceof LogicBlock) processorConfigs.put(Point2.pack(x, y), processorConfigs.remove(splan.tile().pos()));
+            if (splan.x != x || splan.y != y) splanMoved = true;
+            splan.x = x;
+            splan.y = y;
         }
 
         if(block == null || mode != placing){
@@ -885,11 +901,12 @@ public class DesktopInput extends InputHandler{
         if(Core.input.keyRelease(Binding.break_block) || Core.input.keyRelease(Binding.select)){
 
             if(mode == placing && block != null){ //touch up while placing, place everything in selection
-                if(input.keyDown(Binding.boost)){
-                    flushPlansReverse(linePlans);
-                }else{
+                // Why do we even need reversed build plans - SBytes 17/08/2022
+//                if(input.keyDown(Binding.boost)){
+//                    flushPlansReverse(linePlans);
+//                }else{
                     flushPlans(linePlans, isFreezeQueueing, input.ctrl(), false);
-                }
+//                }
 
                 linePlans.clear();
                 Events.fire(new LineConfirmEvent());
@@ -914,7 +931,9 @@ public class DesktopInput extends InputHandler{
                 if(getPlan(splan.x, splan.y, splan.block.size, splan) != null){
                     player.unit().plans().remove(splan, true);
                 }
+                if(!splanMoved) player.unit().addBuild(splan, false); // Add the plan to the top of the queue
                 splan = null;
+                splanMoved = false;
             }
 
             mode = none;

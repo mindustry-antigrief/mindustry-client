@@ -25,6 +25,7 @@ import mindustry.world.blocks.storage.CoreBlock.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class Renderer implements ApplicationListener{
     /** These are global variables, for headless access. Cached. */
@@ -50,7 +51,7 @@ public class Renderer implements ApplicationListener{
     public boolean animateShields, drawWeather = true, drawStatus, enableEffects, drawDisplays = true;
     public float weatherAlpha;
     /** minZoom = zooming out, maxZoom = zooming in */
-    public float minZoom = 0.01f, maxZoom = 80f;
+    public float minZoom = 1.5f, maxZoom = 6f; // Note: These aren't used for client min/max zoom, don't change or vanilla compat breaks
     public Seq<EnvRenderer> envRenderers = new Seq<>();
     public ObjectMap<String, Runnable> customBackgrounds = new ObjectMap<>();
     public TextureRegion[] bubbles = new TextureRegion[16], splashes = new TextureRegion[12];
@@ -166,7 +167,7 @@ public class Renderer implements ApplicationListener{
         float baseTarget = targetscale;
 
         if(control.input.logicCutscene){
-            baseTarget = Mathf.lerp(minZoom, maxZoom, control.input.logicCutsceneZoom);
+            baseTarget = Mathf.clamp(Mathf.lerp(minZoom, maxZoom, control.input.logicCutsceneZoom), Scl.scl(minZoom), Scl.scl(maxZoom));
         }
 
         float dest = Mathf.clamp(baseTarget, minScale(), maxScale());
@@ -362,7 +363,7 @@ public class Renderer implements ApplicationListener{
         }
 
         Draw.draw(Layer.overlayUI, overlays::drawTop);
-        if(state.rules.fog) Draw.draw(Layer.fogOfWar, fog::drawFog);
+        if(state.rules.fog && !hidingFog) Draw.draw(Layer.fogOfWar, fog::drawFog);
         Draw.draw(Layer.space, this::drawLanding);
 
         Events.fire(Trigger.drawOver);
@@ -629,7 +630,7 @@ public class Renderer implements ApplicationListener{
     }
 
     public float maxScale(){
-        return Mathf.round(Scl.scl(maxZoom));
+        return Mathf.round(Scl.scl(12));
     }
 
     public float getScale(){

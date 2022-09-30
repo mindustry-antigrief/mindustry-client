@@ -7,6 +7,7 @@ import arc.scene.ui.layout.*
 import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.utils.*
+import mindustry.core.*
 import mindustry.ui.dialogs.*
 import mindustry.world.*
 
@@ -17,7 +18,7 @@ object FindDialog : BaseDialog("@client.find") {
     private var guesses: MutableList<Block> = mutableListOf()
 
     private fun updateGuesses() {
-        guesses = content.blocks().copy().toMutableList().apply { sortBy { BiasedLevenshtein.biasedLevenshteinInsensitive(it.localizedName, inputField.text) } }
+        guesses = content.blocks().copy().toMutableList().apply { sortBy { BiasedLevenshtein.biasedLevenshteinInsensitive(it.name, inputField.text) } }
     }
 
     private fun updateImages() {
@@ -54,28 +55,37 @@ object FindDialog : BaseDialog("@client.find") {
             if (it == KeyCode.enter) {
                 if (guesses.isEmpty()) return@keyDown // Pasting an emoji will cause this to crash otherwise
                 val block = guesses[0]
-                var closest: Tile? = null
-                var dst2 = Float.MAX_VALUE
-                var count = 0
+                val results = mutableListOf<Tile>()
 
-                for (t in world.tiles) {
+                for (t in world.tiles) { // FINISHME: There are far better ways of doing this lol
                     if (t.block() == block || t.floor() == block || t.overlay() == block) {
                         if (allyOnly.isChecked && t.team().isEnemy(player.team())) continue
-                        val d = t.dst2(player)
-                        if (d < dst2) {
-                            closest = t
-                            dst2 = d
-                            count++
-                        }
+                        results += t
                     }
                 }
 
-                if (closest == null) {
+                if (results.isEmpty()) {
                     ui.chatfrag.addMessage(Core.bundle.format("client.find.notfound", block.localizedName))
                 } else {
+                    results.sortBy { it.dst(player) }
+                    val closest = results.first()
                     ClientVars.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
-                    // FINISHME: Make the line below use toasts similar to UnitPicker.java
-                    ui.chatfrag.addMessage(Core.bundle.format("client.find.found", block.localizedName, closest.x, closest.y, count))
+
+//                    val text = "${Core.bundle.format("client.find.found", block.localizedName, closest.x, closest.y, results.size)} ${Iconc.left} ${Iconc.right}"
+                    val text = Core.bundle.format("client.find.found", block.localizedName, closest.x, closest.y, results.size)
+                    val msg = ui.chatfrag.addMessage(text, null, null, "", text)
+
+/*                  FINISHME: This implementation will cause a mem leak as the results list will exist forever
+                    val buttonIdx = msg.formattedMessage.indexOf(Iconc.left)
+                    var idx = 0
+                    msg.buttons.add(ChatFragment.ClickableArea(buttonIdx, buttonIdx + 1) { idx -= 5 }) // Left arrow
+                    msg.buttons.add(ChatFragment.ClickableArea(buttonIdx + 2, buttonIdx + 3) { idx += 5 }) // Right arrow
+                    for (i in idx until min(idx + 5, results.size)) {
+                        // List the next 5 blocks or whatever
+                    }
+*/
+
+                    NetClient.findCoords(msg)
                 }
                 Core.app.post(this::hide)
             }

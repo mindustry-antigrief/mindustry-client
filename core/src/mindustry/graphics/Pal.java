@@ -79,7 +79,7 @@ public class Pal{
     metalGrayDark = Color.valueOf("6e7080"),
     accentBack = Color.valueOf("d4816b"),
     freeze = Color.valueOf("0018a8"),
-    place = Color.valueOf("6335f8"),
+    place = Color.valueOf("6335f8"), // The purple secondary color used in various places
     remove = Color.valueOf("e55454"),
     noplace = Color.valueOf("ffa697"),
     removeBack = Color.valueOf("a73e3e"),
@@ -113,6 +113,7 @@ public class Pal{
     neoplasmOutline = Color.valueOf("2e191d"),
 
     neoplasm1 = Color.valueOf("f98f4a"),
+    neoplasmMid = Color.valueOf("e05438"),
     neoplasm2 = Color.valueOf("9e172c"),
 
     logicBlocks = Color.valueOf("d4816b"),

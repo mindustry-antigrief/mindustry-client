@@ -586,7 +586,7 @@ public class ResearchDialog extends BaseDialog{
             infoTable.table(b -> {
                 b.margin(0).left().defaults().left();
 
-                if(selectable && (node.content.description != null || node.content.stats.toMap().size > 0)){
+                if(selectable){
                     b.button(Icon.info, Styles.flati, () -> ui.content.show(node.content)).growY().width(50f);
                 }
                 b.add().grow();
@@ -682,8 +682,7 @@ public class ResearchDialog extends BaseDialog{
                         disabledFontColor = Color.gray;
                         up = buttonOver;
                         over = buttonDown;
-                    }}, () -> spend(node))
-                    .disabled(i -> !canSpend(node)).growX().height(44f).colspan(3);
+                    }}, () -> spend(node)).disabled(i -> !canSpend(node)).growX().height(44f).colspan(3);
                 }
             });
 

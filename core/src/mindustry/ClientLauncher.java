@@ -17,7 +17,6 @@ import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
-import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.maps.*;
 import mindustry.mod.*;
@@ -185,8 +184,8 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         assets.loadRun("contentinit", ContentLoader.class, () -> content.init(), () -> content.load());
         assets.loadRun("baseparts", BaseRegistry.class, () -> {}, () -> bases.load());
 
-        Musics.load();
-        Sounds.load();
+//        Musics.load(); Loaded in clientlogic instead
+//        Sounds.load();
     }
 
     @Override
@@ -252,7 +251,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             asyncCore.begin();
 
             super.update();
-            Client.INSTANCE.update(); // FINISHME: Awful
 
             asyncCore.end();
         }

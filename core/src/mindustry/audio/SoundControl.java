@@ -32,7 +32,7 @@ public class SoundControl{
     protected float fade;
     protected boolean silenced;
 
-    protected AudioBus uiBus = new AudioBus();
+    public AudioBus uiBus = new AudioBus();
     protected boolean wasPlaying;
     protected AudioFilter filter = new BiquadFilter(){{
         set(0, 500, 1);
@@ -188,7 +188,7 @@ public class SoundControl{
             if(data.soundID <= 0 || !Core.audio.isPlaying(data.soundID)){
                 if(play){
                     data.soundID = sound.loop(data.curVolume, 1f, pan);
-                    Core.audio.protect(data.soundID, true);
+                    if (data.soundID != -1) Core.audio.protect(data.soundID, true);
                 }
             }else{
                 if(data.curVolume <= 0.001f){

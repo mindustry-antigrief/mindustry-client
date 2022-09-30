@@ -11,7 +11,6 @@ import arc.util.*;
 import arc.util.CommandHandler.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
-import kotlin.text.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
@@ -19,8 +18,8 @@ import mindustry.client.communication.*;
 import mindustry.client.utils.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
-import mindustry.game.EventType.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -28,12 +27,14 @@ import mindustry.logic.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
+import mindustry.ui.*;
 import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.modules.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.*;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
@@ -43,6 +44,9 @@ public class NetClient implements ApplicationListener{
     /** ticks between syncs, e.g. 5 means 60/5 = 12 syncs/sec*/
     private static final float playerSyncTime = 4;
     private static final Reads dataReads = new Reads(null);
+    private static final Pattern wholeCoordPattern = Pattern.compile("\\S*?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\S*"); // This regex is a mess, it captures the coords into $1 and $2 while $0 contains all surrounding text as well. https://regex101.com is the superior regex tester
+    private static final Pattern coordPattern = Pattern.compile("(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)"); // Same as above, but without the surrounding text and https://regexr.com
+    private static final Pattern linkPattern = Pattern.compile("(https?://)?[-a-zA-Z0-9@:%._\\\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b[-a-zA-Z0-9()@:%_\\\\+.~#?&/=]*");
 
     private long ping;
     private Interval timer = new Interval(5);
@@ -179,7 +183,7 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both, unreliable = true, called = Loc.server)
     public static void soundAt(Sound sound, float x, float y, float volume, float pitch){
         if(sound == null || headless) return;
-        if(sound == Sounds.corexplode && ClientUtilsKt.io()) return;
+        if(sound == Sounds.corexplode && ClientUtils.io()) return;
 
         sound.at(x, y, pitch, Mathf.clamp(volume, 0, 4f));
     }
@@ -203,15 +207,18 @@ public class NetClient implements ApplicationListener{
         effect(effect, x, y, rotation, color);
     }
 
-    // FINISHME: This is disgusting
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
+        // message is the full formatted message from the server, including the sender
+        // unformatted is the message content itself, i.e. "gg", null for server messages
+        // playersender is exactly what you think it is, null for server messages
+
         Color background = null;
-        var original = unformatted; // Cursed and horrible
         if(Vars.ui != null){
             var prefix = "";
 
-            if (playersender != null && playersender.fooUser && playersender != player) { // Add wrench to client user messages, highlight if enabled
+            // Add wrench to client user messages, highlight if enabled
+            if (playersender != null && playersender.fooUser && playersender != player) {
                 prefix = Iconc.wrench + " ";
                 if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
@@ -222,25 +229,41 @@ public class NetClient implements ApplicationListener{
                     "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
                 );
             
+            // highlight coords and set as the last position
+            unformatted = processCoords(unformatted, true);
+            message = processCoords(message, unformatted != null);
+
+            ChatFragment.ChatMessage output;
+
             if (playersender != null) {
                 if (ClientVars.mutedPlayers.contains( p -> p.getSecond() == playersender.id || (p.getFirst() != null && playersender.name.equals(p.getFirst().name)))) {
                     return; // Just ignore them
                 }
                 
                 ChatFragment.ChatMessage.msgFormat();
+                // from a player
+
+                // if it's an admin or team message, incorporate that into the prefix because the original formatting will be discarded
                 if (message.startsWith("[#" + playersender.team().color.toString() + "]<T>")) {
                     prefix += "[#" + playersender.team().color.toString() + "]<T> ";
-                }
-                if (message.startsWith("[#" + Pal.adminChat.toString() + "]<A>")) {
+                } else if (message.startsWith("[#" + Pal.adminChat.toString() + "]<A>")) {
                     prefix += "[#" + Pal.adminChat.toString() + "]<A> ";
                 }
-                var sender = playersender.coloredName();
-                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
-                ui.chatfrag.addMessage(message, sender, background, prefix, unformatted2);
+
+                // I don't think this even works
+//                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
+                output = ui.chatfrag.addMessage(message, playersender.coloredName(), background, prefix, unformatted);
+                output.addButton(output.formattedMessage.indexOf(playersender.coloredName()), playersender.coloredName().length() + 16 + output.prefix.length(), () -> Spectate.INSTANCE.spectate(playersender));
             } else {
                 ChatFragment.ChatMessage.msgFormat();
-                Vars.ui.chatfrag.addMessage(message, null, unformatted == null ? "" : unformatted);
+                // server message, unformatted is ignored
+                output = Vars.ui.chatfrag.addMessage(message, null, null, "", "");
             }
+
+            findCoords(output);
+            findLinks(output);
+
+            Sounds.chatMessage.play();
         }
 
         //display raw unformatted text above player head
@@ -249,7 +272,7 @@ public class NetClient implements ApplicationListener{
             playersender.textFadeTime(1f);
         }
 
-        Events.fire(new PlayerChatEventClient(playersender, original));
+        Events.fire(new PlayerChatEventClient());
     }
 
     //equivalent to above method but there's no sender and no console log
@@ -259,9 +282,82 @@ public class NetClient implements ApplicationListener{
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
             ChatFragment.ChatMessage.msgFormat();
-            Vars.ui.chatfrag.addMessage(message);
+            var output = Vars.ui.chatfrag.addMessage(message, null, null, "", message);
+
+            findCoords(output);
+            findLinks(output);
+
+            if (message.contains("Type[orange] /vote <y/n>[] to " + (ClientUtils.io() ? "vote." : "agree.")) // Vote kick clickable buttons
+            || ClientUtils.phoenix() && message.contains("Type [cyan]/vote y")) {
+                String yes = Core.bundle.get("client.voteyes"), no = Core.bundle.get("client.voteno");
+                output.message = output.message + '\n' + yes + "  " + no;
+                output.format();
+                output.addButton(yes, () -> Call.sendChatMessage("/vote y"));
+                output.addButton(no, () -> Call.sendChatMessage("/vote n"));
+            }
+
+            else if (message.contains("Type [cyan]/rtv") && ClientUtils.phoenix() // Rock the vote clickable button
+            || message.contains("Type [lightgray]/rtv") && ClientUtils.cn()
+            || message.contains("Type[accent] /rtv") && ClientUtils.io()
+            || message.contains("Type Type[orange] /skip") && ClientUtils.nydus()) {
+                var rtv = ClientUtils.nydus() ? "/skip y" : "/rtv";
+                output.addButton(rtv, () -> Call.sendChatMessage(rtv));
+            }
+
             Sounds.chatMessage.play();
         }
+    }
+
+    public static class FoundCoords {
+        public Vec2 pos;
+        public int start, end;
+    }
+
+    public static Seq<FoundCoords> findCoords(String message) {
+        if (message == null) return new Seq<>();
+        Matcher matcher = coordPattern.matcher(message);
+        Seq<FoundCoords> out = new Seq<>();
+        while (matcher.find()) {
+            var result = matcher.toMatchResult();
+            try {
+                var pos = new Vec2(Float.parseFloat(result.group(1)) * tilesize, Float.parseFloat(result.group(2)) * tilesize);
+                var coord = new FoundCoords();
+                coord.pos = pos;
+                coord.start = result.start();
+                coord.end = result.end();
+                out.add(coord);
+            } catch (NumberFormatException ignored) {}
+        }
+        return out;
+    }
+
+    /** Finds coordinates in a message and makes them clickable */
+    public static ChatFragment.ChatMessage findCoords(ChatFragment.ChatMessage msg) {
+        findCoords(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage))
+            .each(c -> msg.addButton(c.start, c.end, () -> Spectate.INSTANCE.spectate(c.pos)));
+        return msg;
+    }
+
+    /** Finds links in a message and makes them clickable */
+    public static ChatFragment.ChatMessage findLinks(ChatFragment.ChatMessage msg) {
+        Matcher matcher = linkPattern.matcher(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage));
+        while (matcher.find()) {
+            var res = matcher.toMatchResult();
+            var url = res.group(1) == null ? "https://" + res.group() : res.group(); // Add https:// if missing protocol
+            msg.addButton(res.start(), res.end(), () -> Menus.openURI(url));
+        }
+        return msg;
+    }
+
+    public static String processCoords(String message, boolean setLastPos){
+        // FINISHME: use findCoords()
+        if (message == null) return null;
+        Matcher matcher = wholeCoordPattern.matcher(message);
+        if (!matcher.find()) return message;
+        if (setLastPos) try {
+            ClientVars.lastSentPos.set(Float.parseFloat(matcher.group(1)), Float.parseFloat(matcher.group(2)));
+        } catch (NumberFormatException ignored) {}
+        return matcher.replaceFirst(Matcher.quoteReplacement("[scarlet]" + Strings.stripColors(matcher.group()) + "[]")); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
     }
 
     //called when a server receives a chat message from a player
@@ -338,10 +434,11 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.one)
     public static void traceInfo(Player player, TraceInfo info){
         if(player != null){
-            if (ClientVars.silentTrace-- <= 0) {
-                ui.traces.show(player, info);
-                ClientVars.silentTrace++; // FINISHME: This is stupid
-            } else if (Core.settings.getBool("modenabled")) Client.INSTANCE.getLeaves().addInfo(player, info);
+            if (ClientVars.silentTrace == 0) ui.traces.show(player, info);
+            else {
+                if (Core.settings.getBool("modenabled")) Client.INSTANCE.getLeaves().addInfo(player, info);
+                ClientVars.silentTrace--;
+            }
         }
     }
 

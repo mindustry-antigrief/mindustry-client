@@ -1,6 +1,5 @@
 package mindustry.client.utils
 
-import arc.struct.*
 import arc.util.*
 import arc.*
 import mindustry.client.*
@@ -8,20 +7,26 @@ import mindustry.client.antigrief.*
 import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.antigrief.*
-import mindustry.gen.*
 import mindustry.world.blocks.logic.LogicBlock.*
 
 object ProcessorPatcher {
-    public val attemMatcher =
-        "(ubind @?[^ ]+\\n)sensor ([^ ]+) @unit @flag\\nop add ([^ ]+) \\3 1\\njump \\d+ greaterThanEq \\3 \\d+\\njump \\d+ notEqual ([^ ]+) \\2\\nset \\3 0".toRegex()
+    private val attemMatcher =
+        """
+        (ubind @?[^ ]+)                            # bind a unit
+        sensor (\S+) @unit @flag                   # set _flag to unit flag
+        op add (\S+) \3 1                          # increment _attem by 1
+        jump \d+ greaterThanEq \3 \d+              # break if _attem >= 83
+        jump \d+ (?:notEqual|always) ([^ ]+) \2    # loop if _flag != 0 (or always in some variants)
+        set \3 0                                   # _attem = 0
+        """.replace("\\s+#.+$".toRegex(RegexOption.MULTILINE), "").trimIndent().toRegex() // The regex comment mode is dumb
 
     public val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
     public val attemText = """
         print "Please do not use this delivery logic."
-        print "It is attem83 logic is considered bad logic"
-        print "as it breaks other logic."
-        print "For more info please go to mindustry.dev/attem"
+        print "It is attem83 logic and is considered bad logic"
+        print "as it breaks other delivery logic and even other attem logic."
+        print "For more info please go to https://mindustry.dev/attem."
         printflush message1
     """.trimIndent();
 
@@ -47,7 +52,7 @@ object ProcessorPatcher {
                 buildString {
                     replaceJumps(this, code.substring(0, result.range.first), bindLine)
                     append(groups[1])
-                    append("sensor ").append(groups[2]).append(" @unit @flag\n")
+                    append("\nsensor ").append(groups[2]).append(" @unit @flag\n")
                     append("jump ").append(bindLine).append(" notEqual ").append(groups[2]).append(' ').append(groups[4]).append('\n')
                     replaceJumps(this, code.substring(result.range.last + 1), bindLine)
                 }
@@ -58,7 +63,7 @@ object ProcessorPatcher {
     }
 
     private fun replaceJumps(sb: StringBuilder, code: String, bindLine: Int) {
-        val matches = jumpMatcher.findAll(code).toList()
+        val matches = jumpMatcher.findAll(code)
         val extra = sb.length
         sb.append(code)
         matches.forEach {

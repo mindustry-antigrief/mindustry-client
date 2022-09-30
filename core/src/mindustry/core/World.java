@@ -26,6 +26,7 @@ import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.legacy.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class World{
     public final Context context = new Context();
@@ -450,7 +451,7 @@ public class World{
     public void checkMapArea(){
         for(var build : Groups.build){
             //reset map-area-based disabled blocks.
-            if(build.allowUpdate() && !build.enabled){
+            if(build.allowUpdate() && !build.enabled && build.block.autoResetEnabled){
                 build.enabled = true;
             }
         }
@@ -464,7 +465,7 @@ public class World{
             int edgeBlend = 2;
             int edgeDst;
 
-            if(!state.rules.limitMapArea){
+            if(!state.rules.limitMapArea || hidingFog){
                 edgeDst = Math.min(x, Math.min(y, Math.min(-(x - (tiles.width - 1)), -(y - (tiles.height - 1)))));
             }else{
                 edgeDst =

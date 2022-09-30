@@ -313,12 +313,16 @@ public class UI implements ApplicationListener, Loadable{
     }
 
     public void showInfoFade(String info){
+        showInfoFade(info,  7f);
+    }
+
+    public void showInfoFade(String info, float duration){
         var cinfo = Core.scene.find("coreinfo");
         Table table = new Table();
         table.touchable = Touchable.disabled;
         table.setFillParent(true);
         if(cinfo.visible && !state.isMenu()) table.marginTop(cinfo.getPrefHeight() / Scl.scl() / 2);
-        table.actions(Actions.fadeOut(7f, Interp.fade), Actions.remove());
+        table.actions(Actions.fadeOut(duration, Interp.fade), Actions.remove());
         table.top().add(info).style(Styles.outlineLabel).padTop(10);
         Core.scene.add(table);
     }
@@ -354,7 +358,7 @@ public class UI implements ApplicationListener, Loadable{
 
     /** Shows a label in the world. This label is behind everything. Does not fade. */
     public void showLabel(String info, float duration, float worldx, float worldy){
-        if (ClientUtilsKt.cn() && info.startsWith("Core #") && Vars.world.buildWorld(worldx, worldy) instanceof CoreBlock.CoreBuild) Navigation.navigator.map.put(Strings.parseInt(info.replace("Core #", "")), new Vec2(worldx, worldy));
+        if (ClientUtils.cn() && info.startsWith("Core #") && Vars.world.buildWorld(worldx, worldy) instanceof CoreBlock.CoreBuild) Navigation.navigator.map.put(Strings.parseInt(info.replace("Core #", "")), new Vec2(worldx, worldy));
         var table = new Table(Styles.black3).margin(4);
         table.touchable = Touchable.disabled;
         table.update(() -> {

@@ -16,7 +16,6 @@ import mindustry.content.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.graphics.*
-import mindustry.net.*
 import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
 import org.bouncycastle.jce.provider.*
@@ -31,6 +30,7 @@ object Client {
 
     fun initialize() {
         setup()
+        AutoTransfer.init()
         ClientLogic()
 
         val bc = BouncyCastleProvider()
@@ -45,15 +45,15 @@ object Client {
 
     fun update() {
         autoTransfer.update()
+        Seer.update()
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
         Core.camera.bounds(cameraBounds) // do we do this here or on draw? can Core.camera be null?
         cameraBounds.grow(2 * tilesizeF)
 
-        if (ratelimitRemaining != Administration.Config.interactRateLimit.num() - 1 && timer.get(3, (Administration.Config.interactRateWindow.num() + 1) * 60F)) { // Reset ratelimit, extra second to account for server lag
-            ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1
-        }
+        // Ratelimit reset handling
+        if (ratelimitRemaining != ratelimitMax && timer.get(3, ratelimitSeconds * 60F)) ratelimitRemaining = ratelimitMax
 
         if (!configs.isEmpty()) {
             try {
@@ -102,6 +102,7 @@ object Client {
             if (showingTurrets || showingInvTurrets) {
                 val flying = player.unit().isFlying
                 getTree().intersect(bounds) {
+                    if (fogControl.isDiscovered(player.team(), it.x().toInt(), it.y().toInt())) return@intersect
                     if ((enemyunits || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
                         val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                         val validInv = (!flying && it.targetAir) || (flying && it.targetGround)

@@ -29,13 +29,13 @@ class MinePath @JvmOverloads constructor(
             for (a in split) {
                 if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
                 else if (Strings.canParseInt(a)) cap = a.toInt().coerceAtLeast(0) // Specified cap, <= 0 results in infinite cap
-                else content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.apply(items::add) ?:
+                else content.items().find { a.equals(it.name, true) && indexer.hasOre(it) }?.apply(items::add) ?:
                 player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
             }
         }
 
         if (items.isEmpty) {
-            items = player.unit().type.mineItems
+            items.addAll(player.unit().type.mineItems)
             if (split.none { Strings.parseInt(it) > 0 }) player.sendMessage("client.path.miner.allinvalid".bundle())
         }
         else if (cap >= 0) {
@@ -102,8 +102,8 @@ class MinePath @JvmOverloads constructor(
 
         // mine
         } else {
-            tile = indexer.findClosestOre(player.unit(), item) // FINISHME: Ignore blocked tiles
-            player.unit().mineTile = tile
+            val tile = indexer.findClosestOre(player.unit(), item) // FINISHME: Ignore blocked tiles
+            if (player.unit().validMine(tile) || tile == null) player.unit().mineTile = tile
             if (tile == null) return
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 3F)
             goTo(tile, player.unit().type.mineRange - tilesize * 2)

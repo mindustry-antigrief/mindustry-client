@@ -11,6 +11,7 @@ import mindustry.input.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
+import mindustry.world.blocks.sandbox.LiquidSource.LiquidSourceBuild
 
 private var target: Teamc? = null
 private var hadTarget = false
@@ -38,7 +39,7 @@ fun autoShoot() {
             target = Units.findDamagedTile(Vars.player.team(), Vars.player.x, Vars.player.y)
             if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() + 4 + (target as Building).hitSize()/2f else 0f)) target = null
         }
-        if (target == null && flood()) { // Shoot buildings in flood because why not.
+        if (target == null && type.canAttack && flood()) { // Shoot buildings in flood because why not.
             target = Units.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range()) { type.targetGround }
         }
         if (!flood() && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
@@ -56,6 +57,7 @@ fun autoShoot() {
                     block == Blocks.powerSource -> 0f
                     block is PowerNode -> if (tile.build.power.status < .9) 2f else 1f
 
+                    block == Blocks.liquidSource && (tile.build as LiquidSourceBuild).config() == Liquids.oil -> 1f
                     block == Blocks.itemSource -> 2f
                     block == Blocks.liquidSource -> 3f  // lower priority because things generally don't need liquid to run
 

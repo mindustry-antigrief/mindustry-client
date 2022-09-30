@@ -1,3 +1,7 @@
+//plugins {
+//    id "com.github.evestera.depsize" version "0.2.0"
+//}
+
 sourceSets.main.java.srcDirs = ["src/"]
 
 project.ext.mainClassName = "mindustry.desktop.DesktopLauncher"
@@ -18,7 +22,6 @@ task run(dependsOn: classes, type: JavaExec){
 
     if(System.getProperty("os.name").toLowerCase().contains("mac")){
         jvmArgs += "-XstartOnFirstThread"
-        args += "-firstThread"
     }
 
     jvmArgs += "-XX:+ShowCodeDetailsInExceptionMessages"
@@ -38,16 +41,14 @@ task run(dependsOn: classes, type: JavaExec){
 
 task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
     mustRunAfter ":tools:pack"
-    from files(sourceSets.main.output.classesDirs)
+    from files(sourceSets.main.output.classesDirs) // FINISHME: Aren't these entirely redundant?
     from files(sourceSets.main.output.resourcesDir)
     from {configurations.runtimeClasspath.collect{
         it.isDirectory() ? it : zipTree(it)
     }}
-    from files("../bouncycastle/bcprov-jdk15on.jar")
-    from files("../bouncycastle/bcpkix-jdk15on.jar")
-    from files("../bouncycastle/bctls-jdk15on.jar")
-    from files("../bouncycastle/bcutil-jdk15on.jar")
+    from files("../bouncycastle")
     from files(project.assetsDir)
+    exclude("sounds/", "music/") // The client downloads these on first launch these days
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     //don't include steam shared libraries unless necessary
@@ -76,11 +77,12 @@ task steamtest(dependsOn: dist){
         copy{
             from "build/libs/Mindustry.jar"
             if(System.getProperty("os.name").toLowerCase().contains("mac")){
-                into "/Users/anuke/Library/Application Support/Steam/steamapps/common/Mindustry/Mindustry.app/Contents/Resources"
+                into "/Users/nate/Library/Application Support/Steam/steamapps/common/Mindustry/Mindustry.app/Contents/Resources"
+                rename("Mindustry.jar", "desktop.jar")
             }else{
                 into "D:\\Steam2\\steamapps\\common\\Mindustry\\jre"
+                rename("Mindustry.jar", "client.jar")
             }
-            rename("Mindustry.jar", "client.jar")
         }
     }
 }

@@ -32,6 +32,7 @@ import mindustry.world.blocks.payloads.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 import static mindustry.logic.GlobalVars.*;
 
 @Component(base = true)
@@ -156,7 +157,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     @Replace
     public boolean inFogTo(Team viewer){
-        if(this.team == viewer || !state.rules.fog) return false;
+        if(this.team == viewer || !state.rules.fog || hidingFog) return false;
 
         if(hitSize <= 16f){
             return !fogControl.isVisible(viewer, x, y);
@@ -417,6 +418,8 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             turretEnts.each(Navigation::addEnt);
             weaponSet.clear(); // Reusing things is good for the environment <3
         }
+
+        if(ui != null) ui.unitPicker.handle(self());
     }
 
     @Override
@@ -459,6 +462,10 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         healTime -= Time.delta / 20f;
         wasHealed = false;
 
+        if(!headless && type.loopSound != Sounds.none){
+            control.sound.loop(type.loopSound, this, type.loopSoundVolume);
+        }
+
         //check if environment is unsupported
         if(!type.supportsEnv(state.rules.env) && !dead){
             Call.unitEnvDeath(self());
@@ -492,7 +499,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         drag = type.drag * (isGrounded() ? (floorOn().dragMultiplier) : 1f) * dragMultiplier * state.rules.dragMultiplier;
 
         //apply knockback based on spawns
-        if(team != state.rules.waveTeam && state.hasSpawns() && (!net.client() || isLocal())){
+        if(team != state.rules.waveTeam && state.hasSpawns() && (!net.client() || isLocal()) && hittable()){
             float relativeSize = state.rules.dropZoneRadius + hitSize/2f + 1f;
             for(Tile spawn : spawner.getSpawns()){
                 if(within(spawn.worldx(), spawn.worldy(), relativeSize)){

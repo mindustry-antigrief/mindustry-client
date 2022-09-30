@@ -49,6 +49,7 @@ public class ChatFragment extends Table{
     private int scrollPos = 0;
     private Seq<Autocompleteable> completion = new Seq<>(); // FINISHME: The autocompletion system is awful.
     private int completionPos = -1;
+    private static final Color hoverColor = Color.sky.cpy().mul(0.5f);
 
     public ChatFragment(){
         super();
@@ -179,6 +180,8 @@ public class ChatFragment extends Table{
         Draw.rect("whiteui", x + w/2f, y + h/2f, w, h);
     }
 
+    private IntSeq litUp = new IntSeq();
+
     @Override
     public void draw(){
         float opacity = Core.settings.getInt("chatopacity") / 100f;
@@ -197,8 +200,7 @@ public class ChatFragment extends Table{
         chatfield.visible = shown;
         fieldlabel.visible = shown;
 
-        Draw.color(shadowColor);
-        Draw.alpha(shadowColor.a * opacity);
+        Draw.color(shadowColor, shadowColor.a * opacity);
 
         float theight = offsety + spacing + getMarginBottom() + scene.marginBottom;
         for(int i = scrollPos; i < messages.size && i < messagesShown + scrollPos && (i < fadetime || shown); i++){
@@ -229,12 +231,65 @@ public class ChatFragment extends Table{
             }
 
             rect(offsetx, theight - layout.height - 2, textWidth + Scl.scl(4f), layout.height + textspacing);
-            Draw.color(shadowColor);
-            Draw.alpha(opacity * shadowColor.a);
+
+            msg.start = theight - layout.height - 2;
+            msg.height = layout.height + textspacing;
+            float mousey = input.mouseY();
+            float mousex = input.mouseX();
+            if (mousey > msg.start && mousey < msg.start + msg.height && msg.buttons != null) {
+                litUp.clear();
+                var co = Tmp.c1.set(Draw.getColor()); // Save current color for later
+                for (var g : font.getCache().getLayouts()) {
+                    for (var r : g.runs) {
+                        float x = r.x + r.xAdvances.get(0) + fontoffsetx + offsetx;
+                        int j = 0;
+                        for (var c : r.glyphs) {
+                            int idx = r.textPositions.get(j++);
+                            float w = r.xAdvances.get(j);
+                            float liney = r.y + theight - font.getLineHeight() + 2;
+                            for (var area : msg.buttons) {
+                                if (idx >= area.start && idx < area.end) {
+                                    if (mousex > x && mousex <= x + w && mousey > liney && mousey < liney + font.getLineHeight()) {
+                                        for (int k = area.start; k < area.end; k++) {
+                                            litUp.add(k);
+                                        }
+                                        if (Core.input.keyTap(Binding.select)) {
+                                            area.lambda.run();
+                                        }
+                                        if (control.input instanceof DesktopInput) {
+                                            Core.graphics.cursor(Graphics.Cursor.SystemCursor.hand);
+                                        }
+                                    }
+                                }
+                            }
+                            x += w;
+                        }
+                    }
+                }
+
+                Draw.color(hoverColor);
+                for (var g : font.getCache().getLayouts()) {
+                    for (var r : g.runs) {
+                        float x = r.x + r.xAdvances.get(0) + fontoffsetx + offsetx;
+                        int j = 0;
+                        for (var c : r.glyphs) {
+                            int idx = r.textPositions.get(j++);
+                            float w = r.xAdvances.get(j);
+                            float liney = r.y + theight - font.getLineHeight() + 2;
+                            if (litUp.contains(idx)) {
+                                rect(x, liney, w, font.getLineHeight());
+                            }
+                            x += w;
+                        }
+                    }
+                }
+                Draw.color(co); // Reset color
+            }
+            Draw.color(shadowColor, shadowColor.a * opacity);
 
             font.getCache().draw();
 
-            if (msg.attachments.size() != 0) {
+            if (msg.attachments != null && msg.attachments.any()) {
                 Draw.color();
                 if (!shown) Draw.alpha(Mathf.clamp(fadetime - i, 0, 1) * opacity);
                 float x = textWidth - 10f;
@@ -450,10 +505,24 @@ public class ChatFragment extends Table{
         return shown;
     }
 
+    /**
+     * Adds a ChatMessage.
+     * @param message     The message as formatted by the server
+     * @param sender      The sender of the message
+     * @param background  The background color of the message
+     * @param prefix      The client-added prefix of the message, such as the wrench icon
+     * @param unformatted The raw text of the message without the sender header
+     */
     public ChatMessage addMessage(String message, String sender, Color background, String prefix, String unformatted){
         if(sender == null && message == null) return null;
         ChatMessage msg = new ChatMessage(message, sender, background == null ? null : background.cpy(), prefix, unformatted);
         messages.insert(0, msg);
+
+        if (messages.size >= 100) { // Free up memory by disposing of stuff in old messages
+            var msg100 = messages.get(99);
+            msg100.attachments = null;
+            msg100.buttons = null;
+        }
 
         doFade(6); // fadetime was originally incremented by 2f, that works out to 6s
 
@@ -461,30 +530,20 @@ public class ChatFragment extends Table{
         return msg;
     }
 
-    public ChatMessage addMessage(String message, String sender, Color background, String prefix){
-        return addMessage(message, sender, background, prefix, message);
+    /** Alias for {@link #addMessage(String)} that returns a ChatMessage since return type changes are binary incompatible and break mods */
+    public ChatMessage addMsg(String message) {
+        return addMessage(message, null, null, "", message);
     }
 
-    public ChatMessage addMessage(String message, String sender, Color background){ // FINISHME: Remove this, merge sender with message
-        return addMessage(message, sender, background, "");
-    }
-
-    public ChatMessage addMessage(String message, Color background, String unformatted){ // FINISHME: Refactor this
-        return addMessage(message, null, background, "", unformatted);
-    }
-
-    public ChatMessage addMessage(String message, Color background){ // FINISHME: Do a v132 cleanup of this whole mess
-        return addMessage(message, null, background);
+    /** Adds a message, see {@link #addMsg} for ChatMessage return type */
+    public void addMessage(String message) {
+        addMsg(message);
     }
 
     /** @deprecated Kept for mod compatibility */
     @Deprecated
     public void addMessage(String ignored, String message){
-        addMessage(message);
-    }
-
-    public void addMessage(String message){
-        addMessage(message, null, null, "");
+        addMessage(message, null, null, "", message);
     }
 
     public void doFade(float seconds){
@@ -492,24 +551,53 @@ public class ChatFragment extends Table{
         fadetime = Math.min(fadetime, messagesShown);
     }
 
+    public static class ClickableArea {
+        public int start, end;
+        public Runnable lambda;
+
+        public ClickableArea(int start, int end, Runnable lambda) {
+            this.start = start;
+            this.end = end;
+            this.lambda = lambda;
+        }
+    }
 
     public static class ChatMessage{
+        /** The sender (i.e. "bar") */
         public String sender;
-        public String message; // TODO: test if having red text at all (eg. sending 34 45) will cause impersonator
-        public String formattedMessage;
+        /** The full formatted message **as sent by the server** (i.e. "[bar]: hello", but with color tags) */
+        public String message;
+        /** The message as reformatted by the client (i.e. "(checkmark) [bar]: hello" but with color tags */
+        public String formattedMessage = "";
+        /** The background color of the message. */
         public Color backgroundColor;
+        /** The prefix of the message, as added by the client.  This is usually an icon, such as a wrench or checkmark. */
         public String prefix;
+        /** The content of the message (i.e. "gg") */
         public String unformatted;
-        public List<Image> attachments = new ArrayList<>();
+        @Nullable public Seq<Image> attachments = new Seq<>(); // This seq is deleted after 100 new messages to save ram
+        public float start, height;
+    
         public static boolean processCoords, setLastPos; // false by default, set them ON right before initializing a new message
         private static final Pattern coordPattern = Pattern.compile("([\\[,\\(]?([\\d\\.]+)[ ,]+([\\d\\.]+)[\\],\\)]?)"); // This regex captures the coords into $1 and $2 while $0 contains all surrounding text as well. Fixed by BalaM314. https://regexr.com is the superior regex tester
+        
+        @Nullable public Seq<ClickableArea> buttons = new Seq<>(); // This seq is deleted after 100 new messages to save ram
+
+        /**
+         * Creates a new ChatMessage.
+         * @param message     The message as formatted by the server
+         * @param sender      The sender of the message
+         * @param color       The background color of the message
+         * @param prefix      The client-added prefix of the message, such as the wrench icon
+         * @param unformatted The raw text of the message without the sender header
+         */
         public ChatMessage(String message, String sender, Color color, String prefix, String unformatted){
             this.message = message;
             this.sender = sender;
             this.prefix = prefix;
             this.unformatted = unformatted;
             backgroundColor = color;
-            format();
+            format(false);
         }
 
         public static void msgFormat(boolean processCoords2, boolean setLastPos2){
@@ -519,11 +607,22 @@ public class ChatFragment extends Table{
         public static void msgFormat(boolean process){
             msgFormat(process, process);
         }
-        public static void msgFormat(){
+        public static void msgFormat() {
             msgFormat(true, true);
         }
+       
+        public ChatMessage addButton(int start, int end, Runnable lambda) {
+            if (buttons != null) buttons.add(new ClickableArea(start, end, lambda));
+            return this;
+        }
 
-        public void format() {
+        public ChatMessage addButton(String text, Runnable lambda) {
+            int i = formattedMessage.indexOf(text);
+            return addButton(i, i + text.length(), lambda);
+        }
+
+        private void format(boolean moveButtons) {
+            int initial = formattedMessage.length();
             if(sender == null){ //no sender, this is a server message?
                 formattedMessage = message == null ? prefix : processCoords ? processCoords(prefix + message, setLastPos) : prefix + message;
             } else {
@@ -531,6 +630,17 @@ public class ChatFragment extends Table{
                         (processCoords ? processCoords(unformatted, setLastPos) : unformatted);
             }
             processCoords = setLastPos = false;
+            int shift = formattedMessage.length() - initial;
+            if (moveButtons && buttons != null) {
+                for (var b : buttons) {
+                    b.start += shift;
+                    b.end += shift;
+                }
+            }
+        }
+
+        public void format() {
+            format(true);
         }
 
         public static String processCoords(String message, boolean setLastPos){

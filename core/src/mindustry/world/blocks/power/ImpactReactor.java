@@ -1,7 +1,6 @@
 package mindustry.world.blocks.power;
 
 import arc.*;
-import arc.audio.*;
 import arc.graphics.*;
 import arc.math.*;
 import arc.struct.*;
@@ -9,7 +8,6 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
-import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -25,13 +23,8 @@ import static mindustry.Vars.*;
 
 public class ImpactReactor extends PowerGenerator{
     public final int timerUse = timers++;
-
     public float warmupSpeed = 0.001f;
     public float itemDuration = 60f;
-    public int explosionRadius = 23;
-    public int explosionDamage = 1900;
-    public Effect explodeEffect = Fx.impactReactorExplosion;
-    public Sound explodeSound = Sounds.explosionbig;
     public float floodNullifierRange;
 
     public ImpactReactor(String name){
@@ -47,6 +40,12 @@ public class ImpactReactor extends PowerGenerator{
         envEnabled = Env.any;
 
         drawer = new DrawMulti(new DrawRegion("-bottom"), new DrawPlasma(), new DrawDefault());
+
+        explosionShake = 6f;
+        explosionShakeDuration = 16f;
+        explosionDamage = 1900 * 4;
+        explodeEffect = Fx.impactReactorExplosion;
+        explodeSound = Sounds.explosionbig;
     }
 
     @Override
@@ -71,7 +70,7 @@ public class ImpactReactor extends PowerGenerator{
         super.drawPlace(x, y, rotation, valid);
         float wx = x * tilesize + offset, wy = y * tilesize + offset;
         Drawf.dashCircle(wx, wy, explosionRadius * tilesize, Color.coral);
-        if (ClientUtilsKt.flood()) {
+        if (ClientUtils.flood()) {
             Drawf.dashCircle(wx, wy, floodNullifierRange, Color.orange);
             indexer.eachBlock(null, wx, wy, floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild && b.within(wx, wy, floodNullifierRange), b -> Drawf.selected(b, Color.orange));
         }
@@ -79,7 +78,7 @@ public class ImpactReactor extends PowerGenerator{
 
     @Override
     public void drawPlanConfigTop(BuildPlan req, Eachable<BuildPlan> list){
-        if (ClientUtilsKt.flood()) {
+        if (ClientUtils.flood()) {
             Drawf.dashCircle(req.drawx(), req.drawy(), floodNullifierRange, Color.orange);
             indexer.eachBlock(null, req.drawx(), req.drawy(), floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
         }
@@ -149,16 +148,10 @@ public class ImpactReactor extends PowerGenerator{
         }
 
         @Override
-        public void onDestroyed(){
-            super.onDestroyed();
-
-            if(warmup < 0.3f || !state.rules.reactorExplosions) return;
-
-            Damage.damage(x, y, explosionRadius * tilesize, explosionDamage * 4);
-
-            Effect.shake(6f, 16f, x, y);
-            explodeEffect.at(this);
-            explodeSound.at(this);
+        public void createExplosion(){
+            if(warmup >= 0.3f){
+                super.createExplosion();
+            }
         }
 
         @Override

@@ -6,9 +6,15 @@ import arc.assets.loaders.MusicLoader.*;
 import arc.assets.loaders.SoundLoader.*;
 import arc.audio.*;
 import arc.files.*;
+import arc.func.*;
 import arc.struct.*;
+import arc.util.*;
+import arc.util.io.*;
 import mindustry.*;
 import mindustry.gen.*;
+
+import java.net.*;
+import java.util.*;
 
 /** Handles files in a modded context. */
 public class FileTree implements FileHandleResolver{
@@ -84,5 +90,60 @@ public class FileTree implements FileHandleResolver{
 
             return music;
         });
+    }
+
+
+    private boolean checkedOutdated, outdated, notified;
+    private boolean outdated(){
+        if(!checkedOutdated){
+            checkedOutdated = true;
+            var hash = Objects.hash(Version.assetUrl, Version.assetRef);
+            outdated = Core.settings.getInt("assetkey") != hash;
+            if(outdated) Core.settings.put("assetkey", hash);
+        }
+        return outdated;
+    }
+
+    public void loadAudio(DownloadableAudio audio, String path, int length){
+        var fi = get(path);
+        var clazz = audio.getClass().getSimpleName(); // Used for error messages
+        if(audio instanceof Sound sound && fi.parent().name().equals("ui")) sound.setBus(Vars.control.sound.uiBus);
+
+        if(fi.exists()){ // Local copy. Assumed to be up-to-date
+            audio.load(fi);
+            return;
+        }
+
+        var cached = Core.settings.getDataDirectory().child("cache").child(audio instanceof Sound ? path : fi.nameWithoutExtension() + "__" + length + "." + fi.extension()); // See Music#load
+
+        if(!outdated() && cached.exists()){ // Cached up-to-date copy
+            audio.loadDirectly(cached);
+            return;
+        }
+
+        ConsT<Http.HttpResponse, Exception> writeDownloadedAudio = res -> { // This creates garbage, but it's convenient and shouldn't matter as this method is called few times
+            if(!cached.exists() || cached.length() != res.getContentLength()){ // Only download if the existing file isn't the same size
+                var write = cached.write();
+                Streams.copy(res.getResultAsStream(), cached.write());
+                write.close();
+            }
+            audio.loadDirectly(cached);
+        };
+//        FINISHME: Making a get request to the line below would be beneficial as we could compare hashes but that would require a backup for exceeding rate limits (would also be done by directory as it would save many requests)
+//        "https://api.github.com/repos/" + Version.assetUrl + "/contents/core/assets/" + path + "?ref=" + Version.assetRef;
+        var req = Http.get("https://raw.githubusercontent.com/" + Version.assetUrl + '/' + Version.assetRef  + "/core/assets/" + path);
+        req.error(e -> {
+            if(e instanceof UnknownHostException){ // Likely Wi-Fi skill issue
+                if(!notified) Core.app.post(() -> Vars.ui.showErrorMessage("@client.audiofail")); // Display at most one dialog
+                if(cached.exists()) audio.loadDirectly(cached); // Use outdated cached audio if it exists, it's better than silence
+                notified = true;
+                return;
+            }
+            Log.debug(clazz + " downloading failed for @ retrying", fi.name());
+            req.error(e2 -> Log.err(clazz + " downloading for " + fi.name() + " failed", e2));
+            req.timeout(5000); // The request probably timed out at 2000, it could be a fluke, but it could also just be bad Wi-Fi
+            req.block(writeDownloadedAudio); // error() is run on the same thread so no need to submit this time as we're already on an http thread
+        });
+        req.submit(writeDownloadedAudio);
     }
 }

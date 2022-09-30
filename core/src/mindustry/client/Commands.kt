@@ -9,6 +9,7 @@ import arc.struct.*
 import arc.util.*
 import arc.util.CommandHandler.*
 import mindustry.Vars.*
+import mindustry.Vars
 import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
@@ -16,10 +17,13 @@ import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.follow
 import mindustry.client.navigation.Navigation.navigator
+import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.content.Blocks
 import mindustry.core.*
 import mindustry.entities.*
+import mindustry.game.*
+import mindustry.entities.units.BuildPlan
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
@@ -27,19 +31,30 @@ import mindustry.logic.GlobalVars.*
 import mindustry.ui.*
 import mindustry.ui.fragments.ChatFragment
 import mindustry.world.blocks.distribution.ItemBridge
+import mindustry.world.blocks.environment.Prop
+import mindustry.gen.*
+import mindustry.input.*
+import mindustry.logic.*
+import mindustry.world.blocks.distribution.*
+import mindustry.world.blocks.distribution.DirectionalUnloader.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.logic.LogicBlock.compress
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.sandbox.PowerVoid
+import mindustry.world.blocks.storage.*
+import mindustry.world.blocks.storage.Unloader.*
 import java.io.*
 import java.math.*
 import java.security.cert.*
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlin.math.*
 import kotlin.random.*
 
+
 fun setup() {
     register("help [page]", Core.bundle.get("client.command.help.description")) { args, player ->
-        if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
+        if (args.isNotEmpty() && !Strings.canParseInt(args[0])) { // FINISHME: !help [command] so that command descriptions aren't long
             player.sendMessage("[scarlet]'page' must be a number.")
             return@register
         }
@@ -62,64 +77,62 @@ fun setup() {
     }
 
     register("unit-old <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
-        ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) })
+        ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.name) })
     }
 
-    register("unit <unit-type>", "Picks a unit nearest to cursor. Use null or no args to unqueue switch.") { args, _ ->
-        if (args[0] == "null" || args[0] == "") ui.unitPicker.unpickUnit()
-        else ui.unitPicker.pickUnit(
-            content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) },
-            Core.input.mouseWorldX(), Core.input.mouseWorldY(), false
-        )
+    register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
+        Vars.ui.unitPicker.pickUnit(findUnit(args[0]))
     }
 
     register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
-        if (args[0] == "all") {
-            val cap = Units.getStringCap(player.team())
-            val sb = StringBuilder("[accent]Count all units (Cap: $cap)")
-            for (type in content.units()) {
-                var total = 0
-                (player.team().data().unitCache(type) ?: Seq.with()).withEach { total++ } // If possible please rewrite this single line. It looks scuffed.
-                if (total == 0) continue
-                sb.append("\n[white]${Fonts.stringIcons.get(type.name)}[] ${type.localizedName}: $total")
+        val type = findUnit(args[0])
+        val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var command = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
+
+        (player.team().data().unitCache(type) ?: Seq.with()).withEach {
+            total++
+            val ctrl = sense(LAccess.controlled).toInt()
+            if (flag == 0.0) unflagged++
+            else {
+                flagged++
+                if (ctrl == 0) freeFlagged++
             }
-            player.sendMessage(sb.toString())
+            when (ctrl) {
+                GlobalVars.ctrlPlayer -> players++
+                GlobalVars.ctrlCommand -> command++
+                GlobalVars.ctrlProcessor -> {
+                    if (flag != 0.0) logicFlagged++
+                    logic++
+                }
+                else -> free++
+            }
         }
-        else {
-            val type = content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) }
-            val cap = Units.getStringCap(player.team()); var total = 0; var free = 0; var flagged = 0; var unflagged = 0; var players = 0; var command = 0; var logic = 0; var freeFlagged = 0; var logicFlagged = 0
 
-            (player.team().data().unitCache(type) ?: Seq.with()).withEach {
-                total++
-                val ctrl = sense(LAccess.controlled).toInt()
-                if (flag == 0.0) unflagged++
-                else {
-                    flagged++
-                    if (ctrl == 0) freeFlagged++
-                }
-                when (ctrl) {
-                    ctrlPlayer -> players++
-                    ctrlCommand -> command++
-                    ctrlProcessor -> {
-                        if (flag != 0.0) logicFlagged++
-                        logic++
-                    }
-                    else -> free++
-                }
-            }
-
-            player.sendMessage("""
+        player.sendMessage(
+            """
             [accent]${type.localizedName}:
             Total(Cap): $total($cap)
             Free(Free Flagged): $free($freeFlagged)
             Flagged(Unflagged): $flagged($unflagged)
             Players(Command): $players($command)
             Logic(Logic Flagged): $logic($logicFlagged)
-            """.trimIndent())
-        }
+            """.trimIndent()
+        )
     }
 
-    // FINISHME: Add spawn command
+    // FINISHME: Add unit control/select command(s)
+
+    register("spawn <type> [team] [x] [y] [count]", Core.bundle.get("client.command.spawn.description")) { args, player ->
+        val type = findUnit(args[0])
+        val team = if (args.size < 2) player.team() else findTeam(args[1])
+        val x = if (args.size < 3 || !Strings.canParsePositiveFloat(args[2])) player.x else args[2].toFloat() * Vars.tilesizeF
+        val y = if (args.size < 4 || !Strings.canParsePositiveFloat(args[3])) player.y else args[3].toFloat() * Vars.tilesizeF
+        val count = if (args.size < 5 || !Strings.canParsePositiveInt(args[4])) 1 else args[4].toInt()
+
+        if (net.client()) Call.sendChatMessage("/js for(let i = 0; i < $count; i++) UnitTypes.$type.spawn(Team.all[${team.id}], $x, $y)")
+        else repeat(count) {
+            type.spawn(team, x, y)
+        }
+    }
 
     register("go [x] [y]", Core.bundle.get("client.command.go.description")) { args, player ->
         try {
@@ -263,8 +276,10 @@ fun setup() {
                 }
             }
         }
-        configs.addAll(tmp)
-        @Suppress("CAST_NEVER_SUCCEEDS") val msg = ui.chatfrag.addMessage("", null as? Color)
+
+        ClientVars.configs.addAll(tmp)
+        val msg = Vars.ui.chatfrag.addMsg("")
+
         msg.message = when {
             confirmed && inProgress -> Core.bundle.format("client.command.fixpower.inprogress", configs.size, n)
             confirmed -> { // Actually fix the connections
@@ -279,21 +294,22 @@ fun setup() {
         msg.format()
     }
 
-    @Suppress("unchecked_cast")
-    register("fixcode [options...]", "Disables problematic \"attem >= 83\" flagging logic") { args, player -> // FINISHME: Bundle
-        val builds = player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
+    register("fixcode [c/r/l]", "Fixes problematic \"attem >= 83\" flagging logic. See mindustry.dev/attem") { args, player -> // FINISHME: Bundle
+        val builds = Vars.player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
         clientThread.post {
             val confirmed = args.any() && (args[0] == "c" || args[0] == "r") // Don't configure by default
+            val locations = args.any() && args[0] == "l"
+            val locMsg = StringBuilder("[accent]Processor locations:")
             val inProgress = !configs.isEmpty()
             var n = 0
 
-            if (confirmed && !inProgress) {
+            if (confirmed && !inProgress || locations) {
                 Log.debug("Patching!")
                 builds.forEach {
                     val patched = ProcessorPatcher.patch(it.code, args[0])
                     if (patched != it.code) {
-                        Log.debug("${it.tileX()} ${it.tileY()}")
-                        configs.add(ConfigRequest(it.tileX(), it.tileY(), compress(patched, it.relativeConnections())))
+                        if (locations) locMsg.append("\n(").append(it.tileX()).append(", ").append(it.tileY()).append(')')
+                        else ClientVars.configs.add(ConfigRequest(it.tileX(), it.tileY(), LogicBlock.compress(patched, it.relativeConnections())))
                         n++
                     }
                 }
@@ -302,8 +318,10 @@ fun setup() {
                 if (confirmed) {
                     if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
                     else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
+                } else if (locations) {
+                    Vars.ui.chatfrag.addMsg(locMsg.toString()).findCoords()
                 } else {
-                    player.sendMessage("[accent]Run [coral]!fixcode [c | r][] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
+                    player.sendMessage("[accent]Run [coral]!fixcode [c | r][] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors. Run [coral]!fixcode l[] for locations.")
                 }
             }
         }
@@ -341,8 +359,6 @@ fun setup() {
             plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
         }
 
-        Log.info("Took @ | new = @", Time.elapsed(), useNew)
-
         if (confirmed) {
             plans.chunked(100) { Call.deletePlans(player, it.toIntArray()) }
             player.sendMessage("[accent]Removed ${plans.size} plans, ${player.team().data().plans.size} remain")
@@ -358,7 +374,9 @@ fun setup() {
             ui.chatfrag.addMessage(
                 msg,
                 "[coral]${Main.keyStorage.cert()?.readableName ?: "you"} [white]-> ${Main.keyStorage.aliasOrName(cert)}",
-                encrypted
+                encrypted,
+                "",
+                msg
             )
             lastCertName = cert.readableName
         }
@@ -376,13 +394,17 @@ fun setup() {
         Main.send(ClientMessageTransmission(args[0]).apply { addToChatfrag() })
     }
 
-    register("mapinfo", "Lists various useful map info.") { _, player -> // FINISHME: Bundle
-        player.sendMessage(with(state) {
+    register("mapinfo [team]", "Lists various useful map info.") { args, player -> // FINISHME: Bundle
+        val team = if (args.isEmpty()) player.team() else findTeam(args[0])
+        player.sendMessage(with(Vars.state) {
             """
             [accent]Name: ${map.name()}[accent] (by: ${map.author()}[accent])
+            Team: ${team.name}
             Map Time: ${UI.formatTime(tick.toFloat())}
-            Build Speed (Unit Factories): ${rules.buildSpeedMultiplier}x (${rules.unitBuildSpeedMultiplier}x)
+            Build Speed (Unit Factories): ${rules.buildSpeed(team)}x (${rules.unitBuildSpeed(team)}x)
             Build Cost (Refund): ${rules.buildCostMultiplier}x (${rules.deconstructRefundMultiplier}x)
+            Block Health (Damage): ${rules.blockHealth(team)}x (${rules.blockDamage(team)}x)
+            Unit Damage: ${rules.unitDamage(team)}x
             Core Capture: ${rules.coreCapture}
             Core Incinerates: ${rules.coreIncinerates}
             Core Modifies Unit Cap: ${rules.unitCapVariable}
@@ -390,15 +412,44 @@ fun setup() {
         })
     }
 
-    register("binds <type>", "") { args, player -> // FINISHME: Bundle
-        val type = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
+    register("binds <type>", "Shows the positions of all blocks binding a type of unit") { args, player -> // FINISHME: Bundle
+        val type = findUnit(args[0])
 
         player.team().data().unitCache(type)
             ?.filter { it.controller() is LogicAI }
-            ?.distinctBy { (it.controller() as LogicAI).controller }
-            ?.forEach {
-                player.sendMessage("[accent]${it.tileX()}, ${it.tileY()}")
+            ?.groupBy { (it.controller() as LogicAI).controller }
+            ?.forEach { (build, units) ->
+                val txt = "x${units.size} [accent](${build.tileX()}, ${build.tileY()})"
+                val msg = ui.chatfrag.addMessage(txt, null, null, "", txt)
+                NetClient.findCoords(msg)
             }
+    }
+
+    register("unloaders <item> [enabledOnly] [setOnly]", "Shows the positions of core unloaders of a certain type. Extra arguments accept t/f inputs") { args, player -> // FINISHME: Bundle
+        val item = findItem(args[0])
+        val enabledOnly = args.size < 2 || parseBool(args[1])
+        val setOnly = args.size < 3 || parseBool(args[2])
+
+        val linkedCores = ObjectSet<Building>()
+        player.team().cores().forEach { core ->  // Add all cores and their adjacent containers/vaults to the list
+            linkedCores.add(core)
+            core.proximity.forEach {
+                if ((it.block as? StorageBlock)?.coreMerge == true) linkedCores.add(it)
+            }
+        }
+
+        val coords = ObjectSet<Building>()
+        for (core in linkedCores) { // Iterate through proximity of all cores & adjacent vaults looking for unloaders of the specified type
+            core.proximity.forEach {
+                if (it !is UnloaderBuild && !(it is DirectionalUnloaderBuild && (it.block as? DirectionalUnloader)?.allowCoreUnload == true)) return@forEach
+                if (!it.enabled && enabledOnly) return@forEach
+                if (it.config() != item && (setOnly || it.config() != null)) return@forEach
+                if (it is DirectionalUnloaderBuild && !linkedCores.contains(it.back())) return@forEach // Erekir unloaders only unload from the tile behind
+                if (!coords.add(it)) return@forEach // We have already printed this tile's coords
+
+                Vars.ui.chatfrag.addMsg("[accent](${it.tileX()}, ${it.tileY()})").findCoords()
+            }
+        }
     }
 
     // START OF CUSTOM COMMANDS
@@ -458,7 +509,7 @@ fun setup() {
     }
 
     register("binds <type>", "") { args, player -> // FINISHME: Bundle
-        val type = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.localizedName) }
+        val type = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.name) }
 
         player.team().data().unitCache(type)
             ?.filter { it.controller() is LogicAI }
@@ -774,6 +825,118 @@ fun setup() {
             mutedPlayers.remove(match)
         }
         else player.sendMessage(Core.bundle.get("client.command.mute.notmuted"))
+    }
+
+    register("rebuild <timestart> <timerange> <buildrange>", """
+            Retrieves blocks from tilelogs before <timestart> and places them into buildplan.
+            Specify how far back to rollback on <timestart> in minutes
+            Specify how many minutes of changes should be retrieved on <timerange> in minutes
+            Specify how big the area radius is on <buildrange>
+        """.trimIndent()) { args, player ->
+        val timeStart: Instant
+        val timeEnd: Instant
+        val range: Float
+        try {
+            timeEnd = Instant.now().minus(args[0].toLong(), ChronoUnit.MINUTES)
+            timeStart = timeEnd.minus(args[1].toLong(), ChronoUnit.MINUTES)
+            range = args[2].toFloat() * tilesize
+        }
+        catch (_: Exception) {
+            player.sendMessage("[scarlet]Invalid arguments! Please specify 2 numbers (minutes and range)!")
+            return@register
+        }
+
+        Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
+        val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
+        clientThread.post {
+            val plans: Seq<BuildPlan> = Seq()
+            tiles.forEach {
+                if (!it.within(player.x, player.y, range) || it.block() != Blocks.air) return@forEach
+
+                val record = TileRecords[it] ?: return@forEach
+                var last: TileState? = null
+
+                seq@ for (seq in record.logs!!.asReversed()) { // Rebuilds are likely used on recent states, so start from the last logs
+                    val state = seq.snapshot.clone()
+                    for (diff in seq.iterator()) {
+                        diff.apply(state)
+                        // Exit if we've gone past the time start
+                        // Continue searching if we have not reached time end
+                        if (diff.time > timeEnd) break@seq
+                        if (diff.time < timeStart || !diff.isOrigin || state.block == Blocks.air) continue
+
+                        last = state.clone()
+                    }
+                }
+                if (last == null) return@forEach
+                plans.add(BuildPlan(last.x, last.y, last.rotation, last.block, last.configuration))
+            }
+
+            if (plans.size == 0) return@post
+            Core.app.post {
+                control.input.flushPlans(plans)
+            }
+        }
+    }
+
+    register("undo <player> [range]", "Undo Configs from a specific player (get rekt griefers)") { args, player ->
+        val range: Float
+        val id: Int?
+        try {
+            id = args[0].toInt()
+            range = if (args.size >= 2) args[1].toFloat() * tilesize else Float.MAX_VALUE
+        }
+        catch (_: Exception) {
+            player.sendMessage("[scarlet]Invalid args! Please specify a player id number and (optionally) a range number")
+            return@register
+        }
+
+        Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
+        val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
+        clientThread.post {
+            var playerName = ""
+            val configs: Seq<ConfigRequest> = Seq()
+            val plans: Seq<BuildPlan> = Seq()
+            tiles.forEach {
+                if (!it.within(player.x, player.y, range)) return@forEach
+
+                val record = TileRecords[it] ?: return@forEach
+                var last: TileState? = null
+
+                for (seq in record.logs!!) {
+                    val state = seq.snapshot.clone()
+                    for (diff in seq.iterator()) {
+                        diff.apply(state)
+                        if (playerName.isNotEmpty() || diff.cause.shortName.isNotEmpty()) playerName = diff.cause.shortName
+
+                        // Ignore if its the target player
+                        if (diff.cause.playerID != id) {
+                            last = state.clone()
+                        }
+                    }
+                }
+                // Only rebuild if block is different than the current block
+                // Only configure if its different
+                if (last == null) return@forEach
+
+                if (last!!.block != it.block() || last!!.rotation != it.build?.rotation) {
+                    if (last!!.block == Blocks.air || last!!.block is Prop) plans.add(BuildPlan(last!!.x, last!!.y))
+                    else plans.add(BuildPlan(last!!.x, last!!.y, last!!.rotation, last!!.block, last!!.configuration))
+                }
+
+                if (last!!.block == it.block() && last!!.configuration != it.build?.config()) configs.add(ConfigRequest(it.build, last!!.configuration))
+            }
+
+            Core.app.post {
+                player.sendMessage("[accent] Undoing ${configs.size} configs and ${plans.size} builds made by $playerName")
+                control.input.flushPlans(plans, false, true, false) // Overplace
+                ClientVars.configs.addAll(configs)
+            }
+        }
+    }
+
+    register("seer", "Seer related commands") { _, _ -> // FINISHME
+        SeerDialog.show()
     }
 
     register("clearmutes", "Clears list of muted players") {_, player ->
