@@ -57,7 +57,8 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                     for (int member = 0 ; member < smat.getNumLobbyMembers(currentLobby) ; member++) {
                         for (long idiot : alertIDs) {
                             if (SteamID.createFromNativeHandle(idiot).equals(smat.getLobbyMemberByIndex(currentLobby, member))) {
-                                ui.chatfrag.addMessage("A griefer is in this game: " + idiot, Color.scarlet);
+                                String msg = "A griefer is in this game: " + idiot;
+                                ui.chatfrag.addMessage(msg, null, Color.scarlet, "", msg);
                             }
                         }
                     }
@@ -68,6 +69,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                         readBuffer.position(0).limit(readBuffer.capacity());
                         //lz4 chokes on direct buffers, so copy the bytes over
                         int len = snet.readP2PPacket(from, readBuffer, 0);
+                        if(len >= readBuffer.remaining()) Log.warn("@ byte steam packet exceeds max size of @", len, readBuffer.remaining());
                         readBuffer.limit(len);
                         readCopyBuffer.position(0);
                         readCopyBuffer.put(readBuffer);
@@ -157,7 +159,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                 int length = writeBuffer.position();
                 writeBuffer.flip();
 
-                snet.sendP2PPacket(currentServer, writeBuffer, reliable || length >= 1200 ? P2PSend.Reliable : P2PSend.UnreliableNoDelay, 0);
+                snet.sendP2PPacket(currentServer, writeBuffer, reliable || length >= 1000 ? P2PSend.Reliable : P2PSend.UnreliableNoDelay, 0);
             }catch(Exception e){
                 net.showError(e);
             }
@@ -211,9 +213,9 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
             smat.setLobbyMemberLimit(currentLobby, Core.settings.getInt("playerlimit"));
         }
     }
-
-    void updateWave() {
-        if(currentLobby != null && net.server()) {
+    
+    void updateWave(){
+        if(currentLobby != null && net.server()){
             smat.setLobbyData(currentLobby, "mapname", state.map.name());
             smat.setLobbyData(currentLobby, "wave", state.wave + "");
             smat.setLobbyData(currentLobby, "gamemode", state.rules.mode().name() + "");
@@ -434,7 +436,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
         public SteamConnection(SteamID sid){
             super(sid.getAccountID() + "");
             this.sid = sid;
-            Log.info("Create STEAM client @", sid.getAccountID());
+            Log.info("Created STEAM connection: @", sid.getAccountID());
         }
 
         @Override
@@ -446,7 +448,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                 int length = writeBuffer.position();
                 writeBuffer.flip();
 
-                snet.sendP2PPacket(sid, writeBuffer, reliable || length >= 1200 ? object instanceof StreamChunk ? P2PSend.ReliableWithBuffering : P2PSend.Reliable : P2PSend.UnreliableNoDelay, 0);
+                snet.sendP2PPacket(sid, writeBuffer, reliable || length >= 1000 ? object instanceof StreamChunk ? P2PSend.ReliableWithBuffering : P2PSend.Reliable : P2PSend.UnreliableNoDelay, 0);
             }catch(Exception e){
                 Log.err(e);
                 Log.info("Error sending packet. Disconnecting invalid client!");

@@ -4,6 +4,7 @@ import arc.*;
 import arc.scene.ui.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 
@@ -27,9 +28,9 @@ public class HostDialog extends BaseDialog{
                 ui.listfrag.rebuild();
             }).grow().pad(8).get().setMaxLength(40);
 
-            ImageButton button = t.button(Tex.whiteui, Styles.clearFulli, 40, () -> {
+            ImageButton button = t.button(Tex.whiteui, Styles.squarei, 40, () -> {
                 new PaletteDialog().show(color -> {
-                    player.color().set(color);
+                    player.color.set(color);
                     Core.settings.put("color-0", color.rgba());
                 });
             }).size(54f).get();
@@ -64,6 +65,7 @@ public class HostDialog extends BaseDialog{
             try{
                 net.host(Vars.port);
                 player.admin = true;
+                Events.fire(new HostEvent());
 
                 if(steam){
                     Core.app.post(() -> Core.settings.getBoolOnce("steampublic3", () -> {

@@ -44,7 +44,7 @@ packr-out/
 config/
 *.gif
 /tests/out
-buildSrc
+/buildSrc/build
 
 /core/assets/basepartnames
 version.properties
@@ -162,17 +162,13 @@ gradle-app.setting
 .DS_Store
 Thumbs.db
 android/libs/
-annotations/src/main/resources/revisions
 
+#no.
 arc-core/
 cache/
 
 # ignored due to frequent branch conflicts.
 core/assets/logicids.dat
-core/assets/icons/icons.properties
-client/build/
-core/annotations/
 
-# what even
-libsdl-arc64.so
-.temp/
+# Packr
+jdks/

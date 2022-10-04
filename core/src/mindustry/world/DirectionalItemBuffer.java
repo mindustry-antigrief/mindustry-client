@@ -14,7 +14,7 @@ public class DirectionalItemBuffer{
 
     public DirectionalItemBuffer(int capacity){
         this.buffers = new long[4][capacity];
-        this.indexes = new int[5];
+        this.indexes = new int[4];
     }
 
     public boolean accepts(int buffer){

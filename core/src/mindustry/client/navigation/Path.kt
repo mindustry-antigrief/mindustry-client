@@ -40,7 +40,7 @@ abstract class Path {
                 targetPos.set(destX, destY)
                 if (job.isDone) {
                     job = clientThread.submit {
-                        val path = Navigation.navigator.navigate(v1.set(Vars.player), v2.set(destX, destY), Navigation.obstacles)
+                        val path = Navigation.navigator.navigate(v1.set(Vars.player), v2.set(destX, destY), Navigation.getEnts())
                         Pools.freeAll(filter)
                         filter.clear()
                         if (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>)) { // Same destination
@@ -58,7 +58,7 @@ abstract class Path {
                     }
                 }
             } else { // Not navigating
-                waypoints.set(waypoint.set(destX, destY, 16F, dist).run())
+                waypoints.set(waypoint.set(destX, destY, 1F, dist).run())
                 cons?.get(waypoints)
             }
 

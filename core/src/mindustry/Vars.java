@@ -27,11 +27,14 @@ import mindustry.mod.*;
 import mindustry.net.*;
 import mindustry.service.*;
 import mindustry.type.*;
+import mindustry.ui.dialogs.*;
 import mindustry.world.*;
+import mindustry.world.meta.*;
 
 import java.io.*;
 import java.nio.charset.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import static arc.Core.*;
 
@@ -48,12 +51,12 @@ public class Vars implements Loadable{
     public static String steamPlayerName = "";
     /** Default accessible content types used for player-selectable icons. */
     public static final ContentType[] defaultContentIcons = {ContentType.item, ContentType.liquid, ContentType.block, ContentType.unit};
+    /** Default rule environment. */
+    public static final int defaultEnv = Env.terrestrial | Env.spores | Env.groundOil | Env.groundWater | Env.oxygen;
     /** Wall darkness radius. */
     public static final int darkRadius = 4;
     /** Maximum extra padding around deployment schematics. */
     public static final int maxLoadoutSchematicPad = 5;
-    /** Maximum schematic size.*/
-    public static final int maxSchematicSize = 1024;
     /** All schematic base64 starts with this string.*/
     public static final String schematicBaseStart ="bXNjaA";
     /** IO buffer size. */
@@ -68,8 +71,6 @@ public class Vars implements Loadable{
     public static final String discordURL = "https://discord.gg/mindustry";
     /** URL for client discord. */
     public static final String clientDiscord = "https://discord.gg/yp9ZW7j";
-    /** URL for sending crash reports to. Currently offline. */
-    public static final String crashReportURL = "http://192.99.169.18/report";
     /** URL the links to the wiki's modding guide.*/
     public static final String modGuideURL = "https://mindustrygame.github.io/wiki/modding/1-modding/";
     /** URL to the JSON file containing all the BE servers. Only queried in BE. */
@@ -93,7 +94,7 @@ public class Vars implements Loadable{
     public static final float itemSize = 5f;
     /** units outside this bound will die instantly */
     public static final float finalWorldBounds = 250;
-    /** range for building */
+    /** default range for building */
     public static final float buildingRange = 220f;
     /** range for moving items */
     public static final float itemTransferRange = 220f;
@@ -111,6 +112,7 @@ public class Vars implements Loadable{
     public static final float coreLandDuration = 160f;
     /** size of tiles in units */
     public static final int tilesize = 8;
+    public static final float tilesizeF = tilesize;
     /** size of one tile payload (^2) */
     public static final float tilePayload = tilesize * tilesize;
     /** icon sizes for UI */
@@ -142,12 +144,16 @@ public class Vars implements Loadable{
     public static final int port = 6567;
     /** multicast discovery port.*/
     public static final int multicastPort = 20151;
+    /** Maximum char length of mod subtitles in browser/viewer. */
+    public static final int maxModSubtitleLength = 40;
     /** multicast group for discovery.*/
     public static final String multicastGroup = "227.2.7.7";
     /** whether the graphical game client has loaded */
     public static boolean clientLoaded = false;
     /** max GL texture size */
     public static int maxTextureSize = 2048;
+    /** Maximum schematic size.*/
+    public static int maxSchematicSize = 1024;
     /** Whether to show sector info upon landing. */
     public static boolean showSectorLandInfo = true;
     /** Whether to check for memory use before taking screenshots. */
@@ -168,8 +174,6 @@ public class Vars implements Loadable{
     public static boolean headless;
     /** whether steam is enabled for this game */
     public static boolean steam;
-    /** whether typing into the console is enabled - developers only */ // Hi, I'm buthed and I'm a "developer" -buthed010203 9/6/21
-    public static boolean enableConsole = true;
     /** whether to clear sector saves when landing */
     public static boolean clearSectors = false;
     /** whether any light rendering is enabled */
@@ -213,6 +217,9 @@ public class Vars implements Loadable{
     /** list of all locales that can be switched to */
     public static Locale[] locales;
 
+    //the main executor will only have at most [cores] number of threads active
+    public static ExecutorService mainExecutor = Threads.executor("Main Executor", OS.cores);
+
     public static FileTree tree = new FileTree();
     public static Net net;
     public static ContentLoader content;
@@ -225,7 +232,7 @@ public class Vars implements Loadable{
     public static BeControl becontrol;
     public static AsyncCore asyncCore;
     public static BaseRegistry bases;
-    public static GlobalConstants constants;
+    public static GlobalVars logicVars;
     public static MapEditor editor;
     public static GameService service = new GameService();
 
@@ -235,6 +242,8 @@ public class Vars implements Loadable{
     public static WaveSpawner spawner;
     public static BlockIndexer indexer;
     public static Pathfinder pathfinder;
+    public static ControlPathfinder controlPath;
+    public static FogControl fogControl;
 
     public static Control control;
     public static Logic logic;
@@ -244,7 +253,7 @@ public class Vars implements Loadable{
     public static NetClient netClient;
 
     public static Player player;
-    public static boolean drawCursors, wasDrawingCursors; // Client debug magic
+    public static boolean drawCursors, wasDrawingCursors; // Client debug magic FINISHME: Re-implement
 
     @Override
     public void loadAsync(){
@@ -258,8 +267,9 @@ public class Vars implements Loadable{
         if(loadLocales){
             //load locales
             String[] stra = Core.files.internal("locales").readString().split("\n");
-            locales = new Locale[stra.length];
-            for(int i = 0; i < locales.length; i++){
+            int len = stra.length;
+            locales = new Locale[len + 1];
+            for(int i = 0; i < len; i++){
                 String code = stra[i];
                 if(code.contains("_")){
                     locales[i] = new Locale(code.split("_")[0], code.split("_")[1]);
@@ -268,11 +278,15 @@ public class Vars implements Loadable{
                 }
             }
 
-            Arrays.sort(locales, Structs.comparing(l -> l.getDisplayName(l), String.CASE_INSENSITIVE_ORDER));
-            locales = Seq.with(locales).and(new Locale("router")).toArray(Locale.class);
+            Arrays.sort(locales, 0, len, Structs.comparing(LanguageDialog::getDisplayName, String.CASE_INSENSITIVE_ORDER));
+            locales[len] = new Locale("router");
         }
 
         CacheLayer.init();
+
+        if(!headless){
+            Log.info("[Mindustry] Version: @", Version.buildString());
+        }
 
         dataDirectory = settings.getDataDirectory();
         screenshotDirectory = dataDirectory.child("screenshots/");
@@ -301,13 +315,16 @@ public class Vars implements Loadable{
         spawner = new WaveSpawner();
         indexer = new BlockIndexer();
         pathfinder = new Pathfinder();
+        controlPath = new ControlPathfinder();
+        fogControl = new FogControl();
         bases = new BaseRegistry();
-        constants = new GlobalConstants();
+        logicVars = new GlobalVars();
         drawCursors = settings.getBool("drawcursors");
         javaPath =
             new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
-            Core.files.local("jre/bin/java").exists() ? Core.files.local("jre/bin/java").absolutePath() :
-            "java";
+            Core.files.local("jre/bin/java").exists() ? Core.files.local("jre/bin/java").absolutePath() : // Unix
+            Core.files.local("jre/bin/java.exe").exists() ? Core.files.local("jre/bin/java.exe").absolutePath() : // Windows
+            "java"; // Fallback
 
         state = new GameState();
 
@@ -352,29 +369,31 @@ public class Vars implements Loadable{
         String[] tags = {"[green][D][]", "[royal][I][]", "[yellow][W][]", "[scarlet][E][]", ""};
         String[] stags = {"&lc&fb[D]", "&lb&fb[I]", "&ly&fb[W]", "&lr&fb[E]", ""};
 
-        LinkedList<String> logBuffer = new LinkedList<>();
+        Seq<String>[] logBuffer = new Seq[]{new Seq<>()};
         Log.logger = (level, text) -> {
-            String result = text;
             String rawText = Log.format(stags[level.ordinal()] + "&fr " + text);
             System.out.println(rawText);
-
-            result = tags[level.ordinal()] + " " + result;
-
-            if(!headless && (ui == null || ui.scriptfrag == null)){
-                logBuffer.add(result);
-            }else if(!headless){
-                if(!OS.isWindows){
-                    for(String code : ColorCodes.values){
-                        result = result.replace(code, "");
+            String result = tags[level.ordinal()] + " " + text;
+            synchronized(logBuffer){
+                if(logBuffer[0] != null && !headless && (ui == null || ui.consolefrag == null)){
+                    logBuffer[0].add(result);
+                }else if(!headless){
+                    if(!OS.isWindows){
+                        for(String code : ColorCodes.values){
+                            result = result.replace(code, "");
+                        }
                     }
-                }
 
-                ui.scriptfrag.addMessage(Log.removeColors(result));
+                    ui.consolefrag.addMessage(Log.removeColors(result));
+                }
             }
         };
 
         Events.on(ClientLoadEvent.class, e -> {
-            while(!logBuffer.isEmpty()) ui.scriptfrag.addMessage(logBuffer.removeFirst()); // Saves like 1 byte
+            synchronized(logBuffer){
+                logBuffer[0].each(ui.consolefrag::addMessage);
+                logBuffer[0] = null;
+            }
         });
 
         loadedLogger = true;
@@ -388,7 +407,6 @@ public class Vars implements Loadable{
         try{
             Writer writer = settings.getDataDirectory().child("last_log.txt").writer(false);
             LogHandler log = Log.logger;
-            //ignore it
             Log.logger = (level, text) -> {
                 log.log(level, text);
 
@@ -420,11 +438,12 @@ public class Vars implements Loadable{
         keybinds.setDefaults(Binding.values());
         settings.setAutosave(false);
         settings.load();
-        Core.app.post(() -> { // Set settings vars
+        Core.app.post(() -> { // Set settings vars FINISHME: Move this awfulness
             UnitType.drawAllItems = settings.getBool("drawallitems");
             UnitType.formationAlpha = settings.getInt("formationopacity") / 100f;
             UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f;
         });
+        if(Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug;
 
         Scl.setProduct(settings.getInt("uiscale", 100) / 100f);
 
@@ -466,7 +485,7 @@ public class Vars implements Loadable{
             Core.bundle = I18NBundle.createBundle(handle, locale);
 
             //router
-            if(locale.getDisplayName().equals("router")){
+            if(locale.toString().equals("router")){
                 bundle.debug("router");
             }
 

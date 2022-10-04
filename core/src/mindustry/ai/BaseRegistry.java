@@ -33,14 +33,15 @@ public class BaseRegistry{
     }
 
     public void load(){
+        long last = Time.nanos();
         cores.clear();
         parts.clear();
         reqParts.clear();
 
         //load ore types and corresponding items
         for(Block block : content.blocks()){
-            if(block instanceof OreBlock && block.asFloor().itemDrop != null){
-                ores.put(block.asFloor().itemDrop, (OreBlock)block);
+            if(block instanceof OreBlock ore && ore.itemDrop != null && !ore.wallOre && !ores.containsKey(ore.itemDrop)){
+                ores.put(ore.itemDrop, ore);
             }else if(block.isFloor() && block.asFloor().itemDrop != null && !oreFloors.containsKey(block.asFloor().itemDrop)){
                 oreFloors.put(block.asFloor().itemDrop, block.asFloor());
             }
@@ -111,6 +112,7 @@ public class BaseRegistry{
         cores.sort(b -> b.tier);
         parts.sort();
         reqParts.each((key, arr) -> arr.sort());
+        Log.warn("Took @ms", Time.timeSinceNanos(last)/Time.nanosPerMilli);
     }
 
     public static class BasePart implements Comparable<BasePart>{

@@ -4,18 +4,19 @@ import arc.*;
 import arc.assets.*;
 import arc.assets.loaders.*;
 import arc.audio.*;
+import arc.files.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.struct.*;
 import arc.util.*;
-import arc.util.async.*;
+import kotlin.*;
 import mindustry.ai.*;
 import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
-import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.maps.*;
 import mindustry.mod.*;
@@ -35,6 +36,13 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
     @Override
     public void setup(){
+//        Threads.daemon("Class Preloader", () -> {
+//            try {
+//                Class.forName("mindustry.gen.EntityMapping");
+//            } catch (ClassNotFoundException e) {
+//                throw new RuntimeException(e);
+//            }
+//        });
         String dataDir = OS.env("MINDUSTRY_DATA_DIR");
         if(dataDir != null){
             Core.settings.setDataDirectory(files.absolute(dataDir));
@@ -57,6 +65,9 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         Log.info("[GL] Using @ context.", gl30 != null ? "OpenGL 3" : "OpenGL 2");
         if(maxTextureSize < 4096) Log.warn("[GL] Your maximum texture size is below the recommended minimum of 4096. This will cause severe performance issues.");
         Log.info("[JAVA] Version: @", OS.javaVersion);
+        if(Core.app.isAndroid()){
+            Log.info("[ANDROID] API level: @", Core.app.getVersion());
+        }
         long ram = Runtime.getRuntime().maxMemory();
         boolean gb = ram >= 1024 * 1024 * 1024;
         Log.info("[RAM] Available: @ @", Strings.fixed(gb ? ram / 1024f / 1024 / 1024f : ram / 1024f / 1024f, 1), gb ? "GB" : "MB");
@@ -72,12 +83,71 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         assets.setLoader(Texture.class, "." + mapExtension, new MapPreviewLoader());
 
         tree = new FileTree();
-        assets.setLoader(Sound.class, new SoundLoader(tree));
-        assets.setLoader(Music.class, new MusicLoader(tree));
+        assets.setLoader(Sound.class, new SoundLoader(tree){
+            @Override
+            public void loadAsync(AssetManager manager, String fileName, Fi file, SoundParameter parameter){
+
+            }
+
+            @Override
+            public Sound loadSync(AssetManager manager, String fileName, Fi file, SoundParameter parameter){
+                if(parameter != null && parameter.sound != null){
+                    mainExecutor.submit(() -> parameter.sound.load(file));
+
+                    return parameter.sound;
+                }else{
+                    Sound sound = new Sound();
+
+                    mainExecutor.submit(() -> {
+                        try{
+                            sound.load(file);
+                        }catch(Throwable t){
+                            Log.err("Error loading sound: " + file, t);
+                        }
+                    });
+
+                    return sound;
+                }
+            }
+        });
+        assets.setLoader(Music.class, new MusicLoader(tree){
+            @Override
+            public void loadAsync(AssetManager manager, String fileName, Fi file, MusicParameter parameter){
+
+            }
+
+            @Override
+            public Music loadSync(AssetManager manager, String fileName, Fi file, MusicParameter parameter){
+                if(parameter != null && parameter.music != null){
+                    mainExecutor.submit(() -> {
+                        try{
+                            parameter.music.load(file);
+                        }catch(Throwable t){
+                            Log.err("Error loading music: " + file, t);
+                        }
+                    });
+
+                    return parameter.music;
+                }else{
+                    Music music = new Music();
+
+                    mainExecutor.submit(() -> {
+                        try{
+                            music.load(file);
+                        }catch(Throwable t){
+                            Log.err("Error loading music: " + file, t);
+                        }
+                    });
+
+                    return music;
+                }
+            }
+        });
 
         assets.load("sprites/error.png", Texture.class);
         atlas = TextureAtlas.blankAtlas();
         Vars.net = new Net(platform.getNet());
+        MapPreviewLoader.setupLoaders();
         mods = new Mods();
         schematics = new Schematics();
 
@@ -90,9 +160,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         //load fallback atlas if max texture size is below 4096
         assets.load(new AssetDescriptor<>(maxTextureSize >= 4096 ? "sprites/sprites.aatls" : "sprites/fallback/sprites.aatls", TextureAtlas.class)).loaded = t -> atlas = t;
         assets.loadRun("maps", Map.class, () -> maps.loadPreviews());
-
-        Musics.load();
-        Sounds.load();
 
         assets.loadRun("contentcreate", Content.class, () -> {
             content.createBaseContent();
@@ -116,6 +183,9 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
         assets.loadRun("contentinit", ContentLoader.class, () -> content.init(), () -> content.load());
         assets.loadRun("baseparts", BaseRegistry.class, () -> {}, () -> bases.load());
+
+//        Musics.load(); Loaded in clientlogic instead
+//        Sounds.load();
     }
 
     @Override
@@ -146,6 +216,19 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 loader.draw();
             }
             if(assets.update(1000 / loadingFPS)){
+                if(OS.hasProp("debug")){
+                    var sorted = new PQueue<>(12, Structs.comparingFloat(Pair<String, Float>::getSecond));
+                    int[] length = {0};
+                    assets.done.each((a, t) -> {
+                        sorted.add(new Pair<>(a, t));
+                        length[0] = Math.max(length[0], a.length());
+                    });
+                    Pair<String, Float> h;
+                    Log.warn("Listing assets from fastest to slowest");
+                    while((h = sorted.poll()) != null) {
+                        System.out.printf("%" + length[0] + "s | %s\n", h.getFirst(), h.getSecond());
+                    }
+                }
                 loader.dispose();
                 loader = null;
                 Log.info("Total time to load: @ms", Time.timeSinceMillis(beginTime));
@@ -154,16 +237,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 }
                 mods.eachClass(Mod::init);
                 finished = true;
-                var event = new ClientLoadEvent();
-                //a temporary measure for compatibility with certain mods
-                Events.fireWrap(event.getClass(), event, listener -> {
-                    try{
-                        listener.get(event);
-                    }catch(NoSuchFieldError | NoSuchMethodError | NoClassDefFoundError error){
-                        Log.err(error);
-                    }
-
-                });
+                Events.fire(new ClientLoadEvent());
                 clientLoaded = true;
                 super.resize(graphics.getWidth(), graphics.getHeight());
                 app.post(() -> app.post(() -> app.post(() -> app.post(() -> {
@@ -177,7 +251,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             asyncCore.begin();
 
             super.update();
-            Client.INSTANCE.update();
 
             asyncCore.end();
         }

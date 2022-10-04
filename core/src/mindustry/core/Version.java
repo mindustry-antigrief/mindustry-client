@@ -22,6 +22,8 @@ public class Version{
     public static boolean enabled = true;
     /** Foo's update url used for... updating */
     public static String updateUrl = "";
+    /** Foo's asset repo, commit ref used for downloading muic on the go */
+    public static String assetUrl = "", assetRef = "";
     /** Foo's version string */
     public static String clientVersion = "v1.0.0, Jan. 1, 1970";
 
@@ -37,6 +39,8 @@ public class Version{
         PropertiesUtils.load(map, file.reader());
 
         updateUrl = map.get("updateUrl");
+        assetUrl = map.get("assetUrl");
+        assetRef = map.get("assetRef");
         clientVersion = map.get("clientVersion");
         type = map.get("type");
         number = Integer.parseInt(map.get("number", "4"));
@@ -57,8 +61,13 @@ public class Version{
         }
     }
 
-    /** @return whether the version is greater than the specified version string, e.g. "120.1"*/
+    /** @return whether the current game version is greater than the specified version string, e.g. "120.1"*/
     public static boolean isAtLeast(String str){
+        return isAtLeast(build, revision, str);
+    }
+
+    /** @return whether the version numbers are greater than the specified version string, e.g. "120.1"*/
+    public static boolean isAtLeast(int build, int revision, String str){
         if(build <= 0 || str == null || str.isEmpty()) return true;
 
         int dot = str.indexOf('.');

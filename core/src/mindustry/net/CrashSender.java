@@ -26,8 +26,11 @@ public class CrashSender{
         + "Version: " + Version.combined() + (Vars.headless ? " (Server)" : "") + "\n"
         + "Source: " + settings.getString("updateurl") + "\n"
         + "OS: " + OS.osName + " x" + (OS.osArchBits) + " (" + OS.osArch + ")\n"
+        + ((OS.isAndroid || OS.isIos) && app != null ? "Android API level: " + Core.app.getVersion() + "\n" : "")
         + "Java Version: " + OS.javaVersion + "\n"
-        + (mods == null ? "<no mod init>" : "Mods: " + (!mods.list().contains(LoadedMod::shouldBeEnabled) ? "none (vanilla)" : mods.list().select(LoadedMod::shouldBeEnabled).toString(", ", mod -> mod.name + ":" + mod.meta.version)))
+        + "Runtime Available Memory: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "mb\n"
+        + "Cores: " + Runtime.getRuntime().availableProcessors() + "\n"
+        + (mods == null ? "<no mod init>" : "Mods: " + (!mods.list().contains(LoadedMod::enabled) ? "none (vanilla)" : mods.list().select(LoadedMod::shouldBeEnabled).toString(", ", mod -> mod.name + ":" + mod.meta.version)))
         + "\n\n" + error + "```";
     }
 
@@ -54,7 +57,7 @@ public class CrashSender{
             }catch(Throwable ignored){}
 
             //don't create crash logs for custom builds, as it's expected
-            if(Version.build == -1 || (OS.username.equals("anuke") && !"steam".equals(Version.modifier))){
+            if(OS.username.equals("anuke") && !"steam".equals(Version.modifier)){
                 ret();
             }
 
@@ -83,7 +86,7 @@ public class CrashSender{
             try{
                 File file = new File(OS.getAppDataDirectoryString(Vars.appName), "crashes/crash-report-" + new SimpleDateFormat("MM_dd_yyyy_HH_mm_ss").format(new Date()) + ".txt");
                 new Fi(OS.getAppDataDirectoryString(Vars.appName)).child("crashes").mkdirs();
-                new Fi(file).writeString(createReport(parseException(exception)));
+                new Fi(file).writeString(createReport(writeException(exception)));
                 writeListener.get(file);
             }catch(Throwable e){
                 Log.err("Failed to save local crash report.", e);
@@ -167,17 +170,10 @@ public class CrashSender{
         System.exit(1);
     }
 
-    private static String parseException(Throwable e){
+    private static String writeException(Throwable e){
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         return sw.toString();
-    }
-
-    private static void ex(Runnable r){
-        try{
-            r.run();
-        }catch(Throwable ignored){
-        }
     }
 }

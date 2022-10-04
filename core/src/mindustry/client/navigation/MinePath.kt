@@ -6,33 +6,25 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.utils.*
-import mindustry.game.*
 import mindustry.gen.*
 import mindustry.type.*
 
-class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().type.mineItems, var cap: Int = Core.settings.getInt("minepathcap"), val newGame: Boolean = false) : Path() {
+class MinePath @JvmOverloads constructor(val items: Seq<Item> = player.unit().type.mineItems, var cap: Int = Core.settings.getInt("minepathcap"), val newGame: Boolean = false) : Path() {
     private var lastItem: Item? = null // Last item mined
     private var timer = Interval()
     private var coreIdle = false
 
-    companion object {
-        init {
-            Events.on(EventType.WorldLoadEvent::class.java) {
-                (Navigation.currentlyFollowing as? MinePath)?.lastItem = null // Reset on world load to prevent stupidity
-            }
-        }
-    }
     constructor(args: String) : this(Seq()) {
         val split = args.split("\\s".toRegex())
         for (a in split) {
             if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
-            else if (Strings.canParseInt(a)) cap = a.toInt().coerceAtLeast(0) // Specified cap, <= 0 results in infinite cap
-            else content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.apply(items::add) ?:
-            player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
+            else a.toIntOrNull()?.coerceAtLeast(0)?.also { cap = it } // Parse int arg as cap, <= 0 results in infinite cap
+            ?: content.items().find { a.equals(it.localizedName, true) && indexer.hasOre(it) }?.apply(items::add) // Parse item name
+            ?: player.sendMessage(Core.bundle.format("client.path.builder.invalid", a)) // Invalid argument
         }
 
         if (items.isEmpty) {
-            items = player.unit().type.mineItems
+            items.addAll(player.unit().type.mineItems)
             if (split.none { Strings.parseInt(it) > 0 }) player.sendMessage("client.path.miner.allinvalid".bundle())
         } else if (cap >= 0) {
             player.sendMessage(Core.bundle.format("client.path.miner.tobuild", items.joinToString(), if (cap == 0) "∞" else cap))
@@ -90,10 +82,10 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
         // mine
         } else {
             val tile = indexer.findClosestOre(player.unit(), item) // FINISHME: Ignore blocked tiles
-            player.unit().mineTile = tile
+            if (player.unit().validMine(tile) || tile == null) player.unit().mineTile = tile
             if (tile == null) return
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 3F)
-            if (player.dst(tile) > 2 * tilesize) goTo(tile, tilesize.toFloat()) // FINISHME: Distance based on formation radius rather than just moving super close
+            if (player.dst(tile) > 2 * tilesize) goTo(tile, tilesize.toFloat())
         }
     }
 

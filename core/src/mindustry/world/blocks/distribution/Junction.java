@@ -1,6 +1,5 @@
 package mindustry.world.blocks.distribution;
 
-import arc.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
@@ -18,23 +17,24 @@ public class Junction extends Block{
     public float speed = 26; //frames taken to go through this junction
     public int capacity = 6;
 
-    static Vec2 direction = new Vec2(tilesize, 0), baseOffset = setBaseOffset(Core.settings == null ? 0 : Core.settings.getInt("junctionview", 0));
+    // FINISHME: Rework to work with junctions with size >1
+    static final Vec2 direction = new Vec2(tilesize, 0), baseOffset = new Vec2();
     public static boolean drawItems = false;
 
     public Junction(String name){
         super(name);
         update = true;
-        solid = true;
+        solid = false;
+        underBullets = true;
         group = BlockGroup.transportation;
         unloadable = false;
         noUpdateDisabled = true;
     }
 
-    public static Vec2 setBaseOffset(int mode){ // -1 left, 0 disable, 1 right
+    public static void setBaseOffset(int mode){ // -1 left, 0 disable, 1 right
         drawItems = mode != 0;
         float y = -tilesize / 3.1f * mode;
-        return baseOffset = new Vec2(-tilesize/2f, y);
-        // for display on left, (0, tilesize / 3.1f) (given rot = 0);
+        baseOffset.set(-tilesize/2f, y);
     }
 
     @Override
@@ -52,7 +52,6 @@ public class Junction extends Block{
 
         @Override
         public void updateTile(){
-
             for(int i = 0; i < 4; i++){
                 if(buffer.indexes[i] > 0){
                     if(buffer.indexes[i] > capacity) buffer.indexes[i] = capacity;
@@ -60,7 +59,6 @@ public class Junction extends Block{
                     float time = BufferItem.time(l);
 
                     if(Time.time >= time + speed / timeScale || Time.time < time){
-
                         Item item = content.item(BufferItem.item(l));
                         Building dest = nearby(i);
 
@@ -111,7 +109,7 @@ public class Junction extends Block{
             if(!drawItems) return;
             Draw.z(Layer.blockOver);
             var realSpeed = speed * timeScale;
-            var iSize = (tilesize * size) / capacity;
+            var iSize = (tilesizeF * size) / capacity;
             var spacing = 1f / capacity;
             for(int i = 0; i < 4; i++){ // Code from zxtej
                 var last = 1f - spacing * .5f;

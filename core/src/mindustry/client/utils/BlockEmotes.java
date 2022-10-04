@@ -33,7 +33,7 @@ public class BlockEmotes implements Autocompleter {
     }
 
     public Seq<Autocompleteable> closest(String input) {
-        return emotes.sort(item -> item.matches(input)).map(item -> item);
+        return emotes.sort(item -> item.matches(input)).as();
     }
 
     private static class BlockEmote implements Autocompleteable {

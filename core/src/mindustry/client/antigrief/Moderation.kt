@@ -2,7 +2,9 @@ package mindustry.client.antigrief
 
 import arc.*
 import arc.util.*
+import arc.util.serialization.*
 import mindustry.*
+import mindustry.client.*
 import mindustry.client.ClientVars.*
 import mindustry.client.utils.*
 import mindustry.game.*
@@ -11,9 +13,53 @@ import mindustry.net.*
 import mindustry.ui.*
 import java.util.concurrent.*
 
-// FINISHME: Heavily work in progress mod logs
 class Moderation {
     private val traces = CopyOnWriteArrayList<Player>() // last people to leave
+
+    companion object {
+        init {
+            Vars.netClient.addPacketHandler("playerdata") { // Handles autostats from plugins
+                if (io() || phoenix()) {
+                    val json = JsonReader().parse(it)
+                    Log.info(json)
+
+                    fun String.i() = json.getInt(this, Int.MAX_VALUE)
+                    fun String.s() = json.getString(this, "unknown")
+
+                    val player = Groups.player.getByID("id".i()) ?: return@addPacketHandler
+                    val rank = "rank".i() // 0 for unranked, 1 for active, 2 for veteran etc
+                    if (player == Vars.player) ClientVars.rank = rank // Set rank var accordingly
+                    else if (rank == 0) { // If they're unranked, check if they're new
+                        val games = "games".i()
+                        val buildings = "buildings".i()
+                        val time = "playtime".i()
+                        val name = "realname".s()
+                        val ioid = "playercode".s()
+
+                        if (games < 3 || buildings < 1000 || time < 60) { // Low stat player; show a warning FINISHME: Settings for these values
+                            fun Int.s() = if (this == Int.MAX_VALUE) "unknown" else toString()
+                            Vars.ui.chatfrag.addMsg("[scarlet]Player $name [scarlet]($ioid) has ${games.s()} games, ${buildings.s()} builds, ${time.s()} mins")
+                                .addButton(name) { Spectate.spectate(player) }
+                                .addButton(ioid) { Call.sendChatMessage("/stats ${player.id}") }
+                        }
+                    }
+                }
+            }
+
+            Events.on(EventType.PlayerJoin::class.java) { e ->
+                if (e.player == Vars.player) return@on
+
+                if (Core.settings.getBool("autostats") && (io() || phoenix())) { // Makes use of a custom packet on io
+                    Call.serverPacketReliable("playerdata_by_id", e.player.id.toString())
+                }
+            }
+
+            Events.on(EventType.ServerJoinEvent::class.java) {
+                rank = -1 // reset rank on server join
+                if (io() || phoenix()) Call.serverPacketReliable("playerdata_by_id", Vars.player.id.toString()) // Stat trace self to get rank info
+            }
+        }
+    }
 
     init {
         Events.on(EventType.PlayerLeave::class.java) { e ->
@@ -55,9 +101,8 @@ class Moderation {
     fun leftList() {
         dialog("Leaves, newest first") {
             cont.pane {
-                for (i in traces.size - 1 downTo 0) {
-                    val player = traces[i]
-                    it.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace) }.wrapLabel(false).minWidth(100f)
+                for (player in traces.asReversed()) {
+                    it.button(player.name, Styles.nonet) { Vars.ui.traces.show(player, player.trace, true) }.wrapLabel(false).minWidth(100f)
                     it.row()
                 }
             }.growY()

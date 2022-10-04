@@ -36,8 +36,7 @@ jobs:
           echo EOF >> $GITHUB_ENV
 
           export PATH=./tools:$PATH
-          chmod +x ./tools/antialias
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" -PfastAA --parallel # Testing and building in parallel saves a few dozen seconds.
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" --parallel # Testing and building in parallel saves a few dozen seconds.
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() }}

@@ -13,32 +13,27 @@ import mindustry.ui.*;
 import mindustry.world.blocks.power.*;
 
 public class PowerInfo {
-
-    private static PowerGraph found = null;
-
-    public static void initialize() {}
+    private static PowerGraph found;
+    public static PowerGraph hovered;
+    public static final Seq<PowerGraph> graphs = new Seq<>();
 
     public static void update() {
-        if (PowerGraph.activeGraphs == null) return;
-        PowerGraph.activeGraphs.forEach(item -> {
-            if (item != null) {
-                item.updateActive();
-            }
-        });
-        ObjectSet<PowerGraph> graphs = PowerGraph.activeGraphs.select(item -> item != null && item.team == Vars.player.team());
-        found = graphs.asArray().max(g -> g.all.size);
+        found = graphs.max(g -> g.team == Vars.player.team(), g -> g.all.size);
+        var tile = Vars.control.input.cursorTile();
+        hovered = Core.settings.getBool("graphdisplay") && tile != null && tile.build instanceof PowerNode.PowerNodeBuild node ? node.power.graph : null;
     }
 
-    public static Element getBars(Table power) {
-
+    public static Element getBars(Table power) { // FINISHME: What in the world
         Bar powerBar = new MonospacedBar(
-                () -> Core.bundle.format("bar.powerbalance", found != null ? (found.powerBalance.rawMean() >= 0 ? "+" : "") + UI.formatAmount((int)(found.powerBalance.rawMean() * 60)) : "+0"),
-                () -> Pal.powerBar,
-                () -> found != null ? found.getSatisfaction() : 0);
+            () -> Core.bundle.format("bar.powerbalance", found != null ? (found.powerBalance.rawMean() >= 0 ? "+" : "") + UI.formatAmount((int)(found.getPowerBalance() * 60)) : "+0"),
+            () -> Pal.powerBar,
+            () -> found != null ? found.getSatisfaction() : 0
+        );
         Bar batteryBar = new MonospacedBar(
-                () -> Core.bundle.format("bar.powerstored", found != null ? UI.formatAmount((int)found.getLastPowerStored()) : 0, found != null ? UI.formatAmount((int)found.getLastCapacity()) : 0),
-                () -> Pal.powerBar,
-                () -> found != null ? Mathf.clamp(found.getLastPowerStored() / Math.max(found.getLastCapacity(), 0.0001f)) : 0);
+            () -> Core.bundle.format("bar.powerstored", found != null ? UI.formatAmount((long)found.getLastPowerStored()) : 0, found != null ? UI.formatAmount((long)found.getLastCapacity()) : 0),
+            () -> Pal.powerBar,
+            () -> found != null && found.getLastCapacity() != 0f ? Mathf.clamp(found.getLastPowerStored() / found.getLastCapacity()) : 0
+        );
 
         power.add(powerBar).height(18).growX().padBottom(6);
         power.row();

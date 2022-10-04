@@ -3,9 +3,9 @@ package mindustry.ui.fragments;
 import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.input.*;
 import arc.scene.*;
 import arc.scene.event.*;
+import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
@@ -13,6 +13,8 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
+import mindustry.client.utils.*;
+import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
@@ -21,14 +23,13 @@ import mindustry.ui.*;
 
 import static mindustry.Vars.*;
 
-public class PlayerListFragment extends Fragment{
+public class PlayerListFragment{
     public Table content = new Table().marginRight(13f).marginLeft(13f);
     private boolean visible = false;
     private final Interval timer = new Interval();
     private TextField search;
     private final Seq<Player> players = new Seq<>();
 
-    @Override
     public void build(Group parent){
         content.name = "players";
 
@@ -41,17 +42,13 @@ public class PlayerListFragment extends Fragment{
                     return;
                 }
 
-                if(visible && timer.get(5) && !Core.input.keyDown(KeyCode.mouseLeft) && !(Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof Image || Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof ImageButton)){
+                if(visible && timer.get(60) /*&& !Core.input.keyDown(KeyCode.mouseLeft) && !(Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof Image || Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof ImageButton)*/){
                     rebuild();
-                    content.pack();
-                    content.act(Core.graphics.getDeltaTime());
-                    //hacky
-                    Core.scene.act(0f);
                 }
             });
 
             cont.table(Tex.buttonTrans, pane -> {
-                pane.label(() -> Core.bundle.format("players" + (Groups.player.size() == 1 && (ui.join.lastHost == null || ui.join.lastHost.playerLimit <= 0) ? ".single" : ""), Groups.player.size() + (ui.join.lastHost != null && ui.join.lastHost.playerLimit > 0 ? " / " + ui.join.lastHost.playerLimit : "")));
+                pane.label(() -> Core.bundle.format("players" + (Groups.player.size() == 1 && (ui.join.lastHost == null || ui.join.lastHost.playerLimit <= 0) ? ".single" : ""), Groups.player.size() + " (" + Groups.player.count(p -> p.fooUser) + Iconc.wrench + ") " + (ui.join.lastHost != null && ui.join.lastHost.playerLimit > 0 ? " / " + ui.join.lastHost.playerLimit : "")));
                 pane.row();
 
                 search = pane.field(null, text -> rebuild()).grow().pad(8).name("search").maxTextLength(maxNameLength).get();
@@ -70,7 +67,7 @@ public class PlayerListFragment extends Fragment{
                     menu.button("@close", this::toggle).get().getLabel().setWrap(false);
                 }).margin(0f).pad(10f).growX();
 
-            }).touchable(Touchable.enabled).margin(14f).minWidth(360f);
+            }).touchable(Touchable.enabled).margin(14f).minWidth(400f);
         });
 
         rebuild();
@@ -157,9 +154,9 @@ public class PlayerListFragment extends Fragment{
                     t.defaults().size(bs);
 
                     t.button(Icon.hammer, ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban",  user.name()), () -> Call.adminRequest(user, AdminAction.ban)));
+                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()), () -> Call.adminRequest(user, AdminAction.ban)));
                     t.button(Icon.cancel, ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick",  user.name()), () -> Call.adminRequest(user, AdminAction.kick)));
+                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick", user.name()), () -> Call.adminRequest(user, AdminAction.kick)));
 
                     t.row();
 
@@ -193,19 +190,28 @@ public class PlayerListFragment extends Fragment{
                 button.button(Icon.hammer, ustyle,
                 () -> {
                     ui.showConfirm("@confirm", Core.bundle.format("confirmvotekick",  user.name()), () -> {
-                        Call.sendChatMessage("/votekick " + user.name());
+                        Call.sendChatMessage("/votekick #" + user.id());
                     });
                 }).size(h/2);
             }
             if (user != player) {
                 button.button(Icon.copy, ustyle, // Assist/copy
-                        () -> Navigation.follow(new AssistPath(user, Core.input.shift(), Core.input.ctrl()))).size(h / 2).tooltip("@client.assist");
+                    () -> Navigation.follow(new AssistPath(user, !Core.input.ctrl(), Core.input.alt()))).size(h / 2).tooltip("@client.assist");
                 button.button(Icon.cancel, ustyle, // Unassist/block
-                        () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
+                    () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.move, ustyle, // Goto
-                        () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
+                    () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
                 button.button(Icon.zoom, ustyle, // Spectate/stalk
-                        () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).tooltip("@client.spectate");
+                    () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).tooltip("@client.spectate");
+            }
+
+            if (ClientUtils.io() && ClientVars.rank >= 4 || ClientUtils.phoenix() && ClientVars.rank >= 9) { // Apprentice+ on io, Colonel+ on phoenix
+                button.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon), ustyle,
+                    () -> ui.showConfirm("@confirm", Core.bundle.format("client.confirmfreeze", user.name()), () -> {
+                        if (ClientVars.rank == 4 && ClientUtils.io()) Call.serverPacketReliable("freeze_by_id", String.valueOf(user.id));
+                        else Call.sendChatMessage("/freeze " + user.id); // Freeze command preferred since it actually has a response (io doesn't let apprentice run it for some reason)
+                    })
+                ).tooltip("@client.freeze");
             }
 
             content.add(button).padBottom(-6).width(700).maxHeight(h + 14);

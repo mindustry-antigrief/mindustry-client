@@ -1,4 +1,5 @@
 @file:Suppress("UNUSED")
+@file:JvmName("ClientUtils")
 
 package mindustry.client.utils
 
@@ -14,9 +15,12 @@ import mindustry.*
 import mindustry.client.*
 import mindustry.client.communication.*
 import mindustry.core.*
+import mindustry.game.*
 import mindustry.gen.*
+import mindustry.type.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
+import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.*
 import java.io.*
 import java.nio.*
@@ -29,6 +33,7 @@ import kotlin.contracts.*
 import kotlin.math.*
 
 /** Performs the given [block] with each element as its receiver. */
+@Suppress("OPT_IN_IS_NOT_ENABLED")
 @OptIn(ExperimentalContracts::class)
 inline fun <T, R>Iterable<T>.withEach(block: T.() -> R) {
     contract {
@@ -416,13 +421,16 @@ inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
 /** Send a signed message to chat. */
 fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))
 
+fun ChatMessage.findCoords(): ChatMessage = NetClient.findCoords(this)
 
-//inline fun <T> Seq<out T>.forEach(consumer: (T?) -> Unit) {
-//    for (i in 0 until size) consumer(items[i])
-//}
-//
-//inline fun <T> Seq<out T>.forEach(pred: (T?) -> Boolean, consumer: (T?) -> Unit) {
-//    for (i in 0 until size) {
-//        if (pred(items[i])) consumer(items[i])
-//    }
-//}
+fun ChatMessage.findLinks(): ChatMessage = NetClient.findLinks(this)
+
+fun findItem(arg: String): Item = Vars.content.items().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+
+fun findUnit(arg: String): UnitType = Vars.content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+
+fun findBlock(arg: String): Block = Vars.content.blocks().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+
+fun findTeam(arg: String): Team = if (arg.toIntOrNull() in 0 until Team.all.size) Team.all[arg.toInt()] else Team.all.minBy { t -> if (t.name == null) Float.MAX_VALUE else BiasedLevenshtein.biasedLevenshteinInsensitive(arg, t.localized()) }
+
+fun parseBool(arg: String) = arg.lowercase().startsWith("y") || arg.lowercase().startsWith("t") // FINISHME: This should probably just spit out an error on non y/n input

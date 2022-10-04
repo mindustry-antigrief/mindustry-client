@@ -13,6 +13,7 @@ import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
+import mindustry.core.*
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.game.Teams.*
@@ -67,7 +68,7 @@ object Main : ApplicationListener {
         Events.on(EventType.WorldLoadEvent::class.java) {
             if (!Vars.net.client()) { // This is so scuffed but shh
                 setPluginNetworking(false)
-                Call.serverPacketReliable("fooCheck", "")
+                NetServer.serverPacketReliable(Vars.player, "fooCheck", "") // Call locally
             }
             dispatchedBuildPlans.clear()
         }
@@ -84,6 +85,10 @@ object Main : ApplicationListener {
 
             ClientVars.pluginVersion = Strings.parseInt(version)
             setPluginNetworking(true)
+        }
+
+        Vars.netServer.addPacketHandler("pause") { p, _ ->
+            if (p.admin) Vars.state.serverPaused = !Vars.state.serverPaused
         }
 
         communicationClient.addListener { transmission, senderId ->
@@ -142,6 +147,7 @@ object Main : ApplicationListener {
                 is ImageTransmission -> {
                     val msg = findMessage(transmission.message) ?: return@addListener
                     msg.attachments.add(Image(Texture(transmission.image)))
+//                    transmission.image.dispose() FINISHME: The pixmap and texture really need to be disposed to prevent native memory leakage
                 }
             }
         }
@@ -193,7 +199,7 @@ object Main : ApplicationListener {
         val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
 
         communicationClient.send(signatures.signatureTransmission(
-            contentWithId.replace("^/[t|a] ".toRegex(), "").encodeToByteArray(),
+            NetClient.processCoords(contentWithId.replace("^/[t|a] ".toRegex(), ""), false).encodeToByteArray(),
             communicationSystem.id,
             msgId) ?: return contentWithId)
 
@@ -291,6 +297,7 @@ object Main : ApplicationListener {
         dispatchedBuildPlans.addAll(toSend)
     }
 
+    /** Singleplayer/host use only */
     private fun addBuildPlan(plan: BuildPlan) {
         if (plan.breaking) return
         if (plan.isDone) {
@@ -298,15 +305,15 @@ object Main : ApplicationListener {
             return
         }
 
-        val data: TeamData = Vars.player.team().data()
-        for (i in 0 until data.blocks.size) {
-            val b = data.blocks[i]
+        val data = Vars.player.team().data()
+        for (i in 0 until data.plans.size) {
+            val b = data.plans[i]
             if (b.x == plan.x.toShort() && b.y == plan.y.toShort()) {
-                data.blocks.removeIndex(i)
+                data.plans.removeIndex(i)
                 break
             }
         }
-        data.blocks.addFirst(BlockPlan(plan.x, plan.y, plan.rotation.toShort(), plan.block.id, plan.config))
+        data.plans.addFirst(BlockPlan(plan.x, plan.y, plan.rotation.toShort(), plan.block.id, plan.config))
     }
 
     private fun registerTlsListeners(commsClient: Packets.CommunicationClient, system: TlsCommunicationSystem) {
@@ -314,7 +321,14 @@ object Main : ApplicationListener {
             when (transmission) {
                 is MessageTransmission -> {
                     ClientVars.lastCertName = system.peer.expectedCert.readableName
-                    Vars.ui.chatfrag.addMessage(transmission.content, "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).run{ prefix = "${Iconc.ok} $prefix " }
+                    Vars.ui.chatfrag.addMessage(transmission.content,
+                        "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName
+                            ?: "you"),
+                        ClientVars.encrypted,
+                        "",
+                        transmission.content
+                    )
+                        .run{ prefix = "${Iconc.ok} $prefix " }
                 }
 
                 is CommandTransmission -> {
@@ -324,7 +338,4 @@ object Main : ApplicationListener {
             }
         }
     }
-
-    /** Run when the object is disposed. */
-    override fun dispose() {}
 }
