@@ -3,7 +3,7 @@ buildscript{
         arcHash = new Properties().with{ p -> p.load(file('gradle.properties').newReader()); return p }["archash"]
 
         localArc = { // TODO Shouldn't this just be a boolean?
-            return !project.hasProperty("release") && new File(rootDir.parent, 'Arc').exists()
+            return !project.hasProperty("release") && new File(rootDir.parent, 'Arc').exists() && !project.hasProperty("noLocalArc")
         }
 
         arcModule = { String name ->
