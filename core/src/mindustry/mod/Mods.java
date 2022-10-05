@@ -41,6 +41,7 @@ public class Mods implements Loadable{
     private ObjectSet<String> specialFolders = ObjectSet.with("bundles", "sprites", "sprites-override");
 
     private int totalSprites;
+    private static ObjectFloatMap<String> textureResize = new ObjectFloatMap<>();
     private MultiPacker packer;
     private ModClassLoader mainLoader = new ModClassLoader(getClass().getClassLoader());
 
@@ -87,7 +88,7 @@ public class Mods implements Loadable{
 
     /** @return the loaded mod found by class, or null if not found. */
     public @Nullable LoadedMod getMod(Class<? extends Mod> type){
-        return mods.find(m -> m.enabled() && m.main != null && m.main.getClass() == type);
+        return mods.find(m -> m.main != null && m.main.getClass() == type);
     }
 
     /** Imports an external mod file. Folders are not supported here. */
@@ -198,7 +199,8 @@ public class Mods implements Loadable{
     }
 
     private void packSprites(Seq<Fi> sprites, LoadedMod mod, boolean prefix, Seq<Future<Runnable>> tasks){
-        boolean bleed = !mod.meta.prebled && Core.settings.getBool("linear", true);
+        boolean bleed = Core.settings.getBool("linear", true) && !mod.meta.pregenerated;
+        float textureScale = mod.meta.texturescale;
 
         for(Fi file : sprites){
             String name = file.nameWithoutExtension();
@@ -230,8 +232,12 @@ public class Mods implements Loadable{
                         Pixmaps.bleed(pix, 2);
                     }
                     //this returns a *runnable* which actually packs the resulting pixmap; this has to be done synchronously outside the method
-                    return () -> { // FINISHME: These shouldn't be handled on the main thread.
-                        packer.add(page, (prefix ? mod.name + "-" : "") + name, new PixmapRegion(pix));
+                    return () -> {
+                        String fullName = (prefix ? mod.name + "-" : "") + name;
+                        packer.add(getPage(file), fullName, new PixmapRegion(pix));
+                        if(textureScale != 1.0f){
+                            textureResize.put(fullName, textureScale);
+                        }
                         pix.dispose();
                     };
                 }catch(Exception e){
@@ -356,7 +362,7 @@ public class Mods implements Loadable{
                     if(c instanceof UnlockableContent u && c.minfo.mod != null){
                         u.load();
                         u.loadIcon();
-                        if(u.generateIcons){
+                        if(u.generateIcons && !c.minfo.mod.meta.pregenerated){
                             u.createIcons(packer);
                         }
                     }
@@ -364,14 +370,17 @@ public class Mods implements Loadable{
             }
             Log.debug("Time to generate icons: @", Time.elapsed());
 
-            packer.printStats();
-
             //dispose old atlas data
             Time.mark();
             Core.atlas = packer.flush(filter, new TextureAtlas());
             Log.debug("Sprite flush took: @", Time.elapsed());
 
+            textureResize.each(e -> Core.atlas.find(e.key).scale = e.value);
+
             Core.atlas.setErrorRegion("error");
+            Log.debug("Total pages: @", Core.atlas.getTextures().size);
+
+            packer.printStats();
         }
         packer.dispose();
         packer = null;
@@ -1170,8 +1179,10 @@ public class Mods implements Loadable{
         public boolean java;
         /** If true, -outline regions for units are kept when packing. Only use if you know exactly what you are doing. */
         public boolean keepOutlines;
-        /** If true, sprites are assumed to be pre-bled and won't be bled on startup. Useful for texture packs or mods with lots of sprites. */
-        public boolean prebled;
+        /** To rescale textures with a different size. Represents the size in pixels of the sprite of a 1x1 block. */
+        public float texturescale = 1.0f;
+        /** If true, bleeding is skipped and no content icons are generated. */
+        public boolean pregenerated;
 
         public String displayName(){
             return displayName == null ? name : displayName;
@@ -1205,6 +1216,7 @@ public class Mods implements Loadable{
                     ", minGameVersion='" + minGameVersion + '\'' +
                     ", hidden=" + hidden +
                     ", repo=" + repo +
+                    ", texturescale=" + texturescale +
                     '}';
         }
     }

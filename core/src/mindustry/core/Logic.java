@@ -42,6 +42,9 @@ public class Logic implements ApplicationListener{
 
     public Logic(){
         Events.on(BlockDestroyEvent.class, event -> {
+            //skip if rule is off
+            if(!state.rules.ghostBlocks) return;
+
             //blocks that get broken are appended to the team's broken block queue
             Tile tile = event.tile;
             //skip null entities or un-rebuildables, for obvious reasons
@@ -220,11 +223,12 @@ public class Logic implements ApplicationListener{
         Events.fire(new PlayEvent());
 
         //add starting items
-        if(!state.isCampaign()){
+        if(!state.isCampaign() || !state.rules.sector.planet.allowLaunchLoadout || (state.rules.sector.preset != null && state.rules.sector.preset.addStartingItems)){
             for(TeamData team : state.teams.getActive()){
                 if(team.hasCore()){
                     CoreBuild entity = team.core();
                     entity.items.clear();
+
                     for(ItemStack stack : state.rules.loadout){
                         //make sure to cap storage
                         entity.items.add(stack.item, Math.min(stack.amount, entity.storageCapacity - entity.items.get(stack.item)));

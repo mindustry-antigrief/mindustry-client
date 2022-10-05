@@ -99,14 +99,12 @@ public class PowerNode extends PowerBlock{
 
             //clear old
             for(int i = 0; i < old.size; i++){
-                int cur = old.get(i);
-                configurations.get(Integer.class).get(tile, cur);
+                configurations.get(Integer.class).get(tile, old.get(i));
             }
 
             //set new
             for(Point2 p : value){
-                int newPos = Point2.pack(p.x + tile.tileX(), p.y + tile.tileY());
-                configurations.get(Integer.class).get(tile, newPos);
+                configurations.get(Integer.class).get(tile, Point2.pack(p.x + tile.tileX(), p.y + tile.tileY()));
             }
         });
     }
@@ -421,6 +419,14 @@ public class PowerNode extends PowerBlock{
         public long timeout = Time.millis();
 
         public static int fixNode = Core.settings.getInt("nodeconf");
+
+        @Override
+        public void created(){ // Called when one is placed/loaded in the world
+            if(autolink && laserRange > maxRange) maxRange = laserRange;
+
+            super.created();
+        }
+
 
         @Override
         public void placed(){

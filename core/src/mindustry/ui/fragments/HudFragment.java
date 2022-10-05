@@ -981,7 +981,7 @@ public class HudFragment{
     }
 
     private boolean canSkipWave(){
-        return state.rules.waves && (state.rules.winWave <= 0 || state.wave < state.rules.winWave) && ((net.server() || player.admin) || !net.active()) /* && state.enemies == 0 && !spawner.isSpawning() */;
+        return state.rules.waves && state.rules.waveSending && ((net.server() || player.admin) || !net.active()) && state.enemies == 0 && !spawner.isSpawning();
     }
 
 }
