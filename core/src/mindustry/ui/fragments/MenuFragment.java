@@ -229,22 +229,22 @@ public class MenuFragment{
                     new MenuButton("@customgame", Icon.terrain, () -> checkPlay(ui.custom::show)),
                     new MenuButton("@loadgame", Icon.download, () -> checkPlay(ui.load::show))
                 ),
-                new Buttoni("@client", Icon.wrench,
-                    new Buttoni("Discord", Icon.discord, () -> { // Link to client discord
+                new MenuButton("@client", Icon.wrench,
+                    new MenuButton("Discord", Icon.discord, () -> { // Link to client discord
                         if (!Core.app.openURI(clientDiscord)) {
                             ui.showErrorMessage("@linkfail");
                             Core.app.setClipboardText(clientDiscord);
                         }
                     }),
-                    new Buttoni("Github", Icon.github, () -> { // Link to client github
+                    new MenuButton("Github", Icon.github, () -> { // Link to client github
                         if (!Core.app.openURI("https://github.com/blahblahbloopster/mindustry-client-v6")) {
                             ui.showErrorMessage("@linkfail");
                             Core.app.setClipboardText("https://github.com/blahblahbloopster/mindustry-client-v6");
                         }
                     }),
-                    new Buttoni("@client.changelog", Icon.edit, ChangelogDialog.INSTANCE::show),
-                    new Buttoni("@client.features", Icon.list, FeaturesDialog.INSTANCE::show),
-                    new Buttoni("@client.keyshare", Icon.lock, () -> new TLSKeyDialog().show())
+                    new MenuButton("@client.changelog", Icon.edit, ChangelogDialog.INSTANCE::show),
+                    new MenuButton("@client.features", Icon.list, FeaturesDialog.INSTANCE::show),
+                    new MenuButton("@client.keyshare", Icon.lock, () -> new TLSKeyDialog().show())
                 ), // End of client section
                 new MenuButton("@database.button", Icon.menu,
                     new MenuButton("@schematics", Icon.paste, ui.schematics::show),

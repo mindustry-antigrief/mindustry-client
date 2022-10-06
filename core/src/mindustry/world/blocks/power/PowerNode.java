@@ -441,13 +441,6 @@ public class PowerNode extends PowerBlock{
             super.placed();
         }
 
-        @Override
-        public void created(){ // Called when one is placed/loaded in the world
-            if(autolink && laserRange > maxRange) maxRange = laserRange;
-
-            super.created();
-        }
-
 //        @Override
 //        public void playerPlaced(Object config) { FINISHME: Make this work, maybe an IntObjectMap with Entry<pos, Seq<linkPos>>
 //            super.playerPlaced(config);

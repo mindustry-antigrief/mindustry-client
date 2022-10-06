@@ -34,7 +34,7 @@ if(hasSdk){
 
 if(!hasProperty("release") && !hasProperty("noLocalArc")){
     if(new File(rootDir.parent, 'Arc').exists()) {
-        println("Compiling with localArc")
+        println("Compiling with localArc is temporarily broken, please use -PnoLocalArc")
         includeBuild("../Arc")
     }
 
