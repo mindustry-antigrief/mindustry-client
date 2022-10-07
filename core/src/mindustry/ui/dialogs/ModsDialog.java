@@ -369,9 +369,9 @@ public class ModsDialog extends BaseDialog{
                     args.addAll("-jar", jar.absolutePath());
 
                     Runtime.getRuntime().exec(args.toArray());
-                    Core.app.exit();
                 }catch(Exception ignored){} // If we can't find java, just close the game
             }
+            Core.app.exit();
         });
     }
 
