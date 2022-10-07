@@ -134,9 +134,11 @@ public class FileTree implements FileHandleResolver{
         var req = Http.get("https://raw.githubusercontent.com/" + Version.assetUrl + '/' + Version.assetRef  + "/core/assets/" + path);
         req.error(e -> {
             if(e instanceof UnknownHostException){ // Likely Wi-Fi skill issue
-                if(!notified) Core.app.post(() -> Vars.ui.showErrorMessage("@client.audiofail")); // Display at most one dialog
-                if(cached.exists()) audio.loadDirectly(cached); // Use outdated cached audio if it exists, it's better than silence
-                notified = true;
+                Core.app.post(() -> {
+                    if(!notified) Vars.ui.showErrorMessage("@client.audiofail"); // Display at most one dialog
+                    if(cached.exists()) audio.loadDirectly(cached); // Use outdated cached audio if it exists, it's better than silence
+                    notified = true;
+                });
                 return;
             }
             Log.debug(clazz + " downloading failed for @ retrying", fi.name());

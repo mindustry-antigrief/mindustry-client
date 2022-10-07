@@ -32,8 +32,7 @@ jobs:
           format: "[${{env.SLUG}}], MMM. D, YYYY [Unstable]" # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
 
       - name: Run Tests
-        run: |
-          ./gradlew tests:cleanTest tools:pack tests:test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client-v7-builds -PassetUrl=mindustry-antigrief/mindustry-client -PassetRef=${{ env.SLUG }} -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
+        run: ./gradlew tests:cleanTest tools:pack tests:test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client-v7-builds -PassetUrl=mindustry-antigrief/mindustry-client -PassetRef=${{ env.SLUG }} -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
 
       - name: Create Release
         if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && github.ref == 'refs/heads/v7' }}
@@ -64,6 +63,21 @@ jobs:
           asset_path: desktop/build/libs/Mindustry.jar
           asset_name: desktop.jar
           asset_content_type: application/zip
+
+      - name: Add Audio To Jar
+        run: jar uf desktop/build/libs/Mindustry.jar -C core/assets sounds -C core/assets music
+
+      - name: Upload Release Asset With Audio
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && github.ref == 'refs/heads/v7' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release_v7.outputs.upload_url }}
+          asset_path: desktop/build/libs/Mindustry.jar
+          asset_name: desktopWithAudio.jar
+          asset_content_type: application/zip
+
 
       - name: Upload Artifact (No release was made)
         if: ${{ !(github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v7' || github.event_name == 'workflow_dispatch')) }}
