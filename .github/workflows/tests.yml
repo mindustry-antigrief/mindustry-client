@@ -64,6 +64,20 @@ jobs:
           asset_path: desktop/build/libs/Mindustry.jar
           asset_name: desktop.jar
           asset_content_type: application/zip
+          
+      - name: Add Audio To Jar
+        run: jar uf desktop/build/libs/Mindustry.jar -C core/assets sounds -C core/assets music
+        
+      - name: Upload Release Asset With Audio
+        if: ${{ github.repository == 'stormybytes/mindustry-client' && github.ref == 'refs/heads/main' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release_v7.outputs.upload_url }}
+          asset_path: desktop/build/libs/Mindustry.jar
+          asset_name: desktopWithAudio.jar
+          asset_content_type: application/zip
 
       - name: Upload Artifact (No release was made)
         if: ${{ !(github.repository == 'stormybytes/mindustry-client' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')) }}
