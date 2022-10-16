@@ -429,12 +429,13 @@ public class BlockRenderer{
 
                 if(build != null){
                     if(visible){
+                        build.visibleFlags |= (1L << pteam.id);
                         if(!build.wasVisible){
+                            build.wasVisible = true;
                             updateShadow(build);
                             renderer.minimap.update(tile);
                             build.wasVisible = true;
                         }
-                        build.visibleFlags |= (1L << pteam.id);
                     }
 
                     if(build.damaged()){

@@ -449,12 +449,12 @@ public class CoreBlock extends StorageBlock{
         }
 
         @Override
-        public float handleDamage(float amount){
+        public void damage(float amount){
             if(player != null && team == player.team()){
                 // Events.fire(Trigger.teamCoreDamage); Replaced in favor of the event below
                 Events.fire(new TeamCoreDamage(tile));
             }
-            return amount;
+            super.damage(amount);
         }
 
         @Override
