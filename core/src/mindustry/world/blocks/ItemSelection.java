@@ -68,7 +68,7 @@ public class ItemSelection{
                 if(!blank && !item.localizedName.toLowerCase().contains(text)) continue;
                 if(!item.unlockedNow() || (item instanceof Item checkVisible && state.rules.hiddenBuildItems.contains(checkVisible)) || item.isHidden()) continue;
 
-                ImageButton button = cont.button(Tex.whiteui, Styles.clearTogglei, Mathf.clamp(item.selectionSize, 0f, 40f), () -> {
+                ImageButton button = cont.button(Tex.whiteui, Styles.clearNoneTogglei, Mathf.clamp(item.selectionSize, 0f, 40f), () -> {
                     if(closeSelect) control.input.config.hideConfig();
                 }).group(group).tooltip(item.localizedName).get();
                 button.changed(() -> consumer.get(button.isChecked() ? item : null));

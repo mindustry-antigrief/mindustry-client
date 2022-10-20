@@ -11,7 +11,7 @@ import mindustry.input.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
-import mindustry.world.blocks.sandbox.LiquidSource.LiquidSourceBuild
+import mindustry.world.blocks.sandbox.LiquidSource.*
 
 private var target: Teamc? = null
 private var hadTarget = false
@@ -39,10 +39,11 @@ fun autoShoot() {
             target = Units.findDamagedTile(Vars.player.team(), Vars.player.x, Vars.player.y)
             if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() + 4 + (target as Building).hitSize()/2f else 0f)) target = null
         }
-        if (target == null && type.canAttack && flood()) { // Shoot buildings in flood because why not.
+        val flood = flood()
+        if (target == null && (type == UnitTypes.block || type.canAttack) && flood) { // Shoot buildings in flood because why not.
             target = Units.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range()) { type.targetGround }
         }
-        if (!flood() && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
+        if (!flood && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
             val amount = unit.range() * 2 + 1
             var closestScore = Float.POSITIVE_INFINITY
 

@@ -382,6 +382,8 @@ public class SettingsMenuDialog extends BaseDialog{
         if (steam) client.checkPref("unlockallachievements", false, i -> { for (var a : Achievement.all) a.complete(); Core.settings.remove("unlockallachievements"); });
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
+``        client.checkPref("downloadmusic", true);
+        client.checkPref("downloadsound", true);
         // End Client Settings
 
 

@@ -59,7 +59,7 @@ public class Renderer implements ApplicationListener{
     private @Nullable CoreBuild landCore;
     private @Nullable CoreBlock launchCoreType;
     private Color clearColor = new Color(0f, 0f, 0f, 1f);
-    private float
+    public float
     //seed for cloud visuals, 0-1
     cloudSeed = 0f,
     //target camera scale that is lerp-ed to

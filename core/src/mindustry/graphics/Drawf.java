@@ -397,11 +397,12 @@ public class Drawf{
     }
 
     public static void laser(TextureRegion line, TextureRegion start, TextureRegion end, float x, float y, float x2, float y2, float scale){
-        float scl = 8f * scale * Draw.scl, rot = Mathf.angle(x2 - x, y2 - y);
-        float vx = Mathf.cosDeg(rot) * scl, vy = Mathf.sinDeg(rot) * scl;
+        float scl = scale * Draw.scl;
+        float scl2 = 8 * scl, rot = Mathf.angle(x2 - x, y2 - y);
+        float vx = Mathf.cosDeg(rot) * scl2, vy = Mathf.sinDeg(rot) * scl2;
 
-        Draw.rect(start, x, y, start.width * scale * Draw.scl, start.height * scale * Draw.scl, rot + 180);
-        Draw.rect(end, x2, y2, end.width * scale * Draw.scl, end.height * scale * Draw.scl, rot);
+        if(start != null) Draw.rect(start, x, y, start.width * scl, start.height * scl, rot + 180);
+        if(end != null) Draw.rect(end, x2, y2, end.width * scl, end.height * scl, rot);
 
         Lines.stroke(12f * scale);
         Lines.line(line, x + vx, y + vy, x2 - vx, y2 - vy, false);
