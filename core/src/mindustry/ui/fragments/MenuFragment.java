@@ -127,9 +127,9 @@ public class MenuFragment{
         }
 
                 // FIX CURSED MENU SCREEN
-//        String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + Strings.format("\n[gray]Don't press H[]\nCursedness by BalaM314 and SBytes. Cursedness Level: @", CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel")).name());
+       String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + Strings.format("\n[gray]Don't press H[]\nCursedness by BalaM314 and SBytes. Cursedness Level: @", CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel")).name());
 //        String versionText = (Version.build == -1 ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H";
-        String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H[]\nClient Fork by Zxtej, BalaM314, SBytes. Cursedness Level: @";
+        // String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H[]\nClient Fork by Zxtej, BalaM314, SBytes. Cursedness Level: @";
         parent.fill((x, y, w, h) -> {
             TextureRegion logo = Core.atlas.find("logo");
             float width = Core.graphics.getWidth(), height = Core.graphics.getHeight() - Core.scene.marginTop;
