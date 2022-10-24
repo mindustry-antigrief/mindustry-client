@@ -8,5 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.mindustry-antigrief.arc:arc-core:840192b7f4")
+    if(!project.hasProperty("release") && File(rootDir.parent, "Arc").exists()) // if localArc
+        implementation("com.github.zxtej:arc-core")
+    else implementation("com.github.mindustry-antigrief.arc:arc-core:840192b7f4")
 }
