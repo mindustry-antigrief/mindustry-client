@@ -21,7 +21,7 @@ class Moderation {
             Vars.netClient.addPacketHandler("playerdata") { // Handles autostats from plugins
                 if (io() || phoenix()) {
                     val json = JsonReader().parse(it)
-                    Log.info(json)
+                    Log.debug(json)
 
                     fun String.i() = json.getInt(this, Int.MAX_VALUE)
                     fun String.s() = json.getString(this, "unknown")

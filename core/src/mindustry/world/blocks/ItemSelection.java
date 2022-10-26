@@ -50,7 +50,7 @@ public class ItemSelection{
     public static <T extends UnlockableContent> void buildTable(@Nullable Block block, Table table, Seq<T> items, Prov<T> holder, Cons<T> consumer, boolean closeSelect, int rows, int columns){
         ButtonGroup<ImageButton> group = new ButtonGroup<>();
         group.setMinCheckCount(0);
-        Table cont = new Table();
+        Table cont = new Table().top();
         cont.defaults().size(40);
 
         if(search != null) search.clearText();
@@ -59,33 +59,24 @@ public class ItemSelection{
             group.clear();
             cont.clearChildren();
 
-            var text = search != null ? search.getText().toLowerCase() : null;
-            var blank = text == null || text.trim().isEmpty();
+            var text = search != null ? search.getText() : "";
             int i = 0;
             rowCount = 0;
 
-            for(T item : items){
-                if(!blank && !item.localizedName.toLowerCase().contains(text)) continue;
+            Seq<T> list = items.select(u -> (text.isEmpty() || u.localizedName.toLowerCase().contains(text.toLowerCase())));
+            for(T item : list){
                 if(!item.unlockedNow() || (item instanceof Item checkVisible && state.rules.hiddenBuildItems.contains(checkVisible)) || item.isHidden()) continue;
 
                 ImageButton button = cont.button(Tex.whiteui, Styles.clearNoneTogglei, Mathf.clamp(item.selectionSize, 0f, 40f), () -> {
                     if(closeSelect) control.input.config.hideConfig();
-                }).group(group).tooltip(item.localizedName).get();
+                }).tooltip(item.localizedName).group(group).get();
                 button.changed(() -> consumer.get(button.isChecked() ? item : null));
                 button.getStyle().imageUp = new TextureRegionDrawable(item.uiIcon);
                 button.update(() -> button.setChecked(holder.get() == item));
 
-                if(++i % (columns + 1) == 0){
+                if(i++ % columns == (columns - 1)){
                     cont.row();
                     rowCount++;
-                }
-            }
-
-            //add extra blank spaces so it looks nice
-            if(i % columns != 0){
-                int remaining = columns - (i % columns);
-                for(int j = 0; j < remaining; j++){
-                    cont.image(Styles.none);
                 }
             }
         };
@@ -111,6 +102,6 @@ public class ItemSelection{
 
         pane.setOverscroll(false, false);
         main.add(pane).maxHeight(40 * rows);
-        table.add(main);
+        table.top().add(main);
     }
 }

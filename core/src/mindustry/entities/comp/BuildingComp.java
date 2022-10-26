@@ -351,7 +351,6 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         return calculateHeat(sideHeat, null);
     }
 
-    //TODO can cameFrom be an IntSet?
     public float calculateHeat(float[] sideHeat, @Nullable IntSet cameFrom){
         Arrays.fill(sideHeat, 0f);
         if(cameFrom != null) cameFrom.clear();
@@ -360,22 +359,31 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         for(var edge : block.getEdges()){
             Building build = nearby(edge.x, edge.y);
-            if(build != null && build.team == team && build instanceof HeatBlock heater && (!build.block.rotate || (relativeTo(build) + 2) % 4 == build.rotation)){ //TODO hacky
+            if(build != null && build.team == team && build instanceof HeatBlock heater){
 
-                //if there's a cycle, ignore its heat
-                if(!(build instanceof HeatConductorBuild hc && hc.cameFrom.contains(id()))){
-                    //heat is distributed across building size
-                    float add = heater.heat() / build.block.size;
+                boolean split = build.block instanceof HeatConductor cond && cond.splitHeat;
+                // non-routers must face us, routers must face away - next to a redirector, they're forced to face away due to cycles anyway
+                if(!build.block.rotate || (!split && (relativeTo(build) + 2) % 4 == build.rotation) || (split && relativeTo(build) != build.rotation)){ //TODO hacky
 
-                    sideHeat[Mathf.mod(relativeTo(build), 4)] += add;
-                    heat += add;
-                }
+                    //if there's a cycle, ignore its heat
+                    if(!(build instanceof HeatConductorBuild hc && hc.cameFrom.contains(id()))){
+                        //heat is distributed across building size
+                        float add = heater.heat() / build.block.size;
+                        if(split){
+                            //heat routers split heat across 3 surfaces
+                            add /= 3f;
+                        }
 
-                //register traversed cycles
-                if(cameFrom != null){
-                    cameFrom.add(build.id);
-                    if(build instanceof HeatConductorBuild hc){
-                        cameFrom.addAll(hc.cameFrom);
+                        sideHeat[Mathf.mod(relativeTo(build), 4)] += add;
+                        heat += add;
+                    }
+
+                    //register traversed cycles
+                    if(cameFrom != null){
+                        cameFrom.add(build.id);
+                        if(build instanceof HeatConductorBuild hc){
+                            cameFrom.addAll(hc.cameFrom);
+                        }
                     }
                 }
             }
@@ -855,17 +863,19 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
                 float fx = (x + next.x) / 2f, fy = (y + next.y) / 2f;
 
                 Liquid other = next.liquids.current();
-                //TODO liquid reaction handler for extensibility
-                if((other.flammability > 0.3f && liquid.temperature > 0.7f) || (liquid.flammability > 0.3f && other.temperature > 0.7f)){
-                    damageContinuous(1);
-                    next.damageContinuous(1);
-                    if(Mathf.chanceDelta(0.1)){
-                        Fx.fire.at(fx, fy);
-                    }
-                }else if((liquid.temperature > 0.7f && other.temperature < 0.55f) || (other.temperature > 0.7f && liquid.temperature < 0.55f)){
-                    liquids.remove(liquid, Math.min(liquids.get(liquid), 0.7f * Time.delta));
-                    if(Mathf.chanceDelta(0.2f)){
-                        Fx.steam.at(fx, fy);
+                if(other.blockReactive && liquid.blockReactive){
+                    //TODO liquid reaction handler for extensibility
+                    if((other.flammability > 0.3f && liquid.temperature > 0.7f) || (liquid.flammability > 0.3f && other.temperature > 0.7f)){
+                        damageContinuous(1);
+                        next.damageContinuous(1);
+                        if(Mathf.chanceDelta(0.1)){
+                            Fx.fire.at(fx, fy);
+                        }
+                    }else if((liquid.temperature > 0.7f && other.temperature < 0.55f) || (other.temperature > 0.7f && liquid.temperature < 0.55f)){
+                        liquids.remove(liquid, Math.min(liquids.get(liquid), 0.7f * Time.delta));
+                        if(Mathf.chanceDelta(0.2f)){
+                            Fx.steam.at(fx, fy);
+                        }
                     }
                 }
             }
@@ -1152,10 +1162,15 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         if(block.variants == 0 || block.variantRegions == null){
             Draw.rect(block.region, x, y, drawrot());
         }else{
-            Draw.rect(block.variantRegions[Mathf.randomSeed(tile.pos(), 0, Math.max(0, block.variantRegions.length - 1))], x, y, drawrot());
+            Draw.rect(block.variantRegions[selectedVariant()], x, y, drawrot());
         }
 
         drawTeamTop();
+    }
+
+    private int selectedVariant = -1;
+    private int selectedVariant() {
+        return selectedVariant == -1 ? selectedVariant = Mathf.randomSeed(tile.pos(), 0, Math.max(0, block.variantRegions.length - 1)) : selectedVariant;
     }
 
     public void payloadDraw(){
@@ -1164,9 +1179,11 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
     public void drawTeamTop(){
         if(block.teamRegion.found()){
-            if(block.teamRegions[team.id] == block.teamRegion) Draw.color(team.color);
-            Draw.rect(block.teamRegions[team.id], x, y);
-            Draw.color();
+            if(block.teamRegions[team.id] == block.teamRegion){
+                Draw.color(team.color);
+                Draw.rect(block.teamRegions[team.id], x, y);
+                Draw.color();
+            } else Draw.rect(block.teamRegions[team.id], x, y);
         }
     }
 

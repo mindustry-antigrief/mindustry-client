@@ -29,9 +29,12 @@ public class Saves{
     private @Nullable SaveSlot lastSectorSave;
     private boolean saving;
     private float time;
+    public boolean hasLoaded;
 
     long totalPlaytime;
     private long lastTimestamp;
+
+    private final LinkedBlockingDeque<Runnable> previewQueue = new LinkedBlockingDeque<>();
 
     public Saves(){
         Events.on(StateChangeEvent.class, event -> {
@@ -45,6 +48,7 @@ public class Saves{
 
     /** Loads all saves */
     public void load(){
+        hasLoaded = true;
         var tasks = new Seq<Future<SaveSlot>>();
         for(Fi file : saveDirectory.findAll(f -> !f.name().contains("backup") && f.extEquals("msav"))){
             tasks.add(mainExecutor.submit(() -> {
@@ -105,6 +109,11 @@ public class Saves{
             lastTimestamp = Time.millis();
         }
 
+        var start = Time.millis();
+        while (previewQueue.size() > 0 && Time.timeSinceMillis(start) < 15) {
+            previewQueue.pop().run();
+        }
+
         if(state.isGame() && !state.gameOver && current != null && current.isAutosave()){
             time += Time.delta;
             if(time > Core.settings.getInt("saveinterval") * 60){
@@ -146,6 +155,7 @@ public class Saves{
             sector.save = new SaveSlot(getSectorFile(sector));
             sector.save.setName(sector.save.file.nameWithoutExtension());
             saves.add(sector.save);
+            if (saves.size == 1) unload();
         }
         sector.save.setAutosave(true);
         sector.save.save();
@@ -157,6 +167,7 @@ public class Saves{
         SaveSlot slot = new SaveSlot(getNextSlotFile());
         slot.setName(name);
         saves.add(slot);
+        if (saves.size == 1) unload();
         slot.save();
         return slot;
     }
@@ -167,6 +178,7 @@ public class Saves{
         slot.setName(file.nameWithoutExtension());
 
         saves.add(slot);
+        if (saves.size == 1) unload();
         slot.meta = SaveIO.getMeta(slot.file);
         current = slot;
         return slot;
@@ -187,7 +199,7 @@ public class Saves{
     }
 
     public int saveCount(){
-        return saveDirectory.findAll(f -> !f.name().contains("backup") && !f.name().endsWith(".vdf")).size;
+        return saveDirectory.findAll(f -> !f.name().contains("backup") && f.extEquals("msav")).size;
     }
 
     public void deleteAll(){
@@ -257,8 +269,8 @@ public class Saves{
                     mainExecutor.execute(() -> {
                         var data = TextureData.load(previewFile(), false);
                         if(!data.isPrepared()) data.prepare();
-                        Log.info("Loading @", file.name());
-                        Core.app.post(() -> preview = preview == null ? null : new TextureRegion(new Texture(data))); //don't overwrite cancelled request
+                        Log.debug("Loading @", file.name());
+                        previewQueue.add(() -> preview = preview == null ? null : new TextureRegion(new Texture(data))); //don't overwrite cancelled request
                     });
                 }
             }

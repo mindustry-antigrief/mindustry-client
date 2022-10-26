@@ -32,15 +32,10 @@ public class ShockMine extends Block{
         destructible = true;
         solid = false;
         targetable = false;
+        drawTeamOverlay = false;
     }
 
     public class ShockMineBuild extends Building{
-
-        @Override
-        public void drawTeam(){
-            //no
-        }
-
         @Override
         public void draw(){
             super.draw();
