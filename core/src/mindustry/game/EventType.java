@@ -11,6 +11,7 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
+@SuppressWarnings("ClassCanBeRecord")
 public class EventType{
 
     //events that occur very often
@@ -319,7 +320,7 @@ public class EventType{
         }
     }
 
-    /** Literally just GameOverEvent but only fired when connected as a client. */
+    /** Identical to GameOverEvent but is also fired when connected as a client. */
     public static class GameOverEventClient{
         public final Team winner;
 

@@ -154,7 +154,13 @@ class ClientLogic {
         }
 
         Events.on(GameOverEventClient::class.java) {
-            if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
+            if (Vars.net.client()) {
+                // Afk players will start mining at the end of a game (kind of annoying but worth it)
+                if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true))
+
+                // Save maps on game over if the setting is enabled
+                if (Core.settings.getBool("savemaponend")) Vars.control.saves.addSave(Vars.state.map.name())
+            }
         }
     }
 }

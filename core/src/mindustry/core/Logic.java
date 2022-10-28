@@ -354,7 +354,7 @@ public class Logic implements ApplicationListener{
 
     @Remote(called = Loc.both)
     public static void updateGameOver(Team winner){
-        if (net.client()) Events.fire(new GameOverEventClient(winner));
+        Events.fire(new GameOverEventClient(winner));
         state.gameOver = true;
         if(!headless){
             state.won = player.team() == winner;
