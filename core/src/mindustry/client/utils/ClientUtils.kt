@@ -429,7 +429,7 @@ fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))
 fun getName(builder:mindustry.gen.Unit?):String {
     return if(builder == null){
         "null unit"
-    } if (builder.isPlayer) {
+    } else if (builder.isPlayer) {
         Strings.stripColors(builder.player.name)
 //    } else if (builder.controller() is FormationAI) {
 //        Strings.stripColors((builder.controller() as FormationAI).leader.player.name)
