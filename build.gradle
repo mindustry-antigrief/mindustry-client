@@ -7,9 +7,13 @@ buildscript{
         }
 
         arcModule = { String name ->
-            //skip to last submodule
-            name = name.substring(name.lastIndexOf(':') + 1)
-            return "com.github.BalaM314.Arc:$name:$arcHash"
+            if(localArc()){
+                return project(":Arc:$name")
+            } else {
+                //skip to last submodule
+                name = name.substring(name.lastIndexOf(':') + 1)
+                return "com.github.BalaM314.Arc:$name:$arcHash"
+            }
         }
     }
 
