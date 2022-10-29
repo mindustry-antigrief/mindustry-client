@@ -426,8 +426,10 @@ inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
 /** Send a signed message to chat. */
 fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))
 
-fun getName(builder:mindustry.gen.Unit):String {
-    return if (builder.isPlayer) {
+fun getName(builder:mindustry.gen.Unit?):String {
+    return if(builder == null){
+        "null unit"
+    } if (builder.isPlayer) {
         Strings.stripColors(builder.player.name)
 //    } else if (builder.controller() is FormationAI) {
 //        Strings.stripColors((builder.controller() as FormationAI).leader.player.name)
