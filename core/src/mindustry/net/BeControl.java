@@ -5,7 +5,6 @@ import arc.files.*;
 import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.async.*;
 import arc.util.serialization.*;
 import mindustry.core.*;
 import mindustry.game.*;
@@ -26,7 +25,6 @@ import static mindustry.Vars.*;
 public class BeControl{
     private static final int updateInterval = 120; // Poll every 120s (30/hr), this leaves us with 30 requests per hour to spare.
 
-    private final AsyncExecutor executor = new AsyncExecutor(1);
     /** Whether or not to automatically display an update prompt on client load and every couple of minutes. */
     public boolean checkUpdates = Core.settings.getBool("autoupdate");
     private boolean updateAvailable;
@@ -167,7 +165,7 @@ public class BeControl{
     }
 
     private void download(String furl, Fi dest, Intc length, Floatc progressor, Boolp canceled, Runnable done, Cons<Throwable> error){
-        executor.submit(() -> {
+        mainExecutor.submit(() -> {
             try{
                 HttpURLConnection con = (HttpURLConnection)new URL(furl).openConnection();
                 BufferedInputStream in = new BufferedInputStream(con.getInputStream());
@@ -214,7 +212,7 @@ public class BeControl{
                     Seq<String> args = Seq.with(javaPath);
                     args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
                     if(OS.isMac) args.add("-XstartOnFirstThread");
-                    args.addAll("-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath(), "-firstThread");
+                    args.addAll("-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath());
                     Runtime.getRuntime().exec(args.toArray());
                     Core.app.exit();
                 }catch(IOException e){

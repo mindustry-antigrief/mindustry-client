@@ -33,7 +33,10 @@ public class LoadDialog extends BaseDialog{
     public LoadDialog(String title){
         super(title);
 
-        shown(this::setup);
+        shown(() -> {
+            searchString = "";
+            setup();
+        });
         hidden(() -> {
             if(slots != null) slots.clearChildren();
             control.saves.unload();
@@ -61,7 +64,7 @@ public class LoadDialog extends BaseDialog{
             TextureRegionDrawable icon = Vars.ui.getIcon("mode" + Strings.capitalize(mode.name()));
             boolean sandbox = mode == Gamemode.sandbox;
             if(Core.atlas.isFound(icon.getRegion()) || sandbox){
-                search.button(sandbox ? Icon.terrain : icon, Styles.emptytogglei, () -> {
+                search.button(sandbox ? Icon.terrain : icon, Styles.emptyTogglei, () -> {
                     filteredMode = filteredMode == mode ? null : mode;
                     rebuild();
                 }).size(60f).checked(b -> filteredMode == mode).tooltip("@mode." + mode.name() + ".name");
@@ -97,7 +100,7 @@ public class LoadDialog extends BaseDialog{
 
             any = true;
 
-            TextButton button = new TextButton("", Styles.cleart);
+            TextButton button = new TextButton("", Styles.grayt);
             button.getLabel().remove();
             button.clearChildren();
 
@@ -110,7 +113,7 @@ public class LoadDialog extends BaseDialog{
                     t.right();
                     t.defaults().size(40f);
 
-                    t.button(Icon.save, Styles.emptytogglei, () -> {
+                    t.button(Icon.save, Styles.emptyTogglei, () -> {
                         slot.setAutosave(!slot.isAutosave());
                     }).checked(slot.isAutosave()).right();
 

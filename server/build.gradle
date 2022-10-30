@@ -39,7 +39,6 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
     exclude("music/**")
     exclude("sounds/**")
     exclude("fonts/**")
-    exclude("zones/**")
     exclude("icons/**")
     exclude("bundles/**")
     exclude("cubemaps/**")

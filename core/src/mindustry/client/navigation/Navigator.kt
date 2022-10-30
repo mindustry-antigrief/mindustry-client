@@ -43,11 +43,9 @@ abstract class Navigator {
     fun navigate(start: Vec2, end: Vec2, obstacles: Iterable<TurretPathfindingEntity>): Array<PositionWaypoint> {
         start.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
         end.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
-        val additionalRadius =
-            if (player.unit().formation == null) player.unit().hitSize / 2
-            else player.unit().formation().pattern.radius() + player.unit().formation.pattern.spacing / 2
+        val additionalRadius = player.unit().hitSize / 2
 
-        if(state.map.name() != "The Maze") {
+        if (player.unit().type.hittable(player.unit())) {
             for (turret in obstacles) {
                 if (turret.canHitPlayer() && turret.canShoot()) {
                     realObstacles.add(
@@ -61,7 +59,7 @@ abstract class Navigator {
             }
         }
 
-        if (state.hasSpawns()) { // FINISHME: These should really be weighed less than turrets...
+        if (state.hasSpawns()) {
             for (spawn in spawner.spawns) {
                 realObstacles.add(
                     Pools.obtain(Circle::class.java) { Circle() }.set(
@@ -80,7 +78,7 @@ abstract class Navigator {
                     lastWp = Time.millis() // Try again in 3s
                     Call.sendChatMessage("/wp ${closestCore.key}")
                 }
-            } else if (player.unit().spawnedByCore && !player.unit().isCommanding && player.unit().stack.amount == 0) { // Everything that isn't CN
+            } else if (player.unit().spawnedByCore && player.unit().stack.amount == 0) { // Everything that isn't CN
                 val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst(end) }))
                 if (player.dst(bestCore) > buildingRange && player.dst(end) > bestCore.dst(end) && player.dst(bestCore) > player.unit().speed() * 24) { // don't try to move if we're already close to that core
                     lastWp = Time.millis() // Try again in 3s

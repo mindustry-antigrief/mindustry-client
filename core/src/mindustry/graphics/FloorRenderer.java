@@ -20,7 +20,7 @@ import static mindustry.Vars.*;
  *
  * caching:
  * 1. create fixed-size float array for rendering into
- * 2. for each chunk, cache each layer into a buffer; record layer boundary indices (alternatively, create mesh per layer for fast recache)
+ * 2. for each chunk, cache each layer into buffer; record layer boundary indices (alternatively, create mesh per layer for fast recache)
  * 3. create mesh for this chunk based on buffer size, copy buffer into mesh
  *
  * rendering:
@@ -164,7 +164,6 @@ public class FloorRenderer{
     public void beginc(){
         shader.bind();
         shader.setUniformMatrix4("u_projectionViewMatrix", Core.camera.mat);
-        shader.setUniformi("u_texture", 0);
 
         //only ever use the base environment texture
         texture.bind(0);
@@ -282,8 +281,8 @@ public class FloorRenderer{
     private void cacheChunk(int cx, int cy){
         used.clear();
 
-        for(int tilex = cx * chunksize; tilex < (cx + 1) * chunksize && tilex < world.width(); tilex++){
-            for(int tiley = cy * chunksize; tiley < (cy + 1) * chunksize && tiley < world.height(); tiley++){
+        for(int tilex = Math.max(cx * chunksize - 1, 0); tilex < (cx + 1) * chunksize + 1 && tilex < world.width(); tilex++){
+            for(int tiley = Math.max(cy * chunksize - 1, 0); tiley < (cy + 1) * chunksize + 1 && tiley < world.height(); tiley++){
                 Tile tile = world.rawTile(tilex, tiley);
                 boolean wall = tile.block().cacheLayer != CacheLayer.normal;
 
@@ -387,7 +386,7 @@ public class FloorRenderer{
                 }
             }
 
-            Log.debug("Time to cache: @", Time.elapsed());
+            Log.debug("Generated world mesh: @ms", Time.elapsed());
         }
     }
 

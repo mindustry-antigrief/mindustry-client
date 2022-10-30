@@ -1,12 +1,18 @@
 buildscript{
     ext{
-        getArcHash = {
-            return new Properties().with{ p -> p.load(file('gradle.properties').newReader()); return p }["archash"]
+        arcHash = new Properties().with{ p -> p.load(file('gradle.properties').newReader()); return p }["archash"]
+
+        localArc = { // TODO Shouldn't this just be a boolean?
+            return !project.hasProperty("release") && new File(rootDir.parent, 'Arc').exists()
         }
 
-        arcHash = getArcHash()
+        arcModule = { String name ->
+            //skip to last submodule
+            name = name.substring(name.lastIndexOf(':') + 1)
+            return "com.github.zxtej${localArc() ? "" : ".Arc"}:$name:$arcHash"
+        }
     }
-    
+
     repositories{
         mavenLocal()
         mavenCentral()
@@ -16,26 +22,28 @@ buildscript{
     }
 
     dependencies{
-        classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.14"
-        classpath "com.github.mindustry-antigrief.arc:packer:$arcHash"
-        classpath "com.github.mindustry-antigrief.arc:arc-core:$arcHash"
+        classpath "com.mobidevelop.robovm:robovm-gradle-plugin:2.3.16"
+        classpath arcModule(":extensions:packer")
+        classpath arcModule(":arc-core")
     }
 }
 
 plugins{
     id "org.jetbrains.kotlin.jvm" version "1.7.10"
-    id "org.jetbrains.kotlin.kapt" version "1.7.10"
+    id "org.jetbrains.kotlin.kapt" version "1.7.10" apply false
 }
 
 allprojects{
-    version = 'release'
-    group = 'com.github.Anuken'
+    version = project.hasProperty("packageVersion") ? project.getProperty("packageVersion") : 'release'
+    group = 'com.github.mindustry-antigrief'
 
     ext{
         versionNumber = '7'
         if(!project.hasProperty("updateUrl")) updateUrl = ''
-        if(!project.hasProperty("versionModifier")) versionModifier = 'pre-alpha'
-        if(!project.hasProperty("buildversion")) buildversion = '135'
+        if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
+        if(!project.hasProperty("assetRef")) assetRef = 'v7'
+        if(!project.hasProperty("versionModifier")) versionModifier = 'alpha'
+        if(!project.hasProperty("buildversion")) buildversion = '138' // Modders use BE build numbers which is stupid
         if(!project.hasProperty("clientVersion")){
             def tagTokens = "git tag --sort=committerdate -l v${project.getProperties()["buildversion"]}* -n1".execute().text.trim().split('[\n]')[-1]
                     .tokenize(' ')[0].split('[.]') as String[]
@@ -46,7 +54,7 @@ allprojects{
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
-        rhinoVersion = '3c6bbadf73a904eefcc28b6fd8aa742ac575e878'
+        rhinoVersion = '73a812444ac388ac2d94013b5cadc8f70b7ea027'
 
         loadVersionProps = {
             return new Properties().with{p -> p.load(file('../core/assets/version.properties').newReader()); return p }
@@ -54,20 +62,6 @@ allprojects{
 
         debugged = {
             return new File(projectDir.parent, '../Mindustry-Debug').exists() && !project.hasProperty("release") && project.hasProperty("args")
-        }
-
-        localArc = {
-            return !project.hasProperty("release") && new File(projectDir.parent, '../Arc').exists()
-        }
-
-        arcModule = { String name ->
-            if(localArc()){
-                return project(":Arc:$name")
-            }else{
-                //skip to last submodule
-                if(name.contains(':')) name = name.split(':').last()
-                return "com.github.mindustry-antigrief.arc:$name:${getArcHash()}"
-            }
         }
 
         generateDeployName = { String platform ->
@@ -146,9 +140,10 @@ allprojects{
 
                 String buildid = getBuildVersion()
                 println("Compiling with build: '$buildid'")
-                if (localArc()) println("Compiling with localArc")
 
                 props["updateUrl"] = updateUrl
+                props["assetUrl"] = assetUrl
+                props["assetRef"] = assetRef
                 props["clientVersion"] = clientVersion
                 props["type"] = versionType
                 props["number"] = versionNumber
@@ -204,7 +199,7 @@ allprojects{
         targetCompatibility = JavaVersion.VERSION_1_8
         sourceCompatibility = JavaVersion.VERSION_16
         options.encoding = "UTF-8"
-        options.compilerArgs += ["-Xlint:deprecation", "-Xmaxerrs", "5000"]
+        options.compilerArgs += ["-Xmaxerrs", "5000"]
         dependsOn clearCache
 
         options.forkOptions.jvmArgs += [
@@ -215,16 +210,8 @@ allprojects{
             '--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
             '--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
             '--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
-            '--add-opens=java.base/sun.reflect.annotation=ALL-UNNAMED'
+            '--add-exports=java.base/sun.reflect.annotation=ALL-UNNAMED'
         ]
-    }
-}
-
-configure(project(":annotations")){
-    tasks.withType(JavaCompile){
-        targetCompatibility = 8
-        sourceCompatibility = 8
-        options.fork = true
     }
 }
 
@@ -238,6 +225,7 @@ configure(subprojects - project(":annotations")){
         options{
             addStringOption('Xdoclint:none', '-quiet')
             addStringOption('-release', '16')
+            encoding('UTF-8')
         }
     }
 }
@@ -245,7 +233,7 @@ configure(subprojects - project(":annotations")){
 project(":desktop"){
     apply plugin: "java"
 
-    compileJava.options.fork = true
+//    compileJava.options.fork = true
 
     dependencies{
         implementation project(":core")
@@ -261,55 +249,18 @@ project(":desktop"){
     }
 }
 
-project(":ios"){
-    apply plugin: "java"
-    apply plugin: "robovm"
-
-    task incrementConfig{
-        def vfile = file('robovm.properties')
-        def bversion = getBuildVersion()
-        def props = new Properties()
-        if(vfile.exists()){
-            props.load(new FileInputStream(vfile))
-        }else{
-            props['app.id'] = 'io.anuke.mindustry'
-            props['app.version'] = '7.0'
-            props['app.mainclass'] = 'mindustry.IOSLauncher'
-            props['app.executable'] = 'IOSLauncher'
-            props['app.name'] = 'Mindustry'
-        }
-        
-        props['app.build'] = (!props.containsKey("app.build") ? 40 : props['app.build'].toInteger() + 1) + ""
-        if(bversion != "custom build"){
-            props['app.version'] = versionNumber + "." + bversion + (bversion.contains(".") ? "" : ".0")
-        }
-        props.store(vfile.newWriter(), null)
-    }
-
-    dependencies{
-        implementation project(":core")
-
-        implementation arcModule("natives:natives-ios")
-        implementation arcModule("natives:natives-freetype-ios")
-        implementation arcModule("backends:backend-robovm")
-
-        compileOnly project(":annotations")
-    }
-}
-
 project(":core"){
-//    apply plugin: "java-library"
     apply plugin: "kotlin"
     apply plugin: "kotlin-kapt"
 
-    compileJava.options.fork = true
+//    compileJava.options.fork = true
 
     task preGen{
         outputs.upToDateWhen{ false }
         generateLocales()
         writeVersion()
-        writeProcessors()
-        writePlugins()
+//        writeProcessors()
+//        writePlugins()
     }
 
     task copyChangelog{
@@ -360,6 +311,28 @@ project(":core"){
         archives assetsJar
     }
 
+    kapt {
+        showProcessorStats = true
+        keepJavacAnnotationProcessors = true
+        javacOptions{
+            option("-source", "16")
+            option("-target", "8")
+        }
+    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask.class).configureEach {
+        kaptProcessJvmArgs.addAll([
+            '--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+            '--add-exports=java.base/sun.reflect.annotation=ALL-UNNAMED'
+        ])
+    }
+
     dependencies{
         compileJava.dependsOn(preGen)
 
@@ -385,32 +358,32 @@ project(":core"){
         compileOnly arcModule("backends:backend-sdl")
         implementation 'commons-net:commons-net:3.8.0'
 
-        annotationProcessor 'com.github.Anuken:jabel:0.9.0'
         compileOnly project(":annotations")
         if (!project.hasProperty("noKapt")) kapt project(":annotations")
-
-//        runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-jsr223:1.6.21"
+        annotationProcessor 'com.github.Anuken:jabel:0.9.0'
     }
 
     afterEvaluate{
         task mergedJavadoc(type: Javadoc){
-            def blacklist = [project(":ios"), project(":desktop"), project(":server"), project(":annotations")]
-            if(findProject(":android") != null){
-                blacklist += project(":android")
-            }
-
-            source rootProject.subprojects.collect{ project ->
-                if(!blacklist.contains(project) && project.hasProperty("sourceSets")){
-                    return project.sourceSets.main.allJava
+            doLast {
+                def blacklist = [project(":ios"), project(":desktop"), project(":server"), project(":annotations")]
+                if(findProject(":android") != null){
+                    blacklist += project(":android")
                 }
-            }
 
-            classpath = files(rootProject.subprojects.collect { project ->
-                if(!blacklist.contains(project) && project.hasProperty("sourceSets")){
-                    return project.sourceSets.main.compileClasspath
+                source rootProject.subprojects.collect{ project ->
+                    if(!blacklist.contains(project) && project.hasProperty("sourceSets")){
+                        return project.sourceSets.main.allJava
+                    }
                 }
-            })
-            destinationDir = new File(buildDir, 'javadoc')
+
+                classpath = files(rootProject.subprojects.collect { project ->
+                    if(!blacklist.contains(project) && project.hasProperty("sourceSets")){
+                        return project.sourceSets.main.compileClasspath
+                    }
+                })
+                destinationDir = new File(buildDir, 'javadoc')
+            }
         }
     }
 
@@ -468,18 +441,22 @@ project(":tools"){
     }
 }
 
-project(":annotations"){
-    apply plugin: "java-library"
+configure(project(":annotations")){
+    apply plugin: "kotlin"
+
+    tasks.withType(JavaCompile){
+        targetCompatibility = 8
+        sourceCompatibility = 8
+    }
 
     dependencies{
         implementation "com.squareup:javapoet:1.12.1"
-        implementation "com.github.mindustry-antigrief.arc:arc-core:$arcHash"
+        implementation arcModule("arc-core")
     }
 }
 
-configure([":core", ":desktop", ":server", ":tools"].collect{project(it)}){
+configure([":core", ":server"].collect{project(it)}){
     apply plugin: 'maven-publish'
-
     java{
         withJavadocJar()
         withSourcesJar()

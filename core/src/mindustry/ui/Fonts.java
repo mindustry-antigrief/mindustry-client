@@ -30,7 +30,6 @@ public class Fonts{
     private static final String mainFont = "fonts/font.woff";
     private static final ObjectSet<String> unscaled = ObjectSet.with("iconLarge");
     private static ObjectIntMap<String> unicodeIcons = new ObjectIntMap<>();
-    private static ObjectMap<Character, String> unicodeIconsInverse = new ObjectMap<>();
     public static ObjectMap<String, String> stringIcons = new ObjectMap<>();
     private static ObjectMap<String, TextureRegion> largeIcons = new ObjectMap<>();
     private static TextureRegion[] iconTable;
@@ -66,10 +65,6 @@ public class Fonts{
 
     public static boolean hasUnicodeStr(String content){
         return stringIcons.containsKey(content);
-    }
-
-    public static boolean charIsCustomCharacter(char c){
-        return unicodeIconsInverse.containsKey(c);
     }
 
     /** Called from a static context to make the cursor appear immediately upon startup.*/
@@ -142,15 +137,16 @@ public class Fonts{
                 }
 
                 unicodeIcons.put(nametex[0], ch);
-                unicodeIconsInverse.put((char)ch, nametex[0]);
                 stringIcons.put(nametex[0], ((char)ch) + "");
+
+                Vec2 out = Scaling.fit.apply(region.width, region.height, size, size);
 
                 Glyph glyph = new Glyph();
                 glyph.id = ch;
                 glyph.srcX = 0;
                 glyph.srcY = 0;
-                glyph.width = size;
-                glyph.height = (int)((float)region.height / region.width * size);
+                glyph.width = (int)out.x;
+                glyph.height = (int)out.y;
                 glyph.u = region.u;
                 glyph.v = region.v2;
                 glyph.u2 = region.u2;
@@ -198,7 +194,8 @@ public class Fonts{
     /** Called from a static context for use in the loading screen.*/
     public static void loadDefaultFont(){
         int max = Gl.getInt(Gl.maxTextureSize);
-        UI.packer = new PixmapPacker(max >= 4096 ? 4096 : 2048, 2048, 2, true);
+
+        UI.packer = new PixmapPacker(max >= 4096 ? 4096 : 2048, max >= 4096 ? 4096 : 2048, 2, true);
         Core.assets.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(Core.files::internal));
         Core.assets.setLoader(Font.class, null, new FreetypeFontLoader(Core.files::internal){
             ObjectSet<FreeTypeFontParameter> scaled = new ObjectSet<>();

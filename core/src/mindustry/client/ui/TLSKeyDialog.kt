@@ -28,13 +28,13 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
         val store = Main.keyStorage
         for (cert in store.trusted()) {
             val table = Table()
-            table.button(Icon.cancel, Styles.darki, 16f) {
+            table.button(Icon.cancel, Styles.settingTogglei, 16f) {
                 if (Main.keyStorage.builtInCerts.contains(cert)) return@button
                 store.untrust(cert)
                 regenerate()
             }.padRight(20f).tooltip(if (Main.keyStorage.builtInCerts.contains(cert)) "@client.cantdelete" else "@save.delete")
 
-            table.button(Icon.edit, Styles.darki, 16f) button2@ {
+            table.button(Icon.edit, Styles.settingTogglei, 16f) button2@ {
                 aliasDialog = dialog("@client.alias") {
                     addCloseListener()
                     val aliasInput = TextField("")

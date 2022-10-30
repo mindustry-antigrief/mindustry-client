@@ -1,12 +1,10 @@
 package mindustry.client;
 
 import arc.*;
-import arc.func.*;
 import arc.graphics.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
-import kotlin.*;
 import mindustry.net.*;
 import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.distribution.*;
@@ -17,9 +15,10 @@ import java.util.concurrent.*;
 
 public class ClientVars {
     // Misc
-    public static byte silentTrace; // How many traces to do silently (this is pretty 0head but shh)
+    public static byte silentTrace; // How many actions to do silently (this is pretty 0head but shh)
     public static float spawnTime = 60f * Core.settings.getInt("spawntime");
     public static float travelTime = Core.settings.getInt("traveltime");
+    public static int rank; // The rank int for servers such as io
     public static float jpegQuality = Core.settings.getFloat("commpicquality", 0.5f);
     public static boolean benchmarkNav = false;
     public final static Rect cameraBounds = new Rect();
@@ -29,7 +28,9 @@ public class ClientVars {
 
     // Config Queue
     @NotNull public static LinkedBlockingQueue<Runnable> configs = new LinkedBlockingQueue<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
-    public static int ratelimitRemaining = Administration.Config.interactRateLimit.num() - 1; // Number of configs that can be made safely before ratelimit reset
+    public static int ratelimitMax = Core.settings.getInt("ratelimitmax", Administration.Config.interactRateLimit.num()); // The max number of configs per ratelimit window
+    public static float ratelimitSeconds = Core.settings.getFloat("ratelimitseconds", Administration.Config.interactRateWindow.num() + 1); // The number of seconds between ratelimit resets
+    public static int ratelimitRemaining = ratelimitMax; // Number of configs that can be made safely before ratelimit reset
 
     // Hotkeys
     public static boolean showingTurrets, hidingUnits, hidingAirUnits, hidingBlocks, dispatchingBuildPlans, showingOverdrives, showingInvTurrets, showingMassDrivers;
@@ -52,5 +53,4 @@ public class ClientVars {
     @NotNull public static String lastCertName = "";
     public static boolean isBuildingLock = false; // whether or not the building state is being controlled by networking
     public static int pluginVersion;
-    public static boolean useNew = true;
 }

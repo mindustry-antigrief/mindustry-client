@@ -7,13 +7,14 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.*
+import mindustry.client.ClientVars.*
 import mindustry.client.communication.*
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 
-class AssistPath(val assisting: Player?, private val build: Boolean = false, private val noFollow: Boolean = false) : Path() {
+class AssistPath(val assisting: Player?, private val build: Boolean = true, private val noFollow: Boolean = false) : Path() {
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
     private var tolerance = 0F
@@ -22,11 +23,15 @@ class AssistPath(val assisting: Player?, private val build: Boolean = false, pri
         init {
             Events.on(EventType.DepositEvent::class.java) {
                 val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
-                if (it.player == assisting) Call.transferInventory(player, it.tile)
+                if (it.player != assisting || ratelimitRemaining <= 1) return@on
+                ratelimitRemaining--
+                Call.transferInventory(player, it.tile)
             }
             Events.on(EventType.WithdrawEvent::class.java) {
                 val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
-                if (it.player == assisting) Call.requestItem(player, it.tile, it.item, it.amount)
+                if (it.player != assisting || ratelimitRemaining <= 1) return@on
+                ratelimitRemaining--
+                Call.requestItem(player, it.tile, it.item, it.amount)
             }
         }
     }
@@ -43,7 +48,7 @@ class AssistPath(val assisting: Player?, private val build: Boolean = false, pri
         if (player?.dead() != false) return
         assisting?.unit() ?: return // We don't care if they are dead
 
-        tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) // FINISHME: Factor in formations
+        tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)
 
         handleInput()
 
@@ -67,7 +72,7 @@ class AssistPath(val assisting: Player?, private val build: Boolean = false, pri
             }
         }
 
-        if (assisting.isBuilder && player.isBuilder) {
+        if (assisting.isBuilder && player.isBuilder && build) {
             if (assisting.unit().updateBuilding && assisting.team() == player.team()) {
                 plans.forEach { player.unit().removeBuild(it.x, it.y, it.breaking) }
                 plans.clear()
@@ -92,8 +97,8 @@ class AssistPath(val assisting: Player?, private val build: Boolean = false, pri
             if (!noFollow || assisting.unit().isShooting) Tmp.v1.set(assisting.unit().aimX, assisting.unit().aimY) // Following or shooting
             else if (unit.type.faceTarget) Core.input.mouseWorld() else Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, player.unit().y) // Not following, not shooting
         val lookPos =
-            if (assisting.unit().isShooting && unit.type.rotateShooting) player.angleTo(assisting.unit().aimX, assisting.unit().aimY) // Assisting is shooting and player has fixed weapons
-            else if (unit.type.omniMovement && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !(unit is Mechc && unit.isFlying()) && unit.type.rotateShooting) Angles.mouseAngle(unit.x, unit.y);
+            if (assisting.unit().isShooting && unit.type.faceTarget) player.angleTo(assisting.unit().aimX, assisting.unit().aimY) // Assisting is shooting and player has fixed weapons
+            else if (unit.type.omniMovement && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !(unit is Mechc && unit.isFlying())) Angles.mouseAngle(unit.x, unit.y);
             else player.unit().prefRotation() // Anything else
 
         player.shooting(shouldShoot)
@@ -116,7 +121,7 @@ class AssistPath(val assisting: Player?, private val build: Boolean = false, pri
     }
 
     override fun progress(): Float {
-        return if (assisting == null || !assisting.added) 1f else 0f
+        return if (assisting == null || !assisting.isAdded) 1f else 0f
     }
 
     override fun next(): Position? {

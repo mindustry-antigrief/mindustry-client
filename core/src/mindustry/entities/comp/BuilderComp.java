@@ -5,7 +5,6 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
-import arc.math.geom.*;
 import arc.struct.*;
 import arc.struct.Queue;
 import arc.util.*;
@@ -30,8 +29,6 @@ import static mindustry.Vars.*;
 
 @Component
 abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
-    static final Vec2[] vecs = new Vec2[]{new Vec2(), new Vec2(), new Vec2(), new Vec2()};
-
     @Import float x, y, rotation, buildSpeedMultiplier;
     @Import UnitType type;
     @Import Team team;
@@ -39,9 +36,10 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
     @SyncLocal Queue<BuildPlan> plans = new Queue<>(1);
     @SyncLocal boolean updateBuilding = true;
 
+    private transient float buildCounter;
     private transient BuildPlan lastActive;
     private transient int lastSize;
-    private transient float buildAlpha = 0f;
+    transient float buildAlpha = 0f;
 
     public boolean canBuild(){
         return type.buildSpeed > 0 && buildSpeedMultiplier > 0;
@@ -49,6 +47,25 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
     @Override
     public void update(){
+        updateBuildLogic();
+    }
+
+    public void validatePlans(){
+        if(plans.size > 0){
+            Iterator<BuildPlan> it = plans.iterator();
+            while(it.hasNext()){
+                BuildPlan plan = it.next();
+                Tile tile = world.tile(plan.x, plan.y);
+                if(tile == null || (plan.breaking && tile.block() == Blocks.air) || (!plan.breaking && ((tile.build != null && tile.build.rotation == plan.rotation) || !plan.block.rotate) && tile.block() == plan.block)){
+                    it.remove();
+                }
+            }
+        }
+    }
+
+    public void updateBuildLogic(){
+        if(type.buildSpeed <= 0f) return;
+
         if(!headless){
             //visual activity update
             if(lastActive != null && buildAlpha <= 0.01f){
@@ -58,39 +75,41 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             buildAlpha = Mathf.lerpDelta(buildAlpha, activelyBuilding() ? 1f : 0f, 0.15f);
         }
 
-        if(!updateBuilding || !canBuild()) return;
+        //validate regardless of whether building is enabled.
+        if(!updateBuilding || !canBuild()){
+            validatePlans();
+            return;
+        }
 
-        float finalPlaceDst = state.rules.infiniteResources ? Float.MAX_VALUE : buildingRange;
+        float finalPlaceDst = state.rules.infiniteResources ? Float.MAX_VALUE : type.buildRange;
         boolean infinite = state.rules.infiniteResources || team().rules().infiniteResources;
 
-        Iterator<BuildPlan> it = plans.iterator();
-        while(it.hasNext()){
-            BuildPlan req = it.next();
-            Tile tile = world.tile(req.x, req.y);
-            if(tile == null || (req.breaking && tile.block() == Blocks.air) || (!req.breaking && ((tile.build != null && tile.build.rotation == req.rotation) || !req.block.rotate) && tile.block() == req.block)){
-                it.remove();
+        buildCounter += Time.delta;
+        if(Float.isNaN(buildCounter) || Float.isInfinite(buildCounter)) buildCounter = 0f;
+        buildCounter = Math.min(buildCounter, 10f);
+
+        while(buildCounter >= 1){
+            buildCounter -= 1f;
+
+            validatePlans();
+
+            var core = core();
+
+            //nothing to build.
+            if(buildPlan() == null) continue;
+
+            //find the next build plan
+            if(plans.size > 1){
+                int total = 0;
+                int size = plans.size;
+                BuildPlan plan;
+                while(total++ < size && (!within((plan = buildPlan()).tile(), finalPlaceDst) || shouldSkip(plan, core) ||
+                        (!req.initialized && !Build.validPlaceCoreRange(plan.block, team, req.x, req.y)))){                    plans.removeFirst();
+                    plans.removeFirst();
+                    plans.addLast(plan);
+                }
             }
-        }
 
-        var core = core();
-
-        //nothing to build.
-        if(buildPlan() == null) return;
-
-        //find the next build request
-        if(plans.size > 1){
-            int total = 0;
-            BuildPlan req;
-            while(total++ < plans.size && (!within((req = buildPlan()).tile(), finalPlaceDst) || shouldSkip(req, core) ||
-                    (!req.initialized && !Build.validPlaceCoreRange(req.block, team, req.x, req.y)))){
-                plans.removeFirst();
-                plans.addLast(req);
-            }
-        }
-
-        boolean massPlace = infinite && !net.client();
-        int placed = 0;
-        do{
             BuildPlan current = buildPlan();
             Tile tile = current.tile();
 
@@ -98,7 +117,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             buildAlpha = 1f;
             if(current.breaking) lastSize = tile.block().size;
 
-            if(!within(tile, finalPlaceDst) || !canBuild()) return;
+            if(!within(tile, finalPlaceDst)) continue;
 
             if(!headless){
                 Vars.control.sound.loop(Sounds.build, tile, 0.51f);
@@ -118,11 +137,11 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
                     Call.beginBreak(self(), team, current.x, current.y);
                 }else{
                     plans.removeFirst();
-                    return;
+                    continue;
                 }
             }else if((tile.team() != team && tile.team() != Team.derelict) || (!current.breaking && (cb.current != current.block || cb.tile != current.tile()))){
                 plans.removeFirst();
-                return;
+                continue;
             }
 
             if(tile.build instanceof ConstructBuild && !current.initialized){
@@ -135,7 +154,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
                 continue;
             }
 
-            float bs = 1f / entity.buildCost * Time.delta * type.buildSpeed * buildSpeedMultiplier * state.rules.buildSpeed(team);
+            float bs = 1f / entity.buildCost * type.buildSpeed * buildSpeedMultiplier * state.rules.buildSpeed(team);
 
             //otherwise, update it.
             if(current.breaking){
@@ -146,7 +165,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
             current.stuck = Mathf.equal(current.progress, entity.progress);
             current.progress = entity.progress;
-        }while(massPlace && plans.removeFirst() != null && plans.size > 0 && placed++ < 1000);
+        }
     }
 
     private transient long lastFrame;
@@ -158,7 +177,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
     }
     /** Draw all current build plans. Does not draw the beam effect, only the positions. */
     void drawBuildPlans(){
-        Boolf<BuildPlan> skip = plan -> plan.progress > 0.01f || (buildPlan() == plan && plan.initialized && (within(plan.x * tilesize, plan.y * tilesize, buildingRange) || state.isEditor()));
+        Boolf<BuildPlan> skip = plan -> plan.progress > 0.01f || (buildPlan() == plan && plan.initialized && (within(plan.x * tilesize, plan.y * tilesize, type.buildRange) || state.isEditor()));
         if(lastFrame != graphics.getFrameId()) getVisiblePlans();
 
         for(int i = 0; i < 2; i++){
@@ -175,38 +194,38 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         Draw.reset();
     }
 
-    void drawPlan(BuildPlan request, float alpha){
-        request.animScale = 1f;
-        if(request.breaking){
-            control.input.drawBreaking(request);
+    void drawPlan(BuildPlan plan, float alpha){
+        plan.animScale = 1f;
+        if(plan.breaking){
+            control.input.drawBreaking(plan);
         }else{
-            request.block.drawPlan(request, control.input.allRequests(),
-                    (Build.validPlace(request.block, team, request.x, request.y, request.rotation) &&
-                    Build.validPlaceCoreRange(request.block, team, request.x, request.y)) || control.input.requestMatches(request),
+            plan.block.drawPlan(plan, control.input.allPlans(),
+                    (Build.validPlace(plan.block, team, plan.x, plan.y, plan.rotation) &&
+                    Build.validPlaceCoreRange(request.block, team, plan.x, plan.y)) || control.input.planMatches(plan),
             alpha);
         }
     }
 
-    void drawPlanTop(BuildPlan request, float alpha){
-        if(!request.breaking){
+    void drawPlanTop(BuildPlan plan, float alpha){
+        if(!plan.breaking){
             if(lastFrame != graphics.getFrameId()) getVisiblePlans();
             Draw.reset();
             Draw.mixcol(Color.white, 0.24f + Mathf.absin(Time.globalTime, 6f, 0.28f));
             Draw.alpha(alpha);
-            request.block.drawRequestConfigTop(request, visiblePlans);
+            plan.block.drawPlanConfigTop(plan, visiblePlans);
         }
     }
 
-    /** @return whether this request should be skipped, in favor of the next one. */
-    boolean shouldSkip(BuildPlan request, @Nullable Building core){
-        //requests that you have at least *started* are considered
-        if(request.priority || state.rules.infiniteResources || team.rules().infiniteResources || request.breaking || core == null || request.isRotation(team) || (isBuilding() && !within(plans.last(), buildingRange))) return false;
+    /** @return whether this plan should be skipped, in favor of the next one. */
+    boolean shouldSkip(BuildPlan plan, @Nullable Building core){
+        //plans that you have at least *started* are considered
+        if(request.priority || state.rules.infiniteResources || team.rules().infiniteResources || plan.breaking || core == null || plan.isRotation(team) || (isBuilding() && !within(plans.last(), type.buildRange))) return false;
 
-        return (request.stuck && !core.items.has(request.block.requirements)) || (Structs.contains(request.block.requirements, i -> !core.items.has(i.item, Math.min(i.amount, 15)) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0) && !request.initialized);
+        return (plan.stuck && !core.items.has(plan.block.requirements)) || (Structs.contains(plan.block.requirements, i -> !core.items.has(i.item, Math.min(i.amount, 15)) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0) && !plan.initialized);
     }
 
     void removeBuild(int x, int y, boolean breaking){
-        //remove matching request
+        //remove matching plan
         int idx = plans.indexOf(req -> req.breaking == breaking && req.x == x && req.y == y);
         if(idx != -1){
             plans.removeIndex(idx);
@@ -231,20 +250,19 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         plans.clear();
     }
 
-    /** Add another build requests to the tail of the queue, if it doesn't exist there yet. */
+    /** Add another build plans to the tail of the queue, if it doesn't exist there yet. */
     void addBuild(BuildPlan place){
         addBuild(place, true);
     }
 
-    /** Add another build requests to the queue, if it doesn't exist there yet. */
+    /** Add another build plans to the queue, if it doesn't exist there yet. */
     void addBuild(BuildPlan place, boolean tail){
 //        if(!canBuild()) return;
 
         BuildPlan replace = null;
-        for(int i = 0; i < plans.size; i++){
-            var request = plans.get(i);
-            if(request.x == place.x && request.y == place.y){
-                replace = request;
+        for(BuildPlan plan : plans){
+            if(plan.x == place.x && plan.y == place.y){
+                replace = plan;
                 break;
             }
         }
@@ -267,30 +285,34 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
         //not actively building when not near the build plan
         if(isBuilding()){
-            if(!state.isEditor() && !within(buildPlan(), state.rules.infiniteResources ? Float.MAX_VALUE : buildingRange)){
+            var plan = buildPlan();
+            if(!state.isEditor() && plan != null && !within(plan, state.rules.infiniteResources ? Float.MAX_VALUE : type.buildRange)){
                 return false;
             }
         }
         return isBuilding() && updateBuilding;
     }
 
-    /** Return the build request currently active, or the one at the top of the queue.*/
-    @Nullable
-    BuildPlan buildPlan(){
+    /** @return  the build plan currently active, or the one at the top of the queue.*/
+    @Nullable BuildPlan buildPlan(){
         return plans.size == 0 ? null : plans.first();
     }
 
     public void draw(){
+        drawBuilding();
+    }
+
+    public void drawBuilding(){
         boolean active = activelyBuilding() && canBuild();
         if(!active && lastActive == null) return;
 
         Draw.z(Layer.flyingUnit);
 
         BuildPlan plan = active ? buildPlan() : lastActive;
-        Tile tile = world.tile(plan.x, plan.y);
+        Tile tile = plan.tile();
         var core = team.core();
 
-        if(tile == null || !within(plan, state.rules.infiniteResources ? Float.MAX_VALUE : buildingRange)){
+        if(tile == null || !within(plan, state.rules.infiniteResources ? Float.MAX_VALUE : type.buildRange)){
             return;
         }
 
@@ -302,30 +324,32 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             Draw.z(Layer.flyingUnit);
         }
 
+        if(type.drawBuildBeam){
+            float focusLen = type.buildBeamOffset + Mathf.absin(Time.time, 3f, 0.6f);
+            float px = x + Angles.trnsx(rotation, focusLen);
+            float py = y + Angles.trnsy(rotation, focusLen);
+
+            drawBuildingBeam(px, py);
+        }
+    }
+
+    public void drawBuildingBeam(float px, float py){
+        boolean active = activelyBuilding();
+        if(!active && lastActive == null) return;
+
+        Draw.z(Layer.flyingUnit);
+
+        BuildPlan plan = active ? buildPlan() : lastActive;
+        Tile tile = world.tile(plan.x, plan.y);
+
+        if(tile == null || !within(plan, state.rules.infiniteResources ? Float.MAX_VALUE : type.buildRange)){
+            return;
+        }
+
         int size = plan.breaking ? active ? tile.block().size : lastSize : plan.block.size;
         float tx = plan.drawx(), ty = plan.drawy();
 
         Lines.stroke(1f, plan.breaking ? Pal.remove : Pal.accent);
-        float focusLen = type.buildBeamOffset + Mathf.absin(Time.time, 3f, 0.6f);
-        float px = x + Angles.trnsx(rotation, focusLen);
-        float py = y + Angles.trnsy(rotation, focusLen);
-
-        float sz = Vars.tilesize * size / 2f;
-        float ang = angleTo(tx, ty);
-
-        vecs[0].set(tx - sz, ty - sz);
-        vecs[1].set(tx + sz, ty - sz);
-        vecs[2].set(tx - sz, ty + sz);
-        vecs[3].set(tx + sz, ty + sz);
-
-        Arrays.sort(vecs, Structs.comparingFloat(vec -> -Angles.angleDist(angleTo(vec), ang)));
-
-        Vec2 close = Geometry.findClosest(x, y, vecs);
-
-        float x1 = vecs[0].x, y1 = vecs[0].y,
-            x2 = close.x, y2 = close.y,
-            x3 = vecs[1].x, y3 = vecs[1].y;
-
         Draw.z(Layer.buildBeam);
 
         Draw.alpha(buildAlpha);
@@ -334,17 +358,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             Fill.square(plan.drawx(), plan.drawy(), size * tilesize/2f);
         }
 
-        if(renderer.animateShields){
-            if(close != vecs[0] && close != vecs[1]){
-                Fill.tri(px, py, x1, y1, x2, y2);
-                Fill.tri(px, py, x3, y3, x2, y2);
-            }else{
-                Fill.tri(px, py, x1, y1, x3, y3);
-            }
-        }else{
-            Lines.line(px, py, x1, y1);
-            Lines.line(px, py, x3, y3);
-        }
+        Drawf.buildBeam(px, py, tx, ty, Vars.tilesize * size / 2f);
 
         Fill.square(px, py, 1.8f + Mathf.absin(Time.time, 2.2f, 1.1f), rotation + 45);
 

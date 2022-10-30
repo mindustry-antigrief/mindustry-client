@@ -33,7 +33,8 @@ public class Junction extends Block{
     public Junction(String name){
         super(name);
         update = true;
-        solid = true;
+        solid = false;
+        underBullets = true;
         group = BlockGroup.transportation;
         unloadable = false;
         noUpdateDisabled = true;
@@ -125,7 +126,6 @@ public class Junction extends Block{
                     float time = BufferItem.time(l);
 
                     if(Time.time >= time + speed / timeScale || Time.time < time){
-
                         Item item = content.item(BufferItem.item(l));
                         Building dest = nearby(i);
 
@@ -184,6 +184,7 @@ public class Junction extends Block{
         @Override
         public void draw(){
             super.draw();
+
             if(!drawItems) return;
             Draw.z(Layer.blockOver);
             float now = Time.time;

@@ -1,9 +1,9 @@
 package mindustry.game;
 
+import arc.math.geom.*;
 import arc.util.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
-import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
@@ -32,6 +32,7 @@ public class EventType{
         teamCoreDamage,
         socketConfigChanged,
         update,
+        unitCommandChange,
         draw,
         drawOver,
         preDraw,
@@ -59,12 +60,12 @@ public class EventType{
     public static class MapMakeEvent{}
     public static class MapPublishEvent{}
     public static class SaveWriteEvent{}
-    public static class SaveLoadEvent{}
     public static class ClientCreateEvent{}
     public static class ServerLoadEvent{}
     public static class DisposeEvent{}
     public static class PlayEvent{}
     public static class ResetEvent{}
+    public static class HostEvent{}
     public static class WaveEvent{}
     public static class TurnEvent{}
     /** Called when the player places a line, mobile or desktop.*/
@@ -83,10 +84,18 @@ public class EventType{
     public static class MusicRegisterEvent{}
     /** Called *after* all the modded files have been added into Vars.tree */
     public static class FileTreeInitEvent{}
-    /** Called when a game begins and the world is loaded. */
+    /** Called when a game begins and the world tiles are loaded. Entities are not yet loaded at this stage.  */
     public static class WorldLoadEvent{}
     /** Called just after joining a server */
     public static class ServerJoinEvent{}
+
+    public static class SaveLoadEvent{
+        public final boolean isMap;
+
+        public SaveLoadEvent(boolean isMap){
+            this.isMap = isMap;
+        }
+    }
 
     /** Called when a sector is destroyed by waves when you're not there. */
     public static class SectorLoseEvent{
@@ -130,16 +139,6 @@ public class EventType{
         }
     }
 
-    public static class CommandIssueEvent{
-        public final Building tile;
-        public final UnitCommand command;
-
-        public CommandIssueEvent(Building tile, UnitCommand command){
-            this.tile = tile;
-            this.command = command;
-        }
-    }
-
     public static class ClientPreConnectEvent{
         public final Host host;
 
@@ -170,15 +169,8 @@ public class EventType{
         }
     }
 
-    public static class PlayerChatEventClient{
-        public final Player player;
-        public final String message;
-
-        public PlayerChatEventClient(Player player, String message){
-            this.player = player;
-            this.message = message;
-        }
-    }
+    /** Fired just after a chat message is added to chatfrag. */
+    public static class PlayerChatEventClient{}
 
     /** Called when a sector is conquered, e.g. a boss or base is defeated. */
     public static class SectorCaptureEvent{
@@ -274,6 +266,24 @@ public class EventType{
         }
     }
 
+    public static class PayloadDropEvent{
+        public final Unit carrier;
+        public final @Nullable Unit unit;
+        public final @Nullable Building build;
+
+        public PayloadDropEvent(Unit carrier, Unit unit){
+            this.carrier = carrier;
+            this.unit = unit;
+            this.build = null;
+        }
+
+        public PayloadDropEvent(Unit carrier, Building build){
+            this.carrier = carrier;
+            this.build = build;
+            this.unit = null;
+        }
+    }
+
     public static class UnitControlEvent{
         public final Player player;
         public final @Nullable Unit unit;
@@ -281,6 +291,18 @@ public class EventType{
         public UnitControlEvent(Player player, @Nullable Unit unit){
             this.player = player;
             this.unit = unit;
+        }
+    }
+
+    public static class BuildingCommandEvent{
+        public final Player player;
+        public final Building building;
+        public final Vec2 position;
+
+        public BuildingCommandEvent(Player player, Building building, Vec2 position){
+            this.player = player;
+            this.building = building;
+            this.position = position;
         }
     }
 
@@ -302,6 +324,21 @@ public class EventType{
     }
 
     /**
+     * Called when a bullet damages a building. May not be called for all damage events!
+     * This event is re-used! Never do anything to re-raise this event in the listener.
+     * */
+    public static class BuildDamageEvent{
+        public Building build;
+        public Bullet source;
+
+        public BuildDamageEvent set(Building build, Bullet source){
+            this.build = build;
+            this.source = source;
+            return this;
+        }
+    }
+
+    /**
      * Called *before* a tile has changed.
      * WARNING! This event is special: its instance is reused! Do not cache or use with a timer.
      * Do not modify any tiles inside listeners that use this tile.
@@ -318,7 +355,7 @@ public class EventType{
     /**
      * Called *after* a tile has changed.
      * WARNING! This event is special: its instance is reused! Do not cache or use with a timer.
-     * Do not modify any tiles inside listeners that use this tile.
+     * Do not modify any tiles inside listener code.
      * */
     public static class TileChangeEvent{
         public Tile tile;
@@ -672,6 +709,7 @@ public class EventType{
         }
     }
 
+    /** Called before a player leaves the game. */
     public static class PlayerLeave{
         public final Player player;
 

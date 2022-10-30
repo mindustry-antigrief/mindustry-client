@@ -1,23 +1,27 @@
 package mindustry.client.utils
 
-import arc.struct.*
 import arc.util.*
-import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.antigrief.*
-import mindustry.gen.*
 import mindustry.world.blocks.logic.LogicBlock.*
 
 object ProcessorPatcher {
     private val attemMatcher =
-        "(ubind @?[^ ]+\\n)sensor (\\S+) @unit @flag\\nop add (\\S+) \\3 1\\njump \\d+ greaterThanEq \\3 \\d+\\njump \\d+ notEqual ([^ ]+) \\2\\nset \\3 0".toRegex()
+        """
+        (ubind @?[^ ]+)                            # bind a unit
+        sensor (\S+) @unit @flag                   # set _flag to unit flag
+        op add (\S+) \3 1                          # increment _attem by 1
+        jump \d+ greaterThanEq \3 \d+              # break if _attem >= 83
+        jump \d+ (?:notEqual|always) ([^ ]+) \2    # loop if _flag != 0 (or always in some variants)
+        set \3 0                                   # _attem = 0
+        """.replace("\\s+#.+$".toRegex(RegexOption.MULTILINE), "").trimIndent().toRegex() // The regex comment mode is dumb
 
     private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
-    fun countProcessors(builds: Seq<LogicBuild>): Int {
+    fun countProcessors(builds: Iterable<LogicBuild>): Int {
         Time.mark()
         val count = builds.count { attemMatcher.containsMatchIn(it.code) }
-        Log.debug("Counted $count/${builds.size} attems in ${Time.elapsed()}ms")
+        Log.debug("Counted $count/${builds.count()} attems in ${Time.elapsed()}ms")
         return count
     }
 
@@ -29,14 +33,14 @@ object ProcessorPatcher {
         return buildString {
             replaceJumps(this, code.substring(0, result.range.first), bindLine)
             append(groups[1])
-            append("sensor ").append(groups[2]).append(" @unit @flag\n")
+            append("\nsensor ").append(groups[2]).append(" @unit @flag\n")
             append("jump ").append(bindLine).append(" notEqual ").append(groups[2]).append(' ').append(groups[4]).append('\n')
             replaceJumps(this, code.substring(result.range.last + 1), bindLine)
         }
     }
 
     private fun replaceJumps(sb: StringBuilder, code: String, bindLine: Int) {
-        val matches = jumpMatcher.findAll(code).toList()
+        val matches = jumpMatcher.findAll(code)
         val extra = sb.length
         sb.append(code)
         matches.forEach {

@@ -60,9 +60,9 @@ public class ItemModule extends BlockModule{
         System.arraycopy(other.items, 0, items, 0, items.length);
     }
 
-    public void update(boolean showFlow){
+    public void updateFlow(boolean showFlow){
         if(showFlow){
-            //update the flow at 30fps at most
+            //update the flow at N fps at most
             if(flowTimer.get(1, pollScl)){
 
                 if(flow == null){
@@ -126,9 +126,7 @@ public class ItemModule extends BlockModule{
     }
 
     public boolean hasFlowItem(Item item){
-        if(flow == null) return false;
-
-        return cacheBits.get(item.id);
+        return flow != null && cacheBits.get(item.id);
     }
 
     public void each(ItemConsumer cons){
@@ -149,6 +147,10 @@ public class ItemModule extends BlockModule{
         return sum;
     }
 
+    public boolean has(int id){
+        return items[id] > 0;
+    }
+
     public boolean has(Item item){
         return get(item) > 0;
     }
@@ -165,10 +167,18 @@ public class ItemModule extends BlockModule{
     }
 
     public boolean has(ItemSeq items){
-        for(Item item : content.items()){
-            if(!has(item, items.get(item))){
-                return false;
-            }
+        int[] counts = items.values;
+        for(int i = counts.length - 1; i >= 0; i--){
+            if(!has(content.item(i), counts[i])) return false;
+        }
+        return true;
+    }
+
+    public boolean has(Seq<ItemStack> stacks){ // same as iterable but without allocating...
+        ItemStack[] items = stacks.items;
+        for(int i = stacks.size - 1; i >= 0; i--){
+            ItemStack stack = items[i];
+            if(!has(stack.item, stack.amount)) return false;
         }
         return true;
     }
@@ -299,6 +309,12 @@ public class ItemModule extends BlockModule{
         }
     }
 
+    public void handleFlow(Item item, int amount){
+        if(flow != null){
+            stats.cacheSums[item.id] += amount;
+        }
+    }
+
     public void undoFlow(Item item){
         if(flow != null){
             stats.cacheSums[item.id] -= 1;
@@ -340,7 +356,7 @@ public class ItemModule extends BlockModule{
             if(item > 0) amount++;
         }
 
-        write.s(amount); //amount of items
+        write.s(amount);
 
         for(int i = 0; i < items.length; i++){
             if(items[i] > 0){
@@ -360,8 +376,11 @@ public class ItemModule extends BlockModule{
         for(int j = 0; j < count; j++){
             int itemid = legacy ? read.ub() : read.s();
             int itemamount = read.i();
-            items[content.item(itemid).id] = itemamount;
-            total += itemamount;
+            Item item = content.item(itemid);
+            if(item != null){
+                items[item.id] = itemamount;
+                total += itemamount;
+            }
         }
     }
 
@@ -371,5 +390,23 @@ public class ItemModule extends BlockModule{
 
     public interface ItemCalculator{
         float get(Item item, int amount);
+    }
+
+    @Override
+    public String toString(){
+        var res = new StringBuilder();
+        res.append("ItemModule{");
+        boolean any = false;
+        for(int i = 0; i < items.length; i++){
+            if(items[i] != 0){
+                res.append(content.items().get(i).name).append(":").append(items[i]).append(",");
+                any = true;
+            }
+        }
+        if(any){
+            res.setLength(res.length() - 1);
+        }
+        res.append("}");
+        return res.toString();
     }
 }

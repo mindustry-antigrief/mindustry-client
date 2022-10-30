@@ -10,7 +10,7 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.type.*
 
-class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().type.mineItems, var cap: Int = Core.settings.getInt("minepathcap"), val newGame: Boolean = false) : Path() {
+class MinePath @JvmOverloads constructor(val items: Seq<Item> = player.unit().type.mineItems, var cap: Int = Core.settings.getInt("minepathcap"), val newGame: Boolean = false) : Path() {
     private var lastItem: Item? = null // Last item mined
     private var timer = Interval()
     private var coreIdle = false
@@ -25,7 +25,7 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
         }
 
         if (items.isEmpty) {
-            items = player.unit().type.mineItems
+            items.addAll(player.unit().type.mineItems)
             if (split.none { Strings.parseInt(it) > 0 }) player.sendMessage("client.path.miner.allinvalid".bundle())
         } else if (cap >= 0) {
             player.sendMessage(Core.bundle.format("client.path.miner.tobuild", items.joinToString(), if (cap == 0) "∞" else cap))
@@ -83,10 +83,10 @@ class MinePath @JvmOverloads constructor(var items: Seq<Item> = player.unit().ty
         // mine
         } else {
             val tile = indexer.findClosestOre(player.unit(), item) // FINISHME: Ignore blocked tiles
-            player.unit().mineTile = tile
+            if (player.unit().validMine(tile) || tile == null) player.unit().mineTile = tile
             if (tile == null) return
             player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 3F)
-            if (player.dst(tile) > 2 * tilesize) goTo(tile, tilesize.toFloat()) // FINISHME: Distance based on formation radius rather than just moving super close
+            if (player.dst(tile) > 2 * tilesize) goTo(tile, tilesize.toFloat())
         }
     }
 
