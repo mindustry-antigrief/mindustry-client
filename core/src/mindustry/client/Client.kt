@@ -3,6 +3,8 @@ package mindustry.client
 import arc.*
 import arc.graphics.Color
 import arc.graphics.g2d.*
+import arc.math.Mathf
+import arc.math.geom.Intersector
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.ai.*
@@ -18,6 +20,7 @@ import mindustry.gen.*
 import mindustry.graphics.*
 import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
+import mindustry.world.blocks.distribution.MassDriver
 import org.bouncycastle.jce.provider.*
 import org.bouncycastle.jsse.provider.*
 import java.security.*
@@ -29,12 +32,13 @@ object Client {
     val autoTransfer by lazy { AutoTransfer() } // FINISHME: Awful
 //    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
 
-    val massDriverGreen = Color(Color.green).a(0.7f)
-    val massDriverYellow = Color(Color.yellow).a(0.7f)
+    private val massDriverGreen: Color = Color(Color.green).a(0.7f)
+    private val massDriverYellow: Color = Color(Color.yellow).a(0.7f)
 
 
     fun initialize() {
         setup()
+        additionalSetup()
         AutoTransfer.init()
         ClientLogic()
 
@@ -128,6 +132,33 @@ object Client {
                 val range = b.realRange()
                 if (bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect()
             }
+        }
+
+        // Mass driver config
+        if (showingMassDrivers) {
+            val progress = (Time.globalTime % 80f) / 60f // 1 second arrow time with 0.333 second pause
+            bounds.grow(tilesizeF * Blocks.massDriver.size - tilesizeF) // grow bounds to accommodate for entire mass driver
+            val aS = Mathf.clamp(bounds.width / 100f, 8f, 20f) // arrow size
+            massDrivers.forEach { b ->
+                if (!b.linkValid()) return@forEach
+                val to = world.tile(b.link).build as? MassDriver.MassDriverBuild ?: return@forEach
+                if ((bounds.contains(b.x, b.y) && bounds.contains(to.x, to.y)) || Intersector.intersectSegmentRectangle(b.x, b.y, to.x, to.y, bounds)) {
+                    //val maxTime = (Mathf.dst(b.x, b.y, to.x, to.y) / 5.5f).coerceAtLeast(90f) // 5.5 is from MassDriver.java - projectile speed. // 90f is min 1.5 seconds
+                    //val progress = (Time.globalTime % maxTime) / maxTime
+                    // nah that looks bad
+                    val toBlock = to.block as MassDriver
+                    Lines.stroke(1.5f, if (to.state === MassDriver.DriverState.idle && toBlock.itemCapacity - to.items.total() < toBlock.minDistribute) massDriverGreen else massDriverYellow)
+                    Lines.line(b.x, b.y, to.x, to.y)
+                    // TODO: change color according to item type? or is that too inconsistent
+                    if (progress > 1f) return@forEach
+                    val ax = Mathf.lerp(b.x, to.x, progress)
+                    val ay = Mathf.lerp(b.y, to.y, progress)
+                    if (bounds.contains(ax, ay))
+                        Tex.logicNode.draw(ax-aS/2, ay-aS/2, aS/2, aS/2, aS, aS, 1f, 1f, Mathf.angle(to.x - b.x, to.y - b.y))
+                }
+            }
+            Draw.reset()
+            bounds.grow(-tilesizeF * Blocks.massDriver.size + tilesizeF)
         }
     }
 }

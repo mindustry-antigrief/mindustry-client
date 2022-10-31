@@ -88,7 +88,7 @@ public class Unloader extends Block{
         private final int itemsLength = content.items().size;
         public Item sortItem = null;
         public ContainerStat dumpingFrom, dumpingTo;
-        public final Seq<ContainerStat> possibleBlocks = new Seq<>();
+        public final Seq<ContainerStat> possibleBlocks = new Seq<>(ContainerStat.class);
         private Item lastItem = null;
         private Building lastDumpFrom, lastDumpTo;
 
@@ -118,7 +118,8 @@ public class Unloader extends Block{
                 pb.canUnload = other.canUnload() && other.items != null && other.items.has(item);
 
                 //thats also handling framerate issues and slow conveyor belts, to avoid skipping items if nulloader
-                if((hasProvider && pb.canLoad) || (hasReceiver && pb.canUnload)) isDistinct = true;
+//                if((hasProvider && pb.canLoad) || (hasReceiver && pb.canUnload)) isDistinct = true;
+                isDistinct |= (hasProvider && pb.canLoad) || (hasReceiver && pb.canUnload);
                 hasProvider |= pb.canUnload;
                 hasReceiver |= pb.canLoad;
             }

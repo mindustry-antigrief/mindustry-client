@@ -9,7 +9,8 @@ buildscript{
         arcModule = { String name ->
             //skip to last submodule
             name = name.substring(name.lastIndexOf(':') + 1)
-            return "com.github.zxtej${localArc() ? "" : ".Arc"}:$name:$arcHash"
+            if (localArc()) return "com.github.zxtej:$name:$arcHash"
+            else return "com.github.mindustry-antigrief.Arc:$name:$arcHash"
         }
     }
 
