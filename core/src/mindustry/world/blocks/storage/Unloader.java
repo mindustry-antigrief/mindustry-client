@@ -26,8 +26,8 @@ public class Unloader extends Block{
     public @Load(value = "@-center", fallback = "unloader-center") TextureRegion centerRegion;
 
     public float speed = 1f;
-    public static boolean drawUnloaderItems = Core.settings.getBool("unloaderview");
-    public static boolean customNullLoader = Core.settings.getBool("customnullunloader");
+    public static boolean drawUnloaderItems = Core.settings != null && Core.settings.getBool("unloaderview");
+    public static boolean customNullLoader = Core.settings != null && Core.settings.getBool("customnullunloader");
 
     public Unloader(String name){
         super(name);
