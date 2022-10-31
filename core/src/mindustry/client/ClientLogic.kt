@@ -4,7 +4,6 @@ import arc.*
 import arc.util.*
 import mindustry.*
 import mindustry.client.ClientVars.*
-import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
@@ -14,7 +13,6 @@ import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.logic.*
 import mindustry.type.*
-import mindustry.world.blocks.logic.*
 import mindustry.world.modules.ItemModule
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
@@ -64,11 +62,6 @@ class ClientLogic {
             overdrives.clear()
             massDrivers.clear()
             Client.tiles.clear()
-            if(coreItems == null) coreItems = ItemModule(true)
-            else {
-                coreItems.stopFlow()
-                coreItems.clear()
-            }
 
             UnitTypes.horizon.itemCapacity = if (flood()) 20 else 0 // Horizons can pick up items in flood, this just allows the items to draw correctly
             UnitTypes.crawler.health = if (flood()) 100f else 200f // Crawler health is halved in flood

@@ -25,6 +25,7 @@ import mindustry.world.meta.*;
 import mindustry.world.modules.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.coreItemsDisplay;
 
 public class CoreBlock extends StorageBlock{
     //hacky way to pass item modules between methods
@@ -406,7 +407,7 @@ public class CoreBlock extends StorageBlock{
                     Fx.coreBurn.at(x, y);
                 }
             }
-            if(team == player.team()) CoreItemsDisplay.addItemRate(item, realAmount);
+            if(team == player.team()) coreItemsDisplay.addItem(item, realAmount);
         }
 
         @Override
@@ -524,7 +525,7 @@ public class CoreBlock extends StorageBlock{
                 incinerateEffect(this, source);
                 noEffect = false;
             }
-            if(team == player.team()) CoreItemsDisplay.addItemRate(item, items.get(item) >= storageCapacity ? 0 : 1);
+            if(team == player.team() && items.get(item) < storageCapacity) coreItemsDisplay.addItem(item, 1);
         }
 
         @Override

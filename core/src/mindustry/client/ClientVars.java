@@ -8,9 +8,9 @@ import arc.struct.*;
 import arc.util.*;
 import kotlin.*;
 import mindustry.net.*;
+import mindustry.ui.*;
 import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.distribution.*;
-import mindustry.world.modules.*;
 import org.jetbrains.annotations.*;
 
 import java.util.concurrent.*;
@@ -25,8 +25,8 @@ public class ClientVars {
     public static boolean benchmarkNav = false;
     public final static Rect cameraBounds = new Rect();
 
-    // Core Item Display
-    public static ItemModule coreItems;
+    // Core Item Display - for only input. Net in/out is handled through reading from Vars.player.core.items()
+    public static CoreItemsDisplay coreItemsDisplay;
 
     // Config Queue
     @NotNull public static LinkedBlockingQueue<Runnable> configs = new LinkedBlockingQueue<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.

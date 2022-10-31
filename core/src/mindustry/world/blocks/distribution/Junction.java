@@ -10,6 +10,7 @@ import arc.scene.ui.layout.Table;
 import arc.struct.Bits;
 import arc.util.*;
 import arc.util.io.*;
+import mindustry.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
@@ -57,9 +58,9 @@ public class Junction extends Block{
 
         @Override
         public void update(){
-            boolean updateFlowTemp = block.displayFlow;
             super.update();
-            if (updateFlowTemp) items2.updateFlow();
+            boolean shouldFlow = ui.hudfrag.blockfrag.nextFlowBuild == this;
+            if (shouldFlow) items2.updateFlow();
             else items2.stopFlow();
         }
 
