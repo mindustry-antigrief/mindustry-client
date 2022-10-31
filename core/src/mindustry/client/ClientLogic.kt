@@ -9,9 +9,11 @@ import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.content.*
+import mindustry.core.*
 import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.logic.*
+import mindustry.net.*
 import mindustry.type.*
 import mindustry.world.modules.ItemModule
 
@@ -19,7 +21,9 @@ import mindustry.world.modules.ItemModule
  * Handles various events and such.
  * FINISHME: Move the 9000 different bits of code throughout the client to here. Update: this was an awful idea lmao */
 class ClientLogic {
-    private var switchTo: MutableList<Any>? = null
+    companion object {
+        var switchTo: MutableList<Any>? = null
+    }
 
     /** Create event listeners */
     init {
@@ -29,14 +33,12 @@ class ClientLogic {
 
             Timer.schedule({
                 Core.app.post {
-                    val switchTo = switchTo
-                    if (switchTo != null) {
-                        Call.sendChatMessage("/${arrayOf("no", "up", "down").random()}vote")
-                        if (switchTo.firstOrNull() is Char) Call.sendChatMessage("/switch ${switchTo.removeFirst()}")
-                        else {
-                            if (switchTo.firstOrNull() is UnitType) Vars.ui.unitPicker.pickUnit(switchTo.first() as UnitType)
-                            this.switchTo = null
-                        }
+                    val arg = switchTo?.removeFirstOrNull() ?: return@post
+                    Call.sendChatMessage("/${arrayOf("no", "up", "down").random()}vote")
+                    if (arg is Host) NetClient.connect(arg.address, arg.port)
+                    else {
+                        if (arg is UnitType) Vars.ui.unitPicker.pickUnit(arg)
+                        switchTo = null
                     }
                 }
             }, .1F)
@@ -110,9 +112,11 @@ class ClientLogic {
                 register("hh [h]", "!") { args, _ ->
                     if (!Vars.net.client()) return@register
                     val u = if (args.any()) Vars.content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.localizedName) } else Vars.player.unit().type
-                    val current = (Vars.ui.join.lastHost?.modeName?.first() ?: Vars.ui.join.lastHost?.mode?.name?.get(0) ?: 'f').lowercaseChar()
-                    switchTo = mutableListOf<Any>('a', 'p', 's', 'f', 't').apply { remove(current); add(current); add(u) }
-                    Call.sendChatMessage("/switch ${switchTo!!.removeFirst()}")
+                    val current = Vars.ui.join.lastHost ?: return@register
+                    if (current.group == null) current.group = Vars.ui.join.communityHosts.find { it == current } ?.group ?: return@register
+                    switchTo = Vars.ui.join.communityHosts.filterTo(mutableListOf<Any>()) { it.group == current.group && it != current && !it.equals("135.181.14.60:6567") }.apply { add(current); add(u) } // IO attack has severe amounts of skill issue currently hence why its ignored
+                    val first = switchTo!!.removeFirst() as Host
+                    NetClient.connect(first.address, first.port)
                 }
             }
 
@@ -141,7 +145,13 @@ class ClientLogic {
         }
 
         Events.on(GameOverEventClient::class.java) {
-            if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true)) // Afk players will start mining at the end of a game (kind of annoying but worth it)
+            if (Vars.net.client()) {
+                // Afk players will start mining at the end of a game (kind of annoying but worth it)
+                if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true))
+
+                // Save maps on game over if the setting is enabled
+                if (Core.settings.getBool("savemaponend")) Vars.control.saves.addSave(Vars.state.map.name())
+            }
         }
     }
 }

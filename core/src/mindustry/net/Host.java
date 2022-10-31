@@ -31,4 +31,9 @@ public class Host{
         this.description = description;
         this.modeName = modeName;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Host h ? h.port == port && h.address.equals(address) : obj instanceof String s && s.equals(address + ":" + port);
+    }
 }

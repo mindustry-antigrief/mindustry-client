@@ -95,14 +95,12 @@ public class PowerNode extends PowerBlock{
 
             //clear old
             for(int i = 0; i < old.size; i++){
-                int cur = old.get(i);
-                configurations.get(Integer.class).get(tile, cur);
+                configurations.get(Integer.class).get(tile, old.get(i));
             }
 
             //set new
             for(Point2 p : value){
-                int newPos = Point2.pack(p.x + tile.tileX(), p.y + tile.tileY());
-                configurations.get(Integer.class).get(tile, newPos);
+                configurations.get(Integer.class).get(tile, Point2.pack(p.x + tile.tileX(), p.y + tile.tileY()));
             }
         });
     }
@@ -196,7 +194,7 @@ public class PowerNode extends PowerBlock{
             vx = Mathf.cosDeg(angle1), vy = Mathf.sinDeg(angle1),
             len1 = size1 * tilesize / 2f - 1.5f, len2 = size2 * tilesize / 2f - 1.5f;
 
-        Drawf.laser(laser, laserEnd, x1 + vx*len1, y1 + vy*len1, x2 - vx*len2, y2 - vy*len2, laserScale);
+        Drawf.laser(laser, renderer.camerascale > 3 ? laserEnd : null, x1 + vx*len1, y1 + vy*len1, x2 - vx*len2, y2 - vy*len2, laserScale);
     }
 
     protected boolean overlaps(float srcx, float srcy, Tile other, Block otherBlock, float range){
@@ -381,10 +379,16 @@ public class PowerNode extends PowerBlock{
     }
 
     public class PowerNodeBuild extends Building{
-
         /** This is used for power split notifications. */
         public @Nullable ChatFragment.ChatMessage message;
         public int disconnections = 0;
+
+        @Override
+        public void created(){ // Called when one is placed/loaded in the world
+            if(autolink && laserRange > maxRange) maxRange = laserRange;
+
+            super.created();
+        }
 
         @Override
         public void placed(){
@@ -397,13 +401,6 @@ public class PowerNode extends PowerBlock{
             });
 
             super.placed();
-        }
-
-        @Override
-        public void created(){ // Called when one is placed/loaded in the world
-            if(autolink && laserRange > maxRange) maxRange = laserRange;
-
-            super.created();
         }
 
         @Override

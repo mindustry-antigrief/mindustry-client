@@ -15,6 +15,7 @@ import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
+import mindustry.entities.part.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -191,6 +192,8 @@ public class BulletType extends Content implements Cloneable{
     public int despawnUnitCount = 1;
     /** Random offset distance from the original bullet despawn/hit coordinate. */
     public float despawnUnitRadius = 0.1f;
+    /** Extra visual parts for this bullet. */
+    public Seq<DrawPart> parts = new Seq<>();
 
     /** Color of trail behind bullet. */
     public Color trailColor = Pal.missileYellowBack;
@@ -482,6 +485,7 @@ public class BulletType extends Content implements Cloneable{
 
     public void draw(Bullet b){
         drawTrail(b);
+        drawParts(b);
     }
 
     public void drawTrail(Bullet b){
@@ -491,6 +495,17 @@ public class BulletType extends Content implements Cloneable{
             Draw.z(z - 0.0001f);
             b.trail.draw(trailColor, trailWidth);
             Draw.z(z);
+        }
+    }
+
+    public void drawParts(Bullet b){
+        if(parts.size > 0){
+            DrawPart.params.set(b.fin(), 0f, 0f, 0f, 0f, 0f, b.x, b.y, b.rotation());
+            DrawPart.params.life = b.fin();
+
+            for(int i = 0; i < parts.size; i++){
+                parts.get(i).draw(DrawPart.params);
+            }
         }
     }
 

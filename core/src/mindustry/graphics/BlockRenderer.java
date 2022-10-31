@@ -354,7 +354,7 @@ public class BlockRenderer{
         floorTree.intersect(bounds, lightview::add);
 
         blockTree.intersect(bounds, tile -> {
-            if(tile.build == null || procLinks.add(tile.build.id)){
+            if(tile.block() != Blocks.air && (tile.build == null || procLinks.add(tile.build.id))){
                 tileview.add(tile);
             }
 
@@ -411,12 +411,11 @@ public class BlockRenderer{
             Block block = tile.block();
             Building build = tile.build;
 
-            Draw.z(Layer.block);
-
             boolean visible = (build == null || !build.inFogTo(pteam));
 
             //comment wasVisible part for hiding?
-            if(block != Blocks.air && (visible || build.wasVisible)){
+            if(visible || build.wasVisible){
+                Draw.z(Layer.block);
                 block.drawBase(tile);
                 Draw.reset();
 
@@ -443,7 +442,7 @@ public class BlockRenderer{
                     }
 
                     if(build.team != pteam){
-                        if(build.block.drawTeamOverlay){
+                        if(block.drawTeamOverlay){
                             build.drawTeam();
                             Draw.z(Layer.block);
                         }
@@ -454,7 +453,7 @@ public class BlockRenderer{
                     }
                 }
                 Draw.reset();
-            }else if(!visible){
+            }else{
                 //TODO here is the question: should buildings you lost sight of remain rendered? if so, how should this information be stored?
                 //uncomment lines below for buggy persistence
                 //if(build.wasVisible) updateShadow(build);
@@ -480,8 +479,7 @@ public class BlockRenderer{
 
         if (drawCursors) {
             Draw.z(Layer.space);
-            Draw.color(Color.red);
-            Draw.alpha(.3f);
+            Draw.color(Color.red, .3f);
             boolean ints = Fonts.def.usesIntegerPositions();
             Fonts.def.setUseIntegerPositions(false);
             Fonts.def.getData().setScale(0.25f / Scl.scl(1f));

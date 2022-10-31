@@ -246,8 +246,7 @@ public class JoinDialog extends BaseDialog{
 
         if(Core.settings.getBool("allowjoinany")){
             versionString = Core.bundle.format("server.version", host.version, host.versionType);
-        }
-        else if(host.version == -1){
+        }else if(host.version == -1){
             versionString = Core.bundle.format("server.version", Core.bundle.get("server.custombuild"), "");
         }else if(host.version == 0){
             versionString = Core.bundle.get("server.outdated");

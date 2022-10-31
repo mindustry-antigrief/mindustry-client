@@ -129,6 +129,8 @@ public class FileTree implements FileHandleResolver{
             }
             audio.loadDirectly(cached);
         };
+
+        if(!Core.settings.getBool("download" + clazz.toLowerCase())) return; // Automatic downloading of music and sound can be disabled
 //        FINISHME: Making a get request to the line below would be beneficial as we could compare hashes but that would require a backup for exceeding rate limits (would also be done by directory as it would save many requests)
 //        "https://api.github.com/repos/" + Version.assetUrl + "/contents/core/assets/" + path + "?ref=" + Version.assetRef;
         var req = Http.get("https://raw.githubusercontent.com/" + Version.assetUrl + '/' + Version.assetRef  + "/core/assets/" + path);
@@ -141,7 +143,7 @@ public class FileTree implements FileHandleResolver{
                 });
                 return;
             }
-            Log.debug(clazz + " downloading failed for @ retrying", fi.name());
+            Log.debug("@ downloading failed for @ retrying", clazz, fi.name());
             req.error(e2 -> Log.err(clazz + " downloading for " + fi.name() + " failed", e2));
             req.timeout(5000); // The request probably timed out at 2000, it could be a fluke, but it could also just be bad Wi-Fi
             req.block(writeDownloadedAudio); // error() is run on the same thread so no need to submit this time as we're already on an http thread

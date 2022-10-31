@@ -38,6 +38,7 @@ public class Junction extends Block{
         underBullets = true;
         group = BlockGroup.transportation;
         unloadable = false;
+        floating = true;
         noUpdateDisabled = true;
     }
 

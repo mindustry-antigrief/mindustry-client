@@ -11,6 +11,7 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
+@SuppressWarnings("ClassCanBeRecord")
 public class EventType{
 
     //events that occur very often
@@ -84,10 +85,15 @@ public class EventType{
     public static class MusicRegisterEvent{}
     /** Called *after* all the modded files have been added into Vars.tree */
     public static class FileTreeInitEvent{}
-    /** Called when a game begins and the world tiles are loaded. Entities are not yet loaded at this stage.  */
-    public static class WorldLoadEvent{}
     /** Called just after joining a server */
     public static class ServerJoinEvent{}
+
+    /** Called when a game begins and the world tiles are loaded, just set `generating = false`. Entities are not yet loaded at this stage. */
+    public static class WorldLoadEvent{}
+    /** Called when the world begin to load, just set `generating = true`. */
+    public static class WorldLoadBeginEvent{}
+    /** Called when a game begins and the world tiles are initiated. About to updates tile proximity and sets up physics for the world(Before WorldLoadEvent) */
+    public static class WorldLoadEndEvent{}
 
     public static class SaveLoadEvent{
         public final boolean isMap;
@@ -314,7 +320,7 @@ public class EventType{
         }
     }
 
-    /** Literally just GameOverEvent but only fired when connected as a client. */
+    /** Identical to GameOverEvent but is also fired when connected as a client. */
     public static class GameOverEventClient{
         public final Team winner;
 
