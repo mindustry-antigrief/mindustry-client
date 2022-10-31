@@ -1,6 +1,7 @@
 package mindustry.client
 
 import arc.*
+import arc.graphics.Color
 import arc.graphics.g2d.*
 import arc.util.*
 import mindustry.Vars.*

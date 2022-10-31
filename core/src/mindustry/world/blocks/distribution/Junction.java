@@ -57,9 +57,10 @@ public class Junction extends Block{
 
         @Override
         public void update(){
-            boolean updateFlowTemp = updateFlow;
+            boolean updateFlowTemp = block.displayFlow;
             super.update();
-            items2.update(updateFlowTemp);
+            if (updateFlowTemp) items2.updateFlow();
+            else items2.stopFlow();
         }
 
         @Override

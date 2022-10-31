@@ -123,20 +123,21 @@ public class Build{
         result.placeBegan(tile, previous);
 
         var plans = player.unit().plans;
-        if(plans.size < 10 || control.input.planTreeNeedsRecalculation()){
+        final int planSize = plans.size;
+        if(planSize < 10){
             // what are the chances of this method being called many times in a frame
-            for(int i = 0; i < plans.size; i++){
+            for(int i = 0; i < planSize; i++){
                 var plan = plans.get(i);
-                if(plan.clientConfig != null && plan.x == x && plan.y == y && plan.block == build.current){
-                    build.clientConfig = plan.clientConfig;
+                if(plan.localConfig != null && plan.x == x && plan.y == y && plan.block == build.current){
+                    build.localConfig = plan.localConfig;
                 }
             }
         } else {
-            control.input.planTree().intersect(result.bounds(x, y, Tmp.r1), planSeq);
+            control.input.playerPlanTree.intersect(result.bounds(x, y, Tmp.r1), planSeq);
             for(int i = 0; i < planSeq.size; i++){
                 var plan = planSeq.items[i];
-                if(plan.clientConfig != null && plan.block == build.current){
-                    build.clientConfig = plan.clientConfig;
+                if(plan.localConfig != null && plan.block == build.current){
+                    build.localConfig = plan.localConfig;
                 }
             }
             planSeq.clear();

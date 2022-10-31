@@ -40,10 +40,10 @@ public class ConsoleFragment extends Table{
         visible(() -> {
             if(input.keyTap(Binding.console) && settings.getBool("console") && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null) && !ui.chatfrag.shown()){
                 shown = !shown;
-                if(shown && enableConsole && settings.getBool("console")) {
+                if(shown) {
                     open = false;
                     toggle();
-                } else if(!shown && enableConsole){
+                } else if(!shown){
                     hide();
                 }
                 clearChatInput();

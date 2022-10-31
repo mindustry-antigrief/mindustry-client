@@ -84,21 +84,27 @@ public class OverlayRenderer{
     }
 
     public void drawFrozenPlans(){
+        // move frozenPlans.size == 0 out from skip
+        if(frozenPlans.size == 0) return;
+
         // see player.unit().drawBuildPlans();
-        Boolf<BuildPlan> skip = (plan)->/*plan.progress > 0.01F ||*/ ((frozenPlans.size == 0?null:frozenPlans.first()) == plan && plan.initialized && (player.unit().within(plan.x * tilesize, plan.y * tilesize, buildingRange) || state.isEditor()));
+        var team = player.team();
+        var plantopAlpha = 0.24F + Mathf.absin(Time.globalTime, 6.0F, 0.28F);
+        Boolf<BuildPlan> skip = plan ->/*plan.progress > 0.01F ||*/ frozenPlans.first() == plan && plan.initialized && (player.unit().within(plan.x * tilesize, plan.y * tilesize, buildingRange) || state.isEditor());
+
         for (int i = 0; i < 2; i++) {
             for (BuildPlan plan : frozenPlans) {
                 if (skip.get(plan)) continue;
                 if (i == 0) {
                     //drawPlan
                     plan.animScale = 1.0F;
-                    plan.block.drawPlan(plan, (cons) -> {for(var req:frozenPlans)cons.get(req);}, Build.validPlace(plan.block, player.team(), plan.x, plan.y, plan.rotation) || control.input.requestMatches(plan), 1.0F, true);
+                    plan.block.drawPlan(plan, (cons) -> {for(var req:frozenPlans)cons.get(req);}, (Build.validPlace(plan.block, team, plan.x, plan.y, plan.rotation) && Build.validPlaceCoreRange(plan.block, team, plan.x, plan.y)) || control.input.planMatches(plan), 1.0F, true);
                 } else {
                     //drawPlanTop
                     Draw.reset();
-                    Draw.mixcol(Pal.freeze, 0.24F + Mathf.absin(Time.globalTime, 6.0F, 0.28F)); //TODO: potential optimization here lol
+                    Draw.mixcol(Pal.freeze, plantopAlpha); //TODO: potential optimization here lol
                     Draw.alpha(1.0F);
-                    plan.block.drawRequestConfigTop(plan, frozenPlans);
+                    plan.block.drawPlanConfigTop(plan, frozenPlans);
                 }
             }
         }

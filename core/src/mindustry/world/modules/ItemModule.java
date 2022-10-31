@@ -60,49 +60,49 @@ public class ItemModule extends BlockModule{
         System.arraycopy(other.items, 0, items, 0, items.length);
     }
 
-    public void updateFlow(boolean showFlow){
-        if(showFlow){
-            //update the flow at N fps at most
-            if(flowTimer.get(1, pollScl)){
+    public void updateFlow(){
+        //update the flow at N fps at most
+        if(flowTimer.get(1, pollScl)){
 
-                if(flow == null){
-                    if(stats.cacheFlow == null || stats.cacheFlow.length != items.length){
-                        stats.cacheFlow = new WindowedMean[items.length];
-                        for(int i = 0; i < items.length; i++){
-                            stats.cacheFlow[i] = new WindowedMean(windowSize);
-                        }
-                        stats.cacheSums = new float[items.length];
-                        stats.displayFlow = new float[items.length];
-                    }else{
-                        for(int i = 0; i < items.length; i++){
-                            stats.cacheFlow[i].reset();
-                        }
-                        Arrays.fill(stats.cacheSums, 0);
-                        cacheBits.clear();
+            if(flow == null){
+                if(stats.cacheFlow == null || stats.cacheFlow.length != items.length){
+                    stats.cacheFlow = new WindowedMean[items.length];
+                    for(int i = 0; i < items.length; i++){
+                        stats.cacheFlow[i] = new WindowedMean(windowSize);
                     }
-
-                    Arrays.fill(stats.displayFlow, -1);
-
-                    flow = stats.cacheFlow;
+                    stats.cacheSums = new float[items.length];
+                    stats.displayFlow = new float[items.length];
+                }else{
+                    for(int i = 0; i < items.length; i++){
+                        stats.cacheFlow[i].reset();
+                    }
+                    Arrays.fill(stats.cacheSums, 0);
+                    cacheBits.clear();
                 }
 
-                boolean updateFlow = flowTimer.get(30);
+                Arrays.fill(stats.displayFlow, -1);
 
-                for(int i = 0; i < items.length; i++){
-                    flow[i].add(stats.cacheSums[i]);
-                    if(stats.cacheSums[i] > 0){
-                        cacheBits.set(i);
-                    }
-                    stats.cacheSums[i] = 0;
+                flow = stats.cacheFlow;
+            }
 
-                    if(updateFlow){
-                        stats.displayFlow[i] = flow[i].hasEnoughData() ? flow[i].mean() / pollScl : -1;
-                    }
+            boolean updateFlow = flowTimer.get(30);
+
+            for(int i = 0; i < items.length; i++){
+                flow[i].add(stats.cacheSums[i]);
+                if(stats.cacheSums[i] > 0){
+                    cacheBits.set(i);
+                }
+                stats.cacheSums[i] = 0;
+
+                if(updateFlow){
+                    stats.displayFlow[i] = flow[i].hasEnoughData() ? flow[i].mean() / pollScl : -1;
                 }
             }
-        }else{
-            flow = null;
         }
+    }
+
+    public void stopFlow(){
+        flow = null;
     }
 
     public int length(){

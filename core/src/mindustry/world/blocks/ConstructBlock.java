@@ -97,7 +97,7 @@ public class ConstructBlock extends Block{
 
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild co ? co.prevBuild : null;
-        Cons<Building> customConfig = tile.build instanceof ConstructBuild co ? co.clientConfig : null;
+        Cons<Building> customConfig = tile.build instanceof ConstructBuild co ? co.localConfig : null;
         Block prevBlock = tile.block();
 
         if (block == null) {
@@ -144,7 +144,6 @@ public class ConstructBlock extends Block{
 
         Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
         if(shouldPlay()) block.placeSound.at(tile, block.placePitchChange ? calcPitch(true) : 1f);
-    }
         if(fogControl.isVisibleTile(team, tile.x, tile.y)){
             Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
             if(shouldPlay()) block.placeSound.at(tile, block.placePitchChange ? calcPitch(true) : 1f);
@@ -230,7 +229,7 @@ public class ConstructBlock extends Block{
         public float progress = 0;
         public float buildCost;
         public @Nullable Object lastConfig;
-        public @Nullable Cons<Building> clientConfig;
+        public @Nullable Cons<Building> localConfig;
         public @Nullable Unit lastBuilder;
         public boolean wasConstructing, activeDeconstruct;
         public float constructColor;

@@ -85,7 +85,7 @@ class ClientMessageTransmission : Transmission {
         return cert to if (Signatures.rawVerify(signable, signature, cert.publicKey)) VALID else INVALID
     }
 
-    fun addToChatfrag(processCoords: Boolean = false) {
+    fun addToChatfrag() {
         val background = when (validity) {
             VALID -> /* FINISHME: builtin check */ ClientVars.verified
             INVALID -> ClientVars.invalid

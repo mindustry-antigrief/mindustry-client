@@ -104,7 +104,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
                 int size = plans.size;
                 BuildPlan plan;
                 while(total++ < size && (!within((plan = buildPlan()).tile(), finalPlaceDst) || shouldSkip(plan, core) ||
-                        (!req.initialized && !Build.validPlaceCoreRange(plan.block, team, req.x, req.y)))){                    plans.removeFirst();
+                        (!plan.initialized && !Build.validPlaceCoreRange(plan.block, team, plan.x, plan.y)))){
                     plans.removeFirst();
                     plans.addLast(plan);
                 }
@@ -201,7 +201,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         }else{
             plan.block.drawPlan(plan, control.input.allPlans(),
                     (Build.validPlace(plan.block, team, plan.x, plan.y, plan.rotation) &&
-                    Build.validPlaceCoreRange(request.block, team, plan.x, plan.y)) || control.input.planMatches(plan),
+                    Build.validPlaceCoreRange(plan.block, team, plan.x, plan.y)) || control.input.planMatches(plan),
             alpha);
         }
     }
@@ -219,7 +219,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
     /** @return whether this plan should be skipped, in favor of the next one. */
     boolean shouldSkip(BuildPlan plan, @Nullable Building core){
         //plans that you have at least *started* are considered
-        if(request.priority || state.rules.infiniteResources || team.rules().infiniteResources || plan.breaking || core == null || plan.isRotation(team) || (isBuilding() && !within(plans.last(), type.buildRange))) return false;
+        if(plan.priority || state.rules.infiniteResources || team.rules().infiniteResources || plan.breaking || core == null || plan.isRotation(team) || (isBuilding() && !within(plans.last(), type.buildRange))) return false;
 
         return (plan.stuck && !core.items.has(plan.block.requirements)) || (Structs.contains(plan.block.requirements, i -> !core.items.has(i.item, Math.min(i.amount, 15)) && Mathf.round(i.amount * state.rules.buildCostMultiplier) > 0) && !plan.initialized);
     }

@@ -103,13 +103,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public float commandRectX, commandRectY;
 
     private Seq<BuildPlan> plansOut = new Seq<>(BuildPlan.class);
-    private QuadTree<BuildPlan> playerPlanTree = new QuadTree<>(new Rect());
+    public QuadTree<BuildPlan> playerPlanTree = new QuadTree<>(new Rect());
 
     public final BlockInventoryFragment inv;
     public final BlockConfigFragment config;
 
     private WidgetGroup group = new WidgetGroup();
 
+    private Seq<BuildPlan> visiblePlanSeq = new Seq<>();
+    private long lastFrameId;
     private final Eachable<BuildPlan> allPlans = cons -> {
         player.unit().plans().each(cons);
         selectPlans.each(cons);
@@ -683,7 +685,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             commandRect = false;
         }
 
-        playerPlanTree.clear();
+        playerPlanTree.clear(); // TODO: aaaaaaaaaaaaaa
         player.unit().plans.each(playerPlanTree::insert);
 
         player.typing = ui.chatfrag.shown();
@@ -1157,16 +1159,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Draw.color(Pal.freeze);
         Lines.stroke(1f);
 
-        for(BuildPlan req: player.unit().plans()){
-            if(req.breaking) continue;
-            if(req.bounds(Tmp.r2).overlaps(Tmp.r1)){
-                drawFreezing(req);
+        for(BuildPlan plan: player.unit().plans()){
+            if(plan.breaking) continue;
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
+                drawFreezing(plan);
             }
         }
-        for(BuildPlan req: selectRequests){
-            if(req.breaking) continue;
-            if(req.bounds(Tmp.r2).overlaps(Tmp.r1)){
-                drawFreezing(req);
+        for(BuildPlan plan: selectPlans){
+            if(plan.breaking) continue;
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
+                drawFreezing(plan);
             }
         }
 
@@ -1307,16 +1309,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     protected void drawOverPlan(BuildPlan plan, boolean valid){
-        if(!request.isVisible()) return;
+        if(!plan.isVisible()) return;
         Draw.reset();
         final long frameId = graphics.getFrameId();
-        if(lastFrameVisible != frameId){
-            lastFrameVisible = frameId;
+        if(lastFrameId != frameId){
+            lastFrameId = frameId;
             visiblePlanSeq.clear();
-            BuildPlan.getVisiblePlans(cons -> {
-                selectRequests.each(cons);
-                lineRequests.each(cons);
-            }, visiblePlanSeq);
+            BuildPlan.getVisiblePlans(allSelectLines, visiblePlanSeq);
         }
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(1f);
@@ -1437,7 +1436,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if(!req.breaking && req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
         }
 
-        for(BuildPlan req : selectRequests){
+        for(BuildPlan req : selectPlans){
             if(!req.breaking && req.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(req);
         }
 
@@ -1453,11 +1452,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 while(it1.hasNext() && it1.next() != frz);
                 if(it1.hasNext()) it1.remove();
             }
-            flushRequests(unfreeze);
+            flushPlans(unfreeze);
         }
         else{
             it1 = player.unit().plans().iterator();
-            it2 = selectRequests.iterator();
+            it2 = selectPlans.iterator();
             for (BuildPlan frz : tmpFrozenPlans) {
                 if(checkFreezeSelectionHasNext(frz, it1)) continue;
                 if(/*!itHasNext implied*/ it2 != null){

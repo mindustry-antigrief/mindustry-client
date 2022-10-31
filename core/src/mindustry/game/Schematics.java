@@ -407,7 +407,7 @@ public class Schematics implements Loadable{
                     Object config = !(tile instanceof ConstructBuild cons) ?
                         tile.config() : cons.lastConfig;
                     tiles.add(new Stile(realBlock, tile.tileX() + offsetX, tile.tileY() + offsetY, config,
-                            tile instanceof ConstructBuild cons ? cons.clientConfig : null, (byte)tile.rotation));
+                            tile instanceof ConstructBuild cons ? cons.localConfig : null, (byte)tile.rotation));
                     counted.add(tile.pos());
                 }
             }

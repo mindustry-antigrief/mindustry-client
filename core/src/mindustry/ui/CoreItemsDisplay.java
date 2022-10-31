@@ -35,7 +35,7 @@ public class CoreItemsDisplay extends Table{
 
         clicked(() -> {
             mode = mode.next();
-            ClientVars.coreItems.update(false);
+            ClientVars.coreItems.stopFlow();
             ClientVars.coreItems.clear();
             if(mode == CoreItemDisplayMode.negative){
                 ClientVars.coreItems.set(player.core().items());
@@ -54,7 +54,7 @@ public class CoreItemsDisplay extends Table{
                     // no break
                 }
                 case positiveOnly: {
-                    ClientVars.coreItems.update(true);
+                    ClientVars.coreItems.updateFlow();
                     break;
                 }
             }
