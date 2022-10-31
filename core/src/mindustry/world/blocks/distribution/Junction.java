@@ -60,6 +60,7 @@ public class Junction extends Block{
         @Override
         public void update(){
             super.update();
+            if (ui == null) return;
             boolean shouldFlow = ui.hudfrag.blockfrag.nextFlowBuild == this;
             if (shouldFlow) items2.updateFlow();
             else items2.stopFlow();
@@ -175,7 +176,7 @@ public class Junction extends Block{
             // correct the time value since they all somehow get mapped to a high number
             float now = Time.time;
             for(int i = 0; i < 4; i++){
-                for(int j = buffer.indexes[i] - 1; j >= 0; j--){
+                for(int j = buffer.indexes[i] - 1; j >= 0 && j < buffer.buffers[i].length; j--){
                     var l = buffer.buffers[i][j];
                     if (now <= BufferItem.time(l)){
                         buffer.buffers[i][j] = BufferItem.get(BufferItem.item(l),now - speed * timeScale);
