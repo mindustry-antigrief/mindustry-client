@@ -40,7 +40,7 @@ plugins{
 
 allprojects{
     version = project.hasProperty("packageVersion") ? project.getProperty("packageVersion") : 'release'
-    group = 'com.github.BalaM314'
+    group = 'com.github.mindustry-antigrief'
 
     ext{
         versionNumber = '7'
