@@ -35,7 +35,6 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
-import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.*;
 
 import java.io.*;
@@ -285,7 +284,6 @@ public class SettingsMenuDialog extends BaseDialog{
     public void addCategory(String name, Cons<SettingsTable> builder){
         addCategory(name, (Drawable)null, builder);
     }
-
     public Seq<SettingsCategory> getCategories(){
         return categories;
     }
@@ -956,7 +954,7 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         private void updatePref(){
-            settings.defaults("updateurl", "stormybytes/mindustry-client-builds");
+            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client");
             if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
             pref(new Setting("updateurl") {
                 boolean urlChanged;
@@ -985,7 +983,7 @@ public class SettingsMenuDialog extends BaseDialog{
                             becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
                             urlChanged = true;
                             settings.put(name, text);
-                        }).width(450).get().setMessageText("stormybytes/mindustry-client-builds");
+                        }).width(450).get().setMessageText("mindustry-antigrief/mindustry-client");
                     }).left().expandX().padTop(3).height(32).padBottom(3);
                     table.row();
                 }

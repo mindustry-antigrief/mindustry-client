@@ -24,11 +24,9 @@ import mindustry.input.*;
 import mindustry.ui.*;
 
 import java.util.*;
-import java.util.regex.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
-import static mindustry.client.ClientVars.*;
 
 public class ChatFragment extends Table{
     private static final int messagesShown = 10;
@@ -359,7 +357,7 @@ public class ChatFragment extends Table{
 
         StringBuilder messageBuild = new StringBuilder(message);
 
-        for (var entry : containsCommandHandler.entries()){ // s l o w
+        for (var entry : ClientVars.containsCommandHandler.entries()){ // s l o w
             String prefix = entry.key;
             int pos = -1;
             while (true) {

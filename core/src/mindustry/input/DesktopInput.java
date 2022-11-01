@@ -744,7 +744,7 @@ public class DesktopInput extends InputHandler{
                 Player.persistPlans.clear();
                 player.unit().clearBuilding();
             }
-            else Vars.frozenPlans.clear();
+            else frozenPlans.clear();
         }
 
         if(Core.input.keyTap(Binding.schematic_select) && !Core.scene.hasKeyboard() && mode != breaking){

@@ -7,6 +7,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import kotlin.*;
+import mindustry.entities.units.*;
 import mindustry.gen.Player;
 import mindustry.net.*;
 import mindustry.ui.*;
@@ -28,6 +29,7 @@ public class ClientVars {
     public static float jpegQuality = Core.settings.getFloat("commpicquality", 0.5f);
     public static boolean benchmarkNav = false;
     public final static Rect cameraBounds = new Rect();
+    public static Seq<BuildPlan> frozenPlans = new Seq<>();
     public static final Block[] noInteractTurrets = {Blocks.foreshadow, Blocks.ripple, Blocks.arc};
     public static int rank; // The rank int for servers such as io
 

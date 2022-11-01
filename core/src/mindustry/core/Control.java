@@ -102,7 +102,6 @@ public class Control implements ApplicationListener, Loadable{
         Events.on(ResetEvent.class, event -> {
             player.reset();
             toBePlaced.clear();
-            frozenPlans.clear();
 
             hiscore = false;
             saves.resetSave();

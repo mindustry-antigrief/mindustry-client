@@ -255,7 +255,6 @@ public class Vars implements Loadable{
 
     public static Player player;
     public static boolean drawCursors, wasDrawingCursors; // Client debug magic FINISHME: Re-implement
-    public static Seq<BuildPlan> frozenPlans = new Seq<>(); // remind me to shift this to Vars.player() maybe. or maybe not since unneeded space
 
     @Override
     public void loadAsync(){

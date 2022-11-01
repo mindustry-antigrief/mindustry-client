@@ -116,7 +116,7 @@ class ClientLogic {
             if (!syncing){
                 AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
                 Player.persistPlans.clear()
-                Vars.frozenPlans.clear()
+                frozenPlans.clear()
             }
             lastJoinTime = Time.millis()
             configs.clear()

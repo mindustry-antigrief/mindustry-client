@@ -12,7 +12,7 @@ buildscript{
             } else {
                 //skip to last submodule
                 name = name.substring(name.lastIndexOf(':') + 1)
-                return "com.github.mindustry-antigrief.Arc:$name:$arcHash"
+                return "com.github.mindustry-antigrief${localArc() ? "" : ".Arc"}:$name:$arcHash"
                 // TODO: Merge recheck: Merge bala's arc?
             }
         }

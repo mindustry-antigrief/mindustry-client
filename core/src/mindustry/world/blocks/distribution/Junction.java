@@ -10,7 +10,6 @@ import arc.scene.ui.layout.Table;
 import arc.struct.Bits;
 import arc.util.*;
 import arc.util.io.*;
-import mindustry.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
