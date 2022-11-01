@@ -22,6 +22,7 @@ import mindustry.net.Packets.*;
 import mindustry.ui.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class PlayerListFragment{
     public Table content = new Table().marginRight(13f).marginLeft(13f);

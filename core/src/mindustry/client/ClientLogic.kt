@@ -4,7 +4,6 @@ import arc.*
 import arc.util.*
 import mindustry.*
 import mindustry.client.ClientVars.*
-import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
@@ -16,7 +15,7 @@ import mindustry.gen.*
 import mindustry.logic.*
 import mindustry.net.*
 import mindustry.type.*
-import mindustry.world.blocks.logic.*
+import mindustry.world.modules.ItemModule
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
@@ -50,7 +49,7 @@ class ClientLogic {
             if (!syncing) {
                 AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
                 Player.persistPlans.clear()
-                processorConfigs.clear()
+                Vars.frozenPlans.clear()
             }
             lastJoinTime = Time.millis()
             configs.clear()
@@ -60,8 +59,10 @@ class ClientLogic {
             hidingUnits = false
             hidingAirUnits = false
             showingTurrets = false
+            showingInvTurrets = false
             if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
+            massDrivers.clear()
             Client.tiles.clear()
 
             UnitTypes.horizon.itemCapacity = if (flood()) 20 else 0 // Horizons can pick up items in flood, this just allows the items to draw correctly
@@ -141,16 +142,6 @@ class ClientLogic {
 
             if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
                 Vars.player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
-        }
-
-        Events.on(BlockBuildEndEvent::class.java) { e -> // Configure logic after construction
-            if (e.unit == null || e.team != Vars.player.team() || !Core.settings.getBool("processorconfigs")) return@on
-            val build = e.tile.build as? LogicBlock.LogicBuild ?: return@on
-            val packed = e.tile.pos()
-            if (!processorConfigs.containsKey(packed)) return@on
-
-            if (build.code.any() || build.links.any()) processorConfigs.remove(packed) // Someone else built a processor with data
-            else configs.add(ConfigRequest(e.tile.x.toInt(), e.tile.y.toInt(), processorConfigs.remove(packed)))
         }
 
         Events.on(GameOverEventClient::class.java) {

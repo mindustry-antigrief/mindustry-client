@@ -56,7 +56,7 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
         exclude("**steam**.so", "**steam**.dll", "**steam**.dylib")
     }
 
-    archiveFileName = "${appName}.jar"
+    archiveFileName = "${appName}-${'git branch --show-current'.execute().text.trim()}.jar"
 
     manifest{
         attributes 'Main-Class': project.mainClassName

@@ -5,6 +5,7 @@ import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.Texture.*;
+import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
@@ -34,6 +35,8 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.power.*;
+import mindustry.world.blocks.storage.*;
 
 import java.io.*;
 import java.util.zip.*;
@@ -272,7 +275,7 @@ public class SettingsMenuDialog extends BaseDialog{
     public void addCategory(String name, Cons<SettingsTable> builder){
         addCategory(name, (Drawable)null, builder);
     }
-    
+
     public Seq<SettingsCategory> getCategories(){
         return categories;
     }
@@ -357,6 +360,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", true); // Requires Restart
         client.checkPref("placementfragmentsearch", true);
+        client.checkPref("junctionflowratedirection", false, s -> Junction.flowRateByDirection = s);
         client.checkPref("drawwrecks", true);
         client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
         client.checkPref("drawpath", true);
@@ -365,15 +369,20 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
+        client.checkPref("unloaderview", false, i -> Unloader.drawUnloaderItems = i);
+        client.checkPref("customnullunloader", false, i -> Unloader.customNullLoader = i);
+        client.checkPref("logiclinkorder", false);
 
         client.category("misc");
         client.updatePref();
         client.sliderPref("minepathcap", 0, -100, 5000, 100, s -> s == 0 ? "Unlimited" : s == -100 ? "Never" : String.valueOf(s));
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
+        client.sliderPref("processorstatementscale", 80, 10, 100, 1, s -> String.format("%.2fx", s/100f)); // This is the most scuffed setting you have ever seen
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
+        client.checkPref("typingindicator", true, i -> control.input.showTypingIndicator = i);
         client.checkPref("pathnav", true);
         client.checkPref("nyduspadpatch", true);
         client.checkPref("hidebannedblocks", false);
@@ -384,6 +393,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("processorconfigs", false);
         client.checkPref("downloadmusic", true);
         client.checkPref("downloadsound", true);
+        client.checkPref("ignoremodminversion", false);
         // End Client Settings
 
 
@@ -448,7 +458,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         int[] lastUiScale = {settings.getInt("uiscale", 100)};
 
-        graphics.sliderPref("uiscale", 100, 25, 300, 25, s -> {
+        graphics.sliderPref("uiscale", 100, 25, 300, 5, s -> {
             //if the user changed their UI scale, but then put it back, don't consider it 'changed'
             Core.settings.put("uiscalechanged", s != lastUiScale[0]);
             return s + "%";
@@ -544,24 +554,37 @@ public class SettingsMenuDialog extends BaseDialog{
             }
         });
 
+        Cons2<Boolean, Boolean> setFilters = (setNonText, setText) -> {
+            ObjectSet<Texture> atlas = new ObjectSet<>(Core.atlas.getTextures());
+            final boolean lText = Core.settings.getBool("lineartext");
+            var fontFilter = Fonts.getTextFilter(lText);
+            for(Font f: new Font[]{Fonts.def, Fonts.outline, Fonts.mono(), Fonts.monoOutline()}){
+                f.getRegions().each(t -> {
+                    if(setText) {
+                        t.texture.setFilter(fontFilter);
+                    }
+                    atlas.remove(t.texture);
+                });
+            }
+            if(setNonText){
+                final var filter = Core.settings.getBool("linear") ? TextureFilter.linear : TextureFilter.nearest;
+                atlas.each(t -> t.setFilter(filter));
+            }
+        };
         //iOS (and possibly Android) devices do not support linear filtering well, so disable it
         if(!ios){
             graphics.checkPref("linear", !mobile, b -> {
-                TextureFilter filter = b ? TextureFilter.linear : TextureFilter.nearest;
-                for(Texture tex : Core.atlas.getTextures()){
-                    tex.setFilter(filter, filter);
-                }
+                setFilters.get(true, false);
+            });
+            graphics.checkPref("lineartext", Core.settings.getBool("linear"), b -> {
+                setFilters.get(false, true);
             });
         }else{
             settings.put("linear", false);
+            settings.put("lineartext", false);
         }
 
-        if(Core.settings.getBool("linear")){
-            for(Texture tex : Core.atlas.getTextures()){
-                TextureFilter filter = TextureFilter.linear;
-                tex.setFilter(filter, filter);
-            }
-        }
+        setFilters.get(true, true);
 
         graphics.checkPref("skipcoreanimation", false);
         graphics.checkPref("hidedisplays", false);
@@ -893,7 +916,7 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         private void updatePref(){
-            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client-v7-builds");
+            settings.defaults("updateurl", "zxtej/mindustry-client");
             if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
             pref(new Setting("updateurl") {
                 boolean urlChanged;
@@ -922,7 +945,7 @@ public class SettingsMenuDialog extends BaseDialog{
                             becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
                             urlChanged = true;
                             settings.put(name, text);
-                        }).width(450).get().setMessageText("mindustry-antigrief/mindustry-client");
+                        }).width(450).get().setMessageText("zxtej/mindustry-client");
                     }).left().expandX().padTop(3).height(32).padBottom(3);
                     table.row();
                 }

@@ -3,6 +3,7 @@ package mindustry.client.communication
 import arc.*
 import arc.util.*
 import mindustry.*
+import mindustry.client.ClientVars
 import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.content.*
@@ -68,12 +69,14 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
         // Stores build state. Toggles building off as otherwise it can fail.
         val toggle = Vars.control.input.isBuilding
         Vars.control.input.isBuilding = false
+        ClientVars.isBuildingLock = true
         Vars.player.unit().updateBuilding = false
         Vars.player.unit().addBuild(plan, false)
         Timer.schedule( {
             Core.app.post { // make sure it doesn't do this while something else is iterating through the plans
                 Vars.player.unit().plans.remove(plan)
                 Vars.control.input.isBuilding = toggle
+                ClientVars.isBuildingLock = false
             }
         }, 0.25f)
     }

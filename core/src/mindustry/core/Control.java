@@ -102,6 +102,7 @@ public class Control implements ApplicationListener, Loadable{
         Events.on(ResetEvent.class, event -> {
             player.reset();
             toBePlaced.clear();
+            frozenPlans.clear();
 
             hiscore = false;
             saves.resetSave();
@@ -647,6 +648,9 @@ public class Control implements ApplicationListener, Loadable{
             if(Core.input.keyTap(Binding.menu) && !ui.restart.isShown() && !ui.minimapfrag.shown() && !UploadDialog.INSTANCE.isShown()){
                 if(ui.chatfrag.shown()){
                     ui.chatfrag.hide();
+                }else if(ui.consolefrag.shown() || ui.consolefrag.open()){
+                    if(ui.consolefrag.open()) ui.consolefrag.hide();
+                    else ui.consolefrag.setShown(false);
                 }else if(ui.listfrag.shown()){
                     ui.listfrag.toggle();
                 }else if(!ui.paused.isShown() && !scene.hasDialog()){

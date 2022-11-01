@@ -658,6 +658,15 @@ public class LogicBlock extends Block{
             if (!this.interactable(player.team())) return false;
 
             if(validLink(other)){
+                if(Core.settings.getBool("logiclinkorder")){
+                    int ox = other.tileX(), oy = other.tileY();
+                    LogicLink link = links.find(l -> l.x == ox && l.y == oy);
+                    if(link != null && link.active){
+                        links.remove(link, true);
+                        configure(compress(code, relativeConnections()));
+                        return false;
+                    }
+                }
                 configure(other.pos());
                 return false;
             }

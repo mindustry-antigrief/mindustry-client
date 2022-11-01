@@ -1,6 +1,7 @@
 package mindustry.graphics;
 
 import arc.*;
+import arc.func.Boolf;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -10,6 +11,7 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.ai.types.*;
 import mindustry.entities.*;
+import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
@@ -76,8 +78,37 @@ public class OverlayRenderer{
 //        if(player.isBuilder()){
             player.unit().drawBuildPlans();
 //        }
+        drawFrozenPlans();
 
         input.drawBottom();
+    }
+
+    public void drawFrozenPlans(){
+        // move frozenPlans.size == 0 out from skip
+        if(frozenPlans.size == 0) return;
+
+        // see player.unit().drawBuildPlans();
+        var team = player.team();
+        var plantopAlpha = 0.24F + Mathf.absin(Time.globalTime, 6.0F, 0.28F);
+        Boolf<BuildPlan> skip = plan ->/*plan.progress > 0.01F ||*/ frozenPlans.first() == plan && plan.initialized && (player.unit().within(plan.x * tilesize, plan.y * tilesize, buildingRange) || state.isEditor());
+
+        for (int i = 0; i < 2; i++) {
+            for (BuildPlan plan : frozenPlans) {
+                if (skip.get(plan)) continue;
+                if (i == 0) {
+                    //drawPlan
+                    plan.animScale = 1.0F;
+                    plan.block.drawPlan(plan, (cons) -> {for(var req:frozenPlans)cons.get(req);}, (Build.validPlace(plan.block, team, plan.x, plan.y, plan.rotation) && Build.validPlaceCoreRange(plan.block, team, plan.x, plan.y)) || control.input.planMatches(plan), 1.0F, true);
+                } else {
+                    //drawPlanTop
+                    Draw.reset();
+                    Draw.mixcol(Pal.freeze, plantopAlpha); //TODO: potential optimization here lol
+                    Draw.alpha(1.0F);
+                    plan.block.drawPlanConfigTop(plan, frozenPlans);
+                }
+            }
+        }
+        Draw.reset();
     }
 
     public void drawTop(){

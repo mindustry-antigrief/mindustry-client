@@ -63,7 +63,7 @@ object Main : ApplicationListener {
 
         communicationClient = Packets.CommunicationClient(communicationSystem)
 
-        Navigation.navigator = AStarNavigator
+        Navigation.navigator = AStarNavigatorOptimised
 
         Events.on(EventType.WorldLoadEvent::class.java) {
             if (!Vars.net.client()) { // This is so scuffed but shh

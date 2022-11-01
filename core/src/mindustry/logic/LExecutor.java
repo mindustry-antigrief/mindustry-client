@@ -506,7 +506,7 @@ public class LExecutor{
                                     ui.chatfrag.addMessage(msg, null, Color.scarlet.cpy().mul(0.75f), "", msg);
                                     control.input.lastVirusWarning = build;
                                     control.input.lastVirusWarnTime = Time.millis();
-                                    ClientVars.lastSentPos.set(build.tileX(), build.tileY());
+                                    ClientVars.lastCorePos.set(build.tileX(), build.tileY());
                                     build.isVirus = true;
                                 }
                             }

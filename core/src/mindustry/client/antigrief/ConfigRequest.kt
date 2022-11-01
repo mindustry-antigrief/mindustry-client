@@ -3,7 +3,7 @@ package mindustry.client.antigrief
 import mindustry.*
 import mindustry.gen.*
 
-class ConfigRequest @JvmOverloads constructor(val x: Int, val y: Int, var value: Any?, var isRotate: Boolean = false) : Runnable {
+open class ConfigRequest @JvmOverloads constructor(@JvmField val x: Int, @JvmField val y: Int, var value: Any?, var isRotate: Boolean = false) : Runnable {
     @JvmOverloads constructor(build: Building, value: Any?, isRotate: Boolean = false): this(build.tileX(), build.tileY(), value, isRotate)
 
     override fun run() {

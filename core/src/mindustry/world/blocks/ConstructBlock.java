@@ -3,6 +3,7 @@ package mindustry.world.blocks;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
+import arc.func.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.scene.event.*;
@@ -35,6 +36,7 @@ import java.util.*;
 import java.util.concurrent.atomic.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.coreItemsDisplay;
 import static mindustry.ui.Styles.*;
 
 /** A block in the process of construction. */
@@ -95,6 +97,7 @@ public class ConstructBlock extends Block{
 
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild co ? co.prevBuild : null;
+        Cons<Building> customConfig = tile.build instanceof ConstructBuild co ? co.localConfig : null;
         Block prevBlock = tile.block();
 
         if (block == null) {
@@ -127,6 +130,20 @@ public class ConstructBlock extends Block{
             tile.build.playerPlaced(config);
         }
 
+        if(tile.build != null && customConfig != null){
+            customConfig.get(tile.build);
+        }
+
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
+
+        if (tile.build instanceof ConstructBuild b) { // FINISHME: Does this even work?
+            for (var item : b.prevBuild != null ? b.prevBuild : new Seq<Building>()) {
+                Events.fire(new BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
+            }
+        }
+
+        Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
+        if(shouldPlay()) block.placeSound.at(tile, block.placePitchChange ? calcPitch(true) : 1f);
         if(fogControl.isVisibleTile(team, tile.x, tile.y)){
             Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
             if(shouldPlay()) block.placeSound.at(tile, block.placePitchChange ? calcPitch(true) : 1f);
@@ -206,10 +223,13 @@ public class ConstructBlock extends Block{
         public Block previous = Blocks.air;
         /** Buildings that previously occupied this location. */
         public @Nullable Seq<Building> prevBuild;
+        /** Reference to its BuildPlan, for prioritization purposes. */
+        public @Nullable BuildPlan attachedPlan;
 
         public float progress = 0;
         public float buildCost;
         public @Nullable Object lastConfig;
+        public @Nullable Cons<Building> localConfig;
         public @Nullable Unit lastBuilder;
         public boolean wasConstructing, activeDeconstruct;
         public float constructColor;
@@ -246,7 +266,9 @@ public class ConstructBlock extends Block{
                 if(control.input.buildWasAutoPaused && !control.input.isBuilding && player.isBuilder()){
                     control.input.isBuilding = true;
                 }
-                player.unit().addBuild(new BuildPlan(tile.x, tile.y, rotation, current, lastConfig), false);
+                if(attachedPlan == null) attachedPlan = new BuildPlan(tile.x, tile.y, rotation, current, lastConfig);
+                player.unit().addBuild(attachedPlan, attachedPlan.priority); // BuildPlan.priority and tail are inverted
+                attachedPlan.priority ^= true;
             }
         }
 
@@ -375,6 +397,7 @@ public class ConstructBlock extends Block{
                         int accepting = Math.min(accumulated, core.storageCapacity - core.items.get(requirements[i].item));
                         //transfer items directly, as this is not production.
                         core.items.add(requirements[i].item, accepting);
+                        if(core.team == player.team()) coreItemsDisplay.addItem(requirements[i].item, accepting);
                         accumulator[i] -= accepting;
                     }else{
                         accumulator[i] -= accumulated;
@@ -524,8 +547,8 @@ public class ConstructBlock extends Block{
                     toast.row();
                     toast.add(new Label(format2, monoLabel));
                     toast.touchable = Touchable.enabled;
-                    toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
-                    ClientVars.lastSentPos.set(tile.x, tile.y);
+                    toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastCorePos.cpy().scl(tilesize)));
+                    ClientVars.lastCorePos.set(tile.x, tile.y);
                 }
 
                 if (lastProgress == 0 && Core.settings.getBool("removecorenukes") && state.rules.reactorExplosions && current instanceof NuclearReactor && !lastBuilder.isLocal() && distance.get() <= 20) { // Automatically remove reactors within 20 blocks of core

@@ -183,6 +183,14 @@ public class Fonts{
         Log.warn("The icon stuff took @", Time.timeSinceNanos(start) / (float) Time.nanosPerMilli);
     }
 
+    public static TextureFilter getTextFilter(boolean linear){ //TODO: separate into min and max filter
+        return linear ? TextureFilter.linear : TextureFilter.nearest;
+    }
+
+    public static TextureFilter getTextFilter(){
+        return getTextFilter(Core.settings.getBool("lineartext", Core.settings.getBool("linear")));
+    }
+
     /** Called from a static context for use in the loading screen.*/
     public static void loadDefaultFont(){
         int max = Gl.getInt(Gl.maxTextureSize);
@@ -204,8 +212,8 @@ public class Fonts{
                     scaled.add(parameter.fontParameters);
                 }
 
-                parameter.fontParameters.magFilter = TextureFilter.linear;
-                parameter.fontParameters.minFilter = TextureFilter.linear;
+                parameter.fontParameters.magFilter = getTextFilter();
+                parameter.fontParameters.minFilter = getTextFilter();
                 parameter.fontParameters.packer = UI.packer;
                 return super.loadSync(manager, fileName, file, parameter);
             }
@@ -215,6 +223,10 @@ public class Fonts{
             borderColor = Color.darkGray;
             incremental = true;
             size = 18;
+            /*
+            size *= 2;
+            scaleFactor = 1f/2;
+             */
         }};
 
         Core.assets.load("outline", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = t -> {
@@ -319,6 +331,13 @@ public class Fonts{
             shadowColor = Color.darkGray;
             shadowOffsetY = 2;
             incremental = true;
+            magFilter = minFilter = getTextFilter();
+
+            /*
+            size *= 2;
+            scaleFactor = 1f/2;
+            shadowOffsetY *= 2;
+             */
         }};
     }
 }

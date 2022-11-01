@@ -27,10 +27,9 @@ public class MenuRenderer implements Disposable{
     private FrameBuffer shadows;
     private CacheBatch batch;
     private float time = 0f;
-    private float flyerRot = 45f, flyerOffset = 180f;
+    private float flyerRot = 45f;
     private int flyers = Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
-    //no longer random or "dynamic", mod units in the menu look jarring, and it's not worth the configuration effort
-    private UnitType flyerType = Structs.random(UnitTypes.flare, UnitTypes.horizon, UnitTypes.zenith, UnitTypes.mono, UnitTypes.poly, UnitTypes.mega, UnitTypes.alpha, UnitTypes.beta, UnitTypes.gamma);
+    private UnitType flyerType = content.units().select(u -> !u.isHidden() && u.hitSize <= 20f && u.flying && u.region.found()).random();
     private boolean cursed;
 
     public MenuRenderer(){
@@ -210,12 +209,12 @@ public class MenuRenderer implements Disposable{
     }
 
     public void render(){
-        if(Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null){
-            flyerType = content.units().select(u -> u.region.found()).random(flyerType);
-//            flyerRot += Mathf.random(0f, 360f); While I would love to do this, I don't want to figure out the math.
+        if (Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null) {
+            flyerType = content.units().select(u -> (u.hitSize >= 20f || !u.flying) && u.region.found()).random();
             cursed = true;
+            flyers = Mathf.chance(0.005) ? 70 + Mathf.random(20) : Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
+            Log.debug("There are @ flyers.", flyers);
         }
-        if(cursed) flyerOffset += Time.delta * 12f;
         time += Time.delta;
         float scaling = Math.max(Scl.scl(4f), Math.max(Core.graphics.getWidth() / ((width - 1f) * tilesize), Core.graphics.getHeight() / ((height - 1f) * tilesize)));
         camera.position.set(width * tilesize / 2f, height * tilesize / 2f);
@@ -252,7 +251,7 @@ public class MenuRenderer implements Disposable{
         TextureRegion icon = flyerType.fullIcon;
 
         flyers((x, y) -> {
-            Draw.rect(icon, x - 12f, y - 13f, flyerRot + flyerOffset + 90);
+            Draw.rect(icon, x - 12f, y - 13f, flyerRot - 90);
         });
 
         float size = Math.max(icon.width, icon.height) * icon.scl() * 1.6f;
@@ -263,18 +262,18 @@ public class MenuRenderer implements Disposable{
         Draw.color();
 
         flyers((x, y) -> {
-            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = flyerRot + flyerOffset;
+            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = flyerRot;
 
             Draw.color(Pal.engine);
-            Fill.circle(x + Angles.trnsx(rotation, engineOffset), y + Angles.trnsy(rotation, engineOffset),
+            Fill.circle(x + Angles.trnsx(rotation + 180, engineOffset), y + Angles.trnsy(rotation + 180, engineOffset),
             engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f));
 
             Draw.color(Color.white);
-            Fill.circle(x + Angles.trnsx(rotation, engineOffset - 1f), y + Angles.trnsy(rotation, engineOffset - 1f),
+            Fill.circle(x + Angles.trnsx(rotation + 180, engineOffset - 1f), y + Angles.trnsy(rotation + 180, engineOffset - 1f),
             (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f)) / 2f);
             Draw.color();
 
-            Draw.rect(icon, x, y, rotation + 90);
+            Draw.rect(icon, x, y, flyerRot - 90);
         });
     }
 
@@ -286,11 +285,14 @@ public class MenuRenderer implements Disposable{
 
         for(int i = 0; i < flyers; i++){
             Tmp.v1.trns(flyerRot, time * (flyerType.speed));
-
-            cons.get(
-            (Mathf.randomSeedRange(i, range) + Tmp.v1.x + (cursed ? 0 : Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset)) % (tw + Mathf.randomSeed(i + 5, 0, 500)),
-            (Mathf.randomSeedRange(i + 1, range) + Tmp.v1.y + (cursed ? 0 : Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset)) % th
-            );
+            float x = (Mathf.randomSeedRange(i, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 5, 0, 500));
+            float y = (Mathf.randomSeedRange(i + 1, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset) % th;
+            float prevRot = flyerRot;
+            if(cursed){
+                flyerRot = camera.unproject(Core.input.mouseX(), Core.input.mouseY()).sub(x, y).angle();
+            }
+            cons.get(x, y);
+            flyerRot = prevRot;
         }
     }
 

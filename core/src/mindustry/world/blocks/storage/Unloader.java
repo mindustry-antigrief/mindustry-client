@@ -1,7 +1,9 @@
 package mindustry.world.blocks.storage;
 
+import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
+import arc.math.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
@@ -10,6 +12,7 @@ import arc.util.pooling.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
@@ -23,6 +26,8 @@ public class Unloader extends Block{
     public @Load(value = "@-center", fallback = "unloader-center") TextureRegion centerRegion;
 
     public float speed = 1f;
+    public static boolean drawUnloaderItems = Core.settings != null && Core.settings.getBool("unloaderview");
+    public static boolean customNullLoader = Core.settings != null && Core.settings.getBool("customnullunloader");
 
     public Unloader(String name){
         super(name);
@@ -83,7 +88,9 @@ public class Unloader extends Block{
         private final int itemsLength = content.items().size;
         public Item sortItem = null;
         public ContainerStat dumpingFrom, dumpingTo;
-        public final Seq<ContainerStat> possibleBlocks = new Seq<>();
+        public final Seq<ContainerStat> possibleBlocks = new Seq<>(ContainerStat.class);
+        private Item lastItem = null;
+        private Building lastDumpFrom, lastDumpTo;
 
         protected final Comparator<ContainerStat> comparator = (x, y) -> {
             //sort so it gives priority for blocks that can only either receive or give (not both), and then by load, and then by last use
@@ -111,7 +118,8 @@ public class Unloader extends Block{
                 pb.canUnload = other.canUnload() && other.items != null && other.items.has(item);
 
                 //thats also handling framerate issues and slow conveyor belts, to avoid skipping items if nulloader
-                if((hasProvider && pb.canLoad) || (hasReceiver && pb.canUnload)) isDistinct = true;
+//                if((hasProvider && pb.canLoad) || (hasReceiver && pb.canUnload)) isDistinct = true;
+                isDistinct |= (hasProvider && pb.canLoad) || (hasReceiver && pb.canUnload);
                 hasProvider |= pb.canUnload;
                 hasReceiver |= pb.canLoad;
             }
@@ -165,11 +173,18 @@ public class Unloader extends Block{
                 }
             }
 
+            lastDumpFrom = null;
+            lastDumpTo = null;
+
+            final var possibleBlockItems = possibleBlocks.items;
+
             if(item != null){
                 rotations = item.id; //next rotation for nulloaders //TODO maybe if(sortItem == null)
+                final int possibleBlocksSize = possibleBlocks.size;
 
-                for(int i = 0; i < possibleBlocks.size; i++){
-                    var pb = possibleBlocks.get(i);
+                //only compute the load factor if a transfer is possible
+                for(int pos = 0; pos < possibleBlocksSize; pos++){
+                    ContainerStat pb = possibleBlockItems[pos];
                     var other = pb.building;
                     pb.loadFactor = (other.getMaximumAccepted(item) == 0) || (other.items == null) ? 0 : other.items.get(item) / (float)other.getMaximumAccepted(item);
                     pb.lastUsed = (pb.lastUsed + 1) % Integer.MAX_VALUE; //increment the priority if not used
@@ -181,17 +196,17 @@ public class Unloader extends Block{
                 dumpingFrom = null;
 
                 //choose the building to accept the item
-                for(int i = 0; i < possibleBlocks.size; i++){
-                    if(possibleBlocks.get(i).canLoad){
-                        dumpingTo = possibleBlocks.get(i);
+                for(int i = 0; i < possibleBlocksSize; i++){
+                    if(possibleBlockItems[i].canLoad){
+                        dumpingTo = possibleBlockItems[i];
                         break;
                     }
                 }
 
                 //choose the building to take the item from
-                for(int i = possibleBlocks.size - 1; i >= 0; i--){
-                    if(possibleBlocks.get(i).canUnload){
-                        dumpingFrom = possibleBlocks.get(i);
+                for(int i = possibleBlocksSize - 1; i >= 0; i--){
+                    if(possibleBlockItems[i].canUnload){
+                        dumpingFrom = possibleBlockItems[i];
                         break;
                     }
                 }
@@ -202,6 +217,9 @@ public class Unloader extends Block{
                     dumpingFrom.building.removeStack(item, 1);
                     dumpingTo.lastUsed = 0;
                     dumpingFrom.lastUsed = 0;
+                    lastDumpFrom = dumpingFrom.building;
+                    lastDumpTo = dumpingTo.building;
+                    lastItem = item;
                     any = true;
                 }
             }
@@ -213,15 +231,49 @@ public class Unloader extends Block{
             }
         }
 
+        private final static float halfTilesizeF = tilesizeF / 2f, nodeSize = halfTilesizeF, halfNodeSize = nodeSize / 2f;
         @Override
         public void draw(){
             super.draw();
 
-            Draw.color(sortItem == null ? Color.clear : sortItem.color);
+            Draw.color(sortItem == null ? customNullLoader ? Pal.lightishGray : Color.clear : sortItem.color);
             Draw.rect(centerRegion, x, y);
+            if(drawUnloaderItems && lastItem != null && lastDumpFrom != null && lastDumpTo != null && enabled){
+                Draw.color(lastItem.color);
+                Draw.alpha(0.67f);
+                Draw.rect("unloader-center", x, y);
+                Draw.alpha(1f);
+                var v1 = Tmp.v1;
+                getDirection(lastDumpFrom);
+                float thick = Lines.getStroke();
+
+                Lines.stroke(tilesizeF / 8f);
+                Lines.beginLine();
+                getDirection(lastDumpFrom);
+                Lines.linePoint(v1.scl(halfTilesizeF - halfNodeSize / 2f).add(this));
+                Lines.linePoint(this);
+                getDirection(lastDumpTo);
+                Lines.linePoint(v1.scl(halfTilesizeF - halfNodeSize).add(this));
+                Lines.endLine();
+                Lines.stroke(thick);
+
+                Tex.logicNode.draw(v1.x - halfNodeSize, v1.y - halfNodeSize, halfNodeSize, halfNodeSize, nodeSize, nodeSize, 1f, 1f, v1.sub(this).angle());
+            }
             Draw.color();
         }
 
+        private void getDirection(Building other){
+            float dx = other.x - x, dy = other.y - y;
+            if(Math.abs(dy) > Math.abs(dx)){
+                int sign = Mathf.sign(dy);
+                Tmp.v1.set(0, sign); // direction of the rect
+                //Tmp.r1.set(x - lineWidth2, y - sign * lineWidth2, lineWidth, sign * (tilesizeF / 2f + lineWidth2));
+            } else {
+                int sign = Mathf.sign(dx);
+                Tmp.v1.set(sign, 0);
+                //Tmp.r1.set(x - sign * lineWidth2, y - lineWidth2, sign * (tilesizeF / 2f + lineWidth2), lineWidth);
+            }
+        }
         @Override
         public void buildConfiguration(Table table){
             ItemSelection.buildTable(Unloader.this, table, content.items(), () -> sortItem, this::configure, selectionRows, selectionColumns);
