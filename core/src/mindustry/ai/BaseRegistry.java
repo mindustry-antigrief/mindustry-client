@@ -33,7 +33,6 @@ public class BaseRegistry{
     }
 
     public void load(){
-        long last = Time.nanos();
         cores.clear();
         parts.clear();
         reqParts.clear();
@@ -112,7 +111,6 @@ public class BaseRegistry{
         cores.sort(b -> b.tier);
         parts.sort();
         reqParts.each((key, arr) -> arr.sort());
-        Log.warn("Took @ms", Time.timeSinceNanos(last)/Time.nanosPerMilli);
     }
 
     public static class BasePart implements Comparable<BasePart>{

@@ -37,6 +37,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.cameraBounds;
 
 public class Block extends UnlockableContent implements Senseable{
     /** If true, buildings have an ItemModule. */
@@ -673,12 +674,17 @@ public class Block extends UnlockableContent implements Senseable{
     }
 
     public void drawPlan(BuildPlan plan, Eachable<BuildPlan> list, boolean valid){
-        drawPlan(plan, list, valid, 1f);
+        drawPlan(plan, list, valid, 1f, false);
     }
 
     public void drawPlan(BuildPlan plan, Eachable<BuildPlan> list, boolean valid, float alpha){
+        drawPlan(plan, list, valid, alpha, false);
+    }
+
+    public void drawPlan(BuildPlan plan, Eachable<BuildPlan> list, boolean valid, float alpha, boolean freeze){
         Draw.reset();
-        Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
+        if(plan.worldContext && !cameraBounds.overlaps(plan.block.bounds(plan.x, plan.y, Tmp.r1))) return;
+        Draw.mixcol(valid ? freeze ? Pal.freeze : Color.white : Pal.breakInvalid, (valid ? 0.24f : 0.4f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(alpha);
         float prevScale = Draw.scl;
         Draw.scl *= plan.animScale;
@@ -828,6 +834,10 @@ public class Block extends UnlockableContent implements Senseable{
         return generatedIcons == null ? (generatedIcons = icons()) : generatedIcons;
     }
 
+    public void resetGeneratedIcons(){
+        generatedIcons = null;
+    }
+
     public TextureRegion[] variantRegions(){
         return variantRegions == null ? (variantRegions = new TextureRegion[]{fullIcon}) : variantRegions;
     }
@@ -853,11 +863,15 @@ public class Block extends UnlockableContent implements Senseable{
     }
 
     public boolean isVisible(){
-        return !isHidden();
+        return !isHidden() && (state.rules.editor || (!state.rules.hideBannedBlocks || !state.rules.isBanned(this)));
+    }
+
+    public boolean isVisibleOn(Planet planet){
+        return !Structs.contains(requirements, i -> planet.hiddenItems.contains(i.item));
     }
 
     public boolean isPlaceable(){
-        return isVisible() && (!state.rules.bannedBlocks.contains(this) || state.rules.editor) && supportsEnv(state.rules.env);
+        return isVisible() && (!state.rules.isBanned(this) || state.rules.editor) && supportsEnv(state.rules.env);
     }
 
     /** @return whether this block supports a specific environment. */

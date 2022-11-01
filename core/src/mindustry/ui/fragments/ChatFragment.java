@@ -24,9 +24,11 @@ import mindustry.input.*;
 import mindustry.ui.*;
 
 import java.util.*;
+import java.util.regex.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class ChatFragment extends Table{
     private static final int messagesShown = 10;
@@ -79,7 +81,7 @@ public class ChatFragment extends Table{
                     historyPos--;
                     updateChat();
                 }
-                if (input.keyTap(Binding.chat_autocomplete) && completion.any() && mode == ChatMode.normal) {
+                if (input.keyTap(Binding.chat_autocomplete) && completion.any() /*&& mode == ChatMode.normal*/) {
                     completionPos = Mathf.clamp(completionPos, 0, completion.size - 1);
                     chatfield.setText(completion.get(completionPos).getCompletion(chatfield.getText()) + " ");
                     updateCursor();
@@ -355,6 +357,32 @@ public class ChatFragment extends Table{
             message = message.replaceFirst("^" + mode.prefix + " ([/!])", "$1");
         }
 
+        StringBuilder messageBuild = new StringBuilder(message);
+
+        for (var entry : containsCommandHandler.entries()){ // s l o w
+            String prefix = entry.key;
+            int pos = -1;
+            while (true) {
+                pos = messageBuild.indexOf(prefix, pos + 1);
+                if(pos == -1 || pos == messageBuild.length() - 1) break;
+                String tmp = messageBuild.substring(pos + 1);
+                if(tmp.startsWith(prefix)){ // double prefix - escaped
+                    messageBuild.deleteCharAt(pos);
+                    continue;
+                }
+                for(var pair : entry.value){
+                    String cmd = pair.getFirst();
+                    if(tmp.startsWith(cmd)){
+                        String replace = pair.getSecond().get();
+                        messageBuild.replace(pos, pos + cmd.length() + 1, replace);
+                        pos += replace.length() - 1;
+                        break;
+                    }
+                }
+            }
+        }
+        message = messageBuild.toString();
+
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
@@ -549,6 +577,10 @@ public class ChatFragment extends Table{
         public String unformatted;
         @Nullable public Seq<Image> attachments = new Seq<>(); // This seq is deleted after 100 new messages to save ram
         public float start, height;
+    
+        public static boolean processCoords, setLastPos; // false by default, set them ON right before initializing a new message
+        private static final Pattern coordPattern = Pattern.compile("([\\[,\\(]?([\\d\\.]+)[ ,]+([\\d\\.]+)[\\],\\)]?)"); // This regex captures the coords into $1 and $2 while $0 contains all surrounding text as well. Fixed by BalaM314. https://regexr.com is the superior regex tester
+        
         @Nullable public Seq<ClickableArea> buttons = new Seq<>(); // This seq is deleted after 100 new messages to save ram
 
         /**
@@ -568,6 +600,17 @@ public class ChatFragment extends Table{
             format(false);
         }
 
+        public static void msgFormat(boolean processCoords2, boolean setLastPos2){
+            processCoords = processCoords2;
+            setLastPos = setLastPos2;
+        }
+        public static void msgFormat(boolean process){
+            msgFormat(process, process);
+        }
+        public static void msgFormat() {
+            msgFormat(true, true);
+        }
+       
         public ChatMessage addButton(int start, int end, Runnable lambda) {
             if (buttons != null) buttons.add(new ClickableArea(start, end, lambda));
             return this;
@@ -581,10 +624,12 @@ public class ChatFragment extends Table{
         private void format(boolean moveButtons) {
             int initial = formattedMessage.length();
             if(sender == null){ //no sender, this is a server message?
-                formattedMessage = message == null ? prefix : prefix + message;
+                formattedMessage = message == null ? prefix : processCoords ? processCoords(prefix + message, setLastPos) : prefix + message;
             } else {
-                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
+                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " +
+                        (processCoords ? processCoords(unformatted, setLastPos) : unformatted);
             }
+            processCoords = setLastPos = false;
             int shift = formattedMessage.length() - initial;
             if (moveButtons && buttons != null) {
                 for (var b : buttons) {
@@ -596,6 +641,25 @@ public class ChatFragment extends Table{
 
         public void format() {
             format(true);
+        }
+
+        public static String processCoords(String message, boolean setLastPos){
+            if (message == null) return null;
+            Matcher matcher = coordPattern.matcher(message);
+            if(!matcher.find()) return message;
+            String group1, group2;
+            try {
+                group1 = matcher.group(2);
+                group2 = matcher.group(3);
+            } catch(IndexOutOfBoundsException e){
+                e.printStackTrace();
+                return message;
+            }
+            
+            if (setLastPos) try {
+                ClientVars.lastSentPos.set(Float.parseFloat(group1), Float.parseFloat(group2));
+            } catch (NumberFormatException ignored) {}
+            return matcher.replaceAll("[scarlet]$1[]");
         }
     }
 

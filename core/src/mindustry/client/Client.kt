@@ -9,6 +9,7 @@ import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*
+import mindustry.client.navigation.Navigation.getAllyTree
 import mindustry.client.navigation.Navigation.getTree
 import mindustry.client.utils.*
 import mindustry.content.*
@@ -44,9 +45,12 @@ object Client {
 
     fun update() {
         autoTransfer.update()
+        Seer.update()
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
+        Core.camera.bounds(cameraBounds) // do we do this here or on draw? can Core.camera be null?
+        cameraBounds.grow(2 * tilesizeF)
 
         // Ratelimit reset handling
         if (ratelimitRemaining != ratelimitMax && timer.get(3, ratelimitSeconds * 60F)) ratelimitRemaining = ratelimitMax
@@ -92,14 +96,27 @@ object Client {
 
         // Turret range
         val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
-        if (showingTurrets) {
-            val units = Core.settings.getBool("unitranges")
-            getTree().intersect(bounds) {
-                if ((units || it.turret) && it.canShoot()) {
-                    Drawf.dashCircle(
-                        it.entity.x, it.entity.y, it.range - tilesize,
-                        if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color
-                    )
+        if (showingTurrets || showingInvTurrets || showingAllyTurrets) {
+            val enemyunits = Core.settings.getBool("enemyunitranges")
+            val allyunits = Core.settings.getBool("allyunitranges")
+            if (showingTurrets || showingInvTurrets) {
+                val flying = player.unit().isFlying
+                getTree().intersect(bounds) {
+                    if (fogControl.isDiscovered(player.team(), it.x().toInt(), it.y().toInt())) return@intersect
+                    if ((enemyunits || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
+                        val valid = (flying && it.targetAir) || (!flying && it.targetGround)
+                        val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
+                        Drawf.dashCircle(
+                            it.entity.x, it.entity.y, it.range - tilesize,
+                            if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
+                    }
+                }
+            }
+            if (showingAllyTurrets) {
+                getAllyTree().intersect(bounds) {
+                    if ((allyunits || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {
+                        Drawf.dashCircle(it.entity.x, it.entity.y, it.range - tilesize, it.entity.team().color)
+                    }
                 }
             }
         }

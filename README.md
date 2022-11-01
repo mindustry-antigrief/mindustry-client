@@ -1,12 +1,14 @@
-![Logo](core/assets-raw/sprites/ui/foo.png)
+This is SByte's and BalaM314's v7 fork of Zxtej's fork of buthed010203's fork of Anuken's mindustry.  It will have various quality of life and automation features when complete.
 
-[![Release Update](../../workflows/Release%20Update/badge.svg)](https://mindustry-antigrief.github.io/mindustry-client)
-[![Tests (Unstable)](../../workflows/Java%20Tests/badge.svg?branch=v7)](https://mindustry-antigrief.github.io/mindustry-client-v7-builds)
-[![Discord](https://img.shields.io/discord/741710208501547161.svg?logo=discord&logoColor=white&logoWidth=20&labelColor=7289DA&label=Discord&color=17cf48)](https://discord.gg/yp9ZW7j)
+![Logo](core/assets/icons/pi_64.png)
 
-# Installer
-Install `mindustry-antigrief/client-installer` through the mod browser in the vanilla game and allow the game to restart, upon restarting you will be prompted with an install popup, choose a version and it will install itself.
 
+
+flarogus
+
+_[Trello Board](https://trello.com/b/aE2tcUwF/mindustry-40-plans)_  
+_[Wiki](https://mindustrygame.github.io/wiki)_  
+_[Javadoc](https://mindustrygame.github.io/docs/)_
 ## [Changelog](./core/assets/changelog)
 ## [Development/Unstable Builds](../../../mindustry-client-v7-builds)
 ## Steam
@@ -15,25 +17,18 @@ There are 3 methods to install the client on steam for windows.
 #### Automatic Installer
 Refer to [the installer section](https://github.com/mindustry-antigrief/mindustry-client/tree/v7#installer)
 #### Single Command Installer
-Run this command in a CMD window [**as admin**](https://www.howtogeek.com/howto/windows-vista/run-a-command-as-administrator-from-the-windows-vista-run-box/) (replace the path if needed): `cd /d "C:\Program Files (x86)\Steam\steamapps\common\Mindustry" && del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe && curl -L -o jre\client.jar https://github.com/mindustry-antigrief/mindustry-client-v7-builds/releases/latest/download/desktop.jar && echo Done!` then [set the game's launch options](https://support.steampowered.com/kb_article.php?ref=1040-JWMT-2947) to `/c java -jar "%cd%\jre\client.jar"`
+Run this command in a CMD window [**as admin**](https://www.howtogeek.com/howto/windows-vista/run-a-command-as-administrator-from-the-windows-vista-run-box/) (replace the path if needed): `cd /d "C:\Program Files (x86)\Steam\steamapps\common\Mindustry" && del Mindustry.exe && mklink Mindustry.exe C:\Windows\System32\cmd.exe && curl -L -o jre\client.jar https://github.com/StormyBytes/mindustry-client-builds/releases/latest/download/desktop.jar && echo Done!` then [set the game's launch options](https://support.steampowered.com/kb_article.php?ref=1040-JWMT-2947) to `/c java -jar "%cd%\jre\client.jar"`
 #### Semi Automated Install
-1. [Download](../../../mindustry-client-v7-builds/releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
+1. [Download](../../../mindustry-client-builds/releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
 2. [Download](https://github.com/mindustry-antigrief/mindustry-client/blob/v7/steam_appid.txt) the `steam_appid.txt` file and place it in the same folder as the jar.
 3. Place the `desktop.jar` and `steam_appid.txt` in the same folder.
 4. Ensure steam is running and you are logged in, double click the jar and it should then open the client on steam.
 #### Manual Install
 *Removed due to this no longer working correctly in v7, may rewrite later.*
 
-### Mac OS
-1. [Download](../../../mindustry-client-v7-builds/releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
-1. Open the game install folder, right click the `Mindustry.app` file and click `Show Package Contents`.
-1. Navigate to the `Resources` folder `Contents > Resources`.
-1. Replace the `desktop.jar` with the one you just downloaded.
-1. Launching the game should now start the client.
-- To uninstall the client, delete the `desktop.jar` file in `Resources` as well as the `Mindustry` file in the `MacOS` folder. Start the game, accept the error and start it again.
+## Installation
 
-### Linux
-1. You are using linux, I'm sure you can figure this out yourself.
+Go to the [client builds repository](https://github.com/stormybytes/mindustry-client-builds/) and get the latest release. 
 
 ## Contributing
 
@@ -41,7 +36,7 @@ See [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Building
 
-Unstable builds are generated automatically for every commit. You can see them [here](https://github.com/mindustry-antigrief/mindustry-client-v7-builds/releases).
+Unstable builds are generated automatically for every commit. You can see them [here](https://github.com/stormybytes/mindustry-client-builds/releases).
 
 If you'd rather compile on your own, follow these instructions.
 First, make sure you have [JDK 16-17](https://adoptium.net/archive.html?variant=openjdk17&jvmVariant=hotspot) installed. **Other JDK versions will not work.** Open a terminal in the Mindustry directory and run the following commands:

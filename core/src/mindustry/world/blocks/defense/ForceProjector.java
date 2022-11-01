@@ -1,5 +1,6 @@
 package mindustry.world.blocks.defense;
 
+import arc.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
@@ -10,6 +11,7 @@ import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.entities.*;
+import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -78,7 +80,7 @@ public class ForceProjector extends Block{
     @Override
     public void setBars(){
         super.setBars();
-        addBar("shield", (ForceBuild entity) -> new Bar("stat.shieldhealth", Pal.accent, () -> entity.broken ? 0f : 1f - entity.buildup / (shieldHealth + phaseShieldBoost * entity.phaseHeat)).blink(Color.white));
+        addBar("shield", (ForceBuild entity) -> new Bar("stat.shieldhealth", Pal.accent, () -> 1f - entity.buildup / (shieldHealth + phaseShieldBoost * entity.phaseHeat)).blink(Color.white));
     }
 
     @Override
@@ -186,6 +188,9 @@ public class ForceProjector extends Block{
                 broken = true;
                 buildup = shieldHealth;
                 shieldBreakEffect.at(x, y, realRadius(), team.color);
+                if(team != state.rules.defaultTeam){
+                    Events.fire(Trigger.forceProjectorBreak);
+                }
             }
 
             if(hit > 0f){

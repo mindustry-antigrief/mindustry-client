@@ -10,7 +10,7 @@ import mindustry.logic.LExecutor.*;
 /** "Compiles" a sequence of statements into instructions. */
 public class LAssembler{
     public static ObjectMap<String, Func<String[], LStatement>> customParsers = new ObjectMap<>();
-    public static final int maxTokenLength = 36;
+    public static final int maxTokenLength = 101;
 
     private static final int invalidNum = Integer.MIN_VALUE;
 

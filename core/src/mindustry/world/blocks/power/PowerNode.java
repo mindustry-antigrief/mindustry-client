@@ -8,7 +8,10 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.Nullable;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.ClientVars;
 import mindustry.client.antigrief.*;
 import mindustry.core.*;
 import mindustry.entities.units.*;
@@ -21,6 +24,7 @@ import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
+import org.jetbrains.annotations.*;
 
 import java.util.*;
 
@@ -253,11 +257,14 @@ public class PowerNode extends PowerBlock{
         }
 
         var worldRange = laserRange * tilesize;
-        team.data().buildingTree.intersect(tile.worldx() - worldRange, tile.worldy() - worldRange, worldRange * 2, worldRange * 2, build -> {
-            if(valid.get(build) && !tempBuilds.contains(build)){
-                tempBuilds.add(build);
-            }
-        });
+        var tree = team.data().buildingTree;
+        if(tree != null){
+            tree.intersect(tile.worldx() - worldRange, tile.worldy() - worldRange, worldRange * 2, worldRange * 2, build -> {
+                if(valid.get(build) && !tempBuilds.contains(build)){
+                    tempBuilds.add(build);
+                }
+            });
+        }
 
         tempBuilds.sort((a, b) -> {
             int type = -Boolean.compare(a.block instanceof PowerNode, b.block instanceof PowerNode);
@@ -306,11 +313,14 @@ public class PowerNode extends PowerBlock{
         }
 
         var rangeWorld = maxRange * tilesize;
-        team.data().buildingTree.intersect(tile.worldx() - rangeWorld, tile.worldy() - rangeWorld, rangeWorld * 2, rangeWorld * 2, build -> {
-            if(valid.get(build) && !tempBuilds.contains(build)){
-                tempBuilds.add(build);
-            }
-        });
+        var tree = team.data().buildingTree;
+        if(tree != null){
+            tree.intersect(tile.worldx() - rangeWorld, tile.worldy() - rangeWorld, rangeWorld * 2, rangeWorld * 2, build -> {
+                if(valid.get(build) && !tempBuilds.contains(build)){
+                    tempBuilds.add(build);
+                }
+            });
+        }
 
         tempBuilds.sort((a, b) -> {
             int type = -Boolean.compare(a.block instanceof PowerNode, b.block instanceof PowerNode);
@@ -378,10 +388,42 @@ public class PowerNode extends PowerBlock{
         });
     }
 
+    public static class PowerNodeConfigReq extends ConfigRequest {
+
+        private final boolean connect;
+        private final int value;
+
+        public PowerNodeConfigReq(@NotNull PowerNodeBuild build, int value, boolean connect) {
+            super(build, null, false);
+            this.value = value;
+            this.connect = connect;
+        }
+
+        @Override
+        public void run() {
+            Tile tile = Vars.world.tile(x, y);
+            if(tile == null || !(tile.build instanceof PowerNodeBuild pb)) return;
+
+            boolean isConnected = pb.power.links.contains(value);
+            if(isConnected == connect){
+                pb.removeFromQueue(value, connect);
+                return; //already connected if want to connect, and vice versa
+            }
+
+            Call.tileConfig(Vars.player, tile.build, value);
+            pb.removeFromQueue(value, connect);
+        }
+    }
+
     public class PowerNodeBuild extends Building{
         /** This is used for power split notifications. */
         public @Nullable ChatFragment.ChatMessage message;
         public int disconnections = 0;
+        public @Nullable IntSet correctLinks, queuedConfigs; // supposed links when placed in a schematic
+        public int queuedConnectionSize = 0; // true number of connections if queued connections are successful
+        public long timeout = Time.millis();
+
+        public static int fixNode = Core.settings.getInt("nodeconf");
 
         @Override
         public void created(){ // Called when one is placed/loaded in the world
@@ -402,15 +444,127 @@ public class PowerNode extends PowerBlock{
 
             super.placed();
         }
+    
+        // TODO: MERGE RECHECK
+//        @Override
+//        public void created(){ // Called when one is placed/loaded in the world
+//            if(autolink && laserRange > maxRange) maxRange = laserRange;
+//
+//            super.created();
+//        }
+
+//        @Override
+//        public void playerPlaced(Object config) { FINISHME: Make this work, maybe an IntObjectMap with Entry<pos, Seq<linkPos>>
+//            super.playerPlaced(config);
+//
+//            if(net.client() && config instanceof Point2[] t){ // Fix incorrect power node linking in schems
+//                var current = new Seq<Point2>();
+//                getPotentialLinks(tile, team, other -> { // The server hasn't sent us the links yet, emulate how it would look if it had
+//                    if(!power.links.contains(other.pos())) current.add(new Point2(other.tile.x, other.tile.y).sub(tile.x, tile.y));
+//                });
+//
+//                Log.info(Arrays.toString(t) + " | " + current);
+//                current.each(l -> !Structs.contains(t, l), l -> { // Remove extra links.
+//                    ClientVars.configs.add(new ConfigRequest(this, l.add(tile.x, tile.y).pack()));
+//                    Log.info(tileX() + ", " + tileY() + " | " + l.x + tile.x + ", " + l.y + tile.y);
+//                });
+//            }
+//        }
+        private void removeFromQueue(int value, boolean connect){
+            if(queuedConfigs == null) return;
+            queuedConfigs.remove(value);
+            queuedConnectionSize -= connect ? 1 : -1;
+            if (queuedConfigs.isEmpty() && correctLinks == null) queuedConfigs = null;
+        }
+
+        private void addToQueue(int value, boolean connect){
+            if(queuedConfigs == null || queuedConfigs.contains(value)) return;
+            queuedConfigs.add(value);
+            ClientVars.configs.add(new PowerNodeConfigReq(this, value, connect));
+            queuedConnectionSize += connect ? 1 : -1;
+            timeout = Time.millis();
+        }
+
+        public void findDisconnect(){
+            power.links.each(v -> {
+                if(!correctLinks.contains(v) && !queuedConfigs.contains(v)){
+                    addToQueue(v, false);
+                }
+            });
+        }
+
+        public void findConnect(){
+            boolean[] pending = {false};
+            correctLinks.each(v -> {
+               if(power.links.contains(v) || queuedConfigs.contains(v)) return;
+               if(!linkValid(this, world.build(v), false)) {
+                   pending[0] = true;
+                   return;
+               };
+               world.tile(v).getLinkedTiles(tile -> {
+                   int pos = tile.pos();
+                   if(power.links.contains(pos)){
+                       correctLinks.remove(v);
+                       correctLinks.add(pos);
+                   }
+               });
+               if(!correctLinks.contains(v)) return;
+               pending[0] = true;
+               if(power.links.size + queuedConnectionSize < maxNodes){
+                   addToQueue(v, true);
+               }
+            });
+            if(!pending[0] || Time.timeSinceMillis(timeout) > 300000L /*300 seconds*/ || correctLinks.size > maxNodes || power.links.size + queuedConnectionSize > maxNodes){
+                correctLinks = null;
+            }
+        }
+
+        public void fixNode(Object config){
+            if(!net.client()) configure(config);
+            else if(config instanceof Point2[] t){ // Fix incorrect power node linking in schems
+                var current = new Seq<Point2>();
+                getPotentialLinks(tile, team, other -> { // The server hasn't sent us the links yet, emulate how it would look if it had
+                    if(!power.links.contains(other.pos())) current.add(new Point2(other.tile.x, other.tile.y).sub(tile.x, tile.y));
+                });
+
+                queuedConfigs = new IntSet();
+                boolean[] hasQueued = {false};
+                current.each(l -> !Structs.contains(t, l), l -> { // Remove extra links.
+                    hasQueued[0] = true;
+                    int v = l.add(tile.x, tile.y).pack();
+                    Core.app.post(() -> addToQueue(v, false));
+                });
+
+                if(t.length > 0){
+                    correctLinks = new IntSet();
+                    for(Point2 p: t){
+                        correctLinks.add(p.add(tile.x, tile.y).pack());
+                    }
+                } else if(!hasQueued[0]) queuedConfigs = null;
+            }
+        }
 
         @Override
         public void dropped(){
             power.links.clear();
+            queuedConfigs = null;
+            correctLinks = null;
             updatePowerGraph();
         }
 
         @Override
+        public void updateTile(){
+            if(correctLinks != null){
+                findDisconnect();
+                findConnect(); // shame (lots of overhead)
+            }
+            power.graph.update();
+        }
+
+        @Override
         public boolean onConfigureBuildTapped(Building other){
+            correctLinks = null; // do not try to auto config further
+            queuedConfigs = null;
             if(linkValid(this, other)){
                 configure(other.pos());
                 return false;
@@ -429,7 +583,7 @@ public class PowerNode extends PowerBlock{
                 }else{ // Clear all links
                     configure(new Point2[0]);
                 }
-                deselect();
+                // deselect();      // Dont deselect
                 return false;
             }
 
@@ -515,6 +669,39 @@ public class PowerNode extends PowerBlock{
                 out[i] = Point2.unpack(power.links.get(i)).sub(tile.x, tile.y);
             }
             return out;
+        }
+    }
+
+    public enum PowerNodeFixSettings {
+        disabled("Disabled", false, false),
+        schematicOnlyExcludeSource("Only in schematics but not power sources", false, false),
+        schematicOnly("Only in schematics", false, true),
+        enabledExcludeSource("Everywhere but not power sources", true, false),
+        enabled("Everywhere", true, true);
+
+        public String desc; // for use in settings
+        public boolean normal, source;
+
+        PowerNodeFixSettings(String desc, boolean normal, boolean source){
+            this.desc = desc;
+            this.normal = normal;
+            this.source = source;
+        }
+
+        public static PowerNodeFixSettings get(int i){
+            return values()[i];
+        }
+
+        public static PowerNodeFixSettings get(boolean normal, boolean source){
+            return get((normal ? nonSchematicReq : enableReq) + (source ? 1 : 0));
+        }
+
+        public static final int enableReq = schematicOnlyExcludeSource.ordinal();
+        public static final int nonSchematicReq = enabledExcludeSource.ordinal();
+
+        @Override
+        public String toString(){
+            return desc.toLowerCase(Locale.ROOT) + " (on non-loaded schematics: " + normal + ", on sources: " + source + ")";
         }
     }
 }

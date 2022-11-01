@@ -14,6 +14,7 @@ import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.client.CursednessLevel;
 import mindustry.client.ui.*;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
@@ -27,7 +28,7 @@ import static mindustry.gen.Tex.*;
 public class MenuFragment{
     private Table container, submenu;
     private Button currentMenu;
-    private MenuRenderer renderer;
+    public MenuRenderer renderer;
     private Seq<MenuButton> customButtons = new Seq<>();
 
     public void build(Group parent){
@@ -110,9 +111,25 @@ public class MenuFragment{
                     });
                 }).size(200, 60).name("becheck").update(t -> t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white));
             });
+            // TODO: Merge recheck
+//        }else if(becontrol.active()){
+//            parent.fill(c -> c.bottom().right().button("@be.check", Icon.refresh, () -> {
+//                ui.loadfrag.show();
+//                becontrol.checkUpdate(result -> {
+//                    ui.loadfrag.hide();
+//                    if(!result){
+//                        ui.showInfo("@be.noupdates");
+//                    }
+//                });
+//            }).size(200, 60).name("becheck").update(t -> {
+//                t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white);
+//            }));
         }
 
-        String versionText = (Version.build == -1 ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H";
+                // FIX CURSED MENU SCREEN
+       String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + Strings.format("\n[gray]Don't press H[]\nCursedness by BalaM314 and SBytes. Cursedness Level: @", CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel")).name());
+//        String versionText = (Version.build == -1 ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H";
+        // String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H[]\nClient Fork by Zxtej, BalaM314, SBytes. Cursedness Level: @";
         parent.fill((x, y, w, h) -> {
             TextureRegion logo = Core.atlas.find("logo");
             float width = Core.graphics.getWidth(), height = Core.graphics.getHeight() - Core.scene.marginTop;

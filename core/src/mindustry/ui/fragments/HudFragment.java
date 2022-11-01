@@ -14,6 +14,7 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import kotlin.collections.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
@@ -297,7 +298,7 @@ public class HudFragment{
                 info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel).name("fps");
                 info.row();
 
-                info.label(() -> plans.get(player.unit().plans.size)).left() // Buildplan count
+                info.label(() -> plans.get(player.unit().plans.size, frozenPlans.size)).left() // Buildplan count
                 .style(Styles.outlineLabel).name("plans");
                 info.row();
 
@@ -341,7 +342,7 @@ public class HudFragment{
                     }
                     lastWarn = Time.millis(); // Reset timer so that it sends 30s after the last core damage rather than every 30s FINISHME: Better way to do this?
                     coreAttackTime[0] = notifDuration;
-                    ClientVars.coreWarnPos.set(event.core.x, event.core.y);
+                    ClientVars.lastCorePos.set(event.core.x, event.core.y);
                 });
 
                 //'core is under attack' table
@@ -359,8 +360,8 @@ public class HudFragment{
                 .touchable(Touchable.disabled)
                 .fillX()
                 .get().clicked(() -> {
-                    if (Time.timeSinceMillis(lastWarnClick) < 400)  Navigation.navigateTo(ClientVars.coreWarnPos.cpy().scl(tilesize));
-                    else Spectate.INSTANCE.spectate(ClientVars.coreWarnPos.cpy().scl(tilesize));
+                    if (Time.timeSinceMillis(lastWarnClick) < 400)  Navigation.navigateTo(ClientVars.lastCorePos.cpy().scl(tilesize));
+                    else Spectate.INSTANCE.spectate(ClientVars.lastCorePos.cpy().scl(tilesize));
                     lastWarnClick = Time.millis();
                 });
             }).row();

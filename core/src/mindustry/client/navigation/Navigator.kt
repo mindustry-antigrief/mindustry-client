@@ -80,7 +80,7 @@ abstract class Navigator {
                 }
             } else if (player.unit().spawnedByCore && player.unit().stack.amount == 0) { // Everything that isn't CN
                 val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst(end) }))
-                if (player.dst(bestCore) > buildingRange && player.dst(end) > bestCore.dst(end)) {
+                if (player.dst(end) > bestCore.dst(end) && player.dst(bestCore) > buildingRange) {
                     lastWp = Time.millis() // Try again in 3s
                     Call.buildingControlSelect(player, bestCore)
                 }

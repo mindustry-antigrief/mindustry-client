@@ -4,6 +4,9 @@ import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
 import arc.func.*;
+import arc.graphics.*;
+import arc.graphics.g2d.Draw;
+import arc.graphics.g2d.Lines;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
@@ -36,11 +39,12 @@ import java.util.zip.*;
 import static mindustry.Vars.*;
 
 public class LogicBlock extends Block{
-    private static final int maxByteLen = 1024 * 500;
+    public static final int maxByteLen = 1024 * 500;
     private static @Nullable Player lastAttem;
     private static int attemCount;
     private static long attemTime;
     private static ChatFragment.ChatMessage attemMsg;
+    public static String attemWhisperMessage = "/w %s Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem";
 
     public int maxInstructionScale = 5;
     public int instructionsPerTick = 1;
@@ -77,12 +81,15 @@ public class LogicBlock extends Block{
             String bname = getLinkName(lbuild.block);
 
             if(link != null){
-                link.active = !link.active;
-                //find a name when the base name differs (new block type)
-                if(!link.name.startsWith(bname)){
-                    link.name = "";
-                    link.name = entity.findLinkName(lbuild.block);
+                if(net.active()) {
+                    link.active = !link.active;
+                    //find a name when the base name differs (new block type)
+                    if (!link.name.startsWith(bname)) {
+                        link.name = "";
+                        link.name = entity.findLinkName(lbuild.block);
+                    }
                 }
+                else entity.links.remove(link);
             }else{
                 entity.links.remove(l -> world.build(l.x, l.y) == lbuild);
                 entity.links.add(new LogicLink(x, y, entity.findLinkName(lbuild.block), true));
@@ -548,28 +555,29 @@ public class LogicBlock extends Block{
         public void configured(Unit builder, Object value) {
             super.configured(builder, value);
 
-            if (value instanceof byte[] && team == player.team() && Core.settings.getBool("attemwarfare") && (ClientUtils.io() || ClientUtils.phoenix())) {
-                Player player = builder == null ? null :
-                                builder.isPlayer() ? builder.getPlayer() :
-//                                builder.controller() instanceof LogicAI ai && ai.controller != null ? Groups.player.find(p -> p.name.equals(ai.controller.lastAccessed)) :
-                                null;
+            if (value instanceof byte[] && Core.settings.getBool("attemwarfare")) {
+                Player player = ClientUtils.getPlayer(builder);
                 clientThread.post(() -> { // The regex can be expensive, so we delegate it to the client thread
                     long begin = Time.nanos();
-                    if (!ProcessorPatcher.INSTANCE.patch(code).equals(code)) {
+                    if (ProcessorPatcher.INSTANCE.isAttem(code)) {
                         Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
-                            if (player != lastAttem || player == null) {
+                            ChatFragment.ChatMessage.msgFormat();
+                            if ((player != lastAttem || player == null)) {
                                 lastAttem = player;
                                 attemCount = 1;
                                 attemTime = Time.millis();
-                                String msg = Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", builder == null ? "unknown" : builder.getControllerName(), tileX(), tileY());
+                                String msg = Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtils.getName(builder), tileX(), tileY());
                                 attemMsg = ui.chatfrag.addMessage(msg, null, null, "", msg);
                                 NetClient.findCoords(attemMsg);
-                                if (player != null) { // FINISHME: Send this every time an attem is placed but hide it from our view instead
-                                    Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
+				// FINISHME: Send this every time an attem is placed but hide it from our view instead
+                                if (Core.settings.getBool("attemwarfarewhisper") && ClientUtils.canWhisper() && player != null) {
+                                    Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
                                 }
                             } else {
                                 if (Time.timeSinceMillis(attemTime) > 5000) {
-                                    Call.sendChatMessage("/w " + player.id + " Hello, please do not use that logic it is bad. More info at: www.mindustry.dev/attem");
+                                    if (Core.settings.getBool("attemwarfarewhisper") && ClientUtils.canWhisper()) {
+                                        Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
+                                    }
                                     attemTime = Time.millis();
                                     ui.chatfrag.messages.remove(attemMsg);
                                     ui.chatfrag.messages.insert(0, attemMsg);
@@ -577,9 +585,10 @@ public class LogicBlock extends Block{
                                 attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
                                 attemMsg.format();
                             }
-                            ClientVars.lastSentPos.set(tileX(), tileY());
                             lastAttem = player;
-                            ProcessorPatcher.INSTANCE.inform(this);
+                            if (player != null && builder.team == player.team()) { // Only config if its our team
+		            	        ClientVars.configs.add(new ConfigRequest(this.tileX(), this.tileY(), compress(ProcessorPatcher.INSTANCE.patch(code), this.relativeConnections())));
+                            }
                         });
                     }
                     Log.debug("Regex: @ms", Time.millisSinceNanos(begin));
@@ -626,6 +635,14 @@ public class LogicBlock extends Block{
         public void drawSelect(){
             Groups.unit.each(u -> u.controller() instanceof LogicAI ai && ai.controller == this, unit -> {
                 Drawf.square(unit.x, unit.y, unit.hitSize, unit.rotation + 45);
+                if (Core.settings.getBool("tracelogicunits")) {
+                    Draw.draw((float) (Layer.overlayUI+0.01), () -> { // Taken from extended-UI
+                        Lines.stroke(2, Color.purple);
+                        Draw.alpha(0.7f);
+                        Lines.line(unit.x, unit.y, this.x, this.y);
+                        Draw.reset();
+                    });
+                }
             });
         }
 

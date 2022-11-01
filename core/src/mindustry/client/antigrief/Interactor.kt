@@ -8,13 +8,18 @@ interface Interactor {
     val name: String
 
     val shortName: String
+
+    val playerID: Int
 }
 
 open class UnitInteractor(unit: Unit?) : Interactor {
     override val name = when {
         unit?.isPlayer == true -> "${unit.type.localizedName} controlled by ${unit.player.name}"
-//        (unit?.controller() as? FormationAI)?.leader?.isPlayer == true -> "${unit.type.localizedName} controlled by ${(unit.controller() as? FormationAI)?.leader?.playerNonNull()?.name}" FINISHME: commanding exists
-        unit?.controller() is LogicAI -> "${unit.type.localizedName} logic-controlled by a processor accessed by ${(unit.controller() as? LogicAI)?.controller?.lastAccessed}"
+//        (unit?.controller() as? FormationAI)?.leader?.isPlayer == true -> "${unit.type.localizedName} controlled by ${(unit.controller() as FormationAI).leader.playerNonNull().coloredName()}"
+        unit?.controller() is LogicAI -> {
+            val lcontrol = (unit.controller() as? LogicAI)?.controller
+            "${unit.type.localizedName} logic-controlled by ${lcontrol?.block()?.localizedName} (${lcontrol?.tileX()}, ${lcontrol?.tileY()}) accessed by ${lcontrol?.lastAccessed}"
+        }
         else -> unit?.type?.localizedName ?: "null unit"
     }
 
@@ -24,6 +29,8 @@ open class UnitInteractor(unit: Unit?) : Interactor {
         unit?.controller() is LogicAI -> "logic-controlled ${unit.type.localizedName}"
         else -> unit?.type?.localizedName ?: "null unit"
     }
+
+    override val playerID: Int = if (unit?.isPlayer == true) unit.player.id else -1
 }
 
 class NullUnitInteractor : UnitInteractor(Nulls.unit) {
@@ -35,6 +42,7 @@ class NullUnitInteractor : UnitInteractor(Nulls.unit) {
 class NoInteractor : Interactor {
     override val name = ""
     override val shortName = ""
+    override val playerID: Int = -1
 }
 
 fun Player?.toInteractor(): Interactor {

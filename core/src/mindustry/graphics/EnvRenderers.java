@@ -10,6 +10,7 @@ import mindustry.type.*;
 import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class EnvRenderers{
 
@@ -98,7 +99,7 @@ public class EnvRenderers{
             }
 
             //TODO layer looks better? should not be conditional
-            Draw.z(state.rules.fog ? Layer.fogOfWar + 1 : Layer.weather - 1);
+            Draw.z(state.rules.fog && !hidingFog ? Layer.fogOfWar + 1 : Layer.weather - 1);
             Weather.drawNoiseLayers(tex, Color.scarlet, 1000f, 0.24f, 0.4f, 1f, 1f, 0f, 4, -1.3f, 0.7f, 0.8f, 0.9f);
             Draw.reset();
         });

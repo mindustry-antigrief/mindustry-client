@@ -1,10 +1,15 @@
 package mindustry.core;
 
 import arc.*;
+import arc.func.Cons;
 import arc.math.*;
+import arc.math.geom.Point2;
+import arc.struct.Queue;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.ai.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigrief.*;
 import mindustry.client.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
@@ -13,14 +18,17 @@ import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.maps.*;
+import mindustry.net.*;
 import mindustry.type.*;
 import mindustry.type.Weather.*;
 import mindustry.world.*;
+import mindustry.world.blocks.logic.LogicBlock;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 /**
  * Logic module.
@@ -345,6 +353,9 @@ public class Logic implements ApplicationListener{
 
         //disable attack mode
         state.rules.attackMode = false;
+
+        //map is over, no more world processor objective stuff
+        state.rules.disableWorldProcessors = true;
 
         //save, just in case
         if(!headless && !net.client()){

@@ -42,6 +42,8 @@ public class ConsoleFragment extends Table{
                 shown = !shown;
                 if(shown && !open && settings.getBool("console")){
                     toggle();
+                } else if(!shown && settings.getBool("console")){
+                    hide();
                 }
                 if(shown){
                     chatfield.requestKeyboard();
@@ -176,7 +178,7 @@ public class ConsoleFragment extends Table{
 
         if(!open){
             scene.setKeyboardFocus(chatfield);
-            open = !open;
+            open = true;
             if(mobile){
                 TextInput input = new TextInput();
                 input.accepted = text -> {
@@ -192,7 +194,7 @@ public class ConsoleFragment extends Table{
             }
         }else{
             scene.setKeyboardFocus(null);
-            open = !open;
+            open = false;
             scrollPos = 0;
             sendMessage();
         }
@@ -225,5 +227,9 @@ public class ConsoleFragment extends Table{
 
     public void addMessage(String message){
         messages.insert(0, message);
+    }
+
+    public void setShown(boolean s){
+        shown = s;
     }
 }

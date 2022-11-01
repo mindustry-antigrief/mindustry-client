@@ -13,19 +13,40 @@ import static mindustry.Vars.*;
 public class ItemModule extends BlockModule{
     public static final ItemModule empty = new ItemModule();
 
+    public final static class ItemModuleStats {
+        private static ItemModuleStats instance;
+        private WindowedMean[] cacheFlow;
+        private float[] cacheSums;
+        private float[] displayFlow;
+        private final Bits cacheBits = new Bits();
+        private final Interval flowTimer = new Interval(2);
+        public static ItemModuleStats getInstance(){
+            if(instance == null) instance = new ItemModuleStats();
+            return instance;
+        }
+    }
+    private final ItemModuleStats stats;
     private static final int windowSize = 6;
-    private static WindowedMean[] cacheFlow;
-    private static float[] cacheSums;
-    private static float[] displayFlow;
-    private static final Bits cacheBits = new Bits();
-    private static final Interval flowTimer = new Interval(2);
+    private final Bits cacheBits;
+    private final Interval flowTimer;
     private static final float pollScl = 20f;
+
 
     protected int[] items = new int[content.items().size];
     protected int total;
     protected int takeRotation;
 
     private @Nullable WindowedMean[] flow;
+
+    public ItemModule(){
+        this(false);
+    }
+
+    public ItemModule(boolean newStats){
+        stats = newStats ? new ItemModuleStats() : ItemModuleStats.getInstance();
+        cacheBits = stats.cacheBits;
+        flowTimer = stats.flowTimer;
+    }
 
     public ItemModule copy(){
         ItemModule out = new ItemModule();
@@ -38,45 +59,49 @@ public class ItemModule extends BlockModule{
         takeRotation = other.takeRotation;
         System.arraycopy(other.items, 0, items, 0, items.length);
     }
-
-    public void updateFlow(){
-        //update the flow at N fps at most
-        if(flowTimer.get(1, pollScl)){
-
-            if(flow == null){
-                if(cacheFlow == null || cacheFlow.length != items.length){
-                    cacheFlow = new WindowedMean[items.length];
-                    for(int i = 0; i < items.length; i++){
-                        cacheFlow[i] = new WindowedMean(windowSize);
+    
+    public void update(boolean showFlow){
+        if(showFlow){
+            //update the flow at 30fps at most
+            if(flowTimer.get(1, pollScl)){
+                
+                if(flow == null){
+                    if(stats.cacheFlow == null || stats.cacheFlow.length != items.length){
+                        stats.cacheFlow = new WindowedMean[items.length];
+                        for(int i = 0; i < items.length; i++){
+                            stats.cacheFlow[i] = new WindowedMean(windowSize);
+                        }
+                        stats.cacheSums = new float[items.length];
+                        stats.displayFlow = new float[items.length];
+                    }else{
+                        for(int i = 0; i < items.length; i++){
+                            stats.cacheFlow[i].reset();
+                        }
+                        Arrays.fill(stats.cacheSums, 0);
+                        cacheBits.clear();
                     }
-                    cacheSums = new float[items.length];
-                    displayFlow = new float[items.length];
-                }else{
-                    for(int i = 0; i < items.length; i++){
-                        cacheFlow[i].reset();
+                    
+                    Arrays.fill(stats.displayFlow, -1);
+                    
+                    flow = stats.cacheFlow;
+                }
+                
+                boolean updateFlow = flowTimer.get(30);
+                
+                for(int i = 0; i < items.length; i++){
+                    flow[i].add(stats.cacheSums[i]);
+                    if(stats.cacheSums[i] > 0){
+                        cacheBits.set(i);
                     }
-                    Arrays.fill(cacheSums, 0);
-                    cacheBits.clear();
-                }
-
-                Arrays.fill(displayFlow, -1);
-
-                flow = cacheFlow;
-            }
-
-            boolean updateFlow = flowTimer.get(30);
-
-            for(int i = 0; i < items.length; i++){
-                flow[i].add(cacheSums[i]);
-                if(cacheSums[i] > 0){
-                    cacheBits.set(i);
-                }
-                cacheSums[i] = 0;
-
-                if(updateFlow){
-                    displayFlow[i] = flow[i].hasEnoughData() ? flow[i].mean() / pollScl : -1;
+                    stats.cacheSums[i] = 0;
+                    
+                    if(updateFlow){
+                        stats.displayFlow[i] = flow[i].hasEnoughData() ? flow[i].mean() / pollScl : -1;
+                    }
                 }
             }
+        }else{
+            flow = null;
         }
     }
 
@@ -90,7 +115,18 @@ public class ItemModule extends BlockModule{
 
     /** @return a specific item's flow rate in items/s; any value < 0 means not ready.*/
     public float getFlowRate(Item item){
-        return flow == null ? -1f : displayFlow[item.id] * 60;
+        if(flow == null) return -1f;
+
+        return stats.displayFlow[item.id] * 60;
+    }
+
+    public boolean flowHasEnoughData(){
+        if(flow == null) return false;
+        boolean enough = true;
+        for(int i=0; i < items.length; i++){
+            enough &= flow[i].hasEnoughData();
+        }
+        return enough;
     }
 
     public boolean hasFlowItem(Item item){
@@ -273,19 +309,19 @@ public class ItemModule extends BlockModule{
         items[item] += amount;
         total += amount;
         if(flow != null){
-            cacheSums[item] += amount;
+            stats.cacheSums[item] += amount;
         }
     }
 
     public void handleFlow(Item item, int amount){
         if(flow != null){
-            cacheSums[item.id] += amount;
+            stats.cacheSums[item.id] += amount;
         }
     }
 
     public void undoFlow(Item item){
         if(flow != null){
-            cacheSums[item.id] -= 1;
+            stats.cacheSums[item.id] -= 1;
         }
     }
 

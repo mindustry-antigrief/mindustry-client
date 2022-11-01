@@ -30,6 +30,7 @@ public class Fonts{
     private static final String mainFont = "fonts/font.woff";
     private static final ObjectSet<String> unscaled = ObjectSet.with("iconLarge");
     private static ObjectIntMap<String> unicodeIcons = new ObjectIntMap<>();
+    private static ObjectMap<Character, String> unicodeIconsInverse = new ObjectMap<>();
     public static ObjectMap<String, String> stringIcons = new ObjectMap<>();
     private static ObjectMap<String, TextureRegion> largeIcons = new ObjectMap<>();
     private static TextureRegion[] iconTable;
@@ -65,6 +66,10 @@ public class Fonts{
 
     public static boolean hasUnicodeStr(String content){
         return stringIcons.containsKey(content);
+    }
+
+    public static boolean charIsCustomCharacter(char c){
+        return unicodeIconsInverse.containsKey(c);
     }
 
     /** Called from a static context to make the cursor appear immediately upon startup.*/
@@ -137,6 +142,7 @@ public class Fonts{
                 }
 
                 unicodeIcons.put(nametex[0], ch);
+                unicodeIconsInverse.put((char)ch, nametex[0]);
                 stringIcons.put(nametex[0], ((char)ch) + "");
 
                 Vec2 out = Scaling.fit.apply(region.width, region.height, size, size);
@@ -183,10 +189,18 @@ public class Fonts{
         Log.warn("The icon stuff took @", Time.timeSinceNanos(start) / (float) Time.nanosPerMilli);
     }
 
+    public static TextureFilter getTextFilter(boolean linear){ //TODO: separate into min and max filter
+        return linear ? TextureFilter.linear : TextureFilter.nearest;
+    }
+
+    public static TextureFilter getTextFilter(){
+        return getTextFilter(Core.settings.getBool("lineartext", Core.settings.getBool("linear")));
+    }
+
     /** Called from a static context for use in the loading screen.*/
     public static void loadDefaultFont(){
         int max = Gl.getInt(Gl.maxTextureSize);
-
+//        UI.packer = new PixmapPacker(max >= 4096 ? 4096 : 2048, 2048, 2, true);
         UI.packer = new PixmapPacker(max >= 4096 ? 4096 : 2048, max >= 4096 ? 4096 : 2048, 2, true);
         Core.assets.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(Core.files::internal));
         Core.assets.setLoader(Font.class, null, new FreetypeFontLoader(Core.files::internal){
@@ -204,8 +218,8 @@ public class Fonts{
                     scaled.add(parameter.fontParameters);
                 }
 
-                parameter.fontParameters.magFilter = TextureFilter.linear;
-                parameter.fontParameters.minFilter = TextureFilter.linear;
+                parameter.fontParameters.magFilter = getTextFilter();
+                parameter.fontParameters.minFilter = getTextFilter();
                 parameter.fontParameters.packer = UI.packer;
                 return super.loadSync(manager, fileName, file, parameter);
             }
@@ -215,6 +229,10 @@ public class Fonts{
             borderColor = Color.darkGray;
             incremental = true;
             size = 18;
+            /*
+            size *= 2;
+            scaleFactor = 1f/2;
+             */
         }};
 
         Core.assets.load("outline", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = t -> {
@@ -319,6 +337,13 @@ public class Fonts{
             shadowColor = Color.darkGray;
             shadowOffsetY = 2;
             incremental = true;
+            magFilter = minFilter = getTextFilter();
+
+            /*
+            size *= 2;
+            scaleFactor = 1f/2;
+            shadowOffsetY *= 2;
+             */
         }};
     }
 }

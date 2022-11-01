@@ -2,6 +2,7 @@ package mindustry.entities.units;
 
 import arc.func.*;
 import arc.math.geom.*;
+import arc.struct.*;
 import arc.math.geom.QuadTree.*;
 import arc.util.*;
 import arc.util.pooling.*;
@@ -9,8 +10,11 @@ import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.*;
+import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.power.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.cameraBounds;
 
 /** Class for storing build plans. Can be either a place or remove plan. */
 public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
@@ -38,13 +42,21 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
     /** Double freeing plans is a bad idea. */
     public boolean freed;
 
+    /** Client: Client-side configs for plans (and subsequently a ConstructBuild then Building).*/
+    public @Nullable Cons<Building> clientConfig;
+
+    /** Whether to always prioritise the plan, regardless of ability to be built.*/
+    public boolean priority = false;
+
     @Override
     public void reset() {
         config = null;
+        clientConfig = null;
         progress = 0;
         initialized = false;
         stuck = false;
         freed = true;
+        priority = false;
     }
 
     /** This creates a build plan. */
@@ -64,6 +76,16 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         this.block = block;
         this.breaking = false;
         this.config = config;
+    }
+
+    public BuildPlan(int x, int y, int rotation, Block block, Object config, Cons<Building> clientConfig){
+        this.x = x;
+        this.y = y;
+        this.rotation = rotation;
+        this.block = block;
+        this.breaking = false;
+        this.config = config;
+        this.clientConfig = clientConfig;
     }
 
     /** This creates a remove plan. */
@@ -130,6 +152,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         copy.progress = progress;
         copy.initialized = initialized;
         copy.animScale = animScale;
+        copy.clientConfig = clientConfig;
         return copy;
     }
 
@@ -197,6 +220,19 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         }
     }
 
+    public boolean isVisible(){
+        final Rect r1 = Tmp.r1;
+        return !worldContext || cameraBounds.overlaps(block.bounds(x, y, r1)) ||
+                (block instanceof ItemBridge b && Tmp.r2.set(cameraBounds).grow(2 * b.range * tilesizeF).overlaps(r1)) ||
+                (block instanceof PowerNode p && Tmp.r2.set(cameraBounds).grow(2 * tilesize * p.laserRange).overlaps(r1));
+    }
+
+    public static void getVisiblePlans(Eachable<BuildPlan> plans, Seq<BuildPlan> output){
+        plans.each(plan -> {
+            if(plan.isVisible()) output.add(plan);
+        });
+    }
+
     @Override
     public void hitbox(Rect out){
         if(block != null){
@@ -205,9 +241,13 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
             out.setCentered(x * tilesize, y * tilesize, tilesize);
         }
     }
-
-    public Rect bounds(Rect rect){
-        if(breaking){
+    
+    public Rect bounds(Rect rect) {
+        return bounds(rect, false);
+    }
+    
+    public Rect bounds(Rect rect, boolean allowBreak){
+        if(breaking && !allowBreak){
             return rect.set(-100f, -100f, 0f, 0f);
         }else{
             return block.bounds(x, y, rect);

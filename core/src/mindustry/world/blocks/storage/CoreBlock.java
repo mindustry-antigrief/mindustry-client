@@ -406,6 +406,7 @@ public class CoreBlock extends StorageBlock{
                     Fx.coreBurn.at(x, y);
                 }
             }
+            if(team == player.team()) CoreItemsDisplay.addItemRate(item, realAmount);
         }
 
         @Override
@@ -448,12 +449,12 @@ public class CoreBlock extends StorageBlock{
         }
 
         @Override
-        public float handleDamage(float amount){
+        public void damage(float amount){
             if(player != null && team == player.team()){
                 // Events.fire(Trigger.teamCoreDamage); Replaced in favor of the event below
                 Events.fire(new TeamCoreDamage(tile));
             }
-            return amount;
+            super.damage(amount);
         }
 
         @Override
@@ -523,6 +524,7 @@ public class CoreBlock extends StorageBlock{
                 incinerateEffect(this, source);
                 noEffect = false;
             }
+            if(team == player.team()) CoreItemsDisplay.addItemRate(item, items.get(item) >= storageCapacity ? 0 : 1);
         }
 
         @Override

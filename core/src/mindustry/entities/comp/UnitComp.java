@@ -32,6 +32,7 @@ import mindustry.world.blocks.payloads.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 import static mindustry.logic.GlobalVars.*;
 
 @Component(base = true)
@@ -162,7 +163,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     @Replace
     public boolean inFogTo(Team viewer){
-        if(this.team == viewer || !state.rules.fog) return false;
+        if(this.team == viewer || !state.rules.fog || hidingFog) return false;
 
         if(hitSize <= 16f){
             return !fogControl.isVisible(viewer, x, y);
@@ -689,6 +690,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         health = Math.min(health, 0);
         dead = true;
 
+        Events.fire(new UnitDeadEvent(self()));
         //don't waste time when the unit is already on the ground, just destroy it
         if(!type.flying || !type.createWreck){
             destroy();

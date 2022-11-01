@@ -76,6 +76,10 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
         if (!args.trim().isEmpty()) init(args); // Init with provided args
         else init(Core.settings.getString("defaultbuildpathargs")); // No args provided, use default
     }
+    
+    public static BuildPath Self() {
+        return new BuildPath("self");
+    }
 
     private void init(String args) {
         queues.clear(); // Clear old selections (defaults)

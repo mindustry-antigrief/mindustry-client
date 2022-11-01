@@ -114,6 +114,13 @@ public class GameOverDialog extends BaseDialog{
                 if(!ui.paused.checkPlaytest()){
                     logic.reset();
                 }
+                buttons.button("@continue", () -> {
+                    hide();
+                    state.rules.canGameOver = false;
+                    // is automatically set back to default value at Logic.reset by creation of new state (i think)
+                    state.gameOver = false;
+                    state.set(State.paused);
+                }).size(140f, 60f);
             }).size(140f, 60f);
         }
     }

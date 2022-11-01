@@ -56,7 +56,7 @@ public class ScriptMainGenerator{
         classes.sortComparing(Class::getName);
         ObjectSet<String> used = ObjectSet.with();
 
-        StringBuilder result = new StringBuilder("//Generated class. Do not modify.\n");
+        StringBuilder result = new StringBuilder("//Generated script file. Modify base.js, not this.\n");
         result.append("\n").append(new Fi("core/assets/scripts/base.js").readString()).append("\n");
         for(Class type : classes){
             if(used.contains(type.getPackage().getName()) || nopackage.contains(s -> type.getName().startsWith(s))) continue;
@@ -65,6 +65,7 @@ public class ScriptMainGenerator{
         }
 
         Log.info("Imported @ packages.", used.size);
+        result.append("\n");
 
         for(Class type : EventType.class.getClasses()){
             result.append("const ").append(type.getSimpleName()).append(" = ").append("Packages.").append(type.getName().replace('$', '.')).append("\n");

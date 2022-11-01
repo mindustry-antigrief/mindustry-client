@@ -285,7 +285,7 @@ public class ModsDialog extends BaseDialog{
                                     }else if(item.clientDisabled()){
                                         text.labelWrap("@mod.clientdisabled").growX();
                                         text.row();
-                                    }else if(!item.isSupported()){
+                                    }else if(!item.isSupported() || !Version.isAtLeast(item.meta.minGameVersion)){
                                         text.labelWrap(Core.bundle.format("mod.requiresversion", item.meta.minGameVersion)).growX();
                                         text.row();
                                     }else if(item.hasUnmetDependencies()){
@@ -359,18 +359,18 @@ public class ModsDialog extends BaseDialog{
 
     private void reload(){
         ui.showInfoOnHidden("@mods.reloadexit", () -> {
-            Log.info("Exiting to reload mods.");
+            if(settings.getBool("autorestart")){
+                Log.info("Exiting to reload mods.");
+                try{
+                    Fi jar = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                    Seq<String> args = Seq.with(javaPath);
+                    args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
+                    if(OS.isMac) args.add("-XstartOnFirstThread");
+                    args.addAll("-jar", jar.absolutePath());
 
-            try{ // FINISHME: Standardize auto reboots
-                Fi jar = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-                Seq<String> args = Seq.with(javaPath);
-                args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
-                if(OS.isMac) args.add("-XstartOnFirstThread");
-                args.addAll("-jar", jar.absolutePath());
-
-                Runtime.getRuntime().exec(args.toArray());
-                Core.app.exit();
-            }catch(Exception ignored){} // If we can't find java, just close the game
+                    Runtime.getRuntime().exec(args.toArray());
+                }catch(Exception ignored){} // If we can't find java, just close the game
+            }
             Core.app.exit();
         });
     }
@@ -522,6 +522,7 @@ public class ModsDialog extends BaseDialog{
                     "[accent]" + mod.name.replace("\n", "") +
                     (installed.contains(mod.repo) ? "\n[lightgray]" + Core.bundle.get("mod.installed") : "") +
                     "\n[lightgray]\uE809 " + mod.stars +
+                    "\n" + Strings.truncate(mod.description, 30, "...") +
                     (Version.isAtLeast(mod.minGameVersion) ?  "" :
                     "\n" + Core.bundle.format("mod.requiresversion", mod.minGameVersion)))
                     .width(358f).wrap().grow().pad(4f, 2f, 4f, 6f).top().left().labelAlign(Align.topLeft);

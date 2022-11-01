@@ -11,6 +11,7 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
 import mindustry.client.utils.*;
@@ -22,6 +23,7 @@ import mindustry.net.Packets.*;
 import mindustry.ui.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class PlayerListFragment{
     public Table content = new Table().marginRight(13f).marginLeft(13f);
@@ -195,10 +197,17 @@ public class PlayerListFragment{
                 }).size(h/2);
             }
             if (user != player) {
+                button.button(Icon.lock, ustyle, // Mute player
+                        () -> ClientUtils.toggleMutePlayer(user)).size(h / 2).tooltip("@client.mute");
                 button.button(Icon.copy, ustyle, // Assist/copy
-                    () -> Navigation.follow(new AssistPath(user, !Core.input.ctrl(), Core.input.alt()))).size(h / 2).tooltip("@client.assist");
+                        () -> Navigation.follow(new AssistPath(user,
+                                Core.input.shift() ? AssistPath.Type.FreeMove :
+                                Core.input.ctrl() ? AssistPath.Type.Cursor :
+                                Core.input.alt() ? AssistPath.Type.BuildPath :
+                                                    AssistPath.Type.Regular)
+                        )).size(h / 2).tooltip("@client.assist");
                 button.button(Icon.cancel, ustyle, // Unassist/block
-                    () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
+                        () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
                 button.button(Icon.move, ustyle, // Goto
                     () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
                 button.button(Icon.zoom, ustyle, // Spectate/stalk
@@ -214,7 +223,7 @@ public class PlayerListFragment{
                 ).tooltip("@client.freeze");
             }
 
-            content.add(button).padBottom(-6).width(700).maxHeight(h + 14);
+            content.add(button).padBottom(-6).width(750).maxHeight(h + 14);
             content.row();
             content.image().height(4f).color(state.rules.pvp ? user.team().color : Pal.gray).growX();
             content.row();

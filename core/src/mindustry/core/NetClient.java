@@ -40,7 +40,7 @@ import java.util.zip.*;
 import static mindustry.Vars.*;
 
 public class NetClient implements ApplicationListener{
-    private static final float dataTimeout = 60 * 30;
+    private static final float dataTimeout = 60 * 30; // Give up after 30s (vanilla is 20s)
     /** ticks between syncs, e.g. 5 means 60/5 = 12 syncs/sec*/
     private static final float playerSyncTime = 4;
     private static final Reads dataReads = new Reads(null);
@@ -223,6 +223,12 @@ public class NetClient implements ApplicationListener{
                 if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
+            if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
+                Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
+                    "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
+                    "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
+                );
+            
             // highlight coords and set as the last position
             unformatted = processCoords(unformatted, true);
             message = processCoords(message, unformatted != null);
@@ -230,6 +236,11 @@ public class NetClient implements ApplicationListener{
             ChatFragment.ChatMessage output;
 
             if (playersender != null) {
+                if (ClientVars.mutedPlayers.contains( p -> p.getSecond() == playersender.id || (p.getFirst() != null && playersender.name.equals(p.getFirst().name)))) {
+                    return; // Just ignore them
+                }
+                
+                ChatFragment.ChatMessage.msgFormat();
                 // from a player
 
                 // if it's an admin or team message, incorporate that into the prefix because the original formatting will be discarded
@@ -244,6 +255,7 @@ public class NetClient implements ApplicationListener{
                 output = ui.chatfrag.addMessage(message, playersender.coloredName(), background, prefix, unformatted);
                 output.addButton(output.formattedMessage.indexOf(playersender.coloredName()), playersender.coloredName().length() + 16 + output.prefix.length(), () -> Spectate.INSTANCE.spectate(playersender));
             } else {
+                ChatFragment.ChatMessage.msgFormat();
                 // server message, unformatted is ignored
                 output = Vars.ui.chatfrag.addMessage(message, null, null, "", "");
             }
@@ -252,11 +264,6 @@ public class NetClient implements ApplicationListener{
             findLinks(output);
 
             Sounds.chatMessage.play();
-            if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
-                Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
-                    "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
-                    "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
-                );
         }
 
         //display raw unformatted text above player head
@@ -274,7 +281,7 @@ public class NetClient implements ApplicationListener{
         if(Vars.ui != null){
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
-            message = processCoords(message, true);
+            ChatFragment.ChatMessage.msgFormat();
             var output = Vars.ui.chatfrag.addMessage(message, null, null, "", message);
 
             findCoords(output);

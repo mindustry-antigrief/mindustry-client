@@ -1,9 +1,11 @@
 package mindustry.game;
 
 import arc.files.*;
+import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.content.*;
+import mindustry.gen.*;
 import mindustry.mod.Mods.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -127,14 +129,20 @@ public class Schematic implements Publishable, Comparable<Schematic>{
         public Block block;
         public short x, y;
         public Object config;
+        public Cons<Building> clientConfig;
         public byte rotation;
 
-        public Stile(Block block, int x, int y, Object config, byte rotation){
+        public Stile(Block block, int x, int y, Object config, Cons<Building> clientConfig, byte rotation){
             this.block = block;
             this.x = (short)x;
             this.y = (short)y;
             this.config = config;
+            this.clientConfig = clientConfig;
             this.rotation = rotation;
+        }
+
+        public Stile(Block block, int x, int y, Object config, byte rotation){
+            this(block, x, y, config, null, rotation);
         }
 
         //pooling only
@@ -147,12 +155,13 @@ public class Schematic implements Publishable, Comparable<Schematic>{
             x = other.x;
             y = other.y;
             config = other.config;
+            clientConfig = other.clientConfig;
             rotation = other.rotation;
             return this;
         }
 
         public Stile copy(){
-            return new Stile(block, x, y, config, rotation);
+            return new Stile(block, x, y, config, clientConfig, rotation);
         }
     }
 }

@@ -18,6 +18,7 @@ import mindustry.ai.*;
 import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
+import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.content.*;
@@ -41,6 +42,8 @@ import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
 import mindustry.world.blocks.power.*;
+import mindustry.world.blocks.power.PowerNode.*;
+import mindustry.world.blocks.sandbox.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.meta.*;
@@ -49,6 +52,7 @@ import java.util.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
     /** Used for dropping items. */
@@ -73,11 +77,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public int rotation;
     public boolean droppingItem;
     public Group uiGroup;
-    public boolean isBuilding = true, buildWasAutoPaused = false, wasShooting = false;
+    public boolean isBuilding = true, isFreezeQueueing = false, buildWasAutoPaused = false, wasShooting = false;
     public @Nullable UnitType controlledType;
     public float recentRespawnTimer;
 
     public @Nullable Schematic lastSchematic;
+    public boolean isLoadedSchematic = false; // whether it is a schematic schematic
     public GestureDetector detector;
     public PlaceLine line = new PlaceLine();
     public BuildPlan resultplan;
@@ -117,6 +122,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         selectPlans.each(cons);
         linePlans.each(cons);
     };
+
+    /** Other client stuff **/
+    public boolean showTypingIndicator = Core.settings.getBool("typingindicator");
 
     public InputHandler(){
         group.touchable = Touchable.childrenOnly;
@@ -494,21 +502,27 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         build.configured(player == null || player.dead() ? null : player.unit(), value);
         Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
 
-        if (player != null && Vars.player != player) { // FINISHME: Move all this client stuff into the ClientLogic class
+        if (player != null /*&& Vars.player != player*/) { // FINISHME: Move all this client stuff into the ClientLogic class
             if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
                 if (value instanceof Integer val) {
-                    if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) { // FINISHME: Awful.
+                    Point2 target = Point2.unpack(val).sub(build.tileX(), build.tileY());
+                    for(Point2 point: (Point2[])previous){
+                        if(!(target.x == point.x && target.y == point.y)) continue;
+                        if(node.power.graph.all.contains(world.build(val))) continue; // if it is still in the same graph
                         String message = bundle.format("client.powerwarn", Strings.stripColors(player.name), ++node.disconnections, build.tileX(), build.tileY());
-                        ClientVars.lastSentPos.set(build.tileX(), build.tileY());
+                        lastCorePos.set(build.tileX(), build.tileY());
                         if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
                             node.disconnections = 1;
+                            ChatFragment.ChatMessage.msgFormat();
                             node.message = ui.chatfrag.addMessage(message, null, null, "", message);
                             NetClient.findCoords(node.message);
                         } else {
                             ui.chatfrag.doFade(2);
+                            ChatFragment.ChatMessage.msgFormat();
                             node.message.message = message;
                             node.message.format();
                         }
+                        break;
                     }
                 } else if (value instanceof Point2[]) {
                     // FINISHME: handle this urgent in erekir as it actually works there
@@ -518,7 +532,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     //only useful for servers or local mods, and is not replicated across clients
-    //uses unreliable packets due to high frequency
+    //uses unreliable packets due to high fplanuency
     @Remote(targets = Loc.both, called = Loc.both, unreliable = true)
     public static void tileTap(@Nullable Player player, Tile tile){
         if(tile == null) return;
@@ -665,6 +679,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public void update(){
+        isLoadedSchematic &= lastSchematic != null; // i am lazy to reset it on all other instances; this should suffice
+        player.typing = showTypingIndicator && ui.chatfrag.shown();
         if(logicCutscene && !renderer.isCutscene()){
             Core.camera.position.lerpDelta(logicCamPan, logicCamSpeed);
         }else{
@@ -1001,6 +1017,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         drawSelected(x, y, block, Pal.remove);
     }
 
+    public void drawFreezing(BuildPlan plan){
+        if(world.tile(plan.x, plan.y) == null) return;
+        drawSelected(plan.x, plan.y, plan.block, Pal.freeze); // bypass check if plan overlaps with existing block
+    }
+
     public void useSchematic(Schematic schem){
         selectPlans.addAll(schematics.toPlans(schem, player.tileX(), player.tileY()));
     }
@@ -1136,8 +1157,47 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         for(var plan : player.unit().plans()){
             if(test.get(plan)) return plan;
         }
+        for (BuildPlan plan : frozenPlans) if (test.get(plan)) return plan;
 
         return selectPlans.find(test);
+    }
+
+    protected void drawRemovePlanSelection(int x1, int y1, int x2, int y2, int maxLength) {
+        NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
+        Draw.color(Color.white);
+        Draw.alpha(0.3f);
+        float x = (result.x2 + result.x) / 2;
+        float y = (result.y2 + result.y) / 2;
+        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
+    }
+    
+    protected void drawFreezeSelection(int x1, int y1, int x2, int y2, int maxLength){
+        NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
+
+        Tmp.r1.set(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+
+        Draw.color(Pal.freeze);
+        Lines.stroke(1f);
+
+        for(BuildPlan plan: player.unit().plans()){
+            if(plan.breaking) continue;
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
+                drawFreezing(plan);
+            }
+        }
+        for(BuildPlan plan: selectPlans){
+            if(plan.breaking) continue;
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
+                drawFreezing(plan);
+            }
+        }
+
+        Draw.reset();
+        Draw.color(Pal.freeze);
+        Draw.alpha(0.3f);
+        float x = (result.x2 + result.x) / 2;
+        float y = (result.y2 + result.y) / 2;
+        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
     }
 
     protected void drawBreakSelection(int x1, int y1, int x2, int y2, int maxLength){
@@ -1212,43 +1272,102 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
+    private final Seq<Tile> tempTiles = new Seq<>(4);
+    
     protected void flushPlansReverse(Seq<BuildPlan> plans){ // FINISHME: Does this method work as intended?
         flushPlans(plans.copy().reverse());
     }
-
-    protected void flushPlans(Seq<BuildPlan> plans){
+    
+    public void flushPlans(Seq<BuildPlan> plans) {
+        flushPlans(plans, false, false, false);
+    }
+    
+    public void flushPlans(Seq<BuildPlan> plans, boolean freeze, boolean force, boolean removeFrozen){
         var configLogic = Core.settings.getBool("processorconfigs");
-        var temp = new BuildPlan[plans.size + plans.count(req -> req.block == Blocks.waterExtractor) * 3]; // Cursed but works good enough for me
+        var temp = new BuildPlan[plans.size + plans.count(plan -> plan.block == Blocks.waterExtractor) * 3]; // Cursed but works good enough for me
         var added = 0;
-        for(BuildPlan req : plans){
-            if (req.block == null) continue;
-
+        for(BuildPlan plan : plans){
+            if (plan.block == null) continue;
+    
+            if (removeFrozen) {
+                Iterator<BuildPlan> it = frozenPlans.iterator();
+                while(it.hasNext()){
+                    BuildPlan frz = it.next();
+                    if(plan.bounds(Tmp.r1, true).overlaps(frz.bounds(Tmp.r2, true))){
+                        it.remove();
+                    }
+                }
+            }
+            
+            if (plan.breaking) {
+                tryBreakBlock(plan.x, plan.y, freeze);
+                continue;
+            }
+    
             var tempTiles = Block.tempTiles;
-            if (req.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed.
-                    && req.tile() != null && req.tile().getLinkedTilesAs(req.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
+            if (plan.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed.
+                    && plan.tile() != null && plan.tile().getLinkedTilesAs(plan.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
                 var first = tempTiles.first();
                 if (tempTiles.contains(t -> !t.adjacentTo(first) && t != first && t.floor().liquidDrop == Liquids.water)
                         && !tempTiles.contains(t -> !validPlace(t.x, t.y, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction, 0))) { // Can use mechanical pumps (covers all outputs)
                     for (var t : tempTiles) temp[added++] = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
                     continue; // Swapped water extractor for mechanical pumps, don't place it
                 } else if (validPlace(first.x, first.y, Blocks.rotaryPump, 0)) { // Mechanical pumps can't cover everything, use rotary pump instead
-                    temp[added++] = new BuildPlan(req.x, req.y, 0, Blocks.rotaryPump);
+                    temp[added++] = new BuildPlan(plan.x, plan.y, 0, Blocks.rotaryPump);
                     continue; // Swapped water extractor for rotary pump, don't place it
                 }
             }
-
-            if(validPlace(req.x, req.y, req.block, req.rotation)){
-                BuildPlan copy = req.copy();
-                if (configLogic && req.block instanceof LogicBlock && req.config != null) {
+    
+            boolean valid = validPlace(plan.x, plan.y, plan.block, plan.rotation);
+            if(freeze || force || valid){
+                BuildPlan copy = plan.copy();
+                if(configLogic && copy.block instanceof LogicBlock && copy.config != null){
+                    final var conf = copy.config; // this is okay because processor connections are relative
                     copy.config = null;
-                    ClientVars.processorConfigs.put(req.tile().pos(), req.config);
+                    copy.clientConfig = it -> {
+                        if (!(it instanceof LogicBlock.LogicBuild build)) return;
+                        if (!build.code.isEmpty() || build.links.any())
+                            return; // Someone else built a processor with data
+                        configs.add(new ConfigRequest(it.tile.x, it.tile.y, conf));
+                    };
                 }
-                req.block.onNewPlan(copy);
-                temp[added++] = copy;
+                if(copy.block instanceof PowerNode && copy.config instanceof Point2[] conf){
+                    int planuiredSetting = (isLoadedSchematic ? PowerNodeFixSettings.enableReq : PowerNodeFixSettings.nonSchematicReq) + (copy.block instanceof PowerSource ? 1 : 0);
+                    if (PowerNodeBuild.fixNode >= planuiredSetting) {
+                        final var nconf = new Point2[conf.length];
+                        for (int i = 0; i < conf.length; i++) nconf[i] = conf[i].cpy();
+                        copy.clientConfig = it -> {
+                            if (it instanceof PowerNodeBuild build) build.fixNode(nconf);
+                        };
+                    }
+                }
+                
+                if (force && !valid) {
+                    var existing = world.tiles.get(plan.x, plan.y);
+                    if (existing.build != null && existing.block() == plan.block && existing.build.tileX() == plan.x && existing.build.tileY() == plan.y) {
+                        configs.add(new ConfigRequest(existing.build, plan.config));
+                    }
+                    else { // Add build plans to remove block underneath
+                        frozenPlans.add(copy);
+                        Seq<Tile> tmpTiles = new Seq<>(4);
+                        plan.tile().getLinkedTilesAs(plan.block, tmpTiles);
+                        tmpTiles.forEach(tile -> {
+                            if (tile.build != null) player.unit().addBuild(new BuildPlan(tile.build.tileX(), tile.build.tileY()));
+                        });
+                    }
+                }
+                else {
+                    plan.block.onNewPlan(copy);
+                    temp[added++] = copy;
+                }
             }
         }
 
-        for(int i = 0; i < added; i++) player.unit().addBuild(temp[i]);
+        for (int i = 0; i < added; i++) {
+            var plan = temp[i];
+            if (freeze) frozenPlans.add(plan);
+            else player.unit().addBuild(plan);
+        }
     }
 
     protected void drawOverPlan(BuildPlan plan){
@@ -1257,8 +1376,18 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     protected void drawOverPlan(BuildPlan plan, boolean valid){
         Draw.reset();
+        final long frameId = graphics.getFrameId();
+        if(lastFrameVisible != frameId){
+            lastFrameVisible = frameId;
+            visiblePlanSeq.clear();
+            BuildPlan.getVisiblePlans(cons -> {
+                selectPlans.each(cons);
+                linePlans.each(cons);
+            }, visiblePlanSeq);
+        }
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(1f);
+//        plan.block.drawPlanConfigTop(plan, visiblePlanSeq);
         plan.block.drawPlanConfigTop(plan, allSelectLines);
         Draw.reset();
     }
@@ -1285,16 +1414,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     /** Remove everything from the queue in a selection. */
     protected void removeSelection(int x1, int y1, int x2, int y2, int maxLength){
-        removeSelection(x1, y1, x2, y2, false, maxLength);
+        removeSelection(x1, y1, x2, y2, false, maxLength, false);
     }
 
     /** Remove everything from the queue in a selection. */
     protected void removeSelection(int x1, int y1, int x2, int y2, boolean flush){
-        removeSelection(x1, y1, x2, y2, flush, maxLength);
+        removeSelection(x1, y1, x2, y2, flush, maxLength, false);
     }
 
     /** Remove everything from the queue in a selection. */
-    protected void removeSelection(int x1, int y1, int x2, int y2, boolean flush, int maxLength){
+    protected void removeSelection(int x1, int y1, int x2, int y2, boolean flush, int maxLength, boolean freeze){
         NormalizeResult result = Placement.normalizeArea(x1, y1, x2, y2, rotation, false, maxLength);
         for(int x = 0; x <= Math.abs(result.x2 - result.x); x++){
             for(int y = 0; y <= Math.abs(result.y2 - result.y); y++){
@@ -1306,9 +1435,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 if(tile == null) continue;
 
                 if(!flush){
-                    tryBreakBlock(wx, wy);
+                    tryBreakBlock(wx, wy, freeze);
                 }else if(validBreak(tile.x, tile.y) && !selectPlans.contains(r -> r.tile() != null && r.tile() == tile)){
-                    selectPlans.add(new BuildPlan(tile.x, tile.y));
+                    if (freeze) frozenPlans.add(new BuildPlan(tile.x, tile.y));
+                    else selectPlans.add(new BuildPlan(tile.x, tile.y));
                 }
             }
         }
@@ -1318,18 +1448,26 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         Iterator<BuildPlan> it = player.unit().plans().iterator();
         while(it.hasNext()){
-            var plan = it.next();
+            BuildPlan plan = it.next();
             if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
-                ClientVars.processorConfigs.remove(plan.tile().pos());
+                processorConfigs.remove(plan.tile().pos());
                 it.remove();
             }
         }
 
         it = selectPlans.iterator();
         while(it.hasNext()){
-            var plan = it.next();
+            BuildPlan plan = it.next();
             if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 it.remove();
+            }
+        }
+        
+        if (isFreezeQueueing) {
+            it = frozenPlans.iterator();
+            while (it.hasNext()) {
+                BuildPlan plan = it.next();
+                if (!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)) it.remove();
             }
         }
 
@@ -1352,6 +1490,87 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             Call.deletePlans(player, removed.toArray());
         }
     }
+    
+    /** Remove plans in a selection */
+    protected void removeSelectionPlans(int x1, int y1, int x2, int y2, int maxLength) {
+        NormalizeResult result = Placement.normalizeArea(x1, y1, x2, y2, rotation, false, maxLength);
+        Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
+    
+        Iterator<BuildPlan> it = player.unit().plans().iterator();
+        while(it.hasNext()){
+            BuildPlan plan = it.next();
+            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)){
+                it.remove();
+            }
+        }
+    
+        it = selectPlans.iterator();
+        while(it.hasNext()){
+            BuildPlan plan = it.next();
+            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)){
+                it.remove();
+            }
+        }
+    
+        if (isFreezeQueueing) {
+            it = frozenPlans.iterator();
+            while (it.hasNext()) {
+                BuildPlan plan = it.next();
+                if (plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) it.remove();
+            }
+        }
+    }
+
+    /** Freeze all schematics in a selection. */
+    protected void freezeSelection(int x1, int y1, int x2, int y2, int maxLength){
+        freezeSelection(x1, y1, x2, y2, false, maxLength);
+    }
+
+    /** Helper function with changing from the first Seq to the next. Used to be a BiPredicate but moved out **/
+    private boolean checkFreezeSelectionHasNext(BuildPlan frz, Iterator<BuildPlan> it){
+        boolean hasNext;
+        while((hasNext = it.hasNext()) && it.next() != frz) ; // skip to the next instance when it.next() == frz
+        if(hasNext) it.remove();
+        return hasNext;
+    }
+
+    protected void freezeSelection(int x1, int y1, int x2, int y2, boolean flush, int maxLength){
+        NormalizeResult result = Placement.normalizeArea(x1, y1, x2, y2, rotation, false, maxLength);
+
+        Seq<BuildPlan> tmpFrozenPlans = new Seq<>();
+        //remove build plans
+        Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
+
+        for(BuildPlan plan : player.unit().plans()){
+            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) tmpFrozenPlans.add(plan);
+        }
+
+        for(BuildPlan plan : selectPlans){
+            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) tmpFrozenPlans.add(plan);
+        }
+
+        Seq<BuildPlan> unfreeze = new Seq<>();
+        for(BuildPlan plan : frozenPlans){
+            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) unfreeze.add(plan);
+        }
+
+        Iterator<BuildPlan> it1, it2;
+        if(unfreeze.size > tmpFrozenPlans.size) flushPlans(unfreeze, false, false, true);
+        else{
+            it1 = player.unit().plans().iterator();
+            it2 = selectPlans.iterator();
+            for (BuildPlan frz : tmpFrozenPlans) {
+                if(checkFreezeSelectionHasNext(frz, it1)) continue;
+                if(/*!itHasNext implied*/ it2 != null){
+                    it1 = it2;
+                    it2 = null; // swap it2 into it1, continue iterating through without changing frz
+                    if(checkFreezeSelectionHasNext(frz, it1)) continue;
+                }
+                break; // exit if there are no remaining items in the two Seq's to check.
+            }
+            frozenPlans.addAll(tmpFrozenPlans);
+        }
+    }
 
     protected void updateLine(int x1, int y1, int x2, int y2){
         linePlans.clear();
@@ -1370,6 +1589,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
             });
 
+//        } else if(block instanceof ItemBridge && Core.input.shift()) block.handlePlacementLine(linePlans);
             block.handlePlacementLine(linePlans);
         }
     }
@@ -1426,7 +1646,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         var invBuild = !build.block.hasItems && build.getPayload() instanceof BuildPayload pay ? pay.build : build;
         if(build.interactable(player.team()) && build.block.consumesTap){
             consumed = true;
-        }else if(/*build.interactable(player.team()) &&*/ build.block.synthetic() && (!consumed || invBuild.block.allowConfigInventory)){
+        }else if((build.interactable(player.team()) ||
+            !(Vars.player != null && Vars.player.unit() instanceof BlockUnitUnit blockunit && Arrays.stream(noInteractTurrets).anyMatch((t) -> t == blockunit.tile().block))
+        ) && build.block.synthetic() && (!consumed || invBuild.block.allowConfigInventory)){
             if(invBuild.block.hasItems && invBuild.items.total() > 0){
                 inv.showFor(invBuild);
                 consumed = true;
@@ -1537,7 +1759,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public @Nullable Unit selectedUnit(boolean allowPlayers){
-        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f, u -> u.type.playerControllable && (allowPlayers ? !u.isLocal() : u.isAI()));
+        boolean hidingAirUnits = ClientVars.hidingAirUnits;
+        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f,
+                allowPlayers ? hidingAirUnits ? u -> !u.isLocal() && !u.isFlying() : u -> !u.isLocal()
+                        : hidingAirUnits ? u -> u.isAI() && !u.isFlying() : Unitc::isAI);
+//        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f, u -> u.type.playerControllable && (allowPlayers ? !u.isLocal() : u.isAI()));
         if(unit != null && !ClientVars.hidingUnits){
             unit.hitbox(Tmp.r1);
             Tmp.r1.grow(input.shift() ? tilesize * 6 : 6f ); // If shift is held, add 3 tiles of leeway, makes it easier to shift click units controlled by processors and such
@@ -1684,14 +1910,40 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    public void tryBreakBlock(int x, int y){
+    public void tryBreakBlock(int x, int y) {
+        tryBreakBlock(x, y, false);
+    }
+    
+    public void tryBreakBlock(int x, int y, boolean freeze){
         if(validBreak(x, y)){
-            breakBlock(x, y);
+            breakBlock(x, y, freeze);
         }
     }
 
     public boolean validPlace(int x, int y, Block type, int rotation){
         return validPlace(x, y, type, rotation, null);
+    }
+
+    private long lastFrame, lastFrameVisible;
+    private QuadTree<BuildPlan> tree = new QuadTree<>(new Rect(0, 0, 0, 0));
+    public final Seq<BuildPlan> planSeq = new Seq<>(), visiblePlanSeq = new Seq<>();
+
+    public boolean planTreeNeedsRecalculation(){
+        return lastFrame == graphics.getFrameId();
+    }
+    /** Cursed method to put the player's plans in a quadtree for non-slow overlap checks. */
+    public QuadTree<BuildPlan> planTree() {
+        if(lastFrame == graphics.getFrameId()) return tree;
+        lastFrame = graphics.getFrameId();
+
+        tree.clear();
+        if (world.unitWidth() != tree.bounds.width || world.unitHeight() != tree.bounds.height)
+            tree = new QuadTree<>(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
+        var plans = player.unit().plans();
+        for (int i = 0; i < plans.size; i++)
+            tree.insert(plans.get(i));
+
+        return tree;
     }
 
     public boolean validPlace(int x, int y, Block type, int rotation, BuildPlan ignore){
@@ -1719,10 +1971,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return Build.validBreak(player.team(), x, y);
     }
 
-    public void breakBlock(int x, int y){
+    public void breakBlock(int x, int y, boolean freeze){
         Tile tile = world.tile(x, y);
         if(tile != null && tile.build != null) tile = tile.build.tile;
-        player.unit().addBuild(new BuildPlan(tile.x, tile.y));
+        if (freeze) frozenPlans.add(new BuildPlan(tile.x, tile.y));
+        else player.unit().addBuild(new BuildPlan(tile.x, tile.y));
     }
 
     public void drawArrow(Block block, int x, int y, int rotation){

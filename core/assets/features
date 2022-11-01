@@ -6,6 +6,77 @@
  * List items have a * for each line
  * \n does linebreak
 */
+
+# SByte Foo Fork Client
+ * Edits done by Zxtej, SByte and BalaM314
+ * Pong SByte#7574 or BalaM314#4781 on discord if theres anything missing.
+ * >=========================< Misc >=========================<
+ * Optimized A star navigator - The paths are tightened for faster travel.
+ * Cursed menu screen - Levels of cursedness modifiable in settings. Requires restart.
+ * Persistent powernode doubletap - Powernode config does not exit after double tapping. This is to allow better and easier configuring.
+ * Turret AutoTransfer - Autotransfer can feed turrets.
+ * MinePath & AutoTransfer compatibility - Autotransfer is allowed to work with MinePath only when the player unit is close enough to the core for automatic mine transfer to occur.
+ * Default Minepath arguments - its a setting now like default buildpath args
+ * Unloaders Arrows - Unloaders can show where they are outputting (unloader arrows setting)
+ * ATTEM WARFARE - Automatically erases attem code and whispers to the user to not use it (whisper only works on io and phoenix)
+ * Automatic attem search - Upon entering a world, !fixcode is ran. If attemwarfare is enabled, the processor codes are automatically replaced.
+ * Proccessor link name fix - E.g. after unlinking smelter3, the next smelter you link wont be smelter4, it will be smelter3.
+ * Rainbow logic jump arrows - Upon hovering, turns the respective jump arrow rainbowie.
+ * Core item flow rate - Use {select} on the core items list on the top to cycle between flow rate modes: Normal, PositiveOnly, Negative
+ * Trace Logic Units - Draw lines from hovered processor to controlled units. Toggleable in settings.
+ * Power void broken notifs - Notifies in chat when a power void is broken and where.
+ * Zero drift setting - No more drifting after releasing movement keys. Looks a bit choppy due to the linear interpolation though.
+ * No drift MinePath - Yes.
+ * Decreased drift setting for higher speeds.
+ * Draw Logic Display Border Setting
+ * !unit searches for the closest unit from the cursor instead of player. Allows you to pick closest unit from a location where you want to be instead of where your player is currently now.
+ * Buildplans persist even when in enemy core range or when a unit intersecting.
+ * Show force projector buildup (when hovering over it) when its shield is destroyed
+ * Anti toast - Disables toasts from being shown.
+ * Remove attem instead of fixing setting. If true it just completely replaces the attem logic instead of just removing the jump part.
+ * Automapvote setting - Automatically does /novote, /downvote, or /upvote when joining servers like io
+ * Fast respawn setting - Ultimate rush strat :tm:
+ * >=========================< Controls >=========================<
+ * Shift + {hide_blocks} - Hides build plans instead of blocks.
+ * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
+ * Alt + {show_turret_ranges} - Show your team's turret ranges.
+ * Shift + {hide_blocks} - Hides build plans.
+ * Ctrl + {invisible_units} - Hides fog.
+ * Shift + {pause_building} - Switches to freeze build queue.
+ * Shift + {deselect} - Freezes/Unfreezes build plans. Useful for prioritizing which build plans to execute first.
+ * Ctrl + {deselect} - Dequeue selection. Aka deletes only build plans. Doesn't deconstruct existing blocks.
+ * Ctrl + {select} placement - Forcefully
+ * Auto bridge weave - Press shift while building with bridges to automatically bridge weave. End point has automatically converged bridge connections.
+ * Player List Assist - None (Regular), Shift (Free Move), Ctrl (Follow Cursor), Alt (BuildPath)
+ * Click Assist - Shift (Regular), Shift + Alt (Free Move), Ctrl (Follow Cursor), Ctrl + Alt (BuildPath)
+ * >=========================< Commands >=========================<
+ * !hh - Switches between all io servers and does /novote aka pet point farmer
+ * !voids [count] - Shows void locations
+ * !rebuild <timestart> <timerange> <radius> - Searches through tile log history and rebuilds buildings from the specified time range and radius. (Bye bye griefers)
+ * !undo <player> [range] - Undoes player buildings and configurations.
+ * !procfind [options] - Searches for processors with matching regex. Run without arguments for explanation.
+ * !blank - Sends an empty text message
+ * !fixcode - Now gives you 2 options. "c" to only remove the attem part and "r" (subjectively better) to completely yeet everything and replace it with anti attem text.
+ * !pathing - Switches between the classic and optimized A star navigator (the tightened path one)
+ * !buildmine - A mix of !builder and !miner. Switches to buildpath when buildplans exist (and build is enabled) then switches back to mining after done.
+ * !fixnode - Enables/disables certain parts of the better-node-connection-system. (Ask zxtej, I have no idea how this works -SByte)
+ * !count all - Counts all units.
+ * !unit null - Exits the unit picking queue.
+ * !gamejointext - Sets the text you send when you join.
+ * !gamewintext - Sets the text you send when you win the game. Typically something like "gg".
+ * !gamelosetext - Same as above but for when you lose.
+ * !ptext - Sets a custom text you can easily send in chat with !ptext say (do !help ptext for more details)
+ * !spawn [x] [y] - Spawns you at the closest core to (x, y) or to your cursor
+ * !bannedcontent - Lists out banned units and blocks on the map
+ * !mute <player> - Searches for the player name / id and mutes messages coming from that player.(The symbols infront of names [if the server does add symbols] are required when using name search)
+ * !unmute <player> - Same as !mute
+ * !clearmutes - Clears the list of muted players
+ * !unfog - Begone fog of war. Kinda unfair but idgaf :P
+ * >=========================< Chat Text Replacer >=========================<
+ * %s - replaces with a !shrug
+ * %c - replaces with cursor coordinates
+ * %h - replaces with player unit's coordinates (!here)
+
 # Keybinds
  * {tile_actions_menu_modifier} - display actions for a tile
  * {freecam_modifier} movement keys - free camera movement
@@ -69,4 +140,4 @@
  * Most settings are self-explanatory so they are not included here
 
 # Credits
- * Game by anuke, client by foo and buthed010203
+ * Game by anuke, client by foo and buthed010203, edits by Zxtej, SBytes, and BalaM314

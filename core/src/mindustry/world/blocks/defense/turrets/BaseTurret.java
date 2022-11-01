@@ -79,7 +79,7 @@ public class BaseTurret extends Block{
         @Override
         public void add(){ // Client stuff
             super.add();
-            turretEnt = new TurretPathfindingEntity(this, range, targetGround(), targetAir(), this::canShoot);
+            turretEnt = new TurretPathfindingEntity(this, range(), targetGround(), targetAir(), this::canShoot);
             Navigation.addEnt(turretEnt);
         }
 
