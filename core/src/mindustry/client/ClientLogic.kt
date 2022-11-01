@@ -6,6 +6,8 @@ import arc.util.*
 import mindustry.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
+import mindustry.client.antigrief.ConfigRequest
+import mindustry.client.antigrief.Seer
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
@@ -49,15 +51,12 @@ class ClientLogic {
             Timer.schedule({
                 Core.app.post {
                     val arg = switchTo?.removeFirstOrNull() ?: return@post
-                    Call.sendChatMessage("/novote") // Having it not be a random vote is better
                     if (arg is Host) NetClient.connect(arg.address, arg.port)
                     else {
                         if (arg is UnitType) Vars.ui.unitPicker.pickUnit(arg)
                         switchTo = null
-                    }
 
-                    // If no hh then send gamejointext
-                    else {
+                        // If no hh then send gamejointext
                         if (Core.settings.getString("gamejointext")?.isNotEmpty() == true) {
                             Call.sendChatMessage(Core.settings.getString("gamejointext"))
                         }
@@ -86,9 +85,11 @@ class ClientLogic {
                                 val patched = ProcessorPatcher.patch(it.code, if(Core.settings.getBool("removeatteminsteadoffixing")) "r" else "c")
                                 if (patched != it.code) {
                                     Log.debug("${it.tileX()} ${it.tileY()}")
-                                    configs.add(ConfigRequest(it.tileX(), it.tileY(),
+                                    configs.add(
+                                        ConfigRequest(it.tileX(), it.tileY(),
                                         LogicBlock.compress(patched, it.relativeConnections())
-                                    ))
+                                    )
+                                    )
                                     n++
                                 }
                             }

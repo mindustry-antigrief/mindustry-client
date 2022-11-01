@@ -5,6 +5,7 @@ import arc.files.*;
 import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.Timer;
 import arc.util.serialization.*;
 import mindustry.core.*;
 import mindustry.game.*;
@@ -98,12 +99,11 @@ public class BeControl{
                     }
                     updateUrl = asset.getString("browser_download_url", "");
                     updateAvailable = true;
-                    updateBuild = newBuild;
+                    updateBuild = latest;
                     Core.app.post(() -> done.get(true));
-                }else{
-                    Core.app.post(() -> done.get(false));
-                }
+                });
             });
+        } catch (Exception ignored) {}
     }
 
     /** @return whether a new update is available */

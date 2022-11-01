@@ -9,7 +9,6 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.ClientVars;
 import mindustry.client.antigrief.*;
 import mindustry.core.*;
 import mindustry.entities.units.*;
@@ -23,6 +22,7 @@ import mindustry.world.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
 import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
