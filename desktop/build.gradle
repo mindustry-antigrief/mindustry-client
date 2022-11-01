@@ -56,7 +56,7 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
         exclude("**steam**.so", "**steam**.dll", "**steam**.dylib")
     }
 
-    archiveFileName = "${appName}-${'git branch --show-current'.execute().text.trim()}.jar"
+    archiveFileName = localArc() ? "${appName}-${branchName}.jar" : "${appName}.jar"
 
     manifest{
         attributes 'Main-Class': project.mainClassName
@@ -75,13 +75,14 @@ if(!project.ext.hasSprites() && System.getenv("JITPACK") != "true"){
 task steamtest(dependsOn: dist){
     doLast{
         copy{
-            from "build/libs/Mindustry.jar"
+            filename = localArc() ? "${appName}-${branchName}.jar" : "${appName}.jar"
+            from "build/libs/$filename"
             if(System.getProperty("os.name").toLowerCase().contains("mac")){
                 into "/Users/nate/Library/Application Support/Steam/steamapps/common/Mindustry/Mindustry.app/Contents/Resources"
-                rename("Mindustry.jar", "desktop.jar")
+                rename(filename, "desktop.jar")
             }else{
                 into "D:\\Steam2\\steamapps\\common\\Mindustry\\jre"
-                rename("Mindustry.jar", "client.jar")
+                rename(filename, "client.jar")
             }
         }
     }

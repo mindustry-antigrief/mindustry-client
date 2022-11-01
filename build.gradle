@@ -11,6 +11,8 @@ buildscript{
             name = name.substring(name.lastIndexOf(':') + 1)
             return "com.github.mindustry-antigrief${localArc() ? "" : ".Arc"}:$name:$arcHash"
         }
+
+        branchName = 'git branch --show-current'.execute().text.trim()
     }
 
     repositories{
@@ -50,9 +52,9 @@ allprojects{
                         .tokenize(' ')[0].split('[.]') as String[]
                 tagTokens[0] = tagTokens[0][1..-1]
                 tagTokens[-1] = ((tagTokens[-1] as Integer) + 1) as String
-                clientVersion = 'git branch --show-current'.execute().text.trim() + " / ${tagTokens.join('.')}"
+                clientVersion = branchName + " / ${tagTokens.join('.')}"
             } catch (Exception ignored){
-                clientVersion = 'git branch --show-current'.execute().text.trim() + " / ${project.getProperties()["buildversion"]}"
+                clientVersion = branchName + " / ${project.getProperties()["buildversion"]}"
             }
 
         }
