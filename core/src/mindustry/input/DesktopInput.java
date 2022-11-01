@@ -523,6 +523,8 @@ public class DesktopInput extends InputHandler{
             // if(((input.keyDown(Binding.control) || input.alt()) && Core.input.keyTap(Binding.select) && state.rules.possessionAllowed) && block == null){ // Hmm?
                 Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
+                boolean hidingAirUnits = ClientVars.hidingAirUnits;
+                Vec2 mouseWorld;
                 if(on != null){
                     // FINISHME: This belongs in its own method, its also very messy
                     if(input.keyDown(Binding.control) && on.isAI()) { // Ctrl + click: control unit
@@ -540,8 +542,9 @@ public class DesktopInput extends InputHandler{
                         Spectate.INSTANCE.spectate(ai.controller);
                         shouldShoot = false;
                     }
-                }else if((on = Units.closestOverlap(Core.input.mouseWorld().x, Core.input.mouseWorld().y, tilesize * 8f,
-                        u -> Core.input.mouseWorld().dst2(u) < u.hitSize * u.hitSize)) != null && on.controller() instanceof LogicAI ai && ai.controller != null && (!player.unit().type.canBoost || player.boosting)){
+                }else if((on = Units.closestOverlap((mouseWorld = Core.input.mouseWorld()).x, mouseWorld.y, tilesize * 8f,
+                        u -> (!u.isFlying() || !hidingAirUnits) && mouseWorld.within(u, u.hitSize))) != null && on.controller() instanceof LogicAI ai && ai.controller != null){
+                    // This condition is meant to catch logic-controlled units of any team
                     Spectate.INSTANCE.spectate(ai.controller);
                     shouldShoot = false;
                 }else if(build != null && input.keyDown(Binding.control)){
