@@ -86,7 +86,11 @@ fun setup() {
     }
 
     register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
-        Vars.ui.unitPicker.pickUnit(findUnit(args[0]))
+        ui.unitPicker.pickUnit(findUnit(args[0]))
+    }
+
+    register("uc <unit-type>", "Picks a unit nearest to cursor") { args, _ ->
+        ui.unitPicker.pickUnit(findUnit(args[0]), Core.input.mouseWorldX(), Core.input.mouseWorldY(), true)
     }
 
     register("count <unit-type>", Core.bundle.get("client.command.count.description")) { args, player ->
@@ -539,72 +543,6 @@ fun setup() {
             player.sendMessage("[scarlet]Failed to parse integer!")
         }
     }
-    register("hfixnode [pls]", "Displays info for !fixnode") { args, player -> //TODO: Make param info some tooltip/popup thing
-        if (args.isNotEmpty() && args[0] == "pls") player.sendMessage("[lightgray]Thanks for saying please!") // i am going insane
-        player.sendMessage(
-            "Set enforcement of node configs, use either [scarlet]0/false []or [green]1/true[]\n" +
-                    "   [lightgray]Enter your command in the form [orange]!fixnode[] [white][[[yellow][t][]emptoggle]/[yellow][d][]isable[yellow](-1)[]][]\n" +
-                    "   OR [orange]!fixnode[] [white][normal] [source][]\n" +
-                    "   [white]normal[] - Whether to enforce on regular copy and paste (not just from saved schematics). Set to -1 to completely disable fixing.\n" +
-                    "   [white]source[] - Whether to enforce on item sources\n" +
-                    "[orange]-- End --"
-        )
-    }
-    register("fixnode [do-!hfixnode] [for-more-info]","Do !hfixnode for more info") { args, player -> //TODO: Bundle (how about no)
-        val setting = PowerNode.PowerNodeFixSettings.get(Core.settings.getInt("nodeconf", 0))
-        val curr = PowerNode.PowerNodeFixSettings.get(PowerNode.PowerNodeBuild.fixNode)
-        if (args.isEmpty()) {
-            player.sendMessage("[accent]Node fixing is currently [white]$curr[].")
-            return@register
-        }
-        val set = { new: Int ->
-            PowerNode.PowerNodeBuild.fixNode = new
-            Core.settings.put("nodeconf", new)
-        }
-        val print = { changed: Boolean, now: PowerNode.PowerNodeFixSettings ->
-            player.sendMessage("[accent]Automatic node fixing [white]$now[]${if (changed) "" else " [lightgray](no change)[]"}.") }
-        if ((args[0] == "-1" && args.size < 2) || args[0] == "d" || args[0] == "disable") {
-            set(PowerNode.PowerNodeFixSettings.disabled.ordinal)
-            player.sendMessage("[accent]Automatic node fixing disabled")
-            return@register
-        }
-        if (args[0] == "t" || args[0] == "temp" || args[0] == "temptoggle") {
-            if (setting == curr) {
-                player.sendMessage("[accent]No changes made (currently [white]$curr[]).")
-                return@register
-            }
-            if (curr == PowerNode.PowerNodeFixSettings.disabled) { // enable back
-                PowerNode.PowerNodeBuild.fixNode = setting.ordinal
-                player.sendMessage("[accent]Automatic node fixing re-enabled (now [white]$setting[]).")
-                return@register
-            } else { // disable
-                PowerNode.PowerNodeBuild.fixNode = PowerNode.PowerNodeFixSettings.disabled.ordinal
-                player.sendMessage("[accent]Automatic node fixing temporarily disabled.")
-                return@register
-            }
-        }
-        val normal = try { when(Integer.parseInt(args[0])){ 0 -> false; 1 -> true; else -> throw Exception() } }
-        catch (e: Exception) { // cursed
-            player.sendMessage("[scarlet]Invalid input for first argument!")
-            return@register
-        }
-        if (args.size <= 1) {
-            val new = PowerNode.PowerNodeFixSettings.get(normal, setting.source)
-            val changed = new != curr || new != setting
-            if (changed) set(new.ordinal)
-            print(changed, new)
-            return@register
-        }
-        val source = try { when(Integer.parseInt(args[1])){ 0 -> false; 1 -> true; else -> throw Exception() } }
-        catch (e: Exception) { // cursed2
-            player.sendMessage("[scarlet]Invalid input for second argument!")
-            return@register
-        }
-        val new = PowerNode.PowerNodeFixSettings.get(normal, source)
-        val changed = new != curr || new != setting
-        if (changed) set(new.ordinal)
-        print(changed, new)
-    }
 
     register("pathing", "Change the pathfinding algorithm") { _, player ->
         if (navigator is AStarNavigator) {
@@ -813,7 +751,6 @@ fun setup() {
         val target = if (id != null && Groups.player.getByID(id) != null) Groups.player.getByID(id)
         else Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshteinInsensitive(p.name, args[0]) }
 
-        ChatFragment.ChatMessage.msgFormat(false) // Why are player IDs weirdly formatted...
         player.sendMessage(Core.bundle.format("client.command.mute", target.coloredName(), target.id))
         val previous = mutedPlayers.firstOrNull { pair -> pair.first.name == target.name || pair.second == target.id }
         if (previous != null) mutedPlayers.remove(previous)

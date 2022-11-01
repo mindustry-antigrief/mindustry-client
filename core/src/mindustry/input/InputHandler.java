@@ -42,8 +42,6 @@ import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
 import mindustry.world.blocks.power.*;
-import mindustry.world.blocks.power.PowerNode.*;
-import mindustry.world.blocks.sandbox.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.meta.*;
@@ -260,7 +258,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     ai.commandPosition(posTarget);
                 }
                 unit.lastCommanded = player.coloredName();
-                
+
                 //remove when other player command
                 if(!headless && player != Vars.player){
                     control.input.selectedUnits.remove(unit);
@@ -512,12 +510,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                         ClientVars.lastCorePos.set(build.tileX(), build.tileY());
                         if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
                             node.disconnections = 1;
-                            ChatFragment.ChatMessage.msgFormat();
                             node.message = ui.chatfrag.addMessage(message, null, null, "", message);
                             NetClient.findCoords(node.message);
                         } else {
                             ui.chatfrag.doFade(2);
-                            ChatFragment.ChatMessage.msgFormat();
                             node.message.message = message;
                             node.message.format();
                         }
@@ -530,7 +526,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     //only useful for servers or local mods, and is not replicated across clients
-    //uses unreliable packets due to high fplanuency
+    //uses unreliable packets due to high frequency
     @Remote(targets = Loc.both, called = Loc.both, unreliable = true)
     public static void tileTap(@Nullable Player player, Tile tile){
         if(tile == null) return;
@@ -1330,18 +1326,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                         configs.add(new ConfigRequest(it.tile.x, it.tile.y, conf));
                     };
                 }
-                // TODO: MERGE RECHECK
-//                if(copy.block instanceof PowerNode && copy.config instanceof Point2[] conf){
-//                    int planuiredSetting = (isLoadedSchematic ? PowerNodeFixSettings.enableReq : PowerNodeFixSettings.nonSchematicReq) + (copy.block instanceof PowerSource ? 1 : 0);
-//                    if (PowerNodeBuild.fixNode >= planuiredSetting) {
-//                        final var nconf = new Point2[conf.length];
-//                        for (int i = 0; i < conf.length; i++) nconf[i] = conf[i].cpy();
-//                        copy.clientConfig = it -> {
-//                            if (it instanceof PowerNodeBuild build) build.fixNode(nconf);
-//                        };
-//                    }
-//                }
-                
                 if (force && !valid) {
                     var existing = world.tiles.get(plan.x, plan.y);
                     if (existing.build != null && existing.block() == plan.block && existing.build.tileX() == plan.x && existing.build.tileY() == plan.y) {
@@ -1381,10 +1365,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(lastFrameId != frameId){
             lastFrameId = frameId;
             visiblePlanSeq.clear();
-            BuildPlan.getVisiblePlans(cons -> {
-                selectPlans.each(cons);
-                linePlans.each(cons);
-            }, visiblePlanSeq);
+            BuildPlan.getVisiblePlans(allSelectLines, visiblePlanSeq);
         }
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(1f);
@@ -1919,28 +1900,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     public boolean validPlace(int x, int y, Block type, int rotation){
         return validPlace(x, y, type, rotation, null);
-    }
-
-    private long lastFrame, lastFrameVisible;
-    private QuadTree<BuildPlan> tree = new QuadTree<>(new Rect(0, 0, 0, 0));
-    public final Seq<BuildPlan> planSeq = new Seq<>(), visiblePlanSeq = new Seq<>();
-
-    public boolean planTreeNeedsRecalculation(){
-        return lastFrame == graphics.getFrameId();
-    }
-    /** Cursed method to put the player's plans in a quadtree for non-slow overlap checks. */
-    public QuadTree<BuildPlan> planTree() {
-        if(lastFrame == graphics.getFrameId()) return tree;
-        lastFrame = graphics.getFrameId();
-
-        tree.clear();
-        if (world.unitWidth() != tree.bounds.width || world.unitHeight() != tree.bounds.height)
-            tree = new QuadTree<>(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
-        var plans = player.unit().plans();
-        for (int i = 0; i < plans.size; i++)
-            tree.insert(plans.get(i));
-
-        return tree;
     }
 
     public boolean validPlace(int x, int y, Block type, int rotation, BuildPlan ignore){

@@ -239,8 +239,6 @@ public class NetClient implements ApplicationListener{
                 if (ClientVars.mutedPlayers.contains( p -> p.getSecond() == playersender.id || (p.getFirst() != null && playersender.name.equals(p.getFirst().name)))) {
                     return; // Just ignore them
                 }
-                
-                ChatFragment.ChatMessage.msgFormat();
                 // from a player
 
                 // if it's an admin or team message, incorporate that into the prefix because the original formatting will be discarded
@@ -255,9 +253,8 @@ public class NetClient implements ApplicationListener{
                 output = ui.chatfrag.addMessage(message, playersender.coloredName(), background, prefix, unformatted);
                 output.addButton(output.formattedMessage.indexOf(playersender.coloredName()), playersender.coloredName().length() + 16 + output.prefix.length(), () -> Spectate.INSTANCE.spectate(playersender));
             } else {
-                ChatFragment.ChatMessage.msgFormat();
                 // server message, unformatted is ignored
-                output = Vars.ui.chatfrag.addMessage(message, null, null, "", "");
+                output = ui.chatfrag.addMessage(message, null, null, "", "");
             }
 
             findCoords(output);

@@ -108,7 +108,7 @@ public class PlacementFragment{
             lastFlowBuild = nextFlowBuild;
 
             if(nextFlowBuild != null){
-                if(nextFlowBuild.flowItems() != null) nextFlowBuild.flowItems().update(true); // WARNING: Perhaps this is supposed to be "false" ?
+                if(nextFlowBuild.flowItems() != null) nextFlowBuild.flowItems().updateFlow();
                 if(nextFlowBuild.liquids != null) nextFlowBuild.liquids.updateFlow();
             }
         });

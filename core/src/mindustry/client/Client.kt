@@ -12,7 +12,8 @@ import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*
-import mindustry.client.navigation.Navigation.*
+import mindustry.client.navigation.Navigation.getTree
+import mindustry.client.navigation.Navigation.getAllyTree
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.game.*
@@ -38,7 +39,6 @@ object Client {
 
     fun initialize() {
         setup()
-        additionalSetup()
         AutoTransfer.init()
         ClientLogic()
 

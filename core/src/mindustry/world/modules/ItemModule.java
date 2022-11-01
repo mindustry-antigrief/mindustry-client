@@ -77,8 +77,6 @@ public class ItemModule extends BlockModule{
                     displayFlow[i] = flow[i].hasEnoughData() ? flow[i].mean() / pollScl : -1;
                 }
             }
-        }else{
-            flow = null;
         }
     }
 
@@ -281,7 +279,7 @@ public class ItemModule extends BlockModule{
 
     public void handleFlow(Item item, int amount){
         if(flow != null){
-            stats.cacheSums[item.id] += amount;
+            cacheSums[item.id] += amount;
         }
     }
 

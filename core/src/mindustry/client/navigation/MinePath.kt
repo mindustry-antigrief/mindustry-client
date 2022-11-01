@@ -6,6 +6,7 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.utils.*
+import mindustry.game.EventType
 import mindustry.gen.*
 import mindustry.type.*
 import mindustry.world.Tile

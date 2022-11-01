@@ -575,10 +575,6 @@ public class ChatFragment extends Table{
         public String unformatted;
         @Nullable public Seq<Image> attachments = new Seq<>(); // This seq is deleted after 100 new messages to save ram
         public float start, height;
-    
-        public static boolean processCoords, setLastPos; // false by default, set them ON right before initializing a new message
-        private static final Pattern coordPattern = Pattern.compile("([\\[,\\(]?([\\d\\.]+)[ ,]+([\\d\\.]+)[\\],\\)]?)"); // This regex captures the coords into $1 and $2 while $0 contains all surrounding text as well. Fixed by BalaM314. https://regexr.com is the superior regex tester
-        
         @Nullable public Seq<ClickableArea> buttons = new Seq<>(); // This seq is deleted after 100 new messages to save ram
 
         /**
@@ -598,17 +594,6 @@ public class ChatFragment extends Table{
             format(false);
         }
 
-        public static void msgFormat(boolean processCoords2, boolean setLastPos2){
-            processCoords = processCoords2;
-            setLastPos = setLastPos2;
-        }
-        public static void msgFormat(boolean process){
-            msgFormat(process, process);
-        }
-        public static void msgFormat() {
-            msgFormat(true, true);
-        }
-       
         public ChatMessage addButton(int start, int end, Runnable lambda) {
             if (buttons != null) buttons.add(new ClickableArea(start, end, lambda));
             return this;
@@ -626,7 +611,6 @@ public class ChatFragment extends Table{
             } else {
                 formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
             }
-            processCoords = setLastPos = false;
             int shift = formattedMessage.length() - initial;
             if (moveButtons && buttons != null) {
                 for (var b : buttons) {
@@ -638,25 +622,6 @@ public class ChatFragment extends Table{
 
         public void format() {
             format(true);
-        }
-
-        public static String processCoords(String message, boolean setLastPos){
-            if (message == null) return null;
-            Matcher matcher = coordPattern.matcher(message);
-            if(!matcher.find()) return message;
-            String group1, group2;
-            try {
-                group1 = matcher.group(2);
-                group2 = matcher.group(3);
-            } catch(IndexOutOfBoundsException e){
-                e.printStackTrace();
-                return message;
-            }
-            
-            if (setLastPos) try {
-                ClientVars.lastSentPos.set(Float.parseFloat(group1), Float.parseFloat(group2));
-            } catch (NumberFormatException ignored) {}
-            return matcher.replaceAll("[scarlet]$1[]");
         }
     }
 

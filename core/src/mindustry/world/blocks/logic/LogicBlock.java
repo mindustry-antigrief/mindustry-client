@@ -561,7 +561,6 @@ public class LogicBlock extends Block{
                     long begin = Time.nanos();
                     if (ProcessorPatcher.INSTANCE.isAttem(code)) {
                         Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
-                            ChatFragment.ChatMessage.msgFormat();
                             if ((player != lastAttem || player == null)) {
                                 lastAttem = player;
                                 attemCount = 1;

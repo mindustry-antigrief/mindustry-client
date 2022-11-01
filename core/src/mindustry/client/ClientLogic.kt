@@ -239,7 +239,6 @@ class ClientLogic {
 
         Events.on(BlockDestroyEvent::class.java) {
             if (it.tile.block() is PowerVoid) {
-                ChatFragment.ChatMessage.msgFormat()
                 ui.chatfrag.addMessage(Core.bundle.format("client.voidwarn", it.tile.x, it.tile.y))
             }
         }
@@ -255,7 +254,6 @@ class ClientLogic {
                 val void = voids.find { it.within(event.tile, block.range) }
                 if (void != null) { // Code taken from LogicBlock.LogicBuild.configure
                     Core.app.post {
-                        ChatMessage.msgFormat()
                         if (event.unit?.player != turretVoidWarnPlayer || turretVoidWarnPlayer == null || Time.timeSinceMillis(lastTurretVoidWarn) > 5e3) {
                             turretVoidWarnPlayer = event.unit?.player
                             turretVoidWarnCount = 1

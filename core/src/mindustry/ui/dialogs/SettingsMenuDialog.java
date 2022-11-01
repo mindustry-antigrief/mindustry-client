@@ -398,8 +398,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("showdomes", false);
         client.checkPref("allowinvturrets", true);
         client.checkPref("showtoasts", true);
-        client.checkPref("unloaderview", false, i -> Unloader.UnloaderBuild.drawUnloaderItems = i);
-        client.checkPref("customnullunloader", false, i -> Unloader.UnloaderBuild.customNullLoader = i);
+        client.checkPref("unloaderview", false, i -> Unloader.drawUnloaderItems = i);
+        client.checkPref("customnullunloader", false, i -> Unloader.customNullLoader = i);
         client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
         client.checkPref("logiclinkorder", false);
     

@@ -298,7 +298,7 @@ public class HudFragment{
                 info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel).name("fps");
                 info.row();
 
-                info.label(() -> plans.get(player.unit().plans.size, frozenPlans.size)).left() // Buildplan count
+                info.label(() -> plans.get(player.unit().plans.size, ClientVars.frozenPlans.size)).left() // Buildplan count
                 .style(Styles.outlineLabel).name("plans");
                 info.row();
 
