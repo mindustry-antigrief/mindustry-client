@@ -223,10 +223,6 @@ public class Fonts{
             borderColor = Color.darkGray;
             incremental = true;
             size = 18;
-            /*
-            size *= 2;
-            scaleFactor = 1f/2;
-             */
         }};
 
         Core.assets.load("outline", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = t -> {
@@ -332,12 +328,6 @@ public class Fonts{
             shadowOffsetY = 2;
             incremental = true;
             magFilter = minFilter = getTextFilter();
-
-            /*
-            size *= 2;
-            scaleFactor = 1f/2;
-            shadowOffsetY *= 2;
-             */
         }};
     }
 }

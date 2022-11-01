@@ -93,9 +93,7 @@ public enum Binding implements KeyBind{
     find(KeyCode.f),
     send_build_queue(KeyCode.apostrophe),
     toggle_auto_target(KeyCode.x),
-    show_massdriver_configs(KeyCode.f3),
-
-    chat_history_next_small(KeyCode.controlLeft)
+    show_massdriver_configs(KeyCode.f3)
     ;
 
     private final KeybindValue defaultValue;

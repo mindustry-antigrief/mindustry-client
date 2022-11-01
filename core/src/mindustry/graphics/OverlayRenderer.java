@@ -21,6 +21,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.frozenPlans;
 
 public class OverlayRenderer{
     private static final float indicatorLength = 14f;

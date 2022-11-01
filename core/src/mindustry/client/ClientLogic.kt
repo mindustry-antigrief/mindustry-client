@@ -15,7 +15,6 @@ import mindustry.gen.*
 import mindustry.logic.*
 import mindustry.net.*
 import mindustry.type.*
-import mindustry.world.modules.ItemModule
 
 /** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
  * Handles various events and such.
@@ -49,7 +48,7 @@ class ClientLogic {
             if (!syncing) {
                 AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
                 Player.persistPlans.clear()
-                Vars.frozenPlans.clear()
+                frozenPlans.clear()
             }
             lastJoinTime = Time.millis()
             configs.clear()

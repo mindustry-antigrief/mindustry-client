@@ -7,6 +7,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import kotlin.*;
+import mindustry.entities.units.*;
 import mindustry.net.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.defense.*;
@@ -24,6 +25,7 @@ public class ClientVars {
     public static float jpegQuality = Core.settings.getFloat("commpicquality", 0.5f);
     public static boolean benchmarkNav = false;
     public final static Rect cameraBounds = new Rect();
+    public static Seq<BuildPlan> frozenPlans = new Seq<>();
 
     // Core Item Display - for only input. Net in/out is handled through reading from Vars.player.core.items()
     public static CoreItemsDisplay coreItemsDisplay;

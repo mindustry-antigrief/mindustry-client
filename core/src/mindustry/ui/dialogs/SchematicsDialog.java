@@ -23,7 +23,6 @@ import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 
-import java.util.Comparator;
 import java.util.regex.*;
 
 import static mindustry.Vars.*;

@@ -69,43 +69,29 @@ public class BeControl{
 
     /** asynchronously checks for updates. */
     public void checkUpdate(Boolc done, String repo){
-        try {
-            Http.get("https://api.github.com/repos/" + repo + "/tags").submit(res -> {
-                var arr = Jval.read(res.getResultAsString()).asArray();
-                String start = "v" + Version.build;
-                var found = arr.find(e -> e.getString("name", "").startsWith(start));
-                if(found == null){
-                    Core.app.post(() -> done.get(false));
-                    return;
-                }
-                String latest = found.getString("name");
-                var token = latest.split("[.]");
-                int smallVersion = Integer.parseInt(token[token.length - 1]);
-                var token2 = Version.clientVersion.split("[.]");
-                int smallVersion2 = Integer.parseInt(token2[token2.length - 1]);
-                if (smallVersion <= smallVersion2) {
-                    Core.app.post(() -> done.get(false));
-                    return;
-                }
-                Http.get("https://api.github.com/repos/" + repo + "/releases/tags/" + latest).submit(res2 -> {
-                    Jval val = Jval.read(res2.getResultAsString());
-                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains(".jar"));
-                    if (asset == null)
-                        asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("mindustry"));
+        Http.get("https://api.github.com/repos/" + repo + "/releases/latest")
+            .error(e -> {
+                done.get(false);
+                Log.err(e);
+            })
+            .submit(res -> {
+                Jval val = Jval.read(res.getResultAsString());
+                String newBuild = val.getString("name");
+                if(!newBuild.trim().isEmpty() && !Version.clientVersion.equals(newBuild)){
+                    Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("desktop"));
+                    if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("mindustry"));
                     if (asset == null) {
                         Core.app.post(() -> done.get(false));
                         return;
                     }
                     updateUrl = asset.getString("browser_download_url", "");
                     updateAvailable = true;
-                    updateBuild = latest;
+                    updateBuild = newBuild;
                     Core.app.post(() -> done.get(true));
-                });
+                }else{
+                    Core.app.post(() -> done.get(false));
+                }
             });
-        } catch (Exception e) {
-            ui.loadfrag.hide();
-            Log.err(e);
-        }
     }
 
     /** @return whether a new update is available */
