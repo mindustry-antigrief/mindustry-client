@@ -512,10 +512,6 @@ public class DesktopInput extends InputHandler{
                         Spectate.INSTANCE.spectate(ai.controller);
                         shouldShoot = false;
                     }
-                }else if((on = Units.closestOverlap(Core.input.mouseWorld().x, Core.input.mouseWorld().y, tilesize * 8f,
-                        u -> Core.input.mouseWorld().dst2(u) < u.hitSize * u.hitSize)) != null && on.controller() instanceof LogicAI ai && ai.controller != null && (!player.unit().type.canBoost || player.boosting)){
-                    Spectate.INSTANCE.spectate(ai.controller);
-                    shouldShoot = false;
                 }else if(build != null && input.keyDown(Binding.control)){
                     Call.buildingControlSelect(player, build);
                     recentRespawnTimer = 1f;

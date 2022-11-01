@@ -50,7 +50,7 @@ public class CoreItemsDisplay extends Table{
             inputItems.update();
             totalItems.update(core.items);
 
-            if(content.items().contains(item -> core != null && core.items.get(item) > 0 && usedItems.getAndSet(item.id))){
+            if(content.items().contains(item -> core != null && core.items.get(item) > 0 && !usedItems.getAndSet(item.id))){
                 rebuild();
             }
         });
