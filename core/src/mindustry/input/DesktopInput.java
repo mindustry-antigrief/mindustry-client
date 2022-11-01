@@ -114,6 +114,9 @@ public class DesktopInput extends InputHandler{
                         if(showingOverdrives){
                             str.append("\n").append(bundle.format("client.toggleoverdrives", keybinds.get(Binding.show_turret_ranges).key.toString()));
                         }
+                        if(showingMassDrivers){
+                            str.append("\n").append(bundle.format("client.togglemassdrivers", keybinds.get(Binding.show_massdriver_configs).key.toString()));
+                        }
                         if(hidingBlocks){
                             str.append("\n").append(bundle.format("client.toggleblocks", keybinds.get(Binding.hide_blocks).key.toString()));
                         }
@@ -312,6 +315,10 @@ public class DesktopInput extends InputHandler{
             else if (input.ctrl() && settings.getBool("allowinvturrets")) showingInvTurrets = !showingInvTurrets;
             else if (input.alt()) showingAllyTurrets = !showingAllyTurrets;
             else showingTurrets = !showingTurrets;
+        }
+
+        if(input.keyTap(Binding.show_massdriver_configs)){
+            showingMassDrivers = !showingMassDrivers;
         }
 
         if(input.keyTap(Binding.hide_blocks) && scene.getKeyboardFocus() == null){
@@ -784,7 +791,6 @@ public class DesktopInput extends InputHandler{
             float offset = ((splan.block.size + 2) % 2) * tilesize / 2f;
             int x = (int)((Core.input.mouseWorld().x + offset) / tilesize);
             int y = (int)((Core.input.mouseWorld().y + offset) / tilesize);
-            if (splan.block instanceof LogicBlock) processorConfigs.put(Point2.pack(x, y), processorConfigs.remove(splan.tile().pos()));
             if (splan.x != x || splan.y != y) splanMoved = true;
             splan.x = x;
             splan.y = y;

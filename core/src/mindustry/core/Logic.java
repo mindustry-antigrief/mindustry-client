@@ -1,10 +1,7 @@
 package mindustry.core;
 
 import arc.*;
-import arc.func.Cons;
 import arc.math.*;
-import arc.math.geom.Point2;
-import arc.struct.Queue;
 import arc.util.*;
 import mindustry.Vars;
 import mindustry.ai.*;
@@ -18,17 +15,14 @@ import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.maps.*;
-import mindustry.net.*;
 import mindustry.type.*;
 import mindustry.type.Weather.*;
 import mindustry.world.*;
-import mindustry.world.blocks.logic.LogicBlock;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import java.util.*;
 
 import static mindustry.Vars.*;
-import static mindustry.client.ClientVars.*;
 
 /**
  * Logic module.

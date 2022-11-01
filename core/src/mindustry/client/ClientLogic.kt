@@ -6,7 +6,6 @@ import arc.util.*
 import mindustry.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
-import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
@@ -130,16 +129,11 @@ class ClientLogic {
             showingInvTurrets = false
 //            if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
+            massDrivers.clear()
             Client.tiles.clear()
 
             UnitTypes.horizon.itemCapacity = if (flood()) 20 else 0 // Horizons can pick up items in flood, this just allows the items to draw correctly
             UnitTypes.crawler.health = if (flood()) 100f else 200f // Crawler health is halved in flood
-
-            if(coreItems == null) coreItems = ItemModule(true)
-            else {
-                coreItems.update(false)
-                coreItems.clear()
-            }
         }
 
         Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading

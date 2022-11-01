@@ -114,6 +114,7 @@ public class GameOverDialog extends BaseDialog{
                 if(!ui.paused.checkPlaytest()){
                     logic.reset();
                 }
+            }).size(140f, 60f);
                 buttons.button("@continue", () -> {
                     hide();
                     state.rules.canGameOver = false;
@@ -121,9 +122,7 @@ public class GameOverDialog extends BaseDialog{
                     state.gameOver = false;
                     state.set(State.paused);
                 }).size(140f, 60f);
-            }).size(140f, 60f);
-        }
-    }
+            }}
 
     private void addStat(Table parent, String stat, int value, float delay){
         parent.add(new StatLabel(stat, value, delay)).top().pad(5).growX().height(50).row();

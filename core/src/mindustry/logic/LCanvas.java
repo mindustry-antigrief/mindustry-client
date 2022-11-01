@@ -764,6 +764,7 @@ public class LCanvas extends Table{
                     }
                 }
             }
+
             /*
             Lines.curve(
             x, y,

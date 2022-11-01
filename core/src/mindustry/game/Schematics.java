@@ -279,7 +279,7 @@ public class Schematics implements Loadable{
         return previews.get(schematic);
     }
 
-    /** Creates an array of build requests from a schematic's data, centered on the provided x+y coordinates. */
+    /** Creates an array of build plans from a schematic's data, centered on the provided x+y coordinates. */
     public Seq<BuildPlan> toPlans(Schematic schem, int x, int y){
         return schem.tiles.map(t -> new BuildPlan(t.x + x - schem.width/2, t.y + y - schem.height/2, t.rotation, t.block, t.config, t.clientConfig).original(t.x, t.y, schem.width, schem.height))
             .removeAll(s -> (!s.block.isVisible() && !(s.block instanceof CoreBlock)) || !s.block.unlockedNow()).sort(Structs.comparingInt(s -> -s.block.schematicPriority));
@@ -411,7 +411,7 @@ public class Schematics implements Loadable{
                     Object config = !(tile instanceof ConstructBuild cons) ?
                         tile.config() : cons.lastConfig;
                     tiles.add(new Stile(realBlock, tile.tileX() + offsetX, tile.tileY() + offsetY, config,
-                            tile instanceof ConstructBuild cons ? cons.clientConfig : null, (byte)tile.rotation));
+                            tile instanceof ConstructBuild cons ? cons.localConfig : null, (byte)tile.rotation));
                     counted.add(tile.pos());
                 }
             }

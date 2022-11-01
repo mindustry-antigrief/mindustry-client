@@ -10,6 +10,7 @@ import arc.scene.ui.layout.Table;
 import arc.struct.Bits;
 import arc.util.*;
 import arc.util.io.*;
+import mindustry.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
@@ -26,6 +27,9 @@ public class Junction extends Block{
     // FINISHME: Rework to work with junctions with size >1
     static final Vec2 direction = new Vec2(tilesize, 0), baseOffset = new Vec2();
     public static boolean drawItems = false;
+
+    public static boolean flowRateByDirection = Core.settings != null && Core.settings.getBool("junctionflowratedirection", false);
+    public final static TextureRegionDrawable[] directionIcons = {Icon.rightSmall, Icon.upSmall, Icon.leftSmall, Icon.downSmall};
 
     public Junction(String name){
         super(name);
@@ -52,13 +56,14 @@ public class Junction extends Block{
     public class JunctionBuild extends Building{
         public DirectionalItemBuffer buffer = new DirectionalItemBuffer(capacity);
         public ItemModule items2 = new ItemModule();
-        public static boolean flowRateByDirection = Core.settings != null && Core.settings.getBool("junctionflowratedirection", false);
-        public final static TextureRegionDrawable[] directionIcons = {Icon.rightSmall, Icon.upSmall, Icon.leftSmall, Icon.downSmall};
 
         @Override
         public void update(){
             super.update();
-            items2.update(true); // WARNING MIGHT BREAK
+            if (ui == null) return;
+            boolean shouldFlow = ui.hudfrag.blockfrag.nextFlowBuild == this;
+            if (shouldFlow) items2.updateFlow();
+            else items2.stopFlow();
         }
 
         @Override
@@ -171,7 +176,7 @@ public class Junction extends Block{
             // correct the time value since they all somehow get mapped to a high number
             float now = Time.time;
             for(int i = 0; i < 4; i++){
-                for(int j = Math.min(buffer.indexes[i], capacity) - 1; j >= 0; j--){
+                for(int j = Math.min(buffer.indexes[i], capacity) - 1; j >= 0 && j < buffer.buffers[i].length; j--){
                     var l = buffer.buffers[i][j];
                     if (now <= BufferItem.time(l)){
                         buffer.buffers[i][j] = BufferItem.get(BufferItem.item(l),now - speed * timeScale);
@@ -185,23 +190,16 @@ public class Junction extends Block{
             super.draw();
             if(!drawItems) return;
             Draw.z(Layer.blockOver);
-            var realSpeed = speed * timeScale;
-//            var iSize = (tilesize * size) / capacity;
-            var iSize = (tilesizeF * size) / capacity;
-            var spacing = 1f / capacity;
+            float now = Time.time;
             for(int i = 0; i < 4; i++){ // Code from zxtej
-                var last = 1f - spacing * .5f;
-                for(int j = 0; j < buffer.indexes[i]; j++){ // highest to lowest progress
-                    var l = buffer.buffers[i][j];
-                    var item = content.item(BufferItem.item(l));
-                    var progress = Mathf.clamp((Time.time - BufferItem.time(l)) / realSpeed, spacing * .5f, last);
-                    last -= spacing;
+                for(int j = buffer.indexes[i]; j > 0;){
+                    var l = buffer.buffers[i][--j];
+                    var progress = Mathf.clamp((now - BufferItem.time(l)) / speed * timeScale, 0, (capacity - j) / (float)capacity);
 
-                    Draw.rect(item.fullIcon,
-                        x + direction.x * progress + baseOffset.x,
-                        y + direction.y * progress + baseOffset.y,
-                        iSize, iSize
-                    );
+                    Draw.rect(content.item(BufferItem.item(l)).fullIcon,
+                        x + baseOffset.x + direction.x * progress,
+                        y + baseOffset.y + direction.y * progress,
+                        itemSize / 4f, itemSize / 4f);
                 }
                 direction.rotate90(1);
                 baseOffset.rotate90(1);

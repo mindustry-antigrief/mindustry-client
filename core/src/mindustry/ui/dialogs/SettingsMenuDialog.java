@@ -285,7 +285,7 @@ public class SettingsMenuDialog extends BaseDialog{
     public void addCategory(String name, Cons<SettingsTable> builder){
         addCategory(name, (Drawable)null, builder);
     }
-    
+
     public Seq<SettingsCategory> getCategories(){
         return categories;
     }
@@ -386,7 +386,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", true); // Requires Restart
         client.checkPref("placementfragmentsearch", true);
-        client.checkPref("junctionflowratedirection", false, s -> Junction.JunctionBuild.flowRateByDirection = s);
+        client.checkPref("junctionflowratedirection", false, s -> Junction.flowRateByDirection = s);
         client.checkPref("drawwrecks", true);
         client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
         client.checkPref("drawdisplayborder", false);
@@ -403,14 +403,14 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("unloaderview", false, i -> Unloader.UnloaderBuild.drawUnloaderItems = i);
         client.checkPref("customnullunloader", false, i -> Unloader.UnloaderBuild.customNullLoader = i);
         client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
-
+        client.checkPref("logiclinkorder", false);
+    
         client.category("misc");
         client.updatePref();
         client.sliderPref("minepathcap", 0, -100, 5000, 100, s -> s == 0 ? "Unlimited" : s == -100 ? "Never" : String.valueOf(s));
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
         client.sliderPref("processorstatementscale", 80, 10, 100, 1, s -> String.format("%.2fx", s/100f)); // This is the most scuffed setting you have ever seen
-        client.sliderPref("nodeconf", 0, 0, PowerNode.PowerNodeFixSettings.values().length - 1, 1, s -> PowerNode.PowerNodeFixSettings.get(PowerNode.PowerNodeBuild.fixNode = s).desc);
         client.sliderPref("automapvote", 0, 0, 4, s -> s == 0 ? "Never" : s == 4 ? "Random vote" : "Always " + new String[]{"downvote", "novote", "upvote"}[--s]);
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
         client.textPref("defaultminepathargs", "copper lead sand coal titanium beryllium graphite tungsten");
@@ -596,7 +596,6 @@ public class SettingsMenuDialog extends BaseDialog{
             }
         });
 
-        Core.settings.remove("forcetextnonlinear");
         Cons2<Boolean, Boolean> setFilters = (setNonText, setText) -> {
             ObjectSet<Texture> atlas = new ObjectSet<>(Core.atlas.getTextures());
             final boolean lText = Core.settings.getBool("lineartext");

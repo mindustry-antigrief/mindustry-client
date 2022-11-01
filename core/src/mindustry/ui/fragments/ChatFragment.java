@@ -624,10 +624,9 @@ public class ChatFragment extends Table{
         private void format(boolean moveButtons) {
             int initial = formattedMessage.length();
             if(sender == null){ //no sender, this is a server message?
-                formattedMessage = message == null ? prefix : processCoords ? processCoords(prefix + message, setLastPos) : prefix + message;
+                formattedMessage = prefix + (message == null ? "" : message);
             } else {
-                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " +
-                        (processCoords ? processCoords(unformatted, setLastPos) : unformatted);
+                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
             }
             processCoords = setLastPos = false;
             int shift = formattedMessage.length() - initial;

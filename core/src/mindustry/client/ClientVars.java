@@ -9,10 +9,11 @@ import arc.util.*;
 import kotlin.*;
 import mindustry.gen.Player;
 import mindustry.net.*;
+import mindustry.ui.*;
 import mindustry.world.blocks.defense.*;
 import mindustry.content.*;
 import mindustry.world.*;
-import mindustry.world.modules.*;
+import mindustry.world.blocks.distribution.*;
 import org.jetbrains.annotations.*;
 
 import java.util.concurrent.*;
@@ -23,14 +24,15 @@ public class ClientVars {
     public static IntMap<Object> processorConfigs = new IntMap<>();
     public static float spawnTime = 60f * Core.settings.getInt("spawntime");
     public static float travelTime = Core.settings.getInt("traveltime");
+    public static int rank; // The rank int for servers such as io
     public static float jpegQuality = Core.settings.getFloat("commpicquality", 0.5f);
     public static boolean benchmarkNav = false;
     public final static Rect cameraBounds = new Rect();
     public static final Block[] noInteractTurrets = {Blocks.foreshadow, Blocks.ripple, Blocks.arc};
     public static int rank; // The rank int for servers such as io
 
-    // Core Item Display
-    public static ItemModule coreItems;
+    // Core Item Display - for only input. Net in/out is handled through reading from Vars.player.core.items()
+    public static CoreItemsDisplay coreItemsDisplay;
 
     // Config Queue
     @NotNull public static LinkedBlockingQueue<Runnable> configs = new LinkedBlockingQueue<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
@@ -45,8 +47,10 @@ public class ClientVars {
             hidingBlocks, hidingPlans,
             dispatchingBuildPlans,
             showingOverdrives,
+            showingMassDrivers,
             hidingFog;
     @NotNull public static Seq<OverdriveProjector.OverdriveBuild> overdrives = new Seq<>(); // For whatever reason the stupid allBuildings method hates me so im just not using it FINISHME: Replace this by just expanding block clipsize and drawing a circle in the draw method rather than using this
+    @NotNull public static Seq<MassDriver.MassDriverBuild> massDrivers = new Seq<>(); // FINISHME: this too.
 
     // Commands
     @NotNull public static CommandHandler clientCommandHandler = new CommandHandler("!");

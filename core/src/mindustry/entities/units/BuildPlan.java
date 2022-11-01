@@ -27,7 +27,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
     /** Config int. Not used unless hasConfig is true. */
     public Object config;
     /** Used for logic blocks when configure after place is enabled. */
-    public transient Object localConfig;
+    public transient Cons<Building> localConfig;
     /** Original position, only used in schematics.*/
     public int originalX, originalY, originalWidth, originalHeight;
 

@@ -12,7 +12,8 @@ buildscript{
             } else {
                 //skip to last submodule
                 name = name.substring(name.lastIndexOf(':') + 1)
-                return "com.github.BalaM314.Arc:$name:$arcHash"
+                return "com.github.mindustry-antigrief.Arc:$name:$arcHash"
+                // TODO: Merge recheck: Merge bala's arc?
             }
         }
     }
@@ -48,7 +49,18 @@ allprojects{
         if(!project.hasProperty("assetRef")) assetRef = 'v7'
         if(!project.hasProperty("versionModifier")) versionModifier = 'beta'
         if(!project.hasProperty("buildversion")) buildversion = '139' // Modders use BE build numbers which is stupid
-        if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
+        if(!project.hasProperty("clientVersion")){
+            try {
+                def tagTokens = "git tag --sort=committerdate -l v${project.getProperties()["buildversion"]}* -n1".execute().text.trim().split('[\n]')[-1]
+                        .tokenize(' ')[0].split('[.]') as String[]
+                tagTokens[0] = tagTokens[0][1..-1]
+                tagTokens[-1] = ((tagTokens[-1] as Integer) + 1) as String
+                clientVersion = 'git branch --show-current'.execute().text.trim() + " / ${tagTokens.join('.')}"
+            } catch (Exception ignored){
+                clientVersion = 'git branch --show-current'.execute().text.trim() + " / ${project.getProperties()["buildversion"]}"
+            }
+
+        }
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'

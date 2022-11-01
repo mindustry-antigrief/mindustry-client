@@ -105,13 +105,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public float commandRectX, commandRectY;
 
     private Seq<BuildPlan> plansOut = new Seq<>(BuildPlan.class);
-    private QuadTree<BuildPlan> playerPlanTree = new QuadTree<>(new Rect());
+    public QuadTree<BuildPlan> playerPlanTree = new QuadTree<>(new Rect());
 
     public final BlockInventoryFragment inv;
     public final BlockConfigFragment config;
 
     private WidgetGroup group = new WidgetGroup();
 
+    private Seq<BuildPlan> visiblePlanSeq = new Seq<>();
+    private long lastFrameId;
     private final Eachable<BuildPlan> allPlans = cons -> {
         player.unit().plans().each(cons);
         selectPlans.each(cons);
@@ -502,15 +504,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         build.configured(player == null || player.dead() ? null : player.unit(), value);
         Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
 
-        if (player != null /*&& Vars.player != player*/) { // FINISHME: Move all this client stuff into the ClientLogic class
+        if (player != null && Vars.player != player) { // FINISHME: Move all this client stuff into the ClientLogic class
             if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
                 if (value instanceof Integer val) {
-                    Point2 target = Point2.unpack(val).sub(build.tileX(), build.tileY());
-                    for(Point2 point: (Point2[])previous){
-                        if(!(target.x == point.x && target.y == point.y)) continue;
-                        if(node.power.graph.all.contains(world.build(val))) continue; // if it is still in the same graph
+                    if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) { // FINISHME: Awful.
                         String message = bundle.format("client.powerwarn", Strings.stripColors(player.name), ++node.disconnections, build.tileX(), build.tileY());
-                        lastCorePos.set(build.tileX(), build.tileY());
+                        ClientVars.lastCorePos.set(build.tileX(), build.tileY());
                         if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
                             node.disconnections = 1;
                             ChatFragment.ChatMessage.msgFormat();
@@ -522,7 +521,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                             node.message.message = message;
                             node.message.format();
                         }
-                        break;
                     }
                 } else if (value instanceof Point2[]) {
                     // FINISHME: handle this urgent in erekir as it actually works there
@@ -681,6 +679,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public void update(){
         isLoadedSchematic &= lastSchematic != null; // i am lazy to reset it on all other instances; this should suffice
         player.typing = showTypingIndicator && ui.chatfrag.shown();
+
         if(logicCutscene && !renderer.isCutscene()){
             Core.camera.position.lerpDelta(logicCamPan, logicCamSpeed);
         }else{
@@ -695,7 +694,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             commandRect = false;
         }
 
-        playerPlanTree.clear();
+        playerPlanTree.clear(); // TODO: aaaaaaaaaaaaaa
         player.unit().plans.each(playerPlanTree::insert);
 
         player.typing = ui.chatfrag.shown();
@@ -1324,23 +1323,24 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 if(configLogic && copy.block instanceof LogicBlock && copy.config != null){
                     final var conf = copy.config; // this is okay because processor connections are relative
                     copy.config = null;
-                    copy.clientConfig = it -> {
+                    copy.localConfig = it -> {
                         if (!(it instanceof LogicBlock.LogicBuild build)) return;
                         if (!build.code.isEmpty() || build.links.any())
                             return; // Someone else built a processor with data
                         configs.add(new ConfigRequest(it.tile.x, it.tile.y, conf));
                     };
                 }
-                if(copy.block instanceof PowerNode && copy.config instanceof Point2[] conf){
-                    int planuiredSetting = (isLoadedSchematic ? PowerNodeFixSettings.enableReq : PowerNodeFixSettings.nonSchematicReq) + (copy.block instanceof PowerSource ? 1 : 0);
-                    if (PowerNodeBuild.fixNode >= planuiredSetting) {
-                        final var nconf = new Point2[conf.length];
-                        for (int i = 0; i < conf.length; i++) nconf[i] = conf[i].cpy();
-                        copy.clientConfig = it -> {
-                            if (it instanceof PowerNodeBuild build) build.fixNode(nconf);
-                        };
-                    }
-                }
+                // TODO: MERGE RECHECK
+//                if(copy.block instanceof PowerNode && copy.config instanceof Point2[] conf){
+//                    int planuiredSetting = (isLoadedSchematic ? PowerNodeFixSettings.enableReq : PowerNodeFixSettings.nonSchematicReq) + (copy.block instanceof PowerSource ? 1 : 0);
+//                    if (PowerNodeBuild.fixNode >= planuiredSetting) {
+//                        final var nconf = new Point2[conf.length];
+//                        for (int i = 0; i < conf.length; i++) nconf[i] = conf[i].cpy();
+//                        copy.clientConfig = it -> {
+//                            if (it instanceof PowerNodeBuild build) build.fixNode(nconf);
+//                        };
+//                    }
+//                }
                 
                 if (force && !valid) {
                     var existing = world.tiles.get(plan.x, plan.y);
@@ -1375,10 +1375,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     protected void drawOverPlan(BuildPlan plan, boolean valid){
+        if(!plan.isVisible()) return;
         Draw.reset();
         final long frameId = graphics.getFrameId();
-        if(lastFrameVisible != frameId){
-            lastFrameVisible = frameId;
+        if(lastFrameId != frameId){
+            lastFrameId = frameId;
             visiblePlanSeq.clear();
             BuildPlan.getVisiblePlans(cons -> {
                 selectPlans.each(cons);
@@ -1387,8 +1388,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
         Draw.alpha(1f);
-//        plan.block.drawPlanConfigTop(plan, visiblePlanSeq);
-        plan.block.drawPlanConfigTop(plan, allSelectLines);
+        plan.block.drawPlanConfigTop(plan, visiblePlanSeq);
         Draw.reset();
     }
 
@@ -1448,16 +1448,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         Iterator<BuildPlan> it = player.unit().plans().iterator();
         while(it.hasNext()){
-            BuildPlan plan = it.next();
+            var plan = it.next();
             if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
-                processorConfigs.remove(plan.tile().pos());
                 it.remove();
             }
         }
 
         it = selectPlans.iterator();
         while(it.hasNext()){
-            BuildPlan plan = it.next();
+            var plan = it.next();
             if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 it.remove();
             }
@@ -1589,9 +1588,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
             });
 
-//        } else if(block instanceof ItemBridge && Core.input.shift()) block.handlePlacementLine(linePlans);
             block.handlePlacementLine(linePlans);
-        }
+        } else if(block instanceof ItemBridge && Core.input.shift()) block.handlePlacementLine(linePlans);
     }
 
     protected void updateLine(int x1, int y1){
@@ -1763,7 +1761,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f,
                 allowPlayers ? hidingAirUnits ? u -> !u.isLocal() && !u.isFlying() : u -> !u.isLocal()
                         : hidingAirUnits ? u -> u.isAI() && !u.isFlying() : Unitc::isAI);
-//        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f, u -> u.type.playerControllable && (allowPlayers ? !u.isLocal() : u.isAI()));
         if(unit != null && !ClientVars.hidingUnits){
             unit.hitbox(Tmp.r1);
             Tmp.r1.grow(input.shift() ? tilesize * 6 : 6f ); // If shift is held, add 3 tiles of leeway, makes it easier to shift click units controlled by processors and such

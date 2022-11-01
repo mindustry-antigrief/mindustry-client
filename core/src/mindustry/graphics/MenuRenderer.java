@@ -37,8 +37,7 @@ public class MenuRenderer implements Disposable{
     public Block blockFlyerType;
     public CursednessLevel cursednessLevel;
     private int flyers = Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
-    //no longer random or "dynamic", mod units in the menu look jarring, and it's not worth the configuration effort
-    private UnitType flyerType = Structs.random(UnitTypes.flare, UnitTypes.horizon, UnitTypes.zenith, UnitTypes.mono, UnitTypes.poly, UnitTypes.mega, UnitTypes.alpha, UnitTypes.beta, UnitTypes.gamma);
+    private UnitType flyerType = content.units().select(u -> !u.isHidden() && u.hitSize <= 20f && u.flying && u.region.found()).random();
     private boolean cursed;
 
     public MenuRenderer(){
@@ -256,7 +255,6 @@ public class MenuRenderer implements Disposable{
 ////            flyerRot += Mathf.random(0f, 360f); While I would love to do this, I don't want to figure out the math.
 //            cursed = true;
         }
-//        if(cursed) flyerOffset += Time.delta * 12f;
         time += Time.delta;
         float scaling = Math.max(Scl.scl(4f), Math.max(Core.graphics.getWidth() / ((width - 1f) * tilesize), Core.graphics.getHeight() / ((height - 1f) * tilesize)));
         camera.position.set(width * tilesize / 2f, height * tilesize / 2f);
@@ -317,7 +315,7 @@ public class MenuRenderer implements Disposable{
 
         flyers((x, y) -> {
             Draw.rect(icon, x - 12f, y - 13f, size * 1.5f, size, effectiveFlyerSpin);
-//            Draw.rect(icon, x - 12f, y - 13f, flyerRot + flyerOffset + 90);
+//            Draw.rect(icon, x - 12f, y - 13f, flyerRot - 90);
         });
 
 
@@ -331,15 +329,15 @@ public class MenuRenderer implements Disposable{
 //            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = flyerRot + flyerOffset;
 
             Draw.color(Pal.engine);
-            Fill.circle(x + Angles.trnsx(rotation, engineOffset), y + Angles.trnsy(rotation, engineOffset),
+            Fill.circle(x + Angles.trnsx(rotation + 180, engineOffset), y + Angles.trnsy(rotation + 180, engineOffset),
             engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f));
 
             Draw.color(Color.white);
-            Fill.circle(x + Angles.trnsx(rotation, engineOffset - 1f), y + Angles.trnsy(rotation, engineOffset - 1f),
+            Fill.circle(x + Angles.trnsx(rotation + 180, engineOffset - 1f), y + Angles.trnsy(rotation + 180, engineOffset - 1f),
             (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f)) / 2f);
             Draw.color();
 
-            Draw.rect(icon, x, y, rotation + 90);
+            Draw.rect(icon, x, y, flyerRot - 90);
             Draw.rect(icon, x, y, size, size, effectiveFlyerSpin);
         });
 

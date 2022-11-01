@@ -630,7 +630,7 @@ public class Renderer implements ApplicationListener{
     }
 
     public float maxScale(){
-        return Mathf.round(Scl.scl(12));
+        return Mathf.round(Scl.scl(300));
     }
 
     public float getScale(){

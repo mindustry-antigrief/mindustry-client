@@ -28,7 +28,6 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
 import mindustry.type.*;
-import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
@@ -39,6 +38,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.coreItemsDisplay;
 import static mindustry.ui.Styles.*;
 
 /** A block in the process of construction. */
@@ -99,7 +99,7 @@ public class ConstructBlock extends Block{
 
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild co ? co.prevBuild : null;
-        Cons<Building> customConfig = tile.build instanceof ConstructBuild co ? co.clientConfig : null;
+        Cons<Building> customConfig = tile.build instanceof ConstructBuild co ? co.localConfig : null;
         Block prevBlock = tile.block();
 
         if (block == null) {
@@ -136,7 +136,16 @@ public class ConstructBlock extends Block{
             customConfig.get(tile.build);
         }
 
-//        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
+
+        if (tile.build instanceof ConstructBuild b) { // FINISHME: Does this even work?
+            for (var item : b.prevBuild != null ? b.prevBuild : new Seq<Building>()) {
+                Events.fire(new BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
+            }
+        }
+
+        Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
+        if(shouldPlay()) block.placeSound.at(tile, block.placePitchChange ? calcPitch(true) : 1f);
         if(fogControl.isVisibleTile(team, tile.x, tile.y)){
             Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
             if(shouldPlay()) block.placeSound.at(tile, block.placePitchChange ? calcPitch(true) : 1f);
@@ -222,7 +231,7 @@ public class ConstructBlock extends Block{
         public float progress = 0;
         public float buildCost;
         public @Nullable Object lastConfig;
-        public @Nullable Cons<Building> clientConfig;
+        public @Nullable Cons<Building> localConfig;
         public @Nullable Unit lastBuilder;
         public boolean wasConstructing, activeDeconstruct;
         public float constructColor;
@@ -394,7 +403,7 @@ public class ConstructBlock extends Block{
                         int accepting = Math.min(accumulated, core.storageCapacity - core.items.get(requirements[i].item));
                         //transfer items directly, as this is not production.
                         core.items.add(requirements[i].item, accepting);
-                        if(core.team == player.team()) CoreItemsDisplay.addItemRate(requirements[i].item, accepting);
+                        if(core.team == player.team()) coreItemsDisplay.addItem(requirements[i].item, accepting);
                         accumulator[i] -= accepting;
                     }else{
                         accumulator[i] -= accumulated;

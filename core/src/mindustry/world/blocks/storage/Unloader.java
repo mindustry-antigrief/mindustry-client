@@ -26,6 +26,8 @@ public class Unloader extends Block{
     public @Load(value = "@-center", fallback = "unloader-center") TextureRegion centerRegion;
 
     public float speed = 1f;
+    public static boolean drawUnloaderItems = Core.settings != null && Core.settings.getBool("unloaderview");
+    public static boolean customNullLoader = Core.settings != null && Core.settings.getBool("customnullunloader");
 
     public Unloader(String name){
         super(name);
@@ -86,14 +88,9 @@ public class Unloader extends Block{
         private final int itemsLength = content.items().size;
         public Item sortItem = null;
         public ContainerStat dumpingFrom, dumpingTo;
-        public final Seq<ContainerStat> possibleBlocks = new Seq<>();
-        
+        public final Seq<ContainerStat> possibleBlocks = new Seq<>(ContainerStat.class);
         private Item lastItem = null;
         private Building lastDumpFrom, lastDumpTo;
-        public static boolean drawUnloaderItems = Core.settings.getBool("unloaderview");
-        public static boolean customNullLoader = Core.settings.getBool("customnullunloader");
-
-        public int[] lastUsed;
 
         protected final Comparator<ContainerStat> comparator = (x, y) -> {
             //sort so it gives priority for blocks that can only either receive or give (not both), and then by load, and then by last use
@@ -121,7 +118,8 @@ public class Unloader extends Block{
                 pb.canUnload = other.canUnload() && other.items != null && other.items.has(item);
 
                 //thats also handling framerate issues and slow conveyor belts, to avoid skipping items if nulloader
-                if((hasProvider && pb.canLoad) || (hasReceiver && pb.canUnload)) isDistinct = true;
+//                if((hasProvider && pb.canLoad) || (hasReceiver && pb.canUnload)) isDistinct = true;
+                isDistinct |= (hasProvider && pb.canLoad) || (hasReceiver && pb.canUnload);
                 hasProvider |= pb.canUnload;
                 hasReceiver |= pb.canLoad;
             }
@@ -158,18 +156,6 @@ public class Unloader extends Block{
             if(((unloadTimer += delta()) < speed) || (possibleBlocks.size < 2)) return;
             Item item = null;
             boolean any = false;
-//            final int itemslength = content.items().size, pSize = proximity.size;
-//
-//            //initialize possibleBlocks only if the new size is bigger than the previous, to avoid unnecessary allocations
-//            if(possibleBlocks.size != pSize){
-//                final int tmp = possibleBlocks.size;
-//                possibleBlocks.setSize(pSize);
-//                for(int i = tmp; i < pSize; i++){
-//                    possibleBlocks.items[i] = new ContainerStat();
-//                }
-//                lastUsed = new int[proximity.size];
-//            }
-//            final var possibleBlockItems = possibleBlocks.items;
 
             if(sortItem != null){
                 if(isPossibleItem(sortItem)) item = sortItem;
@@ -181,30 +167,6 @@ public class Unloader extends Block{
                     Item possibleItem = content.item(total);
 
                     if(isPossibleItem(possibleItem)){
-//                    for(int pos = 0; pos < pSize; pos++){
-//                        var other = proximity.get(pos);
-//
-//                        //set the stats of all buildings in possibleBlocks while we are at it
-//                        ContainerStat pb = possibleBlockItems[pos];
-//                        if(i == 0){
-//                            pb.building = other;
-//                            pb.index = pos;
-//                        }
-//                        if(!other.interactable(team)){
-//                            pb.canUnload = pb.canLoad = false;
-//                            continue; // are the cache misses worth it?
-//                        }
-//                        pb.canUnload = /*interactable &&*/ other.canUnload() && other.items != null && other.items.has(possibleItem);
-//                        pb.canLoad = /*interactable &&*/ !(other.block instanceof StorageBlock) && other.acceptItem(this, possibleItem);
-//
-//                        //the part handling framerate issues and slow conveyor belts, to avoid skipping items
-//                        //if(hasProvider && pb.canLoad) isDistinct = true;
-//                        //if(hasReceiver && pb.canUnload) isDistinct = true;
-//                        isDistinct |= (hasProvider && pb.canLoad) || (hasReceiver && pb.canUnload);
-//                        hasProvider |= pb.canUnload;
-//                        hasReceiver |= pb.canLoad;
-//                    }
-//                    if(isDistinct){
                         item = possibleItem;
                         break;
                     }
@@ -214,14 +176,15 @@ public class Unloader extends Block{
             lastDumpFrom = null;
             lastDumpTo = null;
 
+            final var possibleBlockItems = possibleBlocks.items;
+
             if(item != null){
                 rotations = item.id; //next rotation for nulloaders //TODO maybe if(sortItem == null)
+                final int possibleBlocksSize = possibleBlocks.size;
 
-                for(int i = 0; i < possibleBlocks.size; i++){
-                    var pb = possibleBlocks.get(i);
-//                //only compute the load factor if a transfer is possible
-//                for(int pos = 0; pos < pSize; pos++){
-//                    ContainerStat pb = possibleBlockItems[pos];
+                //only compute the load factor if a transfer is possible
+                for(int pos = 0; pos < possibleBlocksSize; pos++){
+                    ContainerStat pb = possibleBlockItems[pos];
                     var other = pb.building;
                     int maxAccepted = other.getMaximumAccepted(item);
                     pb.loadFactor = (maxAccepted == 0) || (other.items == null) ? 0 : other.items.get(item) / (float)maxAccepted;
@@ -233,7 +196,6 @@ public class Unloader extends Block{
                 dumpingTo = null;
                 dumpingFrom = null;
 
-                final int possibleBlocksSize = possibleBlocks.size;
                 //choose the building to accept the item
                 for(int i = 0; i < possibleBlocksSize; i++){
                     if(possibleBlocks.get(i).canLoad){
@@ -243,9 +205,9 @@ public class Unloader extends Block{
                 }
 
                 //choose the building to take the item from
-                for(int i = possibleBlocks.size - 1; i >= 0; i--){
-                    if(possibleBlocks.get(i).canUnload){
-                        dumpingFrom = possibleBlocks.get(i);
+                for(int i = possibleBlocksSize - 1; i >= 0; i--){
+                    if(possibleBlockItems[i].canUnload){
+                        dumpingFrom = possibleBlockItems[i];
                         break;
                     }
                 }

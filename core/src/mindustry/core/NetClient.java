@@ -281,7 +281,7 @@ public class NetClient implements ApplicationListener{
         if(Vars.ui != null){
             if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
             if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
-            ChatFragment.ChatMessage.msgFormat();
+            message = processCoords(message, true);
             var output = Vars.ui.chatfrag.addMessage(message, null, null, "", message);
 
             findCoords(output);

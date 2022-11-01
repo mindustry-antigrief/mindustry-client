@@ -44,7 +44,7 @@ public class PlacementFragment{
     ObjectFloatMap<Category> scrollPositions = new ObjectFloatMap<>();
     @Nullable Block menuHoverBlock;
     @Nullable Displayable hover;
-    @Nullable Building lastFlowBuild, nextFlowBuild;
+    @Nullable public Building lastFlowBuild, nextFlowBuild;
     @Nullable Object lastDisplayState;
     @Nullable Team lastTeam;
     boolean wasHovered;
