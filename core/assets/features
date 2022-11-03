@@ -7,9 +7,8 @@
  * \n does linebreak
 */
 
-# SByte Foo Fork Client
- * Edits done by Zxtej, SByte and BalaM314
- * Pong SByte#7574 or BalaM314#4781 on discord if theres anything missing.
+# Foo's Client
+ * Edits done by Zxtej, SByte and BalaM314:
  * >=========================< Misc >=========================<
  * Optimized A star navigator - The paths are tightened for faster travel.
  * Cursed menu screen - Levels of cursedness modifiable in settings. Requires restart.
@@ -76,6 +75,7 @@
  * %s - replaces with a !shrug
  * %c - replaces with cursor coordinates
  * %h - replaces with player unit's coordinates (!here)
+ Below stuff done by foo and buthed I think
 
 # Keybinds
  * {tile_actions_menu_modifier} - display actions for a tile

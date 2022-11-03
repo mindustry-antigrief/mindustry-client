@@ -106,7 +106,7 @@ public class DesktopLauncher extends ClientLauncher{
                 if (mod.enabled()) enabled++;
             }
         }
-        return Strings.format("Mindustry (v@) | Foo's Client Messed with by Zxtej, BalaM314, SBytes (@) | @/@ Mods Enabled", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, enabled, mods == null ? 0 : mods.mods.size);
+        return Strings.format("Mindustry (v@) | Foo's Client (@) | @/@ Mods Enabled", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, enabled, mods == null ? 0 : mods.mods.size);
     }
 
     @Override
@@ -357,6 +357,11 @@ public class DesktopLauncher extends ClientLauncher{
         String uiState = "";
 
         if(inGame){
+            gameMapWithWave = Strings.capitalize(Strings.stripColors(state.map.name()));
+
+            if(state.rules.waves){
+                gameMapWithWave += " | Wave " + state.wave;
+            }
             gameMode = state.rules.pvp ? "PvP" : state.rules.attackMode ? "Attack" : "Survival";
             if(net.active() && Groups.player.size() > 1){
                 gamePlayersSuffix = " | " + Groups.player.size() + " Players";
@@ -374,10 +379,15 @@ public class DesktopLauncher extends ClientLauncher{
         if(useDiscord && Core.settings.getBool("discordrpc")){
             DiscordRPC.RichPresence presence = new DiscordRPC.RichPresence();
 
-            presence.state = "Messed with by Zxtej, BalaM314, SBytes";
-            
-            if(inGame) presence.details = gameMode + gamePlayersSuffix;
-            else presence.details = uiState;
+            if(inGame){
+                presence.state = gameMode + gamePlayersSuffix;
+                presence.details = gameMapWithWave;
+                if(state.rules.waves){
+                    presence.largeImageText = "Wave " + state.wave;
+                }
+            }else{
+                presence.state = uiState;
+            }
 
             presence.largeImageKey = "logo";
             presence.smallImageKey = "foo";

@@ -62,7 +62,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ env.VERSION }} (${{ steps.time.outputs.formattedTime }})
           body: | # The release body with the latest set of changes from the changelog
-            # SByte Foo Fork Client (${{ env.VERSION }})
+            # Foo's Client (${{ env.VERSION }})
             ## Latest Changelog (May be out of date)
             ${{ env.CHANGELOG }}
           draft: false
