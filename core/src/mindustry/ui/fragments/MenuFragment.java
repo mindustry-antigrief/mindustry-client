@@ -65,6 +65,13 @@ public class MenuFragment{
             up = discordBanner;
         }}, ui.discord::show).marginTop(9f).marginLeft(10f).tooltip("@discord").size(84, 45).name("discord"));
 
+        parent.fill(c ->
+            c.bottom().left().image(
+                    Core.atlas.find("flarogus")
+            ).tooltip("Foo's Client now includes Flarogus Client and Zxtej's client. Praise the almighty flarogus.")
+            .size(60, 60).pad(5)
+        );
+
         //info icon
         if(mobile){
             parent.fill(c -> c.bottom().left().button("", new TextButtonStyle(){{
