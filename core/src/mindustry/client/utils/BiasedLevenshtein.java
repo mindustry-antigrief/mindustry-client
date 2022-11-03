@@ -42,40 +42,32 @@ public class BiasedLevenshtein {
         }
         int xl = x.length(), yl = y.length();
         int yw = yl + 1;
-        int[] dp = new int[(xl + 1) * yw];
+        int[] dp = new int[2 * yw];
 
         for(int j=0; j <= yl; ++j){
             dp[j] = 0; // Insertions at the beginning are free
         }
-        for(int i=0, i1=0; i <= xl; ++i, i1 += yw){
-            dp[i1] = i;
-        }
+        int prev = yw, curr = 0, temp;
         for(int i = 1; i <= xl; i++){
+            temp = prev;
+            prev = curr;
+            curr = temp;
+            dp[curr] = i;
             for(int j = 1; j <= yl; j++){
-                int idx = i * yw + j;
-                dp[idx] = Math.min(dp[idx - yw - 1] + (x.charAt(i - 1) == y.charAt(j - 1) ? 0 : 1),
-                        Math.min(dp[idx - yw], dp[idx - 1]) + 1);
+                dp[curr + j] = Math.min(dp[prev + j - 1] + (x.charAt(i - 1) == y.charAt(j - 1) ? 0 : 1),
+                        Math.min(dp[prev + j], dp[curr + j - 1]) + 1);
             }
         }
 
         // startsWith
-        if(dp[yw * xl + xl] == 0) return 0f;
+        if(dp[curr + xl] == 0) return 0f;
         // Disregard insertions at the end - if it made it it made it
         int output = xl;
-        for(int i = yw * xl; i < yw * xl + yl; ++i){
+        for(int i = curr; i < curr + yl; ++i){
             output = Math.min(output, dp[i]);
         }
         // contains
         if (output == 0) return 0.5f; // Prefer startsWith
-        /* old code to sort by first occurrence, but that would be a bit weird
-        int i = yw * xl, stop = i + yl;
-        while(i < stop && output > 0){
-            output = Math.min(output, dp[i]);
-        }
-        if(output == 0){ // contains
-            return (float)(i - yw * xl) / yl;
-        }
-         */
         return output;
     }
 
