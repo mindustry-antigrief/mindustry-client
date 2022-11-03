@@ -87,10 +87,6 @@ object Main : ApplicationListener {
             setPluginNetworking(true)
         }
 
-        Vars.netServer.addPacketHandler("pause") { p, _ ->
-            if (p.admin) Vars.state.serverPaused = !Vars.state.serverPaused
-        }
-
         communicationClient.addListener { transmission, senderId ->
             when (transmission) {
                 is BuildQueueTransmission -> {
