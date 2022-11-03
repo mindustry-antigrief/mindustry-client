@@ -254,3 +254,15 @@ class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val is
         return "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.unitdeath")}"
     }
 }
+
+class RotateTileLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, val direction: Boolean) : TileLog(tile, cause) {
+    override fun apply(previous: TileState) {
+        previous.rotation = rotation
+    }
+
+    override fun toString(): String {
+        return "${cause.name.stripColors()} ${Core.bundle.get("client.rotated")} ${block.localizedName} ${Core.bundle.get(if (direction) "client.counterclockwise" else "client.clockwise")}"
+    }
+
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.rotated")} ${block.localizedName}"
+}
