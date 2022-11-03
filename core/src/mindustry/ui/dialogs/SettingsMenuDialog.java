@@ -392,6 +392,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("processorconfigs", false);
         client.checkPref("downloadmusic", true);
         client.checkPref("downloadsound", true);
+        client.checkPref("trackcoreitems", false, i -> CoreItemsDisplay.trackItems = i && !net.server());
         client.checkPref("ignoremodminversion", false);
         // End Client Settings
 

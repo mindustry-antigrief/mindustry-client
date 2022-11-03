@@ -397,7 +397,6 @@ public class ConstructBlock extends Block{
                         int accepting = Math.min(accumulated, core.storageCapacity - core.items.get(requirements[i].item));
                         //transfer items directly, as this is not production.
                         core.items.add(requirements[i].item, accepting);
-                        if(core.team == player.team()) coreItemsDisplay.addItem(requirements[i].item, accepting);
                         accumulator[i] -= accepting;
                     }else{
                         accumulator[i] -= accumulated;
