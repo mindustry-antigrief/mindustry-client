@@ -60,7 +60,7 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
         exclude("**steam**.so", "**steam**.dll", "**steam**.dylib")
     }
 
-    archiveFileName = localArc() ? "${appName}-${branchName}.jar" : "${appName}.jar"
+    archiveFileName = project.hasProperty("outputFilename") ? project.getProperty("outputFilename") : localArc() ? "${appName}-${branchName}.jar" : "${appName}.jar"
 
     manifest{
         attributes 'Main-Class': project.mainClassName
