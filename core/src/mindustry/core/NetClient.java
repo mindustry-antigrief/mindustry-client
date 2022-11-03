@@ -363,6 +363,13 @@ public class NetClient implements ApplicationListener{
         //do not receive chat messages from clients that are too young or not registered
         if(net.server() && player != null && player.con != null && (Time.timeSinceMillis(player.con.connectTime) < 500 || !player.con.hasConnected || !player.isAdded())) return;
 
+        //detect and kick for foul play
+        if(player != null && player.con != null && !player.con.chatRate.allow(2000, 20)){
+            player.con.kick(KickReason.kick);
+            netServer.admins.blacklistDos(player.con.address);
+            return;
+        }
+
         if(message.length() > maxTextLength){
             throw new ValidateException(player, "Player has sent a message above the text limit.");
         }
@@ -626,7 +633,9 @@ public class NetClient implements ApplicationListener{
             state.wavetime = waveTime;
             state.wave = wave;
             state.enemies = enemies;
-            state.serverPaused = paused;
+            if(!state.isMenu()){
+                state.set(paused ? State.paused : State.playing);
+            }
             state.serverTps = tps & 0xff;
 
             //note that this is far from a guarantee that random state is synced - tiny changes in delta and ping can throw everything off again.

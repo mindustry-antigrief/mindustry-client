@@ -78,6 +78,7 @@ public class UI implements ApplicationListener, Loadable{
     public ColorPicker picker;
     public LogicDialog logic;
     public FullTextDialog fullText;
+    public CampaignCompleteDialog campaignComplete;
 
     public Cursor drillCursor, unloadCursor, targetCursor;
 
@@ -203,6 +204,7 @@ public class UI implements ApplicationListener, Loadable{
         schematics = new SchematicsDialog();
         logic = new LogicDialog();
         fullText = new FullTextDialog();
+        campaignComplete = new CampaignCompleteDialog();
 
         // Client related
         unitPicker = new UnitPicker();
@@ -610,6 +612,21 @@ public class UI implements ApplicationListener, Loadable{
         }}.show();
     }
 
+    /** Formats time with hours:minutes:seconds. */
+    public static String formatTime(float ticks){
+        int seconds = (int)(ticks / 60);
+        if(seconds < 60) return "0:" + (seconds < 10 ? "0" : "") + seconds;
+
+        int minutes = seconds / 60;
+        int modSec = seconds % 60;
+        if(minutes < 60) return minutes + ":" + (modSec < 10 ? "0" : "") + modSec;
+
+        int hours = minutes / 60;
+        int modMinute = minutes % 60;
+
+        return hours + ":" + (modMinute < 10 ? "0" : "") + modMinute + ":" + (modSec < 10 ? "0" : "") + modSec;
+    }
+
     public static String formatAmount(long number){
         //prevent things like bars displaying erroneous representations of casted infinities
         if(number == Long.MAX_VALUE) return "∞";
@@ -618,7 +635,7 @@ public class UI implements ApplicationListener, Loadable{
         long mag = Math.abs(number);
         String sign = number < 0 ? "-" : "";
         if(mag >= 1_000_000_000){
-            return sign + Strings.fixed(mag / 1_000_000_000f, 1) + "[gray]" + billions+ "[]";
+            return sign + Strings.fixed(mag / 1_000_000_000f, 1) + "[gray]" + billions + "[]";
         }else if(mag >= 1_000_000){
             return sign + Strings.fixed(mag / 1_000_000f, 1) + "[gray]" + millions + "[]";
         }else if(mag >= 10_000){

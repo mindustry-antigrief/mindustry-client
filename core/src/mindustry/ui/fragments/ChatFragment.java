@@ -18,6 +18,7 @@ import mindustry.client.*;
 import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
@@ -164,12 +165,31 @@ public class ChatFragment extends Table{
         bottom().left().marginBottom(offsety).marginLeft(offsetx * 2);
         button(Icon.uploadSmall, uploadStyle, UploadDialog.INSTANCE::show).padRight(5f).tooltip("Upload Images").visible(() -> shown).checked(h -> UploadDialog.INSTANCE.hasImage()); // FINISHME: Bundle
         add(fieldlabel).padBottom(6f);
+        chatfield.typed(this::handleType);
+
+        bottom().left().marginBottom(offsety).marginLeft(offsetx * 2).add(fieldlabel).padBottom(6f);
 
         add(chatfield).padBottom(offsety).padLeft(offsetx).growX().padRight(offsetx).height(28);
 
         if(Vars.mobile){
             marginBottom(105f);
             marginRight(240f);
+        }
+    }
+
+    //no mobile support.
+    private void handleType(char c){
+        int cursor = chatfield.getCursorPosition();
+        if(c == ':'){
+            int index = chatfield.getText().lastIndexOf(':', cursor - 2);
+            if(index >= 0 && index < cursor){
+                String text = chatfield.getText().substring(index + 1, cursor - 1);
+                String uni = Fonts.getUnicodeStr(text);
+                if(uni != null && uni.length() > 0){
+                    chatfield.setText(chatfield.getText().substring(0, index) + uni + chatfield.getText().substring(cursor));
+                    chatfield.setCursorPosition(index + uni.length());
+                }
+            }
         }
     }
 
@@ -426,6 +446,9 @@ public class ChatFragment extends Table{
                 player.sendMessage(text);
             }
         }
+        Events.fire(new ClientChatEvent(message));
+
+        Call.sendChatMessage(message);
     }
 
     public void toggle(){

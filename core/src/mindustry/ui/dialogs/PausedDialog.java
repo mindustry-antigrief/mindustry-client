@@ -36,7 +36,7 @@ public class PausedDialog extends BaseDialog{
             .visible(() -> state.rules.sector != null && state.rules.sector.preset != null && state.rules.sector.preset.description != null).padTop(-60f);
 
             cont.button("@abandon", Icon.cancel, () -> ui.planet.abandonSectorConfirm(state.rules.sector, this::hide)).padTop(-60f)
-            .visible(() -> state.rules.sector != null).row();
+            .disabled(b -> net.client()).visible(() -> state.rules.sector != null).row();
 
             cont.button("@back", Icon.left, this::hide).name("back");
             cont.button("@settings", Icon.settings, ui.settings::show).name("settings");
@@ -107,8 +107,6 @@ public class PausedDialog extends BaseDialog{
 
     void showQuitConfirm(){
         Runnable quit = () -> {
-            wasClient = net.client();
-            if(net.client()) netClient.disconnectQuietly();
             runExitSave();
             hide();
         };
@@ -132,6 +130,9 @@ public class PausedDialog extends BaseDialog{
     }
 
     public void runExitSave(){
+        wasClient = net.client();
+        if(net.client()) netClient.disconnectQuietly();
+
         if(state.isEditor() && !wasClient){
             ui.editor.resumeEditing();
             return;

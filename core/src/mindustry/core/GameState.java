@@ -24,8 +24,6 @@ public class GameState{
     public boolean gameOver = false;
     /** Whether the player's team won the match. */
     public boolean won = false;
-    /** If true, the server has been put into the paused state on multiplayer. This is synced. */
-    public boolean serverPaused = false;
     /** Server ticks/second. Only valid in multiplayer. */
     public int serverTps = -1;
     /** Map that is currently being played on. */
@@ -51,12 +49,8 @@ public class GameState{
     }
 
     public void set(State astate){
-        //cannot pause when in multiplayer (client adds a pause packet for p2p and servers that support it I suppose)
-        if(astate == State.paused && net.active()) {
-            if (net.server()) serverPaused ^= true; // pause locally
-            else Call.serverPacketReliable("pause", ""); // send pause request
-            return;
-        }
+        //nothing to change.
+        if(state == astate) return;
 
         Events.fire(new StateChangeEvent(state, astate));
         state = astate;
@@ -88,7 +82,7 @@ public class GameState{
     }
 
     public boolean isPaused(){
-        return (is(State.paused) && !net.active()) || (serverPaused && !isMenu());
+        return is(State.paused);
     }
 
     public boolean isPlaying(){

@@ -33,6 +33,7 @@ import static mindustry.Vars.*;
 
 public class Mods implements Loadable{
     private static final String[] metaFiles = {"mod.json", "mod.hjson", "plugin.json", "plugin.hjson"};
+    private static final ObjectSet<String> blacklistedMods = ObjectSet.with("ui-lib");
 
     private Json json = new Json();
     private @Nullable Scripts scripts;
@@ -1075,9 +1076,14 @@ public class Mods implements Loadable{
 
         /** @return whether this mod is supported by the game version */
         public boolean isSupported(){
-            if(isOutdated()) return false;
+            if(isOutdated() || isBlacklisted()) return false;
             if(clientDisabled()) return false; // FINISHME: Make it display a warning or something and maybe disable them the first time? It shouldn't force people to not use mods
             return Core.settings.getBool("ignoremodminversion") || Version.isAtLeast(meta.minGameVersion);
+        }
+
+        /** Some mods are known to cause issues with the game; this detects and returns whether a mod is manually blacklisted. */
+        public boolean isBlacklisted(){
+            return blacklistedMods.contains(name);
         }
 
         /** @return whether this mod is outdated, e.g. not compatible with v7. */

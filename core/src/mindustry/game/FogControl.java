@@ -102,7 +102,7 @@ public final class FogControl implements CustomChunk{
     }
 
     public boolean isDiscovered(Team team, int x, int y){
-        if(!state.rules.staticFog || team.isAI()) return true;
+        if(!state.rules.staticFog || team == null || team.isAI()) return true;
 
         var data = getDiscovered(team);
         if(data == null) return false;
@@ -115,7 +115,7 @@ public final class FogControl implements CustomChunk{
     }
 
     public boolean isVisibleTile(Team team, int x, int y){
-        if(!state.rules.fog || team.isAI()) return true;
+        if(!state.rules.fog|| team == null || team.isAI()) return true;
 
         var data = data(team);
         if(data == null) return false;
