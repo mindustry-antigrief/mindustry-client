@@ -405,6 +405,7 @@ public class ChatFragment extends Table{
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
             String msg = Main.INSTANCE.sign(message);
+            Events.fire(new ClientChatEvent(message));
             Call.sendChatMessage(msg);
             if (message.startsWith(netServer.clientCommands.getPrefix() + "sync")) { // /sync
                 ClientVars.syncing = true;
@@ -412,7 +413,7 @@ public class ChatFragment extends Table{
             if (!message.startsWith(netServer.clientCommands.getPrefix())) { // Only fire when not running any command
                 Events.fire(new EventType.SendChatMessageEvent(msg));
             }
-
+            return;
         }else{
 
             //a command was sent, now get the output
@@ -445,10 +446,11 @@ public class ChatFragment extends Table{
 
                 player.sendMessage(text);
             }
+            return;
         }
-        Events.fire(new ClientChatEvent(message));
+        
 
-        Call.sendChatMessage(message);
+        
     }
 
     public void toggle(){
