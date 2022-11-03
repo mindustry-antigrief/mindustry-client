@@ -46,7 +46,7 @@ allprojects{
         if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
         if(!project.hasProperty("assetRef")) assetRef = 'v7'
         if(!project.hasProperty("versionModifier")) versionModifier = 'beta'
-        if(!project.hasProperty("buildversion")) buildversion = '140' // Modders use BE build numbers which is stupid
+        if(!project.hasProperty("buildversion")) buildversion = '140.1' // Modders use BE build numbers which is stupid
         if(!project.hasProperty("clientVersion")){
             try {
                 def tagTokens = "git tag --sort=committerdate -l v${project.getProperties()["buildversion"]}* -n1".execute().text.trim().split('[\n]')[-1]
