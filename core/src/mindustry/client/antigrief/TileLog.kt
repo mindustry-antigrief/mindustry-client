@@ -272,7 +272,7 @@ class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val is
     }
 }
 
-class RotateTileLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, val direction: Boolean) : TileLog(tile, cause) {
+class RotateTileLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, val direction: Boolean, val origin: Boolean) : TileLog(tile, cause, origin) {
     override fun apply(previous: TileState) {
         previous.rotation = rotation
     }
