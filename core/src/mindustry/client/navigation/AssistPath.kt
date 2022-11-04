@@ -14,11 +14,14 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 
-class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path() {
+class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circling: Boolean = false) : Path() {
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
     private var tolerance = 0F
+    private var aStarTolerance = 0F
     private var buildPath: BuildPath? = if (type == Type.BuildPath) BuildPath.Self() else null
+    private var theta: Float = 0F
+    private var circleRadius: Float = 0F
 
     companion object { // Events.remove is weird, so we just create the hooks once instead
         init {
@@ -49,7 +52,12 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path()
         if (player?.dead() != false) return
         assisting?.unit() ?: return // We don't care if they are dead
 
-        tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)
+        theta += Core.settings.getFloat("circleassistspeed", 0.05f)
+        theta %= (Math.PI * 2).toFloat()
+
+        aStarTolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) + tilesize * 5;
+        tolerance = if(circling) 0.1f else assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)
+        circleRadius = if(circling) assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) else 0f
 
         handleInput()
 
@@ -109,7 +117,7 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path()
         unit.lookAt(lookPos)
 
         when (type) {
-            Type.Regular -> goTo(assisting.x, assisting.y, tolerance, tolerance + tilesize * 5)
+            Type.Regular -> goTo(assisting.x + (circleRadius * Math.cos(theta.toDouble())).toFloat(), assisting.y + (circleRadius * Math.sin(theta.toDouble())).toFloat(), tolerance, aStarTolerance + tilesize * 5)
             Type.FreeMove -> {
                 val input = control.input
                 if (input is DesktopInput) {
@@ -121,13 +129,13 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular) : Path()
                 } else player.unit().moveAt((input as MobileInput).movement)
             }
             Type.Cursor -> goTo(assisting.mouseX, assisting.mouseY, tolerance, tolerance + tilesize * 5)
-            Type.BuildPath -> if (!plans.isEmpty) buildPath?.follow() else goTo(assisting.x, assisting.y, tolerance, tolerance + tilesize * 5) // Follow build path if plans exist, otherwise follow player
+            Type.BuildPath -> if (!plans.isEmpty) buildPath?.follow() else goTo(assisting.x + (circleRadius * Math.cos(theta.toDouble())).toFloat(), assisting.y + (circleRadius * Math.sin(theta.toDouble())).toFloat(), tolerance, aStarTolerance + tilesize * 5) // Follow build path if plans exist, otherwise follow player
         }
     }
 
     override fun draw() {
         assisting ?: return
-        if (type != Type.FreeMove && player.dst(assisting) > tolerance + tilesize * 5) waypoints.draw()
+        if (type != Type.FreeMove && player.dst(assisting) > aStarTolerance) waypoints.draw()
 
         if (Spectate.pos != assisting) assisting.unit().drawBuildPlans() // Don't draw plans twice
     }

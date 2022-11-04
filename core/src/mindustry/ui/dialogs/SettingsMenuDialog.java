@@ -434,6 +434,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("removeatteminsteadoffixing", true);
         client.checkPref("downloadmusic", true);
         client.checkPref("downloadsound", true);
+        client.checkPref("circleassist", false);
         // End Client Settings
 
 

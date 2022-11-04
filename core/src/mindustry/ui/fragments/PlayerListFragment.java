@@ -203,7 +203,7 @@ public class PlayerListFragment{
                                 Core.input.shift() ? AssistPath.Type.FreeMove :
                                 Core.input.ctrl() ? AssistPath.Type.Cursor :
                                 Core.input.alt() ? AssistPath.Type.BuildPath :
-                                                    AssistPath.Type.Regular)
+                                                    AssistPath.Type.Regular, Core.settings.getBool("circleassist"))
                         )).size(h / 2).tooltip("@client.assist");
                 button.button(Icon.cancel, ustyle, // Unassist/block
                         () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");

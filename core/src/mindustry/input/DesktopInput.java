@@ -571,7 +571,7 @@ public class DesktopInput extends InputHandler{
                                 input.shift() && input.alt() ? AssistPath.Type.FreeMove :
                                 input.ctrl() && input.alt() ? AssistPath.Type.BuildPath :
                                 input.ctrl() ? AssistPath.Type.Cursor :
-                                AssistPath.Type.Regular));
+                                AssistPath.Type.Regular, Core.settings.getBool("circleassist")));
                         shouldShoot = false;
                     }else if(on.controller() instanceof LogicAI ai && ai.controller != null) { // Alt + click logic unit: spectate processor
                         Spectate.INSTANCE.spectate(ai.controller);

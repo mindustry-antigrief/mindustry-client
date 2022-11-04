@@ -344,6 +344,21 @@ fun setup() {
         }
     }
 
+    register("circleassist [speed]", "Sets the circle assist speed, disables circle assist if -1") { args, player -> // FINISHME: Bundle
+        if (args.size != 1) player.sendMessage("[accent]The circle assist speed is ${Core.settings.getFloat("circleassistspeed", 0.05f)} (default is 0.05)")
+        else {
+            if(args[0] == "-1"){
+                Core.settings.put("circleassist", false);
+                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = false;
+            } else {
+                Core.settings.put("circleassist", true);
+                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = true;
+                Core.settings.put("circleassistspeed", Strings.parseFloat(args[0], 0.05f));
+            }
+            player.sendMessage("[accent]The circle assist speed is now ${Core.settings.getFloat("circleassistspeed")} (default is 0.05)")
+        }
+    }
+
     register("admin [option]", "Access moderation commands and settings") { args, player -> // FINISHME: Bundle
         val arg = if (args.isEmpty()) "" else args[0]
         when (arg.lowercase()) {
