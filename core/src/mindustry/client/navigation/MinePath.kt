@@ -85,7 +85,7 @@ class MinePath @JvmOverloads constructor(
 
         // go to core and transfer items
         // No need to drop to core if within mineTransferRange
-        if (player.unit().maxAccepted(item) <= 1 && tile?.within(core, mineTransferRange - tilesize * 10) == false) {
+        if (player.unit().maxAccepted(item) <= 1) {
             if (player.within(core, itemTransferRange - tilesize * 10) && timer[30f]) {
                 player.unit().mineTile = null
                 Call.transferInventory(player, core)
