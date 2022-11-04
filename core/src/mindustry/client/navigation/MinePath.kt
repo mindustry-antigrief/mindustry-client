@@ -6,10 +6,12 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.utils.*
-import mindustry.game.EventType
+import mindustry.content.*
+import mindustry.game.*
 import mindustry.gen.*
 import mindustry.type.*
-import mindustry.world.Tile
+import mindustry.world.*
+import mindustry.world.blocks.storage.*
 
 class MinePath @JvmOverloads constructor(
     var items: Seq<Item> = Seq<Item>(),
@@ -21,6 +23,7 @@ class MinePath @JvmOverloads constructor(
     private var lastItem: Item? = null // Last item mined
     private var timer = Interval()
     private var coreIdle = false
+    private var bestItem: Item? = null
     var tile: Tile? = null
 
     init {
@@ -58,12 +61,12 @@ class MinePath @JvmOverloads constructor(
 
     override fun follow() {
         val core = player.closestCore() ?: return
-        var item = items.min({ indexer.hasOre(it) && player.unit().canMine(it) }) { core.items[it].toFloat() } ?: return
         val maxCap = if (cap <= 0) core.storageCapacity else core.storageCapacity.coerceAtMost(cap)
-        if (lastItem != null && player.unit().canMine(lastItem) && indexer.hasOre(lastItem) && core.items[lastItem] - core.items[item] < 100 && core.items[lastItem] < maxCap) item = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
-        lastItem = item
+        bestItem = items.min({ indexer.hasOre(it) && player.unit().canMine(it) }) { core.items[it].toFloat() } ?: return
+        if (lastItem != null && player.unit().canMine(lastItem) && indexer.hasOre(lastItem) && core.items[lastItem] - core.items[bestItem] < 100 && core.items[lastItem] < maxCap) bestItem = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
+        lastItem = bestItem
 
-        if (!newGame && core.items[item] >= maxCap && cap >= 0) {  // Auto switch to BuildPath when core is sufficiently full
+        if (!newGame && core.items[bestItem] >= maxCap && cap >= 0) {  // Auto switch to BuildPath when core is sufficiently full
             coreIdle = false
             player.sendMessage(Core.bundle.format("client.path.miner.build", maxCap))
             Navigation.follow(BuildPath(items, cap))
@@ -75,7 +78,7 @@ class MinePath @JvmOverloads constructor(
 
             if (player.unit().hasItem()) player.unit().clearItem() // clear items to prepare for MinePath resumption
 
-            if (core.items[item] < maxCap / 2) {
+            if (core.items[bestItem] < maxCap / 2) {
                 player.sendMessage(Core.bundle.get("client.path.miner.resume"))
                 coreIdle = false
             }
@@ -85,13 +88,13 @@ class MinePath @JvmOverloads constructor(
 
         // go to core and transfer items
         // No need to drop to core if within mineTransferRange
-        if (player.unit().maxAccepted(item) <= 1) {
+        if (player.unit().maxAccepted(bestItem) <= 1) {
             if (player.within(core, itemTransferRange - tilesize * 10) && timer[30f]) {
                 player.unit().mineTile = null
                 Call.transferInventory(player, core)
 
                 // idle at core if cap < 0 (never switch to build path)
-                if (core.items[item] >= maxCap && cap < 0) {
+                if (core.items[bestItem] >= maxCap && cap < 0) {
                     player.sendMessage(Core.bundle.format("client.path.miner.idle", maxCap))
                     coreIdle = true
                 }
@@ -102,10 +105,9 @@ class MinePath @JvmOverloads constructor(
 
         // mine
         } else {
-            val tile = indexer.findClosestOre(player.unit(), item) // FINISHME: Ignore blocked tiles
-            if (player.unit().validMine(tile) || tile == null) player.unit().mineTile = tile
-            if (tile == null) return
-            player.boosting = player.unit().type.canBoost && !player.within(tile, tilesize * 3F)
+            tile = indexer.findClosestOre(player.unit(), bestItem) ?: return
+            if (player.within(tile, player.unit().type.mineRange)) player.unit().mineTile = tile
+            player.boosting = player.unit().type.canBoost && !player.within(tile, player.unit().type.mineRange)
             goTo(tile, player.unit().type.mineRange - tilesize * 2)
         }
     }
@@ -119,4 +121,17 @@ class MinePath @JvmOverloads constructor(
     override fun reset() = Unit
 
     override operator fun next(): Position? = null
+
+    // FINISHME: Unjank core tp on mix tech maps
+//    override fun allowCore(core: CoreBlock.CoreBuild): Boolean {
+//        val type = (core.block() as CoreBlock).unitType
+//
+//        if (tile == null) return false
+//        val item: Item? =
+//            if ((type.mineFloor && tile!!.block() == Blocks.air)) tile!!.drop()
+//            else if (type.mineWalls) tile!!.wallDrop()
+//            else return false
+//
+//        return item != null && type.mineTier >= item.hardness
+    }
 }

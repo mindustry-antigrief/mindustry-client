@@ -6,9 +6,9 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.pooling.*
 import mindustry.*
-import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.game.*
+import mindustry.world.blocks.storage.*
 import java.util.concurrent.*
 
 /** A way of representing a path */
@@ -142,4 +142,9 @@ abstract class Path {
     open fun draw() = Unit
 
     abstract fun next(): Position?
+
+    // FINISHME: Unjank minepath core tp on mix tech maps
+//    open fun allowCore(core: CoreBlock.CoreBuild) : Boolean {
+//        return true
+//    }
 }
