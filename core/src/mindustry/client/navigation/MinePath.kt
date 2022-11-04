@@ -133,5 +133,4 @@ class MinePath @JvmOverloads constructor(
 //            else return false
 //
 //        return item != null && type.mineTier >= item.hardness
-    }
 }
