@@ -1,5 +1,6 @@
 package mindustry.ui;
 
+import arc.*;
 import arc.math.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -16,6 +17,8 @@ import java.util.*;
 import static mindustry.Vars.*;
 
 public class CoreItemsDisplay extends Table{
+    private static int trackSteps = 6;
+    public static boolean trackItems = Core.settings != null && Core.settings.getBool("trackcoreitems") && net != null && !net.server();
     private final Bits usedItems = new Bits();
     private CoreBuild core;
     public CoreItemDisplayMode mode = CoreItemDisplayMode.disabled;
@@ -42,13 +45,15 @@ public class CoreItemsDisplay extends Table{
 
         clicked(() -> {
             mode = mode.next();
+            if(!trackItems && mode == CoreItemDisplayMode.inputOnly) inputItems.reset();
+            if(!trackItems && mode == CoreItemDisplayMode.all) totalItems.reset();
             rebuild();
         });
         update(() -> {
             core = Vars.player.team().core();
             if(core == null) return;
-            inputItems.update();
-            totalItems.update(core.items);
+            if(trackItems || mode == CoreItemDisplayMode.inputOnly) inputItems.update();
+            if(trackItems || mode == CoreItemDisplayMode.all) totalItems.update(core.items);
 
             if(content.items().contains(item -> core != null && core.items.get(item) > 0 && !usedItems.getAndSet(item.id))){
                 rebuild();
@@ -62,8 +67,8 @@ public class CoreItemsDisplay extends Table{
                 image(item.uiIcon).size(iconSmall).padRight(3).tooltip(t -> t.background(Styles.black6).margin(4f).add(item.localizedName).style(Styles.outlineLabel));
                 //TODO leaks garbage
                 if (mode == CoreItemDisplayMode.disabled) label(() -> core == null ? "0" : UI.formatAmount(core.items.get(item))).padRight(3).minWidth(52f).left();
-                else if (mode == CoreItemDisplayMode.positiveOnly) label(() -> core == null ? "0" : formatAmount(inputItems.getAverage(6, item))).padRight(3).minWidth(52f).left();
-                else if (mode == CoreItemDisplayMode.all) label(() -> core == null ? "0" : formatAmount(totalItems.getAverageChange(6, item))).padRight(3).minWidth(52f).left();
+                else if (mode == CoreItemDisplayMode.inputOnly) label(() -> core == null ? "0" : formatAmount(inputItems.getAverage(trackSteps, item))).padRight(3).minWidth(52f).left();
+                else if (mode == CoreItemDisplayMode.all) label(() -> core == null ? "0" : formatAmount(totalItems.getAverageChange(trackSteps, item))).padRight(3).minWidth(52f).left();
 
                 if(++i % 4 == 0){
                     row();
@@ -74,10 +79,11 @@ public class CoreItemsDisplay extends Table{
     }
 
     public void addItem(Item item, int amount){
-        if (amount > 0) inputItems.add(item, amount);
+        if(amount > 0 && (trackItems || mode == CoreItemDisplayMode.inputOnly)) inputItems.add(item, amount);
     }
 
     public static String formatAmount(float rate){
+        if(Float.isNaN(rate)) return "[lightgray]...";
         float mag = Math.abs(rate);
         if(mag == 0f) return "[lightgray]0[]";
         String out = rate > 0 ? "[green]" : "[red]";
@@ -92,7 +98,7 @@ public class CoreItemsDisplay extends Table{
 
     public enum CoreItemDisplayMode{
         disabled,
-        positiveOnly,
+        inputOnly,
         all;
         public CoreItemDisplayMode next(){
             return values()[(ordinal() + 1) % values().length];
@@ -101,62 +107,83 @@ public class CoreItemsDisplay extends Table{
 
     // Helper class to track the movement of items
     public static class CoreItemTracker{
-        private final static int pollScl = 30; // every 30 frames or something
+        private final static int pollScl = 30; // every 30 time units or something
         private final static float rateMultiplier = 60f / pollScl;
-        private float lastUpdate = Time.time;
+        private float lastUpdate = 0;
         private final int numItems = content.items().size;
-        private int[] itemRates = new int[numItems * 3600];
-        private boolean hasInit = false;
+        private int[] itemRates = new int[numItems * (trackItems ? 1800 : trackSteps + 1)]; // +1 because we don't want average to loop around to itself
+        private int stepsRecorded = 0;
 
         /* The index of the CURRENT group of items */
         private int idx = 0;
 
-        private void checkCapacity(){
-            if (idx + numItems >= itemRates.length){
-                itemRates = Arrays.copyOf(itemRates, itemRates.length + numItems * 3600); // another half hour of tracking
+        /* Change the value of idx. Also clear the array accordingly if it wraps around, or lengthen the array if it doesn't. */
+        private void changeIdx(int steps){
+            if(steps <= 0) return;
+            if(trackItems){
+                idx += numItems * steps;
+                while(idx >= itemRates.length){
+                    itemRates = Arrays.copyOf(itemRates, itemRates.length + numItems * 1800); // another 15min of tracking
+                }
+            }
+            else{
+                int didx = numItems * steps;
+
+                // If we somehow skip enough time to wrap around, reset the array
+                if(didx >= itemRates.length){
+                    Arrays.fill(itemRates, 0);
+                    idx = 0;
+                }
+                else{
+                    // Advance to correct position
+                    int end = (idx + didx) % itemRates.length;
+                    if(idx < end){
+                        Arrays.fill(itemRates, idx + numItems, end + numItems, 0);
+                    }else{
+                        Arrays.fill(itemRates, 0, end + numItems, 0);
+                        Arrays.fill(itemRates, idx + numItems, itemRates.length, 0);
+                    }
+                    idx = end;
+                }
             }
         }
 
         private int checkUpdate(){
-            if (!hasInit) {
-                hasInit = true;
+            if(stepsRecorded == 0){
                 lastUpdate = Time.time;
+                stepsRecorded = 1;
                 return 1;
             }
             float dt = Time.time - lastUpdate;
             int steps = (int)(dt / pollScl);
             lastUpdate += pollScl * steps;
+            stepsRecorded += steps;
             return steps;
         }
 
         public void reset(){
-            int targetLength = numItems * 3600;
+            int targetLength = numItems * (trackItems ? 1800 : trackSteps + 1);
             if (itemRates.length != targetLength) itemRates = new int[targetLength];
-            //https://stackoverflow.com/questions/9128737/fastest-way-to-set-all-values-of-an-array
             itemRates[0] = 0;
-            for (int i = 1; i < targetLength; i += i) {
+            for (int i = 1; i < targetLength; i <<= 1) {
                 System.arraycopy(itemRates, 0, itemRates, i, Math.min(targetLength - i, i));
             }
             idx = 0;
-            hasInit = false;
+            stepsRecorded = 0;
         }
 
         public void update(ItemModule items){
+            // TODO handle interpolation of data
             int steps = checkUpdate();
             if (steps <= 0) return;
-            idx += numItems * steps;
-            checkCapacity();
-            int[] itemsitems = items.getAllItems();
-            for(int i = 0; i < numItems; ++i){
-                itemRates[idx + i] = itemsitems[i]; // vectorization when
-            }
+            changeIdx(steps);
+            if (numItems >= 0) System.arraycopy(items.getAllItems(), 0, itemRates, idx, numItems); // ok intellij, i trust that arraycopy will not be slow for <30 elements
         }
 
         public void update(){
             int steps = checkUpdate();
             if (steps <= 0) return;
-            idx += numItems * steps;
-            checkCapacity();
+            changeIdx(steps);
         }
 
         public void add(Item item, int amount){
@@ -168,6 +195,17 @@ public class CoreItemsDisplay extends Table{
         }
 
         public float getAverage(int steps, Item item){
+            if(stepsRecorded <= trackSteps) return Float.NaN;
+            if(!trackItems){
+                steps = Math.min(steps, trackSteps);
+                float avg = 0;
+                for (int i = idx + item.id, actualSteps = 0; actualSteps < steps; ++actualSteps){
+                    i = i - numItems;
+                    if(i < 0) i += itemRates.length; // Wrap around
+                    avg += itemRates[i];
+                }
+                return avg / steps * rateMultiplier;
+            }
             float avg = 0;
             int actualSteps = 0;
             // We take the <steps> steps before the current
@@ -179,10 +217,17 @@ public class CoreItemsDisplay extends Table{
         }
 
         public float getAverageChange(int steps, Item item){
-            int actualSteps = Math.min(idx / numItems, steps);
-            if (actualSteps <= 0) return 0;
+            if(stepsRecorded <= trackSteps) return Float.NaN;
             int id = item.id;
-            return (float)(itemRates[idx + id] - itemRates[idx + id - actualSteps * numItems]) / actualSteps * rateMultiplier;
+            if(trackItems){
+                int actualSteps = Math.min(idx / numItems, steps);
+                if (actualSteps <= 0) return 0;
+                return (float)(itemRates[idx + id] - itemRates[idx + id - actualSteps * numItems]) / actualSteps * rateMultiplier;
+            }else{
+                int from = idx - steps * numItems;
+                from = (from + itemRates.length) % itemRates.length;
+                return (float)(itemRates[idx + id] - itemRates[from + id]) / steps * rateMultiplier;
+            }
         }
     }
 }

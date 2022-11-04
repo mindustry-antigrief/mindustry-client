@@ -100,6 +100,12 @@ object TileRecords {
                 }
             }
         }
+
+        Events.on(EventType.BlockRotateEvent::class.java) {
+            it.build.tile.getLinkedTiles { tile ->
+                addLog(tile, RotateTileLog(tile, it.player.toInteractor(), it.build.block, it.newRotation, it.direction))
+            }
+        }
     }
 
     operator fun get(x: Int, y: Int): TileRecord? = records.getOrNull(x)?.getOrNull(y)
