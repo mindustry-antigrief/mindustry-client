@@ -66,10 +66,10 @@ class TileState {
 
         table.row()
         table.label(Core.bundle.get("client.facing") + ": " + Core.bundle.get("client." + when (abs(rotation % 4)) {
-            0 -> "up"
-            1 -> "right"
-            2 -> "down"
-            3 -> "left"
+            0 -> "right"
+            1 -> "up"
+            2 -> "left"
+            3 -> "down"
             else -> "unknown"
         }))
         table.row()

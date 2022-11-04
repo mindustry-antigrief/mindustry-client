@@ -21,6 +21,7 @@ import arc.util.io.*;
 import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
 import mindustry.core.*;
@@ -427,7 +428,6 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
         client.checkPref("autorestart", true);
-        client.checkPref("ignoremodminversion", false);
         client.checkPref("attemwarfare", true);
         client.checkPref("attemwarfarewhisper", false);
         client.checkPref("onjoinfixcode", true);
@@ -435,6 +435,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("downloadmusic", true);
         client.checkPref("downloadsound", true);
         client.checkPref("circleassist", false);
+        client.checkPref("trackcoreitems", false, i -> CoreItemsDisplay.trackItems = i && !net.server());
+        client.checkPref("ignoremodminversion", false);
         // End Client Settings
 
 
@@ -754,9 +756,14 @@ public class SettingsMenuDialog extends BaseDialog{
 
     public static class SettingsTable extends Table{
         protected Seq<Setting> list = new Seq<>();
+        private static Seq<Setting> listSorted = new Seq<>();
+        private String search = "";
+        private Table searchBarTable;
+        private TextField searchBar;
 
         public SettingsTable(){
             left();
+            makeSearchBar();
         }
 
         public Seq<Setting> getSettings(){
@@ -766,6 +773,17 @@ public class SettingsMenuDialog extends BaseDialog{
         public void pref(Setting setting){
             list.add(setting);
             rebuild();
+        }
+
+        private void makeSearchBar(){
+            searchBarTable = table(s -> {
+                s.left();
+                s.image(Icon.zoom);
+                searchBar = s.field(search, res -> {
+                    search = res;
+                    rebuild();
+                }).growX().get();
+            }).get();
         }
 
         public SliderSetting sliderPref(String name, int def, int min, int max, StringProcessor s){
@@ -817,10 +835,26 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         public void rebuild(){
+            boolean hasFocus = searchBar.hasKeyboard();
             clearChildren();
+            // TODO inefficient. And rebuild() is also called every. single. setting.
+            add(searchBarTable).fillX().padBottom(4);
+            row();
 
-            for(Setting setting : list){
-                setting.add(this);
+            if(search.isEmpty()){
+                for(Setting setting : list){
+                    setting.add(this);
+                }
+            }else{
+                listSorted.selectFrom(list, s -> !(s instanceof Category));
+                listSorted.sort(Structs.comparingFloat(u ->
+                    u.title == null ? Float.POSITIVE_INFINITY :
+                            BiasedLevenshtein.biasedLevenshteinLengthIndependentInsensitive(search, Strings.stripColors(u.title))
+                        // Maybe if distance == length, do not include? But troublesome
+                ));
+                for(Setting setting : listSorted){
+                    setting.add(this);
+                }
             }
 
             button(bundle.get("settings.reset", "Reset to Defaults"), () -> {
@@ -830,6 +864,10 @@ public class SettingsMenuDialog extends BaseDialog{
                 }
                 rebuild();
             }).margin(14).width(240f).pad(6);
+
+            if(hasFocus){
+                searchBar.requestKeyboard();
+            }
         }
 
         public abstract static class Setting{
