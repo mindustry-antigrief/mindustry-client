@@ -555,14 +555,14 @@ public class DesktopInput extends InputHandler{
             // if(((input.keyDown(Binding.control) || input.alt()) && Core.input.keyTap(Binding.select) && state.rules.possessionAllowed) && block == null){ // Hmm?
                 // Unit on = selectedUnit(true);
             // TODO: Merge recheck: I have no clue if I merged this correctly, what even does this code do
-            if(Core.input.keyDown(Binding.control) && Core.input.keyTap(Binding.select) && state.rules.possessionAllowed){
-                Unit on = selectedUnit();
+            if((input.ctrl() || input.shift()) && input.keyTap(Binding.select)){
+                Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
                 boolean hidingAirUnits = ClientVars.hidingAirUnits;
                 Vec2 mouseWorld;
                 if(on != null){
                     // FINISHME: This belongs in its own method, its also very messy
-                    if(input.keyDown(Binding.control) && on.isAI()) { // Ctrl + click: control unit
+                    if (input.ctrl() && on.isAI() && state.rules.possessionAllowed) { // Ctrl + click: control unit
                         Call.unitControl(player, on);
                         shouldShoot = false;
                         recentRespawnTimer = 1f;
@@ -570,8 +570,8 @@ public class DesktopInput extends InputHandler{
                         Navigation.follow(new AssistPath(on.getPlayer(),
                                 input.shift() && input.alt() ? AssistPath.Type.FreeMove :
                                 input.ctrl() && input.alt() ? AssistPath.Type.BuildPath :
-                                input.ctrl() ? AssistPath.Type.Cursor :
-                                AssistPath.Type.Regular, Core.settings.getBool("circleassist")));
+                                input.ctrl() ? AssistPath.Type.Cursor : AssistPath.Type.Regular,
+                                Core.settings.getBool("circleassist")));
                         shouldShoot = false;
                     }else if(on.controller() instanceof LogicAI ai && ai.controller != null) { // Alt + click logic unit: spectate processor
                         Spectate.INSTANCE.spectate(ai.controller);
