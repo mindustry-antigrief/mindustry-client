@@ -347,7 +347,7 @@ fun setup() {
     register("circleassist [speed]", "Sets the circle assist speed, disables circle assist if -1") { args, player -> // FINISHME: Bundle
         if (args.size != 1) player.sendMessage("[accent]The circle assist speed is ${Core.settings.getFloat("circleassistspeed", 0.05f)} (default is 0.05)")
         else {
-            if(args[0] == "-1"){
+            if(args[0] == "0"){
                 Core.settings.put("circleassist", false);
                 if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = false;
             } else {
