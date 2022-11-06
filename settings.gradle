@@ -33,7 +33,8 @@ if(hasSdk){
 
 
 if(!hasProperty("release") && !hasProperty("noLocalArc")){
-    if(new File(rootDir.parent, 'Arc').exists()) {
+    if(new File(rootDir.parent, 'Arc').exists()){
+        println("Compiling with localArc")
         includeBuild("../Arc")
     }
 
