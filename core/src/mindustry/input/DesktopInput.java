@@ -888,7 +888,7 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(Binding.break_block)){
                 mode = none;
             }else if(selectPlans.any()){
-                flushPlans(selectPlans, isFreezeQueueing, input.ctrl(), false);
+                flushPlans(selectPlans, isFreezeQueueing, input.ctrl(), isFreezeQueueing);
             }else if(!selectPlans.isEmpty()){
                 flushPlans(selectPlans);
             }else if(isPlacing()){
@@ -969,7 +969,7 @@ public class DesktopInput extends InputHandler{
 //                if(input.keyDown(Binding.boost)){
 //                    flushPlansReverse(linePlans);
 //                }else{
-                    flushPlans(linePlans, isFreezeQueueing, input.ctrl(), false);
+                    flushPlans(linePlans, isFreezeQueueing, input.ctrl(), isFreezeQueueing);
 //                }
 
                 linePlans.clear();
