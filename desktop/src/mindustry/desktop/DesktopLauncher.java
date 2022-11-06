@@ -91,7 +91,7 @@ public class DesktopLauncher extends ClientLauncher{
                     Log.level = LogLevel.debug;
                 }
 
-                setWindowIcon(FileType.internal, "icons/pi_64.png");
+                setWindowIcon(FileType.internal, "icons/foo_64.png");
             }});
 
         }catch(Throwable e){

@@ -416,7 +416,7 @@ public class BlockIndexer{
                     var arr = ores[item.id][qx][qy];
                     if(arr != null && arr.size > 0){
                         Tile tile = world.tile(arr.first());
-                        if(tile.floor().wallOre || tile.block() == Blocks.air || tile.block() instanceof Prop){
+                        if(tile.floor().wallOre || tile.block() == Blocks.air){
                             float dst = Mathf.dst2(xp, yp, tile.worldx(), tile.worldy());
                             if(closest == null || dst < minDst){
                                 closest = tile;
