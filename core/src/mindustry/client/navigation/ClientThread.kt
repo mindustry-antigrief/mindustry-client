@@ -1,12 +1,14 @@
 package mindustry.client.navigation
 
 import arc.*
+import arc.struct.Sort
 import mindustry.game.EventType.*
 import java.util.concurrent.*
 import java.util.function.*
 
 object clientThread {
     private var thread: ThreadPoolExecutor? = null
+    val sortingInstance: Sort = Sort()
 
     @JvmStatic
     fun queue() = thread?.queue

@@ -43,7 +43,7 @@ class TileState {
         this.time = time
     }
 
-    constructor(tile: Tile) : this(tile, tile.block(), tile.build?.rotation ?: 0, tile.build?.config(), tile.team(), Instant.now())
+    constructor(tile: Tile, time: Instant = Instant.now()) : this(tile, tile.block(), tile.build?.rotation ?: -1, tile.build?.config(), tile.team(), time)
 
     fun clone(): TileState {
         return TileState(x, y, block, rotation, configuration, team, time)
