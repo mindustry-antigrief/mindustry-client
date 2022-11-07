@@ -169,32 +169,11 @@ class ClientLogic {
             Core.settings.remove("firescl") // firescl, effectscl and cmdwarn were added in sept 2022, remove them in mid 2023 or something
             Core.settings.remove("effectscl")
             Core.settings.remove("commandwarnings")
-	    Core.settings.remove("nodeconfigs")
+	        Core.settings.remove("nodeconfigs")
             if (Core.settings.getString("gameovertext")?.isNotEmpty() == true) {
                 Core.settings.put("gamewintext", Core.settings.getString("gameovertext"))
                 Core.settings.remove("gameovertext")
             }
-
-            // How about I enable it anyways :)
-            // if (OS.hasProp("policone")) { // People spam these and its annoying. add some argument to make these harder to find
-            register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
-                sendMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
-            }
-
-            register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
-                sendMessage("Silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance. They are not the same, please get it right!")
-            }
-
-            register("hh [h]", "!") { args, _ ->
-                if (!Vars.net.client()) return@register
-                val u = if (args.any()) Vars.content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) } else Vars.player.unit().type
-                val current = Vars.ui.join.lastHost ?: return@register
-                    if (current.group == null) current.group = Vars.ui.join.communityHosts.find { it == current } ?.group ?: return@register
-                switchTo = Vars.ui.join.communityHosts.filterTo(mutableListOf<Any>()) { it.group == current.group && it != current && !it.equals("135.181.14.60:6567") }.apply { add(current); add(u) } // IO attack has severe amounts of skill issue currently hence why its ignored
-                val first = switchTo!!.removeFirst() as Host
-                    NetClient.connect(first.address, first.port)
-            }
-            //}
 
             val encoded = Main.keyStorage.cert()?.encoded
             if (encoded != null && Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
