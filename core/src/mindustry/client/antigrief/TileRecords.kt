@@ -42,7 +42,7 @@ object TileRecords {
             } else { // FINISHME: slightly very inefficient?
                 it.tile.getLinkedTilesAs(it.newBlock) { tile ->
                     val log = TilePlacedLog(tile, it.unit.toInteractor(),
-                        it.newBlock, -1, null, isOrigin(tile))
+                        it.newBlock, -1, null, tile == it.tile)
                     addLog(tile, log)
                     Core.app.post { // When BlockBuildBeginEvent is fired. Or the building is just rotated.
                         log.updateLog(tile.build?.rotation, tile.build?.config())
