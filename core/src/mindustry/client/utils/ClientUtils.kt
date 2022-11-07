@@ -463,10 +463,10 @@ fun toggleMutePlayer(player: Player) {
     val match = ClientVars.mutedPlayers.firstOrNull { p -> p.second == player.id || (p.first != null && p.first == player) }
     if (match == null) {
         ClientVars.mutedPlayers.add(Pair(player, player.id))
-        ui.chatfrag.addMessage(Core.bundle.format("client.command.mute", player.coloredName(), player.id))
+        ui.chatfrag.addMessage(Core.bundle.format("client.command.mute.success", player.coloredName(), player.id))
     } else {
         ClientVars.mutedPlayers.remove(match)
-        Vars.player.sendMessage(Core.bundle.format("client.command.unmute", player.coloredName(), player.id))
+        Vars.player.sendMessage(Core.bundle.format("client.command.unmute.success", player.coloredName(), player.id))
     }
 }
 

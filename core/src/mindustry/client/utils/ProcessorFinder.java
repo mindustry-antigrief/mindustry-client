@@ -1,8 +1,6 @@
 package mindustry.client.utils;
 
 import arc.Core;
-import arc.math.Mathf;
-import arc.math.geom.Vec2;
 import arc.struct.Seq;
 import kotlin.text.Regex;
 import mindustry.Vars;
@@ -13,8 +11,6 @@ import mindustry.world.Tile;
 import mindustry.world.Tiles;
 import mindustry.world.blocks.logic.LogicBlock.LogicBuild;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static mindustry.Vars.player;
@@ -79,8 +75,7 @@ public class ProcessorFinder {
     }
 
     public static void list() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[accent]Locations: []");
+        StringBuilder sb = new StringBuilder(Core.bundle.get("client.command.procfind.list"));
         for (LogicBuild build : highlighted) sb.append(String.format("(%d, %d)", (int) build.x >> 3, (int) build.y >> 3)).append(", ");
         player.sendMessage(sb.toString());
     }
