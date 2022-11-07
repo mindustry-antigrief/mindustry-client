@@ -277,7 +277,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             return false;
         }
 
-        if(viewer == null || !state.rules.staticFog || !state.rules.fog){
+        if(viewer == null || !state.rules.staticFog || !state.rules.fog || hidingFog){
             return true;
         }
         if(block.size <= 2){

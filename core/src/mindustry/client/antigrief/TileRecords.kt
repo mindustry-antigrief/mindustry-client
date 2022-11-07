@@ -12,10 +12,12 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.world.*
 import mindustry.world.blocks.*
+import java.time.Instant
 import kotlin.math.abs
 
 object TileRecords {
     private var records: Array<Array<TileRecord>> = arrayOf(arrayOf())
+    var joinTime: Instant = Instant.EPOCH
 
     fun initialize() {
         Events.on(EventType.WorldLoadEvent::class.java) {
@@ -26,12 +28,10 @@ object TileRecords {
 
             ClientVars.lastServerStartTime = startTime
             ClientVars.lastServerName = Vars.state.map.name()
-            if (!ClientVars.syncing && !sameMap) records = Array(Vars.world.width()) { x -> Array(Vars.world.height()) Tile@ { y ->
-                val record = TileRecord(x, y)
-                val tile = Vars.world.tile(x, y)
-                record.add(PreexistingTileLog(tile, tile.block(), tile.build?.rotation ?: 0, tile.build?.config(), isOrigin(tile)), tile)
-                return@Tile record
-            } }
+            if (!ClientVars.syncing && !sameMap) {
+                records = Array(Vars.world.width()) { x -> Array(Vars.world.height()) { y -> TileRecord(x, y) } }
+                joinTime = Instant.now()
+            }
         }
 
         Events.on(EventType.BlockBuildBeginEventBefore::class.java) {
@@ -39,23 +39,24 @@ object TileRecords {
                 it.tile.getLinkedTiles { tile ->
                     addLog(tile, TileBreakLog(tile, it.unit.toInteractor(), tile.block()))
                 }
-            }
-        }
-
-        Events.on(EventType.BlockBuildBeginEvent::class.java) {
-            if (!it.breaking && it.tile.build != null) { // TODO: Find out why the hell is tile.build sometimes null. This SHOULD NOT happen.
-                it.tile.getLinkedTilesAs(it.tile.block()) { tile ->
-                    addLog(tile, TilePlacedLog(tile, it.unit.toInteractor(),
-                        (it.tile.build as? ConstructBlock.ConstructBuild)?.current ?: it.tile.block(),
-                        it.tile.build.rotation, it.tile.build.config(), isOrigin(tile)))
+            } else { // FINISHME: slightly very inefficient?
+                it.tile.getLinkedTilesAs(it.newBlock) { tile ->
+                    val log = TilePlacedLog(tile, it.unit.toInteractor(),
+                        it.newBlock, -1, null, isOrigin(tile))
+                    addLog(tile, log)
+                    Core.app.post { // When BlockBuildBeginEvent is fired. Or the building is just rotated.
+                        log.updateLog(tile.build?.rotation, tile.build?.config())
+                    }
                 }
             }
         }
 
         Events.on(EventType.BlockBuildEndEvent::class.java) {
             if (it.breaking) return@on
-            val record = this[it.tile] ?: return@on
-            (record.logs!!.last().logs.last() as? TilePlacedLog)?.configuration = it.tile.build?.config()
+            it.tile.getLinkedTiles { tile ->
+                val sequence = this[tile]?.sequences ?: return@getLinkedTiles
+                (sequence.last().logs.lastOrNull() as? TilePlacedLog)?.configuration = it.tile.build.config() ?: return@getLinkedTiles
+            }
         }
 
         Events.on(EventType.ConfigEventBefore::class.java) {
@@ -124,7 +125,7 @@ object TileRecords {
         }.show()
     }
 
-    private fun isOrigin(tile: Tile): Boolean {
+    fun isOrigin(tile: Tile): Boolean {
 //        return tile.build?.pos() == tile.pos()
         return tile.build?.tile == tile // Ahem. Why did this break everything
     }
