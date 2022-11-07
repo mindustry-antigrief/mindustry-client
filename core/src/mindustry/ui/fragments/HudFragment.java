@@ -14,6 +14,7 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import kotlin.collections.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
@@ -107,7 +108,7 @@ public class HudFragment{
         //"waiting for players"
         parent.fill(t -> {
             t.name = "waiting";
-            t.visible(() -> netServer.isWaitingForPlayers()).touchable = Touchable.disabled;
+            t.visible(() -> netServer.isWaitingForPlayers() && state.isPaused() && shown).touchable = Touchable.disabled;
             t.table(Styles.black6, top -> top.add("@waiting.players").style(Styles.outlineLabel).pad(18f));
         });
 
@@ -164,14 +165,14 @@ public class HudFragment{
                         if(net.active()){
                             ui.listfrag.toggle();
                         }else{
-                            state.set(state.is(State.paused) ? State.playing : State.paused);
+                            state.set(state.isPaused() ? State.playing : State.paused);
                         }
                     }).name("pause").update(i -> {
                         if(net.active()){
                             i.getStyle().imageUp = Icon.players;
                         }else{
                             i.setDisabled(false);
-                            i.getStyle().imageUp = state.is(State.paused) ? Icon.play : Icon.pause;
+                            i.getStyle().imageUp = state.isPaused() ? Icon.play : Icon.pause;
                         }
                     });
 
@@ -297,7 +298,7 @@ public class HudFragment{
                 info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel).name("fps");
                 info.row();
 
-                info.label(() -> plans.get(player.unit().plans.size)).left() // Buildplan count
+                info.label(() -> plans.get(player.unit().plans.size, ClientVars.frozenPlans.size)).left() // Buildplan count
                 .style(Styles.outlineLabel).name("plans");
                 info.row();
 
@@ -341,7 +342,7 @@ public class HudFragment{
                     }
                     lastWarn = Time.millis(); // Reset timer so that it sends 30s after the last core damage rather than every 30s FINISHME: Better way to do this?
                     coreAttackTime[0] = notifDuration;
-                    ClientVars.coreWarnPos.set(event.core.x, event.core.y);
+                    ClientVars.lastCorePos.set(event.core.x, event.core.y);
                 });
 
                 //'core is under attack' table
@@ -359,8 +360,8 @@ public class HudFragment{
                 .touchable(Touchable.disabled)
                 .fillX()
                 .get().clicked(() -> {
-                    if (Time.timeSinceMillis(lastWarnClick) < 400)  Navigation.navigateTo(ClientVars.coreWarnPos.cpy().scl(tilesize));
-                    else Spectate.INSTANCE.spectate(ClientVars.coreWarnPos.cpy().scl(tilesize));
+                    if (Time.timeSinceMillis(lastWarnClick) < 400)  Navigation.navigateTo(ClientVars.lastCorePos.cpy().scl(tilesize));
+                    else Spectate.INSTANCE.spectate(ClientVars.lastCorePos.cpy().scl(tilesize));
                     lastWarnClick = Time.millis();
                 });
             }).row();

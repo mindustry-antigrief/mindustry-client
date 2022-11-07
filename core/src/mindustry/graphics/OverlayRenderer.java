@@ -1,6 +1,7 @@
 package mindustry.graphics;
 
 import arc.*;
+import arc.func.Boolf;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -9,7 +10,10 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ai.types.*;
+import mindustry.client.ClientVars;
+import mindustry.client.utils.ProcessorFinder;
 import mindustry.entities.*;
+import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
@@ -19,6 +23,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class OverlayRenderer{
     private static final float indicatorLength = 14f;
@@ -69,15 +74,44 @@ public class OverlayRenderer{
     }
 
     public void drawBottom(){
-        InputHandler input = control.input;
+        if(ClientVars.hidingPlans || player.dead()) return;
 
-        if(player.dead()) return;
+//        if (player.isBuilder()) player.unit().drawBuildPlans();
+        player.unit().drawBuildPlans();
+        drawFrozenPlans();
 
-//        if(player.isBuilder()){
-            player.unit().drawBuildPlans();
-//        }
+//        InputHandler input = control.input;
+//        input.drawBottom();
+        control.input.drawBottom();
+    }
 
-        input.drawBottom();
+    public void drawFrozenPlans(){
+        // move frozenPlans.size == 0 out from skip
+        if(frozenPlans.size == 0) return;
+
+        // see player.unit().drawBuildPlans();
+        var team = player.team();
+        var plantopAlpha = 0.24F + Mathf.absin(Time.globalTime, 6.0F, 0.28F);
+        Boolf<BuildPlan> skip = plan ->/*plan.progress > 0.01F ||*/ frozenPlans.first() == plan && plan.initialized && (player.unit().within(plan.x * tilesize, plan.y * tilesize, buildingRange) || state.isEditor());
+
+        for (int i = 0; i < 2; i++) {
+            for (BuildPlan plan : frozenPlans) {
+                if (skip.get(plan)) continue;
+                if (i == 0) {
+                    //drawPlan
+                    plan.animScale = 1.0F;
+                    if (plan.breaking) control.input.drawSelected(plan.x, plan.y, plan.block, Pal.freeze);
+                    else plan.block.drawPlan(plan, (cons) -> {for(var req:frozenPlans)cons.get(req);}, (Build.validPlace(plan.block, team, plan.x, plan.y, plan.rotation) && Build.validPlaceCoreRange(plan.block, team, plan.x, plan.y)) || control.input.planMatches(plan), 1.0F, true);
+                } else {
+                    //drawPlanTop
+                    Draw.reset();
+                    Draw.mixcol(Pal.freeze, plantopAlpha); //TODO: potential optimization here lol
+                    Draw.alpha(1.0F);
+                    plan.block.drawPlanConfigTop(plan, frozenPlans);
+                }
+            }
+        }
+        Draw.reset();
     }
 
     public void drawTop(){
@@ -99,7 +133,7 @@ public class OverlayRenderer{
                 }
             }
 
-            if(Core.settings.getBool("indicators") && !state.rules.fog){
+            if(Core.settings.getBool("indicators") && (!state.rules.fog || hidingFog)){
                 Groups.unit.each(unit -> {
                     if(!unit.isLocal() && unit.team != player.team() && !rect.setSize(Core.camera.width * 0.9f, Core.camera.height * 0.9f)
                     .setCenter(Core.camera.position.x, Core.camera.position.y).contains(unit.x, unit.y)){
@@ -230,7 +264,8 @@ public class OverlayRenderer{
         if(ui.hudfrag.blockfrag.hover() instanceof Unit unit && unit.controller() instanceof LogicAI ai && ai.controller != null && ai.controller.isValid()){
             var build = ai.controller;
             Drawf.square(build.x, build.y, build.block.size * tilesize/2f + 2f);
-            if(!unit.within(build, unit.hitSize * 2f)){
+            if (Core.settings.getBool("tracelogicunits")) build.drawSelect();
+            else if(!unit.within(build, unit.hitSize * 2f)){
                 Drawf.arrow(unit.x, unit.y, build.x, build.y, unit.hitSize *2f, 4f);
             }
         }
@@ -259,6 +294,8 @@ public class OverlayRenderer{
                 }
             }
         }
+        
+        ProcessorFinder.draw();
     }
 
     private static class CoreEdge{

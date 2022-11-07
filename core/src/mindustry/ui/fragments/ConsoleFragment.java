@@ -12,6 +12,7 @@ import arc.scene.ui.TextField.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.game.EventType.*;
 import mindustry.input.*;
 import mindustry.ui.*;
 
@@ -40,11 +41,11 @@ public class ConsoleFragment extends Table{
         visible(() -> {
             if(input.keyTap(Binding.console) && settings.getBool("console") && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null) && !ui.chatfrag.shown()){
                 shown = !shown;
-                if(shown && !open && settings.getBool("console")){
+                if(shown) {
+                    open = false;
                     toggle();
-                }
-                if(shown){
-                    chatfield.requestKeyboard();
+                } else if(!shown){
+                    hide();
                 }
                 clearChatInput();
             }
@@ -175,8 +176,9 @@ public class ConsoleFragment extends Table{
     public void toggle(){
 
         if(!open){
+            Events.fire(Trigger.openConsole);
             scene.setKeyboardFocus(chatfield);
-            open = !open;
+            open = true;
             if(mobile){
                 TextInput input = new TextInput();
                 input.accepted = text -> {
@@ -192,7 +194,7 @@ public class ConsoleFragment extends Table{
             }
         }else{
             scene.setKeyboardFocus(null);
-            open = !open;
+            open = false;
             scrollPos = 0;
             sendMessage();
         }
@@ -225,5 +227,9 @@ public class ConsoleFragment extends Table{
 
     public void addMessage(String message){
         messages.insert(0, message);
+    }
+
+    public void setShown(boolean s){
+        shown = s;
     }
 }

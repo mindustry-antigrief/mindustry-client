@@ -8,6 +8,7 @@ import arc.util.pooling.*
 import mindustry.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.game.*
+import mindustry.world.blocks.storage.*
 import java.util.concurrent.*
 
 /** A way of representing a path */
@@ -40,16 +41,56 @@ abstract class Path {
                 targetPos.set(destX, destY)
                 if (job.isDone) {
                     job = clientThread.submit {
-                        val path = Navigation.navigator.navigate(v1.set(Vars.player), v2.set(destX, destY), Navigation.getEnts())
+                        v1.set(Vars.player) // starting position
+                        if (targetPos.within(destX, destY, 1F) && Navigation.currentlyFollowing != null && waypoints.waypoints.any()) { // Same destination
+                            val point = waypoints.waypoints.first()
+                            if (v1.dst(point) < point.tolerance * 1.5) {
+                                v1.set(point)
+                            }
+                        }
+                        val path = Navigation.navigator.navigate(v1, v2.set(destX, destY), Navigation.getEnts())
                         Pools.freeAll(filter)
                         filter.clear()
-                        if (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>)) { // Same destination
-                            filter.addAll(*path).removeAll { (it.dst(destX, destY) < dist).apply { if (this) Pools.free(it) } }
-
-                            while (filter.size > 1 && filter.min(Vars.player::dst) != filter.first()) Pools.free(filter.remove(0))
-                            if (filter.size > 1 || (filter.any() && filter.first().dst(Vars.player) < Vars.tilesize)) Pools.free(filter.remove(0))
-                            if (filter.size > 1 && Vars.player.unit().isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
-                            waypoints.set(filter)
+                        if (path.isNotEmpty() && (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>))) { // Same destination
+                            val relaxed = Navigation.navigator is AStarNavigatorOptimised
+                            filter.addAll(*path)
+                            if (!relaxed) filter.removeAll { (it.dst(destX, destY) < dist).apply { if (this) Pools.free(it) } }
+                            else while(filter.size > 1 && filter[filter.size - 2].dst(destX, destY) < dist) Pools.free(filter.pop())
+                            if (filter.size > 1) {
+                                val m = filter.min(Vars.player::dst) // from O(n^2) to O(n) (pog) (cool stuff)
+                                if (!relaxed || Vars.player.within(m, m.tolerance)) {
+                                    val i = filter.indexOf(m)
+                                    if (i > 0) { for (j in 0 until i) Pools.free(filter[j]); filter.removeRange(0, i - 1) }
+                            }}
+                            if (!relaxed) {
+                                if (filter.size > 1 || (filter.any() && filter.first().dst(Vars.player) < Vars.tilesize / 2f)) Pools.free(filter.remove(0))
+                                if (filter.size > 1 && Vars.player.unit().isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
+                            } else if (filter.size > 1) {
+                                var prev: Position = v1 // startX, startY should be guaranteed to be behind the player?
+                                var removeTo = -1
+                                for (i in 0 until filter.size) {
+                                    val curr = filter[i]
+                                    if (prev.dst2(curr) >= Vars.player.dst2(prev)) { // find the point where the path crosses through the player
+                                        removeTo = i - 1
+                                        break
+                                    }
+                                    prev = curr
+                                }
+                                if (removeTo >= 0) { for (j in 0 .. removeTo) Pools.free(filter[j]); filter.removeRange(0, removeTo) }
+                                // if (filter[0].dst(filter[1]) >= Vars.player.dst(filter[0])) Pools.free(filter.remove(0))
+                                // by triangular inequality, we check if filter[i] and filter[i+1] are on opposing sides of the player
+                            }
+                            if (filter.any()) {
+                                filter.peek().tolerance = 4f // greater accuracy when stopping
+                                filter.peek().stopOnFinish = true
+                                waypoints.set(filter)
+                            } else {
+                                waypoint.set(destX, destY, 8f, dist)
+                                waypoint.stopOnFinish = true
+                                waypoints.clear().add(waypoint)
+                            }
+                        } else if (path.isEmpty()){
+                            waypoints.clear()
                         } else { // Different destination, this is needed to prevent issues when starting a path at the end of the last one
                             waypoints.clear().add(waypoint.set(-1F, -1F))
                         }
@@ -58,7 +99,10 @@ abstract class Path {
                     }
                 }
             } else { // Not navigating
+//                waypoint.set(destX, destY, if (aStarDist == 0f) 4f else aStarDist, dist)
                 waypoints.set(waypoint.set(destX, destY, 1F, dist).run())
+                waypoint.stopOnFinish = true
+                waypoints.set(waypoint.run())
                 cons?.get(waypoints)
             }
 
@@ -98,4 +142,9 @@ abstract class Path {
     open fun draw() = Unit
 
     abstract fun next(): Position?
+
+    // FINISHME: Unjank minepath core tp on mix tech maps
+//    open fun allowCore(core: CoreBlock.CoreBuild) : Boolean {
+//        return true
+//    }
 }

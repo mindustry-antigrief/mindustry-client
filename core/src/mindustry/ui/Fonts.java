@@ -161,6 +161,8 @@ public class Fonts{
             }
         }
 
+        stringIcons.put("alphachan", stringIcons.get("alphaaaa"));
+
         iconTable = new TextureRegion[512];
         iconTable[0] = Core.atlas.find("error");
         lastCid = 1;
@@ -181,6 +183,14 @@ public class Fonts{
         }
 
         Log.warn("The icon stuff took @", Time.timeSinceNanos(start) / (float) Time.nanosPerMilli);
+    }
+
+    public static TextureFilter getTextFilter(boolean linear){ //TODO: separate into min and max filter
+        return linear ? TextureFilter.linear : TextureFilter.nearest;
+    }
+
+    public static TextureFilter getTextFilter(){
+        return getTextFilter(Core.settings.getBool("lineartext", Core.settings.getBool("linear")));
     }
 
     /** Called from a static context for use in the loading screen.*/
@@ -204,8 +214,8 @@ public class Fonts{
                     scaled.add(parameter.fontParameters);
                 }
 
-                parameter.fontParameters.magFilter = TextureFilter.linear;
-                parameter.fontParameters.minFilter = TextureFilter.linear;
+                parameter.fontParameters.magFilter = getTextFilter();
+                parameter.fontParameters.minFilter = getTextFilter();
                 parameter.fontParameters.packer = UI.packer;
                 return super.loadSync(manager, fileName, file, parameter);
             }
@@ -319,6 +329,7 @@ public class Fonts{
             shadowColor = Color.darkGray;
             shadowOffsetY = 2;
             incremental = true;
+            magFilter = minFilter = getTextFilter();
         }};
     }
 }

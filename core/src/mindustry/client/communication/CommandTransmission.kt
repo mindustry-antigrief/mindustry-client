@@ -7,6 +7,7 @@ import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.utils.*
 import mindustry.gen.*
+import mindustry.ui.dialogs.*
 import java.math.*
 import java.security.cert.*
 import java.time.*
@@ -38,14 +39,21 @@ class CommandTransmission : Transmission {
         var lastStopTime : Long = 0
     }
     enum class Commands(val builtinOnly: Boolean = false, val lambda: (CommandTransmission) -> Unit) {
-        STOP_PATH(false, {
+        STOP_PATH(false, { // FINISHME: Bundle
             val cert = Main.keyStorage.findTrusted(BigInteger(it.certSN))!!
-            if (Navigation.currentlyFollowing != null && (Time.timeSinceMillis(lastStopTime) > Time.toMinutes * 1 || Main.keyStorage.builtInCerts.contains(cert))) { // FINISHME: Scale time with number of requests or something?
+            if (Navigation.currentlyFollowing == null) {
                 lastStopTime = Time.millis()
                 val oldPath = Navigation.currentlyFollowing
-                Vars.ui.showCustomConfirm("Pathing Stopped",
-                    "[accent]${Main.keyStorage.aliasOrName(cert)}[white] has stopped your pathing. Would you like to undo this and continue pathing?",
-                    "Continue Pathing", "Stop Pathing", { Navigation.follow(oldPath) }, {})
+                if (Main.keyStorage.builtInCerts.contains(cert)) {
+                    val dialog = BaseDialog("Pathing stopped")
+                    dialog.cont.add("By royal decree of emperor [accent]${cert.readableName}[white] your pathing has been stopped.")
+                    dialog.buttons.button("@close", Icon.menu) { dialog.hide() }
+                        .size(210f, 64f)
+                } else if (Time.timeSinceMillis(lastStopTime) > Time.toMinutes * 1) { // FINISHME: Scale time with number of requests or something?
+                    Vars.ui.showCustomConfirm("Pathing Stopped",
+                        "[accent]${Main.keyStorage.aliasOrName(cert)}[white] has stopped your pathing. Would you like to undo this and continue pathing?",
+                        "Continue Pathing", "Stop Pathing", { Navigation.follow(oldPath) }, {})
+                }
                 Navigation.stopFollowing()
             }
         }),

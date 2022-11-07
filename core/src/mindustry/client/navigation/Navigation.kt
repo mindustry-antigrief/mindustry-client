@@ -21,13 +21,16 @@ object Navigation {
 
     private val ents = ObjectSet<TurretPathfindingEntity>()
     private var obstacleTree = EntityTree(Rect(0f, 0f, 0f, 0f))
+    private var allyTree = EntityTree(Rect(0f, 0f, 0f, 0f))
     private var tmpTree = EntityTree(Rect(0f, 0f, 0f, 0f))
     private var obstacles = Seq<TurretPathfindingEntity>()
+    private var allies = Seq<TurretPathfindingEntity>()
     lateinit var navigator: Navigator
 
     init {
         Events.on(WorldLoadEvent::class.java) {
             obstacleTree = EntityTree(Vars.world.getQuadBounds(Rect()))
+            allyTree = EntityTree(Vars.world.getQuadBounds(Rect()))
             tmpTree = EntityTree(Vars.world.getQuadBounds(Rect()))
             ents.shrink(51)
         }
@@ -46,7 +49,9 @@ object Navigation {
     }
 
     private var job = CompletableFuture.completedFuture<Seq<TurretPathfindingEntity>>(null)
+    private var allyJob = CompletableFuture.completedFuture<Seq<TurretPathfindingEntity>>(null)
     private var updatingEnts = AtomicInteger(0)
+    private var updatingAllyEnts = AtomicInteger(0)
     private var lastFrame = 0L
 
     /** Client thread only */
@@ -66,6 +71,25 @@ object Navigation {
             obstacleTree = tree
         }
         return obstacles
+    }
+
+    /** Client thread only */
+    private fun updateAllyEnts(force: Boolean = false): Seq<TurretPathfindingEntity> {
+        if ((force || updatingAllyEnts.get() <= 0) && Core.graphics.frameId > lastFrame) { // Update once per frame
+            lastFrame = Core.graphics.frameId
+            val tree = tmpTree
+            tree.clear()
+            allies = Seq()
+            for (ent in ents) {
+                if (ent.entity.team() == Vars.player.team()) {
+                    tree.insert(ent)
+                    allies.add(ent)
+                }
+            }
+            tmpTree = allyTree
+            allyTree = tree
+        }
+        return allies
     }
 
     @JvmStatic
@@ -88,11 +112,37 @@ object Navigation {
         return obstacleTree
     }
 
+    @JvmStatic
+    /** Thread safe */
+    fun getAllyEnts(): Seq<TurretPathfindingEntity> {
+        if (Thread.currentThread().name == "main") {
+            if (updatingAllyEnts.get() <= 0) submit(::updateAllyEnts).get()
+            updatingAllyEnts.set(2)
+        } else updateAllyEnts()
+        return allies
+    }
+
+    /** Thread safe */
+    @JvmStatic
+    fun getAllyTree(): EntityTree {
+        if (Thread.currentThread().name == "main") {
+            if (updatingAllyEnts.get() <= 0) submit(::updateAllyEnts).get()
+            updatingAllyEnts.set(2)
+        } else updateAllyEnts()
+        return allyTree
+    }
+
     fun update() {
         if (job.isDone && updatingEnts.get() > 0) {
             if (updatingEnts.get() == 1) obstacles.set(job.get())
             job = submit { updateEnts(true) }
             updatingEnts.decrementAndGet()
+        }
+
+        if (allyJob.isDone && updatingAllyEnts.get() > 0) {
+            if (updatingAllyEnts.get() == 1) allies.set(allyJob.get())
+            allyJob = submit { updateAllyEnts(true) }
+            updatingAllyEnts.decrementAndGet()
         }
 
         if (!isPaused && !Vars.state.isPaused) {

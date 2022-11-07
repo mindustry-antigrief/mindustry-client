@@ -3,8 +3,10 @@ package mindustry.core;
 import arc.*;
 import arc.math.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.ai.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigrief.*;
 import mindustry.client.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
@@ -133,6 +135,7 @@ public class Logic implements ApplicationListener{
 
                 state.rules.coreIncinerates = true;
                 state.rules.waveTeam.rules().infiniteResources = true;
+                state.rules.waveTeam.rules().buildSpeedMultiplier *= state.getPlanet().enemyBuildSpeedMultiplier;
 
                 //fill enemy cores by default? TODO decide
                 for(var core : state.rules.waveTeam.cores()){
@@ -338,13 +341,19 @@ public class Logic implements ApplicationListener{
             return;
         }
 
+        boolean initial = !state.rules.sector.info.wasCaptured;
+
         state.rules.sector.info.wasCaptured = true;
 
         //fire capture event
-        Events.fire(new SectorCaptureEvent(state.rules.sector));
+        Events.fire(new SectorCaptureEvent(state.rules.sector, initial));
 
         //disable attack mode
         state.rules.attackMode = false;
+
+        //map is over, no more world processor objective stuff
+        state.rules.disableWorldProcessors = true;
+        state.rules.objectives.clear();
 
         //save, just in case
         if(!headless && !net.client()){
@@ -365,9 +374,7 @@ public class Logic implements ApplicationListener{
     public static void gameOver(Team winner){
         state.stats.wavesLasted = state.wave;
         state.won = player.team() == winner;
-        Time.run(60f * 3f, () -> {
-            ui.restart.show(winner);
-        });
+        Time.run(60f * 3f, () -> ui.restart.show(winner));
         netClient.setQuiet();
 //        if (net.client()) Events.fire(new GameOverEvent(winner));
     }
@@ -377,6 +384,7 @@ public class Logic implements ApplicationListener{
     public static void researched(Content content){
         if(!(content instanceof UnlockableContent u)) return;
 
+        //TODO node is wrong for shared tech nodes
         var node = u.techNode;
 
         //unlock all direct dependencies on client, permanently
@@ -386,39 +394,6 @@ public class Logic implements ApplicationListener{
         }
 
         state.rules.researched.add(u.name);
-    }
-
-    //called when the remote server runs a turn and produces something
-    @Remote
-    public static void sectorProduced(int[] amounts){
-        //TODO currently disabled.
-        if(!state.isCampaign() || true) return;
-
-        Planet planet = state.rules.sector.planet;
-        boolean any = false;
-
-        for(Item item : content.items()){
-            int am = amounts[item.id];
-            if(am > 0){
-                int sumMissing = planet.sectors.sum(s -> s.hasBase() ? s.info.storageCapacity - s.info.items.get(item) : 0);
-                if(sumMissing == 0) continue;
-                //how much % to add
-                double percent = Math.min((double)am / sumMissing, 1);
-                for(Sector sec : planet.sectors){
-                    if(sec.hasBase()){
-                        int added = (int)Math.ceil(((sec.info.storageCapacity - sec.info.items.get(item)) * percent));
-                        sec.info.items.add(item, added);
-                        any = true;
-                    }
-                }
-            }
-        }
-
-        if(any){
-            for(Sector sec : planet.sectors){
-                sec.saveInfo();
-            }
-        }
     }
 
     @Override

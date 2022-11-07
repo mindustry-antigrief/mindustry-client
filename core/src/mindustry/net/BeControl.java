@@ -5,6 +5,7 @@ import arc.files.*;
 import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.Timer;
 import arc.util.serialization.*;
 import mindustry.core.*;
 import mindustry.game.*;

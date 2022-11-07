@@ -1,6 +1,10 @@
 package mindustry.client.utils
 
 import arc.util.*
+import arc.*
+import mindustry.client.*
+import mindustry.client.antigrief.*
+import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.antigrief.*
 import mindustry.world.blocks.logic.LogicBlock.*
@@ -16,7 +20,15 @@ object ProcessorPatcher {
         set \3 0                                   # _attem = 0
         """.replace("\\s+#.+$".toRegex(RegexOption.MULTILINE), "").trimIndent().toRegex() // The regex comment mode is dumb
 
-    private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
+    public val jumpMatcher = "jump (\\d+)(.*)".toRegex()
+
+    public val attemText = """
+        print "Please do not use this delivery logic."
+        print "It is attem83 logic and is considered bad logic"
+        print "as it breaks other delivery logic and even other attem logic."
+        print "For more info please go to https://mindustry.dev/attem."
+        printflush message1
+    """.trimIndent();
 
     fun countProcessors(builds: Iterable<LogicBuild>): Int {
         Time.mark()
@@ -25,17 +37,28 @@ object ProcessorPatcher {
         return count
     }
 
-    fun patch(code: String): String {
+    fun isAttem(code: String): Boolean {
+        return attemMatcher.containsMatchIn(code)
+    }
+
+    fun patch(code: String): String {return patch(code, if(Core.settings.getBool("removeatteminsteadoffixing")) "r" else "c")}
+    fun patch(code: String, mode: String): String {
         val result = attemMatcher.find(code) ?: return code
 
-        val groups = result.groupValues
-        val bindLine = (0..result.range.first).count { code[it] == '\n' }
-        return buildString {
-            replaceJumps(this, code.substring(0, result.range.first), bindLine)
-            append(groups[1])
-            append("\nsensor ").append(groups[2]).append(" @unit @flag\n")
-            append("jump ").append(bindLine).append(" notEqual ").append(groups[2]).append(' ').append(groups[4]).append('\n')
-            replaceJumps(this, code.substring(result.range.last + 1), bindLine)
+        return when (mode) {
+            "c" -> {
+                val groups = result.groupValues
+                val bindLine = (0..result.range.first).count { code[it] == '\n' }
+                buildString {
+                    replaceJumps(this, code.substring(0, result.range.first), bindLine)
+                    append(groups[1])
+                    append("\nsensor ").append(groups[2]).append(" @unit @flag\n")
+                    append("jump ").append(bindLine).append(" notEqual ").append(groups[2]).append(' ').append(groups[4]).append('\n')
+                    replaceJumps(this, code.substring(result.range.last + 1), bindLine)
+                }
+            }
+            "r" -> attemText
+            else -> code
         }
     }
 
@@ -51,13 +74,7 @@ object ProcessorPatcher {
     }
 
     fun inform(build: LogicBuild) {
-        ClientVars.configs.add(ConfigRequest(build.tileX(), build.tileY(), compress("""
-            print "Please do not use this logic "
-            print "this attem logic is not good "
-            print "it breaks other logic "
-            print "more info at mindustry.dev/attem"
-            printflush message1
-        """.trimIndent(), build.relativeConnections()
+        ClientVars.configs.add(ConfigRequest(build.tileX(), build.tileY(), compress(attemText, build.relativeConnections()
         )))
     }
 }

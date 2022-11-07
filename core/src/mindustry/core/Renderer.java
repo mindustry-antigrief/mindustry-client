@@ -25,6 +25,7 @@ import mindustry.world.blocks.storage.CoreBlock.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class Renderer implements ApplicationListener{
     /** These are global variables, for headless access. Cached. */
@@ -362,7 +363,7 @@ public class Renderer implements ApplicationListener{
         }
 
         Draw.draw(Layer.overlayUI, overlays::drawTop);
-        if(state.rules.fog) Draw.draw(Layer.fogOfWar, fog::drawFog);
+        if(state.rules.fog && !hidingFog) Draw.draw(Layer.fogOfWar, fog::drawFog);
         Draw.draw(Layer.space, this::drawLanding);
 
         Events.fire(Trigger.drawOver);
@@ -629,7 +630,7 @@ public class Renderer implements ApplicationListener{
     }
 
     public float maxScale(){
-        return Mathf.round(Scl.scl(12));
+        return Mathf.round(Scl.scl(300));
     }
 
     public float getScale(){

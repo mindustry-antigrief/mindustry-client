@@ -39,3 +39,23 @@ function extend(/*Base, ..., def*/){
     }
     return instance
 }
+
+//Below utility functions by BalaM314
+
+function makeUnit(unit, x, y, team){
+    if(team == undefined) team = Team.sharded;
+    let payload = new UnitPayload(unit.create(team));
+    payload.set(x * 8, y * 8, 0);
+    payload.dump();
+}
+
+function info(object){
+    return Object.keys(object).toString();
+}
+
+function targetedBuilding(){
+    return Vars.world.build(Vars.player.unit().aimX / 8 + 0.5, Vars.player.unit().aimY / 8 + 0.5);
+}
+
+//more coming soon
+

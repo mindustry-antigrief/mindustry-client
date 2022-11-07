@@ -44,11 +44,11 @@ public class UnitPicker extends BaseDialog {
             labels.add(new Label(""));
         }
         TextField searchField = cont.field("", string -> {
-            sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshteinInsensitive(string, b.localizedName));
+            sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshteinInsensitive(string, b.name));
             for (int i = 0; i < imgs.size; i++) {
                 Image region = new Image(sorted.get(i).uiIcon);
                 imgs.get(i).setDrawable(region.getDrawable());
-                labels.get(i).setText(sorted.get(i).localizedName);
+                labels.get(i).setText(sorted.get(i).name);
             }
         }).get();
         for(int i = 0; i < 10; i++){
@@ -85,10 +85,13 @@ public class UnitPicker extends BaseDialog {
 
     }
 
-    public boolean pickUnit(UnitType type) {
+    public boolean pickUnit(UnitType type){
+        return pickUnit(type, player.x, player.y, false);
+    }
+    public boolean pickUnit(UnitType type, float x, float y, boolean fast) {
         hide();
         if (type == null) return false;
-        var found = findUnit(type);
+        var found = findUnit(type, x, y, fast);
 
         Toast t = new Toast(3);
         if (found != null) {
@@ -101,12 +104,23 @@ public class UnitPicker extends BaseDialog {
         }
         return found != null;
     }
+    
+    public void unpickUnit() {
+        this.type = null;
+    }
 
     public Unit findUnit(UnitType type) {
+        return findUnit(type, player.x, player.y);
+    }
+    public Unit findUnit(UnitType type, float x, float y) {
         Unit found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof LogicAI)); // Non logic units
         if (found == null) found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead); // All units
 
         return found;
+    }
+    public Unit findUnit(UnitType type, float x, float y, boolean fast) {
+        if(!fast) return findUnit(type, x, y);
+        return Units.closest(player.team(), x, y, u -> !u.isPlayer() && u.type == type && !u.dead);
     }
 
     private void setup(){

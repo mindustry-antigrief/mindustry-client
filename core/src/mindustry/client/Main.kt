@@ -63,7 +63,7 @@ object Main : ApplicationListener {
 
         communicationClient = Packets.CommunicationClient(communicationSystem)
 
-        Navigation.navigator = AStarNavigator
+        Navigation.navigator = AStarNavigatorOptimised
 
         Events.on(EventType.WorldLoadEvent::class.java) {
             if (!Vars.net.client()) { // This is so scuffed but shh
@@ -85,10 +85,6 @@ object Main : ApplicationListener {
 
             ClientVars.pluginVersion = Strings.parseInt(version)
             setPluginNetworking(true)
-        }
-
-        Vars.netServer.addPacketHandler("pause") { p, _ ->
-            if (p.admin) Vars.state.serverPaused = !Vars.state.serverPaused
         }
 
         communicationClient.addListener { transmission, senderId ->

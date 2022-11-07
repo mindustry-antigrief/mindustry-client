@@ -24,6 +24,7 @@ import mindustry.world.blocks.power.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class BlockRenderer{
     //TODO cracks take up far to much space, so I had to limit it to 7. this means larger blocks won't have cracks - draw tiling mirrored stuff instead?
@@ -71,7 +72,7 @@ public class BlockRenderer{
             shadowEvents.clear();
             updateFloors.clear();
             lastCamY = lastCamX = -99; //invalidate camera position so blocks get updated
-            hadMapLimit = state.rules.limitMapArea;
+            hadMapLimit = state.rules.limitMapArea && !hidingFog;
 
             shadows.getTexture().setFilter(TextureFilter.linear, TextureFilter.linear);
             shadows.resize(world.width(), world.height());
@@ -88,7 +89,7 @@ public class BlockRenderer{
                     updateFloors.add(new UpdateRenderState(tile, tile.floor()));
                 }
 
-                if(tile.build != null && (tile.team() == player.team() || !state.rules.fog || (tile.build.visibleFlags & (1L << player.team().id)) != 0)){
+                if(tile.build != null && (tile.team() == player.team() || (!state.rules.fog || hidingFog) || (tile.build.visibleFlags & (1L << player.team().id)) != 0)){
                     tile.build.wasVisible = true;
                 }
 
@@ -106,7 +107,7 @@ public class BlockRenderer{
 
         //sometimes darkness gets disabled.
         Events.run(Trigger.newGame, () -> {
-            if(hadMapLimit && !state.rules.limitMapArea){
+            if(hadMapLimit && (!state.rules.limitMapArea || hidingFog)){
                 updateDarkness();
                 renderer.minimap.updateAll();
             }
@@ -150,18 +151,18 @@ public class BlockRenderer{
         dark.begin();
 
         //fill darkness with black when map area is limited
-        Core.graphics.clear(state.rules.limitMapArea ? Color.black : Color.white);
+        Core.graphics.clear(state.rules.limitMapArea && !hidingFog ? Color.black : Color.white);
         Draw.proj().setOrtho(0, 0, dark.getWidth(), dark.getHeight());
 
         //clear out initial starting area
-        if(state.rules.limitMapArea){
+        if(state.rules.limitMapArea && !hidingFog){
             Draw.color(Color.white);
             Fill.crect(state.rules.limitX, state.rules.limitY, state.rules.limitWidth, state.rules.limitHeight);
         }
 
         for(Tile tile : world.tiles){
             //skip lighting outside rect
-            if(state.rules.limitMapArea && !Rect.contains(state.rules.limitX, state.rules.limitY, state.rules.limitWidth - 1, state.rules.limitHeight - 1, tile.x, tile.y)){
+            if(state.rules.limitMapArea && !hidingFog && !Rect.contains(state.rules.limitX, state.rules.limitY, state.rules.limitWidth - 1, state.rules.limitHeight - 1, tile.x, tile.y)){
                 continue;
             }
 
@@ -265,7 +266,7 @@ public class BlockRenderer{
     public void drawDestroyed(){
         if(!Core.settings.getBool("destroyedblocks")) return;
 
-        if(control.input.isPlacing() || control.input.isBreaking() || control.input.selectPlans.any()){
+        if(control.input.isPlacing() || control.input.isBreaking() || control.input.isRebuildSelecting() || control.input.selectPlans.any()){
             brokenFade = Mathf.lerpDelta(brokenFade, 1f, 0.1f);
         }else{
             brokenFade = Mathf.lerpDelta(brokenFade, 0f, 0.1f);
@@ -294,7 +295,7 @@ public class BlockRenderer{
 
             for(Tile tile : shadowEvents){
                 //draw white/shadow color depending on blend
-                Draw.color((!tile.block().hasShadow || (state.rules.fog && tile.build != null && !tile.build.wasVisible)) ? Color.white : blendShadowColor);
+                Draw.color((!tile.block().hasShadow || (state.rules.fog && !hidingFog && tile.build != null && !tile.build.wasVisible)) ? Color.white : blendShadowColor);
                 Fill.rect(tile.x + 0.5f, tile.y + 0.5f, 1, 1);
             }
 
@@ -427,12 +428,13 @@ public class BlockRenderer{
 
                 if(build != null){
                     if(visible){
+                        build.visibleFlags |= (1L << pteam.id);
                         if(!build.wasVisible){
+                            build.wasVisible = true;
                             updateShadow(build);
                             renderer.minimap.update(tile);
                             build.wasVisible = true;
                         }
-                        build.visibleFlags |= (1L << pteam.id);
                     }
 
                     if(build.damaged()){

@@ -317,6 +317,11 @@ public class ItemModule extends BlockModule{
         total = 0;
     }
 
+    // i'm sorry i'm sorry i'm sorry i'-
+    public int[] getAllItems(){
+        return items;
+    }
+
     @Override
     public void write(Writes write){
         int amount = 0;

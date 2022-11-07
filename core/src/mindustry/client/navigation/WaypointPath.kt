@@ -5,6 +5,7 @@ import arc.graphics.*
 import arc.graphics.g2d.*
 import arc.math.geom.*
 import arc.struct.*
+import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.graphics.*
 
@@ -97,16 +98,19 @@ class WaypointPath<T : Waypoint> : Path {
     override fun draw() {
         if (!show) return
 
-        var lastWaypoint: Position? = null
+        var lastWaypoint : Position? = if (Navigation.currentlyFollowing != null && Path.waypoints == this) player else null
         Draw.z(Layer.space)
         for (waypoint in waypoints) {
             if (waypoint !is Position) continue
-                if (lastWaypoint != null) {
-                    Draw.color(Color.blue, 0.4f)
-                    Lines.stroke(3f)
-                    Lines.line(lastWaypoint.x, lastWaypoint.y, waypoint.x, waypoint.y)
-                }
+            if (lastWaypoint !is Position) {
                 lastWaypoint = waypoint
+                continue
+            }
+            if (waypoint.dst(-1f, -1f) < 0.001f) continue // don't draw the -1 -1
+            Draw.color(Color.cyan, 0.6f)
+            Lines.stroke(3f)
+            Lines.line(lastWaypoint.x, lastWaypoint.y, waypoint.x, waypoint.y)
+            lastWaypoint = waypoint
             waypoint.draw()
             Draw.color()
         }

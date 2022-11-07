@@ -78,6 +78,7 @@ public class UI implements ApplicationListener, Loadable{
     public ColorPicker picker;
     public LogicDialog logic;
     public FullTextDialog fullText;
+    public CampaignCompleteDialog campaignComplete;
 
     public Cursor drillCursor, unloadCursor, targetCursor;
 
@@ -203,6 +204,7 @@ public class UI implements ApplicationListener, Loadable{
         schematics = new SchematicsDialog();
         logic = new LogicDialog();
         fullText = new FullTextDialog();
+        campaignComplete = new CampaignCompleteDialog();
 
         // Client related
         unitPicker = new UnitPicker();
@@ -329,7 +331,6 @@ public class UI implements ApplicationListener, Loadable{
 
     /** Shows a fading label at the top of the screen. */
     public void showInfoToast(String info, float duration){
-        if (ClientUtils.io()) return; // .io admins are known to abuse this
         var cinfo = Core.scene.find("coreinfo");
         Table table = new Table();
         table.touchable = Touchable.disabled;
@@ -571,10 +572,14 @@ public class UI implements ApplicationListener, Loadable{
 
     /** Shows a menu that fires a callback when an option is selected. If nothing is selected, -1 is returned. */
     public void showMenu(String title, String message, String[][] options, Intc callback){
-        new Dialog(title){{
+        new Dialog("[accent]" + title){{
             setFillParent(true);
             removeChild(titleTable);
             cont.add(titleTable).width(400f);
+
+            getStyle().titleFontColor = Color.white;
+            title.getStyle().fontColor = Color.white;
+            title.setStyle(title.getStyle());
 
             cont.row();
             cont.image().width(400f).pad(2).colspan(2).height(4f).color(Pal.accent).bottom();
@@ -615,7 +620,7 @@ public class UI implements ApplicationListener, Loadable{
         long mag = Math.abs(number);
         String sign = number < 0 ? "-" : "";
         if(mag >= 1_000_000_000){
-            return sign + Strings.fixed(mag / 1_000_000_000f, 1) + "[gray]" + billions+ "[]";
+            return sign + Strings.fixed(mag / 1_000_000_000f, 1) + "[gray]" + billions + "[]";
         }else if(mag >= 1_000_000){
             return sign + Strings.fixed(mag / 1_000_000f, 1) + "[gray]" + millions + "[]";
         }else if(mag >= 10_000){

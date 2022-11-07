@@ -18,6 +18,7 @@ import mindustry.client.*;
 import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
@@ -79,7 +80,7 @@ public class ChatFragment extends Table{
                     historyPos--;
                     updateChat();
                 }
-                if (input.keyTap(Binding.chat_autocomplete) && completion.any() && mode == ChatMode.normal) {
+                if (input.keyTap(Binding.chat_autocomplete) && completion.any() /*&& mode == ChatMode.normal*/) {
                     completionPos = Mathf.clamp(completionPos, 0, completion.size - 1);
                     chatfield.setText(completion.get(completionPos).getCompletion(chatfield.getText()) + " ");
                     updateCursor();
@@ -164,12 +165,31 @@ public class ChatFragment extends Table{
         bottom().left().marginBottom(offsety).marginLeft(offsetx * 2);
         button(Icon.uploadSmall, uploadStyle, UploadDialog.INSTANCE::show).padRight(5f).tooltip("Upload Images").visible(() -> shown).checked(h -> UploadDialog.INSTANCE.hasImage()); // FINISHME: Bundle
         add(fieldlabel).padBottom(6f);
+        chatfield.typed(this::handleType);
+
+        bottom().left().marginBottom(offsety).marginLeft(offsetx * 2).add(fieldlabel).padBottom(6f);
 
         add(chatfield).padBottom(offsety).padLeft(offsetx).growX().padRight(offsetx).height(28);
 
         if(Vars.mobile){
             marginBottom(105f);
             marginRight(240f);
+        }
+    }
+
+    //no mobile support.
+    private void handleType(char c){
+        int cursor = chatfield.getCursorPosition();
+        if(c == ':'){
+            int index = chatfield.getText().lastIndexOf(':', cursor - 2);
+            if(index >= 0 && index < cursor){
+                String text = chatfield.getText().substring(index + 1, cursor - 1);
+                String uni = Fonts.getUnicodeStr(text);
+                if(uni != null && uni.length() > 0){
+                    chatfield.setText(chatfield.getText().substring(0, index) + uni + chatfield.getText().substring(cursor));
+                    chatfield.setCursorPosition(index + uni.length());
+                }
+            }
         }
     }
 
@@ -355,10 +375,37 @@ public class ChatFragment extends Table{
             message = message.replaceFirst("^" + mode.prefix + " ([/!])", "$1");
         }
 
+        StringBuilder messageBuild = new StringBuilder(message);
+
+        for (var entry : ClientVars.containsCommandHandler.entries()){ // s l o w
+            String prefix = entry.key;
+            int pos = -1;
+            while (true) {
+                pos = messageBuild.indexOf(prefix, pos + 1);
+                if(pos == -1 || pos == messageBuild.length() - 1) break;
+                String tmp = messageBuild.substring(pos + 1);
+                if(tmp.startsWith(prefix)){ // double prefix - escaped
+                    messageBuild.deleteCharAt(pos);
+                    continue;
+                }
+                for(var pair : entry.value){
+                    String cmd = pair.getFirst();
+                    if(tmp.startsWith(cmd)){
+                        String replace = pair.getSecond().get();
+                        messageBuild.replace(pos, pos + cmd.length() + 1, replace);
+                        pos += replace.length() - 1;
+                        break;
+                    }
+                }
+            }
+        }
+        message = messageBuild.toString();
+
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
             String msg = Main.INSTANCE.sign(message);
+            Events.fire(new ClientChatEvent(message));
             Call.sendChatMessage(msg);
             if (message.startsWith(netServer.clientCommands.getPrefix() + "sync")) { // /sync
                 ClientVars.syncing = true;
@@ -366,7 +413,7 @@ public class ChatFragment extends Table{
             if (!message.startsWith(netServer.clientCommands.getPrefix())) { // Only fire when not running any command
                 Events.fire(new EventType.SendChatMessageEvent(msg));
             }
-
+            return;
         }else{
 
             //a command was sent, now get the output
@@ -399,7 +446,11 @@ public class ChatFragment extends Table{
 
                 player.sendMessage(text);
             }
+            return;
         }
+        
+
+        
     }
 
     public void toggle(){
@@ -581,7 +632,7 @@ public class ChatFragment extends Table{
         private void format(boolean moveButtons) {
             int initial = formattedMessage.length();
             if(sender == null){ //no sender, this is a server message?
-                formattedMessage = message == null ? prefix : prefix + message;
+                formattedMessage = prefix + (message == null ? "" : message);
             } else {
                 formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
             }

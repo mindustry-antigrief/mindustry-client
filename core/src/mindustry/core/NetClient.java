@@ -40,7 +40,7 @@ import java.util.zip.*;
 import static mindustry.Vars.*;
 
 public class NetClient implements ApplicationListener{
-    private static final float dataTimeout = 60 * 30;
+    private static final float dataTimeout = 60 * 30; // Give up after 30s (vanilla is 20s)
     /** ticks between syncs, e.g. 5 means 60/5 = 12 syncs/sec*/
     private static final float playerSyncTime = 4;
     private static final Reads dataReads = new Reads(null);
@@ -223,6 +223,12 @@ public class NetClient implements ApplicationListener{
                 if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
+            if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
+                Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
+                    "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
+                    "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
+                );
+            
             // highlight coords and set as the last position
             unformatted = processCoords(unformatted, true);
             message = processCoords(message, unformatted != null);
@@ -230,6 +236,9 @@ public class NetClient implements ApplicationListener{
             ChatFragment.ChatMessage output;
 
             if (playersender != null) {
+                if (ClientVars.mutedPlayers.contains( p -> p.getSecond() == playersender.id || (p.getFirst() != null && playersender.name.equals(p.getFirst().name)))) {
+                    return; // Just ignore them
+                }
                 // from a player
 
                 // if it's an admin or team message, incorporate that into the prefix because the original formatting will be discarded
@@ -245,18 +254,13 @@ public class NetClient implements ApplicationListener{
                 output.addButton(output.formattedMessage.indexOf(playersender.coloredName()), playersender.coloredName().length() + 16 + output.prefix.length(), () -> Spectate.INSTANCE.spectate(playersender));
             } else {
                 // server message, unformatted is ignored
-                output = Vars.ui.chatfrag.addMessage(message, null, null, "", "");
+                output = ui.chatfrag.addMessage(message, null, null, "", "");
             }
 
             findCoords(output);
             findLinks(output);
 
             Sounds.chatMessage.play();
-            if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
-                Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
-                    "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
-                    "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
-                );
         }
 
         //display raw unformatted text above player head
@@ -358,6 +362,13 @@ public class NetClient implements ApplicationListener{
     public static void sendChatMessage(Player player, String message){
         //do not receive chat messages from clients that are too young or not registered
         if(net.server() && player != null && player.con != null && (Time.timeSinceMillis(player.con.connectTime) < 500 || !player.con.hasConnected || !player.isAdded())) return;
+
+        //detect and kick for foul play
+        if(player != null && player.con != null && !player.con.chatRate.allow(2000, 20)){
+            player.con.kick(KickReason.kick);
+            netServer.admins.blacklistDos(player.con.address);
+            return;
+        }
 
         if(message.length() > maxTextLength){
             throw new ValidateException(player, "Player has sent a message above the text limit.");
@@ -622,7 +633,9 @@ public class NetClient implements ApplicationListener{
             state.wavetime = waveTime;
             state.wave = wave;
             state.enemies = enemies;
-            state.serverPaused = paused;
+            if(!state.isMenu()){
+                state.set(paused ? State.paused : State.playing);
+            }
             state.serverTps = tps & 0xff;
 
             //note that this is far from a guarantee that random state is synced - tiny changes in delta and ping can throw everything off again.

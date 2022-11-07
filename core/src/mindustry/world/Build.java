@@ -8,6 +8,7 @@ import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.entities.*;
+import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
@@ -64,10 +65,11 @@ public class Build{
         Core.app.post(() -> Events.fire(new BlockBuildBeginEvent(tile, team, unit, true)));
     }
 
+    public final static Seq<BuildPlan> planSeq = new Seq<>(BuildPlan.class);
     /** Places a ConstructBlock at this location. */
     @Remote(called = Loc.server)
     public static void beginPlace(@Nullable Unit unit, Block result, Team team, int x, int y, int rotation){
-        if(!validPlace(result, team, x, y, rotation)){
+        if(!validPlace(result, team, x, y, rotation) || !validPlaceCoreRange(result, team, x, y) || !validPlaceUnit(result, x, y)){
             return;
         }
 
@@ -120,6 +122,28 @@ public class Build{
 
         result.placeBegan(tile, previous);
 
+        if(player != null){
+            var plans = player.unit().plans;
+            final int planSize = plans.size;
+            if(planSize < 10){
+                // what are the chances of this method being called many times in a frame
+                for(int i = 0; i < planSize; i++){
+                    var plan = plans.get(i);
+                    if(plan.localConfig != null && plan.x == x && plan.y == y && plan.block == build.current){
+                        build.localConfig = plan.localConfig;
+                    }
+                }
+            } else {
+                control.input.playerPlanTree.intersect(result.bounds(x, y, Tmp.r1), planSeq);
+                for(int i = 0; i < planSeq.size; i++){
+                    var plan = planSeq.items[i];
+                    if(plan.localConfig != null && plan.block == build.current){
+                        build.localConfig = plan.localConfig;
+                    }
+                }
+                planSeq.clear();
+            }
+        }
         Core.app.post(() -> Events.fire(new BlockBuildBeginEvent(tile, team, unit, false)));
     }
 
@@ -135,10 +159,13 @@ public class Build{
             return false;
         }
 
+        /*
         if((type.solid || type.solidifes) && Units.anyEntities(x * tilesize + type.offset - type.size*tilesize/2f, y * tilesize + type.offset - type.size*tilesize/2f, type.size * tilesize, type.size*tilesize)){
             return false;
         }
+         */
 
+        /*
         if(!state.rules.editor){
             //find closest core, if it doesn't match the team, placing is not legal
             if(state.rules.polygonCoreProtection){
@@ -160,6 +187,7 @@ public class Build{
                 return false;
             }
         }
+         */
 
         Tile tile = world.tile(x, y);
 
@@ -197,10 +225,6 @@ public class Build{
                 !check.floor().placeableOn || //solid wall
                 (!checkVisible && !check.block().alwaysReplace) || //replacing a block that should be replaced (e.g. payload placement)
                     !((type.canReplace(check.block()) || //can replace type
-                        //controversial change: allow rebuilding damaged blocks
-                        //this could be buggy and abuse-able, so I'm not enabling it yet
-                        //note that this requires a change in BuilderComp as well
-                        //(type == check.block() && check.centerX() == x && check.centerY() == y && check.build != null && check.build.health < check.build.maxHealth - 0.0001f) ||
                         (check.build instanceof ConstructBuild build && build.current == type && check.centerX() == tile.x && check.centerY() == tile.y)) && //same type in construction
                     type.bounds(tile.x, tile.y, Tmp.r1).grow(0.01f).contains(check.block.bounds(check.centerX(), check.centerY(), Tmp.r2))) || //no replacement
                 (type.requiresWater && check.floor().liquidDrop != Liquids.water) //requires water but none found
@@ -215,7 +239,31 @@ public class Build{
         return true;
     }
 
-    public static @Nullable Building getEnemyOverlap(Block block, Team team, int x, int y){
+    public static boolean validPlaceCoreRange(Block type, Team team, int x, int y){
+        if(state.rules.editor) return true;
+        //find closest core, if it doesn't match the team, placing is not legal
+        if(state.rules.polygonCoreProtection){
+            float mindst = Float.MAX_VALUE;
+            CoreBuild closest = null;
+            for(TeamData data : state.teams.active){
+                for(CoreBuild tile : data.cores){
+                    float dst = tile.dst2(x * tilesize + type.offset, y * tilesize + type.offset);
+                    if(dst < mindst){
+                        closest = tile;
+                        mindst = dst;
+                    }
+                }
+            }
+            return closest == null || closest.team == team;
+        }else return !state.teams.anyEnemyCoresWithin(team, x * tilesize + type.offset, y * tilesize + type.offset, state.rules.enemyCoreBuildRadius + tilesize);
+    }
+    
+    /** Whether a build plan intersects a unit here */
+    public static boolean validPlaceUnit(Block type, int x, int y) {
+        return state.rules.editor || !((type.solid || type.solidifes) && Units.anyEntities(x * tilesize + type.offset - type.size*tilesize/2f, y * tilesize + type.offset - type.size*tilesize/2f, type.size * tilesize, type.size*tilesize));
+    }
+    
+    public static @Nullable Building getEnemyOverlap(Block block, Team team, int x, int y) {
         return indexer.findEnemyTile(team, x * tilesize + block.size, y * tilesize + block.size, block.placeOverlapRange + 4f, p -> true);
     }
 

@@ -49,7 +49,7 @@ public class StatValues{
 
     public static StatValue number(float value, StatUnit unit, boolean merge){
         return table -> {
-            String l1 = fixValue(value), l2 = (unit.space ? " " : "") + unit.localized();
+            String l1 = (unit.icon == null ? "" : unit.icon + " ") + fixValue(value), l2 = (unit.space ? " " : "") + unit.localized();
 
             if(merge){
                 table.add(l1 + l2);
@@ -403,7 +403,7 @@ public class StatValues{
                     }
 
                     if(type.status != StatusEffects.none){
-                        sep(bt, (type.status.minfo.mod == null ? type.status.emoji() : "") + "[stat]" + type.status.localizedName + "[lightgray] ~ [stat]" + ((int)(type.statusDuration / 60f)) + "[lightgray] " + Core.bundle.get("unit.seconds"));
+                        sep(bt, (type.status.minfo.mod == null ? type.status.emoji() : "") + "[stat]" + type.status.localizedName + (type.status.reactive ? "" : "[lightgray] ~ [stat]" + ((int)(type.statusDuration / 60f)) + "[lightgray] " + Core.bundle.get("unit.seconds")));
                     }
 
                     if(type.fragBullet != null){

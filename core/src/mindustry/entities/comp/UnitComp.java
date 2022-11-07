@@ -32,6 +32,7 @@ import mindustry.world.blocks.payloads.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 import static mindustry.logic.GlobalVars.*;
 
 @Component(base = true)
@@ -109,6 +110,11 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         lookAt(x, y);
     }
 
+    public boolean isPathImpassable(int tileX, int tileY){
+        return !type.flying && type.pathCost.getCost(team.id, pathfinder.get(tileX, tileY)) == -1;
+    }
+
+
     /** @return approx. square size of the physical hitbox for physics */
     public float physicSize(){
         return hitSize * 0.7f;
@@ -147,6 +153,11 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     }
 
     @Override
+    public boolean displayable(){
+        return type.hoverable;
+    }
+
+    @Override
     @Replace
     public boolean isSyncHidden(Player player){
         //shooting reveals position so bullets can be seen
@@ -162,7 +173,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     @Replace
     public boolean inFogTo(Team viewer){
-        if(this.team == viewer || !state.rules.fog) return false;
+        if(this.team == viewer || !state.rules.fog || hidingFog) return false;
 
         if(hitSize <= 16f){
             return !fogControl.isVisible(viewer, x, y);
@@ -689,6 +700,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         health = Math.min(health, 0);
         dead = true;
 
+        Events.fire(new UnitDeadEvent(self()));
         //don't waste time when the unit is already on the ground, just destroy it
         if(!type.flying || !type.createWreck){
             destroy();
@@ -702,5 +714,11 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
         //deaths are synced; this calls killed()
         Call.unitDeath(id);
+    }
+
+    @Override
+    @Replace
+    public String toString(){
+        return "Unit#" + id() + ":" + type;
     }
 }

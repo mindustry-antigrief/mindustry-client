@@ -73,14 +73,14 @@ abstract class Navigator {
 
         if (Time.timeSinceMillis(lastWp) > 3000) {
             if (map.size > 0) { // CN auto core tp is different as a plugin allows for some magic...
-                val closestCore = map.minByOrNull { it.value.dst(end) }!!
-                if (player.dst(closestCore.value) > buildingRange &&  player.dst(end) > closestCore.value.dst(end)) {
+                val closestCore = map.minByOrNull { it.value.dst2(end) }!!
+                if (player.dst2(closestCore.value) > buildingRange * buildingRange && player.dst2(end) > closestCore.value.dst2(end)) {
                     lastWp = Time.millis() // Try again in 3s
                     Call.sendChatMessage("/wp ${closestCore.key}")
                 }
             } else if (player.unit().spawnedByCore && player.unit().stack.amount == 0) { // Everything that isn't CN
-                val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst(end) }))
-                if (player.dst(bestCore) > buildingRange && player.dst(end) > bestCore.dst(end)) {
+                val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst2(end) }))
+                if (player.dst2(bestCore) > buildingRange * buildingRange && player.dst2(end) > bestCore.dst2(end) && player.dst2(bestCore) > player.unit().speed() * player.unit().speed() * 24 * 24) { // don't try to move if we're already close to that core
                     lastWp = Time.millis() // Try again in 3s
                     Call.buildingControlSelect(player, bestCore)
                 }

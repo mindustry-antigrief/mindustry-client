@@ -14,6 +14,7 @@ import mindustry.gen.*;
 import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.blocks.environment.*;
 import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
@@ -78,14 +79,14 @@ public class BlockIndexer{
             for(Tile tile : world.tiles){
                 process(tile);
 
-                var drop = tile.drop();
+                var drop = tile.drop() != null ? tile.drop() : tile.block().itemDrop;
 
                 if(drop != null){
                     int qx = (tile.x / quadrantSize);
                     int qy = (tile.y / quadrantSize);
 
                     //add position of quadrant to list
-                    if(tile.block() == Blocks.air){
+                    if(tile.floor().wallOre || tile.block() == Blocks.air || tile.block() instanceof Prop){
                         if(ores[drop.id] == null){
                             ores[drop.id] = new IntSeq[quadWidth][quadHeight];
                         }
@@ -143,7 +144,7 @@ public class BlockIndexer{
     public void addIndex(Tile tile){
         process(tile);
 
-        var drop = tile.drop();
+        var drop = tile.drop() != null ? tile.drop() : tile.block().itemDrop;
         if(drop != null && ores != null){
             int qx = tile.x / quadrantSize;
             int qy = tile.y / quadrantSize;
@@ -159,7 +160,7 @@ public class BlockIndexer{
             var seq = ores[drop.id][qx][qy];
 
             //when the drop can be mined, record the ore position
-            if(tile.block() == Blocks.air && !seq.contains(pos)){
+            if((tile.floor().wallOre || tile.block() == Blocks.air || tile.block() instanceof Prop) && !seq.contains(pos)){
                 seq.add(pos);
                 allOres.increment(drop);
             }else{
@@ -356,7 +357,7 @@ public class BlockIndexer{
             if(enemy == team || (enemy == Team.derelict && !state.rules.coreCapture)) continue;
 
             Building candidate = indexer.findTile(enemy, x, y, range, pred, true);
-            if(candidate == null) continue;
+            if(candidate == null || !candidate.isDiscovered(team)) continue;
 
             //if a block has the same priority, the closer one should be targeted
             float dist = candidate.dst(x, y) - candidate.hitSize() / 2f;
@@ -415,7 +416,7 @@ public class BlockIndexer{
                     var arr = ores[item.id][qx][qy];
                     if(arr != null && arr.size > 0){
                         Tile tile = world.tile(arr.first());
-                        if(tile.block() == Blocks.air){
+                        if(tile.floor().wallOre || tile.block() == Blocks.air){
                             float dst = Mathf.dst2(xp, yp, tile.worldx(), tile.worldy());
                             if(closest == null || dst < minDst){
                                 closest = tile;

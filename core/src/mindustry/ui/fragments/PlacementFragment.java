@@ -30,6 +30,7 @@ import mindustry.world.blocks.ConstructBlock.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class PlacementFragment{
     final int rowWidth = 4;
@@ -43,7 +44,7 @@ public class PlacementFragment{
     ObjectFloatMap<Category> scrollPositions = new ObjectFloatMap<>();
     @Nullable Block menuHoverBlock;
     @Nullable Displayable hover;
-    @Nullable Building lastFlowBuild, nextFlowBuild;
+    @Nullable public Building lastFlowBuild, nextFlowBuild;
     @Nullable Object lastDisplayState;
     @Nullable Team lastTeam;
     boolean wasHovered;
@@ -132,10 +133,14 @@ public class PlacementFragment{
         if(Core.input.keyTap(Binding.pick) && !Core.scene.hasDialog() /*&& player.isBuilder()*/){ //mouse eyedropper select
             var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
 
-            //can't middle click buildings in fog
-            if(build != null && build.inFogTo(player.team())){
-                build = null;
-            }
+            // Middle clicking enemy blocks is cool, Anuke. Why would you disable it smh.
+
+	    /*
+              //can't middle click buildings in fog
+	      if(build != null && build.inFogTo(player.team())){
+                   build = null;
+              }
+	    */
 
             Block tryRecipe = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
             Object tryConfig = build == null || !build.block.copyConfig ? null : build.config();
@@ -145,11 +150,23 @@ public class PlacementFragment{
                 Blocks.coreFoundation.isVisible() && Blocks.coreFoundation.unlockedNow() ? Blocks.coreFoundation :
                 null;
 
-            for(BuildPlan req : player.unit().plans()){
+            // TODO: Perhaps better overlap checking?
+            boolean found = false;
+            for(BuildPlan req : frozenPlans){
                 if(!req.breaking && req.block.bounds(req.x, req.y, Tmp.r1).contains(Core.input.mouseWorld())){
                     tryRecipe = req.block;
                     tryConfig = req.config;
+                    found = true;
                     break;
+                }
+            }
+            if (!found) {
+                for(BuildPlan req : player.unit().plans()){
+                    if(!req.breaking && req.block.bounds(req.x, req.y, Tmp.r1).contains(Core.input.mouseWorld())){
+                        tryRecipe = req.block;
+                        tryConfig = req.config;
+                        break;
+                    }
                 }
             }
 

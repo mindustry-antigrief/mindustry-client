@@ -12,6 +12,8 @@ import arc.scene.ui.layout.*
 import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
+import mindustry.Vars.*
+import mindustry.ai.types.*
 import mindustry.client.*
 import mindustry.client.communication.*
 import mindustry.core.*
@@ -329,6 +331,9 @@ private val bytes = ByteArrayOutputStream()
 
 fun compressImage(img: Pixmap): ByteArray {
     try {
+        if (ClientVars.jpegQuality == 0f) {
+            throw ClassNotFoundException("I am lazy so we might use an already-implemented function")
+        }
         val imgIO = Class.forName("javax.imageio.ImageIO")
         val writers =
             imgIO.getMethod("getImageWritersByFormatName", String::class.java).invoke(null, "jpeg") as Iterator<*>
@@ -367,7 +372,7 @@ fun compressImage(img: Pixmap): ByteArray {
 
         jpgParamCls.getMethod("setCompressionMode", Int::class.java)
             .invoke(param, Class.forName("javax.imageio.ImageWriteParam").getField("MODE_EXPLICIT").get(null))
-        jpgParamCls.getMethod("setCompressionQuality", Float::class.java).invoke(param, 0.5f)
+        jpgParamCls.getMethod("setCompressionQuality", Float::class.java).invoke(param, ClientVars.jpegQuality)
 
         val imgTypeSpec = Class.forName("javax.imageio.ImageTypeSpecifier")
         val paramCls = Class.forName("javax.imageio.ImageWriteParam")
@@ -391,7 +396,7 @@ fun compressImage(img: Pixmap): ByteArray {
         return bytes.toByteArray()
     } catch (e: ClassNotFoundException) {
         bytes.reset()
-        PixmapIO.PngWriter().use { write(bytes, img) }
+        PixmapIO.PngWriter().use { write(bytes, img.flipY()) } // PNG is somehow flipped vertically when transferred to baos
         return bytes.toByteArray()
     }
 }
@@ -420,6 +425,60 @@ inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
 
 /** Send a signed message to chat. */
 fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))
+
+fun getName(builder:mindustry.gen.Unit?):String {
+    return if(builder == null){
+        "null unit"
+    } else if (builder.isPlayer) {
+        Strings.stripColors(builder.player.name)
+//    } else if (builder.controller() is FormationAI) {
+//        Strings.stripColors((builder.controller() as FormationAI).leader.player.name)
+    } else if (builder.controller() is LogicAI){
+        val controller = (builder.controller() as LogicAI).controller;
+        Strings.format(
+            "@ controlled by @ last configured by @ at (@, @)",
+            builder.type.toString(), controller.displayName,
+            if(controller.lastAccessed == null) "[unknown]" else Strings.stripColors(controller.lastAccessed),
+            controller.tileX(), controller.tileY()
+        )
+    } else if (builder.controller() != null){
+        builder.type.toString()
+    } else "unknown"
+}
+
+fun getPlayer(unit: mindustry.gen.Unit?): Player? {
+    return if (unit == null) null
+    else if (unit.isPlayer) {
+        unit.player
+//    } else if ((unit.controller() as? FormationAI)?.leader?.isPlayer == true) {
+//        (unit.controller() as FormationAI).leader.playerNonNull()
+    } else if ((unit.controller() as? LogicAI)?.controller != null) {
+        Groups.player.find{ p -> p.name.equals((unit.controller() as LogicAI).controller.lastAccessed)}
+    } else null
+}
+
+fun canWhisper() = io() || phoenix()
+
+fun toggleMutePlayer(player: Player) {
+    val match = ClientVars.mutedPlayers.firstOrNull { p -> p.second == player.id || (p.first != null && p.first == player) }
+    if (match == null) {
+        ClientVars.mutedPlayers.add(Pair(player, player.id))
+        ui.chatfrag.addMessage(Core.bundle.format("client.command.mute.success", player.coloredName(), player.id))
+    } else {
+        ClientVars.mutedPlayers.remove(match)
+        Vars.player.sendMessage(Core.bundle.format("client.command.unmute.success", player.coloredName(), player.id))
+    }
+}
+
+//inline fun <T> Seq<out T>.forEach(consumer: (T?) -> Unit) {
+//    for (i in 0 until size) consumer(items[i])
+//}
+//
+//inline fun <T> Seq<out T>.forEach(pred: (T?) -> Boolean, consumer: (T?) -> Unit) {
+//    for (i in 0 until size) {
+//        if (pred(items[i])) consumer(items[i])
+//    }
+//}
 
 fun ChatMessage.findCoords(): ChatMessage = NetClient.findCoords(this)
 

@@ -29,6 +29,7 @@ import mindustry.service.*;
 import mindustry.type.*;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
@@ -39,6 +40,7 @@ public class DesktopLauncher extends ClientLauncher{
     Throwable steamError;
 
     public static void main(String[] arg){
+        System.out.println("Launching Mindustry! Arguments: " + Arrays.toString(arg));
         try{
             int[] aaSamples = new int[1];
 
@@ -49,6 +51,25 @@ public class DesktopLauncher extends ClientLauncher{
             Version.init();
 
             Events.on(EventType.ClientLoadEvent.class, e -> Core.graphics.setTitle(getWindowTitle()));
+
+            if (OS.isMac && !Structs.contains(arg, "-firstThread")) { //restart with -XstartOnFirstThread on mac, doesn't work without it
+                Log.warn("Performing mac restart");
+                Core.files = new SdlFiles(); //this is null otherwise
+                javaPath = //this is null otherwise
+                    new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
+                    Core.files.local("jre/bin/java").exists() ? Core.files.local("jre/bin/java").absolutePath() :
+                    "java";
+                Fi jar = Fi.get(DesktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                try {
+                    Seq<String> args = Seq.with(javaPath);
+                    args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
+                    args.addAll(arg);
+                    args.addAll("-XstartOnFirstThread", "-jar", jar.absolutePath(), "-firstThread");
+
+                    new ProcessBuilder(args.toArray(String.class)).inheritIO().start().waitFor();
+                    return;
+                } catch (IOException ignored) {} //java command failed (couldn't find java install)
+            }
 
             new UnpackJars().unpack();
             Log.infoTag("AA Samples", "" + aaSamples[0]);
@@ -69,6 +90,7 @@ public class DesktopLauncher extends ClientLauncher{
                 if(Structs.contains(arg, "-debug")){
                     Log.level = LogLevel.debug;
                 }
+
                 setWindowIcon(FileType.internal, "icons/foo_64.png");
             }});
 
@@ -187,6 +209,12 @@ public class DesktopLauncher extends ClientLauncher{
             @Override
             public void completeAchievement(String name){
                 SVars.stats.stats.setAchievement(name);
+                SVars.stats.stats.storeStats();
+            }
+
+            @Override
+            public void clearAchievement(String name){
+                SVars.stats.stats.clearAchievement(name);
                 SVars.stats.stats.storeStats();
             }
 

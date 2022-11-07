@@ -1,5 +1,6 @@
 package mindustry.world.blocks.distribution;
 
+import arc.*;
 import arc.audio.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -10,6 +11,7 @@ import arc.util.io.*;
 import arc.util.pooling.Pool.*;
 import arc.util.pooling.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.bullet.*;
@@ -115,6 +117,18 @@ public class MassDriver extends Block{
 
         public Building currentShooter(){
             return waitingShooters.isEmpty() ? null : waitingShooters.first();
+        }
+
+        @Override
+        public void add(){
+            super.add();
+            Core.app.post(() -> ClientVars.massDrivers.add(this)); // This is cleared on the first frame after world load, add a frame later to bypass that
+        }
+
+        @Override
+        public void remove(){
+            super.remove();
+            ClientVars.massDrivers.remove(this, true);
         }
 
         @Override
@@ -331,7 +345,7 @@ public class MassDriver extends Block{
             return other instanceof MassDriverBuild entity && other.isValid() && other.efficiency > 0 && entity.block == block && entity.link == pos() && within(other, range);
         }
 
-        protected boolean linkValid(){
+        public boolean linkValid(){
             if(link == -1) return false;
             return world.build(this.link) instanceof MassDriverBuild other && other.block == block && other.team == team && within(other, range);
         }

@@ -43,7 +43,7 @@ class TileState {
         this.time = time
     }
 
-    constructor(tile: Tile) : this(tile, tile.block(), tile.build?.rotation ?: 0, tile.build?.config(), tile.team(), Instant.now())
+    constructor(tile: Tile, time: Instant = Instant.now()) : this(tile, tile.block(), tile.build?.rotation ?: -1, tile.build?.config(), tile.team(), time)
 
     fun clone(): TileState {
         return TileState(x, y, block, rotation, configuration, team, time)
@@ -66,10 +66,10 @@ class TileState {
 
         table.row()
         table.label(Core.bundle.get("client.facing") + ": " + Core.bundle.get("client." + when (abs(rotation % 4)) {
-            0 -> "up"
-            1 -> "right"
-            2 -> "down"
-            3 -> "left"
+            0 -> "right"
+            1 -> "up"
+            2 -> "left"
+            3 -> "down"
             else -> "unknown"
         }))
         table.row()
