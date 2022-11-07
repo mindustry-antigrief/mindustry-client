@@ -611,7 +611,7 @@ public class DesktopInput extends InputHandler{
 
         if(state.isMenu() || Core.scene.hasDialog()) return;
 
-        if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null && (cursor == null || cursor.build == null || !(cursor.build.block.rotate && cursor.build.block.quickRotate && cursor.build.interactable(player.team())))){
+        if(input.keyTap(Binding.reset_camera) && scene.getKeyboardFocus() == null && (cursor == null || cursor.build == null || !(cursor.build.block.rotate && cursor.build.block.quickRotate && cursor.build.interactable(player.team()))) && !input.alt()){
             panning = false;
             Spectate.INSTANCE.setPos(null);
         }
