@@ -1019,7 +1019,7 @@ fun setup() {
 
                     if (last!!.block == it.block() && last!!.configuration != it.build?.config()) {
                         if (plan) {
-                            plans.last().clientConfig = Cons { build -> configs.add(ConfigRequest(build, last!!.configuration)) }
+                            plans.last().localConfig = Cons { build -> configs.add(ConfigRequest(build, last!!.configuration)) }
                         } else
                             configs.add(ConfigRequest(it.build, last!!.configuration))
                     }

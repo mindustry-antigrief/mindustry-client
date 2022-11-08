@@ -27,6 +27,7 @@ import java.util.*;
 
 import static arc.Core.graphics;
 import static mindustry.Vars.*;
+import static mindustry.world.Build.planSeq;
 
 @Component
 abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
@@ -265,11 +266,22 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 //        if(!canBuild()) return;
 
         BuildPlan replace = null;
-        for(BuildPlan plan : plans){
-            if(plan.x == place.x && plan.y == place.y){
-                replace = plan;
-                break;
+        if(self() != Vars.player.unit() || plans.size < 10){
+            for(BuildPlan plan : plans){
+                if(plan.x == place.x && plan.y == place.y){
+                    replace = plan;
+                    break;
+                }
             }
+        }else{
+            control.input.playerPlanTree.intersect(place.bounds(Tmp.r1), planSeq);
+            for(BuildPlan plan : planSeq){
+                if(plan.x == place.x && plan.y == place.y){
+                    replace = plan;
+                    break;
+                }
+            }
+            planSeq.clear();
         }
         if(replace != null){
             plans.remove(replace);
@@ -282,6 +294,9 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             plans.addLast(place);
         }else{
             plans.addFirst(place);
+        }
+        if(self() == Vars.player.unit()){
+            control.input.playerPlanTree.insert(place);
         }
     }
 
