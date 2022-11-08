@@ -266,7 +266,8 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 //        if(!canBuild()) return;
 
         BuildPlan replace = null;
-        if(self() != Vars.player.unit() || plans.size < 10){
+        boolean isLocalPlayer = Vars.player != null && Vars.player.unit() == self();
+        if(!isLocalPlayer || plans.size < 10){
             for(BuildPlan plan : plans){
                 if(plan.x == place.x && plan.y == place.y){
                     replace = plan;
@@ -295,7 +296,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         }else{
             plans.addFirst(place);
         }
-        if(self() == Vars.player.unit()){
+        if(isLocalPlayer){
             control.input.playerPlanTree.insert(place);
         }
     }
