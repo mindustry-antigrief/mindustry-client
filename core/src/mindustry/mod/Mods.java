@@ -32,7 +32,7 @@ import java.util.zip.*;
 import static mindustry.Vars.*;
 
 public class Mods implements Loadable{
-    private static final String[] metaFiles = {"mod.json", "mod.hjson", "plugin.json", "plugin.hjson"};
+    public static final String[] metaFiles = {"mod.json", "mod.hjson", "plugin.json", "plugin.hjson"};
     private static final ObjectSet<String> blacklistedMods = ObjectSet.with("ui-lib");
 
     private Json json = new Json();
@@ -439,7 +439,7 @@ public class Mods implements Loadable{
     /** Loads all mods from the folder, but does not call any methods on them.*/
     public void load(){
         var files = resolveDependencies(Seq.with(modDirectory.list()).filter(f ->
-            f.extEquals("jar") || f.extEquals("zip") || (f.isDirectory() && (f.child("mod.json").exists() || f.child("mod.hjson").exists()))
+            f.extEquals("jar") || f.extEquals("zip") || f.isDirectory() && Structs.contains(metaFiles, m -> f.child(m).exists())
         ));
 
         for(Fi file : files){
@@ -762,14 +762,7 @@ public class Mods implements Loadable{
     /** @return the mods that the client is missing.
      * The inputted array is changed to contain the extra mods that the client has but the server doesn't.*/
     public Seq<String> getIncompatibility(Seq<String> out){
-        Seq<String> mods = getModStrings();
-        Seq<String> result = mods.copy();
-        for(String mod : mods){
-            if(out.remove(mod)){
-                result.remove(mod);
-            }
-        }
-        return result;
+        return getModStrings().removeAll(out::contains);
     }
 
     public Seq<LoadedMod> list(){

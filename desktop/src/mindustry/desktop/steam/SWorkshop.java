@@ -12,6 +12,7 @@ import com.codedisaster.steamworks.SteamUGC.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.maps.*;
+import mindustry.mod.*;
 import mindustry.mod.Mods.*;
 import mindustry.service.*;
 import mindustry.type.*;
@@ -39,7 +40,7 @@ public class SWorkshop implements SteamUGCCallback{
 
         workshopFiles.put(Map.class, folders.select(f -> f.list().length == 1 && f.list()[0].extension().equals(mapExtension)).map(f -> f.list()[0]));
         workshopFiles.put(Schematic.class, folders.select(f -> f.list().length == 1 && f.list()[0].extension().equals(schematicExtension)).map(f -> f.list()[0]));
-        workshopFiles.put(LoadedMod.class, folders.select(f -> f.child("mod.json").exists() || f.child("mod.hjson").exists()));
+        workshopFiles.put(LoadedMod.class, folders.select(f -> Structs.contains(Mods.metaFiles, m -> f.child(m).exists())));
 
         if(!workshopFiles.get(Map.class).isEmpty()){
             Achievement.downloadMapWorkshop.complete();

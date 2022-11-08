@@ -15,7 +15,7 @@ import arc.util.io.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
-import mindustry.client.antigrief.Seer;
+import mindustry.client.antigrief.*;
 import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
@@ -35,10 +35,9 @@ import mindustry.world.blocks.storage.*;
 import mindustry.world.modules.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.*;
 
 import static mindustry.Vars.*;
-import static mindustry.client.ClientVars.coreItemsDisplay;
 import static mindustry.ui.Styles.*;
 
 /** A block in the process of construction. */
@@ -356,7 +355,7 @@ public class ConstructBlock extends Block{
             Player targetPlayer = ClientUtils.getPlayer(lastBuilder);
             if (targetPlayer != null) {
                 WarnBlock wb = getWarnBlock();
-                if (wb != null && wb.block == Blocks.thoriumReactor) Seer.INSTANCE.thoriumReactor(targetPlayer, tile, tile.dst(targetPlayer));
+                if (wb != null && wb.block == Blocks.thoriumReactor) Seer.INSTANCE.thoriumReactor(targetPlayer, tile.dst(targetPlayer));
             }
             
             handleBlockWarning(config);

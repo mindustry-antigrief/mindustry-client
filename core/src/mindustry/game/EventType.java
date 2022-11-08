@@ -853,6 +853,7 @@ public class EventType{
             this.action = action;
         }
     }
+
     public static class SendChatMessageEvent {
         public final String message;
 

@@ -223,8 +223,8 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
     /** show with no limitations, just as a map. */
     @Override
     public Dialog show(){
-        if(!control.saves.hasLoaded){ // FINISHME: Awful fix for https://trello.com/c/cxYJlsKq
-            control.saves.load();
+        if(!control.saves.hasLoaded){ // Fix for https://trello.com/c/cxYJlsKq
+            control.saves.load(true);
             control.saves.unload();
         }
 

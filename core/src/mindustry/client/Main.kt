@@ -68,23 +68,32 @@ object Main : ApplicationListener {
         Events.on(EventType.WorldLoadEvent::class.java) {
             if (!Vars.net.client()) { // This is so scuffed but shh
                 setPluginNetworking(false)
+                CommandCompletion.reset(true)
                 NetServer.serverPacketReliable(Vars.player, "fooCheck", "") // Call locally
             }
             dispatchedBuildPlans.clear()
         }
 
         Events.on(EventType.ServerJoinEvent::class.java) {
-            communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
             setPluginNetworking(false)
-            Call.serverPacketReliable("fooCheck", "") // Request version info FINISHME: The server should just send this info on join
+            CommandCompletion.reset(true)
+            Call.serverPacketReliable("fooCheck", "h") // Request version info FINISHME: The server should just send this info on join
         }
 
+        /** @since v1 Checks for the presence of the foo plugin on the server */
         Vars.netClient.addPacketHandler("fooCheck") { version ->
             Log.debug("Server using client plugin version $version")
             if (!Strings.canParseInt(version)) return@addPacketHandler
 
             ClientVars.pluginVersion = Strings.parseInt(version)
-            setPluginNetworking(true)
+            if (ClientVars.pluginVersion == 1) setPluginNetworking(true) // In version one we didnt have fooTransmissionEnabled FINISHME: Remove this on v7 release
+        }
+
+        /** @since v2 Toggles the state of plugin networking */
+        Vars.netClient.addPacketHandler("fooTransmissionEnabled") { e ->
+            val enabled = e.toBoolean()
+            Log.debug("Server set transmissions to: $enabled")
+            setPluginNetworking(enabled)
         }
 
         communicationClient.addListener { transmission, senderId ->

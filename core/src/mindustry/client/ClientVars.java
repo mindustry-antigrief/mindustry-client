@@ -5,18 +5,20 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.math.geom.*;
 import arc.struct.*;
+import arc.util.Nullable;
 import arc.util.*;
 import kotlin.*;
+import mindustry.content.*;
 import mindustry.entities.units.*;
-import mindustry.gen.Player;
+import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.ui.*;
-import mindustry.world.blocks.defense.*;
-import mindustry.content.*;
 import mindustry.world.*;
+import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.distribution.*;
 import org.jetbrains.annotations.*;
 
+import java.util.*;
 import java.util.concurrent.*;
 
 public class ClientVars {
@@ -25,14 +27,15 @@ public class ClientVars {
     public static float spawnTime = 60f * Core.settings.getInt("spawntime");
     public static float travelTime = Core.settings.getInt("traveltime");
     public static int rank; // The rank int for servers such as io
+    @Nullable protected static ArrayList<?> switchTo;
     public static float jpegQuality = Core.settings.getFloat("commpicquality", 0.5f);
-    public static boolean benchmarkNav = false;
+    public static boolean benchmarkNav;
     public final static Rect cameraBounds = new Rect();
     public static Seq<BuildPlan> frozenPlans = new Seq<>();
     public static final Block[] noInteractTurrets = {Blocks.foreshadow, Blocks.ripple, Blocks.arc};
 
     // Core Item Display - for only input. Net in/out is handled through reading from Vars.player.core.items()
-    public static CoreItemsDisplay coreItemsDisplay;
+    public static CoreItemsDisplay coreItemsDisplay; // FINISHME: Redundant.
 
     // Config Queue
     @NotNull public static LinkedBlockingQueue<Runnable> configs = new LinkedBlockingQueue<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
@@ -59,14 +62,14 @@ public class ClientVars {
     public static final String MESSAGE_BLOCK_PREFIX = "IN USE FOR CHAT AUTHENTICATION, do not use";
     public static long lastJoinTime; // Last time we connected to a server
     public static boolean syncing; // Whether we are in the process of reloading the world
-    public static double lastServerStartTime;
-    public static String lastServerName;
+    public static double lastServerStartTime; // FINISHME: Redundant
+    public static String lastServerName; // FINISHME: Redundant
     public static Seq<Pair<Player, Integer>> mutedPlayers = new Seq<>();
 
     // Networking
     public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;
     @NotNull public static Color encrypted = Color.valueOf("#243266"), verified = Color.valueOf("#2c9e52"), invalid = Color.valueOf("#890800"), user = Color.coral.cpy().mul(0.6f); // Encrypted = Blue, Verified = Green
     @NotNull public static String lastCertName = "";
-    public static boolean isBuildingLock = false; // whether or not the building state is being controlled by networking
-    public static int pluginVersion;
+    public static boolean isBuildingLock; // Whether the building state is being controlled by networking
+    public static int pluginVersion; // Version of the foo plugin that is found on the server
 }
