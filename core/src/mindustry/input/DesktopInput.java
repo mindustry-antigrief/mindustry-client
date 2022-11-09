@@ -476,9 +476,20 @@ public class DesktopInput extends InputHandler{
 
         if(commandMode && input.keyTap(Binding.select_all_units) && !scene.hasField() && !scene.hasDialog()){
             selectedUnits.clear();
+            commandBuildings.clear();
             for(var unit : player.team().data().units){
                 if(unit.isCommandable()){
                     selectedUnits.add(unit);
+                }
+            }
+        }
+
+        if(commandMode && input.keyTap(Binding.select_all_unit_factories) && !scene.hasField() && !scene.hasDialog()){
+            selectedUnits.clear();
+            commandBuildings.clear();
+            for(var build : player.team().data().buildings){
+                if(build.block.commandable){
+                    commandBuildings.add(build);
                 }
             }
         }
@@ -774,7 +785,7 @@ public class DesktopInput extends InputHandler{
             schematicY += shiftY;
         }
 
-        if(Core.input.keyTap(Binding.deselect) && !isPlacing()){
+        if(Core.input.keyTap(Binding.deselect) && !isPlacing() && !commandMode){
             player.unit().mineTile = null;
         }
 
