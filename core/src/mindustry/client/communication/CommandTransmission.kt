@@ -41,7 +41,7 @@ class CommandTransmission : Transmission {
     enum class Commands(val builtinOnly: Boolean = false, val lambda: (CommandTransmission) -> Unit) {
         STOP_PATH(false, { // FINISHME: Bundle
             val cert = Main.keyStorage.findTrusted(BigInteger(it.certSN))!!
-            if (Navigation.currentlyFollowing == null) {
+            if (Navigation.currentlyFollowing != null) {
                 lastStopTime = Time.millis()
                 val oldPath = Navigation.currentlyFollowing
                 if (Main.keyStorage.builtInCerts.contains(cert)) {
