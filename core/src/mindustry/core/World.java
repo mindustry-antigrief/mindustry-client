@@ -301,6 +301,10 @@ public class World{
 
         ObjectSet<UnlockableContent> content = new ObjectSet<>();
 
+        //resources can be outside area
+        boolean border = state.rules.limitMapArea;
+        state.rules.limitMapArea = false;
+
         //TODO duplicate code?
         for(Tile tile : tiles){
             if(getDarkness(tile.x, tile.y) >= 3){
@@ -313,6 +317,7 @@ public class World{
             if(tile.wallDrop() != null) content.add(tile.wallDrop());
             if(liquid != null) content.add(liquid);
         }
+        state.rules.limitMapArea = border;
 
         state.rules.cloudColor = sector.planet.landCloudColor;
         state.rules.env = sector.planet.defaultEnv;

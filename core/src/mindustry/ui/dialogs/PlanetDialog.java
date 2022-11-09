@@ -1142,7 +1142,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
                 t.add("@sectors.resources").padRight(4);
                 for(UnlockableContent c : sector.info.resources){
                     if(c == null) continue; //apparently this is possible.
-                    t.image(c.uiIcon).padRight(3).size(iconSmall);
+                    t.image(c.uiIcon).padRight(3).scaling(Scaling.fit).size(iconSmall);
                 }
             }).padLeft(10f).fillX().row();
         }

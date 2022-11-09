@@ -2002,6 +2002,13 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             enabled = false;
         }
 
+        if(!headless && !wasVisible && state.rules.fog && !inFogTo(player.team())){
+            visibleFlags |= (1L << player.team().id);
+            wasVisible = true;
+            renderer.blocks.updateShadow(self());
+            renderer.minimap.update(tile);
+        }
+
         //TODO separate system for sound? AudioSource, etc
         if(!headless){
             if(sound != null){
