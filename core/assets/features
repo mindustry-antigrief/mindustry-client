@@ -37,7 +37,7 @@
  * Fast respawn setting - Ultimate rush strat :tm:
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.
- * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
+ * Ctrl + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
  * Alt + {show_turret_ranges} - Show your team's turret ranges.
  * Shift + {hide_blocks} - Hides build plans.
  * Ctrl + {invisible_units} - Hides fog.
