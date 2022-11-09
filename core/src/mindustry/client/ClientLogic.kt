@@ -3,11 +3,9 @@ package mindustry.client
 import arc.*
 import arc.struct.*
 import arc.util.*
-import mindustry.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
-import mindustry.client.antigrief.ConfigRequest
-import mindustry.client.antigrief.Seer
+import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
@@ -20,21 +18,15 @@ import mindustry.logic.*
 import mindustry.net.*
 import mindustry.type.*
 import mindustry.ui.fragments.*
-import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.sandbox.*
-import mindustry.world.modules.*
 
-/** WIP client logic class, similar to [mindustry.core.Logic] but for the client.
+/** WIP client logic class, similar to [Logic] but for the client.
  * Handles various events and such.
  * FINISHME: Move the 9000 different bits of code throughout the client to here. Update: this was an awful idea lmao */
 class ClientLogic {
-    companion object {
-        var switchTo: MutableList<Any>? = null
-    }
-
-    private var turretVoidWarnMsg: ChatMessage? = null
+    private var turretVoidWarnMsg: ChatFragment.ChatMessage? = null
     private var turretVoidWarnCount = 0
     private var turretVoidWarnPlayer: Player? = null
     private var lastTurretVoidWarn = 0L
@@ -42,10 +34,7 @@ class ClientLogic {
     /** Create event listeners */
     init {
         Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
-            if (Navigation.currentlyFollowing is AssistPath ||
-                Navigation.currentlyFollowing is UnAssistPath ||
-                Navigation.currentlyFollowing is WaypointPath<*>
-            ) Navigation.stopFollowing()
+            Navigation.stopFollowing()
             Spectate.pos = null
 
             Timer.schedule({
@@ -53,7 +42,7 @@ class ClientLogic {
                     val arg = switchTo?.removeFirstOrNull() ?: return@post
                     if (arg is Host) NetClient.connect(arg.address, arg.port)
                     else {
-                        if (arg is UnitType) Vars.ui.unitPicker.pickUnit(arg)
+                        if (arg is UnitType) ui.unitPicker.pickUnit(arg)
                         switchTo = null
 
                         // If no hh then send gamejointext
@@ -66,16 +55,16 @@ class ClientLogic {
                             1 -> Call.sendChatMessage("/downvote")
                             2 -> Call.sendChatMessage("/novote")
                             3 -> Call.sendChatMessage("/upvote")
-                            4 -> Call.sendChatMessage(("/${arrayOf("no", "up", "down").random()}"))
+                            4 -> Call.sendChatMessage(("/${arrayOf("no", "up", "down").random()}vote"))
                             else -> {}
                         }
                     }
                 }
             }, .1F)
 
-            if (Core.settings.getBool("onjoinfixcode")) { // TODO: Make this also work for singleplayer worlds
+            if (Core.settings.getBool("onjoinfixcode")) { // FINISHME: Make this also work for singleplayer worlds
                 Core.app.post {
-                    val builds = Vars.player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
+                    val builds = player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
                     clientThread.post {
                         val inProgress = !configs.isEmpty()
                         var n = 0
@@ -97,10 +86,10 @@ class ClientLogic {
 
                         Core.app.post {
                             if (Core.settings.getBool("attemwarfare")) {
-                                if (inProgress) Vars.player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
-                                else Vars.player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
+                                if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
+                                else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
                             } else {
-                                Vars.player.sendMessage("[accent]Run [coral]!fixcode [c | r][] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
+                                player.sendMessage("[accent]Run [coral]!fixcode [c | r][] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
                             }
                         }
                     }
@@ -108,19 +97,19 @@ class ClientLogic {
             }
 
             Seer.players.clear()
-            Groups.player.each { Seer.registerPlayer(it) }
+            Groups.player.each(Seer::registerPlayer)
         }
 
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
-            if (!syncing){
-                AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(Vars.state.rules.pvp && io())
+            if (!syncing) {
+                AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(state.rules.pvp && io())
                 Player.persistPlans.clear()
                 frozenPlans.clear()
             }
             lastJoinTime = Time.millis()
             configs.clear()
-            Vars.control.input.lastVirusWarning = null
+            control.input.lastVirusWarning = null
             dispatchingBuildPlans = false
             hidingBlocks = false
             hidingUnits = false
@@ -128,7 +117,7 @@ class ClientLogic {
             showingTurrets = false
             showingAllyTurrets = false
             showingInvTurrets = false
-//            if (Vars.state.rules.pvp) Vars.ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
+            if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
             massDrivers.clear()
             Client.tiles.clear()
@@ -147,8 +136,8 @@ class ClientLogic {
             if (Core.settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
             Core.settings.put("changeHash", changeHash)
 
-            if (Core.settings.getBool("discordrpc")) Vars.platform.startDiscord()
-            if (Core.settings.getBool("mobileui")) Vars.mobile = !Vars.mobile
+            if (Core.settings.getBool("discordrpc")) platform.startDiscord()
+            if (Core.settings.getBool("mobileui")) mobile = !mobile
             if (Core.settings.getBool("viruswarnings")) LExecutor.virusWarnings = true
 
             Autocomplete.autocompleters.add(BlockEmotes(), PlayerCompletion(), CommandCompletion())
@@ -170,8 +159,8 @@ class ClientLogic {
             Core.settings.remove("effectscl")
             Core.settings.remove("commandwarnings")
 	        Core.settings.remove("nodeconfigs")
-            if (Core.settings.getString("gameovertext")?.isNotEmpty() == true) {
-                Core.settings.put("gamewintext", Core.settings.getString("gameovertext"))
+            if (Core.settings.has("gameovertext")) {
+                if (Core.settings.getString("gameovertext").isNotBlank()) Core.settings.put("gamewintext", Core.settings.getString("gameovertext"))
                 Core.settings.remove("gameovertext")
             }
 
@@ -188,28 +177,28 @@ class ClientLogic {
         Events.on(PlayerJoin::class.java) { e -> // Run when a player joins the server
             if (e.player == null) return@on
 
-            if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has connected.")) && Time.timeSinceMillis(lastJoinTime) > 10000)
-                Vars.player.sendMessage(Core.bundle.format("client.connected", e.player.name))
+            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has connected.")) && Time.timeSinceMillis(lastJoinTime) > 10000)
+                player.sendMessage(Core.bundle.format("client.connected", e.player.name))
         }
 
         Events.on(PlayerLeave::class.java) { e -> // Run when a player leaves the server
             if (e.player == null) return@on
 
-            if (Core.settings.getBool("clientjoinleave") && (Vars.ui.chatfrag.messages.isEmpty || !Strings.stripColors(Vars.ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
-                Vars.player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
+            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
+                player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
         }
 
         Events.on(GameOverEventClient::class.java) {
-            if (Vars.net.client()) {
+            if (net.client()) {
                 // Afk players will start mining at the end of a game (kind of annoying but worth it)
                 if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true))
 
                 // Save maps on game over if the setting is enabled
-                if (Core.settings.getBool("savemaponend")) Vars.control.saves.addSave(Vars.state.map.name())
+                if (Core.settings.getBool("savemaponend")) control.saves.addSave(state.map.name())
             }
 
             // TODO: Make this work in singleplayer
-            if (it.winner == Vars.player.team()) {
+            if (it.winner == player.team()) {
                 if (Core.settings.getString("gamewintext")?.isNotEmpty() == true) Call.sendChatMessage(Core.settings.getString("gamewintext"))
             } else {
                 if (Core.settings.getString("gamelosetext")?.isNotEmpty() == true) Call.sendChatMessage(Core.settings.getString("gamelosetext"))
@@ -228,7 +217,7 @@ class ClientLogic {
             if (block !is Turret) return@on
             clientThread.post { // Scanning through tiles can be exhaustive. Delegate it to the client thread.
                 val voids = Seq<Building>()
-                for (tile in Vars.world.tiles) if (tile.block() is PowerVoid) voids.add(tile.build)
+                for (tile in world.tiles) if (tile.block() is PowerVoid) voids.add(tile.build)
 
                 val void = voids.find { it.within(event.tile, block.range) }
                 if (void != null) { // Code taken from LogicBlock.LogicBuild.configure

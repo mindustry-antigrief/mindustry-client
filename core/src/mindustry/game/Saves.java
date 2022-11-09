@@ -48,9 +48,18 @@ public class Saves{
 
     /** Loads all saves */
     public void load(){
+        load(false);
+    }
+
+    /** Loads all saves (unless sectorsOnly is specified in which case only sectors are loaded in order to make campaign load faster). */
+    public void load(boolean sectorsOnly){
+        Time.mark(); Time.mark();
         hasLoaded = true;
+
         var tasks = new Seq<Future<SaveSlot>>();
-        for(Fi file : saveDirectory.findAll(f -> !f.name().contains("backup") && f.extEquals("msav"))){
+        saveDirectory.walk(file -> {
+            var name = file.name();
+            if (name.endsWith("backup.msav") || !name.endsWith(".msav") || sectorsOnly && !name.startsWith("sector-")) return;
             tasks.add(mainExecutor.submit(() -> {
                 try{
                     var s = new SaveSlot(file, SaveIO.getMeta(file));
@@ -65,13 +74,19 @@ public class Saves{
                     return null;
                 }
             }));
-        }
+        });
+        var queued = Time.elapsed();
 
+        Time.mark();
+        saves.ensureCapacity(tasks.size);
         for(Future<SaveSlot> task : tasks){
             var s = Threads.await(task);
             if(s != null) saves.add(s);
         }
+        var blocked = Time.elapsed();
+        var loaded = Time.elapsed();
 
+        Time.mark();
         lastSectorSave = saves.find(s -> s.isSector() && s.getName().equals(Core.settings.getString("last-sector-save", "<none>")));
 
         //automatically (re)assign sector save slots
@@ -84,6 +99,8 @@ public class Saves{
                 slot.getSector().save = slot;
             }
         }
+
+        Log.debug("Queued saves in: @ms | Loaded @ saves in: @ms | Blocked for: @ms | Post processed saves in in @ms", queued, saves.size, loaded, blocked, Time.elapsed());
     }
 
     /** Unload all saves to reclaim resources */
@@ -211,7 +228,7 @@ public class Saves{
 
     public class SaveSlot{
         public final Fi file;
-        private TextureRegion preview;
+        private volatile TextureRegion preview;
         public SaveMeta meta;
 
         public SaveSlot(Fi file){
@@ -252,7 +269,7 @@ public class Saves{
             mainExecutor.submit(() -> {
                 try{
                     previewFile().writePng(renderer.minimap.getPixmap());
-                    unloadTexture();
+                    previewQueue.add(this::unloadTexture);
                 }catch(Throwable t){
                     Log.err(t);
                 }
@@ -262,13 +279,19 @@ public class Saves{
         /** Asynchronously loads this save's preview on demand */
         public TextureRegion previewTexture(){
             if(preview == null){
-                preview = Core.atlas.find("nomap"); //prevents loading twice
+                preview = Core.atlas.find("nomap"); // Prevents loading twice
                 if(previewFile().exists()){
                     mainExecutor.execute(() -> {
+                        if (preview == null) return; // Don't load the preview at all if it's not needed (prevents most of the pixmaps loading late)
                         var data = TextureData.load(previewFile(), false);
-                        if(!data.isPrepared()) data.prepare();
-                        Log.debug("Loading @", file.name());
-                        previewQueue.add(() -> preview = preview == null ? null : new TextureRegion(new Texture(data))); //don't overwrite cancelled request
+                        data.prepare();
+                        previewQueue.add(() -> {
+                            if (preview == null) { // By the time the pixmap finished loading, we no longer needed it, so we don't create a texture.
+                                data.consumePixmap().dispose(); // Since we don't create a texture, we need to manually dispose the pixmap.
+                                return;
+                            }
+                            preview = new TextureRegion(new Texture(data));
+                        });
                     });
                 }
             }
@@ -278,7 +301,6 @@ public class Saves{
         public void unloadTexture(){
             if(preview != null && preview != Core.atlas.find("nomap")) preview.texture.dispose();
             preview = null;
-            Log.debug("Unloading @", file.name());
         }
 
         private String index(){

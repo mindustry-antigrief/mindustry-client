@@ -8,40 +8,40 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import arc.util.CommandHandler.*
+import mindustry.*
 import mindustry.Vars.*
-import mindustry.Vars
 import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
+import mindustry.client.communication.Packets
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.follow
 import mindustry.client.navigation.Navigation.navigator
 import mindustry.client.ui.*
 import mindustry.client.utils.*
-import mindustry.content.Blocks
+import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
-import mindustry.entities.units.BuildPlan
+import mindustry.entities.units.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
-import mindustry.net.Host
-import mindustry.world.Block
-import mindustry.world.blocks.distribution.ItemBridge
-import mindustry.world.blocks.environment.Prop
+import mindustry.net.*
+import mindustry.world.*
 import mindustry.world.blocks.distribution.*
 import mindustry.world.blocks.distribution.DirectionalUnloader.*
+import mindustry.world.blocks.environment.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
-import mindustry.world.blocks.sandbox.PowerVoid
+import mindustry.world.blocks.sandbox.*
 import mindustry.world.blocks.storage.*
 import mindustry.world.blocks.storage.Unloader.*
 import java.io.*
 import java.math.*
 import java.security.cert.*
-import java.time.Instant
-import java.time.temporal.ChronoUnit
+import java.time.*
+import java.time.temporal.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -739,10 +739,10 @@ fun setup() {
         "(${player.tileX()}, ${player.tileY()})"
     }
 
-    //TOOD: add various % for gamerules
+    //FINISHME: add various % for gamerules
 
     // Experimentals (and funny commands)
-    if (Core.settings.getBool("client-experimentals")) {
+    if (Core.settings.getBool("client-experimentals") || OS.hasProp("policone")) {
         register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
             sendMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
         }
@@ -756,8 +756,8 @@ fun setup() {
             val u = if (args.any()) content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) } else Vars.player.unit().type
             val current = ui.join.lastHost ?: return@register
             if (current.group == null) current.group = ui.join.communityHosts.find { it == current } ?.group ?: return@register
-            ClientLogic.switchTo = ui.join.communityHosts.filterTo(mutableListOf<Any>()) { it.group == current.group && it != current && !it.equals("135.181.14.60:6567") }.apply { add(current); add(u) } // IO attack has severe amounts of skill issue currently hence why its ignored
-            val first = ClientLogic.switchTo!!.removeFirst() as Host
+            switchTo = ui.join.communityHosts.filterTo(arrayListOf<Any>()) { it.group == current.group && it != current && !it.equals("135.181.14.60:6567") }.apply { add(current); add(u) } // IO attack has severe amounts of skill issue currently hence why its ignored
+            val first = switchTo!!.removeFirst() as Host
             NetClient.connect(first.address, first.port)
         }
 
