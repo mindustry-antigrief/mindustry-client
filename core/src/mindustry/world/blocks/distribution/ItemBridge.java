@@ -1,45 +1,28 @@
 package mindustry.world.blocks.distribution;
 
-import arc.Core;
-import arc.graphics.Color;
-import arc.graphics.g2d.Draw;
-import arc.graphics.g2d.Lines;
-import arc.graphics.g2d.TextureRegion;
-import arc.math.Angles;
-import arc.math.Mathf;
-import arc.math.geom.Geometry;
-import arc.math.geom.Point2;
-import arc.struct.IntSeq;
-import arc.struct.Seq;
-import arc.util.Eachable;
-import arc.util.Nullable;
-import arc.util.Time;
-import arc.util.Tmp;
-import arc.util.io.Reads;
-import arc.util.io.Writes;
-import mindustry.annotations.Annotations.Load;
-import mindustry.content.Blocks;
-import mindustry.core.Renderer;
-import mindustry.entities.TargetPriority;
-import mindustry.entities.units.BuildPlan;
-import mindustry.gen.Building;
-import mindustry.graphics.Drawf;
-import mindustry.graphics.Layer;
-import mindustry.graphics.Pal;
-import mindustry.input.Placement;
-import mindustry.type.Item;
-import mindustry.type.Liquid;
-import mindustry.world.Block;
-import mindustry.world.Edges;
-import mindustry.world.Tile;
-import mindustry.world.meta.BlockGroup;
+import arc.*;
+import arc.graphics.*;
+import arc.graphics.g2d.*;
+import arc.math.*;
+import arc.math.geom.*;
+import arc.struct.*;
+import arc.util.*;
+import arc.util.io.*;
+import mindustry.annotations.Annotations.*;
+import mindustry.core.*;
+import mindustry.entities.*;
+import mindustry.entities.units.*;
+import mindustry.gen.*;
+import mindustry.graphics.*;
+import mindustry.input.*;
+import mindustry.type.*;
+import mindustry.world.*;
+import mindustry.world.meta.*;
 
-import static mindustry.Vars.tilesize;
-import static mindustry.Vars.world;
+import static mindustry.Vars.*;
 
 public class ItemBridge extends Block{
     private static BuildPlan otherReq;
-    public static int phaseWeaveInterval = Core.settings == null ? 1 : Math.max(Core.settings == null ? 2 : Core.settings.getInt("weaveEndInterval", 2), 1);
 
     public final int timerCheckMoved = timers ++;
 
@@ -181,25 +164,9 @@ public class ItemBridge extends Block{
 
     @Override
     public void handlePlacementLine(Seq<BuildPlan> plans){
-        if (Core.input.shift()){
-            for(int i = 0; i < plans.size; i++){ // let the last one link to itself
-                BuildPlan cur = plans.get(i);
-                BuildPlan next;
-                if(this == Blocks.phaseConveyor && i + range > plans.size - 1) {
-                    int distFromEnd = plans.size - 1 - i;
-                    next = plans.get(plans.size - 1 - distFromEnd % phaseWeaveInterval);
-                } else {
-                    next = plans.get(Math.min(plans.size - 1, i + range));
-                }
-                if(positionsValid(cur.x, cur.y, next.x, next.y)){
-                    cur.config = new Point2(next.x - cur.x, next.y - cur.y);
-                }
-            }
-            return;
-        }
-        for(int i = 0; i < plans.size - 1; i++){
+        for(int i = 0; i < plans.size; i++){
             var cur = plans.get(i);
-            var next = plans.get(i + 1);
+            var next = plans.get(Math.min(Core.input.shift() ? i + range : i + 1, plans.size - 1)); // Bridge weaving is enabled when shift is held
             if(positionsValid(cur.x, cur.y, next.x, next.y)){
                 cur.config = new Point2(next.x - cur.x, next.y - cur.y);
             }
@@ -305,12 +272,6 @@ public class ItemBridge extends Block{
                 configure(other.pos());
                 other.configure(-1);
                 return true;
-            }
-            
-            // double tap
-            if (this == other) {
-                configure(-1);
-                return false;
             }
 
             if(linkValid(tile, other.tile)){

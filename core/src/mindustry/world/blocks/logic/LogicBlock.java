@@ -560,7 +560,7 @@ public class LogicBlock extends Block{
         public void configured(Unit builder, Object value) {
             super.configured(builder, value);
 
-            if (value instanceof byte[] && Core.settings.getBool("attemwarfare")) {
+            if (player != null && team == player.team() && value instanceof byte[] && Core.settings.getBool("attemwarfare")) {
                 Player player = ClientUtils.getPlayer(builder);
                 clientThread.post(() -> { // The regex can be expensive, so we delegate it to the client thread
                     long begin = Time.nanos();
