@@ -37,7 +37,7 @@
  * Fast respawn setting - Ultimate rush strat :tm:
  * >=========================< Controls >=========================<
  * Shift + {hide_blocks} - Hides build plans instead of blocks.
- * Shift + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
+ * Ctrl + {show_turret_ranges} - Inverted turret ranges. If you're an air unit, this shows turrets which target ground units and vice versa.
  * Alt + {show_turret_ranges} - Show your team's turret ranges.
  * Shift + {hide_blocks} - Hides build plans.
  * Ctrl + {invisible_units} - Hides fog.
@@ -93,6 +93,7 @@
  * {toggle_placement_modifiers} click - hold to disable modified junction replacement
  * {chat_autocomplete} - chat autocomplete (:block/unit/liquid/item, @playername)
  * {auto_build} - auto build (see !builder command section)
+ * shift {auto_build - sort build plans closest to furthest
  * {auto_mine} - auto mine (see !miner command section)
  * {toggle_strict_mode} - toggle teleportation on z (only works on non-strict-mode servers)
  * {send_build_queue} - send build queue to other people running !builder networkassist
@@ -140,4 +141,4 @@
  * Most settings are self-explanatory so they are not included here
 
 # Credits
- * Game by anuke, client by foo and buthed010203, edits by Zxtej, SBytes, and BalaM314
+ * Game by anuke, client by foo, buthed010203, Zxtej, SBytes, and BalaM314

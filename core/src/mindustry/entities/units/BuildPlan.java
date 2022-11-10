@@ -26,8 +26,8 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
     public boolean breaking;
     /** Config int. Not used unless hasConfig is true. */
     public Object config;
-    /** Used for logic blocks when configure after place is enabled. And other things.*/
-    public transient Cons<Building> localConfig;
+    /** Whether the config is to be sent to the server */
+    public transient boolean configLocal;
     /** Original position, only used in schematics.*/
     public int originalX, originalY, originalWidth, originalHeight;
 
@@ -48,7 +48,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
     @Override
     public void reset() {
         config = null;
-        localConfig = null;
+        configLocal = false;
         progress = 0;
         initialized = false;
         stuck = false;
@@ -73,16 +73,6 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         this.block = block;
         this.breaking = false;
         this.config = config;
-    }
-
-    public BuildPlan(int x, int y, int rotation, Block block, Object config, Cons<Building> localConfig){
-        this.x = x;
-        this.y = y;
-        this.rotation = rotation;
-        this.block = block;
-        this.breaking = false;
-        this.config = config;
-        this.localConfig = localConfig;
     }
 
     /** This creates a remove plan. */
@@ -149,7 +139,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         copy.progress = progress;
         copy.initialized = initialized;
         copy.animScale = animScale;
-        copy.localConfig = localConfig;
+        copy.configLocal = configLocal;
         return copy;
     }
 

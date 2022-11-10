@@ -122,28 +122,6 @@ public class Build{
 
         result.placeBegan(tile, previous);
 
-        if(player != null){
-            var plans = player.unit().plans;
-            final int planSize = plans.size;
-            if(planSize < 10){
-                // what are the chances of this method being called many times in a frame
-                for(int i = 0; i < planSize; i++){
-                    var plan = plans.get(i);
-                    if(plan.localConfig != null && plan.x == x && plan.y == y && plan.block == build.current){
-                        build.localConfig = plan.localConfig;
-                    }
-                }
-            } else {
-                control.input.playerPlanTree.intersect(result.bounds(x, y, Tmp.r1), planSeq);
-                for(int i = 0; i < planSeq.size; i++){
-                    var plan = planSeq.items[i];
-                    if(plan.localConfig != null && plan.block == build.current){
-                        build.localConfig = plan.localConfig;
-                    }
-                }
-                planSeq.clear();
-            }
-        }
         Core.app.post(() -> Events.fire(new BlockBuildBeginEvent(tile, team, unit, false)));
     }
 

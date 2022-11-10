@@ -15,7 +15,6 @@ import arc.util.io.Streams.*;
 import arc.util.pooling.*;
 import arc.util.serialization.*;
 import mindustry.*;
-import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -30,7 +29,6 @@ import mindustry.world.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.legacy.*;
-import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.sandbox.*;
 import mindustry.world.blocks.storage.*;
@@ -281,7 +279,7 @@ public class Schematics implements Loadable{
 
     /** Creates an array of build plans from a schematic's data, centered on the provided x+y coordinates. */
     public Seq<BuildPlan> toPlans(Schematic schem, int x, int y){
-        return schem.tiles.map(t -> new BuildPlan(t.x + x - schem.width/2, t.y + y - schem.height/2, t.rotation, t.block, t.config, t.clientConfig).original(t.x, t.y, schem.width, schem.height))
+        return schem.tiles.map(t -> new BuildPlan(t.x + x - schem.width/2, t.y + y - schem.height/2, t.rotation, t.block, t.config).original(t.x, t.y, schem.width, schem.height))
             .removeAll(s -> (!s.block.isVisible() && !(s.block instanceof CoreBlock)) || !s.block.unlockedNow()).sort(Structs.comparingInt(s -> -s.block.schematicPriority));
     }
 
@@ -410,8 +408,7 @@ public class Schematics implements Loadable{
                     && (realBlock.isVisible() || realBlock instanceof CoreBlock)){
                     Object config = !(tile instanceof ConstructBuild cons) ?
                         tile.config() : cons.lastConfig;
-                    tiles.add(new Stile(realBlock, tile.tileX() + offsetX, tile.tileY() + offsetY, config,
-                            tile instanceof ConstructBuild cons ? cons.localConfig : null, (byte)tile.rotation));
+                    tiles.add(new Stile(realBlock, tile.tileX() + offsetX, tile.tileY() + offsetY, config, (byte)tile.rotation));
                     counted.add(tile.pos());
                 }
             }

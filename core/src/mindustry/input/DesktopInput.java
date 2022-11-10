@@ -354,7 +354,13 @@ public class DesktopInput extends InputHandler{
         }
 
         if(input.keyTap(Binding.auto_build) && scene.getKeyboardFocus() == null){
-            Navigation.follow(new BuildPath());
+            if(input.shift()) { // Sort build plans on shift + ; FINISHME: Surely there are no off by 1 errors... right?
+                var plans = player.unit().plans;
+                int head = Reflect.get(plans, "head"), tail = Reflect.<Integer>get(plans, "tail") - 1;
+//                Sort.instance().sort(plans.values, Structs.comparingFloat(p -> p.dst2(player)), Math.min(head, tail), Math.max(head, tail) + 1); This was too good for the game.
+                new Toast(3).add("@client.sortedplans");
+            }
+            else Navigation.follow(new BuildPath());
         }
 
         if(input.keyTap(Binding.auto_repair) && scene.getKeyboardFocus() == null){
@@ -398,7 +404,7 @@ public class DesktopInput extends InputHandler{
                 lastShiftZ = Time.millis();
 
                 if(Time.timeSinceMillis(lastVirusWarnTime) < 3000 && lastVirusWarning != null && world.tile(lastVirusWarning.pos()).build == lastVirusWarning){ // Logic virus
-                    virusBuild = lastVirusWarning; // Store this build in its own var so it isnt overwritten
+                    virusBuild = lastVirusWarning; // Store this build in its own var so it isn't overwritten
                     lastVirusWarning = null;
 
                     virusBuild.configure(LogicBlock.compress("end\n" + virusBuild.code, virusBuild.relativeConnections())); // Disable the block while we look into it
@@ -476,9 +482,20 @@ public class DesktopInput extends InputHandler{
 
         if(commandMode && input.keyTap(Binding.select_all_units) && !scene.hasField() && !scene.hasDialog()){
             selectedUnits.clear();
+            commandBuildings.clear();
             for(var unit : player.team().data().units){
                 if(unit.isCommandable()){
                     selectedUnits.add(unit);
+                }
+            }
+        }
+
+        if(commandMode && input.keyTap(Binding.select_all_unit_factories) && !scene.hasField() && !scene.hasDialog()){
+            selectedUnits.clear();
+            commandBuildings.clear();
+            for(var build : player.team().data().buildings){
+                if(build.block.commandable){
+                    commandBuildings.add(build);
                 }
             }
         }
@@ -774,7 +791,7 @@ public class DesktopInput extends InputHandler{
             schematicY += shiftY;
         }
 
-        if(Core.input.keyTap(Binding.deselect) && !isPlacing()){
+        if(Core.input.keyTap(Binding.deselect) && !isPlacing() && !commandMode){
             player.unit().mineTile = null;
         }
 

@@ -35,6 +35,9 @@ import static mindustry.Vars.*;
 @TypeIOHandler
 public class TypeIO{
 
+    /** I was too lazy to add a boolean to the params of a method chain and create overrides, so I just flip this instead */
+    public static boolean useConfigLocal;
+
     public static void writeObject(Writes write, Object object){
         if(object == null){
             write.b((byte)0);
@@ -142,7 +145,8 @@ public class TypeIO{
             case 5 -> content.getByID(ContentType.all[read.b()], read.s());
             case 6 -> {
                 short length = read.s();
-                IntSeq arr = new IntSeq(); for(int i = 0; i < length; i ++) arr.add(read.i());
+                IntSeq arr = new IntSeq(length);
+                for(int i = 0; i < length; i ++) arr.add(read.i());
                 yield arr;
             }
             case 7 -> new Point2(read.i(), read.i());
@@ -382,7 +386,7 @@ public class TypeIO{
             write.s(plan.block.id);
             write.b((byte)plan.rotation);
             write.b(1); //always has config
-            writeObject(write, plan.config);
+            writeObject(write, useConfigLocal && plan.configLocal ? null : plan.config);
         }
     }
 

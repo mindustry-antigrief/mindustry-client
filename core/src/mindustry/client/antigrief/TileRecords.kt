@@ -1,8 +1,8 @@
 package mindustry.client.antigrief
 
 import arc.*
-import arc.math.Mathf
-import arc.util.Time
+import arc.math.*
+import arc.util.*
 import mindustry.*
 import mindustry.ai.types.*
 import mindustry.client.*
@@ -12,8 +12,8 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.world.*
 import mindustry.world.blocks.*
-import java.time.Instant
-import kotlin.math.abs
+import java.time.*
+import kotlin.math.*
 
 object TileRecords {
     private var records: Array<Array<TileRecord>> = arrayOf(arrayOf())
@@ -55,7 +55,7 @@ object TileRecords {
             if (it.breaking) return@on
             it.tile.getLinkedTiles { tile ->
                 val sequence = this[tile]?.sequences ?: return@getLinkedTiles
-                (sequence.last().logs.lastOrNull() as? TilePlacedLog)?.configuration = it.tile.build.config() ?: return@getLinkedTiles
+                (sequence.last().logs.lastOrNull() as? TilePlacedLog)?.configuration = it.tile.build?.config() ?: return@getLinkedTiles // FINISHME: Build is nullable for some reason (see https://discord.com/channels/965438060508631050/965438061003550722/1039950910295658600)
             }
         }
 

@@ -5,9 +5,8 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
-import arc.math.geom.*;
-import arc.struct.*;
 import arc.struct.Queue;
+import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
@@ -25,9 +24,9 @@ import mindustry.world.blocks.ConstructBlock.*;
 
 import java.util.*;
 
-import static arc.Core.graphics;
+import static arc.Core.*;
 import static mindustry.Vars.*;
-import static mindustry.world.Build.planSeq;
+import static mindustry.world.Build.*;
 
 @Component
 abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
@@ -35,7 +34,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
     @Import UnitType type;
     @Import Team team;
 
-    @SyncLocal Queue<BuildPlan> plans = new Queue<>(1);
+    @SyncLocal Queue<BuildPlan> plans = new Queue<>(1, BuildPlan.class);
     @SyncLocal boolean updateBuilding = true;
 
     private transient float buildCounter;
