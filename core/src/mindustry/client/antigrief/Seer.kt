@@ -11,7 +11,7 @@ import java.io.*
 import java.time.*
 import java.util.zip.*
 
-object Seer {
+object Seer { // FINISHME: Fully implement and test this
     val players = Seq<PlayerData>()
     val timer = Interval()
 
@@ -42,7 +42,7 @@ object Seer {
         return players.find { it.id == id || it.lastInstance == this }
     }
 
-    private fun warnIfNeeded(data: PlayerData, player: Player) {
+    private fun warnIfNeeded(data: PlayerData, player: Player) { // FINISHME: Bundles
         if (!Core.settings.getBool("seer-enabled")) return
         if (data.score >= Core.settings.getInt("seer-warnthreshold")) {
             Vars.player.sendMessage("${player.coloredName()} [accent]exceeded warn threshold! ${data.score}")

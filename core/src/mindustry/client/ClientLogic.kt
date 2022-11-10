@@ -63,37 +63,7 @@ class ClientLogic {
             }, .1F)
 
             if (Core.settings.getBool("onjoinfixcode")) { // FINISHME: Make this also work for singleplayer worlds
-                Core.app.post {
-                    val builds = player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
-                    clientThread.post {
-                        val inProgress = !configs.isEmpty()
-                        var n = 0
-                        if (Core.settings.getBool("attemwarfare") && !inProgress) {
-                            Log.debug("Patching!")
-                            builds.forEach {
-                                val patched = ProcessorPatcher.patch(it.code, if(Core.settings.getBool("removeatteminsteadoffixing")) "r" else "c")
-                                if (patched != it.code) {
-                                    Log.debug("${it.tileX()} ${it.tileY()}")
-                                    configs.add(
-                                        ConfigRequest(it.tileX(), it.tileY(),
-                                        LogicBlock.compress(patched, it.relativeConnections())
-                                    )
-                                    )
-                                    n++
-                                }
-                            }
-                        }
-
-                        Core.app.post {
-                            if (Core.settings.getBool("attemwarfare")) {
-                                if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
-                                else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
-                            } else {
-                                player.sendMessage("[accent]Run [coral]!fixcode [c | r][] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
-                            }
-                        }
-                    }
-                }
+                ProcessorPatcher.fixCode(if (Core.settings.getBool("removeatteminsteadoffixing")) ProcessorPatcher.FixCodeMode.Remove else ProcessorPatcher.FixCodeMode.Fix)
             }
 
             Seer.players.clear()

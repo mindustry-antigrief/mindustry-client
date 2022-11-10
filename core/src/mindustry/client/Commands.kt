@@ -1,49 +1,54 @@
 package mindustry.client
 
-import arc.*
-import arc.func.*
-import arc.graphics.*
-import arc.math.*
-import arc.math.geom.*
+import arc.Core
+import arc.func.Prov
+import arc.graphics.Color
+import arc.math.Mathf
+import arc.math.geom.Point2
 import arc.struct.*
 import arc.util.*
-import arc.util.CommandHandler.*
-import mindustry.*
+import arc.util.CommandHandler.CommandRunner
+import mindustry.Vars
 import mindustry.Vars.*
-import mindustry.ai.types.*
+import mindustry.ai.types.LogicAI
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
-import mindustry.client.communication.Packets
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.follow
 import mindustry.client.navigation.Navigation.navigator
-import mindustry.client.ui.*
+import mindustry.client.ui.SeerDialog
 import mindustry.client.utils.*
-import mindustry.content.*
-import mindustry.core.*
-import mindustry.entities.*
-import mindustry.entities.units.*
-import mindustry.gen.*
-import mindustry.input.*
-import mindustry.logic.*
-import mindustry.net.*
-import mindustry.world.*
-import mindustry.world.blocks.distribution.*
-import mindustry.world.blocks.distribution.DirectionalUnloader.*
-import mindustry.world.blocks.environment.*
-import mindustry.world.blocks.logic.*
-import mindustry.world.blocks.power.*
-import mindustry.world.blocks.sandbox.*
-import mindustry.world.blocks.storage.*
-import mindustry.world.blocks.storage.Unloader.*
-import java.io.*
-import java.math.*
-import java.security.cert.*
-import java.time.*
-import java.time.temporal.*
+import mindustry.content.Blocks
+import mindustry.core.NetClient
+import mindustry.core.UI
+import mindustry.entities.Units
+import mindustry.entities.units.BuildPlan
+import mindustry.gen.Building
+import mindustry.gen.Call
+import mindustry.gen.Groups
+import mindustry.gen.Player
+import mindustry.input.DesktopInput
+import mindustry.logic.GlobalVars
+import mindustry.logic.LAccess
+import mindustry.net.Host
+import mindustry.world.Block
+import mindustry.world.blocks.distribution.DirectionalUnloader
+import mindustry.world.blocks.distribution.DirectionalUnloader.DirectionalUnloaderBuild
+import mindustry.world.blocks.environment.Prop
+import mindustry.world.blocks.logic.MessageBlock
+import mindustry.world.blocks.power.PowerDiode
+import mindustry.world.blocks.power.PowerNode
+import mindustry.world.blocks.sandbox.PowerVoid
+import mindustry.world.blocks.storage.StorageBlock
+import mindustry.world.blocks.storage.Unloader.UnloaderBuild
+import java.io.IOException
+import java.math.BigInteger
+import java.security.cert.X509Certificate
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlin.math.*
-import kotlin.random.*
+import kotlin.random.Random
 
 
 fun setup() {
@@ -300,36 +305,7 @@ fun setup() {
     }
 
     register("fixcode [c/r/l]", Core.bundle.get("client.command.fixcode.description")) { args, player ->
-        val builds = Vars.player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
-        clientThread.post {
-            val confirmed = args.any() && (args[0] == "c" || args[0] == "r") // Don't configure by default
-            val locations = args.any() && args[0] == "l"
-            val locMsg = StringBuilder("[accent]Processor locations:")
-            val inProgress = !configs.isEmpty()
-            var n = 0
-
-            if (confirmed && !inProgress || locations) {
-                Log.debug("Patching!")
-                builds.forEach {
-                    val patched = ProcessorPatcher.patch(it.code, args[0])
-                    if (patched != it.code) {
-                        if (locations) locMsg.append("\n(").append(it.tileX()).append(", ").append(it.tileY()).append(')')
-                        else ClientVars.configs.add(ConfigRequest(it.tileX(), it.tileY(), LogicBlock.compress(patched, it.relativeConnections())))
-                        n++
-                    }
-                }
-            }
-            Core.app.post {
-                if (confirmed) {
-                    if (inProgress) player.sendMessage(Core.bundle.format("client.command.fixcode.inprogress", configs.size, ProcessorPatcher.countProcessors(builds)))
-                    else player.sendMessage(Core.bundle.format("client.command.fixcode.success", n, builds.size))
-                } else if (locations) {
-                    Vars.ui.chatfrag.addMsg(locMsg.toString()).findCoords()
-                } else {
-                    player.sendMessage(Core.bundle.format("client.command.fixcode.help", ProcessorPatcher.countProcessors(builds), builds.size))
-                }
-            }
-        }
+        ProcessorPatcher.fixCode(args[0])
     }
 
     register("distance [distance]", Core.bundle.get("client.command.distance.description")) { args, player ->

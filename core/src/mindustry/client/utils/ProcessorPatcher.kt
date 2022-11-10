@@ -1,12 +1,13 @@
 package mindustry.client.utils
 
-import arc.util.*
 import arc.*
-import mindustry.client.*
-import mindustry.client.antigrief.*
+import arc.util.*
+import mindustry.Vars
 import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.antigrief.*
+import mindustry.client.navigation.clientThread
+import mindustry.world.blocks.logic.LogicBlock
 import mindustry.world.blocks.logic.LogicBlock.*
 
 object ProcessorPatcher {
@@ -41,12 +42,12 @@ object ProcessorPatcher {
         return attemMatcher.containsMatchIn(code)
     }
 
-    fun patch(code: String): String {return patch(code, if(Core.settings.getBool("removeatteminsteadoffixing")) "r" else "c")}
-    fun patch(code: String, mode: String): String {
+    fun patch(code: String): String {return patch(code, if(Core.settings.getBool("removeatteminsteadoffixing")) FixCodeMode.Remove else FixCodeMode.Fix)}
+    fun patch(code: String, mode: FixCodeMode): String {
         val result = attemMatcher.find(code) ?: return code
 
         return when (mode) {
-            "c" -> {
+            FixCodeMode.Fix -> {
                 val groups = result.groupValues
                 val bindLine = (0..result.range.first).count { code[it] == '\n' }
                 buildString {
@@ -57,7 +58,7 @@ object ProcessorPatcher {
                     replaceJumps(this, code.substring(result.range.last + 1), bindLine)
                 }
             }
-            "r" -> attemText
+            FixCodeMode.Remove -> attemText
             else -> code
         }
     }
@@ -76,5 +77,53 @@ object ProcessorPatcher {
     fun inform(build: LogicBuild) {
         ClientVars.configs.add(ConfigRequest(build.tileX(), build.tileY(), compress(attemText, build.relativeConnections()
         )))
+    }
+
+    fun fixCode(arg: String) {
+        fixCode(
+            when(arg) {
+                "c" -> FixCodeMode.Fix
+                "r" -> FixCodeMode.Remove
+                "l" -> FixCodeMode.List
+                else -> FixCodeMode.Fix // default
+            }
+        )
+    }
+
+    fun fixCode(mode: FixCodeMode) {
+        val builds = Vars.player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
+        clientThread.post {
+            val confirmed = mode == FixCodeMode.Fix || mode == FixCodeMode.Remove
+            val locations = mode == FixCodeMode.List
+            val locMsg = StringBuilder("[accent]Processor locations:")
+            val inProgress = !ClientVars.configs.isEmpty()
+            var n = 0
+
+            if (confirmed && !inProgress || locations) {
+                Log.debug("Patching!")
+                builds.forEach {
+                    val patched = patch(it.code, mode)
+                    if (patched != it.code) {
+                        if (locations) locMsg.append("\n(").append(it.tileX()).append(", ").append(it.tileY()).append(')')
+                        else ClientVars.configs.add(ConfigRequest(it.tileX(), it.tileY(), compress(patched, it.relativeConnections())))
+                        n++
+                    }
+                }
+            }
+            Core.app.post {
+                if (confirmed) {
+                    if (inProgress) player.sendMessage(Core.bundle.format("client.command.fixcode.inprogress", ClientVars.configs.size, countProcessors(builds)))
+                    else player.sendMessage(Core.bundle.format("client.command.fixcode.success", n, builds.size))
+                } else if (locations) {
+                    ui.chatfrag.addMsg(locMsg.toString()).findCoords()
+                } else {
+                    player.sendMessage(Core.bundle.format("client.command.fixcode.help", countProcessors(builds), builds.size))
+                }
+            }
+        }
+    }
+
+    enum class FixCodeMode {
+        Fix, Remove, List
     }
 }
