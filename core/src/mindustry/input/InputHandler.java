@@ -1343,15 +1343,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             boolean valid = validPlace(plan.x, plan.y, plan.block, plan.rotation);
             if(freeze || force || valid){
                 BuildPlan copy = plan.copy();
-                if(configLogic && copy.block instanceof LogicBlock && copy.config != null){
-                    final var conf = copy.config; // this is okay because processor connections are relative
-                    copy.config = null;
-                    copy.localConfig = it -> {
-                        if (!(it instanceof LogicBlock.LogicBuild build)) return;
-                        if (!build.code.isEmpty() || build.links.any())
-                            return; // Someone else built a processor with data
-                        configs.add(new ConfigRequest(it.tile.x, it.tile.y, conf));
-                    };
+                if(configLogic && copy.block instanceof LogicBlock && copy.config != null){ // Store the configs for logic blocks locally, they cause issues when sent to the server
+                    copy.configLocal = true;
                 }
                 if (force && !valid) {
                     var existing = world.tiles.get(plan.x, plan.y);

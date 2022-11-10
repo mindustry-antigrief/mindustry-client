@@ -262,8 +262,7 @@ fun setup() {
         val inProgress = !configs.isEmpty()
         var n = 0
         val newLinks = IntMap<IntSet>()
-        val tmp = mutableListOf<ConfigRequest>()
-        for ((grid, buildings) in grids) { // This is horrible but works somehow
+        for ((grid, buildings) in grids) { // This is horrible but works somehow FINISHME: rewrite this to work in realtime so that its not cursed
             for (nodeBuild in buildings) {
                 val nodeBlock = nodeBuild.block as? PowerNode ?: continue
                 var links = nodeBuild.power.links.size
@@ -277,15 +276,14 @@ fun setup() {
                     if (l.add(grid) && t.add(link.power.graph.id)) {
                         l.addAll(t)
                         newLinks.put(link.power.graph.id, l)
-                        if (confirmed && !inProgress) tmp.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
+                        if (confirmed && !inProgress) configs.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
                         n++
                     }
                 }
             }
         }
 
-        ClientVars.configs.addAll(tmp)
-        val msg = Vars.ui.chatfrag.addMsg("")
+        val msg = ui.chatfrag.addMsg("")
 
         msg.message = when {
             confirmed && inProgress -> Core.bundle.format("client.command.fixpower.inprogress", configs.size, n)
@@ -487,21 +485,21 @@ fun setup() {
         replaceMsg(args[0], args.size > 3 && args[3] == "t", args[1], args.size > 4 && args[4] == "t", args[2])
     }
 
-    register("phasei <interval>", Core.bundle.get("client.command.phasei.description")) { args, player ->
-        try{
-            val interval = Integer.parseInt(args[0])
-            val maxInterval = (Blocks.phaseConveyor as ItemBridge).range
-            if(interval < 1 || interval > maxInterval){
-                player.sendMessage("[scarlet]Interval must be within 1 and $maxInterval!")
-                return@register
-            }
-            ItemBridge.phaseWeaveInterval = interval
-            Core.settings.put("weaveEndInterval", interval)
-            player.sendMessage("[accent]Successfully set interval to $interval.")
-        } catch (e : Exception){
-            player.sendMessage("[scarlet]Failed to parse integer!")
-        }
-    }
+//    register("phasei <interval>", Core.bundle.get("client.command.phasei.description")) { args, player -> FINISHME: Needs to be reimplemented
+//        try{
+//            val interval = Integer.parseInt(args[0])
+//            val maxInterval = (Blocks.phaseConveyor as ItemBridge).range
+//            if(interval < 1 || interval > maxInterval){
+//                player.sendMessage("[scarlet]Interval must be within 1 and $maxInterval!")
+//                return@register
+//            }
+//            ItemBridge.phaseWeaveInterval = interval
+//            Core.settings.put("weaveEndInterval", interval)
+//            player.sendMessage("[accent]Successfully set interval to $interval.")
+//        } catch (e : Exception){
+//            player.sendMessage("[scarlet]Failed to parse integer!")
+//        }
+//    }
 
     register("pathing", Core.bundle.get("client.command.pathing.description")) { _, player ->
         if (navigator is AStarNavigator) {
@@ -988,7 +986,6 @@ fun setup() {
             val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
             clientThread.post {
                 var playerName: String? = null
-                val configs: Seq<ConfigRequest> = Seq()
                 val plans: Seq<BuildPlan> = Seq()
                 tiles.forEach {
                     if (!it.within(player.x, player.y, range)) return@forEach
@@ -1019,16 +1016,17 @@ fun setup() {
 
                     if (last!!.block == it.block() && last!!.configuration != it.build?.config()) {
                         if (plan) {
-                            plans.last().localConfig = Cons { build -> configs.add(ConfigRequest(build, last!!.configuration)) }
-                        } else
+                            plans.last().configLocal = true // FINISHME: Setting this on the client thread is a bad idea
+                            plans.last().config = last!!.configuration
+                        } else {
                             configs.add(ConfigRequest(it.build, last!!.configuration))
+                        }
                     }
                 }
 
                 Core.app.post {
                     player.sendMessage("[accent] Undoing ${configs.size} configs and ${plans.size} builds made by $playerName")
                     control.input.flushPlans(plans, false, true, false) // Overplace
-                    ClientVars.configs.addAll(configs)
                 }
             }
         }

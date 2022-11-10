@@ -486,10 +486,12 @@ public class Tile implements Position, QuadTreeObject, Displayable{
         }
     }
 
+    /** The bounds of the block placed on this tile */
     public Rect getHitbox(Rect rect){
         return rect.setCentered(drawx(), drawy(), block.size * tilesize, block.size * tilesize);
     }
 
+    /** Tile Bounds */
     public Rect getBounds(Rect rect){
         return rect.set(x * tilesize - tilesize/2f, y * tilesize - tilesize/2f, tilesize, tilesize);
     }

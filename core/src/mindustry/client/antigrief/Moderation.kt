@@ -34,13 +34,13 @@ class Moderation {
                         val buildings = "buildings".i()
                         val time = "playtime".i()
                         val name = "realname".s()
-                        val ioid = "playercode".s()
+                        val serverid = "playercode".s()
 
                         if (games < 3 || buildings < 1000 || time < 60) { // Low stat player; show a warning FINISHME: Settings for these values
                             fun Int.s() = if (this == Int.MAX_VALUE) "unknown" else toString()
-                            Vars.ui.chatfrag.addMsg("[scarlet]Player $name [scarlet]($ioid) has ${games.s()} games, ${buildings.s()} builds, ${time.s()} mins")
+                            Vars.ui.chatfrag.addMsg("[scarlet]Player $name [scarlet]($serverid) has ${games.s()} games, ${buildings.s()} builds, ${time.s()} mins")
                                 .addButton(name) { Spectate.spectate(player) }
-                                .addButton(ioid) { Call.sendChatMessage("/stats ${player.id}") }
+                                .addButton(serverid) { Call.sendChatMessage("/stats ${player.id}") }
                         }
                     }
                 }

@@ -3,7 +3,6 @@ package mindustry.world.blocks;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
-import arc.func.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.scene.event.*;
@@ -98,7 +97,6 @@ public class ConstructBlock extends Block{
 
         float healthf = tile.build == null ? 1f : tile.build.healthf();
         Seq<Building> prev = tile.build instanceof ConstructBuild co ? co.prevBuild : null;
-        Cons<Building> customConfig = tile.build instanceof ConstructBuild co ? co.localConfig : null;
         Block prevBlock = tile.block();
 
         if (block == null) {
@@ -112,6 +110,11 @@ public class ConstructBlock extends Block{
 
             if(config != null){
                 tile.build.configured(builder, config);
+            }else if(player != null){ // Foo's addition that allows for local configuration of blocks
+                control.input.playerPlanTree.intersect(tile.getBounds(Tmp.r1), Build.planSeq); // FINISHME: Ensure this works
+                var plan = Build.planSeq.find(p -> p.x == tile.x && p.y == tile.y && p.block == block && p.configLocal);
+                if (plan != null) tile.build.configure(plan.config); // Found a matching plan, configure the building to match the plan
+                Build.planSeq.clear();
             }
 
             if(prev != null && prev.size > 0){
@@ -129,10 +132,6 @@ public class ConstructBlock extends Block{
         //last builder was this local client player, call placed()
         if(tile.build != null && !headless && builder == player.unit()){
             tile.build.playerPlaced(config);
-        }
-
-        if(tile.build != null && customConfig != null){
-            customConfig.get(tile.build);
         }
 
         Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
@@ -230,7 +229,6 @@ public class ConstructBlock extends Block{
         public float progress = 0;
         public float buildCost;
         public @Nullable Object lastConfig;
-        public @Nullable Cons<Building> localConfig;
         public @Nullable Unit lastBuilder;
         public boolean wasConstructing, activeDeconstruct;
         public float constructColor;

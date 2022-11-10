@@ -23,6 +23,7 @@ import mindustry.game.EventType.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.io.*;
 import mindustry.logic.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
@@ -761,8 +762,9 @@ public class NetClient implements ApplicationListener{
         if(timer.get(0, playerSyncTime)){
             Unit unit = player.dead() ? Nulls.unit : player.unit();
             int uid = player.dead() ? -1 : unit.id;
-            Vec2 aimPos = Main.INSTANCE.floatEmbed(); // FINISHME: This method doesn't allocate garbage, does it?
+            Vec2 aimPos = Main.INSTANCE.floatEmbed();
 
+            TypeIO.useConfigLocal = true; // FINISHME: Awful.
             Call.clientSnapshot(
             lastSent++,
             uid,
@@ -779,6 +781,7 @@ public class NetClient implements ApplicationListener{
             Core.camera.position.x, Core.camera.position.y,
             Core.camera.width, Core.camera.height
             );
+            TypeIO.useConfigLocal = false;
         }
 
         if(timer.get(1, 60)){

@@ -35,6 +35,9 @@ import static mindustry.Vars.*;
 @TypeIOHandler
 public class TypeIO{
 
+    /** I was too lazy to add a boolean to the params of a method chain and create overrides, so I just flip this instead */
+    public static boolean useConfigLocal;
+
     public static void writeObject(Writes write, Object object){
         if(object == null){
             write.b((byte)0);
@@ -383,7 +386,7 @@ public class TypeIO{
             write.s(plan.block.id);
             write.b((byte)plan.rotation);
             write.b(1); //always has config
-            writeObject(write, plan.config);
+            writeObject(write, useConfigLocal && plan.configLocal ? null : plan.config);
         }
     }
 

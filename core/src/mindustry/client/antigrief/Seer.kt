@@ -16,7 +16,7 @@ object Seer {
     val timer = Interval()
 
     fun registerPlayer(player: Player) {
-        val data = players.firstOrNull { it.id == player.id || it.lastInstance == player }
+        val data = player.getData()
         if (data == null) players.add(PlayerData(player, Instant.now()))
         else {
             data.id = player.id
@@ -38,7 +38,7 @@ object Seer {
         }
     }
 
-    private fun Player.getData(): PlayerData {
+    private fun Player.getData(): PlayerData? {
         return players.find { it.id == id || it.lastInstance == this }
     }
 
@@ -48,25 +48,20 @@ object Seer {
             Vars.player.sendMessage("${player.coloredName()} [accent]exceeded warn threshold! ${data.score}")
         }
         if (Core.settings.getBool("seer-autokick") && data.score >= Core.settings.getInt("seer-autokickthreshold")) {
-            Call.sendChatMessage("/votekick " + player.name)
+            Call.sendChatMessage("/votekick #${player.id}")
         }
     }
 
     fun thoriumReactor(player: Player?, distance: Float) {
         if (!Core.settings.getBool("seer-enabled")) return
-        if (player == null) return
-        val data = player.getData()
+        val data = player?.getData() ?: return
         data.score += Core.settings.getInt("seer-reactorscore") * distance / Core.settings.getInt("seer-reactordistance")
         warnIfNeeded(data, player)
     }
 
-//    fun blockConfig(player: Player, tile: Tile) {
-//        blockConfig(player, tile, null)
-//    }
-
     fun blockConfig(player: Player, tile: Tile, config: Any?) {
         if (!Core.settings.getBool("seer-enabled")) return
-        val data = player.getData()
+        val data = player.getData() ?: return
         data.score += Core.settings.getInt("seer-configscore") * tile.dst(player) / (Core.settings.getInt("seer-configdistance") * 5f) // 5f per config score
         if (tile.block() is LogicBlock && config != null) handleLogicConfig(player, tile, config)
         warnIfNeeded(data, player)
@@ -97,7 +92,7 @@ object Seer {
     }
 
     private fun procLinkSpam(player: Player) {
-        val data = player.getData()
+        val data = player.getData() ?: return
         data.score += Core.settings.getInt("seer-proclinkscore")
         warnIfNeeded(data, player)
     }
