@@ -171,7 +171,8 @@ public class MenuFragment{
             editor = new MobileButton(Icon.terrain, "@editor", () -> checkPlay(ui.maps::show)),
             tools = new MobileButton(Icon.settings, "@settings", ui.settings::show),
             mods = new MobileButton(Icon.book, "@mods", ui.mods::show),
-            exit = new MobileButton(Icon.exit, "@quit", () -> Core.app.exit());
+            exit = new MobileButton(Icon.exit, "@quit", () -> Core.app.exit()),
+            about = new MobileButton(Icon.info, "@about.button", ui.about::show);
 
         Seq<MobileButton> customs = customButtons.map(b -> new MobileButton(b.icon, b.text, b.runnable == null ? () -> {} : b.runnable));
 
@@ -194,7 +195,7 @@ public class MenuFragment{
             for(int i = 0; i < customs.size; i += 2){
                 container.add(customs.get(i));
             }
-            if(!ios) container.add(exit);
+            container.add(ios ? about : exit);
         }else{
             container.marginTop(0f);
             container.add(play);
@@ -212,7 +213,7 @@ public class MenuFragment{
                 container.add(customs.get(i));
                 if(i % 2 == 0) container.row();
             }
-            if(!ios) container.add(exit);
+            container.add(ios ? about : exit);
         }
     }
 
