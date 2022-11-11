@@ -35,7 +35,6 @@ import kotlin.contracts.*
 import kotlin.math.*
 
 /** Performs the given [block] with each element as its receiver. */
-@Suppress("OPT_IN_IS_NOT_ENABLED")
 @OptIn(ExperimentalContracts::class)
 inline fun <T, R>Iterable<T>.withEach(block: T.() -> R) {
     contract {
