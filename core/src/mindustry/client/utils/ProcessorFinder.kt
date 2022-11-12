@@ -1,21 +1,19 @@
 package mindustry.client.utils
 
-import arc.Core
-import arc.struct.Seq
-import mindustry.Vars
-import mindustry.Vars.player
-import mindustry.Vars.tilesize
-import mindustry.client.navigation.clientThread
-import mindustry.gen.Building
-import mindustry.graphics.Drawf
-import mindustry.world.blocks.logic.LogicBlock
-import java.util.concurrent.CopyOnWriteArrayList
+import arc.*
+import arc.struct.*
+import mindustry.Vars.*
+import mindustry.client.navigation.*
+import mindustry.gen.*
+import mindustry.graphics.*
+import mindustry.world.blocks.logic.*
+import java.util.concurrent.*
 
 object ProcessorFinder {
     private val highlighted: CopyOnWriteArrayList<LogicBlock.LogicBuild> = CopyOnWriteArrayList()
     val queries: CopyOnWriteArrayList<Regex> = CopyOnWriteArrayList()
 
-    fun search() {
+    fun search(query: Regex) {
         highlighted.clear()
         val builds: Seq<Building> = player.team().data().buildings.filter { it is LogicBlock.LogicBuild }
     
@@ -24,26 +22,26 @@ object ProcessorFinder {
             var processorCount = 0
             for (build in builds) {
                 val logicBuild = build as LogicBlock.LogicBuild
-                for (query in queries) {
-                    if (query.containsMatchIn((logicBuild.code))) {
-                        matchCount++
-                        highlighted.add(logicBuild)
-                    }
-                    processorCount++
+                if (query.containsMatchIn((logicBuild.code))) {
+                    matchCount++
+                    highlighted.add(logicBuild)
                 }
+                processorCount++
             }
     
             Core.app.post {
-                if (matchCount == 0) player.sendMessage(Core.bundle.get("client.procesorpatcher.nomatches"))
-                else player.sendMessage(Core.bundle.format("client.procesorpatcher.nomatches", matchCount, processorCount))
+                if (matchCount == 0) player.sendMessage(Core.bundle.get("client.processorpatcher.nomatches"))
+                else player.sendMessage(Core.bundle.format("client.processorpatcher.foundmatches", matchCount, processorCount))
             }
         }
+
+        queries.add(query)
     }
     
     fun searchAll() {
         highlighted.clear()
     
-        val tiles = Vars.world.tiles
+        val tiles = world.tiles
         clientThread.post {
             var matchCount = 0
             var processorCount = 0
@@ -54,14 +52,14 @@ object ProcessorFinder {
                             matchCount++
                             highlighted.add((tile.build as LogicBlock.LogicBuild))
                         }
-                        processorCount++
                     }
+                    processorCount++
                 }
             }
     
             Core.app.post {
                 if (matchCount == 0) player.sendMessage(Core.bundle.get("client.procesorpatcher.nomatches"))
-                else player.sendMessage(Core.bundle.format("client.procesorpatcher.foundmatches", matchCount, processorCount))
+                else ui.chatfrag.addMsg(Core.bundle.format("client.procesorpatcher.foundmatches", matchCount, processorCount))
             }
         }
     }
@@ -69,9 +67,9 @@ object ProcessorFinder {
     fun list() {
         val sb = StringBuilder(Core.bundle.get("client.command.procfind.list"))
         for (build in highlighted) {
-            sb.append(String.format("(%d, %d), ", build.x / 8, build.y / 8))
+            sb.append(String.format("(%d, %d), ", (build.x / 8).toInt(), (build.y / 8).toInt()))
         }
-        player.sendMessage(sb.toString())
+        ui.chatfrag.addMsg(sb.toString()).findCoords()
     }
 
     fun clear() {

@@ -52,8 +52,10 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
         if (player?.dead() != false) return
         assisting?.unit() ?: return // We don't care if they are dead
 
-        theta += Core.settings.getFloat("circleassistspeed", 0.05f)
-        theta %= (Math.PI * 2).toFloat()
+        if (circling) {
+            theta += Core.settings.getFloat("circleassistspeed", 0f)
+            theta %= (Math.PI * 2).toFloat()
+        }
 
         aStarTolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) + tilesize * 5;
         tolerance = if(circling) 0.1f else assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)

@@ -877,6 +877,10 @@ public class DesktopInput extends InputHandler{
 
         if(Core.input.keyTap(Binding.pause_building)){
             if (Core.input.shift()) isFreezeQueueing = !isFreezeQueueing;
+            else if (Core.input.ctrl()) {
+                Seq<BuildPlan> temp = frozenPlans.copy();
+                flushPlans(temp, false, false, true);
+            }
             else {
                 isBuilding = !isBuilding;
                 buildWasAutoPaused = false;

@@ -432,7 +432,7 @@ fun setup() {
                 if (it is DirectionalUnloaderBuild && !linkedCores.contains(it.back())) return@forEach // Erekir unloaders only unload from the tile behind
                 if (!coords.add(it)) return@forEach // We have already printed this tile's coords
 
-                Vars.ui.chatfrag.addMsg("[accent](${it.tileX()}, ${it.tileY()})").findCoords()
+                ui.chatfrag.addMsg("[accent](${it.tileX()}, ${it.tileY()})").findCoords()
             }
         }
     }
@@ -518,15 +518,13 @@ fun setup() {
                     return@register
                 }
                 val queryRegex = newArgs.drop(1).joinToString(" ").toRegex()
-                ProcessorFinder.queries.add(queryRegex)
-                ProcessorFinder.search()
+                ProcessorFinder.search(queryRegex)
             }
             "queries" -> {
                 val sb = StringBuilder(Core.bundle.get("client.command.procfind.queries")).append("\n")
                 ProcessorFinder.queries.forEach { r -> sb.append("\n").append(r.toPattern().pattern()) }
                 player.sendMessage(sb.toString())
             }
-            "search" -> ProcessorFinder.search()
             "searchall" -> ProcessorFinder.searchAll()
             "clear" -> {
                 player.sendMessage(Core.bundle.format("client.command.procfind.clear", ProcessorFinder.getCount()))
