@@ -103,7 +103,9 @@ class TileRecord(val x: Int, val y: Int) {
         when {
             sequences == null -> {
                 sequences = mutableListOf()
-                sequences!!.add(TileLogSequence(TileState(tile), isOrigin(tile), 0))
+                val state = TileState(tile)
+                state.time = joinTime
+                sequences!!.add(TileLogSequence(state, isOrigin(tile), 0))
             }
             sequences!!.last().logs.size > 100 -> {
                 sequences!!.add(TileLogSequence(TileState(tile), isOrigin(tile), sequences!!.last().range.last))
@@ -114,7 +116,7 @@ class TileRecord(val x: Int, val y: Int) {
 
     operator fun get(index: Int): TileState? {
         if (index !in totalRange) throw IndexOutOfBoundsException("Index $index is out of bounds! (size: $size)")
-        // Get the last sequence that encompases this index
+        // Get the last sequence that encompasses this index
         val bestSequence = sequences?.singleOrNull { index in it.range }
         return bestSequence?.get(index)
     }

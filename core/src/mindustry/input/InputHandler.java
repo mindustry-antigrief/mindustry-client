@@ -686,7 +686,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     public void update(){
         isLoadedSchematic &= lastSchematic != null; // i am lazy to reset it on all other instances; this should suffice
-        player.typing = showTypingIndicator && ui.chatfrag.shown();
 
         if(logicCutscene && !renderer.isCutscene()){
             Core.camera.position.lerpDelta(logicCamPan, logicCamSpeed);
@@ -703,7 +702,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         playerPlanTree.clear(); // TODO: aaaaaaaaaaaaaa
         player.unit().plans.each(playerPlanTree::insert);
 
-        player.typing = ui.chatfrag.shown();
+        player.typing = showTypingIndicator && ui.chatfrag.shown();
 
         if(player.dead()){
             droppingItem = false;
