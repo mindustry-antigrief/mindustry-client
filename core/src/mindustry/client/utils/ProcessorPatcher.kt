@@ -2,12 +2,12 @@ package mindustry.client.utils
 
 import arc.*
 import arc.util.*
-import mindustry.Vars
 import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.antigrief.*
-import mindustry.client.navigation.clientThread
-import mindustry.world.blocks.logic.LogicBlock
+import mindustry.client.navigation.*
+import mindustry.gen.*
+import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.logic.LogicBlock.*
 
 object ProcessorPatcher {
@@ -21,28 +21,27 @@ object ProcessorPatcher {
         set \3 0                                   # _attem = 0
         """.replace("\\s+#.+$".toRegex(RegexOption.MULTILINE), "").trimIndent().toRegex() // The regex comment mode is dumb
 
-    public val jumpMatcher = "jump (\\d+)(.*)".toRegex()
+    val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
-    public val attemText = """
+    val attemText = """
         print "Please do not use this delivery logic."
         print "It is attem83 logic and is considered bad logic"
         print "as it breaks other delivery logic and even other attem logic."
         print "For more info please go to https://mindustry.dev/attem."
         printflush message1
-    """.trimIndent();
+    """.trimIndent()
+
+    private val whisperText = "Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem"
 
     fun countProcessors(builds: Iterable<LogicBuild>): Int {
         Time.mark()
-        val count = builds.count { attemMatcher.containsMatchIn(it.code) }
+        val count = builds.count { isAttem(it.code) }
         Log.debug("Counted $count/${builds.count()} attems in ${Time.elapsed()}ms")
         return count
     }
 
-    fun isAttem(code: String): Boolean {
-        return attemMatcher.containsMatchIn(code)
-    }
+    fun isAttem(code: String) = attemMatcher.containsMatchIn(code)
 
-    fun patch(code: String): String {return patch(code, if(Core.settings.getBool("removeatteminsteadoffixing")) FixCodeMode.Remove else FixCodeMode.Fix)}
     fun patch(code: String, mode: FixCodeMode): String {
         val result = attemMatcher.find(code) ?: return code
 
@@ -74,24 +73,23 @@ object ProcessorPatcher {
         }
     }
 
-    fun inform(build: LogicBuild) {
-        ClientVars.configs.add(ConfigRequest(build.tileX(), build.tileY(), compress(attemText, build.relativeConnections()
-        )))
+    fun whisper(player: Player?) {
+        if (canWhisper() && player != null) Call.sendChatMessage("/w ${player.id} $whisperText")
     }
 
-    fun fixCode(arg: String) {
+    fun fixCode(arg: String?) {
         fixCode(
             when(arg) {
                 "c" -> FixCodeMode.Fix
                 "r" -> FixCodeMode.Remove
                 "l" -> FixCodeMode.List
-                else -> FixCodeMode.Fix // default
+                else -> null
             }
         )
     }
 
-    fun fixCode(mode: FixCodeMode) {
-        val builds = Vars.player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
+    fun fixCode(mode: FixCodeMode?) {
+        val builds = player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
         clientThread.post {
             val confirmed = mode == FixCodeMode.Fix || mode == FixCodeMode.Remove
             val locations = mode == FixCodeMode.List
@@ -99,13 +97,19 @@ object ProcessorPatcher {
             val inProgress = !ClientVars.configs.isEmpty()
             var n = 0
 
-            if (confirmed && !inProgress || locations) {
+            if (confirmed && !inProgress) {
                 Log.debug("Patching!")
                 builds.forEach {
-                    val patched = patch(it.code, mode)
+                    val patched = patch(it.code, mode!!)
                     if (patched != it.code) {
-                        if (locations) locMsg.append("\n(").append(it.tileX()).append(", ").append(it.tileY()).append(')')
-                        else ClientVars.configs.add(ConfigRequest(it.tileX(), it.tileY(), compress(patched, it.relativeConnections())))
+                        ClientVars.configs.add(ConfigRequest(it.tileX(), it.tileY(), compress(patched, it.relativeConnections())))
+                        n++
+                    }
+                }
+            } else if (locations) {
+                builds.forEach {
+                    if (isAttem(it.code)) {
+                        locMsg.append("\n(").append(it.tileX()).append(", ").append(it.tileY()).append(')')
                         n++
                     }
                 }
@@ -115,7 +119,7 @@ object ProcessorPatcher {
                     if (inProgress) player.sendMessage(Core.bundle.format("client.command.fixcode.inprogress", ClientVars.configs.size, countProcessors(builds)))
                     else player.sendMessage(Core.bundle.format("client.command.fixcode.success", n, builds.size))
                 } else if (locations) {
-                    ui.chatfrag.addMsg(locMsg.toString()).findCoords()
+                    ui.chatfrag.addMsg(Core.bundle.format("client.command.fixcode.locations", n, locMsg.toString())).findCoords()
                 } else {
                     player.sendMessage(Core.bundle.format("client.command.fixcode.help", countProcessors(builds), builds.size))
                 }

@@ -44,7 +44,6 @@ public class LogicBlock extends Block{
     private static int attemCount;
     private static long attemTime;
     private static ChatFragment.ChatMessage attemMsg;
-    public static String attemWhisperMessage = "/w %s Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem";
 
     public int maxInstructionScale = 5;
     public int instructionsPerTick = 1;
@@ -564,35 +563,27 @@ public class LogicBlock extends Block{
                 Player player = ClientUtils.getPlayer(builder);
                 clientThread.post(() -> { // The regex can be expensive, so we delegate it to the client thread
                     long begin = Time.nanos();
-                    if (ProcessorPatcher.INSTANCE.isAttem(code)) {
+                    var patched = ProcessorPatcher.INSTANCE.patch(code, Core.settings.getBool("removeatteminsteadoffixing") ? ProcessorPatcher.FixCodeMode.Remove : ProcessorPatcher.FixCodeMode.Fix);
+                    if (!patched.equals(code)) {
                         Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
                             if ((player != lastAttem || player == null)) {
                                 lastAttem = player;
                                 attemCount = 1;
-                                attemTime = Time.millis();
-                                String msg = Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtils.getName(builder), tileX(), tileY());
-                                attemMsg = ui.chatfrag.addMessage(msg, null, null, "", msg);
+                                attemMsg = ui.chatfrag.addMsg(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtils.getName(builder), tile.x, tile.y)); // FINISHME: Bundle
                                 NetClient.findCoords(attemMsg);
-				// FINISHME: Send this every time an attem is placed but hide it from our view instead
-                                if (Core.settings.getBool("attemwarfarewhisper") && ClientUtils.canWhisper() && player != null) {
-                                    Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
-                                }
+                                ProcessorPatcher.INSTANCE.whisper(player);
                             } else {
                                 if (Time.timeSinceMillis(attemTime) > 5000) {
-                                    if (Core.settings.getBool("attemwarfarewhisper") && ClientUtils.canWhisper()) {
-                                        Call.sendChatMessage(String.format(attemWhisperMessage, player.id));
-                                    }
-                                    attemTime = Time.millis();
+                                    ProcessorPatcher.INSTANCE.whisper(player);
                                     ui.chatfrag.messages.remove(attemMsg);
                                     ui.chatfrag.messages.insert(0, attemMsg);
                                 }
                                 attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
                                 attemMsg.format();
                             }
-                            lastAttem = player;
-                            if (player != null && builder.team == player.team()) { // Only config if its our team
-		            	        ClientVars.configs.add(new ConfigRequest(this.tileX(), this.tileY(), compress(ProcessorPatcher.INSTANCE.patch(code), this.relativeConnections())));
-                            }
+                            attemTime = Time.millis();
+                            ClientVars.lastSentPos.set(tile.x, tile.y);
+                            ClientVars.configs.add(new ConfigRequest(tile.x, tile.y, compress(patched, relativeConnections())));
                         });
                     }
                     Log.debug("Regex: @ms", Time.millisSinceNanos(begin));
