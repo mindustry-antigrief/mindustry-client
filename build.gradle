@@ -226,7 +226,7 @@ allprojects{
 //compile with java 8 compatibility for everything except the annotation project
 configure(subprojects - project(":annotations")){
     tasks.withType(JavaCompile){
-        options.compilerArgs.addAll(['--release', '16'])
+        options.compilerArgs.addAll(['--release', '8'])
     }
 
     tasks.withType(Javadoc){
@@ -260,13 +260,6 @@ project(":desktop"){
 project(":core"){
     apply plugin: "kotlin"
     apply plugin: "kotlin-kapt"
-
-    kapt{
-        javacOptions{
-            option("-source", "16")
-            option("-target", "1.8")
-        }
-    }
 
 //    compileJava.options.fork = true
 
