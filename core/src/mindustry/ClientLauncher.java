@@ -216,7 +216,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 loader.draw();
             }
             if(assets.update(1000 / loadingFPS)){
-                if(OS.hasProp("debug")){
+                if(OS.hasProp("assetLoadTimes")){
                     var sorted = new PQueue<>(12, Structs.comparingFloat(Pair<String, Float>::getSecond));
                     int[] length = {0};
                     assets.done.each((a, t) -> {

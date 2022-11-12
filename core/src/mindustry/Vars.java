@@ -444,7 +444,7 @@ public class Vars implements Loadable{
             UnitType.formationAlpha = settings.getInt("formationopacity") / 100f;
             UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f;
         });
-        if(Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug;
+        if(Core.settings.getBool("debug") || OS.hasProp("debug")) Log.level = Log.LogLevel.debug;
 
         Scl.setProduct(settings.getInt("uiscale", 100) / 100f);
 
