@@ -8,40 +8,39 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import arc.util.CommandHandler.*
+import mindustry.*
 import mindustry.Vars.*
-import mindustry.Vars
 import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
+import mindustry.client.communication.Packets
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.follow
 import mindustry.client.navigation.Navigation.navigator
 import mindustry.client.ui.*
 import mindustry.client.utils.*
-import mindustry.content.Blocks
+import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
-import mindustry.entities.units.BuildPlan
+import mindustry.entities.units.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
-import mindustry.net.Host
-import mindustry.world.Block
-import mindustry.world.blocks.distribution.ItemBridge
-import mindustry.world.blocks.environment.Prop
+import mindustry.net.*
+import mindustry.world.*
 import mindustry.world.blocks.distribution.*
 import mindustry.world.blocks.distribution.DirectionalUnloader.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
-import mindustry.world.blocks.sandbox.PowerVoid
+import mindustry.world.blocks.sandbox.*
 import mindustry.world.blocks.storage.*
 import mindustry.world.blocks.storage.Unloader.*
 import java.io.*
 import java.math.*
 import java.security.cert.*
-import java.time.Instant
-import java.time.temporal.ChronoUnit
+import java.time.*
+import java.time.temporal.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -300,7 +299,7 @@ fun setup() {
     }
 
     register("fixcode [c/r/l]", Core.bundle.get("client.command.fixcode.description")) { args, _ ->
-        ProcessorPatcher.fixCode(args[0])
+        ProcessorPatcher.fixCode(args.firstOrNull())
     }
 
     register("distance [distance]", Core.bundle.get("client.command.distance.description")) { args, player ->

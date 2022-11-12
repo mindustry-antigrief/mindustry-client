@@ -97,7 +97,7 @@ public class FileTree implements FileHandleResolver{
     private boolean outdated(){
         if(!checkedOutdated){
             checkedOutdated = true;
-            var hash = Objects.hash(Version.assetUrl, Version.assetRef);
+            var hash = Objects.hash(Version.assetUrl, Version.assetRef, Version.build, Version.revision); // Build and revision help with sounds being wrong on cloned copies (though the sounds should be stored locally anyway)
             outdated = Core.settings.getInt("assetkey") != hash;
             if(outdated) Core.settings.put("assetkey", hash);
         }
@@ -106,8 +106,10 @@ public class FileTree implements FileHandleResolver{
 
     public void loadAudio(DownloadableAudio audio, String path, int length){
         var fi = get(path);
-        var clazz = audio.getClass().getSimpleName(); // Used for error messages
-        if(audio instanceof Sound sound && fi.parent().name().equals("ui")) sound.setBus(Vars.control.sound.uiBus);
+        var clazz = audio.getClass().getSimpleName(); // Used for error messages and settings
+        if(audio instanceof Sound sound && fi.parent().name().equals("ui")) {
+            sound.setBus(Vars.control.sound.uiBus);
+        }
 
         if(fi.exists()){ // Local copy. Assumed to be up-to-date
             audio.load(fi);
@@ -121,16 +123,18 @@ public class FileTree implements FileHandleResolver{
             return;
         }
 
+        if(!Core.settings.getBool("download" + clazz.toLowerCase())) return; // Automatic downloading of music and sound can be disabled
+
         ConsT<Http.HttpResponse, Exception> writeDownloadedAudio = res -> { // This creates garbage, but it's convenient and shouldn't matter as this method is called few times
             if(!cached.exists() || cached.length() != res.getContentLength()){ // Only download if the existing file isn't the same size
                 var write = cached.write();
                 Streams.copy(res.getResultAsStream(), cached.write());
                 write.close();
+                Log.info("Finished downloading @ @", clazz, fi.name());
             }
             audio.loadDirectly(cached);
+            Log.info("Loaded @ @", clazz, fi.name());
         };
-
-        if(!Core.settings.getBool("download" + clazz.toLowerCase())) return; // Automatic downloading of music and sound can be disabled
 //        FINISHME: Making a get request to the line below would be beneficial as we could compare hashes but that would require a backup for exceeding rate limits (would also be done by directory as it would save many requests)
 //        "https://api.github.com/repos/" + Version.assetUrl + "/contents/core/assets/" + path + "?ref=" + Version.assetRef;
         var req = Http.get("https://raw.githubusercontent.com/" + Version.assetUrl + '/' + Version.assetRef  + "/core/assets/" + path);
@@ -148,6 +152,7 @@ public class FileTree implements FileHandleResolver{
             req.timeout(5000); // The request probably timed out at 2000, it could be a fluke, but it could also just be bad Wi-Fi
             req.block(writeDownloadedAudio); // error() is run on the same thread so no need to submit this time as we're already on an http thread
         });
+        Log.info("Downloading @ @", clazz, fi.name());
         req.submit(writeDownloadedAudio);
     }
 }

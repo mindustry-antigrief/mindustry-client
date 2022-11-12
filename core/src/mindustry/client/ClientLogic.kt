@@ -19,7 +19,6 @@ import mindustry.net.*
 import mindustry.type.*
 import mindustry.ui.fragments.*
 import mindustry.world.blocks.defense.turrets.*
-import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.sandbox.*
 
 /** WIP client logic class, similar to [Logic] but for the client.
@@ -63,7 +62,7 @@ class ClientLogic {
             }, .1F)
 
             if (Core.settings.getBool("onjoinfixcode")) { // FINISHME: Make this also work for singleplayer worlds
-                ProcessorPatcher.fixCode(if (Core.settings.getBool("removeatteminsteadoffixing")) ProcessorPatcher.FixCodeMode.Remove else ProcessorPatcher.FixCodeMode.Fix)
+                ProcessorPatcher.fixCode(ProcessorPatcher.FixCodeMode.Fix)
             }
 
             Seer.players.clear()
@@ -129,6 +128,7 @@ class ClientLogic {
             Core.settings.remove("effectscl")
             Core.settings.remove("commandwarnings")
 	        Core.settings.remove("nodeconfigs")
+            Core.settings.remove("attemwarfarewhisper")
             if (Core.settings.has("gameovertext")) {
                 if (Core.settings.getString("gameovertext").isNotBlank()) Core.settings.put("gamewintext", Core.settings.getString("gameovertext"))
                 Core.settings.remove("gameovertext")
