@@ -290,6 +290,8 @@ public class BeamDrill extends Block{
             Draw.rect(topRegion, x, y, rotdeg());
 
             if(isPayload()) return;
+            
+            float opacity = (float) Core.settings.getInt("beamdrillopacity") / 100f;
 
             var dir = Geometry.d4(rotation);
             int ddx = Geometry.d4x(rotation + 1), ddy = Geometry.d4y(rotation + 1);
@@ -308,12 +310,12 @@ public class BeamDrill extends Block{
                         Draw.scl(width);
 
                         if(boostWarmup < 0.99f){
-                            Draw.alpha(1f - boostWarmup);
+                            Draw.alpha((1f - boostWarmup) * opacity);
                             Draw.rect(laserCenter, lx, ly);
                         }
 
                         if(boostWarmup > 0.01f){
-                            Draw.alpha(boostWarmup);
+                            Draw.alpha(boostWarmup * opacity);
                             Draw.rect(laserCenterBoost, lx, ly);
                         }
 
@@ -322,12 +324,12 @@ public class BeamDrill extends Block{
                         float lsx = (p.x - dir.x/2f) * tilesize, lsy = (p.y - dir.y/2f) * tilesize;
 
                         if(boostWarmup < 0.99f){
-                            Draw.alpha(1f - boostWarmup);
+                            Draw.alpha((1f - boostWarmup) * opacity);
                             Drawf.laser(laser, laserEnd, lsx, lsy, lx, ly, width);
                         }
 
                         if(boostWarmup > 0.001f){
-                            Draw.alpha(boostWarmup);
+                            Draw.alpha(boostWarmup * opacity);
                             Drawf.laser(laserBoost, laserEndBoost, lsx, lsy, lx, ly, width);
                         }
                     }

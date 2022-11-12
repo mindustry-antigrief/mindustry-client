@@ -379,6 +379,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.category("graphics");
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
+        client.sliderPref("beamdrillopacity", 100, 0, 100, 1, s -> s + "%");
         client.sliderPref("junctionview", 0, -1, 1, 1, s -> { Junction.setBaseOffset(s); return s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show"; });
         client.sliderPref("spawntime", 5, -1, 60, s -> { ClientVars.spawnTime = 60 * s; if (Vars.pathfinder.thread == null) Vars.pathfinder.start(); return s == -1 ? "Solid Line" : s == 0 ? "Disabled" : String.valueOf(s); });
         client.sliderPref("traveltime", 10, 0, 60, s -> { ClientVars.travelTime = 60f / s; return s == 0 ? "Disabled" : String.valueOf(s); });

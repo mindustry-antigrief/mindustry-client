@@ -1,54 +1,49 @@
 package mindustry.client
 
-import arc.Core
-import arc.func.Prov
-import arc.graphics.Color
-import arc.math.Mathf
-import arc.math.geom.Point2
+import arc.*
+import arc.func.*
+import arc.graphics.*
+import arc.math.*
+import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
-import arc.util.CommandHandler.CommandRunner
-import mindustry.Vars
+import arc.util.CommandHandler.*
 import mindustry.Vars.*
-import mindustry.ai.types.LogicAI
+import mindustry.Vars
+import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.follow
 import mindustry.client.navigation.Navigation.navigator
-import mindustry.client.ui.SeerDialog
+import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.content.Blocks
-import mindustry.core.NetClient
-import mindustry.core.UI
-import mindustry.entities.Units
+import mindustry.core.*
+import mindustry.entities.*
 import mindustry.entities.units.BuildPlan
-import mindustry.gen.Building
-import mindustry.gen.Call
-import mindustry.gen.Groups
-import mindustry.gen.Player
-import mindustry.input.DesktopInput
-import mindustry.logic.GlobalVars
-import mindustry.logic.LAccess
+import mindustry.gen.*
+import mindustry.input.*
+import mindustry.logic.*
 import mindustry.net.Host
 import mindustry.world.Block
-import mindustry.world.blocks.distribution.DirectionalUnloader
-import mindustry.world.blocks.distribution.DirectionalUnloader.DirectionalUnloaderBuild
+import mindustry.world.blocks.distribution.ItemBridge
 import mindustry.world.blocks.environment.Prop
-import mindustry.world.blocks.logic.MessageBlock
-import mindustry.world.blocks.power.PowerDiode
-import mindustry.world.blocks.power.PowerNode
+import mindustry.world.blocks.distribution.*
+import mindustry.world.blocks.distribution.DirectionalUnloader.*
+import mindustry.world.blocks.logic.*
+import mindustry.world.blocks.power.*
 import mindustry.world.blocks.sandbox.PowerVoid
-import mindustry.world.blocks.storage.StorageBlock
-import mindustry.world.blocks.storage.Unloader.UnloaderBuild
-import java.io.IOException
-import java.math.BigInteger
-import java.security.cert.X509Certificate
+import mindustry.world.blocks.storage.*
+import mindustry.world.blocks.storage.Unloader.*
+import java.io.*
+import java.math.*
+import java.security.cert.*
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.math.*
-import kotlin.random.Random
+import kotlin.random.*
 
 
 fun setup() {
@@ -304,7 +299,7 @@ fun setup() {
         msg.format()
     }
 
-    register("fixcode [c/r/l]", Core.bundle.get("client.command.fixcode.description")) { args, player ->
+    register("fixcode [c/r/l]", Core.bundle.get("client.command.fixcode.description")) { args, _ ->
         ProcessorPatcher.fixCode(args[0])
     }
 
@@ -773,71 +768,24 @@ fun setup() {
                         if(state.block !== prevBlock) shouldBuild = diff.isOrigin // this is only modified when the log caused the construction/destruction of a building
                     }
                     if (!shouldBuild || state.block == Blocks.air) return@forEach // If building does not need to be built, do not build it
-                    plans.add(BuildPlan(state.x, state.y, max(0, state.rotation), state.block, state.configuration))
+                    plans.add(BuildPlan(state.x, state.y, state.rotation, state.block, state.configuration))
                 }
 
-                if (plans.size == 0) return@post
+                if (plans.size == 0) {
+                    Core.app.post { player.sendMessage(Core.bundle.get("client.norebuildsfound")) }
+                    return@post
+                }
+
                 Core.app.post {
                     control.input.isBuilding = false
                     control.input.flushPlans(plans)
+                    player.sendMessage("[accent]Queued ${plans.size} blocks for rebuilding.")
+                    plans.clear()
                 }
             }
         }
 
         register("rebuild <start> <end> <buildrange>", """
-            Rebuilds the last building for each tile over a time range, by using tile logs and placing them into buildplan.
-                [white]start[] Start of time interval to rebuild, in minutes before now
-                [white]end[] End of time interval to rebuild, in minutes before now
-                [white]buildrange[] Radius within which buildings are rebuilt
-        """.trimIndent()) { args, player ->
-            val timeStart: Instant
-            val timeEnd: Instant
-            val range: Float
-            try {
-                timeEnd = Instant.now().minus(args[0].toLong(), ChronoUnit.MINUTES)
-                timeStart = timeEnd.minus(args[1].toLong(), ChronoUnit.MINUTES)
-                range = args[2].toFloat() * tilesize
-            }
-            catch (_: Exception) {
-                player.sendMessage("[scarlet]Invalid arguments! Please specify 2 numbers (minutes and range)!")
-                return@register
-            }
-
-            Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
-            val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
-            clientThread.post {
-                val plans: Seq<BuildPlan> = Seq()
-                tiles.forEach {
-                    if (!it.within(player.x, player.y, range) || it.block() != Blocks.air) return@forEach
-
-                    val record = TileRecords[it] ?: return@forEach
-                    if (record.sequences == null) return@forEach
-                    var last: TileState? = null
-
-                    seq@ for (seq in record.sequences!!.asReversed()) { // Rebuilds are likely used on recent states, so start from the last logs
-                        val state = seq.snapshot.clone()
-                        for (diff in seq.iterator()) {
-                            diff.apply(state)
-                            // Exit if we've gone past the time start
-                            // Continue searching if we have not reached time end
-                            if (diff.time > timeEnd) break@seq
-                            if (diff.time < timeStart || !diff.isOrigin || state.block == Blocks.air) continue
-
-                            last = state.clone()
-                        }
-                    }
-                    if (last == null) return@forEach
-                    plans.add(BuildPlan(last.x, last.y, last.rotation, last.block, last.configuration))
-                }
-
-                if (plans.size == 0) return@post
-                Core.app.post {
-                    control.input.flushPlans(plans)
-                }
-            }
-        }
-
-        register("rebuild2 <start> <end> <buildrange>", """
             Rebuilds the last building for each tile over a time range, by using tile logs and placing them into buildplan.
                 [white]start[] Start of time interval to rebuild, in minutes before now
                 [white]end[] End of time interval to rebuild, in minutes before now
@@ -894,9 +842,9 @@ fun setup() {
                             }
                             if (!shouldBuild || state.block === Blocks.air) continue // Don't save the state if we cannot build it
                             if (last != null) {
-                                diff.apply(last!!)
+                                diff.apply(last) // TilePlacedLog will always modify all the information we need, so no need to refresh state
                             } else last = state.clone()
-                            last!!.time = diff.time
+                            last.time = diff.time
                         }
                         if (shouldBuild || hasBeenOverwritten) break@seq // Break if we can restore that, or no earlier logs need to be used
                     }
@@ -905,7 +853,7 @@ fun setup() {
                 }
 
                 if (states.size == 0) {
-                    Core.app.post { player.sendMessage("[accent]No blocks found to rebuild.") }
+                    Core.app.post { player.sendMessage(Core.bundle.get("client.norebuildsfound")) }
                     return@post
                 }
                 // The following is so inefficient lol what
@@ -933,7 +881,7 @@ fun setup() {
                 }
                 states.clear()
                 if (plans.size == 0) {
-                    Core.app.post { player.sendMessage("[accent]No blocks found to rebuild.") }
+                    Core.app.post { player.sendMessage(Core.bundle.get("client.norebuildsfound")) }
                     return@post
                 }
                 Core.app.post {
@@ -946,7 +894,7 @@ fun setup() {
 
         register("undo <player> [range]", "Undo Configs from a specific player (get rekt griefers)") { args, player ->
             val range: Float
-            val id: Int?
+            val id: Int
             try {
                 id = args[0].toInt()
                 range = if (args.size >= 2) args[1].toFloat() * tilesize else Float.MAX_VALUE
@@ -960,47 +908,57 @@ fun setup() {
             val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
             clientThread.post {
                 var playerName: String? = null
+                val configs: Seq<ConfigRequest> = Seq()
                 val plans: Seq<BuildPlan> = Seq()
+                var isOrigin: Boolean = false
+                var prevBlock: Block
+                var prevID: Int
+
+                val toBreak: IntMap<BuildPlan> = IntMap()
                 tiles.forEach {
                     if (!it.within(player.x, player.y, range)) return@forEach
 
                     val sequences = TileRecords[it]?.sequences ?: return@forEach
                     var last: TileState? = null
 
-                    for (seq in sequences.asReversed()) {
+                    val seqReversed = sequences.asReversed()
+                    for ((i, seq) in seqReversed.withIndex()) { // For each tile, get the last state before it was touched by the player
                         val state = seq.snapshot.clone()
+                        isOrigin = seq.snapshotIsOrigin
+                        prevID = id
+                        // Evaluate if the current snapshot was caused by the target player. If so, do not use it.
+                        last = if (i + 1 < seqReversed.size && ((seqReversed[i + 1].logs.lastOrNull()?.cause?.playerID?: id.inv()) == id)) null else state.clone()
                         for (diff in seq.iterator()) {
+                            prevBlock = state.block
                             diff.apply(state)
-
-                            // Ignore if its the target player
-                            if (diff.cause.playerID != id) {
+                            if(state.block !== prevBlock && state.block !== Blocks.air) {
+                                isOrigin = diff.isOrigin
+                            }
+                            if (prevID != id && diff.cause.playerID == id) { // Only clone state if the ids change
                                 last = state.clone()
-                            } else if (playerName == null) playerName = diff.cause.shortName
+                            }
+                            prevID = diff.cause.playerID
+                            if (playerName == null && prevID == id) playerName = diff.cause.shortName
                         }
+                        if ((seq.logs.lastOrNull()?.isOrigin == true) && prevID != id) { // Capture last diff
+                            if (i == 0) return@forEach // If last diff can be captured, it is not different from the current state
+                            last = state.clone()
+                        }
+                        if (!isOrigin && state.block !== Blocks.air) return@forEach // If there is something else on top, do not build it
+                        if (last != null) break
                     }
                     // Only rebuild if block is different than the current block
                     // Only configure if its different
-                    if (last == null) return@forEach
-
-                    val plan = last!!.block != it.block() || last!!.rotation != it.build?.rotation
-                    if (plan) {
-                        if (last!!.block == Blocks.air || last!!.block is Prop) plans.add(BuildPlan(last!!.x, last!!.y))
-                        else plans.add(BuildPlan(last!!.x, last!!.y, last!!.rotation, last!!.block, last!!.configuration))
-                    }
-
-                    if (last!!.block == it.block() && last!!.configuration != it.build?.config()) {
-                        if (plan) {
-                            plans.last().configLocal = true // FINISHME: Setting this on the client thread is a bad idea
-                            plans.last().config = last!!.configuration
-                        } else {
-                            configs.add(ConfigRequest(it.build, last!!.configuration))
-                        }
-                    }
+                    if (!isOrigin) return@forEach
+                    last?.restoreState(it, plans, configs, toBreak) ?: return@forEach
                 }
 
                 Core.app.post {
-                    player.sendMessage("[accent] Undoing ${configs.size} configs and ${plans.size} builds made by $playerName")
+                    player.sendMessage("[accent] Queued ${configs.size} configs and ${plans.size} builds to undo actions by $playerName")
                     control.input.flushPlans(plans, false, true, false) // Overplace
+                    ClientVars.configs.addAll(configs)
+                    plans.clear()
+                    configs.clear()
                 }
             }
         }
