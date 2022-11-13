@@ -49,7 +49,7 @@ public class Mods implements Loadable{
     public Seq<LoadedMod> mods = new Seq<>();
     private ObjectMap<Class<?>, ModMeta> metas = new ObjectMap<>();
     private boolean requiresReload;
-    private static final Seq<String> clientDisabled = Seq.with("automatic-mod-updater", "scheme-size", "auto-updater"); // These mods aren't needed when using the client
+    private static final Seq<String> clientBlacklisted = Seq.with("automatic-mod-updater", "scheme-size", "auto-updater"); // These mods aren't needed when using the client
 
     private ObjectMap<Texture, PageType> pageTypes;
 
@@ -1070,7 +1070,7 @@ public class Mods implements Loadable{
         /** @return whether this mod is supported by the game version */
         public boolean isSupported(){
             if(isOutdated() || isBlacklisted()) return false;
-            if(clientDisabled()) return false; // FINISHME: Make it display a warning or something and maybe disable them the first time? It shouldn't force people to not use mods
+            if(clientBlacklisted()) return false; // FINISHME: Make it display a warning or something and maybe disable them the first time? It shouldn't force people to not use mods
             return Core.settings.getBool("ignoremodminversion") || Version.isAtLeast(meta.minGameVersion);
         }
 
@@ -1086,8 +1086,8 @@ public class Mods implements Loadable{
         }
 
         /** @return whether the client disables this mod for one reason or another */
-        public boolean clientDisabled(){
-            return clientDisabled.contains(name);
+        public boolean clientBlacklisted(){
+            return clientBlacklisted.contains(name);
         }
 
         public int getMinMajor(){

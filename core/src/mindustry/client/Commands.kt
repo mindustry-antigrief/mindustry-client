@@ -8,7 +8,6 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import arc.util.CommandHandler.*
-import mindustry.*
 import mindustry.Vars.*
 import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
@@ -48,7 +47,7 @@ import kotlin.random.*
 fun setup() {
     register("help [page/command]", Core.bundle.get("client.command.help.description")) { args, player ->
         if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
-            val command = ClientVars.clientCommandHandler.commandList.find { it.text == args[0] }
+            val command = clientCommandHandler.commandList.find { it.text == args[0] }
             if (command != null) {
                 player.sendMessage(Strings.format("[orange] !@[white] @[lightgray] - @", command.text, command.paramText, command.description))
                 return@register
@@ -126,8 +125,8 @@ fun setup() {
     register("spawn <type> [team] [x] [y] [count]", Core.bundle.get("client.command.spawn.description")) { args, player ->
         val type = findUnit(args[0])
         val team = if (args.size < 2) player.team() else findTeam(args[1])
-        val x = if (args.size < 3 || !Strings.canParsePositiveFloat(args[2])) player.x else args[2].toFloat() * Vars.tilesizeF
-        val y = if (args.size < 4 || !Strings.canParsePositiveFloat(args[3])) player.y else args[3].toFloat() * Vars.tilesizeF
+        val x = if (args.size < 3 || !Strings.canParsePositiveFloat(args[2])) player.x else args[2].toFloat() * tilesizeF
+        val y = if (args.size < 4 || !Strings.canParsePositiveFloat(args[3])) player.y else args[3].toFloat() * tilesizeF
         val count = if (args.size < 5 || !Strings.canParsePositiveInt(args[4])) 1 else args[4].toInt()
 
         if (net.client()) Call.sendChatMessage("/js for(let i = 0; i < $count; i++) UnitTypes.$type.spawn(Team.all[${team.id}], $x, $y)")
@@ -303,10 +302,10 @@ fun setup() {
     }
 
     register("distance [distance]", Core.bundle.get("client.command.distance.description")) { args, player ->
-        if (args.size != 1) player.sendMessage("[accent]The distance multiplier is ${Core.settings.getFloat("assistdistance", 1.5f)} (default is 1.5)")
+        if (args.size != 1) player.sendMessage("[accent]The distance multiplier is ${Core.settings.getFloat("assistdistance", 5f)} (default is 5)")
         else {
-            Core.settings.put("assistdistance", abs(Strings.parseFloat(args[0], 1.5f)))
-            player.sendMessage("[accent]The distance multiplier is now ${Core.settings.getFloat("assistdistance")} (default is 1.5)")
+            Core.settings.put("assistdistance", abs(Strings.parseFloat(args[0], 5f)))
+            player.sendMessage("[accent]The distance multiplier is now ${Core.settings.getFloat("assistdistance")} (default is 5)")
         }
     }
 
@@ -375,7 +374,7 @@ fun setup() {
 
     register("mapinfo [team]", Core.bundle.get("client.command.mapinfo.description")) { args, player -> 
         val team = if (args.isEmpty()) player.team() else findTeam(args[0])
-        player.sendMessage(with(Vars.state) {
+        player.sendMessage(with(state) {
             """
             [accent]Name: ${map.name()}[accent] (by: ${map.author()}[accent])
             Team: ${team.name}
@@ -719,7 +718,7 @@ fun setup() {
 
         register("hh [h]", "!") { args, _ ->
             if (!net.client()) return@register
-            val u = if (args.any()) content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) } else Vars.player.unit().type
+            val u = if (args.any()) content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) } else player.unit().type
             val current = ui.join.lastHost ?: return@register
             if (current.group == null) current.group = ui.join.communityHosts.find { it == current } ?.group ?: return@register
             switchTo = ui.join.communityHosts.filterTo(arrayListOf<Any>()) { it.group == current.group && it != current && !it.equals("135.181.14.60:6567") }.apply { add(current); add(u) } // IO attack has severe amounts of skill issue currently hence why its ignored

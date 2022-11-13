@@ -93,7 +93,7 @@ object ProcessorPatcher {
         clientThread.post {
             val confirmed = mode == FixCodeMode.Fix || mode == FixCodeMode.Remove
             val locations = mode == FixCodeMode.List
-            val locMsg = StringBuilder("[accent]Processor locations:")
+            val locMsg = StringBuilder()
             val inProgress = !ClientVars.configs.isEmpty()
             var n = 0
 

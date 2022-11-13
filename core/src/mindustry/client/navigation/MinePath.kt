@@ -6,12 +6,10 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.utils.*
-import mindustry.content.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.type.*
 import mindustry.world.*
-import mindustry.world.blocks.storage.*
 
 class MinePath @JvmOverloads constructor(
     var items: Seq<Item> = Seq<Item>(),
@@ -27,7 +25,7 @@ class MinePath @JvmOverloads constructor(
     var tile: Tile? = null
 
     init {
-        val split = args.split("\\s".toRegex())
+        val split = args.lowercase().split("\\s".toRegex())
         if (items.isEmpty) {
             for (a in split) {
                 if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))

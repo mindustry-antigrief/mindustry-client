@@ -33,7 +33,6 @@ class ClientLogic {
     /** Create event listeners */
     init {
         Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
-            Navigation.stopFollowing()
             Spectate.pos = null
 
             Timer.schedule({

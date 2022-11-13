@@ -60,7 +60,7 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
         exclude("**steam**.so", "**steam**.dll", "**steam**.dylib")
     }
 
-    archiveFileName = project.hasProperty("outputFilename") ? project.getProperty("outputFilename") : localArc() ? "${appName}-${branchName}.jar" : "${appName}.jar"
+    archiveFileName = "${appName}.jar"
 
     manifest{
         attributes 'Main-Class': project.mainClassName
@@ -79,14 +79,13 @@ if(!project.ext.hasSprites() && System.getenv("JITPACK") != "true"){
 task steamtest(dependsOn: dist){
     doLast{
         copy{
-            filename = localArc() ? "${appName}-${branchName}.jar" : "${appName}.jar"
-            from "build/libs/$filename"
+            from "build/libs/Mindustry.jar"
             if(System.getProperty("os.name").toLowerCase().contains("mac")){
                 into "/Users/nate/Library/Application Support/Steam/steamapps/common/Mindustry/Mindustry.app/Contents/Resources"
-                rename(filename, "desktop.jar")
+                rename("Mindustry.jar", "desktop.jar")
             }else{
                 into "D:\\Steam2\\steamapps\\common\\Mindustry\\jre"
-                rename(filename, "client.jar")
+                rename("Mindustry.jar", "client.jar")
             }
         }
     }
@@ -107,6 +106,7 @@ platforms.each{ platform ->
                 into "build/packr/"
                 rename("${appName}.jar", "desktop.jar")
                 from "build/libs/${appName}.jar"
+//                from "../bouncycastle"
             }
 
             delete{
@@ -131,9 +131,11 @@ platforms.each{ platform ->
 
                 args += [
                     "--platform", platform == "MacOS" ? "Mac" : platform.toString(),
-                    "--jdk", JDK_DIR + "jre-${platform.toString().toLowerCase()}",
+//                    "--jdk", JDK_DIR + "jre-${platform.toString().toLowerCase()}",
+                    "--jdk", "https://cdn.azul.com/zulu/bin/zulu17.36.17-ca-jdk17.0.4.1-macosx_aarch64.zip",
                     "--executable", appName,
                     "--classpath", "$rootDir/desktop/build/packr/desktop.jar".toString(),
+//                    "--classpath", "$rootDir/desktop/build/packr/desktop.jar".toString(), "$rootDir/desktop/build/packr/bcprov-jdk15on.jar".toString(), "$rootDir/desktop/build/packr/bcpkix-jdk15on.jar".toString(), "$rootDir/desktop/build/packr/bctls-jdk15on.jar".toString(), "$rootDir/desktop/build/packr/bcutil-jdk15on.jar".toString(),
                     "--mainclass", project.ext.mainClassName,
                     "--verbose",
                     "--bundle", getPackage() + ".mac",

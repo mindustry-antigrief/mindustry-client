@@ -69,6 +69,8 @@ public class NetClient implements ApplicationListener{
     private DataInputStream dataStream = new DataInputStream(byteStream);
     /** Packet handlers for custom types of messages. */
     private ObjectMap<String, Seq<Cons<String>>> customPacketHandlers = new ObjectMap<>();
+    /** Foo's thing to make ServerJoinEvent work good */
+    private boolean firstLoad;
 
     public NetClient(){
 
@@ -708,10 +710,15 @@ public class NetClient implements ApplicationListener{
         Core.app.post(Call::connectConfirm);
         Time.runTask(40f, platform::updateRPC);
         Core.app.post(ui.loadfrag::hide);
-        Core.app.post(() -> Events.fire(new EventType.ServerJoinEvent()));
+        Core.app.post(() -> {
+            if (!firstLoad) return;
+            Events.fire(new EventType.ServerJoinEvent());
+            firstLoad = false;
+        });
     }
 
     private void reset(){
+        firstLoad = true;
         net.setClientLoaded(false);
         removed.clear();
         timeoutTime = 0f;

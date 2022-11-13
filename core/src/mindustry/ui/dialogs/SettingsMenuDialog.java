@@ -410,13 +410,13 @@ public class SettingsMenuDialog extends BaseDialog{
     
         client.category("misc");
         client.updatePref();
-        client.sliderPref("minepathcap", 0, -100, 5000, 100, s -> s == 0 ? "Unlimited" : s == -100 ? "Never" : String.valueOf(s));
+        client.sliderPref("minepathcap", 5000, -100, 5000, 100, s -> s == 0 ? "Unlimited" : s == -100 ? "Never" : String.valueOf(s));
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
         client.sliderPref("processorstatementscale", 80, 10, 100, 1, s -> String.format("%.2fx", s/100f)); // This is the most scuffed setting you have ever seen
         client.sliderPref("automapvote", 0, 0, 4, s -> s == 0 ? "Never" : s == 4 ? "Random vote" : "Always " + new String[]{"downvote", "novote", "upvote"}[--s]);
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
-        client.textPref("defaultminepathargs", "copper lead sand coal titanium beryllium graphite tungsten");
+        client.textPref("defaultminepathargs", "all");
         client.textPref("gamejointext", "");
         client.textPref("gamewintext", "gg");
         client.textPref("gamelosetext", "gg");
@@ -844,17 +844,26 @@ public class SettingsMenuDialog extends BaseDialog{
             add(searchBarTable).fillX().padBottom(4);
             row();
 
-            if(search.isEmpty()){
+            if(search.trim().isEmpty()){
                 for(Setting setting : list){
                     setting.add(this);
                 }
             }else{
                 listSorted.selectFrom(list, s -> !(s instanceof Category));
-                listSorted.sort(Structs.comparingFloat(u ->
-                    u.title == null ? Float.POSITIVE_INFINITY :
-                            BiasedLevenshtein.biasedLevenshteinLengthIndependentInsensitive(search, Strings.stripColors(u.title))
-                        // Maybe if distance == length, do not include? But troublesome
-                ));
+                var searchLower = search.toLowerCase();
+                var searchSplit = ObjectSet.with(searchLower.split(" "));
+                listSorted.sort(Structs.comparingFloat(u -> { // FINISHME: Maybe if distance == length, do not include? But troublesome
+                    var title = u.title == null ? "" : Strings.stripColors(u.title).toLowerCase();
+//                    var desc = u.description == null ? "" : Strings.stripColors(u.description).toLowerCase();
+                    var weight = title.isEmpty() /*&& desc.isEmpty()*/ ? Float.POSITIVE_INFINITY : 0f;
+
+                    if (!title.isEmpty()) weight += BiasedLevenshtein.biasedLevenshteinLengthIndependent(searchLower, title) / (Structs.count(title.split(" "), searchSplit::contains) + 1);
+//                    Line below doesn't work great since a lot of the settings don't have descriptions
+//                    if (!desc.isEmpty()) weight += .5f * BiasedLevenshtein.biasedLevenshteinLengthIndependent(searchLower, desc) / (Structs.count(desc.split(" "), searchSplit::contains) + 1);
+
+                    return weight;
+                }));
+
                 for(Setting setting : listSorted){
                     setting.add(this);
                 }

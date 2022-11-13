@@ -1,6 +1,7 @@
 package mindustry.ui.dialogs;
 
 import arc.*;
+import mindustry.client.navigation.*;
 import mindustry.client.ui.*;
 import mindustry.gen.*;
 
@@ -139,6 +140,8 @@ public class PausedDialog extends BaseDialog{
         }else if(checkPlaytest()){
             return;
         }
+
+        if (!wasClient) Navigation.stopFollowing(); // FINISHME: Make an event for disconnects so that random code like this isn't here
 
         if(control.saves.getCurrent() == null || !control.saves.getCurrent().isAutosave() || wasClient || state.gameOver){
             logic.reset();

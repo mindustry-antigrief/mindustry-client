@@ -54,12 +54,12 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
 
         if (circling) {
             theta += Core.settings.getFloat("circleassistspeed", 0f)
-            theta %= (Math.PI * 2).toFloat()
+            theta %= Mathf.PI2
         }
 
-        aStarTolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) + tilesize * 5;
-        tolerance = if(circling) 0.1f else assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f)
-        circleRadius = if(circling) assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) else 0f
+        aStarTolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 5f) + tilesize * 5;
+        tolerance = if(circling) 0.1f else assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 5f)
+        circleRadius = if(circling) assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 5f) else 0f
 
         handleInput()
 

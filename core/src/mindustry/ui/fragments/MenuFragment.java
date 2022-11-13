@@ -118,23 +118,10 @@ public class MenuFragment{
                     });
                 }).size(200, 60).name("becheck").update(t -> t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white));
             });
-            // TODO: Merge recheck
-//        }else if(becontrol.active()){
-//            parent.fill(c -> c.bottom().right().button("@be.check", Icon.refresh, () -> {
-//                ui.loadfrag.show();
-//                becontrol.checkUpdate(result -> {
-//                    ui.loadfrag.hide();
-//                    if(!result){
-//                        ui.showInfo("@be.noupdates");
-//                    }
-//                });
-//            }).size(200, 60).name("becheck").update(t -> {
-//                t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white);
-//            }));
         }
 
                 // FIX CURSED MENU SCREEN
-       String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + Strings.format("\n[gray]Don't press H[]\nCursedness by BalaM314 and SBytes. Cursedness Level: @", CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel")).name());
+       String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + Strings.format("\n[gray]Don't press H[]\nCursedness Level: @", CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel")).name());
 //        String versionText = (Version.build == -1 ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H";
         // String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H[]\nClient Fork by Zxtej, BalaM314, SBytes. Cursedness Level: @";
         parent.fill((x, y, w, h) -> {

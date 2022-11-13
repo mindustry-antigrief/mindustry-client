@@ -22,7 +22,7 @@ public class Version{
     public static boolean enabled = true;
     /** Foo's update url used for... updating */
     public static String updateUrl = "";
-    /** Foo's asset repo, commit ref used for downloading muic on the go */
+    /** Foo's asset repo, commit ref used for downloading audio on the go */
     public static String assetUrl = "", assetRef = "";
     /** Foo's version string */
     public static String clientVersion = "v1.0.0, Jan. 1, 1970";
@@ -32,6 +32,7 @@ public class Version{
     public static String path(){
         return Version.class.getProtectionDomain().getCodeSource().getLocation().getPath();
     }
+
     public static void init(){
         if(!enabled) return;
 
@@ -47,8 +48,7 @@ public class Version{
         type = map.get("type");
         number = Integer.parseInt(map.get("number", "4"));
         modifier = map.get("modifier");
-        String filepath = Version.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        if (filepath.contains("/steamapps/common/Mindustry/")) modifier += " steam";
+        if (path().contains("/steamapps/common/Mindustry/")) modifier += " steam";
         if(map.get("build").contains(".")){
             String[] split = map.get("build").split("\\.");
             try{

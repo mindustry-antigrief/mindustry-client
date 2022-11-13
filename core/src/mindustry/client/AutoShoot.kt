@@ -1,6 +1,7 @@
 package mindustry.client
 
 import arc.*
+import arc.struct.*
 import mindustry.*
 import mindustry.ai.*
 import mindustry.client.utils.*
@@ -8,6 +9,7 @@ import mindustry.content.*
 import mindustry.entities.*
 import mindustry.gen.*
 import mindustry.input.*
+import mindustry.world.*
 import mindustry.world.blocks.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
@@ -15,6 +17,22 @@ import mindustry.world.blocks.sandbox.LiquidSource.*
 
 private var target: Teamc? = null
 private var hadTarget = false
+private val blockMul = ObjectFloatMap<Block>().putAll(
+    Blocks.itemSource, 2f,
+    Blocks.liquidSource, 3f, // lower priority because things generally don't need liquid to run
+
+    // likely to be touching a turret or something FINISHME: Erekir blocks, why not just use instanceof
+    Blocks.router, 4f,
+    Blocks.overflowGate, 4f,
+    Blocks.underflowGate, 4f,
+    Blocks.sorter, 4f,
+    Blocks.invertedSorter, 4f,
+    Blocks.liquidRouter, 5f,
+
+    Blocks.mender, 3f, // Can be 1 shot
+    Blocks.mendProjector, 6f,
+    Blocks.forceProjector, 6f,
+)
 
 fun autoShoot() {
     if (!Core.settings.getBool("autotarget") || Vars.state.isMenu || Vars.state.isEditor) return
@@ -34,7 +52,10 @@ fun autoShoot() {
     }
 
     if (target == null || Client.timer.get(2, 6f)) { // Acquire target FINISHME: Heal allied units?
-        if (type.canAttack) target = Units.closestEnemy(unit.team, unit.x, unit.y, unit.range()) { u -> u.checkTarget(type.targetAir, unit.type.targetGround) }
+        if (type.canAttack) {
+            val ignoreDisarmed = phoenix()
+            target = Units.closestEnemy(unit.team, unit.x, unit.y, unit.range()) { u -> !(ignoreDisarmed && u.disarmed) && u.checkTarget(type.targetAir, unit.type.targetGround) }
+        }
         if (type.canHeal && target == null) {
             target = Units.findDamagedTile(Vars.player.team(), Vars.player.x, Vars.player.y)
             if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() + 4 + (target as Building).hitSize()/2f else 0f)) target = null
@@ -52,33 +73,18 @@ fun autoShoot() {
                 if (!tile.team().isEnemy(Vars.player.team())) return@circle
                 val block = tile.block()
                 val scoreMul = when {
+                    block == Blocks.air -> 10f // Most blocks are air, checking for air first should be slightly faster
                     // do NOT shoot power voided networks
-                    (tile.build?.power?.graph?.getPowerBalance() ?: 0f) <= -1e12f -> Float.POSITIVE_INFINITY
+                    (tile.build?.power?.graph?.getPowerBalance() ?: 0f) <= -1e12f -> 1000f
                     // otherwise nodes are good to shoot
                     block == Blocks.powerSource -> 0f
                     block is PowerNode -> if (tile.build.power.status < .9) 2f else 1f
 
                     block == Blocks.liquidSource && (tile.build as LiquidSourceBuild).config() == Liquids.oil -> 1f
-                    block == Blocks.itemSource -> 2f
-                    block == Blocks.liquidSource -> 3f  // lower priority because things generally don't need liquid to run
-
-                    // likely to be touching a turret or something
-                    block == Blocks.router -> 4f
-                    block == Blocks.overflowGate -> 4f
-                    block == Blocks.underflowGate -> 4f
-                    block == Blocks.sorter -> 4f
-                    block == Blocks.invertedSorter -> 4f
-
-                    block == Blocks.liquidRouter -> 5f
-
-                    block == Blocks.mendProjector -> 6f
-                    block == Blocks.forceProjector -> 6f
-                    block is PointDefenseTurret -> 6f
 
                     block is BaseTurret -> 7f
 
-                    block != Blocks.air -> 9f
-                    else -> 10f
+                    else -> blockMul.get(block, 9f) // Map is faster
                 }
 
                 var score = Astar.manhattan.cost(tile.x.toInt(), tile.y.toInt(), Vars.player.tileX(), Vars.player.tileY())

@@ -15,7 +15,7 @@ import mindustry.gen.*
 /** An abstract class for a navigation algorithm, i.e. A*.  */
 abstract class Navigator {
     @JvmField
-    val map = HashMap<Int, Vec2>()
+    val map = IntMap<Vec2>()
     var lastWp = 0L
     private val realObstacles = Seq<Circle>() // Avoids creating new lists every time navigate is called
 

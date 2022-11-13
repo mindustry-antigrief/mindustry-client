@@ -350,8 +350,8 @@ public class ModsDialog extends BaseDialog{
     private @Nullable String getStateText(LoadedMod item){
         if(item.isOutdated()){
             return "@mod.incompatiblemod";
-        }else if(item.clientDisabled()){
-            return "@mod.clientdisabled";
+        }else if(item.clientBlacklisted()){
+            return "@mod.clientblacklisted";
         }else if(item.isBlacklisted()){
             return "@mod.blacklisted";
         }else if(!item.isSupported() || !Version.isAtLeast(item.meta.minGameVersion)){
@@ -369,6 +369,8 @@ public class ModsDialog extends BaseDialog{
     private @Nullable String getStateDetails(LoadedMod item){
         if(item.isOutdated()){
             return "@mod.outdatedv7.details";
+        }else if(item.clientBlacklisted()){
+            return "@mod.clientblacklisted.details";
         }else if(item.isBlacklisted()){
             return "@mod.blacklisted.details";
         }else if(!item.isSupported()){
