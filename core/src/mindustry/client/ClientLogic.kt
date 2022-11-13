@@ -38,25 +38,28 @@ class ClientLogic {
 
             Timer.schedule({
                 Core.app.post {
-                    val arg = switchTo?.removeFirstOrNull() ?: return@post
-                    if (arg is Host) NetClient.connect(arg.address, arg.port)
-                    else {
-                        if (arg is UnitType) ui.unitPicker.pickUnit(arg)
-                        switchTo = null
-
-                        // If no hh then send gamejointext
-                        if (Core.settings.getString("gamejointext")?.isNotEmpty() == true) {
-                            Call.sendChatMessage(Core.settings.getString("gamejointext"))
+                    val arg = switchTo?.removeFirstOrNull()
+                    if (arg != null) {
+                        if (arg is Host) {
+                            NetClient.connect(arg.address, arg.port)
+                            return@post
+                        } else {
+                            if (arg is UnitType) ui.unitPicker.pickUnit(arg)
+                            switchTo = null
                         }
+                    }
 
-                        when (Core.settings.getInt("automapvote")) {
-                            0 -> {}
-                            1 -> Call.sendChatMessage("/downvote")
-                            2 -> Call.sendChatMessage("/novote")
-                            3 -> Call.sendChatMessage("/upvote")
-                            4 -> Call.sendChatMessage(("/${arrayOf("no", "up", "down").random()}vote"))
-                            else -> {}
-                        }
+                    // Game join text after hh
+                    if (Core.settings.getString("gamejointext")?.isNotEmpty() == true) {
+                        Call.sendChatMessage(Core.settings.getString("gamejointext"))
+                    }
+
+                    when (Core.settings.getInt("automapvote")) {
+                        1 -> Call.sendChatMessage("/downvote")
+                        2 -> Call.sendChatMessage("/novote")
+                        3 -> Call.sendChatMessage("/upvote")
+                        4 -> Call.sendChatMessage(("/${arrayOf("no", "up", "down").random()}vote"))
+                        else -> {}
                     }
                 }
             }, .1F)
