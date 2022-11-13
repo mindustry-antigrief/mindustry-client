@@ -174,8 +174,7 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
         Tile on = Vars.world.tile(tx, ty);
         if(on != null && Build.validPlace(tile.block, tile.team, tx, ty, tile.rotation, false)){
             Events.fire(new EventType.BuildPayloadDrop(on, self(), payload.build));
-            int rot = (int)((rotation + 45f) / 90f) % 4;
-            payload.place(on, rot);
+            payload.place(on, tile.rotation);
             Events.fire(new PayloadDropEvent(self(), tile));
 
             if(getControllerName() != null){
