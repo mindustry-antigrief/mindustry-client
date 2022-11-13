@@ -591,7 +591,7 @@ fun setup() {
         when (args[0]) {
             "edit", "e" -> {
                 if (args.size <= 1) {
-                    player.sendMessage(Core.bundle.format("client.command.ptext.noselected", "edit"))
+                    player.sendMessage(Core.bundle.get("client.command.ptext.edit.noselected"))
                     return@register
                 }
                 if (args.size <= 2) {
@@ -606,7 +606,7 @@ fun setup() {
             }
             "say", "s" -> {
                 if (args.size <= 1) {
-                    player.sendMessage(Core.bundle.format("client.command.ptext.noselected", "say"))
+                    player.sendMessage(Core.bundle.get("client.command.ptext.say.noselected"))
                     return@register
                 }
                 val text = Core.settings.get("ptext-${args[1]}", "").toString()
@@ -615,7 +615,7 @@ fun setup() {
             }
             "js", "j" -> {
                 if (args.size <= 1) {
-                    player.sendMessage(Core.bundle.format("client.command.ptext.noselected", "run"))
+                    player.sendMessage(Core.bundle.get("client.command.ptext.run.noselected"))
                     return@register
                 }
                 val text = Core.settings.get("ptext-${args[1]}", "").toString()
