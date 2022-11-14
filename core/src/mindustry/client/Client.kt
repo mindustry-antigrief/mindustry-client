@@ -58,8 +58,6 @@ object Client {
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
-        Core.camera.bounds(cameraBounds) // do we do this here or on draw? can Core.camera be null?
-        cameraBounds.grow(2 * tilesizeF)
 
         // Ratelimit reset handling
         if (ratelimitRemaining != ratelimitMax && timer.get(3, ratelimitSeconds * 60F)) ratelimitRemaining = ratelimitMax

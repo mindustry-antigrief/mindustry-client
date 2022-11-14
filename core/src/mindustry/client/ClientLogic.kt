@@ -213,5 +213,10 @@ class ClientLogic {
                 }
             }
         }
+
+        Events.run(Trigger.draw) {
+            Core.camera.bounds(cameraBounds)
+            cameraBounds.grow(2 * tilesizeF)
+        }
     }
 }
