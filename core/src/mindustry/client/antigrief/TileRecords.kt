@@ -62,7 +62,7 @@ object TileRecords {
         Events.on(EventType.ConfigEventBefore::class.java) {
             if (it.player != null) Seer.blockConfig(it.player, it.tile.tile, it.value)
             it.tile.tile.getLinkedTiles { tile ->
-                addLog(tile, ConfigureTileLog(tile, it.player.toInteractor(), tile.block(), it.tile.rotation, it.value, isOrigin(tile)))
+                addLog(tile, ConfigureTileLog(tile, it.player.toInteractor(), tile.block(), it.tile.rotation, it.value))
             }
         }
 
@@ -104,7 +104,7 @@ object TileRecords {
 
         Events.on(EventType.BlockRotateEvent::class.java) {
             it.build.tile.getLinkedTiles { tile ->
-                addLog(tile, RotateTileLog(tile, it.player.toInteractor(), it.build.block, it.newRotation, it.direction, isOrigin(tile)))
+                addLog(tile, RotateTileLog(tile, it.player.toInteractor(), it.build.block, it.newRotation, it.direction))
             }
         }
     }

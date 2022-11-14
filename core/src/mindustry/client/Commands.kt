@@ -12,6 +12,7 @@ import mindustry.Vars.*
 import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
+import mindustry.client.antigrief.TileRecords.joinTime
 import mindustry.client.communication.*
 import mindustry.client.communication.Packets
 import mindustry.client.navigation.*
@@ -732,7 +733,7 @@ fun setup() {
                 [white]time[] How long ago to rollback to, in minutes before now
                 [white]buildrange[] Radius within which buildings are rebuilt
         """.trimIndent()) { args, player ->
-            val time: Instant
+            var time: Instant
             val range: Float
             try {
                 time = Instant.now().minus(args[0].toLong(), ChronoUnit.MINUTES)
@@ -742,11 +743,14 @@ fun setup() {
                 player.sendMessage("[scarlet]Invalid arguments! Please specify 2 numbers (time and range)!")
                 return@register
             }
-
+            if (time < joinTime) time = joinTime
             Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
             val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
             clientThread.post {
                 val plans: Seq<BuildPlan> = Seq()
+                val configs = Seq<ConfigRequest>()
+                val toBreak = IntMap<BuildPlan>()
+
                 tiles.forEach {
                     if (!it.within(player.x, player.y, range) || it.block() != Blocks.air) return@forEach
 
@@ -754,31 +758,31 @@ fun setup() {
 
                     // Get the sequence associated with the rollback time
                     val seq: TileLogSequence = record.lastSequence(time) ?: return@forEach
-                    var shouldBuild = seq.snapshotIsOrigin
                     val state = seq.snapshot.clone()
-                    var prevBlock: Block
                     // Step through logs until time is reached
                     for (diff in seq.iterator()) {
                         if (diff.time > time) break
-                        prevBlock = state.block
                         diff.apply(state)
-                        // Cursed - we can potentially change the function of isOrigin
-                        if(state.block !== prevBlock) shouldBuild = diff.isOrigin // this is only modified when the log caused the construction/destruction of a building
                     }
-                    if (!shouldBuild || state.block == Blocks.air) return@forEach // If building does not need to be built, do not build it
-                    plans.add(BuildPlan(state.x, state.y, state.rotation, state.block, state.configuration))
+                    if (!state.isRootTile || state.block == Blocks.air) return@forEach // If building does not need to be built, do not build it
+                    state.restoreState(it, plans, configs, toBreak)
                 }
 
                 if (plans.size == 0) {
                     Core.app.post { player.sendMessage(Core.bundle.get("client.norebuildsfound")) }
+                    if (configs.size > 0) {
+                        Core.app.post { player.sendMessage("${configs.size} configs queued") }
+                    }
                     return@post
                 }
 
                 Core.app.post {
                     control.input.isBuilding = false
                     control.input.flushPlans(plans)
-                    player.sendMessage("[accent]Queued ${plans.size} blocks for rebuilding.")
+                    ClientVars.configs.addAll(configs)
+                    player.sendMessage("[accent]Queued ${plans.size} blocks, ${configs.size} configs to perform.")
                     plans.clear()
+                    configs.clear()
                 }
             }
         }
@@ -816,38 +820,29 @@ fun setup() {
 
                     val sequences = TileRecords[it]?.sequences ?: return@forEach
                     var last: TileState? = null
-                    var prevBlock: Block
-                    var shouldBuild = false // Whether the current block (in last) is origin, and should be built
                     var hasBeenOverwritten = false // Whether there is another block that is placed offset some time in the future
 
                     seq@ for (seq in sequences.asReversed()) { // Rebuilds are likely used on recent states, so start from the last logs
                         if (seq.snapshot.time > timeEnd) continue // Skip to the first sequence that overlaps with time interval
                         val state = seq.snapshot.clone()
-                        shouldBuild = seq.snapshotIsOrigin && state.block !== Blocks.air
-                        last = if (shouldBuild && seq.snapshot.time > timeStart) state.clone() else null
+                        last = if (state.isRootTile && seq.snapshot.time > timeStart) state.clone() else null
                         // Step through logs until time is reached
                         for (diff in seq.iterator()) {
                             if (diff.time > timeEnd) break // Abort if we have reached time end
-                            prevBlock = state.block
                             diff.apply(state)
                             if (diff.time < timeStart) continue // Skip to time start
-                            if (prevBlock !== state.block) {
-                                if (state.block !== Blocks.air) { // If new building is built
-                                    hasBeenOverwritten = hasBeenOverwritten || !diff.isOrigin // if(!diff.isOrigin)..=true
-                                    shouldBuild = diff.isOrigin
-                                } // If building is destroyed, it will be implicitly handled - last and shouldBuild will remain as it is
-                                // so the state is saved for rebuilds when we exit the loop
-                            }
-                            if (!shouldBuild || state.block === Blocks.air) continue // Don't save the state if we cannot build it
+                            hasBeenOverwritten = hasBeenOverwritten || (!state.isRootTile && state.block !== Blocks.air)
+
+                            if (!state.isRootTile || state.block === Blocks.air) continue // Don't save the state if we cannot build it
                             if (last != null) {
                                 diff.apply(last) // TilePlacedLog will always modify all the information we need, so no need to refresh state
                             } else last = state.clone()
                             last.time = diff.time
                         }
-                        if (shouldBuild || hasBeenOverwritten) break@seq // Break if we can restore that, or no earlier logs need to be used
+                        if ((last != null && last.isRootTile) || hasBeenOverwritten) break@seq // Break if we can restore that, or no earlier logs need to be used
                     }
-                    if (!shouldBuild) return@forEach
-                    states.add(last?: return@forEach)
+                    if (last == null || !last.isRootTile) return@forEach
+                    states.add(last)
                 }
 
                 if (states.size == 0) {
@@ -908,8 +903,6 @@ fun setup() {
                 var playerName: String? = null
                 val configs: Seq<ConfigRequest> = Seq()
                 val plans: Seq<BuildPlan> = Seq()
-                var isOrigin: Boolean = false
-                var prevBlock: Block
                 var prevID: Int
 
                 val toBreak: IntMap<BuildPlan> = IntMap()
@@ -922,33 +915,26 @@ fun setup() {
                     val seqReversed = sequences.asReversed()
                     for ((i, seq) in seqReversed.withIndex()) { // For each tile, get the last state before it was touched by the player
                         val state = seq.snapshot.clone()
-                        isOrigin = seq.snapshotIsOrigin
                         prevID = id
                         // Evaluate if the current snapshot was caused by the target player. If so, do not use it.
                         last = if (i + 1 < seqReversed.size && ((seqReversed[i + 1].logs.lastOrNull()?.cause?.playerID?: id.inv()) == id)) null else state.clone()
                         for (diff in seq.iterator()) {
-                            prevBlock = state.block
-                            diff.apply(state)
-                            if(state.block !== prevBlock && state.block !== Blocks.air) {
-                                isOrigin = diff.isOrigin
-                            }
                             if (prevID != id && diff.cause.playerID == id) { // Only clone state if the ids change
                                 last = state.clone()
                             }
+                            diff.apply(state)
                             prevID = diff.cause.playerID
                             if (playerName == null && prevID == id) playerName = diff.cause.shortName
                         }
-                        if ((seq.logs.lastOrNull()?.isOrigin == true) && prevID != id) { // Capture last diff
+                        if (prevID != id) { // Capture last diff
                             if (i == 0) return@forEach // If last diff can be captured, it is not different from the current state
                             last = state.clone()
                         }
-                        if (!isOrigin && state.block !== Blocks.air) return@forEach // If there is something else on top, do not build it
+                        if (!state.isRootTile && state.block !== Blocks.air) return@forEach // If there is something else on top, do not build it
                         if (last != null) break
                     }
-                    // Only rebuild if block is different than the current block
-                    // Only configure if its different
-                    if (!isOrigin) return@forEach
-                    last?.restoreState(it, plans, configs, toBreak) ?: return@forEach
+                    if (last == null || (!last!!.isRootTile && last!!.block !== Blocks.air)) return@forEach
+                    last!!.restoreState(it, plans, configs, toBreak)
                 }
 
                 Core.app.post {

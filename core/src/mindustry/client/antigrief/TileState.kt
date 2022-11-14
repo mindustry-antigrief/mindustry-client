@@ -7,6 +7,7 @@ import arc.scene.ui.layout.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars
+import mindustry.client.antigrief.TileRecords.isOrigin
 import mindustry.client.utils.*
 import mindustry.content.Blocks
 import mindustry.core.*
@@ -27,18 +28,20 @@ class TileState {
     var configuration: Any?
     var time: Instant
     var team: Team
+    var isRootTile: Boolean
 
-    constructor(x: Int, y: Int, block: Block, rotation: Int, configuration: Any?, team: Team, time: Instant) {
+    constructor(x: Int, y: Int, block: Block, rotation: Int, configuration: Any?, team: Team, time: Instant, isRootTile: Boolean = isOrigin(Vars.world.tile(x, y))) {
         this.x = x
         this.y = y
         this.block = block
         this.configuration = configuration
         this.rotation = rotation
-        this.time = time
         this.team = team
+        this.time = time
+        this.isRootTile = isRootTile
     }
 
-    constructor(tile: Tile, block: Block, rotation: Int, configuration: Any?, team: Team, time: Instant) {
+    constructor(tile: Tile, block: Block, rotation: Int, configuration: Any?, team: Team, time: Instant, isRootTile: Boolean = isOrigin(tile)) {
         this.x = tile.x.toInt()
         this.y = tile.y.toInt()
         this.block = block
@@ -46,12 +49,13 @@ class TileState {
         this.configuration = configuration
         this.team = team
         this.time = time
+        this.isRootTile = isRootTile
     }
 
     constructor(tile: Tile, time: Instant = Instant.now()) : this(tile, tile.block(), tile.build?.rotation ?: -1, tile.build?.config(), tile.team(), time)
 
     fun clone(): TileState {
-        return TileState(x, y, block, rotation, configuration, team, time)
+        return TileState(x, y, block, rotation, configuration, team, time, isRootTile)
     }
 
     /**
@@ -59,13 +63,13 @@ class TileState {
      * Note that this does not return a ConfigRequest if that is all is needed.
      **/
     fun restoreState(tile: Tile, planSeq: Seq<BuildPlan>, configSeq: Seq<ConfigRequest>, toBreak: IntMap<BuildPlan>) {
-        val currRotation = tile.build?.rotation
+        val currRotation = tile.build?.rotation ?: 0
         val currConfig = tile.build?.config()
         val currBlock = (tile.build as? ConstructBlock.ConstructBuild)?.current ?: tile.block()
-        val blockEqual = currBlock === block && (block === Blocks.air || tile.build?.tile == tile)
-        val rotEqual = currRotation == rotation
+        val blockEqual = currBlock === block && (isRootTile || block === Blocks.air)
+        val rotEqual = blockEqual && (!currBlock.rotate || currRotation == rotation)
         val confEqual = if (currConfig != null && currConfig::class.java.isArray) (currConfig as Array<*>).contentEquals(configuration as Array<*>) else currConfig == configuration
-        if (blockEqual && rotEqual && confEqual) return
+        if (rotEqual && confEqual) return
         if (blockEqual) {
             if (block === Blocks.air) return
             if (!rotEqual) {
