@@ -41,7 +41,6 @@ import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
-import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.meta.*;
@@ -507,29 +506,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         Events.fire(new ConfigEventBefore(build, player, value));
         build.configured(player == null || player.dead() ? null : player.unit(), value);
-        Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
-
-        if (player != null && Vars.player != player) { // FINISHME: Move all this client stuff into the ClientLogic class
-            if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
-                if (value instanceof Integer val) {
-                    if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) { // FINISHME: Awful.
-                        String message = bundle.format("client.powerwarn", Strings.stripColors(player.name), ++node.disconnections, String.valueOf(build.tileX()), String.valueOf(build.tileY())); // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
-                        ClientVars.lastCorePos.set(build.tileX(), build.tileY());
-                        if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
-                            node.disconnections = 1;
-                            node.message = ui.chatfrag.addMessage(message, null, null, "", message);
-                            NetClient.findCoords(node.message);
-                        } else {
-                            ui.chatfrag.doFade(2);
-                            node.message.message = message;
-                            node.message.format();
-                        }
-                    }
-                } else if (value instanceof Point2[]) {
-                    // FINISHME: handle this urgent in erekir as it actually works there
-                }
-            }
-        }
+        Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value, previous)));
     }
 
     //only useful for servers or local mods, and is not replicated across clients
