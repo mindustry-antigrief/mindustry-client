@@ -220,26 +220,25 @@ class ClientLogic {
         Events.on(ConfigEvent::class.java) { event ->
             @Suppress("unchecked_cast")
             if (event.player != null && event.player != player && Core.settings.getBool("powersplitwarnings") && event.tile is PowerNode.PowerNodeBuild) {
-                    val prev = Seq(event.previous as Array<Point2>)
-                    val count = if (event.value is Int) { // FINISHME: Awful
-                        if (prev.contains(Point2.unpack(event.value).sub(event.tile.tileX(), event.tile.tileY()))) 1 else 0
-                    } else {
-                        prev.count { !(event.value as Array<Point2>).contains(it) }
-                    }
-                    if (count == 0) return@on // No need to warn
-                    event.tile.disconnections += count
+                val prev = Seq(event.previous as Array<Point2>)
+                val count = if (event.value is Int) { // FINISHME: Awful
+                    if (prev.contains(Point2.unpack(event.value).sub(event.tile.tileX(), event.tile.tileY()))) 1 else 0
+                } else {
+                    prev.count { !(event.value as Array<Point2>).contains(it) }
+                }
+                if (count == 0) return@on // No need to warn
+                event.tile.disconnections += count
 
-                    val message: String = bundle.format("client.powerwarn", Strings.stripColors(player.name), event.tile.disconnections, event.tile.tileX().toString(), event.tile.tileY().toString()) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
-                    lastCorePos.set(event.tile.tileX().toFloat(), event.tile.tileY().toFloat())
-                    if (event.tile.message == null || ui.chatfrag.messages.indexOf(event.tile.message) > 8) {
-                        event.tile.disconnections = count
-                        event.tile.message = ui.chatfrag.addMessage(message, null, null, "", message)
-                        NetClient.findCoords(event.tile.message)
-                    } else {
-                        ui.chatfrag.doFade(2f)
-                        event.tile.message!!.message = message
-                        event.tile.message!!.format()
-                    }
+                val message: String = bundle.format("client.powerwarn", Strings.stripColors(player.name), event.tile.disconnections, event.tile.tileX().toString(), event.tile.tileY().toString()) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
+                lastCorePos.set(event.tile.tileX().toFloat(), event.tile.tileY().toFloat())
+                if (event.tile.message == null || ui.chatfrag.messages.indexOf(event.tile.message) > 8) {
+                    event.tile.disconnections = count
+                    event.tile.message = ui.chatfrag.addMessage(message, null, null, "", message)
+                    NetClient.findCoords(event.tile.message)
+                } else {
+                    ui.chatfrag.doFade(2f)
+                    event.tile.message!!.message = message
+                    event.tile.message!!.format()
                 }
             }
         }
