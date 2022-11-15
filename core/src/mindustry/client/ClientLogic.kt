@@ -179,7 +179,7 @@ class ClientLogic {
 
         Events.on(BlockDestroyEvent::class.java) {
             if (it.tile.block() is PowerVoid) {
-                ui.chatfrag.addMessage(Core.bundle.format("client.voidwarn", it.tile.x, it.tile.y))
+                ui.chatfrag.addMessage(Core.bundle.format("client.voidwarn", it.tile.x.toString(), it.tile.y.toString())) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
             }
         }
 
@@ -198,7 +198,7 @@ class ClientLogic {
                             turretVoidWarnPlayer = event.unit?.player
                             turretVoidWarnCount = 1
                             val message = Core.bundle.format("client.turretvoidwarn", getName(event.unit),
-                                event.tile.x, event.tile.y, void.tileX(), void.tileY()
+                                event.tile.x.toString(), event.tile.y.toString(), void.tileX().toString(), void.tileY().toString() // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
                             )
                             turretVoidWarnMsg = ui.chatfrag.addMessage(message , null, null, "", message)
                         } else {

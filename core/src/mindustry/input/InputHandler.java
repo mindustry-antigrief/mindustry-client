@@ -513,7 +513,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
                 if (value instanceof Integer val) {
                     if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) { // FINISHME: Awful.
-                        String message = bundle.format("client.powerwarn", Strings.stripColors(player.name), ++node.disconnections, build.tileX(), build.tileY());
+                        String message = bundle.format("client.powerwarn", Strings.stripColors(player.name), ++node.disconnections, String.valueOf(build.tileX()), String.valueOf(build.tileY())); // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
                         ClientVars.lastCorePos.set(build.tileX(), build.tileY());
                         if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
                             node.disconnections = 1;
