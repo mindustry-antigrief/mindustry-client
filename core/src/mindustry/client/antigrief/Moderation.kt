@@ -84,8 +84,10 @@ class Moderation {
     fun addInfo(player: Player, info: Administration.TraceInfo) {
         // FINISHME: Integrate these with join/leave messages
         if (Time.timeSinceMillis(lastJoinTime) > 10000 && player.trace == null) {
-            if (info.timesJoined > 10 && info.timesKicked < 3) Vars.player.sendMessage("[accent]${player.name}[accent] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
-            else sendMessage("/a [scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
+            // Dont send in admin chat as it can get spammy
+//            if (info.timesJoined > 10 && info.timesKicked < 3) Vars.player.sendMessage("[accent]${player.name}[accent] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
+//            else sendMessage("/a [scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
+            Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
         }
 
         for (n in traces.size - 1 downTo 0) {
