@@ -11,7 +11,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.noise.*;
-import mindustry.client.CursednessLevel;
+import mindustry.client.ui.CursednessLevel;
 import mindustry.content.*;
 import mindustry.type.*;
 import mindustry.world.*;

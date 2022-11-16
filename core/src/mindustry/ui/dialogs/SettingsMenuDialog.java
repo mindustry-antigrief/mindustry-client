@@ -21,6 +21,7 @@ import arc.util.io.*;
 import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
