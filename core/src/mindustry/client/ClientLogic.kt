@@ -182,7 +182,8 @@ class ClientLogic {
 
         Events.on(BlockDestroyEvent::class.java) {
             if (it.tile.block() is PowerVoid) {
-                ui.chatfrag.addMessage(Core.bundle.format("client.voidwarn", it.tile.x.toString(), it.tile.y.toString())) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
+                val message = bundle.format("client.voidwarn", it.tile.x.toString(), it.tile.y.toString())
+                NetClient.findCoords(ui.chatfrag.addMessage(message, null, null, "", message)) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
             }
         }
 
@@ -190,6 +191,8 @@ class ClientLogic {
         Events.on(BlockBuildBeginEventBefore::class.java) { event ->
             val block = event.newBlock
             if (block !is Turret) return@on
+            if (event.unit?.player == null) return@on
+
             clientThread.post { // Scanning through tiles can be exhaustive. Delegate it to the client thread.
                 val voids = Seq<Building>()
                 for (tile in world.tiles) if (tile.block() is PowerVoid) voids.add(tile.build)
@@ -197,13 +200,14 @@ class ClientLogic {
                 val void = voids.find { it.within(event.tile, block.range) }
                 if (void != null) { // Code taken from LogicBlock.LogicBuild.configure
                     Core.app.post {
-                        if (event.unit?.player != turretVoidWarnPlayer || turretVoidWarnPlayer == null || Time.timeSinceMillis(lastTurretVoidWarn) > 5e3) {
-                            turretVoidWarnPlayer = event.unit?.player
+                        if (event.unit.player != turretVoidWarnPlayer || Time.timeSinceMillis(lastTurretVoidWarn) > 5e3) {
+                            turretVoidWarnPlayer = event.unit.player
                             turretVoidWarnCount = 1
-                            val message = Core.bundle.format("client.turretvoidwarn", getName(event.unit),
+                            val message = bundle.format("client.turretvoidwarn", getName(event.unit),
                                 event.tile.x.toString(), event.tile.y.toString(), void.tileX().toString(), void.tileY().toString() // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
                             )
                             turretVoidWarnMsg = ui.chatfrag.addMessage(message , null, null, "", message)
+                            NetClient.findCoords(turretVoidWarnMsg)
                         } else {
                             ui.chatfrag.messages.remove(turretVoidWarnMsg)
                             ui.chatfrag.messages.insert(0, turretVoidWarnMsg)
