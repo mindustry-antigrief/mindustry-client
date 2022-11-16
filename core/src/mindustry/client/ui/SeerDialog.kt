@@ -19,13 +19,14 @@ object SeerDialog : BaseDialog("Seer") {
                 cont.pane { t ->
                     for (data in Seer.players) {
                         t.button(
-                            "<${data.score}> ${data.lastInstance.name}[] (${data.id}) [${data.firstJoined.truncatedTo(
+                            "<${data.score}> ${data.lastInstance.name}[white] (${data.id}) [${data.firstJoined.truncatedTo(
                                 ChronoUnit.MINUTES)}m]") {
                             Core.app.clipboardText = data.id.toString()
                         }.wrap(false)
+                        t.marginBottom(10f)
                         t.row()
                     }
-                }.pad(10f).grow()
+                }.grow()
                 addCloseButton()
             }.show()
         }.size(200f, 50f)
@@ -33,7 +34,7 @@ object SeerDialog : BaseDialog("Seer") {
         cont.button("Settings") {
             // FINISHME: Separate UI
             Vars.ui.settings.visible(3) // Activate client settings
-        }.grow()
+        }.size(200f, 50f)
 
         addCloseButton()
     }
