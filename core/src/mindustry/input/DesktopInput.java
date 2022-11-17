@@ -1115,8 +1115,9 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!Navigation.isFollowing()){
+            boolean vanillaMovement = Core.settings.getBool("vanillamovement");
             float mouseAngle = Angles.mouseAngle(unit.x, unit.y);
-            boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !boosted;
+            boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && (vanillaMovement || (unit.type.faceTarget && !boosted));
 
             if(aimCursor){
                 unit.lookAt(mouseAngle);
@@ -1124,10 +1125,10 @@ public class DesktopInput extends InputHandler{
                 unit.lookAt(unit.prefRotation());
             }
 
-//            unit.movePref(movement); Client replaces this with the line below
-            if (Core.settings.getBool("zerodrift") && movement.epsilonEquals(0, 0)) unit.vel().setZero();
+            if (vanillaMovement) unit.movePref(movement);
+            else if (Core.settings.getBool("zerodrift") && movement.epsilonEquals(0, 0)) unit.vel().setZero();
             else if(Core.settings.getBool("decreasedrift") && unit.vel().len() > 3.5 && movement.epsilonEquals(0, 0))
-                unit.vel().set(unit.vel().scl(0.95f));
+                unit.vel().scl(0.95f);
             else unit.moveAt(movement);
 
             unit.aim(Core.input.mouseWorld());

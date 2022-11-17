@@ -146,7 +146,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             return angleTo(buildPlan());
         }else if(mineTile != null){
             return angleTo(mineTile);
-        }else if(moving() /*&& type.omniMovement*/){ // FINISHME: Why did I comment this again?
+        }else if(moving() && (!Core.settings.getBool("vanillamovement") || (isLocal() && type.omniMovement)) /*&& type.omniMovement*/){ // FINISHME: Why did I comment omniMovement again?
             return vel().angle();
         }
         return rotation;
