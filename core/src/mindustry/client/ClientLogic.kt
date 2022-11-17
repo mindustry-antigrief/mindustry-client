@@ -232,12 +232,12 @@ class ClientLogic {
                 val count = if (event.value is Int) { // FINISHME: Awful
                     if (prev.contains(Point2.unpack(event.value).sub(event.tile.tileX(), event.tile.tileY()))) 1 else 0
                 } else {
-                    prev.count { !(event.value as Array<Point2>).contains(it) }
+                    prev.count { !((event.value as? Array<Point2>)?.contains(it)?: true) }
                 }
                 if (count == 0) return@on // No need to warn
                 event.tile.disconnections += count
 
-                val message: String = bundle.format("client.powerwarn", Strings.stripColors(player.name), event.tile.disconnections, event.tile.tileX().toString(), event.tile.tileY().toString()) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
+                val message: String = bundle.format("client.powerwarn", Strings.stripColors(event.player.name), event.tile.disconnections, event.tile.tileX().toString(), event.tile.tileY().toString()) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
                 lastCorePos.set(event.tile.tileX().toFloat(), event.tile.tileY().toFloat())
                 if (event.tile.message == null || ui.chatfrag.messages.indexOf(event.tile.message) > 8) {
                     event.tile.disconnections = count
