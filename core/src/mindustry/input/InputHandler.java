@@ -1317,7 +1317,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
     
             boolean valid = validPlace(plan.x, plan.y, plan.block, plan.rotation);
-            if(freeze || force || valid){
+            if(freeze || (force && world.tile(plan.x, plan.y) != null) || valid){
                 BuildPlan copy = plan.copy();
                 if(configLogic && copy.block instanceof LogicBlock && copy.config != null){ // Store the configs for logic blocks locally, they cause issues when sent to the server
                     copy.configLocal = true;
@@ -1557,7 +1557,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             linePlans.add(plan);
         });
 
-        if(Core.settings.getBool("blockreplace") != control.input.conveyorPlaceNormal || block instanceof ItemBridge){ // Bridges need this for weaving, i'm too lazy to fix this properly
+        if(Core.settings.getBool("blockreplace") != control.input.conveyorPlaceNormal || block instanceof ItemBridge){ // Bridges need this for weaving, I'm too lazy to fix this properly
             linePlans.each(plan -> {
                 Block replace = plan.block.getReplacement(plan, linePlans);
                 if(replace.unlockedNow()){
@@ -1566,7 +1566,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             });
 
             block.handlePlacementLine(linePlans);
-        } else if(block instanceof ItemBridge && Core.input.shift()) block.handlePlacementLine(linePlans);
+        }
     }
 
     protected void updateLine(int x1, int y1){

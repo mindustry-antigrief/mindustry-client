@@ -21,8 +21,7 @@ import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
-import org.jetbrains.annotations.*;
-import org.jetbrains.annotations.Nullable;
+import arc.util.Nullable;
 
 import java.util.*;
 

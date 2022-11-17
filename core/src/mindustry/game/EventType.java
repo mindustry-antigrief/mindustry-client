@@ -103,6 +103,8 @@ public class EventType{
     public static class FileTreeInitEvent{}
     /** Called just after joining a server */
     public static class ServerJoinEvent{}
+    /** Called when fully quitting to the main menu */
+    public static class MenuReturnEvent{}
 
     /** Called when a game begins and the world tiles are loaded, just set `generating = false`. Entities are not yet loaded at this stage. */
     public static class WorldLoadEvent{}

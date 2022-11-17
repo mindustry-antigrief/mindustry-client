@@ -10,6 +10,7 @@ import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
+import mindustry.client.navigation.Navigation.stopFollowing
 import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.content.*
@@ -77,7 +78,7 @@ class ClientLogic {
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             if (!syncing) {
-                AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(state.rules.pvp && io())
+                AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(state.rules.pvp && Server.io())
                 Player.persistPlans.clear()
                 frozenPlans.clear()
             }
@@ -95,9 +96,12 @@ class ClientLogic {
             overdrives.clear()
             massDrivers.clear()
             Client.tiles.clear()
+        }
 
-            UnitTypes.horizon.itemCapacity = if (flood()) 20 else 0 // Horizons can pick up items in flood, this just allows the items to draw correctly
-            UnitTypes.crawler.health = if (flood()) 100f else 200f // Crawler health is halved in flood
+        Events.on(MenuReturnEvent::class.java) { // Run when returning to the title screen
+            stopFollowing()
+            syncing = false // Never syncing when not connected
+            ui.join.lastHost = null // Not needed unless connected
         }
 
         Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading

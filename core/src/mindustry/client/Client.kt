@@ -12,8 +12,8 @@ import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*
-import mindustry.client.navigation.Navigation.getTree
 import mindustry.client.navigation.Navigation.getAllyTree
+import mindustry.client.navigation.Navigation.getTree
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.game.*
@@ -21,7 +21,7 @@ import mindustry.gen.*
 import mindustry.graphics.*
 import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
-import mindustry.world.blocks.distribution.MassDriver
+import mindustry.world.blocks.distribution.*
 import org.bouncycastle.jce.provider.*
 import org.bouncycastle.jsse.provider.*
 import java.security.*
@@ -41,6 +41,8 @@ object Client {
         setup()
         AutoTransfer.init()
         ClientLogic()
+        Server // Force the init block to be run
+        CustomMode // Force the init block to be run
 
         val bc = BouncyCastleProvider()
         // append bouncycastle to the list

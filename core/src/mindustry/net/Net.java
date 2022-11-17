@@ -5,8 +5,7 @@ import arc.func.*;
 import arc.net.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.*;
-import mindustry.client.navigation.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.net.Packets.*;
 import mindustry.net.Streamable.*;
@@ -199,9 +198,7 @@ public class Net{
     public void disconnect(){
         if(active && !server){
             Log.info("Disconnecting.");
-            Navigation.stopFollowing(); // FINISHME: Make an event for disconnects so that random code like this isn't here
-            ClientVars.syncing = false; // Never syncing when not connected
-            ui.join.lastHost = null; // Not needed unless connected
+            Events.fire(new EventType.MenuReturnEvent());
         }
         provider.disconnectClient();
         server = false;

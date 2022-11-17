@@ -129,7 +129,6 @@ public class NetClient implements ApplicationListener{
             platform.updateRPC();
             player.name = Core.settings.getString("name");
             player.color.set(Core.settings.getInt("color-0"));
-            ui.join.lastHost = null;
 
             if(quiet) return;
 
@@ -186,7 +185,7 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both, unreliable = true, called = Loc.server)
     public static void soundAt(Sound sound, float x, float y, float volume, float pitch){
         if(sound == null || headless) return;
-        if(sound == Sounds.corexplode && ClientUtils.io()) return;
+        if(sound == Sounds.corexplode && Server.io.b()) return;
 
         sound.at(x, y, pitch, Mathf.clamp(volume, 0, 4f));
     }
@@ -287,8 +286,8 @@ public class NetClient implements ApplicationListener{
             findCoords(output);
             findLinks(output);
 
-            if (message.contains("Type[orange] /vote <y/n>[] to " + (ClientUtils.io() ? "vote." : "agree.")) // Vote kick clickable buttons
-            || ClientUtils.phoenix() && message.contains("Type [cyan]/vote y")) {
+            if (message.contains("Type[orange] /vote <y/n>[] to " + (Server.io.b() ? "vote." : "agree.")) // Vote kick clickable buttons
+            || Server.phoenix.b() && message.contains("Type [cyan]/vote y")) {
                 String yes = Core.bundle.get("client.voteyes"), no = Core.bundle.get("client.voteno");
                 output.message = output.message + '\n' + yes + "  " + no;
                 output.format();
@@ -296,13 +295,7 @@ public class NetClient implements ApplicationListener{
                 output.addButton(no, () -> Call.sendChatMessage("/vote n"));
             }
 
-            else if (message.contains("Type [cyan]/rtv") && ClientUtils.phoenix() // Rock the vote clickable button
-            || message.contains("Type [lightgray]/rtv") && ClientUtils.cn()
-            || message.contains("Type[accent] /rtv") && ClientUtils.io()
-            || message.contains("Type Type[orange] /skip") && ClientUtils.nydus()) {
-                var rtv = ClientUtils.nydus() ? "/skip y" : "/rtv";
-                output.addButton(rtv, () -> Call.sendChatMessage(rtv));
-            }
+            Server.current.handleRtv(output);
 
             Sounds.chatMessage.play();
         }
@@ -712,6 +705,7 @@ public class NetClient implements ApplicationListener{
         Core.app.post(ui.loadfrag::hide);
         Core.app.post(() -> {
             if (!firstLoad) return;
+            Server.onServerJoin();
             Events.fire(new EventType.ServerJoinEvent());
             firstLoad = false;
         });

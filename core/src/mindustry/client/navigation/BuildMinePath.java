@@ -2,7 +2,6 @@ package mindustry.client.navigation;
 
 import arc.math.geom.Position;
 import arc.util.Interval;
-import org.jetbrains.annotations.Nullable;
 
 import static mindustry.Vars.control;
 import static mindustry.Vars.player;
@@ -61,7 +60,6 @@ public class BuildMinePath extends Path{ // This is so scuffed. Help.
         currentPath = null;
     }
     
-    @Nullable
     @Override
     public Position next() {
         return null;

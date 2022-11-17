@@ -20,6 +20,7 @@ import mindustry.*;
 import mindustry.ai.types.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.communication.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.client.ui.*;
@@ -89,15 +90,15 @@ public class DesktopInput extends InputHandler{
                         if (isFreezeQueueing) {
                             str.append("\n").append(bundle.format("client.freezequeueing", keybinds.get(Binding.pause_building).key.toString()));
                         }
-                        if(!isBuilding && !isBuildingLock && !settings.getBool("buildautopause") && !player.unit().isBuildingIgnoreNetworking()){
+                        if(!isBuilding && !isBuildingLock && !settings.getBool("buildautopause") && !isBuildingIgnoreNetworking()){
                             str.append("\n").append(bundle.format("enablebuilding", keybinds.get(Binding.pause_building).key.toString()));
-                        }else if(player.unit().isBuildingIgnoreNetworking() || !Player.persistPlans.isEmpty()){
+                        }else if(isBuildingIgnoreNetworking() || !Player.persistPlans.isEmpty()){
                             str.append("\n")
                                 .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
                                 .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
                                 .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
                         }
-                        if(player.unit().isBuildingIgnoreNetworking() || dispatchingBuildPlans){
+                        if(isBuildingIgnoreNetworking() || dispatchingBuildPlans){
                             str.append("\n").append(bundle.format(dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
                         }
                         if (hidingFog){
@@ -527,7 +528,7 @@ public class DesktopInput extends InputHandler{
                     settings.put("autotransfer", AutoTransfer.enabled);
                     new Toast(1).add(bundle.get("client.autotransfer") + ": " + bundle.get(AutoTransfer.enabled ? "mod.enabled" : "mod.disabled"));
                     table.remove();
-                }).disabled(b -> state.rules.pvp && ClientUtils.io());
+                }).disabled(b -> state.rules.pvp && Server.io.b());
 
                 table.row().fill();
                 table.button("@client.unitpicker", () -> { // Unit Picker / Sniper
@@ -774,7 +775,7 @@ public class DesktopInput extends InputHandler{
         int rawCursorX = World.toTile(Core.input.mouseWorld().x), rawCursorY = World.toTile(Core.input.mouseWorld().y);
 
         //automatically pause building if the current build queue is empty
-        if(Core.settings.getBool("buildautopause") && isBuilding && !player.unit().isBuildingIgnoreNetworking()){
+        if(Core.settings.getBool("buildautopause") && isBuilding && !isBuildingIgnoreNetworking()){
             isBuilding = false;
             buildWasAutoPaused = true;
         }
@@ -1150,5 +1151,13 @@ public class DesktopInput extends InputHandler{
                 tryDropPayload();
             }
         }
+    }
+
+    private boolean isBuildingIgnoreNetworking() {
+        if (player.unit().plans.size == 0) return false;
+        if (player.unit().plans.size == 1) {
+            return !BuildPlanCommunicationSystem.INSTANCE.isNetworking(player.unit().plans.first());
+        }
+        return true;
     }
 }

@@ -1,15 +1,14 @@
 package mindustry.client.navigation
 
-import arc.math.Mathf
+import arc.math.*
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import arc.util.pooling.*
 import mindustry.Vars.*
-import mindustry.client.ClientVars
+import mindustry.client.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.core.*
-import java.lang.StringBuilder
 import kotlin.math.*
 
 // Taken from http://www.codebytes.in/2015/02/a-shortest-path-finding-algorithm.html
@@ -22,7 +21,7 @@ object AStarNavigatorOptimised : Navigator() {
     private val pool = Pools.get(PositionWaypoint::class.java) { PositionWaypoint() }
     private var grid: Array<Cell> = emptyArray()
     private var gridSize = Point2()
-    private var open = BinaryHeap<Cell>(1 shl 16, false)
+    private var open = BinaryHeap<Cell>(65_536, false)
     private var startX = -1
     private var startY = -1
     private var endX = 0
@@ -31,8 +30,8 @@ object AStarNavigatorOptimised : Navigator() {
     private var tileHeight = 0
     private val points = mutableListOf<PositionWaypoint>()
 
-    private val d8x: Array<Int> = arrayOf(1, 1, 0, -1, -1, -1, 0, 1)
-    private val d8y: Array<Int> = arrayOf(0, 1, 1, 1, 0, -1, -1, -1)
+    private val d8x = intArrayOf(1, 1, 0, -1, -1, -1, 0, 1)
+    private val d8y = intArrayOf(0, 1, 1, 1, 0, -1, -1, -1)
     private inline fun d8(cons: (x: Int, y: Int, diag: Boolean) -> Unit) {
         cons(1, 0, false)
         cons(1, 1, true)

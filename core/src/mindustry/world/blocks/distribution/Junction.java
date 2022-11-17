@@ -25,7 +25,7 @@ public class Junction extends Block{
 
     // FINISHME: Rework to work with junctions with size >1
     static final Vec2 direction = new Vec2(tilesize, 0), baseOffset = new Vec2();
-    public static boolean drawItems = false;
+    static boolean drawItems = false;
 
     public static boolean flowRateByDirection = Core.settings != null && Core.settings.getBool("junctionflowratedirection", false);
     public final static TextureRegionDrawable[] directionIcons = {Icon.rightSmall, Icon.upSmall, Icon.leftSmall, Icon.downSmall};
@@ -190,15 +190,17 @@ public class Junction extends Block{
             if(!drawItems) return;
             Draw.z(Layer.blockOver);
             float now = Time.time;
-            for(int i = 0; i < 4; i++){ // Code from zxtej
+            float realSpeed = speed * timeScale, iSize = itemSize / 4f, offsetX = x + baseOffset.x + direction.x, offsetY = y + baseOffset.y + direction.y;
+            for(int i = 0; i < 4; i++){
                 for(int j = buffer.indexes[i]; j > 0;){
                     var l = buffer.buffers[i][--j];
-                    var progress = Mathf.clamp((now - BufferItem.time(l)) / speed * timeScale, 0, (capacity - j) / (float)capacity);
+                    var progress = Mathf.clamp((now - BufferItem.time(l)) / realSpeed, 0, (capacity - j) / (float)capacity);
 
                     Draw.rect(content.item(BufferItem.item(l)).fullIcon,
-                        x + baseOffset.x + direction.x * progress,
-                        y + baseOffset.y + direction.y * progress,
-                        itemSize / 4f, itemSize / 4f);
+                        offsetX * progress,
+                        offsetY * progress,
+                        iSize, iSize
+                    );
                 }
                 direction.rotate90(1);
                 baseOffset.rotate90(1);

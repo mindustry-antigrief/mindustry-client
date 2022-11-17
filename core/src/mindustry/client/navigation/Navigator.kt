@@ -88,11 +88,14 @@ abstract class Navigator {
             if (Time.timeSinceMillis(lastWp) > 3000) lastWp = Time.millis() - 2900 // Didn't tp, try again in .1s
         }
 
-        val avoidFlood = flood() && player.unit().type != UnitTypes.horizon
+        val avoidFlood = CustomMode.flood() && player.unit().type != UnitTypes.horizon
+        val canBoost = player.unit().type.canBoost
+        val solidity = player.unit().solidity()
         val ret = findPath(
             start, end, realObstacles, world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->
-            avoidFlood && world.tiles.getc(x, y).team() == Team.blue || player.unit().type != null && !player.unit().type.canBoost && player.unit().solidity()?.solid(x, y) ?: false
+            world.tileChanges
+            avoidFlood && world.tiles.getc(x, y).team() == Team.blue || player.unit().type != null && !canBoost && solidity?.solid(x, y) ?: false
         }
         Pools.freeAll(realObstacles)
         realObstacles.clear()

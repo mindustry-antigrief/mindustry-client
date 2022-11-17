@@ -53,18 +53,18 @@ fun autoShoot() {
 
     if (target == null || Client.timer.get(2, 6f)) { // Acquire target FINISHME: Heal allied units?
         if (type.canAttack) {
-            val ignoreDisarmed = phoenix()
+            val ignoreDisarmed = Server.io()
             target = Units.closestEnemy(unit.team, unit.x, unit.y, unit.range()) { u -> !(ignoreDisarmed && u.disarmed) && u.checkTarget(type.targetAir, unit.type.targetGround) }
         }
         if (type.canHeal && target == null) {
             target = Units.findDamagedTile(Vars.player.team(), Vars.player.x, Vars.player.y)
             if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() + 4 + (target as Building).hitSize()/2f else 0f)) target = null
         }
-        val flood = flood()
-        if (target == null && (type == UnitTypes.block || type.canAttack) && flood) { // Shoot buildings in flood because why not.
+
+        if (target == null && (type == UnitTypes.block || type.canAttack) && CustomMode.flood()) { // Shoot buildings in flood because why not.
             target = Units.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range()) { type.targetGround }
         }
-        if (!flood && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
+        if (CustomMode.flood() && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
             val amount = unit.range() * 2 + 1
             var closestScore = Float.POSITIVE_INFINITY
 

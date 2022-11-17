@@ -25,7 +25,7 @@ import static mindustry.Vars.*;
 
 public class JoinDialog extends BaseDialog{
     public Seq<Host> communityHosts = new Seq<>();
-    Seq<Server> servers = new Seq<>();
+    public Seq<Server> servers = new Seq<>();
     Dialog add;
     Server renaming;
     Table local = new Table();
@@ -549,10 +549,11 @@ public class JoinDialog extends BaseDialog{
 
         Host[] hostFinal = {host};
 
-        if(Core.settings.getBool("allowjoinany")) {
+        var joinAny = Core.settings.getBool("allowjoinany");
+        if(joinAny || host == null) {
             net.pingHost(ip, port, h -> {
                 hostFinal[0] = h;
-                Version.build = hostFinal[0].version;
+                if (joinAny) Version.build = hostFinal[0].version;
             }, e -> {});
         }
 
@@ -657,7 +658,7 @@ public class JoinDialog extends BaseDialog{
         public int port;
 
         transient Table content;
-        transient Host lastHost;
+        transient public Host lastHost;
 
         void setIP(String ip){
             try{

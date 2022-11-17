@@ -21,9 +21,9 @@ object ProcessorPatcher {
         set \3 0                                   # _attem = 0
         """.replace("\\s+#.+$".toRegex(RegexOption.MULTILINE), "").trimIndent().toRegex() // The regex comment mode is dumb
 
-    val jumpMatcher = "jump (\\d+)(.*)".toRegex()
+    private val jumpMatcher = "jump (\\d+)(.*)".toRegex()
 
-    val attemText = """
+    private val attemText = """
         print "Please do not use this delivery logic."
         print "It is attem83 logic and is considered bad logic"
         print "as it breaks other delivery logic and even other attem logic."
@@ -31,16 +31,16 @@ object ProcessorPatcher {
         printflush message1
     """.trimIndent()
 
-    private val whisperText = "Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem"
+    private const val whisperText = "Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem"
 
-    fun countProcessors(builds: Iterable<LogicBuild>): Int {
+    private fun countProcessors(builds: Iterable<LogicBuild>): Int {
         Time.mark()
         val count = builds.count { isAttem(it.code) }
         Log.debug("Counted $count/${builds.count()} attems in ${Time.elapsed()}ms")
         return count
     }
 
-    fun isAttem(code: String) = attemMatcher.containsMatchIn(code)
+    private fun isAttem(code: String) = attemMatcher.containsMatchIn(code)
 
     fun patch(code: String, mode: FixCodeMode): String {
         val result = attemMatcher.find(code) ?: return code
@@ -74,7 +74,7 @@ object ProcessorPatcher {
     }
 
     fun whisper(player: Player?) {
-        if (canWhisper() && player != null) Call.sendChatMessage("/w ${player.id} $whisperText")
+        Server.current.whisper(player ?: return, whisperText)
     }
 
     fun fixCode(arg: String?) {
