@@ -3,6 +3,9 @@ package mindustry.logic;
 import arc.*;
 import arc.func.*;
 import arc.graphics.*;
+import arc.math.*;
+import arc.scene.*;
+import arc.scene.actions.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
@@ -810,6 +813,21 @@ public class LStatements{
                     Label title = table.parent.find("statement-name");
                     if(title != null){
                         title.update(() -> title.setText((dest != null ? name + " -> " + dest.index : name)));
+                        title.clicked(() -> {
+                            if(dest != null && canvas.statements != null && dest.isDescendantOf(canvas.statements)){
+                                float pos = dest.localToAscendantCoordinates(canvas.statements, Tmp.v1.set(0, dest.getHeight() / 2f)).y;
+                                canvas.pane.setScrollY(canvas.statements.getHeight() - pos - canvas.pane.getHeight() / 2f);
+
+                                Table destTable = (Table)dest.getChildren().get(0); // The table of stuff in the StatementElem
+                                Color orig = new Color(dest.color);
+                                Element[] toAnimate = {this.dest, destTable, destTable.find("statement-name"), dest.addressLabel}; // Surely there's a better way to do all these in parallel
+                                for(var e: toAnimate){
+                                    if(e == null) continue;
+                                    e.color.mul(1.4f);
+                                    e.actions(Actions.delay(1.5f), Actions.color(orig, 0.5f, Interp.pow3), Actions.run(() -> e.color.set(orig)));
+                                }
+                            }
+                        });
                     }
                 }
             });

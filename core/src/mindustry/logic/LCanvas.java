@@ -120,10 +120,16 @@ public class LCanvas extends Table{
             t.add(jumps);
             jumps.cullable = false;
         }).grow().get();
-        pane.update(() -> {
-            float cHeight = Core.graphics.getHeight();
-            visibleBoundLower = pane.getMaxY() - pane.getVisualScrollY() - cHeight; // 1 screen above and below for buffer
-            visibleBoundUpper = visibleBoundLower + pane.getHeight() + cHeight * 2;
+        Element e = new Element();
+        e.setColor(0, 0, 0, 0);
+        e.setSize(0);
+        add(e);
+        e.update(() -> {
+            // Update is called before scroll values are updated (see ScrollPane::update), so basically hack it using
+            // another element so that this gets called after the pane stuff is fully done
+            // Shocking, this actually works lol what
+            visibleBoundLower = pane.getMaxY() - pane.getVisualScrollY();
+            visibleBoundUpper = visibleBoundLower + pane.getHeight();
         });
         pane.setFlickScroll(false);
 
