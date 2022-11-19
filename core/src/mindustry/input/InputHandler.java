@@ -1251,11 +1251,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Lines.stroke(2f);
 
 
-        Draw.color(col1);
-        Fill.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
-//        Lines.rect(result.x, result.y - 1, result.x2 - result.x, result.y2 - result.y);
-//        Draw.color(col2);
-//        Lines.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+        Draw.color(Pal.accent, .3f);
+        float x = (result.x2 + result.x) / 2; // FINISHME: Surely theres a better way to do this.
+        float y = (result.y2 + result.y) / 2;
+        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
     }
 
     protected void flushSelectPlans(Seq<BuildPlan> plans){
