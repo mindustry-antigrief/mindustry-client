@@ -1250,10 +1250,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         Lines.stroke(2f);
 
+
         Draw.color(col1);
-        Lines.rect(result.x, result.y - 1, result.x2 - result.x, result.y2 - result.y);
-        Draw.color(col2);
-        Lines.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+        Fill.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+//        Lines.rect(result.x, result.y - 1, result.x2 - result.x, result.y2 - result.y);
+//        Draw.color(col2);
+//        Lines.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
     }
 
     protected void flushSelectPlans(Seq<BuildPlan> plans){

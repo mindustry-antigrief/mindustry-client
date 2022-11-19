@@ -98,9 +98,8 @@ abstract class Path {
                     }
                 }
             } else { // Not navigating
-//                waypoint.set(destX, destY, if (aStarDist == 0f) 4f else aStarDist, dist)
                 waypoints.set(waypoint.set(destX, destY, 1F, dist).run())
-                waypoint.stopOnFinish = true
+                waypoint.stopOnFinish = aStarDist == 0f
                 waypoints.set(waypoint.run())
                 cons?.get(waypoints)
             }

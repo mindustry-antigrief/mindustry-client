@@ -3,10 +3,8 @@ package mindustry.core;
 import arc.*;
 import arc.math.*;
 import arc.util.*;
-import mindustry.Vars;
 import mindustry.ai.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.antigrief.*;
 import mindustry.client.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
@@ -391,10 +389,8 @@ public class Logic implements ApplicationListener{
         while(node != null){
             node.content.unlock();
             node = node.parent;
-            
-            if (node == null) break; // FINISHME: TEMPORARY FIX: node is just sometimes null for whatever reason. Likely a horrible fix simply cause idk whats going on but the research bug kicking you is too annoying as is.
 
-            if((node.content instanceof Item item && state.rules.hiddenBuildItems.contains(item))){
+            if(node != null && node.content instanceof Item item && state.rules.hiddenBuildItems.contains(item)){
                 break;
             }
         }

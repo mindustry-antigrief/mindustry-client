@@ -84,7 +84,7 @@ task steamtest(dependsOn: dist){
                 into "/Users/nate/Library/Application Support/Steam/steamapps/common/Mindustry/Mindustry.app/Contents/Resources"
                 rename("Mindustry.jar", "desktop.jar")
             }else{
-                into "D:\\Steam2\\steamapps\\common\\Mindustry\\jre"
+                into "C:\\SteamLibrary\\steamapps\\common\\Mindustry\\jre"
                 rename("Mindustry.jar", "client.jar")
             }
         }

@@ -542,9 +542,13 @@ public class ChatFragment extends Table{
         messages.insert(0, msg);
 
         if (messages.size >= 100) { // Free up memory by disposing of stuff in old messages
-            var msg100 = messages.get(99);
-            msg100.attachments = null;
-            msg100.buttons = null;
+            var oldMsg = messages.get(99);
+            oldMsg.attachments = null;
+            oldMsg.buttons = null;
+        }
+
+        if (messages.size > Core.settings.getInt("chatlimit", 1000)) { // Delete the oldest message when at the chat limit
+            messages.pop();
         }
 
         doFade(6); // fadetime was originally incremented by 2f, that works out to 6s
@@ -627,6 +631,11 @@ public class ChatFragment extends Table{
         public ChatMessage addButton(String text, Runnable lambda) {
             int i = formattedMessage.indexOf(text);
             return addButton(i, i + text.length(), lambda);
+        }
+
+        public ChatMessage clearButtons() {
+            if (buttons != null) buttons.clear();
+            return this;
         }
 
         private void format(boolean moveButtons) {

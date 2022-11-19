@@ -7,7 +7,7 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.*
-import mindustry.client.ClientVars.*;
+import mindustry.client.ClientVars.*
 import mindustry.client.communication.*
 import mindustry.entities.units.*
 import mindustry.game.*
@@ -57,7 +57,7 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
             theta %= Mathf.PI2
         }
 
-        aStarTolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 5f) + tilesize * 5;
+        aStarTolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 5f) + tilesize * 5
         tolerance = if(circling) 0.1f else assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 5f)
         circleRadius = if(circling) assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 5f) else 0f
 
@@ -110,28 +110,27 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
             else if (unit.type.faceTarget) Core.input.mouseWorld() else Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, player.unit().y) // Not following, not shooting
         val lookPos =
             if (assisting.unit().isShooting && unit.type.faceTarget) player.angleTo(assisting.unit().aimX, assisting.unit().aimY) // Assisting is shooting and player has fixed weapons
-            else if (unit.type.omniMovement && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !(unit is Mechc && unit.isFlying())) Angles.mouseAngle(unit.x, unit.y);
+            else if (unit.type.omniMovement && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !(unit is Mechc && unit.isFlying())) Angles.mouseAngle(unit.x, unit.y)
             else player.unit().prefRotation() // Anything else
 
         player.shooting(shouldShoot)
-        player.unit().isShooting()
         unit.aim(aimPos)
         unit.lookAt(lookPos)
 
         when (type) {
-            Type.Regular -> goTo(assisting.x + (circleRadius * Math.cos(theta.toDouble())).toFloat(), assisting.y + (circleRadius * Math.sin(theta.toDouble())).toFloat(), tolerance, aStarTolerance + tilesize * 5)
+            Type.Regular -> goTo(assisting.x + (circleRadius * Mathf.cos(theta)), assisting.y + (circleRadius * Mathf.sin(theta)), tolerance, aStarTolerance + tilesize * 5)
             Type.FreeMove -> {
                 val input = control.input
                 if (input is DesktopInput) {
                     if (input.movement.epsilonEquals(0f, 0f)) {
                         if (Core.settings.getBool("zerodrift")) unit.vel.setZero()
-                        else if (Core.settings.getBool("decreasedrift") && unit.vel().len() > 3.5) unit.vel.set(unit.vel().scl(0.95f));
+                        else if (Core.settings.getBool("decreasedrift") && unit.vel().len() > 3.5) unit.vel.set(unit.vel().scl(0.95f))
                     }
                     else player.unit().moveAt(input.movement)
                 } else player.unit().moveAt((input as MobileInput).movement)
             }
-            Type.Cursor -> goTo(assisting.mouseX + (circleRadius * Math.cos(theta.toDouble())).toFloat(), assisting.mouseY + (circleRadius * Math.sin(theta.toDouble())).toFloat(), tolerance, tolerance + tilesize * 5)
-            Type.BuildPath -> if (!plans.isEmpty) buildPath?.follow() else goTo(assisting.x + (circleRadius * Math.cos(theta.toDouble())).toFloat(), assisting.y + (circleRadius * Math.sin(theta.toDouble())).toFloat(), tolerance, aStarTolerance + tilesize * 5) // Follow build path if plans exist, otherwise follow player
+            Type.Cursor -> goTo(assisting.mouseX + (circleRadius * Mathf.cos(theta)), assisting.mouseY + (circleRadius * Mathf.sin(theta)), tolerance, tolerance + tilesize * 5)
+            Type.BuildPath -> if (!plans.isEmpty) buildPath?.follow() else goTo(assisting.x + (circleRadius * Mathf.cos(theta)), assisting.y + (circleRadius * Mathf.sin(theta)), tolerance, aStarTolerance + tilesize * 5) // Follow build path if plans exist, otherwise follow player
         }
     }
 

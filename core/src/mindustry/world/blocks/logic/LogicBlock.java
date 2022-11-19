@@ -580,13 +580,15 @@ public class LogicBlock extends Block{
                                 }
                                 attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
                                 attemMsg.format();
+                                attemMsg.clearButtons(); // Update the clickable coord positions
+                                NetClient.findCoords(attemMsg);
                             }
                             attemTime = Time.millis();
                             ClientVars.lastSentPos.set(tile.x, tile.y);
                             ClientVars.configs.add(new ConfigRequest(tile.x, tile.y, compress(patched, relativeConnections())));
                         });
                     }
-                    Log.debug("Regex: @ms", Time.millisSinceNanos(begin));
+                    Log.debug("Attem Regex: @ms", Time.millisSinceNanos(begin));
                 });
             }
         }

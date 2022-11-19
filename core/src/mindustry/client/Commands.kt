@@ -28,7 +28,6 @@ import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
-import mindustry.world.*
 import mindustry.world.blocks.distribution.*
 import mindustry.world.blocks.distribution.DirectionalUnloader.*
 import mindustry.world.blocks.logic.*
@@ -717,12 +716,12 @@ fun setup() {
             sendMessage("Silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance. They are not the same, please get it right!")
         }
 
-        register("hh [h]", "!") { args, _ ->
+        register("hh [h]", "!") { args, player ->
             if (!net.client()) return@register
             val u = if (args.any()) content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) } else player.unit().type
             val current = ui.join.lastHost ?: return@register
             if (current.group == null) current.group = ui.join.communityHosts.find { it == current } ?.group ?: return@register
-            switchTo = ui.join.communityHosts.filterTo(arrayListOf<Any>()) { it.group == current.group && it != current && !it.equals("135.181.14.60:6567") }.apply { add(current); add(u) } // IO attack has severe amounts of skill issue currently hence why its ignored
+            switchTo = ui.join.communityHosts.filterTo(arrayListOf<Any>()) { it.group == current.group && it != current && (it.version == Version.build || Version.build == -1) }.apply { add(current); add(u) }
             val first = switchTo!!.removeFirst() as Host
             NetClient.connect(first.address, first.port)
         }
