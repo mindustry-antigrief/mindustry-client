@@ -338,23 +338,6 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("powersplitwarnings", true); // FINISHME: Add a minimum building requirement and a setting for it
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
         client.checkPref("removecorenukes", false);
-        
-        // Seer: Client side multiplayer griefing/cheating detections
-        if (settings.getBool("client-experimentals")) { // FINISHME: Either remove this or make it properly functional
-            client.checkPref("seer-enabled", false); // by default false because still new
-            client.checkPref("seer-autokick", false); // by default false to avoid false positives
-            client.sliderPref("seer-warnthreshold", 10, 0, 50, String::valueOf);
-            client.sliderPref("seer-autokickthreshold", 20, 0, 50, String::valueOf);
-            client.sliderPref("seer-scoredecayinterval", 1, 0, 10, i -> String.valueOf(i * 30) + "s");
-            client.sliderPref("seer-scoredecay", 5, 0, 20, String::valueOf);
-            client.sliderPref("seer-reactorscore", 8, 0, 10, String::valueOf);
-            client.sliderPref("seer-reactordistance", 5, 0, 20, String::valueOf);
-            client.sliderPref("seer-configscore", 3, 0, 50, i -> String.valueOf(i / 5f)); // 0.60
-            client.sliderPref("seer-configdistance", 20, 0, 100, String::valueOf);
-            client.sliderPref("seer-proclinkthreshold", 20, 0, 80, String::valueOf);
-            client.sliderPref("seer-proclinkscore", 10, 0, 50, String::valueOf);
-        }
-        
 
         client.category("chat");
         client.checkPref("clearchatonleave", true);
@@ -440,8 +423,25 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("downloadmusic", true);
         client.checkPref("downloadsound", true);
         client.checkPref("circleassist", false);
-        client.checkPref("trackcoreitems", false, i -> CoreItemsDisplay.trackItems = i && !net.server());
         client.checkPref("ignoremodminversion", false);
+    
+        if (settings.getBool("client-experimentals")) { // FINISHME: Either remove this or make it properly functional
+            client.category("Experimental");
+            // Seer: Client side multiplayer griefing/cheating detections
+            client.checkPref("seer-enabled", false); // by default false because still new
+            client.checkPref("seer-autokick", false); // by default false to avoid false positives
+            client.sliderPref("seer-warnthreshold", 10, 0, 50, String::valueOf);
+            client.sliderPref("seer-autokickthreshold", 20, 0, 50, String::valueOf);
+            client.sliderPref("seer-scoredecayinterval", 1, 0, 10, i -> String.valueOf(i * 30) + "s");
+            client.sliderPref("seer-scoredecay", 5, 0, 20, String::valueOf);
+            client.sliderPref("seer-reactorscore", 8, 0, 10, String::valueOf);
+            client.sliderPref("seer-reactordistance", 5, 0, 20, String::valueOf);
+            client.sliderPref("seer-configscore", 3, 0, 50, i -> String.valueOf(i / 5f)); // 0.60
+            client.sliderPref("seer-configdistance", 20, 0, 100, String::valueOf);
+            client.sliderPref("seer-proclinkthreshold", 20, 0, 80, String::valueOf);
+            client.sliderPref("seer-proclinkscore", 10, 0, 50, String::valueOf);
+            client.checkPref("trackcoreitems", false, i -> CoreItemsDisplay.trackItems = i && !net.server());
+        }
         // End Client Settings
 
 
