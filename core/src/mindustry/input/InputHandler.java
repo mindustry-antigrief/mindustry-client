@@ -1250,9 +1250,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         Lines.stroke(2f);
 
-
         Draw.color(col2, 0.3f); //Finishme: what was the old color?
-        Fill.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+        float x = (result.x2 + result.x) / 2;
+        float y = (result.y2 + result.y) / 2;
+        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
 //        Lines.rect(result.x, result.y - 1, result.x2 - result.x, result.y2 - result.y);
 //        Draw.color(col2);
 //        Lines.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
