@@ -844,7 +844,7 @@ public class DesktopInput extends InputHandler{
                     BlockPlan plan = broken.next();
                     Block block = content.block(plan.block);
                     if(block.bounds(plan.x, plan.y, Tmp.r2).overlaps(Tmp.r1)){
-                        player.unit().addBuild(new BuildPlan(plan.x, plan.y, plan.rotation, content.block(plan.block), plan.config));
+                        player.unit().addBuild(new BuildPlan(plan.x, plan.y, plan.rotation, block, plan.config));
                     }
                 }
 
