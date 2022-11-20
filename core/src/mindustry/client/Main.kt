@@ -166,7 +166,9 @@ object Main : ApplicationListener {
     /** @return if it's done or not, NOT if it's valid */
     private fun check(transmission: SignatureTransmission): Boolean {
         fun invalid(msg: ChatFragment.ChatMessage, cert: X509Certificate?) {
-            msg.sender = cert?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator") ?: "Verification failed"
+            msg.sender = cert?.run { keyStorage.aliasOrName(this) }?.stripColors()?.run {
+                if (Core.settings.getBool("showclientmsgsendername")) "$this (${msg.sender}[white])" else this
+            }?.plus("[scarlet] impersonator") ?: "Verification failed"
             msg.backgroundColor = ClientVars.invalid
             msg.prefix = "${Iconc.cancel} ${msg.prefix} "
             msg.format()
