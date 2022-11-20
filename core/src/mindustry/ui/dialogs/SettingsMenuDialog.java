@@ -345,6 +345,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("clientjoinleave", true);
         client.checkPref("highlightcryptomsg", true);
         client.checkPref("highlightclientmsg", false);
+        client.checkPref("showclientmsgsendername", true);
         client.checkPref("displayasuser", true);
         client.checkPref("broadcastcoreattack", false); // FINISHME: Multiple people using this setting at once will cause chat spam
         client.checkPref("showuserid", false);

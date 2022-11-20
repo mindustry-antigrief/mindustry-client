@@ -1,5 +1,6 @@
 package mindustry.client.communication
 
+import arc.*
 import arc.graphics.*
 import mindustry.*
 import mindustry.client.*
@@ -19,6 +20,7 @@ class ClientMessageTransmission : Transmission {
     override var id = Random.nextLong()
     override val secureOnly: Boolean = false
     val sender: String  // not serialized
+    private var originalSender: String? = null // not serialized
     private val senderID: Int  // not serialized
     val message: String
     val certSN: ByteArray?
@@ -36,11 +38,20 @@ class ClientMessageTransmission : Transmission {
         timestamp = buf.instant
         val res = verify()
         validity = res.second
-        sender = res.first?.run { Main.keyStorage.aliasOrName(this) } ?: Groups.player.getByID(senderID).name
+        val certName = res.first?.run { Main.keyStorage.aliasOrName(this) }
+        val name = Groups.player.getByID(senderID).name
+        if (certName != null) {
+            sender = certName
+            if (Core.settings.getBool("showclientmsgsendername")) originalSender = name
+        } else sender = name
     }
 
     constructor(message: String) {
-        sender = Main.keyStorage.cert()?.readableName ?: Vars.player.name
+        val certName = Main.keyStorage.cert()?.readableName
+        if (certName != null) {
+            sender = certName
+            if (Core.settings.getBool("showclientmsgsendername")) originalSender = Vars.player.name
+        } else sender = Vars.player.name
         senderID = Vars.player.id
         timestamp = Instant.now()
         this.message = message
@@ -92,9 +103,8 @@ class ClientMessageTransmission : Transmission {
             UNKNOWN_CERT -> Color.darkGray
         }
         val prefix = "[accent]<[white]F[]>[] ${when (validity) { VALID -> Iconc.ok; INVALID -> Iconc.cancel; UNKNOWN_CERT -> "" }} ".replace("  ", " ") // No double spaces. Cursed
-
         val newMsg = NetClient.processCoords(message, true)
-        Vars.ui.chatfrag.addMessage(newMsg, sender, background, prefix, newMsg).findCoords().findLinks()
+        Vars.ui.chatfrag.addMessage(newMsg, sender.run { if (originalSender != null) this.plus(" (${originalSender}[white])") else this }, background, prefix, newMsg).findCoords().findLinks()
     }
 
     override fun toString(): String {

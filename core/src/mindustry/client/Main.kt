@@ -181,7 +181,7 @@ object Main : ApplicationListener {
 
         return when (output.first) {
             Signatures.VerifyResult.VALID -> {
-                msg.sender = output.second?.run { keyStorage.aliasOrName(this) }
+                msg.sender = output.second?.run { keyStorage.aliasOrName(this) }.plus(if (Core.settings.getBool("showclientmsgsendername")) " (${msg.sender}[white])" else "")
                 msg.backgroundColor = ClientVars.verified
                 msg.prefix = "${Iconc.ok} ${msg.prefix} "
                 msg.format()
