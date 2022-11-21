@@ -547,7 +547,7 @@ public class ChatFragment extends Table{
             oldMsg.buttons = null;
         }
 
-        if (messages.size > Core.settings.getInt("chatlimit", 1000)) { // Delete the oldest message when at the chat limit
+        if (Core.settings.getBool("enablechatlimit") && messages.size > Core.settings.getInt("chatlimit", 1000)) { // Delete the oldest message when at the chat limit
             messages.pop();
         }
 
