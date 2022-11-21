@@ -29,12 +29,13 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
-enum class Server(@JvmField val canWhisper: Boolean, private val rtvConfirm: String? = "/rtv") {
-    other(false),
+enum class Server(@JvmField val canWhisper: Boolean, private val rtvConfirm: String? = "/rtv", @JvmField val ghost: Boolean = false) {
+    other(false, null),
     nydus(false),
     cn(false),
     io(true),
-    phoenix(true);
+    phoenix(true),
+    korea(false, null, true);
 
     companion object {
         @JvmField var current = other
@@ -46,6 +47,7 @@ enum class Server(@JvmField val canWhisper: Boolean, private val rtvConfirm: Str
                 ui.join.communityHosts.contains { it.group == "Chaotic Neutral" && it.address == ui.join.lastHost?.address } -> cn
                 ui.join.communityHosts.contains { it.group == "io" && it.address == ui.join.lastHost?.address } -> io
                 ui.join.communityHosts.contains { it.group == "Phoenix Network" && it.address == ui.join.lastHost?.address } -> phoenix
+                ui.join.communityHosts.contains { it.group == "Korea" && it.address == ui.join.lastHost?.address } -> korea
                 else -> other
             }
         }
