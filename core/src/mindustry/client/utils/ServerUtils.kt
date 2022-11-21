@@ -29,13 +29,14 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
-enum class Server(@JvmField val canWhisper: Boolean, private val rtvConfirm: String? = "/rtv", @JvmField val ghost: Boolean = false) {
-    other(false, null),
-    nydus(false),
-    cn(false),
-    io(true),
-    phoenix(true),
-    korea(false, null, true);
+enum class Server(@JvmField val whisper: String?, private val rtvConfirm: String? = "/rtv", @JvmField val ghost: Boolean = false) {
+    other(null, null),
+    nydus(null),
+    cn(null),
+    io("/w"),
+    phoenix("/w"),
+    korea(null, null, true),
+    fish("/msg");
 
     companion object {
         @JvmField var current = other
@@ -48,6 +49,7 @@ enum class Server(@JvmField val canWhisper: Boolean, private val rtvConfirm: Str
                 ui.join.communityHosts.contains { it.group == "io" && it.address == ui.join.lastHost?.address } -> io
                 ui.join.communityHosts.contains { it.group == "Phoenix Network" && it.address == ui.join.lastHost?.address } -> phoenix
                 ui.join.communityHosts.contains { it.group == "Korea" && it.address == ui.join.lastHost?.address } -> korea
+                ui.join.communityHosts.contains { it.group == "Fish" && it.address == ui.join.lastHost?.address } -> fish
                 else -> other
             }
         }
@@ -63,7 +65,7 @@ enum class Server(@JvmField val canWhisper: Boolean, private val rtvConfirm: Str
 
     /** Whisper a message to a player (or log an error if whispers are not enabled here). */
     fun whisper(p: Player, msg: String) {
-        if (canWhisper) Call.sendChatMessage("/w ${p.id} $msg")
+        if (whisper != null) Call.sendChatMessage("$whisper ${p.id} $msg")
         else Log.warn("Whispers are not enabled on server $name")
     }
 
