@@ -1,8 +1,8 @@
 package mindustry.client
 
 import arc.*
-import arc.Core.bundle
-import arc.math.geom.Point2
+import arc.Core.*
+import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
@@ -22,7 +22,7 @@ import mindustry.net.*
 import mindustry.type.*
 import mindustry.ui.fragments.*
 import mindustry.world.blocks.defense.turrets.*
-import mindustry.world.blocks.power.PowerNode
+import mindustry.world.blocks.power.*
 import mindustry.world.blocks.sandbox.*
 
 /** WIP client logic class, similar to [Logic] but for the client.
@@ -53,7 +53,7 @@ class ClientLogic {
                     }
 
                     // Game join text after hh
-                    if (Core.settings.getString("gamejointext")?.isNotEmpty() == true) {
+                    if (Core.settings.getString("gamejointext")?.isNotBlank() == true) {
                         Call.sendChatMessage(Core.settings.getString("gamejointext"))
                     }
 
@@ -178,9 +178,9 @@ class ClientLogic {
 
             // TODO: Make this work in singleplayer
             if (it.winner == player.team()) {
-                if (Core.settings.getString("gamewintext")?.isNotEmpty() == true) Call.sendChatMessage(Core.settings.getString("gamewintext"))
+                if (Core.settings.getString("gamewintext")?.isNotBlank() == true) Call.sendChatMessage(Core.settings.getString("gamewintext"))
             } else {
-                if (Core.settings.getString("gamelosetext")?.isNotEmpty() == true) Call.sendChatMessage(Core.settings.getString("gamelosetext"))
+                if (Core.settings.getString("gamelosetext")?.isNotBlank() == true) Call.sendChatMessage(Core.settings.getString("gamelosetext"))
             }
         }
 
