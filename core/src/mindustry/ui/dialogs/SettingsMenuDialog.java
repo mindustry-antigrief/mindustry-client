@@ -359,6 +359,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("assumeunstrict", false);
         client.checkPref("returnonmove", false);
         client.checkPref("vanillamovement", false);
+        client.checkPref("nostrafepenalty", false);
         client.checkPref("decreasedrift", false);
         client.checkPref("zerodrift", false);
         client.checkPref("fastrespawn", false);

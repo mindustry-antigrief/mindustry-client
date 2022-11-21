@@ -135,7 +135,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     /** @return speed with boost & floor multipliers factored in. */
     public float speed(){
-        float strafePenalty = isGrounded() || !isPlayer() ? 1f : Mathf.lerp(1f, type.strafePenalty, Angles.angleDist(vel().angle(), rotation) / 180f);
+        float strafePenalty = isGrounded() || !isPlayer() || Core.settings.getBool("nostrafepenalty") ? 1f : Mathf.lerp(1f, type.strafePenalty, Angles.angleDist(vel().angle(), rotation) / 180f);
         float boost = Mathf.lerp(1f, type.canBoost ? type.boostMultiplier : 1f, elevation);
         return type.speed * strafePenalty * boost * floorSpeedMultiplier();
     }

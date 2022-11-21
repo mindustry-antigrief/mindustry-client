@@ -2049,7 +2049,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         boolean omni = unit.type().omniMovement;
         boolean ground = unit.isGrounded();
 
-        float strafePenalty = ground ? 1f : Mathf.lerp(1f, unit.type().strafePenalty, Angles.angleDist(unit.vel().angle(), unit.rotation()) / 180f);
+        float strafePenalty = ground || Core.settings.getBool("nostrafepenalty") ? 1f : Mathf.lerp(1f, unit.type().strafePenalty, Angles.angleDist(unit.vel().angle(), unit.rotation()) / 180f);
         float baseSpeed = unit.type().speed;
 
         float speed = baseSpeed * Mathf.lerp(1f, unit.type().canBoost ? unit.type().boostMultiplier : 1f, unit.elevation) * strafePenalty;
