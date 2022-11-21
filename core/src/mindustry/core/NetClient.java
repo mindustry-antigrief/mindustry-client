@@ -118,7 +118,9 @@ public class NetClient implements ApplicationListener{
                     var col = matcher.toMatchResult().group(1);
                     var get = Colors.get(col);
                     c.name = matcher.replaceAll("");
-                    c.color = get != null ? get.rgba() : Color.valueOf(col).rgba();
+                    try {
+                        c.color = get != null ? get.rgba() : Color.valueOf(col).rgba();
+                    } catch (IndexOutOfBoundsException ignored) {}
                 }
             }
 
