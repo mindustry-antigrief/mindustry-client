@@ -549,18 +549,13 @@ public class JoinDialog extends BaseDialog{
 
         Host[] hostFinal = {host};
 
-        var joinAny = Core.settings.getBool("allowjoinany");
-        if(joinAny || host == null) {
-            net.pingHost(ip, port, h -> {
-                hostFinal[0] = h;
-                if (joinAny) Version.build = hostFinal[0].version;
-            }, e -> {});
-        }
-
-        Time.runTask(2f, () -> {
+        net.pingHost(ip, port, h -> { // Wrap in ping so that host is guaranteed not null when joining a server
+            hostFinal[0] = h;
+            if ( Core.settings.getBool("allowjoinany")) Version.build = hostFinal[0].version;
             logic.reset();
             net.reset();
             Vars.netClient.beginConnecting();
+            Log.info("Final: @", hostFinal[0]);
             net.connect(lastIp = ip, lastPort = port, () -> {
                 if(net.client()){
                     hide();
@@ -568,7 +563,7 @@ public class JoinDialog extends BaseDialog{
                     lastHost = hostFinal[0];
                 }
             });
-        });
+        }, e -> net.showError(e));
     }
 
     public void reconnect(){
