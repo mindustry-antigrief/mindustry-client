@@ -19,12 +19,10 @@ import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.graphics.*
 import mindustry.io.*
-import mindustry.logic.LCategory.*
 import mindustry.type.*
 import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.consumers.*
-import org.bouncycastle.asn1.x500.style.RFC4519Style.*
 import java.lang.reflect.*
 import kotlin.properties.*
 import kotlin.reflect.*
