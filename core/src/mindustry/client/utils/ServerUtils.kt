@@ -19,24 +19,32 @@ import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.graphics.*
 import mindustry.io.*
+import mindustry.logic.LCategory.*
 import mindustry.type.*
 import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.consumers.*
+import org.bouncycastle.asn1.x500.style.RFC4519Style.*
 import java.lang.reflect.*
 import kotlin.properties.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
-enum class Server(@JvmField val whisper: String?, private val rtvConfirm: String? = "/rtv", @JvmField val ghost: Boolean = false) {
-    other(null, null),
-    nydus(null),
-    cn(null),
-    io("/w"),
-    phoenix("/w"),
-    korea(null, null, true),
-    fish("/msg");
+enum class Server(
+    private val whisper: ((Player) -> String)? = null,
+    private val rtvConfirm: String? = "/rtv",
+    private val mapVote: Triple<String, String, String>? = null, // downvote, neutral, upvote
+    @JvmField val ghost: Boolean = false
+) {
+    // FINISHME: Idk how to make this look not cursed
+    other(rtvConfirm = null),
+    nydus(rtvConfirm = null),
+    cn,
+    io(whisper = { p -> "/w ${p.id}" }, mapVote = Triple("/downvote", "/novote", "/upvote")),
+    phoenix(whisper = { p -> "/w ${p.id}" }, mapVote = Triple("/downvote", "/novote", "/upvote")),
+    korea(rtvConfirm = null, ghost = true),
+    fish({ p -> "/msg ${p.name.stripColors().substringBefore(" ")}" }); // FINISHME: Cursed. Get fish to implement id based /msg as currently only works with player names which can contain spaces.
 
     companion object {
         @JvmField var current = other
@@ -65,13 +73,19 @@ enum class Server(@JvmField val whisper: String?, private val rtvConfirm: String
 
     /** Whisper a message to a player (or log an error if whispers are not enabled here). */
     fun whisper(p: Player, msg: String) {
-        if (whisper != null) Call.sendChatMessage("$whisper ${p.id} $msg")
+        if (whisper != null) Call.sendChatMessage("${whisper.invoke(p)} $msg")
         else Log.warn("Whispers are not enabled on server $name")
     }
 
     /** Rock the vote clickable button, set [rtvConfirm] to null to disable */
     fun handleRtv(msg: ChatMessage) {
         msg.addButton(rtvConfirm ?: return) { Call.sendChatMessage(rtvConfirm) }
+    }
+
+    /** Map like/dislike */
+    fun mapVote(i: Int) {
+        if (mapVote != null) Call.sendChatMessage(mapVote.toList().getOrNull(i) ?: return)
+        else Log.warn("Map votes are not available on server $name")
     }
 }
 

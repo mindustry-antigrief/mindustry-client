@@ -24,6 +24,7 @@ import mindustry.ui.fragments.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.sandbox.*
+import kotlin.random.*
 
 /** WIP client logic class, similar to [Logic] but for the client.
  * Handles various events and such.
@@ -57,13 +58,12 @@ class ClientLogic {
                         Call.sendChatMessage(Core.settings.getString("gamejointext"))
                     }
 
-                    when (Core.settings.getInt("automapvote")) {
-                        1 -> Call.sendChatMessage("/downvote")
-                        2 -> Call.sendChatMessage("/novote")
-                        3 -> Call.sendChatMessage("/upvote")
-                        4 -> Call.sendChatMessage(("/${arrayOf("no", "up", "down").random()}vote"))
+                    when (val vote = Core.settings.getInt("automapvote")) {
+                        1, 2, 3 -> Server.current.mapVote(vote - 1)
+                        4 -> Server.current.mapVote(Random.nextInt(0..2))
                         else -> {}
                     }
+
                 }
             }, .1F)
 
