@@ -217,7 +217,7 @@ fun setup() {
 
     // Removed as the dependency was like 50MB. If i ever add this back, it will probably just download the jar when needed and then cache it between client builds so that each update isn't massive.
 //        val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
-//        register("kts <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player -> // FINISHME: Bundle
+//        register("kts <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player ->
 //            player.sendMessage("[accent]${try{ kts.eval(args[0]) }catch(e: ScriptException){ e.message }}")
 //        }
 
@@ -246,10 +246,10 @@ fun setup() {
 
     register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
         player.sendMessage(
-            if (pluginVersion != -1) "[accent]Using plugin communication" else // FINISHME: Bundle
-                BlockCommunicationSystem.findProcessor()?.run { "[accent]Using a logic block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
-                BlockCommunicationSystem.findMessage()?.run { "[accent]Using a message block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
-                "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)" // FINISHME: Bundle
+            if (pluginVersion != -1) (Core.bundle.get("client.networking.plugin") as String) else
+                BlockCommunicationSystem.findProcessor()?.run { Core.bundle.format("client.networking.logicblock", tileX(), tileY()) } ?:
+                BlockCommunicationSystem.findMessage()?.run { Core.bundle.format("client.networking.messageblock", tileX(), tileY()) } ?:
+                Core.bundle.get("client.networking.buildplan")
         )
     }
 
@@ -313,14 +313,15 @@ fun setup() {
         if (args.size != 1) player.sendMessage("[accent]The circle assist speed is ${Core.settings.getFloat("circleassistspeed", 0.05f)} (default is 0.05)")
         else {
             if(args[0] == "0"){
-                Core.settings.put("circleassist", false);
-                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = false;
+                Core.settings.put("circleassist", false)
+                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = false
+                player.sendMessage(Core.bundle.get("client.command.circleassist.disabled"))
             } else {
-                Core.settings.put("circleassist", true);
-                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = true;
-                Core.settings.put("circleassistspeed", Strings.parseFloat(args[0], 0.05f));
+                Core.settings.put("circleassist", true)
+                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = true
+                Core.settings.put("circleassistspeed", Strings.parseFloat(args[0], 0.05f))
+                player.sendMessage(Core.bundle.format("client.command.circleassist.success", Core.settings.getFloat("circleassistspeed")))
             }
-            player.sendMessage(Core.bundle.format("client.command.circleassist.success", Core.settings.getFloat("circleassistspeed")))
         }
     }
 

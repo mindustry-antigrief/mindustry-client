@@ -163,7 +163,7 @@ public class ChatFragment extends Table{
         chatfield.setOnlyFontChars(false);
 
         bottom().left().marginBottom(offsety).marginLeft(offsetx * 2);
-        button(Icon.uploadSmall, uploadStyle, UploadDialog.INSTANCE::show).padRight(5f).tooltip("Upload Images").visible(() -> shown).checked(h -> UploadDialog.INSTANCE.hasImage()); // FINISHME: Bundle
+        button(Icon.uploadSmall, uploadStyle, UploadDialog.INSTANCE::show).padRight(5f).tooltip("@client.uploadimages").visible(() -> shown).checked(h -> UploadDialog.INSTANCE.hasImage());
         add(fieldlabel).padBottom(6f);
         chatfield.typed(this::handleType);
 
