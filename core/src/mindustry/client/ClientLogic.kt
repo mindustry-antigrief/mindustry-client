@@ -41,7 +41,7 @@ class ClientLogic {
             Spectate.pos = null
 
             Timer.schedule({
-                Core.app.post {
+                app.post {
                     val arg = switchTo?.removeFirstOrNull()
                     if (arg != null) {
                         if (arg is Host) {
@@ -54,11 +54,11 @@ class ClientLogic {
                     }
 
                     // Game join text after hh
-                    if (Core.settings.getString("gamejointext")?.isNotBlank() == true) {
-                        Call.sendChatMessage(Core.settings.getString("gamejointext"))
+                    if (settings.getString("gamejointext")?.isNotBlank() == true) {
+                        Call.sendChatMessage(settings.getString("gamejointext"))
                     }
 
-                    when (val vote = Core.settings.getInt("automapvote")) {
+                    when (val vote = settings.getInt("automapvote")) {
                         1, 2, 3 -> Server.current.mapVote(vote - 1)
                         4 -> Server.current.mapVote(Random.nextInt(0..2))
                         else -> {}

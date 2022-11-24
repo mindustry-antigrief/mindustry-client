@@ -10,6 +10,7 @@ import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
 import mindustry.Vars.*
+import mindustry.client.*
 import mindustry.content.*
 import mindustry.ctype.*
 import mindustry.entities.abilities.*
@@ -30,27 +31,55 @@ import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 enum class Server(
-    private val whisper: ((Player) -> String)? = null,
-    private val rtvConfirm: String? = "/rtv",
-    private val mapVote: Triple<String, String, String>? = null, // downvote, neutral, upvote
+    private val mapVote: MapVote? = null,
+    @JvmField val whisper: Cmd = Cmd("/w", -1), // FINISHME: This system still sucks despite my best efforts at making it good
+    private val rtv: Cmd = Cmd("/rtv", -1),
+    @JvmField val freeze: Cmd = Cmd("/freeze", -1),
     @JvmField val ghost: Boolean = false
 ) {
-    // FINISHME: Idk how to make this look not cursed
-    other(rtvConfirm = null),
-    nydus(rtvConfirm = null),
-    cn,
-    io(whisper = { p -> "/w ${p.id}" }, mapVote = Triple("/downvote", "/novote", "/upvote")),
-    phoenix(whisper = { p -> "/w ${p.id}" }, mapVote = Triple("/downvote", "/novote", "/upvote")),
-    korea(rtvConfirm = null, ghost = true),
-    fish({ p -> "/msg ${p.name.stripColors().substringBefore(" ")}" }); // FINISHME: Cursed. Get fish to implement id based /msg as currently only works with player names which can contain spaces.
+    other,
+    nydus,
+    cn(rtv = Cmd("/rtv")),
+    io(MapVote(), Cmd("/w"), Cmd("/rtv"), object : Cmd("/freeze", 4){
+        override fun run(vararg args: String) { // IO's freeze command cant be run by apprentice mods but the packet works fine for them
+            if (ClientVars.rank == 4) Call.serverPacketReliable("freeze_by_id", args[0]) // Yes this will cause a crash when args.size == 0, it shouldn't happen
+            else super.run(*args)
+        }
+    }),
+    phoenix(MapVote(), Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9)),
+    korea(ghost = true),
+    fish(null, Cmd("/msg")){ // FINISHME: Get fish to implement id based /msg as currently only works with player names which can contain spaces.
+        override fun playerString(p: Player) = p.name.stripColors().substringBefore(' ')
+    };
 
     companion object {
+        open class Cmd(val str: String, private val rank: Int = 0) { // 0 = anyone, -1 = disabled
+            val enabled = rank != -1
+
+            open fun canRun() = rank == 0 || enabled && ClientVars.rank >= rank
+
+            operator fun invoke(p: Player, vararg args: String) = invoke(current.playerString(p), *args)
+
+            open operator fun invoke(vararg args: String) = when {
+                !enabled -> Log.err("Command $str is disabled on this server.")
+                !canRun() -> Log.err("You do not have permission to run $str on this server.")
+                else -> run(*args)
+            }
+
+            protected open fun run(vararg args: String) = Call.sendChatMessage("$str $args")
+        }
+
+        private class MapVote(val down: String = "/downvote", val none: String = "/novote", val up: String = "/upvote") {
+            operator fun get(i: Int) = if (i == 0) down else if (i == 1) none else if (i == 2) up else null // Yes this is horrible but it saves lines.
+        }
+
         @JvmField var current = other
+//        val ghostList by lazy { Core.settings.getJson("ghostmodeservers", Seq::class.java, String::class.java) { Seq<String>() } as Seq<String> }
 
         @JvmStatic
-        fun onServerJoin() { // Called just before ServerJoinEvent is fired
+        fun onServerJoin() { // Called once on server join before WorldLoadEvent (and by extension ServerJoinEvent), the player will not be added here hence the need for ServerJoinEvent
             current = when { // FINISHME: Lots of these are similar, iterate through Server.values() to find the correct server
-                ui.join.lastHost != null && net.client() && ui.join.lastHost.name.contains("nydus") -> nydus
+                ui.join.lastHost?.name?.contains("nydus") ?: false -> nydus
                 ui.join.communityHosts.contains { it.group == "Chaotic Neutral" && it.address == ui.join.lastHost?.address } -> cn
                 ui.join.communityHosts.contains { it.group == "io" && it.address == ui.join.lastHost?.address } -> io
                 ui.join.communityHosts.contains { it.group == "Phoenix Network" && it.address == ui.join.lastHost?.address } -> phoenix
@@ -58,6 +87,7 @@ enum class Server(
                 ui.join.communityHosts.contains { it.group == "Fish" && it.address == ui.join.lastHost?.address } -> fish
                 else -> other
             }
+            Log.debug("Joining server, override set to: ${current.name}")
         }
 
         init {
@@ -69,20 +99,19 @@ enum class Server(
 
     @JvmName("b") operator fun invoke() = current == this
 
-    /** Whisper a message to a player (or log an error if whispers are not enabled here). */
-    fun whisper(p: Player, msg: String) {
-        if (whisper != null) Call.sendChatMessage("${whisper.invoke(p)} $msg")
-        else Log.warn("Whispers are not enabled on server $name")
-    }
+    /** Converts a player object into a string for use in commands */
+    open fun playerString(p: Player) = p.id.toString()
 
-    /** Rock the vote clickable button, set [rtvConfirm] to null to disable */
-    fun handleRtv(msg: ChatMessage) {
-        msg.addButton(rtvConfirm ?: return) { Call.sendChatMessage(rtvConfirm) }
+    /** Handle clickable vote buttons */
+    open fun handleVoteButtons(msg: ChatMessage) {
+        if (rtv.canRun()) msg.addButton(rtv.str, rtv::invoke) // FINISHME: I believe cn has a no option? not too sure
+//        if (kick.canRun()) msg.addButton(kick.str, kick::invoke) FINISHME: Implement votekick buttons here
+//        FINISHME: Add cn excavate buttons
     }
 
     /** Map like/dislike */
     fun mapVote(i: Int) {
-        if (mapVote != null) Call.sendChatMessage(mapVote.toList().getOrNull(i) ?: return)
+        if (mapVote != null) Call.sendChatMessage(mapVote[i] ?: run { Log.err("Invalid vote $i"); return })
         else Log.warn("Map votes are not available on server $name")
     }
 }
@@ -233,5 +262,12 @@ private val foreshadowBulletFlood = object : LaserBulletType() {
         sideWidth = 0f
         sideLength = 0f
         colors = arrayOf(Pal.heal.cpy().a(0.4f), Pal.heal, Color.white)
+    }
+}
+
+fun handleKick(reason: String) {
+    Log.debug("Kicked from server '${ui.join.lastHost?.name ?: "unknown"}' for: '$reason'.")
+    if (reason == "Custom client detected.") {
+
     }
 }

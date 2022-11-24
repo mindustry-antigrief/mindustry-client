@@ -215,12 +215,8 @@ public class PlayerListFragment{
                     () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).tooltip("@client.spectate");
             }
 
-            if (Server.io.b() && ClientVars.rank >= 4 || Server.phoenix.b() && ClientVars.rank >= 9) { // Apprentice+ on io, Colonel+ on phoenix
+            if (Server.current.freeze.canRun()) { // Apprentice+ on io, Colonel+ on phoenix
                 button.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon), ustyle, () -> {
-                    Runnable confirmed = () -> {
-                        if (ClientVars.rank == 4 && Server.io.b()) Call.serverPacketReliable("freeze_by_id", String.valueOf(user.id));
-                        else Call.sendChatMessage("/freeze " + user.id); // Freeze command preferred since it actually has a response (io doesn't let apprentice run it for some reason)
-                    };
                     BaseDialog dialog = new BaseDialog("@confirm");
                     dialog.cont.label(() -> Core.bundle.format("client.confirmfreeze", user.name(), Moderation.freezeState)).width(mobile ? 400f : 500f).wrap().pad(4f).get().setAlignment(Align.center, Align.center);
                     dialog.buttons.defaults().size(200f, 54f).pad(2f);
@@ -228,11 +224,11 @@ public class PlayerListFragment{
                     dialog.buttons.button("@cancel", Icon.cancel, dialog::hide);
                     dialog.buttons.button("@ok", Icon.ok, () -> {
                         dialog.hide();
-                        confirmed.run();
+                        Server.current.freeze.invoke(user);
                     });
                     dialog.keyDown(KeyCode.enter, () -> {
                         dialog.hide();
-                        confirmed.run();
+                        Server.current.freeze.invoke(user);
                     });
                     dialog.keyDown(KeyCode.escape, dialog::hide);
                     dialog.keyDown(KeyCode.back, dialog::hide);

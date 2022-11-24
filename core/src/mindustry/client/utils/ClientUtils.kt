@@ -4,6 +4,7 @@
 package mindustry.client.utils
 
 import arc.*
+import arc.func.*
 import arc.graphics.*
 import arc.math.geom.*
 import arc.scene.*
@@ -234,13 +235,12 @@ val X509Certificate.readableName: String
 
 fun String.asciiNoSpaces() = filter { it in '0'..'9' || it in 'A'..'Z' || it in 'a'..'z' || it == '_' }
 
-fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) { // FINISHME: Events.remove is fake news; doesn't ever work. This wouldn't even work if .remove did
+fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) {
     var i = 0
-    Events.on(event) {
+    var id = -1
+    id = Events.onid(event) {
         lambda(it)
-        if (i++ >= repetitions) {
-            Events.remove(event, lambda)
-        }
+        if (i++ >= repetitions) Events.remove(event, id) // FINISHME: Is there an off by one here? Im too tired for this right now
     }
 }
 

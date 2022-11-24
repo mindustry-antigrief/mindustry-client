@@ -236,7 +236,7 @@ public class ArcNetProvider implements NetProvider{
             long time = Time.millis();
 
             socket.send(new DatagramPacket(new byte[]{-2, 1}, 2, InetAddress.getByName(address), port));
-            socket.setSoTimeout(2000);
+            socket.setSoTimeout(Core.settings.getInt("serverbrowserpinglimit", 2000));
 
             DatagramPacket packet = packetSupplier.get();
             socket.receive(packet);
@@ -252,7 +252,7 @@ public class ArcNetProvider implements NetProvider{
     public void discoverServers(Cons<Host> callback, Runnable done){
         Seq<InetAddress> foundAddresses = new Seq<>();
         long time = Time.millis();
-        client.discoverHosts(port, multicastGroup, multicastPort, 3000, packet -> {
+        client.discoverHosts(port, multicastGroup, multicastPort, Core.settings.getInt("serverbrowserpinglimit", 2000), packet -> {
             Core.app.post(() -> {
                 try{
                     if(foundAddresses.contains(address -> address.equals(packet.getAddress()) || (isLocal(address) && isLocal(packet.getAddress())))){

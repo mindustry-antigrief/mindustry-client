@@ -1,15 +1,13 @@
 buildscript{
     ext{
-        arcHash = new Properties().with{ p -> p.load(file('gradle.properties').newReader()); return p }["archash"]
+        arcHash = property("archash")
 
-        localArc = { // TODO Shouldn't this just be a boolean?
-            return !project.hasProperty("release") && new File(rootDir.parent, 'Arc').exists() && !project.hasProperty("noLocalArc")
-        }
+        localArc = !project.hasProperty("release") && new File(rootDir.parent, 'Arc').exists() && !project.hasProperty("noLocalArc")
 
         arcModule = { String name ->
             //skip to last submodule
             name = name.substring(name.lastIndexOf(':') + 1)
-            return "com.github.mindustry-antigrief${localArc() ? "" : ".Arc"}:$name:$arcHash"
+            return "com.github.mindustry-antigrief${localArc ? "" : ".Arc"}:$name:$arcHash"
             // TODO: Merge recheck: Merge bala's arc
         }
 
@@ -196,7 +194,7 @@ allprojects{
         targetCompatibility = JavaVersion.VERSION_1_8
         sourceCompatibility = JavaVersion.VERSION_16
         options.encoding = "UTF-8"
-        options.compilerArgs += ["-Xmaxerrs", "5000"]
+        options.compilerArgs += ["-Xmaxerrs", "5000", "-Xlint:deprecation"]
         dependsOn clearCache
 
         options.forkOptions.jvmArgs += [
@@ -337,15 +335,15 @@ project(":core"){
 
         api "org.lz4:lz4-java:1.8.0"
         api arcModule("arc-core")
-        if(localArc() && project.hasProperty("debug")) implementation arcModule("extensions:profiling")
+        if(localArc && project.hasProperty("debug")) implementation arcModule("extensions:profiling")
         api arcModule("extensions:flabel")
         api arcModule("extensions:freetype")
         api arcModule("extensions:g3d")
         api arcModule("extensions:fx")
         api arcModule("extensions:arcnet")
         api "com.github.Anuken:rhino:$rhinoVersion"
-        if(localArc() && debugged()) api arcModule("extensions:recorder")
-        if(localArc()) api arcModule(":extensions:packer")
+        if(localArc && debugged()) api arcModule("extensions:recorder")
+        if(localArc) api arcModule(":extensions:packer")
 
         implementation "org.jetbrains.kotlin:kotlin-reflect:1.7.20"
 //        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0" Unused, removed to reduce jar size

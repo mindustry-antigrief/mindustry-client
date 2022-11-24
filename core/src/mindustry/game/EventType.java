@@ -101,7 +101,7 @@ public class EventType{
     public static class MusicRegisterEvent{}
     /** Called *after* all the modded files have been added into Vars.tree */
     public static class FileTreeInitEvent{}
-    /** Called just after joining a server */
+    /** Called once after joining a server (fired after WorldLoadEvent) */
     public static class ServerJoinEvent{}
     /** Called when fully quitting to the main menu */
     public static class MenuReturnEvent{}

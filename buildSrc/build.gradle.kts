@@ -1,3 +1,5 @@
+import java.util.*
+
 plugins {
     kotlin("jvm") version "1.7.20"
 }
@@ -8,5 +10,6 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.mindustry-antigrief.arc:arc-core:840192b7f4")
+    val arcHash = Properties(20).apply { load(file("../gradle.properties").inputStream()) }["archash"]
+    implementation("com.github.mindustry-antigrief.Arc:arc-core:$arcHash")
 }

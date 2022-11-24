@@ -77,7 +77,7 @@ object Main : ApplicationListener {
         Events.on(EventType.ServerJoinEvent::class.java) {
             setPluginNetworking(false)
             CommandCompletion.reset(true)
-            Call.serverPacketReliable("fooCheck", "h") // Request version info FINISHME: The server should just send this info on join
+            if (!Server.current.ghost) Call.serverPacketReliable("fooCheck", "") // Request version info FINISHME: The server should just send this info on join
         }
 
         /** @since v1 Checks for the presence of the foo plugin on the server */
@@ -134,6 +134,7 @@ object Main : ApplicationListener {
 
                 is SignatureTransmission -> {
                     var isValid = check(transmission)
+
                     next(EventType.PlayerChatEventClient::class.java, repetitions = 3) {
                         if (isValid) return@next
                         isValid = check(transmission)

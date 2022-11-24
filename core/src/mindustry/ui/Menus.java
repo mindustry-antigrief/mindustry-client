@@ -28,9 +28,9 @@ public class Menus{
         if(title == null) title = "";
         if(options == null) options = new String[0][0];
         if(options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
-        if(title.contains("Rate this map") &&
+        if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
             (options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b() ||
-            options[0][0].contains("Upvote") && options[0][1].contains("Downvote") && Server.cn.b())) return; // phoenix network and cn are equally annoying
+            options[0][0].contains("Downvote") && options[1][0].contains("Upvote") && Server.cn.b())) return; // phoenix network and cn are equally annoying
 
         Log.debug("Displaying menu " + menuId + " with title: " + title);
         ui.showMenu(title, message, options, (option) -> Call.menuChoose(player, menuId, option));

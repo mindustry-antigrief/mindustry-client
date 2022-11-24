@@ -70,7 +70,7 @@ public class NetClient implements ApplicationListener{
     /** Packet handlers for custom types of messages. */
     private ObjectMap<String, Seq<Cons<String>>> customPacketHandlers = new ObjectMap<>();
     /** Foo's thing to make ServerJoinEvent work good */
-    private boolean firstLoad;
+    public static boolean firstLoad = true;
 
     public NetClient(){
 
@@ -122,6 +122,8 @@ public class NetClient implements ApplicationListener{
                         c.color = get != null ? get.rgba() : Color.valueOf(col).rgba();
                     } catch (IndexOutOfBoundsException ignored) {}
                 }
+            } else if (ui.join.communityHosts.contains(h -> "Chaotic Neutral".equals(h.group) && h.address.equals(address))) {
+                if (!Structs.contains(playerColors, col -> col.rgba() == c.color)) c.color = playerColors[0].rgba();
             }
 
             if(c.uuid == null){
@@ -308,7 +310,7 @@ public class NetClient implements ApplicationListener{
                 output.addButton(no, () -> Call.sendChatMessage("/vote n"));
             }
 
-            Server.current.handleRtv(output);
+            Server.current.handleVoteButtons(output);
 
             Sounds.chatMessage.play();
         }
@@ -477,6 +479,7 @@ public class NetClient implements ApplicationListener{
 
     @Remote(variants = Variant.one, priority = PacketPriority.high)
     public static void kick(String reason){
+        ServerUtils.handleKick(reason);
         netClient.disconnectQuietly();
         logic.reset();
         ui.showText("@disconnect", reason, Align.left);
@@ -713,15 +716,13 @@ public class NetClient implements ApplicationListener{
         connecting = false;
         ui.join.hide();
         net.setClientLoaded(true);
-        Core.app.post(Call::connectConfirm);
+        Call.connectConfirm();
         Time.runTask(40f, platform::updateRPC);
         Core.app.post(ui.loadfrag::hide);
-        Core.app.post(() -> {
-            if (!firstLoad) return;
-            Server.onServerJoin();
-            Events.fire(new EventType.ServerJoinEvent());
-            firstLoad = false;
-        });
+        if (NetClient.firstLoad) {
+            Events.fire(new ServerJoinEvent());
+            NetClient.firstLoad = false;
+        }
     }
 
     private void reset(){

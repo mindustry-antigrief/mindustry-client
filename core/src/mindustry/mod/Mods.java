@@ -156,7 +156,6 @@ public class Mods implements Loadable{
             Seq<Fi> sprites = mod.root.child("sprites").findAll(f -> f.extension().equals("png"));
             Seq<Fi> overrides = mod.root.child("sprites-override").findAll(f -> f.extension().equals("png"));
 
-            tasks.ensureCapacity(sprites.size + overrides.size); //free performance
             packSprites(sprites, mod, true, tasks);
             packSprites(overrides, mod, false, tasks);
 
@@ -166,7 +165,7 @@ public class Mods implements Loadable{
 
         for(var result : tasks){ // FINISHME: Parallelize by page
             try{
-                var packRun = result.get();
+                var packRun = result.get(); // Blocks until task finish if needed
                 if(packRun != null){ //can be null for very strange reasons, ignore if that's the case
                     try{
                         //actually pack the image
@@ -275,11 +274,11 @@ public class Mods implements Loadable{
 
             Seq<RegionEntry>[] entries = new Seq[PageType.all.length];
             for(int i = 0; i < PageType.all.length; i++){
-                entries[i] = new Seq<>();
+                entries[i] = new Seq<>(RegionEntry.class);
             }
 
             var showMissing = OS.hasProp("debugmissingsprites");
-            for(AtlasRegion region : Core.atlas.getRegions()){
+            for(AtlasRegion region : Core.atlas.getRegions()){ // Add the vanilla sprites that haven't been overwritten to the new atlas
                 PageType type = pageTypes.get(region.texture, PageType.main);
 
                 if(!packer.has(type, region.name)){
@@ -291,11 +290,19 @@ public class Mods implements Loadable{
             //sort each page type by size first, for optimal packing. packs each page in parallel
             var tasks = new Seq<Future<?>>(); // FINISHME: Add time logging for every step of the sprite loading process
             for(int i = 0; i < PageType.all.length; i++){
-                var rects = entries[i];
+                var rects = entries[i].copy();
+                var rects2 = entries[i].copy();
                 var type = PageType.all[i];
                 tasks.add(mainExecutor.submit(() -> {
                     //TODO is this in reverse order?
+                    var none = Time.nanos(); // May as well ensure the class functions
+                    Log.info(none);
+                    var start = Time.nanos();
+                    Arrays.sort(rects2.items, 0, rects2.size, Structs.comparingInt(o -> -Math.max(o.region.width, o.region.height)));
+                    var mid = Time.nanos();
                     new Sort().sort(rects, Structs.comparingInt(o -> -Math.max(o.region.width, o.region.height)));
+                    var end = Time.nanos();
+                    Log.info("Page type @ sorted in: @ms (Builtin) | @ms (Arc)", type, (mid - start)/1000000f, (end - mid)/1000000f);
 
                     for(var entry : rects){
                         packer.add(type, entry.name, entry.region, entry.splits, entry.pads);

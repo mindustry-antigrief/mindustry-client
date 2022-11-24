@@ -74,7 +74,7 @@ object ProcessorPatcher {
     }
 
     fun whisper(player: Player?) {
-        Server.current.whisper(player ?: return, whisperText)
+        if (Server.current.whisper.canRun() && player != null) Server.current.whisper(player, whisperText)
     }
 
     fun fixCode(arg: String?) {
