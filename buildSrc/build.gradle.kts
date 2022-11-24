@@ -11,5 +11,5 @@ repositories {
 
 dependencies {
     val arcHash = Properties(20).apply { load(file("../gradle.properties").inputStream()) }["archash"]
-    implementation("com.github.mindustry-antigrief.Arc:arc-core:$arcHash")
+    implementation("com.github.mindustry-antigrief.arc:arc-core:$arcHash")
 }
