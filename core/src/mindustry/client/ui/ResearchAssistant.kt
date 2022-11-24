@@ -47,17 +47,17 @@ object ResearchAssistant : Table() {
         top().right().clearChildren()
         defaults().right().top()
 
-        check("Automatically Research Everything (Queue is Prioritized)", autoResearch) { autoResearch = it } // FINISHME: Bundle
+        check("@client.research", autoResearch) { autoResearch = it }
 
         row()
         table {
-            it.add(if (queue.isEmpty) "Shift + Click to Queue Research" else "Research Queue:") // FINISHME: Bundle
+            it.add(if (queue.isEmpty) "@client.research.queue" else "@client.research.queued")
 
             for (node in queue) it.button(node.content.emoji()) { dequeue(node) }.pad(5F)
         }
 
         row()
-        add("Sectors Captured: $sectors").colspan(this.columns) // FINISHME: Bundle
+        add(Core.bundle.format("client.research.sectors", sectors)).colspan(this.columns)
     }
 
     fun spend(node: TechNode): Boolean {

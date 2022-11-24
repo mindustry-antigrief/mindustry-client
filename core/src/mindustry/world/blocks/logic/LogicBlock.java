@@ -569,7 +569,7 @@ public class LogicBlock extends Block{
                             if ((player != lastAttem || player == null)) {
                                 lastAttem = player;
                                 attemCount = 1;
-                                attemMsg = ui.chatfrag.addMsg(Strings.format("[scarlet]Attem placed by @[scarlet] at (@, @)", ClientUtils.getName(builder), tile.x, tile.y)); // FINISHME: Bundle
+                                attemMsg = ui.chatfrag.addMsg(Core.bundle.format("client.attemwarn", ClientUtils.getName(builder), tile.x, tile.y));
                                 NetClient.findCoords(attemMsg);
                                 ProcessorPatcher.INSTANCE.whisper(player);
                             } else {
