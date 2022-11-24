@@ -231,7 +231,7 @@ public class World{
         Groups.resize(-finalWorldBounds, -finalWorldBounds, tiles.width * tilesize + finalWorldBounds * 2, tiles.height * tilesize + finalWorldBounds * 2);
 
         generating = false;
-        if (NetClient.firstLoad) Server.onServerJoin(); // The event is fired in NetClient and the boolean is set to false there as well
+        if (net.client() && NetClient.firstLoad) Server.onServerJoin(); // The event is fired in NetClient and the boolean is set to false there as well
         Events.fire(new WorldLoadEvent());
     }
 
