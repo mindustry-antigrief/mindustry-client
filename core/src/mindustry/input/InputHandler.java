@@ -1625,7 +1625,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }else if((build.interactable(player.team()) &&
             !(
                 (Vars.player != null && Vars.player.unit() instanceof BlockUnitUnit blockunit && Structs.contains(betterEnemyBlockTapping, blockunit.tile().block))
-                && Core.settings.getBool("betterenemyblocktapping", true)
+                && Core.settings.getBool("betterenemyblocktapping", false)
             )
         ) && build.block.synthetic() && (!consumed || invBuild.block.allowConfigInventory)){
             if(invBuild.block.hasItems && invBuild.items.total() > 0){
