@@ -201,7 +201,8 @@ object Main : ApplicationListener {
     }
 
     fun sign(content: String): String {
-        if (content.startsWith("/") && !(content.startsWith("/t ") || content.startsWith("/a "))) return content
+        if (content.startsWith("/") && !(content.startsWith("/t ") || content.startsWith("/a ")) ||
+            ((content == "y" || content == "n") && Server.darkdustry())) return content
 
         val msgId = Random.nextInt().toShort()
         val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
