@@ -427,6 +427,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("downloadsound", true);
         client.checkPref("circleassist", false);
         client.checkPref("ignoremodminversion", false);
+        client.checkPref("betterenemyblocktapping", true);
     
         if (settings.getBool("client-experimentals")) { // FINISHME: Either remove this or make it properly functional
             client.category("Experimental");
