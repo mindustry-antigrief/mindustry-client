@@ -32,7 +32,7 @@ public class ClientVars {
     public static boolean benchmarkNav;
     public final static Rect cameraBounds = new Rect();
     public static Seq<BuildPlan> frozenPlans = new Seq<>();
-    public static final Block[] betterEnemyBlockTapping = {Blocks.foreshadow, Blocks.ripple, Blocks.arc};
+    public static final Block[] noInteractTurrets = {"foreshadow", "ripple", "arc"};
 
     // Core Item Display - for only input. Net in/out is handled through reading from Vars.player.core.items()
     public static CoreItemsDisplay coreItemsDisplay; // FINISHME: Redundant.
