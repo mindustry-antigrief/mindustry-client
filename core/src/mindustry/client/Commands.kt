@@ -327,7 +327,7 @@ fun setup() {
 
     register("clearghosts [c]", Core.bundle.get("client.command.clearghosts.description")) { args, player -> 
         val confirmed = args.any() && args[0].startsWith("c") // Don't clear by default
-        val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
+        val all = confirmed && isDeveloper() && args[0] == "clear"
         val plans = mutableListOf<Int>()
 
         for (plan in player.team().data().plans) {

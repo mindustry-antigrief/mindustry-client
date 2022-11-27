@@ -143,8 +143,7 @@ class ClientLogic {
                 Core.settings.remove("gameovertext")
             }
 
-            val encoded = Main.keyStorage.cert()?.encoded
-            if (encoded != null && Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
+            if (isDeveloper()) {
                 register("update <name/id...>") { args, _ ->
                     val name = args.joinToString(" ")
                     val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { BiasedLevenshtein.biasedLevenshteinInsensitive(Strings.stripColors(it.name), name) }!!

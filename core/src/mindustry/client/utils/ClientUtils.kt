@@ -449,6 +449,10 @@ fun toggleMutePlayer(player: Player) {
     }
 }
 
+fun isDeveloper():Boolean {
+    return Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert())
+}
+
 //inline fun <T> Seq<out T>.forEach(consumer: (T?) -> Unit) {
 //    for (i in 0 until size) consumer(items[i])
 //}
