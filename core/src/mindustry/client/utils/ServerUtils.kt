@@ -50,7 +50,9 @@ enum class Server(
     korea(ghost = true),
     fish(null, Cmd("/msg")){ // FINISHME: Get fish to implement id based /msg as currently only works with player names which can contain spaces.
         override fun playerString(p: Player) = p.name.stripColors().substringBefore(' ')
-    };
+    },
+    darkdustry
+    ;
 
     companion object {
         open class Cmd(val str: String, private val rank: Int = 0) { // 0 = anyone, -1 = disabled
@@ -85,6 +87,7 @@ enum class Server(
                 ui.join.communityHosts.contains { it.group == "Phoenix Network" && it.address == ui.join.lastHost?.address } -> phoenix
                 ui.join.communityHosts.contains { it.group == "Korea" && it.address == ui.join.lastHost?.address } -> korea
                 ui.join.communityHosts.contains { it.group == "Fish" && it.address == ui.join.lastHost?.address } -> fish
+                ui.join.communityHosts.contains { it.group == "Darkdustry" && it.address == ui.join.lastHost?.address } -> darkdustry
                 else -> other
             }
             Log.debug("Joining server, override set to: ${current.name}")
