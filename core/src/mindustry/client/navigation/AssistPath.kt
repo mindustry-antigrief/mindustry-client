@@ -53,7 +53,7 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
         assisting?.unit() ?: return // We don't care if they are dead
 
         if (circling) {
-            theta += Core.settings.getFloat("circleassistspeed", 0f)
+            theta += Time.delta / 60f * Core.settings.getFloat("circleassistspeed", 0f) * Mathf.PI2
             theta %= Mathf.PI2
         }
 

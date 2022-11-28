@@ -310,18 +310,20 @@ fun setup() {
     }
 
     register("circleassist [speed]", Core.bundle.get("client.command.circleassist.description")) { args, player ->
-        if (args.size != 1) player.sendMessage("[accent]The circle assist speed is ${Core.settings.getFloat("circleassistspeed", 0.05f)} (default is 0.05)")
+        val defaultSpeed = 0.25f
+        if (args.size != 1) player.sendMessage(Core.bundle.format("client.command.circleassist.lookup", Core.settings.getFloat("circleassistspeed", defaultSpeed), defaultSpeed))
         else {
-            if(args[0] == "0"){
-                Core.settings.put("circleassist", false)
-                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = false
-                player.sendMessage(Core.bundle.get("client.command.circleassist.disabled"))
-            } else {
-                Core.settings.put("circleassist", true)
-                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = true
-                Core.settings.put("circleassistspeed", Strings.parseFloat(args[0], 0.05f))
-                player.sendMessage(Core.bundle.format("client.command.circleassist.success", Core.settings.getFloat("circleassistspeed")))
+            val circling = args[0] != "0"
+            Core.settings.put("circleassist", circling)
+            val assistPath = Navigation.currentlyFollowing as? AssistPath
+            if (assistPath != null) {
+                assistPath.circling = circling
+                if (circling) {
+                    Core.settings.put("circleassistspeed", args[0].toFloatOrNull() ?: defaultSpeed)
+                }
             }
+            if(circling) player.sendMessage(Core.bundle.format("client.command.circleassist.success", Core.settings.getFloat("circleassistspeed"), defaultSpeed))
+            else player.sendMessage(Core.bundle.get("client.command.circleassist.disabled"))
         }
     }
 
