@@ -6,7 +6,7 @@ import arc.scene.*
 import arc.scene.ui.layout.*
 import arc.struct.*
 import arc.util.*
-import mindustry.Vars
+import mindustry.Vars.*
 import mindustry.client.antigrief.TileRecords.isOrigin
 import mindustry.client.utils.*
 import mindustry.content.Blocks
@@ -30,7 +30,7 @@ class TileState {
     var team: Team
     var isRootTile: Boolean
 
-    constructor(x: Int, y: Int, block: Block, rotation: Int, configuration: Any?, team: Team, time: Instant, isRootTile: Boolean = isOrigin(Vars.world.tile(x, y))) {
+    constructor(x: Int, y: Int, block: Block, rotation: Int, configuration: Any?, team: Team, time: Instant, isRootTile: Boolean = isOrigin(world.tile(x, y))) {
         this.x = x
         this.y = y
         this.block = block
@@ -62,43 +62,21 @@ class TileState {
      * This creates a BuildPlan if a BuildPlan is required to return the block to this state.
      * Note that this does not return a ConfigRequest if that is all is needed.
      **/
-    fun restoreState(tile: Tile, planSeq: Seq<BuildPlan>, configSeq: Seq<ConfigRequest>, toBreak: IntMap<BuildPlan>) {
-        val currRotation = tile.build?.rotation ?: 0
-        val currConfig = tile.build?.config()
-        val currBlock = (tile.build as? ConstructBlock.ConstructBuild)?.current ?: tile.block()
-        val blockEqual = currBlock === block && (isRootTile || block === Blocks.air)
-        val rotEqual = blockEqual && (!currBlock.rotate || currRotation == rotation)
-        val confEqual = if (currConfig != null && currConfig::class.java.isArray) (currConfig as Array<*>).contentEquals(configuration as Array<*>) else currConfig == configuration
-        if (rotEqual && confEqual) return
-        if (blockEqual) {
+    fun restoreState(tile: Tile, planSeq: Seq<BuildPlan>, toBreak: IntSet) {
+        if (!isRootTile && block !== Blocks.air) return
+        if (tile.block() === block) {
             if (block === Blocks.air) return
-            if (!rotEqual) {
-                planSeq.add(BuildPlan(x, y, rotation, block, configuration)) // Simple rotate
-            } else if (!confEqual) {
-                configSeq.add(ConfigRequest(x, y, configuration)) // Simple config
-            }
+            planSeq.add(BuildPlan(x, y, rotation, block, configuration))
             return
         }
         if (block === Blocks.air) {
-            planSeq.add(BuildPlan(x, y)) // Simple break
+            val rootTile = world.tile(x, y).build?.tile ?: return
+            if (toBreak.add(rootTile.pos())) {
+                planSeq.add(BuildPlan(rootTile.x.toInt(), rootTile.y.toInt())) // Break existing block
+            }
             return
         }
-        val toBuild = BuildPlan(x, y, rotation, block, configuration) // Simple build
-        planSeq.add(toBuild)
-        // Then break all existing blocks and stuff
-        // val bounds = IntRectangle(x + offset, y + offset + block.size - 1, block.size, block.size)
-        Vars.world.tile(x, y).getLinkedTilesAs(block) {
-            if (it.block() === Blocks.air) return@getLinkedTilesAs
-            val rootTile = it.build?.tile ?: return@getLinkedTilesAs
-            val rootTilePlan: BuildPlan? = toBreak.get(rootTile.pos())
-            if (rootTilePlan == null) { // Try to rebuild the new block every time, since calling a getLinkedAs will just be a pain to do
-                val plan = BuildPlan(rootTile.x.toInt(), rootTile.y.toInt()) // Break existing block
-                //plan.addLocalConfig { future.get(toBuild) } well, it got removed
-                toBreak.put(rootTile.pos(), plan)
-                planSeq.add(plan)
-            // else rootTilePlan.addLocalConfig { future.get(toBuild) }
-            }
-        }
+        planSeq.add(BuildPlan(x, y, rotation, block, configuration)) // Simple build
     }
 
     fun toElement(): Element {

@@ -12,7 +12,6 @@ import mindustry.Vars.*
 import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
-import mindustry.client.antigrief.TileRecords.joinTime
 import mindustry.client.communication.*
 import mindustry.client.communication.Packets
 import mindustry.client.navigation.*
@@ -23,7 +22,6 @@ import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
-import mindustry.entities.units.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
@@ -310,18 +308,20 @@ fun setup() {
     }
 
     register("circleassist [speed]", Core.bundle.get("client.command.circleassist.description")) { args, player ->
-        if (args.size != 1) player.sendMessage("[accent]The circle assist speed is ${Core.settings.getFloat("circleassistspeed", 0.05f)} (default is 0.05)")
+        val defaultSpeed = 0.25f
+        if (args.size != 1) player.sendMessage(Core.bundle.format("client.command.circleassist.lookup", Core.settings.getFloat("circleassistspeed", defaultSpeed), defaultSpeed))
         else {
-            if(args[0] == "0"){
-                Core.settings.put("circleassist", false)
-                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = false
-                player.sendMessage(Core.bundle.get("client.command.circleassist.disabled"))
-            } else {
-                Core.settings.put("circleassist", true)
-                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = true
-                Core.settings.put("circleassistspeed", Strings.parseFloat(args[0], 0.05f))
-                player.sendMessage(Core.bundle.format("client.command.circleassist.success", Core.settings.getFloat("circleassistspeed")))
+            val circling = args[0] != "0"
+            Core.settings.put("circleassist", circling)
+            val assistPath = Navigation.currentlyFollowing as? AssistPath
+            if (assistPath != null) {
+                assistPath.circling = circling
+                if (circling) {
+                    Core.settings.put("circleassistspeed", args[0].toFloatOrNull() ?: defaultSpeed)
+                }
             }
+            if(circling) player.sendMessage(Core.bundle.format("client.command.circleassist.success", Core.settings.getFloat("circleassistspeed"), defaultSpeed))
+            else player.sendMessage(Core.bundle.get("client.command.circleassist.disabled"))
         }
     }
 
@@ -738,53 +738,12 @@ fun setup() {
             try {
                 time = Instant.now().minus(args[0].toLong(), ChronoUnit.MINUTES)
                 range = args[1].toFloat() * tilesize
-            }
-            catch (_: Exception) {
+            } catch (_: Exception) {
                 player.sendMessage("[scarlet]Invalid arguments! Please specify 2 numbers (time and range)!")
                 return@register
             }
-            if (time < joinTime) time = joinTime
             Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
-            val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
-            clientThread.post {
-                val plans: Seq<BuildPlan> = Seq()
-                val configs = Seq<ConfigRequest>()
-                val toBreak = IntMap<BuildPlan>()
-
-                tiles.forEach {
-                    if (!it.within(player.x, player.y, range) || it.block() != Blocks.air) return@forEach
-
-                    val record = TileRecords[it] ?: return@forEach
-
-                    // Get the sequence associated with the rollback time
-                    val seq: TileLogSequence = record.lastSequence(time) ?: return@forEach
-                    val state = seq.snapshot.clone()
-                    // Step through logs until time is reached
-                    for (diff in seq.iterator()) {
-                        if (diff.time > time) break
-                        diff.apply(state)
-                    }
-                    if (!state.isRootTile || state.block == Blocks.air) return@forEach // If building does not need to be built, do not build it
-                    state.restoreState(it, plans, configs, toBreak)
-                }
-
-                if (plans.size == 0) {
-                    Core.app.post { player.sendMessage(Core.bundle.get("client.norebuildsfound")) }
-                    if (configs.size > 0) {
-                        Core.app.post { player.sendMessage("${configs.size} configs queued") }
-                    }
-                    return@post
-                }
-
-                Core.app.post {
-                    control.input.isBuilding = false
-                    control.input.flushPlans(plans)
-                    ClientVars.configs.addAll(configs)
-                    player.sendMessage("[accent]Queued ${plans.size} blocks, ${configs.size} configs to perform.")
-                    plans.clear()
-                    configs.clear()
-                }
-            }
+            rollbackTiles(world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) && it.within(player.x, player.y, range) }, time)
         }
 
         register("rebuild <start> <end> <buildrange>", """
@@ -812,77 +771,8 @@ fun setup() {
 
             // FINISHME: Add some filter for team. And optionally omit the collision code
             Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
-            val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
-            clientThread.post {
-                val states: Seq<TileState> = Seq()
-                tiles.forEach {
-                    if (!it.within(player.x, player.y, range) || it.block() != Blocks.air) return@forEach
-
-                    val sequences = TileRecords[it]?.sequences ?: return@forEach
-                    var last: TileState? = null
-                    var hasBeenOverwritten = false // Whether there is another block that is placed offset some time in the future
-
-                    seq@ for (seq in sequences.asReversed()) { // Rebuilds are likely used on recent states, so start from the last logs
-                        if (seq.snapshot.time > timeEnd) continue // Skip to the first sequence that overlaps with time interval
-                        val state = seq.snapshot.clone()
-                        last = if (state.isRootTile && seq.snapshot.time > timeStart) state.clone() else null
-                        // Step through logs until time is reached
-                        for (diff in seq.iterator()) {
-                            if (diff.time > timeEnd) break // Abort if we have reached time end
-                            diff.apply(state)
-                            if (diff.time < timeStart) continue // Skip to time start
-                            hasBeenOverwritten = hasBeenOverwritten || (!state.isRootTile && state.block !== Blocks.air)
-
-                            if (!state.isRootTile || state.block === Blocks.air) continue // Don't save the state if we cannot build it
-                            if (last != null) {
-                                diff.apply(last) // TilePlacedLog will always modify all the information we need, so no need to refresh state
-                            } else last = state.clone()
-                            last.time = diff.time
-                        }
-                        if ((last != null && last.isRootTile) || hasBeenOverwritten) break@seq // Break if we can restore that, or no earlier logs need to be used
-                    }
-                    if (last == null || !last.isRootTile) return@forEach
-                    states.add(last)
-                }
-
-                if (states.size == 0) {
-                    Core.app.post { player.sendMessage(Core.bundle.get("client.norebuildsfound")) }
-                    return@post
-                }
-                // The following is so inefficient lol what
-                // FINSIHME: Do not plan over EXISTING buildings
-                clientThread.sortingInstance.sort(states, Comparator.comparing { it.time }) // Sort by time to deal with tile overlaps
-                val minX = max(floor((player.x - range) / tilesize).toInt(), 0)
-                val minY = max(floor((player.y - range) / tilesize).toInt(), 0)
-                val takenTiles = GridBits(min(ceil((player.x + range) / tilesize).toInt() - minX, world.width()) + 1, min(ceil((player.y + range) / tilesize).toInt() - minY, world.height()) + 1)
-                val plans = Seq<BuildPlan>()
-                for (i in states.size - 1 downTo 0) { // Reverse this because latest should be rebuilt, not the earliest
-                    var taken = false
-                    val state = states[i]
-                    // state.x, state.y describe the middle/bottom-left of the tile. So we steal code from TileLog.companion.linkedArea
-                    val size = state.block.size
-                    val offset = -(size - 1) / 2
-                    val bounds = IntRectangle(state.x + offset, state.y + offset + size - 1, size, size)
-                    bounds.iterator().forEach {
-                        taken = taken || takenTiles.get(it.x - minX, it.y - minY) // Maybe use quadtree for large things
-                    }
-                    if (taken) continue
-                    bounds.iterator().forEachRemaining {
-                        takenTiles.set(it.x - minX, it.y - minY)
-                    }
-                    plans.add(BuildPlan(state.x, state.y, state.rotation, state.block, state.configuration))
-                }
-                states.clear()
-                if (plans.size == 0) {
-                    Core.app.post { player.sendMessage(Core.bundle.get("client.norebuildsfound")) }
-                    return@post
-                }
-                Core.app.post {
-                    control.input.flushPlans(plans)
-                    player.sendMessage("[accent]Queued ${plans.size} blocks for rebuilding.")
-                    plans.clear()
-                }
-            }
+            rebuildBroken(world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) && it.within(player.x, player.y, range) && it.block() === Blocks.air },
+                timeStart, timeEnd, range)
         }
 
         register("undo <player> [range]", "Undo Configs from a specific player (get rekt griefers)") { args, player ->
@@ -898,53 +788,7 @@ fun setup() {
             }
 
             Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
-            val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
-            clientThread.post {
-                var playerName: String? = null
-                val configs: Seq<ConfigRequest> = Seq()
-                val plans: Seq<BuildPlan> = Seq()
-                var prevID: Int
-
-                val toBreak: IntMap<BuildPlan> = IntMap()
-                tiles.forEach {
-                    if (!it.within(player.x, player.y, range)) return@forEach
-
-                    val sequences = TileRecords[it]?.sequences ?: return@forEach
-                    var last: TileState? = null
-
-                    val seqReversed = sequences.asReversed()
-                    for ((i, seq) in seqReversed.withIndex()) { // For each tile, get the last state before it was touched by the player
-                        val state = seq.snapshot.clone()
-                        prevID = id
-                        // Evaluate if the current snapshot was caused by the target player. If so, do not use it.
-                        last = if (i + 1 < seqReversed.size && ((seqReversed[i + 1].logs.lastOrNull()?.cause?.playerID?: id.inv()) == id)) null else state.clone()
-                        for (diff in seq.iterator()) {
-                            if (prevID != id && diff.cause.playerID == id) { // Only clone state if the ids change
-                                last = state.clone()
-                            }
-                            diff.apply(state)
-                            prevID = diff.cause.playerID
-                            if (playerName == null && prevID == id) playerName = diff.cause.shortName
-                        }
-                        if (prevID != id) { // Capture last diff
-                            if (i == 0) return@forEach // If last diff can be captured, it is not different from the current state
-                            last = state.clone()
-                        }
-                        if (!state.isRootTile && state.block !== Blocks.air) return@forEach // If there is something else on top, do not build it
-                        if (last != null) break
-                    }
-                    if (last == null || (!last!!.isRootTile && last!!.block !== Blocks.air)) return@forEach
-                    last!!.restoreState(it, plans, configs, toBreak)
-                }
-
-                Core.app.post {
-                    player.sendMessage("[accent] Queued ${configs.size} configs and ${plans.size} builds to undo actions by $playerName")
-                    control.input.flushPlans(plans, false, true, false) // Overplace
-                    ClientVars.configs.addAll(configs)
-                    plans.clear()
-                    configs.clear()
-                }
-            }
+            undoPlayer(world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) && it.within(player.x, player.y, range) }, id)
         }
 
         register("seer", "Seer related commands") { _, _ -> // FINISHME

@@ -45,6 +45,7 @@ import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.meta.*;
 
+import java.lang.reflect.*;
 import java.util.*;
 
 import static arc.Core.*;
@@ -1251,7 +1252,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Lines.stroke(2f);
 
 
-        Draw.color(Pal.accent, .3f);
+        Draw.color(col2, .3f);
         float x = (result.x2 + result.x) / 2; // FINISHME: Surely theres a better way to do this.
         float y = (result.y2 + result.y) / 2;
         Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
@@ -1285,6 +1286,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[plans.size + plans.count(plan -> plan.block == Blocks.waterExtractor) * 3]; // Cursed but works good enough for me
         var added = 0;
+        IntSet toBreak = force ? new IntSet() : null;
         for(BuildPlan plan : plans){
             if (plan.block == null) continue;
     
@@ -1325,15 +1327,19 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
                 if (force && !valid) {
                     var existing = world.tiles.get(plan.x, plan.y);
-                    if (existing.build != null && existing.block() == plan.block && existing.build.tileX() == plan.x && existing.build.tileY() == plan.y) {
-                        configs.add(new ConfigRequest(existing.build, plan.config));
+                    var existingBuild = existing.build;
+                    if (existingBuild != null && existing.block() == plan.block && existingBuild.tileX() == plan.x && existingBuild.tileY() == plan.y) {
+                        var existingConfig = existingBuild.config();
+                        boolean configEqual = (plan.config instanceof Array[] pa && existingConfig instanceof Array[] ea && Arrays.deepEquals(pa, ea)) || plan.config == existingConfig;
+                        if (!configEqual)
+                            configs.add(new ConfigRequest(existing.build, plan.config));
                     }
                     else { // Add build plans to remove block underneath
                         frozenPlans.add(copy);
-                        Seq<Tile> tmpTiles = new Seq<>(4);
-                        plan.tile().getLinkedTilesAs(plan.block, tmpTiles);
-                        tmpTiles.forEach(tile -> {
-                            if (tile.build != null) player.unit().addBuild(new BuildPlan(tile.build.tileX(), tile.build.tileY()));
+                        plan.tile().getLinkedTilesAs(plan.block, tile -> {
+                            if (tile.build == null) return;
+                            var bt = tile.build.tile;
+                            if (toBreak.add(bt.pos())) player.unit().addBuild(new BuildPlan(bt.x, bt.y));
                         });
                     }
                 }
