@@ -6,7 +6,6 @@ import arc.scene.*
 import arc.scene.ui.layout.*
 import arc.util.*
 import mindustry.*
-import mindustry.client.antigrief.TileRecords.isOrigin
 import mindustry.client.antigrief.TileRecords.joinTime
 import mindustry.client.utils.*
 import mindustry.content.*
