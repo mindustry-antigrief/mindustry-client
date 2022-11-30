@@ -68,7 +68,7 @@ enum class Server(
                 else -> run(*args)
             }
 
-            protected open fun run(vararg args: String) = Call.sendChatMessage("$str $args")
+            protected open fun run(vararg args: String) = Call.sendChatMessage("$str ${args.joinToString(" ")}")
         }
 
         private class MapVote(val down: String = "/downvote", val none: String = "/novote", val up: String = "/upvote") {
