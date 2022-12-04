@@ -2,13 +2,13 @@ package mindustry.ui.dialogs;
 
 import arc.*;
 import mindustry.client.ui.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 
 import static mindustry.Vars.*;
 
 public class PausedDialog extends BaseDialog{
-    private SaveDialog save = new SaveDialog();
-    private LoadDialog load = new LoadDialog();
+    private final SaveDialog save = new SaveDialog();
     private boolean wasClient = false;
 
     public PausedDialog(){
@@ -33,13 +33,19 @@ public class PausedDialog extends BaseDialog{
             float dw = 220f;
             cont.defaults().width(dw).height(55).pad(5f);
 
+            cont.button("@objective", Icon.info, () -> ui.fullText.show("@objective", state.rules.sector.preset.description))
+            .visible(() -> state.rules.sector != null && state.rules.sector.preset != null && state.rules.sector.preset.description != null).padTop(-60f);
+
+            cont.button("@abandon", Icon.cancel, () -> ui.planet.abandonSectorConfirm(state.rules.sector, this::hide)).padTop(-60f)
+            .disabled(b -> net.client()).visible(() -> state.rules.sector != null).row();
+
             cont.button("@back", Icon.left, this::hide).name("back");
             cont.button("@settings", Icon.settings, ui.settings::show).name("settings");
 
             if(!state.isCampaign() && !state.isEditor()){
                 cont.row();
                 cont.button("@savegame", Icon.save, save::show);
-                cont.button("@loadgame", Icon.upload, load::show).disabled(b -> net.active());
+                cont.button("@loadgame", Icon.upload, ui.load::show).disabled(b -> net.active());
             }
 
             cont.row();
@@ -77,7 +83,7 @@ public class PausedDialog extends BaseDialog{
 
                 cont.row();
 
-                cont.buttonRow("@load", Icon.download, load::show).disabled(b -> net.active());
+                cont.buttonRow("@load", Icon.download, ui.load::show).disabled(b -> net.active());
             }else if(state.isCampaign()){
                 cont.buttonRow("@research", Icon.tree, ui.research::show);
 
@@ -102,8 +108,6 @@ public class PausedDialog extends BaseDialog{
 
     void showQuitConfirm(){
         Runnable quit = () -> {
-            wasClient = net.client();
-            if(net.client()) netClient.disconnectQuietly();
             runExitSave();
             hide();
         };
@@ -113,16 +117,33 @@ public class PausedDialog extends BaseDialog{
         }else{
             quit.run();
         }
+    }
 
+    public boolean checkPlaytest(){
+        if(state.playtestingMap != null){
+            //no exit save here
+            var testing = state.playtestingMap;
+            logic.reset();
+            ui.editor.resumeAfterPlaytest(testing);
+            return true;
+        }
+        return false;
     }
 
     public void runExitSave(){
+        wasClient = net.client();
+        if(net.client()) netClient.disconnectQuietly();
+
         if(state.isEditor() && !wasClient){
             ui.editor.resumeEditing();
             return;
+        }else if(checkPlaytest()){
+            return;
         }
 
-        if(control.saves.getCurrent() == null || !control.saves.getCurrent().isAutosave() || wasClient){
+        if (!wasClient) Events.fire(new EventType.MenuReturnEvent());
+
+        if(control.saves.getCurrent() == null || !control.saves.getCurrent().isAutosave() || wasClient || state.gameOver){
             logic.reset();
             return;
         }

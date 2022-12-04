@@ -32,14 +32,14 @@ public class PowerDiode extends Block{
     public void setBars(){
         super.setBars();
 
-        bars.add("back", entity -> new Bar("bar.input", Pal.powerBar, () -> bar(entity.back())));
-        bars.add("front", entity -> new Bar("bar.output", Pal.powerBar, () -> bar(entity.front())));
+        addBar("back", entity -> new Bar("bar.input", Pal.powerBar, () -> bar(entity.back())));
+        addBar("front", entity -> new Bar("bar.output", Pal.powerBar, () -> bar(entity.front())));
     }
 
     @Override
-    public void drawRequestRegion(BuildPlan req, Eachable<BuildPlan> list){
-        Draw.rect(fullIcon, req.drawx(), req.drawy());
-        Draw.rect(arrow, req.drawx(), req.drawy(), !rotate ? 0 : req.rotation * 90);
+    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
+        Draw.rect(fullIcon, plan.drawx(), plan.drawy());
+        Draw.rect(arrow, plan.drawx(), plan.drawy(), !rotate ? 0 : plan.rotation * 90);
     }
 
     // battery % of the graph on either side, defaults to zero
@@ -50,9 +50,8 @@ public class PowerDiode extends Block{
     /** Returns a set of int pairs, pairs are stored as minID, maxID. */
     public static @Nullable Seq<int[]> connections(Team team) {
         var out = new Seq<int[]>();
-        var seq = new Seq<Building>();
-        if (team.data().buildings != null) team.data().buildings.getObjects(seq);
-        seq.each(b -> b instanceof PowerDiodeBuild && b.tile != null && b.front() != null && b.back() != null && b.back().block.hasPower && b.front().block.hasPower && b.back().team == b.front().team, b -> {
+        // FINISHME: This is horrid
+        team.data().buildings.each(b -> b instanceof PowerDiodeBuild && b.tile != null && b.front() != null && b.back() != null && b.back().block.hasPower && b.front().block.hasPower && b.back().team == b.front().team, b -> {
             PowerGraph backGraph = b.back().power.graph;
             PowerGraph frontGraph = b.front().power.graph;
             if (backGraph == frontGraph) return;
@@ -75,7 +74,7 @@ public class PowerDiode extends Block{
         public void updateTile(){
             super.updateTile();
 
-            if(tile == null || front() == null || back() == null || !back().block.hasPower || !front().block.hasPower || back().team != front().team) return;
+            if(tile == null || front() == null || back() == null || !back().block.hasPower || !front().block.hasPower || back().team != team || front().team != team) return;
 
             PowerGraph backGraph = back().power.graph;
             PowerGraph frontGraph = front().power.graph;

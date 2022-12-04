@@ -1,6 +1,7 @@
 package mindustry.graphics;
 
 import arc.*;
+import arc.func.Boolf;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -9,7 +10,10 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ai.types.*;
+import mindustry.client.ClientVars;
+import mindustry.client.utils.ProcessorFinder;
 import mindustry.entities.*;
+import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
@@ -19,6 +23,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class OverlayRenderer{
     private static final float indicatorLength = 14f;
@@ -57,6 +62,10 @@ public class OverlayRenderer{
             }
         }
 
+        if(pos.isEmpty()){
+            return;
+        }
+
         //if this is laggy, it could be shoved in another thread.
         var result = Voronoi.generate(pos.toArray(Vec2.class), 0, world.unitWidth(), 0, world.unitHeight());
         for(var edge : result){
@@ -65,15 +74,44 @@ public class OverlayRenderer{
     }
 
     public void drawBottom(){
-        InputHandler input = control.input;
+        if(ClientVars.hidingPlans || player.dead()) return;
 
-        if(player.dead()) return;
+//        if (player.isBuilder()) player.unit().drawBuildPlans();
+        player.unit().drawBuildPlans();
+        drawFrozenPlans();
 
-//        if(player.isBuilder()){
-            player.unit().drawBuildPlans();
-//        }
+//        InputHandler input = control.input;
+//        input.drawBottom();
+        control.input.drawBottom();
+    }
 
-        input.drawBottom();
+    public void drawFrozenPlans(){
+        // move frozenPlans.size == 0 out from skip
+        if(frozenPlans.size == 0) return;
+
+        // see player.unit().drawBuildPlans();
+        var team = player.team();
+        var plantopAlpha = 0.24F + Mathf.absin(Time.globalTime, 6.0F, 0.28F);
+        Boolf<BuildPlan> skip = plan ->/*plan.progress > 0.01F ||*/ frozenPlans.first() == plan && plan.initialized && (player.unit().within(plan.x * tilesize, plan.y * tilesize, buildingRange) || state.isEditor());
+
+        for (int i = 0; i < 2; i++) {
+            for (BuildPlan plan : frozenPlans) {
+                if (skip.get(plan)) continue;
+                if (i == 0) {
+                    //drawPlan
+                    plan.animScale = 1.0F;
+                    if (plan.breaking) control.input.drawSelected(plan.x, plan.y, plan.block, Pal.freeze);
+                    else plan.block.drawPlan(plan, (cons) -> {for(var req:frozenPlans)cons.get(req);}, (Build.validPlace(plan.block, team, plan.x, plan.y, plan.rotation) && Build.validPlaceCoreRange(plan.block, team, plan.x, plan.y)) || control.input.planMatches(plan), 1.0F, true);
+                } else {
+                    //drawPlanTop
+                    Draw.reset();
+                    Draw.mixcol(Pal.freeze, plantopAlpha); //TODO: potential optimization here lol
+                    Draw.alpha(1.0F);
+                    plan.block.drawPlanConfigTop(plan, frozenPlans);
+                }
+            }
+        }
+        Draw.reset();
     }
 
     public void drawTop(){
@@ -95,7 +133,7 @@ public class OverlayRenderer{
                 }
             }
 
-            if(Core.settings.getBool("indicators")){
+            if(Core.settings.getBool("indicators") && (!state.rules.fog || hidingFog)){
                 Groups.unit.each(unit -> {
                     if(!unit.isLocal() && unit.team != player.team() && !rect.setSize(Core.camera.width * 0.9f, Core.camera.height * 0.9f)
                     .setCenter(Core.camera.position.x, Core.camera.position.y).contains(unit.x, unit.y)){
@@ -109,14 +147,18 @@ public class OverlayRenderer{
             }
         }
 
+        //draw objective markers
+        state.rules.objectives.eachRunning(obj -> {
+            for(var marker : obj.markers) marker.draw();
+        });
+
         if(player.dead()) return; //dead players don't draw
 
         InputHandler input = control.input;
 
-
         Sized select = input.selectedUnit();
         if(select == null) select = input.selectedControlBuild();
-        if(!Core.input.keyDown(Binding.control)) select = null;
+        if(!Core.input.keyDown(Binding.control) || !state.rules.possessionAllowed || input.block != null) select = null;
 
         unitFade = Mathf.lerpDelta(unitFade, Mathf.num(select != null), 0.1f);
 
@@ -126,13 +168,9 @@ public class OverlayRenderer{
             Draw.mixcol(Pal.accent, 1f);
             Draw.alpha(unitFade);
             Building build = (select instanceof BlockUnitc b ? b.tile() : select instanceof Building b ? b : null);
+            TextureRegion region = build != null ? build.block.uiIcon : select instanceof Unit u ? u.icon() : Core.atlas.white();
 
-            if(build != null){
-                //special selection for block "units"
-                Fill.square(build.x, build.y, build.block.size * tilesize/2f);
-            }else if(select instanceof Unit u){
-                Draw.rect(u.type.fullIcon, u.x, u.y, u.rotation - 90);
-            }
+            Draw.rect(region, select.getX(), select.getY(), select instanceof Unit u && !(select instanceof BlockUnitc) ? u.rotation - 90f : 0f);
 
             for(int i = 0; i < 4; i++){
                 float rot = i * 90f + 45f + (-Time.time) % 360f;
@@ -144,8 +182,8 @@ public class OverlayRenderer{
         }
 
         //draw config selected block
-        if(input.frag.config.isShown()){
-            Building tile = input.frag.config.getSelectedTile();
+        if(input.config.isShown()){
+            Building tile = input.config.getSelected();
             tile.drawConfigure();
         }
 
@@ -175,7 +213,8 @@ public class OverlayRenderer{
                 Draw.color();
             }else{
                 state.teams.eachEnemyCore(player.team(), core -> {
-                    if(Core.camera.bounds(Tmp.r1).overlaps(Tmp.r2.setCentered(core.x, core.y, state.rules.enemyCoreBuildRadius * 2f))){
+                    //it must be clear that there is a core here.
+                    if(/*core.wasVisible && */Core.camera.bounds(Tmp.r1).overlaps(Tmp.r2.setCentered(core.x, core.y, state.rules.enemyCoreBuildRadius * 2f))){
                         Draw.color(Color.darkGray);
                         Lines.circle(core.x, core.y - 2, state.rules.enemyCoreBuildRadius);
                         Draw.color(Pal.accent, core.team.color, 0.5f + Mathf.absin(Time.time, 10f, 0.5f));
@@ -191,8 +230,8 @@ public class OverlayRenderer{
         if(state.hasSpawns()){
             Core.camera.bounds(Tmp.r1);
             for(Tile tile : spawner.getSpawns()){
-                if(tile.within(player.x, player.y, state.rules.dropZoneRadius + spawnerMargin) || (input.isBreaking() || input.isPlacing() || input.selectRequests.any()) && Tmp.r1.overlaps(tile.getX() - state.rules.dropZoneRadius, tile.getY() - state.rules.dropZoneRadius, state.rules.dropZoneRadius * 2, state.rules.dropZoneRadius * 2)){
-                    Draw.alpha(input.isBreaking() || input.isPlacing() || input.selectRequests.any() ? 1 : Mathf.clamp(1f - (player.dst(tile) - state.rules.dropZoneRadius) / spawnerMargin));
+                if(tile.within(player.x, player.y, state.rules.dropZoneRadius + spawnerMargin) || (input.isBreaking() || input.isPlacing() || input.selectPlans.any()) && Tmp.r1.overlaps(tile.getX() - state.rules.dropZoneRadius, tile.getY() - state.rules.dropZoneRadius, state.rules.dropZoneRadius * 2, state.rules.dropZoneRadius * 2)){
+                    Draw.alpha(input.isBreaking() || input.isPlacing() || input.selectPlans.any() ? 1 : Mathf.clamp(1f - (player.dst(tile) - state.rules.dropZoneRadius) / spawnerMargin));
                     Lines.dashCircle(tile.worldx(), tile.worldy(), state.rules.dropZoneRadius);
                 }
             }
@@ -211,7 +250,7 @@ public class OverlayRenderer{
                    build.drawDisabled();
                 }
 
-                if(Core.input.keyDown(Binding.rotateplaced) && build.block.rotate && build.block.quickRotate && build.interactable(player.team())){
+                if(Core.input.keyDown(Binding.rotateplaced) && !ui.chatfrag.shown() && build.block.rotate && build.block.quickRotate && build.interactable(player.team())){
                     control.input.drawArrow(build.block, build.tileX(), build.tileY(), build.rotation, true);
                     Draw.color(Pal.accent, 0.3f + Mathf.absin(4f, 0.2f));
                     Fill.square(build.x, build.y, build.block.size * tilesize/2f);
@@ -225,7 +264,8 @@ public class OverlayRenderer{
         if(ui.hudfrag.blockfrag.hover() instanceof Unit unit && unit.controller() instanceof LogicAI ai && ai.controller != null && ai.controller.isValid()){
             var build = ai.controller;
             Drawf.square(build.x, build.y, build.block.size * tilesize/2f + 2f);
-            if(!unit.within(build, unit.hitSize * 2f)){
+            if (Core.settings.getBool("tracelogicunits")) build.drawSelect();
+            else if(!unit.within(build, unit.hitSize * 2f)){
                 Drawf.arrow(unit.x, unit.y, build.x, build.y, unit.hitSize *2f, 4f);
             }
         }
@@ -239,16 +279,23 @@ public class OverlayRenderer{
             Lines.circle(v.x, v.y, 6 + Mathf.absin(Time.time, 5f, 1f));
             Draw.reset();
 
-            Building tile = world.buildWorld(v.x, v.y);
-            if(input.canDropItem() && tile != null && tile.interactable(player.team()) && tile.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()) > 0 && player.within(tile, itemTransferRange)){
+            Building build = world.buildWorld(v.x, v.y);
+            if(input.canDropItem() && build != null && build.interactable(player.team()) && build.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()) > 0 && player.within(build, itemTransferRange)){
+                boolean invalid = (state.rules.onlyDepositCore && !(build instanceof CoreBuild));
+
                 Lines.stroke(3f, Pal.gray);
-                Lines.square(tile.x, tile.y, tile.block.size * tilesize / 2f + 3 + Mathf.absin(Time.time, 5f, 1f));
-                Lines.stroke(1f, Pal.place);
-                Lines.square(tile.x, tile.y, tile.block.size * tilesize / 2f + 2 + Mathf.absin(Time.time, 5f, 1f));
+                Lines.square(build.x, build.y, build.block.size * tilesize / 2f + 3 + Mathf.absin(Time.time, 5f, 1f));
+                Lines.stroke(1f, invalid ? Pal.remove : Pal.place);
+                Lines.square(build.x, build.y, build.block.size * tilesize / 2f + 2 + Mathf.absin(Time.time, 5f, 1f));
                 Draw.reset();
 
+                if(invalid){
+                    build.block.drawPlaceText(Core.bundle.get("bar.onlycoredeposit"), build.tileX(), build.tileY(), false);
+                }
             }
         }
+        
+        ProcessorFinder.INSTANCE.draw();
     }
 
     private static class CoreEdge{

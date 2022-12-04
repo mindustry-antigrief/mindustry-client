@@ -16,7 +16,7 @@ object AStarNavigator : Navigator() {
     private val pool = Pools.get(PositionWaypoint::class.java) { PositionWaypoint() }
     private var grid: Array<Cell> = emptyArray()
     private var gridSize = Point2()
-    private var open = PQueue<Cell>()
+    private var open = BinaryHeap<Cell>(65_536, false)
     private var startX = 0
     private var startY = 0
     private var endX = 0
@@ -41,31 +41,40 @@ object AStarNavigator : Navigator() {
     override fun init() {}
 
     /** Calculates the distance heuristic for this cell */
-    private fun h(cell: Cell): Double {
+    private fun h(cell: Cell): Float {
         val dx = abs(cell.x - endX)
         val dy = abs(cell.y - endY)
-        return dx + dy - 1.414 * min(dx, dy)
+        return dx + dy - 1.414f * min(dx, dy)
     }
 
-    private fun checkAndUpdateCost(current: Cell, t: Cell, cost: Double) {
+    private fun checkAndUpdateCost(current: Cell, t: Cell, cost: Float) {
         if (!t.closed || cost < t.g) {
             t.closed = true
             t.g = cost
-            t.f = t.g + h(t)
             t.cameFrom = current
-            open.add(t) // O(N)
+            addToHeap(t, cost + h(t))
+        }
+    }
+
+    private fun addToHeap(t: Cell, value: Float) {
+        if (t.inHeap) {
+            open.setValue(t, value)
+        } else {
+            open.add(t, value)
+            t.inHeap = true
         }
     }
 
     private fun aStarSearch() {
         //add the start location to open list.
-        open.add(cell(startX, startY))
+        addToHeap(cell(startX, startY), Float.MAX_VALUE)
         cell(startX, startY).closed = true
 
         var current: Cell
-        while (!open.empty()) {
-            current = open.poll() // Get a tile to explore
-            if (current == cell(endX, endY)) { // Made it to the finish
+        while (!open.isEmpty) {
+            current = open.pop() // Get a tile to explore
+            current.inHeap = false
+            if (current === cell(endX, endY) || current.value == Float.POSITIVE_INFINITY) { // Made it to the finish
                 return
             }
 
@@ -82,7 +91,7 @@ object AStarNavigator : Navigator() {
                 checkAndUpdateCost(
                     current,
                     cell(x, y),
-                    current.g * (if (abs(x1) + abs(y1) == 1) 1.0 else 1.0000001) + cell(x, y).added * if (abs(x1) + abs(y1) == 1) 1.0 else 1.414 // Tiebreaker is needed to draw correct path
+                    current.g * (if (abs(x1) + abs(y1) == 1) 1f else 1.00001f) + cell(x, y).added * if (abs(x1) + abs(y1) == 1) 1f else 1.414f // Tiebreaker is needed to draw correct path
                 )
             }
         }
@@ -120,10 +129,12 @@ object AStarNavigator : Navigator() {
         // Reset all cells
         for (x in 0 until tileWidth) {
             for (y in 0 until tileHeight) {
-                cell(x, y).g = 0.0
-                cell(x, y).cameFrom = null
-                cell(x, y).closed = blocked(x, y)
-                cell(x, y).added = 1
+                val cell = cell(x, y)
+                cell.g = 0f
+                cell.cameFrom = null
+                cell.closed = blocked(x, y)
+                cell.added = 1
+                cell.inHeap = false
             }
         }
 
@@ -148,19 +159,16 @@ object AStarNavigator : Navigator() {
         return points.toTypedArray()
     }
 
-    class Cell(var x: Int, var y: Int) : Comparable<Cell> {
-        var g = 0.0 // cost so far
-        var f = Double.POSITIVE_INFINITY // g + h, estimate of total cost
+    class Cell(val x: Int, val y: Int) : BinaryHeap.Node(Float.POSITIVE_INFINITY) {
+        var g = 0f // cost so far
+        // f = g + h, estimate of total cost. This is maintained in Node.value
         var cameFrom: Cell? = null
         var closed = false
         var added = 1
+        var inHeap = false
 
         override fun toString(): String {
             return "[$x, $y]"
-        }
-
-        override fun compareTo(other: Cell): Int { // lower f is better
-            return f.compareTo(other.f)
         }
     }
 }

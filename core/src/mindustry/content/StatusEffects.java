@@ -3,19 +3,18 @@ package mindustry.content;
 import arc.*;
 import arc.graphics.*;
 import arc.math.*;
-import mindustry.ctype.*;
-import mindustry.game.EventType.*;
 import mindustry.game.*;
-import mindustry.graphics.*;
+import mindustry.game.EventType.*;
 import mindustry.type.*;
+import mindustry.graphics.*;
+
 
 import static mindustry.Vars.*;
 
-public class StatusEffects implements ContentList{
+public class StatusEffects{
     public static StatusEffect none, burning, freezing, unmoving, slow, wet, muddy, melting, sapped, tarred, overdrive, overclock, shielded, shocked, blasted, corroded, boss, sporeSlowed, disarmed, electrified, invincible;
 
-    @Override
-    public void load(){
+    public static void load(){
 
         none = new StatusEffect("none");
 
@@ -47,13 +46,16 @@ public class StatusEffects implements ContentList{
 
                 affinity(blasted, (unit, result, time) -> {
                     unit.damagePierce(transitionDamage);
+                    if(unit.team == state.rules.waveTeam){
+                        Events.fire(Trigger.blastFreeze);
+                    }
                 });
             });
         }};
 
         unmoving = new StatusEffect("unmoving"){{
             color = Pal.gray;
-            speedMultiplier = 0.001f;
+            speedMultiplier = 0f;
         }};
 
         slow = new StatusEffect("slow"){{

@@ -14,7 +14,7 @@ public class DirectionalItemBuffer{
 
     public DirectionalItemBuffer(int capacity){
         this.buffers = new long[4][capacity];
-        this.indexes = new int[5];
+        this.indexes = new int[4];
     }
 
     public boolean accepts(int buffer){
@@ -60,7 +60,7 @@ public class DirectionalItemBuffer{
             for(int j = 0; j < length; j++){
                 long value = read.l();
                 if(j < buffers[i].length){
-                    buffers[i][j] = value;
+                    buffers[i][j] = BufferItem.get(BufferItem.item(value), Time.time); // BufferItem.time(value, Time.time) doesn't work as intended FINISHME: Change when StructProcess is fixed.
                 }
             }
         }

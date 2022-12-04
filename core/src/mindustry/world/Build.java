@@ -8,6 +8,7 @@ import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.entities.*;
+import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
@@ -64,10 +65,11 @@ public class Build{
         Core.app.post(() -> Events.fire(new BlockBuildBeginEvent(tile, team, unit, true)));
     }
 
+    public final static Seq<BuildPlan> planSeq = new Seq<>(BuildPlan.class);
     /** Places a ConstructBlock at this location. */
     @Remote(called = Loc.server)
     public static void beginPlace(@Nullable Unit unit, Block result, Team team, int x, int y, int rotation){
-        if(!validPlace(result, team, x, y, rotation)){
+        if(!validPlace(result, team, x, y, rotation) || !validPlaceCoreRange(result, team, x, y) || !validPlaceUnit(result, x, y)){
             return;
         }
 
@@ -98,7 +100,7 @@ public class Build{
 
         Block previous = tile.block();
         Block sub = ConstructBlock.get(result.size);
-        Seq<Building> prevBuild = new Seq<>(9);
+        var prevBuild = new Seq<Building>(9);
 
         result.beforePlaceBegan(tile, previous);
         tmp.clear();
@@ -131,14 +133,17 @@ public class Build{
     /** Returns whether a tile can be placed at this location by this team. */
     public static boolean validPlace(Block type, Team team, int x, int y, int rotation, boolean checkVisible){
         //the wave team can build whatever they want as long as it's visible - banned blocks are not applicable
-        if(type == null || (checkVisible && (!type.isPlaceable() && !(state.rules.waves && team == state.rules.waveTeam && type.isVisible())))){
+        if(type == null || (checkVisible && (!type.environmentBuildable() || (!type.isPlaceable() && !(state.rules.waves && team == state.rules.waveTeam && type.isVisible()))))){
             return false;
         }
 
+        /*
         if((type.solid || type.solidifes) && Units.anyEntities(x * tilesize + type.offset - type.size*tilesize/2f, y * tilesize + type.offset - type.size*tilesize/2f, type.size * tilesize, type.size*tilesize)){
             return false;
         }
+         */
 
+        /*
         if(!state.rules.editor){
             //find closest core, if it doesn't match the team, placing is not legal
             if(state.rules.polygonCoreProtection){
@@ -160,6 +165,7 @@ public class Build{
                 return false;
             }
         }
+         */
 
         Tile tile = world.tile(x, y);
 
@@ -189,16 +195,14 @@ public class Build{
 
                 if(
                 check == null || //nothing there
+                (type.size == 2 && world.getDarkness(wx, wy) >= 3) ||
+                (state.rules.staticFog && state.rules.fog && !fogControl.isDiscovered(team, wx, wy)) ||
                 (check.floor().isDeep() && !type.floating && !type.requiresWater && !type.placeableLiquid) || //deep water
                 (type == check.block() && check.build != null && rotation == check.build.rotation && type.rotate) || //same block, same rotation
                 !check.interactable(team) || //cannot interact
                 !check.floor().placeableOn || //solid wall
                 (!checkVisible && !check.block().alwaysReplace) || //replacing a block that should be replaced (e.g. payload placement)
                     !((type.canReplace(check.block()) || //can replace type
-                        //controversial change: allow rebuilding damaged blocks
-                        //this could be buggy and abuse-able, so I'm not enabling it yet
-                        //note that this requires a change in BuilderComp as well
-                        //(type == check.block() && check.centerX() == x && check.centerY() == y && check.build != null && check.build.health < check.build.maxHealth - 0.0001f) ||
                         (check.build instanceof ConstructBuild build && build.current == type && check.centerX() == tile.x && check.centerY() == tile.y)) && //same type in construction
                     type.bounds(tile.x, tile.y, Tmp.r1).grow(0.01f).contains(check.block.bounds(check.centerX(), check.centerY(), Tmp.r2))) || //no replacement
                 (type.requiresWater && check.floor().liquidDrop != Liquids.water) //requires water but none found
@@ -206,7 +210,39 @@ public class Build{
             }
         }
 
+        if(state.rules.placeRangeCheck && !state.isEditor() && getEnemyOverlap(type, team, x, y) != null){
+            return false;
+        }
+
         return true;
+    }
+
+    public static boolean validPlaceCoreRange(Block type, Team team, int x, int y){
+        if(state.rules.editor) return true;
+        //find closest core, if it doesn't match the team, placing is not legal
+        if(state.rules.polygonCoreProtection){
+            float mindst = Float.MAX_VALUE;
+            CoreBuild closest = null;
+            for(TeamData data : state.teams.active){
+                for(CoreBuild tile : data.cores){
+                    float dst = tile.dst2(x * tilesize + type.offset, y * tilesize + type.offset);
+                    if(dst < mindst){
+                        closest = tile;
+                        mindst = dst;
+                    }
+                }
+            }
+            return closest == null || closest.team == team;
+        }else return !state.teams.anyEnemyCoresWithin(team, x * tilesize + type.offset, y * tilesize + type.offset, state.rules.enemyCoreBuildRadius + tilesize);
+    }
+    
+    /** Whether a build plan intersects a unit here */
+    public static boolean validPlaceUnit(Block type, int x, int y) {
+        return state.rules.editor || !((type.solid || type.solidifes) && Units.anyEntities(x * tilesize + type.offset - type.size*tilesize/2f, y * tilesize + type.offset - type.size*tilesize/2f, type.size * tilesize, type.size*tilesize));
+    }
+    
+    public static @Nullable Building getEnemyOverlap(Block block, Team team, int x, int y) {
+        return indexer.findEnemyTile(team, x * tilesize + block.size, y * tilesize + block.size, block.placeOverlapRange + 4f, p -> true);
     }
 
     public static boolean contactsGround(int x, int y, Block block){
@@ -226,12 +262,12 @@ public class Build{
 
     public static boolean contactsShallows(int x, int y, Block block){
         if(block.isMultiblock()){
-            for(Point2 point : Edges.getInsideEdges(block.size)){
+            for(Point2 point : block.getInsideEdges()){
                 Tile tile = world.tile(x + point.x, y + point.y);
                 if(tile != null && !tile.floor().isDeep()) return true;
             }
 
-            for(Point2 point : Edges.getEdges(block.size)){
+            for(Point2 point : block.getEdges()){
                 Tile tile = world.tile(x + point.x, y + point.y);
                 if(tile != null && !tile.floor().isDeep()) return true;
             }

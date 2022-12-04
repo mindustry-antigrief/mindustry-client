@@ -7,26 +7,35 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.*
+import mindustry.client.ClientVars.*
 import mindustry.client.communication.*
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 
-class AssistPath(val assisting: Player?, private val cursor: Boolean = false, private val noFollow: Boolean = false) : Path() {
+class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circling: Boolean = false) : Path() {
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
     private var tolerance = 0F
+    private var aStarTolerance = 0F
+    private var buildPath: BuildPath? = if (type == Type.BuildPath) BuildPath.Self() else null
+    private var theta: Float = 0F
+    private var circleRadius: Float = 0F
 
     companion object { // Events.remove is weird, so we just create the hooks once instead
         init {
             Events.on(EventType.DepositEvent::class.java) {
                 val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
-                if (it.player == assisting) Call.transferInventory(player, it.tile)
+                if (it.player != assisting || ratelimitRemaining <= 1) return@on
+                ratelimitRemaining--
+                Call.transferInventory(player, it.tile)
             }
             Events.on(EventType.WithdrawEvent::class.java) {
                 val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
-                if (it.player == assisting) Call.requestItem(player, it.tile, it.item, it.amount)
+                if (it.player != assisting || ratelimitRemaining <= 1) return@on
+                ratelimitRemaining--
+                Call.requestItem(player, it.tile, it.item, it.amount)
             }
         }
     }
@@ -43,7 +52,14 @@ class AssistPath(val assisting: Player?, private val cursor: Boolean = false, pr
         if (player?.dead() != false) return
         assisting?.unit() ?: return // We don't care if they are dead
 
-        tolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 1.5f) // FINISHME: Factor in formations
+        if (circling) {
+            theta += Time.delta / 60f * Core.settings.getFloat("circleassistspeed", 0f) * Mathf.PI2
+            theta %= Mathf.PI2
+        }
+
+        aStarTolerance = assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 5f) + tilesize * 5
+        tolerance = if(circling) 0.1f else assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 5f)
+        circleRadius = if(circling) assisting.unit().hitSize * Core.settings.getFloat("assistdistance", 5f) else 0f
 
         handleInput()
 
@@ -67,7 +83,7 @@ class AssistPath(val assisting: Player?, private val cursor: Boolean = false, pr
             }
         }
 
-        if (assisting.isBuilder && player.isBuilder) {
+        if (assisting.isBuilder && player.isBuilder /* && build */) {
             if (assisting.unit().updateBuilding && assisting.team() == player.team()) {
                 plans.forEach { player.unit().removeBuild(it.x, it.y, it.breaking) }
                 plans.clear()
@@ -86,40 +102,57 @@ class AssistPath(val assisting: Player?, private val cursor: Boolean = false, pr
 
         val unit = player.unit()
         val shouldShoot =
-            assisting.unit().isShooting || // Target shooting
-            noFollow && player.shooting && Core.input.keyDown(Binding.select) // Player not following and shooting
+            type != Type.BuildPath &&
+            (assisting.unit().isShooting || // Target shooting
+            player.shooting && Core.input.keyDown(Binding.select)) // Player not following and shooting
         val aimPos =
-            if (!noFollow || assisting.unit().isShooting) Tmp.v1.set(assisting.unit().aimX, assisting.unit().aimY) // Following or shooting
+            if ((type == Type.Regular || type == Type.Cursor) && assisting.unit().isShooting) Tmp.v1.set(assisting.unit().aimX, assisting.unit().aimY) // Following or shooting
             else if (unit.type.faceTarget) Core.input.mouseWorld() else Tmp.v1.trns(unit.rotation, Core.input.mouseWorld().dst(unit)).add(unit.x, player.unit().y) // Not following, not shooting
         val lookPos =
-            if (assisting.unit().isShooting && unit.type.rotateShooting) player.angleTo(assisting.unit().aimX, assisting.unit().aimY) // Assisting is shooting and player has fixed weapons
-            else if (unit.type.omniMovement && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !(unit is Mechc && unit.isFlying()) && unit.type.rotateShooting) Angles.mouseAngle(unit.x, unit.y);
+            if (assisting.unit().isShooting && unit.type.faceTarget) player.angleTo(assisting.unit().aimX, assisting.unit().aimY) // Assisting is shooting and player has fixed weapons
+            else if (unit.type.omniMovement && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !(unit is Mechc && unit.isFlying())) Angles.mouseAngle(unit.x, unit.y)
             else player.unit().prefRotation() // Anything else
 
         player.shooting(shouldShoot)
-        player.unit().isShooting()
         unit.aim(aimPos)
         unit.lookAt(lookPos)
 
-        if (!noFollow) { // Following
-            goTo(if (cursor) assisting.mouseX else assisting.x, if (cursor) assisting.mouseY else assisting.y, tolerance, tolerance + tilesize * 5)
-        } else { // Not following
-            player.unit().moveAt((control.input as? DesktopInput)?.movement ?: (control.input as MobileInput).movement)
+        when (type) {
+            Type.Regular -> goTo(assisting.x + (circleRadius * Mathf.cos(theta)), assisting.y + (circleRadius * Mathf.sin(theta)), tolerance, aStarTolerance + tilesize * 5)
+            Type.FreeMove -> {
+                val input = control.input
+                if (input is DesktopInput) {
+                    if (input.movement.epsilonEquals(0f, 0f)) {
+                        if (Core.settings.getBool("zerodrift")) unit.vel.setZero()
+                        else if (Core.settings.getBool("decreasedrift") && unit.vel().len() > 3.5) unit.vel.set(unit.vel().scl(0.95f))
+                    }
+                    else player.unit().moveAt(input.movement)
+                } else player.unit().moveAt((input as MobileInput).movement)
+            }
+            Type.Cursor -> goTo(assisting.mouseX + (circleRadius * Mathf.cos(theta)), assisting.mouseY + (circleRadius * Mathf.sin(theta)), tolerance, tolerance + tilesize * 5)
+            Type.BuildPath -> if (!plans.isEmpty) buildPath?.follow() else goTo(assisting.x + (circleRadius * Mathf.cos(theta)), assisting.y + (circleRadius * Mathf.sin(theta)), tolerance, aStarTolerance + tilesize * 5) // Follow build path if plans exist, otherwise follow player
         }
     }
 
     override fun draw() {
         assisting ?: return
-        if (!noFollow && player.dst(if (cursor) Tmp.v1.set(assisting.mouseX, assisting.mouseY) else assisting) > tolerance + tilesize * 5) waypoints.draw()
+        if (type != Type.FreeMove && player.dst(assisting) > aStarTolerance) waypoints.draw()
 
         if (Spectate.pos != assisting) assisting.unit().drawBuildPlans() // Don't draw plans twice
     }
 
     override fun progress(): Float {
-        return if (assisting == null || !assisting.added) 1f else 0f
+        return if (assisting == null || !assisting.isAdded) 1f else 0f
     }
 
     override fun next(): Position? {
         return null
+    }
+
+    enum class Type {
+        Regular,
+        FreeMove,
+        Cursor,
+        BuildPath,
     }
 }

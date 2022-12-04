@@ -28,6 +28,9 @@ public class Menus{
         if(title == null) title = "";
         if(options == null) options = new String[0][0];
         if(options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
+        if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
+            (options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b() ||
+            options[0][0].contains("Downvote") && options[1][0].contains("Upvote") && Server.cn.b())) return; // phoenix network and cn are equally annoying
 
         Log.debug("Displaying menu " + menuId + " with title: " + title);
         ui.showMenu(title, message, options, (option) -> Call.menuChoose(player, menuId, option));
@@ -71,7 +74,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoMessage(String message){
         if(message == null) return;
-        if(ClientUtilsKt.io() && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
+        if((Server.io.b() || Server.phoenix.b()) && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
 
         ui.showText("", message);
     }
@@ -105,15 +108,23 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoToast(String message, float duration){
         if(message == null) return;
-
+        if(!Core.settings.getBool("showtoasts")) return; // .io admins are known to abuse this
         ui.showInfoToast(message, duration);
     }
 
     @Remote(variants = Variant.both)
     public static void warningToast(int unicode, String text){
         if(text == null || Fonts.icon.getData().getGlyph((char)unicode) == null) return;
+        if(!Core.settings.getBool("showtoasts")) return;
 
         ui.hudfrag.showToast(Fonts.getGlyph(Fonts.icon, (char)unicode), text);
+    }
+
+    @Remote(variants = Variant.both)
+    public static void openURI(String uri){
+        if(uri == null) return;
+
+        ui.showConfirm(Core.bundle.format("linkopen", uri), () -> Core.app.openURI(uri));
     }
 
     //internal use only

@@ -1,11 +1,11 @@
 package mindustry.client.ui
 
 import arc.scene.ui.*
+import arc.struct.*
 import mindustry.client.utils.*
 import mindustry.ui.dialogs.*
 
-// FINISHME: sender
-class AttachmentDialog(message: String, attachments: List<Image>) : BaseDialog("@client.attachments") {
+class AttachmentDialog(message: String, attachments: Seq<Image>) : BaseDialog("@client.attachments") {
     init {
         addCloseButton()
         cont.add(message).center()

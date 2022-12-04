@@ -1,11 +1,25 @@
 name: Release Update
-
+#this made me lose lots of braincells
 on:
   push:
     tags: v*
 
 jobs:
   build:
+    permissions:
+      actions: write
+      checks: read
+      contents: write
+      deployments: read
+      issues: read
+      discussions: read
+      packages: read
+      pages: read
+      pull-requests: read
+      repository-projects: read
+      security-events: read
+      statuses: read
+
     runs-on: ubuntu-latest
     steps:
       - name: Cancel Previous Workflows
@@ -36,8 +50,7 @@ jobs:
           echo EOF >> $GITHUB_ENV
 
           export PATH=./tools:$PATH
-          chmod +x ./tools/antialias
-          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" -PfastAA --parallel # Testing and building in parallel saves a few dozen seconds.
+          ./gradlew test desktop:dist -PupdateUrl=${{ github.repository }} -PclientVersion="${GITHUB_REF/refs\/tags\//}, ${{ steps.time.outputs.formattedTime }}" --parallel # Testing and building in parallel saves a few dozen seconds.
 
       - name: Upload Test Results To Pages
         if: ${{ !cancelled() }}

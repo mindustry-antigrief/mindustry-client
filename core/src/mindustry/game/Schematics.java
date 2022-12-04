@@ -15,7 +15,6 @@ import arc.util.io.Streams.*;
 import arc.util.pooling.*;
 import arc.util.serialization.*;
 import mindustry.*;
-import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -30,15 +29,14 @@ import mindustry.world.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.legacy.*;
-import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.power.*;
-import mindustry.world.blocks.production.*;
 import mindustry.world.blocks.sandbox.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.meta.*;
 
 import java.io.*;
+import java.util.concurrent.*;
 import java.util.zip.*;
 
 import static mindustry.Vars.*;
@@ -60,6 +58,7 @@ public class Schematics implements Loadable{
     private OrderedMap<Schematic, FrameBuffer> previews = new OrderedMap<>();
     private ObjectSet<Schematic> errored = new ObjectSet<>();
     private ObjectMap<CoreBlock, Seq<Schematic>> loadouts = new ObjectMap<>();
+    private ObjectMap<CoreBlock, Schematic> defaultLoadouts = new ObjectMap<>();
     private FrameBuffer shadowBuffer;
     private Texture errorTexture;
     private long lastClearTime;
@@ -80,22 +79,23 @@ public class Schematics implements Loadable{
     public void load(){
         all.clear();
 
-        loadLoadouts();
+        var await = Seq.<Future<?>>with(mainExecutor.submit(this::loadLoadouts));
 
         for(Fi file : schematicDirectory.list()){
-            loadFile(file);
+            await.add(mainExecutor.submit(() -> loadFile(file)));
         }
 
-        platform.getWorkshopContent(Schematic.class).each(this::loadFile);
+        platform.getWorkshopContent(Schematic.class).each(file -> await.add(mainExecutor.submit(() -> loadFile(file))));
 
         //mod-specific schematics, cannot be removed
-        mods.listFiles("schematics", (mod, file) -> {
+        mods.listFiles("schematics", (mod, file) -> await.add(mainExecutor.submit(() -> {
             Schematic s = loadFile(file);
             if(s != null){
                 s.mod = mod;
             }
-        });
+        })));
 
+        await.each(Threads::await);
         all.sort();
 
         if(shadowBuffer == null){
@@ -104,7 +104,7 @@ public class Schematics implements Loadable{
     }
 
     private void loadLoadouts(){
-        Seq.with(Loadouts.basicShard, Loadouts.basicFoundation, Loadouts.basicNucleus).each(s -> checkLoadout(s, false));
+        Seq.with(Loadouts.basicShard, Loadouts.basicFoundation, Loadouts.basicNucleus, Loadouts.basicBastion).each(s -> checkLoadout(s, false));
     }
 
     public void overwrite(Schematic target, Schematic newSchematic){
@@ -138,8 +138,10 @@ public class Schematics implements Loadable{
 
         try{
             Schematic s = read(file);
-            all.add(s);
-            checkLoadout(s, true);
+            synchronized(this){
+                all.add(s);
+                checkLoadout(s, true);
+            }
 
             //external file from workshop
             if(!s.file.parent().equals(schematicDirectory)){
@@ -246,20 +248,20 @@ public class Schematics implements Loadable{
             Draw.rect(Tmp.tr1, buffer.getWidth()/2f, buffer.getHeight()/2f, buffer.getWidth(), -buffer.getHeight());
             Draw.color();
 
-            Seq<BuildPlan> requests = schematic.tiles.map(t -> new BuildPlan(t.x, t.y, t.rotation, t.block, t.config));
+            Seq<BuildPlan> plans = schematic.tiles.map(t -> new BuildPlan(t.x, t.y, t.rotation, t.block, t.config));
 
             Draw.flush();
-            //scale each request to fit schematic
+            //scale each plan to fit schematic
             Draw.trans().scale(resolution / tilesize, resolution / tilesize).translate(tilesize*1.5f, tilesize*1.5f);
 
-            //draw requests
-            requests.each(req -> {
+            //draw plans
+            plans.each(req -> {
                 req.animScale = 1f;
                 req.worldContext = false;
-                req.block.drawRequestRegion(req, requests);
+                req.block.drawPlanRegion(req, plans);
             });
 
-            requests.each(req -> req.block.drawRequestConfigTop(req, requests));
+            plans.each(req -> req.block.drawPlanConfigTop(req, plans));
 
             Draw.flush();
             Draw.trans().idt();
@@ -275,8 +277,8 @@ public class Schematics implements Loadable{
         return previews.get(schematic);
     }
 
-    /** Creates an array of build requests from a schematic's data, centered on the provided x+y coordinates. */
-    public Seq<BuildPlan> toRequests(Schematic schem, int x, int y){
+    /** Creates an array of build plans from a schematic's data, centered on the provided x+y coordinates. */
+    public Seq<BuildPlan> toPlans(Schematic schem, int x, int y){
         return schem.tiles.map(t -> new BuildPlan(t.x + x - schem.width/2, t.y + y - schem.height/2, t.rotation, t.block, t.config).original(t.x, t.y, schem.width, schem.height))
             .removeAll(s -> (!s.block.isVisible() && !(s.block instanceof CoreBlock)) || !s.block.unlockedNow()).sort(Structs.comparingInt(s -> -s.block.schematicPriority));
     }
@@ -290,19 +292,32 @@ public class Schematics implements Loadable{
         return loadouts;
     }
 
+    public @Nullable Schematic getDefaultLoadout(CoreBlock block){
+        return defaultLoadouts.get(block);
+    }
+
+    public boolean isDefaultLoadout(Schematic schem){
+        return defaultLoadouts.containsValue(schem, true);
+    }
+
     /** Checks a schematic for deployment validity and adds it to the cache. */
-    private void checkLoadout(Schematic s, boolean validate){
+    private void checkLoadout(Schematic s, boolean customSchem){
         Stile core = s.tiles.find(t -> t.block instanceof CoreBlock);
         if(core == null) return;
         int cores = s.tiles.count(t -> t.block instanceof CoreBlock);
         int maxSize = getMaxLaunchSize(core.block);
 
         //make sure a core exists, and that the schematic is small enough.
-        if((validate && (s.width > maxSize || s.height > maxSize
+        if((customSchem && (s.width > maxSize || s.height > maxSize
             || s.tiles.contains(t -> t.block.buildVisibility == BuildVisibility.sandboxOnly || !t.block.unlocked()) || cores > 1))) return;
 
         //place in the cache
         loadouts.get((CoreBlock)core.block, Seq::new).add(s);
+
+        //save non-custom loadout
+        if(!customSchem){
+            defaultLoadouts.put((CoreBlock)core.block, s);
+        }
     }
 
     public int getMaxLaunchSize(Block block){
@@ -341,6 +356,7 @@ public class Schematics implements Loadable{
 
     /** Creates a schematic from a world selection. */
     public Schematic create(int x, int y, int x2, int y2){
+        Team team = headless ? null : Vars.player.team();
         NormalizeResult result = Placement.normalizeArea(x, y, x2, y2, 0, false, maxSchematicSize);
         x = result.x;
         y = result.y;
@@ -356,6 +372,8 @@ public class Schematics implements Loadable{
         for(int cx = x; cx <= x2; cx++){
             for(int cy = y; cy <= y2; cy++){
                 Building linked = world.build(cx, cy);
+                if(linked != null && (!linked.isDiscovered(team) || !linked.wasVisible)) continue;
+
                 Block realBlock = linked == null ? null : linked instanceof ConstructBuild cons ? cons.current : linked.block;
 
                 if(linked != null && realBlock != null && (realBlock.isVisible() || realBlock instanceof CoreBlock)){
@@ -385,16 +403,13 @@ public class Schematics implements Loadable{
         for(int cx = ox; cx <= ox2; cx++){
             for(int cy = oy; cy <= oy2; cy++){
                 Building tile = world.build(cx, cy);
+                if(tile != null && (!tile.isDiscovered(team) || !tile.wasVisible)) continue;
                 Block realBlock = tile == null ? null : tile instanceof ConstructBuild cons ? cons.current : tile.block;
 
                 if(tile != null && !counted.contains(tile.pos()) && realBlock != null
                     && (realBlock.isVisible() || realBlock instanceof CoreBlock)){
                     Object config = !(tile instanceof ConstructBuild cons) ?
-                        tile.config() :
-                        cons.lastConfig == null && realBlock instanceof LogicBlock && ClientVars.processorConfigs.containsKey(Point2.pack(cx, cy)) ?
-                            ClientVars.processorConfigs.get(Point2.pack(cx, cy)) :
-                            cons.lastConfig;
-
+                        tile.config() : cons.lastConfig;
                     tiles.add(new Stile(realBlock, tile.tileX() + offsetX, tile.tileY() + offsetY, config, (byte)tile.rotation));
                     counted.add(tile.pos());
                 }
@@ -417,20 +432,20 @@ public class Schematics implements Loadable{
 
     /** Places the last launch loadout at the coordinates and fills it with the launch resources. */
     public static void placeLaunchLoadout(int x, int y){
-        placeLoadout(universe.getLastLoadout(), x, y);
+        placeLoadout(universe.getLastLoadout(), x, y, state.rules.defaultTeam);
         if(world.tile(x, y).build == null) throw new RuntimeException("No core at loadout coordinates!");
         world.tile(x, y).build.items.add(universe.getLaunchResources());
     }
 
     public static void placeLoadout(Schematic schem, int x, int y){
-        placeLoadout(schem, x, y, state.rules.defaultTeam, Blocks.oreCopper);
+        placeLoadout(schem, x, y, state.rules.defaultTeam);
     }
 
-    public static void placeLoadout(Schematic schem, int x, int y, Team team, Block resource){
-        placeLoadout(schem, x, y, team, resource, true);
+    public static void placeLoadout(Schematic schem, int x, int y, Team team){
+        placeLoadout(schem, x, y, team, true);
     }
 
-    public static void placeLoadout(Schematic schem, int x, int y, Team team, Block resource, boolean check){
+    public static void placeLoadout(Schematic schem, int x, int y, Team team, boolean check){
         Stile coreTile = schem.tiles.find(s -> s.block instanceof CoreBlock);
         Seq<Tile> seq = new Seq<>();
         if(coreTile == null) throw new IllegalArgumentException("Loadout schematic has no core tile!");
@@ -443,9 +458,10 @@ public class Schematics implements Loadable{
             if(check && !(st.block instanceof CoreBlock)){
                 seq.clear();
                 tile.getLinkedTilesAs(st.block, seq);
-                if(seq.contains(t -> !t.block().alwaysReplace && !t.synthetic())){
-                    return;
-                }
+                //remove env blocks, or not?
+                //if(seq.contains(t -> !t.block().alwaysReplace && !t.synthetic())){
+                //    return;
+                //}
                 for(var t : seq){
                     if(t.block() != Blocks.air){
                         t.remove();
@@ -458,10 +474,6 @@ public class Schematics implements Loadable{
             Object config = st.config;
             if(tile.build != null){
                 tile.build.configureAny(config);
-            }
-
-            if(st.block instanceof Drill){
-                tile.getLinkedTiles(t -> t.setOverlay(resource));
             }
 
             if(tile.build instanceof CoreBuild cb){
@@ -505,6 +517,7 @@ public class Schematics implements Loadable{
         return s;
     }
 
+    private static ThreadLocal<Reads> readsLocal = Threads.local(() -> new Reads(null));
     public static Schematic read(InputStream input) throws IOException{
         for(byte b : header){
             if(input.read() != b){
@@ -529,6 +542,7 @@ public class Schematics implements Loadable{
             try{
                 labels = JsonIO.read(String[].class, map.get("labels", "[]"));
             }catch(Exception ignored){
+                Log.err(ignored);
             }
 
             IntMap<Block> blocks = new IntMap<>();
@@ -540,11 +554,14 @@ public class Schematics implements Loadable{
             }
 
             int total = stream.readInt();
+
             Seq<Stile> tiles = new Seq<>(total);
+            var reads = readsLocal.get();
+            reads.input = stream;
             for(int i = 0; i < total; i++){
                 Block block = blocks.get(stream.readByte());
                 int position = stream.readInt();
-                Object config = ver == 0 ? mapConfig(block, stream.readInt(), position) : TypeIO.readObject(Reads.get(stream));
+                Object config = ver == 0 ? mapConfig(block, stream.readInt(), position) : TypeIO.readObject(reads);
                 byte rotation = stream.readByte();
                 if(block != Blocks.air){
                     tiles.add(new Stile(block, Point2.x(position), Point2.y(position), config, rotation));
@@ -573,7 +590,7 @@ public class Schematics implements Loadable{
             schematic.tags.put("labels", JsonIO.write(schematic.labels.toArray(String.class)));
 
             stream.writeByte(schematic.tags.size);
-            for(ObjectMap.Entry<String, String> e : schematic.tags.entries()){
+            for(var e : schematic.tags.entries()){
                 stream.writeUTF(e.key);
                 stream.writeUTF(e.value);
             }
@@ -650,7 +667,7 @@ public class Schematics implements Loadable{
                 p.set(cx, cy);
             });
 
-            //rotate actual request, centered on its multiblock position
+            //rotate actual plan, centered on its multiblock position
             float wx = (req.x - ox) * tilesize + req.block.offset, wy = (req.y - oy) * tilesize + req.block.offset;
             float x = wx;
             if(direction >= 0){

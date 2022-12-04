@@ -31,12 +31,17 @@ public abstract class Content implements Comparable<Content>{
      */
     public void load(){}
 
-    /** Called right after load(). */
+    /** Called right before load(). */
     public void loadIcon(){}
 
     /** @return whether an error occurred during mod loading. */
     public boolean hasErrored(){
         return minfo.error != null;
+    }
+
+    /** @return whether this is content from the base game. */
+    public boolean isVanilla(){
+        return minfo.mod == null;
     }
 
     @Override

@@ -78,7 +78,7 @@ public class SchematicsDialog extends BaseDialog{
             in.add("@schematic.tags").padRight(4);
 
             //tags (no scroll pane visible)
-            in.pane(Styles.nonePane, t -> {
+            in.pane(Styles.noBarPane, t -> {
                 rebuildTags = () -> {
                     t.clearChildren();
                     t.left();
@@ -110,6 +110,7 @@ public class SchematicsDialog extends BaseDialog{
 
             t.update(() -> {
                 if(Core.input.keyTap(Binding.chat) && Core.scene.getKeyboardFocus() == searchField && firstSchematic != null){
+                    control.input.isLoadedSchematic = true;
                     control.input.useSchematic(firstSchematic);
                     hide();
                 }
@@ -139,7 +140,7 @@ public class SchematicsDialog extends BaseDialog{
                             buttons.left();
                             buttons.defaults().size(50f);
 
-                            ImageButtonStyle style = Styles.clearPartiali;
+                            ImageButtonStyle style = Styles.clearNonei;
 
                             buttons.button(Icon.info, style, () -> {
                                 showInfo(s);
@@ -210,7 +211,7 @@ public class SchematicsDialog extends BaseDialog{
                             n.top();
                             n.table(Styles.black3, c -> {
                                 Label label = c.add(s.name()).style(Styles.outlineLabel).top().growX().maxWidth(200f - 8f)
-                                    .update(l -> l.setText((player.core() == null || !player.core().items.has(s.requirements()) ? "[#dd5656]" : "") + s.name())).get();
+                                    .update(l -> l.setText((!player.team().rules().infiniteResources && !state.rules.infiniteResources && player.core() != null && !player.core().items.has(s.requirements()) ? "[#dd5656]" : "") + s.name())).get();
                                 label.setEllipsis(true);
                                 label.setAlignment(Align.center);
                             }).growX().margin(1).pad(4).maxWidth(Scl.scl(200f - 8f)).padBottom(0);
@@ -220,10 +221,11 @@ public class SchematicsDialog extends BaseDialog{
                         if(state.isMenu()){
                             showInfo(s);
                         }else{
+                            control.input.isLoadedSchematic = true;
                             control.input.useSchematic(s);
                             hide();
                         }
-                    }).pad(4).style(Styles.cleari).get();
+                    }).pad(4).style(Styles.flati).get();
 
                     sel[0].getStyle().up = Tex.pane;
 
@@ -252,7 +254,7 @@ public class SchematicsDialog extends BaseDialog{
         dialog.cont.pane(p -> {
             p.margin(10f);
             p.table(Tex.button, t -> {
-                TextButtonStyle style = Styles.cleart;
+                TextButtonStyle style = Styles.flatt;
                 t.defaults().size(280f, 60f).left();
                 t.row();
                 t.button("@schematic.copy.import", Icon.copy, style, () -> {
@@ -309,11 +311,11 @@ public class SchematicsDialog extends BaseDialog{
         dialog.cont.pane(p -> {
             p.margin(10f);
             p.table(Tex.button, t -> {
-                TextButtonStyle style = Styles.cleart;
+                TextButtonStyle style = Styles.flatt;
                 t.defaults().size(280f, 60f).left();
                 if(steam && !s.hasSteamID()){
                     t.button("@schematic.shareworkshop", Icon.book, style,
-                            () -> platform.publish(s)).marginLeft(12f);
+                        () -> platform.publish(s)).marginLeft(12f);
                     t.row();
                     dialog.hide();
                 }
@@ -419,7 +421,7 @@ public class SchematicsDialog extends BaseDialog{
                         int i = 0;
                         for(UnlockableContent u : content.getBy(ctype).<UnlockableContent>as()){
                             if(!u.isHidden() && u.unlockedNow() && u.hasEmoji() && !tags.contains(u.emoji())){
-                                t.button(new TextureRegionDrawable(u.uiIcon), Styles.cleari, iconMed, () -> {
+                                t.button(new TextureRegionDrawable(u.uiIcon), Styles.flati, iconMed, () -> {
                                     String out = u.emoji() + "";
 
                                     tags.add(out);

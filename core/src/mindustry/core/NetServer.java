@@ -35,16 +35,19 @@ import static mindustry.Vars.*;
 
 public class NetServer implements ApplicationListener{
     /** note that snapshots are compressed, so the max snapshot size here is above the typical UDP safe limit */
-    private static final int maxSnapshotSize = 800, timerBlockSync = 0, serverSyncTime = 200;
-    private static final float blockSyncTime = 60 * 6;
+    private static final int maxSnapshotSize = 800;
+    private static final int timerBlockSync = 0, timerHealthSync = 1;
+    private static final float blockSyncTime = 60 * 6, healthSyncTime = 30;
     private static final FloatBuffer fbuffer = FloatBuffer.allocate(20);
     private static final Writes dataWrites = new Writes(null);
+    private static final IntSeq hiddenIds = new IntSeq();
+    private static final IntSeq healthSeq = new IntSeq(maxSnapshotSize / 4 + 1);
     private static final Vec2 vector = new Vec2();
     /** If a player goes away of their server-side coordinates by this distance, they get teleported back. */
     private static final float correctDist = tilesize * 14f;
 
-    public final Administration admins = new Administration();
-    public final CommandHandler clientCommands = new CommandHandler("/");
+    public Administration admins = new Administration();
+    public CommandHandler clientCommands = new CommandHandler("/");
     public TeamAssigner assigner = (player, players) -> {
         if(state.rules.pvp){
             //find team with minimum amount of players and auto-assign player to that.
@@ -93,8 +96,9 @@ public class NetServer implements ApplicationListener{
         }
     };
 
-    private boolean closing = false;
-    private Interval timer = new Interval();
+    private boolean closing = false, pvpAutoPaused = true;
+    private Interval timer = new Interval(10);
+    private IntSet buildHealthChanged = new IntSet();
 
     private ReusableByteOutStream writeBuffer = new ReusableByteOutStream(127);
     private Writes outputBuffer = new Writes(new DataOutputStream(writeBuffer));
@@ -218,8 +222,17 @@ public class NetServer implements ApplicationListener{
                 }
 
                 if(Groups.player.contains(player -> player.uuid().equals(packet.uuid) || player.usid().equals(packet.usid))){
+                    con.uuid = packet.uuid;
                     con.kick(KickReason.idInUse);
                     return;
+                }
+
+                for(var otherCon : net.getConnections()){
+                    if(otherCon != con && uuid.equals(otherCon.uuid)){
+                        con.uuid = packet.uuid;
+                        con.kick(KickReason.idInUse);
+                        return;
+                    }
                 }
             }
 
@@ -481,7 +494,7 @@ public class NetServer implements ApplicationListener{
                 }
 
                 int sign = switch(arg[0].toLowerCase()){
-                    case "y", "yes" ->  1;
+                    case "y", "yes" -> 1;
                     case "n", "no" -> -1;
                     default -> 0;
                 };
@@ -502,10 +515,6 @@ public class NetServer implements ApplicationListener{
                 if(Time.timeSinceMillis(player.getInfo().lastSyncTime) < 1000 * 5){
                     player.sendMessage("[scarlet]You may only /sync every 5 seconds.");
                     return;
-                }
-
-                if(!player.dead() && player.unit().isCommanding()){
-                    player.unit().clearCommand();
                 }
 
                 player.getInfo().lastSyncTime = Time.millis();
@@ -560,12 +569,44 @@ public class NetServer implements ApplicationListener{
                 Call.playerDisconnect(player.id());
             }
 
-            String message = Strings.format("&lb@&fi&lk has disconnected. &fi&lk[&lb@&fi&lk] (@)", player.name, player.uuid(), reason);
+            String message = Strings.format("&lb@&fi&lk has disconnected. [&lb@&fi&lk] (@)", player.plainName(), player.uuid(), reason);
             if(Config.showConnectMessages.bool()) info(message);
         }
 
         player.remove();
         player.con.hasDisconnected = true;
+    }
+
+    //these functions are for debugging only, and will be removed!
+
+    @Remote(targets = Loc.client, variants = Variant.one)
+    public static void requestDebugStatus(Player player){
+        int flags =
+            (player.con.hasDisconnected ? 1 : 0) |
+            (player.con.hasConnected ? 2 : 0) |
+            (player.isAdded() ? 4 : 0) |
+            (player.con.hasBegunConnecting ? 8 : 0);
+
+        Call.debugStatusClient(player.con, flags, player.con.lastReceivedClientSnapshot, player.con.snapshotsSent);
+        Call.debugStatusClientUnreliable(player.con, flags, player.con.lastReceivedClientSnapshot, player.con.snapshotsSent);
+    }
+
+    @Remote(variants = Variant.both, priority = PacketPriority.high)
+    public static void debugStatusClient(int value, int lastClientSnapshot, int snapshotsSent){
+        logClientStatus(true, value, lastClientSnapshot, snapshotsSent);
+    }
+
+    @Remote(variants = Variant.both, priority = PacketPriority.high, unreliable = true)
+    public static void debugStatusClientUnreliable(int value, int lastClientSnapshot, int snapshotsSent){
+        logClientStatus(false, value, lastClientSnapshot, snapshotsSent);
+    }
+
+    static void logClientStatus(boolean reliable, int value, int lastClientSnapshot, int snapshotsSent){
+        Log.info("@ Debug status received. disconnected = @, connected = @, added = @, begunConnecting = @ lastClientSnapshot = @, snapshotsSent = @",
+        reliable ? "[RELIABLE]" : "[UNRELIABLE]",
+        (value & 1) != 0, (value & 2) != 0, (value & 4) != 0, (value & 8) != 0,
+        lastClientSnapshot, snapshotsSent
+        );
     }
 
     @Remote(targets = Loc.client)
@@ -598,7 +639,7 @@ public class NetServer implements ApplicationListener{
         float xVelocity, float yVelocity,
         Tile mining,
         boolean boosting, boolean shooting, boolean chatting, boolean building,
-        @Nullable BuildPlan[] requests,
+        @Nullable Queue<BuildPlan> plans,
         float viewX, float viewY, float viewWidth, float viewHeight
     ){
         NetConnection con = player.con;
@@ -645,8 +686,8 @@ public class NetServer implements ApplicationListener{
             player.unit().clearBuilding();
             player.unit().updateBuilding(building);
 
-            if(requests != null){
-                for(BuildPlan req : requests){
+            if(plans != null){
+                for(BuildPlan req : plans){
                     if(req == null) continue;
                     Tile tile = world.tile(req.x, req.y);
                     if(tile == null || (!req.breaking && req.block == null)) continue;
@@ -741,12 +782,12 @@ public class NetServer implements ApplicationListener{
     public static void adminRequest(Player player, Player other, AdminAction action){
         if(!player.admin && !player.isLocal()){
             warn("ACCESS DENIED: Player @ / @ attempted to perform admin action '@' on '@' without proper security access.",
-            player.name, player.con == null ? "null" : player.con.address, action.name(), other == null ? null : other.name);
+            player.plainName(), player.con == null ? "null" : player.con.address, action.name(), other == null ? null : other.plainName());
             return;
         }
 
         if(other == null || ((other.admin && !player.isLocal()) && other != player)){
-            warn("@ attempted to perform admin action on nonexistant or admin player.", player.name);
+            warn("@ &fi&lk[&lb@&fi&lk]&fb attempted to perform admin action on nonexistant or admin player.", player.plainName(), player.uuid());
             return;
         }
 
@@ -756,15 +797,15 @@ public class NetServer implements ApplicationListener{
             //no verification is done, so admins can hypothetically spam waves
             //not a real issue, because server owners may want to do just that
             logic.skipWave();
-            info("&lc@ has skipped the wave.", player.name);
+            info("&lc@ &fi&lk[&lb@&fi&lk]&fb has skipped the wave.", player.plainName(), player.uuid());
         }else if(action == AdminAction.ban){
             netServer.admins.banPlayerID(other.con.uuid);
             netServer.admins.banPlayerIP(other.con.address);
             other.kick(KickReason.banned);
-            info("&lc@ has banned @.", player.name, other.name);
+            info("&lc@ &fi&lk[&lb@&fi&lk]&fb has banned @ &fi&lk[&lb@&fi&lk]&fb.", player.plainName(), player.uuid(), other.plainName(), other.uuid());
         }else if(action == AdminAction.kick){
             other.kick(KickReason.kick);
-            info("&lc@ has kicked @.", player.name, other.name);
+            info("&lc@ &fi&lk[&lb@&fi&lk]&fb has kicked @ &fi&lk[&lb@&fi&lk]&fb.", player.plainName(), player.uuid(), other.plainName(), other.uuid());
         }else if(action == AdminAction.trace){
             PlayerInfo stats = netServer.admins.getInfo(other.uuid());
             TraceInfo info = new TraceInfo(other.con.address, other.uuid(), other.con.modclient, other.con.mobile, stats.timesJoined, stats.timesKicked);
@@ -773,7 +814,7 @@ public class NetServer implements ApplicationListener{
             }else{
                 NetClient.traceInfo(other, info);
             }
-            info("&lc@ has requested trace info of @.", player.name, other.name);
+            info("&lc@ &fi&lk[&lb@&fi&lk]&fb has requested trace info of @ &fi&lk[&lb@&fi&lk]&fb.", player.plainName(), player.uuid(), other.plainName(), other.uuid());
         }
     }
 
@@ -791,7 +832,7 @@ public class NetServer implements ApplicationListener{
 
         if(Config.showConnectMessages.bool()){
             Call.sendMessage("[accent]" + player.name + "[accent] has connected.");
-            String message = Strings.format("&lb@&fi&lk has connected. &fi&lk[&lb@&fi&lk]", player.name, player.uuid());
+            String message = Strings.format("&lb@&fi&lk has connected. &fi&lk[&lb@&fi&lk]", player.plainName(), player.uuid());
             info(message);
         }
 
@@ -829,11 +870,28 @@ public class NetServer implements ApplicationListener{
 
         if(state.isGame() && net.server()){
             if(state.rules.pvp){
-                state.serverPaused = isWaitingForPlayers();
+                boolean waiting = isWaitingForPlayers(), paused = state.isPaused();
+                if(waiting != paused){
+                    if(waiting){
+                        //is now waiting, enable pausing, flag it correctly
+                        pvpAutoPaused = true;
+                        state.set(State.paused);
+                    }else if(pvpAutoPaused){
+                        //no longer waiting, stop pausing
+                        state.set(State.playing);
+                        pvpAutoPaused = false;
+                    }
+                }
             }
 
             sync();
         }
+    }
+
+    //TODO I don't like where this is, move somewhere else?
+    /** Queues a building health update. This will be sent in a Call.buildHealthUpdate packet later. */
+    public void buildHealthUpdate(Building build){
+        buildHealthChanged.add(build.pos());
     }
 
     /** Should only be used on the headless backend. */
@@ -842,7 +900,7 @@ public class NetServer implements ApplicationListener{
             net.host(Config.port.num());
             info("Opened a server on port @.", Config.port.num());
         }catch(BindException e){
-            err("Unable to host: Port already in use! Make sure no other servers are running on the same port in your network.");
+            err("Unable to host: Port " + Config.port.num() + " already in use! Make sure no other servers are running on the same port in your network.");
             state.set(State.menu);
         }catch(IOException e){
             err(e);
@@ -863,7 +921,7 @@ public class NetServer implements ApplicationListener{
         short sent = 0;
         for(Building entity : Groups.build){
             if(!entity.block.sync) continue;
-            sent ++;
+            sent++;
 
             dataStream.writeInt(entity.pos());
             dataStream.writeShort(entity.block.id);
@@ -902,14 +960,21 @@ public class NetServer implements ApplicationListener{
         dataStream.close();
 
         //write basic state data.
-        Call.stateSnapshot(player.con, state.wavetime, state.wave, state.enemies, state.serverPaused, state.gameOver,
-            universe.seconds(), tps, GlobalConstants.rand.seed0, GlobalConstants.rand.seed1, syncStream.toByteArray());
+        Call.stateSnapshot(player.con, state.wavetime, state.wave, state.enemies, state.isPaused(), state.gameOver,
+        universe.seconds(), tps, GlobalVars.rand.seed0, GlobalVars.rand.seed1, syncStream.toByteArray());
 
         syncStream.reset();
 
+        hiddenIds.clear();
         int sent = 0;
 
         for(Syncc entity : Groups.sync){
+            //TODO write to special list
+            if(entity.isSyncHidden(player)){
+                hiddenIds.add(entity.id());
+                continue;
+            }
+
             //write all entities now
             dataStream.writeInt(entity.id()); //write id
             dataStream.writeByte(entity.classId()); //write type ID
@@ -931,6 +996,11 @@ public class NetServer implements ApplicationListener{
             Call.entitySnapshot(player.con, (short)sent, syncStream.toByteArray());
         }
 
+        if(hiddenIds.size > 0){
+            Call.hiddenSnapshot(player.con, hiddenIds);
+        }
+
+        player.con.snapshotsSent++;
     }
 
     String fixName(String name){
@@ -957,20 +1027,20 @@ public class NetServer implements ApplicationListener{
         return result.toString();
     }
 
-    String checkColor(String str){
+    static String checkColor(String str){
         for(int i = 1; i < str.length(); i++){
             if(str.charAt(i) == ']'){
                 String color = str.substring(1, i);
 
                 if(Colors.get(color.toUpperCase()) != null || Colors.get(color.toLowerCase()) != null){
                     Color result = (Colors.get(color.toLowerCase()) == null ? Colors.get(color.toUpperCase()) : Colors.get(color.toLowerCase()));
-                    if(result.a <= 0.8f){
+                    if(result.a < 1f){
                         return str.substring(i + 1);
                     }
                 }else{
                     try{
                         Color result = Color.valueOf(color);
-                        if(result.a <= 0.8f){
+                        if(result.a < 1f){
                             return str.substring(i + 1);
                         }
                     }catch(Exception e){
@@ -984,6 +1054,7 @@ public class NetServer implements ApplicationListener{
 
     void sync(){
         try{
+            int interval = Config.snapshotInterval.num();
             Groups.player.each(p -> !p.isLocal(), player -> {
                 if(player.con == null || !player.con.isConnected()){
                     onDisconnect(player, "disappeared");
@@ -992,7 +1063,7 @@ public class NetServer implements ApplicationListener{
 
                 var connection = player.con;
 
-                if(Time.timeSinceMillis(connection.syncTime) < serverSyncTime || !connection.hasConnected) return;
+                if(Time.timeSinceMillis(connection.syncTime) < interval || !connection.hasConnected) return;
 
                 connection.syncTime = Time.millis();
 
@@ -1007,6 +1078,33 @@ public class NetServer implements ApplicationListener{
                 writeBlockSnapshots();
             }
 
+            if(Groups.player.size() > 0 && buildHealthChanged.size > 0 && timer.get(timerHealthSync, healthSyncTime)){
+                healthSeq.clear();
+
+                var iter = buildHealthChanged.iterator();
+                while(iter.hasNext){
+                    int next = iter.next();
+                    var build = world.build(next);
+
+                    //pack pos + health into update list
+                    if(build != null){
+                        healthSeq.add(next, Float.floatToRawIntBits(build.health));
+                    }
+
+                    //if size exceeds snapshot limit, send it out and begin building it up again
+                    if(healthSeq.size * 4 >= maxSnapshotSize){
+                        Call.buildHealthUpdate(healthSeq);
+                        healthSeq.clear();
+                    }
+                }
+
+                //send any residual health updates
+                if(healthSeq.size > 0){
+                    Call.buildHealthUpdate(healthSeq);
+                }
+
+                buildHealthChanged.clear();
+            }
         }catch(IOException e){
             Log.err(e);
         }

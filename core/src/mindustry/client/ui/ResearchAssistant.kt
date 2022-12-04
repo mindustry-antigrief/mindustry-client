@@ -9,7 +9,7 @@ import mindustry.game.*
 import mindustry.type.*
 
 /** Handles various client behavior related to research in campaign */
-object ResearchAssistant: Table() {
+object ResearchAssistant : Table() {
     private val queue = Seq<TechNode>()
     private var sectors = content.planets().sum { it.sectors.count(Sector::hasBase) } // Owned sector count
     private var autoResearch = false
@@ -24,7 +24,8 @@ object ResearchAssistant: Table() {
 
                 // Run until no new nodes are unlocked
                 var any = autoResearch
-                while (any) any = ui.research.nodes.any { it.visible && ui.research.view.canSpend(it.node) && spend(it.node) }
+                var i = 0 // FINISHME: This is a horribly janky "fix"
+                while (any && i++ < 10) any = ui.research.nodes.any { it.visible && ui.research.view.canSpend(it.node) && spend(it.node) }
             }
         }
     }
@@ -46,17 +47,17 @@ object ResearchAssistant: Table() {
         top().right().clearChildren()
         defaults().right().top()
 
-        check("Automatically Research Everything (Queue is Prioritized)", autoResearch) { autoResearch = it } // FINISHME: Bundle
+        check("@client.research", autoResearch) { autoResearch = it }
 
         row()
         table {
-            it.add(if (queue.isEmpty) "Shift + Click to Queue Research" else "Research Queue:") // FINISHME: Bundle
+            it.add(if (queue.isEmpty) "@client.research.queue" else "@client.research.queued")
 
             for (node in queue) it.button(node.content.emoji()) { dequeue(node) }.pad(5F)
         }
 
         row()
-        add("Sectors Captured: $sectors").colspan(this.columns) // FINISHME: Bundle
+        add(Core.bundle.format("client.research.sectors", sectors)).colspan(this.columns)
     }
 
     fun spend(node: TechNode): Boolean {

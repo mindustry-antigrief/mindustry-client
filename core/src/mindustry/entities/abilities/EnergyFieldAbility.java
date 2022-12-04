@@ -28,7 +28,7 @@ public class EnergyFieldAbility extends Ability{
     public float x, y;
     public boolean targetGround = true, targetAir = true, hitBuildings = true, hitUnits = true;
     public int maxTargets = 25;
-    public float healPercent = 2.5f;
+    public float healPercent = 3f;
 
     public float layer = Layer.bullet - 0.001f, blinkScl = 20f, blinkSize = 0.1f;
     public float effectRadius = 5f, sectorRad = 0.14f, rotateSpeed = 0.5f;
@@ -70,7 +70,7 @@ public class EnergyFieldAbility extends Ability{
 
         for(int i = 0; i < sectors; i++){
             float rot = unit.rotation + i * 360f/sectors - Time.time * rotateSpeed;
-            Lines.swirl(rx, ry, orbRadius + 3f, sectorRad, rot);
+            Lines.arc(rx, ry, orbRadius + 3f, sectorRad, rot);
         }
 
         Lines.stroke(Lines.getStroke() * curStroke);
@@ -78,7 +78,7 @@ public class EnergyFieldAbility extends Ability{
         if(curStroke > 0){
             for(int i = 0; i < sectors; i++){
                 float rot = unit.rotation + i * 360f/sectors + Time.time * rotateSpeed;
-                Lines.swirl(rx, ry, range, sectorRad, rot);
+                Lines.arc(rx, ry, range, sectorRad, rot);
             }
         }
 
@@ -101,7 +101,7 @@ public class EnergyFieldAbility extends Ability{
 
             if(hitUnits){
                 Units.nearby(null, rx, ry, range, other -> {
-                    if(other != unit && (other.isFlying() ? targetAir : targetGround)){
+                    if(other != unit && other.checkTarget(targetAir, targetGround) && other.targetable(unit.team) && (other.team != unit.team || other.damaged())){
                         all.add(other);
                     }
                 });
@@ -109,7 +109,7 @@ public class EnergyFieldAbility extends Ability{
 
             if(hitBuildings && targetGround){
                 Units.nearbyBuildings(rx, ry, range, b -> {
-                    if(b.team != Team.derelict || state.rules.coreCapture){
+                    if((b.team != Team.derelict || state.rules.coreCapture) && (b.team != unit.team || b.damaged())){
                         all.add(b);
                     }
                 });
@@ -135,7 +135,7 @@ public class EnergyFieldAbility extends Ability{
                         hitEffect.at(rx, ry, unit.angleTo(other), color);
 
                         if(other instanceof Building b){
-                            Fx.healBlockFull.at(b.x, b.y, b.block.size, color);
+                            Fx.healBlockFull.at(b.x, b.y, 0f, color, b.block);
                         }
                     }
                 }else{

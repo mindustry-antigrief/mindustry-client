@@ -9,8 +9,6 @@ Install `mindustry-antigrief/client-installer` through the mod browser in the va
 
 ## [Changelog](./core/assets/changelog)
 ## [Development/Unstable Builds](../../../mindustry-client-v7-builds)
-### Running The Jar On Mac
-For whatever reason, MacOS refuses to be normal. Running the jar is slightly harder, open terminal and type `java -XstartOnFirstThread -jar <jar>` where `<jar>` is the path to the jar file (just click and drag the file in).
 ## Steam
 ### Windows
 There are 3 methods to install the client on steam for windows.

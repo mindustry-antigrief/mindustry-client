@@ -1,24 +1,28 @@
 package mindustry.client.navigation
 
 import arc.*
-import arc.util.*
+import arc.struct.Sort
 import mindustry.game.EventType.*
 import java.util.concurrent.*
 import java.util.function.*
 
 object clientThread {
-    private var thread: ExecutorService? = null
+    private var thread: ThreadPoolExecutor? = null
+    val sortingInstance: Sort = Sort()
+
+    @JvmStatic
+    fun queue() = thread?.queue
 
     init {
         Events.on(WorldLoadEvent::class.java) { start() }
-        Events.on(ResetEvent::class.java) { stop() }
+//        Events.on(ResetEvent::class.java) { stop() } FINISHME: Breaks navigation obstacles
         start()
     }
 
     /** Starts or restarts the thread. */
     private fun start() {
         stop()
-        thread = Executors.newSingleThreadExecutor { r ->
+        thread = ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, LinkedBlockingQueue()) { r ->
             Thread(r, "Client Thread").apply { isDaemon = true }
         }
     }
@@ -35,6 +39,6 @@ object clientThread {
     @JvmStatic
     fun <T> submit(task: Supplier<T>): CompletableFuture<T> = if (thread != null) CompletableFuture.supplyAsync(task, thread) else CompletableFuture()
 
-    @JvmStatic @Nullable
+    @JvmStatic
     fun get() = thread
 }

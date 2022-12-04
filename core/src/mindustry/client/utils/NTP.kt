@@ -1,7 +1,7 @@
 package mindustry.client.utils
 
+import arc.*
 import arc.util.*
-import arc.util.async.*
 import org.apache.commons.net.ntp.*
 import java.net.*
 import java.time.*
@@ -29,7 +29,7 @@ class NTP {
                             Clock.offset(
                                 baseClock,
                                 Duration.between(baseClock.instant(), time)
-                                    .apply { Log.debug("Fetched time from NTP (clock was ${toMillis()} ms off)") })
+                                    .apply { if (Core.settings.getBool("logntp")) Log.debug("Fetched time from NTP (clock was ${toMillis()} ms off)") })
                         )
                     } catch (e: SocketTimeoutException) {
                         Log.debug("NTP Timed out")

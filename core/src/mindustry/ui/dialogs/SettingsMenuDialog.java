@@ -5,11 +5,13 @@ import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.Texture.*;
+import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.event.*;
+import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
@@ -19,6 +21,8 @@ import arc.util.io.*;
 import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.ui.*;
+import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
 import mindustry.core.*;
@@ -33,6 +37,7 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.storage.*;
 
 import java.io.*;
 import java.util.zip.*;
@@ -42,13 +47,12 @@ import static mindustry.Vars.*;
 import static mindustry.client.ClientVars.*;
 
 public class SettingsMenuDialog extends BaseDialog{
-    /** Mods break if these are changed to BetterSettingsTable so instead we cast them into different vars and just use those. */
     public SettingsTable graphics, sound, game, main, client, moderation;
 
     private Table prefs;
     private Table menu;
     private BaseDialog dataDialog;
-    private boolean wasPaused;
+    private Seq<SettingsCategory> categories = new Seq<>();
 
     public SettingsMenuDialog(){
         super(bundle.get("settings", "Settings"));
@@ -57,7 +61,9 @@ public class SettingsMenuDialog extends BaseDialog{
         cont.add(main = new SettingsTable());
         shouldPause = true;
 
-        hidden(() -> ConstructBlock.updateWarnBlocks()); // FINISHME: Horrible
+        // This is going to break isnt it?
+//        hidden(() -> updateSettings()); // FINISHME: Horrible
+        hidden(ConstructBlock::updateWarnBlocks); // FINISHME: Horrible
 
         shown(() -> {
             back();
@@ -79,7 +85,6 @@ public class SettingsMenuDialog extends BaseDialog{
 
         menu = new Table(Tex.button);
 
-        // Casting avoids mod problems, no clue how or why
         game = new SettingsTable();
         graphics = new SettingsTable();
         sound = new SettingsTable();
@@ -100,7 +105,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         dataDialog.cont.table(Tex.button, t -> {
             t.defaults().size(280f, 60f).left();
-            TextButtonStyle style = Styles.cleart;
+            TextButtonStyle style = Styles.flatt;
 
             t.button("@settings.cleardata", Icon.trash, style, () -> ui.showConfirm("@confirm", "@settings.clearall.confirm", () -> {
                 ObjectMap<String, Object> map = new ObjectMap<>();
@@ -122,7 +127,7 @@ public class SettingsMenuDialog extends BaseDialog{
             t.row();
 
             t.button("@settings.clearsaves", Icon.trash, style, () -> {
-                ui.showConfirm("@confirm", "@settings.clearsaves.confirm", () -> control.saves.deleteAll());
+                ui.showConfirm("@confirm", "@settings.clearsaves.confirm", control.saves::deleteAll);
             }).marginLeft(4);
 
             t.row();
@@ -237,13 +242,21 @@ public class SettingsMenuDialog extends BaseDialog{
 
         row();
         ScrollPane pane = pane(prefs).grow().top().get();
-        pane.setFadeScrollBars(true); // TODO: needed in v7?
+        pane.setFadeScrollBars(true);
         pane.setCancelTouchFocus(false);
         row();
         add(buttons).fillX();
 
         addSettings();
     }
+
+    // FIX CURSED MENU SCREEN
+//    public void updateSettings(){
+//        ConstructBlock.updateWarnBlocks();
+//        if(Vars.ui.menufrag.renderer.cursednessLevel != CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1))){
+//            Vars.ui.menufrag.renderer.updateCursedness();
+//        }
+//    }
 
     String getLogs(){
         Fi log = settings.getDataDirectory().child("last_log.txt");
@@ -260,35 +273,59 @@ public class SettingsMenuDialog extends BaseDialog{
         return out.toString();
     }
 
+    /** Adds a custom settings category, with the icon being the specified region. */
+    public void addCategory(String name, @Nullable String region, Cons<SettingsTable> builder){
+        categories.add(new SettingsCategory(name, region == null ? null : new TextureRegionDrawable(atlas.find(region)), builder));
+    }
+
+    /** Adds a custom settings category, for use in mods. The specified consumer should add all relevant mod settings to the table. */
+    public void addCategory(String name, @Nullable Drawable icon, Cons<SettingsTable> builder){
+        categories.add(new SettingsCategory(name, icon, builder));
+    }
+
+    /** Adds a custom settings category, for use in mods. The specified consumer should add all relevant mod settings to the table. */
+    public void addCategory(String name, Cons<SettingsTable> builder){
+        addCategory(name, (Drawable)null, builder);
+    }
+    public Seq<SettingsCategory> getCategories(){
+        return categories;
+    }
+
     void rebuildMenu(){
         menu.clearChildren();
 
-        TextButtonStyle style = Styles.cleart;
+        TextButtonStyle style = Styles.flatt;
+
+        float marg = 8f, isize = iconMed;
 
         menu.defaults().size(300f, 60f);
-        menu.button("@settings.game", style, () -> visible(0));
-        menu.row();
-        menu.button("@settings.graphics", style, () -> visible(1));
-        menu.row();
-        menu.button("@settings.sound", style, () -> visible(2));
-        menu.row();
-        menu.button("@settings.client", style, () -> visible(3));
-        menu.row();
-        menu.button("@settings.language", style, ui.language::show);
+        menu.button("@settings.game", Icon.settings, style, isize, () -> visible(0)).marginLeft(marg).row();
+        menu.button("@settings.graphics", Icon.image, style, isize, () -> visible(1)).marginLeft(marg).row();
+        menu.button("@settings.sound", Icon.filters, style, isize, () -> visible(2)).marginLeft(marg).row();
+        menu.button("@settings.client", Icon.wrench, style, isize, () -> visible(3)).marginLeft(marg).row();
+        menu.button("@settings.language", Icon.chat, style, isize, ui.language::show).marginLeft(marg).row();
         if(!mobile || Core.settings.getBool("keyboard")){
-            menu.row();
-            menu.button("@settings.controls", style, ui.controls::show);
+            menu.button("@settings.controls", Icon.move, style, isize, ui.controls::show).marginLeft(marg).row();
         }
 
-        menu.row();
-        menu.button("@settings.data", style, () -> dataDialog.show());
+        menu.button("@settings.data", Icon.save, style, isize, () -> dataDialog.show()).marginLeft(marg).row();
+
+        int i = 5;
+        for(var cat : categories){
+            int index = i;
+            if(cat.icon == null){
+                menu.button(cat.name, style, () -> visible(index)).marginLeft(marg).row();
+            }else{
+                menu.button(cat.name, cat.icon, style, isize, () -> visible(index)).with(b -> ((Image)b.getChildren().get(1)).setScaling(Scaling.fit)).marginLeft(marg).row();
+            }
+            i++;
+        }
     }
 
     void addSettings(){
-        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> i + "%");
-
+        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> { Musics.load(); return i + "%"; });
+        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> { Sounds.load(); return i + "%"; });
+        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> { Sounds.load(); return i + "%"; });
 
         // Client Settings, organized exactly the same as Bundle.properties: text first, sliders second, checked boxes third, unchecked boxes last
         client.category("antigrief");
@@ -299,9 +336,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("slagwarningdistance", 10, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
         client.sliderPref("slagsounddistance", 5, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
-        client.checkPref("powersplitwarnings", true); // TODO: Add a minimum building requirement and a setting for it
+        client.checkPref("powersplitwarnings", true); // FINISHME: Add a minimum building requirement and a setting for it
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
-        client.checkPref("commandwarnings", true);
         client.checkPref("removecorenukes", false);
 
         client.category("chat");
@@ -309,25 +345,33 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("logmsgstoconsole", true);
         client.checkPref("enabletranslation", true, b -> enableTranslation = b);
         client.checkPref("clientjoinleave", true);
-        client.checkPref("signmessages", true);
         client.checkPref("highlightcryptomsg", true);
         client.checkPref("highlightclientmsg", false);
+        client.checkPref("showclientmsgsendername", true);
         client.checkPref("displayasuser", true);
-        client.checkPref("broadcastcoreattack", false); // TODO: Multiple people using this setting at once will cause chat spam
+        client.checkPref("broadcastcoreattack", false); // FINISHME: Multiple people using this setting at once will cause chat spam
         client.checkPref("showuserid", false);
+        client.checkPref("hideserversbydefault", false); // Inverts behavior of server hiding
+        client.checkPref("enablechatlimit", false);
 
         client.category("controls");
         client.checkPref("blockreplace", true);
         client.checkPref("instantturn", true);
         client.checkPref("autoboost", false);
         client.checkPref("assumeunstrict", false);
+        client.checkPref("returnonmove", false);
+        client.checkPref("vanillamovement", false);
+        client.checkPref("nostrafepenalty", false);
+        client.checkPref("decreasedrift", false);
+        client.checkPref("zerodrift", false);
+        client.checkPref("fastrespawn", false);
 
         client.category("graphics");
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
-        client.sliderPref("firescl", 50, 0, 150, 5, s -> s + "%");
+        client.sliderPref("beamdrillopacity", 100, 0, 100, 1, s -> s + "%");
         client.sliderPref("junctionview", 0, -1, 1, 1, s -> { Junction.setBaseOffset(s); return s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show"; });
-        client.sliderPref("spawntime", 5, -1, 60, s -> { ClientVars.spawnTime = 60 * s; Vars.pathfinder.start(); return s == -1 ? "Solid Line" : s == 0 ? "Disabled" : String.valueOf(s); });
+        client.sliderPref("spawntime", 5, -1, 60, s -> { ClientVars.spawnTime = 60 * s; if (Vars.pathfinder.thread == null) Vars.pathfinder.start(); return s == -1 ? "Solid Line" : s == 0 ? "Disabled" : String.valueOf(s); });
         client.sliderPref("traveltime", 10, 0, 60, s -> { ClientVars.travelTime = 60f / s; return s == 0 ? "Disabled" : String.valueOf(s); });
         client.sliderPref("formationopacity", 30, 10, 100, 5, s -> { UnitType.formationAlpha = s / 100f; return s + "%"; });
         client.sliderPref("hitboxopacity", 0, 0, 100, 5, s -> { UnitType.hitboxAlpha = s / 100f; return s == 0 ? "Disabled" : s + "%"; });
@@ -335,22 +379,40 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("lighting", true);
         client.checkPref("disablemonofont", true); // Requires Restart
         client.checkPref("placementfragmentsearch", true);
+        client.checkPref("junctionflowratedirection", false, s -> Junction.flowRateByDirection = s);
         client.checkPref("drawwrecks", true);
         client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
+        client.checkPref("drawdisplayborder", false);
         client.checkPref("drawpath", true);
-        client.checkPref("unitranges", false);
+        client.checkPref("tracelogicunits", false);
+        client.checkPref("enemyunitranges", false);
+        client.checkPref("allyunitranges", false);
+        client.checkPref("graphdisplay", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
-
+        client.checkPref("allowinvturrets", true);
+        client.checkPref("showtoasts", true);
+        client.checkPref("unloaderview", false, i -> Unloader.drawUnloaderItems = i);
+        client.checkPref("customnullunloader", false, i -> Unloader.customNullLoader = i);
+        client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
+        client.checkPref("logiclinkorder", false);
+    
         client.category("misc");
         client.updatePref();
-        client.sliderPref("minepathcap", 0, 0, 5000, 100, s -> s == 0 ? "Unlimited" : String.valueOf(s));
+        client.sliderPref("minepathcap", 5000, -100, 5000, 100, s -> s == 0 ? "Unlimited" : s == -100 ? "Never" : String.valueOf(s));
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
+        client.sliderPref("processorstatementscale", 80, 10, 100, 1, s -> String.format("%.2fx", s/100f)); // This is the most scuffed setting you have ever seen
+        client.sliderPref("automapvote", 0, 0, 4, s -> s == 0 ? "Never" : s == 4 ? "Random vote" : "Always " + new String[]{"downvote", "novote", "upvote"}[--s]);
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
+        client.textPref("defaultminepathargs", "all");
+        client.textPref("gamejointext", "");
+        client.textPref("gamewintext", "gg");
+        client.textPref("gamelosetext", "gg");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
+        client.checkPref("typingindicator", true, i -> control.input.showTypingIndicator = i);
         client.checkPref("pathnav", true);
         client.checkPref("nyduspadpatch", true);
         client.checkPref("hidebannedblocks", false);
@@ -359,6 +421,33 @@ public class SettingsMenuDialog extends BaseDialog{
         if (steam) client.checkPref("unlockallachievements", false, i -> { for (var a : Achievement.all) a.complete(); Core.settings.remove("unlockallachievements"); });
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
+        client.checkPref("autorestart", true);
+        client.checkPref("attemwarfare", false);
+        client.checkPref("onjoinfixcode", true);
+        client.checkPref("removeatteminsteadoffixing", true);
+        client.checkPref("downloadmusic", true);
+        client.checkPref("downloadsound", true);
+        client.checkPref("circleassist", false);
+        client.checkPref("ignoremodminversion", false);
+        client.checkPref("betterenemyblocktapping", false);
+    
+        if (settings.getBool("client-experimentals")) { // FINISHME: Either remove this or make it properly functional
+            client.category("Experimental");
+            // Seer: Client side multiplayer griefing/cheating detections
+            client.checkPref("seer-enabled", false); // by default false because still new
+            client.checkPref("seer-autokick", false); // by default false to avoid false positives
+            client.sliderPref("seer-warnthreshold", 10, 0, 50, String::valueOf);
+            client.sliderPref("seer-autokickthreshold", 20, 0, 50, String::valueOf);
+            client.sliderPref("seer-scoredecayinterval", 1, 0, 10, i -> String.valueOf(i * 30) + "s");
+            client.sliderPref("seer-scoredecay", 5, 0, 20, String::valueOf);
+            client.sliderPref("seer-reactorscore", 8, 0, 10, String::valueOf);
+            client.sliderPref("seer-reactordistance", 5, 0, 20, String::valueOf);
+            client.sliderPref("seer-configscore", 3, 0, 50, i -> String.valueOf(i / 5f)); // 0.60
+            client.sliderPref("seer-configdistance", 20, 0, 100, String::valueOf);
+            client.sliderPref("seer-proclinkthreshold", 20, 0, 80, String::valueOf);
+            client.sliderPref("seer-proclinkscore", 10, 0, 50, String::valueOf);
+            client.checkPref("trackcoreitems", false, i -> CoreItemsDisplay.trackItems = i && !net.server());
+        }
         // End Client Settings
 
 
@@ -402,6 +491,7 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         game.checkPref("doubletapmine", false);
+        game.checkPref("commandmodehold", true);
 
         if(!ios){
             game.checkPref("modcrashdisable", true);
@@ -416,15 +506,23 @@ public class SettingsMenuDialog extends BaseDialog{
             game.checkPref("publichost", false, i -> platform.updateLobby());
         }
 
+        if(!mobile){
+            game.checkPref("console", false);
+        }
+
         int[] lastUiScale = {settings.getInt("uiscale", 100)};
 
-        graphics.sliderPref("uiscale", 100, 25, 300, 25, s -> {
+        graphics.sliderPref("uiscale", 100, 25, 300, 5, s -> {
             //if the user changed their UI scale, but then put it back, don't consider it 'changed'
             Core.settings.put("uiscalechanged", s != lastUiScale[0]);
             return s + "%";
         });
 
         graphics.sliderPref("screenshake", 4, 0, 8, i -> (i / 4f) + "x");
+
+        graphics.sliderPref("bloomintensity", 6, 0, 16, i -> (int)(i/4f * 100f) + "%");
+        graphics.sliderPref("bloomblur", 2, 1, 16, i -> i + "x");
+
         graphics.sliderPref("fpscap", 240, 10, 245, 5, s -> (s > 240 ? Core.bundle.get("setting.fpscap.none") : Core.bundle.format("setting.fpscap.text", s)));
         graphics.sliderPref("chatopacity", 100, 0, 100, 5, s -> s + "%");
         graphics.sliderPref("lasersopacity", 100, 0, 100, 5, s -> {
@@ -445,7 +543,7 @@ public class SettingsMenuDialog extends BaseDialog{
                 }
 
                 if(b){
-                    Core.graphics.setFullscreenMode(Core.graphics.getDisplayMode());
+                    Core.graphics.setFullscreen();
                 }else{
                     Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
                 }
@@ -463,7 +561,7 @@ public class SettingsMenuDialog extends BaseDialog{
             Core.graphics.setVSync(Core.settings.getBool("vsync"));
 
             if(Core.settings.getBool("fullscreen")){
-                Core.app.post(() -> Core.graphics.setFullscreenMode(Core.graphics.getDisplayMode()));
+                Core.app.post(() -> Core.graphics.setFullscreen());
             }
 
             if(Core.settings.getBool("borderlesswindow")){
@@ -510,26 +608,40 @@ public class SettingsMenuDialog extends BaseDialog{
             }
         });
 
+        Cons2<Boolean, Boolean> setFilters = (setNonText, setText) -> {
+            ObjectSet<Texture> atlas = new ObjectSet<>(Core.atlas.getTextures());
+            final boolean lText = Core.settings.getBool("lineartext");
+            var fontFilter = Fonts.getTextFilter(lText);
+            for(Font f: new Font[]{Fonts.def, Fonts.outline, Fonts.mono(), Fonts.monoOutline()}){
+                f.getRegions().each(t -> {
+                    if(setText) {
+                        t.texture.setFilter(fontFilter);
+                    }
+                    atlas.remove(t.texture);
+                });
+            }
+            if(setNonText){
+                final var filter = Core.settings.getBool("linear") ? TextureFilter.linear : TextureFilter.nearest;
+                atlas.each(t -> t.setFilter(filter));
+            }
+        };
         //iOS (and possibly Android) devices do not support linear filtering well, so disable it
         if(!ios){
             graphics.checkPref("linear", !mobile, b -> {
-                for(Texture tex : Core.atlas.getTextures()){
-                    TextureFilter filter = b ? TextureFilter.linear : TextureFilter.nearest;
-                    tex.setFilter(filter, filter);
-                }
+                setFilters.get(true, false);
+            });
+            graphics.checkPref("lineartext", Core.settings.getBool("linear"), b -> {
+                setFilters.get(false, true);
             });
         }else{
             settings.put("linear", false);
+            settings.put("lineartext", false);
         }
 
-        if(Core.settings.getBool("linear")){
-            for(Texture tex : Core.atlas.getTextures()){
-                TextureFilter filter = TextureFilter.linear;
-                tex.setFilter(filter, filter);
-            }
-        }
+        setFilters.get(true, true);
 
         graphics.checkPref("skipcoreanimation", false);
+        graphics.checkPref("hidedisplays", false);
 
         if(!mobile){
             Core.settings.put("swapdiagonal", false);
@@ -547,7 +659,6 @@ public class SettingsMenuDialog extends BaseDialog{
         files.add(Core.settings.getSettingsFile());
         files.addAll(customMapDirectory.list());
         files.addAll(saveDirectory.list());
-        files.addAll(screenshotDirectory.list());
         files.addAll(modDirectory.list());
         files.addAll(schematicDirectory.list());
         String base = Core.settings.getDataDirectory().path();
@@ -576,9 +687,7 @@ public class SettingsMenuDialog extends BaseDialog{
     }
 
     public void importData(Fi file){
-        Fi dest = Core.files.local("zipdata.zip");
-        file.copyTo(dest);
-        Fi zipped = new ZipFi(dest);
+        Fi zipped = new ZipFi(file);
 
         Fi base = Core.settings.getDataDirectory();
         if(!zipped.child("settings.bin").exists()){
@@ -592,7 +701,7 @@ public class SettingsMenuDialog extends BaseDialog{
         tmpDirectory.deleteDirectory();
 
         zipped.walk(f -> f.copyTo(base.child(f.path())));
-        dest.delete();
+        
 
         //clear old data
         settings.clear();
@@ -608,7 +717,11 @@ public class SettingsMenuDialog extends BaseDialog{
 
     public void visible(int index){
         prefs.clearChildren();
-        prefs.add(new Table[]{game, graphics, sound, client, moderation}[index]);
+
+        Seq<Table> tables = Seq.with(game, graphics, sound, client, moderation);
+        categories.each(c -> tables.add(c.table));
+
+        prefs.add(tables.get(index));
     }
 
     @Override
@@ -636,11 +749,32 @@ public class SettingsMenuDialog extends BaseDialog{
         String get(int i);
     }
 
+    public static class SettingsCategory{
+        public String name;
+        public @Nullable Drawable icon;
+        public Cons<SettingsTable> builder;
+        public SettingsTable table;
+
+        public SettingsCategory(String name, Drawable icon, Cons<SettingsTable> builder){
+            this.name = name;
+            this.icon = icon;
+            this.builder = builder;
+
+            table = new SettingsTable();
+            builder.get(table);
+        }
+    }
+
     public static class SettingsTable extends Table{
         protected Seq<Setting> list = new Seq<>();
+        private static Seq<Setting> listSorted = new Seq<>();
+        private String search = "";
+        private Table searchBarTable;
+        private TextField searchBar;
 
         public SettingsTable(){
             left();
+            makeSearchBar();
         }
 
         public Seq<Setting> getSettings(){
@@ -650,6 +784,17 @@ public class SettingsMenuDialog extends BaseDialog{
         public void pref(Setting setting){
             list.add(setting);
             rebuild();
+        }
+
+        private void makeSearchBar(){
+            searchBarTable = table(s -> {
+                s.left();
+                s.image(Icon.zoom);
+                searchBar = s.field(search, res -> {
+                    search = res;
+                    rebuild();
+                }).growX().get();
+            }).get();
         }
 
         public SliderSetting sliderPref(String name, int def, int min, int max, StringProcessor s){
@@ -701,19 +846,48 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         public void rebuild(){
+            boolean hasFocus = searchBar.hasKeyboard();
             clearChildren();
+            // TODO inefficient. And rebuild() is also called every. single. setting.
+            add(searchBarTable).fillX().padBottom(4);
+            row();
 
-            for(Setting setting : list){
-                setting.add(this);
+            if(search.trim().isEmpty()){
+                for(Setting setting : list){
+                    setting.add(this);
+                }
+            }else{
+                listSorted.selectFrom(list, s -> !(s instanceof Category));
+                var searchLower = search.toLowerCase();
+                var searchSplit = ObjectSet.with(searchLower.split(" "));
+                listSorted.sort(Structs.comparingFloat(u -> { // FINISHME: Maybe if distance == length, do not include? But troublesome
+                    var title = u.title == null ? "" : Strings.stripColors(u.title).toLowerCase();
+//                    var desc = u.description == null ? "" : Strings.stripColors(u.description).toLowerCase();
+                    var weight = title.isEmpty() /*&& desc.isEmpty()*/ ? Float.POSITIVE_INFINITY : 0f;
+
+                    if (!title.isEmpty()) weight += BiasedLevenshtein.biasedLevenshteinLengthIndependent(searchLower, title) / (Structs.count(title.split(" "), searchSplit::contains) + 1);
+//                    Line below doesn't work great since a lot of the settings don't have descriptions
+//                    if (!desc.isEmpty()) weight += .5f * BiasedLevenshtein.biasedLevenshteinLengthIndependent(searchLower, desc) / (Structs.count(desc.split(" "), searchSplit::contains) + 1);
+
+                    return weight;
+                }));
+
+                for(Setting setting : listSorted){
+                    setting.add(this);
+                }
             }
 
             button(bundle.get("settings.reset", "Reset to Defaults"), () -> {
                 for(Setting setting : list){
                     if(setting.name == null || setting.title == null) continue;
-                    settings.put(setting.name, settings.getDefault(setting.name));
+                    settings.remove(setting.name);
                 }
                 rebuild();
             }).margin(14).width(240f).pad(6);
+
+            if(hasFocus){
+                searchBar.requestKeyboard();
+            }
         }
 
         public abstract static class Setting{
@@ -724,7 +898,7 @@ public class SettingsMenuDialog extends BaseDialog{
             public Setting(String name){
                 this.name = name;
                 String winkey = "setting." + name + ".name.windows";
-                title = OS.isWindows && bundle.has(winkey) ? bundle.get(winkey) : bundle.get("setting." + name + ".name");
+                title = OS.isWindows && bundle.has(winkey) ? bundle.get(winkey) : bundle.get("setting." + name + ".name", name);
                 description = bundle.getOrNull("setting." + name + ".description");
             }
 
@@ -817,7 +991,7 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         /** Add a section/subcategory. */
-        public void category(String name){
+        public void category(String name){ // FINISHME: Rename this to header or something, it doesn't do the same thing as SettingsCategory
             pref(new Category(name));
         }
 
@@ -838,7 +1012,7 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         private void updatePref(){
-            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client-v7-builds");
+            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client");
             if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
             pref(new Setting("updateurl") {
                 boolean urlChanged;
@@ -849,7 +1023,7 @@ public class SettingsMenuDialog extends BaseDialog{
                     title = bundle.get("setting." + name + ".name");
 
                     table.table(t -> {
-                        t.button(Icon.refresh, Styles.settingtogglei, 32, () -> {
+                        t.button(Icon.refresh, Styles.settingTogglei, 32, () -> {
                             ui.loadfrag.show();
                             becontrol.checkUpdate(result -> {
                                 ui.loadfrag.hide();

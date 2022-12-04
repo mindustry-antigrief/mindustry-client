@@ -5,15 +5,7 @@ let modName = "none"
 
 const log = (context, obj) => Vars.mods.scripts.log(context, String(obj))
 const print = text => log(modName + "/" + scriptName, text)
-const readString = path => Vars.mods.scripts.readString(path)
-const readBytes = path => Vars.mods.scripts.readBytes(path)
-const loadMusic = path => Vars.mods.scripts.loadMusic(path)
-const loadSound = path => Vars.mods.scripts.loadSound(path)
 
-const readFile = (purpose, ext, cons) => Vars.mods.scripts.readFile(purpose, ext, cons);
-const readBinFile = (purpose, ext, cons) => Vars.mods.scripts.readBinFile(purpose, ext, cons);
-const writeFile = (purpose, ext, str) => Vars.mods.scripts.writeFile(purpose, ext, str);
-const writeBinFile = (purpose, ext, bytes) => Vars.mods.scripts.writeBinFile(purpose, ext, bytes);
 const newFloats = cap => Vars.mods.getScripts().newFloats(cap);
 
 //these are not strictly necessary, but are kept for edge cases
@@ -26,7 +18,8 @@ const cons = method => new Cons(){get: method}
 const prov = method => new Prov(){get: method}
 const func = method => new Func(){get: method}
 
-const newEffect = (lifetime, renderer) => new Effect.Effect(lifetime, new Effect.EffectRenderer({render: renderer}))
+const msg = text => Vars.ui.chatfrag.addMessage(text)
+
 Call = Packages.mindustry.gen.Call
 
 //js 'extend(Base, ..., {})' = java 'new Base(...) {}'
@@ -47,5 +40,22 @@ function extend(/*Base, ..., def*/){
     return instance
 }
 
-//For backwards compatibility, use extend instead
-const extendContent = extend;
+//Below utility functions by BalaM314
+
+function makeUnit(unit, x, y, team){
+    if(team == undefined) team = Team.sharded;
+    let payload = new UnitPayload(unit.create(team));
+    payload.set(x * 8, y * 8, 0);
+    payload.dump();
+}
+
+function info(object){
+    return Object.keys(object).toString();
+}
+
+function targetedBuilding(){
+    return Vars.world.build(Vars.player.unit().aimX / 8 + 0.5, Vars.player.unit().aimY / 8 + 0.5);
+}
+
+//more coming soon
+

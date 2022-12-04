@@ -11,10 +11,10 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.noise.*;
+import mindustry.client.ui.CursednessLevel;
 import mindustry.content.*;
 import mindustry.type.*;
 import mindustry.world.*;
-import mindustry.world.blocks.environment.*;
 
 import static mindustry.Vars.*;
 
@@ -28,40 +28,74 @@ public class MenuRenderer implements Disposable{
     private FrameBuffer shadows;
     private CacheBatch batch;
     private float time = 0f;
-    private float flyerRot = 45f;
-    private int flyers = Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
-    private UnitType flyerType = content.units().select(u -> !u.isHidden() && u.hitSize <= 20f && u.flying && u.onTitleScreen && u.region.found()).random();
+    
+    
+    public float flyerRot = 45f;
+    public float flyerSpin = 0f;
+    public int numFlyers;
+    public int numBlockFlyers;
+    public float blockFlyerSpeed;
+    public Block blockFlyerType;
+    public CursednessLevel cursednessLevel;
+    public UnitType flyerType;
 
     public MenuRenderer(){
-        Time.mark();
         generate();
         cache();
-        Log.debug("Time to generate menu: @", Time.elapsed());
+        updateCursedness();
+    }
+
+    public void updateCursedness(){
+        cursednessLevel = Core.settings == null ?
+            CursednessLevel.NORMAL :
+            CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1));
+        numFlyers = switch(cursednessLevel){
+            case NORMAL, UHH -> Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
+            case OHNO, CURSED -> Mathf.random(35, 70);
+            case WWWHHHHHYYYY -> Mathf.random(100, 110);
+        };
+        numBlockFlyers = switch(cursednessLevel){
+            case NORMAL, UHH, OHNO -> 0;
+            case CURSED -> Mathf.random(5, 10);
+            case WWWHHHHHYYYY -> Mathf.random(20, 25);
+        };
+        flyerType = switch(cursednessLevel){
+            case NORMAL -> Seq.with(UnitTypes.flare, UnitTypes.horizon, UnitTypes.zenith, UnitTypes.mono, UnitTypes.poly, UnitTypes.mega, UnitTypes.alpha, UnitTypes.beta, UnitTypes.gamma).random();
+            case UHH, OHNO, CURSED -> content.units().select(u -> u.region != null && u.region.found()).random();
+            case WWWHHHHHYYYY -> content.units().select(u -> !u.flying && u.region != null && u.region.found()).random();
+        };
+        blockFlyerType = content.blocks().select(u -> u.region != null && u.region.found() && u.isPlaceable()).random();
+        blockFlyerSpeed = 2f;
     }
 
     private void generate(){
-        world.beginMapLoad();
+        //suppress tile change events.
+        world.setGenerating(true);
+
         Tiles tiles = world.resize(width, height);
-        Seq<Block> ores = content.blocks().select(b -> b instanceof OreBlock && !(b instanceof WallOreBlock));
+        //only uses base game ores now, mod ones usually contrast too much with the floor
+        Seq<Block> ores = Seq.with(Blocks.oreCopper, Blocks.oreLead, Blocks.oreScrap, Blocks.oreCoal, Blocks.oreTitanium, Blocks.oreThorium);
         shadows = new FrameBuffer(width, height);
         int offset = Mathf.random(100000);
         int s1 = offset, s2 = offset + 1, s3 = offset + 2;
-        Block[] selected = Structs.select(
-            new Block[]{Blocks.sand, Blocks.sandWall},
-            new Block[]{Blocks.shale, Blocks.shaleWall},
-            new Block[]{Blocks.ice, Blocks.iceWall},
-            new Block[]{Blocks.sand, Blocks.sandWall},
-            new Block[]{Blocks.shale, Blocks.shaleWall},
-            new Block[]{Blocks.ice, Blocks.iceWall},
-            new Block[]{Blocks.moss, Blocks.sporePine}
+        Block[] selected = Structs.random(
+        new Block[]{Blocks.sand, Blocks.sandWall},
+        new Block[]{Blocks.shale, Blocks.shaleWall},
+        new Block[]{Blocks.ice, Blocks.iceWall},
+        new Block[]{Blocks.sand, Blocks.sandWall},
+        new Block[]{Blocks.shale, Blocks.shaleWall},
+        new Block[]{Blocks.ice, Blocks.iceWall},
+        new Block[]{Blocks.moss, Blocks.sporePine},
+        new Block[]{Blocks.dirt, Blocks.dirtWall},
+        new Block[]{Blocks.dacite, Blocks.daciteWall}
         );
-        Block[] selected2 = Structs.select(
-            new Block[]{Blocks.basalt, Blocks.duneWall},
-            new Block[]{Blocks.basalt, Blocks.duneWall},
-            new Block[]{Blocks.stone, Blocks.stoneWall},
-            new Block[]{Blocks.stone, Blocks.stoneWall},
-            new Block[]{Blocks.moss, Blocks.sporeWall},
-            new Block[]{Blocks.salt, Blocks.saltWall}
+        Block[] selected2 = Structs.random(
+        new Block[]{Blocks.basalt, Blocks.duneWall},
+        new Block[]{Blocks.basalt, Blocks.duneWall},
+        new Block[]{Blocks.stone, Blocks.stoneWall},
+        new Block[]{Blocks.stone, Blocks.stoneWall},
+        new Block[]{Blocks.moss, Blocks.sporeWall},
+        new Block[]{Blocks.salt, Blocks.saltWall}
         );
 
         Block ore1 = ores.random();
@@ -158,7 +192,8 @@ public class MenuRenderer implements Disposable{
             }
         }
 
-        world.endMapLoad();
+        //don't fire a world load event, it just causes lag and confusion
+        world.setGenerating(false);
     }
 
     private void cache(){
@@ -203,12 +238,19 @@ public class MenuRenderer implements Disposable{
     }
 
     public void render(){
-        if (Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null) flyerType = content.units().select(u -> (u.hitSize >= 20f || !u.flying) && u.region.found()).random();
+        
+        if (Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null) {
+            updateCursedness();
+        }
         time += Time.delta;
         float scaling = Math.max(Scl.scl(4f), Math.max(Core.graphics.getWidth() / ((width - 1f) * tilesize), Core.graphics.getHeight() / ((height - 1f) * tilesize)));
         camera.position.set(width * tilesize / 2f, height * tilesize / 2f);
         camera.resize(Core.graphics.getWidth() / scaling,
         Core.graphics.getHeight() / scaling);
+        
+        if(cursednessLevel.ordinal() >= CursednessLevel.OHNO.ordinal()){ flyerSpin += 1f; }
+        if(cursednessLevel.ordinal() >= CursednessLevel.CURSED.ordinal()){ flyerSpin += 2f; }
+        flyerSpin %= 360f;
 
         mat.set(Draw.proj());
         Draw.flush();
@@ -238,20 +280,41 @@ public class MenuRenderer implements Disposable{
         Draw.color(0f, 0f, 0f, 0.4f);
 
         TextureRegion icon = flyerType.fullIcon;
+        TextureRegion blockIcon = switch(cursednessLevel){
+            case NORMAL, UHH, OHNO, CURSED -> blockFlyerType.fullIcon;
+            case WWWHHHHHYYYY -> blockFlyerType.teamRegion.found() ? blockFlyerType.teamRegion : blockFlyerType.uiIcon;
+        };
 
-        float size = Math.max(icon.width, icon.height) * Draw.scl * 1.6f;
+        float sizeScl = switch(cursednessLevel){
+            case NORMAL, UHH -> Draw.scl * 1.6f;
+            case OHNO -> Draw.scl * 1.8f * (1 + Mathf.cosDeg(time % 360) * 0.1f);
+            case CURSED -> Draw.scl * 2.4f * (1 + Mathf.cosDeg(time % 360) * 0.4f);
+            case WWWHHHHHYYYY -> Draw.scl * 2.4f * Mathf.cosDeg((time % 30) * 2);
+        };
+
+        float blockSizeScl = switch(cursednessLevel){
+            case NORMAL, UHH, OHNO -> Draw.scl * 1.6f;
+            case CURSED -> Draw.scl * 2.4f * (1 + Mathf.cosDeg(time % 360) * 0.4f);
+            case WWWHHHHHYYYY -> Draw.scl * 4.0f * Mathf.cosDeg((time % 30) * 2);
+        };
+
+        float effectiveFlyerSpin = switch(cursednessLevel){
+            case NORMAL -> flyerRot - 90f;
+            default -> flyerSpin;
+        };
 
         flyers((x, y) -> {
-            Draw.rect(icon, x - 12f, y - 13f, flyerRot - 90);
+            Draw.rect(icon, x - 12f, y - 13f, icon.width * sizeScl, icon.height * sizeScl, effectiveFlyerSpin);
         });
 
+
         flyers((x, y) -> {
-            Draw.rect("circle-shadow", x, y, size, size);
+            Draw.rect("circle-shadow", x, y, icon.width * sizeScl, icon.height * sizeScl);
         });
         Draw.color();
 
         flyers((x, y) -> {
-            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = flyerRot;
+            float engineOffset = flyerType.engineOffset, engineSize = flyerType.engineSize, rotation = effectiveFlyerSpin + 90;
 
             Draw.color(Pal.engine);
             Fill.circle(x + Angles.trnsx(rotation + 180, engineOffset), y + Angles.trnsy(rotation + 180, engineOffset),
@@ -262,7 +325,16 @@ public class MenuRenderer implements Disposable{
             (engineSize + Mathf.absin(Time.time, 2f, engineSize / 4f)) / 2f);
             Draw.color();
 
-            Draw.rect(icon, x, y, flyerRot - 90);
+            Draw.rect(icon, x, y, icon.width * sizeScl, icon.height * sizeScl, effectiveFlyerSpin);
+        });
+
+
+        blockFlyers((x, y) -> {
+            // if (cursednessLevel == CursednessLevel.WWWHHHHHYYYY) {
+            //     Draw.rect(blockIcon, x, y, effectiveFlyerSpin, blockIcon.width * blockSizeScl, blockIcon.height * blockSizeScl);
+            // } else {
+                Draw.rect(blockIcon, x, y, blockIcon.width * blockSizeScl, blockIcon.height * blockSizeScl, effectiveFlyerSpin);
+            // }
         });
     }
 
@@ -272,13 +344,29 @@ public class MenuRenderer implements Disposable{
         float range = 500f;
         float offset = -100f;
 
-        for(int i = 0; i < flyers; i++){
+        for(int i = 0; i < numFlyers; i++){
             Tmp.v1.trns(flyerRot, time * (flyerType.speed));
+            float x = (Mathf.randomSeedRange(i, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 5, 0, 500));
+            float y = (Mathf.randomSeedRange(i + 1, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset) % th;
+            float prevRot = flyerRot;
+            cons.get(x, y);
+            flyerRot = prevRot;
+        }
+    }
 
-            cons.get(
-            (Mathf.randomSeedRange(i, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 5, 0, 500)),
-            (Mathf.randomSeedRange(i + 1, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset) % th
-            );
+    private void blockFlyers(Floatc2 cons){
+        float tw = width * tilesize * 1f + tilesize;
+        float th = height * tilesize * 1f + tilesize;
+        float range = 500f;
+        float offset = -100f;
+
+        for(int i = 0; i < numBlockFlyers; i++){
+            Tmp.v1.trns(flyerRot, time * blockFlyerSpeed);
+            float x = (Mathf.randomSeedRange(i + 10, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 12, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 15, 0, 500));
+            float y = (Mathf.randomSeedRange(i + 11, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 13, 500), 10f, 3.4f) + offset) % th;
+            float prevRot = flyerRot;
+            cons.get(x, y);
+            flyerRot = prevRot;
         }
     }
 

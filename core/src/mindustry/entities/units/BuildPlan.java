@@ -2,48 +2,61 @@ package mindustry.entities.units;
 
 import arc.func.*;
 import arc.math.geom.*;
+import arc.struct.*;
+import arc.math.geom.QuadTree.*;
 import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.*;
+import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.power.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.cameraBounds;
 
-/** Class for storing build requests. Can be either a place or remove request. */
-public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObject {
-    /** Position and rotation of this request. */
+/** Class for storing build plans. Can be either a place or remove plan. */
+public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
+    /** Position and rotation of this plan. */
     public int x, y, rotation;
-    /** Block being placed. If null, this is a breaking request.*/
+    /** Block being placed. If null, this is a breaking plan.*/
     public @Nullable Block block;
-    /** Whether this is a break request.*/
+    /** Whether this is a break plan.*/
     public boolean breaking;
-    /** Config int. Not used unless hasConfig is true.*/
+    /** Config int. Not used unless hasConfig is true. */
     public Object config;
+    /** Whether the config is to be sent to the server */
+    public transient boolean configLocal;
     /** Original position, only used in schematics.*/
     public int originalX, originalY, originalWidth, originalHeight;
 
     /** Last progress.*/
     public float progress;
-    /** Whether construction has started for this request, and other special variables.*/
-    public boolean initialized, worldContext = true, stuck;
+    /** Whether construction has started for this plan, and other special variables.*/
+    public boolean initialized, worldContext = true, stuck, cachedValid;
 
-    /** Visual scale. Used only for rendering.*/
+    /** Visual scale. Used only for rendering. */
     public float animScale = 0f;
-    
-    /** Cache */
-    public boolean valid;
+
+    /** Double freeing plans is a bad idea. */
+    public boolean freed;
+
+    /** Whether to always prioritise the plan, regardless of ability to be built.*/
+    public boolean priority = false;
 
     @Override
     public void reset() {
         config = null;
+        configLocal = false;
         progress = 0;
         initialized = false;
         stuck = false;
+        freed = true;
+        priority = false;
     }
 
-    /** This creates a build request. */
+    /** This creates a build plan. */
     public BuildPlan(int x, int y, int rotation, Block block){
         this.x = x;
         this.y = y;
@@ -52,7 +65,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.breaking = false;
     }
 
-    /** This creates a build request with a config. */
+    /** This creates a build plan with a config. */
     public BuildPlan(int x, int y, int rotation, Block block, Object config){
         this.x = x;
         this.y = y;
@@ -62,7 +75,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.config = config;
     }
 
-    /** This creates a remove request. */
+    /** This creates a remove plan. */
     public BuildPlan(int x, int y){
         this.x = x;
         this.y = y;
@@ -91,13 +104,13 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
 
     /** Transforms the internal position of this config using the specified function, and return the result. */
     public static Object pointConfig(Block block, Object config, Cons<Point2> cons){
-        if(config instanceof Point2){
-            config = ((Point2)config).cpy();
+        if(config instanceof Point2 point){
+            config = point.cpy();
             cons.get((Point2)config);
-        }else if(config instanceof Point2[]){
-            Point2[] result = new Point2[((Point2[])config).length];
+        }else if(config instanceof Point2[] points){
+            Point2[] result = new Point2[points.length];
             int i = 0;
-            for(Point2 p : (Point2[])config){
+            for(Point2 p : points){
                 result[i] = p.cpy();
                 cons.get(result[i++]);
             }
@@ -126,6 +139,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         copy.progress = progress;
         copy.initialized = initialized;
         copy.animScale = animScale;
+        copy.configLocal = configLocal;
         return copy;
     }
 
@@ -137,20 +151,13 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         return this;
     }
 
-    public Rect bounds(Rect rect){
-        if(breaking){
-            return rect.set(-100f, -100f, 0f, 0f);
-        }else{
-            return block.bounds(x, y, rect);
-        }
-    }
-
     public BuildPlan set(int x, int y, int rotation, Block block){
         this.x = x;
         this.y = y;
         this.rotation = rotation;
         this.block = block;
         this.breaking = false;
+        freed = false;
         return this;
     }
 
@@ -161,6 +168,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.block = block;
         this.breaking = false;
         this.config = config;
+        freed = false;
         return this;
     }
 
@@ -170,6 +178,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         this.rotation = -1;
         this.block = world.tile(x, y).block();
         this.breaking = true;
+        freed = false;
         return this;
     }
 
@@ -189,12 +198,48 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         return world.build(x, y);
     }
 
-    public boolean isDone(){
+    public boolean isDone(){ // FINISHME: Surely most of this is redundant for no reason...
         Tile tile = world.tile(x, y);
+        if(tile == null) return true;
+        Block tblock = tile.block();
         if(breaking){
-            return tile.block() == null || tile.block() == Blocks.air || tile.block() == tile.floor();  // covering all the bases
+            return tblock == null || tblock == Blocks.air || tblock == tile.floor();  // covering all the bases
         }else{
-            return tile.block() == block && (tile.build == null || tile.build.rotation == rotation);
+            return tblock == block && (tile.build == null || tile.build.rotation == rotation);
+        }
+    }
+
+    public boolean isVisible(){
+        final Rect r1 = Tmp.r1;
+        return !worldContext || cameraBounds.overlaps(block.bounds(x, y, r1)) ||
+                (block instanceof ItemBridge b && Tmp.r2.set(cameraBounds).grow(2 * b.range * tilesizeF).overlaps(r1)) ||
+                (block instanceof PowerNode p && Tmp.r2.set(cameraBounds).grow(2 * tilesize * p.laserRange).overlaps(r1));
+    }
+
+    public static void getVisiblePlans(Eachable<BuildPlan> plans, Seq<BuildPlan> output){
+        plans.each(plan -> {
+            if(plan.isVisible()) output.add(plan);
+        });
+    }
+
+    @Override
+    public void hitbox(Rect out){
+        if(block != null){
+            out.setCentered(x * tilesize + block.offset, y * tilesize + block.offset, block.size * tilesize);
+        }else{
+            out.setCentered(x * tilesize, y * tilesize, tilesize);
+        }
+    }
+    
+    public Rect bounds(Rect rect) {
+        return bounds(rect, false);
+    }
+    
+    public Rect bounds(Rect rect, boolean allowBreak){
+        if(breaking && !allowBreak){
+            return rect.set(-100f, -100f, 0f, 0f);
+        }else{
+            return block.bounds(x, y, rect);
         }
     }
 
@@ -220,10 +265,5 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTree.QuadTreeObje
         ", initialized=" + initialized +
         ", config=" + config +
         '}';
-    }
-
-    @Override
-    public void hitbox(Rect out) {
-        bounds(out);
     }
 }

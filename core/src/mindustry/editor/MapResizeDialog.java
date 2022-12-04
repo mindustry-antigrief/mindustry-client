@@ -1,6 +1,5 @@
 package mindustry.editor;
 
-import arc.func.*;
 import arc.math.*;
 import arc.scene.ui.TextField.*;
 import arc.scene.ui.layout.*;
@@ -12,9 +11,9 @@ import static mindustry.Vars.*;
 public class MapResizeDialog extends BaseDialog{
     public static int minSize = 50, maxSize = 2000;
 
-    int width, height;
+    int width, height, shiftX, shiftY;
 
-    public MapResizeDialog(Intc2 cons){
+    public MapResizeDialog(ResizeListener cons){
         super("@editor.resizemap");
 
         closeOnBack();
@@ -36,6 +35,19 @@ public class MapResizeDialog extends BaseDialog{
 
                 table.row();
             }
+
+            for(boolean x : Mathf.booleans){
+                table.add(x ? "@editor.shiftx" : "@editor.shifty").padRight(8f);
+                table.defaults().height(60f).padTop(8);
+
+                table.field((x ? shiftX : shiftY) + "", value -> {
+                    int val = Integer.parseInt(value);
+                    if(x) shiftX = val; else shiftY = val;
+                }).valid(Strings::canParseInt).maxTextLength(4);
+
+                table.row();
+            }
+
             cont.row();
             cont.add(table);
 
@@ -44,8 +56,12 @@ public class MapResizeDialog extends BaseDialog{
         buttons.defaults().size(200f, 50f);
         buttons.button("@cancel", this::hide);
         buttons.button("@ok", () -> {
-            cons.get(width, height);
+            cons.get(width, height, shiftX, shiftY);
             hide();
         });
+    }
+
+    public interface ResizeListener{
+        void get(int width, int height, int shiftX, int shiftY);
     }
 }

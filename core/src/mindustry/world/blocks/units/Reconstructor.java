@@ -3,6 +3,7 @@ package mindustry.world.blocks.units;
 import arc.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
@@ -14,6 +15,7 @@ import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.io.*;
 import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.ui.*;
@@ -30,14 +32,18 @@ public class Reconstructor extends UnitBlock{
 
     public Reconstructor(String name){
         super(name);
+        regionRotated1 = 1;
+        regionRotated2 = 2;
+        commandable = true;
+        ambientSound = Sounds.respawning;
     }
 
     @Override
-    public void drawRequestRegion(BuildPlan req, Eachable<BuildPlan> list){
-        Draw.rect(region, req.drawx(), req.drawy());
-        Draw.rect(inRegion, req.drawx(), req.drawy(), req.rotation * 90);
-        Draw.rect(outRegion, req.drawx(), req.drawy(), req.rotation * 90);
-        Draw.rect(topRegion, req.drawx(), req.drawy());
+    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
+        Draw.rect(region, plan.drawx(), plan.drawy());
+        Draw.rect(inRegion, plan.drawx(), plan.drawy(), plan.rotation * 90);
+        Draw.rect(outRegion, plan.drawx(), plan.drawy(), plan.rotation * 90);
+        Draw.rect(topRegion, plan.drawx(), plan.drawy());
     }
 
     @Override
@@ -49,12 +55,12 @@ public class Reconstructor extends UnitBlock{
     public void setBars(){
         super.setBars();
 
-        bars.add("progress", (ReconstructorBuild e) -> new Bar(
+        addBar("progress", (ReconstructorBuild e) -> new Bar(
             () -> Core.bundle.format("bar.progresstime", UI.formatTime(e.ticksRemaining())),
             () -> Pal.ammo,
             e::fraction
         ));
-        bars.add("units", (ReconstructorBuild e) ->
+        addBar("units", (ReconstructorBuild e) ->
         new Bar(
             () -> e.unit() == null ? "[lightgray]" + Iconc.cancel :
                 Core.bundle.format("bar.unitcap",
@@ -76,15 +82,32 @@ public class Reconstructor extends UnitBlock{
         stats.add(Stat.output, table -> {
             table.row();
             for(var upgrade : upgrades){
-                float size = 8 * 3;
                 if(upgrade[0].unlockedNow() && upgrade[1].unlockedNow()){
-                    table.image(upgrade[0].uiIcon).size(size).padRight(4).padLeft(10).scaling(Scaling.fit).right();
-                    table.add(upgrade[0].localizedName).left();
+                    table.table(Styles.grayPanel, t -> {
+                        t.left();
 
-                    table.add("[lightgray] -> ");
+                        t.image(upgrade[0].uiIcon).size(40).pad(10f).left().scaling(Scaling.fit);
+                        t.table(info -> {
+                            info.add(upgrade[0].localizedName).left();
+                            info.row();
+                        }).pad(10).left();
+                    }).fill().padTop(5).padBottom(5);
 
-                    table.image(upgrade[1].uiIcon).size(size).padRight(4).scaling(Scaling.fit);
-                    table.add(upgrade[1].localizedName).left();
+                    table.table(Styles.grayPanel, t -> {
+
+                        t.image(Icon.right).color(Pal.darkishGray).size(40).pad(10f);
+                    }).fill().padTop(5).padBottom(5);
+
+                    table.table(Styles.grayPanel, t -> {
+                        t.left();
+
+                        t.image(upgrade[1].uiIcon).size(40).pad(10f).right().scaling(Scaling.fit);
+                        t.table(info -> {
+                            info.add(upgrade[1].localizedName).right();
+                            info.row();
+                        }).pad(10).right();
+                    }).fill().padTop(5).padBottom(5);
+
                     table.row();
                 }
             }
@@ -94,12 +117,16 @@ public class Reconstructor extends UnitBlock{
     @Override
     public void init(){
         capacities = new int[Vars.content.items().size];
-        if(consumes.has(ConsumeType.item) && consumes.get(ConsumeType.item) instanceof ConsumeItems){
-            for(ItemStack stack : consumes.<ConsumeItems>get(ConsumeType.item).items){
+
+        ConsumeItems cons = findConsumer(c -> c instanceof ConsumeItems);
+        if(cons != null){
+            for(ItemStack stack : cons.items){
                 capacities[stack.item.id] = Math.max(capacities[stack.item.id], stack.amount * 2);
                 itemCapacity = Math.max(itemCapacity, stack.amount * 2);
             }
         }
+
+        consumeBuilder.each(c -> c.multiplier = b -> state.rules.unitCost(b.team));
 
         super.init();
     }
@@ -109,9 +136,25 @@ public class Reconstructor extends UnitBlock{
     }
 
     public class ReconstructorBuild extends UnitBuild{
+        public @Nullable Vec2 commandPos;
 
         public float fraction(){
             return progress / constructTime;
+        }
+
+        @Override
+        public boolean shouldActiveSound(){
+            return shouldConsume();
+        }
+
+        @Override
+        public Vec2 getCommandPosition(){
+            return commandPos;
+        }
+
+        @Override
+        public void onCommand(Vec2 target){
+            commandPos = target;
         }
 
         public float ticksRemaining(){
@@ -120,7 +163,7 @@ public class Reconstructor extends UnitBlock{
 
         @Override
         public boolean acceptUnitPayload(Unit unit){
-            return hasUpgrade(unit.type);
+            return hasUpgrade(unit.type) && !upgrade(unit.type).isBanned();
         }
 
         @Override
@@ -135,7 +178,7 @@ public class Reconstructor extends UnitBlock{
             var upgrade = upgrade(pay.unit.type);
 
             if(upgrade != null){
-                if(!upgrade.unlockedNowHost()){
+                if(!upgrade.unlockedNowHost() && !team.isAI()){
                     //flash "not researched"
                     pay.showOverlay(Icon.tree);
                 }
@@ -146,7 +189,7 @@ public class Reconstructor extends UnitBlock{
                 }
             }
 
-            return upgrade != null && upgrade.unlockedNowHost() && !upgrade.isBanned();
+            return upgrade != null && (team.isAI() || upgrade.unlockedNowHost()) && !upgrade.isBanned();
         }
 
         @Override
@@ -210,7 +253,7 @@ public class Reconstructor extends UnitBlock{
                     moveOutPayload();
                 }else{ //update progress
                     if(moveInPayload()){
-                        if(consValid()){
+                        if(efficiency > 0){
                             valid = true;
                             progress += edelta() * state.rules.unitBuildSpeed(team);
                         }
@@ -218,6 +261,9 @@ public class Reconstructor extends UnitBlock{
                         //upgrade the unit
                         if(progress >= constructTime){
                             payload.unit = upgrade(payload.unit.type).create(payload.unit.team());
+                            if(commandPos != null && payload.unit.isCommandable()){
+                                payload.unit.command().commandPosition(commandPos);
+                            }
                             progress %= 1f;
                             Effect.shake(2f, 3f, this);
                             Fx.producesmoke.at(this);
@@ -247,7 +293,7 @@ public class Reconstructor extends UnitBlock{
             if(payload == null) return null;
 
             UnitType t = upgrade(payload.unit.type);
-            return t != null && t.unlockedNowHost() ? t : null;
+            return t != null && (t.unlockedNowHost() || team.isAI()) ? t : null;
         }
 
         public boolean constructing(){
@@ -256,7 +302,7 @@ public class Reconstructor extends UnitBlock{
 
         public boolean hasUpgrade(UnitType type){
             UnitType t = upgrade(type);
-            return t != null && t.unlockedNowHost() && !type.isBanned();
+            return t != null && (t.unlockedNowHost() || team.isAI()) && !type.isBanned();
         }
 
         public UnitType upgrade(UnitType type){
@@ -266,7 +312,7 @@ public class Reconstructor extends UnitBlock{
 
         @Override
         public byte version(){
-            return 1;
+            return 2;
         }
 
         @Override
@@ -274,16 +320,20 @@ public class Reconstructor extends UnitBlock{
             super.write(write);
 
             write.f(progress);
+            TypeIO.writeVecNullable(write, commandPos);
         }
 
         @Override
         public void read(Reads read, byte revision){
             super.read(read, revision);
 
-            if(revision == 1){
+            if(revision >= 1){
                 progress = read.f();
             }
 
+            if(revision >= 2){
+                commandPos = TypeIO.readVecNullable(read);
+            }
         }
 
     }

@@ -1,6 +1,7 @@
 package mindustry.client.navigation;
 
 import arc.*;
+import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
@@ -10,11 +11,12 @@ import mindustry.client.antigrief.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
-import mindustry.world.*;
+import mindustry.input.*;
 import mindustry.world.blocks.*;
 
 public class UnAssistPath extends Path {
     public Player target;
+    public boolean follow;
     public Seq<BuildPlan> toUndo = new Seq<>();
 
     static {
@@ -41,8 +43,9 @@ public class UnAssistPath extends Path {
         });
     }
 
-    public UnAssistPath(Player target) {
+    public UnAssistPath(Player target, boolean follow) {
         this.target = target;
+        this.follow = follow;
     }
 
     @Override
@@ -58,13 +61,11 @@ public class UnAssistPath extends Path {
         if (target == null || Vars.player == null) return;
 
         try {
-            if (target.unit().canBuild()) { // FINISHME: What even
+            if (target.unit().canBuild()) {
                 BuildPlan plan = target.unit().buildPlan();
                 if (plan != null) {
                     if (plan.initialized) {
-                        Tile tile = Vars.world.tile(plan.x, plan.y);
-                        if (tile.build instanceof ConstructBlock.ConstructBuild) {
-                            ConstructBlock.ConstructBuild build = (ConstructBlock.ConstructBuild) tile.build;
+                        if (plan.tile().build instanceof ConstructBlock.ConstructBuild build) {
                             if (build.current.buildCost > 10) {
                                 if (plan.breaking) {
                                     toUndo.add(new BuildPlan(plan.x, plan.y, build.rotation, build.current, build.lastConfig));
@@ -78,11 +79,18 @@ public class UnAssistPath extends Path {
             }
         } catch(Exception e) { Log.err(e.getMessage()); }
 
-        waypoint.set(target.x, target.y, 0f, 0f).run(); // FINISHME: Navigation
+        if(follow) waypoint.set(target.x, target.y, 0f, 0f).run(); // FINISHME: Navigation
+        else { // FINISHME: This is horrendous, it should really just enable the default movement instead
+            Unit u = Vars.player.unit();
+            boolean aimCursor = u.type.omniMovement && Vars.player.shooting && u.type.hasWeapons() && u.type.faceTarget && !(u instanceof Mechc && u.isFlying());
+            if (aimCursor) u.lookAt(Angles.mouseAngle(u.x, u.y));
+            else u.lookAt(u.prefRotation());
+            u.moveAt(Vars.control.input instanceof DesktopInput in ? in.movement : ((MobileInput)Vars.control.input).movement);
+            u.aim(u.type.faceTarget ? Core.input.mouseWorld() : Tmp.v1.trns(u.rotation, Core.input.mouseWorld().dst(u)).add(u.x, u.y));
+        }
 
-        Vars.player.unit().clearBuilding();
         IntSet contains = new IntSet();
-        toUndo = toUndo.filter(plan -> { // FINISHME: ???
+        toUndo.filter(plan -> { // FINISHME: ???
             int pos = Point2.pack(plan.x, plan.y);
             if (contains.contains(pos)) {
                 return false;
@@ -94,7 +102,10 @@ public class UnAssistPath extends Path {
 
         if (toUndo.any()) {
             for (BuildPlan it : toUndo) {
-                if (it.isDone()) toUndo.remove(it);
+                if (it.isDone()) {
+                    toUndo.remove(it);
+                    Vars.player.unit().plans.remove(it);
+                }
                 else Vars.player.unit().addBuild(it);
             }
         }

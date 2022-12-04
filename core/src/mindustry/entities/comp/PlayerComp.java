@@ -8,6 +8,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
@@ -77,7 +78,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     public TextureRegion icon(){
         //display default icon for dead players
-        if(dead()) return core() == null ? UnitTypes.alpha.fullIcon : ((CoreBlock)bestCore().block).unitType.fullIcon;
+        if(dead()) return core() == null ? UnitTypes.alpha.uiIcon : ((CoreBlock)bestCore().block).unitType.uiIcon;
 
         return unit.icon();
     }
@@ -92,7 +93,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         textFadeTime = 0f;
         x = y = 0f;
         if(!dead()){
-            unit.controller(unit.type.createController());
+            unit.resetController();
             unit = Nulls.unit;
         }
     }
@@ -134,12 +135,8 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         unit.aim(mouseX, mouseY);
         //this is only necessary when the thing being controlled isn't synced
         unit.controlWeapons(shooting, shooting);
-        //save previous formation to prevent reset
-        var formation = unit.formation;
         //extra precaution, necessary for non-synced things
         unit.controller(this);
-        //keep previous formation
-        unit.formation = formation;
     }
 
     @Override
@@ -163,7 +160,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
             //have a small delay before death to prevent the camera from jumping around too quickly
             //(this is not for balance, it just looks better this way)
             deathTimer += Time.delta;
-            if(deathTimer >= deathDelay){
+            if(deathTimer >= deathDelay || Core.settings.getBool("fastrespawn")){
                 //request spawn - this happens serverside only
                 core.requestSpawn(self());
                 deathTimer = 0;
@@ -215,8 +212,9 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         var oldUnit = this.unit; // Unit we are swapping from
 
         if(this.unit != Nulls.unit){
-            this.unit.controller(this.unit.type.createController()); //un-control the old unit
-            if(!headless && isLocal()) { // Plan persistence is client side only
+            //un-control the old unit
+            this.unit.resetController();
+            if(!headless && isLocal()) { // Plan persistence is client side only FINISHME: Move this to some other class
                 if(Navigation.currentlyFollowing instanceof BuildPath bp) bp.clearQueues();
                 persistPlans.clear(); // Don't want to stack multiple sets of plans...
                 persistPlans.ensureCapacity(this.unit.plans.size);
@@ -236,7 +234,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
             if(!headless && isLocal() && !persistPlans.isEmpty()){ // Persist plans through unit swaps
                 persistPlans.each(unit::addBuild);
                 persistPlans.clear();
-                Reflect.invoke(persistPlans, "resize", new Object[]{1}, int.class); // Don't want an array hanging around in memory, replace it with a 1 element arr
+                persistPlans.shrink(); // Don't want an array hanging around in memory, replace it with a 1 element arr
             }
         }
 
@@ -278,11 +276,12 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     @Override
     public void draw(){
+        if(unit != null && unit.inFogTo(Vars.player.team())) return;
 
         Draw.z(Layer.playerName);
         float z = Drawf.text();
 
-        Font font = Fonts.def;
+        Font font = Fonts.outline;
         GlyphLayout layout = Pools.obtain(GlyphLayout.class, GlyphLayout::new);
         final float nameHeight = 11;
         final float textHeight = 15;
@@ -339,6 +338,10 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     /** @return name with a markup color prefix */
     String coloredName(){
         return  "[#" + color.toString().toUpperCase() + "]" + name;
+    }
+
+    String plainName(){
+        return Strings.stripColors(name);
     }
 
     void sendMessage(String text){

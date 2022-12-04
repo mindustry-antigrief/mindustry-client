@@ -13,6 +13,7 @@ import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
+import mindustry.core.*
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.game.Teams.*
@@ -62,28 +63,37 @@ object Main : ApplicationListener {
 
         communicationClient = Packets.CommunicationClient(communicationSystem)
 
-        Navigation.navigator = AStarNavigator
+        Navigation.navigator = AStarNavigatorOptimised
 
         Events.on(EventType.WorldLoadEvent::class.java) {
             if (!Vars.net.client()) { // This is so scuffed but shh
                 setPluginNetworking(false)
-                Call.serverPacketReliable("fooCheck", "")
+                CommandCompletion.reset(true)
+                NetServer.serverPacketReliable(Vars.player, "fooCheck", "") // Call locally
             }
             dispatchedBuildPlans.clear()
         }
 
         Events.on(EventType.ServerJoinEvent::class.java) {
-            communicationSystem.activeCommunicationSystem = BlockCommunicationSystem
             setPluginNetworking(false)
-            Call.serverPacketReliable("fooCheck", "") // Request version info FINISHME: The server should just send this info on join
+            CommandCompletion.reset(true)
+            if (!Server.current.ghost) Call.serverPacketReliable("fooCheck", "") // Request version info FINISHME: The server should just send this info on join
         }
 
+        /** @since v1 Checks for the presence of the foo plugin on the server */
         Vars.netClient.addPacketHandler("fooCheck") { version ->
             Log.debug("Server using client plugin version $version")
             if (!Strings.canParseInt(version)) return@addPacketHandler
 
             ClientVars.pluginVersion = Strings.parseInt(version)
-            setPluginNetworking(true)
+            if (ClientVars.pluginVersion == 1) setPluginNetworking(true) // In version one we didnt have fooTransmissionEnabled FINISHME: Remove this on v7 release
+        }
+
+        /** @since v2 Toggles the state of plugin networking */
+        Vars.netClient.addPacketHandler("fooTransmissionEnabled") { e ->
+            val enabled = e.toBoolean()
+            Log.debug("Server set transmissions to: $enabled")
+            setPluginNetworking(enabled)
         }
 
         communicationClient.addListener { transmission, senderId ->
@@ -124,6 +134,7 @@ object Main : ApplicationListener {
 
                 is SignatureTransmission -> {
                     var isValid = check(transmission)
+
                     next(EventType.PlayerChatEventClient::class.java, repetitions = 3) {
                         if (isValid) return@next
                         isValid = check(transmission)
@@ -142,6 +153,7 @@ object Main : ApplicationListener {
                 is ImageTransmission -> {
                     val msg = findMessage(transmission.message) ?: return@addListener
                     msg.attachments.add(Image(Texture(transmission.image)))
+//                    transmission.image.dispose() FINISHME: The pixmap and texture really need to be disposed to prevent native memory leakage
                 }
             }
         }
@@ -155,7 +167,9 @@ object Main : ApplicationListener {
     /** @return if it's done or not, NOT if it's valid */
     private fun check(transmission: SignatureTransmission): Boolean {
         fun invalid(msg: ChatFragment.ChatMessage, cert: X509Certificate?) {
-            msg.sender = cert?.run { keyStorage.aliasOrName(this) }?.stripColors()?.plus("[scarlet] impersonator") ?: "Verification failed"
+            msg.sender = cert?.run { keyStorage.aliasOrName(this) }?.stripColors()?.run {
+                if (Core.settings.getBool("showclientmsgsendername")) "$this (${msg.sender}[white])" else this
+            }?.plus("[scarlet] impersonator") ?: "Verification failed"
             msg.backgroundColor = ClientVars.invalid
             msg.prefix = "${Iconc.cancel} ${msg.prefix} "
             msg.format()
@@ -170,7 +184,7 @@ object Main : ApplicationListener {
 
         return when (output.first) {
             Signatures.VerifyResult.VALID -> {
-                msg.sender = output.second?.run { keyStorage.aliasOrName(this) }
+                msg.sender = output.second?.run { keyStorage.aliasOrName(this) }.plus(if (Core.settings.getBool("showclientmsgsendername")) " (${msg.sender}[white])" else "")
                 msg.backgroundColor = ClientVars.verified
                 msg.prefix = "${Iconc.ok} ${msg.prefix} "
                 msg.format()
@@ -187,14 +201,14 @@ object Main : ApplicationListener {
     }
 
     fun sign(content: String): String {
-//        if (!Core.settings.getBool("signmessages")) return content  // ID is also needed for attachments now
-        if (content.startsWith("/") && !(content.startsWith("/t ") || content.startsWith("/a "))) return content
+        if (content.startsWith("/") && !(content.startsWith("/t ") || content.startsWith("/a ")) ||
+            ((content == "y" || content == "n") && Server.darkdustry())) return content
 
         val msgId = Random.nextInt().toShort()
         val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
 
         communicationClient.send(signatures.signatureTransmission(
-            contentWithId.replace("^/[t|a] ".toRegex(), "").encodeToByteArray(),
+            NetClient.processCoords(contentWithId.replace("^/[t|a] ".toRegex(), ""), false).encodeToByteArray(),
             communicationSystem.id,
             msgId) ?: return contentWithId)
 
@@ -263,6 +277,7 @@ object Main : ApplicationListener {
     fun floatEmbed(): Vec2 {
         val show = Core.settings.getBool("displayasuser")
         return when {
+            Server.current.ghost -> Tmp.v1.set(Vars.player.unit().aimX, Vars.player.unit().aimY)
             Navigation.currentlyFollowing is AssistPath && show ->
                 Tmp.v1.set(
                     FloatEmbed.embedInFloat(Vars.player.unit().aimX, ClientVars.FOO_USER),
@@ -292,6 +307,7 @@ object Main : ApplicationListener {
         dispatchedBuildPlans.addAll(toSend)
     }
 
+    /** Singleplayer/host use only */
     private fun addBuildPlan(plan: BuildPlan) {
         if (plan.breaking) return
         if (plan.isDone) {
@@ -299,15 +315,15 @@ object Main : ApplicationListener {
             return
         }
 
-        val data: TeamData = Vars.player.team().data()
-        for (i in 0 until data.blocks.size) {
-            val b = data.blocks[i]
+        val data = Vars.player.team().data()
+        for (i in 0 until data.plans.size) {
+            val b = data.plans[i]
             if (b.x == plan.x.toShort() && b.y == plan.y.toShort()) {
-                data.blocks.removeIndex(i)
+                data.plans.removeIndex(i)
                 break
             }
         }
-        data.blocks.addFirst(BlockPlan(plan.x, plan.y, plan.rotation.toShort(), plan.block.id, plan.config))
+        data.plans.addFirst(BlockPlan(plan.x, plan.y, plan.rotation.toShort(), plan.block.id, plan.config))
     }
 
     private fun registerTlsListeners(commsClient: Packets.CommunicationClient, system: TlsCommunicationSystem) {
@@ -315,7 +331,14 @@ object Main : ApplicationListener {
             when (transmission) {
                 is MessageTransmission -> {
                     ClientVars.lastCertName = system.peer.expectedCert.readableName
-                    Vars.ui.chatfrag.addMessage(transmission.content, "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName ?: "you"), ClientVars.encrypted).run{ prefix = "${Iconc.ok} $prefix " }
+                    Vars.ui.chatfrag.addMessage(transmission.content,
+                        "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName
+                            ?: "you"),
+                        ClientVars.encrypted,
+                        "",
+                        transmission.content
+                    )
+                        .run{ prefix = "${Iconc.ok} $prefix " }
                 }
 
                 is CommandTransmission -> {
@@ -325,7 +348,4 @@ object Main : ApplicationListener {
             }
         }
     }
-
-    /** Run when the object is disposed. */
-    override fun dispose() {}
 }

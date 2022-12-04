@@ -14,6 +14,8 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
+import kotlin.collections.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
@@ -35,8 +37,9 @@ import mindustry.type.*;
 import mindustry.ui.*;
 
 import static mindustry.Vars.*;
+import static mindustry.gen.Tex.*;
 
-public class HudFragment extends Fragment{
+public class HudFragment{
     private static final float dsize = 65f, pauseHeight = 36f;
 
     public final PlacementFragment blockfrag = new PlacementFragment();
@@ -53,7 +56,6 @@ public class HudFragment extends Fragment{
     private long lastToast;
     private long lastWarn, lastWarnClick;
 
-    @Override
     public void build(Group parent){
 
         //warn about guardian/boss waves
@@ -97,10 +99,17 @@ public class HudFragment extends Fragment{
         //paused table
         parent.fill(t -> {
             t.name = "paused";
-            t.top().visible(() -> state.isPaused() && shown).touchable = Touchable.disabled;
-            t.table(Styles.black6, top -> top.label(() -> netServer.isWaitingForPlayers() ? "@waiting.players" : state.gameOver && state.isCampaign() ? "@sector.curlost" : "@paused")
+            t.top().visible(() -> state.isPaused() && shown && !netServer.isWaitingForPlayers()).touchable = Touchable.disabled;
+            t.table(Styles.black6, top -> top.label(() -> state.gameOver && state.isCampaign() ? "@sector.curlost" : "@paused")
                 .style(Styles.outlineLabel).pad(8f)).height(pauseHeight).growX();
             //.padLeft(dsize * 5 + 4f) to prevent alpha overlap on left
+        });
+
+        //"waiting for players"
+        parent.fill(t -> {
+            t.name = "waiting";
+            t.visible(() -> netServer.isWaitingForPlayers() && state.isPaused() && shown).touchable = Touchable.disabled;
+            t.table(Styles.black6, top -> top.add("@waiting.players").style(Styles.outlineLabel).pad(18f));
         });
 
         //minimap + position
@@ -138,12 +147,19 @@ public class HudFragment extends Fragment{
             cont.top().left();
 
             if(mobile){
+                //for better inset visuals
+                cont.rect((x, y, w, h) -> {
+                    if(Core.scene.marginTop > 0){
+                        Tex.paneRight.draw(x, y, w, Core.scene.marginTop);
+                    }
+                }).fillX().row();
+
                 cont.table(select -> {
                     select.name = "mobile buttons";
                     select.left();
                     select.defaults().size(dsize).left();
 
-                    ImageButtonStyle style = Styles.clearTransi;
+                    ImageButtonStyle style = Styles.cleari;
 
                     select.button(Icon.menu, style, ui.paused::show).name("menu");
                     flip = select.button(Icon.upOpen, style, this::toggleMenus).get();
@@ -156,14 +172,14 @@ public class HudFragment extends Fragment{
                         if(net.active()){
                             ui.listfrag.toggle();
                         }else{
-                            state.set(state.is(State.paused) ? State.playing : State.paused);
+                            state.set(state.isPaused() ? State.playing : State.paused);
                         }
                     }).name("pause").update(i -> {
                         if(net.active()){
                             i.getStyle().imageUp = Icon.players;
                         }else{
                             i.setDisabled(false);
-                            i.getStyle().imageUp = state.is(State.paused) ? Icon.play : Icon.pause;
+                            i.getStyle().imageUp = state.isPaused() ? Icon.play : Icon.pause;
                         }
                     });
 
@@ -198,7 +214,7 @@ public class HudFragment extends Fragment{
             }
 
             cont.update(() -> {
-                if(Core.input.keyTap(Binding.toggle_menus) && !ui.chatfrag.shown() && !Core.scene.hasDialog() && !(Core.scene.getKeyboardFocus() instanceof TextField)){
+                if(Core.input.keyTap(Binding.toggle_menus) && !ui.chatfrag.shown() && !Core.scene.hasDialog() && !Core.scene.hasField()){
                     Core.settings.getBoolOnce("ui-hidden", () -> {
                         ui.announce(Core.bundle.format("showui",  Core.keybinds.get(Binding.toggle_menus).key.toString(), 11));
                     });
@@ -218,12 +234,18 @@ public class HudFragment extends Fragment{
                 //wave info button with text
                 s.add(makeStatusTable()).grow().name("status");
 
+                var rightStyle = new ImageButtonStyle(){{
+                    up = wavepane;
+                    over = wavepane;
+                    disabled = wavepane;
+                }};
+
                 // button to skip wave
-                s.button(Icon.play, Styles.wavei, 30f, () -> {
+                s.button(Icon.play, rightStyle, 30f, () -> {
                     if(!canSkipWave()) new Toast(1f).label(() -> "You tried and that's all that matters.");
                     else if(net.client() && player.admin) Call.adminRequest(player, AdminAction.wave);
                     else logic.skipWave();
-                }).growY().fillX().right().width(40f).name("skip");
+                }).growY().fillX().right().width(40f).name("skip").get().toBack();
             }).width(dsize * 6 + 4f).name("statustable");
 
             wavesMain.row();
@@ -246,7 +268,7 @@ public class HudFragment extends Fragment{
                     teams.left();
                     int i = 0;
                     for(Team team : Team.baseTeams){
-                        ImageButton button = teams.button(Tex.whiteui, Styles.clearTogglePartiali, 40f, () -> Call.setPlayerTeamEditor(player, team))
+                        ImageButton button = teams.button(Tex.whiteui, Styles.clearNoneTogglei, 40f, () -> Call.setPlayerTeamEditor(player, team))
                         .size(50f).margin(6f).get();
                         button.getImageCell().grow();
                         button.getStyle().imageUpColor = team.color;
@@ -283,11 +305,13 @@ public class HudFragment extends Fragment{
                 info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel).name("fps");
                 info.row();
 
-                info.label(() -> plans.get(player.unit().plans.size)).left() // Buildplan count
+                info.label(() -> plans.get(player.unit().plans.size, ClientVars.frozenPlans.size)).left() // Buildplan count
                 .style(Styles.outlineLabel).name("plans");
                 info.row();
 
-                info.label(() -> players.get(Groups.player.size(),ui.join.lastHost == null ? 0 : ui.join.lastHost.playerLimit)).visible(net::active).left() // Player count
+                info.label(() -> "Rate Limit: " + ClientVars.ratelimitRemaining).left().style(Styles.outlineLabel).row();
+
+                info.label(() -> players.get(Groups.player.size(), ui.join.lastHost == null ? 0 : ui.join.lastHost.playerLimit)).visible(net::active).left() // Player count
                 .style(Styles.outlineLabel).name("players");
                 info.row();
 
@@ -306,7 +330,7 @@ public class HudFragment extends Fragment{
 
             t.name = "coreinfo";
 
-            t.collapser(v -> v.add().height(pauseHeight), () -> state.isPaused()).row();
+            t.collapser(v -> v.add().height(pauseHeight), () -> state.isPaused() && !netServer.isWaitingForPlayers()).row();
 
             t.table(c -> {
                 //core items
@@ -318,14 +342,14 @@ public class HudFragment extends Fragment{
                 Events.on(TeamCoreDamage.class, event -> {
                     if (Time.timeSinceMillis(lastWarn) > 30_000) { // Prevent chat flooding
                         if (Core.settings.getBool("broadcastcoreattack")) {
-                            ClientUtilsKt.sendMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
+                            ClientUtils.sendMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                         } else {
                             ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                         }
                     }
                     lastWarn = Time.millis(); // Reset timer so that it sends 30s after the last core damage rather than every 30s FINISHME: Better way to do this?
                     coreAttackTime[0] = notifDuration;
-                    ClientVars.coreWarnPos.set(event.core.x, event.core.y);
+                    ClientVars.lastCorePos.set(event.core.x, event.core.y);
                 });
 
                 //'core is under attack' table
@@ -343,8 +367,8 @@ public class HudFragment extends Fragment{
                 .touchable(Touchable.disabled)
                 .fillX()
                 .get().clicked(() -> {
-                    if (Time.timeSinceMillis(lastWarnClick) < 400)  Navigation.navigateTo(ClientVars.coreWarnPos.cpy().scl(tilesize));
-                    else Spectate.INSTANCE.spectate(ClientVars.coreWarnPos.cpy().scl(tilesize));
+                    if (Time.timeSinceMillis(lastWarnClick) < 400)  Navigation.navigateTo(ClientVars.lastCorePos.cpy().scl(tilesize));
+                    else Spectate.INSTANCE.spectate(ClientVars.lastCorePos.cpy().scl(tilesize));
                     lastWarnClick = Time.millis();
                 });
             }).row();
@@ -352,16 +376,6 @@ public class HudFragment extends Fragment{
             var bossb = new StringBuilder();
             var bossText = Core.bundle.get("guardian");
             int maxBosses = 6;
-
-//            t.table(Styles.black3, p -> p.margin(4).label(() -> hudText).style(Styles.outlineLabel)).touchable(Touchable.disabled).with(p -> p.visible(() -> { FINISHME: Remove if the one below is better
-//                p.color.a = Mathf.lerpDelta(p.color.a, Mathf.num(showHudText), 0.2f);
-//                if(state.isMenu()){
-//                    p.color.a = 0f;
-//                    showHudText = false;
-//                }
-//
-//                return p.color.a >= 0.001f;
-//            })).row();
 
             t.table(v -> v.margin(10f)
             .add(new Bar(() -> {
@@ -478,6 +492,10 @@ public class HudFragment extends Fragment{
             Time.runTask((duration - since) / 1000f * 60f, run);
             lastToast += duration;
         }
+    }
+
+    public boolean hasToast(){
+        return Time.timeSinceMillis(lastToast) < 3.5f * 1000f;
     }
 
     public void showToast(String text){
@@ -653,13 +671,14 @@ public class HudFragment extends Fragment{
 
         StringBuilder ibuild = new StringBuilder();
 
-        IntFormat wavef = new IntFormat("wave");
-        IntFormat wavefc = new IntFormat("wave.cap");
-        IntFormat enemyf = new IntFormat("wave.enemy");
-        IntFormat enemiesf = new IntFormat("wave.enemies");
-        IntFormat enemycf = new IntFormat("wave.enemycore");
-        IntFormat enemycsf = new IntFormat("wave.enemycores");
-        IntFormat waitingf = new IntFormat("wave.waiting", i -> {
+        IntFormat
+        wavef = new IntFormat("wave"),
+        wavefc = new IntFormat("wave.cap"),
+        enemyf = new IntFormat("wave.enemy"),
+        enemiesf = new IntFormat("wave.enemies"),
+        enemycf = new IntFormat("wave.enemycore"),
+        enemycsf = new IntFormat("wave.enemycores"),
+        waitingf = new IntFormat("wave.waiting", i -> {
             ibuild.setLength(0);
             int m = i/60;
             int s = i % 60;
@@ -685,7 +704,7 @@ public class HudFragment extends Fragment{
             public final Floatp amount;
             public final boolean flip;
             public final Boolp flash;
-            public float lineWidth = 1; // Width as a frac, 0-1
+            public float lineWidth = 1; // Width as a percent, 0-1
 
             float last, blink, value;
 
@@ -795,7 +814,8 @@ public class HudFragment extends Fragment{
             t.stack(
                 new Table(tt -> tt.add(new SideBar(() -> player.unit().healthf(), () -> true, true)).width(bw).growY().padRight(pad)), // Health
                 new Table(tt -> tt.add(new SideBar(() -> player.unit().shield / maxShield[0], () -> true, true, 1/4f)).width(bw).growY().padRight(pad).color(Pal.accent).visible(() -> { // Ammo
-                    var ff = player.unit().abilities.find(a -> a instanceof ForceFieldAbility); // FINISHME: Probably creates a lot of garbage
+                    var ff = ArraysKt.firstOrNull(player.unit().abilities, a -> a instanceof ForceFieldAbility);
+
                     maxShield[0] = ff == null ? 0f : ((ForceFieldAbility)ff).max;
                     return maxShield[0] > 0;
                 }))
@@ -808,8 +828,49 @@ public class HudFragment extends Fragment{
             t.getChildren().get(1).toFront();
         })).size(120f, 80).padRight(4);
 
-        table.labelWrap(() -> {
+        Cell[] lcell = {null};
+        boolean[] couldSkip = {true};
+
+        lcell[0] = table.labelWrap(() -> {
+
+            //update padding depend on whether the button to the right is there
+            boolean can = canSkipWave();
+            if(can != couldSkip[0]){
+                if(canSkipWave()){
+                    lcell[0].padRight(8f);
+                }else{
+                    lcell[0].padRight(-42f);
+                }
+                table.invalidateHierarchy();
+                table.pack();
+                couldSkip[0] = can;
+            }
+
             builder.setLength(0);
+
+            //objectives override mission?
+            if(state.rules.objectives.any()){
+                boolean first = true;
+                for(var obj : state.rules.objectives){
+                    if(!obj.qualified()) continue;
+
+                    String text = obj.text();
+                    if(text != null){
+                        if(!first) builder.append("\n[white]");
+                        builder.append(text);
+
+                        first = false;
+                    }
+                }
+
+                return builder;
+            }
+
+            //mission overrides everything
+            if(state.rules.mission != null){
+                builder.append(state.rules.mission);
+                return builder;
+            }
 
             if(!state.rules.waves && state.rules.attackMode){
                 int sum = Math.max(state.teams.present.sum(t -> t.team != player.team() ? t.cores.size : 0), 1);
@@ -856,6 +917,30 @@ public class HudFragment extends Fragment{
         }).growX().pad(8f);
 
         table.row();
+
+        //TODO nobody reads details anyway.
+        /*
+        table.clicked(() -> {
+            if(state.rules.objectives.any()){
+                StringBuilder text = new StringBuilder();
+
+                boolean first = true;
+                for(var obj : state.rules.objectives){
+                    if(!obj.qualified()) continue;
+
+                    String details = obj.details();
+                    if(details != null){
+                        if(!first) text.append('\n');
+                        text.append(details);
+
+                        first = false;
+                    }
+                }
+
+                //TODO this, as said before, could be much better.
+                ui.showInfo(text.toString());
+            }
+        });*/
 
         return table;
     }

@@ -9,6 +9,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
+import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 
@@ -64,10 +65,10 @@ public class ItemSelection{
 
             Seq<T> list = items.select(u -> (text.isEmpty() || u.localizedName.toLowerCase().contains(text.toLowerCase())));
             for(T item : list){
-                if(!item.unlockedNow()) continue;
+                if(!item.unlockedNow() || (item instanceof Item checkVisible && state.rules.hiddenBuildItems.contains(checkVisible)) || item.isHidden()) continue;
 
-                ImageButton button = cont.button(Tex.whiteui, Styles.clearToggleTransi, Mathf.clamp(item.selectionSize, 0f, 40f), () -> {
-                    if(closeSelect) control.input.frag.config.hideConfig();
+                ImageButton button = cont.button(Tex.whiteui, Styles.clearNoneTogglei, Mathf.clamp(item.selectionSize, 0f, 40f), () -> {
+                    if(closeSelect) control.input.config.hideConfig();
                 }).tooltip(item.localizedName).group(group).get();
                 button.changed(() -> consumer.get(button.isChecked() ? item : null));
                 button.getStyle().imageUp = new TextureRegionDrawable(item.uiIcon);
@@ -76,14 +77,6 @@ public class ItemSelection{
                 if(i++ % columns == (columns - 1)){
                     cont.row();
                     rowCount++;
-                }
-            }
-
-            //add extra blank spaces so it looks nice
-            if(i % columns != 0){
-                int remaining = columns - (i % columns);
-                for(int j = 0; j < remaining; j++){
-                    cont.image(Styles.none);
                 }
             }
         };

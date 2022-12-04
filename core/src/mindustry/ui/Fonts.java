@@ -118,6 +118,7 @@ public class Fonts{
     }
 
     public static void loadContentIcons(){
+        var start = Time.nanos();
         Seq<Font> fonts = Seq.with(Fonts.def, Fonts.outline, Fonts.mono, Fonts.monoOutline);
         Texture uitex = Core.atlas.find("logo").texture;
         int size = (int)(Fonts.def.getData().lineHeight/Fonts.def.getData().scaleY);
@@ -138,12 +139,14 @@ public class Fonts{
                 unicodeIcons.put(nametex[0], ch);
                 stringIcons.put(nametex[0], ((char)ch) + "");
 
+                Vec2 out = Scaling.fit.apply(region.width, region.height, size, size);
+
                 Glyph glyph = new Glyph();
                 glyph.id = ch;
                 glyph.srcX = 0;
                 glyph.srcY = 0;
-                glyph.width = size;
-                glyph.height = (int)((float)region.height / region.width * size);
+                glyph.width = (int)out.x;
+                glyph.height = (int)out.y;
                 glyph.u = region.u;
                 glyph.v = region.v2;
                 glyph.u2 = region.u2;
@@ -157,6 +160,8 @@ public class Fonts{
                 fonts.each(f -> f.getData().setGlyph(ch, glyph));
             }
         }
+
+        stringIcons.put("alphachan", stringIcons.get("alphaaaa"));
 
         iconTable = new TextureRegion[512];
         iconTable[0] = Core.atlas.find("error");
@@ -176,13 +181,23 @@ public class Fonts{
                 team.emoji = stringIcons.get(team.name, "");
             }
         }
+
+        Log.warn("The icon stuff took @", Time.timeSinceNanos(start) / (float) Time.nanosPerMilli);
+    }
+
+    public static TextureFilter getTextFilter(boolean linear){ //TODO: separate into min and max filter
+        return linear ? TextureFilter.linear : TextureFilter.nearest;
+    }
+
+    public static TextureFilter getTextFilter(){
+        return getTextFilter(Core.settings.getBool("lineartext", Core.settings.getBool("linear")));
     }
 
     /** Called from a static context for use in the loading screen.*/
     public static void loadDefaultFont(){
         int max = Gl.getInt(Gl.maxTextureSize);
 
-        UI.packer = new PixmapPacker(max >= 4096 ? 4096 : 2048, 2048, 2, true);
+        UI.packer = new PixmapPacker(max >= 4096 ? 4096 : 2048, max >= 4096 ? 4096 : 2048, 2, true);
         Core.assets.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(Core.files::internal));
         Core.assets.setLoader(Font.class, null, new FreetypeFontLoader(Core.files::internal){
             ObjectSet<FreeTypeFontParameter> scaled = new ObjectSet<>();
@@ -199,8 +214,8 @@ public class Fonts{
                     scaled.add(parameter.fontParameters);
                 }
 
-                parameter.fontParameters.magFilter = TextureFilter.linear;
-                parameter.fontParameters.minFilter = TextureFilter.linear;
+                parameter.fontParameters.magFilter = getTextFilter();
+                parameter.fontParameters.minFilter = getTextFilter();
                 parameter.fontParameters.packer = UI.packer;
                 return super.loadSync(manager, fileName, file, parameter);
             }
@@ -219,14 +234,15 @@ public class Fonts{
         Core.assets.load("monoOutline", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = f -> {
             StringBuilder chars = new StringBuilder();
             for(int c = 0; c <= 255; c++) chars.append((char)c);
-            (Fonts.monoOutline = f).setFixedWidthGlyphs(chars);
+            (monoOutline = f).setFixedWidthGlyphs(chars);
             monoOutline.getData().markupEnabled = true;
         };
         Core.assets.load("tech", Font.class, new FreeTypeFontLoaderParameter("fonts/tech.ttf", new FreeTypeFontParameter(){{
             size = 18;
         }})).loaded = f -> {
-            Fonts.tech = f;
-            Fonts.tech.getData().down *= 1.5f;
+            tech = f;
+            tech.getData().down *= 1.5f;
+            tech.getData().markupEnabled = true;
         };
     }
 
@@ -313,6 +329,7 @@ public class Fonts{
             shadowColor = Color.darkGray;
             shadowOffsetY = 2;
             incremental = true;
+            magFilter = minFilter = getTextFilter();
         }};
     }
 }

@@ -2,20 +2,39 @@ package mindustry.client.utils;
 
 import arc.struct.*;
 import arc.util.*;
+import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.client.*;
 
 public class CommandCompletion implements Autocompleter {
-    private final Seq<CommandCompletable> commands = new Seq<>();
+    private static final Seq<CommandCompletable> commands = new Seq<>();
 
     @Override
     public void initialize() {
-        String prefix = Reflect.get(Vars.netServer.clientCommands, "prefix");
-        String finalPrefix = prefix;
-        commands.addAll(Vars.netServer.clientCommands.getCommandList().map(inp -> new CommandCompletable(inp.text, inp.text + " " + inp.paramText, finalPrefix)));
-        prefix = Reflect.get(ClientVars.clientCommandHandler, "prefix");
-        String finalPrefix1 = prefix;
-        commands.addAll(ClientVars.clientCommandHandler.getCommandList().map(inp -> new CommandCompletable(inp.text, inp.text + " " + inp.paramText, finalPrefix1)));
+        reset(true);
+
+        Vars.netClient.addPacketHandler("commandList", list -> {
+            Log.debug("Received Command List: " + list);
+            var json = Jval.read(list);
+            var cmds = json.get("commands").asObject();
+            if (!cmds.isEmpty()) {
+                reset(false);
+                var prefix = json.getString("prefix", "/");
+                for (var c : cmds) {
+                    commands.add(new CommandCompletable(c.key, c.key + " " + c.value.asString(), prefix));
+                }
+            }
+        });
+    }
+
+    public static void reset(boolean addServer) {
+        commands.clear();
+        addCommands(ClientVars.clientCommandHandler);
+        if (addServer) addCommands(Vars.netServer.clientCommands);
+    }
+
+    private static void addCommands(CommandHandler handler) {
+        commands.addAll(handler.getCommandList().map(c -> new CommandCompletable(c.text, c.text + " " + c.paramText, handler.getPrefix())));
     }
 
     @Override
@@ -34,7 +53,7 @@ public class CommandCompletion implements Autocompleter {
 
     @Override
     public Seq<Autocompleteable> closest(String input) {
-        return commands.sort(item -> item.matches(input)).map(item -> item);
+        return commands.sort(item -> item.matches(input)).as();
     }
 
     private static class CommandCompletable implements Autocompleteable {

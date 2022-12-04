@@ -19,6 +19,8 @@ import mindustry.graphics.*;
 import mindustry.logic.LStatements.*;
 import mindustry.ui.*;
 
+import java.util.*;
+
 import static mindustry.Vars.*;
 
 public class LCanvas extends Table{
@@ -28,12 +30,15 @@ public class LCanvas extends Table{
     public DragLayout statements;
     public ScrollPane pane;
     public Group jumps;
+
     StatementElem dragging;
     static boolean jumping;
     StatementElem hovered;
     float targetWidth;
     int jumpCount = 0;
+    boolean privileged;
     Seq<Tooltip> tooltips = new Seq<>();
+    float visibleBoundLower, visibleBoundUpper;
 
     public LCanvas(){
         canvas = this;
@@ -58,7 +63,7 @@ public class LCanvas extends Table{
 
     /** @return if statement elements should have rows. */
     public static boolean useRows(){
-        return Core.graphics.getWidth() < Scl.scl(900f) * 1.2f;
+        return Core.graphics.getWidth() < Scl.scl(900f) / (Core.settings.getInt("processorstatementscale") / 100f);
     }
 
     public static void tooltip(Cell<?> cell, String key){
@@ -100,31 +105,32 @@ public class LCanvas extends Table{
 
     public void rebuild(){
 //        targetWidth = useRows() ? 400f : 900f;
-        targetWidth = Core.graphics.getWidth() / 1.2f;
+        targetWidth = Core.graphics.getWidth() * Core.settings.getInt("processorstatementscale") / 100f;
         float s = pane != null ? pane.getScrollPercentY() : 0f;
         String toLoad = statements != null ? save() : null;
 
         clear();
 
         statements = new DragLayout();
-        jumps = new WidgetGroup(){
-            @Override
-            public void layout(){
-                cullable = false; //culling while scrolling results in weirdness
-                getChildren().each(h -> {
-                    if(!(h instanceof JumpCurve c)) return;
-                    c.setSize(width, c.getPrefHeight());
-                    c.setPosition(c.button.x + c.button.getWidth()/2f, c.py);
-                });
-                cullable = true;
-            }
-        };
+        jumps = new WidgetGroup();
 
         pane = pane(t -> {
             t.center();
             t.add(statements).pad(2f).center().width(targetWidth);
-            t.add(jumps).growY().width(100f).growY();
+            t.add(jumps);
+            jumps.cullable = false;
         }).grow().get();
+        Element e = new Element();
+        e.setColor(0, 0, 0, 0);
+        e.setSize(0);
+        add(e);
+        e.update(() -> {
+            // Update is called before scroll values are updated (see ScrollPane::update), so basically hack it using
+            // another element so that this gets called after the pane stuff is fully done
+            // Shocking, this actually works lol what
+            visibleBoundLower = pane.getMaxY() - pane.getVisualScrollY();
+            visibleBoundUpper = visibleBoundLower + pane.getHeight();
+        });
         pane.setFlickScroll(false);
 
         //load old scroll percent
@@ -135,7 +141,44 @@ public class LCanvas extends Table{
 
         if(toLoad != null){
             load(toLoad);
+        } else {
+            statements.forceLayout();
+            statements.layout();
+            recalculate();
         }
+    }
+    public int maxJumpHeight = 0;
+    public Seq<StatementElem> tempseq = new Seq<>();
+    public PQueue<StatementElem> pq = new PQueue<>(12, Comparator.comparingInt(o -> o.maxJump));
+    public final Bits mask = new Bits(LExecutor.maxInstructions + 5);
+
+    public void recalculate(){
+        tempseq.set(statements.getChildren().as());
+        tempseq.each(t -> {t.resetJumpInfo(); if(t.st instanceof JumpStatement) t.st.saveUI();});
+        tempseq.each(s -> {
+            if(!(s.st instanceof JumpStatement js) || js.destIndex == -1) return;
+            js.dest.updateJumpsToHere(s.index);
+        });
+        tempseq.sort((o1, o2) -> o1.minJump == o2.minJump ? o2.jumpSpan() - o1.jumpSpan() : o1.minJump - o2.minJump);
+
+        int i = maxJumpHeight = 0, curr;
+        StatementElem temp;
+        mask.clear();
+        pq.clear();
+        while(i < tempseq.size && (curr = (temp = tempseq.get(i)).minJump) < Integer.MAX_VALUE){
+            if(pq.empty() || curr <= pq.peek().maxJump){
+                mask.set(temp.jumpHeight = mask.nextClearBit(0));
+                maxJumpHeight = Math.max(maxJumpHeight, temp.jumpHeight);
+                pq.add(temp);
+                i++;
+            }else mask.clear(pq.poll().jumpHeight);
+        }
+    }
+
+    @Override
+    public void layout(){
+        if(dragging != null) return;
+        super.layout();
     }
 
     @Override
@@ -162,7 +205,7 @@ public class LCanvas extends Table{
     public void load(String asm){
         jumps.clear();
 
-        Seq<LStatement> statements = LAssembler.read(asm);
+        Seq<LStatement> statements = LAssembler.read(asm, privileged);
         statements.truncate(LExecutor.maxInstructions);
         this.statements.clearChildren();
         for(LStatement st : statements){
@@ -173,8 +216,9 @@ public class LCanvas extends Table{
             st.setupUI();
         }
 
+        this.statements.forceLayout();
         this.statements.layout();
-        jumps.layout();
+        recalculate();
     }
 
     StatementElem checkHovered(){
@@ -201,28 +245,28 @@ public class LCanvas extends Table{
                 pane.setScrollY(pane.getScrollY() + sign * Scl.scl(15f) * Time.delta);
             }
         }
-
-        pane.scrolled(f -> jumps.layout()); //don't ask why this is needed, it just is
     }
 
     public class DragLayout extends WidgetGroup{
         float space = Scl.scl(10f), prefWidth, prefHeight;
         Seq<Element> seq = new Seq<>();
         int insertPosition = 0;
-
+        {
+            setTransform(true);
+        }
         @Override
         public void layout(){
             float cy = 0;
             seq.clear();
 
-            float totalHeight = getChildren().sumf(e -> e.getHeight() + space);
+            float totalHeight = children.sumf(e -> e.getHeight() + space);
 
             height = prefHeight = totalHeight;
             width = prefWidth = Scl.scl(targetWidth);
 
             //layout everything normally
-            for(int i = 0; i < getChildren().size; i++){
-                Element e = getChildren().get(i);
+            for(int i = 0; i < children.size; i++){
+                Element e = children.get(i);
 
                 //ignore the dragged element
                 if(dragging == e) continue;
@@ -253,15 +297,21 @@ public class LCanvas extends Table{
 
                 float shiftAmount = dragging.getHeight() + space;
 
+                dragging.updateAddress(insertPosition);
+                StatementElem e;
                 //shift elements below insertion point down
                 for(int i = insertPosition; i < seq.size; i++){
                     seq.get(i).y -= shiftAmount;
+                    (e = (StatementElem) seq.get(i)).updateAddress(e.index + 1);
                 }
             }
+            pack();
+        }
 
-            if(parent instanceof Table){
-                setCullingArea(parent.getCullingArea());
-                jumps.setCullingArea(parent.getCullingArea());
+        public void forceLayout(){
+            for(Element e : children){
+                if(!(e instanceof StatementElem se)) return;
+                se.forceLayout = true;
             }
         }
 
@@ -294,7 +344,7 @@ public class LCanvas extends Table{
         void finishLayout(){
             if(dragging != null){
                 //reset translation first
-                for(Element child : getChildren()){
+                for(Element child : children){
                     child.setTranslation(0, 0);
                 }
                 clearChildren();
@@ -321,13 +371,18 @@ public class LCanvas extends Table{
         public LStatement st;
         public int index;
         Label addressLabel;
+        public final static int MAX_SPAN = Integer.MIN_VALUE;
+        public int minJump = Integer.MAX_VALUE, maxJump = -1, jumpHeight = -1;
+        private boolean isDeleting = false;
+        private JumpButton button;
+        boolean forceLayout = true;
 
         public StatementElem(LStatement st){
             this.st = st;
             st.elem = this;
 
             background(Tex.whitePane);
-            setColor(st.color());
+            setColor(st.category().color);
             margin(0f);
             touchable = Touchable.enabled;
 
@@ -352,32 +407,32 @@ public class LCanvas extends Table{
                 t.button(Icon.paste, Styles.logici, () -> {
                 }).size(24f).padRight(6).tooltip("Paste Here").get().tapped(() -> {
                     try {
-                        this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n")));
+                        this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n"), privileged));
                     } catch (Throwable e) {
                         ui.showException(e);
                     }
                 });
 
-                t.button(Icon.cancel, Styles.logici, () -> {
-                }).size(24f).get().tapped(() -> {
-                    Core.app.post(() -> {
-                        Core.scene.cancelTouchFocus(this);
-                        remove();
-                        dragging = null;
-                        statements.layout();
-                    });
-                });
+                var temp = t.button(Icon.cancel, Styles.logici, () -> {
+                    remove();
+                    dragging = null;
+                    statements.layout();
+                    recalculate();
+                }).size(24f);
+                temp.get().tapped(() -> isDeleting = true);
+                temp.get().released(() -> isDeleting = false);
 
                 t.addListener(new InputListener(){
                     float lastx, lasty;
 
                     @Override
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
-
+                        canvas.setLayoutEnabled(false);
                         if(button == KeyCode.mouseMiddle){
                             copy();
                             return false;
                         }
+                        if(isDeleting) return false;
 
                         Vec2 v = localToParentCoordinates(Tmp.v1.set(x, y));
                         lastx = v.x;
@@ -385,6 +440,7 @@ public class LCanvas extends Table{
                         dragging = StatementElem.this;
                         toFront();
                         statements.layout();
+                        dragging.jumpHeight = -1;
                         return true;
                     }
 
@@ -401,7 +457,9 @@ public class LCanvas extends Table{
 
                     @Override
                     public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button){
+                        canvas.setLayoutEnabled(true);
                         statements.finishLayout();
+                        recalculate();
                     }
                 });
             }).growX().height(38);
@@ -413,9 +471,29 @@ public class LCanvas extends Table{
                 t.marginLeft(4);
                 t.setColor(color);
                 st.build(t);
+                if(st instanceof JumpStatement){
+                    button = (JumpButton)t.getChildren().peek();
+                }
             }).pad(4).padTop(2).left().grow();
 
             marginBottom(7);
+        }
+
+        public void updateJumpsToHere(int loc){
+            minJump = Math.min(minJump, index);
+            maxJump = Math.max(maxJump, index);
+            minJump = Math.min(minJump, loc);
+            maxJump = Math.max(maxJump, loc);
+        }
+
+        public int jumpSpan(){
+            int temp = maxJump - minJump;
+            return temp == MAX_SPAN ? -1 : temp;
+        }
+
+        public void resetJumpInfo(){
+            minJump = Integer.MAX_VALUE;
+            jumpHeight = maxJumpHeight = -1;
         }
 
         public void updateAddress(int index){
@@ -455,10 +533,25 @@ public class LCanvas extends Table{
             }
             for (var state : states) state.setupUI();
             statements.layout();
+            recalculate();
+        }
+
+        @Override
+        public void layout(){
+            if(canvas.dragging != null && (y + height < canvas.visibleBoundLower || y > canvas.visibleBoundUpper)) return;
+            super.layout();
         }
 
         @Override
         public void draw(){
+            if(forceLayout){ // forces jump buttons to lay themselves out
+                super.layout();
+                forceLayout = false;
+            }
+            if(y + height < canvas.visibleBoundLower || y > canvas.visibleBoundUpper){
+                if(button != null) button.draw();
+                return;
+            }
             float pad = 5f;
             Fill.dropShadow(x + width/2f, y + height/2f, width + pad, height + pad, 10f, 0.9f * parentAlpha);
 
@@ -471,17 +564,20 @@ public class LCanvas extends Table{
     }
 
     public static class JumpButton extends ImageButton{
-        Color hoverColor = Pal.place;
+        //Color hoverColor = Pal.place;
+        Color hoverColor = new Color(Pal.place);
         Color defaultColor = Color.white;
         Prov<StatementElem> to;
-        boolean selecting;
+        boolean selecting, colored;
         float mx, my;
         ClickListener listener;
 
         public JumpCurve curve;
 
         public JumpButton(Prov<StatementElem> getter, Cons<StatementElem> setter){
-            super(Tex.logicNode, Styles.colori);
+            super(Tex.logicNode, new ImageButtonStyle(){{
+                imageUpColor = Color.white;
+            }});
 
             to = getter;
             addListener(listener = new ClickListener());
@@ -509,6 +605,7 @@ public class LCanvas extends Table{
                     StatementElem elem = canvas.hovered;
 
                     setter.get(elem); // Changed to allow jumping to self
+                    canvas.recalculate();
                     selecting = false;
                     jumping = false;
                 }
@@ -519,7 +616,11 @@ public class LCanvas extends Table{
                     setter.get(null);
                 }
 
-                setColor(listener.isOver() ? hoverColor : defaultColor);
+                colored = listener.isOver() || selecting;
+                if(colored){
+                    getColor((Time.globalTime / 60f / 2f) % 3f);
+                }
+                setColor(colored ? hoverColor : defaultColor);
                 getStyle().imageUpColor = this.color;
             });
 
@@ -536,19 +637,26 @@ public class LCanvas extends Table{
                 canvas.jumps.addChild(curve);
             }
         }
+
+        public void getColor(float state){
+            //https://www.instructables.com/How-to-Make-Proper-Rainbow-and-Random-Colors-With-/ sine wave method
+            //Log.debug("state: @\nr: @ g: @ b: @", state, sinColor(state, 0), sinColor(state, 1), sinColor(state, 2));
+            hoverColor.set(sinColor(state, 0f), sinColor(state, 1f), sinColor(state, 2f));
+        }
+        private static float sinColor(float state, float rise){
+            if(state < rise) state += 3f;
+            if(state > rise + 2f) return 0f;
+            return Mathf.absin((state - rise - 0.5f) * Mathf.pi, 0.5f, 1f); //im an idiot, 0.5f because at 0, the sin function should be 0 not -1
+        }
     }
 
     public static class JumpCurve extends Element{
         public JumpButton button;
-        float ph, py;
+        int heightx;
 
         public JumpCurve(JumpButton button){
             this.button = button;
-        }
-
-        @Override
-        public float getPrefHeight(){
-            return ph;
+            calcArrowSpeed(); //TODO: fix 1000 calls
         }
 
         @Override
@@ -562,7 +670,18 @@ public class LCanvas extends Table{
 
         @Override
         public void draw(){
-            Element hover = button.to.get() == null && button.selecting ? canvas.hovered : button.to.get();
+            //if(canvas.jumpCount > maxJumpsDrawn=100 && !button.selecting && !button.listener.isOver()){
+            //return;
+            //}
+            @Nullable StatementElem to = button.to.get();
+            @Nullable StatementElem from = button.parent.parent instanceof StatementElem ? (StatementElem) button.parent.parent : null;
+            if(to == null || to.jumpHeight == -1 ||
+                    (from != null && from == canvas.dragging))
+                heightx = canvas.maxJumpHeight + 2;
+            else
+                heightx = button.to.get().jumpHeight;
+
+            Element hover = to == null && button.selecting ? canvas.hovered : to;
             Vec2 t = Tmp.v1, r = Tmp.v2;
 
             Group desc = canvas.pane;
@@ -577,9 +696,6 @@ public class LCanvas extends Table{
                 return;
             }
 
-            ph = Math.abs(t.y - r.y);
-            py = Math.min(t.y, r.y);
-
             float offset = canvas.pane.getVisualScrollY() - canvas.pane.getMaxY();
             t.y += offset;
             r.y += offset;
@@ -592,33 +708,77 @@ public class LCanvas extends Table{
             Draw.reset();
         }
 
+        static float lineWidth = 3f, heightSpacing = 8f, idealCurveRadius = 8f;
+        static float arrowInterval = 5f;
+        static float arrowSpeed;
+        public static void calcArrowSpeed(){
+            arrowSpeed = Core.graphics.getHeight() / 10f; // arbitrary speed of one screen height every x seconds //TODO: change this back (currently for debug)
+        }
         public void drawCurve(float x, float y, float x2, float y2){
-            Lines.stroke(4f, button.color);
+            float cHeight = Core.graphics.getHeight();
+            if((y > cHeight && y2 > cHeight) || (y < 0 && y2 < 0)) return; //TODO: shift this to the draw method to prevent unnecessary calc?
+            float yNew = Mathf.clamp(y, -lineWidth, cHeight + lineWidth), y2New = Mathf.clamp(y2, -lineWidth, cHeight + lineWidth); // margin so that curves are not partially cut off
+            boolean draw1curve = yNew == y, draw2curve = y2New == y2;
+            float curveRadius = Math.min(idealCurveRadius, Math.abs((y2 - y) / 2));
+            Lines.stroke(lineWidth, button.color);
             Draw.alpha(parentAlpha);
 
-            float dist = 100f;
+            float len = heightx * (lineWidth + heightSpacing) + curveRadius + 2f;
+            float maxX = Math.max(x, x2) + len + button.getWidth()*0.5f;
+            int curveDirection = Mathf.sign(y2 - y);
+            int isUpwards = Mathf.clamp(curveDirection, 0, 1);
 
-            //square jumps
-            if(false){
-                float len = Scl.scl(Mathf.randomSeed(hashCode(), 10, 50));
+            if(draw1curve){
+                Lines.line(x, y, maxX - curveRadius, y);
+                Lines.arc(maxX - curveRadius, y + curveRadius * curveDirection, curveRadius, 1/4f, isUpwards * -90);
+            }
+            Lines.line(maxX, yNew + curveRadius * curveDirection, maxX, y2New - curveRadius * curveDirection);
+            if(draw2curve){
+                Lines.arc(maxX - curveRadius, y2 - curveRadius * curveDirection, curveRadius, 1/4f, (isUpwards - 1) * 90);
+                Lines.line(maxX - curveRadius, y2, x2, y2);
+            }
+            if(button.colored && button.to.get() != null){
+                float bw = button.getWidth(), bh = button.getHeight();
+                // new strategy: just spawn a new arrow every x seconds and we do math from there.
+                float hLen1 = maxX - curveRadius - x, hLen2 = hLen1 - (x2 - x);
+                float vLen = Math.abs(y2 - y) - curveRadius * 2f;
+                float curvePathLength = Mathf.halfPi * curveRadius;
+                float totalPathLength = hLen1 + hLen2 + vLen + curvePathLength * 2f - bw / 4f; //the second node placement is jank so -1/4bw
+                float yarrow = (Time.globalTime / 60f) % arrowInterval; // Time.time will not work since we want it to run while game is paused
 
-                float maxX = Math.max(x, x2) + len;
-
-                Lines.beginLine();
-                Lines.linePoint(x, y);
-                Lines.linePoint(maxX, y);
-                Lines.linePoint(maxX, y2);
-                Lines.linePoint(x2, y2);
-                Lines.endLine();
-                return;
+                for(float currPathProgress = yarrow * arrowSpeed; currPathProgress <= totalPathLength; currPathProgress += arrowInterval * arrowSpeed){
+                    if(currPathProgress <= hLen1){
+                        if(draw1curve) Tex.logicNode.draw(x + currPathProgress - bw/2, y - bh/2, bw, bh);
+                    }else if(currPathProgress < hLen1 + curvePathLength){
+                        if(draw1curve){ // Math intensifies
+                            float theta = (currPathProgress - hLen1) / curvePathLength * 90f;
+                            Tex.logicNode.draw(maxX - curveRadius * Mathf.cosDeg(theta) - bw/2, y + curveRadius * Mathf.sinDeg(theta) * curveDirection - bh/2,
+                                    bw/2, bh/2, bw, bh, 1f, 1f, curveDirection * theta);
+                        }
+                    }else if(currPathProgress <= hLen1 + curvePathLength + vLen){
+                        Tex.logicNode.draw(maxX - bw/2, y + curveDirection * (curveRadius + currPathProgress - hLen1 - curvePathLength) - bh/2,
+                                bw/2, bh/2, bw, bh, 1f, 1f, curveDirection * 90f);
+                    }else if(currPathProgress < totalPathLength - hLen2){
+                        if(draw2curve){
+                            float theta = (currPathProgress - (totalPathLength - hLen2 - curvePathLength)) / curvePathLength * 90f;
+                            Tex.logicNode.draw(maxX - curveRadius * Mathf.sinDeg(theta) - bw/2, y2 - curveRadius * Mathf.cosDeg(theta) * curveDirection - bh/2,
+                                    bw/2, bh/2, bw, bh, 1f, 1f, curveDirection * 90f + curveDirection * theta);
+                        } else break;
+                    }else if(currPathProgress <= totalPathLength){
+                        if(draw2curve) Tex.logicNode.draw(x2 + (totalPathLength - currPathProgress) + bw/2, y2 - bh/2, -bw, bh); //+bw/2 because the scale is -bw (that's funny)
+                        else break;
+                    }
+                }
             }
 
+            /*
             Lines.curve(
             x, y,
             x + dist, y,
             x2 + dist, y2,
             x2, y2,
             Math.max(18, (int)(Mathf.dst(x, y, x2, y2) / 6)));
+            */
         }
     }
 }

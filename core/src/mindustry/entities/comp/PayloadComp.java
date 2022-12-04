@@ -12,22 +12,21 @@ import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.payloads.*;
+import mindustry.world.blocks.power.*;
 
 /** An entity that holds a payload. */
 @Component
 abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
     @Import float x, y, rotation;
+    @Import Team team;
     @Import UnitType type;
 
     Seq<Payload> payloads = new Seq<>();
-
-    //uncomment for insanity
-
-    /*
 
     private transient @Nullable PowerGraph payloadPower;
 
@@ -40,8 +39,9 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
         //update power graph first, resolve everything
         for(Payload pay : payloads){
             if(pay instanceof BuildPayload pb && pb.build.power != null){
-                if(payloadPower == null) payloadPower = new PowerGraph();
+                if(payloadPower == null) payloadPower = new PowerGraph(false);
 
+                //pb.build.team = team;
                 pb.build.power.graph = null;
                 payloadPower.add(pb.build);
             }
@@ -52,25 +52,29 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
         }
 
         for(Payload pay : payloads){
+            //apparently BasedUser doesn't want this and several plugins use it
+            //if(pay instanceof BuildPayload build){
+            //    build.build.team = team;
+            //}
             pay.set(x, y, rotation);
-            pay.update(true);
+            pay.update(self(), null);
         }
-    }*/
+    }
 
     float payloadUsed(){
         return payloads.sumf(p -> p.size() * p.size());
     }
 
     boolean canPickup(Unit unit){
-        return payloadUsed() + unit.hitSize * unit.hitSize <= type.payloadCapacity + 0.001f && unit.team == team() && unit.isAI();
+        return type.pickupUnits && payloadUsed() + unit.hitSize * unit.hitSize <= type.payloadCapacity + 0.001f && unit.team == team() && unit.isAI();
     }
 
     boolean canPickup(Building build){
-        return payloadUsed() + build.block.size * build.block.size * Vars.tilesize * Vars.tilesize <= type.payloadCapacity + 0.001f && build.canPickup();
+        return payloadUsed() + build.block.size * build.block.size * Vars.tilesize * Vars.tilesize <= type.payloadCapacity + 0.001f && build.canPickup() && build.team == team;
     }
 
     boolean canPickupPayload(Payload pay){
-        return payloadUsed() + pay.size()*pay.size() <= type.payloadCapacity + 0.001f;
+        return payloadUsed() + pay.size()*pay.size() <= type.payloadCapacity + 0.001f && (type.pickupUnits || !(pay instanceof UnitPayload));
     }
 
     boolean hasPayload(){
@@ -158,6 +162,7 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
         if(!u.isAdded()) u.team.data().updateCount(u.type, -1);
         u.add();
         u.unloaded();
+        Events.fire(new PayloadDropEvent(self(), u));
 
         return true;
     }
@@ -169,8 +174,8 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
         Tile on = Vars.world.tile(tx, ty);
         if(on != null && Build.validPlace(tile.block, tile.team, tx, ty, tile.rotation, false)){
             Events.fire(new EventType.BuildPayloadDrop(on, self(), payload.build));
-            int rot = (int)((rotation + 45f) / 90f) % 4;
-            payload.place(on, rot);
+            payload.place(on, tile.rotation);
+            Events.fire(new PayloadDropEvent(self(), tile));
 
             if(getControllerName() != null){
                 payload.build.lastAccessed = getControllerName();

@@ -30,42 +30,51 @@ public class ContentLoader{
     private @Nullable LoadedMod currentMod;
     private @Nullable Content lastAdded;
     private ObjectSet<Cons<Content>> initialization = new ObjectSet<>();
-    private ContentList[] content = {
-        new Items(),
-        new StatusEffects(),
-        new Liquids(),
-        new Bullets(),
-        new UnitTypes(),
-        new Blocks(),
-        new Loadouts(),
-        new Weathers(),
-        new Planets(),
-        new SectorPresets(),
-        new TechTree(),
-    };
 
     public ContentLoader(){
-        clear();
-    }
-
-    /** Clears all initialized content.*/
-    public void clear(){
-        contentNameMap = new ObjectMap[ContentType.all.length];
-        contentMap = new Seq[ContentType.all.length];
-        initialization = new ObjectSet<>();
-
         for(ContentType type : ContentType.all){
             contentMap[type.ordinal()] = new Seq<>();
             contentNameMap[type.ordinal()] = new ObjectMap<>();
         }
     }
 
-
     /** Creates all base types. */
-    public void createBaseContent(){
-        for(ContentList list : content){
-            list.load();
-        }
+    public void createBaseContent(){ // FINISHME: Awful.
+        loadStart = Time.nanos();
+        TeamEntries.load();
+        logLoad("TeamEntries");
+        Items.load();
+        logLoad("Items");
+        StatusEffects.load();
+        logLoad("StatusEffects");
+        Liquids.load();
+        logLoad("Liquids");
+        Bullets.load();
+        logLoad("Bullets");
+        UnitTypes.load();
+        logLoad("UnitTypes");
+        Blocks.load();
+        logLoad("Blocks");
+        Loadouts.load();
+        logLoad("Loadouts");
+        Weathers.load();
+        logLoad("Weathers");
+        Planets.load();
+        logLoad("Planets");
+        SectorPresets.load();
+        logLoad("SectorPresets");
+        SerpuloTechTree.load();
+        logLoad("SerpuloTechTree");
+        ErekirTechTree.load();
+        logLoad("ErekirTechTree");
+    }
+
+    private long loadStart;
+    private void logLoad(String type) {
+        if (Log.level != Log.LogLevel.debug) return;
+        float duration = Time.millisSinceNanos(loadStart);
+        Log.debug("Loaded content @ in @ms", type, duration);
+        loadStart = Time.nanos();
     }
 
     /** Creates mod content, if applicable. */
@@ -75,7 +84,7 @@ public class ContentLoader{
         }
     }
 
-    /** Logs content statistics.*/
+    /** Logs content statistics. */
     public void logContent(){
         //check up ID mapping, make sure it's linear (debug only)
         for(Seq<Content> arr : contentMap){
@@ -95,14 +104,14 @@ public class ContentLoader{
         Log.debug("-------------------");
     }
 
-    /** Calls Content#init() on everything. Use only after all modules have been created.*/
+    /** Calls Content#init() on everything. Use only after all modules have been created. */
     public void init(){
         initialize(Content::init);
-        if(constants != null) constants.init();
+        if(logicVars != null) logicVars.init();
         Events.fire(new ContentInitEvent());
     }
 
-    /** Calls Content#load() on everything. Use only after all modules have been created on the client.*/
+    /** Calls Content#loadIcon() and Content#load() on everything. Use only after all modules have been created on the client. */
     public void load(){
         initialize(Content::loadIcon);
         initialize(Content::load);
@@ -264,12 +273,20 @@ public class ContentLoader{
         return getByID(ContentType.item, id);
     }
 
+    public Item item(String name){
+        return getByName(ContentType.item, name);
+    }
+
     public Seq<Liquid> liquids(){
         return getBy(ContentType.liquid);
     }
 
     public Liquid liquid(int id){
         return getByID(ContentType.liquid, id);
+    }
+
+    public Liquid liquid(String name){
+        return getByName(ContentType.liquid, name);
     }
 
     public Seq<BulletType> bullets(){
@@ -284,8 +301,16 @@ public class ContentLoader{
         return getBy(ContentType.status);
     }
 
+    public StatusEffect statusEffect(String name){
+        return getByName(ContentType.status, name);
+    }
+
     public Seq<SectorPreset> sectors(){
         return getBy(ContentType.sector);
+    }
+
+    public SectorPreset sector(String name){
+        return getByName(ContentType.sector, name);
     }
 
     public Seq<UnitType> units(){
@@ -296,7 +321,15 @@ public class ContentLoader{
         return getByID(ContentType.unit, id);
     }
 
+    public UnitType unit(String name){
+        return getByName(ContentType.unit, name);
+    }
+
     public Seq<Planet> planets(){
         return getBy(ContentType.planet);
+    }
+
+    public Planet planet(String name){
+        return getByName(ContentType.planet, name);
     }
 }
