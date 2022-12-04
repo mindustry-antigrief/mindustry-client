@@ -19,9 +19,10 @@ public class Translating {
     public static volatile ObjectMap<String, Boolean> servers = ObjectMap.of(
         //"libretranslate.com", false, requires API key :(
         "translate.argosopentech.com", false,
-        "translate.api.skitzen.com", false,
         "libretranslate.de", false,
-        "libretranslate.pussthecat.org", false,
+        "lt.vern.cc", false,
+        "translate.terraprint.co", false,
+        "translate.api.skitzen.com", false,
         "translate.fortytwo-it.com", false
     );
 
