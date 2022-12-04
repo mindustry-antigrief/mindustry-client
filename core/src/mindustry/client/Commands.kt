@@ -193,7 +193,7 @@ fun setup() {
     }
 
     register("tl [lang] [message...]", Core.bundle.get("client.command.tl.description")) { args, _ ->
-        if (args.size == 0) return@register
+        if (args.isEmpty()) return@register
         val msg = if (args.size == 1) args[0]
         else if (supportedLangs.contains(args[0])) args[1]
         else args[0] + " " + args[1]

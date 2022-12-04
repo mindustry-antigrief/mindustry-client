@@ -8,12 +8,10 @@ import arc.struct.*;
 import arc.util.Nullable;
 import arc.util.*;
 import kotlin.*;
-import mindustry.content.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.ui.*;
-import mindustry.world.*;
 import mindustry.client.utils.*;
 import mindustry.game.EventType.*;
 import mindustry.world.blocks.defense.*;
@@ -79,7 +77,7 @@ public class ClientVars {
     public static String targetLang; // Language to translate messages to
     public static Seq<String> supportedLangs = new Seq<>(); // List of supported languages
     public static boolean enableTranslation = Core.settings.getBool("enabletranslation", true);
-    @NotNull public static Color translated = Color.sky;
+    @NotNull public static Color translatedColor = Color.sky;
 
     static {
         Events.on(ClientLoadEvent.class, e -> Translating.languages(langs -> {

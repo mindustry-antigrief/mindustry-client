@@ -8,6 +8,8 @@ import arc.util.serialization.JsonWriter.*;
 import mindustry.client.*;
 import mindustry.io.*;
 
+import java.io.IOException;
+
 /** Partial wrapper for the <a href=https://libretranslate.com>LibreTranslate API</a>
  * <!-- Is this how I'm supposed to write async --->
  * @author Weathercold
@@ -76,7 +78,7 @@ public class Translating {
             Log.err(new NullPointerException("Translate arguments cannot be null."));
             return;
         }
-        if (source == target) {success.get(text); return;}
+        if (source.equals(target)) {success.get(text); return;}
 
         fetch(
             "/translate",
@@ -101,9 +103,8 @@ public class Translating {
     private static void fetch(String api, @Nullable StringMap body, Cons<String> success) {
         fetch(api, HttpMethod.POST, body, success);
     }
-
     private static void fetch(String api, HttpMethod method, @Nullable StringMap body, Cons<String> success) {
-        String server = servers.findKey(false, false);
+        String server = servers.findKey(false, false); // find available server
         if (server == null) {
             Log.warn("Rate limit reached on all servers. Aborting translation.");
             return;
@@ -114,8 +115,7 @@ public class Translating {
             .header("Content-Type", "application/json")
             .content(JsonIO.json.toJson(body, StringMap.class, String.class))
             .error(e -> {
-                if (e instanceof HttpStatusException) {
-                    HttpStatusException hse = (HttpStatusException) e;
+                if (e instanceof HttpStatusException hse) {
                     switch (hse.status) {
                         case BAD_REQUEST -> Log.warn("Bad request, aborting translation: @", body);
                         case INTERNAL_SERVER_ERROR -> Log.warn("Server-side error, aborting translation: @", body);
@@ -127,16 +127,20 @@ public class Translating {
                         }
                         default -> {
                             if (servers.size >= 2) {
-                                Log.warn("HTTP Response indicates error, retrying: @", hse);
+                                Log.err("HTTP Response indicates error, retrying...\nServer: @\nBody:@", server, body);
+                                Log.err(hse);
                                 servers.remove(server);
                                 fetch(api, body, success);
                             } else {
-                                Log.err("HTTP Response indicates error, disabling translation for this session", hse);
+                                Log.err("HTTP Response indicates error, disabling translation for this session\nServer: @\nBody:@", server, body);
+                                Log.err(hse);
                                 ClientVars.enableTranslation = false;
                             }
                         }
                     }
-                } else {
+                } else if (e instanceof IOException)
+                    Log.err("I/O error, ignoring", e);
+                else {
                     Log.err("An unknown error occurred, disabling translation for this session", e);
                     ClientVars.enableTranslation = false;
                 }
