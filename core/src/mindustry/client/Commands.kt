@@ -192,6 +192,18 @@ fun setup() {
         sendMessage("!" + if (args.size == 1) args[0] else "")
     }
 
+    register("tl [lang] [message...]", Core.bundle.get("client.command.tl.description")) { args, _ ->
+        if (args.size == 0) return@register
+        val msg = if (args.size == 1) args[0]
+        else if (supportedLangs.contains(args[0])) args[1]
+        else args[0] + " " + args[1]
+        val lang = if (args.size == 2 && supportedLangs.contains(args[0])) args[0] else "en"
+
+        Translating.translate(msg, lang) { translation ->
+            sendMessage("$translation [gray](translated)[]")
+        }
+    }
+
     register("shrug [message...]", Core.bundle.get("client.command.shrug.description")) { args, _ ->
         sendMessage("¯\\_(ツ)_/¯ " + if (args.size == 1) args[0] else "")
     }
