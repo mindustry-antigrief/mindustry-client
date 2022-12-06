@@ -20,12 +20,15 @@ public class Translating {
      */
     public static volatile ObjectMap<String, Boolean> servers = ObjectMap.of(
         //"libretranslate.com", false, requires API key :(
-        "translate.argosopentech.com", false,
-        "libretranslate.de", false,
-        "lt.vern.cc", false,
-        "translate.terraprint.co", false,
-        "translate.api.skitzen.com", false,
-        "translate.fortytwo-it.com", false
+        // Thanks to Allen for hosting this instance and Nautilus for giving permission to use it
+        // https://github.com/TomtheCoder2/mainPlugin/blob/master/src/main/java/mindustry/plugin/minimods/Translate.java#L219
+        "http://168.119.234.142:5000", false,
+        "https://translate.argosopentech.com", false,
+        "https://libretranslate.de", false,
+        "https://lt.vern.cc", false,
+        "https://translate.terraprint.co", false,
+        "https://translate.api.skitzen.com", false,
+        "https://translate.fortytwo-it.com", false
     );
 
     // Might break certain mods idk
@@ -110,7 +113,7 @@ public class Translating {
             return;
         }
 
-        Http.post("https://" + server + api)
+        Http.post(server + api)
             .method(method)
             .header("Content-Type", "application/json")
             .content(JsonIO.json.toJson(body, StringMap.class, String.class))
