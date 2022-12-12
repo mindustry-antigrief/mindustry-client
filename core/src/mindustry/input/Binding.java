@@ -98,7 +98,7 @@ public enum Binding implements KeyBind{
     send_build_queue(KeyCode.apostrophe),
     toggle_auto_target(KeyCode.x),
     show_massdriver_configs(KeyCode.f3),
-    force_place_modifier(KeyCode.controlLeft),
+    force_place_modifier(KeyCode.altLeft),
     ;
 
     private final KeybindValue defaultValue;
