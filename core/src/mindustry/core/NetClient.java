@@ -69,6 +69,8 @@ public class NetClient implements ApplicationListener{
     private DataInputStream dataStream = new DataInputStream(byteStream);
     /** Packet handlers for custom types of messages. */
     private ObjectMap<String, Seq<Cons<String>>> customPacketHandlers = new ObjectMap<>();
+    /** Foo's thing to make ServerJoinEvent work good */
+    public static boolean firstLoad = true;
 
     public NetClient(){
 
@@ -109,6 +111,21 @@ public class NetClient implements ApplicationListener{
             c.usid = getUsid(packet.addressTCP);
             c.uuid = platform.getUUID();
 
+            var address = packet.addressTCP.split(":")[0].substring(1); // Remove leading slash and trailing port
+            if (ui.join.communityHosts.contains(h -> "Korea".equals(h.group) && h.address.equals(address))) { // Korea is cursed
+                var matcher = Pattern.compile("^\\[(.*)]").matcher(player.name);
+                if (matcher.find()) {
+                    var col = matcher.toMatchResult().group(1);
+                    var get = Colors.get(col);
+                    c.name = matcher.replaceAll("");
+                    try {
+                        c.color = get != null ? get.rgba() : Color.valueOf(col).rgba();
+                    } catch (IndexOutOfBoundsException ignored) {}
+                }
+            } else if (ui.join.communityHosts.contains(h -> "Chaotic Neutral".equals(h.group) && h.address.equals(address))) {
+                if (!Structs.contains(playerColors, col -> col.rgba() == c.color)) c.color = playerColors[0].rgba();
+            }
+
             if(c.uuid == null){
                 ui.showErrorMessage("@invalidid");
                 ui.loadfrag.hide();
@@ -127,7 +144,6 @@ public class NetClient implements ApplicationListener{
             platform.updateRPC();
             player.name = Core.settings.getString("name");
             player.color.set(Core.settings.getInt("color-0"));
-            ui.join.lastHost = null;
 
             if(quiet) return;
 
@@ -184,7 +200,7 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both, unreliable = true, called = Loc.server)
     public static void soundAt(Sound sound, float x, float y, float volume, float pitch){
         if(sound == null || headless) return;
-        if(sound == Sounds.corexplode && ClientUtils.io()) return;
+        if(sound == Sounds.corexplode && Server.io.b()) return;
 
         sound.at(x, y, pitch, Mathf.clamp(volume, 0, 4f));
     }
@@ -285,8 +301,8 @@ public class NetClient implements ApplicationListener{
             findCoords(output);
             findLinks(output);
 
-            if (message.contains("Type[orange] /vote <y/n>[] to " + (ClientUtils.io() ? "vote." : "agree.")) // Vote kick clickable buttons
-            || ClientUtils.phoenix() && message.contains("Type [cyan]/vote y")) {
+            if (message.contains("Type[orange] /vote <y/n>[] to " + (Server.io.b() ? "vote." : "agree.")) // Vote kick clickable buttons
+            || Server.phoenix.b() && message.contains("Type [cyan]/vote y")) {
                 String yes = Core.bundle.get("client.voteyes"), no = Core.bundle.get("client.voteno");
                 output.message = output.message + '\n' + yes + "  " + no;
                 output.format();
@@ -294,13 +310,7 @@ public class NetClient implements ApplicationListener{
                 output.addButton(no, () -> Call.sendChatMessage("/vote n"));
             }
 
-            else if (message.contains("Type [cyan]/rtv") && ClientUtils.phoenix() // Rock the vote clickable button
-            || message.contains("Type [lightgray]/rtv") && ClientUtils.cn()
-            || message.contains("Type[accent] /rtv") && ClientUtils.io()
-            || message.contains("Type Type[orange] /skip") && ClientUtils.nydus()) {
-                var rtv = ClientUtils.nydus() ? "/skip y" : "/rtv";
-                output.addButton(rtv, () -> Call.sendChatMessage(rtv));
-            }
+            Server.current.handleVoteButtons(output);
 
             Sounds.chatMessage.play();
         }
@@ -365,7 +375,7 @@ public class NetClient implements ApplicationListener{
         if(net.server() && player != null && player.con != null && (Time.timeSinceMillis(player.con.connectTime) < 500 || !player.con.hasConnected || !player.isAdded())) return;
 
         //detect and kick for foul play
-        if(player != null && player.con != null && !player.con.chatRate.allow(2000, 20)){
+        if(player != null && player.con != null && !player.con.chatRate.allow(2000, Config.chatSpamLimit.num())){
             player.con.kick(KickReason.kick);
             netServer.admins.blacklistDos(player.con.address);
             return;
@@ -469,6 +479,7 @@ public class NetClient implements ApplicationListener{
 
     @Remote(variants = Variant.one, priority = PacketPriority.high)
     public static void kick(String reason){
+        ServerUtils.handleKick(reason);
         netClient.disconnectQuietly();
         logic.reset();
         ui.showText("@disconnect", reason, Align.left);
@@ -705,13 +716,17 @@ public class NetClient implements ApplicationListener{
         connecting = false;
         ui.join.hide();
         net.setClientLoaded(true);
-        Core.app.post(Call::connectConfirm);
+        Call.connectConfirm();
         Time.runTask(40f, platform::updateRPC);
         Core.app.post(ui.loadfrag::hide);
-        Core.app.post(() -> Events.fire(new EventType.ServerJoinEvent()));
+        if (NetClient.firstLoad) {
+            Events.fire(new ServerJoinEvent());
+            NetClient.firstLoad = false;
+        }
     }
 
     private void reset(){
+        firstLoad = true;
         net.setClientLoaded(false);
         removed.clear();
         timeoutTime = 0f;

@@ -140,7 +140,7 @@ public class ItemBridge extends Block{
 
     public boolean positionsValid(int x1, int y1, int x2, int y2){
         if(x1 == x2){
-            return y1 != y2 && Math.abs(y1 - y2) <= range; // Can't link to self
+            return Math.abs(y1 - y2) <= range;
         }else if(y1 == y2){
             return Math.abs(x1 - x2) <= range;
         }else{
@@ -167,7 +167,7 @@ public class ItemBridge extends Block{
         for(int i = 0; i < plans.size; i++){
             var cur = plans.get(i);
             var next = plans.get(Math.min(Core.input.shift() ? i + range : i + 1, plans.size - 1)); // Bridge weaving is enabled when shift is held
-            if(positionsValid(cur.x, cur.y, next.x, next.y)){
+            if(positionsValid(cur.x, cur.y, next.x, next.y) && !cur.samePos(next)){
                 cur.config = new Point2(next.x - cur.x, next.y - cur.y);
             }
         }

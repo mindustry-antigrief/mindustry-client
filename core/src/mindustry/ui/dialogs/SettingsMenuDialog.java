@@ -21,6 +21,7 @@ import arc.util.io.*;
 import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.content.TechTree.*;
@@ -337,23 +338,6 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("powersplitwarnings", true); // FINISHME: Add a minimum building requirement and a setting for it
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
         client.checkPref("removecorenukes", false);
-        
-        // Seer: Client side multiplayer griefing/cheating detections
-        if (settings.getBool("client-experimentals")) { // FINISHME: Either remove this or make it properly functional
-            client.checkPref("seer-enabled", false); // by default false because still new
-            client.checkPref("seer-autokick", false); // by default false to avoid false positives
-            client.sliderPref("seer-warnthreshold", 10, 0, 50, String::valueOf);
-            client.sliderPref("seer-autokickthreshold", 20, 0, 50, String::valueOf);
-            client.sliderPref("seer-scoredecayinterval", 1, 0, 10, i -> String.valueOf(i * 30) + "s");
-            client.sliderPref("seer-scoredecay", 5, 0, 20, String::valueOf);
-            client.sliderPref("seer-reactorscore", 8, 0, 10, String::valueOf);
-            client.sliderPref("seer-reactordistance", 5, 0, 20, String::valueOf);
-            client.sliderPref("seer-configscore", 3, 0, 50, i -> String.valueOf(i / 5f)); // 0.60
-            client.sliderPref("seer-configdistance", 20, 0, 100, String::valueOf);
-            client.sliderPref("seer-proclinkthreshold", 20, 0, 80, String::valueOf);
-            client.sliderPref("seer-proclinkscore", 10, 0, 50, String::valueOf);
-        }
-        
 
         client.category("chat");
         client.checkPref("clearchatonleave", true);
@@ -361,10 +345,12 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("clientjoinleave", true);
         client.checkPref("highlightcryptomsg", true);
         client.checkPref("highlightclientmsg", false);
+        client.checkPref("showclientmsgsendername", true);
         client.checkPref("displayasuser", true);
         client.checkPref("broadcastcoreattack", false); // FINISHME: Multiple people using this setting at once will cause chat spam
         client.checkPref("showuserid", false);
         client.checkPref("hideserversbydefault", false); // Inverts behavior of server hiding
+        client.checkPref("enablechatlimit", false);
 
         client.category("controls");
         client.checkPref("blockreplace", true);
@@ -372,6 +358,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("autoboost", false);
         client.checkPref("assumeunstrict", false);
         client.checkPref("returnonmove", false);
+        client.checkPref("vanillamovement", false);
+        client.checkPref("nostrafepenalty", false);
         client.checkPref("decreasedrift", false);
         client.checkPref("zerodrift", false);
         client.checkPref("fastrespawn", false);
@@ -379,6 +367,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.category("graphics");
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
+        client.sliderPref("beamdrillopacity", 100, 0, 100, 1, s -> s + "%");
         client.sliderPref("junctionview", 0, -1, 1, 1, s -> { Junction.setBaseOffset(s); return s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show"; });
         client.sliderPref("spawntime", 5, -1, 60, s -> { ClientVars.spawnTime = 60 * s; if (Vars.pathfinder.thread == null) Vars.pathfinder.start(); return s == -1 ? "Solid Line" : s == 0 ? "Disabled" : String.valueOf(s); });
         client.sliderPref("traveltime", 10, 0, 60, s -> { ClientVars.travelTime = 60f / s; return s == 0 ? "Disabled" : String.valueOf(s); });
@@ -409,13 +398,13 @@ public class SettingsMenuDialog extends BaseDialog{
     
         client.category("misc");
         client.updatePref();
-        client.sliderPref("minepathcap", 0, -100, 5000, 100, s -> s == 0 ? "Unlimited" : s == -100 ? "Never" : String.valueOf(s));
+        client.sliderPref("minepathcap", 5000, -100, 5000, 100, s -> s == 0 ? "Unlimited" : s == -100 ? "Never" : String.valueOf(s));
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
         client.sliderPref("processorstatementscale", 80, 10, 100, 1, s -> String.format("%.2fx", s/100f)); // This is the most scuffed setting you have ever seen
         client.sliderPref("automapvote", 0, 0, 4, s -> s == 0 ? "Never" : s == 4 ? "Random vote" : "Always " + new String[]{"downvote", "novote", "upvote"}[--s]);
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
-        client.textPref("defaultminepathargs", "copper lead sand coal titanium beryllium graphite tungsten");
+        client.textPref("defaultminepathargs", "all");
         client.textPref("gamejointext", "");
         client.textPref("gamewintext", "gg");
         client.textPref("gamelosetext", "gg");
@@ -431,15 +420,32 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
         client.checkPref("autorestart", true);
-        client.checkPref("attemwarfare", true);
-        client.checkPref("attemwarfarewhisper", false);
+        client.checkPref("attemwarfare", false);
         client.checkPref("onjoinfixcode", true);
         client.checkPref("removeatteminsteadoffixing", true);
         client.checkPref("downloadmusic", true);
         client.checkPref("downloadsound", true);
         client.checkPref("circleassist", false);
-        client.checkPref("trackcoreitems", false, i -> CoreItemsDisplay.trackItems = i && !net.server());
         client.checkPref("ignoremodminversion", false);
+        client.checkPref("betterenemyblocktapping", false);
+    
+        if (settings.getBool("client-experimentals")) { // FINISHME: Either remove this or make it properly functional
+            client.category("Experimental");
+            // Seer: Client side multiplayer griefing/cheating detections
+            client.checkPref("seer-enabled", false); // by default false because still new
+            client.checkPref("seer-autokick", false); // by default false to avoid false positives
+            client.sliderPref("seer-warnthreshold", 10, 0, 50, String::valueOf);
+            client.sliderPref("seer-autokickthreshold", 20, 0, 50, String::valueOf);
+            client.sliderPref("seer-scoredecayinterval", 1, 0, 10, i -> String.valueOf(i * 30) + "s");
+            client.sliderPref("seer-scoredecay", 5, 0, 20, String::valueOf);
+            client.sliderPref("seer-reactorscore", 8, 0, 10, String::valueOf);
+            client.sliderPref("seer-reactordistance", 5, 0, 20, String::valueOf);
+            client.sliderPref("seer-configscore", 3, 0, 50, i -> String.valueOf(i / 5f)); // 0.60
+            client.sliderPref("seer-configdistance", 20, 0, 100, String::valueOf);
+            client.sliderPref("seer-proclinkthreshold", 20, 0, 80, String::valueOf);
+            client.sliderPref("seer-proclinkscore", 10, 0, 50, String::valueOf);
+            client.checkPref("trackcoreitems", false, i -> CoreItemsDisplay.trackItems = i && !net.server());
+        }
         // End Client Settings
 
 
@@ -844,17 +850,26 @@ public class SettingsMenuDialog extends BaseDialog{
             add(searchBarTable).fillX().padBottom(4);
             row();
 
-            if(search.isEmpty()){
+            if(search.trim().isEmpty()){
                 for(Setting setting : list){
                     setting.add(this);
                 }
             }else{
                 listSorted.selectFrom(list, s -> !(s instanceof Category));
-                listSorted.sort(Structs.comparingFloat(u ->
-                    u.title == null ? Float.POSITIVE_INFINITY :
-                            BiasedLevenshtein.biasedLevenshteinLengthIndependentInsensitive(search, Strings.stripColors(u.title))
-                        // Maybe if distance == length, do not include? But troublesome
-                ));
+                var searchLower = search.toLowerCase();
+                var searchSplit = ObjectSet.with(searchLower.split(" "));
+                listSorted.sort(Structs.comparingFloat(u -> { // FINISHME: Maybe if distance == length, do not include? But troublesome
+                    var title = u.title == null ? "" : Strings.stripColors(u.title).toLowerCase();
+//                    var desc = u.description == null ? "" : Strings.stripColors(u.description).toLowerCase();
+                    var weight = title.isEmpty() /*&& desc.isEmpty()*/ ? Float.POSITIVE_INFINITY : 0f;
+
+                    if (!title.isEmpty()) weight += BiasedLevenshtein.biasedLevenshteinLengthIndependent(searchLower, title) / (Structs.count(title.split(" "), searchSplit::contains) + 1);
+//                    Line below doesn't work great since a lot of the settings don't have descriptions
+//                    if (!desc.isEmpty()) weight += .5f * BiasedLevenshtein.biasedLevenshteinLengthIndependent(searchLower, desc) / (Structs.count(desc.split(" "), searchSplit::contains) + 1);
+
+                    return weight;
+                }));
+
                 for(Setting setting : listSorted){
                     setting.add(this);
                 }

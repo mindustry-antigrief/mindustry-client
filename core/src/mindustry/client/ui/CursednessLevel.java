@@ -1,4 +1,4 @@
-package mindustry.client;
+package mindustry.client.ui;
 
 public enum CursednessLevel {
 	NORMAL,

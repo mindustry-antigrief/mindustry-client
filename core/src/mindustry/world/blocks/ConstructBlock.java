@@ -86,7 +86,8 @@ public class ConstructBlock extends Block{
         if (!Core.settings.getBool("breakwarnings") || !tile.isCenter() || state.rules.infiniteResources || builder == null || !builder.isPlayer()) return; // Don't warn in sandbox for obvious reasons.
 
         if (breakWarnBlocks.contains(block) && Time.timeSinceMillis(tile.lastBreakWarn) > 10_000) { // FINISHME: Revise this, maybe do break warns per user?
-            Timer.schedule(() -> ui.chatfrag.addMessage(Core.bundle.format("client.breakwarn", Strings.stripColors(builder.getPlayer().name), block.localizedName, tile.x, tile.y)), 0, 0, 2);
+            // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
+            Timer.schedule(() -> ui.chatfrag.addMessage(Core.bundle.format("client.breakwarn", Strings.stripColors(builder.getPlayer().name), block.localizedName, String.valueOf(tile.x), String.valueOf(tile.y))), 0, 0, 2);
             tile.lastBreakWarn = Time.millis();
         }
     }

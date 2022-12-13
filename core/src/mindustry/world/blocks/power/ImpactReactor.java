@@ -70,7 +70,7 @@ public class ImpactReactor extends PowerGenerator{
         super.drawPlace(x, y, rotation, valid);
         float wx = x * tilesize + offset, wy = y * tilesize + offset;
         Drawf.dashCircle(wx, wy, explosionRadius * tilesize, Color.coral);
-        if (ClientUtils.flood()) {
+        if (CustomMode.flood.b()) {
             Drawf.dashCircle(wx, wy, floodNullifierRange, Color.orange);
             indexer.eachBlock(null, wx, wy, floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild && b.within(wx, wy, floodNullifierRange), b -> Drawf.selected(b, Color.orange));
         }
@@ -78,7 +78,7 @@ public class ImpactReactor extends PowerGenerator{
 
     @Override
     public void drawPlanConfigTop(BuildPlan req, Eachable<BuildPlan> list){
-        if (ClientUtils.flood()) {
+        if (CustomMode.flood.b()) {
             Drawf.dashCircle(req.drawx(), req.drawy(), floodNullifierRange, Color.orange);
             indexer.eachBlock(null, req.drawx(), req.drawy(), floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
         }

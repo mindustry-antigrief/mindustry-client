@@ -9,6 +9,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.noise.*;
 import mindustry.*;
+import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
@@ -230,6 +231,7 @@ public class World{
         Groups.resize(-finalWorldBounds, -finalWorldBounds, tiles.width * tilesize + finalWorldBounds * 2, tiles.height * tilesize + finalWorldBounds * 2);
 
         generating = false;
+        if (net.client() && NetClient.firstLoad) Server.onServerJoin(); // The event is fired in NetClient and the boolean is set to false there as well
         Events.fire(new WorldLoadEvent());
     }
 

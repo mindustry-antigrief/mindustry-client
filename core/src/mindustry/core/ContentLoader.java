@@ -39,20 +39,42 @@ public class ContentLoader{
     }
 
     /** Creates all base types. */
-    public void createBaseContent(){
+    public void createBaseContent(){ // FINISHME: Awful.
+        loadStart = Time.nanos();
         TeamEntries.load();
+        logLoad("TeamEntries");
         Items.load();
+        logLoad("Items");
         StatusEffects.load();
+        logLoad("StatusEffects");
         Liquids.load();
+        logLoad("Liquids");
         Bullets.load();
+        logLoad("Bullets");
         UnitTypes.load();
+        logLoad("UnitTypes");
         Blocks.load();
+        logLoad("Blocks");
         Loadouts.load();
+        logLoad("Loadouts");
         Weathers.load();
+        logLoad("Weathers");
         Planets.load();
+        logLoad("Planets");
         SectorPresets.load();
+        logLoad("SectorPresets");
         SerpuloTechTree.load();
+        logLoad("SerpuloTechTree");
         ErekirTechTree.load();
+        logLoad("ErekirTechTree");
+    }
+
+    private long loadStart;
+    private void logLoad(String type) {
+        if (Log.level != Log.LogLevel.debug) return;
+        float duration = Time.millisSinceNanos(loadStart);
+        Log.debug("Loaded content @ in @ms", type, duration);
+        loadStart = Time.nanos();
     }
 
     /** Creates mod content, if applicable. */

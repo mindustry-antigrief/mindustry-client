@@ -82,18 +82,23 @@ public class BlockRenderer{
 
             Draw.color(blendShadowColor);
 
+            var playerTeam = player.team();
+            var playerTeamFlag = 1L << playerTeam.id;
+            var noFog = !state.rules.fog || hidingFog;
             for(Tile tile : world.tiles){
                 recordIndex(tile);
 
-                if(tile.floor().updateRender(tile)){
-                    updateFloors.add(new UpdateRenderState(tile, tile.floor()));
+                var tileFloor = tile.floor();
+                var tileBuild = tile.build;
+                if(tileFloor.updateRender(tile)){
+                    updateFloors.add(new UpdateRenderState(tile, tileFloor));
                 }
 
-                if(tile.build != null && (tile.team() == player.team() || (!state.rules.fog || hidingFog) || (tile.build.visibleFlags & (1L << player.team().id)) != 0)){
-                    tile.build.wasVisible = true;
+                if(tileBuild != null && (tile.team() == playerTeam || noFog || (tileBuild.visibleFlags & playerTeamFlag) != 0)){
+                    tileBuild.wasVisible = true;
                 }
 
-                if(tile.block().hasShadow && (tile.build == null || tile.build.wasVisible)){
+                if(tile.block().hasShadow && (tileBuild == null || tileBuild.wasVisible)){
                     Fill.rect(tile.x + 0.5f, tile.y + 0.5f, 1, 1);
                 }
             }

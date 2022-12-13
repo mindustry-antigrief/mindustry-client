@@ -135,7 +135,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     /** @return speed with boost & floor multipliers factored in. */
     public float speed(){
-        float strafePenalty = isGrounded() || !isPlayer() ? 1f : Mathf.lerp(1f, type.strafePenalty, Angles.angleDist(vel().angle(), rotation) / 180f);
+        float strafePenalty = isGrounded() || !isPlayer() || Core.settings.getBool("nostrafepenalty") ? 1f : Mathf.lerp(1f, type.strafePenalty, Angles.angleDist(vel().angle(), rotation) / 180f);
         float boost = Mathf.lerp(1f, type.canBoost ? type.boostMultiplier : 1f, elevation);
         return type.speed * strafePenalty * boost * floorSpeedMultiplier();
     }
@@ -146,7 +146,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             return angleTo(buildPlan());
         }else if(mineTile != null){
             return angleTo(mineTile);
-        }else if(moving() /*&& type.omniMovement*/){ // FINISHME: Why did I comment this again?
+        }else if(moving() && (!Core.settings.getBool("vanillamovement") || (isLocal() && type.omniMovement)) /*&& type.omniMovement*/){ // FINISHME: Why did I comment omniMovement again?
             return vel().angle();
         }
         return rotation;
@@ -477,6 +477,11 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         }
         healTime -= Time.delta / 20f;
         wasHealed = false;
+
+        //die on captured sectors immediately
+        if(team.isOnlyAI() && state.isCampaign() && state.getSector().isCaptured()){
+            kill();
+        }
 
         if(!headless && type.loopSound != Sounds.none){
             control.sound.loop(type.loopSound, this, type.loopSoundVolume);

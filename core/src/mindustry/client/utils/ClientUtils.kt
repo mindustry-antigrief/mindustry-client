@@ -4,6 +4,7 @@
 package mindustry.client.utils
 
 import arc.*
+import arc.func.*
 import arc.graphics.*
 import arc.math.geom.*
 import arc.scene.*
@@ -35,7 +36,6 @@ import kotlin.contracts.*
 import kotlin.math.*
 
 /** Performs the given [block] with each element as its receiver. */
-@Suppress("OPT_IN_IS_NOT_ENABLED")
 @OptIn(ExperimentalContracts::class)
 inline fun <T, R>Iterable<T>.withEach(block: T.() -> R) {
     contract {
@@ -235,33 +235,14 @@ val X509Certificate.readableName: String
 
 fun String.asciiNoSpaces() = filter { it in '0'..'9' || it in 'A'..'Z' || it in 'a'..'z' || it == '_' }
 
-fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) { // FINISHME: Events.remove is fake news; doesn't ever work. This wouldn't even work if .remove did
+fun <T> next(event: Class<T>, repetitions: Int = 1, lambda: (T) -> Unit) {
     var i = 0
-    Events.on(event) {
+    var id = -1
+    id = Events.onid(event) {
         lambda(it)
-        if (i++ >= repetitions) {
-            Events.remove(event, lambda)
-        }
+        if (i++ >= repetitions) Events.remove(event, id) // FINISHME: Is there an off by one here? Im too tired for this right now
     }
 }
-
-/** Whether we are connected to nydus */
-fun nydus() = Vars.ui.join.lastHost != null && Vars.net.client() && Vars.ui.join.lastHost.name.contains("nydus")
-
-/** Whether we are connected to a cn server */
-fun cn() = Vars.net.client() && Vars.ui.join.communityHosts.contains { it.group == "Chaotic Neutral" && it.address == Vars.ui.join.lastHost?.address }
-
-/** Whether we are connected to a .io server */
-fun io() = Vars.net.client() && Vars.ui.join.communityHosts.contains { it.group == "io" && it.address == Vars.ui.join.lastHost?.address }
-
-/** Whether we are connected to a Phoenix Network server */
-fun phoenix() = Vars.net.client() && Vars.ui.join.communityHosts.contains { it.group == "Phoenix Network" && it.address == Vars.ui.join.lastHost?.address }
-
-/** Whether the current gamemode is flood */
-fun flood() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Flood") || Vars.state.rules.modeName == "Flood"
-
-/** Whether the current gamemode is tower defense */
-fun defense() = (Vars.net.client() && Vars.ui.join.lastHost?.modeName == "Defense") || Vars.state.rules.modeName == "Defense"
 
 fun ByteBuffer.putString(string: String) { putByteArray(string.encodeToByteArray()) }
 
@@ -408,17 +389,17 @@ fun inflateImage(array: ByteArray, offset: Int, length: Int): Pixmap? {
 inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
     // x^2 + y^2 = r^2
     // x = sqrt(r^2 - y^2)
-    val tr = radius / Vars.tilesize
+    val tr = radius / tilesize
     val r2 = tr * tr
-    val h = 0 until Vars.world.height()
-    val w = 0 until Vars.world.width()
+    val h = 0 until world.height()
+    val w = 0 until world.width()
     for (yo in -tr.floor()..tr.ceil()) {
         val ty = yo + y
         if (ty !in h) continue
         val diff = sqrt(r2 - (yo * yo)).ceil()
         for (tx in (x - diff)..(x + diff)) {
             if (tx !in w) continue
-            cons(Vars.world.tiles[tx, ty])
+            cons(world.tiles[tx, ty])
         }
     }
 }
@@ -434,7 +415,7 @@ fun getName(builder:mindustry.gen.Unit?):String {
 //    } else if (builder.controller() is FormationAI) {
 //        Strings.stripColors((builder.controller() as FormationAI).leader.player.name)
     } else if (builder.controller() is LogicAI){
-        val controller = (builder.controller() as LogicAI).controller;
+        val controller = (builder.controller() as LogicAI).controller
         Strings.format(
             "@ controlled by @ last configured by @ at (@, @)",
             builder.type.toString(), controller.displayName,
@@ -457,8 +438,6 @@ fun getPlayer(unit: mindustry.gen.Unit?): Player? {
     } else null
 }
 
-fun canWhisper() = io() || phoenix()
-
 fun toggleMutePlayer(player: Player) {
     val match = ClientVars.mutedPlayers.firstOrNull { p -> p.second == player.id || (p.first != null && p.first == player) }
     if (match == null) {
@@ -468,6 +447,10 @@ fun toggleMutePlayer(player: Player) {
         ClientVars.mutedPlayers.remove(match)
         Vars.player.sendMessage(Core.bundle.format("client.command.unmute.success", player.coloredName(), player.id))
     }
+}
+
+fun isDeveloper():Boolean {
+    return Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert())
 }
 
 //inline fun <T> Seq<out T>.forEach(consumer: (T?) -> Unit) {
@@ -484,11 +467,11 @@ fun ChatMessage.findCoords(): ChatMessage = NetClient.findCoords(this)
 
 fun ChatMessage.findLinks(): ChatMessage = NetClient.findLinks(this)
 
-fun findItem(arg: String): Item = Vars.content.items().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+fun findItem(arg: String): Item = content.items().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
 
-fun findUnit(arg: String): UnitType = Vars.content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+fun findUnit(arg: String): UnitType = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
 
-fun findBlock(arg: String): Block = Vars.content.blocks().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+fun findBlock(arg: String): Block = content.blocks().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
 
 fun findTeam(arg: String): Team = if (arg.toIntOrNull() in 0 until Team.all.size) Team.all[arg.toInt()] else Team.all.minBy { t -> if (t.name == null) Float.MAX_VALUE else BiasedLevenshtein.biasedLevenshteinInsensitive(arg, t.localized()) }
 

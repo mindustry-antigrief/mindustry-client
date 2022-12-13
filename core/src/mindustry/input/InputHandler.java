@@ -41,11 +41,11 @@ import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
-import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.meta.*;
 
+import java.lang.reflect.*;
 import java.util.*;
 
 import static arc.Core.*;
@@ -301,16 +301,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public static void commandBuilding(Player player, int[] buildings, Vec2 target){
         if(player == null  || target == null) return;
 
+        if(net.server() && !netServer.admins.allowAction(player, ActionType.commandBuilding, event -> {
+            event.buildingPositions = buildings;
+        })){
+            throw new ValidateException(player, "Player cannot command buildings.");
+        }
+
         for(int pos : buildings){
             var build = world.build(pos);
 
             if(build == null || build.team() != player.team() || !build.block.commandable) continue;
-
-            if(net.server() && !netServer.admins.allowAction(player, ActionType.commandBuilding, event -> {
-                event.tile = build.tile;
-            })){
-                throw new ValidateException(player, "Player cannot command building.");
-            }
 
             build.onCommand(target);
             if(!state.isPaused() && player == Vars.player){
@@ -437,7 +437,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(targets = Loc.both, called = Loc.server)
     public static void requestDropPayload(Player player, float x, float y){
-        if(player == null || net.client()) return;
+        if(player == null || net.client() || player.dead()) return;
 
         Payloadc pay = (Payloadc)player.unit();
 
@@ -507,29 +507,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         Events.fire(new ConfigEventBefore(build, player, value));
         build.configured(player == null || player.dead() ? null : player.unit(), value);
-        Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value)));
-
-        if (player != null && Vars.player != player) { // FINISHME: Move all this client stuff into the ClientLogic class
-            if (Core.settings.getBool("powersplitwarnings") && build instanceof PowerNode.PowerNodeBuild node) {
-                if (value instanceof Integer val) {
-                    if (new Seq<>((Point2[])previous).contains(Point2.unpack(val).sub(build.tileX(), build.tileY()))) { // FINISHME: Awful.
-                        String message = bundle.format("client.powerwarn", Strings.stripColors(player.name), ++node.disconnections, build.tileX(), build.tileY());
-                        ClientVars.lastCorePos.set(build.tileX(), build.tileY());
-                        if (node.message == null || ui.chatfrag.messages.indexOf(node.message) > 8) {
-                            node.disconnections = 1;
-                            node.message = ui.chatfrag.addMessage(message, null, null, "", message);
-                            NetClient.findCoords(node.message);
-                        } else {
-                            ui.chatfrag.doFade(2);
-                            node.message.message = message;
-                            node.message.format();
-                        }
-                    }
-                } else if (value instanceof Point2[]) {
-                    // FINISHME: handle this urgent in erekir as it actually works there
-                }
-            }
-        }
+        Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value, previous)));
     }
 
     //only useful for servers or local mods, and is not replicated across clients
@@ -686,7 +664,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     public void update(){
         isLoadedSchematic &= lastSchematic != null; // i am lazy to reset it on all other instances; this should suffice
-        player.typing = showTypingIndicator && ui.chatfrag.shown();
 
         if(logicCutscene && !renderer.isCutscene()){
             Core.camera.position.lerpDelta(logicCamPan, logicCamSpeed);
@@ -703,7 +680,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         playerPlanTree.clear(); // TODO: aaaaaaaaaaaaaa
         player.unit().plans.each(playerPlanTree::insert);
 
-        player.typing = ui.chatfrag.shown();
+        player.typing = showTypingIndicator && ui.chatfrag.shown();
 
         if(player.dead()){
             droppingItem = false;
@@ -1274,10 +1251,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         Lines.stroke(2f);
 
-        Draw.color(col1);
-        Lines.rect(result.x, result.y - 1, result.x2 - result.x, result.y2 - result.y);
-        Draw.color(col2);
-        Lines.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+
+        Draw.color(col2, .3f);
+        float x = (result.x2 + result.x) / 2; // FINISHME: Surely theres a better way to do this.
+        float y = (result.y2 + result.y) / 2;
+        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
     }
 
     protected void flushSelectPlans(Seq<BuildPlan> plans){
@@ -1308,6 +1286,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[plans.size + plans.count(plan -> plan.block == Blocks.waterExtractor) * 3]; // Cursed but works good enough for me
         var added = 0;
+        IntSet toBreak = force ? new IntSet() : null;
         for(BuildPlan plan : plans){
             if (plan.block == null) continue;
     
@@ -1341,22 +1320,26 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
     
             boolean valid = validPlace(plan.x, plan.y, plan.block, plan.rotation);
-            if(freeze || force || valid){
+            if(freeze || (force && world.tile(plan.x, plan.y) != null) || valid){
                 BuildPlan copy = plan.copy();
                 if(configLogic && copy.block instanceof LogicBlock && copy.config != null){ // Store the configs for logic blocks locally, they cause issues when sent to the server
                     copy.configLocal = true;
                 }
                 if (force && !valid) {
                     var existing = world.tiles.get(plan.x, plan.y);
-                    if (existing.build != null && existing.block() == plan.block && existing.build.tileX() == plan.x && existing.build.tileY() == plan.y) {
-                        configs.add(new ConfigRequest(existing.build, plan.config));
+                    var existingBuild = existing.build;
+                    if (existingBuild != null && existing.block() == plan.block && existingBuild.tileX() == plan.x && existingBuild.tileY() == plan.y) {
+                        var existingConfig = existingBuild.config();
+                        boolean configEqual = (plan.config instanceof Array[] pa && existingConfig instanceof Array[] ea && Arrays.deepEquals(pa, ea)) || plan.config == existingConfig;
+                        if (!configEqual)
+                            configs.add(new ConfigRequest(existing.build, plan.config));
                     }
                     else { // Add build plans to remove block underneath
                         frozenPlans.add(copy);
-                        Seq<Tile> tmpTiles = new Seq<>(4);
-                        plan.tile().getLinkedTilesAs(plan.block, tmpTiles);
-                        tmpTiles.forEach(tile -> {
-                            if (tile.build != null) player.unit().addBuild(new BuildPlan(tile.build.tileX(), tile.build.tileY()));
+                        plan.tile().getLinkedTilesAs(plan.block, tile -> {
+                            if (tile.build == null) return;
+                            var bt = tile.build.tile;
+                            if (toBreak.add(bt.pos())) player.unit().addBuild(new BuildPlan(bt.x, bt.y));
                         });
                     }
                 }
@@ -1581,7 +1564,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             linePlans.add(plan);
         });
 
-        if(Core.settings.getBool("blockreplace") != control.input.conveyorPlaceNormal || block instanceof ItemBridge){ // Bridges need this for weaving, i'm too lazy to fix this properly
+        if(Core.settings.getBool("blockreplace") != control.input.conveyorPlaceNormal || block instanceof ItemBridge){ // Bridges need this for weaving, I'm too lazy to fix this properly
             linePlans.each(plan -> {
                 Block replace = plan.block.getReplacement(plan, linePlans);
                 if(replace.unlockedNow()){
@@ -1590,7 +1573,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             });
 
             block.handlePlacementLine(linePlans);
-        } else if(block instanceof ItemBridge && Core.input.shift()) block.handlePlacementLine(linePlans);
+        }
     }
 
     protected void updateLine(int x1, int y1){
@@ -1646,7 +1629,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(build.interactable(player.team()) && build.block.consumesTap){
             consumed = true;
         }else if((build.interactable(player.team()) ||
-            !(Vars.player != null && Vars.player.unit() instanceof BlockUnitUnit blockunit && Structs.contains(noInteractTurrets, blockunit.tile().block))
+            !(
+                (Vars.player != null && Vars.player.unit() instanceof BlockUnitUnit blockunit && Structs.contains(noInteractTurrets, blockunit.tile().block.name))
+                && Core.settings.getBool("betterenemyblocktapping", false)
+            )
         ) && build.block.synthetic() && (!consumed || invBuild.block.allowConfigInventory)){
             if(invBuild.block.hasItems && invBuild.items.total() > 0){
                 inv.showFor(invBuild);
@@ -1849,7 +1835,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     public void add(){
         Core.input.getInputProcessors().remove(i -> i instanceof InputHandler || (i instanceof GestureDetector && ((GestureDetector)i).getListener() instanceof InputHandler));
-        Core.input.addProcessor(detector = new GestureDetector(20, 0.5f, 0.3f, 0.15f, this));
+        Core.input.addProcessor(detector = new GestureDetector(20, 0.5f, 0.45f, 0.15f, this));
         Core.input.addProcessor(this);
         if(Core.scene != null){
             Table table = (Table)Core.scene.find("inputTable");
@@ -2072,7 +2058,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         boolean omni = unit.type().omniMovement;
         boolean ground = unit.isGrounded();
 
-        float strafePenalty = ground ? 1f : Mathf.lerp(1f, unit.type().strafePenalty, Angles.angleDist(unit.vel().angle(), unit.rotation()) / 180f);
+        float strafePenalty = ground || Core.settings.getBool("nostrafepenalty") ? 1f : Mathf.lerp(1f, unit.type().strafePenalty, Angles.angleDist(unit.vel().angle(), unit.rotation()) / 180f);
         float baseSpeed = unit.type().speed;
 
         float speed = baseSpeed * Mathf.lerp(1f, unit.type().canBoost ? unit.type().boostMultiplier : 1f, unit.elevation) * strafePenalty;

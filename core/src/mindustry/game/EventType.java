@@ -1,15 +1,23 @@
 package mindustry.game;
 
-import arc.math.geom.*;
-import arc.util.*;
-import mindustry.core.GameState.*;
-import mindustry.ctype.*;
-import mindustry.gen.*;
-import mindustry.net.*;
-import mindustry.net.Packets.*;
-import mindustry.type.*;
-import mindustry.world.*;
-import mindustry.world.blocks.storage.CoreBlock.*;
+import arc.math.geom.Vec2;
+import arc.util.Nullable;
+import mindustry.core.GameState.State;
+import mindustry.ctype.UnlockableContent;
+import mindustry.gen.Building;
+import mindustry.gen.Bullet;
+import mindustry.gen.Player;
+import mindustry.gen.Unit;
+import mindustry.net.Host;
+import mindustry.net.NetConnection;
+import mindustry.net.Packets.AdminAction;
+import mindustry.net.Packets.ConnectPacket;
+import mindustry.type.Item;
+import mindustry.type.ItemStack;
+import mindustry.type.Sector;
+import mindustry.world.Block;
+import mindustry.world.Tile;
+import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 
 @SuppressWarnings("ClassCanBeRecord")
 public class EventType{
@@ -93,8 +101,10 @@ public class EventType{
     public static class MusicRegisterEvent{}
     /** Called *after* all the modded files have been added into Vars.tree */
     public static class FileTreeInitEvent{}
-    /** Called just after joining a server */
+    /** Called once after joining a server (fired after WorldLoadEvent) */
     public static class ServerJoinEvent{}
+    /** Called when fully quitting to the main menu */
+    public static class MenuReturnEvent{}
 
     /** Called when a game begins and the world tiles are loaded, just set `generating = false`. Entities are not yet loaded at this stage. */
     public static class WorldLoadEvent{}
@@ -251,11 +261,13 @@ public class EventType{
         public final Building tile;
         public final Player player;
         public final Object value;
+        public final Object previous;
 
-        public ConfigEvent(Building tile, Player player, Object value){
+        public ConfigEvent(Building tile, Player player, Object value, Object previous){
             this.tile = tile;
             this.player = player;
             this.value = value;
+            this.previous = previous;
         }
     }
 

@@ -8,7 +8,6 @@ import arc.util.pooling.*
 import mindustry.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.game.*
-import mindustry.world.blocks.storage.*
 import java.util.concurrent.*
 
 /** A way of representing a path */
@@ -99,9 +98,8 @@ abstract class Path {
                     }
                 }
             } else { // Not navigating
-//                waypoint.set(destX, destY, if (aStarDist == 0f) 4f else aStarDist, dist)
                 waypoints.set(waypoint.set(destX, destY, 1F, dist).run())
-                waypoint.stopOnFinish = true
+                waypoint.stopOnFinish = aStarDist == 0f
                 waypoints.set(waypoint.run())
                 cons?.get(waypoints)
             }
@@ -121,11 +119,11 @@ abstract class Path {
 
     fun addListener(listener: Runnable) = listeners.add(listener)
 
-     abstract fun follow()
+    abstract fun follow()
 
-     abstract fun progress(): Float
+    abstract fun progress(): Float
 
-     open fun isDone(): Boolean {
+    open fun isDone(): Boolean {
         val done = progress() >= 0.999f
         if (done && repeat) onFinish()
         return done && !repeat

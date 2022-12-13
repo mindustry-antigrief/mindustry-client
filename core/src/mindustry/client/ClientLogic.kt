@@ -1,6 +1,8 @@
 package mindustry.client
 
 import arc.*
+import arc.Core.*
+import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
@@ -8,6 +10,7 @@ import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.navigation.*
+import mindustry.client.navigation.Navigation.stopFollowing
 import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.content.*
@@ -19,8 +22,9 @@ import mindustry.net.*
 import mindustry.type.*
 import mindustry.ui.fragments.*
 import mindustry.world.blocks.defense.turrets.*
-import mindustry.world.blocks.logic.*
+import mindustry.world.blocks.power.*
 import mindustry.world.blocks.sandbox.*
+import kotlin.random.*
 
 /** WIP client logic class, similar to [Logic] but for the client.
  * Handles various events and such.
@@ -34,66 +38,37 @@ class ClientLogic {
     /** Create event listeners */
     init {
         Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
-            Navigation.stopFollowing()
             Spectate.pos = null
 
             Timer.schedule({
-                Core.app.post {
-                    val arg = switchTo?.removeFirstOrNull() ?: return@post
-                    if (arg is Host) NetClient.connect(arg.address, arg.port)
-                    else {
-                        if (arg is UnitType) ui.unitPicker.pickUnit(arg)
-                        switchTo = null
-
-                        // If no hh then send gamejointext
-                        if (Core.settings.getString("gamejointext")?.isNotEmpty() == true) {
-                            Call.sendChatMessage(Core.settings.getString("gamejointext"))
-                        }
-
-                        when (Core.settings.getInt("automapvote")) {
-                            0 -> {}
-                            1 -> Call.sendChatMessage("/downvote")
-                            2 -> Call.sendChatMessage("/novote")
-                            3 -> Call.sendChatMessage("/upvote")
-                            4 -> Call.sendChatMessage(("/${arrayOf("no", "up", "down").random()}vote"))
-                            else -> {}
+                app.post {
+                    val arg = switchTo?.removeFirstOrNull()
+                    if (arg != null) {
+                        if (arg is Host) {
+                            NetClient.connect(arg.address, arg.port)
+                            return@post
+                        } else {
+                            if (arg is UnitType) ui.unitPicker.pickUnit(arg)
+                            switchTo = null
                         }
                     }
+
+                    // Game join text after hh
+                    if (settings.getString("gamejointext")?.isNotBlank() == true) {
+                        Call.sendChatMessage(settings.getString("gamejointext"))
+                    }
+
+                    when (val vote = settings.getInt("automapvote")) {
+                        1, 2, 3 -> Server.current.mapVote(vote - 1)
+                        4 -> Server.current.mapVote(Random.nextInt(0..2))
+                        else -> {}
+                    }
+
                 }
             }, .1F)
 
             if (Core.settings.getBool("onjoinfixcode")) { // FINISHME: Make this also work for singleplayer worlds
-                Core.app.post {
-                    val builds = player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
-                    clientThread.post {
-                        val inProgress = !configs.isEmpty()
-                        var n = 0
-                        if (Core.settings.getBool("attemwarfare") && !inProgress) {
-                            Log.debug("Patching!")
-                            builds.forEach {
-                                val patched = ProcessorPatcher.patch(it.code, if(Core.settings.getBool("removeatteminsteadoffixing")) "r" else "c")
-                                if (patched != it.code) {
-                                    Log.debug("${it.tileX()} ${it.tileY()}")
-                                    configs.add(
-                                        ConfigRequest(it.tileX(), it.tileY(),
-                                        LogicBlock.compress(patched, it.relativeConnections())
-                                    )
-                                    )
-                                    n++
-                                }
-                            }
-                        }
-
-                        Core.app.post {
-                            if (Core.settings.getBool("attemwarfare")) {
-                                if (inProgress) player.sendMessage("[scarlet]The config queue isn't empty, there are ${configs.size} configs queued, there are ${ProcessorPatcher.countProcessors(builds)} processors to reconfigure.") // FINISHME: Bundle
-                                else player.sendMessage("[accent]Successfully reconfigured $n/${builds.size} processors")
-                            } else {
-                                player.sendMessage("[accent]Run [coral]!fixcode [c | r][] to reconfigure ${ProcessorPatcher.countProcessors(builds)}/${builds.size} processors")
-                            }
-                        }
-                    }
-                }
+                ProcessorPatcher.fixCode(ProcessorPatcher.FixCodeMode.Fix)
             }
 
             Seer.players.clear()
@@ -103,7 +78,7 @@ class ClientLogic {
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
             Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             if (!syncing) {
-                AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(state.rules.pvp && io())
+                AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(state.rules.pvp && Server.io())
                 Player.persistPlans.clear()
                 frozenPlans.clear()
             }
@@ -121,9 +96,12 @@ class ClientLogic {
             overdrives.clear()
             massDrivers.clear()
             Client.tiles.clear()
+        }
 
-            UnitTypes.horizon.itemCapacity = if (flood()) 20 else 0 // Horizons can pick up items in flood, this just allows the items to draw correctly
-            UnitTypes.crawler.health = if (flood()) 100f else 200f // Crawler health is halved in flood
+        Events.on(MenuReturnEvent::class.java) { // Run when returning to the title screen
+            stopFollowing()
+            syncing = false // Never syncing when not connected
+            ui.join.lastHost = null // Not needed unless connected
         }
 
         Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading
@@ -159,13 +137,13 @@ class ClientLogic {
             Core.settings.remove("effectscl")
             Core.settings.remove("commandwarnings")
 	        Core.settings.remove("nodeconfigs")
+            Core.settings.remove("attemwarfarewhisper")
             if (Core.settings.has("gameovertext")) {
                 if (Core.settings.getString("gameovertext").isNotBlank()) Core.settings.put("gamewintext", Core.settings.getString("gameovertext"))
                 Core.settings.remove("gameovertext")
             }
 
-            val encoded = Main.keyStorage.cert()?.encoded
-            if (encoded != null && Main.keyStorage.builtInCerts.any { it.encoded.contentEquals(encoded) }) {
+            if (isDeveloper()) {
                 register("update <name/id...>") { args, _ ->
                     val name = args.joinToString(" ")
                     val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { BiasedLevenshtein.biasedLevenshteinInsensitive(Strings.stripColors(it.name), name) }!!
@@ -199,15 +177,16 @@ class ClientLogic {
 
             // TODO: Make this work in singleplayer
             if (it.winner == player.team()) {
-                if (Core.settings.getString("gamewintext")?.isNotEmpty() == true) Call.sendChatMessage(Core.settings.getString("gamewintext"))
+                if (Core.settings.getString("gamewintext")?.isNotBlank() == true) Call.sendChatMessage(Core.settings.getString("gamewintext"))
             } else {
-                if (Core.settings.getString("gamelosetext")?.isNotEmpty() == true) Call.sendChatMessage(Core.settings.getString("gamelosetext"))
+                if (Core.settings.getString("gamelosetext")?.isNotBlank() == true) Call.sendChatMessage(Core.settings.getString("gamelosetext"))
             }
         }
 
         Events.on(BlockDestroyEvent::class.java) {
             if (it.tile.block() is PowerVoid) {
-                ui.chatfrag.addMessage(Core.bundle.format("client.voidwarn", it.tile.x, it.tile.y))
+                val message = bundle.format("client.voidwarn", it.tile.x.toString(), it.tile.y.toString())
+                NetClient.findCoords(ui.chatfrag.addMessage(message, null, null, "", message)) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
             }
         }
 
@@ -215,6 +194,8 @@ class ClientLogic {
         Events.on(BlockBuildBeginEventBefore::class.java) { event ->
             val block = event.newBlock
             if (block !is Turret) return@on
+            if (event.unit?.player == null) return@on
+
             clientThread.post { // Scanning through tiles can be exhaustive. Delegate it to the client thread.
                 val voids = Seq<Building>()
                 for (tile in world.tiles) if (tile.block() is PowerVoid) voids.add(tile.build)
@@ -222,13 +203,14 @@ class ClientLogic {
                 val void = voids.find { it.within(event.tile, block.range) }
                 if (void != null) { // Code taken from LogicBlock.LogicBuild.configure
                     Core.app.post {
-                        if (event.unit?.player != turretVoidWarnPlayer || turretVoidWarnPlayer == null || Time.timeSinceMillis(lastTurretVoidWarn) > 5e3) {
-                            turretVoidWarnPlayer = event.unit?.player
+                        if (event.unit.player != turretVoidWarnPlayer || Time.timeSinceMillis(lastTurretVoidWarn) > 5e3) {
+                            turretVoidWarnPlayer = event.unit.player
                             turretVoidWarnCount = 1
-                            val message = Core.bundle.format("client.turretvoidwarn", getName(event.unit),
-                                event.tile.x, event.tile.y, void.tileX(), void.tileY()
+                            val message = bundle.format("client.turretvoidwarn", getName(event.unit),
+                                event.tile.x.toString(), event.tile.y.toString(), void.tileX().toString(), void.tileY().toString() // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
                             )
                             turretVoidWarnMsg = ui.chatfrag.addMessage(message , null, null, "", message)
+                            NetClient.findCoords(turretVoidWarnMsg)
                         } else {
                             ui.chatfrag.messages.remove(turretVoidWarnMsg)
                             ui.chatfrag.messages.insert(0, turretVoidWarnMsg)
@@ -240,6 +222,37 @@ class ClientLogic {
                     }
                 }
             }
+        }
+
+        Events.on(ConfigEvent::class.java) { event ->
+            @Suppress("unchecked_cast")
+            if (event.player != null && event.player != player && Core.settings.getBool("powersplitwarnings") && event.tile is PowerNode.PowerNodeBuild) {
+                val prev = Seq(event.previous as Array<Point2>)
+                val count = if (event.value is Int) { // FINISHME: Awful
+                    if (prev.contains(Point2.unpack(event.value).sub(event.tile.tileX(), event.tile.tileY()))) 1 else 0
+                } else {
+                    prev.count { !((event.value as? Array<Point2>)?.contains(it)?: true) }
+                }
+                if (count == 0) return@on // No need to warn
+                event.tile.disconnections += count
+
+                val message: String = bundle.format("client.powerwarn", Strings.stripColors(event.player.name), event.tile.disconnections, event.tile.tileX().toString(), event.tile.tileY().toString()) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
+                lastCorePos.set(event.tile.tileX().toFloat(), event.tile.tileY().toFloat())
+                if (event.tile.message == null || ui.chatfrag.messages.indexOf(event.tile.message) > 8) {
+                    event.tile.disconnections = count
+                    event.tile.message = ui.chatfrag.addMessage(message, null, null, "", message)
+                    NetClient.findCoords(event.tile.message)
+                } else {
+                    ui.chatfrag.doFade(2f)
+                    event.tile.message!!.message = message
+                    event.tile.message!!.format()
+                }
+            }
+        }
+
+        Events.run(Trigger.draw) {
+            Core.camera.bounds(cameraBounds)
+            cameraBounds.grow(2 * tilesizeF)
         }
     }
 }

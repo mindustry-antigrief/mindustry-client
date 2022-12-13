@@ -21,11 +21,13 @@ import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
 
+import java.net.*;
+
 import static mindustry.Vars.*;
 
 public class JoinDialog extends BaseDialog{
     public Seq<Host> communityHosts = new Seq<>();
-    Seq<Server> servers = new Seq<>();
+    public Seq<Server> servers = new Seq<>();
     Dialog add;
     Server renaming;
     Table local = new Table();
@@ -530,11 +532,7 @@ public class JoinDialog extends BaseDialog{
         }).width(w);
     }
 
-    public void connect(String ip, int port) {
-        connect(ip, port, null);
-    }
-
-    public void connect(String ip, int port, Host host){
+    public void connect(String ip, int port){
         if(player.name.trim().isEmpty()){
             ui.showInfo("@noname");
             return;
@@ -547,26 +545,25 @@ public class JoinDialog extends BaseDialog{
             netClient.disconnectQuietly();
         });
 
-        Host[] hostFinal = {host};
+        if (ip.startsWith("steam:")) doConnect(null, ip, port);
+        else net.pingHost(ip, port, h -> doConnect(h, ip, port), e -> { // Make a second attempt on timeout
+            if (e instanceof SocketTimeoutException) net.pingHost(ip, port, h -> doConnect(h, ip, port), ex -> net.showError(ex));
+            else net.showError(e);
+        });
+    }
 
-        if(Core.settings.getBool("allowjoinany")) {
-            net.pingHost(ip, port, h -> {
-                hostFinal[0] = h;
-                Version.build = hostFinal[0].version;
-            }, e -> {});
-        }
-
-        Time.runTask(2f, () -> {
-            logic.reset();
-            net.reset();
-            Vars.netClient.beginConnecting();
-            net.connect(lastIp = ip, lastPort = port, () -> {
-                if(net.client()){
-                    hide();
-                    add.hide();
-                    lastHost = hostFinal[0];
-                }
-            });
+    /* Connection is wrapped in a ping so that host is guaranteed to not be null when joining a server (unless it's a steam server FINISHME: Add a default host?) */
+    private void doConnect(Host host, String ip, int port) {
+        if (Core.settings.getBool("allowjoinany") && host != null) Version.build = host.version;
+        logic.reset();
+        net.reset();
+        Vars.netClient.beginConnecting();
+        net.connect(lastIp = ip, lastPort = port, () -> {
+            if(net.client()){
+                hide();
+                add.hide();
+                lastHost = host;
+            }
         });
     }
 
@@ -579,7 +576,7 @@ public class JoinDialog extends BaseDialog{
                 if(ping == null) return;
                 ping.cancel();
                 ping = null;
-                connect(lastIp, lastPort, host);
+                connect(lastIp, lastPort);
             }, exception -> {});
         }, 1, 1);
         
@@ -598,7 +595,7 @@ public class JoinDialog extends BaseDialog{
             ui.showInfo("[scarlet]" + (version > Version.build ? KickReason.clientOutdated : KickReason.serverOutdated) + "\n[]" +
                 Core.bundle.format("server.versions", Version.build, version));
         }else{
-            connect(ip, port, host);
+            connect(ip, port);
         }
     }
 
@@ -657,7 +654,7 @@ public class JoinDialog extends BaseDialog{
         public int port;
 
         transient Table content;
-        transient Host lastHost;
+        transient public Host lastHost;
 
         void setIP(String ip){
             try{

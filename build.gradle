@@ -1,15 +1,13 @@
 buildscript{
     ext{
-        arcHash = new Properties().with{ p -> p.load(file('gradle.properties').newReader()); return p }["archash"]
+        arcHash = property("archash")
 
-        localArc = { // TODO Shouldn't this just be a boolean?
-            return !project.hasProperty("release") && new File(rootDir.parent, 'Arc').exists() && !project.hasProperty("noLocalArc")
-        }
+        localArc = !project.hasProperty("release") && new File(rootDir.parent, 'Arc').exists() && !project.hasProperty("noLocalArc")
 
         arcModule = { String name ->
             //skip to last submodule
             name = name.substring(name.lastIndexOf(':') + 1)
-            return "com.github.mindustry-antigrief${localArc() ? "" : ".Arc"}:$name:$arcHash"
+            return "com.github.mindustry-antigrief${localArc ? "" : ".arc"}:$name:$arcHash"
             // TODO: Merge recheck: Merge bala's arc
         }
 
@@ -45,20 +43,9 @@ allprojects{
         if(!project.hasProperty("updateUrl")) updateUrl = ''
         if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
         if(!project.hasProperty("assetRef")) assetRef = 'v7'
-        if(!project.hasProperty("versionModifier")) versionModifier = 'beta'
-        if(!project.hasProperty("buildversion")) buildversion = '140.2' // Modders use BE build numbers which is stupid
-        if(!project.hasProperty("clientVersion")){
-            try {
-                def tagTokens = "git tag --sort=committerdate -l v${project.getProperties()["buildversion"]}* -n1".execute().text.trim().split('[\n]')[-1]
-                        .tokenize(' ')[0].split('[.]') as String[]
-                tagTokens[0] = tagTokens[0][1..-1]
-                tagTokens[-1] = ((tagTokens[-1] as Integer) + 1) as String
-                clientVersion = branchName + " / ${tagTokens.join('.')}"
-            } catch (Exception ignored){
-                clientVersion = branchName + " / ${project.getProperties()["buildversion"]}"
-            }
-
-        }
+        if(!project.hasProperty("versionModifier")) versionModifier = 'release'
+        if(!project.hasProperty("buildversion")) buildversion = '140.4' // Modders use BE build numbers which is stupid
+        if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
@@ -207,7 +194,7 @@ allprojects{
         targetCompatibility = JavaVersion.VERSION_1_8
         sourceCompatibility = JavaVersion.VERSION_16
         options.encoding = "UTF-8"
-        options.compilerArgs += ["-Xmaxerrs", "5000"]
+        options.compilerArgs += ["-Xmaxerrs", "5000", "-Xlint:deprecation"]
         dependsOn clearCache
 
         options.forkOptions.jvmArgs += [
@@ -226,7 +213,7 @@ allprojects{
 //compile with java 8 compatibility for everything except the annotation project
 configure(subprojects - project(":annotations")){
     tasks.withType(JavaCompile){
-        options.compilerArgs.addAll(['--release', '16'])
+        options.compilerArgs.addAll(['--release', '8'])
     }
 
     tasks.withType(Javadoc){
@@ -252,6 +239,8 @@ project(":desktop"){
         if(debugged()) implementation project(":debug")
 
         implementation "com.github.Anuken:steamworks4j:$steamworksVersion"
+//        implementation "com.github.mindustry-antigrief.steamworks4j:steamworks4j:master-SNAPSHOT" // Steamworks4j fork
+//        implementation "com.github.mindustry-antigrief:steamworks4j:1.10.0-SNAPSHOT" // Local steamworks4j
 
         implementation arcModule("backends:backend-sdl")
     }
@@ -346,15 +335,15 @@ project(":core"){
 
         api "org.lz4:lz4-java:1.8.0"
         api arcModule("arc-core")
-        if(localArc() && project.hasProperty("debug")) implementation arcModule("extensions:profiling")
+        if(localArc && project.hasProperty("debug")) implementation arcModule("extensions:profiling")
         api arcModule("extensions:flabel")
         api arcModule("extensions:freetype")
         api arcModule("extensions:g3d")
         api arcModule("extensions:fx")
         api arcModule("extensions:arcnet")
         api "com.github.Anuken:rhino:$rhinoVersion"
-        if(localArc() && debugged()) api arcModule("extensions:recorder")
-        if(localArc()) api arcModule(":extensions:packer")
+        if(localArc && debugged()) api arcModule("extensions:recorder")
+        if(localArc) api arcModule(":extensions:packer")
 
         implementation "org.jetbrains.kotlin:kotlin-reflect:1.7.20"
 //        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0" Unused, removed to reduce jar size

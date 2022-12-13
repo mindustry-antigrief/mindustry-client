@@ -3,6 +3,7 @@ package mindustry.ui.fragments;
 import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
+import arc.input.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.style.*;
@@ -11,8 +12,8 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.Vars;
 import mindustry.client.*;
+import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
@@ -21,6 +22,7 @@ import mindustry.graphics.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
 
@@ -213,13 +215,29 @@ public class PlayerListFragment{
                     () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).tooltip("@client.spectate");
             }
 
-            if (ClientUtils.io() && ClientVars.rank >= 4 || ClientUtils.phoenix() && ClientVars.rank >= 9) { // Apprentice+ on io, Colonel+ on phoenix
-                button.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon), ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("client.confirmfreeze", user.name()), () -> {
-                        if (ClientVars.rank == 4 && ClientUtils.io()) Call.serverPacketReliable("freeze_by_id", String.valueOf(user.id));
-                        else Call.sendChatMessage("/freeze " + user.id); // Freeze command preferred since it actually has a response (io doesn't let apprentice run it for some reason)
-                    })
-                ).tooltip("@client.freeze");
+            if (Server.current.freeze.canRun()) { // Apprentice+ on io, Colonel+ on phoenix
+                button.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon), ustyle, () -> {
+                    BaseDialog dialog = new BaseDialog("@confirm");
+                    dialog.cont.label(() -> Core.bundle.format("client.confirmfreeze", user.name(), Moderation.freezeState)).width(mobile ? 400f : 500f).wrap().pad(4f).get().setAlignment(Align.center, Align.center);
+                    dialog.buttons.defaults().size(200f, 54f).pad(2f);
+                    dialog.setFillParent(false);
+                    dialog.buttons.button("@cancel", Icon.cancel, dialog::hide);
+                    dialog.buttons.button("@ok", Icon.ok, () -> {
+                        dialog.hide();
+                        Server.current.freeze.invoke(user);
+                    });
+                    dialog.keyDown(KeyCode.enter, () -> {
+                        dialog.hide();
+                        Server.current.freeze.invoke(user);
+                    });
+                    dialog.keyDown(KeyCode.escape, dialog::hide);
+                    dialog.keyDown(KeyCode.back, dialog::hide);
+                    Moderation.freezeState = "unknown";
+                    Moderation.freezePlayer = user;
+                    Call.serverPacketReliable("playerdata_by_id", String.valueOf(user.id)); // Retrieve freeze state from server
+                    dialog.hidden(() -> Moderation.freezePlayer = null);
+                    dialog.show();
+                }).tooltip("@client.freeze");
             }
 
             content.add(button).padBottom(-6).width(750).maxHeight(h + 14);

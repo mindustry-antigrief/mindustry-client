@@ -20,6 +20,7 @@ import mindustry.*;
 import mindustry.ai.types.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.communication.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
 import mindustry.client.ui.*;
@@ -89,15 +90,15 @@ public class DesktopInput extends InputHandler{
                         if (isFreezeQueueing) {
                             str.append("\n").append(bundle.format("client.freezequeueing", keybinds.get(Binding.pause_building).key.toString()));
                         }
-                        if(!isBuilding && !isBuildingLock && !settings.getBool("buildautopause") && !player.unit().isBuildingIgnoreNetworking()){
+                        if(!isBuilding && !isBuildingLock && !settings.getBool("buildautopause") && !isBuildingIgnoreNetworking()){
                             str.append("\n").append(bundle.format("enablebuilding", keybinds.get(Binding.pause_building).key.toString()));
-                        }else if(player.unit().isBuildingIgnoreNetworking() || !Player.persistPlans.isEmpty()){
+                        }else if(isBuildingIgnoreNetworking() || !Player.persistPlans.isEmpty()){
                             str.append("\n")
                                 .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", keybinds.get(Binding.pause_building).key.toString()))
                                 .append("\n").append(bundle.format("cancelbuilding", keybinds.get(Binding.clear_building).key.toString()))
                                 .append("\n").append(bundle.format("selectschematic", keybinds.get(Binding.schematic_select).key.toString()));
                         }
-                        if(player.unit().isBuildingIgnoreNetworking() || dispatchingBuildPlans){
+                        if(isBuildingIgnoreNetworking() || dispatchingBuildPlans){
                             str.append("\n").append(bundle.format(dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
                         }
                         if (hidingFog){
@@ -527,7 +528,7 @@ public class DesktopInput extends InputHandler{
                     settings.put("autotransfer", AutoTransfer.enabled);
                     new Toast(1).add(bundle.get("client.autotransfer") + ": " + bundle.get(AutoTransfer.enabled ? "mod.enabled" : "mod.disabled"));
                     table.remove();
-                }).disabled(b -> state.rules.pvp && ClientUtils.io());
+                }).disabled(b -> state.rules.pvp && Server.io.b());
 
                 table.row().fill();
                 table.button("@client.unitpicker", () -> { // Unit Picker / Sniper
@@ -774,7 +775,7 @@ public class DesktopInput extends InputHandler{
         int rawCursorX = World.toTile(Core.input.mouseWorld().x), rawCursorY = World.toTile(Core.input.mouseWorld().y);
 
         //automatically pause building if the current build queue is empty
-        if(Core.settings.getBool("buildautopause") && isBuilding && !player.unit().isBuildingIgnoreNetworking()){
+        if(Core.settings.getBool("buildautopause") && isBuilding && !isBuildingIgnoreNetworking()){
             isBuilding = false;
             buildWasAutoPaused = true;
         }
@@ -843,7 +844,7 @@ public class DesktopInput extends InputHandler{
                     BlockPlan plan = broken.next();
                     Block block = content.block(plan.block);
                     if(block.bounds(plan.x, plan.y, Tmp.r2).overlaps(Tmp.r1)){
-                        player.unit().addBuild(new BuildPlan(plan.x, plan.y, plan.rotation, content.block(plan.block), plan.config));
+                        player.unit().addBuild(new BuildPlan(plan.x, plan.y, plan.rotation, block, plan.config));
                     }
                 }
 
@@ -877,6 +878,10 @@ public class DesktopInput extends InputHandler{
 
         if(Core.input.keyTap(Binding.pause_building)){
             if (Core.input.shift()) isFreezeQueueing = !isFreezeQueueing;
+            else if (Core.input.ctrl()) {
+                Seq<BuildPlan> temp = frozenPlans.copy();
+                flushPlans(temp, false, false, true);
+            }
             else {
                 isBuilding = !isBuilding;
                 buildWasAutoPaused = false;
@@ -905,7 +910,7 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(Binding.break_block)){
                 mode = none;
             }else if(selectPlans.any()){
-                flushPlans(selectPlans, isFreezeQueueing, input.ctrl(), isFreezeQueueing);
+                flushPlans(selectPlans, isFreezeQueueing, Core.input.keyDown(Binding.force_place_modifier), isFreezeQueueing);
             }else if(!selectPlans.isEmpty()){
                 flushPlans(selectPlans);
             }else if(isPlacing()){
@@ -1110,8 +1115,9 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!Navigation.isFollowing()){
+            boolean vanillaMovement = Core.settings.getBool("vanillamovement");
             float mouseAngle = Angles.mouseAngle(unit.x, unit.y);
-            boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !boosted;
+            boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && (vanillaMovement || (unit.type.faceTarget && !boosted));
 
             if(aimCursor){
                 unit.lookAt(mouseAngle);
@@ -1119,10 +1125,10 @@ public class DesktopInput extends InputHandler{
                 unit.lookAt(unit.prefRotation());
             }
 
-//            unit.movePref(movement); Client replaces this with the line below
-            if (Core.settings.getBool("zerodrift") && movement.epsilonEquals(0, 0)) unit.vel().setZero();
+            if (vanillaMovement) unit.movePref(movement);
+            else if (Core.settings.getBool("zerodrift") && movement.epsilonEquals(0, 0)) unit.vel().setZero();
             else if(Core.settings.getBool("decreasedrift") && unit.vel().len() > 3.5 && movement.epsilonEquals(0, 0))
-                unit.vel().set(unit.vel().scl(0.95f));
+                unit.vel().scl(0.95f);
             else unit.moveAt(movement);
 
             unit.aim(Core.input.mouseWorld());
@@ -1146,5 +1152,13 @@ public class DesktopInput extends InputHandler{
                 tryDropPayload();
             }
         }
+    }
+
+    private boolean isBuildingIgnoreNetworking() {
+        if (player.unit().plans.size == 0) return false;
+        if (player.unit().plans.size == 1) {
+            return !BuildPlanCommunicationSystem.INSTANCE.isNetworking(player.unit().plans.first());
+        }
+        return true;
     }
 }

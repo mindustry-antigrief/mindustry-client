@@ -34,7 +34,7 @@ public class CommandCompletion implements Autocompleter {
     }
 
     private static void addCommands(CommandHandler handler) {
-        commands.addAll(handler.getCommandList().map(c -> new CommandCompletable(c.text, c.text + " " + c.paramText, handler.prefix)));
+        commands.addAll(handler.getCommandList().map(c -> new CommandCompletable(c.text, c.text + " " + c.paramText, handler.getPrefix())));
     }
 
     @Override

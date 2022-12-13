@@ -113,8 +113,8 @@ public class LogicDialog extends BaseDialog{
             dialog.show();
         }).name("edit").disabled(t -> executor.team != player.team() && net.client() && !state.isEditor());
 
-        buttons.button("Use for comms", () -> { // FINISHME: Bundle
-            ui.showConfirm("Are you sure you want to use this block for comms?", () -> {
+        buttons.button("@client.setupcomms", () -> {
+            ui.showConfirm("@client.setupcomms.confirm", () -> {
                 canvas.load(BlockCommunicationSystem.LOGIC_PREFIX);
                 hide();
             });

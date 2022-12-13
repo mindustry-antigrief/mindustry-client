@@ -12,8 +12,8 @@ import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*
-import mindustry.client.navigation.Navigation.getTree
 import mindustry.client.navigation.Navigation.getAllyTree
+import mindustry.client.navigation.Navigation.getTree
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.game.*
@@ -21,7 +21,7 @@ import mindustry.gen.*
 import mindustry.graphics.*
 import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
-import mindustry.world.blocks.distribution.MassDriver
+import mindustry.world.blocks.distribution.*
 import org.bouncycastle.jce.provider.*
 import org.bouncycastle.jsse.provider.*
 import java.security.*
@@ -41,6 +41,8 @@ object Client {
         setup()
         AutoTransfer.init()
         ClientLogic()
+        Server // Force the init block to be run
+        CustomMode // Force the init block to be run
 
         val bc = BouncyCastleProvider()
         // append bouncycastle to the list
@@ -58,8 +60,6 @@ object Client {
         Navigation.update()
         PowerInfo.update()
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
-        Core.camera.bounds(cameraBounds) // do we do this here or on draw? can Core.camera be null?
-        cameraBounds.grow(2 * tilesizeF)
 
         // Ratelimit reset handling
         if (ratelimitRemaining != ratelimitMax && timer.get(3, ratelimitSeconds * 60F)) ratelimitRemaining = ratelimitMax
@@ -111,7 +111,7 @@ object Client {
             if (showingTurrets || showingInvTurrets) {
                 val flying = player.unit().isFlying
                 getTree().intersect(bounds) {
-                    if (!fogControl.isVisible(player.team(), it.x(), it.y())) return@intersect
+                    if (!fogControl.isDiscovered(player.team(), it.entity.tileX(), it.entity.tileY())) return@intersect
                     if ((enemyunits || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
                         val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                         val validInv = (!flying && it.targetAir) || (flying && it.targetGround)

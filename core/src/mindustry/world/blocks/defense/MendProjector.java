@@ -6,6 +6,7 @@ import arc.math.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -24,6 +25,7 @@ public class MendProjector extends Block{
     public float reload = 250f;
     public float range = 60f;
     public float healPercent = 12f;
+    public transient float healAmount = 50f; // Used only for flood
     public float phaseBoost = 12f;
     public float phaseRangeBoost = 50f;
     public float useTime = 400f;
@@ -100,8 +102,10 @@ public class MendProjector extends Block{
                 float realRange = range + phaseHeat * phaseRangeBoost;
                 charge = 0f;
 
+                var flood = CustomMode.flood.b();
                 indexer.eachBlock(this, realRange, b -> b.damaged() && !b.isHealSuppressed(), other -> {
-                    other.heal(other.maxHealth() * (healPercent + phaseHeat * phaseBoost) / 100f * efficiency);
+                    if (flood) other.heal((healAmount + phaseHeat * phaseBoost) * efficiency);
+                    else other.heal(other.maxHealth() * (healPercent + phaseHeat * phaseBoost) / 100f * efficiency);
                     other.recentlyHealed();
                     Fx.healBlockFull.at(other.x, other.y, other.block.size, baseColor, other.block);
                 });

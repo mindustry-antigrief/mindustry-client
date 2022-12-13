@@ -320,7 +320,7 @@ public class Vars implements Loadable{
         fogControl = new FogControl();
         bases = new BaseRegistry();
         logicVars = new GlobalVars();
-        drawCursors = settings.getBool("drawcursors");
+        wasDrawingCursors = drawCursors = settings.getBool("drawcursors");
         javaPath =
             new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
             Core.files.local("jre/bin/java").exists() ? Core.files.local("jre/bin/java").absolutePath() : // Unix
@@ -444,7 +444,7 @@ public class Vars implements Loadable{
             UnitType.formationAlpha = settings.getInt("formationopacity") / 100f;
             UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f;
         });
-        if(Core.settings.getBool("debug")) Log.level = Log.LogLevel.debug;
+        if(Core.settings.getBool("debug") || OS.hasProp("debug")) Log.level = Log.LogLevel.debug;
 
         Scl.setProduct(settings.getInt("uiscale", 100) / 100f);
 

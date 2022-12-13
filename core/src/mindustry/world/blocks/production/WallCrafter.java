@@ -7,6 +7,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import kotlin.collections.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.entities.*;
@@ -82,6 +83,16 @@ public class WallCrafter extends Block{
     @Override
     public TextureRegion[] icons(){
         return new TextureRegion[]{region, topRegion};
+    }
+
+    @Override
+    public void handlePlacementLine(Seq<BuildPlan> plans) { // This whole method is awful but it's better than nothing...
+        if (plans.isEmpty()) return; // Shouldn't happen but just in case
+        var first = plans.first();
+        var shouldRotate = getEfficiency(first.x, first.y, first.rotation, null, null) == 0;
+        if (!shouldRotate) return;
+        var rot = ArraysKt.maxByOrThrow(new int[]{0, 1, 2, 3}, i -> getEfficiency(first.x, first.y, i, null, null)); // Cursed
+        plans.each(p -> p.rotation = rot);
     }
 
     @Override

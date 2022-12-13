@@ -200,10 +200,12 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
 
     public boolean isDone(){ // FINISHME: Surely most of this is redundant for no reason...
         Tile tile = world.tile(x, y);
+        if(tile == null) return true;
+        Block tblock = tile.block();
         if(breaking){
-            return tile.block() == null || tile.block() == Blocks.air || tile.block() == tile.floor();  // covering all the bases
+            return tblock == null || tblock == Blocks.air || tblock == tile.floor();  // covering all the bases
         }else{
-            return tile.block() == block && (tile.build == null || tile.build.rotation == rotation);
+            return tblock == block && (tile.build == null || tile.build.rotation == rotation);
         }
     }
 

@@ -295,7 +295,7 @@ public class OverlayRenderer{
             }
         }
         
-        ProcessorFinder.draw();
+        ProcessorFinder.INSTANCE.draw();
     }
 
     private static class CoreEdge{

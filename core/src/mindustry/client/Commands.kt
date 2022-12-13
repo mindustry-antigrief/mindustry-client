@@ -8,7 +8,6 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import arc.util.CommandHandler.*
-import mindustry.*
 import mindustry.Vars.*
 import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
@@ -23,15 +22,12 @@ import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
-import mindustry.entities.units.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
-import mindustry.world.*
 import mindustry.world.blocks.distribution.*
 import mindustry.world.blocks.distribution.DirectionalUnloader.*
-import mindustry.world.blocks.environment.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.sandbox.*
@@ -49,7 +45,7 @@ import kotlin.random.*
 fun setup() {
     register("help [page/command]", Core.bundle.get("client.command.help.description")) { args, player ->
         if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
-            val command = ClientVars.clientCommandHandler.commandList.find { it.text == args[0] }
+            val command = clientCommandHandler.commandList.find { it.text == args[0] }
             if (command != null) {
                 player.sendMessage(Strings.format("[orange] !@[white] @[lightgray] - @", command.text, command.paramText, command.description))
                 return@register
@@ -127,8 +123,8 @@ fun setup() {
     register("spawn <type> [team] [x] [y] [count]", Core.bundle.get("client.command.spawn.description")) { args, player ->
         val type = findUnit(args[0])
         val team = if (args.size < 2) player.team() else findTeam(args[1])
-        val x = if (args.size < 3 || !Strings.canParsePositiveFloat(args[2])) player.x else args[2].toFloat() * Vars.tilesizeF
-        val y = if (args.size < 4 || !Strings.canParsePositiveFloat(args[3])) player.y else args[3].toFloat() * Vars.tilesizeF
+        val x = if (args.size < 3 || !Strings.canParsePositiveFloat(args[2])) player.x else args[2].toFloat() * tilesizeF
+        val y = if (args.size < 4 || !Strings.canParsePositiveFloat(args[3])) player.y else args[3].toFloat() * tilesizeF
         val count = if (args.size < 5 || !Strings.canParsePositiveInt(args[4])) 1 else args[4].toInt()
 
         if (net.client()) Call.sendChatMessage("/js for(let i = 0; i < $count; i++) UnitTypes.$type.spawn(Team.all[${team.id}], $x, $y)")
@@ -219,7 +215,7 @@ fun setup() {
 
     // Removed as the dependency was like 50MB. If i ever add this back, it will probably just download the jar when needed and then cache it between client builds so that each update isn't massive.
 //        val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
-//        register("kts <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player -> // FINISHME: Bundle
+//        register("kts <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player ->
 //            player.sendMessage("[accent]${try{ kts.eval(args[0]) }catch(e: ScriptException){ e.message }}")
 //        }
 
@@ -248,10 +244,10 @@ fun setup() {
 
     register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
         player.sendMessage(
-            if (pluginVersion != -1) "[accent]Using plugin communication" else // FINISHME: Bundle
-                BlockCommunicationSystem.findProcessor()?.run { "[accent]Using a logic block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
-                BlockCommunicationSystem.findMessage()?.run { "[accent]Using a message block at (${tileX()}, ${tileY()})" } ?: // FINISHME: Bundle
-                "[accent]Using buildplan-based networking (slow, recommended to use a processor for buildplan dispatching)" // FINISHME: Bundle
+            if (pluginVersion != -1) (Core.bundle.get("client.networking.plugin") as String) else
+                BlockCommunicationSystem.findProcessor()?.run { Core.bundle.format("client.networking.logicblock", tileX(), tileY()) } ?:
+                BlockCommunicationSystem.findMessage()?.run { Core.bundle.format("client.networking.messageblock", tileX(), tileY()) } ?:
+                Core.bundle.get("client.networking.buildplan")
         )
     }
 
@@ -299,65 +295,39 @@ fun setup() {
         msg.format()
     }
 
-    register("fixcode [c/r/l]", Core.bundle.get("client.command.fixcode.description")) { args, player ->
-        val builds = Vars.player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>() // Must be done on the main thread
-        clientThread.post {
-            val confirmed = args.any() && (args[0] == "c" || args[0] == "r") // Don't configure by default
-            val locations = args.any() && args[0] == "l"
-            val locMsg = StringBuilder("[accent]Processor locations:")
-            val inProgress = !configs.isEmpty()
-            var n = 0
-
-            if (confirmed && !inProgress || locations) {
-                Log.debug("Patching!")
-                builds.forEach {
-                    val patched = ProcessorPatcher.patch(it.code, args[0])
-                    if (patched != it.code) {
-                        if (locations) locMsg.append("\n(").append(it.tileX()).append(", ").append(it.tileY()).append(')')
-                        else ClientVars.configs.add(ConfigRequest(it.tileX(), it.tileY(), LogicBlock.compress(patched, it.relativeConnections())))
-                        n++
-                    }
-                }
-            }
-            Core.app.post {
-                if (confirmed) {
-                    if (inProgress) player.sendMessage(Core.bundle.format("client.command.fixcode.inprogress", configs.size, ProcessorPatcher.countProcessors(builds)))
-                    else player.sendMessage(Core.bundle.format("client.command.fixcode.success", n, builds.size))
-                } else if (locations) {
-                    Vars.ui.chatfrag.addMsg(locMsg.toString()).findCoords()
-                } else {
-                    player.sendMessage(Core.bundle.format("client.command.fixcode.help", ProcessorPatcher.countProcessors(builds), builds.size))
-                }
-            }
-        }
+    register("fixcode [c/r/l]", Core.bundle.get("client.command.fixcode.description")) { args, _ ->
+        ProcessorPatcher.fixCode(args.firstOrNull())
     }
 
     register("distance [distance]", Core.bundle.get("client.command.distance.description")) { args, player ->
-        if (args.size != 1) player.sendMessage("[accent]The distance multiplier is ${Core.settings.getFloat("assistdistance", 1.5f)} (default is 1.5)")
+        if (args.size != 1) player.sendMessage("[accent]The distance multiplier is ${Core.settings.getFloat("assistdistance", 5f)} (default is 5)")
         else {
-            Core.settings.put("assistdistance", abs(Strings.parseFloat(args[0], 1.5f)))
-            player.sendMessage("[accent]The distance multiplier is now ${Core.settings.getFloat("assistdistance")} (default is 1.5)")
+            Core.settings.put("assistdistance", abs(Strings.parseFloat(args[0], 5f)))
+            player.sendMessage("[accent]The distance multiplier is now ${Core.settings.getFloat("assistdistance")} (default is 5)")
         }
     }
 
     register("circleassist [speed]", Core.bundle.get("client.command.circleassist.description")) { args, player ->
-        if (args.size != 1) player.sendMessage("[accent]The circle assist speed is ${Core.settings.getFloat("circleassistspeed", 0.05f)} (default is 0.05)")
+        val defaultSpeed = 0.25f
+        if (args.size != 1) player.sendMessage(Core.bundle.format("client.command.circleassist.lookup", Core.settings.getFloat("circleassistspeed", defaultSpeed), defaultSpeed))
         else {
-            if(args[0] == "0"){
-                Core.settings.put("circleassist", false);
-                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = false;
-            } else {
-                Core.settings.put("circleassist", true);
-                if(Navigation.currentlyFollowing is AssistPath) (Navigation.currentlyFollowing as AssistPath).circling = true;
-                Core.settings.put("circleassistspeed", Strings.parseFloat(args[0], 0.05f));
+            val circling = args[0] != "0"
+            Core.settings.put("circleassist", circling)
+            val assistPath = Navigation.currentlyFollowing as? AssistPath
+            if (assistPath != null) {
+                assistPath.circling = circling
+                if (circling) {
+                    Core.settings.put("circleassistspeed", args[0].toFloatOrNull() ?: defaultSpeed)
+                }
             }
-            player.sendMessage(Core.bundle.format("client.command.circleassist.success", Core.settings.getFloat("circleassistspeed")))
+            if(circling) player.sendMessage(Core.bundle.format("client.command.circleassist.success", Core.settings.getFloat("circleassistspeed"), defaultSpeed))
+            else player.sendMessage(Core.bundle.get("client.command.circleassist.disabled"))
         }
     }
 
     register("clearghosts [c]", Core.bundle.get("client.command.clearghosts.description")) { args, player -> 
         val confirmed = args.any() && args[0].startsWith("c") // Don't clear by default
-        val all = confirmed && Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert()) && args[0] == "clear"
+        val all = confirmed && isDeveloper() && args[0] == "clear"
         val plans = mutableListOf<Int>()
 
         for (plan in player.team().data().plans) {
@@ -405,7 +375,7 @@ fun setup() {
 
     register("mapinfo [team]", Core.bundle.get("client.command.mapinfo.description")) { args, player -> 
         val team = if (args.isEmpty()) player.team() else findTeam(args[0])
-        player.sendMessage(with(Vars.state) {
+        player.sendMessage(with(state) {
             """
             [accent]Name: ${map.name()}[accent] (by: ${map.author()}[accent])
             Team: ${team.name}
@@ -456,7 +426,7 @@ fun setup() {
                 if (it is DirectionalUnloaderBuild && !linkedCores.contains(it.back())) return@forEach // Erekir unloaders only unload from the tile behind
                 if (!coords.add(it)) return@forEach // We have already printed this tile's coords
 
-                Vars.ui.chatfrag.addMsg("[accent](${it.tileX()}, ${it.tileY()})").findCoords()
+                ui.chatfrag.addMsg("[accent](${it.tileX()}, ${it.tileY()})").findCoords()
             }
         }
     }
@@ -542,15 +512,13 @@ fun setup() {
                     return@register
                 }
                 val queryRegex = newArgs.drop(1).joinToString(" ").toRegex()
-                ProcessorFinder.queries.add(queryRegex)
-                ProcessorFinder.search()
+                ProcessorFinder.search(queryRegex)
             }
             "queries" -> {
                 val sb = StringBuilder(Core.bundle.get("client.command.procfind.queries")).append("\n")
                 ProcessorFinder.queries.forEach { r -> sb.append("\n").append(r.toPattern().pattern()) }
                 player.sendMessage(sb.toString())
             }
-            "search" -> ProcessorFinder.search()
             "searchall" -> ProcessorFinder.searchAll()
             "clear" -> {
                 player.sendMessage(Core.bundle.format("client.command.procfind.clear", ProcessorFinder.getCount()))
@@ -623,7 +591,7 @@ fun setup() {
         when (args[0]) {
             "edit", "e" -> {
                 if (args.size <= 1) {
-                    player.sendMessage(Core.bundle.format("client.command.ptext.noselected", "edit"))
+                    player.sendMessage(Core.bundle.get("client.command.ptext.edit.noselected"))
                     return@register
                 }
                 if (args.size <= 2) {
@@ -638,7 +606,7 @@ fun setup() {
             }
             "say", "s" -> {
                 if (args.size <= 1) {
-                    player.sendMessage(Core.bundle.format("client.command.ptext.noselected", "say"))
+                    player.sendMessage(Core.bundle.get("client.command.ptext.say.noselected"))
                     return@register
                 }
                 val text = Core.settings.get("ptext-${args[1]}", "").toString()
@@ -647,7 +615,7 @@ fun setup() {
             }
             "js", "j" -> {
                 if (args.size <= 1) {
-                    player.sendMessage(Core.bundle.format("client.command.ptext.noselected", "run"))
+                    player.sendMessage(Core.bundle.get("client.command.ptext.run.noselected"))
                     return@register
                 }
                 val text = Core.settings.get("ptext-${args[1]}", "").toString()
@@ -749,12 +717,12 @@ fun setup() {
             sendMessage("Silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance. They are not the same, please get it right!")
         }
 
-        register("hh [h]", "!") { args, _ ->
+        register("hh [h]", "!") { args, player ->
             if (!net.client()) return@register
-            val u = if (args.any()) content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) } else Vars.player.unit().type
+            val u = if (args.any()) content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) } else player.unit().type
             val current = ui.join.lastHost ?: return@register
             if (current.group == null) current.group = ui.join.communityHosts.find { it == current } ?.group ?: return@register
-            switchTo = ui.join.communityHosts.filterTo(arrayListOf<Any>()) { it.group == current.group && it != current && !it.equals("135.181.14.60:6567") }.apply { add(current); add(u) } // IO attack has severe amounts of skill issue currently hence why its ignored
+            switchTo = ui.join.communityHosts.filterTo(arrayListOf<Any>()) { it.group == current.group && it != current && (it.version == Version.build || Version.build == -1) }.apply { add(current); add(u) }
             val first = switchTo!!.removeFirst() as Host
             NetClient.connect(first.address, first.port)
         }
@@ -765,105 +733,20 @@ fun setup() {
                 [white]time[] How long ago to rollback to, in minutes before now
                 [white]buildrange[] Radius within which buildings are rebuilt
         """.trimIndent()) { args, player ->
-            val time: Instant
+            var time: Instant
             val range: Float
             try {
                 time = Instant.now().minus(args[0].toLong(), ChronoUnit.MINUTES)
                 range = args[1].toFloat() * tilesize
-            }
-            catch (_: Exception) {
+            } catch (_: Exception) {
                 player.sendMessage("[scarlet]Invalid arguments! Please specify 2 numbers (time and range)!")
                 return@register
             }
-
             Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
-            val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
-            clientThread.post {
-                val plans: Seq<BuildPlan> = Seq()
-                tiles.forEach {
-                    if (!it.within(player.x, player.y, range) || it.block() != Blocks.air) return@forEach
-
-                    val record = TileRecords[it] ?: return@forEach
-
-                    // Get the sequence associated with the rollback time
-                    val seq: TileLogSequence = record.lastSequence(time) ?: return@forEach
-                    var shouldBuild = seq.snapshotIsOrigin
-                    val state = seq.snapshot.clone()
-                    var prevBlock: Block
-                    // Step through logs until time is reached
-                    for (diff in seq.iterator()) {
-                        if (diff.time > time) break
-                        prevBlock = state.block
-                        diff.apply(state)
-                        // Cursed - we can potentially change the function of isOrigin
-                        if(state.block !== prevBlock) shouldBuild = diff.isOrigin // this is only modified when the log caused the construction/destruction of a building
-                    }
-                    if (!shouldBuild || state.block == Blocks.air) return@forEach // If building does not need to be built, do not build it
-                    plans.add(BuildPlan(state.x, state.y, max(0, state.rotation), state.block, state.configuration))
-                }
-
-                if (plans.size == 0) return@post
-                Core.app.post {
-                    control.input.isBuilding = false
-                    control.input.flushPlans(plans)
-                }
-            }
+            rollbackTiles(world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) && it.within(player.x, player.y, range) }, time)
         }
 
         register("rebuild <start> <end> <buildrange>", """
-            Rebuilds the last building for each tile over a time range, by using tile logs and placing them into buildplan.
-                [white]start[] Start of time interval to rebuild, in minutes before now
-                [white]end[] End of time interval to rebuild, in minutes before now
-                [white]buildrange[] Radius within which buildings are rebuilt
-        """.trimIndent()) { args, player ->
-            val timeStart: Instant
-            val timeEnd: Instant
-            val range: Float
-            try {
-                timeEnd = Instant.now().minus(args[0].toLong(), ChronoUnit.MINUTES)
-                timeStart = timeEnd.minus(args[1].toLong(), ChronoUnit.MINUTES)
-                range = args[2].toFloat() * tilesize
-            }
-            catch (_: Exception) {
-                player.sendMessage("[scarlet]Invalid arguments! Please specify 2 numbers (minutes and range)!")
-                return@register
-            }
-
-            Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
-            val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
-            clientThread.post {
-                val plans: Seq<BuildPlan> = Seq()
-                tiles.forEach {
-                    if (!it.within(player.x, player.y, range) || it.block() != Blocks.air) return@forEach
-
-                    val record = TileRecords[it] ?: return@forEach
-                    if (record.sequences == null) return@forEach
-                    var last: TileState? = null
-
-                    seq@ for (seq in record.sequences!!.asReversed()) { // Rebuilds are likely used on recent states, so start from the last logs
-                        val state = seq.snapshot.clone()
-                        for (diff in seq.iterator()) {
-                            diff.apply(state)
-                            // Exit if we've gone past the time start
-                            // Continue searching if we have not reached time end
-                            if (diff.time > timeEnd) break@seq
-                            if (diff.time < timeStart || !diff.isOrigin || state.block == Blocks.air) continue
-
-                            last = state.clone()
-                        }
-                    }
-                    if (last == null) return@forEach
-                    plans.add(BuildPlan(last.x, last.y, last.rotation, last.block, last.configuration))
-                }
-
-                if (plans.size == 0) return@post
-                Core.app.post {
-                    control.input.flushPlans(plans)
-                }
-            }
-        }
-
-        register("rebuild2 <start> <end> <buildrange>", """
             Rebuilds the last building for each tile over a time range, by using tile logs and placing them into buildplan.
                 [white]start[] Start of time interval to rebuild, in minutes before now
                 [white]end[] End of time interval to rebuild, in minutes before now
@@ -888,91 +771,13 @@ fun setup() {
 
             // FINISHME: Add some filter for team. And optionally omit the collision code
             Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
-            val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
-            clientThread.post {
-                val states: Seq<TileState> = Seq()
-                tiles.forEach {
-                    if (!it.within(player.x, player.y, range) || it.block() != Blocks.air) return@forEach
-
-                    val sequences = TileRecords[it]?.sequences ?: return@forEach
-                    var last: TileState? = null
-                    var prevBlock: Block
-                    var shouldBuild = false // Whether the current block (in last) is origin, and should be built
-                    var hasBeenOverwritten = false // Whether there is another block that is placed offset some time in the future
-
-                    seq@ for (seq in sequences.asReversed()) { // Rebuilds are likely used on recent states, so start from the last logs
-                        if (seq.snapshot.time > timeEnd) continue // Skip to the first sequence that overlaps with time interval
-                        val state = seq.snapshot.clone()
-                        shouldBuild = seq.snapshotIsOrigin && state.block !== Blocks.air
-                        last = if (shouldBuild && seq.snapshot.time > timeStart) state.clone() else null
-                        // Step through logs until time is reached
-                        for (diff in seq.iterator()) {
-                            if (diff.time > timeEnd) break // Abort if we have reached time end
-                            prevBlock = state.block
-                            diff.apply(state)
-                            if (diff.time < timeStart) continue // Skip to time start
-                            if (prevBlock !== state.block) {
-                                if (state.block !== Blocks.air) { // If new building is built
-                                    hasBeenOverwritten = hasBeenOverwritten || !diff.isOrigin // if(!diff.isOrigin)..=true
-                                    shouldBuild = diff.isOrigin
-                                } // If building is destroyed, it will be implicitly handled - last and shouldBuild will remain as it is
-                                // so the state is saved for rebuilds when we exit the loop
-                            }
-                            if (!shouldBuild || state.block === Blocks.air) continue // Don't save the state if we cannot build it
-                            if (last != null) {
-                                diff.apply(last!!)
-                            } else last = state.clone()
-                            last!!.time = diff.time
-                        }
-                        if (shouldBuild || hasBeenOverwritten) break@seq // Break if we can restore that, or no earlier logs need to be used
-                    }
-                    if (!shouldBuild) return@forEach
-                    states.add(last?: return@forEach)
-                }
-
-                if (states.size == 0) {
-                    Core.app.post { player.sendMessage("[accent]No blocks found to rebuild.") }
-                    return@post
-                }
-                // The following is so inefficient lol what
-                // FINSIHME: Do not plan over EXISTING buildings
-                clientThread.sortingInstance.sort(states, Comparator.comparing { it.time }) // Sort by time to deal with tile overlaps
-                val minX = max(floor((player.x - range) / tilesize).toInt(), 0)
-                val minY = max(floor((player.y - range) / tilesize).toInt(), 0)
-                val takenTiles = GridBits(min(ceil((player.x + range) / tilesize).toInt() - minX, world.width()) + 1, min(ceil((player.y + range) / tilesize).toInt() - minY, world.height()) + 1)
-                val plans = Seq<BuildPlan>()
-                for (i in states.size - 1 downTo 0) { // Reverse this because latest should be rebuilt, not the earliest
-                    var taken = false
-                    val state = states[i]
-                    // state.x, state.y describe the middle/bottom-left of the tile. So we steal code from TileLog.companion.linkedArea
-                    val size = state.block.size
-                    val offset = -(size - 1) / 2
-                    val bounds = IntRectangle(state.x + offset, state.y + offset + size - 1, size, size)
-                    bounds.iterator().forEach {
-                        taken = taken || takenTiles.get(it.x - minX, it.y - minY) // Maybe use quadtree for large things
-                    }
-                    if (taken) continue
-                    bounds.iterator().forEachRemaining {
-                        takenTiles.set(it.x - minX, it.y - minY)
-                    }
-                    plans.add(BuildPlan(state.x, state.y, state.rotation, state.block, state.configuration))
-                }
-                states.clear()
-                if (plans.size == 0) {
-                    Core.app.post { player.sendMessage("[accent]No blocks found to rebuild.") }
-                    return@post
-                }
-                Core.app.post {
-                    control.input.flushPlans(plans)
-                    player.sendMessage("[accent]Queued ${plans.size} blocks for rebuilding.")
-                    plans.clear()
-                }
-            }
+            rebuildBroken(world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) && it.within(player.x, player.y, range) && it.block() === Blocks.air },
+                timeStart, timeEnd, range)
         }
 
         register("undo <player> [range]", "Undo Configs from a specific player (get rekt griefers)") { args, player ->
             val range: Float
-            val id: Int?
+            val id: Int
             try {
                 id = args[0].toInt()
                 range = if (args.size >= 2) args[1].toFloat() * tilesize else Float.MAX_VALUE
@@ -983,52 +788,7 @@ fun setup() {
             }
 
             Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
-            val tiles = world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) }
-            clientThread.post {
-                var playerName: String? = null
-                val plans: Seq<BuildPlan> = Seq()
-                tiles.forEach {
-                    if (!it.within(player.x, player.y, range)) return@forEach
-
-                    val sequences = TileRecords[it]?.sequences ?: return@forEach
-                    var last: TileState? = null
-
-                    for (seq in sequences.asReversed()) {
-                        val state = seq.snapshot.clone()
-                        for (diff in seq.iterator()) {
-                            diff.apply(state)
-
-                            // Ignore if its the target player
-                            if (diff.cause.playerID != id) {
-                                last = state.clone()
-                            } else if (playerName == null) playerName = diff.cause.shortName
-                        }
-                    }
-                    // Only rebuild if block is different than the current block
-                    // Only configure if its different
-                    if (last == null) return@forEach
-
-                    val plan = last!!.block != it.block() || last!!.rotation != it.build?.rotation
-                    if (plan) {
-                        if (last!!.block == Blocks.air || last!!.block is Prop) plans.add(BuildPlan(last!!.x, last!!.y))
-                        else plans.add(BuildPlan(last!!.x, last!!.y, last!!.rotation, last!!.block, last!!.configuration))
-                    }
-
-                    if (last!!.block == it.block() && last!!.configuration != it.build?.config()) {
-                        if (plan) {
-                            plans.last().configLocal = true // FINISHME: Setting this on the client thread is a bad idea
-                            plans.last().config = last!!.configuration
-                        } else {
-                            configs.add(ConfigRequest(it.build, last!!.configuration))
-                        }
-                    }
-                }
-
-                Core.app.post {
-                    player.sendMessage("[accent] Undoing ${configs.size} configs and ${plans.size} builds made by $playerName")
-                    control.input.flushPlans(plans, false, true, false) // Overplace
-                }
-            }
+            undoPlayer(world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) && it.within(player.x, player.y, range) }, id)
         }
 
         register("seer", "Seer related commands") { _, _ -> // FINISHME

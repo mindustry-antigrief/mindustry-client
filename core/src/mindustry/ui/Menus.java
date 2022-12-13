@@ -28,7 +28,9 @@ public class Menus{
         if(title == null) title = "";
         if(options == null) options = new String[0][0];
         if(options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
-        if(title.contains("Rate this map!") && options[0][0].contains("Yes") && options[0][1].contains("No") && ClientUtils.phoenix()) return; // phoenix network is equally annoying
+        if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
+            (options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b() ||
+            options[0][0].contains("Downvote") && options[1][0].contains("Upvote") && Server.cn.b())) return; // phoenix network and cn are equally annoying
 
         Log.debug("Displaying menu " + menuId + " with title: " + title);
         ui.showMenu(title, message, options, (option) -> Call.menuChoose(player, menuId, option));
@@ -72,7 +74,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoMessage(String message){
         if(message == null) return;
-        if((ClientUtils.io() || ClientUtils.phoenix()) && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
+        if((Server.io.b() || Server.phoenix.b()) && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
 
         ui.showText("", message);
     }

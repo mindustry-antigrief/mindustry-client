@@ -10,7 +10,6 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.communication.*;
 import mindustry.content.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
@@ -242,14 +241,6 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         return plans.size != 0;
     }
 
-    boolean isBuildingIgnoreNetworking() {
-        if (plans.size == 0) return false;
-        if (plans.size == 1) {
-            return !BuildPlanCommunicationSystem.INSTANCE.isNetworking(plans.first());
-        }
-        return true;
-    }
-
     /** Clears the placement queue. */
     void clearBuilding(){
         plans.clear();
@@ -265,7 +256,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 //        if(!canBuild()) return;
 
         BuildPlan replace = null;
-        boolean isLocalPlayer = Vars.player != null && Vars.player.unit() == self();
+        boolean isLocalPlayer = isLocal();
         if(!isLocalPlayer || plans.size < 10){
             for(BuildPlan plan : plans){
                 if(plan.x == place.x && plan.y == place.y){
@@ -274,7 +265,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
                 }
             }
         }else{
-            control.input.playerPlanTree.intersect(place.bounds(Tmp.r1), planSeq);
+            control.input.playerPlanTree.intersect(place.bounds(Tmp.r3), planSeq);
             for(BuildPlan plan : planSeq){
                 if(plan.x == place.x && plan.y == place.y){
                     replace = plan;
@@ -285,6 +276,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
         }
         if(replace != null){
             plans.remove(replace);
+            if(isLocalPlayer) control.input.playerPlanTree.remove(replace);
         }
         Tile tile = world.tile(place.x, place.y);
         if(tile != null && tile.build instanceof ConstructBuild cons){

@@ -15,7 +15,7 @@ import mindustry.gen.*
 /** An abstract class for a navigation algorithm, i.e. A*.  */
 abstract class Navigator {
     @JvmField
-    val map = HashMap<Int, Vec2>()
+    val map = IntMap<Vec2>()
     var lastWp = 0L
     private val realObstacles = Seq<Circle>() // Avoids creating new lists every time navigate is called
 
@@ -45,7 +45,7 @@ abstract class Navigator {
         end.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
         val additionalRadius = player.unit().hitSize / 2
 
-        if (player.unit().type.hittable(player.unit())) {
+        if (player.unit().type.targetable(player.unit(), player.team()) && player.unit().type.hittable(player.unit())) {
             for (turret in obstacles) {
                 if (turret.canHitPlayer() && turret.canShoot()) {
                     realObstacles.add(
@@ -88,11 +88,14 @@ abstract class Navigator {
             if (Time.timeSinceMillis(lastWp) > 3000) lastWp = Time.millis() - 2900 // Didn't tp, try again in .1s
         }
 
-        val avoidFlood = flood() && player.unit().type != UnitTypes.horizon
+        val avoidFlood = CustomMode.flood() && player.unit().type != UnitTypes.horizon
+        val canBoost = player.unit().type.canBoost
+        val solidity = player.unit().solidity()
         val ret = findPath(
             start, end, realObstacles, world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->
-            avoidFlood && world.tiles.getc(x, y).team() == Team.blue || player.unit().type != null && !player.unit().type.canBoost && player.unit().solidity()?.solid(x, y) ?: false
+            world.tileChanges
+            avoidFlood && world.tiles.getc(x, y).team() == Team.blue || player.unit().type != null && !canBoost && solidity?.solid(x, y) ?: false
         }
         Pools.freeAll(realObstacles)
         realObstacles.clear()

@@ -24,8 +24,9 @@ public class Junction extends Block{
     public int capacity = 6;
 
     // FINISHME: Rework to work with junctions with size >1
-    static final Vec2 direction = new Vec2(tilesize, 0), baseOffset = new Vec2();
-    public static boolean drawItems = false;
+    static float baseOffsetX, baseOffsetY;
+    static boolean drawItems = false;
+    static final float itemSizeScaled = itemSize / 4f;
 
     public static boolean flowRateByDirection = Core.settings != null && Core.settings.getBool("junctionflowratedirection", false);
     public final static TextureRegionDrawable[] directionIcons = {Icon.rightSmall, Icon.upSmall, Icon.leftSmall, Icon.downSmall};
@@ -44,7 +45,8 @@ public class Junction extends Block{
     public static void setBaseOffset(int mode){ // -1 left, 0 disable, 1 right
         drawItems = mode != 0;
         float y = -tilesize / 3.1f * mode;
-        baseOffset.set(-tilesize/2f, y);
+        baseOffsetX = -tilesize/2f;
+        baseOffsetY = y;
     }
 
     @Override
@@ -190,18 +192,26 @@ public class Junction extends Block{
             if(!drawItems) return;
             Draw.z(Layer.blockOver);
             float now = Time.time;
-            for(int i = 0; i < 4; i++){ // Code from zxtej
+            float realSpeed = speed / timeScale, baseX = baseOffsetX, baseY = baseOffsetY, itemX = tilesize, itemY = 0;
+            float temp;
+            for(int i = 0; i < 4; i++){
+                float bx = x + baseX, by = y + baseY;
                 for(int j = buffer.indexes[i]; j > 0;){
                     var l = buffer.buffers[i][--j];
-                    var progress = Mathf.clamp((now - BufferItem.time(l)) / speed * timeScale, 0, (capacity - j) / (float)capacity);
+                    var progress = Mathf.clamp((now - BufferItem.time(l)) / realSpeed, 0, (capacity - j) / (float)capacity);
 
                     Draw.rect(content.item(BufferItem.item(l)).fullIcon,
-                        x + baseOffset.x + direction.x * progress,
-                        y + baseOffset.y + direction.y * progress,
-                        itemSize / 4f, itemSize / 4f);
+                        bx + itemX * progress,
+                        by + itemY * progress,
+                        itemSizeScaled, itemSizeScaled
+                    );
                 }
-                direction.rotate90(1);
-                baseOffset.rotate90(1);
+                temp = itemX;
+                itemX = -itemY;
+                itemY = temp;
+                temp = baseX;
+                baseX = -baseY;
+                baseY = temp;
             }
         }
     }

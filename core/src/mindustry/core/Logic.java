@@ -3,10 +3,8 @@ package mindustry.core;
 import arc.*;
 import arc.math.*;
 import arc.util.*;
-import mindustry.Vars;
 import mindustry.ai.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.antigrief.*;
 import mindustry.client.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
@@ -391,6 +389,10 @@ public class Logic implements ApplicationListener{
         while(node != null){
             node.content.unlock();
             node = node.parent;
+
+            if(node != null && node.content instanceof Item item && state.rules.hiddenBuildItems.contains(item)){
+                break;
+            }
         }
 
         state.rules.researched.add(u.name);

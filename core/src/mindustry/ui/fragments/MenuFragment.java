@@ -14,7 +14,7 @@ import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.CursednessLevel;
+import mindustry.client.ui.CursednessLevel;
 import mindustry.client.ui.*;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
@@ -118,23 +118,10 @@ public class MenuFragment{
                     });
                 }).size(200, 60).name("becheck").update(t -> t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white));
             });
-            // TODO: Merge recheck
-//        }else if(becontrol.active()){
-//            parent.fill(c -> c.bottom().right().button("@be.check", Icon.refresh, () -> {
-//                ui.loadfrag.show();
-//                becontrol.checkUpdate(result -> {
-//                    ui.loadfrag.hide();
-//                    if(!result){
-//                        ui.showInfo("@be.noupdates");
-//                    }
-//                });
-//            }).size(200, 60).name("becheck").update(t -> {
-//                t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white);
-//            }));
         }
 
                 // FIX CURSED MENU SCREEN
-       String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + Strings.format("\n[gray]Don't press H[]\nCursedness by BalaM314 and SBytes. Cursedness Level: @", CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel")).name());
+       String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + Strings.format("\n[gray]Don't press H[]\nCursedness Level: @", CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel")).name());
 //        String versionText = (Version.build == -1 ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H";
         // String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[#ffffffba]") + Version.combined() + "\n[gray]Don't press H[]\nClient Fork by Zxtej, BalaM314, SBytes. Cursedness Level: @";
         parent.fill((x, y, w, h) -> {
@@ -171,7 +158,8 @@ public class MenuFragment{
             editor = new MobileButton(Icon.terrain, "@editor", () -> checkPlay(ui.maps::show)),
             tools = new MobileButton(Icon.settings, "@settings", ui.settings::show),
             mods = new MobileButton(Icon.book, "@mods", ui.mods::show),
-            exit = new MobileButton(Icon.exit, "@quit", () -> Core.app.exit());
+            exit = new MobileButton(Icon.exit, "@quit", () -> Core.app.exit()),
+            about = new MobileButton(Icon.info, "@about.button", ui.about::show);
 
         Seq<MobileButton> customs = customButtons.map(b -> new MobileButton(b.icon, b.text, b.runnable == null ? () -> {} : b.runnable));
 
@@ -194,7 +182,7 @@ public class MenuFragment{
             for(int i = 0; i < customs.size; i += 2){
                 container.add(customs.get(i));
             }
-            if(!ios) container.add(exit);
+            container.add(ios ? about : exit);
         }else{
             container.marginTop(0f);
             container.add(play);
@@ -212,7 +200,7 @@ public class MenuFragment{
                 container.add(customs.get(i));
                 if(i % 2 == 0) container.row();
             }
-            if(!ios) container.add(exit);
+            container.add(ios ? about : exit);
         }
     }
 

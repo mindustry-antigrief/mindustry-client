@@ -2,6 +2,7 @@ package mindustry.ui.dialogs;
 
 import arc.*;
 import mindustry.client.ui.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 
 import static mindustry.Vars.*;
@@ -139,6 +140,8 @@ public class PausedDialog extends BaseDialog{
         }else if(checkPlaytest()){
             return;
         }
+
+        if (!wasClient) Events.fire(new EventType.MenuReturnEvent());
 
         if(control.saves.getCurrent() == null || !control.saves.getCurrent().isAutosave() || wasClient || state.gameOver){
             logic.reset();

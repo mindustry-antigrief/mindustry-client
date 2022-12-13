@@ -17,16 +17,21 @@ class Moderation {
     private val traces = CopyOnWriteArrayList<Player>() // last people to leave
 
     companion object {
+        @JvmField var freezePlayer: Player? = null
+        @JvmField var freezeState: String = "unknown"
         init {
             Vars.netClient.addPacketHandler("playerdata") { // Handles autostats from plugins
-                if (io() || phoenix()) {
+                if (Server.io() || Server.phoenix()) {
                     val json = JsonReader().parse(it)
-                    Log.debug(json)
+                    if (Core.settings.getBool("logplayerdata")) Log.debug(json)
 
                     fun String.i() = json.getInt(this, Int.MAX_VALUE)
                     fun String.s() = json.getString(this, "unknown")
 
                     val player = Groups.player.getByID("id".i()) ?: return@addPacketHandler
+
+                    if (player == freezePlayer) freezeState = "frozen".s()
+
                     val rank = "rank".i() // 0 for unranked, 1 for active, 2 for veteran etc
                     if (player == Vars.player) ClientVars.rank = rank // Set rank var accordingly
                     else if (rank == 0) { // If they're unranked, check if they're new
@@ -46,17 +51,25 @@ class Moderation {
                 }
             }
 
+            Vars.netClient.addPacketHandler("freeze_confirm") {
+                val json = JsonReader().parse(it)
+                if (Core.settings.getBool("logfreeze_confirm")) Log.debug(json)
+
+                val player = Groups.player.getByID(json.getInt("id", Int.MAX_VALUE)) ?: return@addPacketHandler
+                Vars.ui.chatfrag.addMsg("[accent]${player.coloredName()}[accent]'s freeze state was updated to: ${json.getString("frozen", "unknown")}")
+            }
+
             Events.on(EventType.PlayerJoin::class.java) { e ->
                 if (e.player == Vars.player) return@on
 
-                if (Core.settings.getBool("autostats") && (io() || phoenix())) { // Makes use of a custom packet on io
+                if (Core.settings.getBool("autostats") && (Server.io() || Server.phoenix())) { // Makes use of a custom packet on io
                     Call.serverPacketReliable("playerdata_by_id", e.player.id.toString())
                 }
             }
 
             Events.on(EventType.ServerJoinEvent::class.java) {
                 rank = -1 // reset rank on server join
-                if (io() || phoenix()) Call.serverPacketReliable("playerdata_by_id", Vars.player.id.toString()) // Stat trace self to get rank info
+                if (Server.io() || Server.phoenix()) Call.serverPacketReliable("playerdata_by_id", Vars.player.id.toString()) // Stat trace self to get rank info
             }
         }
     }
@@ -84,8 +97,10 @@ class Moderation {
     fun addInfo(player: Player, info: Administration.TraceInfo) {
         // FINISHME: Integrate these with join/leave messages
         if (Time.timeSinceMillis(lastJoinTime) > 10000 && player.trace == null) {
-            if (info.timesJoined > 10 && info.timesKicked < 3) Vars.player.sendMessage("[accent]${player.name}[accent] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
-            else sendMessage("/a [scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
+            // Dont send in admin chat as it can get spammy
+//            if (info.timesJoined > 10 && info.timesKicked < 3) Vars.player.sendMessage("[accent]${player.name}[accent] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
+//            else sendMessage("/a [scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
+            Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
         }
 
         for (n in traces.size - 1 downTo 0) {

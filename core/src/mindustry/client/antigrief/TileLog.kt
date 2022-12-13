@@ -6,7 +6,6 @@ import arc.scene.*
 import arc.scene.ui.layout.*
 import arc.util.*
 import mindustry.*
-import mindustry.client.antigrief.TileRecords.isOrigin
 import mindustry.client.antigrief.TileRecords.joinTime
 import mindustry.client.utils.*
 import mindustry.content.*
@@ -32,7 +31,7 @@ data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int)
 }
 
 private var lastID: Long = 0
-abstract class TileLog(val position: IntRectangle, override val cause: Interactor, val isOrigin: Boolean = false) : InteractionLog {
+abstract class TileLog(val position: IntRectangle, override val cause: Interactor) : InteractionLog {
     val id: Long = lastID++
 
     override val time: Instant = Instant.now()
@@ -55,7 +54,7 @@ abstract class TileLog(val position: IntRectangle, override val cause: Interacto
         }
     }
 
-    constructor(tile: Tile, cause: Interactor, origin: Boolean) : this(tile.linkedArea(), cause, origin)
+    constructor(tile: Tile, cause: Interactor) : this(tile.linkedArea(), cause)
 
     abstract fun apply(previous: TileState)
 
@@ -68,7 +67,7 @@ abstract class TileLog(val position: IntRectangle, override val cause: Interacto
     abstract fun toShortString(): String
 }
 
-class TileLogSequence(val snapshot: TileState, val snapshotIsOrigin: Boolean, val startingIndex: Int) : Iterable<TileLog> {
+class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterable<TileLog> {
     val logs = mutableListOf<TileLog>()
     val range get() = startingIndex..startingIndex + logs.size
 
@@ -103,10 +102,12 @@ class TileRecord(val x: Int, val y: Int) {
         when {
             sequences == null -> {
                 sequences = mutableListOf()
-                sequences!!.add(TileLogSequence(TileState(tile), isOrigin(tile), 0))
+                val state = TileState(tile)
+                state.time = joinTime
+                sequences!!.add(TileLogSequence(state, 0))
             }
             sequences!!.last().logs.size > 100 -> {
-                sequences!!.add(TileLogSequence(TileState(tile), isOrigin(tile), sequences!!.last().range.last))
+                sequences!!.add(TileLogSequence(TileState(tile), sequences!!.last().range.last))
             }
         }
         sequences!!.last().addLog(log)
@@ -114,7 +115,7 @@ class TileRecord(val x: Int, val y: Int) {
 
     operator fun get(index: Int): TileState? {
         if (index !in totalRange) throw IndexOutOfBoundsException("Index $index is out of bounds! (size: $size)")
-        // Get the last sequence that encompases this index
+        // Get the last sequence that encompasses this index
         val bestSequence = sequences?.singleOrNull { index in it.range }
         return bestSequence?.get(index)
     }
@@ -178,7 +179,7 @@ class TileRecord(val x: Int, val y: Int) {
     }
 }
 
-class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, var configuration: Any?, origin: Boolean) : TileLog(tile, cause, origin) {
+class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, var configuration: Any?) : TileLog(tile, cause) {
     override fun apply(previous: TileState) {
         previous.rotation = rotation
         previous.configuration = configuration
@@ -198,11 +199,12 @@ class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, val rota
     override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.configured")}"
 }
 
-open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, var rotation: Int = tile.build?.rotation?:0, var configuration: Any?, origin: Boolean) : TileLog(tile, cause, origin) {
+open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, var rotation: Int = tile.build?.rotation?:0, var configuration: Any?, val isRootTile: Boolean) : TileLog(tile, cause) {
     override fun apply(previous: TileState) {
         previous.block = block
         previous.rotation = rotation
         previous.configuration = configuration
+        previous.isRootTile = isRootTile
     }
 
     fun updateLog(rotation: Int?, configuration: Any?) {
@@ -225,11 +227,12 @@ class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, rotation:
     override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
 }
 
-open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause, false) {
+open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause) {
     override fun apply(previous: TileState) {
         previous.block = Blocks.air
         previous.rotation = -1
         previous.configuration = null
+        previous.isRootTile = false
     }
 
     override fun toString(): String {
@@ -255,7 +258,7 @@ class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteract
     override fun toShortString() = "${block.localizedName} ${Core.bundle.get("client.destroyed")}"
 }
 
-class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val isPlayer : Boolean) : TileLog(tile, cause, false) {
+class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val isPlayer : Boolean) : TileLog(tile, cause) {
     override fun apply(previous: TileState) {
         //pass
     }
@@ -272,7 +275,7 @@ class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val is
     }
 }
 
-class RotateTileLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, val direction: Boolean, val origin: Boolean) : TileLog(tile, cause, origin) {
+class RotateTileLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, val direction: Boolean) : TileLog(tile, cause) {
     override fun apply(previous: TileState) {
         previous.rotation = rotation
     }
