@@ -201,7 +201,7 @@ class ClientLogic {
                 val voids = Seq<Building>()
                 for (tile in world.tiles) if (tile.block() is PowerVoid) voids.add(tile.build)
 
-                val void = voids.find { it.within(event.tile, block.range) && it.team != block.team }
+                val void = voids.find { it.within(event.tile, block.range) && it.team != event.unit.team }
                 if (void != null) { // Code taken from LogicBlock.LogicBuild.configure
                     Core.app.post {
                         if (event.unit.player != turretVoidWarnPlayer || Time.timeSinceMillis(lastTurretVoidWarn) > 5e3) {
