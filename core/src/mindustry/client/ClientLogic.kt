@@ -13,6 +13,7 @@ import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.stopFollowing
 import mindustry.client.ui.*
 import mindustry.client.utils.*
+import mindustry.client.utils.ClientUtils*
 import mindustry.content.*
 import mindustry.core.*
 import mindustry.game.EventType.*
@@ -92,7 +93,7 @@ class ClientLogic {
             showingTurrets = false
             showingAllyTurrets = false
             showingInvTurrets = false
-            if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
+            if (state.rules.pvp && !isDeveloper()) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
             massDrivers.clear()
             Client.tiles.clear()
