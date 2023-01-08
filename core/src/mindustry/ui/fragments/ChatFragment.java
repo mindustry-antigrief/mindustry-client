@@ -46,7 +46,7 @@ public class ChatFragment extends Table{
     private Seq<String> history = new Seq<>();
     private int historyPos = 0;
     private int scrollPos = 0;
-    private Seq<Autocompleteable> completion = new Seq<>(); // FINISHME: The autocompletion system is awful.
+    public Seq<Autocompleteable> completion = new Seq<>(); // FINISHME: The autocompletion system is awful.
     private int completionPos = -1;
     private static final Color hoverColor = Color.sky.cpy().mul(0.5f);
 
@@ -80,11 +80,17 @@ public class ChatFragment extends Table{
                     historyPos--;
                     updateChat();
                 }
+                boolean tabConsumed = false;
                 if (input.keyTap(Binding.chat_autocomplete) && completion.any() /*&& mode == ChatMode.normal*/) {
                     completionPos = Mathf.clamp(completionPos, 0, completion.size - 1);
+                    String oldText = chatfield.getText();
                     chatfield.setText(completion.get(completionPos).getCompletion(chatfield.getText()) + " ");
                     updateCursor();
-                } else if (input.keyTap(Binding.chat_mode)) {
+                    if(chatfield.getText() != oldText){
+                        tabConsumed = true;
+                    }
+                }
+                if (input.keyTap(Binding.chat_mode) && !tabConsumed) {
                     nextMode();
                 }
                 scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chat_scroll), 0, Math.max(0, messages.size - messagesShown));
