@@ -13,7 +13,6 @@ import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.stopFollowing
 import mindustry.client.ui.*
 import mindustry.client.utils.*
-import mindustry.client.utils.ClientUtils*
 import mindustry.content.*
 import mindustry.core.*
 import mindustry.game.EventType.*
