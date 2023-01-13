@@ -64,7 +64,7 @@ fun autoShoot() {
         if (target == null && (type == UnitTypes.block || type.canAttack) && CustomMode.flood()) { // Shoot buildings in flood because why not.
             target = Units.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range()) { type.targetGround }
         }
-        if (CustomMode.flood() && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
+        if (!CustomMode.flood() && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
             val amount = unit.range() * 2 + 1
             var closestScore = Float.POSITIVE_INFINITY
 
