@@ -24,6 +24,10 @@ public class ForceFieldAbility extends Ability{
     public float max = 200f;
     /** Cooldown after the shield is broken, in ticks. */
     public float cooldown = 60f * 5;
+    /** Sides of shield polygon. */
+    public int sides = 6;
+    /** Rotation of shield. */
+    public float rotation = 0f;
 
     /** State. */
     protected float radiusScale, alpha;
@@ -32,7 +36,7 @@ public class ForceFieldAbility extends Ability{
     private static Unit paramUnit;
     private static ForceFieldAbility paramField;
     private static final Cons<Bullet> shieldConsumer = trait -> {
-        if(trait.team != paramUnit.team && trait.type.absorbable && Intersector.isInsideHexagon(paramUnit.x, paramUnit.y, realRad * 2f, trait.x(), trait.y()) && paramUnit.shield > 0){
+        if(trait.team != paramUnit.team && trait.type.absorbable && Intersector.isInRegularPolygon(paramField.sides, paramUnit.x, paramUnit.y, realRad, paramField.rotation, trait.x(), trait.y()) && paramUnit.shield > 0){
             trait.absorb();
             Fx.absorb.at(trait);
 
@@ -53,6 +57,15 @@ public class ForceFieldAbility extends Ability{
         this.regen = regen;
         this.max = max;
         this.cooldown = cooldown;
+    }
+
+    public ForceFieldAbility(float radius, float regen, float max, float cooldown, int sides, float rotation){
+        this.radius = radius;
+        this.regen = regen;
+        this.max = max;
+        this.cooldown = cooldown;
+        this.sides = sides;
+        this.rotation = rotation;
     }
 
     ForceFieldAbility(){}
@@ -88,14 +101,14 @@ public class ForceFieldAbility extends Ability{
 
             if(Vars.renderer.animateShields){
                 Draw.alpha(Mathf.clamp(UnitType.alpha * 2));
-                Fill.poly(unit.x, unit.y, 6, realRad);
+                Fill.poly(unit.x, unit.y, sides, realRad, rotation);
                 Draw.alpha(1f);
             }else{
                 Lines.stroke(1.5f);
                 Draw.alpha(0.09f * UnitType.alpha);
-                Fill.poly(unit.x, unit.y, 6, radius);
+                Fill.poly(unit.x, unit.y, sides, radius, rotation);
                 Draw.alpha(UnitType.alpha);
-                Lines.poly(unit.x, unit.y, 6, radius);
+                Lines.poly(unit.x, unit.y, sides, radius, rotation);
             }
         }
     }
