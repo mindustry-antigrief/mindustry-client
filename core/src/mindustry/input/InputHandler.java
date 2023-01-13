@@ -742,7 +742,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(!(unit instanceof Payloadc pay)) return;
 
         Unit target = Units.closest(player.team(), pay.x(), pay.y(), unit.type.hitSize * 2f, u -> u.isAI() && u.isGrounded() && pay.canPickup(u) && u.within(unit, u.hitSize + unit.hitSize));
-        if(target != null){
+        if(target != null && !Core.input.alt()){
             Call.requestUnitPayload(player, target);
         }else{
             Building build = world.buildWorld(pay.x(), pay.y());
