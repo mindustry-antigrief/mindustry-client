@@ -20,8 +20,8 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
     private final Seq<T> intersectArray = new Seq<>();
     private final Rect viewport = new Rect();
     private final Rect intersectRect = new Rect();
+    private final EntityIndexer indexer;
     private IntMap<T> map;
-    private final ObjectIntMap<T> indexMap = new ObjectIntMap<>();
     private QuadTree tree;
     private boolean clearing;
 
@@ -37,6 +37,10 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
     }
 
     public EntityGroup(Class<T> type, boolean spatial, boolean mapping){
+        this(type, spatial, mapping, null);
+    }
+
+    public EntityGroup(Class<T> type, boolean spatial, boolean mapping, EntityIndexer indexer){
         array = new Seq<>(false, 32, type);
 
         if(spatial){
@@ -46,6 +50,8 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
         if(mapping){
             map = new IntMap<>();
         }
+
+        this.indexer = indexer;
     }
 
     /** @return entities with colliding IDs, or an empty array. */
@@ -108,7 +114,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
     }
 
     public boolean useTree(){
-        return map != null;
+        return tree != null;
     }
 
     public boolean mappingEnabled(){
@@ -177,7 +183,6 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
 
     public void add(T type){
         if(type == null) throw new RuntimeException("Cannot add a null entity!");
-        indexMap.put(type, array.size);
         array.add(type);
 
         if(mappingEnabled()){
@@ -185,34 +190,60 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
         }
     }
 
+    public int addIndex(T type){
+        int index = array.size;
+        add(type);
+        return index;
+    }
+
     public void remove(T type){
         if(clearing) return;
         if(type == null) throw new RuntimeException("Cannot remove a null entity!");
-        int idx = indexMap.remove(type, -1);
+        int idx = array.indexOf(type, true);
         if(idx != -1){
-            if(array.size > 1){
-                var last = array.items[array.size - 1];
-                array.items[idx] = last;
-                indexMap.put(last, idx);
-            }
-            array.items[--array.size] = null; // Allow garbage collection of elements if the array shrinks
+            array.remove(idx);
 
-            if(map != null) map.remove(type.id());
+            //fix incorrect HEAD index since it was swapped
+            if(array.size > 0 && idx != array.size){
+                var swapped = array.items[idx];
+                indexer.change(swapped, idx);
+            }
+
+            if(map != null){
+                map.remove(type.id());
+            }
+
             //fix iteration index when removing
-            if(index >= idx) index--;
+            if(index >= idx){
+                index --;
+            }
         }
-//        int idx = array.indexOf(type, true);
-//        if(idx != -1){
-//            array.remove(idx);
-//            if(map != null){
-//                map.remove(type.id());
-//            }
-//
-//            //fix iteration index when removing
-//            if(index >= idx){
-//                index --;
-//            }
-//        }
+    }
+
+    public void removeIndex(T type, int position){
+        if(clearing) return;
+        if(type == null) throw new RuntimeException("Cannot remove a null entity!");
+        if(position != -1 && position < array.size){
+
+            //swap head with current
+            if(array.size > 1){
+                var head = array.items[array.size - 1];
+                indexer.change(head, position);
+                array.items[position] = head;
+            }
+
+            array.size --;
+            array.items[array.size] = null;
+
+            if(map != null){
+                map.remove(type.id());
+            }
+
+            //fix iteration index when removing
+            if(index >= position){
+                index --;
+            }
+        }
     }
 
     public void clear(){
@@ -220,7 +251,6 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
 
         array.each(Entityc::remove);
         array.clear();
-        indexMap.clear();
         if(map != null) map.clear();
 
         clearing = false;

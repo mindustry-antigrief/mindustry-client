@@ -20,6 +20,7 @@ import mindustry.io.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
+import mindustry.world.*;
 
 import java.util.*;
 
@@ -141,7 +142,7 @@ public class WaveInfoDialog extends BaseDialog{
         });
 
         if(experimental){
-            buttons.button("Random", Icon.refresh, () -> {
+            buttons.button(Core.bundle.get("waves.random"), Icon.refresh, () -> {
                 groups.clear();
                 groups = Waves.generate(1f / 10f);
                 updateWaves();
@@ -345,7 +346,7 @@ public class WaveInfoDialog extends BaseDialog{
                                         p.add("[lightgray](first " + max + ")").colspan(cols).padBottom(4).row();
                                     }
 
-                                    for(var spawn : spawner.getSpawns()){
+                                    for(Tile spawn : Seq.<Tile>withArrays(spawner.getSpawns(), spawner.getCoreSpawns())){
                                         p.button(spawn.x + ", " + spawn.y, Styles.flatTogglet, () -> {
                                             group.spawn = Point2.pack(spawn.x, spawn.y);
                                             dialog.hide();

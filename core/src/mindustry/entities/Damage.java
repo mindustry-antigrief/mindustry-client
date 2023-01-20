@@ -338,7 +338,7 @@ public class Damage{
      */
     public static Healthc linecast(Bullet hitter, float x, float y, float angle, float length){
         vec.trns(angle, length);
-        
+
         tmpBuilding = null;
 
         if(hitter.type.collidesGround){

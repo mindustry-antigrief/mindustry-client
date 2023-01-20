@@ -48,6 +48,11 @@ public class WaveSpawner{
         return spawns;
     }
 
+    public Seq<Tile> getCoreSpawns(){
+        if(!state.rules.attackMode) return new Seq<Tile>();
+        return state.rules.waveTeam.cores().map(c -> c.tile);
+    }
+
     /** @return true if the player is near a ground spawn point. */
     public boolean playerNear(){
         return state.hasSpawns() && !player.dead() && spawns.contains(g -> Mathf.dst(g.x * tilesize, g.y * tilesize, player.x, player.y) < state.rules.dropZoneRadius && player.team() != state.rules.waveTeam);

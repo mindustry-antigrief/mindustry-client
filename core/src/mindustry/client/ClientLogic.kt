@@ -88,7 +88,7 @@ class ClientLogic {
             showingTurrets = false
             showingAllyTurrets = false
             showingInvTurrets = false
-            if (state.rules.pvp) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
+            if (state.rules.pvp && !isDeveloper()) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
             massDrivers.clear()
             Client.tiles.clear()
@@ -181,8 +181,8 @@ class ClientLogic {
 
         Events.on(BlockDestroyEvent::class.java) {
             if (it.tile.block() is PowerVoid) {
-                val message = bundle.format("client.voidwarn", it.tile.x.toString(), it.tile.y.toString())
-                NetClient.findCoords(ui.chatfrag.addMessage(message, null, null, "", message)) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
+                val message = bundle.format("client.voidwarn", it.tile.x.toString(), it.tile.y.toString()) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
+                NetClient.findCoords(ui.chatfrag.addMessage(message, null, null, "", message))
             }
         }
 
@@ -191,12 +191,13 @@ class ClientLogic {
             val block = event.newBlock
             if (block !is Turret) return@on
             if (event.unit?.player == null) return@on
+            if (state.rules.infiniteResources) return@on
 
             clientThread.post { // Scanning through tiles can be exhaustive. Delegate it to the client thread.
                 val voids = Seq<Building>()
                 for (tile in world.tiles) if (tile.block() is PowerVoid) voids.add(tile.build)
 
-                val void = voids.find { it.within(event.tile, block.range) }
+                val void = voids.find { it.within(event.tile, block.range) && it.team != event.unit.team }
                 if (void != null) { // Code taken from LogicBlock.LogicBuild.configure
                     app.post {
                         if (event.unit.player != turretVoidWarnPlayer || Time.timeSinceMillis(lastTurretVoidWarn) > 5e3) {

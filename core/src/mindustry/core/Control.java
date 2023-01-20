@@ -252,7 +252,7 @@ public class Control implements ApplicationListener, Loadable{
                                 }else{
                                     //when already hosting, instantly build everything. this looks bad but it's better than a desync
                                     Fx.coreBuildBlock.at(build.x, build.y, 0f, build.block);
-                                    Fx.placeBlock.at(build.x, build.y, build.block.size);
+                                    build.block.placeEffect.at(build.x, build.y, build.block.size);
                                 }
                             }
                         }
@@ -290,7 +290,7 @@ public class Control implements ApplicationListener, Loadable{
         build.dropped();
 
         Fx.coreBuildBlock.at(build.x, build.y, 0f, build.block);
-        Fx.placeBlock.at(build.x, build.y, build.block.size);
+        build.block.placeEffect.at(build.x, build.y, build.block.size);
     }
 
     @Override
