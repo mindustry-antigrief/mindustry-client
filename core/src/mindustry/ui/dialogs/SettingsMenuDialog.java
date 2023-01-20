@@ -160,6 +160,7 @@ public class SettingsMenuDialog extends BaseDialog{
                         }
                     }
 
+                    control.saves.load(true);
                     for(var slot : control.saves.getSaveSlots().copy()){
                         if(slot.isSector()){
                             slot.delete();

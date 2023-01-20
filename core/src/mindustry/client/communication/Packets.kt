@@ -132,7 +132,7 @@ object Packets {
         private val incoming = ConcurrentHashMap<Long, IncomingTransmission>()
         /** A list of listeners to be run when a transmission is received. */
         private val listeners = CopyOnWriteArrayList<(transmission: Transmission, senderId: Int) -> Unit>()
-        val listenersLock = ReentrantLock()
+        private val listenersLock = ReentrantLock()
 
         data class IncomingTransmission(val segments: MutableList<ByteArray?>, var expirationTime: Instant)
 
@@ -175,8 +175,7 @@ object Packets {
                 val content = buf.remainingBytes()
 
                 if (header.sequenceNumber >= header.sequenceCount)
-                    throw IndexOutOfBoundsException("Packet sequence number ${header.sequenceNumber} " +
-                            "is greater than or equal to sequence count ${header.sequenceCount}!")
+                    throw IndexOutOfBoundsException("Packet sequence number ${header.sequenceNumber} is greater than or equal to sequence count ${header.sequenceCount}!")
 
                 if (header.transmissionType >= registeredTransmissionTypes.size)
                     throw IndexOutOfBoundsException("Transmission type ${header.transmissionType} not found!")
@@ -205,12 +204,10 @@ object Packets {
                     val inflated = array.inflate()  // Decompress the transmission
                     val transmission = registeredTransmissionTypes[header.transmissionType].constructor(inflated, header.transmissionId, sender)  // Deserialize the transmission
 
-                    listenersLock.lock()
-                    for (listener in listeners) {
-                        listener(transmission, sender)
+                    listenersLock.withLock {
+                        for (listener in listeners) listener(transmission, sender)
+                        incoming.remove(header.transmissionId)
                     }
-                    incoming.remove(header.transmissionId)
-                    listenersLock.unlock()
                 }
             } catch (e: Exception) { Log.err(e) }
         }
@@ -245,9 +242,9 @@ object Packets {
         }
 
         fun removeListener(listener: (Transmission, Int) -> Unit) {
-            listenersLock.lock()
-            listeners.remove(listener)
-            listenersLock.unlock()
+            listenersLock.withLock {
+                if(!listeners.remove(listener)) Log.err("Failed to remove listener")
+            }
         }
     }
 }

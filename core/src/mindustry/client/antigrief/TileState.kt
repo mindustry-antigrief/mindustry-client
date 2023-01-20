@@ -9,14 +9,14 @@ import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.antigrief.TileRecords.isOrigin
 import mindustry.client.utils.*
-import mindustry.content.Blocks
+import mindustry.content.*
 import mindustry.core.*
-import mindustry.entities.units.BuildPlan
+import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.type.*
 import mindustry.world.*
-import mindustry.world.blocks.ConstructBlock
+import mindustry.world.blocks.*
 import java.time.*
 import kotlin.math.*
 
@@ -124,7 +124,7 @@ class TileState {
                     table.button(Icon.copySmall) { Core.app.clipboardText = array.joinToString { "(${it.x + x}, ${it.y + y})" } }
                 }
 
-                else -> table.label(config.toString().restrictToAscii().capLength(20)).table.button(Icon.copy) { Core.app.clipboardText = config.toString() }
+                else -> table.label(config.toString().ascii().capLength(20)).table.button(Icon.copy) { Core.app.clipboardText = config.toString() }
             }
         }
 

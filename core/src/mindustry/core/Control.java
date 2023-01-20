@@ -536,7 +536,7 @@ public class Control implements ApplicationListener, Loadable{
             }
         }
 
-        for(Music music : assets.getAll(Music.class, new Seq<>())){
+        for(Music music : assets.getAll(Music.class, FileTree.clientLoadedMusic)){
             music.stop();
         }
 
@@ -560,8 +560,6 @@ public class Control implements ApplicationListener, Loadable{
 
     @Override
     public void init(){
-        platform.updateRPC();
-
         //display UI scale changed dialog
         if(Core.settings.getBool("uiscalechanged", false)){
             Core.app.post(() -> Core.app.post(() -> {

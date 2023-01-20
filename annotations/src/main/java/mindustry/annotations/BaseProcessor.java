@@ -171,8 +171,11 @@ public abstract class BaseProcessor extends AbstractProcessor{
     }
 
     public Seq<Smethod> methods(Class<? extends Annotation> type){
-        return Seq.with(env.getElementsAnnotatedWith(type)).select(e -> e instanceof ExecutableElement)
-        .map(e -> new Smethod((ExecutableElement)e));
+        Seq<Smethod> out = new Seq<>(Smethod.class);
+        for(Element e : env.getElementsAnnotatedWith(type)){
+            if(e instanceof ExecutableElement) out.add(new Smethod((ExecutableElement)e));
+        }
+        return out;
     }
 
     public static void err(String message){

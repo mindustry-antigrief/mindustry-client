@@ -122,17 +122,6 @@ fun ByteArray.compress() = Compression.compress(this)
 
 fun ByteArray.inflate() = Compression.inflate(this)
 
-/** Pretty slow */
-fun String.restrictToAscii(): String {
-    val new = StringBuilder()
-    for (char in this) {
-        if (char in ' '..'~') {
-            new.append(char)
-        }
-    }
-    return new.toString()
-}
-
 fun String.capLength(length: Int): String {
     if (this.length <= length) return this
     if (length <= 3) return substring(0 until length)
@@ -232,6 +221,8 @@ fun String.bundle(): String? = Core.bundle[removePrefix("@")]
 
 val X509Certificate.readableName: String
     get() = subjectX500Principal.name.removePrefix("CN=")
+
+fun String.ascii() = filter { it in ' '..'~' }
 
 fun String.asciiNoSpaces() = filter { it in '0'..'9' || it in 'A'..'Z' || it in 'a'..'z' || it == '_' }
 

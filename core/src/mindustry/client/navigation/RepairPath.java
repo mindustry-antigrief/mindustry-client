@@ -37,7 +37,7 @@ public class RepairPath extends Path {
         player.shooting(player.within(build, range) && !player.unit().activelyBuilding() && !player.unit().mining());
         player.unit().aimLook(build);
 
-        goTo(build, 3 * tilesize, 2 * tilesize);
+        goTo(build, 4 * tilesize, 3 * tilesize);
     }
 
     @Override

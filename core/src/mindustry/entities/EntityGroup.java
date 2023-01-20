@@ -21,6 +21,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
     private final Rect viewport = new Rect();
     private final Rect intersectRect = new Rect();
     private IntMap<T> map;
+    private final ObjectIntMap<T> indexMap = new ObjectIntMap<>();
     private QuadTree tree;
     private boolean clearing;
 
@@ -176,6 +177,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
 
     public void add(T type){
         if(type == null) throw new RuntimeException("Cannot add a null entity!");
+        indexMap.put(type, array.size);
         array.add(type);
 
         if(mappingEnabled()){
@@ -186,18 +188,31 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
     public void remove(T type){
         if(clearing) return;
         if(type == null) throw new RuntimeException("Cannot remove a null entity!");
-        int idx = array.indexOf(type, true);
+        int idx = indexMap.remove(type, -1);
         if(idx != -1){
-            array.remove(idx);
-            if(map != null){
-                map.remove(type.id());
+            if(array.size > 1){
+                var last = array.items[array.size - 1];
+                array.items[idx] = last;
+                indexMap.put(last, idx);
             }
+            array.items[--array.size] = null; // Allow garbage collection of elements if the array shrinks
 
+            if(map != null) map.remove(type.id());
             //fix iteration index when removing
-            if(index >= idx){
-                index --;
-            }
+            if(index >= idx) index--;
         }
+//        int idx = array.indexOf(type, true);
+//        if(idx != -1){
+//            array.remove(idx);
+//            if(map != null){
+//                map.remove(type.id());
+//            }
+//
+//            //fix iteration index when removing
+//            if(index >= idx){
+//                index --;
+//            }
+//        }
     }
 
     public void clear(){
@@ -205,6 +220,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
 
         array.each(Entityc::remove);
         array.clear();
+        indexMap.clear();
         if(map != null) map.clear();
 
         clearing = false;

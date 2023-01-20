@@ -21,6 +21,7 @@ public class FileTree implements FileHandleResolver{
     private ObjectMap<String, Fi> files = new ObjectMap<>();
     private ObjectMap<String, Sound> loadedSounds = new ObjectMap<>();
     private ObjectMap<String, Music> loadedMusic = new ObjectMap<>();
+    public static Seq<Music> clientLoadedMusic = new Seq<>();
 
     public void addFile(String path, Fi f){
         files.put(path.replace('\\', '/'), f);
@@ -107,8 +108,10 @@ public class FileTree implements FileHandleResolver{
     public void loadAudio(DownloadableAudio audio, String path, int length){
         var fi = get(path);
         var clazz = audio.getClass().getSimpleName(); // Used for error messages and settings
-        if(audio instanceof Sound sound && fi.parent().name().equals("ui")) {
+        if(audio instanceof Sound sound && fi.parent().name().equals("ui")){
             sound.setBus(Vars.control.sound.uiBus);
+        }else if(audio instanceof Music music){
+            clientLoadedMusic.add(music);
         }
 
         if(fi.exists()){ // Local copy. Assumed to be up-to-date

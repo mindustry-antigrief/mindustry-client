@@ -111,7 +111,7 @@ public class NetClient implements ApplicationListener{
             c.usid = getUsid(packet.addressTCP);
             c.uuid = platform.getUUID();
 
-            var address = packet.addressTCP.split(":")[0].substring(1); // Remove leading slash and trailing port
+            var address = packet.addressTCP.split("[:/]")[1]; // Remove leading slash (and domain) and trailing port
             if (ui.join.communityHosts.contains(h -> "Korea".equals(h.group) && h.address.equals(address))) { // Korea is cursed
                 var matcher = Pattern.compile("^\\[(.*)]").matcher(player.name);
                 if (matcher.find()) {

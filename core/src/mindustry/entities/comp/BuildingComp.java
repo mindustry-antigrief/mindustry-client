@@ -106,12 +106,6 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public Building init(Tile tile, Team team, boolean shouldAdd, int rotation){
         if(!initialized){
             create(tile.block(), team);
-        }else{
-            if(block.hasPower){
-                power.init = false;
-                //reinit power graph
-                new PowerGraph().add(self());
-            }
         }
         proximity.clear();
         this.rotation = rotation;
@@ -1072,10 +1066,10 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     }
 
     public void updatePowerGraph(){
-        for(Building other : getPowerConnections(tempBuilds)){
-            if(other.power != null){
-                other.power.graph.addGraph(power.graph);
-            }
+        var links = getPowerConnections(tempBuilds).add((Building)self());
+        var largest = links.max(l -> l.power.graph.all.size);
+        for(Building link : links){
+            largest.power.graph.addGraph(link.power.graph);
         }
     }
 

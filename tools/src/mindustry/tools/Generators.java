@@ -93,7 +93,6 @@ public class Generators{
                 }
 
                 Fi.get("splash-" + i + ".png").writePng(pixmap);
-
                 pixmap.dispose();
             }
         });
@@ -120,7 +119,6 @@ public class Generators{
                 });
 
                 Fi.get("bubble-" + i + ".png").writePng(pixmap);
-
                 pixmap.dispose();
             }
         });
@@ -134,7 +132,7 @@ public class Generators{
             for(String type : types){
                 boolean gas = typeIndex++ == 1;
                 for(String region : stencils){
-                    Pixmap base = get(region);
+                    Pixmap base = get(region, false);
 
                     for(int i = 0; i < frames; i++){
                         float frame = i / (float)frames;
@@ -147,7 +145,7 @@ public class Generators{
                                 }
                             }
                         }
-                        save(copy, region + "-" + type + "-" + i);
+                        save(copy, region + "-" + type + "-" + i, true);
                     }
                 }
             }
@@ -165,17 +163,16 @@ public class Generators{
             }
 
             for(int i = Byte.MIN_VALUE; i <= Byte.MAX_VALUE; i++){
-                int bi = i;
+                byte bi = (byte) i;
                 exec.execute(() -> {
                     Color color = new Color();
                     Pixmap result = new Pixmap(size, size);
                     byte[][] mask = new byte[size][size];
 
-                    byte val = (byte)bi;
                     //check each bit/direction
                     for(int j = 0; j < 8; j++){
-                        if((val & (1 << j)) != 0){
-                            if(j % 2 == 1 && (((val & (1 << (j + 1))) != 0) != ((val & (1 << (j - 1))) != 0))){
+                        if((bi & (1 << j)) != 0){
+                            if(j % 2 == 1 && (((bi & (1 << (j + 1))) == 0) == ((bi & (1 << (j - 1))) != 0))){
                                 continue;
                             }
 
@@ -226,13 +223,17 @@ public class Generators{
                         }
                     });
 
-                    Fi fi = Fi.get("../blocks/environment/cliffmask" + (val & 0xff) + ".png");
+                    Fi fi = Fi.get("../blocks/environment/cliffmask" + (bi & 0xff) + ".png");
                     fi.writePng(result);
+                    result.dispose();
                     fi.copyTo(Fi.get("../editor").child("editor-" + fi.name()));
                 });
             }
 
             Threads.await(exec);
+            for(int i = 0; i < images.length; i++){
+                images[i].dispose();
+            }
         });
 
         generate("cracks", () -> {
@@ -520,7 +521,7 @@ public class Generators{
                 Func<Pixmap, Pixmap> outline = i -> i.outline(type.outlineColor, 3);
                 Cons<TextureRegion> outliner = t -> {
                     if(t != null && t.found()){
-                        replace(t, outline.get(get(t)));
+                        replace(t, outline.get(get(t, false)), true);
                     }
                 };
 
@@ -528,8 +529,7 @@ public class Generators{
                 type.getRegionsToOutline(toOutline);
 
                 for(TextureRegion region : toOutline){
-                    Pixmap pix = get(region).outline(type.outlineColor, type.outlineRadius);
-                    save(pix, ((GenRegion)region).name + "-outline");
+                    save(get(region, false).outline(type.outlineColor, type.outlineRadius), ((GenRegion)region).name + "-outline", true);
                 }
 
                 Seq<Weapon> weapons = type.weapons;
@@ -540,7 +540,7 @@ public class Generators{
                     if(outlined.add(weapon.name) && has(weapon.name)){
                         //only non-top weapons need separate outline sprites (this is mostly just mechs)
                         if(!weapon.top || weapon.parts.contains(p -> p.under)){
-                            save(outline.get(get(weapon.name)), weapon.name + "-outline");
+                            save(outline.get(get(weapon.name, false)), weapon.name + "-outline", true);
                         }else{
                             //replace weapon with outlined version, no use keeping standard around
                             outliner.get(weapon.region);
@@ -570,8 +570,9 @@ public class Generators{
 
                                 frame.setRaw(0, y, slice.getRaw(0, idx));
                             }
-                            save(frame, type.name + "-treads" + r + "-" + i);
+                            save(frame, type.name + "-treads" + r + "-" + i, true);
                         }
+                        slice.dispose();
                     }
                 }
 
@@ -611,7 +612,7 @@ public class Generators{
                 if(type.needsBodyOutline()){
                     save(image, type.name + "-outline");
                 }else if(type.segments == 0){
-                    replace(type.name, type.segments > 0 ? get(type.segmentRegions[0]) : outline.get(get(type.region)));
+                    replace(type.name, outline.get(get(type.region, false)), true);
                 }
 
                 //draw weapons that are under the base
@@ -711,7 +712,7 @@ public class Generators{
                 });
 
                 for(int i = 0; i < wrecks.length; i++){
-                    save(wrecks[i], "../rubble/" + type.name + "-wreck" + i);
+                    save(wrecks[i], "../rubble/" + type.name + "-wreck" + i, true);
                 }
 
                 int maxd = Math.min(Math.max(image.width, image.height), maxUiIcon);
@@ -719,7 +720,7 @@ public class Generators{
                 drawScaledFit(fit, image);
 
                 saveScaled(fit, type.name + "-icon-logic", logicIconSize);
-                save(fit, "../ui/unit-" + type.name + "-ui");
+                save(fit, "../ui/unit-" + type.name + "-ui", true);
             }catch(IllegalArgumentException e){
                 Log.err("WARNING: Skipping unit @: @", type.name, e.getMessage());
             }
@@ -767,8 +768,8 @@ public class Generators{
                 }
 
                 try{
-                    Pixmap image = gens.get(floor, get(floor.getGeneratedIcons()[0]));
-                    Pixmap edge = get("edge-stencil");
+                    Pixmap image = gens.get(floor, get(floor.getGeneratedIcons()[0], false));
+                    Pixmap edge = get("edge-stencil", false);
                     Pixmap result = new Pixmap(edge.width, edge.height);
 
                     for(int x = 0; x < edge.width; x++){
@@ -777,7 +778,7 @@ public class Generators{
                         }
                     }
 
-                    save(result, "../blocks/environment/" + floor.name + "-edge");
+                    save(result, "../blocks/environment/" + floor.name + "-edge", true);
 
                 }catch(Exception ignored){}
             });

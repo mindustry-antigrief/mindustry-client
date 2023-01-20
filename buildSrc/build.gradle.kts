@@ -11,5 +11,6 @@ repositories {
 
 dependencies {
     val arcHash = Properties(20).apply { load(file("../gradle.properties").inputStream()) }["archash"]
-    implementation("com.github.mindustry-antigrief.arc:arc-core:$arcHash")
+    val localArc = File(rootDir.parentFile.parent, "Arc").exists()
+    implementation("com.github.mindustry-antigrief${if (localArc) "" else ".arc"}:arc-core:$arcHash")
 }

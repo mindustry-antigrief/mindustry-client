@@ -9,6 +9,7 @@ import mindustry.annotations.util.TypeIOResolver.*;
 
 import javax.annotation.processing.*;
 import javax.lang.model.element.*;
+import java.util.*;
 
 
 /** The annotation processor for generating remote method call code. */
@@ -30,14 +31,12 @@ public class RemoteProcess extends BaseProcessor{
         //find all elements with the Remote annotation
         //all elements with the Remote annotation
         Seq<Smethod> elements = methods(Remote.class);
+        Arrays.sort(elements.items, 0, elements.size, Structs.comparing(Selement::toString));
         //list of all method entries
         Seq<MethodEntry> methods = new Seq<>();
 
-        Seq<Smethod> orderedElements = elements.copy();
-        orderedElements.sortComparing(Selement::toString);
-
         //create methods
-        for(Smethod element : orderedElements){
+        for(Smethod element : elements){
             Remote annotation = element.annotation(Remote.class);
 
             //check for static

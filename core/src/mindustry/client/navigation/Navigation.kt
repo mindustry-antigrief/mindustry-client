@@ -4,9 +4,6 @@ import arc.*
 import arc.math.geom.*
 import arc.struct.*
 import mindustry.*
-import mindustry.client.navigation.Path.Companion.goTo
-import mindustry.client.navigation.clientThread.post
-import mindustry.client.navigation.clientThread.submit
 import mindustry.client.navigation.waypoints.*
 import mindustry.game.EventType.*
 import java.util.concurrent.*
@@ -36,8 +33,8 @@ object Navigation {
         }
     }
 
-    @JvmStatic fun addEnt(ent: TurretPathfindingEntity) = post { ents.add(ent) }
-    @JvmStatic fun removeEnt(ent: TurretPathfindingEntity) = post { ents.remove(ent) }
+    @JvmStatic fun addEnt(ent: TurretPathfindingEntity) = clientThread.post { ents.add(ent) }
+    @JvmStatic fun removeEnt(ent: TurretPathfindingEntity) = clientThread.post { ents.remove(ent) }
 
     @JvmOverloads @JvmStatic
     fun follow(path: Path?, repeat: Boolean = false) {
@@ -59,12 +56,14 @@ object Navigation {
         if ((force || updatingEnts.get() <= 0) && Core.graphics.frameId > lastFrame) { // Update once per frame
             lastFrame = Core.graphics.frameId
             val tree = tmpTree
-            tree.clear()
             obstacles = Seq()
-            for (ent in ents) {
-                if (ent.entity.team() != Vars.player.team()) {
-                    tree.insert(ent)
-                    obstacles.add(ent)
+            tree.use {
+                tree.clear()
+                for (ent in ents) {
+                    if (ent.entity.team() != Vars.player.team()) {
+                        tree.insert(ent)
+                        obstacles.add(ent)
+                    }
                 }
             }
             tmpTree = obstacleTree
@@ -78,12 +77,14 @@ object Navigation {
         if ((force || updatingAllyEnts.get() <= 0) && Core.graphics.frameId > lastFrame) { // Update once per frame
             lastFrame = Core.graphics.frameId
             val tree = tmpTree
-            tree.clear()
             allies = Seq()
-            for (ent in ents) {
-                if (ent.entity.team() == Vars.player.team()) {
-                    tree.insert(ent)
-                    allies.add(ent)
+            tree.use {
+                tree.clear()
+                for (ent in ents) {
+                    if (ent.entity.team() == Vars.player.team()) {
+                        tree.insert(ent)
+                        allies.add(ent)
+                    }
                 }
             }
             tmpTree = allyTree
@@ -96,7 +97,7 @@ object Navigation {
     /** Thread safe */
     fun getEnts(): Seq<TurretPathfindingEntity> {
         if (Thread.currentThread().name == "main") {
-            if (updatingEnts.get() <= 0) submit(::updateEnts).get()
+            if (updatingEnts.get() <= 0) clientThread.submit(::updateEnts).get()
             updatingEnts.set(2)
         } else updateEnts()
         return obstacles
@@ -106,7 +107,7 @@ object Navigation {
     @JvmStatic
     fun getTree(): EntityTree {
         if (Thread.currentThread().name == "main") {
-            if (updatingEnts.get() <= 0) submit(::updateEnts).get()
+            if (updatingEnts.get() <= 0) clientThread.submit(::updateEnts).get()
             updatingEnts.set(2)
         } else updateEnts()
         return obstacleTree
@@ -116,7 +117,7 @@ object Navigation {
     /** Thread safe */
     fun getAllyEnts(): Seq<TurretPathfindingEntity> {
         if (Thread.currentThread().name == "main") {
-            if (updatingAllyEnts.get() <= 0) submit(::updateAllyEnts).get()
+            if (updatingAllyEnts.get() <= 0) clientThread.submit(::updateAllyEnts).get()
             updatingAllyEnts.set(2)
         } else updateAllyEnts()
         return allies
@@ -126,7 +127,7 @@ object Navigation {
     @JvmStatic
     fun getAllyTree(): EntityTree {
         if (Thread.currentThread().name == "main") {
-            if (updatingAllyEnts.get() <= 0) submit(::updateAllyEnts).get()
+            if (updatingAllyEnts.get() <= 0) clientThread.submit(::updateAllyEnts).get()
             updatingAllyEnts.set(2)
         } else updateAllyEnts()
         return allyTree
@@ -135,13 +136,13 @@ object Navigation {
     fun update() {
         if (job.isDone && updatingEnts.get() > 0) {
             if (updatingEnts.get() == 1) obstacles.set(job.get())
-            job = submit { updateEnts(true) }
+            job = clientThread.submit { updateEnts(true) }
             updatingEnts.decrementAndGet()
         }
 
         if (allyJob.isDone && updatingAllyEnts.get() > 0) {
             if (updatingAllyEnts.get() == 1) allies.set(allyJob.get())
-            allyJob = submit { updateAllyEnts(true) }
+            allyJob = clientThread.submit { updateAllyEnts(true) }
             updatingAllyEnts.decrementAndGet()
         }
 
@@ -170,11 +171,11 @@ object Navigation {
     @JvmStatic val isFollowing get() = currentlyFollowing != null && !isPaused
 
     @JvmStatic
-    fun navigateTo(pos: Position?) = pos?.let { navigateTo(it.x, it.y) }
+    fun navigateTo(pos: Position?) = pos?.apply { navigateTo(x, y) }
 
     @JvmStatic
     fun navigateTo(drawX: Float, drawY: Float) {
-        goTo(drawX, drawY, 0f, 0f) {
+        Path.goTo(drawX, drawY, 0f, 0f) {
             Core.app.post {
                 if (Core.settings.getBool("assumeunstrict")) return@post
                 follow(it)
@@ -184,8 +185,8 @@ object Navigation {
     }
 
     private fun navigateToInternal(drawX: Float, drawY: Float) {
-        goTo(drawX, drawY, 0f, 0f) {
-            if (currentlyFollowing == it && Core.settings.getBool("pathnav")) post { navigateToInternal(drawX, drawY) }
+        Path.goTo(drawX, drawY, 0f, 0f) {
+            if (currentlyFollowing == it && Core.settings.getBool("pathnav")) clientThread.post { navigateToInternal(drawX, drawY) }
         }
     }
 

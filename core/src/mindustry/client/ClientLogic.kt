@@ -46,28 +46,24 @@ class ClientLogic {
                     if (arg != null) {
                         if (arg is Host) {
                             NetClient.connect(arg.address, arg.port)
-                            return@post
                         } else {
                             if (arg is UnitType) ui.unitPicker.pickUnit(arg)
                             switchTo = null
                         }
-                    }
+                        // Game join text after hh
+                        if (settings.getString("gamejointext")?.isNotBlank() == true) {
+                            Call.sendChatMessage(settings.getString("gamejointext"))
+                        }
 
-                    // Game join text after hh
-                    if (settings.getString("gamejointext")?.isNotBlank() == true) {
-                        Call.sendChatMessage(settings.getString("gamejointext"))
+                        when (val vote = settings.getInt("automapvote")) {
+                            1, 2, 3 -> Server.current.mapVote(vote - 1)
+                            4 -> Server.current.mapVote(Random.nextInt(0..2))
+                        }
                     }
-
-                    when (val vote = settings.getInt("automapvote")) {
-                        1, 2, 3 -> Server.current.mapVote(vote - 1)
-                        4 -> Server.current.mapVote(Random.nextInt(0..2))
-                        else -> {}
-                    }
-
                 }
             }, .1F)
 
-            if (Core.settings.getBool("onjoinfixcode")) { // FINISHME: Make this also work for singleplayer worlds
+            if (settings.getBool("onjoinfixcode")) { // FINISHME: Make this also work for singleplayer worlds
                 ProcessorPatcher.fixCode(ProcessorPatcher.FixCodeMode.Fix)
             }
 
@@ -76,9 +72,9 @@ class ClientLogic {
         }
 
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
-            Core.app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
+            app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             if (!syncing) {
-                AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(state.rules.pvp && Server.io())
+                AutoTransfer.enabled = settings.getBool("autotransfer") && !(state.rules.pvp && Server.io())
                 Player.persistPlans.clear()
                 frozenPlans.clear()
             }
@@ -105,18 +101,18 @@ class ClientLogic {
         }
 
         Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading
-            Core.app.post { // Run next frame as Vars.clientLoaded is true then and the load methods depend on it
+            app.post { // Run next frame as Vars.clientLoaded is true then and the load methods depend on it
                 Musics.load() // Loading music isn't very important
                 Sounds.load() // Same applies to sounds
             }
 
-            val changeHash = Core.files.internal("changelog").readString().hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
-            if (Core.settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
-            Core.settings.put("changeHash", changeHash)
+            val changeHash = files.internal("changelog").readString().hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
+            if (settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
+            settings.put("changeHash", changeHash)
 
-            if (Core.settings.getBool("discordrpc")) platform.startDiscord()
-            if (Core.settings.getBool("mobileui")) mobile = !mobile
-            if (Core.settings.getBool("viruswarnings")) LExecutor.virusWarnings = true
+            if (settings.getBool("discordrpc")) platform.startDiscord()
+            if (settings.getBool("mobileui")) mobile = !mobile
+            if (settings.getBool("viruswarnings")) LExecutor.virusWarnings = true
 
             Autocomplete.autocompleters.add(BlockEmotes(), PlayerCompletion(), CommandCompletion())
 
@@ -125,22 +121,22 @@ class ClientLogic {
             Navigation.navigator.init()
 
             // Hitbox setting was changed, this updates it. FINISHME: Remove a while after v7 release.
-            if (Core.settings.getBool("drawhitboxes") && Core.settings.getInt("hitboxopacity") == 0) { // Old setting was enabled and new opacity hasn't been set yet
-                Core.settings.put("hitboxopacity", 30)
-                UnitType.hitboxAlpha = Core.settings.getInt("hitboxopacity") / 100f
+            if (settings.getBool("drawhitboxes") && settings.getInt("hitboxopacity") == 0) { // Old setting was enabled and new opacity hasn't been set yet
+                settings.put("hitboxopacity", 30)
+                UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f
             }
 
             // FINISHME: Remove these at some point
-            Core.settings.remove("drawhitboxes") // Don't need this old setting anymore
-            Core.settings.remove("signmessages") // same as above FINISHME: Remove this at some point
-            Core.settings.remove("firescl") // firescl, effectscl and cmdwarn were added in sept 2022, remove them in mid 2023 or something
-            Core.settings.remove("effectscl")
-            Core.settings.remove("commandwarnings")
-	        Core.settings.remove("nodeconfigs")
-            Core.settings.remove("attemwarfarewhisper")
-            if (Core.settings.has("gameovertext")) {
-                if (Core.settings.getString("gameovertext").isNotBlank()) Core.settings.put("gamewintext", Core.settings.getString("gameovertext"))
-                Core.settings.remove("gameovertext")
+            settings.remove("drawhitboxes") // Don't need this old setting anymore
+            settings.remove("signmessages") // same as above FINISHME: Remove this at some point
+            settings.remove("firescl") // firescl, effectscl and cmdwarn were added in sept 2022, remove them in mid 2023 or something
+            settings.remove("effectscl")
+            settings.remove("commandwarnings")
+	        settings.remove("nodeconfigs")
+            settings.remove("attemwarfarewhisper")
+            if (settings.has("gameovertext")) {
+                if (settings.getString("gameovertext").isNotBlank()) settings.put("gamewintext", settings.getString("gameovertext"))
+                settings.remove("gameovertext")
             }
 
             if (isDeveloper()) {
@@ -155,15 +151,15 @@ class ClientLogic {
         Events.on(PlayerJoin::class.java) { e -> // Run when a player joins the server
             if (e.player == null) return@on
 
-            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has connected.")) && Time.timeSinceMillis(lastJoinTime) > 10000)
-                player.sendMessage(Core.bundle.format("client.connected", e.player.name))
+            if (settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has connected.")) && Time.timeSinceMillis(lastJoinTime) > 10000)
+                player.sendMessage(bundle.format("client.connected", e.player.name))
         }
 
         Events.on(PlayerLeave::class.java) { e -> // Run when a player leaves the server
             if (e.player == null) return@on
 
-            if (Core.settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
-                player.sendMessage(Core.bundle.format("client.disconnected", e.player.name))
+            if (settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
+                player.sendMessage(bundle.format("client.disconnected", e.player.name))
         }
 
         Events.on(GameOverEventClient::class.java) {
@@ -172,14 +168,14 @@ class ClientLogic {
                 if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true))
 
                 // Save maps on game over if the setting is enabled
-                if (Core.settings.getBool("savemaponend")) control.saves.addSave(state.map.name())
+                if (settings.getBool("savemaponend")) control.saves.addSave(state.map.name())
             }
 
             // TODO: Make this work in singleplayer
             if (it.winner == player.team()) {
-                if (Core.settings.getString("gamewintext")?.isNotBlank() == true) Call.sendChatMessage(Core.settings.getString("gamewintext"))
+                if (settings.getString("gamewintext")?.isNotBlank() == true) Call.sendChatMessage(settings.getString("gamewintext"))
             } else {
-                if (Core.settings.getString("gamelosetext")?.isNotBlank() == true) Call.sendChatMessage(Core.settings.getString("gamelosetext"))
+                if (settings.getString("gamelosetext")?.isNotBlank() == true) Call.sendChatMessage(settings.getString("gamelosetext"))
             }
         }
 
@@ -202,7 +198,7 @@ class ClientLogic {
 
                 val void = voids.find { it.within(event.tile, block.range) }
                 if (void != null) { // Code taken from LogicBlock.LogicBuild.configure
-                    Core.app.post {
+                    app.post {
                         if (event.unit.player != turretVoidWarnPlayer || Time.timeSinceMillis(lastTurretVoidWarn) > 5e3) {
                             turretVoidWarnPlayer = event.unit.player
                             turretVoidWarnCount = 1
@@ -226,7 +222,7 @@ class ClientLogic {
 
         Events.on(ConfigEvent::class.java) { event ->
             @Suppress("unchecked_cast")
-            if (event.player != null && event.player != player && Core.settings.getBool("powersplitwarnings") && event.tile is PowerNode.PowerNodeBuild) {
+            if (event.player != null && event.player != player && settings.getBool("powersplitwarnings") && event.tile is PowerNode.PowerNodeBuild) {
                 val prev = Seq(event.previous as Array<Point2>)
                 val count = if (event.value is Int) { // FINISHME: Awful
                     if (prev.contains(Point2.unpack(event.value).sub(event.tile.tileX(), event.tile.tileY()))) 1 else 0
@@ -251,7 +247,7 @@ class ClientLogic {
         }
 
         Events.run(Trigger.draw) {
-            Core.camera.bounds(cameraBounds)
+            camera.bounds(cameraBounds)
             cameraBounds.grow(2 * tilesizeF)
         }
     }

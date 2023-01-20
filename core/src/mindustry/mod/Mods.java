@@ -51,7 +51,7 @@ public class Mods implements Loadable{
     private boolean requiresReload;
     private static final Seq<String> clientBlacklisted = Seq.with("automatic-mod-updater", "scheme-size", "auto-updater"); // These mods aren't needed when using the client
 
-    private ObjectMap<Texture, PageType> pageTypes;
+    private IntMap<PageType> pageTypes;
 
     public Mods(){
         Events.on(ClientLoadEvent.class, e -> Core.app.post(this::checkWarnings));
@@ -138,12 +138,12 @@ public class Mods implements Loadable{
     public void loadAsync(){
         if(!mods.contains(LoadedMod::enabled)) return;
 
-        pageTypes = ObjectMap.of(
-            Core.atlas.find("white").texture, PageType.main,
-            Core.atlas.find("stone1").texture, PageType.environment,
-            Core.atlas.find("clear-editor").texture, PageType.editor,
-            Core.atlas.find("whiteui").texture, PageType.ui,
-            Core.atlas.find("rubble-1-0").texture, PageType.rubble
+        pageTypes = IntMap.of(
+            Core.atlas.find("white").pid, PageType.main,
+            Core.atlas.find("stone1").pid, PageType.environment,
+            Core.atlas.find("clear-editor").pid, PageType.editor,
+            Core.atlas.find("whiteui").pid, PageType.ui,
+            Core.atlas.find("rubble-1-0").pid, PageType.rubble
         );
 
         Time.mark();
@@ -215,7 +215,7 @@ public class Mods implements Loadable{
                     Log.warn("Sprite '@' in mod '@' attempts to override a non-existent sprite. Ignoring.", name, mod.name);
                     continue;
                 }
-                var existingPage = pageTypes.get(existing.texture, PageType.main);
+                var existingPage = pageTypes.get(existing.pid, PageType.main);
                 if(page != existingPage){
                     Log.warn("Sprite '@' on page '@' in mod '@' attempts to override a sprite on page '@'. Ignoring.", name, page, mod.name, existingPage);
                     continue;
@@ -279,7 +279,7 @@ public class Mods implements Loadable{
 
             var showMissing = OS.hasProp("debugmissingsprites");
             for(AtlasRegion region : Core.atlas.getRegions()){ // Add the vanilla sprites that haven't been overwritten to the new atlas
-                PageType type = pageTypes.get(region.texture, PageType.main);
+                PageType type = pageTypes.get(region.pid, PageType.main);
 
                 if(!packer.has(type, region.name)){
                     if(showMissing) Log.warn("Sprite '@' on page '@' is defined but is not overridden.", region.name, type);
@@ -290,19 +290,11 @@ public class Mods implements Loadable{
             //sort each page type by size first, for optimal packing. packs each page in parallel
             var tasks = new Seq<Future<?>>(); // FINISHME: Add time logging for every step of the sprite loading process
             for(int i = 0; i < PageType.all.length; i++){
-                var rects = entries[i].copy();
-                var rects2 = entries[i].copy();
+                var rects = entries[i];
                 var type = PageType.all[i];
                 tasks.add(mainExecutor.submit(() -> {
                     //TODO is this in reverse order?
-                    var none = Time.nanos(); // May as well ensure the class functions
-                    Log.info(none);
-                    var start = Time.nanos();
-                    Arrays.sort(rects2.items, 0, rects2.size, Structs.comparingInt(o -> -Math.max(o.region.width, o.region.height)));
-                    var mid = Time.nanos();
                     new Sort().sort(rects, Structs.comparingInt(o -> -Math.max(o.region.width, o.region.height)));
-                    var end = Time.nanos();
-                    Log.info("Page type @ sorted in: @ms (Builtin) | @ms (Arc)", type, (mid - start)/1000000f, (end - mid)/1000000f);
 
                     for(var entry : rects){
                         packer.add(type, entry.name, entry.region, entry.splits, entry.pads);
