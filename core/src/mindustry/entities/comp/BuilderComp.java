@@ -114,8 +114,9 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
             boolean massPlace = infinite && !net.client();
             long placeTime = Time.nanos();
+            BuildPlan current;
             do{
-                BuildPlan current = buildPlan();
+                current = buildPlan();
                 Tile tile = current.tile();
 
                 lastActive = current;
@@ -151,7 +152,8 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
                 }
 
                 if(tile.build instanceof ConstructBuild && !current.initialized){
-                    Core.app.post(() -> Events.fire(new BuildSelectEvent(tile, team, self(), current.breaking)));
+                    BuildPlan cur = current;
+                    Core.app.post(() -> Events.fire(new BuildSelectEvent(tile, team, self(), cur.breaking)));
                     current.initialized = true;
                 }
 
@@ -171,7 +173,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
                 current.stuck = Mathf.equal(current.progress, entity.progress);
                 current.progress = entity.progress;
-            }while(massPlace && plans.removeFirst() != null && plans.size > 0 && Time.millisSinceNanos(placeTime) < 10f); // FINISHME: Configurable max time?
+            }while(massPlace && (buildPlan() != current || buildPlan() == current && plans.size > 2 && plans.removeFirst() != null) && Time.millisSinceNanos(placeTime) < 10f); // FINISHME: Configurable max time?
         }
     }
 
