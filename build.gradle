@@ -127,7 +127,7 @@ allprojects{
         writeVersion = {
             def pfile = new File(project(':core').projectDir, 'assets/version.properties')
             def props = new StringMap()
-            PropertiesUtils.load(props, pfile.newReader())
+            if(pfile.exists()) PropertiesUtils.load(props, pfile.newReader())
 
             try{
                 pfile.createNewFile()
