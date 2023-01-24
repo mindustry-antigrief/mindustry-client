@@ -173,7 +173,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
                 current.stuck = Mathf.equal(current.progress, entity.progress);
                 current.progress = entity.progress;
-            }while(massPlace && (buildPlan() != current || buildPlan() == current && plans.size > 2 && plans.removeFirst() != null) && Time.millisSinceNanos(placeTime) < 10f); // FINISHME: Configurable max time?
+            }while(massPlace && (buildPlan() != current || buildPlan() == current && plans.size > 1 && plans.removeFirst() != null) && plans.size > 1 && Time.millisSinceNanos(placeTime) < 10f); // FINISHME: Configurable max time? Also jank
         }
     }
 
