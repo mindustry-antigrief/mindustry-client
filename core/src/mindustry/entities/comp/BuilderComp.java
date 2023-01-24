@@ -117,6 +117,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             BuildPlan current;
             do{
                 current = buildPlan();
+                if(current == null) break; // I don't know why but this happens to some people in some cases idfk
                 Tile tile = current.tile();
 
                 lastActive = current;
