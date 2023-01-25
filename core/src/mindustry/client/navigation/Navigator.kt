@@ -78,7 +78,11 @@ abstract class Navigator {
                     lastWp = Time.millis() // Try again in 3s
                     Call.sendChatMessage("/wp ${closestCore.key}")
                 }
-            } else if (player.unit().spawnedByCore && player.unit().stack.amount == 0) { // Everything that isn't CN
+            } else if (
+                player.unit().spawnedByCore &&
+                player.unit().stack.amount == 0 &&
+                (if(player.unit() is Payloadc) !(player.unit() as Payloadc).hasPayload() else true)
+            ) { // Everything that isn't CN
                 val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst2(end) }))
                 if (player.dst2(bestCore) > buildingRange * buildingRange && player.dst2(end) > bestCore.dst2(end) && player.dst2(bestCore) > player.unit().speed() * player.unit().speed() * 24 * 24) { // don't try to move if we're already close to that core
                     lastWp = Time.millis() // Try again in 3s
