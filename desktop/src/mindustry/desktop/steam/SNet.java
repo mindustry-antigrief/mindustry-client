@@ -78,7 +78,10 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                         Object output = serializer.read(readCopyBuffer);
 
                         //it may be theoretically possible for this to be a framework message, if the packet is malicious or corrupted
-                        if(!(output instanceof Packet)) return;
+                        if(!(output instanceof Packet)) {
+                            Log.err("Invalid incoming packet: @", output.getClass());
+                            return;
+                        }
 
                         Packet pack = (Packet)output;
 
@@ -185,7 +188,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
     @Override
     public void discoverServers(Cons<Host> callback, Runnable done){
-        smat.addRequestLobbyListResultCountFilter(32);
+        smat.addRequestLobbyListResultCountFilter(100);
         if (Core.settings.getBool("steamGlobal")) smat.addRequestLobbyListDistanceFilter(LobbyDistanceFilter.Worldwide);
         smat.requestLobbyList();
         lobbyCallback = callback;

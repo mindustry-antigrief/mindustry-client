@@ -252,7 +252,7 @@ public class Control implements ApplicationListener, Loadable{
                                 }else{
                                     //when already hosting, instantly build everything. this looks bad but it's better than a desync
                                     Fx.coreBuildBlock.at(build.x, build.y, 0f, build.block);
-                                    Fx.placeBlock.at(build.x, build.y, build.block.size);
+                                    build.block.placeEffect.at(build.x, build.y, build.block.size);
                                 }
                             }
                         }
@@ -290,7 +290,7 @@ public class Control implements ApplicationListener, Loadable{
         build.dropped();
 
         Fx.coreBuildBlock.at(build.x, build.y, 0f, build.block);
-        Fx.placeBlock.at(build.x, build.y, build.block.size);
+        build.block.placeEffect.at(build.x, build.y, build.block.size);
     }
 
     @Override
@@ -536,7 +536,7 @@ public class Control implements ApplicationListener, Loadable{
             }
         }
 
-        for(Music music : assets.getAll(Music.class, new Seq<>())){
+        for(Music music : assets.getAll(Music.class, FileTree.clientLoadedMusic)){
             music.stop();
         }
 
@@ -560,8 +560,6 @@ public class Control implements ApplicationListener, Loadable{
 
     @Override
     public void init(){
-        platform.updateRPC();
-
         //display UI scale changed dialog
         if(Core.settings.getBool("uiscalechanged", false)){
             Core.app.post(() -> Core.app.post(() -> {

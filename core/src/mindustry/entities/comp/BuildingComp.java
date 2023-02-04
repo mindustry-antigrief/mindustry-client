@@ -106,12 +106,6 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public Building init(Tile tile, Team team, boolean shouldAdd, int rotation){
         if(!initialized){
             create(tile.block(), team);
-        }else{
-            if(block.hasPower){
-                power.init = false;
-                //reinit power graph
-                new PowerGraph().add(self());
-            }
         }
         proximity.clear();
         this.rotation = rotation;
@@ -381,6 +375,10 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         for(var edge : block.getEdges()){
             Building build = nearby(edge.x, edge.y);
             if(build != null && build.team == team && build instanceof HeatBlock heater){
+                //massive hack but I don't really care anymore
+                if(heater instanceof HeatConductorBuild cond){
+                    cond.updateHeat();
+                }
 
                 boolean split = build.block instanceof HeatConductor cond && cond.splitHeat;
                 // non-routers must face us, routers must face away - next to a redirector, they're forced to face away due to cycles anyway
@@ -577,7 +575,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             return BlockStatus.noInput;
         }
 
-        return BlockStatus.active;
+        return ((state.tick / 30f) % 1f) < efficiency ? BlockStatus.active : BlockStatus.noInput;
     }
 
     /** Call when nothing is happening to the entity. This increments the internal sleep timer. */
@@ -1072,10 +1070,10 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     }
 
     public void updatePowerGraph(){
-        for(Building other : getPowerConnections(tempBuilds)){
-            if(other.power != null){
-                other.power.graph.addGraph(power.graph);
-            }
+        var links = getPowerConnections(tempBuilds).add((Building)self());
+        var largest = links.max(l -> l.power.graph.all.size);
+        for(Building link : links){
+            largest.power.graph.addGraph(link.power.graph);
         }
     }
 
@@ -1600,7 +1598,12 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public boolean collision(Bullet other){
         boolean wasDead = health <= 0;
 
-        damage(other.team, other.damage() * other.type().buildingDamageMultiplier);
+        float damage = other.damage() * other.type().buildingDamageMultiplier;
+        if(!other.type.pierceArmor){
+            damage = Damage.applyArmor(damage, block.armor);
+        }
+
+        damage(other.team, damage);
         Events.fire(bulletDamageEvent.set(self(), other));
 
         if(health <= 0 && !wasDead){
@@ -1744,7 +1747,8 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public void updateConsumption(){
         //everything is valid when cheating
         if(!block.hasConsumers || cheating()){
-            potentialEfficiency = efficiency = optionalEfficiency = enabled ? 1f : 0f;
+            potentialEfficiency = efficiency = optionalEfficiency = enabled && shouldConsume() && productionValid() ? 1f : 0f;
+            updateEfficiencyMultiplier();
             return;
         }
 
@@ -1856,7 +1860,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         if(Mathf.zero(dm)){
             damage = health + 1;
         }else{
-            damage = Damage.applyArmor(damage, block.armor) / dm;
+            damage /= dm;
         }
 
         //TODO handle this better on the client.

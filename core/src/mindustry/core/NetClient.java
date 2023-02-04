@@ -111,7 +111,7 @@ public class NetClient implements ApplicationListener{
             c.usid = getUsid(packet.addressTCP);
             c.uuid = platform.getUUID();
 
-            var address = packet.addressTCP.split(":")[0].substring(1); // Remove leading slash and trailing port
+            var address = packet.addressTCP.split("[:/]")[1]; // Remove leading slash (and domain) and trailing port
             if (ui.join.communityHosts.contains(h -> "Korea".equals(h.group) && h.address.equals(address))) { // Korea is cursed
                 var matcher = Pattern.compile("^\\[(.*)]").matcher(player.name);
                 if (matcher.find()) {
@@ -800,7 +800,7 @@ public class NetClient implements ApplicationListener{
             unit instanceof Mechc m ? m.baseRotation() : 0,
             unit.vel.x, unit.vel.y,
             player.unit().mineTile,
-            player.boosting, player.shooting, ui.chatfrag.shown(), control.input.isBuilding,
+            player.boosting, player.shooting, player.typing, control.input.isBuilding,
             player.isBuilder() ? player.unit().plans : null,
             Core.camera.position.x, Core.camera.position.y,
             Core.camera.width, Core.camera.height

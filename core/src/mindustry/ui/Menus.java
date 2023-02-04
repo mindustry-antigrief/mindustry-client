@@ -31,6 +31,7 @@ public class Menus{
         if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
             (options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b() ||
             options[0][0].contains("Downvote") && options[1][0].contains("Upvote") && Server.cn.b())) return; // phoenix network and cn are equally annoying
+        if(title.contains("Basic Info and Rules") && Server.fish.b()) return; // fish is equally annoying (though this is a join popup, not a vote prompt)
 
         Log.debug("Displaying menu " + menuId + " with title: " + title);
         ui.showMenu(title, message, options, (option) -> Call.menuChoose(player, menuId, option));

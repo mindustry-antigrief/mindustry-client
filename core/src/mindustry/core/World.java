@@ -314,8 +314,8 @@ public class World{
             }
 
             Liquid liquid = tile.floor().liquidDrop;
-            if(tile.floor().itemDrop != null) content.add(tile.floor().itemDrop);
-            if(tile.overlay().itemDrop != null) content.add(tile.overlay().itemDrop);
+            if(tile.floor().itemDrop != null && tile.block() == Blocks.air) content.add(tile.floor().itemDrop);
+            if(tile.overlay().itemDrop != null && tile.block() == Blocks.air) content.add(tile.overlay().itemDrop);
             if(tile.wallDrop() != null) content.add(tile.wallDrop());
             if(liquid != null) content.add(liquid);
         }
@@ -465,7 +465,7 @@ public class World{
     public void checkMapArea(){
         for(var build : Groups.build){
             //reset map-area-based disabled blocks.
-            if(build.allowUpdate() && !build.enabled && build.block.autoResetEnabled){
+            if(!build.enabled && build.block.autoResetEnabled){
                 build.enabled = true;
             }
         }

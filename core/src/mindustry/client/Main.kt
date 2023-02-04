@@ -204,7 +204,7 @@ object Main : ApplicationListener {
         if (content.startsWith("/") && !(content.startsWith("/t ") || content.startsWith("/a ")) ||
             ((content == "y" || content == "n") && Server.darkdustry())) return content
 
-        val msgId = Random.nextInt().toShort()
+        val msgId = Random.nextBits(16).toShort()
         val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
 
         communicationClient.send(signatures.signatureTransmission(

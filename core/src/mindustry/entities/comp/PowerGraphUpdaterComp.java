@@ -1,7 +1,6 @@
 package mindustry.entities.comp;
 
 import mindustry.annotations.Annotations.*;
-import mindustry.client.antigrief.*;
 import mindustry.gen.*;
 import mindustry.world.blocks.power.*;
 
@@ -13,15 +12,5 @@ abstract class PowerGraphUpdaterComp implements Entityc{
     @Override
     public void update(){
         graph.update();
-    }
-
-    @Override
-    public void add() {
-        PowerInfo.graphs.add(graph);
-    }
-
-    @Override
-    public void remove(){
-        PowerInfo.graphs.remove(graph);
     }
 }

@@ -2,6 +2,7 @@ package mindustry.game;
 
 import arc.*;
 import arc.files.*;
+import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.struct.*;
@@ -29,7 +30,11 @@ public class Saves{
     private @Nullable SaveSlot lastSectorSave;
     private boolean saving;
     private float time;
+    /** Whether the saves were fully loaded last time. */
     public boolean hasLoaded;
+
+    /** Whether we are currently loading or cancelling loading */
+    private boolean loading, cancelling;
 
     long totalPlaytime;
     private long lastTimestamp;
@@ -53,58 +58,130 @@ public class Saves{
 
     /** Loads all saves (unless sectorsOnly is specified in which case only sectors are loaded in order to make campaign load faster). */
     public void load(boolean sectorsOnly){
-        Time.mark(); Time.mark();
-        hasLoaded = true;
+        load(sectorsOnly, null);
+    }
 
-        var tasks = new Seq<Future<SaveSlot>>();
-        saveDirectory.walk(file -> {
-            var name = file.name();
-            if (name.endsWith("backup.msav") || !name.endsWith(".msav") || sectorsOnly && !name.startsWith("sector-")) return;
-            tasks.add(mainExecutor.submit(() -> {
-                try{
-                    var s = new SaveSlot(file, SaveIO.getMeta(file));
-                    //clear saves from build <130 that had the new naval sectors.
-                    if(s.getSector() != null && (s.getSector().id == 108 || s.getSector().id == 216) && s.meta.build <= 130 && s.meta.build > 0){
-                        s.getSector().clearInfo();
-                        s.file.delete();
-                    }
-                    return s;
-                }catch(Throwable e){
-                    Log.err("Failed to load save '" + file.name() + "'", e);
-                    return null;
-                }
-            }));
-        });
-        var queued = Time.elapsed();
-
+    /** Loads all saves (unless sectorsOnly is specified in which case only sectors are loaded in order to make campaign load faster).
+     * @param cons Called every time a save is loaded. Called with a null argument when all saves have been loaded */
+    public void load(boolean sectorsOnly, Cons<SaveSlot> cons){
+        hasLoaded = false;
+        Log.debug("Loading saves");
+        unload(); // Clear saves (prevents loading two sets of saves at once)
+        var start = Time.nanos();
         Time.mark();
-        saves.ensureCapacity(tasks.size);
-        for(Future<SaveSlot> task : tasks){
-            var s = Threads.await(task);
-            if(s != null) saves.add(s);
-        }
-        var blocked = Time.elapsed();
-        var loaded = Time.elapsed();
 
-        Time.mark();
-        lastSectorSave = saves.find(s -> s.isSector() && s.getName().equals(Core.settings.getString("last-sector-save", "<none>")));
+        class FiTi{
+            final Fi fi;
+            final long ti;
 
-        //automatically (re)assign sector save slots
-        content.planets().each(p -> p.sectors.each(s -> s.save = null)); // FINISHME: This is most likely a horrible idea
-        for(SaveSlot slot : saves){
-            if(slot.getSector() != null){
-                if(slot.getSector().save != null){
-                    Log.warn("Sector @ has two corresponding saves: @ and @", slot.getSector(), slot.getSector().save.file, slot.file);
-                }
-                slot.getSector().save = slot;
+            FiTi(Fi fi, long ti){
+                this.fi = fi;
+                this.ti = ti;
             }
         }
+        var tasks = new Seq<Future<SaveSlot>>();
+        var files = new Seq<FiTi>();
+        saveDirectory.walk(file -> {
+            var name = file.name();
+            if(name.endsWith("backup.msav") || !name.endsWith(".msav") || sectorsOnly && !name.startsWith("sector-")) return;
+            if(cons != null) files.add(new FiTi(file, -file.lastModified()));
+            else tasks.add(mainExecutor.submit(callableFor(file)));
+        });
 
-        Log.debug("Queued saves in: @ms | Loaded @ saves in: @ms | Blocked for: @ms | Post processed saves in in @ms", queued, saves.size, loaded, blocked, Time.elapsed());
+        if(cons != null){
+            files.sort(f -> f.ti);
+            files.each(f -> tasks.add(mainExecutor.submit(callableFor(f.fi))));
+        }
+
+        var queued = Time.elapsed();
+        var blocked = Time.nanos();
+        saves.ensureCapacity(tasks.size);
+        lastSectorSave = null;
+        content.planets().each(p -> p.sectors.each(s -> s.save = null)); // FINISHME: This is most likely a horrible idea
+        long waited = 0;
+        if(cons == null){ // Blocking sync
+            for(Future<SaveSlot> task : tasks){
+                long wait = Time.nanos();
+                var s = Threads.await(task);
+                waited += Time.nanos() - wait;
+                if(s != null) processSave(s);
+            }
+            saves.shrink();
+            Log.debug("Queued saves in: @ms | Blocked for: @/@ms | Loaded @ saves in: @ms", queued, waited/(float)Time.nanosPerMilli, Time.millisSinceNanos(blocked), saves.size, Time.millisSinceNanos(start));
+            hasLoaded = true;
+        }else if(!loading){ // Non-blocking async
+            cancelling = false;
+            loading = true;
+            int i = 0;
+            for(; i < tasks.size; i++){ // Run sync until at least one save is added (very horrid)
+                var s = Threads.await(tasks.get(i));
+                if(s != null){
+                    processSave(s);
+                    cons.get(s);
+                    i++;
+                    break;
+                }
+            }
+            for(; i < tasks.size; i++){
+                var task = tasks.get(i);
+                previewQueue.add(() -> {
+                    if(cancelling){
+                        previewQueue.pop().run(); // Saves were cleared before loading finished, cancel all loading tasks now (jank)
+                        return;
+                    }
+                    var s = Threads.await(task);
+                    if(s != null){
+                        processSave(s);
+                        cons.get(s);
+                    }
+                });
+            }
+            previewQueue.add(() -> { // Signifies that loading has completed
+                if(cancelling){
+                    hasLoaded = false;
+                    Log.debug("Cancelled loading | Size: @", saves.size);
+                    unload();
+                    Log.debug("Cancelled loading after | Size: @", saves.size);
+                }else{
+                    Log.info("Loading finished");
+                    hasLoaded = true;
+                    cons.get(null);
+                }
+                loading = false;
+            });
+        }
+    }
+
+    private Callable<SaveSlot> callableFor(Fi file){
+        return () -> {
+            try{
+                var s = new SaveSlot(file, SaveIO.getMeta(file));
+                //clear saves from build <130 that had the new naval sectors.
+                if(s.getSector() != null && (s.getSector().id == 108 || s.getSector().id == 216) && s.meta.build <= 130 && s.meta.build > 0){
+                    s.getSector().clearInfo();
+                    s.file.delete();
+                }
+                return s;
+            }catch(Throwable e){
+                Log.err("Failed to load save '" + file.name() + "'", e);
+                return null;
+            }
+        };
+    }
+    private void processSave(SaveSlot s){
+        saves.add(s);
+        var sector = s.getSector();
+        if(sector != null){
+            if(lastSectorSave == null && s.getName().equals(Core.settings.getString("last-sector-save", "<none>"))) lastSectorSave = s;
+            if(sector.save != null) Log.warn("Sector @ has two corresponding saves: @ and @", sector, sector.save.file, s.file);
+            else sector.save = s;
+        }
     }
 
     /** Unload all saves to reclaim resources */
     public void unload(){
+        Log.debug("Unloading saves");
+        cancelling = true;
         saves.each(SaveSlot::unloadTexture);
         saves.clear().shrink(); // Don't want all of this stuff in memory
     }
@@ -127,7 +204,7 @@ public class Saves{
         }
 
         var start = Time.millis();
-        while (previewQueue.size() > 0 && Time.timeSinceMillis(start) < 15) {
+        while(previewQueue.size() > 0 && Time.timeSinceMillis(start) < 15){
             previewQueue.pop().run();
         }
 
@@ -215,6 +292,10 @@ public class Saves{
         return saves;
     }
 
+    public int loadedSaveCount(){
+        return saves.size;
+    }
+
     public int saveCount(){
         return saveDirectory.findAll(f -> !f.name().contains("backup") && f.extEquals("msav")).size;
     }
@@ -288,6 +369,8 @@ public class Saves{
                         previewQueue.add(() -> {
                             if (preview == null) { // By the time the pixmap finished loading, we no longer needed it, so we don't create a texture.
                                 data.consumePixmap().dispose(); // Since we don't create a texture, we need to manually dispose the pixmap.
+                                var next = previewQueue.poll(); // Saves were cleared before loading finished, cancel all loading tasks now (jank)
+                                if(next != null) next.run();
                                 return;
                             }
                             preview = new TextureRegion(new Texture(data));

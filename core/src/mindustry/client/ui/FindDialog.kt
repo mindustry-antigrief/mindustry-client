@@ -51,44 +51,42 @@ object FindDialog : BaseDialog("@client.find") {
             updateImages()
         }
 
-        keyDown {
-            if (it == KeyCode.enter) {
-                if (guesses.isEmpty()) return@keyDown // Pasting an emoji will cause this to crash otherwise
-                val block = guesses[0]
-                val results = mutableListOf<Tile>()
+        keyDown(KeyCode.enter) {
+            if (guesses.isEmpty()) return@keyDown // Pasting an emoji will cause this to crash otherwise
+            val block = guesses[0]
+            val results = mutableListOf<Tile>()
 
-                for (t in world.tiles) { // FINISHME: There are far better ways of doing this lol
-                    if (t.block() == block || t.floor() == block || t.overlay() == block) {
-                        if (allyOnly.isChecked && t.team().isEnemy(player.team())) continue
-                        results += t
-                    }
-                }
+            for (t in world.tiles) { // FINISHME: Add an option to not show things such as ores which are covered by blocks
+                if (!t.isCenter) continue
+                if (t.block() != block && t.floor() != block && t.overlay() != block) continue
+                if (allyOnly.isChecked && t.team().isEnemy(player.team())) continue
+                results += t
+            }
 
-                if (results.isEmpty()) {
-                    ui.chatfrag.addMessage(Core.bundle.format("client.find.notfound", block.localizedName))
-                } else {
-                    results.sortBy { it.dst(player) }
-                    val closest = results.first()
-                    ClientVars.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
+            if (results.isEmpty()) {
+                ui.chatfrag.addMessage(Core.bundle.format("client.find.notfound", block.localizedName))
+            } else {
+                results.sortBy { it.dst2(player) }
+                val closest = results.first()
+                ClientVars.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
 
 //                    val text = "${Core.bundle.format("client.find.found", block.localizedName, closest.x, closest.y, results.size)} ${Iconc.left} ${Iconc.right}"
-                    val text = Core.bundle.format("client.find.found", block.localizedName, closest.x, closest.y, results.size)
-                    val msg = ui.chatfrag.addMsg(text)
+                val text = Core.bundle.format("client.find.found", block.localizedName, closest.x, closest.y, results.size)
+                val msg = ui.chatfrag.addMsg(text)
 
 /*                  FINISHME: This implementation will cause a mem leak as the results list will exist forever
-                    val buttonIdx = msg.formattedMessage.indexOf(Iconc.left)
-                    var idx = 0
-                    msg.buttons.add(ChatFragment.ClickableArea(buttonIdx, buttonIdx + 1) { idx -= 5 }) // Left arrow
-                    msg.buttons.add(ChatFragment.ClickableArea(buttonIdx + 2, buttonIdx + 3) { idx += 5 }) // Right arrow
-                    for (i in idx until min(idx + 5, results.size)) {
-                        // List the next 5 blocks or whatever
-                    }
+                val buttonIdx = msg.formattedMessage.indexOf(Iconc.left)
+                var idx = 0
+                msg.buttons.add(ChatFragment.ClickableArea(buttonIdx, buttonIdx + 1) { idx -= 5 }) // Left arrow
+                msg.buttons.add(ChatFragment.ClickableArea(buttonIdx + 2, buttonIdx + 3) { idx += 5 }) // Right arrow
+                for (i in idx until min(idx + 5, results.size)) {
+                    // List the next 5 blocks or whatever
+                }
 */
 
-                    NetClient.findCoords(msg)
-                }
-                Core.app.post(this::hide)
+                NetClient.findCoords(msg)
             }
+            Core.app.post(this::hide)
         }
 
         setup()

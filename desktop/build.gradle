@@ -45,7 +45,7 @@ task run(dependsOn: classes, type: JavaExec){
 
 task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
     mustRunAfter ":tools:pack"
-    from files(sourceSets.main.output.classesDirs) // FINISHME: Aren't these entirely redundant?
+    from files(sourceSets.main.output.classesDirs)
     from files(sourceSets.main.output.resourcesDir)
     from {configurations.runtimeClasspath.collect{
         it.isDirectory() ? it : zipTree(it)

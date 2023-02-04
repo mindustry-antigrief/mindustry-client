@@ -147,10 +147,10 @@ public class AssetsProcess extends BaseProcessor{
         loadBegin.addStatement("loaded = true");
 
         HashSet<String> names = new HashSet<>();
-        Seq<Fi> files = new Seq<>();
+        Seq<Fi> files = new Seq<>(Fi.class);
         Fi.get(path).walk(files::add);
 
-        files.sortComparing(Fi::name);
+        Arrays.sort(files.items, 0, files.size, Structs.comparing(Fi::name));
         int id = 0;
 
         for(Fi p : files){

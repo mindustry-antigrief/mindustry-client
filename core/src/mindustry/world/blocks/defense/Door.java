@@ -44,6 +44,7 @@ public class Door extends Wall{
                     continue;
                 }
 
+                entity.effect();
                 entity.open = open;
                 pathfinder.updateTile(entity.tile());
             }
@@ -55,6 +56,7 @@ public class Door extends Wall{
         return plan.config == Boolean.TRUE ? openRegion : region;
     }
 
+    private static int c = 0;
     public class DoorBuild extends Building{
         public boolean open = false;
         public Seq<DoorBuild> chained = new Seq<>();
@@ -103,8 +105,16 @@ public class Door extends Wall{
             (open ? closefx : openfx).at(this, size);
         }
 
+        public void addChained(){
+            Seq<DoorBuild> found = null;
+            for(var b : proximity){
+                if(b instanceof DoorBuild d){
+                    d.chained.any();
+                }
+            }
+        }
+
         public void updateChained(){
-            chained = new Seq<>();
             doorQueue.clear();
             doorQueue.add(this);
 
@@ -138,7 +148,7 @@ public class Door extends Wall{
 
         @Override
         public void tapped(){
-            if((Units.anyEntities(tile) && open) || !origin().timer(timerToggle, 60f)){
+            if((Units.anyEntities(tile) && open) || !origin().timer(timerToggle, 0f)){
                 return;
             }
 

@@ -2,28 +2,28 @@ package mindustry.client.antigrief;
 
 import arc.*;
 import arc.math.*;
-import arc.scene.*;
 import arc.scene.ui.layout.*;
-import arc.struct.*;
+import arc.util.*;
 import mindustry.*;
 import mindustry.client.ui.*;
 import mindustry.core.*;
+import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.power.*;
 
 public class PowerInfo {
-    private static PowerGraph found;
+    private @Nullable static PowerGraph found;
     public static PowerGraph hovered;
-    public static final Seq<PowerGraph> graphs = new Seq<>();
 
     public static void update() {
-        found = graphs.max(g -> g.team == Vars.player.team(), g -> g.all.size);
+        var max = Groups.powerGraph.array.max(up -> up.graph().all.first().team == Vars.player.team(), up -> up.graph().all.size);
+        found = max == null ? null : max.graph();
         var tile = Vars.control.input.cursorTile();
         hovered = Core.settings.getBool("graphdisplay") && tile != null && tile.build instanceof PowerNode.PowerNodeBuild node ? node.power.graph : null;
     }
 
-    public static Element getBars(Table power) { // FINISHME: What in the world
+    public static void getBars(Table power) { // FINISHME: What in the world
         Bar powerBar = new MonospacedBar(
             () -> Core.bundle.format("bar.powerbalance", found != null ? (found.powerBalance.rawMean() >= 0 ? "+" : "") + UI.formatAmount((int)(found.getPowerBalance() * 60)) : "+0"),
             () -> Pal.powerBar,
@@ -39,6 +39,5 @@ public class PowerInfo {
         power.row();
         power.add(batteryBar).height(18).growX().padBottom(6);
 
-        return power;
     }
 }

@@ -3,7 +3,6 @@ package mindustry.world.blocks.power;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.consumers.*;
 
@@ -23,7 +22,7 @@ public class PowerGraph{
     public final WindowedMean powerBalance = new WindowedMean(60);
     private float lastPowerProduced, lastPowerNeeded, lastPowerStored;
     private float lastScaledPowerIn, lastScaledPowerOut, lastCapacity;
-    public Team team;
+
     //diodes workaround for correct energy production info
     private float energyDelta = 0f;
 
@@ -260,40 +259,56 @@ public class PowerGraph{
     }
 
     public void addGraph(PowerGraph graph){
+        // It's faster to add the smaller graph to the larger one
+        if(graph.all.size > all.size){
+            graph.addGraph(this);
+            return;
+        }
+
         if(graph == this) return;
+
+        //merge into other graph instead.
+        if(graph.all.size > all.size){
+            graph.addGraph(this);
+            return;
+        }
+
         //other entity should be removed as the graph was merged
         if(graph.entity != null) graph.entity.remove();
 
-        for(Building tile : graph.all){
-            add(tile);
-        }
+        all.ensureCapacity(graph.all.size);
+        batteries.ensureCapacity(graph.batteries.size);
+        consumers.ensureCapacity(graph.consumers.size);
+        producers.ensureCapacity(graph.producers.size);
+        for(Building tile : graph.all) addDirectly(tile);
         checkAdd();
     }
 
     public void add(Building build){
-        if(build == null || build.power == null) return;
+        if(build == null || build.power == null || (build.power.graph == this && build.power.init)) return;
 
-        if(build.power.graph != this || !build.power.init){
-            //any old graph that is added here MUST be invalid, remove it
-            if(build.power.graph != null && build.power.graph != this){
-                if(build.power.graph.entity != null) build.power.graph.entity.remove();
-            }
+        //any old graph that is added here MUST be invalid, remove it
+        if(build.power.graph != null && build.power.graph != this && build.power.graph.entity != null) {
+            build.power.graph.entity.remove();
+        }
 
-            team = build.team;
-            build.power.graph = this;
-            build.power.init = true;
-            all.add(build);
+        addDirectly(build);
+    }
 
-            if(build.block.outputsPower && build.block.consumesPower && !build.block.consPower.buffered){
-                producers.add(build);
-                consumers.add(build);
-            }else if(build.block.outputsPower && build.block.consumesPower){
-                batteries.add(build);
-            }else if(build.block.outputsPower){
-                producers.add(build);
-            }else if(build.block.consumesPower && build.block.consPower != null){
-                consumers.add(build);
-            }
+    protected void addDirectly(Building build){
+        build.power.graph = this;
+        build.power.init = true;
+        all.add(build);
+
+        if(build.block.outputsPower && build.block.consumesPower && build.block.consPower.buffered){
+            batteries.add(build);
+        }else if(build.block.outputsPower && build.block.consumesPower){
+            producers.add(build);
+            consumers.add(build);
+        }else if(build.block.outputsPower){
+            producers.add(build);
+        }else if(build.block.consumesPower && build.block.consPower != null){
+            consumers.add(build);
         }
     }
 

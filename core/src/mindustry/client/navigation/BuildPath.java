@@ -43,7 +43,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     private BuildPlan req;
     private boolean valid;
     private final Pool<BuildPlan> pool = Pools.get(BuildPlan.class, BuildPlan::new, 15_000); // This is cursed but
-    private final PQueue<BuildPlan> priority = new PQueue<>(301, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, player.core())), Structs.comparingFloat(plan -> plan.dst(player))));
+    private final PQueue<BuildPlan> priority = new PQueue<>(301, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, player.core())), Structs.comparingFloat(plan -> plan.dst2(player))));
     private final Seq<BuildPlan> freed = new Seq<>();
     private CompletableFuture<Void> job = null;
 

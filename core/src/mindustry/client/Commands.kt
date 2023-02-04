@@ -265,7 +265,7 @@ fun setup() {
 
     register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
         val diodeLinks = PowerDiode.connections(player.team()) // Must be run on the main thread
-        val grids = PowerInfo.graphs.select { it.team == player.team() }.associate { it.id to it.all.copy() }
+        val grids = Groups.powerGraph.array.select { it.graph().all.first().team == player.team() }.associate { it.graph().id to it.graph().all.copy() }
         val confirmed = args.any() && args[0] == "c" // Don't configure by default
         val inProgress = !configs.isEmpty()
         var n = 0
@@ -297,7 +297,7 @@ fun setup() {
             confirmed && inProgress -> Core.bundle.format("client.command.fixpower.inprogress", configs.size, n)
             confirmed -> { // Actually fix the connections
                 configs.add { // This runs after the connections are made
-                    msg.message = Core.bundle.format("client.command.fixpower.success", n, PowerInfo.graphs.select { it.team == player.team() }.size)
+                    msg.message = Core.bundle.format("client.command.fixpower.success", n, Groups.powerGraph.array.select { it.graph().all.first().team == player.team() }.size)
                     msg.format()
                 }
                 Core.bundle.format("client.command.fixpower.confirmed", n)
@@ -344,7 +344,7 @@ fun setup() {
 
         for (plan in player.team().data().plans) {
             val block = content.block(plan.block.toInt())
-            if (!(all || Navigation.getTree().any(plan.x * tilesizeF, plan.y * tilesizeF, block.size * tilesizeF, block.size * tilesizeF))) continue
+            if (!(all || Navigation.getTree().use { any(plan.x * tilesizeF, plan.y * tilesizeF, block.size * tilesizeF, block.size * tilesizeF) })) continue
 
             plans.add(Point2.pack(plan.x.toInt(), plan.y.toInt()))
         }

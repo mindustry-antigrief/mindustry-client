@@ -31,27 +31,28 @@ import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 enum class Server(
+    private val groupName: String?,
     private val mapVote: MapVote? = null,
     @JvmField val whisper: Cmd = Cmd("/w", -1), // FINISHME: This system still sucks despite my best efforts at making it good
     private val rtv: Cmd = Cmd("/rtv", -1),
     @JvmField val freeze: Cmd = Cmd("/freeze", -1),
     @JvmField val ghost: Boolean = false
 ) {
-    other,
-    nydus,
-    cn(rtv = Cmd("/rtv")),
-    io(MapVote(), Cmd("/w"), Cmd("/rtv"), object : Cmd("/freeze", 4){
+    other(null),
+    nydus("nydus"),
+    cn("Chaotic Neutral", rtv = Cmd("/rtv")),
+    io("io", MapVote(), Cmd("/w"), Cmd("/rtv"), object : Cmd("/freeze", 4){
         override fun run(vararg args: String) { // IO's freeze command cant be run by apprentice mods but the packet works fine for them
             if (ClientVars.rank == 4) Call.serverPacketReliable("freeze_by_id", args[0]) // Yes this will cause a crash when args.size == 0, it shouldn't happen
             else super.run(*args)
         }
     }),
-    phoenix(MapVote(), Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9)),
-    korea(ghost = true),
-    fish(null, Cmd("/msg")){ // FINISHME: Get fish to implement id based /msg as currently only works with player names which can contain spaces.
+    phoenix("Phoenix Network", MapVote(), Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9)),
+    korea("Korea", ghost = true),
+    fish("Fish", null, Cmd("/msg")){ // FINISHME: Get fish to implement id based /msg as currently only works with player names which can contain spaces.
         override fun playerString(p: Player) = p.name.stripColors().substringBefore(' ')
     },
-    darkdustry
+    darkdustry("Darkdustry")
     ;
 
     companion object {
@@ -80,17 +81,16 @@ enum class Server(
 
         @JvmStatic
         fun onServerJoin() { // Called once on server join before WorldLoadEvent (and by extension ServerJoinEvent), the player will not be added here hence the need for ServerJoinEvent
-            current = when { // FINISHME: Lots of these are similar, iterate through Server.values() to find the correct server
-                ui.join.lastHost?.name?.contains("nydus") ?: false -> nydus
-                ui.join.communityHosts.contains { it.group == "Chaotic Neutral" && it.address == ui.join.lastHost?.address } -> cn
-                ui.join.communityHosts.contains { it.group == "io" && it.address == ui.join.lastHost?.address } -> io
-                ui.join.communityHosts.contains { it.group == "Phoenix Network" && it.address == ui.join.lastHost?.address } -> phoenix
-                ui.join.communityHosts.contains { it.group == "Korea" && it.address == ui.join.lastHost?.address } -> korea
-                ui.join.communityHosts.contains { it.group == "Fish" && it.address == ui.join.lastHost?.address } -> fish
-                ui.join.communityHosts.contains { it.group == "Darkdustry" && it.address == ui.join.lastHost?.address } -> darkdustry
-                else -> other
+            val grouped = ui.join.communityHosts.groupBy({ it.group }) { it.address }
+            val address = ui.join.lastHost?.address ?: ""
+            if (ui.join.lastHost?.name?.contains("nydus") == true) current = nydus
+            else values().forEach {
+                if (it.groupName != null && grouped[it.groupName]?.contains(address) == true) {
+                    current = it
+                    return@forEach
+                }
             }
-            Log.debug("Joining server, override set to: ${current.name}")
+            Log.debug("Joining server, override set to: $current")
         }
 
         init {
@@ -198,7 +198,7 @@ enum class CustomMode {
     companion object {
         @JvmStatic var current by Delegates.observable(none) { _, oldValue, newValue ->
             if (oldValue == newValue) return@observable // This can happen.
-            Log.debug("Swapping custom gamemode from ${oldValue.name} to ${newValue.name}")
+            Log.debug("Swapping custom gamemode from $oldValue to $newValue")
             oldValue.disable()
             newValue.enable()
         }

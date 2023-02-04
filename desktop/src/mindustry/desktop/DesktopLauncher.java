@@ -29,8 +29,7 @@ import mindustry.service.*;
 import mindustry.type.*;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.concurrent.*;
+import java.util.*;
 
 import static mindustry.Vars.*;
 
@@ -100,20 +99,16 @@ public class DesktopLauncher extends ClientLauncher{
     public void startDiscord() {
         if(useDiscord){
             try{
-                Log.warn(new FutureTask<Void>(() -> {
-                    try{
-                        DiscordRPC.connect(discordID);
-                        Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::close));
-                        Log.info("Initialized Discord rich presence.");
-                    }catch(NoDiscordClientException none){
-                        useDiscord = false;
-                        Log.debug("Not initializing Discord RPC - no discord instance open.");
-                    }catch(Throwable t){
-                        useDiscord = false;
-                        Log.warn("Failed to initialize Discord RPC - you are likely using a JVM <16.");
-                    }
-                }, null).get(500, TimeUnit.MILLISECONDS).toString());
-            } catch (ExecutionException | InterruptedException | TimeoutException ignored) {}
+                DiscordRPC.connect(discordID);
+                updateRPC();
+                Log.info("Initialized Discord rich presence.");
+            }catch(NoDiscordClientException none){
+                useDiscord = false;
+                Log.debug("Not initializing Discord RPC - no discord instance open.");
+            }catch(Throwable t){
+                useDiscord = false;
+                Log.warn("Failed to initialize Discord RPC - you are likely using a JVM <16.");
+            }
         }
     }
 
@@ -159,6 +154,8 @@ public class DesktopLauncher extends ClientLauncher{
                 logSteamError(e);
             }
         }
+
+        Events.on(DisposeEvent.class, e -> stopDiscord());
     }
 
     void logSteamError(Throwable e){
@@ -382,7 +379,9 @@ public class DesktopLauncher extends ClientLauncher{
             presence.startTimestamp = state.tick == 0 ? beginTime/1000 : Time.timeSinceMillis((long)(state.tick * 16.666));
             presence.label1 = "Client Github";
             presence.url1 = "https://github.com/mindustry-antigrief/mindustry-client";
-            if (DiscordRPC.getStatus() == DiscordRPC.PipeStatus.connected) DiscordRPC.send(presence);
+            if (DiscordRPC.getStatus() == DiscordRPC.PipeStatus.connected) {
+                DiscordRPC.send(presence);
+            }
         }
 
         if(steam){

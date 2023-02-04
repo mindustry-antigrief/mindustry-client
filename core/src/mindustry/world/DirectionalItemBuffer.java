@@ -58,9 +58,9 @@ public class DirectionalItemBuffer{
             indexes[i] = read.b();
             byte length = read.b();
             for(int j = 0; j < length; j++){
-                long value = read.l();
+                long value = BufferItem.time(read.l(), Time.time);
                 if(j < buffers[i].length){
-                    buffers[i][j] = BufferItem.get(BufferItem.item(value), Time.time); // BufferItem.time(value, Time.time) doesn't work as intended FINISHME: Change when StructProcess is fixed.
+                    buffers[i][j] = value;
                 }
             }
         }

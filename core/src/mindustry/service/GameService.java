@@ -447,7 +447,7 @@ public class GameService{
                 researchAll.complete();
             }
 
-            if(Blocks.logicProcessor.unlocked()) researchLogic.complete();
+            if(Blocks.microProcessor.unlocked()) researchLogic.complete();
         };
 
         //check unlocked stuff on load as well
@@ -534,6 +534,7 @@ public class GameService{
 
             for(var up : Groups.powerGraph){
                 var graph = up.graph();
+                if(graph.all.size == 0) throw new ArcRuntimeException("The graph size shouldn't be 0.");
                 if(graph.all.size > 1 && graph.all.first().team == player.team() && graph.hasPowerBalanceSamples()){
                     float balance = graph.getPowerBalance() * 60f;
 

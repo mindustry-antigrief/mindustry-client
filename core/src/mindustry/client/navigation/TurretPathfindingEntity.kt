@@ -73,23 +73,7 @@ class EntityTree(bounds: Rect) : QuadTree<TurretPathfindingEntity>(bounds) {
         val lock = ReentrantLock(true)
     }
 
-    override fun insert(obj: TurretPathfindingEntity?) {
-        lock.withLock {
-            super.insert(obj)
-        }
-    }
-
-    override fun intersect(x: Float, y: Float, width: Float, height: Float, out: Cons<TurretPathfindingEntity>?) {
-        lock.withLock {
-            super.intersect(x, y, width, height, out)
-        }
-    }
-
-    override fun intersect(x: Float, y: Float, width: Float, height: Float, out: Seq<TurretPathfindingEntity>?) {
-        lock.withLock {
-            super.intersect(x, y, width, height, out)
-        }
-    }
+    inline fun <T> use(action: EntityTree.() -> T): T = lock.withLock { this.action() } // FINISHME: Use this instead of locking in each function, should improve performance
 
     override fun remove(obj: TurretPathfindingEntity?): Boolean {
         lock.withLock {
@@ -100,12 +84,6 @@ class EntityTree(bounds: Rect) : QuadTree<TurretPathfindingEntity>(bounds) {
     override fun getObjects(out: Seq<TurretPathfindingEntity>?) {
         lock.withLock {
             super.getObjects(out)
-        }
-    }
-
-    override fun clear() {
-        lock.withLock {
-            super.clear()
         }
     }
 }

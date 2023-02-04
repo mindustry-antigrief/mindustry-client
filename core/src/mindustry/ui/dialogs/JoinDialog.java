@@ -620,7 +620,7 @@ public class JoinDialog extends BaseDialog{
         Log.info("Fetching community servers at @", url);
         Http.get(url)
         .error(t -> {
-            Log.err("Failed to fetch community servers", t);
+            Log.debug("Failed to fetch community servers, retrying", t);
             if(retryOnFail) loadCommunityServers(url, false, refreshCommunity); // Sometimes this just randomly times out the first time
         })
         .submit(result -> {
@@ -630,7 +630,7 @@ public class JoinDialog extends BaseDialog{
                 String name = child.getString("name", "");
                 String[] addresses;
                 if(child.has("addresses") || (child.has("address") && child.get("address").isArray())){
-                    addresses = (child.has("addresses") ? child.get("addresses") : child.get("address")).asArray().map(Jval::asString).toArray(String.class);
+                    addresses = (child.has("addresses") ? child.get("addresses") : child.get("address")).asArray().toArray(String.class, Jval::asString);
                 }else{
                     addresses = new String[]{child.getString("address", "<invalid>")};
                 }

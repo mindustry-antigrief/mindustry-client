@@ -112,62 +112,69 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
                 }
             }
 
-            BuildPlan current = buildPlan();
-            Tile tile = current.tile();
+            boolean massPlace = infinite && !net.client();
+            long placeTime = Time.nanos();
+            BuildPlan current;
+            do{
+                current = buildPlan();
+                if(current == null) break; // I don't know why but this happens to some people in some cases idfk
+                Tile tile = current.tile();
 
-            lastActive = current;
-            buildAlpha = 1f;
-            if(current.breaking) lastSize = tile.block().size;
+                lastActive = current;
+                buildAlpha = 1f;
+                if(current.breaking) lastSize = tile.block().size;
 
-            if(!within(tile, finalPlaceDst)) continue;
+                if(!within(tile, finalPlaceDst)) continue;
 
-            if(!headless){
-                Vars.control.sound.loop(Sounds.build, tile, 0.51f);
-            }
+                if(!headless){
+                    Vars.control.sound.loop(Sounds.build, tile, 0.51f);
+                }
 
-            if(!(tile.build instanceof ConstructBuild cb)){
-                if(!current.initialized && !current.breaking && Build.validPlace(current.block, team, current.x, current.y, current.rotation)){
-                    if(!Build.validPlaceCoreRange(current.block, team, current.x, current.y) ||
-                        !Build.validPlaceUnit(current.block, current.x, current.y)) return;
-                    boolean hasAll = infinite || current.isRotation(team) || !Structs.contains(current.block.requirements, i -> core != null && !core.items.has(i.item, Math.min(Mathf.round(i.amount * state.rules.buildCostMultiplier), 1)));
+                if(!(tile.build instanceof ConstructBuild cb)){
+                    if(!current.initialized && !current.breaking && Build.validPlace(current.block, team, current.x, current.y, current.rotation)){
+                        if(!Build.validPlaceCoreRange(current.block, team, current.x, current.y) ||
+                            !Build.validPlaceUnit(current.block, current.x, current.y)) return;
+                        boolean hasAll = infinite || current.isRotation(team) || !Structs.contains(current.block.requirements, i -> core != null && !core.items.has(i.item, Math.min(Mathf.round(i.amount * state.rules.buildCostMultiplier), 1)));
 
-                    if(hasAll){
-                        Call.beginPlace(self(), current.block, team, current.x, current.y, current.rotation);
+                        if(hasAll){
+                            Call.beginPlace(self(), current.block, team, current.x, current.y, current.rotation);
+                        }else{
+                            current.stuck = true;
+                        }
+                    }else if(!current.initialized && current.breaking && Build.validBreak(team, current.x, current.y)){
+                        Call.beginBreak(self(), team, current.x, current.y);
                     }else{
-                        current.stuck = true;
+                        plans.removeFirst();
+                        continue;
                     }
-                }else if(!current.initialized && current.breaking && Build.validBreak(team, current.x, current.y)){
-                    Call.beginBreak(self(), team, current.x, current.y);
-                }else{
+                }else if((tile.team() != team && tile.team() != Team.derelict) || (!current.breaking && (cb.current != current.block || cb.tile != current.tile()))){
                     plans.removeFirst();
                     continue;
                 }
-            }else if((tile.team() != team && tile.team() != Team.derelict) || (!current.breaking && (cb.current != current.block || cb.tile != current.tile()))){
-                plans.removeFirst();
-                continue;
-            }
 
-            if(tile.build instanceof ConstructBuild && !current.initialized){
-                Core.app.post(() -> Events.fire(new BuildSelectEvent(tile, team, self(), current.breaking)));
-                current.initialized = true;
-            }
+                if(tile.build instanceof ConstructBuild && !current.initialized){
+                    BuildPlan cur = current;
+                    Core.app.post(() -> Events.fire(new BuildSelectEvent(tile, team, self(), cur.breaking)));
+                    current.initialized = true;
+                }
 
-            //if there is no core to build with or no build entity, stop building!
-            if((core == null && !infinite) || !(tile.build instanceof ConstructBuild entity)){
-                continue;
-            }
+                //if there is no core to build with or no build entity, stop building!
+                if((core == null && !infinite) || !(tile.build instanceof ConstructBuild entity)){
+                    continue;
+                }
 
-            float bs = 1f / entity.buildCost * type.buildSpeed * buildSpeedMultiplier * state.rules.buildSpeed(team);
+                float bs = 1f / entity.buildCost * type.buildSpeed * buildSpeedMultiplier * state.rules.buildSpeed(team);
 
-            //otherwise, update it.
-            if(current.breaking){
-                entity.deconstruct(self(), core, bs);
-            }else{
-                entity.construct(self(), core, bs, current.config);
-            }
+                //otherwise, update it.
+                if(current.breaking){
+                    entity.deconstruct(self(), core, bs);
+                }else{
+                    entity.construct(self(), core, bs, current.config);
+                }
 
-            current.stuck = Mathf.equal(current.progress, entity.progress);
-            current.progress = entity.progress;
+                current.stuck = Mathf.equal(current.progress, entity.progress);
+                current.progress = entity.progress;
+            }while(massPlace && (buildPlan() != current || buildPlan() == current && plans.size > 1 && plans.removeFirst() != null) && plans.size > 0 && Time.millisSinceNanos(placeTime) < 10f); // FINISHME: Configurable max time? Also jank
         }
     }
 

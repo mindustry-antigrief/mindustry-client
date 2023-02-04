@@ -34,7 +34,7 @@ public class Net{
     private final ObjectMap<Class<?>, Cons> clientListeners = new ObjectMap<>();
     private final ObjectMap<Class<?>, Cons2<NetConnection, Object>> serverListeners = new ObjectMap<>();
     private final IntMap<StreamBuilder> streams = new IntMap<>();
-    private final ExecutorService pingExecutor = Threads.unboundedExecutor();
+    private ExecutorService pingExecutor;
 
     private final NetProvider provider;
 
@@ -141,7 +141,7 @@ public class Net{
             }
         }
         //clear inbound packet queue
-        packetQueue.clear();
+        packetQueue.clear().shrink();
     }
 
     public void setClientConnected(){
@@ -330,6 +330,7 @@ public class Net{
      * If the port is the default mindustry port, SRV records are checked too.
      */
     public void pingHost(String address, int port, Cons<Host> valid, Cons<Exception> failed){
+        if(pingExecutor == null) pingExecutor = Threads.cachedExecutor("Server Pings", Core.settings.getInt("pingExecutorThreads", OS.isWindows && !OS.is64Bit ? 5 : 64));
         pingExecutor.submit(() -> provider.pingHost(address, port, valid, failed));
     }
 
