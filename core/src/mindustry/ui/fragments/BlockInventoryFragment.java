@@ -225,11 +225,10 @@ public class BlockInventoryFragment{
     }
 
     private String round(float f){
-        f = (int)f;
         if(f >= 1000000){
-            return (int)(f / 1000000f) + "[gray]" + UI.millions;
+            return (int)(f / 1e4f) / 10f + "[gray]" + UI.millions;
         }else if(f >= 1000){
-            return (int)(f / 1000) + UI.thousands;
+            return (int)(f / 1e2f) / 10f + UI.thousands;
         }else{
             return (int)f + "";
         }
