@@ -1075,7 +1075,7 @@ public class Mods implements Loadable{
 
         /** Some mods are known to cause issues with the game; this detects and returns whether a mod is manually blacklisted. */
         public boolean isBlacklisted(){
-            return blacklistedMods.contains(name);
+            return blacklistedMods.contains(name) && !OS.hasProp(Strings.format("allow-@", name));
         }
 
         /** @return whether this mod is outdated, e.g. not compatible with v7. */
@@ -1086,7 +1086,7 @@ public class Mods implements Loadable{
 
         /** @return whether the client disables this mod for one reason or another */
         public boolean clientBlacklisted(){
-            return clientBlacklisted.contains(name);
+            return clientBlacklisted.contains(name) && !OS.hasProp(Strings.format("allow-@", name));
         }
 
         public int getMinMajor(){
