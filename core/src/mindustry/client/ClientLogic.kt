@@ -161,7 +161,7 @@ class ClientLogic {
             if (settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
                 player.sendMessage(bundle.format("client.disconnected", e.player.name))
             
-            if (settings.getBool("showidinjoinleave")) player.sendMessage(bundle.format("@(id @) has disconnected", e.player.name, e.player.id))
+            if (settings.getBool("showidinjoinleave", false)) player.sendMessage(bundle.format("client.disconnected.withid", e.player.id.toString()))
         }
 
         Events.on(GameOverEventClient::class.java) {

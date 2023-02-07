@@ -344,6 +344,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("clearchatonleave", true);
         client.checkPref("logmsgstoconsole", true);
         client.checkPref("clientjoinleave", true);
+        client.checkPref("showidinjoinleave", false);
         client.checkPref("highlightcryptomsg", true);
         client.checkPref("highlightclientmsg", false);
         client.checkPref("showclientmsgsendername", true);
