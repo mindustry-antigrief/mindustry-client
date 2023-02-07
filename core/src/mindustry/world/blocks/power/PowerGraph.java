@@ -259,15 +259,9 @@ public class PowerGraph{
     }
 
     public void addGraph(PowerGraph graph){
-        // It's faster to add the smaller graph to the larger one
-        if(graph.all.size > all.size){
-            graph.addGraph(this);
-            return;
-        }
-
         if(graph == this) return;
 
-        //merge into other graph instead.
+        //merge the smaller graph into the larger one
         if(graph.all.size > all.size){
             graph.addGraph(this);
             return;
