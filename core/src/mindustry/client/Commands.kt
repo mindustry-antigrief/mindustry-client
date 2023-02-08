@@ -314,13 +314,11 @@ fun setup() {
             val circling = args[0] != "0"
             Core.settings.put("circleassist", circling)
             val assistPath = Navigation.currentlyFollowing as? AssistPath
-            if (assistPath != null) {
-                assistPath.circling = circling
-                if (circling) {
-                    Core.settings.put("circleassistspeed", args[0].toFloatOrNull() ?: defaultSpeed)
-                }
+            if (assistPath != null) assistPath.circling = circling
+            if(circling){
+                Core.settings.put("circleassistspeed", args[0].toFloatOrNull() ?: defaultSpeed)
+                player.sendMessage(Core.bundle.format("client.command.circleassist.success", Core.settings.getFloat("circleassistspeed"), defaultSpeed))
             }
-            if(circling) player.sendMessage(Core.bundle.format("client.command.circleassist.success", Core.settings.getFloat("circleassistspeed"), defaultSpeed))
             else player.sendMessage(Core.bundle.get("client.command.circleassist.disabled"))
         }
     }
