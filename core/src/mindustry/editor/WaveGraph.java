@@ -95,7 +95,22 @@ public class WaveGraph extends Table{
                 }
 
                 Lines.endLine();
-            }
+            }else if(mode == Mode.dps){
+                Lines.beginLine();
+
+                Draw.color(Pal.cyan);
+                for(int i = 0; i < values.length; i++){
+                    float sum = 0;
+                    for(UnitType type : used.orderedItems()){
+                        sum += (type.dpsEstimate) * values[i][type.id];
+                    }
+
+                    float cx = graphX + i * spacing, cy = graphY + sum * graphH / maxY;
+                    Lines.linePoint(cx, cy);
+                }
+
+                Lines.endLine();
+            } 
 
             //how many numbers can fit here
             float totalMarks = Mathf.clamp(maxY, 1, 10);
@@ -239,7 +254,7 @@ public class WaveGraph extends Table{
     }
 
     enum Mode{
-        counts, totals, health;
+        counts, totals, health, dps;
 
         static Mode[] all = values();
     }
