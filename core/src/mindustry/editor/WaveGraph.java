@@ -24,6 +24,7 @@ public class WaveGraph extends Table{
     private OrderedSet<UnitType> used = new OrderedSet<>();
     private int max, maxTotal;
     private float maxHealth;
+    private float maxDps;
     private Table colors;
     private ObjectSet<UnitType> hidden = new ObjectSet<>();
 
@@ -42,6 +43,7 @@ public class WaveGraph extends Table{
                 case counts -> nextStep(max);
                 case health -> nextStep((int)maxHealth);
                 case totals -> nextStep(maxTotal);
+                case dps    -> nextStep((int)maxDps);
             };
 
             float fh = lay.height;
@@ -98,7 +100,7 @@ public class WaveGraph extends Table{
             }else if(mode == Mode.dps){
                 Lines.beginLine();
 
-                Draw.color(Pal.cyan);
+                Draw.color(Pal.spore);
                 for(int i = 0; i < values.length; i++){
                     float sum = 0;
                     for(UnitType type : used.orderedItems()){
@@ -172,12 +174,13 @@ public class WaveGraph extends Table{
         used.clear();
         max = maxTotal = 1;
         maxHealth = 1f;
+        maxDps=1f;
 
         for(int i = from; i <= to; i++){
             int index = i - from;
             float healthsum = 0f;
             int sum = 0;
-
+            float dpssum= 0f;
             for(SpawnGroup spawn : groups){
                 int spawned = spawn.getSpawned(i);
                 values[index][spawn.type.id] += spawned;
@@ -186,8 +189,11 @@ public class WaveGraph extends Table{
                 }
                 max = Math.max(max, values[index][spawn.type.id]);
                 healthsum += spawned * (spawn.type.health);
+                dpssum += spawned * spawn.type.dpsEstimate;
+
                 sum += spawned;
             }
+            maxDps = Math.max(maxDps, dpssum);
             maxTotal = Math.max(maxTotal, sum);
             maxHealth = Math.max(maxHealth, healthsum);
         }
