@@ -195,6 +195,7 @@ public class CustomRulesDialog extends BaseDialog{
 
         title("@rules.title.unit");
         //check("@rules.unitammo", b -> rules.unitAmmo = b, () -> rules.unitAmmo);
+        check("Unit Payload Update [lightgrey](experimental)", b -> rules.unitPayloadUpdate=b, () -> rules.unitPayloadUpdate);
         check("@rules.unitcapvariable", b -> rules.unitCapVariable = b, () -> rules.unitCapVariable);
         numberi("@rules.unitcap", f -> rules.unitCap = f, () -> rules.unitCap, -999, 999);
         number("@rules.unitdamagemultiplier", f -> rules.unitDamageMultiplier = f, () -> rules.unitDamageMultiplier);
