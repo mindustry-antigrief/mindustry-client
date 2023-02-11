@@ -346,6 +346,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("logmsgstoconsole", true);
         client.checkPref("enabletranslation", true, b -> enableTranslation = b);
         client.checkPref("clientjoinleave", true);
+        client.checkPref("showidinjoinleave", false);
         client.checkPref("highlightcryptomsg", true);
         client.checkPref("highlightclientmsg", false);
         client.checkPref("showclientmsgsendername", true);

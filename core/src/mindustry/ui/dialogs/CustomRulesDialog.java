@@ -20,6 +20,7 @@ import mindustry.type.*;
 import mindustry.type.Weather.*;
 import mindustry.ui.*;
 import mindustry.world.*;
+import mindustry.world.meta.*;
 
 import static arc.util.Time.*;
 import static mindustry.Vars.*;
@@ -183,6 +184,7 @@ public class CustomRulesDialog extends BaseDialog{
         main.button("@bannedblocks", () -> showBanned("@bannedblocks", ContentType.block, rules.bannedBlocks, Block::canBeBuilt)).left().width(300f).row();
         check("@rules.hidebannedblocks", b -> rules.hideBannedBlocks = b, () -> rules.hideBannedBlocks);
         check("@bannedblocks.whitelist", b -> rules.blockWhitelist = b, () -> rules.blockWhitelist);
+        main.button("@revealedblocks", () -> showBanned("@revealedblocks", ContentType.block, rules.revealedBlocks, b -> b.buildVisibility != BuildVisibility.shown)).left().width(300f).row();
 
         //TODO objectives would be nice
         if(experimental && false){
