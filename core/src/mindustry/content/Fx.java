@@ -7,6 +7,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.client.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -1389,6 +1390,8 @@ public class Fx{
     }),
 
     dynamicExplosion = new Effect(30, 500f, b -> {
+        if(ClientVars.hidingUnits || ClientVars.hidingAirUnits) return;
+
         float intensity = b.rotation;
         float baseLifetime = 26f + intensity * 15f;
         b.lifetime = 43f + intensity * 35f;
