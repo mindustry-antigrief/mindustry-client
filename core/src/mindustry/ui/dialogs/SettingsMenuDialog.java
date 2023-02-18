@@ -397,6 +397,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("customnullunloader", false, i -> Unloader.customNullLoader = i);
         client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
         client.checkPref("logiclinkorder", false);
+        client.checkPref("showcutscenes", true);
     
         client.category("misc");
         client.updatePref();
