@@ -1306,6 +1306,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
     
             var tempTiles = Block.tempTiles;
+            //FINISHME this code is kinda bad
             if (plan.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed.
                     && plan.tile() != null && plan.tile().getLinkedTilesAs(plan.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
                 var first = tempTiles.first();
@@ -1316,6 +1317,18 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 } else if (validPlace(first.x, first.y, Blocks.rotaryPump, 0)) { // Mechanical pumps can't cover everything, use rotary pump instead
                     temp[added++] = new BuildPlan(plan.x, plan.y, 0, Blocks.rotaryPump);
                     continue; // Swapped water extractor for rotary pump, don't place it
+                }
+            } else if (plan.block == Blocks.message && !input.shift() // Attempt to replace message with erekir message
+                    && plan.tile() != null && !Blocks.message.environmentBuildable() && Blocks.reinforcedMessage.environmentBuildable()) { // Not buildable
+                if (validPlace(plan.x, plan.y, Blocks.reinforcedMessage, 0)) {
+                    temp[added++] = new BuildPlan(plan.x, plan.y, 0, Blocks.reinforcedMessage, plan.config);
+                    continue; // Swapped message for reinforced message, don't place it
+                }
+            } else if (plan.block == Blocks.reinforcedMessage && !input.shift() // Attempt to replace erekir message with message
+                    && plan.tile() != null && !Blocks.reinforcedMessage.environmentBuildable() && Blocks.message.environmentBuildable()) { // Not buildable
+                if (validPlace(plan.x, plan.y, Blocks.message, 0)) {
+                    temp[added++] = new BuildPlan(plan.x, plan.y, 0, Blocks.message, plan.config);
+                    continue; // Swapped reinforced message for message, don't place it
                 }
             }
     
