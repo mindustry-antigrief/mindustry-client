@@ -224,14 +224,8 @@ public class BlockInventoryFragment{
         }
     }
 
-    private String round(float f){
-        if(f >= 1000000){
-            return (int)(f / 1e4f) / 10f + "[gray]" + UI.millions;
-        }else if(f >= 1000){
-            return (int)(f / 1e2f) / 10f + UI.thousands;
-        }else{
-            return (int)f + "";
-        }
+    private String round(int f){
+        return UI.formatAmount(f);
     }
 
     private void updateTablePosition(){
