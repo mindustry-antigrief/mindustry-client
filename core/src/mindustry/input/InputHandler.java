@@ -651,7 +651,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     /** @return whether most input is locked, for 'cutscenes' */
     public boolean locked(){
-        return inputLocks.contains(Boolp::get);
+        return ClientVars.allowCutscenes && inputLocks.contains(Boolp::get);
     }
 
     public Eachable<BuildPlan> allPlans(){
@@ -665,7 +665,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public void update(){
         isLoadedSchematic &= lastSchematic != null; // i am lazy to reset it on all other instances; this should suffice
 
-        if(logicCutscene && !renderer.isCutscene()){
+        if(logicCutscene && !renderer.isCutscene() && ClientVars.allowCutscenes){
             Core.camera.position.lerpDelta(logicCamPan, logicCamSpeed);
         }else{
             logicCutsceneZoom = -1f;
