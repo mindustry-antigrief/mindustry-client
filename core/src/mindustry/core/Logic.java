@@ -385,7 +385,7 @@ public class Logic implements ApplicationListener{
     public static void researched(Content content){
         if(!(content instanceof UnlockableContent u)) return;
 
-        boolean was = !u.unlockedNow();
+        boolean was = u.unlockedNow();
         state.rules.researched.add(u.name);
 
         if(!was){
@@ -396,6 +396,7 @@ public class Logic implements ApplicationListener{
     @Override
     public void dispose(){
         //save the settings before quitting
+        netServer.admins.forceSave();
         Core.settings.manualSave();
     }
 
@@ -405,6 +406,7 @@ public class Logic implements ApplicationListener{
         universe.updateGlobal();
 
         if(Core.settings.modified() && !state.isPlaying()){
+            netServer.admins.forceSave();
             Core.settings.forceSave();
         }
 

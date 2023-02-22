@@ -470,7 +470,7 @@ public class Turret extends ReloadTurret{
         @Override
         public void updateEfficiencyMultiplier(){
             if(heatRequirement > 0){
-                efficiency *= Math.min(heatReq / heatRequirement, maxHeatEfficiency);
+                efficiency *= Math.min(Math.max(heatReq / heatRequirement, cheating() ? 1f : 0f), maxHeatEfficiency);
             }
         }
 
@@ -500,8 +500,8 @@ public class Turret extends ReloadTurret{
             if(ammo.size >= 2 && ammo.peek().amount < ammoPerShot && ammo.get(ammo.size - 2).amount >= ammoPerShot){
                 ammo.swap(ammo.size - 1, ammo.size - 2);
             }
-            
-            return ammo.size > 0 && ammo.peek().amount >= ammoPerShot || cheating();
+
+            return ammo.size > 0 && (ammo.peek().amount >= ammoPerShot || cheating());
         }
 
         public boolean charging(){

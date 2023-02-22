@@ -356,6 +356,10 @@ public class ModsDialog extends BaseDialog{
             return "@mod.blacklisted";
         }else if(!item.isSupported() || !Version.isAtLeast(item.meta.minGameVersion)){
             return "@mod.incompatiblegame";
+        }else if(item.state == ModState.circularDependencies){
+            return "@mod.circulardependencies";
+        }else if(item.state == ModState.incompleteDependencies){
+            return "@mod.incompletedependencies";
         }else if(item.hasUnmetDependencies()){
             return "@mod.unmetdependencies";
         }else if(item.hasContentErrors()){
@@ -375,6 +379,10 @@ public class ModsDialog extends BaseDialog{
             return "@mod.blacklisted.details";
         }else if(!item.isSupported()){
             return Core.bundle.format("mod.requiresversion.details", item.meta.minGameVersion);
+        }else if(item.state == ModState.circularDependencies){
+            return "@mod.circulardependencies.details";
+        }else if(item.state == ModState.incompleteDependencies){
+            return Core.bundle.format("mod.incompletedependencies.details", item.missingDependencies.toString(", "));
         }else if(item.hasUnmetDependencies()){
             return Core.bundle.format("mod.missingdependencies.details", item.missingDependencies.toString(", "));
         }else if(item.hasContentErrors()){
@@ -447,7 +455,7 @@ public class ModsDialog extends BaseDialog{
 
         }).width(400f);
 
-        Seq<UnlockableContent> all = Seq.with(content.getContentMap()).<Content>flatten().select(c -> c.minfo.mod == mod && c instanceof UnlockableContent).as();
+        Seq<UnlockableContent> all = Seq.with(content.getContentMap()).<Content>flatten().select(c -> c.minfo.mod == mod && c instanceof UnlockableContent u && !u.isHidden()).as();
         if(all.any()){
             dialog.cont.row();
             dialog.cont.button("@mods.viewcontent", Icon.book, () -> {
@@ -716,11 +724,15 @@ public class ModsDialog extends BaseDialog{
         else Log.err("Mod Auto Update Error", t);
     }
 
+    public void githubImportMod(String repo, boolean isJava){
+        githubImportMod(repo, isJava, null);
+    }
+
     private void githubImportMod(String repo, boolean isJava, @Nullable String release){
         githubImportMod(repo, isJava, release, null);
     }
 
-    private void githubImportMod(String repo, boolean isJava, @Nullable String release, @Nullable String prevVersion){
+    public void githubImportMod(String repo, boolean isJava, @Nullable String release, @Nullable String prevVersion){
         modImportProgress = 0f;
         if(prevVersion == null) ui.loadfrag.show("@downloading");
         ui.loadfrag.setProgress(() -> modImportProgress);

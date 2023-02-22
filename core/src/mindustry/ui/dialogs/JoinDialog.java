@@ -638,6 +638,7 @@ public class JoinDialog extends BaseDialog{
             });
             //modify default servers on main thread
             Core.app.post(() -> {
+                servers.sort(s -> s.name == null ? Integer.MAX_VALUE : s.name.hashCode());
                 defaultServers.addAll(servers);
                 if(refreshCommunity) refreshCommunity();
                 Log.info("Fetched @ community servers.", defaultServers.size);
