@@ -112,7 +112,7 @@ public class WaveGraph extends Table{
                 }
 
                 Lines.endLine();
-            } 
+            }
 
             //how many numbers can fit here
             float totalMarks = Mathf.clamp(maxY, 1, 10);
@@ -174,13 +174,13 @@ public class WaveGraph extends Table{
         used.clear();
         max = maxTotal = 1;
         maxHealth = 1f;
-        maxDps=1f;
+        maxDps = 1f;
 
         for(int i = from; i <= to; i++){
             int index = i - from;
             float healthsum = 0f;
             int sum = 0;
-            float dpssum= 0f;
+            float dpssum = 0f;
             for(SpawnGroup spawn : groups){
                 int spawned = spawn.getSpawned(i);
                 values[index][spawn.type.id] += spawned;
