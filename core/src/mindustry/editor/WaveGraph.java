@@ -187,11 +187,13 @@ public class WaveGraph extends Table{
                 if(spawned > 0){
                     used.add(spawn.type);
                 }
-                max = Math.max(max, values[index][spawn.type.id]);
                 healthsum += spawned * (spawn.type.health);
                 dpssum += spawned * spawn.type.dpsEstimate;
 
                 sum += spawned;
+            }
+            for(UnitType type : used){
+                if(!hidden.contains(type)) max = Math.max(max, values[index][type.id]);
             }
             maxDps = Math.max(maxDps, dpssum);
             maxTotal = Math.max(maxTotal, sum);
