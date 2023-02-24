@@ -44,11 +44,11 @@ public class Version{
         updateUrl = map.get("updateUrl");
         assetUrl = map.get("assetUrl");
         assetRef = map.get("assetRef");
-        clientVersion = map.get("clientVersion");
+        if(map.get("clientVersion") != null) clientVersion = map.get("clientVersion"); // This is seemingly null for one person for some reason. I don't know.
         type = map.get("type");
         number = Integer.parseInt(map.get("number", "4"));
         modifier = map.get("modifier");
-        if (path().contains("/steamapps/common/Mindustry/")) modifier += " steam";
+        if(path().contains("/steamapps/common/Mindustry/")) modifier += " steam";
         if(map.get("build").contains(".")){
             String[] split = map.get("build").split("\\.");
             try{
