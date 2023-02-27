@@ -439,7 +439,7 @@ public class WaveInfoDialog extends BaseDialog{
         dialog.cont.pane(p -> {
             int i = 0;
             for(StatusEffect effect : content.statusEffects()){
-                if(effect != StatusEffects.none && (effect.isHidden() || effect.reactive)) continue;
+                // if(effect != StatusEffects.none && (effect.isHidden() || effect.reactive)) continue;
 
                 p.button(t -> {
                     t.left();
