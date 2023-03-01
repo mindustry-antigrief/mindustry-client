@@ -8,12 +8,12 @@ import arc.struct.*;
 import arc.util.Nullable;
 import arc.util.*;
 import kotlin.*;
-import mindustry.content.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.ui.*;
-import mindustry.world.*;
+import mindustry.client.utils.*;
+import mindustry.game.EventType.*;
 import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.distribution.*;
 import org.jetbrains.annotations.*;
@@ -72,4 +72,18 @@ public class ClientVars {
     @NotNull public static String lastCertName = "";
     public static boolean isBuildingLock; // Whether the building state is being controlled by networking
     public static int pluginVersion; // Version of the foo plugin that is found on the server
+
+    // Translating
+    public static String targetLang; // Language to translate messages to
+    public static Seq<String> supportedLangs = new Seq<>(); // List of supported languages
+    public static boolean enableTranslation = Core.settings.getBool("enabletranslation", true);
+    @NotNull public static Color translatedColor = Color.sky;
+
+    static {
+        Events.on(ClientLoadEvent.class, e -> Translating.languages(langs -> {
+            supportedLangs = langs;
+            if (!supportedLangs.contains(targetLang = Locale.getDefault().getLanguage().substring(0, 2)))
+                targetLang = "en";
+        }));
+    }
 }

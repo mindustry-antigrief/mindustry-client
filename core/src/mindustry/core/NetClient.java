@@ -231,6 +231,14 @@ public class NetClient implements ApplicationListener{
         // playersender is exactly what you think it is, null for server messages
 
         Color background = null;
+        String stripped = Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message));
+
+        if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
+            Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
+                "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
+                "&lw" + stripped
+            );
+
         if(Vars.ui != null){
             var prefix = "";
 
@@ -240,12 +248,6 @@ public class NetClient implements ApplicationListener{
                 if (Core.settings.getBool("highlightclientmsg")) background = ClientVars.user;
             }
 
-            if (Core.settings.getBool("logmsgstoconsole") && net.client()) // Make sure we are a client, if we are the server it does this already
-                Log.log(Log.LogLevel.info, "[Chat] &fi@: @",
-                    "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
-                    "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
-                );
-            
             // highlight coords and set as the last position
             unformatted = processCoords(unformatted, true);
             message = processCoords(message, unformatted != null);
@@ -267,8 +269,15 @@ public class NetClient implements ApplicationListener{
 
                 // I don't think this even works
 //                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
-                output = ui.chatfrag.addMessage(message, playersender.coloredName(), background, prefix, unformatted);
-                output.addButton(output.formattedMessage.indexOf(playersender.coloredName()), playersender.coloredName().length() + 16 + output.prefix.length(), () -> Spectate.INSTANCE.spectate(playersender));
+                var senderName = playersender.coloredName();
+                output = ui.chatfrag.addMessage(message, senderName, background, prefix, unformatted);
+                output.addButton(output.formattedMessage.indexOf(senderName), senderName.length() + 16 + output.prefix.length(), () -> Spectate.INSTANCE.spectate(playersender));
+
+                if (Core.settings.getBool("enabletranslation") && playersender != player)
+                    Translating.translate(stripped, ClientVars.targetLang, translation -> {
+                        if (!stripped.equals(translation))
+                            ui.chatfrag.addMessage(translation, Core.bundle.get("translation"), ClientVars.translatedColor, "", translation);
+                    });
             } else {
                 // server message, unformatted is ignored
                 output = ui.chatfrag.addMessage(message, null, null, "", "");

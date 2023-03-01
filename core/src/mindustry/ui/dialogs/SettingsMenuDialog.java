@@ -44,6 +44,7 @@ import java.util.zip.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 
 public class SettingsMenuDialog extends BaseDialog{
     public SettingsTable graphics, sound, game, main, client, moderation;
@@ -343,6 +344,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.category("chat");
         client.checkPref("clearchatonleave", true);
         client.checkPref("logmsgstoconsole", true);
+        client.checkPref("enabletranslation", true, b -> enableTranslation = b);
         client.checkPref("clientjoinleave", true);
         client.checkPref("showidinjoinleave", false);
         client.checkPref("highlightcryptomsg", true);
