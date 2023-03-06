@@ -302,7 +302,7 @@ public class JoinDialog extends BaseDialog{
             t.add("[lightgray]" + Core.bundle.format("save.map", host.mapname) + "[lightgray] / " + (host.modeName == null ? host.mode.toString() : host.modeName)).width(twidth).left().ellipsis(true).row();
 
             if(host.ping > 0){
-                t.add(Iconc.chartBar + " " + host.ping + "ms").style(Styles.outlineLabel).color(Pal.gray).left();
+                t.add(Iconc.chartBar + " " + host.ping + "ms" + "   " + host.address).style(Styles.outlineLabel).color(Pal.gray).left();
             }
         }).growX().left().bottom();
     }
