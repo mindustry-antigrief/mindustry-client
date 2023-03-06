@@ -66,7 +66,7 @@ public class JoinDialog extends BaseDialog{
         buttons.button("", () -> {
             beList ^= true;
             defaultServers.clear();
-            loadCommunityServers(beList ? serverJsonBeURL : serverJsonURL, true, true);
+            loadCommunityServers(beList ? serverJsonBeURL : serverJsonURL, 8, true);
         }).update(b -> b.setText("Use " + (beList ? "v7" : "BE") + " server list")).wrapLabel(false).height(64);
 
         addCloseButton();
@@ -613,15 +613,16 @@ public class JoinDialog extends BaseDialog{
             Core.settings.remove("server-list");
         }
 
-        loadCommunityServers(beList ? serverJsonBeURL : serverJsonURL, true, false);
+        loadCommunityServers(beList ? serverJsonBeURL : serverJsonURL, 8, false);
     }
 
-    private void loadCommunityServers(String url, boolean retryOnFail, boolean refreshCommunity) {
+    private void loadCommunityServers(String url, int attempts, boolean refreshCommunity) {
         Log.info("Fetching community servers at @", url);
         Http.get(url)
         .error(t -> {
-            Log.debug("Failed to fetch community servers, retrying", t);
-            if(retryOnFail) loadCommunityServers(url, false, refreshCommunity); // Sometimes this just randomly times out the first time
+            Log.debug("Failed to fetch community servers, retrying");
+            Log.err(t);
+            if(attempts > 1) loadCommunityServers(url, attempts - 1, refreshCommunity); // Sometimes this just randomly times out the first time
         })
         .submit(result -> {
             Jval val = Jval.read(result.getResultAsString());
