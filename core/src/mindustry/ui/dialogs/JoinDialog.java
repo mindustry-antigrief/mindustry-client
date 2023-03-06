@@ -44,6 +44,7 @@ public class JoinDialog extends BaseDialog{
     @Nullable public Host lastHost;
     Task ping;
     private boolean beList = becontrol.active();
+    boolean fetchingCommunityServersErrored = false;
 
     String serverSearch = "";
 
@@ -408,6 +409,11 @@ public class JoinDialog extends BaseDialog{
         global.clear();
         global.background(null);
 
+        if(fetchingCommunityServersErrored){
+            global.add("Error: Unable to fetch community servers list.").color(Color.red).center();
+            global.row();
+        }
+
         global.table(t -> {
             t.add("@search").padRight(10);
             t.field(serverSearch, text ->
@@ -621,8 +627,9 @@ public class JoinDialog extends BaseDialog{
         Http.get(url)
         .error(t -> {
             Log.debug("Failed to fetch community servers, retrying");
-            Log.err(t);
+            Log.err(t.toString());
             if(attempts > 1) loadCommunityServers(url, attempts - 1, refreshCommunity); // Sometimes this just randomly times out the first time
+            else fetchingCommunityServersErrored = true;
         })
         .submit(result -> {
             Jval val = Jval.read(result.getResultAsString());
@@ -639,6 +646,7 @@ public class JoinDialog extends BaseDialog{
             });
             //modify default servers on main thread
             Core.app.post(() -> {
+                fetchingCommunityServersErrored = false;
                 servers.sort(s -> s.name == null ? Integer.MAX_VALUE : s.name.hashCode());
                 defaultServers.addAll(servers);
                 if(refreshCommunity) refreshCommunity();
