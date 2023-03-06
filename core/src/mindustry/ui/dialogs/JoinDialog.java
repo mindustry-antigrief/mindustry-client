@@ -619,7 +619,7 @@ public class JoinDialog extends BaseDialog{
             Core.settings.remove("server-list");
         }
 
-        loadCommunityServers(beList ? serverJsonBeURL : serverJsonURL, 8, false);
+        loadCommunityServers(beList ? serverJsonBeURL : serverJsonURL, 5, false);
     }
 
     private void loadCommunityServers(String url, int attempts, boolean refreshCommunity) {
