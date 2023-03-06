@@ -1236,10 +1236,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        Draw.color(Pal.remove, .3f);  // FINISHME: Surely theres a better way to do this.
-        float x = (result.x2 + result.x) / 2;
-        float y = (result.y2 + result.y) / 2;
-        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
+        Draw.color(Pal.remove, .3f);
+        Fill.crect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
     }
 
     protected void drawBreakSelection(int x1, int y1, int x2, int y2){
@@ -1257,9 +1255,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
 
         Draw.color(col2, .3f);
-        float x = (result.x2 + result.x) / 2; // FINISHME: Surely theres a better way to do this.
-        float y = (result.y2 + result.y) / 2;
-        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
+        Fill.crect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
     }
 
     protected void flushSelectPlans(Seq<BuildPlan> plans){
