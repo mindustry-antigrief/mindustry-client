@@ -628,7 +628,7 @@ public class JoinDialog extends BaseDialog{
         .error(t -> {
             Log.debug("Failed to fetch community servers, retrying");
             Log.err(t.toString());
-            if(attempts > 1) loadCommunityServers(url, attempts - 1, refreshCommunity); // Sometimes this just randomly times out the first time
+            if(attempts > 1) Timer.schedule(() -> loadCommunityServers(url, attempts - 1, refreshCommunity), 0.5f); // Sometimes this just randomly times out the first time
             else fetchingCommunityServersErrored = true;
         })
         .submit(result -> {
