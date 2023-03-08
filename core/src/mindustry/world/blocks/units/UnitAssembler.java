@@ -12,6 +12,7 @@ import arc.util.io.*;
 import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
+import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -92,7 +93,10 @@ public class UnitAssembler extends PayloadBlock{
     public void setBars(){
         super.setBars();
 
-        addBar("progress", (UnitAssemblerBuild e) -> new Bar("bar.progress", Pal.ammo, () -> e.progress));
+        addBar("progress", (UnitAssemblerBuild e) -> new Bar(
+            () -> Core.bundle.format("bar.progresstime", UI.formatTime(e.plan().time * (1 - e.progress))),
+            () -> Pal.ammo,
+            () -> e.progress));
 
         addBar("units", (UnitAssemblerBuild e) ->
             new Bar(() ->
