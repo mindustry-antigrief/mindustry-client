@@ -560,7 +560,7 @@ public class JoinDialog extends BaseDialog{
 
     /* Connection is wrapped in a ping so that host is guaranteed to not be null when joining a server (unless it's a steam server FINISHME: Add a default host?) */
     private void doConnect(Host host, String ip, int port) {
-        if (Core.settings.getBool("allowjoinany") && host != null) Version.build = host.version;
+        if (Core.settings.getBool("allowjoinany") && host != null && host.version != -1) Version.build = host.version;
         logic.reset();
         net.reset();
         Vars.netClient.beginConnecting();
@@ -596,7 +596,7 @@ public class JoinDialog extends BaseDialog{
 
     void safeConnect(String ip, int port, Host host){
         int version = host.version;
-        if(Core.settings.getBool("allowjoinany")) Version.build = version;
+        if(Core.settings.getBool("allowjoinany") && version != -1) Version.build = version;
         if(version != Version.build && Version.build != -1 && version != -1){
             ui.showInfo("[scarlet]" + (version > Version.build ? KickReason.clientOutdated : KickReason.serverOutdated) + "\n[]" +
                 Core.bundle.format("server.versions", Version.build, version));
