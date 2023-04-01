@@ -22,6 +22,7 @@ import mindustry.graphics.*
 import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.distribution.*
+import mindustry.world.blocks.payloads.*
 import org.bouncycastle.jce.provider.*
 import org.bouncycastle.jsse.provider.*
 import java.security.*
@@ -174,6 +175,23 @@ object Client {
             }
             Draw.reset()
             bounds.grow(-tilesizeF * Blocks.massDriver.size + tilesizeF)
+            //literally copypasted code
+            bounds.grow(tilesizeF * Blocks.largePayloadMassDriver.size - tilesizeF) // grow bounds to accommodate for entire mass driver
+            payloadMassDrivers.forEach { b ->
+                if (!b.linkValid()) return@forEach
+                val to = world.tile(b.link).build as? PayloadMassDriver.PayloadDriverBuild ?: return@forEach
+                if ((bounds.contains(b.x, b.y) && bounds.contains(to.x, to.y)) || Intersector.intersectSegmentRectangle(b.x, b.y, to.x, to.y, bounds)) {
+                    Lines.stroke(1.5f, if (to.state === PayloadMassDriver.PayloadDriverState.idle) massDriverGreen else massDriverYellow)
+                    Lines.line(b.x, b.y, to.x, to.y)
+                    if (progress > 1f) return@forEach
+                    val ax = Mathf.lerp(b.x, to.x, progress)
+                    val ay = Mathf.lerp(b.y, to.y, progress)
+                    if (bounds.contains(ax, ay))
+                        Tex.logicNode.draw(ax-aS/2, ay-aS/2, aS/2, aS/2, aS, aS, 1f, 1f, Mathf.angle(to.x - b.x, to.y - b.y))
+                }
+            }
+            Draw.reset()
+            bounds.grow(-tilesizeF * Blocks.largePayloadMassDriver.size + tilesizeF)
         }
     }
 }

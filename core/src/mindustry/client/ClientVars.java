@@ -16,6 +16,7 @@ import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.payloads.PayloadMassDriver;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
@@ -54,6 +55,7 @@ public class ClientVars {
             hidingFog;
     @NotNull public static Seq<OverdriveProjector.OverdriveBuild> overdrives = new Seq<>(); // For whatever reason the stupid allBuildings method hates me so im just not using it FINISHME: Replace this by just expanding block clipsize and drawing a circle in the draw method rather than using this
     @NotNull public static Seq<MassDriver.MassDriverBuild> massDrivers = new Seq<>(); // FINISHME: this too.
+    @NotNull public static Seq<PayloadMassDriver.PayloadDriverBuild> payloadMassDrivers = new Seq<>(); // i literally just copypasted the code
 
     // Commands
     @NotNull public static CommandHandler clientCommandHandler = new CommandHandler("!");

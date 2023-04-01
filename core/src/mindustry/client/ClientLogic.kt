@@ -91,6 +91,7 @@ class ClientLogic {
             if (state.rules.pvp && !isDeveloper()) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
             massDrivers.clear()
+            payloadMassDrivers.clear()
             Client.tiles.clear()
         }
 

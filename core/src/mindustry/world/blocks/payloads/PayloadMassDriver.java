@@ -1,5 +1,6 @@
 package mindustry.world.blocks.payloads;
 
+import arc.Core;
 import arc.audio.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -8,6 +9,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -138,6 +140,18 @@ public class PayloadMassDriver extends PayloadBlock{
         public PayloadDriverState state = idle;
         public Queue<Building> waitingShooters = new Queue<>();
         public Payload recPayload;
+
+        @Override
+        public void add(){
+            super.add();
+            Core.app.post(() -> ClientVars.payloadMassDrivers.add(this)); // This is cleared on the first frame after world load, add a frame later to bypass that
+        }
+
+        @Override
+        public void remove(){
+            super.remove();
+            ClientVars.payloadMassDrivers.remove(this, true);
+        }
 
         public Building currentShooter(){
             return waitingShooters.isEmpty() ? null : waitingShooters.first();
@@ -455,7 +469,7 @@ public class PayloadMassDriver extends PayloadBlock{
             return super.acceptPayload(source, payload) && payload.size() <= maxPayloadSize * tilesize;
         }
 
-        protected boolean linkValid(){
+        public boolean linkValid(){
             return link != -1 && world.build(this.link) instanceof PayloadDriverBuild other && other.block == block && other.team == team && within(other, range);
         }
 
