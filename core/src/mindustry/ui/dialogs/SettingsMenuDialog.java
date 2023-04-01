@@ -505,7 +505,11 @@ public class SettingsMenuDialog extends BaseDialog{
                 return i + "";
             });
 
-            game.checkPref("publichost", false, i -> platform.updateLobby());
+            if(!Version.modifier.contains("beta")){
+                game.checkPref("steampublichost", false, i -> {
+                    platform.updateLobby();
+                });
+            }
         }
 
         if(!mobile){
@@ -514,7 +518,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         int[] lastUiScale = {settings.getInt("uiscale", 100)};
 
-        graphics.sliderPref("uiscale", 100, 25, 300, 5, s -> {
+        graphics.sliderPref("uiscale", 100, 5, 300, 5, s -> {
             //if the user changed their UI scale, but then put it back, don't consider it 'changed'
             Core.settings.put("uiscalechanged", s != lastUiScale[0]);
             return s + "%";
@@ -907,21 +911,7 @@ public class SettingsMenuDialog extends BaseDialog{
             public abstract void add(SettingsTable table);
 
             public void addDesc(Element elem){
-                if(description == null) return;
-
-                elem.addListener(new Tooltip(t -> t.background(Styles.black8).margin(4f).add(description).color(Color.lightGray)){
-                    {
-                        allowMobile = true;
-                    }
-                    @Override
-                    protected void setContainerPosition(Element element, float x, float y){
-                        this.targetActor = element;
-                        Vec2 pos = element.localToStageCoordinates(Tmp.v1.set(0, 0));
-                        container.pack();
-                        container.setPosition(pos.x, pos.y, Align.topLeft);
-                        container.setOrigin(0, element.getHeight());
-                    }
-                });
+                ui.addDescTooltip(elem, description);
             }
         }
 

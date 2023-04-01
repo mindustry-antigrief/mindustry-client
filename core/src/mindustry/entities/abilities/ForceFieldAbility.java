@@ -104,6 +104,7 @@ public class ForceFieldAbility extends Ability{
                 Fill.poly(unit.x, unit.y, sides, realRad, rotation);
                 Draw.alpha(1f);
             }else{
+                Draw.z(Layer.shields);
                 Lines.stroke(1.5f);
                 Draw.alpha(0.09f * UnitType.alpha);
                 Fill.poly(unit.x, unit.y, sides, radius, rotation);
