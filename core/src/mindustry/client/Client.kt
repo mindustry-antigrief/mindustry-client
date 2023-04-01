@@ -36,6 +36,7 @@ object Client {
 
     private val massDriverGreen: Color = Color(Color.green).a(0.7f)
     private val massDriverYellow: Color = Color(Color.yellow).a(0.7f)
+    private val massDriverRed: Color = Color(Color.red).a(0.7f)
 
 
     fun initialize() {
@@ -163,7 +164,11 @@ object Client {
                     //val progress = (Time.globalTime % maxTime) / maxTime
                     // nah that looks bad
                     val toBlock = to.block as MassDriver
-                    Lines.stroke(1.5f, if (to.state === MassDriver.DriverState.idle && toBlock.itemCapacity - to.items.total() < toBlock.minDistribute) massDriverGreen else massDriverYellow)
+                    Lines.stroke(1.5f,
+                        if(to.efficiency <= 0f || b.efficiency <= 0f) massDriverRed
+                        else if(b.state === MassDriver.DriverState.idle && toBlock.itemCapacity - to.items.total() < toBlock.minDistribute) massDriverYellow
+                        else massDriverGreen
+                    )
                     Lines.line(b.x, b.y, to.x, to.y)
                     // TODO: change color according to item type? or is that too inconsistent
                     if (progress > 1f) return@forEach
@@ -181,7 +186,7 @@ object Client {
                 if (!b.linkValid()) return@forEach
                 val to = world.tile(b.link).build as? PayloadMassDriver.PayloadDriverBuild ?: return@forEach
                 if ((bounds.contains(b.x, b.y) && bounds.contains(to.x, to.y)) || Intersector.intersectSegmentRectangle(b.x, b.y, to.x, to.y, bounds)) {
-                    Lines.stroke(1.5f, if (to.state === PayloadMassDriver.PayloadDriverState.idle) massDriverGreen else massDriverYellow)
+                    Lines.stroke(1.5f, if (to.state === PayloadMassDriver.PayloadDriverState.idle) massDriverYellow else massDriverGreen)
                     Lines.line(b.x, b.y, to.x, to.y)
                     if (progress > 1f) return@forEach
                     val ax = Mathf.lerp(b.x, to.x, progress)
