@@ -165,7 +165,7 @@ object Client {
                     // nah that looks bad
                     val toBlock = to.block as MassDriver
                     Lines.stroke(1.5f,
-                        if(to.efficiency <= 0f || b.efficiency <= 0f) massDriverRed
+                        if(b.efficiency <= 0f) massDriverRed
                         else if(b.state === MassDriver.DriverState.idle && toBlock.itemCapacity - to.items.total() < toBlock.minDistribute) massDriverYellow
                         else massDriverGreen
                     )
@@ -180,7 +180,7 @@ object Client {
             }
             Draw.reset()
             bounds.grow(-tilesizeF * Blocks.massDriver.size + tilesizeF)
-            //literally copypasted code
+            // FINISHME: literally copypasted code
             bounds.grow(tilesizeF * Blocks.largePayloadMassDriver.size - tilesizeF) // grow bounds to accommodate for entire mass driver
             payloadMassDrivers.forEach { b ->
                 if (!b.linkValid()) return@forEach
