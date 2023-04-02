@@ -34,7 +34,7 @@ public class Menus{
     public static void menu(int menuId, String title, String message, String[][] options){
         if(title == null) title = "";
         if(options == null) options = new String[0][0];
-        if(options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
+        if(options.length > 0 && options[0].length > 1 && options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
         if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
             (options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b() ||
             options[0][0].contains("Downvote") && options[1][0].contains("Upvote") && Server.cn.b())) return; // phoenix network and cn are equally annoying
