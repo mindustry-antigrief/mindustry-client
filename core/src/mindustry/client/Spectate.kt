@@ -4,6 +4,7 @@ import arc.*
 import arc.math.geom.*
 import arc.util.*
 import mindustry.*
+import mindustry.client.ClienVars.*
 import mindustry.gen.*
 import mindustry.input.*
 
@@ -26,6 +27,6 @@ object Spectate {
     }
 
     fun draw() {
-        (pos as? Player)?.unit()?.drawBuildPlans()
+        if(!hidingPlans) (pos as? Player)?.unit()?.drawBuildPlans()
     }
 }
