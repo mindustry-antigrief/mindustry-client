@@ -4,7 +4,7 @@ import arc.*
 import arc.math.geom.*
 import arc.util.*
 import mindustry.*
-import mindustry.client.ClienVars.*
+import mindustry.client.ClientVars.*
 import mindustry.gen.*
 import mindustry.input.*
 
