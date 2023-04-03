@@ -244,7 +244,7 @@ fun setup() {
 
     register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
         player.sendMessage(
-            if (pluginVersion != -1) (Core.bundle.get("client.networking.plugin") as String) else
+            if (pluginVersion != -1F) (Core.bundle.get("client.networking.plugin") as String) else
                 BlockCommunicationSystem.findProcessor()?.run { Core.bundle.format("client.networking.logicblock", tileX(), tileY()) } ?:
                 BlockCommunicationSystem.findMessage()?.run { Core.bundle.format("client.networking.messageblock", tileX(), tileY()) } ?:
                 Core.bundle.get("client.networking.buildplan")

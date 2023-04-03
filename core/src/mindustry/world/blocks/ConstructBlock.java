@@ -114,7 +114,7 @@ public class ConstructBlock extends Block{
             }else if(player != null){ // Foo's addition that allows for local configuration of blocks
                 control.input.playerPlanTree.intersect(tile.getBounds(Tmp.r1), Build.planSeq); // FINISHME: Ensure this works
                 var plan = Build.planSeq.find(p -> p.x == tile.x && p.y == tile.y && p.block == block && p.configLocal);
-                if (plan != null) tile.build.configure(plan.config); // Found a matching plan, configure the building to match the plan
+                if (plan != null) ClientVars.configs.add(new ConfigRequest(tile.build, plan.config)); // Found a matching plan, configure the building to match the plan
                 Build.planSeq.clear();
             }
 

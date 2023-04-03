@@ -14,7 +14,6 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.Vars;
 import kotlin.collections.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
@@ -23,7 +22,7 @@ import mindustry.client.navigation.*;
 import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
-import mindustry.core.GameState.*;
+import mindustry.core.GameState.State;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.entities.abilities.*;
@@ -251,11 +250,15 @@ public class HudFragment{
             wavesMain.row();
 
             // Power bar + payload + status effects display
-            wavesMain.table(Tex.wavepane, st -> {
-                PowerInfo.getBars(st);
-                st.row();
-                addInfoTable(st.table().get());
-            }).marginTop(6).growX();
+            var powerInfo = Core.settings.getBool("powerinfo", true); // FINISHME: Add setting, bundle. Requires restart to take effect
+            var powPayStat = wavesMain.table(Tex.wavepane, st -> {
+                if (powerInfo) {
+                    PowerInfo.getBars(st);
+                    st.row();
+                }
+                addInfoTable(st.table().growX().get());
+            }).marginTop(6).marginBottom(3).growX().get();
+            powPayStat.visible(() -> powerInfo || player.unit() instanceof Payloadc p && p.payloadUsed() > 0 || player.unit().statusBits() != null && !player.unit().statusBits().isEmpty());
 
             editorMain.name = "editor";
 
@@ -948,7 +951,6 @@ public class HudFragment{
     /** Displays player payloads and status effects. */
     private void addInfoTable(Table table){
         table.name = "infotable";
-        table.left();
 
         var count = new float[]{-1};
         table.table().update(t -> {
@@ -961,13 +963,12 @@ public class HudFragment{
                 count[0] = -1;
                 t.clear();
             }
-        }).growX().visible(() -> player.unit() instanceof Payloadc p && p.payloadUsed() > 0).colspan(2);
+        }).growX().visible(() -> player.unit() instanceof Payloadc p && p.payloadUsed() > 0);
         table.row();
 
         Bits statuses = new Bits();
 
         table.table().update(t -> {
-            t.left();
             Bits applied = player.unit().statusBits();
             if(!statuses.equals(applied)){
                 t.clear();
@@ -984,7 +985,7 @@ public class HudFragment{
                     statuses.set(applied);
                 }
             }
-        }).left();
+        }).growX();
     }
 
     private boolean canSkipWave(){

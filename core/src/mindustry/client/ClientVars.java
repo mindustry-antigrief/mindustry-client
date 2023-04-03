@@ -8,12 +8,10 @@ import arc.struct.*;
 import arc.util.Nullable;
 import arc.util.*;
 import kotlin.*;
-import mindustry.content.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.net.*;
 import mindustry.ui.*;
-import mindustry.world.*;
 import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.distribution.*;
 import org.jetbrains.annotations.*;
@@ -71,5 +69,5 @@ public class ClientVars {
     @NotNull public static Color encrypted = Color.valueOf("#243266"), verified = Color.valueOf("#2c9e52"), invalid = Color.valueOf("#890800"), user = Color.coral.cpy().mul(0.6f); // Encrypted = Blue, Verified = Green
     @NotNull public static String lastCertName = "";
     public static boolean isBuildingLock; // Whether the building state is being controlled by networking
-    public static int pluginVersion; // Version of the foo plugin that is found on the server
+    public static float pluginVersion; // Version of the foo plugin that is found on the server
 }

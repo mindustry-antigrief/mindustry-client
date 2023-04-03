@@ -5,7 +5,6 @@ import arc.math.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.client.ui.*;
 import mindustry.core.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -24,12 +23,12 @@ public class PowerInfo {
     }
 
     public static void getBars(Table power) { // FINISHME: What in the world
-        Bar powerBar = new MonospacedBar(
+        Bar powerBar = new Bar(
             () -> Core.bundle.format("bar.powerbalance", found != null ? (found.powerBalance.rawMean() >= 0 ? "+" : "") + UI.formatAmount((int)(found.getPowerBalance() * 60)) : "+0"),
             () -> Pal.powerBar,
             () -> found != null ? found.getSatisfaction() : 0
         );
-        Bar batteryBar = new MonospacedBar(
+        Bar batteryBar = new Bar(
             () -> Core.bundle.format("bar.powerstored", found != null ? UI.formatAmount((long)found.getLastPowerStored()) : 0, found != null ? UI.formatAmount((long)found.getLastCapacity()) : 0),
             () -> Pal.powerBar,
             () -> found != null && found.getLastCapacity() != 0f ? Mathf.clamp(found.getLastPowerStored() / found.getLastCapacity()) : 0

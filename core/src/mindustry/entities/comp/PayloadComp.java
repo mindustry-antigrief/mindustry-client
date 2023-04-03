@@ -12,7 +12,6 @@ import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
-import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -191,7 +190,7 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
 
     void contentInfo(Table table, float itemSize, float width){
         table.clear();
-        table.top().left();
+        table.top();
 
         float pad = 0;
         float items = payloads.size;

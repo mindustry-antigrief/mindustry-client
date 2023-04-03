@@ -1322,8 +1322,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             boolean valid = validPlace(plan.x, plan.y, plan.block, plan.rotation);
             if(freeze || (force && world.tile(plan.x, plan.y) != null) || valid){
                 BuildPlan copy = plan.copy();
-                if(configLogic && copy.block instanceof LogicBlock && copy.config != null){ // Store the configs for logic blocks locally, they cause issues when sent to the server
-                    copy.configLocal = true;
+                if(configLogic && copy.block instanceof LogicBlock && copy.config != null) { // Store the configs for logic blocks locally, they cause issues when sent to the server
+                    copy.configLocal = net.client();
                 }
                 if (force && !valid) {
                     var existing = world.tiles.get(plan.x, plan.y);
@@ -1331,8 +1331,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     if (existingBuild != null && existing.block() == plan.block && existingBuild.tileX() == plan.x && existingBuild.tileY() == plan.y) {
                         var existingConfig = existingBuild.config();
                         boolean configEqual = (plan.config instanceof Array[] pa && existingConfig instanceof Array[] ea && Arrays.deepEquals(pa, ea)) || plan.config == existingConfig;
-                        if (!configEqual)
-                            configs.add(new ConfigRequest(existing.build, plan.config));
+                        if (!configEqual) configs.add(new ConfigRequest(existing.build, plan.config));
                     }
                     else { // Add build plans to remove block underneath
                         frozenPlans.add(copy);

@@ -83,10 +83,10 @@ object Main : ApplicationListener {
         /** @since v1 Checks for the presence of the foo plugin on the server */
         Vars.netClient.addPacketHandler("fooCheck") { version ->
             Log.debug("Server using client plugin version $version")
-            if (!Strings.canParseInt(version)) return@addPacketHandler
+            if (!Strings.canParsePositiveFloat(version)) return@addPacketHandler
 
-            ClientVars.pluginVersion = Strings.parseInt(version)
-            if (ClientVars.pluginVersion == 1) setPluginNetworking(true) // In version one we didnt have fooTransmissionEnabled FINISHME: Remove this on v7 release
+            ClientVars.pluginVersion = Strings.parseFloat(version)
+            if (ClientVars.pluginVersion == 1F) setPluginNetworking(true) // In version one we didnt have fooTransmissionEnabled FINISHME: Remove this on v7 release
         }
 
         /** @since v2 Toggles the state of plugin networking */
@@ -255,7 +255,7 @@ object Main : ApplicationListener {
     }
 
     fun setPluginNetworking(enable: Boolean) {
-        if (!enable) ClientVars.pluginVersion = -1
+        if (!enable) ClientVars.pluginVersion = -1F
         when {
             enable -> {
                 communicationSystem.activeCommunicationSystem = PluginCommunicationSystem
