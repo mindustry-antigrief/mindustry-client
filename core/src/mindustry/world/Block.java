@@ -931,6 +931,10 @@ public class Block extends UnlockableContent implements Senseable{
         return consumers.length == 0 ? (T)consumeBuilder.find(filter) : (T)Structs.find(consumers, filter);
     }
 
+    public boolean hasConsumer(Consume cons){
+        return consumeBuilder.contains(cons);
+    }
+
     public void removeConsumer(Consume cons){
         if(consumers.length > 0){
             throw new IllegalStateException("You can only remove consumers before init(). After init(), all consumers have already been initialized.");
@@ -1149,6 +1153,10 @@ public class Block extends UnlockableContent implements Senseable{
         }
 
         clipSize = Math.max(clipSize, size * tilesize);
+
+        if(hasLiquids && drawLiquidLight){
+            clipSize = Math.max(size * 30f * 2f, clipSize);
+        }
 
         if(emitLight){
             clipSize = Math.max(clipSize, lightRadius * 2f);
