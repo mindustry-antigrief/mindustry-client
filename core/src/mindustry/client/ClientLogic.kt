@@ -91,6 +91,7 @@ class ClientLogic {
             if (state.rules.pvp && !isDeveloper()) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
             overdrives.clear()
             massDrivers.clear()
+            payloadMassDrivers.clear()
             Client.tiles.clear()
         }
 
@@ -161,7 +162,9 @@ class ClientLogic {
             if (settings.getBool("clientjoinleave") && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
                 player.sendMessage(bundle.format("client.disconnected", e.player.name))
             
-            if (settings.getBool("showidinjoinleave", false)) player.sendMessage(bundle.format("client.disconnected.withid", e.player.id.toString()))
+            if (settings.getBool("showidinjoinleave", false))
+                ui.chatfrag.addMsg(bundle.format("client.disconnected.withid", e.player.id.toString()))
+                    .addButton(e.player.id.toString()) { app.setClipboardText(e.player.id.toString()) }
         }
 
         Events.on(GameOverEventClient::class.java) {

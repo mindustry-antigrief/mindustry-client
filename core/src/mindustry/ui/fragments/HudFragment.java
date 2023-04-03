@@ -416,12 +416,16 @@ public class HudFragment{
 
         //spawner warning
         parent.fill(t -> {
+            t.bottom();
             t.name = "nearpoint";
             t.touchable = Touchable.disabled;
-            t.table(Styles.black6, c -> c.add("@nearpoint")
-            .update(l -> l.setColor(Tmp.c1.set(Color.white).lerp(Color.scarlet, Mathf.absin(Time.time, 10f, 1f))))
-            .labelAlign(Align.center, Align.center))
-            .margin(6).update(u -> u.color.a = Mathf.lerpDelta(u.color.a, Mathf.num(spawner.playerNear()), 0.1f)).get().color.a = 0f;
+            t.table(Styles.black3, c ->
+                c.add("@nearpoint")
+                .update(l -> l.setColor(Tmp.c1.set(Color.white).lerp(Color.scarlet, Mathf.absin(Time.time, 10f, 1f))))
+                .labelAlign(Align.bottom | Align.center, Align.center)
+            ).margin(6).update(u -> 
+                u.color.a = Mathf.lerpDelta(u.color.a, Mathf.num(spawner.playerNear()), 0.1f)
+            ).get().color.a = 0f;
         });
 
         //'saving' indicator
@@ -851,6 +855,12 @@ public class HudFragment{
 
             builder.setLength(0);
 
+            //mission overrides everything
+            if(state.rules.mission != null && state.rules.mission.length() > 0){
+                builder.append(state.rules.mission);
+                return builder;
+            }
+
             //objectives override mission?
             if(state.rules.objectives.any()){
                 boolean first = true;
@@ -866,12 +876,6 @@ public class HudFragment{
                     }
                 }
 
-                return builder;
-            }
-
-            //mission overrides everything
-            if(state.rules.mission != null){
-                builder.append(state.rules.mission);
                 return builder;
             }
 

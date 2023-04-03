@@ -466,7 +466,7 @@ public class DesktopInput extends InputHandler{
         shouldShoot = !locked;
         Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
-        if(!locked && block == null && !scene.hasField() &&
+        if(!locked && block == null && !scene.hasField() && !scene.hasDialog() &&
                 //disable command mode when player unit can boost and command mode binding is the same
                 !(!player.dead() && player.unit().type.canBoost && keybinds.get(Binding.command_mode).key == keybinds.get(Binding.boost).key)){
             if(settings.getBool("commandmodehold")){

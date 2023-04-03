@@ -448,6 +448,7 @@ public class ClassMap{
         classes.put("DrawParticles", mindustry.world.draw.DrawParticles.class);
         classes.put("DrawPistons", mindustry.world.draw.DrawPistons.class);
         classes.put("DrawPlasma", mindustry.world.draw.DrawPlasma.class);
+        classes.put("DrawPower", mindustry.world.draw.DrawPower.class);
         classes.put("DrawPulseShape", mindustry.world.draw.DrawPulseShape.class);
         classes.put("DrawPumpLiquid", mindustry.world.draw.DrawPumpLiquid.class);
         classes.put("DrawRegion", mindustry.world.draw.DrawRegion.class);
@@ -458,6 +459,8 @@ public class ClassMap{
         classes.put("DrawTurret", mindustry.world.draw.DrawTurret.class);
         classes.put("DrawWarmupRegion", mindustry.world.draw.DrawWarmupRegion.class);
         classes.put("DrawWeave", mindustry.world.draw.DrawWeave.class);
+        classes.put("ConsumeCoolant", mindustry.world.consumers.ConsumeCoolant.class);
+        classes.put("ConsumeLiquidFlammable", mindustry.world.consumers.ConsumeLiquidFlammable.class);
         classes.put("Block", mindustry.world.Block.class);
     }
 }

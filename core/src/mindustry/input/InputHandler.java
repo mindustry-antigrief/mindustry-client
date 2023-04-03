@@ -250,10 +250,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if(unit != null && unit.team == player.team() && unit.controller() instanceof CommandAI ai){
 
                 //implicitly order it to move
-                ai.command(UnitCommand.moveCommand);
+                if(ai.command == null || ai.command.switchToMove){
+                    ai.command(UnitCommand.moveCommand);
+                }
 
                 if(teamTarget != null && teamTarget.team() != player.team()){
                     ai.commandTarget(teamTarget);
+
                 }else if(posTarget != null){
                     ai.commandPosition(posTarget);
                 }
@@ -288,10 +291,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         for(int id : unitIds){
             Unit unit = Groups.unit.getByID(id);
             if(unit != null && unit.team == player.team() && unit.controller() instanceof CommandAI ai){
+                boolean reset = command.resetTarget || ai.currentCommand().resetTarget;
                 ai.command(command);
-                //reset targeting
-                ai.targetPos = null;
-                ai.attackTarget = null;
+                if(reset){
+                    ai.targetPos = null;
+                    ai.attackTarget = null;
+                }
                 unit.lastCommanded = player.coloredName();
             }
         }
@@ -651,7 +656,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     /** @return whether most input is locked, for 'cutscenes' */
     public boolean locked(){
-        return inputLocks.contains(Boolp::get);
+        return Core.settings.getBool("showcutscenes", true) && inputLocks.contains(Boolp::get);
     }
 
     public Eachable<BuildPlan> allPlans(){
@@ -665,7 +670,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public void update(){
         isLoadedSchematic &= lastSchematic != null; // i am lazy to reset it on all other instances; this should suffice
 
-        if(logicCutscene && !renderer.isCutscene()){
+        if(logicCutscene && !renderer.isCutscene() && Core.settings.getBool("showcutscenes", true)){
             Core.camera.position.lerpDelta(logicCamPan, logicCamSpeed);
         }else{
             logicCutsceneZoom = -1f;
@@ -904,7 +909,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             for(Unit unit : selectedUnits){
                 CommandAI ai = unit.command();
                 //draw target line
-                if(ai.targetPos != null && ai.command == UnitCommand.moveCommand){
+                if(ai.targetPos != null && ai.currentCommand().drawTarget){
                     Position lineDest = ai.attackTarget != null ? ai.attackTarget : ai.targetPos;
                     Drawf.limitLine(unit, lineDest, unit.hitSize / 2f, 3.5f);
 
@@ -915,8 +920,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
                 Drawf.square(unit.x, unit.y, unit.hitSize / 1.4f + 1f);
 
-                //TODO when to draw, when to not?
-                if(ai.attackTarget != null && ai.command == UnitCommand.moveCommand){
+                if(ai.attackTarget != null && ai.currentCommand().drawTarget){
                     Drawf.target(ai.attackTarget.getX(), ai.attackTarget.getY(), 6f, Pal.remove);
                 }
             }
@@ -1232,10 +1236,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        Draw.color(Pal.remove, .3f);  // FINISHME: Surely theres a better way to do this.
-        float x = (result.x2 + result.x) / 2;
-        float y = (result.y2 + result.y) / 2;
-        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
+        Draw.color(Pal.remove, .3f);
+        Fill.crect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
     }
 
     protected void drawBreakSelection(int x1, int y1, int x2, int y2){
@@ -1253,9 +1255,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
 
         Draw.color(col2, .3f);
-        float x = (result.x2 + result.x) / 2; // FINISHME: Surely theres a better way to do this.
-        float y = (result.y2 + result.y) / 2;
-        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
+        Fill.crect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
     }
 
     protected void flushSelectPlans(Seq<BuildPlan> plans){
@@ -1306,6 +1306,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
     
             var tempTiles = Block.tempTiles;
+            //FINISHME this code is kinda bad
             if (plan.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed.
                     && plan.tile() != null && plan.tile().getLinkedTilesAs(plan.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
                 var first = tempTiles.first();
@@ -1316,6 +1317,18 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 } else if (validPlace(first.x, first.y, Blocks.rotaryPump, 0)) { // Mechanical pumps can't cover everything, use rotary pump instead
                     temp[added++] = new BuildPlan(plan.x, plan.y, 0, Blocks.rotaryPump);
                     continue; // Swapped water extractor for rotary pump, don't place it
+                }
+            } else if (plan.block == Blocks.message && !input.shift() // Attempt to replace message with erekir message
+                    && plan.tile() != null && !Blocks.message.environmentBuildable() && Blocks.reinforcedMessage.environmentBuildable()) { // Not buildable
+                if (validPlace(plan.x, plan.y, Blocks.reinforcedMessage, 0)) {
+                    temp[added++] = new BuildPlan(plan.x, plan.y, 0, Blocks.reinforcedMessage, plan.config);
+                    continue; // Swapped message for reinforced message, don't place it
+                }
+            } else if (plan.block == Blocks.reinforcedMessage && !input.shift() // Attempt to replace erekir message with message
+                    && plan.tile() != null && !Blocks.reinforcedMessage.environmentBuildable() && Blocks.message.environmentBuildable()) { // Not buildable
+                if (validPlace(plan.x, plan.y, Blocks.message, 0)) {
+                    temp[added++] = new BuildPlan(plan.x, plan.y, 0, Blocks.message, plan.config);
+                    continue; // Swapped reinforced message for message, don't place it
                 }
             }
     

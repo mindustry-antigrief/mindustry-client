@@ -16,7 +16,7 @@ public class PowerInfo {
     public static PowerGraph hovered;
 
     public static void update() {
-        var max = Groups.powerGraph.array.max(up -> up.graph().all.first().team == Vars.player.team(), up -> up.graph().all.size);
+        var max = Groups.powerGraph.array.max(up -> up.graph().all.size > 0 && up.graph().all.first().team == Vars.player.team(), up -> up.graph().all.size);
         found = max == null ? null : max.graph();
         var tile = Vars.control.input.cursorTile();
         hovered = Core.settings.getBool("graphdisplay") && tile != null && tile.build instanceof PowerNode.PowerNodeBuild node ? node.power.graph : null;

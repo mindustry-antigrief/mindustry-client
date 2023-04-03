@@ -1281,7 +1281,7 @@ public class LStatements{
             }).size(80f, 40f).pad(4f).color(table.color);
 
             if(statusNames == null){
-                statusNames = content.statusEffects().select(s -> !s.isHidden()).map(s -> s.name).toArray(String.class);
+                statusNames = content.statusEffects().map(s -> s.name).toArray(String.class);
             }
 
             table.button(b -> {
@@ -1694,6 +1694,115 @@ public class LStatements{
         @Override
         public LInstruction build(LAssembler builder){
             return new SetFlagI(builder.var(flag), builder.var(value));
+        }
+
+        @Override
+        public LCategory category(){
+            return LCategory.world;
+        }
+    }
+
+    @RegisterStatement("setprop")
+    public static class SetPropStatement extends LStatement{
+        public String type = "@copper", of = "block1", value = "0";
+
+        private transient int selected = 0;
+        private transient TextField tfield;
+
+        @Override
+        public void build(Table table){
+            table.add(" set ");
+
+            tfield = field(table, type, str -> type = str).padRight(0f).get();
+
+            table.button(b -> {
+                b.image(Icon.pencilSmall);
+                //240
+                b.clicked(() -> showSelectTable(b, (t, hide) -> {
+                    Table[] tables = {
+                    //items
+                    new Table(i -> {
+                        i.left();
+                        int c = 0;
+                        for(Item item : Vars.content.items()){
+                            if(item.hidden) continue;
+                            i.button(new TextureRegionDrawable(item.uiIcon), Styles.flati, iconSmall, () -> {
+                                stype("@" + item.name);
+                                hide.run();
+                            }).size(40f);
+
+                            if(++c % 6 == 0) i.row();
+                        }
+                    }),
+                    //liquids
+                    new Table(i -> {
+                        i.left();
+                        int c = 0;
+                        for(Liquid item : Vars.content.liquids()){
+                            if(!item.unlockedNow() || item.hidden) continue;
+                            i.button(new TextureRegionDrawable(item.uiIcon), Styles.flati, iconSmall, () -> {
+                                stype("@" + item.name);
+                                hide.run();
+                            }).size(40f);
+
+                            if(++c % 6 == 0) i.row();
+                        }
+                    }),
+                    //sensors
+                    new Table(i -> {
+                        for(LAccess property : LAccess.settable){
+                            i.button(property.name(), Styles.flatt, () -> {
+                                stype("@" + property.name());
+                                hide.run();
+                            }).size(240f, 40f).self(c -> tooltip(c, property)).row();
+                        }
+                    })
+                    };
+
+                    Drawable[] icons = {Icon.box, Icon.liquid, Icon.tree};
+                    Stack stack = new Stack(tables[selected]);
+                    ButtonGroup<Button> group = new ButtonGroup<>();
+
+                    for(int i = 0; i < tables.length; i++){
+                        int fi = i;
+
+                        t.button(icons[i], Styles.squareTogglei, () -> {
+                            selected = fi;
+
+                            stack.clearChildren();
+                            stack.addChild(tables[selected]);
+
+                            t.parent.parent.pack();
+                            t.parent.parent.invalidateHierarchy();
+                        }).height(50f).growX().checked(selected == fi).group(group);
+                    }
+                    t.row();
+                    t.add(stack).colspan(3).width(240f).left();
+                }));
+            }, Styles.logict, () -> {}).size(40f).padLeft(-1).color(table.color);
+
+            table.add(" of ").self(this::param);
+
+            field(table, of, str -> of = str);
+
+            table.add(" to ");
+
+            field(table, value, str -> value = str);
+        }
+
+        private void stype(String text){
+            tfield.setText(text);
+            this.type = text;
+        }
+
+        @Override
+        public boolean privileged(){
+            return true;
+        }
+
+        @Override
+        public LInstruction build(LAssembler builder){
+            return new SetPropI(builder.var(type), builder.var(of), builder.var(value));
         }
 
         @Override

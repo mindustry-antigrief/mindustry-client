@@ -62,7 +62,7 @@ public class Build{
             tile.build.lastAccessed = unit.getControllerName();
         }
 
-        Core.app.post(() -> Events.fire(new BlockBuildBeginEvent(tile, team, unit, true)));
+        Events.fire(new BlockBuildBeginEvent(tile, team, unit, true));
     }
 
     public final static Seq<BuildPlan> planSeq = new Seq<>(BuildPlan.class);
@@ -122,7 +122,7 @@ public class Build{
 
         result.placeBegan(tile, previous);
 
-        Core.app.post(() -> Events.fire(new BlockBuildBeginEvent(tile, team, unit, false)));
+        Events.fire(new BlockBuildBeginEvent(tile, team, unit, false));
     }
 
     /** Returns whether a tile can be placed at this location by this team. */

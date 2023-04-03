@@ -226,6 +226,7 @@ public class NetClient implements ApplicationListener{
 
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
+        Events.fire(new PlayerChatEvent(playersender, unformatted != null ? unformatted : message != null ? message : "")); // Foo addition, why is this not a vanilla thing?
         // message is the full formatted message from the server, including the sender
         // unformatted is the message content itself, i.e. "gg", null for server messages
         // playersender is exactly what you think it is, null for server messages
@@ -592,8 +593,9 @@ public class NetClient implements ApplicationListener{
             for(int j = 0; j < amount; j++){
                 readSyncEntity(input, Reads.get(input));
             }
-        }catch(IOException e){
-            throw new RuntimeException(e);
+        }catch(Exception e){
+            //don't disconnect, just log it
+            Log.err("Error reading entity snapshot", e);
         }
     }
 

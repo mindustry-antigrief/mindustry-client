@@ -397,6 +397,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("customnullunloader", false, i -> Unloader.customNullLoader = i);
         client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
         client.checkPref("logiclinkorder", false);
+        client.checkPref("showcutscenes", true);
     
         client.category("misc");
         client.updatePref();
@@ -405,6 +406,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
         client.sliderPref("processorstatementscale", 80, 10, 100, 1, s -> String.format("%.2fx", s/100f)); // This is the most scuffed setting you have ever seen
         client.sliderPref("automapvote", 0, 0, 4, s -> s == 0 ? "Never" : s == 4 ? "Random vote" : "Always " + new String[]{"downvote", "novote", "upvote"}[--s]);
+        client.sliderPref("pingExecutorThreads", OS.isWindows && !OS.is64Bit ? 5 : 65, 5, 100, 5, s -> "" + s); // FINISHME: Lowercase
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
         client.textPref("defaultminepathargs", "all");
         client.textPref("gamejointext", "");
@@ -503,7 +505,11 @@ public class SettingsMenuDialog extends BaseDialog{
                 return i + "";
             });
 
-            game.checkPref("publichost", false, i -> platform.updateLobby());
+            if(!Version.modifier.contains("beta")){
+                game.checkPref("steampublichost", false, i -> {
+                    platform.updateLobby();
+                });
+            }
         }
 
         if(!mobile){
@@ -512,7 +518,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         int[] lastUiScale = {settings.getInt("uiscale", 100)};
 
-        graphics.sliderPref("uiscale", 100, 25, 300, 5, s -> {
+        graphics.sliderPref("uiscale", 100, 5, 300, 5, s -> {
             //if the user changed their UI scale, but then put it back, don't consider it 'changed'
             Core.settings.put("uiscalechanged", s != lastUiScale[0]);
             return s + "%";
@@ -905,21 +911,7 @@ public class SettingsMenuDialog extends BaseDialog{
             public abstract void add(SettingsTable table);
 
             public void addDesc(Element elem){
-                if(description == null) return;
-
-                elem.addListener(new Tooltip(t -> t.background(Styles.black8).margin(4f).add(description).color(Color.lightGray)){
-                    {
-                        allowMobile = true;
-                    }
-                    @Override
-                    protected void setContainerPosition(Element element, float x, float y){
-                        this.targetActor = element;
-                        Vec2 pos = element.localToStageCoordinates(Tmp.v1.set(0, 0));
-                        container.pack();
-                        container.setPosition(pos.x, pos.y, Align.topLeft);
-                        container.setOrigin(0, element.getHeight());
-                    }
-                });
+                ui.addDescTooltip(elem, description);
             }
         }
 

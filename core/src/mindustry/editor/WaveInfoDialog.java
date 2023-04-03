@@ -2,6 +2,7 @@ package mindustry.editor;
 
 import arc.*;
 import arc.graphics.*;
+import arc.input.KeyCode;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.event.*;
@@ -16,6 +17,7 @@ import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.Binding;
 import mindustry.io.*;
 import mindustry.type.*;
 import mindustry.ui.*;
@@ -119,26 +121,44 @@ public class WaveInfoDialog extends BaseDialog{
 
         buttons.defaults().width(60f);
 
-        buttons.button("<", () -> {}).update(t -> {
-            if(t.getClickListener().isPressed()){
-                shift(-1);
-            }
+        buttons.button("<", () -> {
+            if(Core.input.shift()) shift(-1);
+        }).update(t -> {
+            if(t.getClickListener().isPressed() && !Core.input.shift()) shift(-1);
         });
-        buttons.button(">", () -> {}).update(t -> {
-            if(t.getClickListener().isPressed()){
-                shift(1);
-            }
+        buttons.button(">", () -> {
+            if(Core.input.shift()) shift(1);
+        }).update(t -> {
+            if(t.getClickListener().isPressed() && !Core.input.shift()) shift(1);
+        });
+        keyDown(KeyCode.left, () -> {
+            if(Core.input.shift()) shift(-1);
+        });
+        keyDown(KeyCode.right, () -> {
+            if(Core.input.shift()) shift(1);
+        });
+        update(() -> {
+            if(Core.input.keyDown(KeyCode.left) && !Core.input.shift()) shift(-1);
+            if(Core.input.keyDown(KeyCode.right) && !Core.input.shift()) shift(1);
+            if(Core.input.keyDown(KeyCode.minus) && !Core.input.shift()) view(-1);
+            if(Core.input.keyDown(KeyCode.equals) && !Core.input.shift()) view(1);
         });
 
-        buttons.button("-", () -> {}).update(t -> {
-            if(t.getClickListener().isPressed()){
-                view(-1);
-            }
+        buttons.button("-", () -> {
+            if(Core.input.shift()) view(-1);
+        }).update(t -> {
+            if(t.getClickListener().isPressed() && !Core.input.shift()) view(-1);
         });
-        buttons.button("+", () -> {}).update(t -> {
-            if(t.getClickListener().isPressed()){
-                view(1);
-            }
+        buttons.button("+", () -> {
+            if(Core.input.shift()) view(1);
+        }).update(t -> {
+            if(t.getClickListener().isPressed() && !Core.input.shift()) view(1);
+        });
+        keyDown(KeyCode.minus, () -> {
+            if(Core.input.shift()) view(-1);
+        });
+        keyDown(KeyCode.equals, () -> {
+            if(Core.input.shift()) view(1);
         });
 
         if(experimental){
@@ -395,7 +415,7 @@ public class WaveInfoDialog extends BaseDialog{
         dialog.cont.pane(p -> {
             int i = 0;
             for(UnitType type : content.units()){
-                if(type.isHidden()) continue;
+                if(type.internal) continue;
                 p.button(t -> {
                     t.left();
                     t.image(type.uiIcon).size(8 * 4).scaling(Scaling.fit).padRight(2f);
@@ -419,7 +439,7 @@ public class WaveInfoDialog extends BaseDialog{
         dialog.cont.pane(p -> {
             int i = 0;
             for(StatusEffect effect : content.statusEffects()){
-                if(effect != StatusEffects.none && (effect.isHidden() || effect.reactive)) continue;
+                // if(effect != StatusEffects.none && (effect.isHidden() || effect.reactive)) continue;
 
                 p.button(t -> {
                     t.left();

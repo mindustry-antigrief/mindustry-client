@@ -125,24 +125,24 @@ public class BeControl{
                     Fi dest = source.sibling("server-be-" + updateBuild + ".jar");
 
                     download(updateUrl, dest,
-                        len -> Core.app.post(() -> Log.info("&ly| Size: @ MB.", Strings.fixed((float)len / 1024 / 1024, 2))),
-                        progress -> {},
-                        () -> false,
-                        () -> Core.app.post(() -> {
-                            Log.info("&lcSaving...");
-                            SaveIO.save(saveDirectory.child("autosavebe." + saveExtension));
-                            Log.info("&lcAutosaved.");
+                    len -> Core.app.post(() -> Log.info("&ly| Size: @ MB.", Strings.fixed((float)len / 1024 / 1024, 2))),
+                    progress -> {},
+                    () -> false,
+                    () -> Core.app.post(() -> {
+                        Log.info("&lcSaving...");
+                        SaveIO.save(saveDirectory.child("autosavebe." + saveExtension));
+                        Log.info("&lcAutosaved.");
 
-                            netServer.kickAll(KickReason.serverRestarting);
-                            Threads.sleep(32);
+                        netServer.kickAll(KickReason.serverRestarting);
+                        Threads.sleep(500);
 
-                            Log.info("&lcVersion downloaded, exiting. Note that if you are not using a auto-restart script, the server will not restart automatically.");
-                            //replace old file with new
-                            dest.copyTo(source);
-                            dest.delete();
-                            System.exit(2); //this will cause a restart if using the script
-                        }),
-                        Throwable::printStackTrace);
+                        Log.info("&lcVersion downloaded, exiting. Note that if you are not using a auto-restart script, the server will not restart automatically.");
+                        //replace old file with new
+                        dest.copyTo(source);
+                        dest.delete();
+                        System.exit(2); //this will cause a restart if using the script
+                    }),
+                    Throwable::printStackTrace);
                 }catch(Exception e){
                     e.printStackTrace();
                 }

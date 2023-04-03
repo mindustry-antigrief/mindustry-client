@@ -61,7 +61,7 @@ public class MinimapRenderer{
             //update floor below a *recently removed* block.
             if(e.tile.block().solid && e.tile.y > 0){
                 Tile tile = world.tile(e.tile.x, e.tile.y - 1);
-                if(tile.block() == Blocks.air){
+                if(tile != null && tile.block() == Blocks.air){
                     Core.app.post(() -> update(tile));
                 }
             }
