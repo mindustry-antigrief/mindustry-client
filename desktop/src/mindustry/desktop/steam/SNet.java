@@ -8,9 +8,11 @@ import arc.util.*;
 import com.codedisaster.steamworks.*;
 import com.codedisaster.steamworks.SteamMatchmaking.*;
 import com.codedisaster.steamworks.SteamNetworking.*;
+import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
+import mindustry.gen.*;
 import mindustry.net.ArcNetProvider.*;
 import mindustry.net.*;
 import mindustry.net.Net.*;
@@ -125,6 +127,10 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
         Events.on(WaveEvent.class, e -> updateWave());
         Events.run(Trigger.newGame, this::updateWave);
+
+        Events.on(PlayerJoin.class, e -> {
+            if (Core.settings.getBool("essith") && e.player != player && currentServer != null && currentServer.handle() == 76561198376191697L && Time.timeSinceMillis(ClientVars.lastJoinTime) > 5000) Call.sendChatMessage("Live at [accent]twitch.tv/Essith_");
+        });
     }
 
     public boolean isSteamClient(){

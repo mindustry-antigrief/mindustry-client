@@ -34,8 +34,8 @@ object Client {
     val autoTransfer by lazy { AutoTransfer() } // FINISHME: Awful
 //    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
 
-    private val massDriverGreen: Color = Color(Color.green).a(0.7f)
-    private val massDriverYellow: Color = Color(Color.yellow).a(0.7f)
+    private val massDriverGreen: Color = Color.green.cpy().a(.7f)
+    private val massDriverYellow: Color = Color.yellow.cpy().a(.7f)
     private val massDriverRed: Color = Color(Color.red).a(0.7f)
 
 
@@ -54,6 +54,8 @@ object Client {
         provider.setProvider(bc)
         // FINISHME is this secure?  what exactly does this mean?  test without this every so often with new bouncycastle versions
         System.setProperty("jdk.tls.namedGroups", "secp256r1")
+
+        ClajSupport.load()
     }
 
     fun update() {
@@ -89,8 +91,9 @@ object Client {
             Draw.color(state.rules.waveTeam.color)
             for (i in 0 until spawner.spawns.size) {
                 var target: Tile? = spawner.spawns[i]
+                val field = pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore)
                 Lines.beginLine()
-                while(target != pathfinder.getTargetTile(target, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore)).also { target = it }) {
+                while(target != pathfinder.getTargetTile(target, field).also { target = it }) {
                     Lines.linePoint(target)
                 }
                 Lines.endLine()
