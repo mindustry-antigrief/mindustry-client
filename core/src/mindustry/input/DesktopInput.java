@@ -991,7 +991,7 @@ public class DesktopInput extends InputHandler{
 //                if(input.keyDown(Binding.boost)){
 //                    flushPlansReverse(linePlans);
 //                }else{
-                    flushPlans(linePlans, isFreezeQueueing, input.ctrl(), isFreezeQueueing);
+                    flushPlans(linePlans, isFreezeQueueing, input.alt(), isFreezeQueueing);
 //                }
 
                 linePlans.clear();
