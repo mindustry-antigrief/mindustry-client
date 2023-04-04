@@ -7,47 +7,57 @@ import arc.*
 import arc.graphics.*
 import arc.struct.*
 import arc.util.*
-import arc.util.serialization.*
-import mindustry.*
 import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.content.*
-import mindustry.ctype.*
 import mindustry.entities.abilities.*
 import mindustry.entities.bullet.*
-import mindustry.game.*
 import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.graphics.*
-import mindustry.io.*
-import mindustry.type.*
+import mindustry.net.Packets.*
 import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.consumers.*
 import java.lang.reflect.*
 import kotlin.properties.*
-import kotlin.reflect.*
-import kotlin.reflect.full.*
-import kotlin.reflect.jvm.*
 
-enum class Server(
+enum class Server( // FINISHME: This is horrible. Why have I done this?
     private val groupName: String?,
     private val mapVote: MapVote? = null,
     @JvmField val whisper: Cmd = Cmd("/w", -1), // FINISHME: This system still sucks despite my best efforts at making it good
     private val rtv: Cmd = Cmd("/rtv", -1),
     @JvmField val freeze: Cmd = Cmd("/freeze", -1),
-    @JvmField val ghost: Boolean = false
+    @JvmField val ghost: Boolean = false,
+    private val votekickString: String = "Type[orange] /vote <y/n>[] to agree."
 ) {
     other(null),
     nydus("nydus"),
     cn("Chaotic Neutral", rtv = Cmd("/rtv")),
     io("io", MapVote(), Cmd("/w"), Cmd("/rtv"), object : Cmd("/freeze", 4){
-        override fun run(vararg args: String) { // IO's freeze command cant be run by apprentice mods but the packet works fine for them
-            if (ClientVars.rank == 4) Call.serverPacketReliable("freeze_by_id", args[0]) // Yes this will cause a crash when args.size == 0, it shouldn't happen
+        override fun run(vararg args: String) { // Freeze command requires admin in game but the packet does not
+            if (!player.admin) Call.serverPacketReliable("freeze_by_id", args[0]) // Yes this will cause a crash when args.size == 0, it shouldn't happen
             else super.run(*args)
         }
-    }),
-    phoenix("Phoenix Network", MapVote(), Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9)),
+    }, votekickString = "Type[orange] /vote <y/n>[] to vote."){
+        override fun handleBan(p: Player) {
+            ui.showTextInput("@client.banreason.title", "@client.banreason.body", "Griefing") { reason ->
+                val id = p.trace?.uuid ?: p.serverID
+                if (id != null){
+                    ui.showConfirm("@confirm", "@client.rollback.title") {
+                        Call.sendChatMessage("/rollback $id");
+                        Time.run(6f) { // 100ms
+                            Call.sendChatMessage("/rollback f")
+                        }
+                    }
+                }
+                Call.sendChatMessage("/ban ${p.id} $reason")
+            }
+        }
+
+        override fun adminui() = ClientVars.rank >= 5
+    },
+    phoenix("Phoenix Network", MapVote(), Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9), votekickString = "Type [cyan]/vote y"),
     korea("Korea", ghost = true),
     fish("Fish", null, Cmd("/msg")){ // FINISHME: Get fish to implement id based /msg as currently only works with player names which can contain spaces.
         override fun playerString(p: Player) = p.name.stripColors().substringBefore(' ')
@@ -112,11 +122,19 @@ enum class Server(
 //        FINISHME: Add cn excavate buttons
     }
 
+    /** Run when banning [p] */
+    open fun handleBan(p: Player) = Call.adminRequest(p, AdminAction.ban)
+
+    /** Whether or not the player has access to the admin ui in the player list */
+    open fun adminui() = false
+
     /** Map like/dislike */
     fun mapVote(i: Int) {
         if (mapVote != null) Call.sendChatMessage(mapVote[i] ?: run { Log.err("Invalid vote $i"); return })
         else Log.warn("Map votes are not available on server $name")
     }
+
+    fun isVotekick(msg: String) = votekickString in msg
 }
 
 enum class CustomMode {
