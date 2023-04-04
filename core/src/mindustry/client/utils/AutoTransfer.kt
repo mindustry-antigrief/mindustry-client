@@ -6,13 +6,13 @@ import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
-import mindustry.content.*
 import mindustry.client.navigation.*
+import mindustry.content.*
 import mindustry.entities.bullet.*
 import mindustry.gen.*
 import mindustry.graphics.*
 import mindustry.type.*
-import mindustry.world.blocks.defense.turrets.ItemTurret
+import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.NuclearReactor.*
 import mindustry.world.blocks.storage.*
 import mindustry.world.consumers.*
@@ -108,7 +108,7 @@ class AutoTransfer {
                     }
                     is ConsumeItemFilter -> {
                         content.items().each { i ->
-                            val acceptedC = if (item == Items.blastCompound && it.block.findConsumer<Consume> { it is ConsumeItemExplode } != null) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
+                            val acceptedC = if (i == Items.blastCompound && it.block.findConsumer<Consume> { it is ConsumeItemExplode } != null) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
                             if (acceptedC >= minTransfer && it.block.consumesItem(i) && core!!.items.has(i, minItems)) {
                                 // Turrets have varying ammo, add an offset to prioritize some than others
                                 counts[i.id.toInt()] += acceptedC
