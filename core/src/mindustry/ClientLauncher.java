@@ -173,9 +173,9 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         assets.load(mods);
         assets.loadRun("mergeUI", PixmapPacker.class, () -> {}, () -> Fonts.mergeFontAtlas(atlas));
 
+        add(renderer = new Renderer()); // This was moved from below control, doesn't seem to be problematic somehow
         add(logic = new Logic());
         add(control = new Control());
-        add(renderer = new Renderer());
         add(ui = new UI());
         add(netServer = new NetServer());
         add(netClient = new NetClient());
