@@ -57,6 +57,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     transient boolean fooUser;
     transient boolean assisting;
     transient @Nullable TraceInfo trace;
+    transient @Nullable String serverID;
 
     public boolean isBuilder(){
         return unit.canBuild();

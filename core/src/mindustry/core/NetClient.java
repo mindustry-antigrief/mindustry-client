@@ -276,7 +276,7 @@ public class NetClient implements ApplicationListener{
             }
 
             findCoords(output);
-            findLinks(output);
+            findLinks(output, playersender == null ? 0 : playersender.coloredName().length() + 16 + output.prefix.length());
 
             Sounds.chatMessage.play();
         }
@@ -300,10 +300,9 @@ public class NetClient implements ApplicationListener{
             var output = Vars.ui.chatfrag.addMessage(message, null, null, "", message);
 
             findCoords(output);
-            findLinks(output);
+            findLinks(output, 0);
 
-            if (message.contains("Type[orange] /vote <y/n>[] to " + (Server.io.b() ? "vote." : "agree.")) // Vote kick clickable buttons
-            || Server.phoenix.b() && message.contains("Type [cyan]/vote y")) {
+            if (Server.current.isVotekick(message)) { // Vote kick clickable buttons
                 String yes = Core.bundle.get("client.voteyes"), no = Core.bundle.get("client.voteno");
                 output.message = output.message + '\n' + yes + "  " + no;
                 output.format();
@@ -348,10 +347,11 @@ public class NetClient implements ApplicationListener{
     }
 
     /** Finds links in a message and makes them clickable */
-    public static ChatFragment.ChatMessage findLinks(ChatFragment.ChatMessage msg) {
+    public static ChatFragment.ChatMessage findLinks(ChatFragment.ChatMessage msg, int start) {
         Matcher matcher = linkPattern.matcher(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage));
         while (matcher.find()) {
             var res = matcher.toMatchResult();
+            if(res.start() < start) continue; // .find(start) is cursed
             var url = res.group(1) == null ? "https://" + res.group() : res.group(); // Add https:// if missing protocol
             msg.addButton(res.start(), res.end(), () -> Menus.openURI(url));
         }
