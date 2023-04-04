@@ -14,6 +14,7 @@ import arc.util.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Jval.*;
+import kotlin.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -143,6 +144,7 @@ public class Mods implements Loadable{
     @Override
     public void loadAsync(){
         if(!mods.contains(LoadedMod::enabled)) return;
+        var startAsync = Time.nanos();
 
         pageTypes = IntMap.of(
             Core.atlas.find("white").pid, PageType.main,
@@ -152,7 +154,9 @@ public class Mods implements Loadable{
             Core.atlas.find("rubble-1-0").pid, PageType.rubble
         );
 
-        Time.mark();
+//        for(var t : Core.atlas.getTextures()){
+//            Log.debug("Matches: @ @ @ @ @", Core.atlas.find("white").texture == t,  Core.atlas.find("stone1").texture == t, Core.atlas.find("whiteui").texture == t, Core.atlas.find("rubble-1-0").texture == t, Core.atlas.find("clear-editor").texture == t);
+//        }
 
         packer = new MultiPacker();
         //all packing tasks to await
@@ -177,8 +181,7 @@ public class Mods implements Loadable{
                         //actually pack the image
                         packRun.run();
                     }catch(Exception e){ //the image can fail to fit in the spritesheet
-                        Log.err("Failed to fit image into the spritesheet, skipping.");
-                        Log.err(e);
+                        Log.err("Failed to fit image into the spritesheet, skipping", e);
                     }
                 }
             }catch(Exception e){ //this means loading the image failed, log it and move on
@@ -186,7 +189,7 @@ public class Mods implements Loadable{
             }
         }
 
-        Log.debug("Time to pack textures: @", Time.elapsed());
+        Log.debug("Time to pack mod textures: @ms", Time.millisSinceNanos(startAsync));
     }
 
     private void loadIcons(){
@@ -260,54 +263,86 @@ public class Mods implements Loadable{
         loadIcons();
 
         if(packer == null) return;
-        Time.mark();
+        Log.debug("Begin generate & flush textures synchronously");
+        var startSync = Time.nanos();
 
         //get textures packed
         if(totalSprites > 0){
 
-            class RegionEntry{
-                String name;
-                PixmapRegion region;
-                int[] splits, pads;
+            class RegionEntry implements Comparable<RegionEntry>{
+                final String name;
+                final PixmapRegion region;
+                final int[] splits, pads;
+                final int sort;
 
                 RegionEntry(String name, PixmapRegion region, int[] splits, int[] pads){
+                    sort = -Math.max(region.width, region.height);
                     this.name = name;
                     this.region = region;
                     this.splits = splits;
                     this.pads = pads;
                 }
+
+                @Override
+                public int compareTo(RegionEntry o){
+                    return sort - o.sort;
+                }
             }
 
             Seq<RegionEntry>[] entries = new Seq[PageType.all.length];
             for(int i = 0; i < PageType.all.length; i++){
-                entries[i] = new Seq<>(RegionEntry.class);
+                entries[i] = new Seq<>();
             }
 
+            var tasks = new Seq<Future<?>>();
+
+            Time.mark();
+            for (Texture texture : Core.atlas.getTextures()) {
+                if (!Core.atlas.getPixmaps().containsKey(texture)) { // Create pixmaps for each page in parallel
+                    tasks.add(mainExecutor.submit(() -> new Pair<>(texture, texture.getTextureData().getPixmap())));
+                }
+            }
+            for (var task : tasks.<Future<Pair<Texture, Pixmap>>>as()) { // Put the newly created pixmaps into the cache (we make the pixmaps here to avoid making them all on the main thread later as that is slow)
+                var pair = Threads.await(task);
+                Core.atlas.getPixmaps().put(pair.getFirst(), pair.getSecond());
+            }
+            tasks.clear();
+            Log.debug("Prepared page pixmap cache in: @ms", Time.elapsed());
+
+            Time.mark();
+            int had = 0, missing = 0;
             var showMissing = OS.hasProp("debugmissingsprites");
             for(AtlasRegion region : Core.atlas.getRegions()){ // Add the vanilla sprites that haven't been overwritten to the new atlas
                 PageType type = pageTypes.get(region.pid, PageType.main);
 
                 if(!packer.has(type, region.name)){
+                    missing++;
                     if(showMissing) Log.warn("Sprite '@' on page '@' is defined but is not overridden.", region.name, type);
                     entries[type.ordinal()].add(new RegionEntry(region.name, Core.atlas.getPixmap(region), region.splits, region.pads));
+                } else {
+                    had++;
                 }
             }
+            Log.debug("Restored @ missing vanilla (@ already existing) sprites in: @ms", missing, had, Time.elapsed());
 
+
+            Time.mark();
             //sort each page type by size first, for optimal packing. packs each page in parallel
-            var tasks = new Seq<Future<?>>(); // FINISHME: Add time logging for every step of the sprite loading process
             for(int i = 0; i < PageType.all.length; i++){
                 var rects = entries[i];
                 var type = PageType.all[i];
+                var typePacker = packer.getPacker(type);
                 tasks.add(mainExecutor.submit(() -> {
                     //TODO is this in reverse order?
                     new Sort().sort(rects, Structs.comparingInt(o -> -Math.max(o.region.width, o.region.height)));
 
                     for(var entry : rects){
-                        packer.add(type, entry.name, entry.region, entry.splits, entry.pads);
+                        typePacker.pack(entry.name, entry.region, entry.splits, entry.pads);
                     }
                 }));
             }
             Threads.awaitAll(tasks); //await packing
+            Log.debug("Processed restored sprites in: @ms", Time.elapsed());
 
             Core.atlas.dispose();
 
@@ -359,8 +394,6 @@ public class Mods implements Loadable{
                 }
             };
 
-            TextureFilter filter = Core.settings.getBool("linear", true) ? TextureFilter.linear : TextureFilter.nearest;
-
             Time.mark();
             //generate new icons
             for(Seq<Content> arr : content.getContentMap()){
@@ -375,14 +408,17 @@ public class Mods implements Loadable{
                     }
                 });
             }
-            Log.debug("Time to generate icons: @", Time.elapsed());
+            Log.debug("Time to generate icons: @ms", Time.elapsed());
 
             //dispose old atlas data
             Time.mark();
-            Core.atlas = packer.flush(filter, new TextureAtlas());
-            Log.debug("Sprite flush took: @", Time.elapsed());
+            Core.atlas = packer.flush(Core.settings.getBool("linear", true) ? TextureFilter.linear : TextureFilter.nearest, new TextureAtlas());
+            Log.debug("Sprite flush took: @ms", Time.elapsed());
 
+            Time.mark();
             textureResize.each(e -> Core.atlas.find(e.key).scale = e.value);
+            Log.debug("Texture resize took: @ms", Time.elapsed());
+
 
             Core.atlas.setErrorRegion("error");
 
@@ -392,7 +428,7 @@ public class Mods implements Loadable{
         packer.dispose();
         packer = null;
         Log.debug("Total pages: @", Core.atlas.getTextures().size);
-        Log.debug("Total time to generate & flush textures synchronously: @", Time.elapsed());
+        Log.debug("Total time to generate & flush textures synchronously: @ms", Time.millisSinceNanos(startSync));
     }
 
     private PageType getPage(Fi file){
