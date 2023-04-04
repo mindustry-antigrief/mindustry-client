@@ -123,9 +123,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         linePlans.each(cons);
     };
 
-    /** Other client stuff **/
-    public boolean showTypingIndicator = Core.settings.getBool("typingindicator");
-
     public InputHandler(){
         group.touchable = Touchable.childrenOnly;
         inv = new BlockInventoryFragment();
@@ -685,7 +682,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         playerPlanTree.clear(); // TODO: aaaaaaaaaaaaaa
         player.unit().plans.each(playerPlanTree::insert);
 
-        player.typing = showTypingIndicator && ui.chatfrag.shown();
+        player.typing = ui.chatfrag.shown();
 
         if(player.dead()){
             droppingItem = false;

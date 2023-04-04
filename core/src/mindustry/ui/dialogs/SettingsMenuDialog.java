@@ -8,7 +8,6 @@ import arc.graphics.Texture.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.math.*;
-import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.style.*;
@@ -410,17 +409,16 @@ public class SettingsMenuDialog extends BaseDialog{
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
         client.textPref("defaultminepathargs", "all");
         client.textPref("gamejointext", "");
-        client.textPref("gamewintext", "gg");
-        client.textPref("gamelosetext", "gg");
+        client.textPref("gamewintext", "");
+        client.textPref("gamelosetext", "");
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
-        client.checkPref("typingindicator", true, i -> control.input.showTypingIndicator = i);
         client.checkPref("pathnav", true);
         client.checkPref("nyduspadpatch", true);
         client.checkPref("hidebannedblocks", false);
         client.checkPref("allowjoinany", false);
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
-        if (steam) client.checkPref("unlockallachievements", false, i -> { for (var a : Achievement.all) a.complete(); Core.settings.remove("unlockallachievements"); });
+        if (steam) client.checkPref("unlockallachievements", false, i -> { Structs.each(Achievement::complete, Achievement.all); Core.settings.remove("unlockallachievements"); });
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
         client.checkPref("autorestart", true);
@@ -433,14 +431,14 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("ignoremodminversion", false);
         client.checkPref("betterenemyblocktapping", false);
     
-        if (settings.getBool("client-experimentals")) { // FINISHME: Either remove this or make it properly functional
+        if (settings.getBool("client-experimentals") || OS.hasProp("policone")) { // FINISHME: Either remove this or make it properly functional
             client.category("Experimental");
             // Seer: Client side multiplayer griefing/cheating detections
             client.checkPref("seer-enabled", false); // by default false because still new
             client.checkPref("seer-autokick", false); // by default false to avoid false positives
             client.sliderPref("seer-warnthreshold", 10, 0, 50, String::valueOf);
             client.sliderPref("seer-autokickthreshold", 20, 0, 50, String::valueOf);
-            client.sliderPref("seer-scoredecayinterval", 1, 0, 10, i -> String.valueOf(i * 30) + "s");
+            client.sliderPref("seer-scoredecayinterval", 1, 0, 10, i -> i * 30 + "s");
             client.sliderPref("seer-scoredecay", 5, 0, 20, String::valueOf);
             client.sliderPref("seer-reactorscore", 8, 0, 10, String::valueOf);
             client.sliderPref("seer-reactordistance", 5, 0, 20, String::valueOf);
