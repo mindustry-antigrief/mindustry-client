@@ -68,10 +68,10 @@ class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField var range:
 }
 
 // FINISHME: Awful.
-class EntityTree(bounds: Rect) : QuadTree<TurretPathfindingEntity>(bounds) {
-    companion object {
-        val lock = ReentrantLock(true)
-    }
+class EntityTree private constructor(bounds: Rect, val lock: ReentrantLock) : QuadTree<TurretPathfindingEntity>(bounds) {
+    constructor(bounds: Rect) : this(bounds, ReentrantLock(true))
+
+    override fun newChild(rect: Rect) = EntityTree(rect, lock)
 
     inline fun <T> use(action: EntityTree.() -> T): T = lock.withLock { this.action() } // FINISHME: Use this instead of locking in each function, should improve performance
 
