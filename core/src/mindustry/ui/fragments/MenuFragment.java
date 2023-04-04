@@ -14,7 +14,6 @@ import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.client.ui.CursednessLevel;
 import mindustry.client.ui.*;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
@@ -221,6 +220,7 @@ public class MenuFragment{
                 new MenuButton("@play", Icon.play,
                     new MenuButton("@campaign", Icon.play, () -> checkPlay(ui.planet::show)),
                     new MenuButton("@joingame", Icon.add, () -> checkPlay(ui.join::show)),
+                    new MenuButton("@client.claj.join", Icon.link, () -> checkPlay(ui.clajJoin::show)), // FINISHME: Bundle and stop creating new dialog every time
                     new MenuButton("@customgame", Icon.terrain, () -> checkPlay(ui.custom::show)),
                     new MenuButton("@loadgame", Icon.download, () -> checkPlay(ui.load::show))
                 ),

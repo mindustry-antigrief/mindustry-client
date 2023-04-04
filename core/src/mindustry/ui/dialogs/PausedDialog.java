@@ -65,6 +65,11 @@ public class PausedDialog extends BaseDialog{
 
             cont.row();
 
+            // FINISHME: Enable while not hosting but make this host when clicked (or add a tooltip or smth)
+            cont.button("@client.claj.manage", Icon.link, () -> ui.clajManager.show()).tooltip("@client.claj.info").colspan(2).width(dw + 10f).disabled(f -> !net.server());
+
+            cont.row();
+
             cont.button("@client.keyshare", Icon.lock, () -> new TLSKeyDialog().show()).tooltip("@client.keysharedescription");
             cont.button("@quit", Icon.exit, this::showQuitConfirm).update(s -> s.setText(control.saves.getCurrent() != null && control.saves.getCurrent().isAutosave() ? "@save.quit" : "@quit"));
 

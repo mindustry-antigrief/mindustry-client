@@ -27,7 +27,7 @@ public class Version{
     /** Foo's version string */
     public static String clientVersion = "v1.0.0, Jan. 1, 1970";
     /** The installer mod checks for the existence of this boolean */
-    private static boolean foos;
+    @SuppressWarnings("unused") private static boolean foos;
 
     public static String path(){
         return Version.class.getProtectionDomain().getCodeSource().getLocation().getPath();
