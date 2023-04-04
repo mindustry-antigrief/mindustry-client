@@ -45,7 +45,7 @@ public class PlayerListFragment{
                     return;
                 }
 
-                if(visible && timer.get(60) /*&& !Core.input.keyDown(KeyCode.mouseLeft) && !(Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof Image || Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof ImageButton)*/){
+                if(visible && timer.get(60) && !Core.input.keyDown(KeyCode.mouseLeft) && !(Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof Image || Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof ImageButton)){
                     rebuild();
                 }
             });
@@ -70,7 +70,7 @@ public class PlayerListFragment{
                     menu.button("@close", this::toggle).get().getLabel().setWrap(false);
                 }).margin(0f).pad(10f).growX();
 
-            }).touchable(Touchable.enabled).margin(14f).minWidth(400f);
+            }).touchable(Touchable.enabled).margin(14f).minWidth(500f);
         });
 
         rebuild();
@@ -128,8 +128,8 @@ public class PlayerListFragment{
                     Strings.stripColors(user.name))
             ).wrap().width(400).growY().pad(10);
 
-            if (user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
-            if (user.fooUser || (user.isLocal() && Core.settings.getBool("displayasuser"))) button.image(Icon.wrench).padRight(7.5f).tooltip("@client.clientuser");
+            if(user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
+            if(user.fooUser || (user.isLocal() && Core.settings.getBool("displayasuser"))) button.image(Icon.wrench).padRight(7.5f).tooltip("@client.clientuser");
 
             var style = new ImageButtonStyle(){{
                 down = Styles.none;
@@ -148,7 +148,7 @@ public class PlayerListFragment{
                 imageOverColor = Color.lightGray;
             }};
 
-            if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
+            if((net.server() || player.admin || Server.current.adminui()) && !user.isLocal() && (!user.admin || net.server())){
                 button.add().growY();
 
                 float bs = (h) / 2f;
@@ -157,7 +157,9 @@ public class PlayerListFragment{
                     t.defaults().size(bs);
 
                     t.button(Icon.hammer, ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()), () -> Call.adminRequest(user, AdminAction.ban)));
+                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()), () -> {
+                        Server.current.handleBan(user);
+                    }));
                     t.button(Icon.cancel, ustyle,
                     () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick", user.name()), () -> Call.adminRequest(user, AdminAction.kick)));
 
@@ -194,6 +196,9 @@ public class PlayerListFragment{
                 () -> {
                     ui.showConfirm("@confirm", Core.bundle.format("confirmvotekick",  user.name()), () -> {
                         Call.sendChatMessage("/votekick #" + user.id());
+                        if (Server.io.b() && (user.trace != null || user.serverID != null)) ui.showConfirm("@confirm", "Do you want to rollback this player's actions?", () -> {
+                            Call.sendChatMessage(Strings.format("/rollback @ 5", user.trace != null ? user.trace.uuid : user.serverID));
+                        });
                     });
                 }).size(h/2);
             }
