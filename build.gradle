@@ -13,8 +13,6 @@ buildscript{
             return "com.github.mindustry-antigrief${localArc ? "" : ".Arc"}:$name:$arcHash"
             // TODO: Merge recheck: Merge bala's arc
         }
-
-        branchName = 'git branch --show-current'.execute().text.trim()
     }
 
     repositories{
@@ -33,8 +31,8 @@ buildscript{
 }
 
 plugins{
-    id "org.jetbrains.kotlin.jvm" version "1.7.20"
-    id "org.jetbrains.kotlin.kapt" version "1.7.20" apply false
+    id "org.jetbrains.kotlin.jvm" version "1.8.10"
+    id "org.jetbrains.kotlin.kapt" version "1.8.10" apply false
 }
 
 allprojects{
@@ -210,6 +208,16 @@ allprojects{
             '--add-exports=java.base/sun.reflect.annotation=ALL-UNNAMED'
         ]
     }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class).configureEach {
+        compilerOptions {
+            freeCompilerArgs.add("-Xbackend-threads=0")
+        }
+    }
+
+    compileKotlin {
+        kotlinOptions.useK2 = true
+    }
 }
 
 //compile with java 8 compatibility for everything except the annotation project
@@ -311,11 +319,17 @@ project(":core"){
     }
 
     kapt {
-        showProcessorStats = true
+//        showProcessorStats = true
         keepJavacAnnotationProcessors = true
         javacOptions{
-            option("-source", "16")
+            option("-source", "8")
             option("-target", "8")
+        }
+    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions{
+            jvmTarget = '1.8'
         }
     }
 
@@ -347,7 +361,7 @@ project(":core"){
         if(localArc && debugged()) api arcModule("extensions:recorder")
         if(localArc) api arcModule(":extensions:packer")
 
-        implementation "org.jetbrains.kotlin:kotlin-reflect:1.7.20"
+        implementation "org.jetbrains.kotlin:kotlin-reflect:1.8.10"
 //        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0" Unused, removed to reduce jar size
 
         compileOnly files("../bouncycastle/bcprov-jdk15on.jar")
@@ -406,7 +420,7 @@ project(":tests"){
 
     dependencies{
         testImplementation project(":core")
-        testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.7.20"
+        testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.8.10"
         testImplementation "org.junit.jupiter:junit-jupiter-params:5.7.1"
         testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.1"
         testImplementation arcModule("backends:backend-headless")

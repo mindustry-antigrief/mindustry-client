@@ -5,7 +5,7 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.7.20"
+    id "org.jetbrains.kotlin.jvm" version "1.8.10"
 }
 
 sourceSets.main.java.srcDirs = ["src/"]
@@ -15,6 +15,7 @@ import arc.files.ZipFi
 import arc.func.Func2
 import arc.graphics.Color
 import arc.graphics.Pixmap
+import arc.graphics.Pixmaps
 import arc.packer.TexturePacker
 import arc.struct.ObjectMap
 import arc.struct.OrderedMap
@@ -36,8 +37,8 @@ static int getRGB(Pixmap image, int ix, int iy) {
 }
 
 @CompileStatic
-static void antialias(File file){
-    Pixmap image = new Pixmap(new Fi(file))
+static void antialias(Fi fi){
+    Pixmap image = new Pixmap(fi)
     Pixmap out = image.copy()
 
     Color color = new Color()
@@ -79,41 +80,34 @@ static void antialias(File file){
                 suma.a(suma.a + color.a)
             }
 
-            float fm = suma.a <= 0.001f ? 0f : (float)(1f / suma.a)
-            suma.mul(fm, fm, fm, fm)
+            suma.mula(suma.a <= 0.001f ? 0f : (1f / suma.a).toFloat())
 
-            float total = 0
             sum.set(0)
 
             for(int val : p){
                 color.rgba8888(val)
-                float a = color.a
-                color.lerp(suma, (float) (1f - a))
+                sum.a(sum.a + color.a)
+                color.lerp(suma, (1f - color.a))
                 sum.r(sum.r + color.r) // Groovy is weird, this is slow with +=
                 sum.g(sum.g + color.g)
                 sum.b(sum.b + color.b)
-                sum.a(sum.a + a)
-                total += 1f
             }
 
-            fm = (float)(1f / total)
-            sum.mul(fm, fm, fm, fm)
-            out.setRaw(x, y, sum.rgba8888())
-            sum.set(0)
+            out.setRaw(x, y, sum.mula((1/9f).floatValue()).rgba8888())
         }
     }
 
     image.dispose()
     out.dispose()
 
-    new Fi(file).writePng(out)
+    fi.writePng(out)
 }
 
 task antialiasImages(){
     doLast{
         for(def img : project.getProperty("images").split(",")){
             println(project.getProperty("startdir") + "/" + img)
-            antialias(new File(project.getProperty("startdir") + "/" + img))
+            antialias(new Fi(project.getProperty("startdir") + "/" + img))
         }
     }
 }
@@ -134,7 +128,7 @@ task bleedImages(){
         dir.child(".DS_Store").delete()
         dir.walk { fi ->
             executor.execute {
-                antialias(fi.file())
+                antialias(fi)
                 def pix = new Pixmap(fi)
                 Pixmaps.bleed(pix, 2)
                 fi.writePng(pix)
@@ -199,11 +193,12 @@ task pack(dependsOn: [classes, configurations.runtimeClasspath]){
             ExecutorService executor = Executors.newFixedThreadPool(OS.cores)
 
             //antialias everything except UI elements
-            fileTree(dir: new File(rootDir, 'core/assets-raw/sprites_out/').absolutePath, include: "**/*.png").visit{ file ->
-                if(file.isDirectory() || (file.toString().replace("\\", "/").contains("/ui/") && file.toString().startsWith("icon-")) || file.toString().contains(".9.png") || file.toString().contains("aaaa")) return
+            new Fi("$rootDir/core/assets-raw/sprites_out").walk { file ->
+                String path = file.path()
+                if(!path.endsWith(".png") || path.endsWith(".9.png") || path.endsWith("alphaaaa.png")) return
 
                 executor.execute{
-                    antialias(file.file)
+                    antialias(file)
                 }
             }
 
