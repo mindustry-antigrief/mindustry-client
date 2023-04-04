@@ -230,6 +230,7 @@ public class Weapon implements Cloneable{
 
         //fix color
         unit.type.applyColor(unit);
+        Draw.alpha(UnitType.alpha);
 
         if(region.found()) Draw.rect(region, wx, wy, weaponRotation);
 
