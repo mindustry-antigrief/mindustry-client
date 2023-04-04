@@ -889,7 +889,7 @@ public class EventType{
         }
     }
 
-    public static class SendChatMessageEvent {
+    public static class SendChatMessageEvent { // FINISHME: Migrate this to use ClientChatEvent instead as that exists in vanilla
         public final String message;
 
         public SendChatMessageEvent(String message) {

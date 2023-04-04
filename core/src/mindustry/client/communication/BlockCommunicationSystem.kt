@@ -129,7 +129,7 @@ object BlockCommunicationSystem : CommunicationSystem() {
 
     private fun sendLogic(bytes: ByteArray): Boolean {
         val processor = findProcessor() ?: return false // No valid processor was found
-        val value = bytes.plus(12).base32678().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = LOGIC_PREFIX + "\n") { "print \"$it\"" }.removeSuffix("\n")
+        val value = bytes.plus(12).base32768().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = LOGIC_PREFIX + "\n") { "print \"$it\"" }.removeSuffix("\n")
         Call.tileConfig(Vars.player, processor, LogicBlock.compress(value, Seq()))
         return true
     }

@@ -13,7 +13,6 @@ import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.stopFollowing
 import mindustry.client.ui.*
 import mindustry.client.utils.*
-import mindustry.content.*
 import mindustry.core.*
 import mindustry.game.EventType.*
 import mindustry.gen.*
@@ -170,7 +169,7 @@ class ClientLogic {
         Events.on(GameOverEventClient::class.java) {
             if (net.client()) {
                 // Afk players will start mining at the end of a game (kind of annoying but worth it)
-                if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(UnitTypes.gamma.mineItems, newGame = true))
+                if (!Navigation.isFollowing || (Navigation.currentlyFollowing as? BuildPath)?.mineItems != null) Navigation.follow(MinePath(newGame = true))
 
                 // Save maps on game over if the setting is enabled
                 if (settings.getBool("savemaponend")) control.saves.addSave(state.map.name())

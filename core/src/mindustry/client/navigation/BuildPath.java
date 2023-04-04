@@ -152,14 +152,13 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
             if (timer.get(1, 300)) {
                 clientThread.post(() -> {
                     for (var turret : Navigation.getEnts()) {
-                        if (!turret.canShoot()) continue;
+                        var canHit = turret.canHitPlayer();
+                        if (!turret.canShoot() || !(turret.targetGround || canHit) || turret.entity.team() == Team.derelict) continue;
                         Geometry.circle(World.toTile(turret.x()), World.toTile(turret.y()), World.toTile(turret.range), (x, y) -> {
                             if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {
-                                if (turret.targetGround || turret.canHitPlayer()) {
-                                    temp.set(x, y);
-                                    if (turret.targetGround) blocked.set(x, y);
-                                    if (turret.canHitPlayer()) blockedPlayer.set(x, y);
-                                }
+                                temp.set(x, y);
+                                if (turret.targetGround) blocked.set(x, y);
+                                if (canHit) blockedPlayer.set(x, y);
                             }
                         });
                     }

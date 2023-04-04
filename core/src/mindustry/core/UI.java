@@ -21,6 +21,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.client.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.*;
 import mindustry.client.utils.*;
@@ -88,6 +89,8 @@ public class UI implements ApplicationListener, Loadable{
 
     // Client related
     public UnitPicker unitPicker;
+    public ClajManagerDialog clajManager;
+    public ClajJoinDialog clajJoin;
 
 
     public UI(){
@@ -212,6 +215,8 @@ public class UI implements ApplicationListener, Loadable{
 
         // Client related
         unitPicker = new UnitPicker();
+        clajManager = new ClajManagerDialog();
+        clajJoin = new ClajJoinDialog();
 
 
         Group group = Core.scene.root;

@@ -4,7 +4,6 @@
 package mindustry.client.utils
 
 import arc.*
-import arc.func.*
 import arc.graphics.*
 import arc.math.geom.*
 import arc.scene.*
@@ -88,9 +87,9 @@ fun Short.toBytes() = byteArrayOf((toInt() shr 8).toByte(), (this).toByte())
 
 fun Long.toBytes() = byteArrayOf((this shr 56).toByte(), (this shr 48).toByte(), (this shr 40).toByte(), (this shr 32).toByte(), (this shr 24).toByte(), (this shr 16).toByte(), (this shr 8).toByte(), (this).toByte())
 
-fun ByteArray.base32678(): String = Base32768Coder.encode(this)
+fun ByteArray.base32768(): String = Base32768Coder.encode(this)
 
-fun String.base32678(): ByteArray? = try { Base32768Coder.decode(this) } catch (e: IOException) { null }
+fun String.base32768(): ByteArray? = try { Base32768Coder.decode(this) } catch (e: IOException) { null }
 
 fun Double.floor() = floor(this).toInt()
 
@@ -440,9 +439,7 @@ fun toggleMutePlayer(player: Player) {
     }
 }
 
-fun isDeveloper():Boolean {
-    return Main.keyStorage.builtInCerts.contains(Main.keyStorage.cert())
-}
+fun isDeveloper() = Main.keyStorage.cert() in Main.keyStorage.builtInCerts
 
 //inline fun <T> Seq<out T>.forEach(consumer: (T?) -> Unit) {
 //    for (i in 0 until size) consumer(items[i])
@@ -456,7 +453,7 @@ fun isDeveloper():Boolean {
 
 fun ChatMessage.findCoords(): ChatMessage = NetClient.findCoords(this)
 
-fun ChatMessage.findLinks(): ChatMessage = NetClient.findLinks(this)
+fun ChatMessage.findLinks(start: Int = 0): ChatMessage = NetClient.findLinks(this, start)
 
 fun findItem(arg: String): Item = content.items().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
 

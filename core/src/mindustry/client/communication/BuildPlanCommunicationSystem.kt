@@ -3,7 +3,7 @@ package mindustry.client.communication
 import arc.*
 import arc.util.*
 import mindustry.*
-import mindustry.client.ClientVars
+import mindustry.client.*
 import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.content.*
@@ -48,11 +48,11 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
 
                     lastGotten[p.id] = plan.config.hashCode()
                     val config = re.replace(plan.config as String, "").lines().joinToString("") { it.removeSurrounding("print \"", "\"") }
-                    val decoded = config.base32678()
+                    val decoded = config.base32768()
                     decoded ?: return@post
                     listeners.forEach { it(decoded, p.id) }
                 }
-                val time = Time.timeSinceMillis(start)
+                val time = Time.timeSinceMillis(start) // FINISHME: How is 50 ms acceptable?
                 if (time > 50) Log.debug("Scanning players took $time ms, this is a problem")
             }
         }, 0.2f, 0.2f)
@@ -63,7 +63,7 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
             Toast(3f).add("[scarlet]Failed to send packet, build plan networking doesn't work if you can't build.")
             return
         }
-        val config = bytes.base32678().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = PREFIX.format(Random.nextLong())) { "print \"$it\"" }
+        val config = bytes.base32768().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = PREFIX.format(Random.nextLong())) { "print \"$it\"" } // FINISHME: Don't respect print max length, its client side
         val tile = findLocation()
         val plan = BuildPlan(tile.x.toInt(), tile.y.toInt(), 0, Blocks.microProcessor, config)
         // Stores build state. Toggles building off as otherwise it can fail.
