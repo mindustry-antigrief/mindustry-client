@@ -32,6 +32,7 @@ public class MultiPacker implements Disposable{
     public void printStats(){
         if(Log.level != LogLevel.debug) return;
 
+        Time.mark();
         for(PageType type : PageType.all){
             var packer = packers[type.ordinal()];
             Log.debug("[Atlas] [&ly@&fr]", type);
@@ -48,6 +49,7 @@ public class MultiPacker implements Disposable{
                 i ++;
             }
         }
+        Log.debug("Printed stats in: @ms", Time.elapsed());
     }
 
     /** @return whether this image was not already outlined. */
@@ -91,7 +93,6 @@ public class MultiPacker implements Disposable{
     public TextureAtlas flush(TextureFilter filter, TextureAtlas atlas){
         for(var page : PageType.all){
             var packer = packers[page.ordinal()];
-            Log.debug("Packer @ has @ pages", page, packer.getPages().size);
             packer.updateTextureAtlas(atlas, filter, filter, false, false);
         }
         return atlas;

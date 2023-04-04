@@ -29,9 +29,9 @@ import java.util.*;
 public class Fonts{
     private static final String mainFont = "fonts/font.woff";
     private static final ObjectSet<String> unscaled = ObjectSet.with("iconLarge");
-    private static ObjectIntMap<String> unicodeIcons = new ObjectIntMap<>();
-    public static ObjectMap<String, String> stringIcons = new ObjectMap<>();
-    private static ObjectMap<String, TextureRegion> largeIcons = new ObjectMap<>();
+    private static final ObjectIntMap<String> unicodeIcons = new ObjectIntMap<>();
+    public static final ObjectMap<String, String> stringIcons = new ObjectMap<>();
+    private static final ObjectMap<String, TextureRegion> largeIcons = new ObjectMap<>();
     private static TextureRegion[] iconTable;
     private static int lastCid;
 
@@ -119,7 +119,7 @@ public class Fonts{
 
     public static void loadContentIcons(){
         var start = Time.nanos();
-        Seq<Font> fonts = Seq.with(Fonts.def, Fonts.outline, Fonts.mono, Fonts.monoOutline);
+        Seq<FontData> fontsData = Seq.with(Fonts.def, Fonts.outline, Fonts.mono, Fonts.monoOutline).map(Font::getData);
         Texture uitex = Core.atlas.find("logo").texture;
         int size = (int)(Fonts.def.getData().lineHeight/Fonts.def.getData().scaleY);
 
@@ -157,7 +157,7 @@ public class Fonts{
                 glyph.kerning = null;
                 glyph.fixedWidth = true;
                 glyph.page = 0;
-                fonts.each(f -> f.getData().setGlyph(ch, glyph));
+                fontsData.each(f -> f.setGlyph(ch, glyph));
             }
         }
 
