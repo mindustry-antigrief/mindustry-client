@@ -12,7 +12,7 @@ import mindustry.type.*
 import mindustry.world.*
 
 class MinePath @JvmOverloads constructor(
-    var items: Seq<Item> = Seq<Item>(),
+    val items: Seq<Item> = Seq<Item>(),
     var cap: Int = Core.settings.getInt("minepathcap"),
     val newGame: Boolean = false,
     args: String = Core.settings.getString("defaultminepathargs")
@@ -28,9 +28,9 @@ class MinePath @JvmOverloads constructor(
         val split = args.lowercase().split("\\s".toRegex())
         if (items.isEmpty) {
             for (a in split) {
-                if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select(indexer::hasOre))
+                if (a == "*" || a == "all" || a == "a") items.addAll(content.items().select { indexer.hasOre(it) || indexer.hasWallOre(it) })
                 else if (Strings.canParseInt(a)) cap = a.toInt().coerceAtLeast(0) // Specified cap, <= 0 results in infinite cap
-                else content.items().find { a.equals(it.name, true) && indexer.hasOre(it) }?.apply(items::add) ?:
+                else content.items().find { a.equals(it.name, true) && (indexer.hasOre(it) || indexer.hasWallOre(it)) }?.apply(items::add) ?:
                 player.sendMessage(Core.bundle.format("client.path.builder.invalid", a))
             }
         }
@@ -49,7 +49,9 @@ class MinePath @JvmOverloads constructor(
     companion object {
         init {
             Events.on(EventType.WorldLoadEvent::class.java) {
-                (Navigation.currentlyFollowing as? MinePath)?.lastItem = null // Reset on world load to prevent stupidity
+                (Navigation.currentlyFollowing as? MinePath ?: return@on).apply {
+                    lastItem = null // Reset on world load to prevent stupidity
+                }
             }
         }
     }
@@ -60,8 +62,8 @@ class MinePath @JvmOverloads constructor(
     override fun follow() {
         val core = player.closestCore() ?: return
         val maxCap = if (cap <= 0) core.storageCapacity else core.storageCapacity.coerceAtMost(cap)
-        bestItem = items.min({ indexer.hasOre(it) && player.unit().canMine(it) }) { core.items[it].toFloat() } ?: return
-        if (lastItem != null && player.unit().canMine(lastItem) && indexer.hasOre(lastItem) && core.items[lastItem] - core.items[bestItem] < 100 && core.items[lastItem] < maxCap) bestItem = lastItem!! // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
+        bestItem = items.min({ player.unit().canMine(it) && it.found() }) { core.items[it].toFloat() } ?: return
+        if (lastItem != null && player.unit().canMine(lastItem) && lastItem!!.found() && core.items[lastItem] - core.items[bestItem] < 100 && core.items[lastItem] < maxCap) bestItem = lastItem // Scuffed, don't switch mining until there's a 100 item difference, prevents constant switching of mine target
         lastItem = bestItem
 
         if (!newGame && core.items[bestItem] >= maxCap && cap >= 0) {  // Auto switch to BuildPath when core is sufficiently full
@@ -103,7 +105,7 @@ class MinePath @JvmOverloads constructor(
 
         // mine
         } else {
-            tile = indexer.findClosestOre(player.unit(), bestItem) ?: return
+            tile = indexer.findClosestMineableOre(player.unit(), bestItem) ?: return
             if (player.within(tile, player.unit().type.mineRange)) player.unit().mineTile = tile
             player.boosting = player.unit().type.canBoost && !player.within(tile, player.unit().type.mineRange)
             goTo(tile, player.unit().type.mineRange - tilesize * 2)
@@ -131,4 +133,6 @@ class MinePath @JvmOverloads constructor(
 //            else return false
 //
 //        return item != null && type.mineTier >= item.hardness
+
+    private fun Item.found() = player.unit().type.mineFloor && indexer.hasOre(this) || player.unit().type.mineWalls && indexer.hasWallOre(this)
 }

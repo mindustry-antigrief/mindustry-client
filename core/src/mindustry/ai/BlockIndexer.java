@@ -28,11 +28,11 @@ public class BlockIndexer{
     private int quadWidth, quadHeight;
 
     /** Stores all ore quadrants on the map. Maps ID to qX to qY to a list of tiles with that ore. */
-    private IntSeq[][][] ores;
+    private IntSeq[][][] ores, wallOres; // FINISHME: Current wall ore indexing is cursed
     /** Stores all damaged tile entities by team. */
     private Seq<Building>[] damagedTiles = new Seq[Team.all.length];
     /** All ores available on this map. */
-    private ObjectIntMap<Item> allOres = new ObjectIntMap<>();
+    private final ObjectIntMap<Item> allOres = new ObjectIntMap<>(), allWallOres = new ObjectIntMap<>();
     /** Stores teams that are present here as tiles. */
     private Seq<Team> activeTeams = new Seq<>(Team.class);
     /** Maps teams to a map of flagged tiles by flag. */
@@ -61,7 +61,9 @@ public class BlockIndexer{
             clearFlags();
 
             allOres.clear();
+            allWallOres.clear();
             ores = new IntSeq[content.items().size][][];
+            wallOres = new IntSeq[content.items().size][][];
             quadWidth = Mathf.ceil(world.width() / (float)quadrantSize);
             quadHeight = Mathf.ceil(world.height() / (float)quadrantSize);
             blocksPresent = new boolean[content.blocks().size];
@@ -75,28 +77,32 @@ public class BlockIndexer{
                 }
             }
 
+            var start = Time.nanos();
             for(Tile tile : world.tiles){
                 process(tile);
 
-                var drop = tile.drop();
+                Item drop;
 
-                if(drop != null){
-                    int qx = (tile.x / quadrantSize);
-                    int qy = (tile.y / quadrantSize);
+                if(tile.block() == Blocks.air){
+                    if((drop = tile.drop()) != null){
+                        int qx = tile.x / quadrantSize, qy = tile.y / quadrantSize;
 
-                    //add position of quadrant to list
-                    if(tile.block() == Blocks.air){
-                        if(ores[drop.id] == null){
-                            ores[drop.id] = new IntSeq[quadWidth][quadHeight];
-                        }
-                        if(ores[drop.id][qx][qy] == null){
-                            ores[drop.id][qx][qy] = new IntSeq(false, 16);
-                        }
+                        //add position of quadrant to list
+                        if(ores[drop.id] == null) ores[drop.id] = new IntSeq[quadWidth][quadHeight];
+                        if(ores[drop.id][qx][qy] == null) ores[drop.id][qx][qy] = new IntSeq(false, 16);
                         ores[drop.id][qx][qy].add(tile.pos());
                         allOres.increment(drop);
                     }
+                }else if((drop = tile.wallDrop()) != null){
+                    int qx = tile.x / quadrantSize, qy = tile.y / quadrantSize;
+                    //add position of quadrant to list
+                    if(wallOres[drop.id] == null) wallOres[drop.id] = new IntSeq[quadWidth][quadHeight];
+                    if(wallOres[drop.id][qx][qy] == null) wallOres[drop.id][qx][qy] = new IntSeq(false, 16);
+                    wallOres[drop.id][qx][qy].add(tile.pos());
+                    allWallOres.increment(drop);
                 }
             }
+            Log.debug("Processed ores in: @ms", Time.millisSinceNanos(start));
         });
     }
 
@@ -143,28 +149,28 @@ public class BlockIndexer{
     public void addIndex(Tile tile){
         process(tile);
 
-        var drop = tile.drop();
-        if(drop != null && ores != null){
-            int qx = tile.x / quadrantSize;
-            int qy = tile.y / quadrantSize;
+        Item drop = tile.drop(), wallDrop = tile.wallDrop();
+        if(drop == null && wallDrop == null) return;
+        int qx = tile.x / quadrantSize, qy = tile.y / quadrantSize;
+        int pos = tile.pos();
 
-            if(ores[drop.id] == null){
-                ores[drop.id] = new IntSeq[quadWidth][quadHeight];
+        if(tile.block() == Blocks.air){
+            if(drop != null){ //floor
+                if(ores[drop.id] == null) ores[drop.id] = new IntSeq[quadWidth][quadHeight];
+                if(ores[drop.id][qx][qy] == null) ores[drop.id][qx][qy] = new IntSeq(false, 16);
+                if(ores[drop.id][qx][qy].addUnique(pos)) allOres.increment(drop); //increment ore count only if not already counted
             }
-            if(ores[drop.id][qx][qy] == null){
-                ores[drop.id][qx][qy] = new IntSeq(false, 16);
+            if(wallDrop != null && wallOres != null && wallOres[wallDrop.id][qx][qy] != null && wallOres[wallDrop.id][qx][qy].removeValue(pos)){ //wall
+                allWallOres.increment(wallDrop, -1);
+            }
+        }else{
+            if(wallDrop != null){ //wall
+                if(wallOres[wallDrop.id] == null) wallOres[wallDrop.id] = new IntSeq[quadWidth][quadHeight];
+                if(wallOres[wallDrop.id][qx][qy] == null) wallOres[wallDrop.id][qx][qy] = new IntSeq(false, 16);
+                if(wallOres[wallDrop.id][qx][qy].addUnique(pos)) allWallOres.increment(wallDrop); //increment ore count only if not already counted
             }
 
-            int pos = tile.pos();
-            var seq = ores[drop.id][qx][qy];
-
-            //when the drop can be mined, record the ore position
-            if(tile.block() == Blocks.air && !seq.contains(pos)){
-                seq.add(pos);
-                allOres.increment(drop);
-            }else{
-                //otherwise, it likely became blocked, remove it (even if it wasn't there)
-                seq.removeValue(pos);
+            if(drop != null && ores != null && ores[drop.id][qx][qy] != null && ores[drop.id][qx][qy].removeValue(pos)){ //floor
                 allOres.increment(drop, -1);
             }
         }
@@ -191,6 +197,11 @@ public class BlockIndexer{
     /** @return whether this item is present on this map. */
     public boolean hasOre(Item item){
         return allOres.get(item) > 0;
+    }
+
+    /** @return whether this item is present on this map as a wall ore. */
+    public boolean hasWallOre(Item item){
+        return allWallOres.get(item) > 0;
     }
 
     /** Returns all damaged tiles by team. */
@@ -405,7 +416,7 @@ public class BlockIndexer{
         return closest;
     }
 
-    /** Find the closest ore block relative to a position. */
+    /** Find the closest ore floor relative to a position. */
     public Tile findClosestOre(float xp, float yp, Item item){
         if(ores[item.id] != null){
             float minDst = 0f;
@@ -430,6 +441,53 @@ public class BlockIndexer{
 
         return null;
     }
+
+    /** Find the closest ore wall relative to a position. */
+    public Tile findClosestWallOre(float xp, float yp, Item item){
+        if(wallOres[item.id] != null){
+            float minDst = 0f;
+            Tile closest = null;
+            for(int qx = 0; qx < quadWidth; qx++){
+                for(int qy = 0; qy < quadHeight; qy++){
+                    var arr = wallOres[item.id][qx][qy];
+                    if(arr != null && arr.size > 0){
+                        Tile tile = world.tile(arr.first());
+                        if(tile.block() != Blocks.air){
+                            float dst = Mathf.dst2(xp, yp, tile.worldx(), tile.worldy());
+                            if(closest == null || dst < minDst){
+                                closest = tile;
+                                minDst = dst;
+                            }
+                        }
+                    }
+                }
+            }
+            return closest;
+        }
+
+        return null;
+    }
+
+    /** Find the closest ore floor relative to a position. */
+    public Tile findClosestOre(Unit unit, Item item){
+        return findClosestOre(unit.x, unit.y, item);
+    }
+
+    /** Find the closest ore wall relative to a position. */
+    public Tile findClosestWallOre(Unit unit, Item item){
+        return findClosestWallOre(unit.x, unit.y, item);
+    }
+
+    /** I'm too lazy to make a proper method to find either wall or ore or both, so I'm doing this instead. */
+    public Tile findClosestMineableOre(Unit unit, Item item){
+        if (!unit.type.mineWalls) return findClosestOre(unit, item);
+        if (!unit.type.mineFloor) return findClosestWallOre(unit, item);
+        Tile f = findClosestOre(unit, item), w = findClosestWallOre(unit, item);
+        if (f == null) return w;
+        if (w == null) return f;
+        return f.dst2(unit) < w.dst2(unit) ? f : w;
+    }
+
 
 //    /** Find the closest ore block relative to a position. */ FINISHME: Implement
 //    public Tile findClosestOreButWithoutTurrets(float xp, float yp, Item item){
@@ -460,11 +518,6 @@ public class BlockIndexer{
 //
 //        return null;
 //    }
-
-    /** Find the closest ore block relative to a position. */
-    public Tile findClosestOre(Unit unit, Item item){
-        return findClosestOre(unit.x, unit.y, item);
-    }
 
     private void process(Tile tile){
         var team = tile.team();
