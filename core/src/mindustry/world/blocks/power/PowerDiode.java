@@ -48,7 +48,7 @@ public class PowerDiode extends Block{
     }
 
     /** Returns a set of int pairs, pairs are stored as minID, maxID. */
-    public static @Nullable Seq<int[]> connections(Team team) {
+    public static Seq<int[]> connections(Team team) {
         var out = new Seq<int[]>();
         // FINISHME: This is horrid
         team.data().buildings.each(b -> b instanceof PowerDiodeBuild && b.tile != null && b.front() != null && b.back() != null && b.back().block.hasPower && b.front().block.hasPower && b.back().team == b.front().team, b -> {

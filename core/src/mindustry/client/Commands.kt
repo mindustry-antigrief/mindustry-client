@@ -252,13 +252,16 @@ fun setup() {
     }
 
     register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
+        val start = Time.nanos()
         val diodeLinks = PowerDiode.connections(player.team()) // Must be run on the main thread
         val grids = Groups.powerGraph.array.select { it.graph().all.first().team == player.team() }.associate { it.graph().id to it.graph().all.copy() }
         val confirmed = args.any() && args[0] == "c" // Don't configure by default
         val inProgress = !configs.isEmpty()
         var n = 0
+        var confs = 0
         val newLinks = IntMap<IntSet>()
-        for ((grid, buildings) in grids) { // This is horrible but works somehow FINISHME: rewrite this to work in realtime so that its not cursed
+        val configCache = Seq<Point2>(Point2::class.java) // Stores the partial config for this node
+        for ((grid, buildings) in grids) { // This is horrible but *mostly* works somehow FINISHME: rewrite this to work in realtime so that its not cursed
             for (nodeBuild in buildings) {
                 val nodeBlock = nodeBuild.block as? PowerNode ?: continue
                 var links = nodeBuild.power.links.size
@@ -272,9 +275,14 @@ fun setup() {
                     if (l.add(grid) && t.add(link.power.graph.id)) {
                         l.addAll(t)
                         newLinks.put(link.power.graph.id, l)
-                        if (confirmed && !inProgress) configs.add(ConfigRequest(nodeBuild.tileX(), nodeBuild.tileY(), link.pos()))
+                        configCache.add(Point2(link.tileX() - nodeBuild.tileX(), link.tileY() - nodeBuild.tileY()))
                         n++
                     }
+                }
+                if (!configCache.isEmpty) {
+                    confs++
+                    if (confirmed && !inProgress) configs.add(ConfigRequest(nodeBuild, configCache.toArray()))
+                    configCache.clear()
                 }
             }
         }
@@ -282,17 +290,19 @@ fun setup() {
         val msg = ui.chatfrag.addMsg("")
 
         msg.message = when {
-            confirmed && inProgress -> Core.bundle.format("client.command.fixpower.inprogress", configs.size, n)
+            confirmed && inProgress -> Core.bundle.format("client.command.fixpower.inprogress", configs.size, n, confs)
             confirmed -> { // Actually fix the connections
                 configs.add { // This runs after the connections are made
-                    msg.message = Core.bundle.format("client.command.fixpower.success", n, Groups.powerGraph.array.select { it.graph().all.first().team == player.team() }.size)
+                    msg.message = Core.bundle.format("client.command.fixpower.success", n, Groups.powerGraph.array.select { it.graph().all.first().team == player.team() }.size, confs)
                     msg.format()
                 }
-                Core.bundle.format("client.command.fixpower.confirmed", n)
+                Core.bundle.format("client.command.fixpower.confirmed", n, confs)
             }
-            else -> Core.bundle.format("client.command.fixpower.confirm", n, grids.size)
+            else -> Core.bundle.format("client.command.fixpower.confirm", n, grids.size, confs)
         }
         msg.format()
+
+        Log.debug("Ran fixpower in @ms", Time.millisSinceNanos(start))
     }
 
     register("fixcode [c/r/l]", Core.bundle.get("client.command.fixcode.description")) { args, _ ->
