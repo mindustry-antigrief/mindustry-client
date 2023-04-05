@@ -30,6 +30,7 @@ import mindustry.world.blocks.distribution.*
 import mindustry.world.blocks.distribution.DirectionalUnloader.*
 import mindustry.world.blocks.logic.*
 import mindustry.world.blocks.power.*
+import mindustry.world.blocks.power.PowerNode.*
 import mindustry.world.blocks.sandbox.*
 import mindustry.world.blocks.storage.*
 import mindustry.world.blocks.storage.Unloader.*
@@ -263,7 +264,8 @@ fun setup() {
         val configCache = Seq<Point2>(Point2::class.java) // Stores the partial config for this node
         for ((grid, buildings) in grids) { // This is horrible but *mostly* works somehow FINISHME: rewrite this to work in realtime so that its not cursed
             for (nodeBuild in buildings) {
-                val nodeBlock = nodeBuild.block as? PowerNode ?: continue
+                if (nodeBuild !is PowerNodeBuild) continue
+                val nodeBlock = nodeBuild.block as PowerNode
                 var links = nodeBuild.power.links.size
                 nodeBlock.getPotentialLinks(nodeBuild.tile, player.team()) { link ->
                     val min = min(grid, link.power.graph.id)
@@ -281,7 +283,7 @@ fun setup() {
                 }
                 if (!configCache.isEmpty) {
                     confs++
-                    if (confirmed && !inProgress) configs.add(ConfigRequest(nodeBuild, configCache.toArray()))
+                    if (confirmed && !inProgress) configs.add(ConfigRequest(nodeBuild, nodeBuild.config(configCache).toArray()))
                     configCache.clear()
                 }
             }

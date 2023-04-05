@@ -425,8 +425,8 @@ public class PowerNode extends PowerBlock{
 
             if(this == other){ // Double tap
                 if(other.power.links.size == 0 || Core.input.shift()){ // Find and add possible links (shift to toggle modes)
-                    int[] total = {0};
-                    Point2[] links = new Point2[maxNodes];
+                    int[] total = {power.links.size};
+                    Point2[] links = config(true);
                     getPotentialLinks(tile, team, link -> {
                         if(!insulated(this, link) && total[0] < maxNodes){
                             links[total[0]++] = new Point2(link.tileX() - tile.x, link.tileY() - tile.y);
@@ -517,11 +517,22 @@ public class PowerNode extends PowerBlock{
 
         @Override
         public Point2[] config(){
-            Point2[] out = new Point2[power.links.size];
-            for(int i = 0; i < out.length; i++){
+            return config(false);
+        }
+
+        public Point2[] config(boolean expandArray){
+            Point2[] out = new Point2[expandArray ? maxNodes : power.links.size];
+            for(int i = 0; i < power.links.size; i++){
                 out[i] = Point2.unpack(power.links.get(i)).sub(tile.x, tile.y);
             }
             return out;
+        }
+
+        public Seq<Point2> config(Seq<Point2> seq){
+            for(int i = 0; i < power.links.size; i++){
+                seq.add(Point2.unpack(power.links.get(i)).sub(tile.x, tile.y));
+            }
+            return seq;
         }
     }
 }

@@ -17,7 +17,7 @@ import java.util.*;
 import static mindustry.Vars.*;
 
 public class CoreItemsDisplay extends Table{
-    private static int trackSteps = 6;
+    private static final int trackSteps = 6;
     public static boolean trackItems = Core.settings != null && Core.settings.getBool("trackcoreitems") && net != null && !net.server();
     private final Bits usedItems = new Bits();
     private CoreBuild core;
@@ -91,8 +91,8 @@ public class CoreItemsDisplay extends Table{
             return out + UI.formatAmount(Math.round((double)mag)) + (mag >= 1000f ? "[]" : "");
         }
         // 3 significant figures
-        int front = (int)Math.floor(Math.log10(mag) + 1); // round up even when the number ends on the integer
-        int dp = Mathf.clamp(3 - front, 0, 3);
+        int front = (int)Math.log10(mag) + 1; // round up even when the number ends on the integer
+        int dp = Mathf.clamp(3 - front, 0, 2);
         return out + Strings.fixed(mag, dp) + "[]";
     }
 
@@ -196,6 +196,7 @@ public class CoreItemsDisplay extends Table{
 
         public float getAverage(int steps, Item item){
             if(stepsRecorded <= trackSteps) return Float.NaN;
+//            steps = Math.min(steps, stepsRecorded);
             if(!trackItems){
                 steps = Math.min(steps, trackSteps);
                 float avg = 0;
