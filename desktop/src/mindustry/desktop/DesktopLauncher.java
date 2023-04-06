@@ -127,13 +127,6 @@ public class DesktopLauncher extends ClientLauncher{
         add(Main.INSTANCE);
 
         if(useSteam){
-            //delete leftover dlls
-            for(Fi other : new Fi(".").parent().list()){
-                if(other.name().contains("steam") && (other.extension().equals("dll") || other.extension().equals("so") || other.extension().equals("dylib"))){
-                    other.delete();
-                }
-            }
-
             Events.on(ClientLoadEvent.class, event -> {
                 if(steamError != null){
                     Core.app.post(() -> Core.app.post(() -> Core.app.post(() -> {
