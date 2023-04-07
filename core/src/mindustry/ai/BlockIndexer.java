@@ -160,7 +160,7 @@ public class BlockIndexer{
                 if(ores[drop.id][qx][qy] == null) ores[drop.id][qx][qy] = new IntSeq(false, 16);
                 if(ores[drop.id][qx][qy].addUnique(pos)) allOres.increment(drop); //increment ore count only if not already counted
             }
-            if(wallDrop != null && wallOres != null && wallOres[wallDrop.id][qx][qy] != null && wallOres[wallDrop.id][qx][qy].removeValue(pos)){ //wall
+            if(wallDrop != null && wallOres != null && wallOres[wallDrop.id] != null && wallOres[wallDrop.id][qx][qy] != null && wallOres[wallDrop.id][qx][qy].removeValue(pos)){ //wall
                 allWallOres.increment(wallDrop, -1);
             }
         }else{
@@ -170,7 +170,7 @@ public class BlockIndexer{
                 if(wallOres[wallDrop.id][qx][qy].addUnique(pos)) allWallOres.increment(wallDrop); //increment ore count only if not already counted
             }
 
-            if(drop != null && ores != null && ores[drop.id][qx][qy] != null && ores[drop.id][qx][qy].removeValue(pos)){ //floor
+            if(drop != null && ores != null && ores[drop.id] != null&& ores[drop.id][qx][qy] != null && ores[drop.id][qx][qy].removeValue(pos)){ //floor
                 allOres.increment(drop, -1);
             }
         }
