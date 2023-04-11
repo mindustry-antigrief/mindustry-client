@@ -1,9 +1,8 @@
-package mindustry.client
+package mindustry.client.claj
 
 import arc.*
 import arc.func.*
 import arc.net.*
-import arc.net.Client
 import arc.net.Server
 import arc.scene.*
 import arc.scene.ui.*
@@ -12,7 +11,7 @@ import arc.util.*
 import arc.util.serialization.*
 import arc.util.serialization.Json.*
 import mindustry.*
-import mindustry.client.ClajManagerDialog.*
+import mindustry.client.claj.ClajManagerDialog.*
 import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.game.EventType.*
@@ -25,7 +24,7 @@ import java.nio.*
 
 /** Implements the protocol defined in https://github.com/xzxADIxzx/Scheme-Size/blob/main/src/java/scheme/ClajIntegration.java */
 object ClajSupport {
-    val clients: Seq<Client> = Seq(0)
+    val clients: Seq<Client> = Seq(false, 0)
     private lateinit var dispatchListener: NetListener
     private var roomInt = 1
 
@@ -42,12 +41,10 @@ object ClajSupport {
     fun createRoom(ip: String, port: Int, room: Room?, code: String? = null): Client {
         val client = Client(8192, 8192, ClajSerializer())
         Threads.daemon("Claj Room ${roomInt++}", client)
-        var clientInt = 1
 
         client.addListener(dispatchListener)
         client.addListener(object : NetListener {
-
-            lateinit var key: String
+            var clientInt = 1
             override fun connected(connection: Connection?) {
                 if (code == null) client.sendTCP("new")
                 else client.sendTCP("generate $code")
@@ -65,7 +62,7 @@ object ClajSupport {
                         room.find<Label>("link").setText(room.link)
                     } else if (obj == "new") {
                         try {
-                            createRedirector(ip, port, key, roomInt, clientInt++)
+                            createRedirector(ip, port, room.link.substringBefore('#'), roomInt, clientInt++)
                         } catch (e: Exception) {
                             Log.err("Exception caught while creating redirector", e)
                         }
@@ -93,7 +90,7 @@ object ClajSupport {
             }
         })
 
-        client.connect(5000, ip, port, port )
+        client.connect(5000, ip, port, port)
         clients.add(client)
     }
 
@@ -103,11 +100,10 @@ object ClajSupport {
         Vars.net.reset()
 
         Vars.netClient.beginConnecting()
-        Log.info("Joining room")
+        Log.debug("Joining room")
         Vars.net.connect(ip, port) {
-            Log.info("Room joined")
+            Log.debug("Room joined")
             if (!Vars.net.client()) return@connect
-            Log.info("Success running")
             success.run()
 
             val buffer = ByteBuffer.allocate(8192)

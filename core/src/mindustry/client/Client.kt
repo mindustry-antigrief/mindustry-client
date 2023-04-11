@@ -10,6 +10,7 @@ import mindustry.Vars.*
 import mindustry.ai.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
+import mindustry.client.claj.*
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.getAllyTree

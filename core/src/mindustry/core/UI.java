@@ -21,7 +21,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.client.*;
+import mindustry.client.claj.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.*;
 import mindustry.client.utils.*;

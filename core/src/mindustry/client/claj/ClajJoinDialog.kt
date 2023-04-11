@@ -1,9 +1,9 @@
-package mindustry.client
+package mindustry.client.claj
 
 import arc.*
 import mindustry.*
-import mindustry.client.ClajSupport.joinRoom
-import mindustry.client.ClajSupport.parseLink
+import mindustry.client.claj.ClajSupport.joinRoom
+import mindustry.client.claj.ClajSupport.parseLink
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
 

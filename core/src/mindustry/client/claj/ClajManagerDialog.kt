@@ -1,4 +1,4 @@
-package mindustry.client
+package mindustry.client.claj
 
 import arc.*
 import arc.graphics.*
@@ -6,7 +6,7 @@ import arc.net.Client
 import arc.scene.ui.layout.*
 import arc.util.*
 import mindustry.*
-import mindustry.client.ClajSupport.createRoom
+import mindustry.client.claj.ClajSupport.createRoom
 import mindustry.gen.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
