@@ -110,7 +110,7 @@ object ClajSupport {
             buffer.put(ClajSerializer.linkID)
             TypeIO.writeString(buffer, "join$key")
 
-            buffer.limit(buffer.position()).position(0)
+            (buffer.limit(buffer.position()) as Buffer).position(0) // Hack to make this work on java 8
             Vars.net.send(buffer, true)
         }
     }
