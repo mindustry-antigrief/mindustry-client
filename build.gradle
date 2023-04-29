@@ -1,5 +1,8 @@
 import arc.struct.StringMap
 import arc.util.io.PropertiesUtils
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask
 
 buildscript{
     ext{
@@ -31,8 +34,8 @@ buildscript{
 }
 
 plugins{
-    id "org.jetbrains.kotlin.jvm" version "1.8.10"
-    id "org.jetbrains.kotlin.kapt" version "1.8.10" apply false
+    id "org.jetbrains.kotlin.jvm" version "1.8.20"
+    id "org.jetbrains.kotlin.kapt" version "1.8.20" apply false
 }
 
 allprojects{
@@ -208,25 +211,15 @@ allprojects{
             '--add-exports=java.base/sun.reflect.annotation=ALL-UNNAMED'
         ]
     }
-
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class).configureEach {
-        compilerOptions {
-            freeCompilerArgs.add("-Xbackend-threads=0")
-        }
-    }
-
-    compileKotlin {
-        kotlinOptions.useK2 = true
-    }
 }
 
 //compile with java 8 compatibility for everything except the annotation project
 configure(subprojects - project(":annotations")){
-    tasks.withType(JavaCompile){
+    tasks.withType(JavaCompile).configureEach {
         options.compilerArgs.addAll(['--release', '8'])
     }
 
-    tasks.withType(Javadoc){
+    tasks.withType(Javadoc).configureEach {
         options{
             addStringOption('Xdoclint:none', '-quiet')
             addStringOption('-release', '16')
@@ -327,13 +320,14 @@ project(":core"){
         }
     }
 
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-        kotlinOptions{
-            jvmTarget = '1.8'
+    tasks.withType(KotlinCompile).configureEach {
+        compilerOptions {
+            freeCompilerArgs.add("-Xjdk-release=1.8")
+            jvmTarget.set(JvmTarget.JVM_1_8)
         }
     }
 
-    tasks.withType(org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask.class).configureEach {
+    tasks.withType(KaptWithoutKotlincTask.class).configureEach {
         kaptProcessJvmArgs.addAll([
             '--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
             '--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
@@ -361,7 +355,7 @@ project(":core"){
         if(localArc && debugged()) api arcModule("extensions:recorder")
         if(localArc) api arcModule(":extensions:packer")
 
-        implementation "org.jetbrains.kotlin:kotlin-reflect:1.8.10"
+        implementation "org.jetbrains.kotlin:kotlin-reflect:1.8.20"
 //        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0" Unused, removed to reduce jar size
 
         compileOnly files("../bouncycastle/bcprov-jdk15on.jar")
@@ -420,7 +414,7 @@ project(":tests"){
 
     dependencies{
         testImplementation project(":core")
-        testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.8.10"
+        testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.8.20"
         testImplementation "org.junit.jupiter:junit-jupiter-params:5.7.1"
         testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.1"
         testImplementation arcModule("backends:backend-headless")

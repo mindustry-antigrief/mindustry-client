@@ -10,6 +10,7 @@ import mindustry.content.*
 import mindustry.entities.units.*
 import mindustry.game.*
 import mindustry.gen.*
+import mindustry.world.*
 import kotlin.collections.set
 import kotlin.random.*
 
@@ -19,42 +20,42 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
     override val MAX_LENGTH get() = 512
     override val RATE = 30f // up to twice a second
     private const val PREFIX = "end\nprint \"gwiogrwog\"\nprint \"%s\"\n"
-    private const val MAX_PRINT_LENGTH = 34
 
     private val lastGotten = mutableMapOf<Int, Int>()
-    private val corners get() = listOf(
-        Vars.world.tiles.get(0, 0),
-        Vars.world.tiles.get(0, Vars.world.height() - 1),
-        Vars.world.tiles.getc(Vars.world.width() - 1, 0),
-        Vars.world.tiles.getc(Vars.world.width() - 1, Vars.world.height() - 1)
-    )
+    private lateinit var corners: Array<Tile>
 
-    private fun findLocation() = corners.maxByOrNull { Vars.player.dst(it) }!!
+    private fun findLocation() = corners.maxByOrNull { Vars.player.dst2(it) }!!
 
     fun isNetworking(plan: BuildPlan) = plan.block == Blocks.microProcessor && plan.tile() in corners
 
     init {
         Events.on(EventType.WorldLoadEvent::class.java) {
             lastGotten.clear()
+            corners = arrayOf(
+                Vars.world.tiles.get(0, 0),
+                Vars.world.tiles.get(0, Vars.world.height() - 1),
+                Vars.world.tiles.getc(Vars.world.width() - 1, 0),
+                Vars.world.tiles.getc(Vars.world.width() - 1, Vars.world.height() - 1)
+            )
         }
 
         val re = ("\\A$PREFIX").replace("%s", "-?\\d+").replace("\n", "\\n").toRegex()
         Timer.schedule({
-            Core.app.post { // don't do async for thread safety
-                val start = Time.millis()
-                for (p in Groups.player) {
-                    val plan = p.unit()?.plans?.find { it.block == Blocks.microProcessor && (it.config as? String)?.run { re.containsMatchIn(this) } == true }
-                    if (plan == null || lastGotten[p.id] == plan.config?.hashCode()) continue
+            val start = Time.millis()
+            for (p in Groups.player) {
+                val plan = p.unit()?.plans?.find { it.block == Blocks.microProcessor && (it.config as? String)?.run { re.containsMatchIn(this) } == true }
+                if (plan == null || plan.config !is String) continue
+                val hash = plan.config.hashCode()
+                if (lastGotten[p.id] == hash) continue
 
-                    lastGotten[p.id] = plan.config.hashCode()
-                    val config = re.replace(plan.config as String, "").lines().joinToString("") { it.removeSurrounding("print \"", "\"") }
-                    val decoded = config.base32768()
-                    decoded ?: return@post
-                    listeners.forEach { it(decoded, p.id) }
-                }
-                val time = Time.timeSinceMillis(start) // FINISHME: How is 50 ms acceptable?
-                if (time > 50) Log.debug("Scanning players took $time ms, this is a problem")
+                lastGotten[p.id] = plan.config.hashCode()
+                val config = re.replace(plan.config as String, "").lines().joinToString("") { it.removeSurrounding("print \"", "\"") }
+                val decoded = config.base32768()
+                decoded ?: return@schedule
+                listeners.forEach { it(decoded, p.id) }
             }
+            val time = Time.timeSinceMillis(start) // FINISHME: How is 50 ms acceptable?
+            if (time > 50) Log.debug("Scanning players took $time ms, this is a problem")
         }, 0.2f, 0.2f)
     }
 
@@ -63,7 +64,8 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
             Toast(3f).add("[scarlet]Failed to send packet, build plan networking doesn't work if you can't build.")
             return
         }
-        val config = bytes.base32768().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = PREFIX.format(Random.nextLong())) { "print \"$it\"" } // FINISHME: Don't respect print max length, its client side
+//        val config = bytes.base32768().chunked(LAssembler.maxTokenLength - 2).joinToString("\n", prefix = PREFIX.format(Random.nextLong())) { "print \"$it\"" }
+        val config = "${PREFIX.format(Random.nextLong())} print \"${bytes.base32768()}\""
         val tile = findLocation()
         val plan = BuildPlan(tile.x.toInt(), tile.y.toInt(), 0, Blocks.microProcessor, config)
         // Stores build state. Toggles building off as otherwise it can fail.
@@ -72,12 +74,10 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
         ClientVars.isBuildingLock = true
         Vars.player.unit().updateBuilding = false
         Vars.player.unit().addBuild(plan, false)
-        Timer.schedule( {
-            Core.app.post { // make sure it doesn't do this while something else is iterating through the plans
-                Vars.player.unit().plans.remove(plan)
-                Vars.control.input.isBuilding = toggle
-                ClientVars.isBuildingLock = false
-            }
+        Timer.schedule({
+            Vars.player.unit().plans.remove(plan)
+            Vars.control.input.isBuilding = toggle
+            ClientVars.isBuildingLock = false
         }, 0.25f)
     }
 }
