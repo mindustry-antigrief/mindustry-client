@@ -163,7 +163,7 @@ class ClientLogic {
             
             if (settings.getBool("showidinjoinleave", false))
                 ui.chatfrag.addMsg(bundle.format("client.disconnected.withid", e.player.id.toString()))
-                    .addButton(e.player.id.toString()) { app.setClipboardText(e.player.id.toString()) }
+                    .addButton(e.player.id.toString()) { app.setClipboardText("!undo ${e.player.id.toString()}") }
         }
 
         Events.on(GameOverEventClient::class.java) {
