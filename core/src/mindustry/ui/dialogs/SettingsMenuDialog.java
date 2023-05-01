@@ -381,8 +381,9 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("junctionflowratedirection", false, s -> Junction.flowRateByDirection = s);
         client.checkPref("drawwrecks", true);
         client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
-        client.checkPref("drawdisplayborder", false);
         client.checkPref("drawpath", true);
+        client.checkPref("drawcursors", false);
+        client.checkPref("drawdisplayborder", false);
         client.checkPref("tracelogicunits", false);
         client.checkPref("enemyunitranges", false);
         client.checkPref("allyunitranges", false);

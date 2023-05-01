@@ -253,7 +253,6 @@ public class Vars implements Loadable{
     public static NetClient netClient;
 
     public static Player player;
-    public static boolean drawCursors, wasDrawingCursors; // Client debug magic FINISHME: Re-implement
 
     @Override
     public void loadAsync(){
@@ -319,7 +318,6 @@ public class Vars implements Loadable{
         fogControl = new FogControl();
         bases = new BaseRegistry();
         logicVars = new GlobalVars();
-        wasDrawingCursors = drawCursors = settings.getBool("drawcursors");
         javaPath =
             new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
             Core.files.local("jre/bin/java").exists() ? Core.files.local("jre/bin/java").absolutePath() : // Unix
