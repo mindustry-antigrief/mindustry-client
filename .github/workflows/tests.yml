@@ -20,7 +20,7 @@ jobs:
           distribution: temurin
 
       - name: Setup Gradle Caching
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v2.4.2
 
       - name: Set Env
         run: echo "SLUG=${GITHUB_SHA::7}" >> $GITHUB_ENV

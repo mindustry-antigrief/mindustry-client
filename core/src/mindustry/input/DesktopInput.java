@@ -1155,10 +1155,6 @@ public class DesktopInput extends InputHandler{
     }
 
     private boolean isBuildingIgnoreNetworking() {
-        if (player.unit().plans.size == 0) return false;
-        if (player.unit().plans.size == 1) {
-            return !BuildPlanCommunicationSystem.INSTANCE.isNetworking(player.unit().plans.first());
-        }
-        return true;
+        return player.unit().plans.size != 0 && !BuildPlanCommunicationSystem.INSTANCE.isNetworking(player.unit().plans.last());
     }
 }

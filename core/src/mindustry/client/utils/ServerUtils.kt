@@ -45,10 +45,10 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
                 val id = p.trace?.uuid ?: p.serverID
                 if (id != null){
                     ui.showConfirm("@confirm", "@client.rollback.title") {
-                        Call.sendChatMessage("/rollback $id");
-                        Time.run(6f) { // 100ms
+                        Call.sendChatMessage("/rollback $id")
+                        Timer.schedule({
                             Call.sendChatMessage("/rollback f")
-                        }
+                        }, .1F)
                     }
                 }
                 Call.sendChatMessage("/ban ${p.id} $reason")
