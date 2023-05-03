@@ -65,7 +65,7 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
             return
         }
 //        val config = bytes.base32768().chunked(LAssembler.maxTokenLength - 2).joinToString("\n", prefix = PREFIX.format(Random.nextLong())) { "print \"$it\"" }
-        val config = "${PREFIX.format(Random.nextLong())} print \"${bytes.base32768()}\""
+        val config = "${PREFIX.format(Random.nextLong())}print \"${bytes.base32768()}\""
         val tile = findLocation()
         val plan = BuildPlan(tile.x.toInt(), tile.y.toInt(), 0, Blocks.microProcessor, config)
         // Stores build state. Toggles building off as otherwise it can fail.

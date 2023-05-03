@@ -9,6 +9,7 @@ import mindustry.content.*
 import mindustry.entities.*
 import mindustry.game.*
 import mindustry.gen.*
+import mindustry.logic.*
 import mindustry.world.blocks.logic.*
 
 object BlockCommunicationSystem : CommunicationSystem() {
@@ -26,7 +27,6 @@ object BlockCommunicationSystem : CommunicationSystem() {
     }
     override val RATE: Float = 15f // 250ms
 
-    private const val MAX_PRINT_LENGTH = 34
     const val LOGIC_PREFIX = "end\nprint \"client networking, do not edit/remove\""
 
     init {
@@ -67,6 +67,7 @@ object BlockCommunicationSystem : CommunicationSystem() {
         val message = LogicBlock.decompress(event.value as? ByteArray ?: return)
         if (!message.startsWith(LOGIC_PREFIX)) return
         logicAvailable = true
+        if (message.length == LOGIC_PREFIX.length) return // This is just the prefix with nothing else
 
         val id = event.player.id
 
@@ -129,8 +130,8 @@ object BlockCommunicationSystem : CommunicationSystem() {
 
     private fun sendLogic(bytes: ByteArray): Boolean {
         val processor = findProcessor() ?: return false // No valid processor was found
-        val value = bytes.plus(12).base32768().chunked(MAX_PRINT_LENGTH).joinToString("\n", prefix = LOGIC_PREFIX + "\n") { "print \"$it\"" }.removeSuffix("\n")
-        Call.tileConfig(Vars.player, processor, LogicBlock.compress(value, Seq()))
+        val value = bytes.plus(12).base32768().chunked(LAssembler.maxTokenLength - 2).joinToString("\n", prefix = LOGIC_PREFIX + "\n") { "print \"$it\"" }.removeSuffix("\n")
+        Call.tileConfig(Vars.player, processor, LogicBlock.compress(value, Seq(0)))
         return true
     }
 
