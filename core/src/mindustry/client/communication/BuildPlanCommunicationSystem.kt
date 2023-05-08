@@ -18,7 +18,7 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
     override val id get() = Vars.player.id
     override val MAX_LENGTH get() = 512
-    override val RATE = 30f // up to twice a second
+    override val RATE = 30f // 500ms
     private const val PREFIX = "end\nprint \"gwiogrwog\"\nprint \"%s\"\n"
 
     private val lastGotten = mutableMapOf<Int, Int>()

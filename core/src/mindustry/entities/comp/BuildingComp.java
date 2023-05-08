@@ -1168,8 +1168,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     }
 
     public void drawDisabled(){
-        Draw.color(Color.scarlet);
-        Draw.alpha(0.8f);
+        Draw.color(Color.scarlet, 0.8f);
 
         float size = 6f;
         Draw.rect(Icon.cancel.getRegion(), x, y, size, size);

@@ -69,9 +69,10 @@ class CommandTransmission : Transmission {
 
     override var id: Long
 
+    @OptIn(ExperimentalStdlibApi::class)
     constructor(input: ByteArray, id: Long, @Suppress("UNUSED_PARAMETER") senderID: Int) {
         val buf = input.buffer()
-        type = Commands.values().getOrNull(buf.int)
+        type = Commands.entries.getOrNull(buf.int)
         signature = buf.bytes(Signatures.SIGNATURE_LENGTH)
         certSN = buf.bytes(buf.int)
         additionalInfo = buf.bytes(buf.int)

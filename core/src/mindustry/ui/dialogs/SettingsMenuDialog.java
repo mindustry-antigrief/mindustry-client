@@ -322,9 +322,9 @@ public class SettingsMenuDialog extends BaseDialog{
     }
 
     void addSettings(){
-        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> { Musics.load(); return i + "%"; });
-        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> { Sounds.load(); return i + "%"; });
-        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> { Sounds.load(); return i + "%"; });
+        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> { if(i != Core.settings.getInt("musicvol")) Musics.load(); return i + "%"; });
+        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> { if(i != Core.settings.getInt("sfxvol")) Sounds.load(); return i + "%"; });
+        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> { if(i != Core.settings.getInt("ambientvol")) Sounds.load(); return i + "%"; });
 
         // Client Settings, organized exactly the same as Bundle.properties: text first, sliders second, checked boxes third, unchecked boxes last
         client.category("antigrief");
@@ -387,7 +387,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("tracelogicunits", false);
         client.checkPref("enemyunitranges", false);
         client.checkPref("allyunitranges", false);
-        client.checkPref("graphdisplay", false);
+        client.checkPref("highlightselectedgraph", true);
+        client.checkPref("highlighthoveredgraph", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
@@ -649,7 +650,7 @@ public class SettingsMenuDialog extends BaseDialog{
         graphics.checkPref("hidedisplays", false);
 
         if(!mobile){
-            Core.settings.put("swapdiagonal", false);
+            if (Core.settings.getBool("swapdiagonal", false)) Core.settings.put("swapdiagonal", false);
         }
 
 
@@ -850,7 +851,18 @@ public class SettingsMenuDialog extends BaseDialog{
             rebuild();
         }
 
+        private long lastRebuild;
         public void rebuild(){
+            if (lastRebuild == -1) return; // Can't run more than twice per frame
+            if (lastRebuild == 0 || lastRebuild == Core.graphics.getFrameId()) { // First ever run and second run per frame
+                lastRebuild = -1;
+                Core.app.post(() -> {
+                    lastRebuild = -2; // Allows rebuild to run
+                    rebuild(); // This will set lastRebuild to the current frame
+                });
+                return;
+            }
+            lastRebuild = Core.graphics.getFrameId();
             boolean hasFocus = searchBar.hasKeyboard();
             clearChildren();
             // TODO inefficient. And rebuild() is also called every. single. setting.

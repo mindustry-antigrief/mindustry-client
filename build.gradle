@@ -3,6 +3,7 @@ import arc.util.io.PropertiesUtils
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 buildscript{
     ext{
@@ -324,6 +325,7 @@ project(":core"){
         compilerOptions {
             freeCompilerArgs.add("-Xjdk-release=1.8")
             jvmTarget.set(JvmTarget.JVM_1_8)
+            languageVersion = KotlinVersion.KOTLIN_1_9
         }
     }
 

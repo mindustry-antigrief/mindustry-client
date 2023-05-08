@@ -108,16 +108,16 @@ public class ModsDialog extends BaseDialog{
 
         // Client mod updater
         Events.on(EventType.ClientLoadEvent.class, event -> {
-            if (mods.mods.contains(LoadedMod::enabled) && Core.settings.getInt("modautoupdate") != 0 && (Time.timeSinceMillis(settings.getLong("lastmodupdate", (long) Time.toHours + 1L)) > Time.toHours)) {
+            long hour = 1000 * 60 * 60;
+            if (mods.mods.contains(LoadedMod::enabled) && Core.settings.getInt("modautoupdate") != 0 && (Time.timeSinceMillis(settings.getLong("lastmodupdate", hour + 1)) > hour)) {
                 autoUpdating = true;
-                Log.debug("Checking for mod updates");
+                Log.debug("Checking for mod updates @", Time.timeSinceMillis(settings.getLong("lastmodupdate", hour + 1)) / (60*1000f));
                 Core.settings.put("lastmodupdate", Time.millis());
                 var shuffled = mods.mods.copy();
                 shuffled.shuffle();
                 for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
                     if (!mod.enabled() || mod.getRepo() == null) continue;
-                    if (expected >= 30) continue; // Only make up to 30 api requests
-                    expected++;
+                    if (expected++ >= 30) continue; // Only make up to 30 api requests
 
                     githubImportMod(mod.getRepo(), mod.isJava(), null, mod.meta.version);
                 }

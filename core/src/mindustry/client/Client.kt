@@ -5,6 +5,7 @@ import arc.graphics.*
 import arc.graphics.g2d.*
 import arc.math.*
 import arc.math.geom.*
+import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.ai.*
@@ -30,7 +31,7 @@ import java.security.*
 
 object Client {
     var leaves: Moderation? = Moderation()
-    val tiles = mutableListOf<Tile>()
+    val tiles = Seq<Tile>(false)
     val timer = Interval(4)
     val autoTransfer by lazy { AutoTransfer() } // FINISHME: Awful
 //    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
@@ -102,7 +103,7 @@ object Client {
         } else if (spawnTime != 0f && travelTime != 0f && spawner.spawns.size < 50 && timer.get(0, travelTime)) {
             if (timer.get(1, spawnTime)) tiles.addAll(spawner.spawns)
             for (i in 0 until tiles.size) {
-                val t = tiles.removeFirst()
+                val t = tiles.remove(0)
                 val target = pathfinder.getTargetTile(t, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
                 if (target != t) tiles.add(target)
                 Fx.healBlock.at(t.worldx(), t.worldy(), 1f, state.rules.waveTeam.color)
