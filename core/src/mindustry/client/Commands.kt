@@ -39,6 +39,7 @@ import java.math.*
 import java.security.cert.*
 import java.time.*
 import java.time.temporal.*
+import java.util.regex.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -521,7 +522,11 @@ fun setup() {
                     player.sendMessage(Core.bundle.get("client.command.procfind.query.empty"))
                     return@register
                 }
-                ProcessorFinder.search(args[1].toRegex())
+                try {
+                    ProcessorFinder.search(args[1].toRegex())
+                } catch(e:PatternSyntaxException){
+                    player.sendMessage(Core.bundle.format("client.command.procfind.query.invalid", args[1]));
+                }
             }
             "queries" -> {
                 val sb = StringBuilder(Core.bundle.get("client.command.procfind.queries")).append("\n")
