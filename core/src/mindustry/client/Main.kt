@@ -155,6 +155,10 @@ object Main : ApplicationListener {
                     msg.attachments.add(Image(Texture(transmission.image)))
 //                    transmission.image.dispose() FINISHME: The pixmap and texture really need to be disposed to prevent native memory leakage
                 }
+
+                is SchematicTransmission -> {
+                    transmission.addToChat()
+                }
             }
         }
     }

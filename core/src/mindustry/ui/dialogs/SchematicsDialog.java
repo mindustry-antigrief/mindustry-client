@@ -15,6 +15,10 @@ import arc.scene.ui.layout.*;
 import arc.scene.utils.*;
 import arc.struct.*;
 import arc.util.*;
+import kotlin.Unit;
+import mindustry.client.Main;
+import mindustry.client.communication.SchematicTransmission;
+import mindustry.client.navigation.clientThread;
 import mindustry.ctype.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -328,6 +332,19 @@ public class SchematicsDialog extends BaseDialog{
                 t.button("@schematic.exportfile", Icon.export, style, () -> {
                     dialog.hide();
                     platform.export(s.name(), schematicExtension, file -> Schematics.write(s, file));
+                }).marginLeft(12f);
+                t.row();
+                t.button("@schematic.chatshare", Icon.bookOpen, style, () -> {
+                    if (!state.isPlaying()) return;
+                    dialog.hide();
+                    clientThread.post(() -> {
+                        Main.INSTANCE.send(new SchematicTransmission(s), () -> {
+                            Core.app.post(() -> {
+                                ui.showInfoToast(Core.bundle.get("client.finisheduploading"), 2f);
+                            });
+                            return Unit.INSTANCE;
+                        });
+                    });
                 }).marginLeft(12f);
             });
         });
