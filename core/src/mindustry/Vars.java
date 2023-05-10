@@ -443,7 +443,12 @@ public class Vars implements Loadable{
         });
         if(Core.settings.getBool("debug") || OS.hasProp("debug")) Log.level = Log.LogLevel.debug;
 
-        Scl.setProduct(settings.getInt("uiscale", 100) / 100f);
+        //https://github.com/Anuken/Mindustry/issues/8483
+        if(settings.getInt("uiscale") == 5){
+            settings.put("uiscale", 100);
+        }
+
+        Scl.setProduct(Math.max(settings.getInt("uiscale", 100), 25) / 100f);
 
         if(!loadLocales) return;
 

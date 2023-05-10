@@ -454,9 +454,9 @@ public class ChatFragment extends Table{
             }
             return;
         }
-        
 
-        
+
+
     }
 
     public void toggle(){
@@ -558,7 +558,6 @@ public class ChatFragment extends Table{
         }
 
         doFade(6); // fadetime was originally incremented by 2f, that works out to 6s
-
         if(scrollPos > 0) scrollPos++;
         return msg;
     }
