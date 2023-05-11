@@ -454,9 +454,9 @@ public class ChatFragment extends Table{
             }
             return;
         }
-        
 
-        
+
+
     }
 
     public void toggle(){
@@ -558,7 +558,6 @@ public class ChatFragment extends Table{
         }
 
         doFade(6); // fadetime was originally incremented by 2f, that works out to 6s
-
         if(scrollPos > 0) scrollPos++;
         return msg;
     }
@@ -649,7 +648,8 @@ public class ChatFragment extends Table{
             if(sender == null){ //no sender, this is a server message?
                 formattedMessage = prefix + (message == null ? "" : message);
             } else {
-                formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
+                if (Server.darkdustry.b()) formattedMessage = prefix + message; // Hack to allow darkdustry translation as they don't change sender
+                else formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
             }
             int shift = formattedMessage.length() - initial;
             if (moveButtons && buttons != null) {

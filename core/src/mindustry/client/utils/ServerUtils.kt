@@ -45,7 +45,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
                 val id = p.trace?.uuid ?: p.serverID
                 if (id != null){
                     ui.showConfirm("@confirm", "@client.rollback.title") {
-                        Call.sendChatMessage("/rollback $id")
+                        Call.sendChatMessage("/rollback $id 5")
                         Timer.schedule({
                             Call.sendChatMessage("/rollback f")
                         }, .1F)
@@ -111,7 +111,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         }
     }
 
-    @JvmName("b") operator fun invoke() = current == this
+    @JvmName("b") operator fun invoke() = current === this
 
     /** Converts a player object into a string for use in commands */
     open fun playerString(p: Player) = p.id.toString()
@@ -250,7 +250,7 @@ enum class CustomMode {
         }
     }
 
-    @JvmName("b") operator fun invoke() = CustomMode.current == this
+    @JvmName("b") operator fun invoke() = CustomMode.current === this
 
     /** Called when this gamemode is detected */
     protected open fun enable() {

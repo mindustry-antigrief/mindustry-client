@@ -347,7 +347,7 @@ public class HudFragment{
                         if (Core.settings.getBool("broadcastcoreattack")) {
                             ClientUtils.sendMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
                         } else {
-                            ui.chatfrag.addMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
+                            NetClient.findCoords(ui.chatfrag.addMsg(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y)));
                         }
                     }
                     lastWarn = Time.millis(); // Reset timer so that it sends 30s after the last core damage rather than every 30s FINISHME: Better way to do this?
@@ -868,7 +868,7 @@ public class HudFragment{
                     if(!obj.qualified()) continue;
 
                     String text = obj.text();
-                    if(text != null){
+                    if(text != null && !text.isEmpty()){
                         if(!first) builder.append("\n[white]");
                         builder.append(text);
 
@@ -876,7 +876,10 @@ public class HudFragment{
                     }
                 }
 
-                return builder;
+                //TODO: display standard status when empty objective?
+                if(builder.length() > 0){
+                    return builder;
+                }
             }
 
             if(!state.rules.waves && state.rules.attackMode){

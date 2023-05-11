@@ -332,7 +332,7 @@ public class Net{
      * If the port is the default mindustry port, SRV records are checked too.
      */
     public void pingHost(String address, int port, Cons<Host> valid, Cons<Exception> failed){
-        if(pingExecutor == null) pingExecutor = Threads.cachedExecutor("Server Pings", Core.settings.getInt("pingExecutorThreads", OS.isWindows && !OS.is64Bit ? 5 : 64));
+        if(pingExecutor == null) pingExecutor = Threads.cachedExecutor("Server Pings", Core.settings.getInt("pingexecutorthreads", OS.isWindows && !OS.is64Bit ? 5 : 64));
         pingExecutor.submit(() -> provider.pingHost(address, port, valid, failed));
     }
 

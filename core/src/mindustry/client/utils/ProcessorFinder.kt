@@ -58,8 +58,8 @@ object ProcessorFinder {
             }
     
             Core.app.post {
-                if (matchCount == 0) player.sendMessage(Core.bundle.get("client.procesorpatcher.nomatches"))
-                else ui.chatfrag.addMsg(Core.bundle.format("client.procesorpatcher.foundmatches", matchCount, processorCount))
+                if (matchCount == 0) player.sendMessage(Core.bundle.get("client.processorpatcher.nomatches"))
+                else ui.chatfrag.addMsg(Core.bundle.format("client.processorpatcher.foundmatches", matchCount, processorCount))
             }
         }
     }

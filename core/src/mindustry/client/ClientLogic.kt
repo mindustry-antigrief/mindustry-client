@@ -44,6 +44,10 @@ class ClientLogic {
 
             Timer.schedule({
                 app.post {
+                    when (val vote = settings.getInt("automapvote")) {
+                        1, 2, 3 -> Server.current.mapVote(vote - 1)
+                        4 -> Server.current.mapVote(Random.nextInt(0..2))
+                    }
                     val arg = switchTo?.removeFirstOrNull()
                     if (arg != null) {
                         if (arg is Host) {
@@ -55,11 +59,6 @@ class ClientLogic {
                         // Game join text after hh
                         if (settings.getString("gamejointext")?.isNotBlank() == true) {
                             Call.sendChatMessage(settings.getString("gamejointext"))
-                        }
-
-                        when (val vote = settings.getInt("automapvote")) {
-                            1, 2, 3 -> Server.current.mapVote(vote - 1)
-                            4 -> Server.current.mapVote(Random.nextInt(0..2))
                         }
                     }
                 }
@@ -154,7 +153,7 @@ class ClientLogic {
             
             if (settings.getBool("showidinjoinleave", false))
                 ui.chatfrag.addMsg(bundle.format("client.disconnected.withid", e.player.id.toString()))
-                    .addButton(e.player.id.toString()) { app.setClipboardText("!undo ${e.player.id.toString()}") }
+                    .addButton(e.player.id.toString()) { app.setClipboardText("!undo ${e.player.id}") }
         }
 
         Events.on(GameOverEventClient::class.java) {
@@ -286,6 +285,14 @@ class ClientLogic {
         if (settings.getBool("drawhitboxes") && settings.getInt("hitboxopacity") == 0) { // Old setting was enabled and new opacity hasn't been set yet
             settings.put("hitboxopacity", 30)
             UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f
+        }
+    }
+
+    @Suppress("unused")
+    private fun migration2() {
+        if (settings.has("pingExecutorThreads")) {
+            settings.put("pingexecutorthreads", settings.getInt("pingExecutorThreads"))
+            settings.remove("pingExecutorThreads")
         }
     }
 }
