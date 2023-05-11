@@ -49,7 +49,7 @@ allprojects{
         if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
         if(!project.hasProperty("assetRef")) assetRef = 'v7'
         if(!project.hasProperty("versionModifier")) versionModifier = 'release'
-        if(!project.hasProperty("buildversion")) buildversion = '143.1'
+        if(!project.hasProperty("buildversion")) buildversion = '144'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
@@ -66,16 +66,6 @@ allprojects{
 
         localArc = {
             return !project.hasProperty("release") && !project.hasProperty("noLocalArc") && new File(projectDir.parent, '../Arc').exists()
-        }
-
-        arcModule = { String name ->
-            if(localArc()){
-                return project(":Arc:$name")
-            }else{
-                //skip to last submodule
-                if(name.contains(':')) name = name.split(':').last()
-                return "com.github.Anuken.Arc:$name:${getArcHash()}"
-            }
         }
 
         generateDeployName = { String platform ->
