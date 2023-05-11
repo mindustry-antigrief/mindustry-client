@@ -90,8 +90,13 @@ public class BlockRenderer{
 
                 var tileFloor = tile.floor();
                 var tileBuild = tile.build;
+                var tileOverlay = tile.overlay();
                 if(tileFloor.updateRender(tile)){
                     updateFloors.add(new UpdateRenderState(tile, tileFloor));
+                }
+
+                if(tileOverlay.updateRender(tile)){
+                    updateFloors.add(new UpdateRenderState(tile, tileOverlay));
                 }
 
                 if(tileBuild != null && (tile.team() == playerTeam || noFog || (tileBuild.visibleFlags & playerTeamFlag) != 0)){

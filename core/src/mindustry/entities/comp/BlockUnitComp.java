@@ -75,7 +75,7 @@ abstract class BlockUnitComp implements Unitc{
         if(tile != null && this.team != team){
             this.team = team;
             if(tile.team != team){
-                tile.team(team);
+                tile.changeTeam(team);
             }
         }
     }

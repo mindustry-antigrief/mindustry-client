@@ -482,12 +482,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot rotate a block.");
         }
 
-        int newRotation = Mathf.mod(build.rotation + Mathf.sign(direction), 4);
-        Events.fire(new BlockRotateEvent(player, build, direction, build.rotation, newRotation));
-        build.rotation = newRotation;
+        if(player != null) build.lastAccessed = player.name;
+        int previous = build.rotation;
+        build.rotation = Mathf.mod(build.rotation + Mathf.sign(direction), 4);
         build.updateProximity();
         build.noSleep();
         Fx.rotateBlock.at(build.x, build.y, build.block.size);
+        Events.fire(new BuildRotateEvent(build, player.unit(), previous));
     }
 
     @Remote(targets = Loc.both, called = Loc.both, forward = true)
@@ -1165,7 +1166,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         float y = (result.y2 + result.y) / 2;
         Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
     }
-    
+
     protected void drawFreezeSelection(int x1, int y1, int x2, int y2, int maxLength){
         NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
 
@@ -1238,6 +1239,21 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Fill.crect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
     }
 
+    protected void drawRebuildSelection(int x, int y, int x2, int y2){
+        drawSelection(x, y, x2, y2, 0, Pal.sapBulletBack, Pal.sapBullet);
+
+        NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x, y, x2, y2, false, 0, 1f);
+
+        Tmp.r1.set(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+
+        for(BlockPlan plan : player.team().data().plans){
+            Block block = content.block(plan.block);
+            if(block.bounds(plan.x, plan.y, Tmp.r2).overlaps(Tmp.r1)){
+                drawSelected(plan.x, plan.y, content.block(plan.block), Pal.sapBullet);
+            }
+        }
+    }
+
     protected void drawBreakSelection(int x1, int y1, int x2, int y2){
         drawBreakSelection(x1, y1, x2, y2, maxLength);
     }
@@ -1271,15 +1287,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     private final Seq<Tile> tempTiles = new Seq<>(4);
-    
+
     protected void flushPlansReverse(Seq<BuildPlan> plans){ // FINISHME: Does this method work as intended?
         flushPlans(plans.copy().reverse());
     }
-    
+
     public void flushPlans(Seq<BuildPlan> plans) {
         flushPlans(plans, false, false, false);
     }
-    
+
     public void flushPlans(Seq<BuildPlan> plans, boolean freeze, boolean force, boolean removeFrozen){
         var configLogic = Core.settings.getBool("processorconfigs");
         var temp = new BuildPlan[plans.size + plans.count(plan -> plan.block == Blocks.waterExtractor) * 3]; // Cursed but works good enough for me
@@ -1287,7 +1303,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         IntSet toBreak = force ? new IntSet() : null;
         for(BuildPlan plan : plans){
             if (plan.block == null) continue;
-    
+
             if (removeFrozen) {
                 Iterator<BuildPlan> it = frozenPlans.iterator();
                 while(it.hasNext()){
@@ -1297,12 +1313,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     }
                 }
             }
-            
+
             if (plan.breaking) {
                 tryBreakBlock(plan.x, plan.y, freeze);
                 continue;
             }
-    
+
             var tempTiles = Block.tempTiles;
             //FINISHME this code is kinda bad
             if (plan.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed.
@@ -1329,7 +1345,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     continue; // Swapped reinforced message for message, don't place it
                 }
             }
-    
+
             boolean valid = validPlace(plan.x, plan.y, plan.block, plan.rotation);
             if(freeze || (force && world.tile(plan.x, plan.y) != null) || valid){
                 BuildPlan copy = plan.copy();
@@ -1455,7 +1471,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 it.remove();
             }
         }
-        
+
         if (isFreezeQueueing) {
             it = frozenPlans.iterator();
             while (it.hasNext()) {
@@ -1483,12 +1499,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             Call.deletePlans(player, removed.toArray());
         }
     }
-    
+
     /** Remove plans in a selection */
     protected void removeSelectionPlans(int x1, int y1, int x2, int y2, int maxLength) {
         NormalizeResult result = Placement.normalizeArea(x1, y1, x2, y2, rotation, false, maxLength);
         Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
-    
+
         Iterator<BuildPlan> it = player.unit().plans().iterator();
         while(it.hasNext()){
             BuildPlan plan = it.next();
@@ -1496,7 +1512,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 it.remove();
             }
         }
-    
+
         it = selectPlans.iterator();
         while(it.hasNext()){
             BuildPlan plan = it.next();
@@ -1504,7 +1520,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 it.remove();
             }
         }
-    
+
         if (isFreezeQueueing) {
             it = frozenPlans.iterator();
             while (it.hasNext()) {
@@ -1737,6 +1753,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return World.toTile(vec.y);
     }
 
+    /** Forces the camera to a position and enables panning on desktop. */
+    public void panCamera(Vec2 position){
+        if(!locked()){
+            camera.position.set(position);
+        }
+    }
+
     public boolean selectedBlock(){
         return isPlacing();
     }
@@ -1908,10 +1931,24 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    public void tryBreakBlock(int x, int y) {
+    public void rebuildArea(int x, int y, int x2, int y2){
+        NormalizeResult result = Placement.normalizeArea(x, y, x2, y2, rotation, false, 999999999);
+        Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
+
+        Iterator<BlockPlan> broken = player.team().data().plans.iterator();
+        while(broken.hasNext()){
+            BlockPlan plan = broken.next();
+            Block block = content.block(plan.block);
+            if(block.bounds(plan.x, plan.y, Tmp.r2).overlaps(Tmp.r1)){
+                player.unit().addBuild(new BuildPlan(plan.x, plan.y, plan.rotation, content.block(plan.block), plan.config));
+            }
+        }
+    }
+
+    public void tryBreakBlock(int x, int y){
         tryBreakBlock(x, y, false);
     }
-    
+
     public void tryBreakBlock(int x, int y, boolean freeze){
         if(validBreak(x, y)){
             breakBlock(x, y, freeze);

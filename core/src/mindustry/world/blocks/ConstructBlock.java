@@ -28,6 +28,7 @@ import mindustry.graphics.*;
 import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.blocks.storage.*;
@@ -104,7 +105,15 @@ public class ConstructBlock extends Block{
             Events.fire(new BlockBreakEvent(tile, team, builder, tile.block(), tile.build == null ? null : tile.build.config(), rotation));
         }
 
-        tile.setBlock(block, team, rotation);
+        if(block instanceof OverlayFloor overlay){
+            tile.setOverlay(overlay);
+            tile.setBlock(Blocks.air);
+        }else if(block instanceof Floor floor){
+            tile.setFloorUnder(floor);
+            tile.setBlock(Blocks.air);
+        }else{
+            tile.setBlock(block, team, rotation);
+        }
 
         if(tile.build != null){
             tile.build.health = block.health * healthf;
@@ -112,7 +121,7 @@ public class ConstructBlock extends Block{
             if(config != null){
                 tile.build.configured(builder, config);
             }else if(player != null){ // Foo's addition that allows for local configuration of blocks
-                control.input.playerPlanTree.intersect(tile.getBounds(Tmp.r1), Build.planSeq); // FINISHME: Ensure this works
+                control.input.playerPlanTree.intersect(tile.getBounds(Tmp.r1), Build.planSeq);
                 var plan = Build.planSeq.find(p -> p.x == tile.x && p.y == tile.y && p.block == block && p.configLocal);
                 if (plan != null) ClientVars.configs.add(new ConfigRequest(tile.build, plan.config)); // Found a matching plan, configure the building to match the plan
                 Build.planSeq.clear();
@@ -349,14 +358,14 @@ public class ConstructBlock extends Block{
             maxProgress = core == null || team.rules().infiniteResources ? maxProgress : checkRequired(core.items, maxProgress, true);
 
             progress = state.rules.infiniteResources ? 1 : Mathf.clamp(progress + maxProgress);
-    
+
             // Warnings
             Player targetPlayer = ClientUtils.getPlayer(lastBuilder);
             if (targetPlayer != null) {
                 WarnBlock wb = getWarnBlock();
                 if (wb != null && wb.block == Blocks.thoriumReactor) Seer.INSTANCE.thoriumReactor(targetPlayer, tile.dst(targetPlayer));
             }
-            
+
             handleBlockWarning(config);
 
             if(progress >= 1f || state.rules.infiniteResources){

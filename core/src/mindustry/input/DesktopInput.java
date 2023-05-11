@@ -31,17 +31,13 @@ import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
-import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.input.Placement.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 import mindustry.world.*;
 import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
-
-import java.util.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -186,19 +182,7 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(Binding.schematic_select)){
                 drawSelection(schemX, schemY, cursorX, cursorY, Vars.maxSchematicSize);
             }else if(Core.input.keyDown(Binding.rebuild_select)){
-                //TODO color?
-                drawSelection(schemX, schemY, cursorX, cursorY, 0, Pal.sapBulletBack, Pal.sapBullet);
-
-                NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, schemX, schemY, cursorX, cursorY, false, 0, 1f);
-
-                Tmp.r1.set(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
-
-                for(BlockPlan plan : player.team().data().plans){
-                    Block block = content.block(plan.block);
-                    if(block.bounds(plan.x, plan.y, Tmp.r2).overlaps(Tmp.r1)){
-                        drawSelected(plan.x, plan.y, content.block(plan.block), Pal.sapBullet);
-                    }
-                }
+                drawRebuildSelection(schemX, schemY, cursorX, cursorY);
             }
         }
 
@@ -824,7 +808,7 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if( !Core.scene.hasKeyboard() && selectX == -1 && selectY == -1 && schemX != -1 && schemY != -1){
+        if(!Core.scene.hasKeyboard() && selectX == -1 && selectY == -1 && schemX != -1 && schemY != -1){
             if(Core.input.keyRelease(Binding.schematic_select)){
                 lastSchematic = schematics.create(schemX, schemY, rawCursorX, rawCursorY);
                 useSchematic(lastSchematic);
@@ -834,20 +818,8 @@ public class DesktopInput extends InputHandler{
                 schemX = -1;
                 schemY = -1;
             }else if(input.keyRelease(Binding.rebuild_select)){
-                //TODO rebuild!!!
 
-                NormalizeResult result = Placement.normalizeArea(schemX, schemY, rawCursorX, rawCursorY, rotation, false, 999999999);
-                Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
-
-                Iterator<BlockPlan> broken = player.team().data().plans.iterator();
-                while(broken.hasNext()){
-                    BlockPlan plan = broken.next();
-                    Block block = content.block(plan.block);
-                    if(block.bounds(plan.x, plan.y, Tmp.r2).overlaps(Tmp.r1)){
-                        player.unit().addBuild(new BuildPlan(plan.x, plan.y, plan.rotation, block, plan.config));
-                    }
-                }
-
+                rebuildArea(schemX, schemY, rawCursorX, rawCursorY);
                 schemX = -1;
                 schemY = -1;
             }
@@ -885,7 +857,7 @@ public class DesktopInput extends InputHandler{
             else {
                 isBuilding = !isBuilding;
                 buildWasAutoPaused = false;
-    
+
                 if(isBuilding){
                     player.shooting = false;
                 }
@@ -998,7 +970,7 @@ public class DesktopInput extends InputHandler{
                 Events.fire(new LineConfirmEvent());
             }else if(mode == breaking){ //touch up while breaking, break everything in selection
                 removeSelection(selectX, selectY, cursorX, cursorY, false, /*!Core.input.keyDown(Binding.schematic_select) ? maxLength :*/ Vars.maxSchematicSize, isFreezeQueueing);
-                
+
                 if(lastSchematic != null){
                     useSchematic(lastSchematic);
                     lastSchematic = null;
@@ -1095,6 +1067,14 @@ public class DesktopInput extends InputHandler{
             block = null;
             splan = null;
             selectPlans.clear();
+        }
+    }
+
+    @Override
+    public void panCamera(Vec2 position){ // FINISHME: Does this work? Haven't tested
+        if(!locked()){
+            panning = true;
+            camera.position.set(position);
         }
     }
 

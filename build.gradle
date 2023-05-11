@@ -64,6 +64,20 @@ allprojects{
             return new File(projectDir.parent, '../Mindustry-Debug').exists() && !project.hasProperty("release") && project.hasProperty("args")
         }
 
+        localArc = {
+            return !project.hasProperty("release") && !project.hasProperty("noLocalArc") && new File(projectDir.parent, '../Arc').exists()
+        }
+
+        arcModule = { String name ->
+            if(localArc()){
+                return project(":Arc:$name")
+            }else{
+                //skip to last submodule
+                if(name.contains(':')) name = name.split(':').last()
+                return "com.github.Anuken.Arc:$name:${getArcHash()}"
+            }
+        }
+
         generateDeployName = { String platform ->
             if(platform == "windows"){
                 platform += "64"

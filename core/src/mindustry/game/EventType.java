@@ -279,14 +279,14 @@ public class EventType{
         }
     }
 
-    /** Called when a player configures any building. */
+    /** Called when a specific building has its configuration changed. */
     public static class ConfigEvent{
         public final Building tile;
-        public final Player player;
+        public final @Nullable Player player;
         public final Object value;
         public final Object previous;
 
-        public ConfigEvent(Building tile, Player player, Object value, Object previous){
+        public ConfigEvent(Building tile, @Nullable Player player, Object value, Object previous){
             this.tile = tile;
             this.player = player;
             this.value = value;
@@ -297,10 +297,10 @@ public class EventType{
     /** Called just before a player configures any building. */
     public static class ConfigEventBefore{
         public final Building tile;
-        public final Player player;
+        public final @Nullable Player player;
         public final Object value;
 
-        public ConfigEventBefore(Building tile, Player player, Object value){
+        public ConfigEventBefore(Building tile, @Nullable Player player, Object value){
             this.tile = tile;
             this.player = player;
             this.value = value;
@@ -615,6 +615,18 @@ public class EventType{
             this.direction = direction;
             this.oldRotation = oldRotation;
             this.newRotation = newRotation;
+        }
+    }
+
+    public static class BuildRotateEvent{
+        public final Building build;
+        public final @Nullable Unit unit;
+        public final int previous;
+
+        public BuildRotateEvent(Building build, @Nullable Unit unit, int previous){
+            this.build = build;
+            this.unit = unit;
+            this.previous = previous;
         }
     }
 
