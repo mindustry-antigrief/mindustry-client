@@ -45,10 +45,10 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
                 val id = p.trace?.uuid ?: p.serverID
                 if (id != null){
                     ui.showConfirm("@confirm", "@client.rollback.title") {
-                        Call.sendChatMessage("/rollback $id");
-                        Time.run(6f) { // 100ms
+                        Call.sendChatMessage("/rollback $id 5")
+                        Timer.schedule({
                             Call.sendChatMessage("/rollback f")
-                        }
+                        }, .1F)
                     }
                 }
                 Call.sendChatMessage("/ban ${p.id} $reason")
@@ -89,12 +89,13 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         @JvmField var current = other
 //        val ghostList by lazy { Core.settings.getJson("ghostmodeservers", Seq::class.java, String::class.java) { Seq<String>() } as Seq<String> }
 
+        @OptIn(ExperimentalStdlibApi::class)
         @JvmStatic
         fun onServerJoin() { // Called once on server join before WorldLoadEvent (and by extension ServerJoinEvent), the player will not be added here hence the need for ServerJoinEvent
             val grouped = ui.join.communityHosts.groupBy({ it.group }) { it.address }
             val address = ui.join.lastHost?.address ?: ""
             if (ui.join.lastHost?.name?.contains("nydus") == true) current = nydus
-            else values().forEach {
+            else entries.forEach {
                 if (it.groupName != null && grouped[it.groupName]?.contains(address) == true) {
                     current = it
                     return@forEach
@@ -110,7 +111,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         }
     }
 
-    @JvmName("b") operator fun invoke() = current == this
+    @JvmName("b") operator fun invoke() = current === this
 
     /** Converts a player object into a string for use in commands */
     open fun playerString(p: Player) = p.id.toString()
@@ -213,6 +214,7 @@ enum class CustomMode {
     },
     defense;
 
+    @OptIn(ExperimentalStdlibApi::class)
     companion object {
         @JvmStatic var current by Delegates.observable(none) { _, oldValue, newValue ->
             if (oldValue == newValue) return@observable // This can happen.
@@ -224,7 +226,7 @@ enum class CustomMode {
         init {
             Events.on(WorldLoadEvent::class.java) {
                 val modeName = if (!net.client() || ui.join.lastHost?.modeName?.isBlank() != false) state.rules.modeName?.lowercase() else ui.join.lastHost.modeName.lowercase()
-                current = values().find { it.name == modeName } ?: none
+                current = entries.find { it.name == modeName } ?: none
             }
 
             Events.on(MenuReturnEvent::class.java) {
@@ -248,7 +250,7 @@ enum class CustomMode {
         }
     }
 
-    @JvmName("b") operator fun invoke() = CustomMode.current == this
+    @JvmName("b") operator fun invoke() = CustomMode.current === this
 
     /** Called when this gamemode is detected */
     protected open fun enable() {
@@ -263,27 +265,25 @@ enum class CustomMode {
     }
 }
 
-private val foreshadowBulletFlood = object : LaserBulletType() {
-    init {
-        length = 460f
-        damage = 560f
-        width = 75f
-        lifetime = 65f
-        lightningSpacing = 35f
-        lightningLength = 5
-        lightningDelay = 1.1f
-        lightningLengthRand = 15
-        lightningDamage = 50f
-        lightningAngleRand = 40f
-        largeHit = true
-        lightningColor = Pal.heal
-        lightColor = lightningColor
-        shootEffect = Fx.greenLaserCharge
-        sideAngle = 15f
-        sideWidth = 0f
-        sideLength = 0f
-        colors = arrayOf(Pal.heal.cpy().a(0.4f), Pal.heal, Color.white)
-    }
+private val foreshadowBulletFlood = LaserBulletType().apply {
+    length = 460f
+    damage = 560f
+    width = 75f
+    lifetime = 65f
+    lightningSpacing = 35f
+    lightningLength = 5
+    lightningDelay = 1.1f
+    lightningLengthRand = 15
+    lightningDamage = 50f
+    lightningAngleRand = 40f
+    largeHit = true
+    lightningColor = Pal.heal
+    lightColor = lightningColor
+    shootEffect = Fx.greenLaserCharge
+    sideAngle = 15f
+    sideWidth = 0f
+    sideLength = 0f
+    colors = arrayOf(Pal.heal.cpy().a(0.4f), Pal.heal, Color.white)
 }
 
 fun handleKick(reason: String) {

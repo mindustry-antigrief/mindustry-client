@@ -120,6 +120,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         //when the player recs a unit that they JUST transitioned away from, use the new unit instead
         //reason: we know the server is lying here, essentially skip the unit snapshot because we know the client's information is more recent
         if(isLocal() && unit == justSwitchFrom && justSwitchFrom != null && justSwitchTo != null){
+            Log.debug("@ rubberbanded: @ at @", plainName(), wrongReadUnits, Time.millis());
             unit = justSwitchTo;
             //if several snapshots have passed and this unit is still incorrect, something's wrong
             if(++wrongReadUnits >= 2){
@@ -127,6 +128,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
                 wrongReadUnits = 0;
             }
         }else{
+            if(justSwitchFrom != null || justSwitchTo != null || wrongReadUnits != 0) Log.debug("@ didn't rubberband at @", plainName(), Time.millis());
             justSwitchFrom = null;
             justSwitchTo = null;
             wrongReadUnits = 0;
@@ -238,9 +240,10 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
             }
 
             if(!headless && isLocal() && !persistPlans.isEmpty()){ // Persist plans through unit swaps
+                if(!ClientVars.syncing && Time.timeSinceMillis(ClientVars.lastJoinTime) < 3000) persistPlans.clear(); // I can't find a more reliable way to not persist through map changes
                 persistPlans.each(unit::addBuild);
                 persistPlans.clear();
-                persistPlans.shrink(); // Don't want an array hanging around in memory, replace it with a 1 element arr
+                persistPlans.shrink(); // Don't want an array hanging around in memory, replace it with a 0 element array
             }
         }
 

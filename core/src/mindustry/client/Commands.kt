@@ -39,6 +39,7 @@ import java.math.*
 import java.security.cert.*
 import java.time.*
 import java.time.temporal.*
+import java.util.regex.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -514,17 +515,20 @@ fun setup() {
         }
     }
 
-    register("procfind [option] [argument]", Core.bundle.get("client.command.procfind.description")) { args, player ->
-        val newArgs = args.joinToString(" ").split(" ").toTypedArray() // FINISHME: fix the command arguments. this is beyond cursed
-
-        when (newArgs[0]) {
+    register("procfind [option] [argument...]", Core.bundle.get("client.command.procfind.description")) { args, player ->
+        
+        if(args.size == 0) player.sendMessage(Core.bundle.get("client.command.procfind.help")); // This one looks long and cursed on the bundle
+        else when (args[0]) {
             "query" -> {
-                if (newArgs.size < 2) {
+                if (args.size < 2) {
                     player.sendMessage(Core.bundle.get("client.command.procfind.query.empty"))
                     return@register
                 }
-                val queryRegex = newArgs.drop(1).joinToString(" ").toRegex()
-                ProcessorFinder.search(queryRegex)
+                try {
+                    ProcessorFinder.search(args[1].toRegex())
+                } catch(e:PatternSyntaxException){
+                    player.sendMessage(Core.bundle.format("client.command.procfind.query.invalid", args[1]));
+                }
             }
             "queries" -> {
                 val sb = StringBuilder(Core.bundle.get("client.command.procfind.queries")).append("\n")
@@ -537,7 +541,6 @@ fun setup() {
                 ProcessorFinder.clear()
             }
             "list" -> ProcessorFinder.list()
-            else -> player.sendMessage(Core.bundle.get("client.command.procfind.help")) // This one looks long and cursed on the bundle
         }
     }
 

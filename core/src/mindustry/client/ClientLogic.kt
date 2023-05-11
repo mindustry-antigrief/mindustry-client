@@ -24,6 +24,9 @@ import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.sandbox.*
 import kotlin.random.*
+import kotlin.reflect.full.*
+import kotlin.reflect.jvm.*
+import kotlin.system.*
 
 /** WIP client logic class, similar to [Logic] but for the client.
  * Handles various events and such.
@@ -41,6 +44,10 @@ class ClientLogic {
 
             Timer.schedule({
                 app.post {
+                    when (val vote = settings.getInt("automapvote")) {
+                        1, 2, 3 -> Server.current.mapVote(vote - 1)
+                        4 -> Server.current.mapVote(Random.nextInt(0..2))
+                    }
                     val arg = switchTo?.removeFirstOrNull()
                     if (arg != null) {
                         if (arg is Host) {
@@ -52,11 +59,6 @@ class ClientLogic {
                         // Game join text after hh
                         if (settings.getString("gamejointext")?.isNotBlank() == true) {
                             Call.sendChatMessage(settings.getString("gamejointext"))
-                        }
-
-                        when (val vote = settings.getInt("automapvote")) {
-                            1, 2, 3 -> Server.current.mapVote(vote - 1)
-                            4 -> Server.current.mapVote(Random.nextInt(0..2))
                         }
                     }
                 }
@@ -74,7 +76,6 @@ class ClientLogic {
             app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             if (!syncing) {
                 AutoTransfer.enabled = settings.getBool("autotransfer") && !(state.rules.pvp && Server.io())
-                Player.persistPlans.clear()
                 frozenPlans.clear()
             }
             lastJoinTime = Time.millis()
@@ -102,13 +103,19 @@ class ClientLogic {
 
         Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading
             app.post { // Run next frame as Vars.clientLoaded is true then and the load methods depend on it
-                Musics.load() // Loading music isn't very important
-                Sounds.load() // Same applies to sounds
+                mainExecutor.execute {
+                    Log.debug("Loaded sound & music in @ms", measureTimeMillis {
+                        Musics.load() // Loading music isn't very important
+                        Sounds.load() // Same applies to sounds
+                    })
+                }
             }
 
             val changeHash = files.internal("changelog").readString().hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
-            if (settings.getInt("changeHash") != changeHash) ChangelogDialog.show()
-            settings.put("changeHash", changeHash)
+            if (settings.getInt("changeHash") != changeHash) {
+                ChangelogDialog.show()
+                settings.put("changeHash", changeHash)
+            }
 
             if (settings.getBool("discordrpc")) platform.startDiscord()
             if (settings.getBool("mobileui")) mobile = !mobile
@@ -120,24 +127,7 @@ class ClientLogic {
 
             Navigation.navigator.init()
 
-            // Hitbox setting was changed, this updates it. FINISHME: Remove a while after v7 release.
-            if (settings.getBool("drawhitboxes") && settings.getInt("hitboxopacity") == 0) { // Old setting was enabled and new opacity hasn't been set yet
-                settings.put("hitboxopacity", 30)
-                UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f
-            }
-
-            // FINISHME: Remove these at some point
-            settings.remove("drawhitboxes") // Don't need this old setting anymore
-            settings.remove("signmessages") // same as above FINISHME: Remove this at some point
-            settings.remove("firescl") // firescl, effectscl and cmdwarn were added in sept 2022, remove them in mid 2023 or something
-            settings.remove("effectscl")
-            settings.remove("commandwarnings")
-	        settings.remove("nodeconfigs")
-            settings.remove("attemwarfarewhisper")
-            if (settings.has("gameovertext")) {
-                if (settings.getString("gameovertext").isNotBlank()) settings.put("gamewintext", settings.getString("gameovertext"))
-                settings.remove("gameovertext")
-            }
+            runMigrations()
 
             if (isDeveloper()) {
                 register("update <name/id...>") { args, _ ->
@@ -163,7 +153,7 @@ class ClientLogic {
             
             if (settings.getBool("showidinjoinleave", false))
                 ui.chatfrag.addMsg(bundle.format("client.disconnected.withid", e.player.id.toString()))
-                    .addButton(e.player.id.toString()) { app.setClipboardText(e.player.id.toString()) }
+                    .addButton(e.player.id.toString()) { app.setClipboardText("!undo ${e.player.id}") }
         }
 
         Events.on(GameOverEventClient::class.java) {
@@ -254,6 +244,55 @@ class ClientLogic {
         Events.run(Trigger.draw) {
             camera.bounds(cameraBounds)
             cameraBounds.grow(2 * tilesizeF)
+        }
+    }
+
+    private fun runMigrations() {
+        val funs = ClientLogic::class.functions // Cached function list
+        var migration = settings.getInt("foomigration", 1) // Starts at 1
+        while (true) {
+            val migrateFun = funs.find { it.name == "migration$migration" } ?: break // Find next migration or break
+            Log.debug("Running foo's migration $migration")
+            migrateFun.isAccessible = true
+            migrateFun.call(this)
+            migrateFun.isAccessible = false
+            Log.debug("Finished running foo's migration $migration")
+            migration++
+        }
+        if (settings.getInt("foomigration", 1) != migration) settings.put("foomigration", migration) // Avoids saving settings if the value remains the same
+    }
+
+    @Suppress("unused")
+    private fun migration1() { // All of the migrations from before the existence of the migration system
+        // Old settings that no longer exist
+        settings.remove("drawhitboxes")
+        settings.remove("signmessages")
+        settings.remove("firescl")
+        settings.remove("effectscl")
+        settings.remove("commandwarnings")
+        settings.remove("nodeconfigs")
+        settings.remove("attemwarfarewhisper")
+
+        // Various setting names and formats have changed
+        if (settings.has("gameovertext")) {
+            if (settings.getString("gameovertext").isNotBlank()) settings.put("gamewintext", settings.getString("gameovertext"))
+            settings.remove("gameovertext")
+        }
+        if (settings.has("graphdisplay")) {
+            if (settings.getBool("graphdisplay")) settings.put("highlighthoveredgraph", true)
+            settings.remove("graphdisplay")
+        }
+        if (settings.getBool("drawhitboxes") && settings.getInt("hitboxopacity") == 0) { // Old setting was enabled and new opacity hasn't been set yet
+            settings.put("hitboxopacity", 30)
+            UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f
+        }
+    }
+
+    @Suppress("unused")
+    private fun migration2() {
+        if (settings.has("pingExecutorThreads")) {
+            settings.put("pingexecutorthreads", settings.getInt("pingExecutorThreads"))
+            settings.remove("pingExecutorThreads")
         }
     }
 }

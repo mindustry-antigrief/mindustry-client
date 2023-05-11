@@ -485,7 +485,7 @@ public class BlockRenderer{
             }
         }
 
-        if (drawCursors) {
+        if (settings.getBool("drawcursors")) {
             Draw.z(Layer.space);
             Draw.color(Color.red, .3f);
             boolean ints = Fonts.def.usesIntegerPositions();
@@ -502,10 +502,6 @@ public class BlockRenderer{
             Fonts.def.getData().setScale(1f);
             Fonts.def.setUseIntegerPositions(ints);
             Draw.reset();
-        }
-        if (wasDrawingCursors != drawCursors) {
-            wasDrawingCursors = drawCursors;
-            settings.put("drawcursors", drawCursors);
         }
 
         if(drawQuadtreeDebug){

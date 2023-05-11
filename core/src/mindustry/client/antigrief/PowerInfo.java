@@ -13,13 +13,16 @@ import mindustry.world.blocks.power.*;
 
 public class PowerInfo {
     private @Nullable static PowerGraph found;
-    public static PowerGraph hovered;
+    public static PowerGraph selected; // The hovered or selected graph
 
     public static void update() {
         var max = Groups.powerGraph.array.max(up -> up.graph().all.size > 0 && up.graph().all.first().team == Vars.player.team(), up -> up.graph().all.size);
         found = max == null ? null : max.graph();
-        var tile = Vars.control.input.cursorTile();
-        hovered = Core.settings.getBool("graphdisplay") && tile != null && tile.build instanceof PowerNode.PowerNodeBuild node ? node.power.graph : null;
+        var hoverTile = Vars.control.input.cursorTile();
+        selected =
+            Core.settings.getBool("highlightselectedgraph") && Vars.control.input.config.isShown() && Vars.control.input.config.getSelected().block instanceof PowerBlock ? Vars.control.input.config.getSelected().power.graph :
+            Core.settings.getBool("highlighthoveredgraph") && hoverTile != null && hoverTile.block() instanceof PowerBlock ? hoverTile.build.power.graph :
+            null;
     }
 
     public static void getBars(Table power) { // FINISHME: What in the world

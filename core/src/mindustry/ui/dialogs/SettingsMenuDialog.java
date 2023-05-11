@@ -286,6 +286,7 @@ public class SettingsMenuDialog extends BaseDialog{
     public void addCategory(String name, Cons<SettingsTable> builder){
         addCategory(name, (Drawable)null, builder);
     }
+
     public Seq<SettingsCategory> getCategories(){
         return categories;
     }
@@ -322,9 +323,9 @@ public class SettingsMenuDialog extends BaseDialog{
     }
 
     void addSettings(){
-        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> { Musics.load(); return i + "%"; });
-        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> { Sounds.load(); return i + "%"; });
-        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> { Sounds.load(); return i + "%"; });
+        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> { if(i != Core.settings.getInt("musicvol")) Musics.load(); return i + "%"; });
+        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> { if(i != Core.settings.getInt("sfxvol")) Sounds.load(); return i + "%"; });
+        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> { if(i != Core.settings.getInt("ambientvol")) Sounds.load(); return i + "%"; });
 
         // Client Settings, organized exactly the same as Bundle.properties: text first, sliders second, checked boxes third, unchecked boxes last
         client.category("antigrief");
@@ -381,12 +382,14 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("junctionflowratedirection", false, s -> Junction.flowRateByDirection = s);
         client.checkPref("drawwrecks", true);
         client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
-        client.checkPref("drawdisplayborder", false);
         client.checkPref("drawpath", true);
+        client.checkPref("drawcursors", false);
+        client.checkPref("drawdisplayborder", false);
         client.checkPref("tracelogicunits", false);
         client.checkPref("enemyunitranges", false);
         client.checkPref("allyunitranges", false);
-        client.checkPref("graphdisplay", false);
+        client.checkPref("highlightselectedgraph", true);
+        client.checkPref("highlighthoveredgraph", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
         client.checkPref("showdomes", false);
@@ -397,7 +400,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
         client.checkPref("logiclinkorder", false);
         client.checkPref("showcutscenes", true);
-    
+
         client.category("misc");
         client.updatePref();
         client.sliderPref("minepathcap", 5000, -100, 5000, 100, s -> s == 0 ? "Unlimited" : s == -100 ? "Never" : String.valueOf(s));
@@ -405,7 +408,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
         client.sliderPref("processorstatementscale", 80, 10, 100, 1, s -> String.format("%.2fx", s/100f)); // This is the most scuffed setting you have ever seen
         client.sliderPref("automapvote", 0, 0, 4, s -> s == 0 ? "Never" : s == 4 ? "Random vote" : "Always " + new String[]{"downvote", "novote", "upvote"}[--s]);
-        client.sliderPref("pingExecutorThreads", OS.isWindows && !OS.is64Bit ? 5 : 65, 5, 100, 5, s -> "" + s); // FINISHME: Lowercase
+        client.sliderPref("pingexecutorthreads", OS.isWindows && !OS.is64Bit ? 5 : 65, 5, 100, 5, s -> "" + s);
         client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
         client.textPref("defaultminepathargs", "all");
         client.textPref("gamejointext", "");
@@ -430,7 +433,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("circleassist", false);
         client.checkPref("ignoremodminversion", false);
         client.checkPref("betterenemyblocktapping", false);
-    
+
         if (settings.getBool("client-experimentals") || OS.hasProp("policone")) { // FINISHME: Either remove this or make it properly functional
             client.category("Experimental");
             // Seer: Client side multiplayer griefing/cheating detections
@@ -516,7 +519,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         int[] lastUiScale = {settings.getInt("uiscale", 100)};
 
-        graphics.sliderPref("uiscale", 100, 5, 300, 5, s -> {
+        graphics.sliderPref("uiscale", 100, 25, 300, 5, s -> {
             //if the user changed their UI scale, but then put it back, don't consider it 'changed'
             Core.settings.put("uiscalechanged", s != lastUiScale[0]);
             return s + "%";
@@ -648,7 +651,7 @@ public class SettingsMenuDialog extends BaseDialog{
         graphics.checkPref("hidedisplays", false);
 
         if(!mobile){
-            Core.settings.put("swapdiagonal", false);
+            if (Core.settings.getBool("swapdiagonal", false)) Core.settings.put("swapdiagonal", false);
         }
 
 
@@ -705,7 +708,7 @@ public class SettingsMenuDialog extends BaseDialog{
         tmpDirectory.deleteDirectory();
 
         zipped.walk(f -> f.copyTo(base.child(f.path())));
-        
+
 
         //clear old data
         settings.clear();
@@ -849,7 +852,18 @@ public class SettingsMenuDialog extends BaseDialog{
             rebuild();
         }
 
+        private long lastRebuild;
         public void rebuild(){
+            if (lastRebuild == -1) return; // Can't run more than twice per frame
+            if (lastRebuild == 0 || lastRebuild == Core.graphics.getFrameId()) { // First ever run and second run per frame
+                lastRebuild = -1;
+                Core.app.post(() -> {
+                    lastRebuild = -2; // Allows rebuild to run
+                    rebuild(); // This will set lastRebuild to the current frame
+                });
+                return;
+            }
+            lastRebuild = Core.graphics.getFrameId();
             boolean hasFocus = searchBar.hasKeyboard();
             clearChildren();
             // TODO inefficient. And rebuild() is also called every. single. setting.

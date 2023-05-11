@@ -14,7 +14,6 @@ import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.editor.*;
 import mindustry.entities.*;
-import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -254,7 +253,6 @@ public class Vars implements Loadable{
     public static NetClient netClient;
 
     public static Player player;
-    public static boolean drawCursors, wasDrawingCursors; // Client debug magic FINISHME: Re-implement
 
     @Override
     public void loadAsync(){
@@ -320,7 +318,6 @@ public class Vars implements Loadable{
         fogControl = new FogControl();
         bases = new BaseRegistry();
         logicVars = new GlobalVars();
-        wasDrawingCursors = drawCursors = settings.getBool("drawcursors");
         javaPath =
             new Fi(OS.prop("java.home")).child("bin/java").exists() ? new Fi(OS.prop("java.home")).child("bin/java").absolutePath() :
             Core.files.local("jre/bin/java").exists() ? Core.files.local("jre/bin/java").absolutePath() : // Unix
@@ -446,7 +443,12 @@ public class Vars implements Loadable{
         });
         if(Core.settings.getBool("debug") || OS.hasProp("debug")) Log.level = Log.LogLevel.debug;
 
-        Scl.setProduct(settings.getInt("uiscale", 100) / 100f);
+        //https://github.com/Anuken/Mindustry/issues/8483
+        if(settings.getInt("uiscale") == 5){
+            settings.put("uiscale", 100);
+        }
+
+        Scl.setProduct(Math.max(settings.getInt("uiscale", 100), 25) / 100f);
 
         if(!loadLocales) return;
 

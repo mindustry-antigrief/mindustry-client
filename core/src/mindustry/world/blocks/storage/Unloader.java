@@ -240,8 +240,7 @@ public class Unloader extends Block{
             Draw.color(sortItem == null ? customNullLoader ? Pal.lightishGray : Color.clear : sortItem.color);
             Draw.rect(centerRegion, x, y);
             if(drawUnloaderItems && lastItem != null && lastDumpFrom != null && lastDumpTo != null && enabled){
-                Draw.color(lastItem.color);
-                Draw.alpha(0.67f);
+                Draw.color(lastItem.color, 0.67f);
                 Draw.rect("unloader-center", x, y);
                 Draw.alpha(1f);
                 var v1 = Tmp.v1;

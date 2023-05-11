@@ -496,7 +496,7 @@ public class PowerNode extends PowerBlock{
             if(Mathf.zero(Renderer.laserOpacity) || isPayload()) return;
 
             Draw.z(Layer.power);
-            setupColor(power.graph.getSatisfaction(), power.graph == PowerInfo.hovered);
+            setupColor(power.graph.getSatisfaction(), power.graph == PowerInfo.selected);
 
             for(int i = 0; i < power.links.size; i++){
                 Building link = world.build(power.links.get(i));

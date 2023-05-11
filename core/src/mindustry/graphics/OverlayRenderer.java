@@ -241,7 +241,7 @@ public class OverlayRenderer{
 
         //draw selected block
         if(input.block == null && !Core.scene.hasMouse()){
-            Vec2 vec = Core.input.mouseWorld(input.getMouseX(), input.getMouseY());
+            Vec2 vec = Core.input.mouseWorld();
             Building build = world.buildWorld(vec.x, vec.y);
 
             if(build != null /* && build.team == player.team() */){

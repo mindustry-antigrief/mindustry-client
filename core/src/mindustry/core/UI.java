@@ -585,6 +585,7 @@ public class UI implements ApplicationListener, Loadable{
 
     /** Display text in the middle of the screen, then fade out. */
     public void announce(String text, float duration){
+        if (Vars.state.map.name().equals("[red]Raid on the latum biolabs") && text.startsWith("[red]Biolab")) return; // This is genuinely the single worst thing I have ever seen in this game
         Table t = new Table(Styles.black3);
         t.touchable = Touchable.disabled;
         t.margin(8f).add(text).style(Styles.outlineLabel).labelAlign(Align.center);

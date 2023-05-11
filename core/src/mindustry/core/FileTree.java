@@ -122,7 +122,7 @@ public class FileTree implements FileHandleResolver{
 
         var cached = Core.settings.getDataDirectory().child("cache").child(audio instanceof Sound ? path : fi.nameWithoutExtension() + "__" + length + "." + fi.extension()); // See Music#load
 
-        if(!outdated() && cached.exists()){ // Cached up-to-date copy
+        if(!outdated() && cached.exists() && cached.length() == length){ // Cached up-to-date copy
             audio.loadDirectly(cached);
             Log.debug("Loaded @ @ from cache", clazz, cached.nameWithoutExtension());
             return;
@@ -132,8 +132,9 @@ public class FileTree implements FileHandleResolver{
 
         ConsT<Http.HttpResponse, Exception> writeDownloadedAudio = res -> { // This creates garbage, but it's convenient and shouldn't matter as this method is called few times
             if(!cached.exists() || cached.length() != res.getContentLength()){ // Only download if the existing file isn't the same size
+                if(audio instanceof Music) cached.parent().walk(f -> { if(f.name().startsWith(fi.nameWithoutExtension() + "__") && !f.equals(cached)) f.delete();}); // Delete all resized music
                 var write = cached.write();
-                Streams.copy(res.getResultAsStream(), cached.write());
+                Streams.copy(res.getResultAsStream(), write);
                 write.close();
                 Log.debug("Finished downloading @ @", clazz, fi.name());
             }
@@ -145,7 +146,7 @@ public class FileTree implements FileHandleResolver{
         var req = Http.get("https://raw.githubusercontent.com/" + Version.assetUrl + '/' + Version.assetRef  + "/core/assets/" + path);
         req.error(e -> {
             if(e instanceof UnknownHostException){ // Likely Wi-Fi skill issue
-                Core.app.post(() -> {
+                Core.app.post(() -> { // Not thread safe; run on the main thread
                     if(!notified) Vars.ui.showErrorMessage("@client.audiofail"); // Display at most one dialog
                     notified = true;
                 });
