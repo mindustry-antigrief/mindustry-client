@@ -199,7 +199,7 @@ public abstract class UnlockableContent extends MappableContent{
     public void clearUnlock(){
         if(unlocked){
             unlocked = false;
-            Core.settings.put(name + "-unlocked", false);
+            Core.settings.remove(name + "-unlocked");
         }
     }
 

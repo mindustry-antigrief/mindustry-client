@@ -274,6 +274,7 @@ public class ResearchDialog extends BaseDialog{
         view.rebuildAll();
 
         rebuildItems();
+        ResearchAssistant.INSTANCE.drawQueue();
     }
 
     public void rebuildTree(TechNode node){
@@ -358,7 +359,7 @@ public class ResearchDialog extends BaseDialog{
             checkNodes(l);
         }
 
-        itemDisplay.rebuild(items);
+        if (node.parent == null) itemDisplay.rebuild(items); // Only run this on the parent node. Is this even needed? I don't know
     }
 
     boolean selectable(TechNode node){
@@ -439,7 +440,7 @@ public class ResearchDialog extends BaseDialog{
                             });
                         }
                     }else if(locked(node.node)){
-                        if (Core.input.shift()) ResearchAssistant.INSTANCE.queue(node.node);
+                        if (Core.input.shift()) ResearchAssistant.INSTANCE.queue(node);
                         else if (canSpend(node.node)) spend(node.node);
                     }
                 });

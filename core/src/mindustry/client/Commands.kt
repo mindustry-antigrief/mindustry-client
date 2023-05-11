@@ -211,7 +211,9 @@ fun setup() {
     }
 
     register("js <code...>", Core.bundle.get("client.command.js.description")) { args, player: Player ->
-        player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
+        val out = mods.scripts.runConsole(args[0])
+        player.sendMessage("[accent]$out")
+        Log.debug(out)
     }
 
     // Removed as the dependency was like 50MB. If i ever add this back, it will probably just download the jar when needed and then cache it between client builds so that each update isn't massive.
