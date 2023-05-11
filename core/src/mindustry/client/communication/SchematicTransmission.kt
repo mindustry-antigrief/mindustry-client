@@ -1,19 +1,17 @@
 package mindustry.client.communication
 
-import arc.Core
+import arc.*
 import mindustry.Vars.schematics
 import mindustry.Vars.ui
+import mindustry.game.*
 import mindustry.game.EventType.*
-import mindustry.game.Schematic
-import mindustry.game.Schematics
-import mindustry.gen.Groups
+import mindustry.gen.*
 import mindustry.ui.fragments.ChatFragment.ChatMessage
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import kotlin.random.Random
+import java.io.*
+import kotlin.random.*
 
 
-class SchematicTransmission: Transmission {
+class SchematicTransmission : Transmission {
 
     override var id: Long = Random.nextLong()
     override val secureOnly = false
@@ -37,9 +35,10 @@ class SchematicTransmission: Transmission {
     }
 
     fun addToChat() {
-        val text = Core.bundle.get("schematic") + ":[" + schematic.name() + "]"
+
+        val text = "${Core.bundle.get("schematic")}: [${schematic.name()}]"
         val message: ChatMessage = ui.chatfrag.addMessage(text, Groups.player.getByID(this.senderID).name,
-            null, "", text)
+                null, "", text)
         message.addButton(schematic.name()) {
             ui.schematics.showInfo(schematic);
             schematics.add(schematic);
