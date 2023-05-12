@@ -49,7 +49,7 @@ allprojects{
         if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
         if(!project.hasProperty("assetRef")) assetRef = 'v7'
         if(!project.hasProperty("versionModifier")) versionModifier = 'release'
-        if(!project.hasProperty("buildversion")) buildversion = '144'
+        if(!project.hasProperty("buildversion")) buildversion = '144.1'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'

@@ -15,7 +15,7 @@
  * {freecam_modifier} movement keys - free camera movement
  * {reset_camera} - reset camera
  * hold {drop_payload} - place block payload precisely
- * {navigate_to_camera} - navigate to cursor
+ * {navigate_to_cursor} - navigate to cursor
  * {stop_following_path} - stop following path
  * {show_turret_ranges} - show enemy turret ranges
  * shift {show_turret_ranges} - show overdrive ranges

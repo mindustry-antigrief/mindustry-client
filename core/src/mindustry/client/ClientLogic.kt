@@ -2,6 +2,8 @@ package mindustry.client
 
 import arc.*
 import arc.Core.*
+import arc.KeyBinds.*
+import arc.input.*
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
@@ -16,6 +18,7 @@ import mindustry.client.utils.*
 import mindustry.core.*
 import mindustry.game.EventType.*
 import mindustry.gen.*
+import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
 import mindustry.type.*
@@ -289,10 +292,20 @@ class ClientLogic {
     }
 
     @Suppress("unused")
-    private fun migration2() {
-        if (settings.has("pingExecutorThreads")) {
-            settings.put("pingexecutorthreads", settings.getInt("pingExecutorThreads"))
-            settings.remove("pingExecutorThreads")
+    private fun migration2() { // Lowercased the pingExecutorThreads setting name1
+        if (!settings.has("pingExecutorThreads")) return
+        settings.put("pingexecutorthreads", settings.getInt("pingExecutorThreads"))
+        settings.remove("pingExecutorThreads")
+    }
+
+    @Suppress("unused")
+    private fun migration3() { // Finally changed Binding.navigate_to_camera to navigate_to_cursor
+        InputDevice.DeviceType.values().forEach { device ->
+            if (!settings.has("keybind-default-$device-navigate_to_camera-key")) return@forEach
+            val saved = settings.getInt("keybind-default-$device-navigate_to_camera-key")
+            settings.remove("keybind-default-$device-navigate_to_camera-key")
+            settings.remove("keybind-default-$device-navigate_to_camera-single")
+            keybinds.sections.first { it.name == "default" }.binds[device, ::OrderedMap].put(Binding.navigate_to_cursor, Axis(KeyCode.byOrdinal(saved)))
         }
     }
 }

@@ -502,7 +502,7 @@ public class LExecutor{
                             if (virusWarnings && conf instanceof LogicBlock.LogicBuild) {
                                 LogicBlock.LogicBuild build = (LogicBlock.LogicBuild) exec.building(varThis);
                                 if (build != null && !build.isVirus) {
-                                    String msg = Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", build.lastAccessed, build.tileX(), build.tileY(), Core.keybinds.get(Binding.navigate_to_camera).key.name());
+                                    String msg = Strings.format("@ has potentially placed a logic virus at (@, @) [accent]SHIFT + @ to view", build.lastAccessed, build.tileX(), build.tileY(), Core.keybinds.get(Binding.navigate_to_cursor).key.name());
                                     ui.chatfrag.addMessage(msg, null, Color.scarlet.cpy().mul(0.75f), "", msg);
                                     control.input.lastVirusWarning = build;
                                     control.input.lastVirusWarnTime = Time.millis();
