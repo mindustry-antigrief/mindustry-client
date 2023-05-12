@@ -64,10 +64,6 @@ allprojects{
             return new File(projectDir.parent, '../Mindustry-Debug').exists() && !project.hasProperty("release") && project.hasProperty("args")
         }
 
-        localArc = {
-            return !project.hasProperty("release") && !project.hasProperty("noLocalArc") && new File(projectDir.parent, '../Arc').exists()
-        }
-
         generateDeployName = { String platform ->
             if(platform == "windows"){
                 platform += "64"
