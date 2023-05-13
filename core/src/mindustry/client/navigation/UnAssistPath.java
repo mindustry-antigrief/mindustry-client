@@ -8,6 +8,7 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
+import mindustry.client.utils.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -36,10 +37,11 @@ public class UnAssistPath extends Path {
         });
 
         // Undo block rotates
-        Events.on(EventType.BlockRotateEvent.class, e -> {
-            if (e.build == null || !(Navigation.currentlyFollowing instanceof UnAssistPath p) || e.player != p.target) return;
+        Events.on(EventType.BuildRotateEvent.class, e -> {
+            if (e.build == null || !(Navigation.currentlyFollowing instanceof UnAssistPath p) || e.unit == null || e.unit.getPlayer() != p.target) return;
 
-            ClientVars.configs.add(new ConfigRequest(e.build, !e.direction, true));
+            boolean direction = ClientUtils.rotationDirection(e.previous, e.build.rotation);
+            ClientVars.configs.add(new ConfigRequest(e.build, !direction, true));
         });
     }
 
