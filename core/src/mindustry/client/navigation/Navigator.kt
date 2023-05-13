@@ -41,8 +41,8 @@ abstract class Navigator {
     ): Array<PositionWaypoint>
 
     fun navigate(start: Vec2, end: Vec2, obstacles: Iterable<TurretPathfindingEntity>): Array<PositionWaypoint> {
-        start.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
-        end.clamp(0f, 0f, world.unitHeight().toFloat(), world.unitWidth().toFloat())
+        start.clamp(0f, 0f, world.unitWidth().toFloat(), world.unitHeight().toFloat())
+        end.clamp(0f, 0f, world.unitWidth().toFloat(), world.unitHeight().toFloat())
         val additionalRadius = player.unit().hitSize / 2
 
         if (player.unit().type.targetable(player.unit(), player.team()) && player.unit().type.hittable(player.unit())) {
