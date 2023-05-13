@@ -338,10 +338,12 @@ public class DesktopInput extends InputHandler{
         }
 
         if(input.keyTap(Binding.auto_build) && scene.getKeyboardFocus() == null){
-            if(input.shift()) { // Sort build plans on shift + ; FINISHME: Surely there are no off by 1 errors... right?
+            if(input.shift()) {
                 var plans = player.unit().plans;
-                int head = Reflect.get(plans, "head"), tail = Reflect.<Integer>get(plans, "tail") - 1;
-//                Sort.instance().sort(plans.values, Structs.comparingFloat(p -> p.dst2(player)), Math.min(head, tail), Math.max(head, tail) + 1); This was too good for the game.
+                var arr = plans.toArray(BuildPlan.class); // FINISHME: Add an overload that takes an array param to avoid making a new one every time, make it use arraycopy twice instead of running get() in a loop
+                Sort.instance().sort(arr, Structs.comparingFloat(p -> p.dst2(player)));
+                plans.clear();
+                Structs.each(plans::add, arr);
                 new Toast(3).add("@client.sortedplans");
             }
             else Navigation.follow(new BuildPath());

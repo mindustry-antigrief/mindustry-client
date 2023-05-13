@@ -35,7 +35,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     private GridBits blocked = new GridBits(world.width(), world.height()), blockedPlayer = new GridBits(world.width(), world.height()), temp = new GridBits(world.width(), world.height());
     private int radius = Core.settings.getInt("defaultbuildpathradius");
     private final Vec2 origin = new Vec2(player.x, player.y);
-    private final ObjectMap<Block, Block> upgrades = ObjectMap.of(
+    public static final ObjectMap<Block, Block> upgrades = ObjectMap.of(
         Blocks.conveyor, Blocks.titaniumConveyor,
         Blocks.conduit, Blocks.pulseConduit,
         Blocks.mechanicalDrill, Blocks.pneumaticDrill
@@ -43,35 +43,38 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
     private BuildPlan req;
     private boolean valid;
     private final Pool<BuildPlan> pool = Pools.get(BuildPlan.class, BuildPlan::new, 15_000); // This is cursed but
-    private final PQueue<BuildPlan> priority = new PQueue<>(301, Structs.comps(Structs.comparingBool(plan -> plan.block != null && player.unit().shouldSkip(plan, player.core())), Structs.comparingFloat(plan -> plan.dst2(player))));
-    private final Seq<BuildPlan> freed = new Seq<>();
+    private final Seq<BuildPlan> priority = new Seq<>(301);
     private CompletableFuture<Void> job = null;
+
+    public static int maxPlans = 300, delay = 15;
 
     static {
         Events.on(EventType.WorldLoadEvent.class, e -> { // Account for changing world sizes
             if (Navigation.currentlyFollowing instanceof BuildPath bp) {
                 bp.blocked = new GridBits(world.width(), world.height());
                 bp.blockedPlayer = new GridBits(world.width(), world.height());
+                bp.temp = new GridBits(world.width(), world.height());
             }
         });
     }
 
     {
-        addListener(pool::clear); // Remove the unneeded items on path end
+        addListener(() -> {
+            pool.clear(); // Remove the unneeded items on path end
+            if (Core.input.shift()) clearQueues();
+        });
     }
 
     public BuildPath() {
         this("");
     }
 
-    @SuppressWarnings("unchecked")
     public BuildPath(Seq<Item> mineItems, int cap) {
         init(Core.settings.getString("defaultbuildpathargs"));
         this.mineItems = mineItems;
         this.cap = cap;
     }
 
-    @SuppressWarnings("unchecked")
     public BuildPath(String args) {
         if (!args.trim().isEmpty()) init(args); // Init with provided args
         else init(Core.settings.getString("defaultbuildpathargs")); // No args provided, use default
@@ -127,19 +130,17 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
             for (var plan : queue) {
                 if (queue == networkAssist && !plan.isDone() || plan.freed) continue;
                 player.unit().plans.remove(plan);
-//                if (!freed.contains(plan, true)) freed.add(plan);
                 pool.free(plan);
             }
             if (queue != networkAssist) queue.clear();
         }
-//        pool.freeAll(freed);
-        freed.clear();
+
     }
 
     @Override
     public void follow() {
         var core = player.core();
-        if (timer.get(15) && core != null) {
+        if (timer.get(delay) && core != null) {
             if (mineItems != null) {
                 Item item = mineItems.min(i -> indexer.hasOre(i) && player.unit().canMine(i), i -> core.items.get(i));
 
@@ -173,6 +174,12 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
             }
 
             clearQueues();
+            if (player.unit().plans.size > 0) {
+                var arr = player.unit().plans.toArray(BuildPlan.class); // FINISHME: Add an overload that takes an array param to avoid making a new one every time, make it use arraycopy twice instead of running get() in a loop
+                Sort.instance().sort(arr, Structs.comparingFloat(p -> p.dst2(player)));
+                player.unit().plans.clear();
+                Structs.each(player.unit().plans::add, arr);
+            }
 
             if (queues.contains(broken, true) && !player.unit().team.data().plans.isEmpty()) {
                 for (Teams.BlockPlan block : player.unit().team.data().plans) {
@@ -250,10 +257,10 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                     for (int j = 0; j < queues.size; j++) {
                         var queue = queues.get(j); // Since we break out of the loop, we can't use the iterator
                         sortPlans(queue, all);
-                        if (priority.empty()) continue;
+                        if (priority.size == 0) continue;
 
-                        for(int k = 0, count = Math.min(priority.size, 300); k < count; k++){ // Imagine a language with a repeat method
-                            player.unit().addBuild(priority.poll());
+                        for(int k = 0, count = Math.min(priority.size, maxPlans); k < count; k++){ // Imagine a language with a repeat method
+                            player.unit().addBuild(priority.pop());
                         }
                         priority.clear();
                         break sort;
@@ -276,10 +283,11 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
         if (player.unit().isBuilding()) { // Approach request if building
             var req = player.unit().buildPlan();
 
-            if(valid = validPlan(req)){
+            valid = validPlan(req);
+            if(valid){
                 //move toward the request
                 float range = player.unit().type.buildRange - player.unit().hitSize() / 2f - 32; // Range - 4 tiles
-                goTo(req.tile(), range); // Cannot go directly to req as it is pooled so the build changes.
+                goTo(req.tile(), range); // Cannot go directly to req as it is pooled so the build & tile change.
             }else{
                 //discard invalid request
                 player.unit().plans.removeFirst();
@@ -317,20 +325,23 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
         return null;
     }
 
-    private Seq<Tile> tempTiles = new Seq<>();
     /** Adds all the plans to the priority variable
      * @param includeAll whether to include unaffordable plans (appended to end of affordable ones) */
-    private void sortPlans(Queue<BuildPlan> plans, boolean includeAll) { // FINISHME: This is bad. Why does this even use a PQ? Its almost certainly slower than a Seq that is sorted once at the end (not to mention it would fix the PQ's super redundant sorting)
-        if (plans == null) return; // FINISHME: Why is this null check a thing? Is the plan queue ever null? If it is, that should be fixed.
+    private void sortPlans(Queue<BuildPlan> plans, boolean includeAll) {
         float rad = radius * tilesize;
+        planLoop:
         for (int i = 0, size = plans.size; i < size; i++) {
             var plan = plans.get(i);
-            if ((radius == 0 || plan.within(origin, rad)) && validPlan(plan) && !plan.tile().getLinkedTilesAs(plan.block, tempTiles).contains(t -> blocked.get(t.x, t.y))
-                && (includeAll || !player.unit().shouldSkip(plan, player.core()) && !blocked.get(plan.x, plan.y))
-            ) { // FINISHME: Implement and use a min-max heap and remove the 300th element whenever the priority queue is larger then that as we only use that many.
+            if ((radius == 0 || plan.within(origin, rad)) && (includeAll || !player.unit().shouldSkip(plan, player.core())) && validPlan(plan)) { // FINISHME: Implement and use a min-max heap and remove the 300th element whenever the priority queue is larger then that as we only use that many.
+                var edges = Edges.getInsideEdges(plan.block.size);
+                var tile = plan.tile();
+                for (var edge : edges) { // Check if any of the inner edges are blocked
+                    if (blocked.get(tile.x + edge.x, tile.y + edge.y)) continue planLoop;
+                }
                 priority.add(plan);
             }
         }
+        priority.sort(Structs.comps(Structs.comparingBool(p -> !(p.block != null && player.unit().shouldSkip(p, player.core()))), Structs.comparingFloat(p -> -p.dst2(player))));
     }
 
     private boolean validPlan(BuildPlan req) {
