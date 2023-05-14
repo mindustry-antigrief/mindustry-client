@@ -59,7 +59,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     },
     phoenix("Phoenix Network", MapVote(), Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9), votekickString = "Type [cyan]/vote y"),
     korea("Korea", ghost = true),
-    fish("Fish", null, Cmd("/msg")){ // FINISHME: Get fish to implement id based /msg as currently only works with player names which can contain spaces.
+    fish("Fish", null, Cmd("/msg")){
         override fun playerString(p: Player) = p.name.stripColors().substringBefore(' ')
     },
     darkdustry("Darkdustry")
