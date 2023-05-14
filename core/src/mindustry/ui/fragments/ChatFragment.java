@@ -669,8 +669,8 @@ public class ChatFragment extends Table{
         normal(""),
         team("/t"),
         admin("/a", player::admin),
-        client("!c")
-        ;
+        staff("/s", () -> Server.fish.b() && settings.getBool("fish-staff", false)),
+        client("!c");
 
         public String prefix;
         public Boolp valid;
