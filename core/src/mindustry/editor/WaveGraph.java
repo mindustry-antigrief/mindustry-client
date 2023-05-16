@@ -187,7 +187,7 @@ public class WaveGraph extends Table{
                 if(spawned > 0){
                     used.add(spawn.type);
                 }
-                healthsum += spawned * (spawn.type.health);
+                healthsum += spawned * (spawn.type.health + spawn.getShield(i));
                 dpssum += spawned * spawn.type.dpsEstimate;
 
                 sum += spawned;
