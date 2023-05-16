@@ -1,5 +1,6 @@
 package mindustry.editor;
 
+import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -22,9 +23,7 @@ public class WaveGraph extends Table{
     private Mode mode = Mode.counts;
     public WaveData[] waveData;
     private OrderedSet<UnitType> used = new OrderedSet<>();
-    private int maxCount, maxTotalCount;
-    private float maxHealth;
-    private float maxDps;
+    private int maxCount, maxTotalCount, maxHealth, maxDps;
     private Table colors;
     private ObjectSet<UnitType> hidden = new ObjectSet<>();
 
@@ -39,12 +38,12 @@ public class WaveGraph extends Table{
 
             lay.setText(font, "1");
 
-            int maxY = switch(mode){
-                case counts -> nextStep(maxCount);
-                case health -> nextStep((int)maxHealth);
-                case totals -> nextStep(maxTotalCount);
-                case dps    -> nextStep((int)maxDps);
-            };
+            int maxY = nextStep(switch(mode){
+                case counts -> maxCount;
+                case health -> (int)maxHealth;
+                case totals -> maxTotalCount;
+                case dps    -> (int)maxDps;
+            });
 
             float fh = lay.height;
             float offsetX = Scl.scl(lay.width * (maxY + "").length() * 2), offsetY = Scl.scl(22f) + fh + Scl.scl(5f);
@@ -52,51 +51,32 @@ public class WaveGraph extends Table{
             float graphX = x + offsetX, graphY = y + offsetY, graphW = width - offsetX, graphH = height - offsetY;
             float spacing = graphW / (waveData.length - 1);
 
-            if(mode == Mode.counts){
-                for(UnitType type : used.orderedItems()){
-                    if(hidden.contains(type)) continue;
-                    Draw.color(color(type));
-                    Draw.alpha(parentAlpha);
+            switch(mode){
+                case counts -> {
+                    for(UnitType type : used.orderedItems()){
+                        if(hidden.contains(type)) continue;
+                        Draw.color(color(type));
+                        Draw.alpha(parentAlpha);
 
+                        Lines.beginLine();
+
+                        for(int i = 0; i < waveData.length; i++){
+                            float cx = graphX + i * spacing, cy = graphY + waveData[i].counts[type.id] * graphH / maxY;
+                            Lines.linePoint(cx, cy);
+                        }
+
+                        Lines.endLine();
+                    }
+                }
+                default -> {
                     Lines.beginLine();
-
+                    Draw.color(mode.color);
                     for(int i = 0; i < waveData.length; i++){
-                        float cx = graphX + i * spacing, cy = graphY + waveData[i].counts[type.id] * graphH / maxY;
+                        float cx = graphX + i * spacing, cy = graphY + mode.val.get(waveData[i]) * graphH / maxY;
                         Lines.linePoint(cx, cy);
                     }
-
                     Lines.endLine();
                 }
-            }else if(mode == Mode.totals){
-                Lines.beginLine();
-
-                Draw.color(Pal.accent);
-                for(int i = 0; i < waveData.length; i++){
-                    float cx = graphX + i * spacing, cy = graphY + waveData[i].totalCount * graphH / maxY;
-                    Lines.linePoint(cx, cy);
-                }
-
-                Lines.endLine();
-            }else if(mode == Mode.health){
-                Lines.beginLine();
-
-                Draw.color(Pal.health);
-                for(int i = 0; i < waveData.length; i++){
-                    float cx = graphX + i * spacing, cy = graphY + waveData[i].totalHealth * graphH / maxY;
-                    Lines.linePoint(cx, cy);
-                }
-
-                Lines.endLine();
-            }else if(mode == Mode.dps){
-                Lines.beginLine();
-
-                Draw.color(Pal.spore);
-                for(int i = 0; i < waveData.length; i++){
-                    float cx = graphX + i * spacing, cy = graphY + waveData[i].totalDps * graphH / maxY;
-                    Lines.linePoint(cx, cy);
-                }
-
-                Lines.endLine();
             }
 
             //how many numbers can fit here
@@ -157,9 +137,10 @@ public class WaveGraph extends Table{
     public void rebuild(){
         waveData = new WaveData[to - from + 1];
         used.clear();
-        maxCount = maxTotalCount = 1;
-        maxHealth = 1f;
-        maxDps = 1f;
+        maxCount = 1;
+        maxTotalCount = 1;
+        maxHealth = 1;
+        maxDps = 1;
 
         for(int i = from; i <= to; i++){
             int index = i - from;
@@ -173,7 +154,6 @@ public class WaveGraph extends Table{
                 waveData[index].counts[spawn.type.id] += spawned;
                 waveData[index].totalHealth += spawned * (spawn.type.health + spawn.getShield(i));
                 waveData[index].totalDps += spawned * spawn.type.dpsEstimate;
-
                 waveData[index].totalCount += spawned;
             }
             for(UnitType type : used){
@@ -236,7 +216,20 @@ public class WaveGraph extends Table{
     }
 
     enum Mode{
-        counts, totals, health, dps;
+        counts,
+        totals(Pal.accent, d -> d.totalCount),
+        health(Pal.health, d -> d.totalHealth),
+        dps(Pal.spore, d -> d.totalDps);
+
+        public Color color;
+        public Floatf<WaveData> val;
+        Mode(){
+            this(Color.gray, d -> 0f);
+        }
+        Mode(Color color, Floatf<WaveData> val){
+            this.color = color;
+            this.val = val;
+        }
 
         static Mode[] all = values();
     }
