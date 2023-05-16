@@ -20,9 +20,9 @@ public class WaveGraph extends Table{
     public int from = 0, to = 20;
 
     private Mode mode = Mode.counts;
-    private int[][] values;
+    public WaveData[] waveData;
     private OrderedSet<UnitType> used = new OrderedSet<>();
-    private int max, maxTotal;
+    private int maxCount, maxTotalCount;
     private float maxHealth;
     private float maxDps;
     private Table colors;
@@ -40,9 +40,9 @@ public class WaveGraph extends Table{
             lay.setText(font, "1");
 
             int maxY = switch(mode){
-                case counts -> nextStep(max);
+                case counts -> nextStep(maxCount);
                 case health -> nextStep((int)maxHealth);
-                case totals -> nextStep(maxTotal);
+                case totals -> nextStep(maxTotalCount);
                 case dps    -> nextStep((int)maxDps);
             };
 
@@ -50,18 +50,18 @@ public class WaveGraph extends Table{
             float offsetX = Scl.scl(lay.width * (maxY + "").length() * 2), offsetY = Scl.scl(22f) + fh + Scl.scl(5f);
 
             float graphX = x + offsetX, graphY = y + offsetY, graphW = width - offsetX, graphH = height - offsetY;
-            float spacing = graphW / (values.length - 1);
+            float spacing = graphW / (waveData.length - 1);
 
             if(mode == Mode.counts){
                 for(UnitType type : used.orderedItems()){
+                    if(hidden.contains(type)) continue;
                     Draw.color(color(type));
                     Draw.alpha(parentAlpha);
 
                     Lines.beginLine();
 
-                    for(int i = 0; i < values.length; i++){
-                        int val = values[i][type.id];
-                        float cx = graphX + i * spacing, cy = graphY + val * graphH / maxY;
+                    for(int i = 0; i < waveData.length; i++){
+                        float cx = graphX + i * spacing, cy = graphY + waveData[i].counts[type.id] * graphH / maxY;
                         Lines.linePoint(cx, cy);
                     }
 
@@ -71,13 +71,8 @@ public class WaveGraph extends Table{
                 Lines.beginLine();
 
                 Draw.color(Pal.accent);
-                for(int i = 0; i < values.length; i++){
-                    int sum = 0;
-                    for(UnitType type : used.orderedItems()){
-                        sum += values[i][type.id];
-                    }
-
-                    float cx = graphX + i * spacing, cy = graphY + sum * graphH / maxY;
+                for(int i = 0; i < waveData.length; i++){
+                    float cx = graphX + i * spacing, cy = graphY + waveData[i].totalCount * graphH / maxY;
                     Lines.linePoint(cx, cy);
                 }
 
@@ -86,13 +81,8 @@ public class WaveGraph extends Table{
                 Lines.beginLine();
 
                 Draw.color(Pal.health);
-                for(int i = 0; i < values.length; i++){
-                    float sum = 0;
-                    for(UnitType type : used.orderedItems()){
-                        sum += (type.health) * values[i][type.id];
-                    }
-
-                    float cx = graphX + i * spacing, cy = graphY + sum * graphH / maxY;
+                for(int i = 0; i < waveData.length; i++){
+                    float cx = graphX + i * spacing, cy = graphY + waveData[i].totalHealth * graphH / maxY;
                     Lines.linePoint(cx, cy);
                 }
 
@@ -101,13 +91,8 @@ public class WaveGraph extends Table{
                 Lines.beginLine();
 
                 Draw.color(Pal.spore);
-                for(int i = 0; i < values.length; i++){
-                    float sum = 0;
-                    for(UnitType type : used.orderedItems()){
-                        sum += (type.dpsEstimate) * values[i][type.id];
-                    }
-
-                    float cx = graphX + i * spacing, cy = graphY + sum * graphH / maxY;
+                for(int i = 0; i < waveData.length; i++){
+                    float cx = graphX + i * spacing, cy = graphY + waveData[i].totalDps * graphH / maxY;
                     Lines.linePoint(cx, cy);
                 }
 
@@ -136,11 +121,11 @@ public class WaveGraph extends Table{
             float len = Scl.scl(4f);
             font.setColor(Color.lightGray);
 
-            for(int i = 0; i < values.length; i++){
-                float cy = y + fh, cx = graphX + graphW / (values.length - 1) * i;
+            for(int i = 0; i < waveData.length; i++){
+                float cy = y + fh, cx = graphX + graphW / (waveData.length - 1) * i;
 
                 Lines.line(cx, cy, cx, cy + len);
-                if(i == values.length / 2){
+                if(i == waveData.length / 2){
                     font.draw("" + (i + from + 1), cx, cy - Scl.scl(2f), Align.center);
                 }
             }
@@ -170,51 +155,45 @@ public class WaveGraph extends Table{
     }
 
     public void rebuild(){
-        values = new int[to - from + 1][Vars.content.units().size];
+        waveData = new WaveData[to - from + 1];
         used.clear();
-        max = maxTotal = 1;
+        maxCount = maxTotalCount = 1;
         maxHealth = 1f;
         maxDps = 1f;
 
         for(int i = from; i <= to; i++){
             int index = i - from;
-            float healthsum = 0f;
-            int sum = 0;
-            float dpssum = 0f;
+            waveData[index] = new WaveData();
             for(SpawnGroup spawn : groups){
                 int spawned = spawn.getSpawned(i);
-                values[index][spawn.type.id] += spawned;
                 if(spawned > 0){
                     used.add(spawn.type);
                 }
-                healthsum += spawned * (spawn.type.health + spawn.getShield(i));
-                dpssum += spawned * spawn.type.dpsEstimate;
+                if(hidden.contains(spawn.type)) continue;
+                waveData[index].counts[spawn.type.id] += spawned;
+                waveData[index].totalHealth += spawned * (spawn.type.health + spawn.getShield(i));
+                waveData[index].totalDps += spawned * spawn.type.dpsEstimate;
 
-                sum += spawned;
+                waveData[index].totalCount += spawned;
             }
             for(UnitType type : used){
-                if(!hidden.contains(type)) max = Math.max(max, values[index][type.id]);
+                if(!hidden.contains(type)) maxCount = Math.max(maxCount, waveData[index].counts[type.id]);
             }
-            maxDps = Math.max(maxDps, dpssum);
-            maxTotal = Math.max(maxTotal, sum);
-            maxHealth = Math.max(maxHealth, healthsum);
+            maxDps = Math.max(maxDps, waveData[index].totalDps);
+            maxTotalCount = Math.max(maxTotalCount, waveData[index].totalCount);
+            maxHealth = Math.max(maxHealth, waveData[index].totalHealth);
         }
-
-        ObjectSet<UnitType> usedCopy = new ObjectSet<>(used);
 
         colors.clear();
         colors.left();
         colors.button("@waves.units.hide", Styles.flatt, () -> {
-            if(hidden.size == usedCopy.size){
+            if(hidden.size == used.size){
                 hidden.clear();
             }else{
-                hidden.addAll(usedCopy);
+                hidden.addAll(used);
             }
-
-            used.clear();
-            used.addAll(usedCopy);
-            for(UnitType o : hidden) used.remove(o);
-        }).update(b -> b.setText(hidden.size == usedCopy.size ? "@waves.units.show" : "@waves.units.hide")).height(32f).width(130f);
+            rebuild();
+        }).update(b -> b.setText(hidden.size == used.size ? "@waves.units.show" : "@waves.units.hide")).height(32f).width(130f);
         colors.pane(t -> {
             t.left();
             for(UnitType type : used){
@@ -228,16 +207,11 @@ public class WaveGraph extends Table{
                         hidden.remove(type);
                     }
 
-                    used.clear();
-                    used.addAll(usedCopy);
-                    for(UnitType o : hidden) used.remove(o);
+                    rebuild();
                 }).update(b -> b.setChecked(hidden.contains(type)));
             }
         }).scrollY(false);
 
-        for(UnitType type : hidden){
-            used.remove(type);
-        }
     }
 
     Color color(UnitType type){
@@ -265,5 +239,17 @@ public class WaveGraph extends Table{
         counts, totals, health, dps;
 
         static Mode[] all = values();
+    }
+
+    public static class WaveData {
+        /** Mapping from unit ID to count. */
+        public int[] counts = new int[Vars.content.units().size];
+        /** Total number of units this wave. */
+        public int totalCount = 0;
+        /** Total health this wave. */
+        public int totalHealth = 0;
+        /** Total DPS this wave. */
+        public int totalDps = 0;
+
     }
 }
