@@ -11,6 +11,7 @@ import mindustry.gen.*
 import mindustry.input.*
 import mindustry.world.*
 import mindustry.world.blocks.*
+import mindustry.world.blocks.defense.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.sandbox.LiquidSource.*
@@ -61,8 +62,10 @@ fun autoShoot() {
             if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() + 4 + (target as Building).hitSize()/2f else 0f)) target = null
         }
 
-        if (target == null && (type == UnitTypes.block || type.canAttack) && CustomMode.flood()) { // Shoot buildings in flood because why not.
-            target = Units.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range()) { type.targetGround }
+        if (target == null && (type == UnitTypes.block || type.canAttack)) {
+            target =
+                if (CustomMode.flood()) Units.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range()) { type.targetGround } // Shoot buildings in flood because why not
+                else Vars.indexer.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range(), true) { it is ShockMine.ShockMineBuild }
         }
         if (!CustomMode.flood() && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
             val amount = unit.range() * 2 + 1

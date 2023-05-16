@@ -85,7 +85,7 @@ public class MinimapRenderer{
                     pixmap.set(tile.x, pixmap.height - 1 - tile.y, color);
 
                     //yes, this calls glTexSubImage2D every time, with a 1x1 region
-                    Pixmaps.drawPixel(texture, tile.x, pixmap.height - 1 - tile.y, color);
+                    Pixmaps.drawPixel(texture, tile.x, pixmap.height - 1 - tile.y, color); // FINISHME: Profile this to see at what point it becomes faster to reupload the whole thing
                 });
 
                 updates.clear();

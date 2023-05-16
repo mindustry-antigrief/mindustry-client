@@ -81,7 +81,7 @@ public enum Binding implements KeyBind{
     reset_camera(KeyCode.r),
     place_waypoint(KeyCode.y),
     drop_payload(KeyCode.backslash),
-    navigate_to_camera(KeyCode.z), // This navigates to the cursor despite the name, see bundle.properties
+    navigate_to_cursor(KeyCode.z),
     stop_following_path(KeyCode.minus),
     show_turret_ranges(KeyCode.backtick),
     hide_blocks(KeyCode.i),

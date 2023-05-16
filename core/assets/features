@@ -15,7 +15,7 @@
  * {freecam_modifier} movement keys - free camera movement
  * {reset_camera} - reset camera
  * hold {drop_payload} - place block payload precisely
- * {navigate_to_camera} - navigate to cursor
+ * {navigate_to_cursor} - navigate to cursor
  * {stop_following_path} - stop following path
  * {show_turret_ranges} - show enemy turret ranges
  * shift {show_turret_ranges} - show overdrive ranges
@@ -26,7 +26,7 @@
  * {toggle_placement_modifiers} click - hold to disable modified junction replacement
  * {chat_autocomplete} - chat autocomplete (:block/unit/liquid/item, @playername)
  * {auto_build} - auto build (see !builder command section)
- * shift {auto_build - sort build plans closest to furthest
+ * shift {auto_build} - sort build plans closest to furthest
  * {auto_mine} - auto mine (see !miner command section)
  * {toggle_strict_mode} - toggle teleportation on z (only works on non-strict-mode servers)
  * {send_build_queue} - send build queue to other people running !builder networkassist

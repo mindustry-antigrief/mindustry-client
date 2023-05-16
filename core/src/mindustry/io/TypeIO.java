@@ -388,7 +388,7 @@ public class TypeIO{
     public static Queue<BuildPlan> readPlansQueue(Reads read){
         int used = read.i();
         if(used == -1) return null;
-        var out = new Queue<BuildPlan>();
+        var out = new Queue<>(Math.max(1, used), BuildPlan.class);
         for(int i = 0; i < used; i++){
             out.add(readPlan(read));
         }

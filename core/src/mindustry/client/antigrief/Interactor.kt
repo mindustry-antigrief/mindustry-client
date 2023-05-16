@@ -33,7 +33,7 @@ open class UnitInteractor(unit: Unit?) : Interactor {
     override val playerID: Int = if (unit?.isPlayer == true) unit.player.id else -1
 }
 
-class NullUnitInteractor : UnitInteractor(Nulls.unit) {
+object NullUnitInteractor : UnitInteractor(Nulls.unit) {
     override val name = "null unit" // FINISHME: Dont use this when nodes are automatically configured
 
     override val shortName = "null unit" // FINISHME: Dont use this when nodes are automatically configured
@@ -46,11 +46,11 @@ class NoInteractor : Interactor {
 }
 
 fun Player?.toInteractor(): Interactor {
-    this ?: return NullUnitInteractor()
+    this ?: return NullUnitInteractor
     return UnitInteractor(unit())
 }
 
 fun Unit?.toInteractor(): Interactor {
-    this ?: return NullUnitInteractor()
+    this ?: return NullUnitInteractor
     return UnitInteractor(this)
 }

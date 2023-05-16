@@ -242,8 +242,8 @@ object AStarNavigatorOptimised : Navigator() {
         tileWidth = ceil(width / tilesize).toInt() + 1
         tileHeight = ceil(height / tilesize).toInt() + 1
 
-        start.clamp(0f, 0f, height, width)
-        end.clamp(0f, 0f, height, width)
+        start.clamp(0f, 0f, width, height)
+        end.clamp(0f, 0f, width, height)
 
         //Reset
         startX = World.toTile(start.x).coerceIn(0, tileWidth - 1)

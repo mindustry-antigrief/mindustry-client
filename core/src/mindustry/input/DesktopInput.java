@@ -338,10 +338,12 @@ public class DesktopInput extends InputHandler{
         }
 
         if(input.keyTap(Binding.auto_build) && scene.getKeyboardFocus() == null){
-            if(input.shift()) { // Sort build plans on shift + ; FINISHME: Surely there are no off by 1 errors... right?
+            if(input.shift()) {
                 var plans = player.unit().plans;
-                int head = Reflect.get(plans, "head"), tail = Reflect.<Integer>get(plans, "tail") - 1;
-//                Sort.instance().sort(plans.values, Structs.comparingFloat(p -> p.dst2(player)), Math.min(head, tail), Math.max(head, tail) + 1); This was too good for the game.
+                var arr = plans.toArray(BuildPlan.class); // FINISHME: Add an overload that takes an array param to avoid making a new one every time, make it use arraycopy twice instead of running get() in a loop
+                Sort.instance().sort(arr, Structs.comparingFloat(p -> p.dst2(player)));
+                plans.clear();
+                Structs.each(plans::add, arr);
                 new Toast(3).add("@client.sortedplans");
             }
             else Navigation.follow(new BuildPath());
@@ -375,7 +377,7 @@ public class DesktopInput extends InputHandler{
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
 
-        if(input.keyTap(Binding.navigate_to_camera) && scene.getKeyboardFocus() == null){
+        if(input.keyTap(Binding.navigate_to_cursor) && scene.getKeyboardFocus() == null){
             if(selectPlans.any() == input.shift() && !input.ctrl()) Navigation.navigateTo(input.mouseWorld()); // Z to nav to cursor (SHIFT + Z when placing schem)
             else if (selectPlans.isEmpty()){ // SHIFT + Z to view lastSentPos, double tap to nav there, special case for logic viruses as well (does nothing when placing schem)
                 if(input.shift()) {

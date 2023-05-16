@@ -102,9 +102,11 @@ object TileRecords {
             }
         }
 
-        Events.on(EventType.BlockRotateEvent::class.java) {
+        Events.on(EventType.BuildRotateEvent::class.java) {
+            val player = it.unit?.player ?: return@on
+            val direction = rotationDirection(it.previous, it.build.rotation)
             it.build.tile.getLinkedTiles { tile ->
-                addLog(tile, RotateTileLog(tile, it.player.toInteractor(), it.build.block, it.newRotation, it.direction))
+                addLog(tile, RotateTileLog(tile, player.toInteractor(), it.build.block, it.build.rotation, direction))
             }
         }
     }
