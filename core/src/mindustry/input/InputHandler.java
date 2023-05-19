@@ -80,7 +80,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public float recentRespawnTimer;
 
     public @Nullable Schematic lastSchematic;
-    public boolean isLoadedSchematic = false; // whether it is a schematic schematic
     public GestureDetector detector;
     public PlaceLine line = new PlaceLine();
     public BuildPlan resultplan;
@@ -667,8 +666,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public void update(){
-        isLoadedSchematic &= lastSchematic != null; // i am lazy to reset it on all other instances; this should suffice
-
         if(logicCutscene && !renderer.isCutscene() && Core.settings.getBool("showcutscenes", true)){
             Core.camera.position.lerpDelta(logicCamPan, logicCamSpeed);
         }else{

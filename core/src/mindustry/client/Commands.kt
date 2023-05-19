@@ -298,7 +298,8 @@ fun setup() {
             confirmed && inProgress -> Core.bundle.format("client.command.fixpower.inprogress", configs.size, n, confs)
             confirmed -> { // Actually fix the connections
                 configs.add { // This runs after the connections are made
-                    msg.message = Core.bundle.format("client.command.fixpower.success", n, Groups.powerGraph.array.select { it.graph().all.first().team == player.team() }.size, confs)
+                    val active = Groups.powerGraph.array.select { it.graph().all.first().team == player.team() && it.graph().all.contains { it !is ItemBridge.ItemBridgeBuild || it.shouldConsume() } }.size // We don't care about unlinked bridge ends
+                    msg.message = Core.bundle.format("client.command.fixpower.success", n, active, confs)
                     msg.format()
                 }
                 Core.bundle.format("client.command.fixpower.confirmed", n, confs)

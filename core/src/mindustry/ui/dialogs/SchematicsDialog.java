@@ -110,7 +110,6 @@ public class SchematicsDialog extends BaseDialog{
 
             t.update(() -> {
                 if(Core.input.keyTap(Binding.chat) && Core.scene.getKeyboardFocus() == searchField && firstSchematic != null){
-                    control.input.isLoadedSchematic = true;
                     control.input.useSchematic(firstSchematic);
                     hide();
                 }
@@ -221,7 +220,6 @@ public class SchematicsDialog extends BaseDialog{
                         if(state.isMenu()){
                             showInfo(s);
                         }else{
-                            control.input.isLoadedSchematic = true;
                             control.input.useSchematic(s);
                             hide();
                         }
