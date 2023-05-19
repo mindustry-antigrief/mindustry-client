@@ -1004,7 +1004,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         if(todump == null){
             //Prepare the list of items
-            dumpItems.clear();
+            dumpItems.size = 0;
             for(int i = 0; i < content.items().size; i ++){
                 if(this.items.has(i)){
                     dumpItems.add(content.item(i));

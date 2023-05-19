@@ -21,7 +21,7 @@ public class ItemModule extends BlockModule{
     private static final Interval flowTimer = new Interval(2);
     private static final float pollScl = 20f;
 
-    public int[] items = new int[content.items().size];//publicised in foos client
+    protected int[] items = new int[content.items().size];
     protected int total;
     protected int takeRotation;
 
