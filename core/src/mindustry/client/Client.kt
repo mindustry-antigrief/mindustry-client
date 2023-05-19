@@ -42,7 +42,7 @@ object Client {
 
 
     fun initialize() {
-        setup()
+        mainExecutor.execute { setupCommands() }
         AutoTransfer.init()
         ClientLogic()
         Server // Force the init block to be run

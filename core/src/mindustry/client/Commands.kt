@@ -44,7 +44,7 @@ import kotlin.math.*
 import kotlin.random.*
 
 
-fun setup() {
+fun setupCommands() {
     register("help [page/command]", Core.bundle.get("client.command.help.description")) { args, player ->
         if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
             val command = clientCommandHandler.commandList.find { it.text == args[0] }

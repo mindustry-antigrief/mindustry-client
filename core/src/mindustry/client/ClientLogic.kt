@@ -27,8 +27,6 @@ import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.sandbox.*
 import kotlin.random.*
-import kotlin.reflect.full.*
-import kotlin.reflect.jvm.*
 import kotlin.system.*
 
 /** WIP client logic class, similar to [Logic] but for the client.
@@ -156,7 +154,7 @@ class ClientLogic {
             
             if (settings.getBool("showidinjoinleave", false))
                 ui.chatfrag.addMsg(bundle.format("client.disconnected.withid", e.player.id.toString()))
-                    .addButton(e.player.id.toString()) { app.setClipboardText("!undo ${e.player.id}") }
+                    .addButton(e.player.id.toString()) { app.clipboardText = "!undo ${e.player.id}" }
         }
 
         Events.on(GameOverEventClient::class.java) {
@@ -251,13 +249,13 @@ class ClientLogic {
     }
 
     private fun runMigrations() {
-        val funs = ClientLogic::class.functions // Cached function list
+        val funs = this::class.java.declaredMethods // Cached function list
         var migration = settings.getInt("foomigration", 1) // Starts at 1
         while (true) {
             val migrateFun = funs.find { it.name == "migration$migration" } ?: break // Find next migration or break
             Log.debug("Running foo's migration $migration")
             migrateFun.isAccessible = true
-            migrateFun.call(this)
+            migrateFun.invoke(this)
             migrateFun.isAccessible = false
             Log.debug("Finished running foo's migration $migration")
             migration++
@@ -307,5 +305,10 @@ class ClientLogic {
             settings.remove("keybind-default-$device-navigate_to_camera-single")
             keybinds.sections.first { it.name == "default" }.binds[device, ::OrderedMap].put(Binding.navigate_to_cursor, Axis(KeyCode.byOrdinal(saved)))
         }
+    }
+
+    @Suppress("unused")
+    private fun migration4() { // Removed as it was super annoying
+        settings.remove("broadcastcoreattack")
     }
 }

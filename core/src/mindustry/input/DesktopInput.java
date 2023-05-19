@@ -489,7 +489,7 @@ public class DesktopInput extends InputHandler{
         if(!scene.hasMouse() && !locked){
             // FINISHME: Move this into its own method, its huge
             Unit sl;
-            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && selectPlans.isEmpty() && cursor != null && ((sl = selectedUnit(true)) == null || sl instanceof BlockUnitUnit)){ // Tile actions / alt click menu
+            if(Core.input.keyDown(Binding.tile_actions_menu_modifier) && Core.input.keyTap(Binding.select) && selectPlans.isEmpty() && !selectedBlock() && cursor != null && ((sl = selectedUnit(true)) == null || sl instanceof BlockUnitUnit)){ // Tile actions / alt click menu
                 int itemHeight = 30;
                 Table table = new Table(Tex.buttonTrans);
                 table.setWidth(400);

@@ -62,10 +62,10 @@ class AutoTransfer {
         if (!enabled) return
         if (state.rules.onlyDepositCore) return
         if (ratelimitRemaining <= 1) return
-        player.unit().item() ?: return
+        if (!player.unit().hasItem()) return
         timer += Time.delta
         if (timer < delay) return
-        timer = 0F
+        timer -= delay
 
         core = if (fromCores) player.closestCore() else null
         if (Navigation.currentlyFollowing is MinePath) { // Only allow autotransfer + minepath when within mineTransferRange

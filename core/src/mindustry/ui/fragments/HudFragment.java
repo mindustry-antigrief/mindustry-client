@@ -20,7 +20,6 @@ import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.*;
-import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.GameState.State;
 import mindustry.core.*;
@@ -344,11 +343,7 @@ public class HudFragment{
 
                 Events.on(TeamCoreDamage.class, event -> {
                     if (Time.timeSinceMillis(lastWarn) > 30_000) { // Prevent chat flooding
-                        if (Core.settings.getBool("broadcastcoreattack")) {
-                            ClientUtils.sendMessage(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y));
-                        } else {
-                            NetClient.findCoords(ui.chatfrag.addMsg(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y)));
-                        }
+                        NetClient.findCoords(ui.chatfrag.addMsg(Strings.format("[scarlet]Core under attack: (@, @)", event.core.x, event.core.y)));
                     }
                     lastWarn = Time.millis(); // Reset timer so that it sends 30s after the last core damage rather than every 30s FINISHME: Better way to do this?
                     coreAttackTime[0] = notifDuration;
