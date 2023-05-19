@@ -57,6 +57,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     static final BuildTeamChangeEvent teamChangeEvent = new BuildTeamChangeEvent();
     static final BuildDamageEvent bulletDamageEvent = new BuildDamageEvent();
     static int sleepingEntities = 0;
+    private static final Seq<Item> dumpItems = new Seq<Item>(Vars.content.items().size);
     
     @Import float x, y, health, maxHealth;
     @Import Team team;
@@ -1001,15 +1002,28 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         if(proximity.size == 0) return false;
 
+        if(todump == null){
+            //Prepare the list of items
+            dumpItems.clear();
+            for(int i = 0; i < content.items().size; i ++){
+                if(this.items.has(i)){
+                    dumpItems.add(content.item(i));
+                }
+            }
+        }
+
         for(int i = 0; i < proximity.size; i++){
             Building other = proximity.get((i + dump) % proximity.size);
 
+            if(other.team != team){
+                incrementDump(proximity.size);
+                continue;
+            }
             if(todump == null){
-
-                for(int ii = 0; ii < content.items().size; ii++){
-                    Item item = content.item(ii);
-
-                    if(other.team == team && items.has(item) && other.acceptItem(self(), item) && canDump(other, item)){
+                for(int ii = 0; ii < dumpItems.size; ii ++){
+                    //Warning: very hot!
+                    Item item = dumpItems.get(ii);
+                    if(other.acceptItem(self(), item) && canDump(other, item)){
                         other.handleItem(self(), item);
                         items.remove(item, 1);
                         incrementDump(proximity.size);
@@ -1017,7 +1031,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
                     }
                 }
             }else{
-                if(other.team == team && other.acceptItem(self(), todump) && canDump(other, todump)){
+                if(other.acceptItem(self(), todump) && canDump(other, todump)){
                     other.handleItem(self(), todump);
                     items.remove(todump, 1);
                     incrementDump(proximity.size);
