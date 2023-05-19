@@ -12,6 +12,7 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
@@ -247,7 +248,7 @@ public class PlayerListFragment{
 
             content.add(button).padBottom(-6).width(750).maxHeight(h + 14);
             content.row();
-            content.image().height(4f).color(state.rules.pvp ? user.team().color : Pal.gray).growX();
+            content.image().height(4f).color(shouldShowTeams() ? user.team().color : Pal.gray).growX();
             content.row();
         }
 
@@ -256,6 +257,14 @@ public class PlayerListFragment{
         }
 
         content.marginBottom(5);
+    }
+
+    public static boolean shouldShowTeams(){
+        return (
+            state.rules.pvp ||
+            (Vars.player != null && Groups.player.find(p -> p.team() != Vars.player.team()) != null) ||
+            Core.settings.getBool("alwaysshowteams")
+        );
     }
 
     public void toggle(){
