@@ -349,6 +349,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("highlightclientmsg", false);
         client.checkPref("showclientmsgsendername", true);
         client.checkPref("displayasuser", true);
+        client.checkPref("alwaysshowteams", false);
         client.checkPref("showuserid", false);
         client.checkPref("hideserversbydefault", false); // Inverts behavior of server hiding
         client.checkPref("enablechatlimit", false);
