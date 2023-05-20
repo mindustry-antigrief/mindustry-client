@@ -137,6 +137,7 @@ class AutoTransfer {
             }
         }
         if (counts[maxID] >= minTransferTotal) item = content.item(maxID)
+        else item = null
 
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
