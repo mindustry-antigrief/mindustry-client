@@ -501,7 +501,11 @@ public class SchematicsDialog extends BaseDialog{
                         n.button(Icon.upSmall, Styles.emptyi, () -> {
                             int idx = tags.indexOf(tag);
                             if(idx > 0){
-                                tags.swap(idx, idx - 1);
+                                if(Core.input.shift()){
+                                    tags.swap(idx, 0);
+                                } else {
+                                    tags.swap(idx, idx - 1);
+                                }
                                 tagsChanged();
                                 rebuild[0].run();
                             }
