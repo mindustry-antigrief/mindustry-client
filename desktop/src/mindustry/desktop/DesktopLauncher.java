@@ -65,6 +65,7 @@ public class DesktopLauncher extends ClientLauncher{
                     if(arg[i].charAt(0) == '-'){
                         String name = arg[i].substring(1);
                         try{
+                            //noinspection EnhancedSwitchMigration
                             switch(name){
                                 case "width": width = Integer.parseInt(arg[i + 1]); break;
                                 case "height": height = Integer.parseInt(arg[i + 1]); break;
@@ -244,6 +245,8 @@ public class DesktopLauncher extends ClientLauncher{
                         Log.err("Failed to parse steam lobby ID: @", e.getMessage());
                         e.printStackTrace();
                     }
+                }else if(args.length >= 2 && args[0].equals("+connect_server")){
+                    SVars.net.onGameRichPresenceJoinRequested(null, args[1]);
                 }
             });
         });
@@ -389,7 +392,18 @@ public class DesktopLauncher extends ClientLauncher{
             //Steam mostly just expects us to give it a nice string, but it apparently expects "steam_display" to always be a loc token, so I've uploaded this one which just passes through 'steam_status' raw.
             SVars.net.friends.setRichPresence("steam_display", "#steam_status_raw");
 
-            SVars.net.friends.setRichPresence("steam_status", Strings.format("Foo's Client (@) | @", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, inGame ? gameMapWithWave : uiState));
+            String status = Strings.format("Foo's Client (@) | @", Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, inGame ? gameMapWithWave : uiState);
+            SVars.net.friends.setRichPresence("steam_status", status);
+            SVars.net.friends.setRichPresence("status", inGame ? status : null); // This shows in the view game info menu. We should add more stuff to it, using the steam_status value is just a placeholder as it's required for joining.
+            String currentLobby = SVars.net.currentLobby == null ? null : "" + SVars.net.currentLobby.handle();
+            SVars.net.friends.setRichPresence("steam_player_group",
+                net.server() ? currentLobby :
+                net.client() && currentLobby != null ? currentLobby :
+                ui.join.lastHost != null ? ui.join.lastHost.address :
+                null
+            );
+            SVars.net.friends.setRichPresence("steam_player_group_size", net.active() ? "" + Groups.player.size() : null);
+            SVars.net.friends.setRichPresence("connect", net.client() && currentLobby == null && ui.join.lastHost != null ? Strings.format("+connect_server @:@", ui.join.lastHost.address, ui.join.lastHost.port) : null);
         }
     }
 

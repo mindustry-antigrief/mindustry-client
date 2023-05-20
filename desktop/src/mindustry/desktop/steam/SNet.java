@@ -41,7 +41,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
     final Interval timer = new Interval();
     final long[] alertIDs = {76561198064167539L}; // List of idiot's steam IDs
 
-    SteamID currentLobby, currentServer;
+    public SteamID currentLobby, currentServer;
     Cons<Host> lobbyCallback;
     Runnable lobbyDoneCallback, joinCallback;
 
@@ -437,6 +437,21 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
     public void onGameLobbyJoinRequested(SteamID lobby, SteamID steamIDFriend){
         Log.info("onGameLobbyJoinRequested @ @", lobby, steamIDFriend);
         smat.joinLobby(lobby);
+    }
+
+    @Override
+    public void onGameRichPresenceJoinRequested(SteamID steamIDFriend, String connect) {
+        Log.info("onGameRichPresenceJoinRequested @ @", steamIDFriend, connect);
+
+        String[] split = connect.split(":");
+        if (split.length != 2) return; // Should always be in the format of ip:port
+        try{
+            int port = Integer.parseInt(split[1]);
+            ui.join.connect(split[0], port);
+        }catch(Exception e){
+            Log.err("Error while joining server through steam @: @", steamIDFriend == null ? "launch argument" : "game info", e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public class SteamConnection extends NetConnection{
