@@ -440,7 +440,9 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
     }
 
     @Override
-    public void onGameRichPresenceJoinRequested(SteamID steamIDFriend, String connect) {
+    public void onGameRichPresenceJoinRequested(SteamID steamIDFriend, String connect){
+        int last = connect.lastIndexOf(' ');
+        if(last != -1) connect = connect.substring(last + 1); // This will begin with "+connect_server " when run while ingame but won't otherwise
         Log.info("onGameRichPresenceJoinRequested @ @", steamIDFriend, connect);
 
         String[] split = connect.split(":");
