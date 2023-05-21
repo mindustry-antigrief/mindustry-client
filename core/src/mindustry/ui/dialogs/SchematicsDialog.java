@@ -501,7 +501,12 @@ public class SchematicsDialog extends BaseDialog{
                         n.button(Icon.upSmall, Styles.emptyi, () -> {
                             int idx = tags.indexOf(tag);
                             if(idx > 0){
-                                tags.swap(idx, idx - 1);
+                                if(Core.input.shift()){
+                                    tags.swap(idx, 0);
+                                    tags.insert(0, tags.remove(idx));
+                                } else {
+                                    tags.swap(idx, idx - 1);
+                                }
                                 tagsChanged();
                                 rebuild[0].run();
                             }
@@ -578,18 +583,21 @@ public class SchematicsDialog extends BaseDialog{
                 float sum = 0f;
                 Table current = new Table().left();
                 for(var tag : tags){
-                    if(schem.labels.contains(tag)) continue;
 
-                    var next = Elem.newButton(tag, () -> {
-                        addTag(schem, tag);
+                    var next = new TextButton(tag, Styles.togglet);
+                    next.changed(() -> {
+                        if(schem.labels.contains(tag)){
+                            removeTag(schem, tag);
+                        } else {
+                            addTag(schem, tag);
+                        }
                         buildTags(schem, t, name);
-                        dialog.hide();
                     });
+                    next.setChecked(schem.labels.contains(tag));
                     next.getLabel().setWrap(false);
-
                     next.pack();
-                    float w = next.getPrefWidth() + Scl.scl(6f);
 
+                    float w = next.getPrefWidth() + Scl.scl(6f);
                     if(w + sum >= Core.graphics.getWidth() * (Core.graphics.isPortrait() ? 1f : 0.8f)){
                         p.add(current).row();
                         current = new Table();
