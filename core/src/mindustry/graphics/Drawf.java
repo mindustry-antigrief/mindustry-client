@@ -326,7 +326,11 @@ public class Drawf{
     }
 
     public static void dashCircle(float x, float y, float rad, Color color){
-        Lines.stroke(3f, Pal.gray);
+        dashCircle(x, y, rad, color, Pal.gray);
+    }
+
+    public static void dashCircle(float x, float y, float rad, Color color, Color outlineColor){
+        Lines.stroke(3f, outlineColor);
         Lines.dashCircle(x, y, rad);
         Lines.stroke(1f, color);
         Lines.dashCircle(x, y, rad);

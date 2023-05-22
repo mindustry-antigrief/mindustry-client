@@ -117,10 +117,12 @@ object Client {
             val allyunits = Core.settings.getBool("allyunitranges")
             if (showingTurrets || showingInvTurrets) {
                 val flying = player.unit().isFlying
+                val mousev = Core.input.mouseWorld();
+                val mouseBuild = world.buildWorld(mousev.x, mousev.y);
                 getTree().use {
                     intersect(bounds) {
                         if (!fogControl.isDiscovered(player.team(), it.entity.tileX(), it.entity.tileY())) return@intersect
-                        if ((enemyunits || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
+                        if ((enemyunits || it.turret) && it.canShoot() && (it.targetAir || it.targetGround) && it.entity != mouseBuild) {//circles.add(it to if (it.canHitPlayer()) it.entity.team().color else Team.derelict.color)
                             val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                             val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
                             Drawf.dashCircle(

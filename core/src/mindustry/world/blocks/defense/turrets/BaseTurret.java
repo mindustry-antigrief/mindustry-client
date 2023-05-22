@@ -1,5 +1,6 @@
 package mindustry.world.blocks.defense.turrets;
 
+import arc.graphics.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
@@ -104,7 +105,7 @@ public class BaseTurret extends Block{
 
         @Override
         public void drawSelect(){
-            Drawf.dashCircle(x, y, range(), team.color);
+            Drawf.dashCircle(x, y, range(), team.color, Color.white);
         }
 
         public float estimateDps(){
