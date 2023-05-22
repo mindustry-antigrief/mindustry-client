@@ -517,9 +517,15 @@ public class UnitType extends UnlockableContent{
 
         table.table(bars -> {
             bars.defaults().growX().height(20f).pad(4);
-
-            // FINISHME: Round the number, this is cursed
-            bars.add(new Bar(() -> Core.bundle.get("stat.health") + " (" + unit.health + ")", () -> Pal.health, unit::healthf).blink(Color.white));
+            bars.add(new Bar(() -> {
+                if(unit.shield > 0f && unit.type.abilities.find(a -> a instanceof ForceFieldAbility) == null){
+                    //If it has a shield, display the shield in health bar
+                    //unless it has a force field, because then the shield is already displayed as a separate bar
+                    return Strings.format("@ (@ + @)", Core.bundle.get("stat.health"), Mathf.round(unit.health, 0.1f), Mathf.round(unit.shield, 0.1f));
+                } else {
+                    return Strings.format("@ (@)", Core.bundle.get("stat.health"), Mathf.round(unit.health, 0.1f));
+                }
+            }, () -> Pal.health, unit::healthf).blink(Color.white));
             bars.row();
 
             if(state.rules.unitAmmo){
