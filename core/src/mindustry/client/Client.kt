@@ -145,7 +145,7 @@ object Client {
 
         // Player controlled turret range
         if ((player.unit() as? BlockUnitUnit)?.tile() is BaseTurret.BaseTurretBuild) {
-            Drawf.dashCircle(player.x, player.y, player.unit().range(), player.team().color)
+            Drawf.dashCircle(player.x, player.y, player.unit().range(), player.team().color, Color.lightGray)
         }
 
         // Overdrive range
