@@ -1001,29 +1001,17 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         int dump = this.cdump;
         var allItems = content.items();
         int itemSize = allItems.size;
-        Item[] itemArray = allItems.items;
-
-        if(todump == null){
-            //Prepare the list of items
-            dumpItems.size = 0;
-            for(int i = 0; i < content.items().size; i ++){
-                if(this.items.has(i)){
-                    dumpItems.add(content.item(i));
-                }
-            }
-        }
+        Object[] itemArray = allItems.items;
 
         for(int i = 0; i < proximity.size; i++){
             Building other = proximity.get((i + dump) % proximity.size);
 
-            if(other.team != team){
-                incrementDump(proximity.size);
-                continue;
-            }
             if(todump == null){
-                for(int ii = 0; ii < dumpItems.size; ii ++){
-                    //Warning: very hot!
-                    Item item = dumpItems.get(ii);
+
+                for(int ii = 0; ii < itemSize; ii++){
+                    if(!items.has(ii)) continue;
+                    Item item = (Item)itemArray[ii];
+
                     if(other.acceptItem(self(), item) && canDump(other, item)){
                         other.handleItem(self(), item);
                         items.remove(item, 1);
