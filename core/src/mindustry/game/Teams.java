@@ -243,6 +243,8 @@ public class Teams{
     public static class TeamData{
         public final Team team;
 
+        /** Handles building ""bases"". */
+        public @Nullable BaseBuilderAI buildAi;
         /** Handles RTS unit control. */
         public @Nullable RtsAI rtsAi;
 
@@ -411,7 +413,7 @@ public class Teams{
 
         /** @return whether this team is controlled by the AI and builds bases. */
         public boolean hasAI(){
-            return team.rules().rtsAi;
+            return team.rules().rtsAi || team.rules().buildAi;
         }
 
         @Override

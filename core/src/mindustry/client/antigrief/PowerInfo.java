@@ -27,7 +27,7 @@ public class PowerInfo {
 
     public static void getBars(Table power) { // FINISHME: What in the world
         Bar powerBar = new Bar(
-            () -> Core.bundle.format("bar.powerbalance", found != null ? (found.powerBalance.rawMean() >= 0 ? "+" : "") + UI.formatAmount((int)(found.getPowerBalance() * 60)) : "+0"),
+            () -> Core.bundle.format("bar.powerbalance", found != null ? (found.powerBalance.rawMean() >= 0 ? "+" : "") + UI.formatAmount((long)(found.getPowerBalance() * 60)) : "+0"),
             () -> Pal.powerBar,
             () -> found != null ? found.getSatisfaction() : 0
         );

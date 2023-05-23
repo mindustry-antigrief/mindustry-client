@@ -184,7 +184,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(called = Loc.server, unreliable = true)
     public static void transferItemTo(@Nullable Unit unit, Item item, int amount, float x, float y, Building build){
-        if(build == null || build.items == null) return;
+        if(build == null || build.items == null || item == null) return;
 
         if(unit != null && unit.item() == item) unit.stack.amount = Math.max(unit.stack.amount - amount, 0);
 
@@ -496,11 +496,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(build == null) return;
         if(net.server() && (!Units.canInteract(player, build) ||
             !netServer.admins.allowAction(player, ActionType.configure, build.tile, action -> action.config = value))){
-            var packet = new TileConfigCallPacket(); //undo the config on the client
-            packet.player = player;
-            packet.build = build;
-            packet.value = build.config();
-            player.con.send(packet, true);
+
+            if(player.con != null){
+                var packet = new TileConfigCallPacket(); //undo the config on the client
+                packet.player = player;
+                packet.build = build;
+                packet.value = build.config();
+                player.con.send(packet, true);
+            }
+
             throw new ValidateException(player, "Player cannot configure a tile.");
         }else if(net.client() && player != null && Vars.player == player){
             ClientVars.ratelimitRemaining--; // Prevent the config queue from exceeding the rate limit if we also config stuff manually. Not quite ideal as manual configs will still exceed the limit but oh well.

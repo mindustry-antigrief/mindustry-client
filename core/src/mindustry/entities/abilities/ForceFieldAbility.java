@@ -116,11 +116,16 @@ public class ForceFieldAbility extends Ability{
 
     @Override
     public void displayBars(Unit unit, Table bars){
-        bars.add(new Bar(() -> Core.bundle.get("stat.shieldhealth") + " (" + unit.shield / max + ")", () -> Pal.accent, () -> unit.shield / max)).row();
+        bars.add(new Bar(() -> Core.bundle.get("stat.shieldhealth") + " (" + unit.shield + ")", () -> Pal.accent, () -> unit.shield / max)).row();
     }
 
     public void checkRadius(Unit unit){
         //timer2 is used to store radius scale as an effect
         realRad = radiusScale * radius;
+    }
+
+    @Override
+    public String localized(){
+        return Strings.format("@ (@ health)", super.localized(), max);
     }
 }
