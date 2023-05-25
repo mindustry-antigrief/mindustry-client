@@ -12,6 +12,7 @@ import arc.util.*;
 import arc.util.Timer.*;
 import arc.util.serialization.*;
 import mindustry.*;
+import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -161,7 +162,7 @@ public class JoinDialog extends BaseDialog{
                 if(!buttons[0].childrenPressed()){
                     if(server.lastHost != null){
                         Events.fire(new ClientPreConnectEvent(server.lastHost));
-                        safeConnect(server.lastHost.address, server.lastHost.port, server.lastHost);
+                        safeConnect(server.lastHost.address, server.lastHost.port, server.lastHost.version);
                     }else{
                         connect(server.ip, server.port);
                     }
@@ -499,12 +500,12 @@ public class JoinDialog extends BaseDialog{
             if(!Core.settings.getBool("server-disclaimer", false)){
                 ui.showCustomConfirm("@warning", "@servers.disclaimer", "@ok", "@back", () -> {
                     Core.settings.put("server-disclaimer", true);
-                    safeConnect(host.address, host.port, host);
+                    safeConnect(host.address, host.port, host.version);
                 }, () -> {
                     Core.settings.put("server-disclaimer", false);
                 });
             }else{
-                safeConnect(host.address, host.port, host);
+                safeConnect(host.address, host.port, host.version);
             }
         }).width(w).padBottom(7).padRight(4f).top().left().growY().uniformY();
 
@@ -549,7 +550,7 @@ public class JoinDialog extends BaseDialog{
 
         local.button(b -> buildServer(host, b), style, () -> {
             Events.fire(new ClientPreConnectEvent(host));
-            safeConnect(host.address, host.port, host);
+            safeConnect(host.address, host.port, host.version);
         }).width(w).top().left().growY();
     }
 
@@ -575,7 +576,7 @@ public class JoinDialog extends BaseDialog{
 
     /* Connection is wrapped in a ping so that host is guaranteed to not be null when joining a server (unless it's a steam server FINISHME: Add a default host?) */
     private void doConnect(Host host, String ip, int port) {
-        if (Core.settings.getBool("allowjoinany") && host != null && host.version != -1) Version.build = host.version;
+        if (Core.settings.getBool("allowjoinany") && host != null && host.version != -1) ClientVars.spoofedBuild = host.version;
         logic.reset();
         net.reset();
         Vars.netClient.beginConnecting();
@@ -609,10 +610,8 @@ public class JoinDialog extends BaseDialog{
         });
     }
 
-    void safeConnect(String ip, int port, Host host){
-        int version = host.version;
-        if(Core.settings.getBool("allowjoinany") && version != -1) Version.build = version;
-        if(version != Version.build && Version.build != -1 && version != -1){
+    void safeConnect(String ip, int port, int version){
+        if(!Core.settings.getBool("allowjoinany") && version != Version.build && Version.build != -1 && version != -1){
             ui.showInfo("[scarlet]" + (version > Version.build ? KickReason.clientOutdated : KickReason.serverOutdated) + "\n[]" +
                 Core.bundle.format("server.versions", Version.build, version));
         }else{

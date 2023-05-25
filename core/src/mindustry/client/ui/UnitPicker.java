@@ -61,7 +61,7 @@ public class UnitPicker extends BaseDialog {
 
     /** Called whenever a new unit is added. */
     public void handle(Unit unit){
-        if (type != unit.type || unit.team != player.team()) return;
+        if (type != unit.type || unit.team != player.team() || !state.rules.possessionAllowed) return;
 
         Call.unitControl(player, unit);
         type = null;
@@ -90,7 +90,7 @@ public class UnitPicker extends BaseDialog {
     }
     public boolean pickUnit(UnitType type, float x, float y, boolean fast) {
         hide();
-        if (type == null) return false;
+        if (type == null || !state.rules.possessionAllowed) return false; // FINISHME: Message when possession not allowed
         var found = findUnit(type, x, y, fast);
 
         Toast t = new Toast(3);
@@ -134,7 +134,7 @@ public class UnitPicker extends BaseDialog {
 //        });
 
         Events.on(EventType.UnitChangeEventClient.class, event -> {
-            if (type == null || event.oldUnit.dead || event.oldUnit.type != type || event.oldUnit.team != player.team() || event.player.isLocal()) return;
+            if (type == null || event.oldUnit.dead || event.oldUnit.type != type || event.oldUnit.team != player.team() || event.player.isLocal() || !state.rules.possessionAllowed) return;
             type = null;
             Timer.schedule(() -> Core.app.post(() -> {
                 Call.unitControl(player, event.oldUnit);

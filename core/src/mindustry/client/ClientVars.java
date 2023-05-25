@@ -72,4 +72,5 @@ public class ClientVars {
     @NotNull public static String lastCertName = "";
     public static boolean isBuildingLock; // Whether the building state is being controlled by networking
     public static float pluginVersion; // Version of the foo plugin that is found on the server
+    public static int spoofedBuild; // Spoofed Version.build, used for joining servers on any version
 }

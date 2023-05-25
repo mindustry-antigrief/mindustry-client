@@ -12,7 +12,6 @@ import arc.scene.ui.*;
 import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
-import arc.scene.utils.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.ctype.*;
@@ -110,6 +109,12 @@ public class SchematicsDialog extends BaseDialog{
 
             t.update(() -> {
                 if(Core.input.keyTap(Binding.chat) && Core.scene.getKeyboardFocus() == searchField && firstSchematic != null){
+                    if(!(state.rules.schematicsAllowed || Core.settings.getBool("forceallowschematics"))){
+                        ui.showInfo("@schematic.disabled");
+                    }else{
+                        control.input.useSchematic(firstSchematic);
+                        hide();
+                    }
                     control.input.useSchematic(firstSchematic);
                     hide();
                 }
@@ -220,8 +225,12 @@ public class SchematicsDialog extends BaseDialog{
                         if(state.isMenu()){
                             showInfo(s);
                         }else{
-                            control.input.useSchematic(s);
-                            hide();
+                            if(!(state.rules.schematicsAllowed || Core.settings.getBool("forceallowschematics"))){
+                                ui.showInfo("@schematic.disabled");
+                            }else{
+                                control.input.useSchematic(s);
+                                hide();
+                            }
                         }
                     }).pad(4).style(Styles.flati).get();
 

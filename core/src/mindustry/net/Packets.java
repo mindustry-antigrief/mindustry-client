@@ -4,6 +4,7 @@ import arc.*;
 import arc.struct.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
+import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.io.*;
 
@@ -116,7 +117,8 @@ public class Packets{
 
         @Override
         public void write(Writes buffer){
-            buffer.i(Version.build);
+            buffer.i(ClientVars.spoofedBuild != 0 ? ClientVars.spoofedBuild : Version.build);
+            ClientVars.spoofedBuild = 0;
             TypeIO.writeString(buffer, versionType);
             TypeIO.writeString(buffer, name);
             TypeIO.writeString(buffer, locale);

@@ -418,6 +418,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("pathnav", true);
         client.checkPref("nyduspadpatch", true);
+        client.checkPref("forceallowschematics", true);
         client.checkPref("hidebannedblocks", false);
         client.checkPref("allowjoinany", false);
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug

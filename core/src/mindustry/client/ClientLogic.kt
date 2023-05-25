@@ -90,6 +90,7 @@ class ClientLogic {
             showingAllyTurrets = false
             showingInvTurrets = false
             if (state.rules.pvp && !isDeveloper()) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
+            if (!state.rules.schematicsAllowed && !syncing) ui.announce("[scarlet]This map has schematics disabled.", 5f)
             overdrives.clear()
             massDrivers.clear()
             payloadMassDrivers.clear()
