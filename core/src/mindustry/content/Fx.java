@@ -419,6 +419,8 @@ public class Fx{
     }),
 
     titanExplosion = new Effect(30f, 160f, e -> {
+        if(ClientVars.hidingUnits || ClientVars.hidingAirUnits) return;
+        
         color(e.color);
         stroke(e.fout() * 3f);
         float circleRad = 6f + e.finpow() * 60f;
@@ -434,6 +436,7 @@ public class Fx{
 
     titanSmoke = new Effect(300f, 300f, b -> {
         float intensity = 3f;
+        if(ClientVars.hidingUnits || ClientVars.hidingAirUnits) return;
 
         color(b.color, 0.7f);
         for(int i = 0; i < 4; i++){
