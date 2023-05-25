@@ -2,6 +2,8 @@ package mindustry.world.blocks.distribution;
 
 import arc.graphics.*;
 import arc.graphics.g2d.*;
+import arc.util.*;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -10,6 +12,7 @@ import mindustry.world.*;
 
 public class StackRouter extends DuctRouter{
     public float baseEfficiency = 0f;
+    public static boolean sus = false;
 
     public @Load(value = "@-glow", fallback = "arrow-glow") TextureRegion glowRegion;
     public float glowAlpha = 1f;
@@ -44,10 +47,18 @@ public class StackRouter extends DuctRouter{
             if(unloading && current != null){
                 //unload when possible
                 var target = target();
+                int i = 0;
                 while(target != null && items.total() > 0){
                     target.handleItem(this, current);
                     items.remove(current, 1);
-
+                    i ++;
+                    if(i > 11){
+                        if(Vars.player != null){
+                            Vars.player.sendMessage(Strings.format("[scarlet]Foo's prevented a client crash!!!!! [orange]Stack router at (@,@), trying to send item @ to @ at (@, @), current items:@, too many loops! Please report how you got this error, including a screenshot of the surroundings!", x / 8, y / 8, current.name, target.block.name, target.x / 8, target.y / 8, this.items.toString()));
+                        }
+                        this.items.clear();
+                        break;
+                    }
                     target = target();
                 }
 
