@@ -31,7 +31,7 @@ import java.security.*
 
 object Client {
     var leaves: Moderation? = Moderation()
-    val tiles = Seq<Tile>(false)
+    val tiles = Seq<Tile>()
     val timer = Interval(4)
     val autoTransfer by lazy { AutoTransfer() } // FINISHME: Awful
 //    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
@@ -102,10 +102,10 @@ object Client {
             }
         } else if (spawnTime != 0f && travelTime != 0f && spawner.spawns.size < 50 && timer.get(0, travelTime)) {
             if (timer.get(1, spawnTime)) tiles.addAll(spawner.spawns)
-            for (i in 0 until tiles.size) {
-                val t = tiles.remove(0)
+            for (i in tiles.size - 1 downTo 0) {
+                val t = tiles.get(i)
                 val target = pathfinder.getTargetTile(t, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
-                if (target != t) tiles.add(target)
+                if (target != t) tiles.set(i, target) else tiles.remove(i)
                 Fx.healBlock.at(t.worldx(), t.worldy(), 1f, state.rules.waveTeam.color)
             }
         }

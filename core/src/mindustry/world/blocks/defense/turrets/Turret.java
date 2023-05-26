@@ -647,7 +647,7 @@ public class Turret extends ReloadTurret{
 
         @Override
         public boolean canShoot(){ // Client stuff
-            return hasAmmo();
+            return canConsume() && hasAmmo();
         }
 
         @Override

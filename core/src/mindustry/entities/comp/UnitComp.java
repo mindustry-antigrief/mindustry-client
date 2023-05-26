@@ -487,6 +487,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
                     turretEnts.add(new TurretPathfindingEntity(this, Math.max(24f, w.bullet.range), w.bullet.collidesGround, w.bullet.collidesAir, this::canShoot));
                 }
             }
+            turretEnts.shrink(); // FINISHME: Honestly this stuff could all be made faster if we did this once for each UnitType and cached it.
             turretEnts.each(Navigation::addEnt);
             weaponSet.clear(); // Reusing things is good for the environment <3
         }

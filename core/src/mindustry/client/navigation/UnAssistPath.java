@@ -9,6 +9,7 @@ import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.utils.*;
+import mindustry.content.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -22,10 +23,10 @@ public class UnAssistPath extends Path {
 
     static {
         // Remove placed blocks, place removed blocks
-        Events.on(EventType.BlockBuildBeginEventBefore.class, e -> {
-            if (e.tile == null || !(Navigation.currentlyFollowing instanceof UnAssistPath p) || e.unit != p.target.unit() || (e.breaking && !e.tile.block().isVisible())) return;
+        Events.on(EventType.BlockBuildBeginEventBefore.class, e -> { // FINISHME: If a block is rotated twice by being placed over before the first event is processed, the block wont be reset properly. Is a fix as simple as returning if theres already something queued at (x,y)? I don't care to find out
+            if (e.tile == null || !(Navigation.currentlyFollowing instanceof UnAssistPath p) || e.unit != p.target.unit() || (e.breaking && !e.tile.block().isPlaceable())) return;
 
-            if (e.breaking) p.toUndo.add(new BuildPlan(e.tile.x, e.tile.y, e.tile.build == null ? 0 : e.tile.build.rotation, e.tile.block(), e.tile.build == null ? null : e.tile.build.config()));
+            if (e.tile.block() != Blocks.air) p.toUndo.add(new BuildPlan(e.tile.x, e.tile.y, e.tile.build == null ? 0 : e.tile.build.rotation, e.tile.block(), e.tile.build == null ? null : e.tile.build.config()));
             else p.toUndo.add(new BuildPlan(e.tile.x, e.tile.y));
         });
 

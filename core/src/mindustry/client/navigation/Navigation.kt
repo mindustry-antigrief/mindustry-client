@@ -58,10 +58,10 @@ object Navigation {
             val tree = tmpTree
             obstacles = Seq()
             tree.use {
-                tree.clear()
+                clear()
                 for (ent in ents) {
                     if (ent.entity.team() != Vars.player.team()) {
-                        tree.insert(ent)
+                        insert(ent)
                         obstacles.add(ent)
                     }
                 }
@@ -79,10 +79,10 @@ object Navigation {
             val tree = tmpTree
             allies = Seq()
             tree.use {
-                tree.clear()
+                clear()
                 for (ent in ents) {
                     if (ent.entity.team() == Vars.player.team()) {
-                        tree.insert(ent)
+                        insert(ent)
                         allies.add(ent)
                     }
                 }

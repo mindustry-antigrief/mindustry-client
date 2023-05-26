@@ -112,13 +112,18 @@ public class HudFragment{
 
         //minimap + position
         parent.fill(t -> {
-            t.visible(() -> Core.settings.getBool("minimap") && shown);
+            t.visible(() -> shown);
+            t.name = "minimap/position";
             t.table(ta -> {
                 //tile hud
-                ta.name = "minimap/position";
                 ta.add(new TileInfoFragment()).name("tilehud").top();
                 //minimap
-                ta.add(new Minimap()).name("minimap").top();
+                var map = ta.add(new Minimap()).name("minimap").top();
+                map.visible(() -> {
+                    var show = Core.settings.getBool(("minimap"));
+                    map.size(Scl.scl(show ? 140f : 0f));
+                    return show;
+                });
             });
             t.row();
             //position
