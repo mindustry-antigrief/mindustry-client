@@ -35,7 +35,7 @@ public class Net{
     private final ObjectMap<Class<?>, Cons> clientListeners = new ObjectMap<>();
     private final ObjectMap<Class<?>, Cons2<NetConnection, Object>> serverListeners = new ObjectMap<>();
     private final IntMap<StreamBuilder> streams = new IntMap<>();
-    private ExecutorService pingExecutor;
+    public ExecutorService pingExecutor;
 
     private final NetProvider provider;
 

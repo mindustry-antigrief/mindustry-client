@@ -112,18 +112,13 @@ public class HudFragment{
 
         //minimap + position
         parent.fill(t -> {
-            t.visible(() -> shown);
+            t.visible(() -> shown && Core.settings.getBool(("minimap")));
             t.name = "minimap/position";
             t.table(ta -> {
                 //tile hud
                 ta.add(new TileInfoFragment()).name("tilehud").top();
                 //minimap
-                var map = ta.add(new Minimap()).name("minimap").top();
-                map.visible(() -> {
-                    var show = Core.settings.getBool(("minimap"));
-                    map.size(Scl.scl(show ? 140f : 0f));
-                    return show;
-                });
+                ta.add(new Minimap()).name("minimap").top();
             });
             t.row();
             //position
@@ -248,7 +243,7 @@ public class HudFragment{
                     if(!canSkipWave()) new Toast(1f).label(() -> "You tried and that's all that matters.");
                     else if(net.client() && player.admin) Call.adminRequest(player, AdminAction.wave);
                     else logic.skipWave();
-                }).growY().fillX().right().width(40f).name("skip").get().toBack();
+                }).growY().fillX().right().width(40f).name("skip");
             }).width(dsize * 6 + 4f).name("statustable");
 
             wavesMain.row();
@@ -423,7 +418,7 @@ public class HudFragment{
                 c.add("@nearpoint")
                 .update(l -> l.setColor(Tmp.c1.set(Color.white).lerp(Color.scarlet, Mathf.absin(Time.time, 10f, 1f))))
                 .labelAlign(Align.bottom | Align.center, Align.center)
-            ).margin(6).update(u -> 
+            ).margin(6).update(u ->
                 u.color.a = Mathf.lerpDelta(u.color.a, Mathf.num(spawner.playerNear()), 0.1f)
             ).get().color.a = 0f;
         });

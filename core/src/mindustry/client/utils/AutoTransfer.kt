@@ -14,6 +14,8 @@ import mindustry.graphics.*
 import mindustry.type.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.NuclearReactor.*
+import mindustry.world.blocks.production.*
+import mindustry.world.blocks.production.GenericCrafter.*
 import mindustry.world.blocks.storage.*
 import mindustry.world.consumers.*
 import kotlin.math.*
@@ -30,6 +32,7 @@ class AutoTransfer {
         var debug = false
         var minTransferTotal = -1
         var minTransfer = -1
+        var drain = false
 
         fun init() {
             enabled = Core.settings.getBool("autotransfer", false)
@@ -39,10 +42,11 @@ class AutoTransfer {
             delay = Core.settings.getFloat("autotransfer-transferdelay", 60F)
             minTransferTotal = Core.settings.getInt("autotransfer-mintransfertotal", 10)
             minTransfer = Core.settings.getInt("autotransfer-mintransfer", 2)
+            drain = Core.settings.getBool("autotransfer-drain", false) // Undocumented for now as drain is very experimental
         }
     }
 
-    val dest = Seq<Building>()
+    val builds = Seq<Building>()
     val containers = Seq<Building>()
     var item: Item? = null
     var timer = 0F
@@ -52,7 +56,7 @@ class AutoTransfer {
 
     fun draw() {
         if (!debug || player.unit().item() == null) return
-        dest.forEach {
+        builds.forEach {
             val accepted = it.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit())
             Drawf.select(it.x, it.y, it.block.size * tilesize / 2f + 2f, if (accepted >= Mathf.clamp(player.unit().stack.amount, 1, 5)) Pal.place else Pal.noplace)
         }
@@ -61,27 +65,28 @@ class AutoTransfer {
     fun update() {
         if (!enabled) return
         if (state.rules.onlyDepositCore) return
-        if (ratelimitRemaining <= 1) return
+        if (ratelimitRemaining <= 1) return // Leave one config for other stuff
         player.unit().item() ?: return
         timer += Time.delta
         if (timer < delay) return
         timer -= delay
+        if (drain && drain()) return
 
         core = if (fromCores) player.closestCore() else null
         if (Navigation.currentlyFollowing is MinePath) { // Only allow autotransfer + minepath when within mineTransferRange
             if (core != null && (Navigation.currentlyFollowing as MinePath).tile?.within(core, mineTransferRange - tilesize * 10) != true) return
         } // Ngl this looks spaghetti
 
-        val buildings = player.team().data().buildingTree ?: return
+        val buildTree = player.team().data().buildingTree ?: return
         var held = player.unit().stack.amount
 
         counts.fill(0) // reset needed item counters
         countsAdditional.fill(0f)
-        buildings.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, dest.clear()) // grab all buildings in range
+        buildTree.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, builds.clear()) // grab all buildings in range
 
-        if (fromContainers && (core == null || !player.within(core, itemTransferRange))) core = containers.selectFrom(dest) { it.block is StorageBlock && (item == null || it.items.has(item)) }.min { it -> it.dst(player) }
+        if (fromContainers && (core == null || !player.within(core, itemTransferRange))) core = containers.selectFrom(builds) { it.block is StorageBlock && (item == null || it.items.has(item)) }.min { it -> it.dst(player) }
 
-        dest.filter { it.block.findConsumer<Consume?> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic } != null && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
+        builds.filter { it.block.findConsumer<Consume?> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic } != null && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
         .sort { b -> -b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() }
         .forEach {
             if (ratelimitRemaining <= 1) return@forEach
@@ -128,7 +133,7 @@ class AutoTransfer {
                 }
             }
         }
-        var maxID = 0; var maxCount = 0f // FINISHME: Also include the items from nearby containers since otherwise we night never find those items
+        var maxID = 0; var maxCount = counts[0] + countsAdditional[0] // FINISHME: Also include the items from nearby containers since otherwise we night never find those items
         for (i in 1 until counts.size) {
             val count = counts[i] + countsAdditional[i]
             if (count > maxCount) {
@@ -136,8 +141,7 @@ class AutoTransfer {
                 maxCount = count
             }
         }
-        if (counts[maxID] >= minTransferTotal) item = content.item(maxID)
-        else item = null
+        item = if (counts[maxID] >= minTransferTotal) content.item(maxID) else null
 
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
@@ -148,6 +152,52 @@ class AutoTransfer {
                 ratelimitRemaining--
             }
         }
+    }
+
+    private fun drain(): Boolean { // Until this class is refactored to have a more generic input output system I'm just gonna copy a lot of code into this function
+        core = player.closestCore()
+        if (!player.within(core, itemTransferRange)) return false // FINISHME: Still drain anyways, also have option to deposit to containers with no nullloaders or appropriately configured loader as well as specific dest
+
+        val buildTree = player.team().data().buildingTree ?: return false
+        buildTree.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, builds.clear()) // grab all buildings in range
+
+        counts.fill(0)
+        builds.filter { it is GenericCrafterBuild && !it.shouldConsume() }.forEach { // Crafters that are completely full FINISHME: Do for all buildings with >= mintransfer instead
+            val block = it.block as GenericCrafter
+            if (block.outputItems == null) return@forEach
+
+            for (out in block.outputItems) counts[out.item.id.toInt()] += it.items[out.item.id.toInt()]
+        }
+
+        var maxID = 0; var maxCount = counts[0]
+        for (i in 1 until counts.size) {
+            val count = counts[i]
+            if (count > maxCount) {
+                maxID = i
+                maxCount = count
+            }
+        }
+
+        item = if (counts[maxID] >= minTransferTotal) content.item(maxID) else null
+        if (item == null) return false
+
+        maxCount = maxCount.coerceAtMost(player.unit().maxAccepted(item))
+        builds.sort { b -> b.items[maxID].toFloat() - b.getMaximumAccepted(item) }.forEach { // FINISHME: Don't grab items if they're gonna get stuck in the player inv cause the core is full
+            if (ratelimitRemaining <= 1 || it.items[maxID] < minTransfer || maxCount < minTransfer) return@forEach // No ratelimit left or this building doesn't have enough of the item or the player unit is full
+
+            Call.requestItem(player, it, item, maxCount)
+            ratelimitRemaining--
+            maxCount -= it.items[maxID]
+        }
+
+        Time.run(delay/2F) {
+            if (ratelimitRemaining > 1 && (maxCount != player.unit().maxAccepted(item)) || maxCount == 0) { // If theres ratelimit remaining and the player has grabbed anything
+                Call.transferInventory(player, core)                                                        // or if the player already has a different item FINISHME: should cut delay in half in the second case but im lazy
+                ratelimitRemaining--
+            }
+        }
+
+        return true
     }
 
     private fun getAmmoScore(ammo: BulletType?): Float {

@@ -143,21 +143,21 @@ task mapImages(){
     doLast{
 //        def executor = Executors.newFixedThreadPool(OS.cores)
         def dir = new Fi(project.getProperty("startdir"))
-        Paletter.INSTANCE.missing.clear()
+        def paletter = new Paletter()
         dir.walk { fi ->
             var name = fi.name()
-            if (Paletter.INSTANCE.blacklist.contains(name) || name.startsWith("zzzzz-") || Paletter.INSTANCE.regexlist.any(regex -> regex.matches(name))) return
+            if (paletter.blacklist.contains(name) || name.startsWith("zzzzz-") || paletter.regexlist.any(regex -> regex.matches(name))) return
             if (!name.endsWith(".png")) {
                 throw new IOException(name)
             }
 //            executor.execute {
                 var pix = new Pixmap(fi)
-                Paletter.INSTANCE.mapColors(pix, name)
+                paletter.mapColors(pix, name)
                 fi.sibling("zzzzz-" + name).writePng(pix)
                 pix.dispose()
 //            }
         }
-        println(Paletter.INSTANCE.missing.size)
+        println("Missing: $paletter.missingCount | Similar: $paletter.similar.size")
 //        Threads.await(executor)
     }
 }

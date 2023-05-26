@@ -405,7 +405,7 @@ public class JoinDialog extends BaseDialog{
         net.discoverServers(this::addLocalHost, this::finishLocalHosts);
     }
 
-    void refreshCommunity(){
+    public void refreshCommunity(){
         communityHosts.clear();
         int cur = refreshes;
 

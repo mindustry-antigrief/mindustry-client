@@ -389,7 +389,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
             smat.setLobbyData(steamID, "versionType", Version.type);
             smat.setLobbyData(steamID, "wave", state.wave + "");
             smat.setLobbyData(steamID, "gamemode", state.rules.mode().name() + "");
-            ui.join.lastHost = new Host(
+            ui.join.lastHost = new Host( // FINISHME: Whats the point of this even
                     -1, //invalid ping
                     smat.getLobbyData(steamID, "name"),
                     "steam:" + steamID.handle(),
@@ -448,8 +448,13 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
         String[] split = connect.split(":");
         if (split.length != 2) return; // Should always be in the format of ip:port
         try{
+            ui.join.refreshCommunity();
             int port = Integer.parseInt(split[1]);
-            ui.join.connect(split[0], port);
+            ui.loadfrag.show("@connecting");
+            net.pingExecutor.execute(() -> {
+                Threads.sleep(Core.settings.getInt("serverbrowserpinglimit", 2000) + 500); // Pray that everything actually finishes in time (it should since this will run after/alongside
+                Core.app.post(() -> ui.join.connect(split[0], port));                                    // the last ping and the pings should all finish within the timeout from the last ping running)
+            });
         }catch(Exception e){
             Log.err("Error while joining server through steam @: @", steamIDFriend == null ? "launch argument" : "game info", e.getMessage());
             e.printStackTrace();
