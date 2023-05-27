@@ -75,11 +75,12 @@ class ClientLogic {
 
         Events.on(WorldLoadEvent::class.java) { // Run when the world finishes loading (also when the main menu loads and on syncs)
             app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
+            lastJoinTime = Time.millis()
             if (!syncing) {
                 AutoTransfer.enabled = settings.getBool("autotransfer") && !(state.rules.pvp && Server.io())
+                if (Server.fish()) mainExecutor.execute { repeat(Groups.player.size() + 1) { Call.sendChatMessage("/ohno"); Thread.sleep(200); } } // FINISHME: Schedule a task to replenish ohnos every so often if needed?
                 frozenPlans.clear()
             }
-            lastJoinTime = Time.millis()
             configs.clear()
             control.input.lastVirusWarning = null
             dispatchingBuildPlans = false

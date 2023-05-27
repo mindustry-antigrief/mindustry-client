@@ -3,7 +3,6 @@ package mindustry.client
 import arc.*
 import arc.graphics.*
 import arc.math.geom.*
-import arc.scene.ui.*
 import arc.struct.*
 import arc.util.*
 import mindustry.*
@@ -152,8 +151,9 @@ object Main : ApplicationListener {
 
                 is ImageTransmission -> {
                     val msg = findMessage(transmission.message) ?: return@addListener
-                    msg.attachments.add(Image(Texture(transmission.image)))
-//                    transmission.image.dispose() FINISHME: The pixmap and texture really need to be disposed to prevent native memory leakage
+                    msg.attachments.add(Texture(transmission.image))
+                    msg.attachments.shrink()
+                    transmission.image.dispose()
                 }
             }
         }

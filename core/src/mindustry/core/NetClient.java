@@ -295,27 +295,28 @@ public class NetClient implements ApplicationListener{
     //equivalent to above method but there's no sender and no console log
     @Remote(called = Loc.server, targets = Loc.server)
     public static void sendMessage(String message){
-        if(Vars.ui != null){
-            if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
-            if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
-            message = processCoords(message, true);
-            var output = Vars.ui.chatfrag.addMessage(message, null, null, "", message);
+        if(Vars.ui == null) return;
+        if(Server.fish.b() && ClientVars.lastJoinTime < 10_000 && message.contains("Sorry, the max number of ohno units has been reached.") || message.contains("Ohnos have been temporarily disabled.") || message.contains("Too close to an enemy tile!")) return; // We don't care honestly. Also just love that theres even more hackiness in foos now, great.
 
-            findCoords(output);
-            findLinks(output, 0);
+        if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
+        if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
+        message = processCoords(message, true);
+        var output = Vars.ui.chatfrag.addMessage(message, null, null, "", message);
 
-            if (Server.current.isVotekick(message)) { // Vote kick clickable buttons
-                String yes = Core.bundle.get("client.voteyes"), no = Core.bundle.get("client.voteno");
-                output.message = output.message + '\n' + yes + "  " + no;
-                output.format();
-                output.addButton(yes, () -> Call.sendChatMessage("/vote y"));
-                output.addButton(no, () -> Call.sendChatMessage("/vote n"));
-            }
+        findCoords(output);
+        findLinks(output, 0);
 
-            Server.current.handleVoteButtons(output);
-
-            Sounds.chatMessage.play();
+        if (Server.current.isVotekick(message)) { // Vote kick clickable buttons
+            String yes = Core.bundle.get("client.voteyes"), no = Core.bundle.get("client.voteno");
+            output.message = output.message + '\n' + yes + "  " + no;
+            output.format();
+            output.addButton(yes, () -> Call.sendChatMessage("/vote y"));
+            output.addButton(no, () -> Call.sendChatMessage("/vote n"));
         }
+
+        Server.current.handleVoteButtons(output);
+
+        Sounds.chatMessage.play();
     }
 
     public static class FoundCoords {

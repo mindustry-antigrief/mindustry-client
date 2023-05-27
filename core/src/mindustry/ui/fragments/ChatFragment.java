@@ -549,6 +549,7 @@ public class ChatFragment extends Table{
 
         if (messages.size >= 100) { // Free up memory by disposing of stuff in old messages
             var oldMsg = messages.get(99);
+            if (oldMsg.attachments != null) oldMsg.attachments.each(Texture::dispose);
             oldMsg.attachments = null;
             oldMsg.buttons = null;
         }
@@ -607,9 +608,9 @@ public class ChatFragment extends Table{
         public String prefix;
         /** The content of the message (i.e. "gg") */
         public String unformatted;
-        @Nullable public Seq<Image> attachments = new Seq<>(); // This seq is deleted after 100 new messages to save ram
+        @Nullable public Seq<Texture> attachments = new Seq<>(0); // This seq is deleted after 100 new messages to save ram
         public float start, height;
-        @Nullable public Seq<ClickableArea> buttons = new Seq<>(); // This seq is deleted after 100 new messages to save ram
+        @Nullable public Seq<ClickableArea> buttons = new Seq<>(0); // This seq is deleted after 100 new messages to save ram
 
         /**
          * Creates a new ChatMessage.
@@ -629,7 +630,10 @@ public class ChatFragment extends Table{
         }
 
         public ChatMessage addButton(int start, int end, Runnable lambda) {
-            if (buttons != null) buttons.add(new ClickableArea(start, end, lambda));
+            if (buttons != null) {
+                buttons.add(new ClickableArea(start, end, lambda));
+                buttons.shrink();
+            }
             return this;
         }
 

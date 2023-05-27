@@ -73,7 +73,7 @@ fun autoShoot() {
 
             circle(Vars.player.tileX(), Vars.player.tileY(), unit.range()) { tile ->
                 tile ?: return@circle
-                if (!tile.team().isEnemy(Vars.player.team())) return@circle
+                if (tile.team() == Vars.player.team()) return@circle
                 val block = tile.block()
                 val scoreMul = when {
                     block == Blocks.air -> 10f // Most blocks are air, checking for air first should be slightly faster

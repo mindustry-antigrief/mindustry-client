@@ -59,7 +59,7 @@ object FindDialog : BaseDialog("@client.find") {
             for (t in world.tiles) { // FINISHME: Add an option to not show things such as ores which are covered by blocks
                 if (!t.isCenter) continue
                 if (t.block() != block && t.floor() != block && t.overlay() != block) continue
-                if (allyOnly.isChecked && t.team().isEnemy(player.team())) continue
+                if (allyOnly.isChecked && t.team() != player.team()) continue
                 results += t
             }
 

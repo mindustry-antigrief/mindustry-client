@@ -1,6 +1,6 @@
 package mindustry.client.communication
 
-class SwitchableCommunicationSystem(val systems: List<CommunicationSystem>) : CommunicationSystem() {
+class SwitchableCommunicationSystem(private val systems: List<CommunicationSystem>) : CommunicationSystem() {
 
     constructor(vararg communicationSystems: CommunicationSystem) : this(communicationSystems.toMutableList())
 
@@ -8,11 +8,11 @@ class SwitchableCommunicationSystem(val systems: List<CommunicationSystem>) : Co
 
     override val listeners: MutableList<(input: ByteArray, sender: Int) -> Unit> = mutableListOf()
 
-    override val id by activeCommunicationSystem::id
-    override val MAX_LENGTH by activeCommunicationSystem::MAX_LENGTH
-    override val RATE by activeCommunicationSystem::RATE
+    override val id get() = activeCommunicationSystem.id
+    override val MAX_LENGTH get() = activeCommunicationSystem.MAX_LENGTH
+    override val RATE get() = activeCommunicationSystem.RATE
 
-    override val secure by activeCommunicationSystem::secure
+    override val secure get() = activeCommunicationSystem.secure
 
     override fun send(bytes: ByteArray) {
         activeCommunicationSystem.send(bytes)
