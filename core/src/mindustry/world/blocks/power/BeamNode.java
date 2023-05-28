@@ -1,5 +1,6 @@
 package mindustry.world.blocks.power;
 
+import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -7,6 +8,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.antigrief.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
@@ -32,6 +34,7 @@ public class BeamNode extends PowerBlock{
 
     public BeamNode(String name){
         super(name);
+        configurable = Core.settings != null && Core.settings.getBool("highlightselectedgraph");
         consumesPower = outputsPower = false;
         drawDisabled = false;
         envEnabled |= Env.space;
@@ -134,8 +137,11 @@ public class BeamNode extends PowerBlock{
             if(Mathf.zero(Renderer.laserOpacity)) return;
 
             Draw.z(Layer.power);
-            Draw.color(laserColor1, laserColor2, (1f - power.graph.getSatisfaction()) * 0.86f + Mathf.absin(3f, 0.1f));
-            Draw.alpha(Renderer.laserOpacity);
+            if (power.graph == PowerInfo.selected) Draw.color(Pal.freeze, Renderer.laserOpacity + .2f);
+            else {
+                Draw.color(laserColor1, laserColor2, (1f - power.graph.getSatisfaction()) * 0.86f + Mathf.absin(3f, 0.1f));
+                Draw.alpha(Renderer.laserOpacity);
+            }
             float w = laserWidth + Mathf.absin(pulseScl, pulseMag);
 
             for(int i = 0; i < 4; i ++){

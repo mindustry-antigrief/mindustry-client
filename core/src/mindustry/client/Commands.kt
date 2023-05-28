@@ -401,6 +401,7 @@ fun setupCommands() {
             Core Capture: ${rules.coreCapture}
             Core Incinerates: ${rules.coreIncinerates}
             Core Modifies Unit Cap: ${rules.unitCapVariable}
+            Only Deposit Core: ${rules.onlyDepositCore}
             """.trimIndent()
         })
     }

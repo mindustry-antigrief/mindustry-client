@@ -118,11 +118,13 @@ public class AssetsProcess extends BaseProcessor{
 
     void processSounds(String classname, String path, String rtype, boolean genid) throws Exception{
         TypeSpec.Builder type = TypeSpec.classBuilder(classname).addModifiers(Modifier.PUBLIC);
-        MethodSpec.Builder loadBegin = MethodSpec.methodBuilder("load").addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+        MethodSpec.Builder loadBegin = MethodSpec.methodBuilder("load").addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.SYNCHRONIZED).addParameter(boolean.class, "init");
         CodeBlock.Builder staticb = CodeBlock.builder();
 
         type.addField(boolean.class, "loaded", Modifier.STATIC, Modifier.PRIVATE);
-        loadBegin.addStatement("if(loaded || !mindustry.Vars.clientLoaded) return");
+        type.addField(boolean.class, "ready", Modifier.STATIC, Modifier.PRIVATE);
+        loadBegin.addStatement("ready |= init");
+        loadBegin.addStatement("if(loaded || !ready) return");
 
         if(genid){ // Sounds
             loadBegin.addStatement("if(arc.Core.settings.getInt($S) == 0 && arc.Core.settings.getInt($S) == 0) return", "sfxvol", "ambientvol");

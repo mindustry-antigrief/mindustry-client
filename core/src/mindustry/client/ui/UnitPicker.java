@@ -7,6 +7,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.types.*;
 import mindustry.client.*;
+import mindustry.client.navigation.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.entities.*;
@@ -21,7 +22,6 @@ import static mindustry.Vars.*;
 public class UnitPicker extends BaseDialog {
     public UnitType type;
     Seq<UnitType> sorted = content.units().copy();
-//    static boolean noDisable;
 
     public UnitPicker(){
         super("@client.unitpicker");
@@ -44,11 +44,11 @@ public class UnitPicker extends BaseDialog {
             labels.add(new Label(""));
         }
         TextField searchField = cont.field("", string -> {
-            sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshteinInsensitive(string, b.name));
+            sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshteinInsensitive(string, b.localizedName));
             for (int i = 0; i < imgs.size; i++) {
                 Image region = new Image(sorted.get(i).uiIcon);
                 imgs.get(i).setDrawable(region.getDrawable());
-                labels.get(i).setText(sorted.get(i).name);
+                labels.get(i).setText(sorted.get(i).localizedName);
             }
         }).get();
         for(int i = 0; i < 10; i++){
@@ -61,7 +61,7 @@ public class UnitPicker extends BaseDialog {
 
     /** Called whenever a new unit is added. */
     public void handle(Unit unit){
-        if (type != unit.type || unit.team != player.team() || !state.rules.possessionAllowed) return;
+        if (type != unit.type || unit.team != player.team() || !state.rules.possessionAllowed || Navigation.currentlyFollowing instanceof MinePath mp && mp.getNewGame()) return;
 
         Call.unitControl(player, unit);
         type = null;
@@ -112,7 +112,7 @@ public class UnitPicker extends BaseDialog {
     public Unit findUnit(UnitType type) {
         return findUnit(type, player.x, player.y);
     }
-    public Unit findUnit(UnitType type, float x, float y) {
+    public Unit findUnit(UnitType type, float x, float y) { // FINISHME: These functions are a mess, the params aren't even used half o the time, fix this
         Unit found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead && !(u.controller() instanceof LogicAI)); // Non logic units
         if (found == null) found = Units.closest(player.team(), player.x, player.y, u -> !u.isPlayer() && u.type == type && !u.dead); // All units
 
@@ -124,17 +124,8 @@ public class UnitPicker extends BaseDialog {
     }
 
     private void setup(){
-
-//        Events.on(EventType.UnitChangeEventClient.class, e -> {
-//            Log.info("Player @ swapped from @ to @ | Nodisable: @", e.player.name, e.oldUnit.type, e.newUnit.type, noDisable);
-//            if (e.player == player && !noDisable) {
-//                type = null;
-//                noDisable = false;
-//            }
-//        });
-
         Events.on(EventType.UnitChangeEventClient.class, event -> {
-            if (type == null || event.oldUnit.dead || event.oldUnit.type != type || event.oldUnit.team != player.team() || event.player.isLocal() || !state.rules.possessionAllowed) return;
+            if (type == null || event.oldUnit.dead || event.oldUnit.type != type || event.oldUnit.team != player.team() || event.player.isLocal() || !state.rules.possessionAllowed || Navigation.currentlyFollowing instanceof MinePath mp && mp.getNewGame()) return;
             type = null;
             Timer.schedule(() -> Core.app.post(() -> {
                 Call.unitControl(player, event.oldUnit);

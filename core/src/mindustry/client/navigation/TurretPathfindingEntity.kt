@@ -4,14 +4,13 @@ import arc.func.*
 import arc.math.geom.*
 import arc.math.geom.QuadTree.*
 import arc.struct.*
-import mindustry.*
 import mindustry.Vars.*
 import mindustry.gen.*
 import mindustry.logic.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
-class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField var range: Float, @JvmField val targetGround: Boolean, @JvmField val targetAir: Boolean, private val canShoot: Boolp) : QuadTreeObject {
+class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField val range: Float, @JvmField val targetGround: Boolean, @JvmField val targetAir: Boolean, private val canShoot: Boolp) : QuadTreeObject {
     var id = 0L
 
     fun canShoot() = canShoot.get()
@@ -26,7 +25,6 @@ class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField var range:
 
     init {
         id = nextId++
-        range += Vars.tilesize
     }
 
     override fun equals(other: Any?): Boolean {
@@ -38,7 +36,7 @@ class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField var range:
     }
 
     override fun hitbox(out: Rect) {
-        out.setCentered(entity.x, entity.y, (range - Vars.tilesize) * 2)
+        out.setCentered(entity.x, entity.y, range * 2)
     }
 
     /**
@@ -50,7 +48,7 @@ class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField var range:
     fun contains(x: Float, y: Float): Boolean {
         val dx = entity.x - x
         val dy = entity.y - y
-        val range = range - Vars.tilesize
+        val range = range + tilesize / 2F
         return dx * dx + dy * dy <= range * range
     }
 

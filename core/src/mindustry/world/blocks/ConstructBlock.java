@@ -38,7 +38,6 @@ import java.util.*;
 import java.util.concurrent.atomic.*;
 
 import static mindustry.Vars.*;
-import static mindustry.ui.Styles.*;
 
 /** A block in the process of construction. */
 public class ConstructBlock extends Block{
@@ -556,7 +555,7 @@ public class ConstructBlock extends Block{
                     toast.setFadeAfter(2f);
                     toast.add(new Label(format));
                     toast.row();
-                    toast.add(new Label(format2, monoLabel));
+                    toast.add(new Label(format2));
                     toast.touchable = Touchable.enabled;
                     toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
                     ClientVars.lastSentPos.set(tile.x, tile.y);
@@ -609,7 +608,7 @@ public class ConstructBlock extends Block{
                 toast.setFadeAfter(2f);
                 toast.add(new Label(toastMessage));
                 toast.row();
-                toast.add(new Label(toastSubtitle, monoLabel));
+                toast.add(new Label(toastSubtitle));
                 toast.touchable = Touchable.enabled;
                 toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
                 ClientVars.lastSentPos.set(tile.x, tile.y);

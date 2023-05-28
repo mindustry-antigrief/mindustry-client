@@ -112,28 +112,20 @@ public class HudFragment{
 
         //minimap + position
         parent.fill(t -> {
-            t.visible(() -> shown && Core.settings.getBool(("minimap")));
+            t.visible(() -> shown && Core.settings.getBool(("minimap"))); // FINISHME: Only hide minimap when doing so, use a collapser to shrink it maybe? Idk
             t.name = "minimap/position";
-            t.table(ta -> {
-                //tile hud
-                ta.add(new TileInfoFragment()).name("tilehud").top();
-                //minimap
-                ta.add(new Minimap()).name("minimap").top();
-            });
+            //tile hud
+            t.add(new TileInfoFragment()).name("tilehud").top();
+            //minimap
+            t.add(new Minimap()).name("minimap").top();
             t.row();
             //position
-            t.label(() -> player.tileX() + ", " + player.tileY())
-            .tooltip("Player Position")
-            .visible(() -> Core.settings.getBool("position"))
-            .style(Styles.monoOutlineLabel)
-            .name("position").right();
-            t.row();
-            //cursor position
-            t.label(() -> "[coral]" + World.toTile(Core.input.mouseWorldX()) + ", " + World.toTile(Core.input.mouseWorldY()))
-            .tooltip("Cursor Position")
-            .visible(() -> Core.settings.getBool("position"))
-            .style(Styles.monoOutlineLabel)
-            .name("cursor").right();
+            t.label(() -> player.tileX() + ", " + player.tileY() + "\n" + "[coral]" + World.toTile(Core.input.mouseWorldX()) + ", " + World.toTile(Core.input.mouseWorldY()))
+                .tooltip("Player Position\n[coral]Cursor Position")
+                .visible(() -> Core.settings.getBool("position"))
+                .style(Styles.outlineLabel)
+                .name("position").top().right().labelAlign(Align.right)
+                .colspan(2);
             t.top().right();
         });
 

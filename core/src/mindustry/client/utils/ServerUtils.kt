@@ -39,7 +39,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             if (!player.admin) Call.serverPacketReliable("freeze_by_id", args[0]) // Yes this will cause a crash when args.size == 0, it shouldn't happen
             else super.run(*args)
         }
-    }, votekickString = "Type[orange] /vote <y/n>[] to vote."){
+    }, votekickString = "Type[orange] /vote <y/n>[] to vote.") {
         override fun handleBan(p: Player) {
             ui.showTextInput("@client.banreason.title", "@client.banreason.body", "Griefing") { reason ->
                 val id = p.trace?.uuid ?: p.serverID
@@ -107,6 +107,9 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
                 current = other
             }
         }
+
+        // FINISHME: Should alos add a new ohno on player join (not really useful currently though cause ohno limit is broken and this could permanently lose an ohno)
+        @JvmField var ohnoTask: Timer.Task? = null // FINISHME: Yet another reason this enum should be a class since this could be put in the fish class and not muddy everything else
     }
 
     @JvmName("b") operator fun invoke() = current === this

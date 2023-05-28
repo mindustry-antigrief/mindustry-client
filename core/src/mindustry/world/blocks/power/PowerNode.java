@@ -181,9 +181,9 @@ public class PowerNode extends PowerBlock{
         setupColor(satisfaction, false);
     }
 
-    protected void setupColor(float satisfaction, boolean purple){
-        if(purple){
-            Draw.color(Pal.place, Renderer.laserOpacity + .2f);
+    protected void setupColor(float satisfaction, boolean highlight){
+        if(highlight){
+            Draw.color(Pal.freeze, Renderer.laserOpacity + .2f);
         }else{
             Draw.color(laserColor1, laserColor2, (1f - satisfaction) * 0.86f + Mathf.absin(3f, 0.1f));
             Draw.alpha(Renderer.laserOpacity);

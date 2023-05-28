@@ -36,6 +36,7 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.storage.*;
 
 import java.io.*;
@@ -323,9 +324,9 @@ public class SettingsMenuDialog extends BaseDialog{
     }
 
     void addSettings(){
-        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> { if(i != Core.settings.getInt("musicvol")) Musics.load(); return i + "%"; });
-        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> { if(i != Core.settings.getInt("sfxvol")) Sounds.load(); return i + "%"; });
-        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> { if(i != Core.settings.getInt("ambientvol")) Sounds.load(); return i + "%"; });
+        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> { mainExecutor.execute(() -> Musics.load(false)); return i + "%"; });
+        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> { mainExecutor.execute(() -> Sounds.load(false)); return i + "%"; });
+        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> { mainExecutor.execute(() -> Sounds.load(false)); return i + "%"; });
 
         // Client Settings, organized exactly the same as Bundle.properties: text first, sliders second, checked boxes third, unchecked boxes last
         client.category("antigrief");
@@ -377,7 +378,6 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("hitboxopacity", 0, 0, 100, 5, s -> { UnitType.hitboxAlpha = s / 100f; return s == 0 ? "Disabled" : s + "%"; });
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
-        client.checkPref("disablemonofont", true); // Requires Restart
         client.checkPref("placementfragmentsearch", true);
         client.checkPref("junctionflowratedirection", false, s -> Junction.flowRateByDirection = s);
         client.checkPref("drawwrecks", true);
@@ -388,7 +388,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("tracelogicunits", false);
         client.checkPref("enemyunitranges", false);
         client.checkPref("allyunitranges", false);
-        client.checkPref("highlightselectedgraph", true);
+        client.checkPref("highlightselectedgraph", true, i -> content.blocks().<BeamNode>each(b -> b instanceof BeamNode, b -> b.configurable = i));
         client.checkPref("highlighthoveredgraph", false);
         client.checkPref("mobileui", false, i -> mobile = !mobile);
         client.checkPref("showreactors", false);
@@ -620,7 +620,7 @@ public class SettingsMenuDialog extends BaseDialog{
             ObjectSet<Texture> atlas = new ObjectSet<>(Core.atlas.getTextures());
             final boolean lText = Core.settings.getBool("lineartext");
             var fontFilter = Fonts.getTextFilter(lText);
-            for(Font f: new Font[]{Fonts.def, Fonts.outline, Fonts.mono(), Fonts.monoOutline()}){
+            for(Font f : new Font[]{Fonts.def, Fonts.outline}){
                 f.getRegions().each(t -> {
                     if(setText) {
                         t.texture.setFilter(fontFilter);

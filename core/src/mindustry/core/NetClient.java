@@ -226,6 +226,15 @@ public class NetClient implements ApplicationListener{
 
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
+        if(Server.fish.b() && Server.ohnoTask != null) { // Very hacky
+            if (message.contains("Too close to an enemy tile!")) return; // We don't care honestly
+            if (message.contains("Sorry, the max number of ohno units has been reached.") || message.contains("Ohnos have been temporarily disabled.")) {
+                Time.run(60f, () -> Server.ohnoTask = null); // Null it out a second later, this is just to prevent any additional messages from bypassing the return below
+                Server.ohnoTask.cancel();
+                return;
+            }
+        }
+
         Events.fire(new PlayerChatEvent(playersender, unformatted != null ? unformatted : message != null ? message : "")); // Foo addition, why is this not a vanilla thing?
         // message is the full formatted message from the server, including the sender
         // unformatted is the message content itself, i.e. "gg", null for server messages
@@ -285,8 +294,6 @@ public class NetClient implements ApplicationListener{
             //display raw unformatted text above player head
             playersender.lastText(unformatted);
             playersender.textFadeTime(1f);
-
-            Events.fire(new PlayerChatEvent(playersender, unformatted));
         }
 
         Events.fire(new PlayerChatEventClient());
@@ -296,7 +303,6 @@ public class NetClient implements ApplicationListener{
     @Remote(called = Loc.server, targets = Loc.server)
     public static void sendMessage(String message){
         if(Vars.ui == null) return;
-        if(Server.fish.b() && ClientVars.lastJoinTime < 10_000 && message.contains("Sorry, the max number of ohno units has been reached.") || message.contains("Ohnos have been temporarily disabled.") || message.contains("Too close to an enemy tile!")) return; // We don't care honestly. Also just love that theres even more hackiness in foos now, great.
 
         if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
         if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");

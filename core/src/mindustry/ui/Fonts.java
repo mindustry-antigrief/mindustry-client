@@ -40,16 +40,6 @@ public class Fonts{
     public static Font icon;
     public static Font iconLarge;
     public static Font tech;
-    private static Font mono;
-    private static Font monoOutline;
-
-    public static Font mono(){
-        return Core.settings.getBool("disablemonofont") ? def : mono;
-    }
-
-    public static Font monoOutline(){
-        return Core.settings.getBool("disablemonofont") ? outline : monoOutline;
-    }
 
     public static TextureRegion logicIcon(int id){
         return iconTable[id];
@@ -85,12 +75,6 @@ public class Fonts{
         FreeTypeFontParameter param = fontParameter();
 
         Core.assets.load("default", Font.class, new FreeTypeFontLoaderParameter(mainFont, param)).loaded = f -> (Fonts.def = f).setFixedWidthGlyphs("0123456789");
-        Core.assets.load("mono", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = f -> {
-            StringBuilder chars = new StringBuilder();
-            for(int c = 0; c <= 255; c++) chars.append((char)c);
-            (Fonts.mono = f).setFixedWidthGlyphs(chars);
-            mono.getData().markupEnabled = true;
-        };
         Core.assets.load("icon", Font.class, new FreeTypeFontLoaderParameter("fonts/icon.ttf", new FreeTypeFontParameter(){{
             size = 30;
             incremental = true;
@@ -119,7 +103,7 @@ public class Fonts{
 
     public static void loadContentIcons(){
         var start = Time.nanos();
-        Seq<FontData> fontsData = Seq.with(Fonts.def, Fonts.outline, Fonts.mono, Fonts.monoOutline).map(Font::getData);
+        Seq<FontData> fontsData = Seq.with(Fonts.def, Fonts.outline).map(Font::getData);
         Texture uitex = Core.atlas.find("logo").texture;
         int size = (int)(Fonts.def.getData().lineHeight/Fonts.def.getData().scaleY);
 
@@ -231,12 +215,7 @@ public class Fonts{
             Fonts.outline = t;
             Fonts.outline.setFixedWidthGlyphs("0123456789");
         };
-        Core.assets.load("monoOutline", Font.class, new FreeTypeFontLoaderParameter("fonts/monofont.ttf", param)).loaded = f -> {
-            StringBuilder chars = new StringBuilder();
-            for(int c = 0; c <= 255; c++) chars.append((char)c);
-            (monoOutline = f).setFixedWidthGlyphs(chars);
-            monoOutline.getData().markupEnabled = true;
-        };
+
         Core.assets.load("tech", Font.class, new FreeTypeFontLoaderParameter("fonts/tech.ttf", new FreeTypeFontParameter(){{
             size = 18;
         }})).loaded = f -> {
