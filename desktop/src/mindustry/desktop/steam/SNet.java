@@ -446,11 +446,16 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
         Log.info("onGameRichPresenceJoinRequested @ @", steamIDFriend, connect);
 
         String[] split = connect.split(":");
-        if (split.length != 2) return; // Should always be in the format of ip:port
+        if(split.length != 2) return; // Should always be in the format of ip:port
         try{
+            ui.loadfrag.show("@loading");
+            if(!ui.join.hasFetchedCommunity){
+                String connectF = connect;
+                ui.join.onCommunityFetch = () -> onGameRichPresenceJoinRequested(steamIDFriend, connectF);
+                return;
+            }
             ui.join.refreshCommunity();
             int port = Integer.parseInt(split[1]);
-            ui.loadfrag.show("@connecting");
             net.pingExecutor.execute(() -> {
                 Threads.sleep(Core.settings.getInt("serverbrowserpinglimit", 2000) + 500); // Pray that everything actually finishes in time (it should since this will run after/alongside
                 Core.app.post(() -> ui.join.connect(split[0], port));                                    // the last ping and the pings should all finish within the timeout from the last ping running)
