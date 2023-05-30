@@ -353,7 +353,7 @@ public class DesktopInput extends InputHandler{
             Navigation.follow(new RepairPath());
         }
 
-        if(input.keyTap(Binding.auto_mine) && scene.getKeyboardFocus() == null){
+        if(input.keyTap(Binding.auto_mine) && scene.getKeyboardFocus() == null && (input.shift() || (player != null && player.unit() != null && player.unit().type.mineTier > 0))){
             Navigation.follow(new MinePath());
         }
 
