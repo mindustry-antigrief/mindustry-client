@@ -349,7 +349,7 @@ public class DesktopInput extends InputHandler{
             else Navigation.follow(new BuildPath());
         }
 
-        if(input.keyTap(Binding.auto_repair) && scene.getKeyboardFocus() == null){
+        if(input.keyTap(Binding.auto_repair) && scene.getKeyboardFocus() == null && (input.shift() || (player != null && player.unit() != null && player.unit().type.canHeal))){
             Navigation.follow(new RepairPath());
         }
 
