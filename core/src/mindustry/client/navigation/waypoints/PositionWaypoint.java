@@ -59,7 +59,7 @@ public class PositionWaypoint extends Waypoint implements Position {
 
     @Override
     public boolean isDone() {
-        return player.within(this, tolerance + Math.max(0, player.unit() != null ? player.unit().type.speed - 3.5 : 0) * 3) &&
+        return player.within(this, tolerance + Math.max(0f, player.unit() != null ? player.unit().type.speed - 3.5f : 0f) * 3f) &&
                 (mustPassThrough == null || !player.within(mustPassThrough, tilesize * 0.99f)); // 0.99 - a number i plucked out of nowhere.
         // most units should be able to surpass the distance requirement to change direction and not hit the corner block
     }
