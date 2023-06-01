@@ -228,6 +228,36 @@ fun setupCommands() {
         sendMessage("/js ${args[0]}")
     }
 
+    register("scanprocs", Core.bundle.get("client.command.scanprocs.description")) { args, player ->
+        player.sendMessage("Scanning all processors...")
+        //Getting the list of processors must be done on the main thread
+        val procs = player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>()
+        //The scanning is expensive so we run it on the client thread
+        clientThread.post {
+            val results:MutableMap<LogicBlock.LogicBuild, LogicDetectionLevel> = mutableMapOf()
+            for(proc in procs){
+                results[proc] = isMalicious(proc)
+            }
+            Core.app.post {
+                var noDetections = true
+                for((block, result) in results){
+                    if(result != LogicDetectionLevel.Safe){
+                        val color = when(result){
+                            LogicDetectionLevel.Safe -> "white"
+                            LogicDetectionLevel.SlightlySus -> "white"
+                            LogicDetectionLevel.Sus -> "yellow"
+                            LogicDetectionLevel.Malicious -> "scarlet"
+                        }
+                        ui.chatfrag.addMsg("[$color]Processor at (${block.tileX()}, ${block.tileY()}): $result").findCoords()
+                        noDetections = false
+                    }
+                }
+                if(noDetections) player.sendMessage("No suspicious processors found.")
+                else player.sendMessage("Scan complete.")
+            }
+        }
+    }
+
     // Removed in Erekir
 //    register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
 //        if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
@@ -519,7 +549,7 @@ fun setupCommands() {
 
     register("procfind [option] [argument...]", Core.bundle.get("client.command.procfind.description")) { args, player ->
         
-        if(args.size == 0) player.sendMessage(Core.bundle.get("client.command.procfind.help")); // This one looks long and cursed on the bundle
+        if(args.isEmpty()) player.sendMessage(Core.bundle.get("client.command.procfind.help")); // This one looks long and cursed on the bundle
         else when (args[0]) {
             "query" -> {
                 if (args.size < 2) {

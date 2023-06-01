@@ -2,7 +2,6 @@
 
 package mindustry.client.utils
 
-import arc.util.*
 import mindustry.world.blocks.logic.*
 
 // enum class LogicDetectionType(
@@ -32,8 +31,8 @@ val LookupInstruction = Regex("^lookup", RegexOption.MULTILINE)
 
 val ForceShootInstruction = Regex("^ucontrol targetp @unit (1|true)", RegexOption.MULTILINE)
 
-val Crawler = Regex("@crawler");
-val Flammable = Regex("@coal|@pyratite|@blast-compound|@surge-alloy");
+val Crawler = Regex("@crawler")
+val Flammable = Regex("@coal|@pyratite|@blast-compound|@surge-alloy")
 
 val UnitBindInstruction = Regex("^ubind ", RegexOption.MULTILINE)
 
@@ -43,7 +42,7 @@ val CheckFlagZeroInstruction = Regex("^sensor (\\S+) @unit @flag[\\s\\S]*\njump 
 infix fun String.has(regex:Regex):Boolean = regex.containsMatchIn(this)
 
 fun isMalicious(proc:LogicBlock.LogicBuild):LogicDetectionLevel {
-	val code = proc.code;
+	val code = proc.code
 	if(code.isEmpty()) return LogicDetectionLevel.Safe
 
 	//Detect "logicvsfish"
@@ -101,7 +100,7 @@ fun isMalicious(proc:LogicBlock.LogicBuild):LogicDetectionLevel {
 	) return if(code has ControlFlowInstruction) LogicDetectionLevel.Sus else LogicDetectionLevel.Malicious // if theres control flow instructions, then sus, otherwise malicious
 
 	//No checks failed
-	return LogicDetectionLevel.Safe;
+	return LogicDetectionLevel.Safe
 
 	
 	
