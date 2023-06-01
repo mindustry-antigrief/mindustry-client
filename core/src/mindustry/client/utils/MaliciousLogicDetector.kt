@@ -99,6 +99,14 @@ fun isMalicious(proc:LogicBlock.LogicBuild):LogicDetectionLevel {
 		code has ForceShootInstruction //Tells the unit to shoot itself, for crawler this means die
 	) return if(code has ControlFlowInstruction) LogicDetectionLevel.Sus else LogicDetectionLevel.Malicious // if theres control flow instructions, then sus, otherwise malicious
 
+	//Detect crawler suicide malware
+	if(
+		code has UnitBindInstruction && //Binds a unit
+		code has Crawler && //Crawler
+		code has ForceShootInstruction && //Blows up the crawler
+		!(code has ControlFlowInstruction) //No control flow
+	) return LogicDetectionLevel.Malicious
+
 	//No checks failed
 	return LogicDetectionLevel.Safe
 
