@@ -15,7 +15,7 @@ import mindustry.world.blocks.logic.*
 // }
 
 enum class LogicDetectionLevel {
-	Safe, Sus, Malicious
+	Safe, SlightlySus, Sus, Malicious
 }
 
 val SusFlagInstruction = Regex("^ucontrol flag \\d+", RegexOption.MULTILINE)
@@ -60,7 +60,7 @@ fun isMalicious(proc:LogicBlock.LogicBuild):LogicDetectionLevel {
 		code has FlagInstruction && //Any flag instruction
 		code has UnitBindInstruction && //Unit bind instruction
 		!(code has CheckFlagZeroInstruction) //No flag zero check
-	) return LogicDetectionLevel.Sus //Maybe flagging all units
+	) return LogicDetectionLevel.SlightlySus //Probably not flagging all units
 
 
 	//Detect suicide malware
@@ -68,13 +68,13 @@ fun isMalicious(proc:LogicBlock.LogicBuild):LogicDetectionLevel {
 		code has UnitBindInstruction && //Binds a unit
 		code has SusMoveInstruction && //Moves to hardcoded location
 		!(code has ControlFlowInstruction) //No control flow
-	) return LogicDetectionLevel.Malicious
+	) return LogicDetectionLevel.Sus
 
 	if(
 		code has UnitBindInstruction && //Binds a unit
 		code has MoveInstruction && //Moves
 		!(code has CheckFlagZeroInstruction) //No flag zero check
-	) return LogicDetectionLevel.Sus
+	) return LogicDetectionLevel.SlightlySus
 
 	//Detect void items malware
 	if(
