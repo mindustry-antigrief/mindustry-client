@@ -228,8 +228,9 @@ fun setupCommands() {
         sendMessage("/js ${args[0]}")
     }
 
-    register("scanprocs", Core.bundle.get("client.command.scanprocs.description")) { args, player ->
-        player.sendMessage("Scanning all processors...")
+    register("scanprocs [showslightlysus]", Core.bundle.get("client.command.scanprocs.description")) { args, player ->
+        val showslightlysus = args.size == 1
+        player.sendMessage("[yellow]Scanning all processors...")
         //Getting the list of processors must be done on the main thread
         val procs = player.team().data().buildings.filterIsInstance<LogicBlock.LogicBuild>()
         //The scanning is expensive so we run it on the client thread
@@ -241,7 +242,7 @@ fun setupCommands() {
             Core.app.post {
                 var noDetections = true
                 for((block, result) in results){
-                    if(result != LogicDetectionLevel.Safe){
+                    if(result != LogicDetectionLevel.Safe && (showslightlysus || result != LogicDetectionLevel.SlightlySus)){
                         val color = when(result){
                             LogicDetectionLevel.Safe -> "white"
                             LogicDetectionLevel.SlightlySus -> "white"
@@ -252,7 +253,7 @@ fun setupCommands() {
                         noDetections = false
                     }
                 }
-                if(noDetections) player.sendMessage("No suspicious processors found.")
+                if(noDetections) player.sendMessage("[green]No suspicious processors found.")
                 else player.sendMessage("Scan complete.")
             }
         }
