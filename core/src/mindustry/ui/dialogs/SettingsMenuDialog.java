@@ -434,6 +434,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("circleassist", false);
         client.checkPref("ignoremodminversion", false);
         client.checkPref("betterenemyblocktapping", false);
+        client.checkPref("autoohno", false);
 
         if (settings.getBool("client-experimentals") || OS.hasProp("policone")) { // FINISHME: Either remove this or make it properly functional
             client.category("Experimental");

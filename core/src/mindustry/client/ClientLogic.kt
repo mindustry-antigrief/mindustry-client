@@ -76,7 +76,7 @@ class ClientLogic {
             if (!syncing) {
                 AutoTransfer.enabled = settings.getBool("autotransfer") && !(state.rules.pvp && Server.io())
                 Server.ohnoTask?.cancel()
-                Server.ohnoTask = if (Server.fish() && settings.getBool("autoohno", true)) Timer.schedule({ Call.sendChatMessage("/ohno") }, 3f, 3.1f) else null // Why did bala make the ohno cooldown 3000ms thats stupid. //because i dont like that you can just spam ohnos immediately
+                Server.ohnoTask = if (Server.fish() && settings.getBool("autoohno", false)) Timer.schedule({ Call.sendChatMessage("/ohno") }, 3f, 3.1f) else null // Why did bala make the ohno cooldown 3000ms thats stupid. //because i dont like that you can just spam ohnos immediately
                 frozenPlans.clear()
             }
             configs.clear()
