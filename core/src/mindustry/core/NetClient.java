@@ -227,9 +227,12 @@ public class NetClient implements ApplicationListener{
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
         if(Server.fish.b() && Server.ohnoTask != null) { // Very hacky
-            if (message.contains("Too close to an enemy tile!")) return; // We don't care honestly
+            if (message.contains("Too close to an enemy tile!") || message.contains("You cannot spawn ohnos while dead".) return; // We don't care honestly
             if (message.contains("Sorry, the max number of ohno units has been reached.") || message.contains("Ohnos have been temporarily disabled.")) {
-                Time.run(60f, () -> Server.ohnoTask = null); // Null it out a second later, this is just to prevent any additional messages from bypassing the return below
+                Time.run(60f, () -> {
+                    if (Server.ohnoTask != null) Server.ohnoTask.cancel();
+                    Server.ohnoTask = null;
+                }); // Null it out a second later, this is just to prevent any additional messages from bypassing the return below
                 Server.ohnoTask.cancel();
                 return;
             }
