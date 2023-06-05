@@ -548,11 +548,10 @@ public class ConstructBlock extends Block{
                     String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.getPlayer().name), current.localizedName, tile.x, tile.y, distance.get());
                     String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
                     if (toast == null || toast.parent == null) {
-                        toast = new Toast(2f, 0f);
+                        toast = new Toast(4f, 0.3f);
                     } else {
                         toast.clearChildren();
                     }
-                    toast.setFadeAfter(2f);
                     toast.add(new Label(format));
                     toast.row();
                     toast.add(new Label(format2));
@@ -601,11 +600,10 @@ public class ConstructBlock extends Block{
                 );
                 String toastSubtitle = String.format("%2d%% completed.", Mathf.round(progress * 100));
                 if (toast == null || toast.parent == null) {
-                    toast = new Toast(2f, 0f);
+                    toast = new Toast(4f, 0.3f);
                 } else {
                     toast.clearChildren();
                 }
-                toast.setFadeAfter(2f);
                 toast.add(new Label(toastMessage));
                 toast.row();
                 toast.add(new Label(toastSubtitle));
