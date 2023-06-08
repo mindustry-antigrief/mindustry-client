@@ -246,18 +246,29 @@ public class HudFragment{
                 wavesMain.table(Tex.wavepane).update(st -> {
                     st.clear();
                     Cons3<Drawable, String, Binding> icon = (i, text, binding) -> {
-                        st.image(i).maxWidth(30f).padRight(8f).tooltip(Strings.format("@ [yellow](@)", text, Core.keybinds.get(Binding.show_turret_ranges).key.toString()));
+                        st.image(i).size(30f).padRight(8f)
+                            .get().addListener(new Tooltip(l -> l.label(() ->
+                                Strings.format("@ [yellow](@)", text, Core.keybinds.get(Binding.show_turret_ranges).key.toString()))
+                            )
+                        );
+                    };
+                    Cons4<Drawable, String, Binding, String> icon2 = (i, text, binding, modifier) -> {
+                        st.image(i).size(30f).padRight(8f)
+                            .get().addListener(new Tooltip(l -> l.label(() ->
+                                Strings.format("@ [yellow](@ + @)", text, modifier, Core.keybinds.get(Binding.show_turret_ranges).key.toString()))
+                            )
+                        );
                     };
                     var a = 0.5f;
                     if(showingTurrets) icon.get(Icon.turret.tint(1, 0.33f, 0.33f, a), "Showing Turrets", Binding.show_turret_ranges);
-                    if(showingAllyTurrets) icon.get(Icon.turret.tint(0.67f, 1, 0.67f, a), "Showing Ally Turrets", Binding.show_turret_ranges);
+                    if(showingAllyTurrets) icon2.get(Icon.turret.tint(0.67f, 1, 0.67f, a), "Showing Ally Turrets", Binding.show_turret_ranges, "Shift");
                     //if(hidingUnits) icon.get(Icon.units.tint(1, 0.33f, 0.33f, a), "Hiding Units", Binding.invisible_units);
-                    //if(hidingAirUnits) icon.get(Icon.planeOutline.tint(1, 0.33f, 0.33f, a), "Hiding Air Units", Binding.invisible_units);
+                    //if(hidingAirUnits) icon2.get(Icon.planeOutline.tint(1, 0.33f, 0.33f, a), "Hiding Air Units", Binding.invisible_units, "Shift");
                     if(!Vars.control.input.isBuilding) icon.get(Icon.pause.tint(1, 0.33f, 0.33f, a), "Paused Building", Binding.pause_building);
-                    if(control.input.isFreezeQueueing) icon.get(Icon.pause.tint(0.33f, 0.33f, 1, a), "Freeze Queuing", Binding.pause_building);
+                    if(control.input.isFreezeQueueing) icon2.get(Icon.pause.tint(0.33f, 0.33f, 1, a), "Freeze Queuing", Binding.pause_building, "Shift");
                     //if(hidingBlocks) icon.get(Icon.eyeOff.tint(1, 1, 1, a), "Hiding Blocks", Binding.hide_blocks);
-                    //if(hidingPlans) icon.get(Icon.eyeOff.tint(0.5f, 0.5f, 0.5f, a));
-                    if(hidingFog) icon.get(Icon.waves.tint(0.5f, 0.5f, 0.5f, a), "Hiding Fog", Binding.invisible_units);
+                    //if(hidingPlans) icon2.get(Icon.eyeOff.tint(0.5f, 0.5f, 0.5f, a), "Hiding Plans", Binding.hide_blocks, "Shift");
+                    if(hidingFog) icon2.get(Icon.waves.tint(0.5f, 0.5f, 0.5f, a), "Hiding Fog", Binding.invisible_units, "Ctrl");
                     if(showingMassDrivers) icon.get(new TextureRegionDrawable(Blocks.massDriver.region), "Showing Massdriver Links", Binding.show_massdriver_configs);
                     if(showingOverdrives) icon.get(new TextureRegionDrawable(Blocks.overdriveProjector.region), "Showing Overdrive Ranges", Binding.show_turret_ranges);
                     if(dispatchingBuildPlans) icon.get(Icon.tree.tint(1, 1, 1, a), "Sending Build Plans", Binding.send_build_queue);
