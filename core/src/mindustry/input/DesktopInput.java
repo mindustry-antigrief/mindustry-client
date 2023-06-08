@@ -783,7 +783,7 @@ public class DesktopInput extends InputHandler{
 
         if(Core.input.keyTap(Binding.clear_building)){
             if(Core.input.shift()){
-                frozenPlans.clear()
+                frozenPlans.clear();
             }else{
                 Player.persistPlans.clear();
                 player.unit().clearBuilding();

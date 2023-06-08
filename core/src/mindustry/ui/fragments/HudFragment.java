@@ -15,6 +15,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import kotlin.collections.*;
+import mindustry.Vars;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
@@ -34,6 +35,7 @@ import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 
+import static mindustry.client.ClientVars.*;
 import static mindustry.Vars.*;
 import static mindustry.gen.Tex.*;
 
@@ -237,6 +239,31 @@ public class HudFragment{
                     else logic.skipWave();
                 }).growY().fillX().right().width(40f).name("skip");
             }).width(dsize * 6 + 4f).name("statustable");
+
+            if(Core.settings.getBool("activemodesdisplay", false)){
+                //Active modes display
+                wavesMain.row();
+                wavesMain.table(Tex.wavepane).update(st -> {
+                    st.clear();
+                    Cons3<Drawable, String, Binding> icon = (i, text, binding) -> {
+                        st.image(i).maxWidth(30f).padRight(8f).tooltip(Strings.format("@ [yellow](@)", text, Core.keybinds.get(Binding.show_turret_ranges).key.toString()));
+                    };
+                    var a = 0.5f;
+                    if(showingTurrets) icon.get(Icon.turret.tint(1, 0.33f, 0.33f, a), "Showing Turrets", Binding.show_turret_ranges);
+                    if(showingAllyTurrets) icon.get(Icon.turret.tint(0.67f, 1, 0.67f, a), "Showing Ally Turrets", Binding.show_turret_ranges);
+                    //if(hidingUnits) icon.get(Icon.units.tint(1, 0.33f, 0.33f, a), "Hiding Units", Binding.invisible_units);
+                    //if(hidingAirUnits) icon.get(Icon.planeOutline.tint(1, 0.33f, 0.33f, a), "Hiding Air Units", Binding.invisible_units);
+                    if(!Vars.control.input.isBuilding) icon.get(Icon.pause.tint(1, 0.33f, 0.33f, a), "Paused Building", Binding.pause_building);
+                    if(control.input.isFreezeQueueing) icon.get(Icon.pause.tint(0.33f, 0.33f, 1, a), "Freeze Queuing", Binding.pause_building);
+                    //if(hidingBlocks) icon.get(Icon.eyeOff.tint(1, 1, 1, a), "Hiding Blocks", Binding.hide_blocks);
+                    //if(hidingPlans) icon.get(Icon.eyeOff.tint(0.5f, 0.5f, 0.5f, a));
+                    if(hidingFog) icon.get(Icon.waves.tint(0.5f, 0.5f, 0.5f, a), "Hiding Fog", Binding.invisible_units);
+                    if(showingMassDrivers) icon.get(new TextureRegionDrawable(Blocks.massDriver.region), "Showing Massdriver Links", Binding.show_massdriver_configs);
+                    if(showingOverdrives) icon.get(new TextureRegionDrawable(Blocks.overdriveProjector.region), "Showing Overdrive Ranges", Binding.show_turret_ranges);
+                    if(dispatchingBuildPlans) icon.get(Icon.tree.tint(1, 1, 1, a), "Sending Build Plans", Binding.send_build_queue);
+                    if(Core.settings.getBool("showdomes")) icon.get(Icon.commandRally, "Showing Dome Ranges", Binding.show_reactor_and_dome_ranges);
+                }).marginTop(3).marginBottom(3).growX().get();
+            }
 
             wavesMain.row();
 
