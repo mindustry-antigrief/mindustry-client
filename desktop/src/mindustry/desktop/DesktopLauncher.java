@@ -137,9 +137,35 @@ public class DesktopLauncher extends ClientLauncher{
         DiscordEventAdapter handler = new DiscordEventAdapter(){
             /** We're joining someone */
             @Override
-            public void onActivityJoin(String secret) {
-                Log.info("On activity join | Secret: @", secret);
-                SVars.net.onGameRichPresenceJoinRequested(null, secret.split(" ")[1]);
+            public void onActivityJoin(String connect) {
+                String steamIDFriend = null;
+                Log.info("On activity join | Secret: @", connect);
+
+
+
+                int last = connect.lastIndexOf(' ');
+                if(last != -1) connect = connect.substring(last + 1); // This will begin with "+connect_server " when run while ingame but won't otherwise
+                Log.info("onGameRichPresenceJoinRequested @ @", steamIDFriend, connect);
+
+                String[] split = connect.split(":");
+                if(split.length != 2) return; // Should always be in the format of ip:port
+                try{
+                    ui.loadfrag.show("@loading");
+                    if(!ui.join.hasFetchedCommunity){
+                        String connectF = connect;
+                        ui.join.onCommunityFetch = () -> onActivityJoin(connectF);
+                        return;
+                    }
+                    ui.join.refreshCommunity();
+                    int port = Integer.parseInt(split[1]);
+                    net.pingExecutor.execute(() -> {
+                        Threads.sleep(Core.settings.getInt("serverbrowserpinglimit", 2000) + 500); // Pray that everything actually finishes in time (it should since this will run after/alongside
+                        Core.app.post(() -> ui.join.connect(split[0], port));                                    // the last ping and the pings should all finish within the timeout from the last ping running)
+                    });
+                }catch(Exception e){
+                    Log.err("Error while joining server through rich presence @: @", steamIDFriend == null ? "launch argument" : "game info", e.getMessage());
+                    e.printStackTrace();
+                }
             }
 
             /** Someone requested to join us */
@@ -154,7 +180,7 @@ public class DesktopLauncher extends ClientLauncher{
         params.setFlags(CreateParams.Flags.NO_REQUIRE_DISCORD);
         params.registerEventHandler(handler);
         discordCore = new de.jcm.discordgamesdk.Core(params);
-        discordCore.activityManager().registerSteam(1127400);
+        discordCore.activityManager().registerSteam(1127400); // FINISHME: Also register a command because why not? Probably won't work on macOS though so that's fun
 //        if(useDiscord){
 //            try{
 //                DiscordRPC.connect(discordID);
