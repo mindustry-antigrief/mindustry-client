@@ -142,7 +142,6 @@ public class DesktopLauncher extends ClientLauncher{
                 Log.info("On activity join | Secret: @", connect);
 
 
-
                 int last = connect.lastIndexOf(' ');
                 if(last != -1) connect = connect.substring(last + 1); // This will begin with "+connect_server " when run while ingame but won't otherwise
                 Log.info("onGameRichPresenceJoinRequested @ @", steamIDFriend, connect);
@@ -489,7 +488,7 @@ public class DesktopLauncher extends ClientLauncher{
             }
         }
 
-        String currentLobby = SVars.net.currentLobby == null ? null : "" + SVars.net.currentLobby.handle();
+        String currentLobby = SVars.net == null || SVars.net.currentLobby == null ? null : "" + SVars.net.currentLobby.handle();
         String partyID = net.server() ? currentLobby :
             net.client() && currentLobby != null ? currentLobby :
             ui.join.lastHost != null ? ui.join.lastHost.addrPort() :
