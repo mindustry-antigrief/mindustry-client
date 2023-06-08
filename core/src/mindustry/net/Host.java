@@ -36,4 +36,8 @@ public class Host{
     public boolean equals(Object obj) {
         return obj instanceof Host h ? h.port == port && h.address.equals(address) : obj instanceof String s && s.equals(address + ":" + port);
     }
+
+    public String addrPort() {
+        return address + ":" + port;
+    }
 }

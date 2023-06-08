@@ -440,7 +440,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
     }
 
     @Override
-    public void onGameRichPresenceJoinRequested(SteamID steamIDFriend, String connect){
+    public void onGameRichPresenceJoinRequested(SteamID steamIDFriend, String connect){ // FINISHME: Move this to desktoplauncher or something since we use this for discord now too.
         int last = connect.lastIndexOf(' ');
         if(last != -1) connect = connect.substring(last + 1); // This will begin with "+connect_server " when run while ingame but won't otherwise
         Log.info("onGameRichPresenceJoinRequested @ @", steamIDFriend, connect);
@@ -461,7 +461,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                 Core.app.post(() -> ui.join.connect(split[0], port));                                    // the last ping and the pings should all finish within the timeout from the last ping running)
             });
         }catch(Exception e){
-            Log.err("Error while joining server through steam @: @", steamIDFriend == null ? "launch argument" : "game info", e.getMessage());
+            Log.err("Error while joining server through rich presence @: @", steamIDFriend == null ? "launch argument" : "game info", e.getMessage());
             e.printStackTrace();
         }
     }

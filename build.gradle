@@ -236,7 +236,7 @@ project(":desktop"){
 
     dependencies{
         implementation project(":core")
-        implementation arcModule("extensions:discord")
+        implementation "com.github.JnCrMx:discord-game-sdk4j:v0.5.5"
         implementation arcModule("natives:natives-desktop")
         implementation arcModule("natives:natives-freetype-desktop")
 
