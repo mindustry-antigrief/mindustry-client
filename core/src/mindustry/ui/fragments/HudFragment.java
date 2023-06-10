@@ -247,12 +247,12 @@ public class HudFragment{
                     var a = 0.5f;
                     modeIcon(st, () -> showingTurrets, Icon.turret.tint(1, 0.33f, 0.33f, a), "Showing Turrets", Binding.show_turret_ranges);
                     modeIcon(st, () -> showingAllyTurrets, Icon.turret.tint(0.67f, 1, 0.67f, a), "Showing Ally Turrets", Binding.show_turret_ranges, "Shift");
-                    //modeIcon(st, () -> hidingUnits, Icon.units.tint(1, 0.33f, 0.33f, a), "Hiding Units", Binding.invisible_units);
-                    //modeIcon(st, () -> hidingAirUnits, Icon.planeOutline.tint(1, 0.33f, 0.33f, a), "Hiding Air Units", Binding.invisible_units, "Shift");
+                    modeIcon(st, () -> hidingUnits, new SlashTextureRegionDrawable(Icon.units.getRegion(), new Color(1f, 1f, 1f, a)), "Hiding Units", Binding.invisible_units);
+                    modeIcon(st, () -> hidingAirUnits, new SlashTextureRegionDrawable(Icon.planeOutline.getRegion(), new Color(1f, 1f, 1f, a)), "Hiding Air Units", Binding.invisible_units, "Shift");
                     modeIcon(st, () -> !Vars.control.input.isBuilding, Icon.pause.tint(1, 0.33f, 0.33f, a), "Paused Building", Binding.pause_building);
                     modeIcon(st, () -> control.input.isFreezeQueueing, Icon.pause.tint(0.33f, 0.33f, 1, a), "Freeze Queuing", Binding.pause_building, "Shift");
-                    //modeIcon(st, () -> hidingBlocks, Icon.eyeOff.tint(1, 1, 1, a), "Hiding Blocks", Binding.hide_blocks);
-                    //modeIcon(st, () -> hidingPlans, Icon.eyeOff.tint(0.5f, 0.5f, 0.5f, a), "Hiding Plans", Binding.hide_blocks, "Shift");
+                    modeIcon(st, () -> hidingBlocks, new SlashTextureRegionDrawable(Icon.layers.getRegion(), new Color(1f, 1f, 1f, a)), "Hiding Blocks", Binding.hide_blocks);
+                    modeIcon(st, () -> hidingPlans, new SlashTextureRegionDrawable(Icon.effect.getRegion(), new Color(0.5f, 0.5f, 0.5f, a)), "Hiding Plans", Binding.hide_blocks, "Shift");
                     modeIcon(st, () -> hidingFog, Icon.waves.tint(0.5f, 0.5f, 0.5f, a), "Hiding Fog", Binding.invisible_units, "Ctrl");
                     modeIcon(st, () -> showingMassDrivers, new TextureRegionDrawable(Blocks.massDriver.region), "Showing Massdriver Links", Binding.show_massdriver_configs);
                     modeIcon(st, () -> showingOverdrives, new TextureRegionDrawable(Blocks.overdriveProjector.region), "Showing Overdrive Ranges", Binding.show_turret_ranges);
