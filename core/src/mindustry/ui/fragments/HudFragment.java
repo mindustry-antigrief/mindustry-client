@@ -243,36 +243,21 @@ public class HudFragment{
             if(Core.settings.getBool("activemodesdisplay", false)){
                 //Active modes display
                 wavesMain.row();
-                wavesMain.table(Tex.wavepane).update(st -> {
-                    st.clear();
-                    Cons3<Drawable, String, Binding> icon = (i, text, binding) -> {
-                        st.image(i).size(30f).padRight(8f)
-                            .get().addListener(new Tooltip(l -> l.label(() ->
-                                Strings.format("@ [yellow](@)", text, Core.keybinds.get(Binding.show_turret_ranges).key.toString()))
-                            )
-                        );
-                    };
-                    Cons4<Drawable, String, Binding, String> icon2 = (i, text, binding, modifier) -> {
-                        st.image(i).size(30f).padRight(8f)
-                            .get().addListener(new Tooltip(l -> l.label(() ->
-                                Strings.format("@ [yellow](@ + @)", text, modifier, Core.keybinds.get(Binding.show_turret_ranges).key.toString()))
-                            )
-                        );
-                    };
+                wavesMain.table(Tex.wavepane, st -> {
                     var a = 0.5f;
-                    if(showingTurrets) icon.get(Icon.turret.tint(1, 0.33f, 0.33f, a), "Showing Turrets", Binding.show_turret_ranges);
-                    if(showingAllyTurrets) icon2.get(Icon.turret.tint(0.67f, 1, 0.67f, a), "Showing Ally Turrets", Binding.show_turret_ranges, "Shift");
-                    //if(hidingUnits) icon.get(Icon.units.tint(1, 0.33f, 0.33f, a), "Hiding Units", Binding.invisible_units);
-                    //if(hidingAirUnits) icon2.get(Icon.planeOutline.tint(1, 0.33f, 0.33f, a), "Hiding Air Units", Binding.invisible_units, "Shift");
-                    if(!Vars.control.input.isBuilding) icon.get(Icon.pause.tint(1, 0.33f, 0.33f, a), "Paused Building", Binding.pause_building);
-                    if(control.input.isFreezeQueueing) icon2.get(Icon.pause.tint(0.33f, 0.33f, 1, a), "Freeze Queuing", Binding.pause_building, "Shift");
-                    //if(hidingBlocks) icon.get(Icon.eyeOff.tint(1, 1, 1, a), "Hiding Blocks", Binding.hide_blocks);
-                    //if(hidingPlans) icon2.get(Icon.eyeOff.tint(0.5f, 0.5f, 0.5f, a), "Hiding Plans", Binding.hide_blocks, "Shift");
-                    if(hidingFog) icon2.get(Icon.waves.tint(0.5f, 0.5f, 0.5f, a), "Hiding Fog", Binding.invisible_units, "Ctrl");
-                    if(showingMassDrivers) icon.get(new TextureRegionDrawable(Blocks.massDriver.region), "Showing Massdriver Links", Binding.show_massdriver_configs);
-                    if(showingOverdrives) icon.get(new TextureRegionDrawable(Blocks.overdriveProjector.region), "Showing Overdrive Ranges", Binding.show_turret_ranges);
-                    if(dispatchingBuildPlans) icon.get(Icon.tree.tint(1, 1, 1, a), "Sending Build Plans", Binding.send_build_queue);
-                    if(Core.settings.getBool("showdomes")) icon.get(Icon.commandRally, "Showing Dome Ranges", Binding.show_reactor_and_dome_ranges);
+                    modeIcon(st, () -> showingTurrets, Icon.turret.tint(1, 0.33f, 0.33f, a), "Showing Turrets", Binding.show_turret_ranges);
+                    modeIcon(st, () -> showingAllyTurrets, Icon.turret.tint(0.67f, 1, 0.67f, a), "Showing Ally Turrets", Binding.show_turret_ranges, "Shift");
+                    //modeIcon(st, () -> hidingUnits, Icon.units.tint(1, 0.33f, 0.33f, a), "Hiding Units", Binding.invisible_units);
+                    //modeIcon(st, () -> hidingAirUnits, Icon.planeOutline.tint(1, 0.33f, 0.33f, a), "Hiding Air Units", Binding.invisible_units, "Shift");
+                    modeIcon(st, () -> !Vars.control.input.isBuilding, Icon.pause.tint(1, 0.33f, 0.33f, a), "Paused Building", Binding.pause_building);
+                    modeIcon(st, () -> control.input.isFreezeQueueing, Icon.pause.tint(0.33f, 0.33f, 1, a), "Freeze Queuing", Binding.pause_building, "Shift");
+                    //modeIcon(st, () -> hidingBlocks, Icon.eyeOff.tint(1, 1, 1, a), "Hiding Blocks", Binding.hide_blocks);
+                    //modeIcon(st, () -> hidingPlans, Icon.eyeOff.tint(0.5f, 0.5f, 0.5f, a), "Hiding Plans", Binding.hide_blocks, "Shift");
+                    modeIcon(st, () -> hidingFog, Icon.waves.tint(0.5f, 0.5f, 0.5f, a), "Hiding Fog", Binding.invisible_units, "Ctrl");
+                    modeIcon(st, () -> showingMassDrivers, new TextureRegionDrawable(Blocks.massDriver.region), "Showing Massdriver Links", Binding.show_massdriver_configs);
+                    modeIcon(st, () -> showingOverdrives, new TextureRegionDrawable(Blocks.overdriveProjector.region), "Showing Overdrive Ranges", Binding.show_turret_ranges);
+                    modeIcon(st, () -> dispatchingBuildPlans, Icon.tree.tint(1, 1, 1, a), "Sending Build Plans", Binding.send_build_queue);
+                    modeIcon(st, () -> Core.settings.getBool("showdomes"), Icon.commandRally, "Showing Dome Ranges", Binding.show_reactor_and_dome_ranges);
                 }).marginTop(3).marginBottom(3).growX().get();
             }
 
@@ -497,6 +482,21 @@ public class HudFragment{
 
         blockfrag.build(parent);
     }
+
+    public Image modeIcon(Table table, Boolp cond, Drawable i, String text, Binding binding){
+        return modeIcon(table, cond, i, text, binding, null);
+    }
+
+    public Image modeIcon(Table table, Boolp cond, Drawable i, String text, Binding binding, String modifier){
+        var image = table.image(i).size(30f).padRight(8f).touchable(Touchable.enabled).get();
+        image.touchable(() -> Touchable.enabled);
+        var tooltipText = modifier != null
+            ? Strings.format("@ [yellow](@ + @)", text, modifier, Core.keybinds.get(Binding.show_turret_ranges).key.toString())
+            : Strings.format("@ [yellow](@)", text, Core.keybinds.get(Binding.show_turret_ranges).key.toString());
+        image.addListener(new Tooltip(l -> l.add(new Label(tooltipText, Styles.outlineLabel))));
+        image.visible(cond);
+        return image;
+    };
 
     @Remote(targets = Loc.both, forward = true, called = Loc.both)
     public static void setPlayerTeamEditor(Player player, Team team){
