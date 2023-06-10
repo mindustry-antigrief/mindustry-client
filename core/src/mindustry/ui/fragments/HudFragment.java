@@ -258,6 +258,7 @@ public class HudFragment{
                     modeIcon(st, () -> showingOverdrives, new TextureRegionDrawable(Blocks.overdriveProjector.region), "Showing Overdrive Ranges", Binding.show_turret_ranges);
                     modeIcon(st, () -> dispatchingBuildPlans, Icon.tree.tint(1, 1, 1, a), "Sending Build Plans", Binding.send_build_queue);
                     modeIcon(st, () -> Core.settings.getBool("showdomes"), Icon.commandRally, "Showing Dome Ranges", Binding.show_reactor_and_dome_ranges);
+                    modeIcon(st, () -> Navigation.currentlyFollowing != null, Icon.android.tint(Color.cyan.cpy().a(a)), "Navigating", Binding.stop_following_path);
                 }).marginTop(3).marginBottom(3).growX().get();
             }
 
@@ -488,7 +489,7 @@ public class HudFragment{
     }
 
     public Image modeIcon(Table table, Boolp cond, Drawable i, String text, Binding binding, String modifier){
-        var image = table.image(i).size(30f).padRight(8f).touchable(Touchable.enabled).get();
+        var image = table.image(i).size(25f).padRight(8f).padBottom(2f).touchable(Touchable.enabled).get();
         image.touchable(() -> Touchable.enabled);
         var tooltipText = modifier != null
             ? Strings.format("@ [yellow](@ + @)", text, modifier, Core.keybinds.get(Binding.show_turret_ranges).key.toString())
