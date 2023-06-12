@@ -400,6 +400,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
         client.checkPref("logiclinkorder", false);
         client.checkPref("showcutscenes", true);
+        client.checkPref("powerinfo", true);
+        client.checkPref("activemodesdisplay", false);
 
         client.category("misc");
         client.updatePref();
