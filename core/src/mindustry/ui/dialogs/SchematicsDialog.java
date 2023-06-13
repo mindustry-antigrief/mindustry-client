@@ -345,7 +345,7 @@ public class SchematicsDialog extends BaseDialog{
                             return Unit.INSTANCE;
                         });
                     });
-                }).marginLeft(12f);
+                }).visible(() -> state.isPlaying()).marginLeft(12f);
             });
         });
 
