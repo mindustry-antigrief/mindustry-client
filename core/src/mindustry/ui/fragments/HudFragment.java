@@ -489,18 +489,23 @@ public class HudFragment{
         blockfrag.build(parent);
     }
 
-    public Cell<Image> modeIcon(Table table, Boolp cond, Runnable toggle, Drawable i, String text, Binding binding){
-        return modeIcon(table, cond, toggle, i, text, binding, null);
+    public void modeIcon(Table table, Boolp cond, Runnable toggle, Drawable icon, String text, Binding binding){
+        modeIcon(table, cond, toggle, icon, text, binding, null);
     }
 
-    public Cell<Image> modeIcon(Table table, Boolp cond, Runnable toggle, Drawable i, String text, Binding binding, String modifier){
-        var image = table.image(i).size(25f).padRight(8f).padBottom(2f);
+    public void modeIcon(Table table, Boolp cond, Runnable toggle, Drawable icon, String text, Binding binding, String modifier){
         var tooltipText = modifier != null
             ? Strings.format("@ [yellow](@ + @)", text, modifier, Core.keybinds.get(binding).key.toString())
             : Strings.format("@ [yellow](@)", text, Core.keybinds.get(binding).key.toString());
-        image.tooltip(t -> t.background(Styles.black6).margin(4f).add(tooltipText).style(Styles.outlineLabel));
-        image.get().visible(cond).clicked(toggle);
-        return image;
+        var clicklayer = new Label("");
+        clicklayer.clicked(toggle);
+        var wrapper = table.stack(
+            new Image(icon).visible(cond),
+            clicklayer
+        ).size(25f).padRight(8f).padBottom(2f)
+        .tooltip(t ->
+            t.background(Styles.black6).margin(4f).add(tooltipText).style(Styles.outlineLabel)
+        );
     };
 
     @Remote(targets = Loc.both, forward = true, called = Loc.both)
