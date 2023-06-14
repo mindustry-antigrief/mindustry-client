@@ -36,8 +36,8 @@ class SchematicTransmission : Transmission {
 
     fun addToChat() {
 
-        val message: ChatMessage = ui.chatfrag.addMessage(
-            Core.bundle.format("schematic.chatshare", Groups.player.getByID(this.senderID).name, schematic.name())
+        val message: ChatMessage = ui.chatfrag.addMsg(
+            Core.bundle.format("schematic.chatsharemessage", Groups.player.getByID(this.senderID).name, schematic.name())
         )
         message.addButton(schematic.name()) {
             ui.schematics.showInfo(schematic);
