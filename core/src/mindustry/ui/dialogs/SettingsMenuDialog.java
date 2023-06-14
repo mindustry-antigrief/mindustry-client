@@ -401,7 +401,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("logiclinkorder", false);
         client.checkPref("showcutscenes", true);
         client.checkPref("powerinfo", true);
-        client.checkPref("activemodesdisplay", false);
+        client.checkPref("activemodesdisplay", true);
 
         client.category("misc");
         client.updatePref();

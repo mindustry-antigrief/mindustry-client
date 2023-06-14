@@ -241,7 +241,7 @@ public class HudFragment{
                 }).growY().fillX().right().width(40f).name("skip");
             }).width(dsize * 6 + 4f).name("statustable");
 
-            if(Core.settings.getBool("activemodesdisplay", false)){
+            if(Core.settings.getBool("activemodesdisplay", true)){
                 //Active modes display
                 wavesMain.row();
                 wavesMain.table(Tex.wavepane, st -> {
