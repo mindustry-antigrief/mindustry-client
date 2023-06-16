@@ -205,6 +205,7 @@ public class ChatFragment extends Table{
     }
 
     private IntSeq litUp = new IntSeq();
+    public boolean hasLit = false;
 
     @Override
     public void draw(){
@@ -226,6 +227,7 @@ public class ChatFragment extends Table{
 
         Draw.color(shadowColor, shadowColor.a * opacity);
 
+        hasLit = false;
         float theight = offsety + spacing + getMarginBottom() + scene.marginBottom;
         for(int i = scrollPos; i < messages.size && i < messagesShown + scrollPos && (i < fadetime || shown); i++){
             ChatMessage msg = messages.get(i);
@@ -274,9 +276,9 @@ public class ChatFragment extends Table{
                             for (var area : msg.buttons) {
                                 if (idx >= area.start && idx < area.end) {
                                     if (mousex > x && mousex <= x + w && mousey > liney && mousey < liney + font.getLineHeight()) {
-                                        for (int k = area.start; k < area.end; k++) {
-                                            litUp.add(k);
-                                        }
+                                        hasLit = true;
+                                        litUp.add(area.start);
+                                        litUp.add(area.end);
                                         if (Core.input.keyTap(Binding.select)) {
                                             area.lambda.run();
                                         }
@@ -292,6 +294,7 @@ public class ChatFragment extends Table{
                 }
 
                 Draw.color(hoverColor);
+                int[] litUpItems = litUp.items;
                 for (var g : font.getCache().getLayouts()) {
                     for (var r : g.runs) {
                         float x = r.x + r.xAdvances.get(0) + fontoffsetx + offsetx;
@@ -300,8 +303,10 @@ public class ChatFragment extends Table{
                             int idx = r.textPositions.get(j++);
                             float w = r.xAdvances.get(j);
                             float liney = r.y + theight - font.getLineHeight() + 2;
-                            if (litUp.contains(idx)) {
-                                rect(x, liney, w, font.getLineHeight());
+                            for(int ii = 0; ii < litUp.size; ii += 2){
+                                if(litUpItems[ii] <= idx && idx < litUpItems[ii + 1]) {
+                                    rect(x, liney, w, font.getLineHeight());
+                                }
                             }
                             x += w;
                         }

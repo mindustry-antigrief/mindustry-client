@@ -635,7 +635,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(player.dead() || locked){
-            cursorType = SystemCursor.arrow;
+            cursorType = ui.chatfrag.hasLit ? SystemCursor.hand : SystemCursor.arrow;
             if(!Core.scene.hasMouse()){
                 Core.graphics.cursor(cursorType);
             }
@@ -673,8 +673,9 @@ public class DesktopInput extends InputHandler{
                 rotatePlans(selectPlans, Mathf.sign(Core.input.axisTap(Binding.rotate)));
             }
         }
-
-        if(cursor != null){
+        if(ui.chatfrag.hasLit){
+            cursorType = SystemCursor.hand;
+        }else if(cursor != null){
             if(cursor.build != null){
                 cursorType = cursor.build.getCursor();
             }
