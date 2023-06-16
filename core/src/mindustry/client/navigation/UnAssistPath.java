@@ -130,7 +130,7 @@ public class UnAssistPath extends Path {
     }
 
     @Override
-    public void draw() {
+    public synchronized void draw() {
         if (target == null) return;
         target.unit().drawBuildPlans();
     }
