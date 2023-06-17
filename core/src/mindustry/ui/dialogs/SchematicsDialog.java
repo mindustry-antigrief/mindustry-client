@@ -32,7 +32,7 @@ import static mindustry.Vars.*;
 
 public class SchematicsDialog extends BaseDialog{
     private static final float tagh = 42f;
-    private SchematicInfoDialog info = new SchematicInfoDialog();
+    public SchematicInfoDialog info = new SchematicInfoDialog();
     private Schematic firstSchematic;
     private String search = "";
     private TextField searchField;
