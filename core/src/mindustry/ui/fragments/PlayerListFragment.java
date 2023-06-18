@@ -18,6 +18,7 @@ import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
@@ -160,9 +161,10 @@ public class PlayerListFragment{
                     t.button(Icon.hammer, ustyle,
                     () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()), () -> {
                         Server.current.handleBan(user);
-                    }));
+                    })).tooltip("@player.ban");
                     t.button(Icon.cancel, ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick", user.name()), () -> Call.adminRequest(user, AdminAction.kick)));
+                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick", user.name()), () -> Call.adminRequest(user, AdminAction.kick, null)))
+                    .tooltip("@player.kick");
 
                     t.row();
 
@@ -185,11 +187,12 @@ public class PlayerListFragment{
                     }).update(b -> b.setChecked(user.admin))
                         .disabled(b -> net.client())
                         .touchable(() -> net.client() ? Touchable.disabled : Touchable.enabled)
-                        .checked(user.admin);
+                        .checked(user.admin)
+                        .tooltip("@player.admin");
 
-                    t.button(Icon.zoom, ustyle, () -> Call.adminRequest(user, AdminAction.trace));
+                    t.button(Icon.zoom, ustyle, () -> Call.adminRequest(user, AdminAction.trace, null)).tooltip("@player.trace");
 
-                    t.button("@player.team", Icon.redo, ustyle, () -> {
+                    t.button(Icon.redo, ustyle, () -> {
                         var teamSelect = new BaseDialog(Core.bundle.get("player.team") + ": " + user.name);
                         teamSelect.setFillParent(false);
 
@@ -213,9 +216,7 @@ public class PlayerListFragment{
 
                         teamSelect.addCloseButton();
                         teamSelect.show();
-
-                        dialog.hide();
-                    })
+                    }).tooltip("@player.team");
 
                 }).padRight(12).size(bs + 10f, bs);
             }else if(!user.isLocal() && !user.admin && net.client() && Groups.player.size() >= 3 && player.team() == user.team()){ //votekick
