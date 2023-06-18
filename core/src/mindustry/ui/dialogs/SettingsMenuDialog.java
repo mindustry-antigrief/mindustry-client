@@ -654,6 +654,10 @@ public class SettingsMenuDialog extends BaseDialog{
         graphics.checkPref("skipcoreanimation", false);
         graphics.checkPref("hidedisplays", false);
 
+        if(OS.isMac){
+            graphics.checkPref("macnotch", false);
+        }
+
         if(!mobile){
             if (Core.settings.getBool("swapdiagonal", false)) Core.settings.put("swapdiagonal", false);
         }

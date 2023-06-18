@@ -189,17 +189,46 @@ public class PlayerListFragment{
 
                     t.button(Icon.zoom, ustyle, () -> Call.adminRequest(user, AdminAction.trace));
 
+                    t.button("@player.team", Icon.redo, ustyle, () -> {
+                        var teamSelect = new BaseDialog(Core.bundle.get("player.team") + ": " + user.name);
+                        teamSelect.setFillParent(false);
+
+                        var group = new ButtonGroup<>();
+
+                        int i = 0;
+
+                        for(Team team : Team.baseTeams){
+                            var b = new ImageButton(Tex.whiteui, Styles.clearNoneTogglei);
+                            b.margin(4f);
+                            b.getImageCell().grow();
+                            b.getStyle().imageUpColor = team.color;
+                            b.clicked(() -> {
+                                Call.adminRequest(user, AdminAction.switchTeam, team);
+                                teamSelect.hide();
+                            });
+                            teamSelect.cont.add(b).size(50f).checked(a -> user.team() == team).group(group);
+
+                            if(i++ % 3 == 2) teamSelect.cont.row();
+                        }
+
+                        teamSelect.addCloseButton();
+                        teamSelect.show();
+
+                        dialog.hide();
+                    })
+
                 }).padRight(12).size(bs + 10f, bs);
             }else if(!user.isLocal() && !user.admin && net.client() && Groups.player.size() >= 3 && player.team() == user.team()){ //votekick
                 button.add().growY();
 
                 button.button(Icon.hammer, ustyle,
                 () -> {
-                    ui.showConfirm("@confirm", Core.bundle.format("confirmvotekick",  user.name()), () -> {
-                        Call.sendChatMessage("/votekick #" + user.id());
-                        if (Server.io.b() && (user.trace != null || user.serverID != null)) ui.showConfirm("@confirm", "Do you want to rollback this player's actions?", () -> {
-                            Call.sendChatMessage(Strings.format("/rollback @ 5", user.trace != null ? user.trace.uuid : user.serverID));
-                        });
+                    ui.showTextInput("@votekick.reason", Core.bundle.format("votekick.reason.message", user.name()), "", reason -> {
+                        Call.sendChatMessage("/votekick #" + user.id() + " " + reason);
+                        if(Server.io.b() && (user.trace != null || user.serverID != null))
+                            ui.showConfirm("@confirm", "Do you want to rollback this player's actions?", () ->
+                                Call.sendChatMessage(Strings.format("/rollback @ 5", user.trace != null ? user.trace.uuid : user.serverID))
+                            );
                     });
                 }).size(h/2);
             }

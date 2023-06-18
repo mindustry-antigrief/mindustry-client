@@ -215,20 +215,15 @@ public class Mods implements Loadable{
         float textureScale = mod.meta.texturescale;
 
         for(Fi file : sprites){
-            String name = file.nameWithoutExtension();
-            var page = getPage(file);
+            String
+            baseName = file.nameWithoutExtension(),
+            regionName = baseName.contains(".") ? baseName.substring(0, baseName.indexOf(".")) : baseName;
 
-            if(!prefix){
-                var existing = Core.atlas.find(name);
-                if(existing == null){
-                    Log.warn("Sprite '@' in mod '@' attempts to override a non-existent sprite. Ignoring.", name, mod.name);
-                    continue;
-                }
-                var existingPage = pageTypes.get(existing.pid, PageType.main);
-                if(page != existingPage){
-                    Log.warn("Sprite '@' on page '@' in mod '@' attempts to override a sprite on page '@'. Ignoring.", name, page, mod.name, existingPage);
-                    continue;
-                }
+            if(!prefix && !Core.atlas.has(regionName)){
+                Log.warn("Sprite '@' in mod '@' attempts to override a non-existent sprite. Ignoring.", regionName, mod.name);
+                continue;
+
+                //(horrible code below)
             }
 
             //read and bleed pixmaps in parallel
@@ -242,9 +237,11 @@ public class Mods implements Loadable{
                     }
                     //this returns a *runnable* which actually packs the resulting pixmap; this has to be done synchronously outside the method
                     return () -> { // FINISHME: These shouldn't be handled on the main thread.
-                        String fullName = (prefix ? mod.name + "-" : "") + name;
-                        packer.add(page, fullName, new PixmapRegion(pix));
-                        if(textureScale != 1.0f) textureResize.put(fullName, textureScale);
+                        String fullName = (prefix ? mod.name + "-" : "") + baseName;
+                        packer.add(getPage(file), fullName, new PixmapRegion(pix));
+                        if(textureScale != 1.0f){
+                            textureResize.put(fullName, textureScale);
+                        }
                         pix.dispose();
                     };
                 }catch(Exception e){

@@ -401,5 +401,8 @@ public class Net{
             disconnectClient();
             closeServer();
         }
+
+        /** Sets a connection filter by IP address. If the filter returns {@code false}, the connection will be closed. */
+        default void setConnectFilter(Server.ServerConnectFilter connectFilter){}
     }
 }

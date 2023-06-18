@@ -235,11 +235,13 @@ public class HudFragment{
 
                 // button to skip wave
                 s.button(Icon.play, rightStyle, 30f, () -> {
-                    if(!canSkipWave()) new Toast(1f).label(() -> "You tried and that's all that matters.");
-                    else if(net.client() && player.admin) Call.adminRequest(player, AdminAction.wave);
-                    else logic.skipWave();
-                }).growY().fillX().right().width(40f).name("skip");
-            }).width(dsize * 6 + 4f).name("statustable");
+                    if(net.client() && player.admin){
+                        Call.adminRequest(player, AdminAction.wave, null);
+                    }else{
+                        logic.skipWave();
+                    }
+                }).growY().fillX().right().width(40f).disabled(b -> !canSkipWave()).name("skip").get().toBack();
+            }).width(dsize * 5 + 4f).name("statustable");
 
             if(Core.settings.getBool("activemodesdisplay", true)){
                 //Active modes display
@@ -351,6 +353,11 @@ public class HudFragment{
         //core info
         parent.fill(t -> {
             t.top();
+
+            if(Core.settings.getBool("macnotch") ){
+                t.margin(macNotchHeight);
+            }
+
             t.visible(() -> shown);
 
             t.name = "coreinfo";

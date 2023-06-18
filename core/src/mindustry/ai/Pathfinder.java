@@ -523,6 +523,10 @@ public class Pathfinder implements Runnable{
             this.initialized = true;
         }
 
+        public boolean hasCompleteWeights(){
+            return hasComplete && completeWeights != null;
+        }
+
         public void updateTargetPositions(){
             targets.clear();
             getPositions(targets);

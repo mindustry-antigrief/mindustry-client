@@ -9,6 +9,8 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.*;
+import mindustry.ai.*;
+import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.navigation.*;
@@ -42,6 +44,8 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     @ReadOnly Team team = Team.sharded;
     @SyncLocal boolean typing, shooting, boosting;
     @SyncLocal float mouseX, mouseY;
+    /** command the unit had before it was controlled. */
+    @Nullable @NoSync UnitCommand lastCommand;
     boolean admin;
     String name = "frog";
     Color color = new Color();
@@ -219,6 +223,11 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         if(this.unit == unit) return;
         var oldUnit = this.unit; // Unit we are swapping from
 
+        //save last command this unit had
+        if(unit.controller() instanceof CommandAI ai){
+            lastCommand = ai.command;
+        }
+
         if(this.unit != Nulls.unit){
             //un-control the old unit
             this.unit.resetController();
@@ -227,6 +236,10 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
                 persistPlans.clear(); // Don't want to stack multiple sets of plans...
                 persistPlans.ensureCapacity(this.unit.plans.size);
                 this.unit.plans.each(persistPlans::add);
+            }
+            //restore last command issued before it was controlled
+            if(lastCommand != null && this.unit.controller() instanceof CommandAI ai){
+                ai.command(lastCommand);
             }
         }
         this.unit = unit;
@@ -286,6 +299,9 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     @Override
     public void draw(){
         if(unit != null && unit.inFogTo(Vars.player.team())) return;
+
+        //??????
+        if(name == null) return;
 
         Draw.z(Layer.playerName);
         float z = Drawf.text();

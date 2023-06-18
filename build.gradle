@@ -307,10 +307,12 @@ project(":core"){
         }
     }
 
-    artifacts{
-        archives sourcesJar
-        archives assetsJar
-    }
+    //This was moved somewhere else and partially removed in c2d7e2eb725c8effc19e87e47ae87b1db1c99e2e
+    //copied the move to our file -BalaM314 6/18/2023
+    // artifacts{
+    //     archives sourcesJar
+    //     archives assetsJar
+    // }
 
     kapt {
 //        showProcessorStats = true
@@ -475,6 +477,9 @@ configure([":core", ":server"].collect{project(it)}){
         publications{
             maven(MavenPublication){
                 from components.java
+                if(project.name == "core"){
+                    artifact(tasks.named("assetsJar"))
+                }
             }
         }
     }
