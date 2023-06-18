@@ -125,7 +125,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     }
 
     /** Run when banning [p] */
-    open fun handleBan(p: Player) = Call.adminRequest(p, AdminAction.ban)
+    open fun handleBan(p: Player) = Call.adminRequest(p, AdminAction.ban, null)
 
     /** Whether or not the player has access to the admin ui in the player list */
     open fun adminui() = false

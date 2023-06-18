@@ -31,7 +31,7 @@ public class TraceDialog extends BaseDialog{
             Call.sendChatMessage("/js Vars.netServer.admins.banPlayerIP(" + info.ip + ")");
         }).width(420);
         if(!offline){
-            buttons.button("Ban (Won't work if they leave before pressed)", () -> Call.adminRequest(player, Packets.AdminAction.ban)).width(420);
+            buttons.button("Ban (Won't work if they leave before pressed)", () -> Call.adminRequest(player, Packets.AdminAction.ban, null)).width(420);
         }
 
         Table table = new Table(Tex.clear);

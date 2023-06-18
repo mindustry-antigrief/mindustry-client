@@ -91,7 +91,7 @@ class Moderation {
             if (!Vars.player.admin ||  e.player.admin) return@on
 
             silentTrace++
-            Call.adminRequest(e.player, Packets.AdminAction.trace)
+            Call.adminRequest(e.player, Packets.AdminAction.trace, null)
         }
     }
 
