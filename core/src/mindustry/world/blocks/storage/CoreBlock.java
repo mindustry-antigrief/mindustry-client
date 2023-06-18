@@ -184,7 +184,7 @@ public class CoreBlock extends StorageBlock{
                 nextItems = null;
             }
 
-            Events.fire(new BlockBuildEndEvent(tile, builder, tile.team(), false, null));
+            Events.fire(new BlockBuildEndEvent(tile, builder, tile.team(), false, null, previous));
         }
     }
 

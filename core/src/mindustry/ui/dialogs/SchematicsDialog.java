@@ -499,7 +499,11 @@ public class SchematicsDialog extends BaseDialog{
                             move.button(Icon.upOpen, Styles.emptyi, () -> {
                                 int idx = tags.indexOf(tag);
                                 if(idx > 0){
-                                    tags.swap(idx, idx - 1);
+                                    if(Core.input.shift()){
+                                        tags.insert(0, tags.remove(idx));
+                                    } else {
+                                        tags.swap(idx, idx - 1);
+                                    }
                                     tagsChanged();
                                     rebuild[0].run();
                                 }
@@ -508,7 +512,11 @@ public class SchematicsDialog extends BaseDialog{
                             move.button(Icon.downOpen, Styles.emptyi, () -> {
                                 int idx = tags.indexOf(tag);
                                 if(idx < tags.size - 1){
-                                    tags.swap(idx, idx + 1);
+                                    if(Core.input.shift()){
+                                        tags.insert(tags.size - 1, tags.remove(idx));
+                                    } else {
+                                        tags.swap(idx, idx + 1);
+                                    }
                                     tagsChanged();
                                     rebuild[0].run();
                                 }

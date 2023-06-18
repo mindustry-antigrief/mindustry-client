@@ -185,7 +185,6 @@ public class Fonts{
             team.emoji = stringIcons.get(team.name, "");
         }
 
-        Log.warn("The icon stuff took @", Time.timeSinceNanos(start) / (float) Time.nanosPerMilli);
     }
 
     public static TextureFilter getTextFilter(boolean linear){ //TODO: separate into min and max filter
