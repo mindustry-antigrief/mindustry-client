@@ -235,7 +235,7 @@ public class BlockInventoryFragment{
 
         //Position the table diagonally when the building is an item bridge so that connecting to another bridge one
         //tile away is possible without the overlay preventing the click.
-        table.setPosition(v.x, v.y, this.build instanceof ItemBridge.ItemBridgeBuild ? Align.bottomLeft: Align.topLeft);
+        table.setPosition(v.x, v.y, build.block instanceof ItemBridge ? Align.bottomLeft : Align.topLeft);
     }
 
     private Element itemImage(TextureRegion region, Prov<CharSequence> text){
