@@ -41,7 +41,7 @@ import static mindustry.Vars.*;
 import static mindustry.gen.Tex.*;
 
 public class HudFragment{
-    private static final float dsize = 65f, pauseHeight = 36f;
+    private static final float dsize = 78f, pauseHeight = 36f;
 
     public final PlacementFragment blockfrag = new PlacementFragment();
     public boolean shown = true;
