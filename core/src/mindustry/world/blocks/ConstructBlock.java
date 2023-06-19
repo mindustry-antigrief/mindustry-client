@@ -534,34 +534,6 @@ public class ConstructBlock extends Block{
                     && player != null && team == player.team() && progress != lastProgress
                     && lastBuilder != player.unit() && getWarnBlock() != null;
         }
-        public void blockWarning(Object config) { // FINISHME: Account for non player building stuff. This method is also horrid
-            if (!wasConstructing || closestCore() == null || lastBuilder == null || team != player.team() || progress == lastProgress || !lastBuilder.isPlayer())
-                return;
-            var wb = warnBlocks.find(b -> b.block == current);
-            if (wb != null) {
-                lastBuilder.drawBuildPlans(); // Draw their build plans FINISHME: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
-                AtomicInteger distance = new AtomicInteger(Integer.MAX_VALUE); // FINISHME: Do this from the edges instead, checking all blocks is more expensive than it needs to be
-                closestCore().proximity.each(e -> e instanceof StorageBlock.StorageBuild, block -> block.tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get()))))); // This stupidity finds the smallest distance between vaults on the closest core and the block being built
-                closestCore().tile.getLinkedTiles(t -> this.tile.getLinkedTiles(ti -> distance.set(Math.min(World.toTile(t.dst(ti)), distance.get())))); // This stupidity checks the distance to the core as well just in case it ends up being shorter
-
-                if (wb.warnDistance == 101 || distance.get() <= wb.warnDistance) {
-                    String format = Core.bundle.format("client.blockwarn", Strings.stripColors(lastBuilder.getPlayer().name), current.localizedName, tile.x, tile.y, distance.get());
-                    String format2 = String.format("%2d%% completed.", Mathf.round(progress * 100));
-                    if (toast == null || toast.parent == null) {
-                        toast = new Toast(4f, 0.3f);
-                    } else {
-                        toast.clearChildren();
-                    }
-                    toast.add(new Label(format));
-                    toast.row();
-                    toast.add(new Label(format2));
-                    toast.touchable = Touchable.enabled;
-                    toast.clicked(() -> Spectate.INSTANCE.spectate(ClientVars.lastSentPos.cpy().scl(tilesize)));
-                    ClientVars.lastSentPos.set(tile.x, tile.y);
-                }
-            }
-        }
-
 
         public ConstructBlock.WarnBlock getWarnBlock(){
             return warnBlocks.find(b -> b.block == current);
@@ -613,9 +585,9 @@ public class ConstructBlock extends Block{
             }
 
             if (
-                    lastProgress == 0 && Core.settings.getBool("removecorenukes")
-                    && state.rules.reactorExplosions && current instanceof NuclearReactor
-                    && !lastBuilder.isLocal() && distance <= 21
+                lastProgress == 0 && Core.settings.getBool("removecorenukes")
+                && state.rules.reactorExplosions && current instanceof NuclearReactor
+                && !lastBuilder.isLocal() && distance <= 21
             ) { // Automatically remove reactors within explosion radiusof core
                 Call.buildingControlSelect(player, closestCore());
                 Timer.schedule(() -> player.unit().plans.add(
