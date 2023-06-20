@@ -116,6 +116,7 @@ public class ResearchDialog extends BaseDialog{
             view.infoTable.remove();
             view.infoTable.clear();
         });
+        rebuildItems(); // For some reason this isn't built on file creation? I don't know. https://discord.com/channels/391020510269669376/477494303061442571/1120283087729872896
 
         hidden(ui.planet::setup);
 
