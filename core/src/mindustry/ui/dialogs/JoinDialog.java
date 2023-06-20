@@ -508,7 +508,8 @@ public class JoinDialog extends BaseDialog{
             }else{
                 safeConnect(host.address, host.port, host.version);
             }
-        }).width(w).padBottom(7).padRight(4f).top().left().growY().uniformY();
+        }).width(w).padBottom(7).padRight(4f).top().left().growY().uniformY()
+        .get().clicked(l -> l.setButton(KeyCode.mouseRight), () -> Core.app.setClipboardText(host.address));
 
         if((container.getChildren().size) % columns() == 0){
             container.row();

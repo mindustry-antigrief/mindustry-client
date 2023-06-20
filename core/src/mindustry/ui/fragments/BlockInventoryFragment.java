@@ -18,6 +18,7 @@ import mindustry.core.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.type.*;
+import mindustry.world.blocks.distribution.ItemBridge;
 import mindustry.world.blocks.payloads.*;
 
 import java.util.*;
@@ -231,7 +232,10 @@ public class BlockInventoryFragment{
     private void updateTablePosition(){
         Vec2 v = input.mouseScreen(build.x + build.block.size * tilesize / 2f, build.y + build.block.size * tilesize / 2f);
         table.pack();
-        table.setPosition(v.x, v.y, Align.topLeft);
+
+        //Position the table diagonally when the building is an item bridge so that connecting to another bridge one
+        //tile away is possible without the overlay preventing the click.
+        table.setPosition(v.x, v.y, build.block instanceof ItemBridge ? Align.bottomLeft : Align.topLeft);
     }
 
     private Element itemImage(TextureRegion region, Prov<CharSequence> text){

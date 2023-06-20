@@ -134,6 +134,7 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
         }
     }
 
+    @Synchronized
     override fun draw() {
         assisting ?: return
         if (type != Type.FreeMove && player.dst(assisting) > aStarTolerance) waypoints.draw()

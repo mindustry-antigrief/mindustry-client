@@ -166,7 +166,7 @@ public class CoreBlock extends StorageBlock{
     }
 
     @Override
-    public void placeBegan(Tile tile, Block previous){
+    public void placeBegan(Tile tile, Block previous, Unit builder){
         //finish placement immediately when a block is replaced.
         if(previous instanceof CoreBlock){
             tile.setBlock(this, tile.team());
@@ -183,6 +183,8 @@ public class CoreBlock extends StorageBlock{
 
                 nextItems = null;
             }
+
+            Events.fire(new BlockBuildEndEvent(tile, builder, tile.team(), false, null, previous));
         }
     }
 
@@ -596,11 +598,6 @@ public class CoreBlock extends StorageBlock{
             });
 
             state.teams.unregisterCore(this);
-
-            int max = itemCapacity * state.teams.cores(team).size;
-            for(Item item : content.items()){
-                items.set(item, Math.min(items.get(item), max));
-            }
 
             for(CoreBuild other : state.teams.cores(team)){
                 other.onProximityUpdate();

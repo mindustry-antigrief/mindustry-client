@@ -112,6 +112,7 @@ class MinePath @JvmOverloads constructor(
         }
     }
 
+    @Synchronized
     override fun draw() {
         if ((waypoints.waypoints.lastOrNull()?.dst(player) ?: 0F) > tilesize * 3) waypoints.draw()
     }

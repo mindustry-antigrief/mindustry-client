@@ -155,6 +155,10 @@ object Main : ApplicationListener {
                     msg.attachments.shrink()
                     transmission.image.dispose()
                 }
+
+                is SchematicTransmission -> {
+                    transmission.addToChat()
+                }
             }
         }
     }

@@ -400,6 +400,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
         client.checkPref("logiclinkorder", false);
         client.checkPref("showcutscenes", true);
+        client.checkPref("powerinfo", true);
+        client.checkPref("activemodesdisplay", true);
 
         client.category("misc");
         client.updatePref();
@@ -651,6 +653,10 @@ public class SettingsMenuDialog extends BaseDialog{
 
         graphics.checkPref("skipcoreanimation", false);
         graphics.checkPref("hidedisplays", false);
+
+        if(OS.isMac){
+            graphics.checkPref("macnotch", false);
+        }
 
         if(!mobile){
             if (Core.settings.getBool("swapdiagonal", false)) Core.settings.put("swapdiagonal", false);

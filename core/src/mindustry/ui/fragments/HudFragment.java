@@ -21,6 +21,7 @@ import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.ui.*;
+import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.GameState.State;
 import mindustry.core.*;
@@ -40,7 +41,7 @@ import static mindustry.Vars.*;
 import static mindustry.gen.Tex.*;
 
 public class HudFragment{
-    private static final float dsize = 65f, pauseHeight = 36f;
+    private static final float dsize = 78f, pauseHeight = 36f;
 
     public final PlacementFragment blockfrag = new PlacementFragment();
     public boolean shown = true;
@@ -234,45 +235,39 @@ public class HudFragment{
 
                 // button to skip wave
                 s.button(Icon.play, rightStyle, 30f, () -> {
-                    if(!canSkipWave()) new Toast(1f).label(() -> "You tried and that's all that matters.");
-                    else if(net.client() && player.admin) Call.adminRequest(player, AdminAction.wave);
-                    else logic.skipWave();
-                }).growY().fillX().right().width(40f).name("skip");
-            }).width(dsize * 6 + 4f).name("statustable");
+                    if(net.client() && player.admin){
+                        Call.adminRequest(player, AdminAction.wave, null);
+                    }else{
+                        logic.skipWave();
+                    }
+                }).growY().fillX().right().width(40f).disabled(b -> !canSkipWave()).name("skip").get().toBack();
+            }).width(dsize * 5 + 4f).name("statustable");
 
-            if(Core.settings.getBool("activemodesdisplay", false)){
+            if(Core.settings.getBool("activemodesdisplay", true)){
                 //Active modes display
                 wavesMain.row();
-                wavesMain.table(Tex.wavepane).update(st -> {
-                    st.clear();
-                    Cons3<Drawable, String, Binding> icon = (i, text, binding) -> {
-                        st.image(i).size(30f).padRight(8f)
-                            .get().addListener(new Tooltip(l -> l.label(() ->
-                                Strings.format("@ [yellow](@)", text, Core.keybinds.get(Binding.show_turret_ranges).key.toString()))
-                            )
-                        );
-                    };
-                    Cons4<Drawable, String, Binding, String> icon2 = (i, text, binding, modifier) -> {
-                        st.image(i).size(30f).padRight(8f)
-                            .get().addListener(new Tooltip(l -> l.label(() ->
-                                Strings.format("@ [yellow](@ + @)", text, modifier, Core.keybinds.get(Binding.show_turret_ranges).key.toString()))
-                            )
-                        );
-                    };
+                wavesMain.table(Tex.wavepane, st -> {
                     var a = 0.5f;
-                    if(showingTurrets) icon.get(Icon.turret.tint(1, 0.33f, 0.33f, a), "Showing Turrets", Binding.show_turret_ranges);
-                    if(showingAllyTurrets) icon2.get(Icon.turret.tint(0.67f, 1, 0.67f, a), "Showing Ally Turrets", Binding.show_turret_ranges, "Shift");
-                    //if(hidingUnits) icon.get(Icon.units.tint(1, 0.33f, 0.33f, a), "Hiding Units", Binding.invisible_units);
-                    //if(hidingAirUnits) icon2.get(Icon.planeOutline.tint(1, 0.33f, 0.33f, a), "Hiding Air Units", Binding.invisible_units, "Shift");
-                    if(!Vars.control.input.isBuilding) icon.get(Icon.pause.tint(1, 0.33f, 0.33f, a), "Paused Building", Binding.pause_building);
-                    if(control.input.isFreezeQueueing) icon2.get(Icon.pause.tint(0.33f, 0.33f, 1, a), "Freeze Queuing", Binding.pause_building, "Shift");
-                    //if(hidingBlocks) icon.get(Icon.eyeOff.tint(1, 1, 1, a), "Hiding Blocks", Binding.hide_blocks);
-                    //if(hidingPlans) icon2.get(Icon.eyeOff.tint(0.5f, 0.5f, 0.5f, a), "Hiding Plans", Binding.hide_blocks, "Shift");
-                    if(hidingFog) icon2.get(Icon.waves.tint(0.5f, 0.5f, 0.5f, a), "Hiding Fog", Binding.invisible_units, "Ctrl");
-                    if(showingMassDrivers) icon.get(new TextureRegionDrawable(Blocks.massDriver.region), "Showing Massdriver Links", Binding.show_massdriver_configs);
-                    if(showingOverdrives) icon.get(new TextureRegionDrawable(Blocks.overdriveProjector.region), "Showing Overdrive Ranges", Binding.show_turret_ranges);
-                    if(dispatchingBuildPlans) icon.get(Icon.tree.tint(1, 1, 1, a), "Sending Build Plans", Binding.send_build_queue);
-                    if(Core.settings.getBool("showdomes")) icon.get(Icon.commandRally, "Showing Dome Ranges", Binding.show_reactor_and_dome_ranges);
+                    //i dont think there is anything better
+                    modeIcon(st, () -> showingTurrets, () -> showingTurrets ^= true, Icon.turret.tint(1, 0.33f, 0.33f, a), "Showing Turrets", Binding.show_turret_ranges);
+                    modeIcon(st, () -> showingAllyTurrets, () -> showingAllyTurrets ^= true, Icon.turret.tint(0.67f, 1, 0.67f, a), "Showing Ally Turrets", Binding.show_turret_ranges, "Shift");
+                    if(Core.settings.getBool("allowinvturrets"))
+                        modeIcon(st, () -> showingInvTurrets, () -> showingInvTurrets ^= true, Icon.turret.tint(1, 0.67f, 0.33f, a), "Inverting Ground/Air", Binding.show_turret_ranges, "Ctrl");
+                    modeIcon(st, () -> hidingUnits, () -> hidingUnits ^= true, new SlashTextureRegionDrawable(Icon.units.getRegion(), new Color(1f, 1f, 1f, a)), "Hiding Units", Binding.invisible_units);
+                    modeIcon(st, () -> hidingAirUnits, () -> hidingAirUnits ^= true, new SlashTextureRegionDrawable(Icon.planeOutline.getRegion(), new Color(1f, 1f, 1f, a)), "Hiding Air Units", Binding.invisible_units, "Shift");
+                    modeIcon(st, () -> hidingBlocks, () -> hidingBlocks ^= true, new SlashTextureRegionDrawable(Icon.layers.getRegion(), new Color(1f, 1f, 1f, a)), "Hiding Blocks", Binding.hide_blocks);
+                    modeIcon(st, () -> hidingPlans, () -> hidingPlans ^= true, new SlashTextureRegionDrawable(Icon.effect.getRegion(), new Color(0.5f, 0.5f, 0.5f, a)), "Hiding Plans", Binding.hide_blocks, "Shift");
+                    modeIcon(st, () -> hidingFog, () -> hidingFog ^= true, new SlashTextureRegionDrawable(Icon.waves.getRegion(), new Color(0.5f, 0.5f, 0.5f, a)), "Hiding Fog", Binding.invisible_units, "Ctrl");
+                    modeIcon(st, () -> showingMassDrivers, () -> showingMassDrivers ^= true, new TextureRegionDrawable(Blocks.massDriver.region), "Showing Massdriver Links", Binding.show_massdriver_configs);
+                    modeIcon(st, () -> showingOverdrives, () -> showingOverdrives ^= true, new TextureRegionDrawable(Blocks.overdriveProjector.region), "Showing Overdrive Ranges", Binding.show_turret_ranges);
+                    modeIcon(st, () -> Core.settings.getBool("showdomes"), () -> Core.settings.put("showdomes", !Core.settings.getBool("showdomes")), Icon.commandRally, "Showing Dome Ranges", Binding.show_reactor_and_dome_ranges);
+                    st.row();
+                    modeIcon(st, () -> !Vars.control.input.isBuilding, () -> Vars.control.input.isBuilding ^= true, Icon.pause.tint(1, 0.33f, 0.33f, a), "Paused Building", Binding.pause_building);
+                    modeIcon(st, () -> control.input.isFreezeQueueing, () -> control.input.isFreezeQueueing ^= true, Icon.pause.tint(0.33f, 0.33f, 1, a), "Freeze Queuing", Binding.pause_building, "Shift");
+                    modeIcon(st, () -> Core.settings.getBool("autotarget"), () -> Core.settings.put("autotarget", !Core.settings.getBool("autotarget")), Icon.modeAttack.tint(1f, 0.33f, 0.33f, a), "Auto Target", Binding.toggle_auto_target);
+                    modeIcon(st, () -> AutoTransfer.enabled, () -> AutoTransfer.enabled ^= true, Icon.resize.tint(1, 0.33f, 1, a), "Auto Transfer", Binding.toggle_auto_target, "Shift");
+                    modeIcon(st, () -> dispatchingBuildPlans, () -> dispatchingBuildPlans ^= true, Icon.tree.tint(1, 1, 1, a), "Sending Build Plans", Binding.send_build_queue);
+                    modeIcon(st, () -> Navigation.currentlyFollowing != null, Navigation::stopFollowing, Icon.android.tint(Color.cyan.cpy().a(a)), "Navigating", Binding.stop_following_path);
                 }).marginTop(3).marginBottom(3).growX().get();
             }
 
@@ -358,6 +353,11 @@ public class HudFragment{
         //core info
         parent.fill(t -> {
             t.top();
+
+            if(Core.settings.getBool("macnotch") ){
+                t.margin(macNotchHeight);
+            }
+
             t.visible(() -> shown);
 
             t.name = "coreinfo";
@@ -497,6 +497,25 @@ public class HudFragment{
 
         blockfrag.build(parent);
     }
+
+    public void modeIcon(Table table, Boolp cond, Runnable toggle, Drawable icon, String text, Binding binding){
+        modeIcon(table, cond, toggle, icon, text, binding, null);
+    }
+
+    public void modeIcon(Table table, Boolp cond, Runnable toggle, Drawable icon, String text, Binding binding, String modifier){
+        var tooltipText = modifier != null
+            ? Strings.format("@ [yellow](@ + @)", text, modifier, Core.keybinds.get(binding).key.toString())
+            : Strings.format("@ [yellow](@)", text, Core.keybinds.get(binding).key.toString());
+        var clicklayer = new Label("");
+        clicklayer.clicked(toggle);
+        var wrapper = table.stack(
+            new Image(icon).visible(cond),
+            clicklayer
+        ).size(25f).padRight(8f).padBottom(2f)
+        .tooltip(t ->
+            t.background(Styles.black6).margin(4f).add(tooltipText).style(Styles.outlineLabel)
+        );
+    };
 
     @Remote(targets = Loc.both, forward = true, called = Loc.both)
     public static void setPlayerTeamEditor(Player player, Team team){

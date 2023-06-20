@@ -49,7 +49,7 @@ allprojects{
         if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
         if(!project.hasProperty("assetRef")) assetRef = 'v7'
         if(!project.hasProperty("versionModifier")) versionModifier = 'release'
-        if(!project.hasProperty("buildversion")) buildversion = '144.3'
+        if(!project.hasProperty("buildversion")) buildversion = '145'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
@@ -307,10 +307,12 @@ project(":core"){
         }
     }
 
-    artifacts{
-        archives sourcesJar
-        archives assetsJar
-    }
+    //This was moved somewhere else and partially removed in c2d7e2eb725c8effc19e87e47ae87b1db1c99e2e
+    //copied the move to our file -BalaM314 6/18/2023
+    // artifacts{
+    //     archives sourcesJar
+    //     archives assetsJar
+    // }
 
     kapt {
 //        showProcessorStats = true
@@ -475,6 +477,9 @@ configure([":core", ":server"].collect{project(it)}){
         publications{
             maven(MavenPublication){
                 from components.java
+                if(project.name == "core"){
+                    artifact(tasks.named("assetsJar"))
+                }
             }
         }
     }
