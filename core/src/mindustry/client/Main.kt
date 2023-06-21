@@ -307,7 +307,7 @@ object Main : ApplicationListener {
         if (toSend.isEmpty()) return
         isSendingPlans = true
         val start = Time.millis()
-        communicationClient.send(BuildQueueTransmission(toSend), { isSendingPlans = false; planSendTime = Time.timeSinceMillis(start); Toast(3f).add(Core.bundle.format("client.sentplans", toSend.size)) }, { Toast(3f).add("@client.nomessageblock")})
+        communicationClient.send(BuildQueueTransmission(toSend), { isSendingPlans = false; planSendTime = Time.timeSinceMillis(start) })
         dispatchedBuildPlans.addAll(toSend)
     }
 
