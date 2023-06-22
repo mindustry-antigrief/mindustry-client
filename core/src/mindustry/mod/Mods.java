@@ -28,7 +28,6 @@ import mindustry.ui.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.zip.*;
 
 import static mindustry.Vars.*;
 
@@ -101,16 +100,11 @@ public class Mods implements Loadable{
     public LoadedMod importMod(Fi file) throws IOException{
         //for some reason, android likes to add colons to file names, e.g. primary:ExampleJavaMod.jar, which breaks dexing
         String baseName = file.nameWithoutExtension().replace(':', '_').replace(' ', '_');
-        if(file instanceof ZipFi zip && baseName.isEmpty()){ // The ZipFi name methods return empty strings...
-            var path = Reflect.<ZipFile>get(zip, "zip").getName(); // The absolute path to the zip
-            var ext = path.lastIndexOf('.');
-            baseName = path.substring(path.lastIndexOf(File.separatorChar) + 1, ext == -1 ? path.length() : ext); // The part after the last / (the actual name) without the extension
-        }
         String finalName = baseName;
         //find a name to prevent any name conflicts
         int count = 1;
         while(modDirectory.child(finalName + ".zip").exists()){
-            finalName = baseName + "" + count++;
+            finalName = baseName + count++;
         }
 
         Fi dest = modDirectory.child(finalName + ".zip");
@@ -492,7 +486,7 @@ public class Mods implements Loadable{
 
             try{
                 Fi zip = file.isDirectory() ? file : new ZipFi(file);
-
+                if(OS.isMac) zip.child(".DS_Store").delete(); //macOS loves adding garbage files that break everything
                 if(zip.list().length == 1 && zip.list()[0].isDirectory()){
                     zip = zip.list()[0];
                 }
@@ -522,7 +516,7 @@ public class Mods implements Loadable{
                 if(steam) mod.addSteamID(file.name());
             }catch(Throwable e){
                 if(e instanceof ClassNotFoundException && e.getMessage().contains("mindustry.plugin.Plugin")){
-                    Log.warn("Plugin '@' is outdated and needs to be ported to v7! Update its main class to inherit from 'mindustry.mod.Plugin'. See https://mindustrygame.github.io/wiki/modding/6-migrationv6/", file.name());
+                    Log.info("Plugin '@' is outdated and needs to be ported to 6.0! Update its main class to inherit from 'mindustry.mod.Plugin'. See https://mindustrygame.github.io/wiki/modding/6-migrationv6/", file.name());
                 }else if(steam){
                     Log.err("Failed to load mod workshop file @. Skipping.", file);
                     Log.err(e);
