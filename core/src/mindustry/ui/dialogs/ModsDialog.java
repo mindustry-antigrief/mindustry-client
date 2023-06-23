@@ -113,9 +113,7 @@ public class ModsDialog extends BaseDialog{
                 autoUpdating = true;
                 Log.debug("Checking for mod updates @", Time.timeSinceMillis(settings.getLong("lastmodupdate", hour + 1)) / (60*1000f));
                 Core.settings.put("lastmodupdate", Time.millis());
-                var shuffled = mods.mods.copy();
-                shuffled.shuffle();
-                for (Mods.LoadedMod mod : shuffled) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
+                for (Mods.LoadedMod mod : mods.mods.copy().shuffle()) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
                     if (!mod.enabled() || mod.getRepo() == null) continue;
                     if (expected++ >= 30) continue; // Only make up to 30 api requests
 
@@ -657,28 +655,28 @@ public class ModsDialog extends BaseDialog{
     }
 
     private void handleMod(String repo, HttpResponse result, @Nullable String prevVersion){
-        ZipFi rootZip = null;
-        try{
-            var sourceFile = tmpDirectory.child(repo.replace("/", "") + ".zip");
+         try{
+            Fi file = tmpDirectory.child(repo.replace("/", "") + ".zip");
             long len = result.getContentLength();
             Floatc cons = len <= 0 ? f -> {} : p -> modImportProgress = p;
-            Streams.copyProgress(result.getResultAsStream(), sourceFile.write(false), len, 4096, cons);
-            Fi zip = sourceFile.isDirectory() ? sourceFile : (rootZip = new ZipFi(sourceFile));
 
-            if(zip.list().length == 1 && zip.list()[0].isDirectory()){
-                zip = zip.list()[0];
-            }
+            Streams.copyProgress(result.getResultAsStream(), file.write(false), len, 4096, cons);
 
-            ModMeta meta = mods.findMeta(zip);
+             Fi zip = file.isDirectory() ? file : new ZipFi(file);
+             if(OS.isMac) zip.child(".DS_Store").delete(); //macOS loves adding garbage files that break everything
+             if(zip.list().length == 1 && zip.list()[0].isDirectory()) zip = zip.list()[0]; // FINISHME: This should be a method in the ZipFi class as its used thrice and the current impl is awful as it calls list thrice for no reason
+             ModMeta meta = mods.findMeta(zip); // The three lines above are needed so that this can work as it won't find the meta file when passing it a zip as a normal file
 
-            if(meta == null) Log.warn("Mod @ doesn't have a '[mod/plugin].[h]json' file, skipping.", sourceFile);
+             if(meta == null) Log.warn("Mod @ doesn't have a '[mod/plugin].[h]json' file, skipping.", file);
 
-            if (meta == null || meta.version == null || !meta.version.equals(prevVersion)) {
-                var mod = mods.importMod(zip);
-                mod.setRepo(repo);
-            }
-            zip.delete();
+             if (meta == null || meta.version == null || !meta.version.equals(prevVersion)) {
+                 var mod = mods.importMod(file);
+                 mod.setRepo(repo);
+             }
+
+            file.delete();
             Core.app.post(() -> {
+
                 try{
                     setup();
                     ui.loadfrag.hide();
@@ -687,7 +685,6 @@ public class ModsDialog extends BaseDialog{
                 }
             });
         }catch(Throwable e){
-            if(rootZip != null) rootZip.delete();
             modError(e);
         }
 
