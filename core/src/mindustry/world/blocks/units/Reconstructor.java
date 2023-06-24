@@ -201,16 +201,17 @@ public class Reconstructor extends UnitBlock{
 
             var group = new ButtonGroup<ImageButton>();
             group.setMinCheckCount(0);
-            int i = 0, columns = 4;
+            int i = 0, columns = 5;
 
             table.background(Styles.black6);
 
             var list = unit().commands;
             for(var item : list){
-                ImageButton button = table.button(item.getIcon(), Styles.clearNoneTogglei, 40f, () -> {
+                ImageButton button = table.button(item.getIcon(), Styles.clearNoneTogglei, 44f, () -> {
                     configure(item);
                     deselect();
                 }).tooltip(item.localized()).group(group).get();
+                // button.getImage().setSize(20f); //this doesn't work, FINISHME: TODO: fix
 
                 button.update(() -> button.setChecked(command == item || (command == null && unit.defaultCommand == item)));
 
