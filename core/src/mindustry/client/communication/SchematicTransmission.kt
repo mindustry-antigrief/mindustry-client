@@ -19,31 +19,35 @@ class SchematicTransmission : Transmission {
     }
     override var id: Long = Random.nextLong()
     override val secureOnly = false
-    var schematic: Schematic
+    var schematic: Schematic? = null
+    var bytes: ByteArray
     var senderID: Int = -1
 
     constructor(schematic: Schematic) {
+        val stream = ByteArrayOutputStream()
+        Schematics.write(this.schematic, stream)
+        this.bytes = stream.toByteArray()
         this.schematic = schematic
     }
 
     @Suppress("UNUSED_PARAMETER")
     constructor(byteArray: ByteArray, id: Long, senderID: Int) {
-        this.schematic = Schematics.read(ByteArrayInputStream(byteArray))
+        this.bytes = byteArray
         this.senderID = senderID
     }
 
     override fun serialize(): ByteArray {
-        val stream = ByteArrayOutputStream()
-        Schematics.write(this.schematic, stream)
-        return stream.toByteArray()
+        return bytes
     }
 
     fun addToChat() {
         val message: ChatMessage = ui.chatfrag.addMsg(
-            Core.bundle.format("schematic.chatsharemessage", Groups.player.getByID(this.senderID).name, schematic.name())
+            Core.bundle.format("schematic.chatsharemessage", Groups.player.getByID(this.senderID).name)
         )
 
-        message.addButton(schematic.name()) {
+        message.addButton(0, message.message.length) {
+            //Parse the schematic
+            this.schematic = Schematics.read(ByteArrayInputStream(bytes))
             val inSchematics = senderID == player.id || schematics.all().contains(schematic) // FINISHME: The communication ID might not be player id
             if (!inSchematics) {
                 // This is incredibly cursed, if anyone has a better way please suggest
@@ -54,7 +58,7 @@ class SchematicTransmission : Transmission {
                     tempFile = Fi.tempFile("clientcomm_msch")
                     tempFile!!.file().deleteOnExit()
                 }
-                this.schematic.file = tempFile
+                this.schematic!!.file = tempFile
             }
 
             ui.schematics.showInfo(schematic)
@@ -66,7 +70,7 @@ class SchematicTransmission : Transmission {
                 ui.schematics.info.cont.button("@save", Icon.save) {}.growX().bottom().get().apply {
                     val cells = this.cells
                     this.clicked {
-                        schematic.file = null // Remove the link to the temporary file, so that it can get linked to a real file
+                        schematic!!.file = null // Remove the link to the temporary file, so that it can get linked to a real file
                         schematics.add(schematic)
                         // The rest is visual - make it unclickable
                         val size = cells[0].get().minHeight
