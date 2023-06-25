@@ -25,7 +25,7 @@ class SchematicTransmission : Transmission {
 
     constructor(schematic: Schematic) {
         val stream = ByteArrayOutputStream()
-        Schematics.write(this.schematic, stream)
+        Schematics.write(schematic, stream)
         this.bytes = stream.toByteArray()
         this.schematic = schematic
     }
