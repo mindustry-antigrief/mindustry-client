@@ -3,10 +3,9 @@ package mindustry.net;
 import arc.*;
 import arc.files.*;
 import arc.func.*;
-import arc.struct.*;
 import arc.util.*;
-import arc.util.Timer;
 import arc.util.serialization.*;
+import mindustry.client.utils.*;
 import mindustry.core.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -194,19 +193,8 @@ public class BeControl{
 
             BaseDialog dialog = new BaseDialog("@be.updating");
             download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
-                try{
-                    Log.info(file.absolutePath());
-                    Seq<String> args = Seq.with(javaPath);
-                    args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
-                    if(OS.isMac) args.add("-XstartOnFirstThread");
-                    args.addAll("-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath());
-                    Runtime.getRuntime().exec(args.toArray());
-                    Core.app.exit();
-                }catch(IOException e){
-                    dialog.cont.clearChildren();
-                    dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
-                    dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
-                }
+                Log.info(file.absolutePath());
+                ClientUtils.openJar("-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath());
             }, e -> {
                 dialog.hide();
                 ui.showException(e);

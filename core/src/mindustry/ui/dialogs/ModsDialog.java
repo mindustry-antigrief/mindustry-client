@@ -19,6 +19,7 @@ import arc.util.serialization.*;
 import arc.util.serialization.Jval.*;
 import mindustry.*;
 import mindustry.client.ui.*;
+import mindustry.client.utils.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.*;
@@ -31,7 +32,6 @@ import mindustry.mod.Mods.*;
 import mindustry.ui.*;
 
 import java.io.*;
-import java.net.*;
 import java.text.*;
 import java.util.*;
 
@@ -393,17 +393,8 @@ public class ModsDialog extends BaseDialog{
         ui.showInfoOnHidden("@mods.reloadexit", () -> {
             if(settings.getBool("autorestart")){
                 Log.info("Exiting to reload mods.");
-                try{
-                    Fi jar = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-                    Seq<String> args = Seq.with(javaPath);
-                    args.addAll(System.getProperties().entrySet().stream().map(it -> "-D" + it).toArray(String[]::new));
-                    if(OS.isMac) args.add("-XstartOnFirstThread");
-                    args.addAll("-jar", jar.absolutePath());
-
-                    Runtime.getRuntime().exec(args.toArray());
-                }catch(Exception ignored){} // If we can't find java, just close the game
+                ClientUtils.restartGame();
             }
-            Core.app.exit();
         });
     }
 
@@ -693,21 +684,7 @@ public class ModsDialog extends BaseDialog{
                 autoUpdating = false;
                 if (mods.requiresReload()){
                     if (Core.settings.getInt("modautoupdate") == 2) {
-                        try{
-                            Fi file = Fi.get(ModsDialog.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-                            Runtime.getRuntime().exec(OS.isMac ? // FINISHME: Standardize auto reboots
-                                new String[]{javaPath, "-XstartOnFirstThread", "-jar", file.absolutePath()} :
-                                new String[]{javaPath, "-jar", file.absolutePath()}
-                            );
-                            Core.app.exit();
-                        }catch(IOException | URISyntaxException e){
-                            Core.app.post(() -> {
-                                BaseDialog dialog = new BaseDialog("Java Moment");
-                                dialog.cont.clearChildren();
-                                dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
-                                dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk17&jvmVariant=hotspot")).size(210f, 64f);
-                            });
-                        }
+                        ClientUtils.restartGame();
                         reload();
                     }
                     new Toast(5f).add("[accent]Mod updates found, they will be installed after restart.");

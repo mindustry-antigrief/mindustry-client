@@ -4,6 +4,7 @@
 package mindustry.client.utils
 
 import arc.*
+import arc.files.*
 import arc.graphics.*
 import arc.math.geom.*
 import arc.scene.*
@@ -25,6 +26,7 @@ import mindustry.ui.dialogs.*
 import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.*
 import java.io.*
+import java.net.*
 import java.nio.*
 import java.security.cert.*
 import java.time.*
@@ -467,3 +469,31 @@ fun parseBool(arg: String) = arg.lowercase().startsWith("y") || arg.lowercase().
 
 /** Returns true if right, false if left. */
 fun rotationDirection(old: Int, new: Int) = old < new && (old != 0 || new != 3) || old == 3 && new == 0
+
+fun restartGame() = openJar("-jar", Fi.get(ClientVars::class.java.protectionDomain.codeSource.location.toURI().path).absolutePath())
+
+fun openJar(vararg extraArgs: String) {
+    try {
+        val args = mutableListOf(javaPath)
+        args.addAll(System.getProperties().entries.map { "-D$it" }.toTypedArray())
+        if (OS.isMac) args.add("-XstartOnFirstThread")
+        args.addAll(extraArgs)
+        Runtime.getRuntime().exec(args.toTypedArray())
+        Core.app.exit()
+    } catch (e: Exception) {
+        when (e) {
+            is IOException, is URISyntaxException -> { // Kotlin is strange and doesn't allow multi-catch
+                Core.app.post {
+                    val dialog = BaseDialog("@client.installjava")
+                    dialog.cont.clearChildren()
+                    dialog.cont.add("@client.nojava").row()
+                    dialog.cont.button("@client.installjava") { Core.app.openURI("https://adoptium.net/index.html?variant=openjdk17&jvmVariant=hotspot") }.size(210f, 64f)
+                    dialog.show()
+                    dialog.addCloseButton()
+                    dialog.hidden(Core.app::exit)
+                }
+            }
+            else -> throw ArcRuntimeException(e)
+        }
+    }
+}
