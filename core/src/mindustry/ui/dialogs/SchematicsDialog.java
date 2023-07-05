@@ -40,6 +40,7 @@ public class SchematicsDialog extends BaseDialog{
     private Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
     private Seq<String> tags, selectedTags = new Seq<>();
     private boolean checkedTags;
+    private static long previewTime;
 
     public SchematicsDialog(){
         super("@schematics");
@@ -53,6 +54,7 @@ public class SchematicsDialog extends BaseDialog{
         makeButtonOverlay();
         shown(this::setup);
         onResize(this::setup);
+        update(() -> previewTime = 0);
     }
 
     void setup(){
@@ -768,7 +770,15 @@ public class SchematicsDialog extends BaseDialog{
         }
 
         private void setPreview(){
+            if(previewTime > Time.millisToNanos(10) && !schematics.hasPreview(schematic)){ // Only allow 10ms of expensive preview creation each frame. Yes this is janky. No I don't care
+                set = false;
+                return;
+            }
+            var start = Time.nanos();
             TextureRegionDrawable draw = new TextureRegionDrawable(new TextureRegion(lastTexture = schematics.getPreview(schematic)));
+            var time = Time.timeSinceNanos(start);
+            if(time > Time.millisToNanos(100)) Log.info("Schematic @ (@x@) took @ms to load", schematic.name(), schematic.width, schematic.height, time/(float)Time.nanosPerMilli);
+            previewTime += time;
             setDrawable(draw);
             setScaling(Scaling.fit);
         }
