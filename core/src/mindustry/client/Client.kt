@@ -149,6 +149,18 @@ object Client {
             Drawf.dashCircle(player.x, player.y, player.unit().range(), player.team().color, Color.lightGray)
         }
 
+        // Item transfer range FINISHME: Setting, bundle, do the same for build range(?)
+        val transferOpacity = Core.settings.getInt("transferrangeopacity") / 100F
+        if (transferOpacity > 0) {
+            Lines.stroke(3f)
+            Draw.color(Pal.gray, transferOpacity)
+            Lines.circle(player.x, player.y, itemTransferRange)
+            Lines.stroke(1f)
+            Draw.color(player.team().color, transferOpacity)
+            Lines.circle(player.x, player.y, itemTransferRange)
+            Draw.reset()
+        }
+
         // Overdrive range
         if (showingOverdrives) {
             val team = player.team()
@@ -204,7 +216,6 @@ object Client {
                 }
             }
             Draw.reset()
-            bounds.grow(-tilesizeF * Blocks.largePayloadMassDriver.size + tilesizeF)
         }
     }
 }

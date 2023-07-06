@@ -51,7 +51,8 @@ class AutoTransfer {
     var item: Item? = null
     var timer = 0F
     val counts = IntArray(content.items().size)
-    val countsAdditional = FloatArray(content.items().size)
+    val ammoCounts = IntArray(content.items().size)
+    val dpsCounts = FloatArray(content.items().size)
     var core: Building? = null
 
     fun draw() {
@@ -81,7 +82,8 @@ class AutoTransfer {
         var held = player.unit().stack.amount
 
         counts.fill(0) // reset needed item counters
-        countsAdditional.fill(0f)
+        ammoCounts.fill(0)
+        dpsCounts.fill(0f)
         buildTree.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, builds.clear()) // grab all buildings in range
 
         if (fromContainers && (core == null || !player.within(core, itemTransferRange))) core = containers.selectFrom(builds) { it.block is StorageBlock && (item == null || it.items.has(item)) }.min { it -> it.dst(player) }
@@ -116,14 +118,14 @@ class AutoTransfer {
                             val acceptedC = if (i == Items.blastCompound && it.block.findConsumer<Consume> { it is ConsumeItemExplode } != null) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
                             if (acceptedC >= minTransfer && it.block.consumesItem(i) && core!!.items.has(i, minItems)) {
                                 // Turrets have varying ammo, add an offset to prioritize some than others
-                                counts[i.id.toInt()] += acceptedC
-                                countsAdditional[i.id.toInt()] += acceptedC * getAmmoScore((it.block as? ItemTurret)?.ammoTypes?.get(i))
+                                ammoCounts[i.id.toInt()] += acceptedC
+                                dpsCounts[i.id.toInt()] += acceptedC * getAmmoScore((it.block as? ItemTurret)?.ammoTypes?.get(i))
                             }
                         }
                     }
                     is ConsumeItemDynamic -> {
                         cons.items.get(it).forEach { i -> // Get the current requirements
-                            val acceptedC = it.acceptStack(i.item, i.amount, player.unit())
+                            val acceptedC = it.getMaximumAccepted(i.item) - it.items.get(i.item)
                             if (acceptedC >= minTransfer && core!!.items.has(i.item, max(i.amount, minItems))) {
                                 counts[i.item.id.toInt()] += acceptedC
                             }
@@ -133,15 +135,24 @@ class AutoTransfer {
                 }
             }
         }
-        var maxID = 0; var maxCount = counts[0] + countsAdditional[0] // FINISHME: Also include the items from nearby containers since otherwise we night never find those items
+        var maxID = 0 // FINISHME: Also include the items from nearby containers since otherwise we night never find those items
         for (i in 1 until counts.size) {
-            val count = counts[i] + countsAdditional[i]
-            if (count > maxCount) {
-                maxID = i
-                maxCount = count
+            if (counts[i] > counts[maxID]) maxID = i
+        }
+
+        var maxAmmoID = 0
+        // FINISHME: This should prob be `(ammoCount+count)/2F > counts[maxID]` or something
+        val doAmmo = ammoCounts.any { (it + 1) / 2F > counts[maxID] } // If ammo requirements are over half as much as other requirements, we prioritize ammo
+        if (doAmmo) { // FINISHME: We should also prioritize ammo when turrets are empty probably?
+            for (i in 1 until counts.size) {
+                if (dpsCounts[i] > dpsCounts[maxAmmoID]) maxAmmoID = i
             }
         }
-        item = if (counts[maxID] >= minTransferTotal) content.item(maxID) else null
+
+        item =
+            if (doAmmo && ammoCounts[maxAmmoID] >= minTransferTotal) content.item(maxAmmoID)
+            else if (counts[maxID] >= minTransferTotal) content.item(maxID)
+            else null
 
         Time.run(delay/2F) {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {

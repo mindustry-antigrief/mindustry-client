@@ -60,8 +60,6 @@ public class SettingsMenuDialog extends BaseDialog{
         cont.add(main = new SettingsTable());
         shouldPause = true;
 
-        // This is going to break isnt it?
-//        hidden(() -> updateSettings()); // FINISHME: Horrible
         hidden(ConstructBlock::updateWarnBlocks); // FINISHME: Horrible
 
         shown(() -> {
@@ -376,6 +374,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("traveltime", 10, 0, 60, s -> { ClientVars.travelTime = 60f / s; return s == 0 ? "Disabled" : String.valueOf(s); });
         client.sliderPref("formationopacity", 30, 10, 100, 5, s -> { UnitType.formationAlpha = s / 100f; return s + "%"; });
         client.sliderPref("hitboxopacity", 0, 0, 100, 5, s -> { UnitType.hitboxAlpha = s / 100f; return s == 0 ? "Disabled" : s + "%"; });
+        client.sliderPref("transferrangeopacity", 30, 0, 100, 5, s -> s + "%");
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("placementfragmentsearch", true);

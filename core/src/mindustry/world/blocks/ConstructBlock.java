@@ -35,7 +35,6 @@ import mindustry.world.blocks.storage.*;
 import mindustry.world.modules.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.*;
 
 import static mindustry.Vars.*;
 
@@ -203,26 +202,27 @@ public class ConstructBlock extends Block{
         return true;
     }
 
-    private static Seq<WarnBlock> warnBlocks;
-    private static class WarnBlock { // FINISHME: Enums exist.
-        final Block block;
+    private static ObjectMap<Block, WarnBlock> warnBlocks;
+    private static class WarnBlock {
         final int warnDistance;
         final int soundDistance;
 
-        private WarnBlock(Block block, int warnDistance, int soundDistance) {
-            this.block = block;
+        private WarnBlock(int warnDistance, int soundDistance) {
             this.warnDistance = warnDistance;
             this.soundDistance = soundDistance;
         }
     }
-    static { Events.on(ClientLoadEvent.class, e -> updateWarnBlocks()); }
+    static {
+        Events.on(ClientLoadEvent.class, e -> updateWarnBlocks());
+    }
+
     public static void updateWarnBlocks() {
-        warnBlocks = Seq.with(
-            new WarnBlock(Blocks.thoriumReactor, Core.settings.getInt("reactorwarningdistance"), Core.settings.getInt("reactorsounddistance")),
-            new WarnBlock(Blocks.incinerator, Core.settings.getInt("incineratorwarningdistance"), Core.settings.getInt("incineratorsounddistance")),
-            new WarnBlock(Blocks.melter, Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")),
-            new WarnBlock(Blocks.oilExtractor, Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")),
-            new WarnBlock(Blocks.sporePress, Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance"))
+        warnBlocks = ObjectMap.of(
+            Blocks.thoriumReactor,  new WarnBlock(Core.settings.getInt("reactorwarningdistance"), Core.settings.getInt("reactorsounddistance")),
+            Blocks.incinerator, new WarnBlock(Core.settings.getInt("incineratorwarningdistance"), Core.settings.getInt("incineratorsounddistance")),
+            Blocks.melter, new WarnBlock(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")),
+            Blocks.oilExtractor, new WarnBlock(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance")),
+            Blocks.sporePress, new WarnBlock(Core.settings.getInt("slagwarningdistance"), Core.settings.getInt("slagsounddistance"))
         );
     }
     public class ConstructBuild extends Building{
@@ -360,12 +360,9 @@ public class ConstructBlock extends Block{
 
             // Warnings
             Player targetPlayer = ClientUtils.getPlayer(lastBuilder);
-            if (targetPlayer != null) {
-                WarnBlock wb = getWarnBlock();
-                if (wb != null && wb.block == Blocks.thoriumReactor) Seer.INSTANCE.thoriumReactor(targetPlayer, tile.dst(targetPlayer));
-            }
+            if (targetPlayer != null && current == Blocks.thoriumReactor) Seer.INSTANCE.thoriumReactor(targetPlayer, tile.dst(targetPlayer));
 
-            handleBlockWarning(config);
+            handleBlockWarning();
 
             if(progress >= 1f || state.rules.infiniteResources){
                 if(lastBuilder == null) lastBuilder = builder;
@@ -532,11 +529,7 @@ public class ConstructBlock extends Block{
         public boolean shouldDisplayWarning(){
             return wasConstructing && closestCore() != null && lastBuilder != null
                     && player != null && team == player.team() && progress != lastProgress
-                    && lastBuilder != player.unit() && getWarnBlock() != null;
-        }
-
-        public ConstructBlock.WarnBlock getWarnBlock(){
-            return warnBlocks.find(b -> b.block == current);
+                    && lastBuilder != player.unit();
         }
 
         /** Returns the smallest distance to the core and/or its connected vaults.*/
@@ -546,16 +539,17 @@ public class ConstructBlock extends Block{
             // BALA WARNING: I dont know whether replacing .and with .add was the correct move but I hope it is
             for(Building building : closestCore().proximity.copy().add(closestCore())) {
                 if (building instanceof StorageBlock.StorageBuild || building instanceof CoreBuild) {
-                    lowestDistance = Math.min(World.toTile(building.tile.dst(this.tile)), lowestDistance);
+                    lowestDistance = Math.min(World.toTile(building.tile.dst2(this.tile)), lowestDistance);
                 }
             }
-            return lowestDistance;
+            return (int)Math.sqrt(lowestDistance);
         }
 
-        public void handleBlockWarning(Object config) {
-            //refactored by BalaM314
-            if (!shouldDisplayWarning()) return;
-            var warnBlock = getWarnBlock();
+        public void handleBlockWarning() {
+            if (!wasConstructing || closestCore() == null || lastBuilder == null || player == null || team != player.team() || progress == lastProgress || lastBuilder == player.unit()) return;
+            var warnBlock = warnBlocks.get(current);
+            if (warnBlock == null) return;
+
             lastBuilder.drawBuildPlans(); // Draw their build plans FINISHME: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
             int distance = distanceToGreaterCore();
 

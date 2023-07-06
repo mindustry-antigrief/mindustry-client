@@ -1472,6 +1472,7 @@ public class UnitType extends UnlockableContent{
 
     public <T extends Unit & Legsc> void drawLegs(T unit){
         applyColor(unit);
+        Draw.alpha(alpha);
         Tmp.c3.set(Draw.getMixColor());
 
         Leg[] legs = unit.legs();
@@ -1506,7 +1507,6 @@ public class UnitType extends UnlockableContent{
             }
 
             Draw.mixcol(Tmp.c3, Tmp.c3.a);
-            Draw.alpha(alpha);
 
             if(footRegion.found()){
                 Draw.rect(footRegion, leg.base.x, leg.base.y, position.angleTo(leg.base));

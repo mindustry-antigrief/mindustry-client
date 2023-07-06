@@ -30,7 +30,7 @@ public class Version{
     @SuppressWarnings("unused") private static boolean foos;
 
     public static String path(){
-        return Version.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        return Version.class.getProtectionDomain().getCodeSource().getLocation().getPath().replace('\\', '/');
     }
 
     public static void init(){
