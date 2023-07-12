@@ -37,6 +37,7 @@ class CommandTransmission : Transmission {
     override val secureOnly: Boolean = false
 
     companion object {
+        var numStopIgnores: Int = 0
         var lastStopTime : Long = 0
     }
     enum class Commands(val builtinOnly: Boolean = false, val lambda: (CommandTransmission) -> Unit) {
@@ -50,10 +51,12 @@ class CommandTransmission : Transmission {
                     dialog.cont.add(Core.bundle.format("client.stoppath.bydev", cert.readableName))
                     dialog.buttons.button("@close", Icon.menu) { dialog.hide() }
                         .size(210f, 64f)
-                } else if (Time.timeSinceMillis(lastStopTime) > Time.toMinutes * 1) { // FINISHME: Scale time with number of requests or something?
+                } else if (Time.timeSinceMillis(lastStopTime) > Time.toMinutes * (1 + numStopIgnores)) {
                     Vars.ui.showCustomConfirm("@client.stoppath.stopped",
                         Core.bundle.format("client.stoppath.by", Main.keyStorage.aliasOrName(cert)),
-                        Core.bundle.get("client.stoppath.continue"), Core.bundle.get("client.stoppath.stop"), { Navigation.follow(oldPath) }, {})
+                        Core.bundle.get("client.stoppath.continue"), Core.bundle.get("client.stoppath.stop"),
+                        { Navigation.follow(oldPath); numStopIgnores ++; }, {}
+                    )
                 }
                 Navigation.stopFollowing()
             }
