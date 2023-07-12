@@ -34,8 +34,7 @@ object ProcessorPatcher {
 
     private const val whisperText = "Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem"
 
-    private val whisperGlobalRatelimit = Ratekeeper();
-    private val whisperRatelimit = IntMap<Ratekeeper>();
+    private val whisperRatelimit = IndexedRatekeeper<Int>();
 
     private fun countProcessors(builds: Iterable<LogicBuild>): Int {
         Time.mark()
@@ -80,12 +79,10 @@ object ProcessorPatcher {
     fun whisper(player: Player?):Boolean {
         if(player == null) return false
         if(!Server.current.whisper.canRun()) return false
-        //Max 5 messages per 5 seconds
-        if(!whisperGlobalRatelimit.allow(5000, 5)) return false
-        //Max 1 message per player per 5 seconds
-        if(!(
-            whisperRatelimit.get(player.id) ?: whisperRatelimit.put(player.id, Ratekeeper())
-        ).allow(5000, 1)) return false
+        if(!whisperRatelimit.allow(player.id,
+            5000, 1, //Max 1 message per player per 5 seconds
+            5000, 5 //Max 5 messages per 5 seconds over all players
+        )) return false
         Server.current.whisper(player, whisperText)
         return true
     }
