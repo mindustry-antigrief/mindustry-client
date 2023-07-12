@@ -42,7 +42,6 @@ public class LogicBlock extends Block{
     public static final int maxByteLen = 1024 * 500;
     private static @Nullable Player lastAttem;
     private static int attemCount;
-    private static long attemTime;
     private static ChatFragment.ChatMessage attemMsg;
 
     public int maxInstructionScale = 5;
@@ -574,23 +573,29 @@ public class LogicBlock extends Block{
                     if (!patched.equals(code)) {
                         Core.app.post(() -> { // FINISHME: Fallback to controller name if player is null
                             if ((player != lastAttem || player == null)) {
+                                //Player does not exist or is not the last warned player
                                 lastAttem = player;
                                 attemCount = 1;
-                                attemMsg = ui.chatfrag.addMsg(Core.bundle.format("client.attemwarn", ClientUtils.getName(builder), tile.x, tile.y));
-                                NetClient.findCoords(attemMsg);
-                                ProcessorPatcher.INSTANCE.whisper(player);
+                                //Try to whisper
+                                if(ProcessorPatcher.INSTANCE.whisper(player)){
+                                    attemMsg = ui.chatfrag.addMsg(Core.bundle.format("client.attemwarn", ClientUtils.getName(builder), tile.x, tile.y));
+                                    NetClient.findCoords(attemMsg);
+                                }
+                                //If global ratelimit exceeded, or this player has been warned within 5 seconds, this fails
+                                //FINISHME: move all of this logic into processorpatcher
                             } else {
-                                if (Time.timeSinceMillis(attemTime) > 5000) {
-                                    ProcessorPatcher.INSTANCE.whisper(player);
+                                //Player has already placed attem, try to warn
+                                if (ProcessorPatcher.INSTANCE.whisper(player)) {
+                                    //Fails if they were warned within the past 5 seconds
+                                    //Warn sent again, move attem message to bottom of chat frag and update it
                                     ui.chatfrag.messages.remove(attemMsg);
                                     ui.chatfrag.messages.insert(0, attemMsg);
+                                    attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
+                                    attemMsg.format();
+                                    attemMsg.clearButtons(); // Update the clickable coord positions
+                                    NetClient.findCoords(attemMsg);
                                 }
-                                attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
-                                attemMsg.format();
-                                attemMsg.clearButtons(); // Update the clickable coord positions
-                                NetClient.findCoords(attemMsg);
                             }
-                            attemTime = Time.millis();
                             ClientVars.lastSentPos.set(tile.x, tile.y);
                             ClientVars.configs.add(new ConfigRequest(tile.x, tile.y, compress(patched, relativeConnections())));
                         });
