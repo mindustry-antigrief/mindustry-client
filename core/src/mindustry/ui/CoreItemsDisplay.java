@@ -68,14 +68,18 @@ public class CoreItemsDisplay extends Table{
                 .tooltip(t ->
                     t.background(Styles.black6).margin(4f)
                     .add(
-                        Strings.format("@: @", item.localizedName, core.items.get(item))
+                        Strings.format("@: @", item.localizedName, core == null ? "0" : core.items.get(item))
                     ).style(Styles.outlineLabel)
                 );
                 //TODO leaks garbage
-                //TODO FINISHME line too long
-                if (mode == CoreItemDisplayMode.disabled) label(() -> core == null ? "0" : colorFor(totalItems.getAverageChange(trackSteps, item)) + UI.formatAmount(core.items.get(item))).padRight(3).minWidth(52f).left();
-                else if (mode == CoreItemDisplayMode.inputOnly) label(() -> core == null ? "0" : formatAmount(inputItems.getAverage(trackSteps, item))).padRight(3).minWidth(52f).left();
-                else if (mode == CoreItemDisplayMode.all) label(() -> core == null ? "0" : formatAmount(totalItems.getAverageChange(trackSteps, item))).padRight(3).minWidth(52f).left();
+                label(() -> (core == null ? "0" : switch(mode){
+                    case disabled ->
+                        colorFor(totalItems.getAverageChange(trackSteps, item)) + UI.formatAmount(core.items.get(item));
+                    case inputOnly ->
+                        formatAmount(inputItems.getAverage(trackSteps, item));
+                    case all ->
+                        formatAmount(totalItems.getAverageChange(trackSteps, item));
+                })).padRight(3).minWidth(52f).left();
 
                 if(++i % 4 == 0){
                     row();
