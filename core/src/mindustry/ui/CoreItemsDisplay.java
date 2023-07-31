@@ -64,9 +64,16 @@ public class CoreItemsDisplay extends Table{
 
         for(Item item : content.items()){
             if(usedItems.get(item.id)){
-                image(item.uiIcon).size(iconSmall).padRight(3).tooltip(t -> t.background(Styles.black6).margin(4f).add(item.localizedName).style(Styles.outlineLabel));
+                image(item.uiIcon).size(iconSmall).padRight(3)
+                .tooltip(t ->
+                    t.background(Styles.black6).margin(4f)
+                    .add(
+                        Strings.format("@: @", item.localizedName, core.items.get(item))
+                    ).style(Styles.outlineLabel)
+                );
                 //TODO leaks garbage
-                if (mode == CoreItemDisplayMode.disabled) label(() -> core == null ? "0" : UI.formatAmount(core.items.get(item))).padRight(3).minWidth(52f).left();
+                //TODO FINISHME line too long
+                if (mode == CoreItemDisplayMode.disabled) label(() -> core == null ? "0" : colorFor(totalItems.getAverageChange(trackSteps, item)) + UI.formatAmount(core.items.get(item))).padRight(3).minWidth(52f).left();
                 else if (mode == CoreItemDisplayMode.inputOnly) label(() -> core == null ? "0" : formatAmount(inputItems.getAverage(trackSteps, item))).padRight(3).minWidth(52f).left();
                 else if (mode == CoreItemDisplayMode.all) label(() -> core == null ? "0" : formatAmount(totalItems.getAverageChange(trackSteps, item))).padRight(3).minWidth(52f).left();
 
@@ -80,6 +87,13 @@ public class CoreItemsDisplay extends Table{
 
     public void addItem(Item item, int amount){
         if(amount > 0 && (trackItems || mode == CoreItemDisplayMode.inputOnly)) inputItems.add(item, amount);
+    }
+
+    public static String colorFor(float rate){
+        if(!trackItems) return "";
+        if(rate < 0) return "[#FFAAAA]";
+        else if(rate > 0) return "[#AAFFAA]";
+        else return "";
     }
 
     public static String formatAmount(float rate){
