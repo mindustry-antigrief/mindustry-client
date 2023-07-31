@@ -149,15 +149,14 @@ public class NetClient implements ApplicationListener{
 
             Time.runTask(3f, ui.loadfrag::hide);
 
-            if(packet.reason != null){
-                ui.showSmall(switch(packet.reason){
-                    case "closed" -> "@disconnect.closed";
-                    case "timeout" -> "@disconnect.timeout";
-                    default -> "@disconnect.error";
-                }, "@disconnect.closed");
-            }else{
-                ui.showErrorMessage("@disconnect");
-            }
+            String title = switch(packet.reason){
+                case "closed" -> "@disconnect.closed";
+                case "timeout" -> "@disconnect.timeout";
+                null -> "@disconnect";
+                default -> "@disconnect.error";
+            };
+            ui.showCustomConfirm(title, "@disconnect.closed", "@reconnect", "@ok", () -> ui.join.reconnect(), () -> {});
+            //FINISHME: duped code, ctrl+f ui.showCustomConfirm
         });
 
         net.handleClient(WorldStream.class, data -> {
@@ -500,7 +499,7 @@ public class NetClient implements ApplicationListener{
         ServerUtils.handleKick(reason);
         netClient.disconnectQuietly();
         logic.reset();
-        ui.showText("@disconnect", reason, Align.left);
+        ui.showCustomConfirm("@disconnect", reason, "@reconnect", "@ok", () -> ui.join.reconnect(), () -> {});
         ui.loadfrag.hide();
     }
 
