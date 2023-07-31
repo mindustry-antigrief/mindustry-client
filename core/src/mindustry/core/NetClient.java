@@ -483,11 +483,9 @@ public class NetClient implements ApplicationListener{
         }
 
         if(!reason.quiet){
-            if(reason.extraText() != null){
-                ui.showText(reason.toString(), reason.extraText());
-            }else{
-                ui.showText("@disconnect", reason.toString());
-            }
+            String title = reason.extraText() == null ? "@disconnect" : reason.toString();
+            String text = reason.extraText() == null ? reason.toString() : reason.extraText();
+            ui.showCustomConfirm(title, text, "@reconnect", "@ok", () -> ui.join.reconnect(), () -> {});
         }
         ui.loadfrag.hide();
     }
