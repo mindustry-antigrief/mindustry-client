@@ -149,12 +149,11 @@ public class NetClient implements ApplicationListener{
 
             Time.runTask(3f, ui.loadfrag::hide);
 
-            String title = switch(packet.reason){
-                case "closed" -> "@disconnect.closed";
-                case "timeout" -> "@disconnect.timeout";
-                null -> "@disconnect";
-                default -> "@disconnect.error";
-            };
+            String title = 
+                packet.reason == "closed" ? "@disconnect.closed" :
+                packet.reason == "timeout" ? "@disconnect.timeout" :
+                packet.reason == null ? "@disconnect" :
+                "@disconnect.error";
             ui.showCustomConfirm(title, "@disconnect.closed", "@reconnect", "@ok", () -> ui.join.reconnect(), () -> {});
             //FINISHME: duped code, ctrl+f ui.showCustomConfirm
         });
