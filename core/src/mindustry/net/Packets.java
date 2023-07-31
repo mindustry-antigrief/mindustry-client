@@ -14,17 +14,23 @@ import java.util.zip.*;
 public class Packets{
 
     public enum KickReason{
-        kick, clientOutdated, serverOutdated, banned, gameover(true), recentKick,
-        nameInUse, idInUse, nameEmpty, customClient, serverClose, vote, typeMismatch,
+        kick, clientOutdated(false), serverOutdated(false), banned(false), gameover(true, true), recentKick,
+        nameInUse, idInUse, nameEmpty(false), customClient(false), serverClose, vote(false), typeMismatch,
         whitelist, playerLimit, serverRestarting;
 
+        public final boolean rejoinable;
         public final boolean quiet;
 
         KickReason(){
-            this(false);
+            this(true);
         }
 
-        KickReason(boolean quiet){
+        KickReason(boolean rejoinable){
+            this(rejoinable, false);
+        }
+
+        KickReason(boolean rejoinable, boolean quiet){
+            this.rejoinable = rejoinable;
             this.quiet = quiet;
         }
 
