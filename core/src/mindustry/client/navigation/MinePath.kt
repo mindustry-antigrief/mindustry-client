@@ -42,7 +42,7 @@ class MinePath @JvmOverloads constructor(
         else if (cap >= 0) {
             player.sendMessage(Core.bundle.format("client.path.miner.tobuild", items.joinToString(), if (cap == 0) "∞" else cap))
         } else {
-            player.sendMessage(Core.bundle.format("client.path.miner.toidle", items.joinToString(), player.closestCore().storageCapacity))
+            player.sendMessage(Core.bundle.format("client.path.miner.toidle", items.joinToString(), player.closestCore()?.storageCapacity ?: "-∞"))
         }
     }
 
