@@ -268,12 +268,13 @@ public class NetClient implements ApplicationListener{
                     return; // Just ignore them
                 }
                 // from a player
-
-                // if it's an admin or team message, incorporate that into the prefix because the original formatting will be discarded
-                if (message.startsWith("[#" + playersender.team().color.toString() + "]<T>")) {
-                    prefix += "[#" + playersender.team().color.toString() + "]<T> ";
-                } else if (message.startsWith("[#" + Pal.adminChat.toString() + "]<A>")) {
-                    prefix += "[#" + Pal.adminChat.toString() + "]<A> ";
+                if (message != null) { // The Korea server breaks the rules of this method and has a null message
+                    // if it's an admin or team message, incorporate that into the prefix because the original formatting will be discarded
+                    if (message.startsWith("[#" + playersender.team().color.toString() + "]<T>")) {
+                        prefix += "[#" + playersender.team().color.toString() + "]<T> ";
+                    } else if (message.startsWith("[#" + Pal.adminChat.toString() + "]<A>")) {
+                        prefix += "[#" + Pal.adminChat.toString() + "]<A> ";
+                    }
                 }
 
                 // I don't think this even works
