@@ -10,7 +10,6 @@ import mindustry.client.antigrief.*
 import mindustry.client.communication.*
 import mindustry.client.crypto.*
 import mindustry.client.navigation.*
-import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.core.*
 import mindustry.entities.units.*
@@ -81,6 +80,8 @@ object Main : ApplicationListener {
 
         /** @since v1 Checks for the presence of the foo plugin on the server */
         Vars.netClient.addPacketHandler("fooCheck") { version ->
+            if (Server.current.ghost) return@addPacketHandler
+
             Log.debug("Server using client plugin version $version")
             if (!Strings.canParsePositiveFloat(version)) return@addPacketHandler
 
