@@ -80,7 +80,7 @@ object ProcessorPatcher {
         if(player == null) return false
         if(!Server.current.whisper.canRun()) return false
         if(!whisperRatelimit.allow(player.id,
-            5000, 1, //Max 1 message per player per 5 seconds
+            15000, 1, //Max 1 message per player per 15 seconds
             5000, 5 //Max 5 messages per 5 seconds over all players
         )) return false
         Server.current.whisper(player, whisperText)
