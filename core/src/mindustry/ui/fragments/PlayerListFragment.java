@@ -150,47 +150,48 @@ public class PlayerListFragment{
                 imageOverColor = Color.lightGray;
             }};
 
-            if((net.server() || player.admin || Server.current.adminui()) && !user.isLocal() && (!user.admin || net.server())){
+            if(net.server() || ((player.admin || Server.current.adminui()) && (!user.admin || user.isLocal()))){
                 button.add().growY();
 
-                float bs = (h) / 2f;
+                float bs = h / 2f;
 
                 button.table(t -> {
                     t.defaults().size(bs);
+                    if(!user.isLocal()){
+                        t.button(Icon.hammer, ustyle,
+                        () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()), () -> {
+                            Server.current.handleBan(user);
+                        })).tooltip("@player.ban");
+                        t.button(Icon.cancel, ustyle,
+                        () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick", user.name()), () -> Call.adminRequest(user, AdminAction.kick, null)))
+                        .tooltip("@player.kick");
 
-                    t.button(Icon.hammer, ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()), () -> {
-                        Server.current.handleBan(user);
-                    })).tooltip("@player.ban");
-                    t.button(Icon.cancel, ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick", user.name()), () -> Call.adminRequest(user, AdminAction.kick, null)))
-                    .tooltip("@player.kick");
+                        t.row();
 
-                    t.row();
+                        t.button(Icon.admin, style, () -> {
+                            if(net.client()) return;
 
-                    t.button(Icon.admin, style, () -> {
-                        if(net.client()) return;
+                            String id = user.uuid();
 
-                        String id = user.uuid();
+                            if(user.admin){
+                                ui.showConfirm("@confirm", Core.bundle.format("confirmunadmin",  user.name()), () -> {
+                                    netServer.admins.unAdminPlayer(id);
+                                    user.admin = false;
+                                });
+                            }else{
+                                ui.showConfirm("@confirm", Core.bundle.format("confirmadmin",  user.name()), () -> {
+                                    netServer.admins.adminPlayer(id, user.usid());
+                                    user.admin = true;
+                                });
+                            }
+                        }).update(b -> b.setChecked(user.admin))
+                            .disabled(b -> net.client())
+                            .touchable(() -> net.client() ? Touchable.disabled : Touchable.enabled)
+                            .checked(user.admin)
+                            .tooltip("@player.admin");
 
-                        if(user.admin){
-                            ui.showConfirm("@confirm", Core.bundle.format("confirmunadmin",  user.name()), () -> {
-                                netServer.admins.unAdminPlayer(id);
-                                user.admin = false;
-                            });
-                        }else{
-                            ui.showConfirm("@confirm", Core.bundle.format("confirmadmin",  user.name()), () -> {
-                                netServer.admins.adminPlayer(id, user.usid());
-                                user.admin = true;
-                            });
-                        }
-                    }).update(b -> b.setChecked(user.admin))
-                        .disabled(b -> net.client())
-                        .touchable(() -> net.client() ? Touchable.disabled : Touchable.enabled)
-                        .checked(user.admin)
-                        .tooltip("@player.admin");
-
-                    t.button(Icon.zoom, ustyle, () -> Call.adminRequest(user, AdminAction.trace, null)).tooltip("@player.trace");
+                        t.button(Icon.zoom, ustyle, () -> Call.adminRequest(user, AdminAction.trace, null)).tooltip("@player.trace");
+                    }
 
                     t.button(Icon.redo, ustyle, () -> {
                         var teamSelect = new BaseDialog(Core.bundle.get("player.team") + ": " + user.name);
