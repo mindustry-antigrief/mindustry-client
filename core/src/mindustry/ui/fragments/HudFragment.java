@@ -257,7 +257,6 @@ public class HudFragment{
                     modeIcon(st, () -> hidingAirUnits, () -> hidingAirUnits ^= true, new SlashTextureRegionDrawable(Icon.planeOutline.getRegion(), new Color(1f, 1f, 1f, a)), "Hiding Air Units", Binding.invisible_units, "Shift");
                     modeIcon(st, () -> hidingBlocks, () -> hidingBlocks ^= true, new SlashTextureRegionDrawable(Icon.layers.getRegion(), new Color(1f, 1f, 1f, a)), "Hiding Blocks", Binding.hide_blocks);
                     modeIcon(st, () -> hidingPlans, () -> hidingPlans ^= true, new SlashTextureRegionDrawable(Icon.effect.getRegion(), new Color(0.5f, 0.5f, 0.5f, a)), "Hiding Plans", Binding.hide_blocks, "Shift");
-                    modeIcon(st, () -> hidingFog, () -> hidingFog ^= true, new SlashTextureRegionDrawable(Icon.waves.getRegion(), new Color(0.5f, 0.5f, 0.5f, a)), "Hiding Fog", Binding.invisible_units, "Ctrl");
                     modeIcon(st, () -> showingMassDrivers, () -> showingMassDrivers ^= true, new TextureRegionDrawable(Blocks.massDriver.region), "Showing Massdriver Links", Binding.show_massdriver_configs);
                     modeIcon(st, () -> showingOverdrives, () -> showingOverdrives ^= true, new TextureRegionDrawable(Blocks.overdriveProjector.region), "Showing Overdrive Ranges", Binding.show_turret_ranges);
                     modeIcon(st, () -> Core.settings.getBool("showdomes"), () -> Core.settings.put("showdomes", !Core.settings.getBool("showdomes")), Icon.commandRally, "Showing Dome Ranges", Binding.show_reactor_and_dome_ranges);

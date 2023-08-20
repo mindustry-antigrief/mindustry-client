@@ -873,7 +873,7 @@ public class SettingsMenuDialog extends BaseDialog{
             lastRebuild = Core.graphics.getFrameId();
             boolean hasFocus = searchBar.hasKeyboard();
             clearChildren();
-            // TODO inefficient. And rebuild() is also called every. single. setting.
+            // FINISHME: Inefficient
             add(searchBarTable).fillX().padBottom(4);
             row();
 

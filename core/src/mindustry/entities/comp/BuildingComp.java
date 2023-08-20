@@ -272,7 +272,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             return false;
         }
 
-        if(viewer == null || !state.rules.staticFog || !state.rules.fog || hidingFog){
+        if(viewer == null || !state.rules.staticFog || !state.rules.fog){
             return true;
         }
         if(block.size <= 2){
@@ -2006,7 +2006,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     @Replace
     @Override
     public boolean inFogTo(Team viewer){
-        if(team == viewer || !state.rules.fog || hidingFog) return false;
+        if(team == viewer || !state.rules.fog) return false;
 
         int size = block.size, of = block.sizeOffset, tx = tile.x, ty = tile.y;
 

@@ -96,9 +96,6 @@ public class DesktopInput extends InputHandler{
                         if(isBuildingIgnoreNetworking() || dispatchingBuildPlans){
                             str.append("\n").append(bundle.format(dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", keybinds.get(Binding.send_build_queue).key.toString()));
                         }
-                        if (hidingFog){
-                            str.append("\n").append(bundle.format("client.togglefog", keybinds.get(Binding.invisible_units).key.toString()));
-                        }
                         if(hidingUnits || hidingAirUnits){
                             str.append("\n").append(bundle.format("client.toggleunits", keybinds.get(Binding.invisible_units).key.toString()));
                             str.append("\n").append(bundle.format("client.toggleairunits", keybinds.get(Binding.invisible_units).key.toString()));
@@ -305,11 +302,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(input.keyTap(Binding.invisible_units) && scene.getKeyboardFocus() == null){
-            if (input.ctrl()) {
-                hidingFog = !hidingFog;
-                renderer.updateAllDarkness();
-            }
-            else if (input.shift()) hidingAirUnits = !hidingAirUnits;
+            if (input.shift()) hidingAirUnits = !hidingAirUnits;
             else hidingUnits = !hidingUnits;
         }
 

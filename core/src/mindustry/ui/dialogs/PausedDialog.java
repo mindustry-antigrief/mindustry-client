@@ -30,7 +30,7 @@ public class PausedDialog extends BaseDialog{
         });
 
         if(!mobile){
-            float dw = 220f;
+            float dw = 230f;
             cont.defaults().width(dw).height(55).pad(5f);
 
             cont.button("@objective", Icon.info, () -> ui.fullText.show("@objective", state.rules.sector.preset.description))
@@ -56,17 +56,14 @@ public class PausedDialog extends BaseDialog{
                 }else{
                     ui.host.show();
                 }
-            }).disabled(b -> !((steam && net.server()) || !net.active())).colspan(2).width(dw * 2 + 10f).update(e -> e.setText(net.server() && steam ? "@invitefriends" : "@hostserver"));
+            }).disabled(b -> !((steam && net.server()) || !net.active())).update(e -> e.setText(net.server() && steam ? "@invitefriends" : "@hostserver"));
+            // FINISHME: Enable while not hosting but make this host when clicked (or add a tooltip or smth)
+            cont.button("@client.claj.manage", Icon.link, () -> ui.clajManager.show()).tooltip("@client.claj.info").disabled(f -> !net.server());
 
             cont.row();
 
             cont.button("@client.changelog", Icon.edit, ChangelogDialog.INSTANCE::show);
             cont.button("@client.features", Icon.book, FeaturesDialog.INSTANCE::show);
-
-            cont.row();
-
-            // FINISHME: Enable while not hosting but make this host when clicked (or add a tooltip or smth)
-            cont.button("@client.claj.manage", Icon.link, () -> ui.clajManager.show()).tooltip("@client.claj.info").colspan(2).width(dw + 10f).disabled(f -> !net.server());
 
             cont.row();
 

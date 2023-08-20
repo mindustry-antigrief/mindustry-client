@@ -175,7 +175,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     @Replace
     public boolean inFogTo(Team viewer){
-        if(this.team == viewer || !state.rules.fog || hidingFog) return false;
+        if(this.team == viewer || !state.rules.fog) return false;
 
         if(hitSize <= 16f){
             return !fogControl.isVisible(viewer, x, y);

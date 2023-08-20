@@ -368,7 +368,7 @@ public class Renderer implements ApplicationListener{
         }
 
         Draw.draw(Layer.overlayUI, overlays::drawTop);
-        if(state.rules.fog && !hidingFog) Draw.draw(Layer.fogOfWar, fog::drawFog);
+        if(state.rules.fog) Draw.draw(Layer.fogOfWar, fog::drawFog);
         Draw.draw(Layer.space, this::drawLanding);
 
         Events.fire(Trigger.drawOver);

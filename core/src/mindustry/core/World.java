@@ -480,7 +480,7 @@ public class World{
             int edgeBlend = 2;
             int edgeDst;
 
-            if(!state.rules.limitMapArea || hidingFog){
+            if(!state.rules.limitMapArea){
                 edgeDst = Math.min(x, Math.min(y, Math.min(-(x - (tiles.width - 1)), -(y - (tiles.height - 1)))));
             }else{
                 edgeDst =

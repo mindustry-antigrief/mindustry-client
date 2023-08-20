@@ -412,6 +412,10 @@ public class ChatFragment extends Table{
         }
         message = messageBuild.toString();
 
+        handleClientCommand(message);
+    }
+
+    public static CommandHandler.CommandResponse handleClientCommand(String message){
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
@@ -424,9 +428,7 @@ public class ChatFragment extends Table{
             if (!message.startsWith(netServer.clientCommands.getPrefix())) { // Only fire when not running any command
                 Events.fire(new EventType.SendChatMessageEvent(msg));
             }
-            return;
         }else{
-
             //a command was sent, now get the output
             if(response.type != CommandHandler.ResponseType.valid){
                 String text;
@@ -457,11 +459,9 @@ public class ChatFragment extends Table{
 
                 player.sendMessage(text);
             }
-            return;
         }
 
-
-
+        return response;
     }
 
     public void toggle(){
