@@ -93,7 +93,7 @@ public class UnAssistPath extends Path {
         }
 
         IntSet contains = new IntSet();
-        toUndo.filter(plan -> { // FINISHME: ???
+        toUndo.retainAll(plan -> { // FINISHME: ???
             int pos = Point2.pack(plan.x, plan.y);
             if (contains.contains(pos)) {
                 return false;

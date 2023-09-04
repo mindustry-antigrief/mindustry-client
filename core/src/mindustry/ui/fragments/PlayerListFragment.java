@@ -92,7 +92,7 @@ public class PlayerListFragment{
             Navigation.currentlyFollowing instanceof UnAssistPath p ? p.target :
             null;
         players.sort(Structs.comps(Structs.comparingBool(p -> p != target), Structs.comps(Structs.comparing(Player::team), Structs.comps(Structs.comparingBool(p -> !p.admin), Structs.comparingBool(p -> !(p.fooUser || p.isLocal()))))));
-        if(search.getText().length() > 0) players.filter(p -> Strings.stripColors(p.name().toLowerCase()).contains(search.getText().toLowerCase()));
+        if(search.getText().length() > 0) players.retainAll(p -> Strings.stripColors(p.name().toLowerCase()).contains(search.getText().toLowerCase()));
 
         for(var user : players){
             found = true;

@@ -303,7 +303,8 @@ public class Saves{
     public void deleteAll(){
         var needsLoad = saves.isEmpty();
         if(needsLoad) load(); // Need to load them in order to delete them.
-        saves.filter(s -> !s.isSector()).each(SaveSlot::delete); // Delete non sectors
+        saves.retainAll(s -> !s.isSector()).each(SaveSlot::delete); // Delete non sectors
+        //TODO FINISHME is retainAll() correct here? shouldn't it be select()?
         if(needsLoad) unload(); // Unload if we just loaded
     }
 

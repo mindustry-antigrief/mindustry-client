@@ -105,7 +105,7 @@ public class ChatFragment extends Table{
     void updateCompletion() {
         if (Autocomplete.matches(chatfield.getText())) {
             Seq<Autocompleteable> oldCompletion = completion.copy();
-            completion = Autocomplete.closest(chatfield.getText()).filter(item -> item.matches(chatfield.getText()) > 0.5f);
+            completion = Autocomplete.closest(chatfield.getText()).retainAll(item -> item.matches(chatfield.getText()) > 0.5f);
             completion.reverse();
             completion.truncate(4);
             completion.reverse();
