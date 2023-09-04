@@ -1,6 +1,7 @@
 package mindustry.ui;
 
 import arc.*;
+import arc.func.*;
 import arc.math.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -64,13 +65,13 @@ public class CoreItemsDisplay extends Table{
 
         for(Item item : content.items()){
             if(usedItems.get(item.id)){
-                image(item.uiIcon).size(iconSmall).padRight(3)
-                .tooltip(t ->
+                Cons<Table> tooltip = t ->
                     t.background(Styles.black6).margin(4f)
                     .add(
                         Strings.format("@: @", item.localizedName, core == null ? "0" : core.items.get(item))
-                    ).style(Styles.outlineLabel)
-                );
+                    ).style(Styles.outlineLabel);
+
+                image(item.uiIcon).size(iconSmall).padRight(3).tooltip(tooltip);
                 //TODO leaks garbage
                 label(() -> (core == null ? "0" : switch(mode){
                     case disabled ->
@@ -79,7 +80,8 @@ public class CoreItemsDisplay extends Table{
                         formatAmount(inputItems.getAverage(trackSteps, item));
                     case all ->
                         formatAmount(totalItems.getAverageChange(trackSteps, item));
-                })).padRight(3).minWidth(52f).left();
+                })).padRight(3).minWidth(52f).left().tooltip(tooltip);
+                //TODO properly update the tooltip
 
                 if(++i % 4 == 0){
                     row();
