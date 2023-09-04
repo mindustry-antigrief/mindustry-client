@@ -67,7 +67,7 @@ public class CoreItemsDisplay extends Table{
             if(usedItems.get(item.id)){
                 Cons<Table> tooltip = t ->
                     t.background(Styles.black6).margin(4f)
-                    .add(
+                    .label(() ->
                         Strings.format("@: @", item.localizedName, core == null ? "0" : core.items.get(item))
                     ).style(Styles.outlineLabel);
 
