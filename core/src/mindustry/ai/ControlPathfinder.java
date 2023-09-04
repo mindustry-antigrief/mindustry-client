@@ -7,7 +7,6 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -56,7 +55,8 @@ public class ControlPathfinder{
 
     costNaval = (team, tile) ->
     //impassable same-team neutral block, or non-liquid
-    ((PathTile.solid(tile) && ((PathTile.team(tile) == team && !PathTile.teamPassable(tile)) || PathTile.team(tile) == 0)) || !PathTile.liquid(tile) ? impassable : 1) +
+    (PathTile.solid(tile) && ((PathTile.team(tile) == team && !PathTile.teamPassable(tile)) || PathTile.team(tile) == 0)) || !PathTile.liquid(tile) ? impassable :
+    1 +
     //impassable synthetic enemy block
     ((PathTile.team(tile) != team && PathTile.team(tile) != 0) && PathTile.solid(tile) ? wallImpassableCap : 0) +
     (PathTile.nearGround(tile) || PathTile.nearSolid(tile) ? 6 : 0);
@@ -194,7 +194,7 @@ public class ControlPathfinder{
         }
 
         //destination is impassable, can't go there.
-        if(solid(team, costType, world.packArray(World.toTile(destination.x), World.toTile(destination.y)))){
+        if(solid(team, costType, world.packArray(World.toTile(destination.x), World.toTile(destination.y)), false)){
             return false;
         }
 
@@ -233,7 +233,7 @@ public class ControlPathfinder{
             req.curId = pathId;
 
             //check for the unit getting stuck every N seconds
-            if((req.stuckTimer += Time.delta) >= 60f * 1.5f){
+            if(req.done && (req.stuckTimer += Time.delta) >= 60f * 1.5f){
                 req.stuckTimer = 0f;
                 //force recalculate
                 if(req.lastPos.within(unit, 1.5f)){
@@ -286,9 +286,6 @@ public class ControlPathfinder{
                         float angleToDest = unit.angleTo(tile);
                         //force recalculate when the unit moves backwards
                         if(Angles.angleDist(angleToNext, angleToDest) > 80f && !unit.within(tile, 1f)){
-                            if(showDebug){
-                                Fx.placeBlock.at(unit, 1f);
-                            }
                             req.forceRecalculate();
                         }
                     }
@@ -384,7 +381,7 @@ public class ControlPathfinder{
         int err = dx - dy;
 
         while(x >= 0 && y >= 0 && x < ww && y < wh){
-            if(solid(team, type, x + y * wwidth)) return true;
+            if(solid(team, type, x + y * wwidth, true)) return true;
             if(x == x2 && y == y2) return false;
 
             //no diagonals
@@ -433,9 +430,9 @@ public class ControlPathfinder{
         return cost == impassable || cost >= 2;
     }
 
-    private static boolean solid(int team, PathCost type, int tilePos){
+    private static boolean solid(int team, PathCost type, int tilePos, boolean checkWall){
         int cost = cost(team, type, tilePos);
-        return cost == impassable || cost >= 6000;
+        return cost == impassable || (checkWall && cost >= 6000);
     }
 
     private static float tileCost(int team, PathCost type, int a, int b){

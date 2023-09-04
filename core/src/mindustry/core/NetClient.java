@@ -192,7 +192,7 @@ public class NetClient implements ApplicationListener{
     public static void sound(Sound sound, float volume, float pitch, float pan){
         if(sound == null || headless) return;
 
-        sound.play(Mathf.clamp(volume, 0, 8f) * Core.settings.getInt("sfxvol") / 100f, pitch, pan, false, false);
+        sound.play(Mathf.clamp(volume, 0, 8f) * Core.settings.getInt("sfxvol") / 100f, Mathf.clamp(pitch, 0f, 20f), pan, false, false);
     }
 
     @Remote(variants = Variant.both, unreliable = true, called = Loc.server)
@@ -200,7 +200,7 @@ public class NetClient implements ApplicationListener{
         if(sound == null || headless) return;
         if(sound == Sounds.corexplode && Server.io.b()) return;
 
-        sound.at(x, y, pitch, Mathf.clamp(volume, 0, 4f));
+        sound.at(x, y, Mathf.clamp(pitch, 0f, 20f), Mathf.clamp(volume, 0, 4f));
     }
 
     @Remote(variants = Variant.both, unreliable = true)
@@ -583,7 +583,7 @@ public class NetClient implements ApplicationListener{
 
         //entity must not be added yet, so create it
         if(entity == null){
-            entity = (Syncc)EntityMapping.map(typeID).get();
+            entity = (Syncc)EntityMapping.map(typeID & 0xFF).get();
             entity.id(id);
             if(!netClient.isEntityUsed(entity.id())){
                 add = true;

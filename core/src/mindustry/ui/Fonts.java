@@ -306,7 +306,7 @@ public class Fonts{
                 cy = (int)cy;
                 originX = g.width/2f;
                 originY = g.height/2f;
-                Draw.rect(region, cx + g.width/2f, cy + g.height/2f, g.width, g.height, originX, originY, rotation);
+                Draw.rect(region, cx + g.width/2f, cy + g.height/2f, g.width * scaleX, g.height * scaleY, originX, originY, rotation);
             }
 
             @Override

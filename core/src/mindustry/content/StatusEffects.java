@@ -12,7 +12,7 @@ import mindustry.graphics.*;
 import static mindustry.Vars.*;
 
 public class StatusEffects{
-    public static StatusEffect none, burning, freezing, unmoving, slow, wet, muddy, melting, sapped, tarred, overdrive, overclock, shielded, shocked, blasted, corroded, boss, sporeSlowed, disarmed, electrified, invincible;
+    public static StatusEffect none, burning, freezing, unmoving, slow, fast, wet, muddy, melting, sapped, tarred, overdrive, overclock, shielded, shocked, blasted, corroded, boss, sporeSlowed, disarmed, electrified, invincible;
 
     public static void load(){
 
@@ -61,7 +61,16 @@ public class StatusEffects{
         slow = new StatusEffect("slow"){{
             color = Pal.lightishGray;
             speedMultiplier = 0.4f;
+
+	    init(() -> opposite(fast));
         }};
+
+	fast = new StatusEffect("fast"){{
+            color = Pal.boostTo;
+            speedMultiplier = 1.6f;
+
+	    init(() -> opposite(slow));
+	}};
 
         wet = new StatusEffect("wet"){{
             color = Color.royal;
@@ -72,7 +81,10 @@ public class StatusEffects{
 
             init(() -> {
                 affinity(shocked, (unit, result, time) -> {
-                    unit.damagePierce(transitionDamage);
+                    float pierceFraction = 0.3f;
+
+                    unit.damagePierce(transitionDamage * pierceFraction);
+                    unit.damage(transitionDamage * (1f - pierceFraction));
                     if(unit.team == state.rules.waveTeam){
                         Events.fire(Trigger.shock);
                     }

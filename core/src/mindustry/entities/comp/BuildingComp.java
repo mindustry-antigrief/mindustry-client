@@ -1326,7 +1326,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             //I really do not like that the bullet will not destroy derelict
             //but I can't do anything about it without using a random team
             //which may or may not cause issues with servers and js
-            block.destroyBullet.create(this, Team.derelict, x, y, 0);
+            block.destroyBullet.create(this, block.destroyBulletSameTeam ? team : Team.derelict, x, y, Mathf.randomSeed(id(), 360f));
         }
     }
 
@@ -1375,6 +1375,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             });
         }
 
+        //cap explosiveness so fluid tanks/vaults don't instakill units
         Damage.dynamicExplosion(x, y, flammability, explosiveness * 3.5f, power, tilesize * block.size / 2f, state.rules.damageExplosions, block.destroyEffect);
 
         if(block.createRubble && !floor().solid && !floor().isLiquid){
@@ -1957,6 +1958,9 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             case health -> {
                 health = (float)Mathf.clamp(value, 0, maxHealth);
                 healthChanged();
+                if(health <= 0f && !dead()){
+                    Call.buildDestroyed(self());
+                }
             }
             case team -> {
                 Team team = Team.get((int)value);
@@ -1997,7 +2001,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         }else if(content instanceof Liquid liquid && liquids != null){
             float amount = Mathf.clamp((float)value, 0f, block.liquidCapacity);
             //decreasing amount is always allowed
-            if(amount < liquids.get(liquid) || (acceptLiquid(self(), liquid) && (liquids.current() == liquid || liquids.currentAmount() <= 0.1f))){
+            if(amount < liquids.get(liquid) || (acceptLiquid(self(), liquid) && (liquids.current() == liquid || liquids.currentAmount() <= 0.1f || block.consumesLiquid(liquid)))){
                 liquids.set(liquid, amount);
             }
         }

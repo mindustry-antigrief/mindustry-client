@@ -19,6 +19,7 @@ import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.graphics.g3d.*;
+import mindustry.maps.*;
 import mindustry.type.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
@@ -47,7 +48,7 @@ public class Renderer implements ApplicationListener{
     public @Nullable Bloom bloom;
     public @Nullable FrameBuffer backgroundBuffer;
     public FrameBuffer effectBuffer = new FrameBuffer();
-    public boolean animateShields, drawWeather = true, drawStatus, enableEffects, drawDisplays = true;
+    public boolean animateShields, drawWeather = true, drawStatus, enableEffects, drawDisplays = true, drawLight = true;
     public float weatherAlpha;
     /** minZoom = zooming out, maxZoom = zooming in */
     public float minZoom = 1.5f, maxZoom = 6f; // Note: These aren't used for client min/max zoom, don't change or vanilla compat breaks
@@ -181,6 +182,7 @@ public class Renderer implements ApplicationListener{
         drawStatus = settings.getBool("blockstatus");
         enableEffects = settings.getBool("effects");
         drawDisplays = !settings.getBool("hidedisplays");
+        drawLight = settings.getBool("drawlight", true);
 
         if(landTime > 0){
             if(!state.isPaused()){
@@ -290,6 +292,7 @@ public class Renderer implements ApplicationListener{
 
     public void draw(){
         Events.fire(Trigger.preDraw);
+        MapPreviewLoader.checkPreviews();
 
         camera.update();
 
@@ -313,6 +316,7 @@ public class Renderer implements ApplicationListener{
         Draw.sort(true);
 
         Events.fire(Trigger.draw);
+        MapPreviewLoader.checkPreviews();
 
         if(pixelator.enabled()){
             pixelator.register();
@@ -336,7 +340,7 @@ public class Renderer implements ApplicationListener{
             }
         }
 
-        if(state.rules.lighting){
+        if(state.rules.lighting && drawLight){
             Draw.draw(Layer.light, lights::draw);
         }
 

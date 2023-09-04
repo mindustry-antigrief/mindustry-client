@@ -460,7 +460,6 @@ public class Logic implements ApplicationListener{
                     }
                 }
 
-                //TODO objectives clientside???
                 if(!state.isEditor()){
                     state.rules.objectives.update();
                     if(state.rules.objectives.checkChanged() && net.server()){

@@ -187,13 +187,6 @@ public class CustomRulesDialog extends BaseDialog{
         check("@bannedblocks.whitelist", b -> rules.blockWhitelist = b, () -> rules.blockWhitelist);
         main.button("@revealedblocks", () -> showBanned("@revealedblocks", ContentType.block, rules.revealedBlocks, b -> b.buildVisibility != BuildVisibility.shown)).left().width(300f).row();
 
-        //TODO objectives would be nice
-        if(experimental && false){
-            main.button("@objectives", () -> {
-
-            }).left().width(300f).row();
-        }
-
         title("@rules.title.unit");
         check("@rules.unitcapvariable", b -> rules.unitCapVariable = b, () -> rules.unitCapVariable);
         numberi("@rules.unitcap", f -> rules.unitCap = f, () -> rules.unitCap, -999, 999);
@@ -263,7 +256,8 @@ public class CustomRulesDialog extends BaseDialog{
             t.button("@rules.anyenv", style, () -> {
                 rules.env = Vars.defaultEnv;
                 rules.hiddenBuildItems.clear();
-            }).group(group).checked(b -> rules.hiddenBuildItems.size == 0);
+                rules.planet = Planets.sun;
+            }).group(group).checked(b -> rules.planet == Planets.sun);
         }).left().fill(false).expand(false, false).row();
 
         title("@rules.title.teams");

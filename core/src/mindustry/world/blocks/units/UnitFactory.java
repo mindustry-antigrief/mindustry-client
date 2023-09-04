@@ -215,12 +215,13 @@ public class UnitFactory extends UnitBlock{
         @Override
         public double sense(LAccess sensor){
             if(sensor == LAccess.progress) return Mathf.clamp(fraction());
+            if(sensor == LAccess.itemCapacity) return Mathf.round(itemCapacity * state.rules.unitCost(team));
             return super.sense(sensor);
         }
 
         @Override
         public void buildConfiguration(Table table){
-            Seq<UnitType> units = Seq.with(plans).map(u -> u.unit).filter(u -> u.unlockedNow() && !u.isBanned());
+            Seq<UnitType> units = Seq.with(plans).map(u -> u.unit).retainAll(u -> u.unlockedNow() && !u.isBanned());
 
             if(units.any()){
                 ItemSelection.buildTable(UnitFactory.this, table, units, () -> currentPlan == -1 ? null : plans.get(currentPlan).unit, unit -> configure(plans.indexOf(u -> u.unit == unit)), selectionRows, selectionColumns);
@@ -333,7 +334,7 @@ public class UnitFactory extends UnitBlock{
 
         @Override
         public int getMaximumAccepted(Item item){
-            return capacities[item.id];
+            return Mathf.round(capacities[item.id] * state.rules.unitCost(team));
         }
 
         @Override

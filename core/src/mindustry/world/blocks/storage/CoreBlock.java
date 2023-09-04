@@ -38,6 +38,8 @@ public class CoreBlock extends StorageBlock{
     public @Load(value = "@-thruster2", fallback = "clear-effect") TextureRegion thruster2; //bot left
     public float thrusterLength = 14f/4f;
     public boolean isFirstTier;
+    /** If true, this core type requires a core zone to upgrade. */
+    public boolean requiresCoreZone;
     public boolean incinerateNonBuildable = false;
 
     public UnitType unitType = UnitTypes.alpha;
@@ -62,8 +64,6 @@ public class CoreBlock extends StorageBlock{
 
         //support everything
         replaceable = false;
-        //TODO should AI ever rebuild this?
-        //rebuildable = false;
     }
 
     @Remote(called = Loc.server)
@@ -162,7 +162,7 @@ public class CoreBlock extends StorageBlock{
         //must have all requirements
         if(core == null || (!state.rules.infiniteResources && !core.items.has(requirements, state.rules.buildCostMultiplier))) return false;
 
-        return tile.block() instanceof CoreBlock && size > tile.block().size;
+        return tile.block() instanceof CoreBlock && size > tile.block().size && (!requiresCoreZone || tempTiles.allMatch(o -> o.floor().allowCorePlacement));
     }
 
     @Override
@@ -361,7 +361,13 @@ public class CoreBlock extends StorageBlock{
 
         @Override
         public void changeTeam(Team next){
+            if(this.team == next) return;
+
+            state.teams.unregisterCore(this);
+
             super.changeTeam(next);
+
+            state.teams.registerCore(this);
 
             Events.fire(new CoreChangeEvent(this));
         }

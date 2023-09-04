@@ -31,7 +31,6 @@ import mindustry.mod.*;
 import mindustry.mod.Mods.*;
 import mindustry.ui.*;
 
-import java.io.*;
 import java.text.*;
 import java.util.*;
 
@@ -197,7 +196,7 @@ public class ModsDialog extends BaseDialog{
                             try{
                                 mods.importMod(file);
                                 setup();
-                            }catch(IOException e){
+                            }catch(Exception e){
                                 ui.showException(e);
                                 Log.err(e);
                             }
@@ -239,7 +238,7 @@ public class ModsDialog extends BaseDialog{
                 pane[0].clear();
                 boolean any = false;
                 for(LoadedMod item : mods.list()){
-                    if(Strings.matches(query, item.meta.displayName())){
+                    if(Strings.matches(query, item.meta.displayName)){
                         any = true;
                         if(!item.enabled() && !anyDisabled[0] && mods.list().size > 0){
                             anyDisabled[0] = true;
@@ -273,7 +272,7 @@ public class ModsDialog extends BaseDialog{
                                     boolean hideDisabled = !item.isSupported() || item.hasUnmetDependencies() || item.hasContentErrors();
                                     String shortDesc = item.meta.shortDescription();
 
-                                    text.add("[accent]" + Strings.stripColors(item.meta.displayName()) + "\n" +
+                                    text.add("[accent]" + Strings.stripColors(item.meta.displayName) + "\n" +
                                         (shortDesc.length() > 0 ? "[lightgray]" + shortDesc + "\n" : "")
                                         //so does anybody care about version?
                                         //+ "[gray]v" + Strings.stripColors(trimText(item.meta.version)) + "\n"
@@ -399,7 +398,7 @@ public class ModsDialog extends BaseDialog{
     }
 
     private void showMod(LoadedMod mod){
-        BaseDialog dialog = new BaseDialog(mod.meta.displayName());
+        BaseDialog dialog = new BaseDialog(mod.meta.displayName);
 
         dialog.addCloseButton();
 
@@ -420,7 +419,7 @@ public class ModsDialog extends BaseDialog{
 
             desc.add("@editor.name").padRight(10).color(Color.gray).padTop(0);
             desc.row();
-            desc.add(mod.meta.displayName()).growX().wrap().padTop(2);
+            desc.add(mod.meta.displayName).growX().wrap().padTop(2);
             desc.row();
             if(mod.meta.author != null){
                 desc.add("@editor.author").padRight(10).color(Color.gray);
@@ -448,7 +447,7 @@ public class ModsDialog extends BaseDialog{
         if(all.any()){
             dialog.cont.row();
             dialog.cont.button("@mods.viewcontent", Icon.book, () -> {
-                BaseDialog d = new BaseDialog(mod.meta.displayName());
+                BaseDialog d = new BaseDialog(mod.meta.displayName);
                 d.cont.pane(cs -> {
                     int i = 0;
                     for(UnlockableContent c : all){
@@ -651,7 +650,9 @@ public class ModsDialog extends BaseDialog{
             long len = result.getContentLength();
             Floatc cons = len <= 0 ? f -> {} : p -> modImportProgress = p;
 
-            Streams.copyProgress(result.getResultAsStream(), file.write(false), len, 4096, cons);
+            try(var stream = file.write(false)){
+                Streams.copyProgress(result.getResultAsStream(), stream, len, 4096, cons);
+            }
 
              Fi zip = file.isDirectory() ? file : new ZipFi(file);
              if(OS.isMac) zip.child(".DS_Store").delete(); //macOS loves adding garbage files that break everything

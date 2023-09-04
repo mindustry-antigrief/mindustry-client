@@ -39,7 +39,7 @@ import java.util.zip.*;
 import static mindustry.Vars.*;
 
 public class LogicBlock extends Block{
-    public static final int maxByteLen = 1024 * 500;
+    public static final int maxByteLen = 1024 * 100;
     private static @Nullable Player lastAttem;
     private static int attemCount;
     private static ChatFragment.ChatMessage attemMsg;
@@ -212,7 +212,7 @@ public class LogicBlock extends Block{
 
                 int bytelen = stream.readInt();
 
-                if(bytelen > maxByteLen) throw new RuntimeException("Malformed logic data! Length: " + bytelen);
+                if(bytelen > maxByteLen) throw new RuntimeException("Logic data too long or malformed! Length: " + bytelen);
 
                 byte[] bytes = new byte[bytelen];
                 stream.readFully(bytes);

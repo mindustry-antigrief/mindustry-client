@@ -196,6 +196,8 @@ public class SettingsMenuDialog extends BaseDialog{
             t.button("@data.import", Icon.download, style, () -> ui.showConfirm("@confirm", "@data.import.confirm", () -> platform.showFileChooser(true, "zip", file -> {
                 try{
                     importData(file);
+                    control.saves.resetSave();
+                    state = new GameState();
                     Core.app.exit();
                 }catch(IllegalArgumentException e){
                     ui.showErrorMessage("@data.invalid");
@@ -593,6 +595,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         graphics.checkPref("effects", true);
         graphics.checkPref("atmosphere", !mobile);
+        graphics.checkPref("drawlight", true);
         graphics.checkPref("destroyedblocks", true);
         graphics.checkPref("blockstatus", false);
         graphics.checkPref("playerchat", true);
@@ -693,7 +696,9 @@ public class SettingsMenuDialog extends BaseDialog{
                 path = path.startsWith("/") ? path.substring(1) : path;
                 zos.putNextEntry(new ZipEntry(path));
                 if(!add.isDirectory()){
-                    Streams.copy(add.read(), zos);
+                    try(var stream = add.read()){
+                        Streams.copy(stream, zos);
+                    }
                 }
                 zos.closeEntry();
             }

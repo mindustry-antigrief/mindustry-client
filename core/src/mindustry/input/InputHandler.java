@@ -301,7 +301,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(called = Loc.server, targets = Loc.both, forward = true)
     public static void commandBuilding(Player player, int[] buildings, Vec2 target){
-        if(player == null  || target == null) return;
+        if(player == null || target == null) return;
 
         if(net.server() && !netServer.admins.allowAction(player, ActionType.commandBuilding, event -> {
             event.buildingPositions = buildings;
@@ -315,6 +315,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if(build == null || build.team() != player.team() || !build.block.commandable) continue;
 
             build.onCommand(target);
+            build.lastAccessed = player.name;
+
             if(!state.isPaused() && player == Vars.player){
                 Fx.moveCommand.at(target);
             }
@@ -382,13 +384,19 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(targets = Loc.both, called = Loc.server)
     public static void requestBuildPayload(Player player, Building build){
-        if(player == null || !(player.unit() instanceof Payloadc pay)) return;
+        if(player == null || !(player.unit() instanceof Payloadc pay) || build == null) return;
 
         Unit unit = player.unit();
 
-        if(build != null && state.teams.canInteract(unit.team, build.team)
-        && unit.within(build, tilesize * build.block.size * 1.2f + tilesize * 5f)){
+        if(!unit.within(build, tilesize * build.block.size * 1.2f + tilesize * 5f)) return;
 
+        if(net.server() && !netServer.admins.allowAction(player, ActionType.pickupBlock, build.tile, action -> {
+            action.unit = unit;
+        })){
+            throw new ValidateException(player, "Player cannot pick up a block.");
+        }
+
+        if(state.teams.canInteract(unit.team, build.team)){
             //pick up block's payload
             Payload current = build.getPayload();
             if(current != null && pay.canPickupPayload(current)){
@@ -442,6 +450,14 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(player == null || net.client() || player.dead()) return;
 
         Payloadc pay = (Payloadc)player.unit();
+
+        if(pay.payloads().isEmpty()) return;
+
+        if(net.server() && !netServer.admins.allowAction(player, ActionType.dropPayload, player.unit().tileOn(), action -> {
+            action.payload = pay.payloads().peek();
+        })){
+            throw new ValidateException(player, "Player cannot drop a payload.");
+        }
 
         //apply margin of error
         Tmp.v1.set(x, y).sub(pay).limit(tilesize * 4f).add(pay);
@@ -888,7 +904,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     Events.fire(Trigger.unitCommandAttack);
                 }
 
-                Call.commandUnits(player, ids, attack instanceof Building b ? b : null, attack instanceof Unit u ? u : null, target);
+                int maxChunkSize = 200;
+
+                if(ids.length > maxChunkSize){
+                    for(int i = 0; i < ids.length; i += maxChunkSize){
+                        int[] data = Arrays.copyOfRange(ids, i, Math.min(i + maxChunkSize, ids.length));
+                        Call.commandUnits(player, data, attack instanceof Building b ? b : null, attack instanceof Unit u ? u : null, target);
+                    }
+                }else{
+                    Call.commandUnits(player, ids, attack instanceof Building b ? b : null, attack instanceof Unit u ? u : null, target);
+                }
             }
 
             if(commandBuildings.size > 0){
