@@ -301,6 +301,35 @@ public class DesktopInput extends InputHandler{
             }
         }
 
+        //this code is looking kinda... WET
+        if(input.keyTap(Binding.run_js) && scene.getKeyboardFocus() == null){
+            if (input.shift()) {
+                if(Core.settings.getString("keybindshiftjs")){
+                    mods.scripts.runConsole(Core.settings.getString("keybindshiftjs"));
+                } else {
+                    Vars.player.sendMessage(Strings.format("No JS configured for shift+@, go to client settings to add a script to run"));
+                }
+            } else if (input.ctrl()) {
+                if(Core.settings.getString("keybindctrljs")){
+                    mods.scripts.runConsole(Core.settings.getString("keybindctrljs"));
+                } else {
+                    Vars.player.sendMessage(Strings.format("No JS configured for ctrl+@, go to client settings to add a script to run"));
+                }
+            } else if (input.alt()) {
+                if(Core.settings.getString("keybindaltjs")){
+                    mods.scripts.runConsole(Core.settings.getString("keybindaltjs"));
+                } else {
+                    Vars.player.sendMessage(Strings.format("No JS configured for alt+@, go to client settings to add a script to run"));
+                }
+            } else {
+                if(Core.settings.getString("keybindjs")){
+                    mods.scripts.runConsole(Core.settings.getString("keybindjs"));
+                } else {
+                    Vars.player.sendMessage(Strings.format("No JS configured for keybind @, go to client settings to add a script to run"));
+                }
+            }
+        }
+
         if(input.keyTap(Binding.invisible_units) && scene.getKeyboardFocus() == null){
             if (input.shift()) hidingAirUnits = !hidingAirUnits;
             else hidingUnits = !hidingUnits;

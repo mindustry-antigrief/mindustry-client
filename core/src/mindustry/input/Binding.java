@@ -99,6 +99,7 @@ public enum Binding implements KeyBind{
     toggle_auto_target(KeyCode.x),
     show_massdriver_configs(KeyCode.f3),
     force_place_modifier(KeyCode.altLeft),
+    run_js(KeyCode.u),
     ;
 
     private final KeybindValue defaultValue;
