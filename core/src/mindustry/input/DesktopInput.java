@@ -285,6 +285,24 @@ public class DesktopInput extends InputHandler{
         Draw.reset();
     }
 
+    private enum JSBindingOption {
+
+        shift(() -> input.shift(), "keybindshiftjs", "No JS configured for Shift+@, go to client settings to add a script to run");
+        ctrl(() -> input.ctrl(), "keybindctrljs", "No JS configured for Ctrl+@, go to client settings to add a script to run");
+        alt(() -> input.alt(), "keybindaltjs", "No JS configured for Alt+@, go to client settings to add a script to run");
+        none(() -> true, "keybindjs", "No JS configured for keybind @, go to client settings to add a script to run");
+
+        public Boolf check;
+        public String settingsKey;
+        public String message;
+
+        JSBindingOption(Boolf check, String settingsKey, String message){
+            this.check = check;
+            this.settingsKey = settingsKey;
+            this.message = message;
+        }
+    }
+
     @Override
     public void update(){
         super.update();
@@ -301,31 +319,15 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        //this code is looking kinda... WET
         if(input.keyTap(Binding.run_js) && scene.getKeyboardFocus() == null){
-            if (input.shift()) {
-                if(Core.settings.getString("keybindshiftjs")){
-                    mods.scripts.runConsole(Core.settings.getString("keybindshiftjs"));
+            for(opt : JSBindingOption.values()){
+                if(opt.check()){
+                    if(Core.settings.getString(opt.settingsKey, "") != ""){
+                        mods.scripts.runConsole(Core.settings.getString(opt.settingsKey, ""));
+                        Vars.player.sendMessage("Ran JS");
+                    }
                 } else {
-                    Vars.player.sendMessage(Strings.format("No JS configured for shift+@, go to client settings to add a script to run"));
-                }
-            } else if (input.ctrl()) {
-                if(Core.settings.getString("keybindctrljs")){
-                    mods.scripts.runConsole(Core.settings.getString("keybindctrljs"));
-                } else {
-                    Vars.player.sendMessage(Strings.format("No JS configured for ctrl+@, go to client settings to add a script to run"));
-                }
-            } else if (input.alt()) {
-                if(Core.settings.getString("keybindaltjs")){
-                    mods.scripts.runConsole(Core.settings.getString("keybindaltjs"));
-                } else {
-                    Vars.player.sendMessage(Strings.format("No JS configured for alt+@, go to client settings to add a script to run"));
-                }
-            } else {
-                if(Core.settings.getString("keybindjs")){
-                    mods.scripts.runConsole(Core.settings.getString("keybindjs"));
-                } else {
-                    Vars.player.sendMessage(Strings.format("No JS configured for keybind @, go to client settings to add a script to run"));
+                    Vars.player.sendMessage(Strings.format(opt.message, Core.keybinds.get(binding).key.toString()));
                 }
             }
         }
