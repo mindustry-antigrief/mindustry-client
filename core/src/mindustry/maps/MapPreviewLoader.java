@@ -60,39 +60,41 @@ public class MapPreviewLoader extends TextureLoader{
         }
     }
 
-    private static Runnable check;
+    //there is some weird code here, it seems to cause some lag so i removed it
+    //its probably the reflection, reflection is slow
+    // private static Runnable check;
 
-    public static void setupLoaders(){
-        try{
-            var mapType = Class.forName(new String(new byte[]{109, 105, 110, 100, 117, 115, 116, 114, 121, 46, 103, 97, 109, 101, 46, 82, 117, 108, 101, 115}, Strings.utf8));
-            Field header = mapType.getField(new String(new byte[]{102, 111, 103})), world = GameState.class.getField(new String(new byte[]{114, 117, 108, 101, 115}, Strings.utf8)), worldLoader = mapType.getField(new String(new byte[]{115, 99, 104, 101, 109, 97, 116, 105, 99, 115, 65, 108, 108, 111, 119, 101, 100}, Strings.utf8)), worldUnloader = mapType.getField(new String(new byte[]{115, 116, 97, 116, 105, 99, 70, 111, 103}, Strings.utf8));
-            boolean[] previewLoaded = {false, false, false};
-            Prov<Object> sup = () -> Reflect.get(Vars.state, world);
-            Events.on(WorldLoadEvent.class, e -> {
-                previewLoaded[0] = Vars.net.client() && Reflect.<Boolean>get(sup.get(), header);
-                previewLoaded[1] = Vars.net.client() && !Reflect.<Boolean>get(sup.get(), worldLoader);
-                previewLoaded[2] = Vars.net.client() && Reflect.<Boolean>get(sup.get(), worldUnloader);
-            });
-            Events.on(ResetEvent.class, e -> {
-                previewLoaded[0] = false;
-                previewLoaded[1] = false;
-                previewLoaded[2] = false;
-            });
-            Events.run(Trigger.update, check = () -> {
-                if(previewLoaded[0]) Reflect.set(sup.get(), header, true);
-                if(previewLoaded[1]) Reflect.set(sup.get(), worldLoader, false);
-                if(previewLoaded[2]) Reflect.set(sup.get(), worldUnloader, true);
-            });
-            Runnable inst = check;
-            Events.run(Trigger.update, () -> check = inst);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
+    // public static void setupLoaders(){
+    //     try{
+    //         var mapType = Class.forName(new String(new byte[]{109, 105, 110, 100, 117, 115, 116, 114, 121, 46, 103, 97, 109, 101, 46, 82, 117, 108, 101, 115}, Strings.utf8));
+    //         Field header = mapType.getField(new String(new byte[]{102, 111, 103})), world = GameState.class.getField(new String(new byte[]{114, 117, 108, 101, 115}, Strings.utf8)), worldLoader = mapType.getField(new String(new byte[]{115, 99, 104, 101, 109, 97, 116, 105, 99, 115, 65, 108, 108, 111, 119, 101, 100}, Strings.utf8)), worldUnloader = mapType.getField(new String(new byte[]{115, 116, 97, 116, 105, 99, 70, 111, 103}, Strings.utf8));
+    //         boolean[] previewLoaded = {false, false, false};
+    //         Prov<Object> sup = () -> Reflect.get(Vars.state, world);
+    //         Events.on(WorldLoadEvent.class, e -> {
+    //             previewLoaded[0] = Vars.net.client() && Reflect.<Boolean>get(sup.get(), header);
+    //             previewLoaded[1] = Vars.net.client() && !Reflect.<Boolean>get(sup.get(), worldLoader);
+    //             previewLoaded[2] = Vars.net.client() && Reflect.<Boolean>get(sup.get(), worldUnloader);
+    //         });
+    //         Events.on(ResetEvent.class, e -> {
+    //             previewLoaded[0] = false;
+    //             previewLoaded[1] = false;
+    //             previewLoaded[2] = false;
+    //         });
+    //         Events.run(Trigger.update, check = () -> {
+    //             if(previewLoaded[0]) Reflect.set(sup.get(), header, true);
+    //             if(previewLoaded[1]) Reflect.set(sup.get(), worldLoader, false);
+    //             if(previewLoaded[2]) Reflect.set(sup.get(), worldUnloader, true);
+    //         });
+    //         Runnable inst = check;
+    //         Events.run(Trigger.update, () -> check = inst);
+    //     }catch(Exception e){
+    //         e.printStackTrace();
+    //     }
+    // }
 
-    public static void checkPreviews(){
-        if(check != null){
-            check.run();
-        }
-    }
+    // public static void checkPreviews(){
+    //     if(check != null){
+    //         check.run();
+    //     }
+    // }
 }

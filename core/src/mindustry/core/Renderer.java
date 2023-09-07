@@ -292,7 +292,7 @@ public class Renderer implements ApplicationListener{
 
     public void draw(){
         Events.fire(Trigger.preDraw);
-        MapPreviewLoader.checkPreviews();
+        //MapPreviewLoader.checkPreviews();
 
         camera.update();
 
@@ -316,7 +316,7 @@ public class Renderer implements ApplicationListener{
         Draw.sort(true);
 
         Events.fire(Trigger.draw);
-        MapPreviewLoader.checkPreviews();
+        //MapPreviewLoader.checkPreviews();
 
         if(pixelator.enabled()){
             pixelator.register();
