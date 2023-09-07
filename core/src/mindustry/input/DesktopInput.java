@@ -34,6 +34,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
+import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.blocks.logic.*;
 import mindustry.world.blocks.payloads.*;
@@ -287,10 +288,10 @@ public class DesktopInput extends InputHandler{
 
     private enum JSBindingOption {
 
-        shift(() -> input.shift(), "keybindshiftjs", "No JS configured for Shift+@, go to client settings to add a script to run", true),
-        ctrl(() -> input.ctrl(), "keybindctrljs", "No JS configured for Ctrl+@, go to client settings to add a script to run", true),
-        alt(() -> input.alt(), "keybindaltjs", "No JS configured for Alt+@, go to client settings to add a script to run", true),
-        none(() -> true, "keybindjs", "No JS configured for keybind @, go to client settings to add a script to run", false),
+        shift(() -> input.shift(), "keybind1shiftcommand", "No JS configured for Shift+@, go to client settings to add a script to run", true),
+        ctrl(() -> input.ctrl(), "keybind1ctrlcommand", "No JS configured for Ctrl+@, go to client settings to add a script to run", true),
+        alt(() -> input.alt(), "keybind1altcommand", "No JS configured for Alt+@, go to client settings to add a script to run", true),
+        none(() -> true, "keybind1command", "No JS configured for keybind @, go to client settings to add a script to run", false),
         ;
 
         public Boolp check;
@@ -327,8 +328,7 @@ public class DesktopInput extends InputHandler{
             for(var opt : JSBindingOption.values()){
                 if(opt.check.get() && (opt.runIfOthersRan || !ran)){
                     if(Core.settings.getString(opt.settingsKey, "") != ""){
-                        mods.getScripts().runConsole(Core.settings.getString(opt.settingsKey, ""));
-                        Vars.player.sendMessage("Ran JS");
+                        ChatFragment.handleClientCommand(Core.settings.getString(opt.settingsKey, ""));
                         ran = true;
                     } else {
                         Vars.player.sendMessage(Strings.format(opt.message, Core.keybinds.get(Binding.run_js).key.toString()));

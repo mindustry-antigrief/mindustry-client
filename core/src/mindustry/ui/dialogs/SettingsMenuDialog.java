@@ -406,10 +406,10 @@ public class SettingsMenuDialog extends BaseDialog{
 
         client.category("misc");
         client.updatePref();
-        client.textPref("keybindshiftjs", "");
-        client.textPref("keybindctrljs", "");
-        client.textPref("keybindaltjs", "");
-        client.textPref("keybindjs", "");
+        client.textPref("keybind1shiftcommand", "");
+        client.textPref("keybind1ctrlcommand", "");
+        client.textPref("keybind1altcommand", "");
+        client.textPref("keybind1command", "");
         client.sliderPref("minepathcap", 5000, -100, 5000, 100, s -> s == 0 ? "Unlimited" : s == -100 ? "Never" : String.valueOf(s));
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
