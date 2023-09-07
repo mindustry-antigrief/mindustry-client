@@ -287,19 +287,22 @@ public class DesktopInput extends InputHandler{
 
     private enum JSBindingOption {
 
-        shift(() -> input.shift(), "keybindshiftjs", "No JS configured for Shift+@, go to client settings to add a script to run");
-        ctrl(() -> input.ctrl(), "keybindctrljs", "No JS configured for Ctrl+@, go to client settings to add a script to run");
-        alt(() -> input.alt(), "keybindaltjs", "No JS configured for Alt+@, go to client settings to add a script to run");
-        none(() -> true, "keybindjs", "No JS configured for keybind @, go to client settings to add a script to run");
+        shift(() -> input.shift(), "keybindshiftjs", "No JS configured for Shift+@, go to client settings to add a script to run", true),
+        ctrl(() -> input.ctrl(), "keybindctrljs", "No JS configured for Ctrl+@, go to client settings to add a script to run", true),
+        alt(() -> input.alt(), "keybindaltjs", "No JS configured for Alt+@, go to client settings to add a script to run", true),
+        none(() -> true, "keybindjs", "No JS configured for keybind @, go to client settings to add a script to run", false),
+        ;
 
-        public Boolf check;
+        public Boolp check;
         public String settingsKey;
         public String message;
+        public boolean runIfOthersRan;
 
-        JSBindingOption(Boolf check, String settingsKey, String message){
+        JSBindingOption(Boolp check, String settingsKey, String message, boolean runIfOthersRan){
             this.check = check;
             this.settingsKey = settingsKey;
             this.message = message;
+            this.runIfOthersRan = runIfOthersRan;
         }
     }
 
@@ -320,14 +323,16 @@ public class DesktopInput extends InputHandler{
         }
 
         if(input.keyTap(Binding.run_js) && scene.getKeyboardFocus() == null){
-            for(opt : JSBindingOption.values()){
-                if(opt.check()){
+            boolean ran = false;
+            for(var opt : JSBindingOption.values()){
+                if(opt.check.get() && (opt.runIfOthersRan || !ran)){
                     if(Core.settings.getString(opt.settingsKey, "") != ""){
-                        mods.scripts.runConsole(Core.settings.getString(opt.settingsKey, ""));
+                        mods.getScripts().runConsole(Core.settings.getString(opt.settingsKey, ""));
                         Vars.player.sendMessage("Ran JS");
+                        ran = true;
+                    } else {
+                        Vars.player.sendMessage(Strings.format(opt.message, Core.keybinds.get(Binding.run_js).key.toString()));
                     }
-                } else {
-                    Vars.player.sendMessage(Strings.format(opt.message, Core.keybinds.get(binding).key.toString()));
                 }
             }
         }
