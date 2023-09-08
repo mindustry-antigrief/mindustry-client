@@ -862,13 +862,28 @@ public class HudFragment{
 
             float[] maxShield = {0};
             t.stack(
-                new Table(tt -> tt.add(new SideBar(() -> player.unit().healthf(), () -> true, true)).width(bw).growY().padRight(pad)), // Health
-                new Table(tt -> tt.add(new SideBar(() -> player.unit().shield / maxShield[0], () -> true, true, 1/4f)).width(bw).growY().padRight(pad).color(Pal.accent).visible(() -> { // Ammo
-                    var ff = ArraysKt.firstOrNull(player.unit().abilities, a -> a instanceof ForceFieldAbility);
+                new Table(tt ->
+                    tt.add(new SideBar(() -> player.unit().healthf(), () -> true, true))
+                    .tooltip(tooltip ->
+                        tooltip.background(Styles.black6).margin(4f)
+                        .label(() ->
+                            player.unit().shield > 0
+                            ? Strings.format("@: (@ + @)/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), Mathf.round(player.unit().shield, 0.1f), player.unit().maxHealth)
+                            : Strings.format("@: @/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), player.unit().maxHealth)
+                        ).style(Styles.outlineLabel)
+                    )
+                    .width(bw).growY().padRight(pad)
+                ), // Health
+                new Table(tt ->
+                    tt.add(new SideBar(() -> player.unit().shield / maxShield[0], () -> true, true, 1/4f))
+                    .width(bw).growY().padRight(pad).color(Pal.accent)
+                    .visible(() -> { // Ammo
+                        var ff = ArraysKt.firstOrNull(player.unit().abilities, a -> a instanceof ForceFieldAbility);
 
-                    maxShield[0] = ff == null ? 0f : ((ForceFieldAbility)ff).max;
-                    return maxShield[0] > 0;
-                }))
+                        maxShield[0] = ff == null ? 0f : ((ForceFieldAbility)ff).max;
+                        return maxShield[0] > 0;
+                    })
+                )
             ).fillY();
             t.image(() -> player.icon()).scaling(Scaling.bounded).grow().maxWidth(54f);
             t.add(new SideBar(() -> player.dead() ? 0f : player.displayAmmo() ? player.unit().ammof() : player.unit().healthf(), () -> !player.displayAmmo(), false)).width(bw).growY().padLeft(pad).update(b -> {
