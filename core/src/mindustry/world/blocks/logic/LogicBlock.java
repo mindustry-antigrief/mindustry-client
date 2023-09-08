@@ -672,6 +672,18 @@ public class LogicBlock extends Block{
                     Timer.schedule(() -> ClientVars.configs.add(new ConfigRequest(this, LogicBlock.compress(original, relativeConnections()))), net.client() ? netClient.getPing()/1000f : 0);
                 });
             }).size(40).tooltip("Restart code execution").disabled(b -> !ClientVars.configs.isEmpty());
+
+            table.button(Icon.trash, Styles.cleari, () -> {
+                ClientVars.configs.add(
+                    new ConfigRequest(this, compress("print \"code was removed\"\n", relativeConnections()))
+                );
+            }).size(40).tooltip("Remove code").disabled(b -> !ClientVars.configs.isEmpty());
+
+            table.button(Icon.eyeOff, Styles.cleari, () -> {
+                ClientVars.configs.add(
+                    new ConfigRequest(this, compress(code, Seq.with()))
+                );
+            }).size(40).tooltip("Remove all links").disabled(b -> !ClientVars.configs.isEmpty());
         }
 
         @Override
