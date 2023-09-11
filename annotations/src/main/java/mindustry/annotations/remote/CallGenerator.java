@@ -249,6 +249,9 @@ public class CallGenerator{
             method.addParameter(ClassName.bestGuess("mindustry.net.NetConnection"), "exceptConnection");
         }
 
+        // Foo's code to handle the extra ratelimit option
+        if(!forwarded && ent.ratelimited) method.addStatement("if(mindustry.Vars.net.client()) mindustry.client.ClientVars.ratelimitRemaining--");
+
         //call local method if applicable, shouldn't happen when forwarding method as that already happens by default
         if(!forwarded && ent.local != Loc.none){
             //add in local checks

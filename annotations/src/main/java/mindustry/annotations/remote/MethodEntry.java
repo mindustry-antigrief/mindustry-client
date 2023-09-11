@@ -30,9 +30,11 @@ public class MethodEntry{
     public final Smethod element;
     /** The assigned packet priority. Only used in clients. */
     public final PacketPriority priority;
+    /** Whether this method contributes to the action ratelimit */
+    public final boolean ratelimited;
 
     public MethodEntry(String className, String targetMethod, String packetClassName, Loc where, Variant target,
-                       Loc local, boolean unreliable, boolean forward, int id, Smethod element, PacketPriority priority){
+                       Loc local, boolean unreliable, boolean forward, int id, Smethod element, PacketPriority priority, boolean ratelimited){
         this.packetClassName = packetClassName;
         this.className = className;
         this.forward = forward;
@@ -44,6 +46,7 @@ public class MethodEntry{
         this.element = element;
         this.unreliable = unreliable;
         this.priority = priority;
+        this.ratelimited = ratelimited;
     }
 
     @Override

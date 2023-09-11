@@ -7,8 +7,8 @@ import arc.graphics.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
-import arc.util.*;
 import arc.util.CommandHandler.*;
+import arc.util.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.*;
@@ -18,8 +18,8 @@ import mindustry.client.communication.*;
 import mindustry.client.utils.*;
 import mindustry.core.GameState.*;
 import mindustry.entities.*;
-import mindustry.game.*;
 import mindustry.game.EventType.*;
+import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -447,6 +447,7 @@ public class NetClient implements ApplicationListener{
         netClient.disconnectQuietly();
         logic.reset();
 
+        Server.destinationServer = ip + ":" + port;
         ui.join.connect(ip, port);
     }
 

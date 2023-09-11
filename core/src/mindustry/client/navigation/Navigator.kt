@@ -6,6 +6,7 @@ import arc.struct.*
 import arc.util.*
 import arc.util.pooling.*
 import mindustry.Vars.*
+import mindustry.client.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.client.utils.*
 import mindustry.content.*
@@ -85,8 +86,8 @@ abstract class Navigator {
             ) { // Everything that isn't CN
                 val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst2(end) }))
                 if (player.dst2(bestCore) > buildingRange * buildingRange && player.dst2(end) > bestCore.dst2(end) && player.dst2(bestCore) > player.unit().speed() * player.unit().speed() * 24 * 24) { // don't try to move if we're already close to that core
-                    lastWp = Time.millis() // Try again in 3s
-                    Call.buildingControlSelect(player, bestCore)
+                    lastWp = Time.millis() // Try again in 3s FINISHME: Add the Call to the config queue as it uses ratelimit, prevent running this again until 3s after last one is processed
+                    if (ClientVars.ratelimitRemaining > 1) Call.buildingControlSelect(player, bestCore)
                 }
             }
             if (Time.timeSinceMillis(lastWp) > 3000) lastWp = Time.millis() - 2900 // Didn't tp, try again in .1s

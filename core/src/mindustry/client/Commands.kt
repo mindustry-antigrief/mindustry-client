@@ -383,7 +383,7 @@ fun setupCommands() {
         }
 
         if (confirmed) {
-            plans.chunked(100) { Call.deletePlans(player, it.toIntArray()) }
+            plans.chunked(200) { configs.add { Call.deletePlans(player, it.toIntArray()) } }
             player.sendMessage("[accent]Removed ${plans.size} plans, ${player.team().data().plans.size} remain")
         } else player.sendMessage("[accent]Found ${plans.size} (out of ${player.team().data().plans.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
     }
@@ -549,8 +549,7 @@ fun setupCommands() {
     }
 
     register("procfind [option] [argument...]", Core.bundle.get("client.command.procfind.description")) { args, player ->
-        
-        if(args.isEmpty()) player.sendMessage(Core.bundle.get("client.command.procfind.help")); // This one looks long and cursed on the bundle
+        if(args.isEmpty()) player.sendMessage(Core.bundle.get("client.command.procfind.help")) // This one looks long and cursed on the bundle
         else when (args[0]) {
             "query" -> {
                 if (args.size < 2) {
@@ -560,7 +559,7 @@ fun setupCommands() {
                 try {
                     ProcessorFinder.search(args[1].toRegex())
                 } catch(e:PatternSyntaxException){
-                    player.sendMessage(Core.bundle.format("client.command.procfind.query.invalid", args[1]));
+                    player.sendMessage(Core.bundle.format("client.command.procfind.query.invalid", args[1]))
                 }
             }
             "queries" -> {

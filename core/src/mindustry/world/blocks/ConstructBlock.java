@@ -585,7 +585,7 @@ public class ConstructBlock extends Block{
                 && !lastBuilder.isLocal() && distance <= 21
             ) { // Automatically remove reactors within explosion radiusof core
                 Call.buildingControlSelect(player, closestCore());
-                Timer.schedule(() -> player.unit().plans.add(
+                Timer.schedule(() -> player.unit().plans.add( // FINISHME: Cleanup
                         new BuildPlan(tile.x, tile.y)
                 ), net.client() ? netClient.getPing()/1000f+.3f : 0);
             }

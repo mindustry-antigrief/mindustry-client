@@ -205,7 +205,7 @@ class ClientLogic {
                         } else {
                             ui.chatfrag.messages.remove(turretVoidWarnMsg)
                             ui.chatfrag.messages.insert(0, turretVoidWarnMsg)
-                            ui.chatfrag.doFade(6f); // Reset fading
+                            ui.chatfrag.doFade(6f) // Reset fading
                             turretVoidWarnMsg!!.prefix = "[scarlet](x${++turretVoidWarnCount}) "
                             turretVoidWarnMsg!!.format()
                         }

@@ -105,11 +105,15 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         init {
             Events.on(MenuReturnEvent::class.java) {
                 current = other
+                Log.info("Returning to menu, server override cleared")
             }
         }
 
-        // FINISHME: Should alos add a new ohno on player join (not really useful currently though cause ohno limit is broken and this could permanently lose an ohno)
+        // FINISHME: Should also add a new ohno on player join (not really useful currently though cause ohno limit is broken and this could permanently lose an ohno)
         @JvmField var ohnoTask: Timer.Task? = null // FINISHME: Yet another reason this enum should be a class since this could be put in the fish class and not muddy everything else
+
+        /** The destination ip and port of the server that we will be sent to by [mindustry.core.NetClient.connect] */
+        @JvmField var destinationServer: String? = null
     }
 
     @JvmName("b") operator fun invoke() = current === this
@@ -213,7 +217,8 @@ enum class CustomMode {
             (Blocks.foreshadow as ItemTurret).ammoTypes.put(Items.surgeAlloy, foreshadowBulletVanilla)
         }
     },
-    defense;
+    defense
+    ;
 
     @OptIn(ExperimentalStdlibApi::class)
     companion object {

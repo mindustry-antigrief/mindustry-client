@@ -18,7 +18,7 @@ import mindustry.core.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.type.*;
-import mindustry.world.blocks.distribution.ItemBridge;
+import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.payloads.*;
 
 import java.util.*;

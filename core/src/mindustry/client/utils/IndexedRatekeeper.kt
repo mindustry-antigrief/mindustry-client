@@ -1,12 +1,12 @@
 package mindustry.client.utils
 
-import arc.util.*;
+import arc.util.*
 
 //Some code sourced from Arc Ratekeeper
 class IndexedRatekeeper<K> {
-	private val rateMap = mutableMapOf<K, Pair<Int, Long>>();
-	private var globalOccurences: Int = 0;
-	private var globalLastTime: Long = 0;
+	private val rateMap = mutableMapOf<K, Pair<Int, Long>>()
+	private var globalOccurences: Int = 0
+	private var globalLastTime: Long = 0
 
 	fun allowGlobal(spacing:Long, cap:Int):Boolean {
 		if(Time.timeSinceMillis(globalLastTime) > spacing){

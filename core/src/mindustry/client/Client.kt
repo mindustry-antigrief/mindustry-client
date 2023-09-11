@@ -68,11 +68,11 @@ object Client {
         Spectate.update() // FINISHME: Why is spectate its own class? Move it here, no method is needed just add an `if` like below
 
         // Ratelimit reset handling
-        if (ratelimitRemaining != ratelimitMax && timer.get(3, ratelimitSeconds * 60F)) ratelimitRemaining = ratelimitMax
+        if (ratelimitRemaining != ratelimitMax && (!net.client() || timer.get(3, ratelimitSeconds * 60F))) ratelimitRemaining = ratelimitMax
 
         if (!configs.isEmpty()) {
             try {
-                if (ratelimitRemaining > 0 || !net.client()) { // Run the config NOTE: Counter decremented in InputHandler and not here so that manual configs don't cause issues
+                if (ratelimitRemaining > 0) { // Run the config
                     configs.poll().run()
                 }
             } catch (e: Exception) {

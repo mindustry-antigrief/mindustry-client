@@ -14,7 +14,7 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 
-class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circling: Boolean = false) : Path() {
+class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circling: Boolean = false) : Path() { // FINISHME: This class should handle ratelimits (simply ignore actions when at the limit)
     private var show: Boolean = true
     private var plans = Seq<BuildPlan>()
     private var tolerance = 0F
@@ -28,13 +28,11 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
             Events.on(EventType.DepositEvent::class.java) {
                 val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
                 if (it.player != assisting || ratelimitRemaining <= 1) return@on
-                ratelimitRemaining--
                 Call.transferInventory(player, it.tile)
             }
             Events.on(EventType.WithdrawEvent::class.java) {
                 val assisting = (Navigation.currentlyFollowing as? AssistPath)?.assisting ?: return@on
                 if (it.player != assisting || ratelimitRemaining <= 1) return@on
-                ratelimitRemaining--
                 Call.requestItem(player, it.tile, it.item, it.amount)
             }
         }
@@ -75,7 +73,7 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
                     if (core.acceptStack(player.unit().stack.item, player.unit().stack.amount, player.unit()) > 0) {
                         Call.transferInventory(player, core)
 
-                        player.unit().clearItem()
+                        player.unit().clearItem() // FINISHME: Why is this here? This seems like it would cause issues
                     }
                 }
             } else {

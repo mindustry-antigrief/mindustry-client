@@ -63,7 +63,7 @@ public class UnitPicker extends BaseDialog {
     public void handle(Unit unit){
         if (type != unit.type || unit.team != player.team() || !state.rules.possessionAllowed || Navigation.currentlyFollowing instanceof MinePath mp && mp.getNewGame()) return;
 
-        Call.unitControl(player, unit);
+        Call.unitControl(player, unit); // FINISHME: Handle as config due to ratelimit
         type = null;
 
         Timer.schedule(() -> Core.app.post(() -> {
@@ -95,7 +95,7 @@ public class UnitPicker extends BaseDialog {
 
         Toast t = new Toast(3);
         if (found != null) {
-            Call.unitControl(player, found); // Switch to unit
+            Call.unitControl(player, found); // Switch to unit FINISHME: Handle as config due to ratelimit
             t.add("@client.unitpicker.success");
             this.type = null;
         } else {
@@ -103,10 +103,6 @@ public class UnitPicker extends BaseDialog {
             this.type = type;
         }
         return found != null;
-    }
-    
-    public void unpickUnit() {
-        this.type = null;
     }
 
     public Unit findUnit(UnitType type) {
@@ -128,7 +124,7 @@ public class UnitPicker extends BaseDialog {
             if (type == null || event.oldUnit.dead || event.oldUnit.type != type || event.oldUnit.team != player.team() || event.player.isLocal() || !state.rules.possessionAllowed || Navigation.currentlyFollowing instanceof MinePath mp && mp.getNewGame()) return;
             type = null;
             Timer.schedule(() -> Core.app.post(() -> {
-                Call.unitControl(player, event.oldUnit);
+                Call.unitControl(player, event.oldUnit); // FINISHME: Handle as config due to ratelimit
                 Timer.schedule(() -> Core.app.post(() -> { // Delay by a frame + ping so the unit is actually unloaded in time.
                     if (event.oldUnit.isPlayer()) {
                         Toast t = new Toast(3);

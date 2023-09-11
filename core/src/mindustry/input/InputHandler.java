@@ -12,7 +12,9 @@ import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.struct.Queue;
 import arc.util.*;
+import kotlin.Pair;
 import mindustry.*;
 import mindustry.ai.*;
 import mindustry.ai.types.*;
@@ -29,6 +31,7 @@ import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
+import mindustry.gen.Unit;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.Placement.*;
@@ -196,7 +199,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    @Remote(called = Loc.both, targets = Loc.both, forward = true, unreliable = true)
+    @Remote(called = Loc.both, targets = Loc.both, forward = true, unreliable = true, ratelimited = true)
     public static void deletePlans(Player player, int[] positions){
         if(net.server() && !netServer.admins.allowAction(player, ActionType.removePlanned, a -> a.plans = positions)){
             throw new ValidateException(player, "Player cannot remove plans.");
@@ -299,7 +302,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    @Remote(called = Loc.server, targets = Loc.both, forward = true)
+    @Remote(called = Loc.server, targets = Loc.both, forward = true, ratelimited = true)
     public static void commandBuilding(Player player, int[] buildings, Vec2 target){
         if(player == null || target == null) return;
 
@@ -326,7 +329,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     }
 
-    @Remote(called = Loc.server, targets = Loc.both, forward = true)
+    @Remote(called = Loc.server, targets = Loc.both, forward = true, ratelimited = true)
     public static void requestItem(Player player, Building build, Item item, int amount){
         if(player == null || build == null || !build.interactable(player.team()) || !player.within(build, itemTransferRange) || player.dead()) return;
 
@@ -344,7 +347,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Events.fire(new WithdrawEvent(build, player, item, amount));
     }
 
-    @Remote(targets = Loc.both, forward = true, called = Loc.server)
+    @Remote(targets = Loc.both, forward = true, called = Loc.server, ratelimited = true)
     public static void transferInventory(Player player, Building build){
         if(player == null || build == null || !player.within(build, itemTransferRange) || build.items == null || player.dead() || (state.rules.onlyDepositCore && !(build instanceof CoreBuild))) return;
 
@@ -489,7 +492,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         unit.clearItem();
     }
 
-    @Remote(targets = Loc.both, called = Loc.server, forward = true, unreliable = true)
+    @Remote(targets = Loc.both, called = Loc.server, forward = true, unreliable = true, ratelimited = true)
     public static void rotateBlock(@Nullable Player player, Building build, boolean direction){
         if(build == null) return;
 
@@ -507,7 +510,17 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Events.fire(new BuildRotateEvent(build, player == null ? null : player.unit(), previous));
     }
 
-    @Remote(targets = Loc.both, called = Loc.both, forward = true)
+    static {
+        net.handleClient(TileConfigCallPacket.class, packet -> {
+            fromServer = true;
+            packet.handleClient();
+            fromServer = false;
+        });
+    }
+    static boolean fromServer, redoing;
+    static Queue<Pair<Building, Object>> prevs = new Queue<>(32); // This is by no means the best way to do this, but I'm too lazy to write a proper LRU cache
+    static IntIntMap queued = new IntIntMap();
+    @Remote(targets = Loc.both, called = Loc.both, forward = true, ratelimited = true)
     public static void tileConfig(@Nullable Player player, Building build, @Nullable Object value){
         if(build == null) return;
         if(net.server() && (!Units.canInteract(player, build) ||
@@ -522,8 +535,32 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
 
             throw new ValidateException(player, "Player cannot configure a tile.");
-        }else if(net.client() && player != null && Vars.player == player){
-            ClientVars.ratelimitRemaining--; // Prevent the config queue from exceeding the rate limit if we also config stuff manually. Not quite ideal as manual configs will still exceed the limit but oh well.
+        }
+
+        if(net.client() && player == Vars.player){ // Foo's code to handle the config being undone when rate limit is exceeded (as shown above)
+            if(fromServer){ // This config came from the server, it's an undo packet
+//                ui.chatfrag.addMsg(Strings.format("From server for @ @ (@)", build.tileX(), build.tileY(), Arrays.deepToString((Point2[])value)));
+                var it = prevs.iterator();
+                while(it.hasNext()){ // Search the previous configs for this building and add a new request to redo the undone config
+                    var prev = it.next();
+                    var pBuild = prev.getFirst();
+                    if(build != pBuild) continue; // We only care about the building that was just configured
+
+                    var pConf = prev.getSecond();
+                    if(value != pConf){ // Only update the config if it's not the same as what the client wants
+                        if (ratelimitRemaining > 0) ratelimitRemaining = 0; // If we ever have to do a config we assume the remaining limit is 0 since we wouldn't have to redo this config otherwise FINISHME: Handle case where sufficient time elapses. This could also be implemented so that it only happens when a retry fails
+                        int id = queued.increment(build.pos()) + 1; // FINISHME: Terrible way of ensuring that only one config is queued for any given block at any given time
+                        configs.add(() -> { if(queued.get(build.pos()) == id){ redoing = true; Call.tileConfig(Vars.player, build, pConf); redoing = false; queued.remove(build.pos()); }});
+                    }
+                    it.remove();
+                    break;
+                }
+            }else{ // This config was performed on the client
+//                if(redoing) ratelimitRemaining = 0; // This is more of a hack fix than anything
+                prevs.remove(p -> p.getFirst().pos() == build.pos()); // Remove any previous entries for this building FINISHME: This should check the full building area probably?
+                if(prevs.size == 32) prevs.removeFirst(); // Limit size to 32 by removing the oldest entry
+                prevs.add(new Pair<>(build, value)); // Add the new config
+            }
         }
 
         Object previous = build.config();
@@ -542,7 +579,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Events.fire(new TapEvent(player, tile));
     }
 
-    @Remote(targets = Loc.both, called = Loc.server, forward = true)
+    @Remote(targets = Loc.both, called = Loc.server, forward = true, ratelimited = true)
     public static void buildingControlSelect(Player player, Building build){
         if(player == null || build == null || player.dead()) return;
 
@@ -566,7 +603,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    @Remote(targets = Loc.both, called = Loc.both, forward = true)
+    @Remote(targets = Loc.both, called = Loc.both, forward = true, ratelimited = true)
     public static void unitControl(Player player, @Nullable Unit unit){
         if(player == null) return;
         Log.debug("UnitControl of @ by @ at @", unit == null ? "Nullunit" : unit.type, player.plainName(), Time.millis());
@@ -612,7 +649,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Events.fire(new UnitControlEvent(player, unit));
     }
 
-    @Remote(targets = Loc.both, called = Loc.server, forward = true)
+    @Remote(targets = Loc.both, called = Loc.server, forward = true, ratelimited = true)
     public static void unitClear(Player player){
         if(player == null) return;
 

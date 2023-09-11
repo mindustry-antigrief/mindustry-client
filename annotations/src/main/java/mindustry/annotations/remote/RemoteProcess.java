@@ -61,7 +61,7 @@ public class RemoteProcess extends BaseProcessor{
                 callLocation, BaseProcessor.getMethodName(element.e), packetName + (index[0] == 1 ? "" : index[0]),
                 annotation.targets(), annotation.variants(),
                 annotation.called(), annotation.unreliable(), annotation.forward(), lastMethodID++,
-                element, annotation.priority()
+                element, annotation.priority(), annotation.ratelimited()
             );
 
             methods.add(method);

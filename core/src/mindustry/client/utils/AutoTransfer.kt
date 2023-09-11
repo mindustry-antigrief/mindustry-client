@@ -98,7 +98,6 @@ class AutoTransfer {
                 if (accepted > 0 && held > 0) {
                     Call.transferInventory(player, it)
                     held -= accepted
-                    ratelimitRemaining--
                 }
             }
 
@@ -158,9 +157,7 @@ class AutoTransfer {
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
                 if (held > 0 && item != player.unit().stack.item && (!net.server() || player.unit().stack.amount > 0)) Call.transferInventory(player, core)
                 else if (held == 0 || item != player.unit().stack.item || counts[maxID] > held) Call.requestItem(player, core, item, Int.MAX_VALUE)
-                else ratelimitRemaining++ // Yes im this lazy
                 item = null
-                ratelimitRemaining--
             }
         }
     }
@@ -197,14 +194,12 @@ class AutoTransfer {
             if (ratelimitRemaining <= 1 || it.items[maxID] < minTransfer || maxCount < minTransfer) return@forEach // No ratelimit left or this building doesn't have enough of the item or the player unit is full
 
             Call.requestItem(player, it, item, maxCount)
-            ratelimitRemaining--
             maxCount -= it.items[maxID]
         }
 
         Time.run(delay/2F) {
             if (ratelimitRemaining > 1 && (maxCount != player.unit().maxAccepted(item)) || maxCount == 0) { // If theres ratelimit remaining and the player has grabbed anything
                 Call.transferInventory(player, core)                                                        // or if the player already has a different item FINISHME: should cut delay in half in the second case but im lazy
-                ratelimitRemaining--
             }
         }
 

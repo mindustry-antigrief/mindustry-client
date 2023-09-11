@@ -253,6 +253,9 @@ public class Annotations{
 
         /** Priority of this event. */
         PacketPriority priority() default PacketPriority.normal;
+
+        /** Whether this packet contributes to the default action rate limit */
+        boolean ratelimited() default false;
     }
 
     @Target(ElementType.TYPE)

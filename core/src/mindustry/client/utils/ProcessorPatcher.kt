@@ -34,7 +34,7 @@ object ProcessorPatcher {
 
     private const val whisperText = "Please do not use that logic, as it is attem83 logic and is bad to use. For more information please read www.mindustry.dev/attem"
 
-    private val whisperRatelimit = IndexedRatekeeper<Int>();
+    private val whisperRatelimit = IndexedRatekeeper<Int>()
 
     private fun countProcessors(builds: Iterable<LogicBuild>): Int {
         Time.mark()
