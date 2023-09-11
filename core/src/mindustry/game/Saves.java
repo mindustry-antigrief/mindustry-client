@@ -364,17 +364,22 @@ public class Saves{
                 if(previewFile().exists()){
                     mainExecutor.execute(() -> {
                         if (preview == null) return; // Don't load the preview at all if it's not needed (prevents most of the pixmaps loading late)
-                        var data = TextureData.load(previewFile(), false);
-                        data.prepare();
-                        previewQueue.add(() -> {
-                            if (preview == null) { // By the time the pixmap finished loading, we no longer needed it, so we don't create a texture.
-                                data.consumePixmap().dispose(); // Since we don't create a texture, we need to manually dispose the pixmap.
-                                var next = previewQueue.poll(); // Saves were cleared before loading finished, cancel all loading tasks now (jank)
-                                if(next != null) next.run();
-                                return;
-                            }
-                            preview = new TextureRegion(new Texture(data));
-                        });
+                        try {
+                            var data = TextureData.load(previewFile(), false);
+                            data.prepare();
+                            previewQueue.add(() -> {
+                                if (preview == null) { // By the time the pixmap finished loading, we no longer needed it, so we don't create a texture.
+                                    data.consumePixmap().dispose(); // Since we don't create a texture, we need to manually dispose the pixmap.
+                                    var next = previewQueue.poll(); // Saves were cleared before loading finished, cancel all loading tasks now (jank)
+                                    if(next != null) next.run();
+                                    return;
+                                }
+                                preview = new TextureRegion(new Texture(data));
+                            });
+                        } catch (ArcRuntimeException e) {
+                            previewFile().delete();
+                            Log.err("Failed to load preview for " + file.path(), e);
+                        }
                     });
                 }
             }
