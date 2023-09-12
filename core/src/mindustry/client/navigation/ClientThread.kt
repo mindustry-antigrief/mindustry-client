@@ -18,15 +18,6 @@ object clientThread {
         Events.on(WorldLoadEvent::class.java) { start() }
 //        Events.on(ResetEvent::class.java) { stop() } FINISHME: Breaks navigation obstacles
         start()
-        val res = runCatching { Vars.world = null }
-        res.isFailure // bool
-        res.isSuccess // bool
-        res.getOrThrow() // gets result or crashes your app :)
-        res.exceptionOrNull() // gets exception if it exists
-        res.getOrNull() // gets result or nothing
-        res.getOrElse { /* run when theres an exception */ }
-        res.getOrDefault(1) // default value on exception
-        res.recover {  }
     }
 
     /** Starts or restarts the thread. */
