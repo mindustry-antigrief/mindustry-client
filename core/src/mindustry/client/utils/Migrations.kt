@@ -73,4 +73,6 @@ class Migrations {
     private fun migration4() = settings.remove("broadcastcoreattack") // Removed as it was super annoying
 
     private fun migration5() = settings.remove("disablemonofont") // Removed as it was made irrelevant long ago
+
+    private fun migration6() = settings.remove("vanillamovement") // Removed as it actively broke when not connected to a server as a client
 }

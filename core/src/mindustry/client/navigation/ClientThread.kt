@@ -2,7 +2,6 @@ package mindustry.client.navigation
 
 import arc.*
 import arc.struct.*
-import mindustry.*
 import mindustry.game.EventType.*
 import java.util.concurrent.*
 import java.util.function.*

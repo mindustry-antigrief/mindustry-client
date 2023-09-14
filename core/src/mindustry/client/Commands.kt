@@ -441,7 +441,7 @@ fun setupCommands() {
         val type = findUnit(args[0])
 
         player.team().data().unitCache(type)
-            ?.filter { it.controller() is LogicAI }
+            ?.retainAll { it.controller() is LogicAI }
             ?.groupBy { (it.controller() as LogicAI).controller }
             ?.forEach { (build, units) ->
                 val txt = "x${units.size} [accent](${build.tileX()}, ${build.tileY()})"

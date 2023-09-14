@@ -2,7 +2,7 @@ package mindustry.client.claj
 
 import arc.*
 import arc.graphics.*
-import arc.net.Client
+import arc.net.*
 import arc.scene.ui.layout.*
 import arc.util.*
 import mindustry.*
@@ -21,7 +21,7 @@ class ClajManagerDialog : BaseDialog("@client.claj.manage") {
         cont.table { rooms: Table ->
             rooms.defaults().width(750F)
             val list = Table()
-            list.update { list.cells.filter { cell -> cell.get() != null } } // Awful.
+            list.update { list.cells.retainAll { cell -> cell.get() != null } } // Awful.
             list.defaults().width(750F).padBottom(8f)
             rooms.add(list).row()
             rooms.field("claj.phoenix-network.dev:4000") { address: String ->

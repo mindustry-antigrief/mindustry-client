@@ -88,7 +88,7 @@ class AutoTransfer {
 
         if (fromContainers && (core == null || !player.within(core, itemTransferRange))) core = containers.selectFrom(builds) { it.block is StorageBlock && (item == null || it.items.has(item)) }.min { it -> it.dst(player) }
 
-        builds.filter { it.block.findConsumer<Consume?> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic } != null && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
+        builds.retainAll { it.block.findConsumer<Consume?> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic } != null && it !is NuclearReactorBuild && player.within(it, itemTransferRange) }
         .sort { b -> -b.acceptStack(player.unit().item(), player.unit().stack.amount, player.unit()).toFloat() }
         .forEach {
             if (ratelimitRemaining <= 1) return@forEach
@@ -170,7 +170,7 @@ class AutoTransfer {
         buildTree.intersect(player.x - itemTransferRange, player.y - itemTransferRange, itemTransferRange * 2, itemTransferRange * 2, builds.clear()) // grab all buildings in range
 
         counts.fill(0)
-        builds.filter { it is GenericCrafterBuild && !it.shouldConsume() }.forEach { // Crafters that are completely full FINISHME: Do for all buildings with >= mintransfer instead
+        builds.retainAll { it is GenericCrafterBuild && !it.shouldConsume() }.forEach { // Crafters that are completely full FINISHME: Do for all buildings with >= mintransfer instead
             val block = it.block as GenericCrafter
             if (block.outputItems == null) return@forEach
 

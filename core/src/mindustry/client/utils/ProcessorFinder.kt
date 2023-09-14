@@ -15,7 +15,7 @@ object ProcessorFinder {
 
     fun search(query: Regex) {
         highlighted.clear()
-        val builds: Seq<Building> = player.team().data().buildings.filter { it is LogicBlock.LogicBuild }
+        val builds: Seq<Building> = player.team().data().buildings.retainAll { it is LogicBlock.LogicBuild }
     
         clientThread.post {
             var matchCount = 0
