@@ -518,9 +518,10 @@ public class LCanvas extends Table{
                 StatementElem s = new StatementElem(copy);
 
                 statements.addChildAfter(StatementElem.this, s);
-                statements.layout();
                 copy.elem = s;
                 copy.setupUI();
+                statements.layout(); // FINISHME: I moved this, is it correct?
+                recalculate();
             }
         }
 
