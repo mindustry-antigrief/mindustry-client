@@ -30,7 +30,7 @@ public class OverlayRenderer{
     private static final float spawnerMargin = tilesize*11f;
     private static final Rect rect = new Rect();
 
-    private float buildFade, unitFade;
+    public float buildFade, unitFade;
     private Sized lastSelect;
     private Seq<CoreEdge> cedges = new Seq<>();
     private boolean updatedCores;

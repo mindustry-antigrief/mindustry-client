@@ -171,7 +171,12 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
         Building tile = payload.build;
         int tx = World.toTile(x - tile.block.offset), ty = World.toTile(y - tile.block.offset);
         Tile on = Vars.world.tile(tx, ty);
-        if(on != null && Build.validPlace(tile.block, tile.team, tx, ty, tile.rotation, false) && Build.validPlaceCoreRange(tile.block, tile.team, tx, ty)){
+        if(on != null && Build.validPlace(tile.block, tile.team, tx, ty, tile.rotation, false)){
+            if(!Build.validPlaceCoreRange(tile.block, tile.team, tx, ty)){
+                //cannot place due to core protection
+                Vars.renderer.overlays.buildFade = 4f; //flash the core radius highlight
+                return false;
+            }
             Events.fire(new EventType.BuildPayloadDrop(on, self(), payload.build));
             payload.place(on, tile.rotation);
             Events.fire(new PayloadDropEvent(self(), tile));
