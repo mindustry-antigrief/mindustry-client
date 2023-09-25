@@ -158,14 +158,15 @@ public class OverlayRenderer{
 
         Sized select = input.selectedUnit();
         if(select == null) select = input.selectedControlBuild();
-        if(!Core.input.keyDown(Binding.control) || !state.rules.possessionAllowed || input.block != null) select = null;
+        if(!Core.input.keyDown(Binding.control) || input.block != null) select = null;
 
         unitFade = Mathf.lerpDelta(unitFade, Mathf.num(select != null), 0.1f);
 
         if(select != null) lastSelect = select;
         if(select == null) select = lastSelect;
         if(select != null && (!(select instanceof Unitc u) || u.isAI())){
-            Draw.mixcol(Pal.accent, 1f);
+            boolean showingError = !state.rules.possessionAllowed || (select instanceof Unit u && !u.type.playerControllable);
+            Draw.mixcol(showingError ? Color.valueOf("FF6666") : Pal.accent, 1f);
             Draw.alpha(unitFade);
             Building build = (select instanceof BlockUnitc b ? b.tile() : select instanceof Building b ? b : null);
             TextureRegion region = build != null ? build.block.uiIcon : select instanceof Unit u ? u.icon() : Core.atlas.white();
@@ -173,9 +174,16 @@ public class OverlayRenderer{
             Draw.rect(region, select.getX(), select.getY(), select instanceof Unit u && !(select instanceof BlockUnitc) ? u.rotation - 90f : 0f);
 
             for(int i = 0; i < 4; i++){
-                float rot = i * 90f + 45f + (-Time.time) % 360f;
-                float length = select.hitSize() * 1.5f + (unitFade * 2.5f);
-                Draw.rect("select-arrow", select.getX() + Angles.trnsx(rot, length), select.getY() + Angles.trnsy(rot, length), length / 1.9f, length / 1.9f, rot - 135f);
+                if(showingError){//Show a warning icon
+                    float rot = i * 90f + (20 * Mathf.pow(Mathf.sinDeg(Time.time * 6), 5));
+                    //this sin^5 thing causes it to oscillate in a jerky way
+                    float length = select.hitSize() * 1.5f + (unitFade * 2.5f);
+                    Draw.rect(Icon.warning.getRegion(), select.getX() + Angles.trnsx(rot, length), select.getY() + Angles.trnsy(rot, length), length / 1.9f, length / 1.9f, rot + 90f);
+                } else { //Show the unit control arrows
+                    float rot = i * 90f + 45f + (-Time.time) % 360f;
+                    float length = select.hitSize() * 1.5f + (unitFade * 2.5f);
+                    Draw.rect("select-arrow", select.getX() + Angles.trnsx(rot, length), select.getY() + Angles.trnsy(rot, length), length / 1.9f, length / 1.9f, rot - 135f);
+                }
             }
 
             Draw.reset();
