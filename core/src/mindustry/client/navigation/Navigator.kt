@@ -72,7 +72,8 @@ abstract class Navigator {
             }
         }
 
-        if (Time.timeSinceMillis(lastWp) > 3000) {
+        //Consider respawning at a core
+        if (Time.timeSinceMillis(lastWp) > 3000 && player.team().cores().any()) {
             if (map.size > 0) { // CN auto core tp is different as a plugin allows for some magic...
                 val closestCore = map.minByOrNull { it.value.dst2(end) }!!
                 if (player.dst2(closestCore.value) > buildingRange * buildingRange && player.dst2(end) > closestCore.value.dst2(end)) {
