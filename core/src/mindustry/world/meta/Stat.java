@@ -62,9 +62,9 @@ public class Stat implements Comparable<Stat>{
     basePowerGeneration = new Stat("basePowerGeneration", StatCat.power),
 
     tiles = new Stat("tiles", StatCat.crafting),
+    productionTime = new Stat("productionTime", StatCat.crafting),
     input = new Stat("input", StatCat.crafting),
     output = new Stat("output", StatCat.crafting),
-    productionTime = new Stat("productionTime", StatCat.crafting),
     maxEfficiency = new Stat("maxEfficiency", StatCat.crafting),
     drillTier = new Stat("drillTier", StatCat.crafting),
     drillSpeed = new Stat("drillSpeed", StatCat.crafting),
