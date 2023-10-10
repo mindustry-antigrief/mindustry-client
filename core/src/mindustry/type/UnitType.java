@@ -575,7 +575,7 @@ public class UnitType extends UnlockableContent implements Senseable{
     }
 
     public boolean isBanned(){
-        return state.rules.bannedUnits.contains(this);
+        return state.rules.isBanned(this);
     }
 
     @Override
