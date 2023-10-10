@@ -250,7 +250,7 @@ public class HudFragment{
                     var a = 0.5f;
                     //i dont think there is anything better
                     modeIcon(st, () -> showingTurrets, () -> showingTurrets ^= true, Icon.turret.tint(1, 0.33f, 0.33f, a), "Showing Turrets", Binding.show_turret_ranges);
-                    modeIcon(st, () -> showingAllyTurrets, () -> showingAllyTurrets ^= true, Icon.turret.tint(0.67f, 1, 0.67f, a), "Showing Ally Turrets", Binding.show_turret_ranges, "Shift");
+                    modeIcon(st, () -> showingAllyTurrets, () -> showingAllyTurrets ^= true, Icon.turret.tint(0.67f, 1, 0.67f, a), "Showing Ally Turrets", Binding.show_turret_ranges, "Alt");
                     if(Core.settings.getBool("allowinvturrets"))
                         modeIcon(st, () -> showingInvTurrets, () -> showingInvTurrets ^= true, Icon.turret.tint(1, 0.67f, 0.33f, a), "Inverting Ground/Air", Binding.show_turret_ranges, "Ctrl");
                     modeIcon(st, () -> hidingUnits, () -> hidingUnits ^= true, new SlashTextureRegionDrawable(Icon.units.getRegion(), new Color(1f, 1f, 1f, a)), "Hiding Units", Binding.invisible_units);
