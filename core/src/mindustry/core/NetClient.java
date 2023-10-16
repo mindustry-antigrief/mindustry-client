@@ -294,6 +294,7 @@ public class NetClient implements ApplicationListener{
     //equivalent to above method but there's no sender and no console log
     @Remote(called = Loc.server, targets = Loc.server)
     public static void sendMessage(String message){
+        if(Server.current.handleMessage(message, message, null)) return;
         if(Vars.ui == null) return;
 
         if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
