@@ -74,7 +74,7 @@ fun setupCommands() {
     }
 
     register("unit-old <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
-        ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshtein(args[0], b.name) })
+        ui.unitPicker.pickUnit(content.units().min { b -> biasedLevenshtein(args[0], b.name) })
     }
 
     register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
@@ -699,7 +699,7 @@ fun setupCommands() {
     register("mute <player>", Core.bundle.get("client.command.mute.description")) { args, player ->
         val id = args[0].toIntOrNull()
         val target = if (id != null && Groups.player.getByID(id) != null) Groups.player.getByID(id)
-        else Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshtein(p.name, args[0]) }
+        else Groups.player.minBy { p -> biasedLevenshtein(p.name, args[0]) }
 
         player.sendMessage(Core.bundle.format("client.command.mute.success", target.coloredName(), target.id))
         val previous = mutedPlayers.firstOrNull { pair -> pair.first.name == target.name || pair.second == target.id }
@@ -709,7 +709,7 @@ fun setupCommands() {
 
     register("unmute <player>", Core.bundle.get("client.command.unmute.description")) { args, player ->
         val id = args[0].toIntOrNull()
-        val target = Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshtein(p.name, args[0]) }
+        val target = Groups.player.minBy { p -> biasedLevenshtein(p.name, args[0]) }
         val match = mutedPlayers.firstOrNull { p -> (id != null && p.second == id) || (p.first != null && p.first.name == target.name) }
         if (match != null) {
             if (target != null) player.sendMessage(Core.bundle.format("client.command.unmute.success", target.coloredName(), target.id))

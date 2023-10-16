@@ -1,10 +1,10 @@
-package mindustry.client
+package mindustry.client.utils
 
 import arc.*
 import arc.struct.*
 import mindustry.*
 import mindustry.ai.*
-import mindustry.client.utils.*
+import mindustry.client.*
 import mindustry.content.*
 import mindustry.entities.*
 import mindustry.gen.*

@@ -71,7 +71,7 @@ public class CommandCompletion implements Autocompleter {
             if (input.split("\\s").length > 1) return 0f;
             if (!input.startsWith(String.valueOf(command.charAt(0)))) return 0f;
 
-            float dst = BiasedLevenshtein.biasedLevenshtein(input, command);
+            float dst = ClientUtils.biasedLevenshtein(input, command);
             dst *= -1;
             dst += command.length();
             dst /= command.length();

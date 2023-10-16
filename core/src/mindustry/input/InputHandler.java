@@ -1222,15 +1222,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return selectPlans.find(test);
     }
 
-    protected void drawRemovePlanSelection(int x1, int y1, int x2, int y2, int maxLength) {
-        NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
-        Draw.color(Color.white);
-        Draw.alpha(0.3f);
-        float x = (result.x2 + result.x) / 2;
-        float y = (result.y2 + result.y) / 2;
-        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
-    }
-
     protected void drawFreezeSelection(int x1, int y1, int x2, int y2, int maxLength){
         NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
 
@@ -1252,12 +1243,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        Draw.reset();
-        Draw.color(Pal.freeze);
-        Draw.alpha(0.3f);
-        float x = (result.x2 + result.x) / 2;
-        float y = (result.y2 + result.y) / 2;
-        Fill.rect(x, y, result.x2 - result.x, result.y2 - result.y);
+        drawSelection(x1, y1, x2, y2, 0, Pal.freezeBack, Pal.freeze);
     }
 
     protected void drawBreakSelection(int x1, int y1, int x2, int y2, int maxLength){
@@ -1299,8 +1285,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        Draw.color(Pal.remove, .3f);
-        Fill.crect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+        drawSelection(x1, y1, x2, y2, 0, Pal.removeBack, Pal.remove);
     }
 
     protected void drawRebuildSelection(int x, int y, int x2, int y2){
@@ -2001,7 +1986,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public void rebuildArea(int x, int y, int x2, int y2){
-        NormalizeResult result = Placement.normalizeArea(x, y, x2, y2, rotation, false, 999999999);
+        NormalizeResult result = Placement.normalizeArea(x, y, x2, y2, rotation, false, 0);
         Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
 
         Iterator<BlockPlan> broken = player.team().data().plans.iterator();

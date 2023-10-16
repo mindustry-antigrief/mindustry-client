@@ -899,9 +899,9 @@ public class SettingsMenuDialog extends BaseDialog{
 //                    var desc = u.description == null ? "" : Strings.stripColors(u.description).toLowerCase();
                     var weight = title.isEmpty() /*&& desc.isEmpty()*/ ? Float.POSITIVE_INFINITY : 0f;
 
-                    if (!title.isEmpty()) weight += BiasedLevenshtein.biasedLevenshtein(searchLower, title, false, true) / (Structs.count(title.split(" "), searchSplit::contains) + 1);
+                    if (!title.isEmpty()) weight += ClientUtils.biasedLevenshtein(searchLower, title, false, true) / (Structs.count(title.split(" "), searchSplit::contains) + 1);
 //                    Line below doesn't work great since a lot of the settings don't have descriptions
-//                    if (!desc.isEmpty()) weight += .5f * BiasedLevenshtein.biasedLevenshtein(searchLower, desc, false, true) / (Structs.count(desc.split(" "), searchSplit::contains) + 1);
+//                    if (!desc.isEmpty()) weight += .5f * ClientUtils.biasedLevenshtein(searchLower, desc, false, true) / (Structs.count(desc.split(" "), searchSplit::contains) + 1);
 
                     return weight;
                 }));

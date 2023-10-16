@@ -27,7 +27,7 @@ object SeerDialog : BaseDialog("Seer") { // FINISHME: Bundle
         dialog("Seer cached players") {
             fun createPane(search: String = "") =
                 Table { t ->
-                    for (data in Seer.players.select { search.isBlank() || BiasedLevenshtein.biasedLevenshtein(search, it.lastInstance.name) < 3 }) {
+                    for (data in Seer.players.select { search.isBlank() || biasedLevenshtein(search, it.lastInstance.name) < 3 }) {
                         t.button(
                             "<${data.score}> ${data.lastInstance.name}[white] (${data.id}) [${data.firstJoined.truncatedTo(
                                 ChronoUnit.MINUTES)}m]") {

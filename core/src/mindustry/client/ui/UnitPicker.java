@@ -44,7 +44,7 @@ public class UnitPicker extends BaseDialog {
             labels.add(new Label(""));
         }
         TextField searchField = cont.field("", string -> {
-            sorted = sorted.sort((b) -> BiasedLevenshtein.biasedLevenshtein(string, b.localizedName));
+            sorted = sorted.sort((b) -> ClientUtils.biasedLevenshtein(string, b.localizedName));
             for (int i = 0; i < imgs.size; i++) {
                 Image region = new Image(sorted.get(i).uiIcon);
                 imgs.get(i).setDrawable(region.getDrawable());

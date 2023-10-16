@@ -43,7 +43,7 @@ public class PlayerCompletion implements Autocompleter {
             String text = getLast(input);
             if (text == null) return 0f;
 
-            float dst = BiasedLevenshtein.biasedLevenshtein(text, matchName);
+            float dst = ClientUtils.biasedLevenshtein(text, matchName);
             dst *= -1;
             dst += matchName.length();
             dst /= matchName.length();

@@ -171,7 +171,7 @@ public class DesktopInput extends InputHandler{
         }
         //draw dequeueing selection
         if (mode == dequeue){
-            drawRemovePlanSelection(selectX, selectY, cursorX, cursorY, Vars.maxSchematicSize);
+            drawSelection(selectX, selectY, cursorX, cursorY, maxSchematicSize, Color.gray, Color.white);
         }
 
         if(!Core.scene.hasKeyboard() && mode != breaking && mode != freezing && mode != dequeue){
@@ -979,7 +979,7 @@ public class DesktopInput extends InputHandler{
             overrideLineRotation = false;
         }
 
-        if(mode == breaking || mode == freezing){
+        if(mode == breaking || mode == freezing || mode == dequeue){
             mode = Core.input.shift() ?  freezing : Core.input.ctrl() ? dequeue : breaking;
         }
 
@@ -1011,7 +1011,7 @@ public class DesktopInput extends InputHandler{
             }else if(mode == freezing){
                 freezeSelection(selectX, selectY, cursorX, cursorY, Vars.maxSchematicSize);
             } else if (mode == dequeue) {
-                removeSelectionPlans(selectX, selectY, cursorX, cursorY, Vars.maxSchematicSize);
+                removeSelectionPlans(selectX, selectY, cursorX, cursorY, Vars.maxSchematicSize); // FINISHME: Why not just use removeSelection and ignore the rest? Or make remove selection call this
             }
             selectX = -1;
             selectY = -1;

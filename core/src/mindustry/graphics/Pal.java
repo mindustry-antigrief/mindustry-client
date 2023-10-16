@@ -80,7 +80,8 @@ public class Pal{
     metalGrayDark = Color.valueOf("6e7080"),
     accentBack = Color.valueOf("d4816b"),
     place = Color.valueOf("6335f8"), // The purple secondary color used in various places
-    freeze = Color.valueOf("0018a8"),
+    freeze = Color.valueOf("4153bf"),
+    freezeBack = Color.valueOf("3649ba"),
     remove = Color.valueOf("e55454"),
     noplace = Color.valueOf("ffa697"),
     removeBack = Color.valueOf("a73e3e"),
