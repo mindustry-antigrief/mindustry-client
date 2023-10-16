@@ -719,9 +719,15 @@ fun setupCommands() {
         else player.sendMessage(Core.bundle.get("client.command.mute.notmuted"))
     }
 
-    register("clearmutes", Core.bundle.get("client.command.clearmutes.description")) {_, player ->
+    register("clearmutes", Core.bundle.get("client.command.clearmutes.description")) { _, player ->
         player.sendMessage(Core.bundle.get("client.command.clearmutes.success"))
         mutedPlayers.clear()
+    }
+
+    register("ohno", "Runs the auto ohno procedure on fish servers") { _, _ -> // FINISHME: This is great and all but it would be nice to run this automatically every minute or so
+        if (!Server.fish()) return@register
+        Server.ohnoTask?.cancel()
+        Server.ohnoTask = Timer.schedule({ Call.sendChatMessage("/ohno") }, 0f, 0.3f)
     }
     
     // Special commands
@@ -737,6 +743,7 @@ fun setupCommands() {
             else -> player.sendMessage("[scarlet]Invalid option specified, options are:\nSettings, Leaves")
         }
     }
+
     
     // Symbol replacements
 
