@@ -72,9 +72,7 @@ object Client {
 
         if (!configs.isEmpty()) {
             try {
-                if (ratelimitRemaining > 0) { // Run the config
-                    configs.poll().run()
-                }
+                if (ratelimitRemaining > 1) configs.poll().run() // Run the config (leave 1 free config just in case)
             } catch (e: Exception) {
                 Log.err(e)
             }

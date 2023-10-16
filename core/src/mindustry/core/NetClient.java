@@ -224,22 +224,12 @@ public class NetClient implements ApplicationListener{
 
     @Remote(targets = Loc.server, variants = Variant.both)
     public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
-        if(Server.fish.b() && Server.ohnoTask != null) { // Very hacky
-            if (message.contains("Too close to an enemy tile!") || message.contains("You cannot spawn ohnos while dead.")) return; // We don't care honestly
-            if (message.contains("Sorry, the max number of ohno units has been reached.") || message.contains("Ohnos have been temporarily disabled.")) {
-                Time.run(60f, () -> {
-                    if (Server.ohnoTask != null) Server.ohnoTask.cancel();
-                    Server.ohnoTask = null;
-                }); // Null it out a second later, this is just to prevent any additional messages from bypassing the return below
-                Server.ohnoTask.cancel();
-                return;
-            }
-        }
-
-        Events.fire(new PlayerChatEvent(playersender, unformatted != null ? unformatted : message != null ? message : "")); // Foo addition, why is this not a vanilla thing?
         // message is the full formatted message from the server, including the sender
         // unformatted is the message content itself, i.e. "gg", null for server messages
         // playersender is exactly what you think it is, null for server messages
+        if(Server.current.handleMessage(message, unformatted, playersender)) return;
+
+        Events.fire(new PlayerChatEvent(playersender, unformatted != null ? unformatted : message != null ? message : "")); // Foo addition, why is this not a vanilla thing?
 
         Color background = null;
         if(Vars.ui != null){
@@ -804,7 +794,7 @@ public class NetClient implements ApplicationListener{
             int uid = player.dead() ? -1 : unit.id;
             Vec2 aimPos = Main.INSTANCE.floatEmbed();
 
-            TypeIO.useConfigLocal = true; // FINISHME: Awful.
+            TypeIO.useConfigLocal = true; // Awful.
             Call.clientSnapshot(
             lastSent++,
             uid,

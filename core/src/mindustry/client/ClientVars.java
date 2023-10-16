@@ -44,12 +44,12 @@ public class ClientVars {
 
     // Hotkeys
     public static boolean
-            showingTurrets, showingAllyTurrets, showingInvTurrets,
-            hidingUnits, hidingAirUnits,
-            hidingBlocks, hidingPlans,
-            dispatchingBuildPlans,
-            showingOverdrives,
-            showingMassDrivers;
+        showingTurrets, showingAllyTurrets, showingInvTurrets,
+        hidingUnits, hidingAirUnits,
+        hidingBlocks, hidingPlans,
+        dispatchingBuildPlans,
+        showingOverdrives,
+        showingMassDrivers;
     @NotNull public static Seq<OverdriveProjector.OverdriveBuild> overdrives = new Seq<>(); // For whatever reason the stupid allBuildings method hates me so im just not using it FINISHME: Replace this by just expanding block clipsize and drawing a circle in the draw method rather than using this
     @NotNull public static Seq<MassDriver.MassDriverBuild> massDrivers = new Seq<>(); // FINISHME: this too.
     @NotNull public static Seq<PayloadMassDriver.PayloadDriverBuild> payloadMassDrivers = new Seq<>(); // i literally just copypasted the code

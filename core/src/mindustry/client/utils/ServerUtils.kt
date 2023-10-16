@@ -34,7 +34,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     other(null),
     nydus("nydus"),
     cn("Chaotic Neutral", rtv = Cmd("/rtv")),
-    io("io", MapVote(), Cmd("/w"), Cmd("/rtv"), object : Cmd("/freeze", 4){
+    io("io", MapVote(), Cmd("/w"), Cmd("/rtv"), object : Cmd("/freeze", 4) {
         override fun run(vararg args: String) { // Freeze command requires admin in game but the packet does not
             if (!player.admin) Call.serverPacketReliable("freeze_by_id", args[0]) // Yes this will cause a crash when args.size == 0, it shouldn't happen
             else super.run(*args)
@@ -59,7 +59,25 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     },
     phoenix("Phoenix Network", null, Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9), votekickString = "Type [cyan]/vote y"),
     korea("Korea", ghost = true),
-    fish("Fish", null, Cmd("/msg")),
+    fish("Fish", null, Cmd("/msg")) {
+        override fun handleMessage(msg: String, unformatted: String?, sender: Player?): Boolean {
+            if (sender == null && ohnoTask != null) { // Very hacky way of handling autoOhno
+                if ("Too close to an enemy tile!" in msg || "You cannot spawn ohnos while dead." in msg) return true // We don't care honestly
+                if ("Sorry, the max number of ohno units has been reached." in msg || "Ohnos have been temporarily disabled." in msg || "Ohnos are disabled in PVP." in msg) {
+                    Time.run(60f) {
+                        ohnoTask?.cancel()
+                        ohnoTask = null
+                    } // Null it out a second later, this is just to prevent any additional messages from bypassing the return below
+                    ohnoTask!!.cancel()
+                    return true
+                }
+            }
+
+            if (sender == null && "Fish Membership" in msg) return true // Adblock
+
+            return false // All other messages are okay
+        }
+    },
     darkdustry("Darkdustry")
     ;
 
@@ -141,6 +159,9 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     }
 
     fun isVotekick(msg: String) = votekickString in msg
+
+    /** Handle's a message on a server. If true is returned, the message will be discarded and not printed. */
+    open fun handleMessage(msg: String, unformatted: String?, sender: Player?): Boolean = false
 }
 
 enum class CustomMode {
@@ -151,59 +172,160 @@ enum class CustomMode {
         override fun enable() {
             super.enable()
 
-            overwrites( // This system is awful but it (mostly) works and it wasn't hard to implement.
-                UnitTypes.pulsar, "abilities", Seq<Ability>(0), // Pulsar shield regen field removed
-                UnitTypes.crawler, "health", 100f,
-                UnitTypes.crawler, "speed", 1.5f,
-                UnitTypes.crawler, "accel", 0.08f,
-                UnitTypes.crawler, "drag", 0.016f,
-                UnitTypes.crawler, "flying", true,
-                UnitTypes.atrax, "speed", 0.5f,
-                UnitTypes.spiroct, "speed", 0.4f,
-                UnitTypes.spiroct, "targetAir", false,
-                UnitTypes.arkyid, "speed", 0.5f ,
-                UnitTypes.arkyid, "targetAir", false,
-                UnitTypes.toxopid, "targetAir", false,
-                UnitTypes.flare, "health", 275,
-                UnitTypes.flare, "range", 140,
-                UnitTypes.horizon, "itemCapacity", 20, // Horizons can pick up items in flood, this just allows the items to draw correctly
-                UnitTypes.horizon, "health", 440,
-                UnitTypes.horizon, "speed", 1.7f,
-                UnitTypes.zenith, "health", 1400,
-                UnitTypes.zenith, "speed", 1.8f,
-                UnitTypes.oct, "abilities", Seq.with(ForceFieldAbility(140f, 16f, 15000f, 60f * 8)), // Oct heal removed, force field buff
-                UnitTypes.bryde, "abilities", Seq<Ability>(0), // Bryde shield regen field removed
+            overwrites(
+                // This system is awful but it (mostly) works and it wasn't hard to implement.
+                UnitTypes.pulsar,
+                "abilities",
+                Seq<Ability>(0), // Pulsar shield regen field removed
+                UnitTypes.crawler,
+                "health",
+                100f,
+                UnitTypes.crawler,
+                "speed",
+                1.5f,
+                UnitTypes.crawler,
+                "accel",
+                0.08f,
+                UnitTypes.crawler,
+                "drag",
+                0.016f,
+                UnitTypes.crawler,
+                "flying",
+                true,
+                UnitTypes.atrax,
+                "speed",
+                0.5f,
+                UnitTypes.spiroct,
+                "speed",
+                0.4f,
+                UnitTypes.spiroct,
+                "targetAir",
+                false,
+                UnitTypes.arkyid,
+                "speed",
+                0.5f,
+                UnitTypes.arkyid,
+                "targetAir",
+                false,
+                UnitTypes.toxopid,
+                "targetAir",
+                false,
+                UnitTypes.flare,
+                "health",
+                275,
+                UnitTypes.flare,
+                "range",
+                140,
+                UnitTypes.horizon,
+                "itemCapacity",
+                20, // Horizons can pick up items in flood, this just allows the items to draw correctly
+                UnitTypes.horizon,
+                "health",
+                440,
+                UnitTypes.horizon,
+                "speed",
+                1.7f,
+                UnitTypes.zenith,
+                "health",
+                1400,
+                UnitTypes.zenith,
+                "speed",
+                1.8f,
+                UnitTypes.oct,
+                "abilities",
+                Seq.with(ForceFieldAbility(140f, 16f, 15000f, 60f * 8)), // Oct heal removed, force field buff
+                UnitTypes.bryde,
+                "abilities",
+                Seq<Ability>(0), // Bryde shield regen field removed
 
-                Blocks.surgeWall, "lightningChance", 0f,
-                Blocks.reinforcedSurgeWall, "lightningChance", 0f,
-                Blocks.mender, "healAmount", 6f,
-                Blocks.mender, "phaseBoost", 2f,
-                Blocks.mendProjector, "phaseBoost", 12f,
-                Blocks.mendProjector, "phaseBoost", 2f,
-                Blocks.forceProjector, "shieldHealth", 2500f,
-                Blocks.forceProjector, "coolantConsumer", ConsumeCoolant(.1f), // FINISHME: This one probably breaks things, also it wont display correctly in the stats page
-                Blocks.radar, "health", 500,
-                Blocks.regenProjector, "healPercent", 12f, // Nice balance, a casual 180x buff
-                Blocks.shockwaveTower, "health", 2000,
+                Blocks.surgeWall,
+                "lightningChance",
+                0f,
+                Blocks.reinforcedSurgeWall,
+                "lightningChance",
+                0f,
+                Blocks.mender,
+                "healAmount",
+                6f,
+                Blocks.mender,
+                "phaseBoost",
+                2f,
+                Blocks.mendProjector,
+                "phaseBoost",
+                12f,
+                Blocks.mendProjector,
+                "phaseBoost",
+                2f,
+                Blocks.forceProjector,
+                "shieldHealth",
+                2500f,
+                Blocks.forceProjector,
+                "coolantConsumer",
+                ConsumeCoolant(.1f), // FINISHME: This one probably breaks things, also it wont display correctly in the stats page
+                Blocks.radar,
+                "health",
+                500,
+                Blocks.regenProjector,
+                "healPercent",
+                12f, // Nice balance, a casual 180x buff
+                Blocks.shockwaveTower,
+                "health",
+                2000,
 //                Blocks.shockwaveTower, "consumeLiquids", Blocks.shockwaveTower.consumeLiquids(*LiquidStack.with(Liquids.cyanogen, 1f / 60f)) // FINISHME: This one too, consumers are annoying
-                Blocks.plastaniumConveyor, "absorbLasers", true,
-                Blocks.plastaniumConveyor, "health", 225,
-                Blocks.thoriumReactor, "health", 1400,
-                (Blocks.lancer as PowerTurret).shootType, "damage", 10,
-                (Blocks.arc as PowerTurret).shootType, "damage", 4,
-                (Blocks.arc as PowerTurret).shootType, "lightningLength", 15,
-                (Blocks.swarmer as ItemTurret).shoot, "shots", 5,
-                (Blocks.swarmer as ItemTurret).shoot, "shotDelay", 4f,
-                Blocks.segment, "range", 160f,
-                Blocks.segment, "reload", 9f,
-                Blocks.tsunami, "reload", 2f,
-                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.titanium), "pierce", false,
-                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.titanium), "damage", 10f,
-                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.thorium), "pierce", false,
-                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.thorium), "damage", 20f,
-                Blocks.breach, "targetUnderBlocks", true,
-                Blocks.diffuse, "targetUnderBlocks", true,
-                Blocks.scathe, "targetUnderBlocks", true,
+                Blocks.plastaniumConveyor,
+                "absorbLasers",
+                true,
+                Blocks.plastaniumConveyor,
+                "health",
+                225,
+                Blocks.thoriumReactor,
+                "health",
+                1400,
+                (Blocks.lancer as PowerTurret).shootType,
+                "damage",
+                10,
+                (Blocks.arc as PowerTurret).shootType,
+                "damage",
+                4,
+                (Blocks.arc as PowerTurret).shootType,
+                "lightningLength",
+                15,
+                (Blocks.swarmer as ItemTurret).shoot,
+                "shots",
+                5,
+                (Blocks.swarmer as ItemTurret).shoot,
+                "shotDelay",
+                4f,
+                Blocks.segment,
+                "range",
+                160f,
+                Blocks.segment,
+                "reload",
+                9f,
+                Blocks.tsunami,
+                "reload",
+                2f,
+                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.titanium),
+                "pierce",
+                false,
+                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.titanium),
+                "damage",
+                10f,
+                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.thorium),
+                "pierce",
+                false,
+                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.thorium),
+                "damage",
+                20f,
+                Blocks.breach,
+                "targetUnderBlocks",
+                true,
+                Blocks.diffuse,
+                "targetUnderBlocks",
+                true,
+                Blocks.scathe,
+                "targetUnderBlocks",
+                true,
             )
 
             val fsAmmo = (Blocks.foreshadow as ItemTurret).ammoTypes
