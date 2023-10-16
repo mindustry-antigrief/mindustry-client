@@ -74,7 +74,7 @@ fun setupCommands() {
     }
 
     register("unit-old <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
-        ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], b.name) })
+        ui.unitPicker.pickUnit(content.units().min { b -> BiasedLevenshtein.biasedLevenshtein(args[0], b.name) })
     }
 
     register("unit <unit-type>", Core.bundle.get("client.command.unit.description")) { args, _ ->
@@ -437,7 +437,7 @@ fun setupCommands() {
         })
     }
 
-    register("binds <type>", Core.bundle.get("client.command.binds.description")) { args, player -> 
+    register("binds <type>", Core.bundle.get("client.command.binds.description")) { args, player -> // FINISHME: Pagination
         val type = findUnit(args[0])
 
         player.team().data().unitCache(type)
@@ -699,7 +699,7 @@ fun setupCommands() {
     register("mute <player>", Core.bundle.get("client.command.mute.description")) { args, player ->
         val id = args[0].toIntOrNull()
         val target = if (id != null && Groups.player.getByID(id) != null) Groups.player.getByID(id)
-        else Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshteinInsensitive(p.name, args[0]) }
+        else Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshtein(p.name, args[0]) }
 
         player.sendMessage(Core.bundle.format("client.command.mute.success", target.coloredName(), target.id))
         val previous = mutedPlayers.firstOrNull { pair -> pair.first.name == target.name || pair.second == target.id }
@@ -709,7 +709,7 @@ fun setupCommands() {
 
     register("unmute <player>", Core.bundle.get("client.command.unmute.description")) { args, player ->
         val id = args[0].toIntOrNull()
-        val target = Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshteinInsensitive(p.name, args[0]) }
+        val target = Groups.player.minBy { p -> BiasedLevenshtein.biasedLevenshtein(p.name, args[0]) }
         val match = mutedPlayers.firstOrNull { p -> (id != null && p.second == id) || (p.first != null && p.first.name == target.name) }
         if (match != null) {
             if (target != null) player.sendMessage(Core.bundle.format("client.command.unmute.success", target.coloredName(), target.id))
@@ -724,8 +724,9 @@ fun setupCommands() {
         mutedPlayers.clear()
     }
 
-    register("ohno", "Runs the auto ohno procedure on fish servers") { _, _ -> // FINISHME: This is great and all but it would be nice to run this automatically every minute or so
+    register("ohno", "Runs the auto ohno procedure on fish servers") { _, player -> // FINISHME: This is great and all but it would be nice to run this automatically every minute or so
         if (!Server.fish()) return@register
+        player.sendMessage("[accent]Running auto ohno") // FINISHME: Bundle
         Server.ohnoTask?.cancel()
         Server.ohnoTask = Timer.schedule({ Call.sendChatMessage("/ohno") }, 0f, 0.3f)
     }
@@ -773,7 +774,7 @@ fun setupCommands() {
 
         register("hh [h]", "!") { args, player ->
             if (!net.client()) return@register
-            val u = if (args.any()) content.units().min { u -> BiasedLevenshtein.biasedLevenshteinInsensitive(args[0], u.name) } else player.unit().type
+            val u = if (args.any()) findUnit(args[0]) else player.unit().type
             val current = ui.join.lastHost ?: return@register
             if (current.group == null) current.group = ui.join.communityHosts.find { it == current } ?.group ?: return@register
             switchTo = ui.join.communityHosts.filterTo(arrayListOf<Any>()) { it.group == current.group && it != current && (it.version == Version.build || Version.build == -1) }.apply { add(current); add(u) }

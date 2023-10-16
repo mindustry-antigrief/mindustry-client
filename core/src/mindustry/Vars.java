@@ -26,7 +26,6 @@ import mindustry.maps.*;
 import mindustry.mod.*;
 import mindustry.net.*;
 import mindustry.service.*;
-import mindustry.type.*;
 import mindustry.ui.dialogs.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
@@ -296,7 +295,7 @@ public class Vars implements Loadable{
         saveDirectory = dataDirectory.child("saves/");
         tmpDirectory = dataDirectory.child("tmp/");
         modDirectory = dataDirectory.child("mods/");
-        schematicDirectory = dataDirectory.child("schematics/");
+        schematicDirectory = OS.hasProp("schematicDir") ? Fi.get(OS.prop("schematicDir")) : dataDirectory.child("schematics/");
         bebuildDirectory = dataDirectory.child("be_builds/");
         emptyMap = new Map(new StringMap());
 
@@ -438,11 +437,6 @@ public class Vars implements Loadable{
         keybinds.setDefaults(Binding.values());
         settings.setAutosave(false);
         settings.load();
-        Core.app.post(() -> { // Set settings vars FINISHME: Move this awfulness
-            UnitType.drawAllItems = settings.getBool("drawallitems");
-            UnitType.formationAlpha = settings.getInt("formationopacity") / 100f;
-            UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f;
-        });
         if(Core.settings.getBool("debug") || OS.hasProp("debug")) Log.level = Log.LogLevel.debug;
 
         //https://github.com/Anuken/Mindustry/issues/8483

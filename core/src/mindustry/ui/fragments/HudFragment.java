@@ -273,7 +273,7 @@ public class HudFragment{
             wavesMain.row();
 
             // Power bar + payload + status effects display
-            var powerInfo = Core.settings.getBool("powerinfo", true); // FINISHME: Add setting, bundle. Requires restart to take effect
+            var powerInfo = Core.settings.getBool("powerinfo", true);
             var powPayStat = wavesMain.table(Tex.wavepane, st -> {
                 if (powerInfo) {
                     PowerInfo.getBars(st);

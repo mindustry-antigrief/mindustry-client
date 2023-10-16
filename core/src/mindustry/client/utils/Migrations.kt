@@ -9,13 +9,13 @@ import mindustry.input.*
 import mindustry.type.*
 
 @Suppress("unused")
-/** Allows for the easy */
+/** Allows for simple migrations between versions of the client. */
 class Migrations {
     fun runMigrations() {
-        val funs = this::class.java.declaredMethods // Cached function list
+        val functions = this::class.java.declaredMethods // Cached function list
         var migration = settings.getInt("foomigration", 1) // Starts at 1
         while (true) {
-            val migrateFun = funs.find { it.name == "migration$migration" } ?: break // Find next migration or break
+            val migrateFun = functions.find { it.name == "migration$migration" } ?: break // Find next migration or break
             Log.debug("Running foo's migration $migration")
             migrateFun.isAccessible = true
             migrateFun.invoke(this)

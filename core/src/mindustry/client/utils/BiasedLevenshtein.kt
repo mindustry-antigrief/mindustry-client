@@ -1,77 +1,82 @@
-package mindustry.client.utils;
+@file:Suppress("NAME_SHADOWING")
 
-public class BiasedLevenshtein {
+package mindustry.client.utils
 
-    public static float biasedLevenshtein(String x, String y) {
-        int[][] dp = new int[x.length() + 1][y.length() + 1];
+import arc.math.*
+import kotlin.math.*
 
-        for(int i = 0; i <= x.length(); i++){
-            for(int j = 0; j <= y.length(); j++){
-                if(i == 0){
-                    dp[i][j] = j;
-                }else if(j == 0){
-                    dp[i][j] = i;
-                }else{
-                    dp[i][j] = Math.min(Math.min(dp[i - 1][j - 1]
-                                    + (x.charAt(i - 1) == y.charAt(j - 1) ? 0 : 1),
-                            dp[i - 1][j] + 1),
-                            dp[i][j - 1] + 1);
+object BiasedLevenshtein {
+    @JvmOverloads @JvmStatic
+    fun biasedLevenshtein(x: String, y: String, caseSensitive: Boolean = false, lengthIndependent: Boolean = false): Float {
+        var x = x
+        var y = y
+        if (!caseSensitive) {
+            x = x.lowercase()
+            y = y.lowercase()
+        }
+        if (lengthIndependent) return biasedLevenshteinLengthIndependent(x, y)
+
+        val dp = Array(x.length + 1) { IntArray(y.length + 1) }
+        for (i in 0..x.length) {
+            for (j in 0..y.length) {
+                if (i == 0) {
+                    dp[i][j] = j
+                } else if (j == 0) {
+                    dp[i][j] = i
+                } else {
+                    dp[i][j] = minOf(
+                        (dp[i - 1][j - 1] + if (x[i - 1] == y[j - 1]) 0 else 1),
+                        (dp[i - 1][j] + 1),
+                        (dp[i][j - 1] + 1)
+                    )
                 }
             }
         }
-
-        int output = dp[x.length()][y.length()];
+        val output = dp[x.length][y.length]
         if (y.startsWith(x) || x.startsWith(y)) {
-            return output / 3f;
+            return output / 3f
         }
-        if (y.contains(x) || x.contains(y)) {
-            return output / 1.5f;
-        }
-        return output;
+        return if (y.contains(x) || x.contains(y)) {
+            output / 1.5f
+        } else output.toFloat()
     }
 
-    public static float biasedLevenshteinInsensitive(String x, String y) {
-        return biasedLevenshtein(x.toLowerCase(), y.toLowerCase());
-    }
+    // FINISHME: This should be merged with the function above. I can't be bothered to figure out what the differences between the two are now though
+    private fun biasedLevenshteinLengthIndependent(x: String, y: String): Float {
+        var x = x
+        var y = y
+        if (x.length > y.length) x = y.apply { y = x } // Y will be the longer of the two
 
-    public static float biasedLevenshteinLengthIndependent(String x, String y) {
-        if (x.length() > y.length()){
-            String temp = x;
-            x = y;
-            y = temp;
-        }
-        int xl = x.length(), yl = y.length();
-        int yw = yl + 1;
-        int[] dp = new int[2 * yw];
-
-        for(int j=0; j <= yl; ++j){
-            dp[j] = 0; // Insertions at the beginning are free
-        }
-        int prev = yw, curr = 0, temp;
-        for(int i = 1; i <= xl; i++){
-            temp = prev;
-            prev = curr;
-            curr = temp;
-            dp[curr] = i;
-            for(int j = 1; j <= yl; j++){
-                dp[curr + j] = Math.min(dp[prev + j - 1] + (x.charAt(i - 1) == y.charAt(j - 1) ? 0 : 1),
-                        Math.min(dp[prev + j], dp[curr + j - 1]) + 1);
+        val xl = x.length
+        val yl = y.length
+        val yw = yl + 1
+        val dp = IntArray(2 * yw)
+        for (j in 0..yl) dp[j] = 0 // Insertions at the beginning are free
+        var prev = yw
+        var curr = 0
+        var temp: Int
+        for (i in 1..xl) {
+            temp = prev
+            prev = curr
+            curr = temp
+            dp[curr] = i
+            for (j in 1..yl) {
+                dp[curr + j] = minOf(
+                    dp[prev + j - 1] + Mathf.num(x[i - 1] != y[j - 1]),
+                    dp[prev + j] + 1,
+                    dp[curr + j - 1] + 1,
+                )
             }
         }
 
         // startsWith
-        if(dp[curr + xl] == 0) return 0f;
+        if (dp[curr + xl] == 0) return 0f
         // Disregard insertions at the end - if it made it it made it
-        int output = xl;
-        for(int i = curr; i < curr + yl; ++i){
-            output = Math.min(output, dp[i]);
+        var output = xl
+        for (i in curr until curr + yl) {
+            output = min(output, dp[i])
         }
         // contains
-        if (output == 0) return 0.5f; // Prefer startsWith
-        return output;
-    }
-
-    public static float biasedLevenshteinLengthIndependentInsensitive(String x, String y) {
-        return biasedLevenshteinLengthIndependent(x.toLowerCase(), y.toLowerCase());
+        return if (output == 0) 0.5f else output.toFloat() // Prefer startsWith
     }
 }

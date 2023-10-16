@@ -34,7 +34,7 @@ class BlockEmotes : Autocompleter {
                 matchCache = 0f
                 return 0f
             }
-            var dst = BiasedLevenshtein.biasedLevenshteinInsensitive(input.substring(input.lastIndexOf(':') + 1), name)
+            var dst = BiasedLevenshtein.biasedLevenshtein(input.substring(input.lastIndexOf(':') + 1), name)
             dst *= -1f
             dst += name.length.toFloat()
             dst /= name.length.toFloat()

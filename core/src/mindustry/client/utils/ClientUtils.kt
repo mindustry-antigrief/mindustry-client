@@ -457,13 +457,13 @@ fun ChatMessage.findCoords(): ChatMessage = NetClient.findCoords(this)
 
 fun ChatMessage.findLinks(start: Int = 0): ChatMessage = NetClient.findLinks(this, start)
 
-fun findItem(arg: String): Item = content.items().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+fun findItem(arg: String): Item = content.items().min { b -> BiasedLevenshtein.biasedLevenshtein(arg, b.localizedName) }
 
-fun findUnit(arg: String): UnitType = content.units().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+fun findUnit(arg: String): UnitType = content.units().min { b -> BiasedLevenshtein.biasedLevenshtein(arg, b.localizedName) }
 
-fun findBlock(arg: String): Block = content.blocks().min { b -> BiasedLevenshtein.biasedLevenshteinInsensitive(arg, b.localizedName) }
+fun findBlock(arg: String): Block = content.blocks().min { b -> BiasedLevenshtein.biasedLevenshtein(arg, b.localizedName) }
 
-fun findTeam(arg: String): Team = if (arg.toIntOrNull() in 0 until Team.all.size) Team.all[arg.toInt()] else Team.all.minBy { t -> if (t.name == null) Float.MAX_VALUE else BiasedLevenshtein.biasedLevenshteinInsensitive(arg, t.localized()) }
+fun findTeam(arg: String): Team = if (arg.toIntOrNull() in 0 until Team.all.size) Team.all[arg.toInt()] else Team.all.minBy { t -> if (t.name == null) Float.MAX_VALUE else BiasedLevenshtein.biasedLevenshtein(arg, t.localized()) }
 
 fun parseBool(arg: String) = arg.lowercase().startsWith("y") || arg.lowercase().startsWith("t") // FINISHME: This should probably just spit out an error on non y/n input
 

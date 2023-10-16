@@ -736,7 +736,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             commandRect = false;
         }
 
-        playerPlanTree.clear(); // TODO: aaaaaaaaaaaaaa
+        playerPlanTree.clear();
         player.unit().plans.each(playerPlanTree::insert);
 
         player.typing = ui.chatfrag.shown();
@@ -1329,11 +1329,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     protected void drawSelection(int x1, int y1, int x2, int y2, int maxLength, Color col1, Color col2){
         NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
 
-        Lines.stroke(2f);
-
-
-        Draw.color(col2, .3f);
-        Fill.crect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+        if(Core.settings.getBool("drawselectionvanilla")){
+            Lines.stroke(2f);
+            Draw.color(col1);
+            Lines.rect(result.x, result.y - 1, result.x2 - result.x, result.y2 - result.y);
+            Draw.color(col2);
+            Lines.rect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+        }else{
+            Draw.color(col2, .3f);
+            Fill.crect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
+        }
     }
 
     protected void flushSelectPlans(Seq<BuildPlan> plans){

@@ -13,6 +13,7 @@ import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.stopFollowing
 import mindustry.client.ui.*
 import mindustry.client.utils.*
+import mindustry.client.utils.BiasedLevenshtein.biasedLevenshtein
 import mindustry.core.*
 import mindustry.game.EventType.*
 import mindustry.gen.*
@@ -120,6 +121,9 @@ class ClientLogic {
             if (settings.getBool("discordrpc")) platform.startDiscord()
             if (settings.getBool("mobileui")) mobile = !mobile
             if (settings.getBool("viruswarnings")) LExecutor.virusWarnings = true
+            UnitType.drawAllItems = settings.getBool("drawallitems")
+            UnitType.formationAlpha = settings.getInt("formationopacity") / 100f
+            UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f
 
             Autocomplete.autocompleters.add(BlockEmotes(), PlayerCompletion(), CommandCompletion())
 
@@ -132,7 +136,7 @@ class ClientLogic {
             if (isDeveloper()) {
                 register("update <name/id...>") { args, _ ->
                     val name = args.joinToString(" ")
-                    val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { BiasedLevenshtein.biasedLevenshteinInsensitive(Strings.stripColors(it.name), name) }!!
+                    val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { biasedLevenshtein(Strings.stripColors(it.name), name) }!!
                     Main.send(CommandTransmission(CommandTransmission.Commands.UPDATE, Main.keyStorage.cert() ?: return@register, player))
                 }
             }
