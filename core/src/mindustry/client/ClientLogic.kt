@@ -56,7 +56,17 @@ class ClientLogic {
                         }
                         // Game join text after hh
                         if (settings.getString("gamejointext")?.isNotBlank() == true) {
-                            Call.sendChatMessage(settings.getString("gamejointext"))
+                            val input = settings.getString("gamejointext").split("(?<!\\\\);".toRegex()) // Hacky way to allow escaping the split
+                            val out = StringBuilder()
+                            Log.debug("The split input: $input")
+                            input.forEach { // Try running each bit as a command, this code is terribly inefficient but should get the job done so I don't care
+                                val clean = if (!it.endsWith("\\\\;")) it.removeSuffix(";") else it // FINISHME: Remove the \ before the ; if needed
+                                Log.debug("Input part: '$it' ('$clean')")
+                                val res = ChatFragment.handleClientCommand(clean, false)
+                                if (res.type == CommandHandler.ResponseType.noCommand) out.append(clean) // If the command doesn't exist we pass the text through to the output, otherwise we don't pass it to the output. this is kind of hacky but i don't care.
+                            }
+                            Log.debug("Sent message: $out")
+                            Call.sendChatMessage(out.toString())
                         }
                     }
                 }
@@ -125,7 +135,6 @@ class ClientLogic {
             UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f
 
             Autocomplete.autocompleters.add(BlockEmotes(), PlayerCompletion(), CommandCompletion())
-
             Autocomplete.initialize()
 
             Navigation.navigator.init()

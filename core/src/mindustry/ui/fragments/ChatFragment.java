@@ -416,12 +416,16 @@ public class ChatFragment extends Table{
     }
 
     public static CommandHandler.CommandResponse handleClientCommand(String message){
+        return handleClientCommand(message, true);
+    }
+
+    public static CommandHandler.CommandResponse handleClientCommand(String message, boolean send){
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
             String msg = Main.INSTANCE.sign(message);
             Events.fire(new ClientChatEvent(message));
-            Call.sendChatMessage(msg);
+            if (send) Call.sendChatMessage(msg);
             if (message.startsWith(netServer.clientCommands.getPrefix() + "sync")) { // /sync
                 ClientVars.syncing = true;
             }
