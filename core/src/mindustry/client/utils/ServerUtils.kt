@@ -60,7 +60,8 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     phoenix("Phoenix Network", null, Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9), votekickString = "Type [cyan]/vote y"),
     korea("Korea", ghost = true),
     fish("Fish", null, Cmd("/msg")) {
-        override fun handleMessage(msg: String, unformatted: String?, sender: Player?): Boolean {
+        override fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean {
+            msg ?: return false
             if (sender == null && ohnoTask != null) { // Very hacky way of handling autoOhno
                 if ("Too close to an enemy tile!" in msg || "You cannot spawn ohnos while dead." in msg) return true // We don't care honestly
                 if ("Sorry, the max number of ohno units has been reached." in msg || "Ohnos have been temporarily disabled." in msg || "Ohnos are disabled in PVP." in msg) {
@@ -160,7 +161,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     fun isVotekick(msg: String) = votekickString in msg
 
     /** Handle's a message on a server. If true is returned, the message will be discarded and not printed. */
-    open fun handleMessage(msg: String, unformatted: String?, sender: Player?): Boolean = false
+    open fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean = false
 }
 
 enum class CustomMode {
