@@ -66,7 +66,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
                 if ("Too close to an enemy tile!" in msg || "You cannot spawn ohnos while dead." in msg) return true // We don't care honestly
                 if ("Sorry, the max number of ohno units has been reached." in msg || "Ohnos have been temporarily disabled." in msg || "Ohnos are disabled in PVP." in msg) {
                     Time.run(60f) { // Null it out a second later, this is just to prevent any additional messages from bypassing the return below (only if it's the same one we just cancelled).
-                        if (ohnoTask?.isScheduled == true) ohnoTask = null
+                        if (ohnoTask?.isScheduled != true) ohnoTask = null
                     }
                     ohnoTask!!.cancel()
                     return true
