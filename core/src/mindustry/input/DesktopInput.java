@@ -294,10 +294,10 @@ public class DesktopInput extends InputHandler{
         none(() -> true, "keybind1command", "No JS configured for keybind @, go to client settings to add a script to run", false),
         ;
 
-        public Boolp check;
-        public String settingsKey;
-        public String message;
-        public boolean runIfOthersRan;
+        public final Boolp check;
+        public final String settingsKey;
+        public final String message;
+        public final boolean runIfOthersRan;
 
         JSBindingOption(Boolp check, String settingsKey, String message, boolean runIfOthersRan){
             this.check = check;
@@ -327,7 +327,7 @@ public class DesktopInput extends InputHandler{
             boolean ran = false;
             for(var opt : JSBindingOption.values()){
                 if(opt.check.get() && (opt.runIfOthersRan || !ran)){
-                    if(Core.settings.getString(opt.settingsKey, "") != ""){
+                    if(!settings.getString(opt.settingsKey, "").isEmpty()){
                         ChatFragment.handleClientCommand(Core.settings.getString(opt.settingsKey, ""));
                         ran = true;
                     } else {

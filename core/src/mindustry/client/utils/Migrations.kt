@@ -12,7 +12,7 @@ import mindustry.type.*
 /** Allows for simple migrations between versions of the client. */
 class Migrations {
     fun runMigrations() {
-        val functions = this::class.java.declaredMethods // Cached function list
+        val functions = this::class.java.declaredMethods // Cached function list. Using kotlin reflection to find functions is extremely slow.
         var migration = settings.getInt("foomigration", 1) // Starts at 1
         while (true) {
             val migrateFun = functions.find { it.name == "migration$migration" } ?: break // Find next migration or break
@@ -27,15 +27,6 @@ class Migrations {
     }
 
     private fun migration1() { // All of the migrations from before the existence of the migration system
-        // Old settings that no longer exist
-        settings.remove("drawhitboxes")
-        settings.remove("signmessages")
-        settings.remove("firescl")
-        settings.remove("effectscl")
-        settings.remove("commandwarnings")
-        settings.remove("nodeconfigs")
-        settings.remove("attemwarfarewhisper")
-
         // Various setting names and formats have changed
         if (settings.has("gameovertext")) {
             if (settings.getString("gameovertext").isNotBlank()) settings.put("gamewintext", settings.getString("gameovertext"))
@@ -49,9 +40,18 @@ class Migrations {
             settings.put("hitboxopacity", 30)
             UnitType.hitboxAlpha = settings.getInt("hitboxopacity") / 100f
         }
+
+        // Old settings that no longer exist
+        settings.remove("drawhitboxes")
+        settings.remove("signmessages")
+        settings.remove("firescl")
+        settings.remove("effectscl")
+        settings.remove("commandwarnings")
+        settings.remove("nodeconfigs")
+        settings.remove("attemwarfarewhisper")
     }
 
-    private fun migration2() { // Lowercased the pingExecutorThreads setting name1
+    private fun migration2() { // Lowercased the pingExecutorThreads setting name
         if (!settings.has("pingExecutorThreads")) return
         settings.put("pingexecutorthreads", settings.getInt("pingExecutorThreads"))
         settings.remove("pingExecutorThreads")
