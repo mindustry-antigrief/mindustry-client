@@ -328,7 +328,7 @@ public class DesktopInput extends InputHandler{
             for(var opt : JSBindingOption.values()){
                 if(opt.check.get() && (opt.runIfOthersRan || !ran)){
                     if(!settings.getString(opt.settingsKey, "").isEmpty()){
-                        ChatFragment.handleClientCommand(Core.settings.getString(opt.settingsKey, ""));
+                        ChatFragment.handleClientCommand(Core.settings.getString(opt.settingsKey));
                         ran = true;
                     } else {
                         Vars.player.sendMessage(Strings.format(opt.message, Core.keybinds.get(Binding.run_js).key.toString()));

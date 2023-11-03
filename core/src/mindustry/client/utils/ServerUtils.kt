@@ -51,7 +51,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
                         }, .1F)
                     }
                 }
-                Call.sendChatMessage("/ban ${p.id} $reason")
+                Call.adminRequest(p, AdminAction.ban, reason)
             }
         }
 
