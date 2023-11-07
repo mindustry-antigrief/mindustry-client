@@ -195,6 +195,7 @@ enum class CustomMode {
                 UnitTypes.oct, "abilities", Seq.with(ForceFieldAbility(140f, 16f, 15000f, 60f * 8)), // Oct heal removed, force field buff
                 UnitTypes.bryde, "abilities", Seq<Ability>(0), // Bryde shield regen field removed
 
+                Blocks.phaseWall, "chanceDeflect", -1,
                 Blocks.surgeWall, "lightningChance", 0f,
                 Blocks.reinforcedSurgeWall, "lightningChance", 0f,
                 Blocks.mender, "healAmount", 6f,
