@@ -88,6 +88,11 @@ class ClientLogic {
                 Server.ohnoTask?.cancel()
                 Server.ohnoTask = if (Server.fish() && settings.getBool("autoohno", false)) Timer.schedule({ Call.sendChatMessage("/ohno") }, 3f, 0.3f) else null
                 frozenPlans.clear()
+
+                when (val vote = settings.getInt("automapvote")) {
+                    1, 2, 3 -> Server.current.mapVote(vote - 1)
+                    4 -> Server.current.mapVote(Random.nextInt(0..2))
+                }
             }
             configs.clear()
             control.input.lastVirusWarning = null
