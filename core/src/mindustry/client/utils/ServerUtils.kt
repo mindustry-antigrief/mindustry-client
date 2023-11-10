@@ -41,14 +41,11 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         }
     }, votekickString = "Type[orange] /vote <y/n>[] to vote.") {
         override fun handleBan(p: Player) {
-            ui.showTextInput("@client.banreason.title", "@client.banreason.body", "Griefing") { reason ->
+            ui.showTextInput("@client.banreason.title", "@client.banreason.body", "Griefing.") { reason ->
                 val id = p.trace?.uuid ?: p.serverID
                 if (id != null){
                     ui.showConfirm("@confirm", "@client.rollback.title") {
-                        Call.sendChatMessage("/rollback $id 5")
-                        Timer.schedule({
-                            Call.sendChatMessage("/rollback f")
-                        }, .1F)
+                        Call.sendChatMessage("/rollback $id 5-f")
                     }
                 }
                 Call.adminRequest(p, AdminAction.ban, reason)
@@ -105,7 +102,6 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         @JvmField var current = other
 //        val ghostList by lazy { Core.settings.getJson("ghostmodeservers", Seq::class.java, String::class.java) { Seq<String>() } as Seq<String> }
 
-        @OptIn(ExperimentalStdlibApi::class)
         @JvmStatic
         fun onServerJoin() { // Called once on server join before WorldLoadEvent (and by extension ServerJoinEvent), the player will not be added here hence the need for ServerJoinEvent
             val grouped = ui.join.communityHosts.groupBy({ it.group }) { it.address }
@@ -208,8 +204,6 @@ enum class CustomMode {
                 Blocks.regenProjector, "healPercent", 12f, // Nice balance, a casual 180x buff
                 Blocks.shockwaveTower, "health", 2000,
 //                Blocks.shockwaveTower, "consumeLiquids", Blocks.shockwaveTower.consumeLiquids(*LiquidStack.with(Liquids.cyanogen, 1f / 60f)) // FINISHME: This one too, consumers are annoying
-                Blocks.plastaniumConveyor, "absorbLasers", true,
-                Blocks.plastaniumConveyor, "health", 225,
                 Blocks.thoriumReactor, "health", 1400,
                 (Blocks.lancer as PowerTurret).shootType, "damage", 10,
                 (Blocks.arc as PowerTurret).shootType, "damage", 4,
