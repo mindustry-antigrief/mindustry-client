@@ -87,7 +87,7 @@ class ClientLogic {
             if (!syncing) {
                 AutoTransfer.enabled = settings.getBool("autotransfer") && !(state.rules.pvp && Server.io())
                 Server.ohnoTask?.cancel()
-                Server.ohnoTask = if (Server.fish() && settings.getBool("autoohno", false)) Timer.schedule({ if (player.tileOn()?.block ?: Blocks.air != Blocks.air) Call.sendChatMessage("/ohno") }, 3f, 0.3f) else null
+                Server.ohnoTask = if (Server.fish() && settings.getBool("autoohno", false)) Timer.schedule({ if (player.tileOn()?.block() ?: Blocks.air != Blocks.air) Call.sendChatMessage("/ohno") }, 3f, 0.3f) else null
                 frozenPlans.clear()
 
                 when (val vote = settings.getInt("automapvote")) {
