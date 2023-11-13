@@ -314,3 +314,6 @@ fun handleKick(reason: String) {
 
     }
 }
+
+// FINISHME: The jank is growing worse. The servers really need their own classes
+fun Server.Companion.ohno(): Timer.Task = Timer.schedule({ if (!player.blockOn().solid && UnitTypes.alpha.supportsEnv(state.rules.env)) Call.sendChatMessage("/ohno") }, 3f, 0.3f)

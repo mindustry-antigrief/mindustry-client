@@ -235,12 +235,13 @@ public class HudFragment{
 
                 // button to skip wave
                 s.button(Icon.play, rightStyle, 30f, () -> {
-                    if(net.client() && player.admin){
+                    if(!canSkipWave()) new Toast(1f).add("You tried and that's all that matters.");
+                    else if(net.client() && (player.admin || Server.current.adminui())){
                         Call.adminRequest(player, AdminAction.wave, null);
                     }else{
                         logic.skipWave();
                     }
-                }).growY().fillX().right().width(40f).disabled(b -> !canSkipWave()).name("skip").get().toBack();
+                }).growY().fillX().right().width(40f).name("skip").get().toBack();
             }).width(dsize * 5 + 4f).name("statustable");
 
             if(Core.settings.getBool("activemodesdisplay", true)){
@@ -898,18 +899,18 @@ public class HudFragment{
 
         lcell[0] = table.labelWrap(() -> {
 
-            //update padding depend on whether the button to the right is there
-            boolean can = canSkipWave();
-            if(can != couldSkip[0]){
-                if(canSkipWave()){
-                    lcell[0].padRight(8f);
-                }else{
-                    lcell[0].padRight(-42f);
-                }
-                table.invalidateHierarchy();
-                table.pack();
-                couldSkip[0] = can;
-            }
+//            //update padding depend on whether the button to the right is there
+//            boolean can = canSkipWave();
+//            if(can != couldSkip[0]){
+//                if(canSkipWave()){
+//                    lcell[0].padRight(8f);
+//                }else{
+//                    lcell[0].padRight(-42f);
+//                }
+//                table.invalidateHierarchy();
+//                table.pack();
+//                couldSkip[0] = can;
+//            }
 
             builder.setLength(0);
 
@@ -1054,7 +1055,7 @@ public class HudFragment{
     }
 
     private boolean canSkipWave(){
-        return state.rules.waves && (state.rules.winWave <= 0 || state.wave < state.rules.winWave) && ((net.server() || player.admin) || !net.active()) /* && state.enemies == 0 && !spawner.isSpawning() */;
+        return state.rules.waves && (state.rules.winWave <= 0 || state.wave < state.rules.winWave) && (net.server() || player.admin || !net.active() || Server.current.adminui()) /* && state.enemies == 0 && !spawner.isSpawning() */;
     }
 
 }

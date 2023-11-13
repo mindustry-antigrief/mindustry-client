@@ -384,7 +384,7 @@ fun setupCommands() {
 
         if (confirmed) {
             plans.chunked(200) { configs.add { Call.deletePlans(player, it.toIntArray()) } }
-            player.sendMessage("[accent]Removed ${plans.size} plans, ${player.team().data().plans.size} remain")
+            player.sendMessage("[accent]Removed ${plans.size} plans, ${player.team().data().plans.size - plans.size} remain")
         } else player.sendMessage("[accent]Found ${plans.size} (out of ${player.team().data().plans.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
     }
 
@@ -728,7 +728,7 @@ fun setupCommands() {
         if (!Server.fish()) return@register
         player.sendMessage("[accent]Running auto ohno") // FINISHME: Bundle
         Server.ohnoTask?.cancel()
-        Server.ohnoTask = Timer.schedule({ Call.sendChatMessage("/ohno") }, 0f, 0.3f)
+        Server.ohnoTask = Server.ohno()
     }
     
     // Special commands
