@@ -3,19 +3,11 @@ package mindustry.client.utils;
 import arc.struct.*;
 import org.jetbrains.annotations.NotNull;
 
-public class Autocomplete {
+public class Autocomplete { // FINISHME: Rewrite the entire autocompletion system to not suck as much
     public static Seq<Autocompleter> autocompleters = new Seq<>();
 
     public static void initialize() {
         autocompleters.forEach(Autocompleter::initialize);
-    }
-
-    public static String getCompletion(String input) {
-        return closest(input).peek().getCompletion(input);
-    }
-
-    public static String getHover(String input) {
-        return closest(input).peek().getHover(input);
     }
 
     public static boolean matches(String input) {

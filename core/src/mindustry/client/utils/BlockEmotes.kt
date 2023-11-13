@@ -14,12 +14,6 @@ class BlockEmotes : Autocompleter {
         }
     }
 
-    override fun getCompletion(input: String): Autocompleteable = bestMatch(input)
-
-    private fun bestMatch(input: String) = emotes.maxBy { it.matches(input) }
-
-    override fun matches(input: String) = (bestMatch(input)?.matches(input) ?: 0f) > .5f
-
     override fun closest(input: String): Seq<Autocompleteable> {
         return emotes.sort { item: BlockEmote -> item.matches(input) }.`as`()
     }
@@ -27,14 +21,16 @@ class BlockEmotes : Autocompleter {
     private class BlockEmote(private val unicode: String, private val name: String) : Autocompleteable {
         private var matchCache = 0f
         private var cacheName: String? = null
+
         override fun matches(input: String): Float {
             if (input == cacheName) return matchCache // FINISHME: This system still sucks.
             cacheName = input
-            if (Strings.count(input, ':') % 2 == 0) {
+            val text = getLast(input)
+            if (text == null || Strings.count(text, ':') % 2 == 1) {
                 matchCache = 0f
                 return 0f
             }
-            var dst = biasedLevenshtein(input.substring(input.lastIndexOf(':') + 1), name)
+            var dst = biasedLevenshtein(text, name)
             dst *= -1f
             dst += name.length.toFloat()
             dst /= name.length.toFloat()
@@ -42,20 +38,24 @@ class BlockEmotes : Autocompleter {
             return dst
         }
 
-        override fun getCompletion(input: String): String { // FINISHME: I don't know what foo was thinking when he wrote the autocomplete system but it's all horrible and needs a proper rewrite
-            val items = Seq(input.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
-            if (items.isEmpty) return input
-            items.pop()
-            val start = items.toString("")
-            return start + unicode
+        override fun getCompletion(input: String): String {
+            val text = getLast(input) ?: return input
+
+            return input.replaceLast(":$text", unicode)
         }
 
         override fun getHover(input: String): String {
-            if (!input.contains(":")) return input
-            val items = Seq(input.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
-            if (items.size == 0) return input
-            val text = items.peek()
-            return input.replace(":$text", ":$name:")
+            val text = getLast(input) ?: return input
+
+            return input.replaceLast(":$text", "$unicode :$name:")
+        }
+
+        private fun getLast(input: String): String? {
+            val strings = Seq.with(input.split("\\s".toRegex()))
+            if (strings.isEmpty) return null
+            val text = strings.peek()
+            if (!text.startsWith(":")) return null
+            return text.replaceFirst(":", "")
         }
     }
 }

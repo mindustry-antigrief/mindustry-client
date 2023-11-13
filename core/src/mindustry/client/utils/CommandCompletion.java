@@ -14,7 +14,7 @@ public class CommandCompletion implements Autocompleter {
         reset(true);
 
         Vars.netClient.addPacketHandler("commandList", list -> {
-            Log.debug("Received Command List: " + list);
+            Log.debug("Received Command List: @", list);
             var json = Jval.read(list);
             var cmds = json.get("commands").asObject();
             if (!cmds.isEmpty()) {
@@ -35,20 +35,6 @@ public class CommandCompletion implements Autocompleter {
 
     private static void addCommands(CommandHandler handler) {
         commands.addAll(handler.getCommandList().map(c -> new CommandCompletable(c.text, c.text + " " + c.paramText, handler.getPrefix())));
-    }
-
-    @Override
-    public Autocompleteable getCompletion(String input) {
-        return bestMatch(input);
-    }
-
-    private Autocompleteable bestMatch(String input) {
-        return commands.max(e -> e.matches(input));
-    }
-
-    @Override
-    public boolean matches(String input) {
-        return closest(input).any();
     }
 
     @Override

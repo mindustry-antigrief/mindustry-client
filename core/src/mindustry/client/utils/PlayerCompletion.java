@@ -6,25 +6,6 @@ import mindustry.gen.*;
 
 public class PlayerCompletion implements Autocompleter {
 
-    public Autocompleteable getCompletion(String input) {
-        return bestMatch(input);
-    }
-
-    @Override
-    public boolean matches(String input) {
-        Autocompleteable match = bestMatch(input);
-        if (match == null) {
-            return false;
-        }
-        return match.matches(input) > 0.5f;
-    }
-
-    private Autocompleteable bestMatch(String input) {
-        Seq<Autocompleteable> completions = closest(input);
-        if (completions.isEmpty()) return null;
-        return closest(input).first();
-    }
-
     public Seq<Autocompleteable> closest(String input) {
         return Groups.player.array.map(PlayerMatcher::new).sort(p -> p.matches(input)).as();
     }
