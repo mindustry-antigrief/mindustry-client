@@ -527,23 +527,17 @@ public class ConstructBlock extends Block{
             buildCost = current.buildCost * state.rules.buildCostMultiplier;
         }
 
-        public boolean shouldDisplayWarning(){
-            return wasConstructing && closestCore() != null && lastBuilder != null
-                    && player != null && team == player.team() && progress != lastProgress
-                    && lastBuilder != player.unit();
-        }
-
         /** Returns the smallest distance to the core and/or its connected vaults.*/
         public int distanceToGreaterCore(){
-            int lowestDistance = Integer.MAX_VALUE;
-            //Loop through the core and all connected storage
-            // BALA WARNING: I dont know whether replacing .and with .add was the correct move but I hope it is
-            for(Building building : closestCore().proximity.copy().add(closestCore())) {
+            float lowestDistance = Integer.MAX_VALUE;
+            for(Building building : closestCore().proximity) {
                 if (building instanceof StorageBlock.StorageBuild || building instanceof CoreBuild) {
-                    lowestDistance = Math.min(World.toTile(building.tile.dst2(this.tile)), lowestDistance);
+                    lowestDistance = Math.min(building.tile.dst2(this.tile), lowestDistance);
                 }
             }
-            return (int)Math.sqrt(lowestDistance);
+            lowestDistance = Math.min(closestCore().tile.dst2(this.tile), lowestDistance); // Check the core itself as well
+
+            return World.toTile(Mathf.sqrt(lowestDistance));
         }
 
         public void handleBlockWarning() {
