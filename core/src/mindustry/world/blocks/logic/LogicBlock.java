@@ -659,12 +659,22 @@ public class LogicBlock extends Block{
             return other != null && other.isValid() && (privileged || (!other.block.privileged && other.team == team && other.within(this, range + other.block.size*tilesize/2f))) && !(other instanceof ConstructBuild);
         }
 
+        public void removeCode(){
+            ClientVars.configs.add(new ConfigRequest(
+                this, compress("print \"code was removed\"\n", relativeConnections())
+            ));
+        }
+        public void removeLinks(){
+            ClientVars.configs.add(new ConfigRequest(this, compress(code, Seq.with())));
+        }
+
         @Override
         public void buildConfiguration(Table table){
             table.button(Icon.pencil, Styles.cleari, () ->
                 ui.logic.show(code, executor, privileged, code -> configure(compress(code, relativeConnections())))
             ).size(40);
 
+            //TODO FINISHME: bundle
             table.button(Icon.refresh, Styles.cleari, () -> {
                 var original = code;
                 ClientVars.configs.add(() -> { // Cursed, enqueues a config now, when that one is run it enqueues a second config.
@@ -674,15 +684,13 @@ public class LogicBlock extends Block{
             }).size(40).tooltip("Restart code execution").disabled(b -> !ClientVars.configs.isEmpty());
 
             table.button(Icon.trash, Styles.cleari, () -> {
-                ClientVars.configs.add(
-                    new ConfigRequest(this, compress("print \"code was removed\"\n", relativeConnections()))
-                );
+                if(Core.input.shift()) removeCode();
+                else ui.showConfirm("@confirm", "Are you sure you want to delete this processor's code?", this::removeCode);
             }).size(40).tooltip("Remove code").disabled(b -> !ClientVars.configs.isEmpty());
 
             table.button(Icon.eyeOff, Styles.cleari, () -> {
-                ClientVars.configs.add(
-                    new ConfigRequest(this, compress(code, Seq.with()))
-                );
+                if(Core.input.shift()) removeLinks();
+                else ui.showConfirm("@confirm", "Are you sure you want to remove all links?", this::removeLinks);
             }).size(40).tooltip("Remove all links").disabled(b -> !ClientVars.configs.isEmpty());
         }
 
