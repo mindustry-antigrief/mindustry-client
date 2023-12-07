@@ -150,7 +150,7 @@ public class PlayerListFragment{
                 imageOverColor = Color.lightGray;
             }};
 
-            if(net.server() || ((player.admin || Server.current.adminui()) && (!user.admin || user.isLocal()))){
+            if(net.server() || (Server.current.adminui() && (!user.admin || user.isLocal()))){
                 button.add().growY();
 
                 float bs = h / 2f;

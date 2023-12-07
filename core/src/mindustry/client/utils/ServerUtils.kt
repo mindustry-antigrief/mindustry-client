@@ -52,7 +52,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             }
         }
 
-        override fun adminui() = ClientVars.rank >= 5
+        override fun adminui() = ClientVars.rank >= 5 || player.admin
     },
     phoenix("Phoenix Network", null, Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9), votekickString = "Type [cyan]/vote y"),
     korea("Korea", ghost = true),
@@ -146,7 +146,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     open fun handleBan(p: Player) = Call.adminRequest(p, AdminAction.ban, null)
 
     /** Whether or not the player has access to the admin ui in the player list */
-    open fun adminui() = false
+    open fun adminui() = player.admin
 
     /** Map like/dislike */
     fun mapVote(i: Int) {
