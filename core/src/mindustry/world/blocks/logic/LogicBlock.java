@@ -674,7 +674,7 @@ public class LogicBlock extends Block{
                 ui.logic.show(code, executor, privileged, code -> configure(compress(code, relativeConnections())))
             ).size(40);
 
-            //TODO FINISHME: bundle
+            // FINISHME: bundle
             table.button(Icon.refresh, Styles.cleari, () -> {
                 var original = code;
                 ClientVars.configs.add(() -> { // Cursed, enqueues a config now, when that one is run it enqueues a second config.

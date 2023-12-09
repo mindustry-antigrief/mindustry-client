@@ -52,7 +52,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             }
         }
 
-        override fun adminui() = ClientVars.rank >= 5 || player.admin
+        override fun adminui() = player.admin || ClientVars.rank >= 5
     },
     phoenix("Phoenix Network", null, Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9), votekickString = "Type [cyan]/vote y"),
     korea("Korea", ghost = true),
