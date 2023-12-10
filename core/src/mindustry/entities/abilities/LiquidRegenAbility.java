@@ -18,6 +18,11 @@ public class LiquidRegenAbility extends Ability{
     public Effect slurpEffect = Fx.heal;
 
     @Override
+    public void addStats(Table t){
+        t.add(liquid.emoji() + " " + liquid.localizedName);
+    }
+
+    @Override
     public void update(Unit unit){
         //TODO timer?
 

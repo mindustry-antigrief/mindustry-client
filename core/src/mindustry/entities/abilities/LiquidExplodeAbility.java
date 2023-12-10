@@ -17,6 +17,11 @@ public class LiquidExplodeAbility extends Ability{
     public float noiseMag = 6.5f, noiseScl = 5f;
 
     @Override
+    public void addStats(Table t){
+        t.add(amount + " " + liquid.emoji() + " " + liquid.localizedName);
+    }
+
+    @Override
     public void death(Unit unit){
         //TODO what if noise is radial, so it looks like a splat?
         int tx = unit.tileX(), ty = unit.tileY();
