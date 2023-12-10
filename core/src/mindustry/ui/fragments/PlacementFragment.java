@@ -251,12 +251,21 @@ public class PlacementFragment{
         }
 
         if(Core.input.keyTap(Binding.block_info)){
-            var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
-            Block hovering = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
-            Block displayBlock = menuHoverBlock != null ? menuHoverBlock : input.block != null ? input.block : hovering;
-            if(displayBlock != null && displayBlock.unlockedNow()){
-                ui.content.show(displayBlock);
-                Events.fire(new BlockInfoEvent());
+            Unit hoveredUnit = null;
+            if((hoveredUnit = input.selectedUnit(true)) != null && !Core.input.alt()){ //i miss `if let Some(hoveredUnit) = input.selectedUnit(true) {` from Rust
+                //Show info for the unit
+                if(hoveredUnit.type.unlockedNow()){
+                    ui.content.show(hoveredUnit.type);
+                }
+            } else {
+                //Show info for the block
+                var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
+                Block hovering = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
+                Block displayBlock = menuHoverBlock != null ? menuHoverBlock : input.block != null ? input.block : hovering;
+                if(displayBlock != null && displayBlock.unlockedNow()){
+                    ui.content.show(displayBlock);
+                    Events.fire(new BlockInfoEvent());
+                }
             }
         }
 
