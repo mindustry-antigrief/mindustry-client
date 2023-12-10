@@ -1,21 +1,19 @@
 package mindustry.ui.fragments;
 
-import arc.Core;
-import arc.Events;
-import arc.math.Interp;
-import arc.math.geom.Vec2;
-import arc.scene.Group;
-import arc.scene.actions.Actions;
-import arc.scene.ui.layout.Table;
-import arc.struct.Seq;
-import arc.util.Align;
-import mindustry.ctype.UnlockableContent;
-import mindustry.entities.units.BuildPlan;
-import mindustry.game.EventType;
-import mindustry.type.Item;
-import mindustry.type.Liquid;
-import mindustry.world.Block;
-import mindustry.world.blocks.ItemSelection;
+import arc.*;
+import arc.math.*;
+import arc.math.geom.*;
+import arc.scene.*;
+import arc.scene.actions.*;
+import arc.scene.ui.layout.*;
+import arc.struct.*;
+import arc.util.*;
+import mindustry.ctype.*;
+import mindustry.entities.units.*;
+import mindustry.game.*;
+import mindustry.type.*;
+import mindustry.world.*;
+import mindustry.world.blocks.*;
 
 import static mindustry.Vars.*;
 
