@@ -72,4 +72,8 @@ public class Fires{
             map.put(fire.tile.pos(), fire);
         }
     }
+
+    static { // FINISHME: Temp hack as fire not being cleared keeps tiles in memory forever. Remove in v147 when anuke fixes it
+        Events.on(ResetEvent.class, e -> map.clear());
+    }
 }

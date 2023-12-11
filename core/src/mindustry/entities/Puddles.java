@@ -1,5 +1,6 @@
 package mindustry.entities;
 
+import arc.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
@@ -106,6 +107,10 @@ public class Puddles{
 
     public static void register(Puddle puddle){
         map.put(puddle.tile().pos(), puddle);
+    }
+
+    static { // FINISHME: Temp hack as puddles not being cleared keeps tiles in memory forever. Remove in v147 when anuke fixes it
+        Events.on(EventType.ResetEvent.class, e -> map.clear());
     }
 
     /** Reacts two liquids together at a location. */
