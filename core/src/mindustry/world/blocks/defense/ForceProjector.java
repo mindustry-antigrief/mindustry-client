@@ -9,6 +9,7 @@ import arc.math.geom.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
@@ -169,7 +170,7 @@ public class ForceProjector extends Block{
 
             warmup = Mathf.lerpDelta(warmup, efficiency, 0.1f);
 
-            if(buildup > 0){
+            if(buildup > 0 && !CustomMode.flood.b()){
                 float scale = !broken ? cooldownNormal : cooldownBrokenBase;
 
                 //TODO I hate this system
