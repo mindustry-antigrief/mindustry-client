@@ -43,6 +43,7 @@ public class BlockConfigFragment{
 
             table.visible = true;
             table.clear();
+            table.background(null); // clear the background as some blocks set custom ones
             tile.buildConfiguration(table);
             table.pack();
             table.setTransform(true);

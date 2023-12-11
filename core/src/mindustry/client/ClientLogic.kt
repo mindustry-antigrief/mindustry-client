@@ -2,6 +2,7 @@ package mindustry.client
 
 import arc.*
 import arc.Core.*
+import arc.graphics.g2d.SortedSpriteBatch
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
@@ -261,6 +262,10 @@ class ClientLogic {
         Events.run(Trigger.draw) {
             camera.bounds(cameraBounds)
             cameraBounds.grow(2 * tilesizeF)
+        }
+
+        Events.on(ResetEvent::class.java) {
+            (batch as? SortedSpriteBatch)?.reset()
         }
     }
 }
