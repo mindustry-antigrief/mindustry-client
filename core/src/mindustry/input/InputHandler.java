@@ -38,6 +38,7 @@ import mindustry.input.Placement.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
 import mindustry.type.*;
+import mindustry.ui.*;
 import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
@@ -1324,6 +1325,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             Draw.color(col2, .3f);
             Fill.crect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
         }
+        Font font = Fonts.outline;
+        font.setColor(col2);
+        font.getData().setScale(1/(4*Scl.scl(1)));
+        font.draw((int)(result.x2-result.x)/8 + "," + (int)(result.y2-result.y)/8, result.x2, result.y);
+        font.setColor(Color.white);
+        font.getData().setScale(1);
     }
 
     protected void flushSelectPlans(Seq<BuildPlan> plans){
