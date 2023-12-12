@@ -58,8 +58,8 @@ public class DesktopInput extends InputHandler{
     public float selectScale;
     /** Selected build plan for movement. */
     public @Nullable BuildPlan splan;
-    /** Used to track whether the splan was moved. */
-    public boolean splanMoved = false;
+    /** Used to keep track of where in the tile a build plan was clicked for dragging. */
+    public final Vec2 buildPlanClickOffset = new Vec2();
     /** Whether player is currently deleting removal plans. */
     public boolean deleting = false, shouldShoot = false, panning = false;
     /** Mouse pan speed. */
@@ -869,12 +869,10 @@ public class DesktopInput extends InputHandler{
         }
 
         if(splan != null){
-            float offset = ((splan.block.size + 2) % 2) * tilesize / 2f;
-            int x = (int)((Core.input.mouseWorld().x + offset) / tilesize);
-            int y = (int)((Core.input.mouseWorld().y + offset) / tilesize);
-            if (splan.x != x || splan.y != y) splanMoved = true;
-            splan.x = x;
-            splan.y = y;
+            float x = Core.input.mouseWorld().x + buildPlanClickOffset.x;
+            float y = Core.input.mouseWorld().y + buildPlanClickOffset.y;
+            splan.x = Math.round(x / tilesize);
+            splan.y = Math.round(y / tilesize);
         }
 
         if(block == null || mode != placing){
@@ -927,6 +925,8 @@ public class DesktopInput extends InputHandler{
                 updateLine(selectX, selectY);
             }else if(plan != null && !plan.breaking && mode == none && !plan.initialized){
                 splan = plan;
+                buildPlanClickOffset.x = splan.x * tilesize - Core.input.mouseWorld().x;
+                buildPlanClickOffset.y = splan.y * tilesize - Core.input.mouseWorld().y;
             }else if(plan != null && plan.breaking){
                 deleting = true;
             }else if(commandMode){
@@ -1022,9 +1022,7 @@ public class DesktopInput extends InputHandler{
                 if(getPlan(splan.x, splan.y, splan.block.size, splan) != null){
                     player.unit().plans().remove(splan, true);
                 }
-                if(!splanMoved) player.unit().addBuild(splan, false); // Add the plan to the top of the queue
                 splan = null;
-                splanMoved = false;
             }
 
             mode = none;
