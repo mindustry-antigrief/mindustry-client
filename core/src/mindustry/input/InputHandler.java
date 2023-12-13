@@ -1327,8 +1327,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
         Font font = Fonts.outline;
         font.setColor(col2);
-        font.getData().setScale(1/(4*Scl.scl(1)));
-        font.draw((int)(result.x2-result.x)/8 + "," + (int)(result.y2-result.y)/8, result.x2, result.y);
+        font.getData().setScale(1 / (4 * Scl.scl(1)));
+        font.draw((int)(result.x2 - result.x) / 8 + "x" + (int)(result.y2 - result.y) / 8, result.x2, result.y);
         font.setColor(Color.white);
         font.getData().setScale(1);
     }
