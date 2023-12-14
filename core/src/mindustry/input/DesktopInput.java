@@ -58,6 +58,8 @@ public class DesktopInput extends InputHandler{
     public float selectScale;
     /** Selected build plan for movement. */
     public @Nullable BuildPlan splan;
+    /** Used to track whether the splan was moved. */
+    public boolean splanMoved = false;
     /** Used to keep track of where in the tile a build plan was clicked for dragging. */
     public final Vec2 buildPlanClickOffset = new Vec2();
     /** Whether player is currently deleting removal plans. */
@@ -869,10 +871,11 @@ public class DesktopInput extends InputHandler{
         }
 
         if(splan != null){
-            float x = Core.input.mouseWorld().x + buildPlanClickOffset.x;
-            float y = Core.input.mouseWorld().y + buildPlanClickOffset.y;
-            splan.x = Math.round(x / tilesize);
-            splan.y = Math.round(y / tilesize);
+            int x = World.toTile(Core.input.mouseWorld().x + buildPlanClickOffset.x);
+            int y = World.toTile(Core.input.mouseWorld().y + buildPlanClickOffset.y);
+            if(splan.x != x || splan.y != y) splanMoved = true;
+            splan.x = x;
+            splan.y = y;
         }
 
         if(block == null || mode != placing){
@@ -1022,7 +1025,9 @@ public class DesktopInput extends InputHandler{
                 if(getPlan(splan.x, splan.y, splan.block.size, splan) != null){
                     player.unit().plans().remove(splan, true);
                 }
+                if(!splanMoved) player.unit().addBuild(splan, false); // Add the plan to the top of the queue
                 splan = null;
+                splanMoved = false;
             }
 
             mode = none;
