@@ -168,6 +168,19 @@ object Client {
                 if (bounds.overlaps(b.x - range, b.y - range, range * 2, range * 2)) b.drawSelect()
             }
         }
+        //Enemy spawners
+        if (state.hasSpawns()) {
+            val tiles = Seq<Tile>();
+            spawner.getSpawns().forEach { s ->
+                val intRad = Mathf.floor(state.rules.dropZoneRadius / tilesize)
+                indexer.eachBlock(player.team(), s.worldx(), s.worldy(), tilesize * intRad.toFloat(), { true }) {
+                    it.tile.getLinkedTiles(tiles)
+                    if (tiles.contains { t -> Mathf.pow(t.x - s.x, 2) + Mathf.pow(t.y - s.y, 2) < intRad * intRad }) {
+                        Drawf.selected(it, Tmp.c1.set(Color.red).a(Mathf.absin(4f, 1f)))
+                    }
+                };
+            }
+        }
 
         // Mass driver config
         if (showingMassDrivers) {
