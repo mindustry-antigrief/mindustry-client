@@ -237,9 +237,11 @@ public class OverlayRenderer{
 
         if(state.hasSpawns()){
             Core.camera.bounds(Tmp.r1);
+            boolean isBuilding = input.isBreaking() || input.isPlacing() || input.selectPlans.any() || Core.settings.getBool("alwaysshowdropzone", true);
+            int r = state.rules.dropZoneRadius;
             for(Tile tile : spawner.getSpawns()){
-                if(tile.within(player.x, player.y, state.rules.dropZoneRadius + spawnerMargin) || (input.isBreaking() || input.isPlacing() || input.selectPlans.any()) && Tmp.r1.overlaps(tile.getX() - state.rules.dropZoneRadius, tile.getY() - state.rules.dropZoneRadius, state.rules.dropZoneRadius * 2, state.rules.dropZoneRadius * 2)){
-                    Draw.alpha(input.isBreaking() || input.isPlacing() || input.selectPlans.any() ? 1 : Mathf.clamp(1f - (player.dst(tile) - state.rules.dropZoneRadius) / spawnerMargin));
+                if(tile.within(player.x, player.y, r + spawnerMargin) || (Tmp.r1.overlaps(tile.getX() - r, tile.getY() - r, r * 2, r * 2) && isBuilding)){
+                    Draw.alpha(building ? 1 : Mathf.clamp(1f - (player.dst(tile) - state.rules.dropZoneRadius) / spawnerMargin));
                     Lines.dashCircle(tile.worldx(), tile.worldy(), state.rules.dropZoneRadius);
                 }
             }
