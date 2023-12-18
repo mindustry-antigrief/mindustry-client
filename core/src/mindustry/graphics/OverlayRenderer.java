@@ -235,14 +235,14 @@ public class OverlayRenderer{
         Lines.stroke(2f);
         Draw.color(Color.gray, Color.lightGray, Mathf.absin(Time.time, 8f, 1f));
 
-        if(state.hasSpawns()){
+        if(state.hasSpawns() || state.hasSector() && state.getSector().vulnerable()){
             Core.camera.bounds(Tmp.r1);
             boolean isBuilding = input.isBreaking() || input.isPlacing() || input.selectPlans.any() || Core.settings.getBool("alwaysshowdropzone", true);
-            int r = state.rules.dropZoneRadius;
+            float r = state.rules.dropZoneRadius;
             for(Tile tile : spawner.getSpawns()){
                 if(tile.within(player.x, player.y, r + spawnerMargin) || (Tmp.r1.overlaps(tile.getX() - r, tile.getY() - r, r * 2, r * 2) && isBuilding)){
-                    Draw.alpha(building ? 1 : Mathf.clamp(1f - (player.dst(tile) - state.rules.dropZoneRadius) / spawnerMargin));
-                    Lines.dashCircle(tile.worldx(), tile.worldy(), state.rules.dropZoneRadius);
+                    Draw.alpha(!state.hasSpawns() ? 0.3 : isBuilding ? 1 : Mathf.clamp(1f - (player.dst(tile) - r) / spawnerMargin));
+                    Lines.dashCircle(tile.worldx(), tile.worldy(), r);
                 }
             }
         }

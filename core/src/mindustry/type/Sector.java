@@ -65,6 +65,28 @@ public class Sector{
         }
     }
 
+    public int nearbyEnemyBases(){
+        int bases = 0;
+        for(Ptile tile : tile.tiles){
+            Sector s = planet.getSector(tile);
+            if(s.hasEnemyBase() && !s.hasBase()){
+                bases ++;
+            }
+        }
+        return bases;
+    }
+
+    public boolean vulnerable(){
+        if(!planet.allowSectorInvasion) return false;
+        for(Ptile tile : tile.tiles){
+            Sector s = planet.getSector(tile);
+            if(s.hasEnemyBase() && !s.hasBase()){
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Displays threat as a formatted string. */
     public String displayThreat(){
         float step = 0.25f;
