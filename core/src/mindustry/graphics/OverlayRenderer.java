@@ -241,7 +241,7 @@ public class OverlayRenderer{
             float r = state.rules.dropZoneRadius;
             for(Tile tile : spawner.getSpawns()){
                 if(tile.within(player.x, player.y, r + spawnerMargin) || (Tmp.r1.overlaps(tile.getX() - r, tile.getY() - r, r * 2, r * 2) && isBuilding)){
-                    Draw.alpha(!state.hasSpawns() ? 0.3 : isBuilding ? 1 : Mathf.clamp(1f - (player.dst(tile) - r) / spawnerMargin));
+                    Draw.alpha(!state.hasSpawns() ? 0.3f : isBuilding ? 1 : Mathf.clamp(1f - (player.dst(tile) - r) / spawnerMargin));
                     Lines.dashCircle(tile.worldx(), tile.worldy(), r);
                 }
             }
