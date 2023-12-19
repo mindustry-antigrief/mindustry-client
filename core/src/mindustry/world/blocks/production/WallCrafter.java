@@ -58,7 +58,7 @@ public class WallCrafter extends Block{
         super.setBars();
 
         addBar("drillspeed", (WallCrafterBuild e) ->
-            new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastEfficiency * 60 / drillTime, 2)), () -> Pal.ammo, () -> e.warmup));
+            new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastEfficiency * 60 / drillTime, 3)), () -> Pal.ammo, () -> e.warmup));
     }
 
     @Override
@@ -105,7 +105,7 @@ public class WallCrafter extends Block{
     public void drawPlace(int x, int y, int rotation, boolean valid){
         float eff = getEfficiency(x, y, rotation, null, null);
 
-        drawPlaceText(Core.bundle.formatFloat("bar.drillspeed", 60f / drillTime * eff, 2), x, y, valid);
+        drawPlaceText(Core.bundle.formatFloat("bar.drillspeed", 60f / drillTime * eff, 3), x, y, valid);
     }
     @Override
     public boolean canPlaceOn(Tile tile, Team team, int rotation){

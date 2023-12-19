@@ -111,7 +111,7 @@ public class Drill extends Block{
         super.setBars();
 
         addBar("drillspeed", (DrillBuild e) ->
-             new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastDrillSpeed * 60 * e.timeScale(), 2)), () -> Pal.ammo, () -> e.warmup));
+             new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastDrillSpeed * 60 * e.timeScale(), 3)), () -> Pal.ammo, () -> e.warmup));
     }
 
     public Item getDrop(Tile tile){
@@ -134,8 +134,8 @@ public class Drill extends Block{
 
         if(returnItem != null){
             float rate = 60f / getDrillTime(returnItem) * returnCount;
-            String boostedRate = liquidBoostIntensity != 1 ? " ([white]" + Liquids.water.emoji() + "[]" + Strings.fixed(rate * liquidBoostIntensity * liquidBoostIntensity, 2)  + ")" : "";
-            float width = drawPlaceText(Core.bundle.format("bar.drillspeed", Strings.fixed(rate, 2) + boostedRate), x, y, valid);
+            String boostedRate = liquidBoostIntensity != 1 ? " ([white]" + Liquids.water.emoji() + "[]" + Strings.fixed(rate * liquidBoostIntensity * liquidBoostIntensity, 3)  + ")" : "";
+            float width = drawPlaceText(Core.bundle.format("bar.drillspeed", Strings.fixed(rate, 3) + boostedRate), x, y, valid);
             float dx = x * tilesize + offset - width/2f - 4f, dy = y * tilesize + offset + size * tilesize / 2f + 5, s = iconSmall / 4f;
             Draw.mixcol(Color.darkGray, 1f);
             Draw.rect(returnItem.fullIcon, dx, dy - 1, s, s);

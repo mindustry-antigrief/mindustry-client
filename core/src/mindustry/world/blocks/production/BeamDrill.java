@@ -83,7 +83,7 @@ public class BeamDrill extends Block{
         super.setBars();
 
         addBar("drillspeed", (BeamDrillBuild e) ->
-            new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastDrillSpeed * 60, 2)), () -> Pal.ammo, () -> e.warmup));
+            new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastDrillSpeed * 60, 3)), () -> Pal.ammo, () -> e.warmup));
     }
 
     @Override
@@ -171,7 +171,7 @@ public class BeamDrill extends Block{
         }
 
         if(item != null){
-            float width = drawPlaceText(Core.bundle.formatFloat("bar.drillspeed", 60f / getDrillTime(item) * count, 2), x, y, valid);
+            float width = drawPlaceText(Core.bundle.formatFloat("bar.drillspeed", 60f / getDrillTime(item) * count, 3), x, y, valid);
             if(!multiple){
                 float dx = x * tilesize + offset - width/2f - 4f, dy = y * tilesize + offset + size * tilesize / 2f + 5, s = iconSmall / 4f;
                 Draw.mixcol(Color.darkGray, 1f);
