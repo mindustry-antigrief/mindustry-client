@@ -1841,11 +1841,21 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return Core.input.mouseWorld(getMouseX(), getMouseY()).sub(x, y).angle();
     }
 
-    public @Nullable Unit selectedUnit(boolean allowPlayers){
+    public @Nullable Unit selectedUnit(boolean allowPlayers, boolean allowEnemy, boolean allowBlockUnits){
         boolean hidingAirUnits = ClientVars.hidingAirUnits;
-        Unit unit = Units.closest(player.team(), Core.input.mouseWorld().x, Core.input.mouseWorld().y, input.shift() ? 100f : 40f,
-                allowPlayers ? hidingAirUnits ? u -> !u.isLocal() && !u.isFlying() : u -> !u.isLocal()
-                        : hidingAirUnits ? u -> u.isAI() && !u.isFlying() : Unitc::isAI);
+        Unit unit = Units.closest(
+            allowEnemy ? null : player.team(),
+            Core.input.mouseWorld().x, Core.input.mouseWorld().y,
+            input.shift() ? 100f : 40f,
+            //I don't think this optimization is worth it...
+            allowPlayers
+                ? hidingAirUnits
+                    ? allowBlockUnits ? u -> !u.isLocal() && !u.isFlying() : u -> !u.isLocal() && !u.isFlying() && !(u instanceof BlockUnitc)
+                    : allowBlockUnits ? u -> !u.isLocal() : u -> !u.isLocal() && !(u instanceof BlockUnitc)
+                : hidingAirUnits
+                    ? allowBlockUnits ? u -> u.isAI() && !u.isFlying() : u -> u.isAI() && !u.isFlying()  && !(u instanceof BlockUnitc)
+                    : allowBlockUnits ? Unitc::isAI : u -> u.isAI() && !(u instanceof BlockUnitc)
+        );
         if(unit != null && !ClientVars.hidingUnits){
             unit.hitbox(Tmp.r1);
             Tmp.r1.grow(input.shift() ? tilesize * 6 : 6f ); // If shift is held, add 3 tiles of leeway, makes it easier to shift click units controlled by processors and such
@@ -1860,6 +1870,14 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
 
         return null;
+    }
+
+    public @Nullable Unit selectedUnit(boolean allowPlayers, boolean allowEnemy) {
+        return selectedUnit(allowPlayers, allowEnemy, true);
+    }
+
+    public @Nullable Unit selectedUnit(boolean allowPlayers) {
+        return selectedUnit(allowPlayers, false);
     }
 
     public @Nullable Unit selectedUnit() {
