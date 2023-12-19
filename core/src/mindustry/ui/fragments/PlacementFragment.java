@@ -252,7 +252,7 @@ public class PlacementFragment{
 
         if(Core.input.keyTap(Binding.block_info)){
             Unit hoveredUnit = null;
-            if((hoveredUnit = input.selectedUnit(true)) != null && !Core.input.alt()){ //i miss `if let Some(hoveredUnit) = input.selectedUnit(true) {` from Rust
+            if((hoveredUnit = input.selectedUnit(true)) != null && !(hoveredUnit instanceof BlockUnitc) && !Core.input.alt()){ //i miss `if let Some(hoveredUnit) = input.selectedUnit(true) {` from Rust
                 //Show info for the unit
                 if(hoveredUnit.type.unlockedNow()){
                     ui.content.show(hoveredUnit.type);
