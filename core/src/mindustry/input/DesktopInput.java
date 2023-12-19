@@ -613,7 +613,7 @@ public class DesktopInput extends InputHandler{
                         Spectate.INSTANCE.spectate(ai.controller);
                         shouldShoot = false;
                     }
-                }else if((on = Units.closestOverlap((mouseWorld = Core.input.mouseWorld()).x, mouseWorld.y, tilesize * 8f,
+                }else if(!hidingUnits && (on = Units.closestOverlap((mouseWorld = Core.input.mouseWorld()).x, mouseWorld.y, tilesize * 8f,
                         u -> (!u.isFlying() || !hidingAirUnits) && mouseWorld.within(u, u.hitSize))) != null && on.controller() instanceof LogicAI ai && ai.controller != null){
                     // This condition is meant to catch logic-controlled units of any team
                     Spectate.INSTANCE.spectate(ai.controller);
