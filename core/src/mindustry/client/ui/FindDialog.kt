@@ -10,6 +10,7 @@ import mindustry.client.utils.*
 import mindustry.core.*
 import mindustry.ui.dialogs.*
 import mindustry.world.*
+import mindustry.world.blocks.environment.*
 
 object FindDialog : BaseDialog("@client.find") {
     private val imageTable = Table()
@@ -55,9 +56,11 @@ object FindDialog : BaseDialog("@client.find") {
             if (guesses.isEmpty()) return@keyDown // Pasting an emoji will cause this to crash otherwise
             val block = guesses[0]
             val results = mutableListOf<Tile>()
+            val disallowBlockCover = block is OreBlock && !block.wallOre;
 
             for (t in world.tiles) { // FINISHME: Add an option to not show things such as ores which are covered by blocks
                 if (!t.isCenter) continue
+                if (disallowBlockCover && t.solid() && !t.breakable()) continue
                 if (t.block() != block && t.floor() != block && t.overlay() != block) continue
                 if (allyOnly.isChecked && t.team() != player.team()) continue
                 results += t
