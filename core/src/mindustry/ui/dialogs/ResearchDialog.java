@@ -660,10 +660,15 @@ public class ResearchDialog extends BaseDialog{
                                         list.image(req.item.uiIcon).size(8 * 3).padRight(3);
                                         list.add(req.item.localizedName).color(Color.lightGray);
                                         Label label = list.label(() -> " " +
-                                                UI.formatAmount(Math.min(items.get(req.item), reqAmount)) + " / "
-                                            + UI.formatAmount(reqAmount)).get();
+                                                UI.formatAmount(items.get(req.item), true) + " / "
+                                            + UI.formatAmount(reqAmount, true)).get();
 
-                                        Color targetColor = items.has(req.item) ? Color.lightGray : Color.scarlet;
+                                        float fraction = (float)items.get(req.item) / reqAmount;
+                                        Color targetColor = 
+                                            fraction > 1.8 ? Color.green :
+                                            fraction >= 1 ? Color.lime :
+                                            fraction >= 0.5 ? Color.salmon :
+                                            Color.red;
 
                                         if(shiny){
                                             label.setColor(Pal.accent);
