@@ -1842,25 +1842,27 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public @Nullable Unit selectedUnit(boolean allowPlayers, boolean allowEnemy, boolean allowBlockUnits){
-        boolean hidingAirUnits = ClientVars.hidingAirUnits;
-        Unit unit = Units.closest(
-            allowEnemy ? null : player.team(),
-            Core.input.mouseWorld().x, Core.input.mouseWorld().y,
-            input.shift() ? 100f : 40f,
-            //I don't think this optimization is worth it...
-            allowPlayers
-                ? hidingAirUnits
-                    ? allowBlockUnits ? u -> !u.isLocal() && !u.isFlying() : u -> !u.isLocal() && !u.isFlying() && !(u instanceof BlockUnitc)
-                    : allowBlockUnits ? u -> !u.isLocal() : u -> !u.isLocal() && !(u instanceof BlockUnitc)
-                : hidingAirUnits
-                    ? allowBlockUnits ? u -> u.isAI() && !u.isFlying() : u -> u.isAI() && !u.isFlying()  && !(u instanceof BlockUnitc)
-                    : allowBlockUnits ? Unitc::isAI : u -> u.isAI() && !(u instanceof BlockUnitc)
-        );
-        if(unit != null && !ClientVars.hidingUnits){
-            unit.hitbox(Tmp.r1);
-            Tmp.r1.grow(input.shift() ? tilesize * 6 : 6f ); // If shift is held, add 3 tiles of leeway, makes it easier to shift click units controlled by processors and such
-            if(Tmp.r1.contains(Core.input.mouseWorld())){
-                return unit;
+        if(!hidingUnits){
+            boolean hidingAirUnits = ClientVars.hidingAirUnits;
+            Unit unit = Units.closest(
+                allowEnemy ? null : player.team(),
+                Core.input.mouseWorld().x, Core.input.mouseWorld().y,
+                input.shift() ? 100f : 40f,
+                //I don't think this optimization is worth it...
+                allowPlayers
+                    ? hidingAirUnits
+                        ? allowBlockUnits ? u -> !u.isLocal() && !u.isFlying() : u -> !u.isLocal() && !u.isFlying() && !(u instanceof BlockUnitc)
+                        : allowBlockUnits ? u -> !u.isLocal() : u -> !u.isLocal() && !(u instanceof BlockUnitc)
+                    : hidingAirUnits
+                        ? allowBlockUnits ? u -> u.isAI() && !u.isFlying() : u -> u.isAI() && !u.isFlying()  && !(u instanceof BlockUnitc)
+                        : allowBlockUnits ? Unitc::isAI : u -> u.isAI() && !(u instanceof BlockUnitc)
+            );
+            if(unit != null){
+                unit.hitbox(Tmp.r1);
+                Tmp.r1.grow(input.shift() ? tilesize * 6 : 6f); // If shift is held, add 3 tiles of leeway, makes it easier to shift click units controlled by processors and such
+                if(Tmp.r1.contains(Core.input.mouseWorld())){
+                    return unit;
+                }
             }
         }
 
