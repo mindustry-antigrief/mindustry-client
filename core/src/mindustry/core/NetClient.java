@@ -435,6 +435,7 @@ public class NetClient implements ApplicationListener{
     @Remote(called = Loc.client, variants = Variant.one)
     public static void connect(String ip, int port){
         if(!steam && ip.startsWith("steam:")) return;
+        Log.info("Server sending us to @:@", ip, port);
         netClient.disconnectQuietly();
         logic.reset();
 
