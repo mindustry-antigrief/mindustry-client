@@ -12,6 +12,7 @@ import mindustry.annotations.Annotations.*;
 import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
@@ -61,6 +62,9 @@ public class ItemBridge extends Block{
         config(Point2.class, (ItemBridgeBuild tile, Point2 i) -> tile.link = Point2.pack(i.x + tile.tileX(), i.y + tile.tileY()));
         //integer is not
         config(Integer.class, (ItemBridgeBuild tile, Integer i) -> tile.link = i);
+
+        //no reason to keep this in memory
+        Events.on(EventType.ResetEvent.class, e -> lastBuild = null);
     }
 
     @Override
