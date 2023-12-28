@@ -58,7 +58,7 @@ public class Pump extends LiquidBlock{
         }
 
         if(liquidDrop != null){
-            float width = drawPlaceText(Core.bundle.formatFloat("bar.pumpspeed", amount * pumpAmount * 60f, 0), x, y, valid);
+            float width = drawPlaceText(Core.bundle.formatFloat("bar.pumpspeed", amount * pumpAmount * 60f, 1), x, y, valid);
             float dx = x * tilesize + offset - width/2f - 4f, dy = y * tilesize + offset + size * tilesize / 2f + 5, s = iconSmall / 4f;
             float ratio = (float)liquidDrop.fullIcon.width / liquidDrop.fullIcon.height;
             Draw.mixcol(Color.darkGray, 1f);
