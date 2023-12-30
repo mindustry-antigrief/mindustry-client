@@ -127,6 +127,19 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         linePlans.each(cons);
     };
 
+    // These 3 vars and init block are used for retrying configs that the server has denied due to exceeding the ratelimit
+    private static boolean fromServer;
+    private static Queue<Pair<Building, Object>> prevs = new Queue<>(32); // This is by no means the best way to do this, but I'm too lazy to write a proper LRU cache
+    private static IntIntMap queued = new IntIntMap();
+
+    static {
+        net.handleClient(TileConfigCallPacket.class, packet -> {
+            fromServer = true;
+            packet.handleClient();
+            fromServer = false;
+        });
+    }
+
     public InputHandler(){
         group.touchable = Touchable.childrenOnly;
         inv = new BlockInventoryFragment();
@@ -511,16 +524,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Events.fire(new BuildRotateEvent(build, player == null ? null : player.unit(), previous));
     }
 
-    static {
-        net.handleClient(TileConfigCallPacket.class, packet -> {
-            fromServer = true;
-            packet.handleClient();
-            fromServer = false;
-        });
-    }
-    static boolean fromServer, redoing;
-    static Queue<Pair<Building, Object>> prevs = new Queue<>(32); // This is by no means the best way to do this, but I'm too lazy to write a proper LRU cache
-    static IntIntMap queued = new IntIntMap();
     @Remote(targets = Loc.both, called = Loc.both, forward = true, ratelimited = true)
     public static void tileConfig(@Nullable Player player, Building build, @Nullable Object value){
         if(build == null) return;
@@ -551,7 +554,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     if(value != pConf){ // Only update the config if it's not the same as what the client wants
                         if (ratelimitRemaining > 0) ratelimitRemaining = 0; // If we ever have to do a config we assume the remaining limit is 0 since we wouldn't have to redo this config otherwise FINISHME: Handle case where sufficient time elapses. This could also be implemented so that it only happens when a retry fails
                         int id = queued.increment(build.pos()) + 1; // FINISHME: Terrible way of ensuring that only one config is queued for any given block at any given time
-                        configs.add(() -> { if(queued.get(build.pos()) == id){ redoing = true; Call.tileConfig(Vars.player, build, pConf); redoing = false; queued.remove(build.pos()); }});
+                        configs.add(() -> {
+                            if(queued.get(build.pos()) != id) return;
+                            Call.tileConfig(Vars.player, build, pConf);
+                            queued.remove(build.pos());
+                        });
                     }
                     it.remove();
                     break;
@@ -1215,10 +1222,14 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             return r2.overlaps(r1);
         };
 
-        for(var plan : player.unit().plans()){
+        for(int i = 0; i < player.unit().plans.size; i++){ // Breaking or returning from enhanced for loops clogs the iterator and prevents reuse
+            var plan = player.unit().plans.get(i);
             if(test.get(plan)) return plan;
         }
-        for (BuildPlan plan : frozenPlans) if (test.get(plan)) return plan;
+        for(int i = 0; i < frozenPlans.size; i++){ // Breaking or returning from enhanced for loops clogs the iterator and prevents reuse
+            var plan = frozenPlans.get(i);
+            if(test.get(plan)) return plan;
+        }
 
         return selectPlans.find(test);
     }
@@ -1327,10 +1338,19 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
         Font font = Fonts.outline;
         font.setColor(col2);
-        font.getData().setScale(1 / (4 * Scl.scl(1)));
-        font.draw((int)(result.x2 - result.x) / 8 + "x" + (int)(result.y2 - result.y) / 8, result.x2, result.y);
+        var ints = font.usesIntegerPositions();
+        font.setUseIntegerPositions(false);
+        var z = Draw.z();
+        Draw.z(Layer.endPixeled);
+        font.getData().setScale(1 / renderer.camerascale);
+        var snapToCursor = Core.settings.getBool("selectionsizeoncursor");
+        var textOffset = Core.settings.getInt("selectionsizeoncursoroffset", 5);
+        // FINISHME: When not snapping to cursor, perhaps it would be best to choose the corner closest to the cursor that's at least a block away?
+        font.draw((int)((result.x2 - result.x) / 8) + "x" + (int)((result.y2 - result.y) / 8), snapToCursor ? input.mouseWorldX() + textOffset * (4 / renderer.camerascale) : result.x2, snapToCursor ? input.mouseWorldY() - textOffset * (4 / renderer.camerascale) : result.y);
         font.setColor(Color.white);
         font.getData().setScale(1);
+        font.setUseIntegerPositions(ints);
+        Draw.z(z);
     }
 
     protected void flushSelectPlans(Seq<BuildPlan> plans){

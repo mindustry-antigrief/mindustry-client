@@ -169,6 +169,22 @@ public class UI implements ApplicationListener, Loadable{
             }
         }
 
+        /* Software cursor. It actually almost works well surprisingly enough
+        var lastCursor = graphics.lastCursor;
+        Log.info("Current cursor: @", lastCursor == Cursor.SystemCursor.arrow ? "arrow" : lastCursor == Cursor.SystemCursor.hand ? "hand" : lastCursor == emptyCursor ? "empty" : "other");
+        if(lastCursor == emptyCursor){ // Software cursor. We show the hardware cursor for an extra frame as otherwise it disappears for a frame. It creates a jarring effect, but I don't know if we can do anything to fix it
+            if(lastNonEmptyCursor != null) graphics.cursor(lastNonEmptyCursor);
+            lastNonEmptyCursor = null;
+            Draw.reset();
+            Draw.proj(camera);
+            Draw.sort(false);
+            softCursor.scale = 4 / renderer.camerascale;
+            Draw.rect(softCursor, input.mouseWorldX(), input.mouseWorldY());
+            Draw.flush();
+        }else{
+            lastNonEmptyCursor = lastCursor;
+        } */
+
         Events.fire(Trigger.uiDrawEnd);
     }
 

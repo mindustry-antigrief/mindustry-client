@@ -383,6 +383,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("drawwrecks", true);
         client.checkPref("drawallitems", true, i -> UnitType.drawAllItems = i);
         client.checkPref("drawpath", true);
+        client.checkPref("selectionsizeoncursor", true);
         client.checkPref("drawselectionvanilla", false);
         client.checkPref("drawcursors", false);
         client.checkPref("drawdisplayborder", false);

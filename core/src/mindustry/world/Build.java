@@ -20,6 +20,8 @@ import mindustry.world.blocks.storage.CoreBlock.*;
 import static mindustry.Vars.*;
 
 public class Build{
+    public static final Seq<BuildPlan> planSeq = new Seq<>(BuildPlan.class); // FINISHME: This is pretty cursed
+
     private static final IntSet tmp = new IntSet();
 
     @Remote(called = Loc.server)
@@ -65,7 +67,6 @@ public class Build{
         Events.fire(new BlockBuildBeginEvent(tile, team, unit, true));
     }
 
-    public final static Seq<BuildPlan> planSeq = new Seq<>(BuildPlan.class);
     /** Places a ConstructBlock at this location. */
     @Remote(called = Loc.server)
     public static void beginPlace(@Nullable Unit unit, Block result, Team team, int x, int y, int rotation){
