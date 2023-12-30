@@ -103,7 +103,7 @@ class AutoTransfer {
 
             val minItems = if (core is CoreBlock.CoreBuild) minCoreItems else 1
             if (core != null) { // Automatically take needed item from core
-                when (val cons = it.block.findConsumer<Consume> { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic }) { // Cursed af
+                when (val cons = it.block.findConsumer<Consume> { (it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic) && it !is ConsumeItemExplode } ?: it.block.findConsumer { it is ConsumeItems || it is ConsumeItemFilter || it is ConsumeItemDynamic }) { // Cursed af
                     is ConsumeItems -> {
                         cons.items.forEach { i ->
                             val acceptedC = it.acceptStack(i.item, it.getMaximumAccepted(i.item), player.unit())
@@ -116,9 +116,12 @@ class AutoTransfer {
                         content.items().each { i ->
                             val acceptedC = if (i == Items.blastCompound && it.block.findConsumer<Consume> { it is ConsumeItemExplode } != null) 0 else it.acceptStack(i, Int.MAX_VALUE, player.unit())
                             if (acceptedC >= minTransfer && it.block.consumesItem(i) && core!!.items.has(i, minItems)) {
-                                // Turrets have varying ammo, add an offset to prioritize some than others
-                                ammoCounts[i.id.toInt()] += acceptedC
-                                dpsCounts[i.id.toInt()] += acceptedC * getAmmoScore((it.block as? ItemTurret)?.ammoTypes?.get(i))
+                                if (it.block is ItemTurret) { // Turrets have varying ammo, add an offset to prioritize some than others
+                                    ammoCounts[i.id.toInt()] += acceptedC
+                                    dpsCounts[i.id.toInt()] += acceptedC * getAmmoScore((it.block as? ItemTurret)?.ammoTypes?.get(i))
+                                } else {
+                                    counts[i.id.toInt()] += acceptedC
+                                }
                             }
                         }
                     }
