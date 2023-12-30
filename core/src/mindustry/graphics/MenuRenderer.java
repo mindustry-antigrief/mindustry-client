@@ -46,25 +46,26 @@ public class MenuRenderer implements Disposable{
     }
 
     public void updateCursedness(){
+        Rand rand = new Rand(System.nanoTime());
         cursednessLevel = Core.settings == null ?
             CursednessLevel.NORMAL :
             CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1));
         numFlyers = switch(cursednessLevel){
-            case NORMAL, UHH -> Mathf.chance(0.2) ? Mathf.random(35) : Mathf.random(15);
-            case OHNO, CURSED -> Mathf.random(35, 70);
-            case WWWHHHHHYYYY -> Mathf.random(100, 110);
+            case NORMAL, UHH -> rand.chance(0.2) ? rand.random(35) : rand.random(15);
+            case OHNO, CURSED -> rand.random(35, 70);
+            case WWWHHHHHYYYY -> rand.random(100, 110);
         };
         numBlockFlyers = switch(cursednessLevel){
             case NORMAL, UHH, OHNO -> 0;
-            case CURSED -> Mathf.random(5, 10);
-            case WWWHHHHHYYYY -> Mathf.random(20, 25);
+            case CURSED -> rand.random(5, 10);
+            case WWWHHHHHYYYY -> rand.random(20, 25);
         };
         flyerType = switch(cursednessLevel){
-            case NORMAL -> Seq.with(UnitTypes.flare, UnitTypes.horizon, UnitTypes.zenith, UnitTypes.mono, UnitTypes.poly, UnitTypes.mega, UnitTypes.alpha, UnitTypes.beta, UnitTypes.gamma).random();
-            case UHH, OHNO, CURSED -> content.units().select(u -> u.region != null && u.region.found()).random();
-            case WWWHHHHHYYYY -> content.units().select(u -> !u.flying && u.region != null && u.region.found()).random();
+            case NORMAL -> Seq.with(UnitTypes.flare, UnitTypes.horizon, UnitTypes.zenith, UnitTypes.mono, UnitTypes.poly, UnitTypes.mega, UnitTypes.alpha, UnitTypes.beta, UnitTypes.gamma).random(rand);
+            case UHH, OHNO, CURSED -> content.units().select(u -> u.region != null && u.region.found()).random(rand);
+            case WWWHHHHHYYYY -> content.units().select(u -> !u.flying && u.region != null && u.region.found()).random(rand);
         };
-        blockFlyerType = content.blocks().select(u -> u.region != null && u.region.found() && u.isPlaceable()).random();
+        blockFlyerType = content.blocks().select(u -> u.region != null && u.region.found() && u.isPlaceable()).random(rand);
         blockFlyerSpeed = 2f;
     }
 
@@ -344,7 +345,7 @@ public class MenuRenderer implements Disposable{
         float range = 500f;
         float offset = -100f;
 
-        for(int i = 0; i < numFlyers; i++){
+        for(int i = 0; i < 5 * numFlyers; i += 5){
             Tmp.v1.trns(flyerRot, time * (flyerType.speed));
             float x = (Mathf.randomSeedRange(i, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 5, 0, 500));
             float y = (Mathf.randomSeedRange(i + 1, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset) % th;
@@ -360,7 +361,7 @@ public class MenuRenderer implements Disposable{
         float range = 500f;
         float offset = -100f;
 
-        for(int i = 0; i < numBlockFlyers; i++){
+        for(int i = 4107; i < 4107 + 5 * numBlockFlyers; i += 5){
             Tmp.v1.trns(flyerRot, time * blockFlyerSpeed);
             float x = (Mathf.randomSeedRange(i + 10, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 12, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 15, 0, 500));
             float y = (Mathf.randomSeedRange(i + 11, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 13, 500), 10f, 3.4f) + offset) % th;
