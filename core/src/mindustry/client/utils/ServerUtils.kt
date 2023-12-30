@@ -18,7 +18,6 @@ import mindustry.graphics.*
 import mindustry.net.Packets.*
 import mindustry.ui.fragments.ChatFragment.*
 import mindustry.world.blocks.defense.turrets.*
-import mindustry.world.consumers.*
 import java.lang.reflect.*
 import kotlin.properties.*
 
@@ -199,17 +198,17 @@ enum class CustomMode {
                 Blocks.mendProjector, "phaseBoost", 12f,
                 Blocks.mendProjector, "phaseBoost", 2f,
                 Blocks.forceProjector, "shieldHealth", 2500f,
-                Blocks.forceProjector, "coolantConsumer", ConsumeCoolant(.1f), // FINISHME: This one probably breaks things, also it wont display correctly in the stats page
+//                Blocks.forceProjector, "coolantConsumer", ConsumeCoolant(.1f), // FINISHME: This one probably breaks things, also it wont display correctly in the stats page
                 Blocks.radar, "health", 500,
                 Blocks.regenProjector, "healPercent", 12f, // Nice balance, a casual 180x buff
                 Blocks.shockwaveTower, "health", 2000,
 //                Blocks.shockwaveTower, "consumeLiquids", Blocks.shockwaveTower.consumeLiquids(*LiquidStack.with(Liquids.cyanogen, 1f / 60f)) // FINISHME: This one too, consumers are annoying
                 Blocks.thoriumReactor, "health", 1400,
-                (Blocks.lancer as PowerTurret).shootType, "damage", 10,
-                (Blocks.arc as PowerTurret).shootType, "damage", 4,
-                (Blocks.arc as PowerTurret).shootType, "lightningLength", 15,
-                (Blocks.swarmer as ItemTurret).shoot, "shots", 5,
-                (Blocks.swarmer as ItemTurret).shoot, "shotDelay", 4f,
+                Blocks.lancer, "shootType.damage", 10,
+                Blocks.arc, "shootType.damage", 4,
+                Blocks.arc, "shootType.lightningLength", 15,
+                Blocks.swarmer, "shoot.shots", 5,
+                Blocks.swarmer, "shoot.shotDelay", 4f,
                 Blocks.segment, "range", 160f,
                 Blocks.segment, "reload", 9f,
                 Blocks.tsunami, "reload", 2f,
@@ -236,7 +235,6 @@ enum class CustomMode {
     defense
     ;
 
-    @OptIn(ExperimentalStdlibApi::class)
     companion object {
         @JvmStatic var current by Delegates.observable(none) { _, oldValue, newValue ->
             if (oldValue == newValue) return@observable // This can happen.
@@ -264,10 +262,13 @@ enum class CustomMode {
         }
 
         private fun <O: Any, T: Any> overwrite(obj: O, name: String, value: T) {
-            // FINISHME: Split name at . and call this method recursively so that the casting horribleness above isn't needed
-            val field = obj::class.java.getField(name)
-            defaults.add(Triple(obj, field, field.get(obj)))
+            val split = name.split('.', limit = 2)
+            val field = obj::class.java.getField(split[0])
             field.isAccessible = true
+
+            if (split.size > 1) return overwrite(field.get(obj), split[1], value) // In the case of a string with periods, run the function recursively until we get to the last item which is then set
+
+            defaults.add(Triple(obj, field, field.get(obj)))
             field.set(obj, value)
         }
     }

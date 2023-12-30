@@ -536,7 +536,7 @@ fun setupCommands() {
             }
             jpegQuality = quality
             Core.settings.put("commpicquality", quality)
-            player.sendMessage(Core.bundle.format("client.command.pic.success", quality, if (quality == 0f) "png" else ""))
+            player.sendMessage(Core.bundle.format("client.command.pic.success", if (quality == 0f) "png" else quality))
         } catch (e: Exception) {
             Log.err(e)
             if (e is NumberFormatException) player.sendMessage(Core.bundle.format("client.command.pic.invalidargs", jpegQuality, if (jpegQuality == 0f) "png" else ""))
