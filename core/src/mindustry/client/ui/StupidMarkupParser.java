@@ -8,7 +8,7 @@ import arc.struct.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
 
-public class StupidMarkupParser { // FINISHME: The feature list should have a {prefix} field or something for client commands as the prefix can be changed
+public class StupidMarkupParser {
     private static final LabelStyle headingStyle = new LabelStyle(Fonts.def, Pal.accent);
     private static final Seq<Color> listColors = Seq.with(Color.gray, Color.lightGray);
 

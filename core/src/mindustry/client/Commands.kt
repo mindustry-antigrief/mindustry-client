@@ -49,7 +49,7 @@ fun setupCommands() {
         if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
             val command = clientCommandHandler.commandList.find { it.text == args[0] }
             if (command != null) {
-                player.sendMessage(Strings.format("[orange] !@[white] @[lightgray] - @", command.text, command.paramText, command.description))
+                player.sendMessage("[orange] ${clientCommandHandler.prefix}${command.text}[white] ${command.paramText}[lightgray] - ${command.description}")
                 return@register
             }
             player.sendMessage("[scarlet]input must be a number or command.")
@@ -186,12 +186,8 @@ fun setupCommands() {
         follow(BuildMinePath())
     }
 
-    register("buildmine", Core.bundle.get("client.command.buildmine.description")) {_, _: Player ->
-        follow(BuildMinePath())
-    }
-
-    register(" [message...]", Core.bundle.get("client.command.!.description")) { args, _ ->
-        sendMessage("!" + if (args.size == 1) args[0] else "")
+    register(" [message...]", Core.bundle.get("client.command.!.description").replace("!", clientCommandHandler.prefix)) { args, _ ->
+        sendMessage(clientCommandHandler.prefix + if (args.size == 1) args[0] else "")
     }
 
     register("shrug [message...]", Core.bundle.get("client.command.shrug.description")) { args, _ ->
@@ -385,7 +381,7 @@ fun setupCommands() {
         if (confirmed) {
             plans.chunked(200) { configs.add { Call.deletePlans(player, it.toIntArray()) } }
             player.sendMessage("[accent]Removed ${plans.size} plans, ${player.team().data().plans.size - plans.size} remain")
-        } else player.sendMessage("[accent]Found ${plans.size} (out of ${player.team().data().plans.size}) block ghosts within turret range, run [coral]!clearghosts c[] to remove them")
+        } else player.sendMessage("[accent]Found ${plans.size} (out of ${player.team().data().plans.size}) block ghosts within turret range, run [coral]${clientCommandHandler.prefix}clearghosts c[] to remove them")
     }
 
     register("e <certname> <message...>", Core.bundle.get("client.command.e.description")) { args, _ ->
