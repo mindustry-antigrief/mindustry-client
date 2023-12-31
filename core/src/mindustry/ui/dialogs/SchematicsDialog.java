@@ -139,7 +139,9 @@ public class SchematicsDialog extends BaseDialog{
                     //make sure *tags* fit
                     if(selectedTags.any() && !s.labels.containsAll(selectedTags)) continue;
                     //make sure search fits
-                    if(!search.isEmpty() && !ignoreSymbols.matcher(s.name().toLowerCase()).replaceAll("").contains(searchString)) continue;
+                    if(!search.isEmpty() && !(ignoreSymbols.matcher(s.name().toLowerCase()).replaceAll("").contains(searchString)
+                        || (Core.settings.getBool("schematicsearchdesc") && ignoreSymbols.matcher(s.description().toLowerCase()).replaceAll("").contains(searchString)))
+                    ) continue;
                     if(firstSchematic == null) firstSchematic = s;
 
                     Button[] sel = {null};
