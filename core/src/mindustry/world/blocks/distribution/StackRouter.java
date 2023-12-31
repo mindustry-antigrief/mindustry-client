@@ -10,7 +10,6 @@ import mindustry.world.*;
 
 public class StackRouter extends DuctRouter{
     public float baseEfficiency = 0f;
-    public static boolean sus = false;
 
     public @Load(value = "@-glow", fallback = "arrow-glow") TextureRegion glowRegion;
     public float glowAlpha = 1f;
