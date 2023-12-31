@@ -1886,9 +1886,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
         }
 
-        Building build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
-        if(build instanceof ControlBlock cont && cont.canControl() && build.team == player.team() && cont.unit() != player.unit() && cont.unit().isAI()){
-            return cont.unit();
+        if(allowBlockUnits){
+            Building build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
+            if(build instanceof ControlBlock cont && cont.canControl() && build.team == player.team() && cont.unit() != player.unit() && cont.unit().isAI()){
+                return cont.unit();
+            }
         }
 
         return null;
