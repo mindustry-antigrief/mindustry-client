@@ -1869,13 +1869,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 Core.input.mouseWorld().x, Core.input.mouseWorld().y,
                 input.shift() ? 100f : 40f,
                 //I don't think this optimization is worth it...
-                allowPlayers
-                    ? hidingAirUnits
-                        ? allowBlockUnits ? u -> !u.isLocal() && !u.isFlying() : u -> !u.isLocal() && !u.isFlying() && !(u instanceof BlockUnitc)
-                        : allowBlockUnits ? u -> !u.isLocal() : u -> !u.isLocal() && !(u instanceof BlockUnitc)
-                    : hidingAirUnits
-                        ? allowBlockUnits ? u -> u.isAI() && !u.isFlying() : u -> u.isAI() && !u.isFlying()  && !(u instanceof BlockUnitc)
-                        : allowBlockUnits ? Unitc::isAI : u -> u.isAI() && !(u instanceof BlockUnitc)
+                allowPlayers ? hidingAirUnits ? u -> !u.isLocal() && !u.isFlying() : u -> !u.isLocal()
+                        : hidingAirUnits ? u -> u.isAI() && !u.isFlying() : Unitc::isAI
             );
             if(unit != null){
                 unit.hitbox(Tmp.r1);
