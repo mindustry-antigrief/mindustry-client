@@ -51,6 +51,7 @@ public class SchematicsDialog extends BaseDialog{
         shouldPause = true;
         addCloseButton();
         buttons.button("@schematic.import", Icon.download, this::showImport);
+        buttons.button("@schematic.browser", Icon.host, this::toggleBrowser);
         makeButtonOverlay();
         shown(this::setup);
         onResize(this::setup);
@@ -359,6 +360,11 @@ public class SchematicsDialog extends BaseDialog{
                 }
             });
         }}.show();
+    }
+
+    void toggleBrowser(){
+        ui.schematicsBrowser.show();
+        this.hide();
     }
 
     //adds all new tags to the global list of tags

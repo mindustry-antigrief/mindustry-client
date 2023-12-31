@@ -198,6 +198,8 @@ public class Vars implements Loadable{
     public static Fi modDirectory;
     /** data subdirectory used for schematics */
     public static Fi schematicDirectory;
+    /** data subdirectory used for cached schematics repositories */
+    public static Fi schematicRepoDirectory;
     /** data subdirectory used for bleeding edge build versions */
     public static Fi bebuildDirectory;
     /** file used to store launch ID */
@@ -296,6 +298,7 @@ public class Vars implements Loadable{
         tmpDirectory = dataDirectory.child("tmp/");
         modDirectory = dataDirectory.child("mods/");
         schematicDirectory = OS.hasProp("schematicDir") ? Fi.get(OS.prop("schematicDir")) : dataDirectory.child("schematics/");
+        schematicRepoDirectory = dataDirectory.child("schematic_repo/");
         bebuildDirectory = dataDirectory.child("be_builds/");
         emptyMap = new Map(new StringMap());
 
