@@ -536,6 +536,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                 Table table = new Table();
                 table.button(Icon.cancel, Styles.settingTogglei, 16f, () -> {
                     ui.schematicBrowser.links.remove(link);
+                    ui.schematicBrowser.hiddenRepositories.remove(link);
                     refetch = true;
                     rebuild = true;
                     rebuild();
